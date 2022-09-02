@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C701FECAAA1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A426C54EE9
 	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:26:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229490AbiIBX0N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:26:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53426 "EHLO
+        id S230003AbiIBX0M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:26:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229995AbiIBX0M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:26:12 -0400
+        with ESMTP id S229490AbiIBX0L (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:26:11 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A56A985BE
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:10 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 749879835C
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5B54AB82E0B
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03818C433C1;
-        Fri,  2 Sep 2022 23:26:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E8344B82E02
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FCCCC433C1;
+        Fri,  2 Sep 2022 23:26:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161168;
-        bh=6+gcx4zGSzHgJ425XURpTnLuvrESz+JGE7iq00uCZRE=;
+        s=korg; t=1662161165;
+        bh=Kp4dqaR5Ic7Px00zM/L3RalQ/PEkculxyHHrTHWb8gY=;
         h=Date:To:From:Subject:From;
-        b=c9atPwE3HrGfaHJ0Ppkg6UC1oFNrCss2a/hlsyVNQ7cwKEgCdtNSnYZwG5VXhGvS/
-         w0vnwVARJCPNYj+upecbBmtqZhYGnvJeTowo5BSBCzTBUfzf21bX+czMFG7rOAaJyt
-         z5grzQiRfouGotwN6NTi15O8o8zZj9dXItSPAPgU=
-Date:   Fri, 02 Sep 2022 16:26:07 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=MXVitIDRy0SZoCi5Mj5CL3mKDexDYcQ4NktrTk+nOmfyuz1EoV4A6hXxAurmfoiVe
+         voXJgypN31n45n67u3YWiaTRPpqGClaYlgxFf1vONp4Os+zAZEjgO05dnZJE6NfSwI
+         ZTHmLFqYhigkreBd4N0Boza5KFZ3DpUHfwX46gu0=
+Date:   Fri, 02 Sep 2022 16:26:04 -0700
+To:     mm-commits@vger.kernel.org, hughd@google.com, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-fix-a-lot-of-comments-vs-mglru.patch added to mm-unstable branch
-Message-Id: <20220902232608.03818C433C1@smtp.kernel.org>
+Subject: + mm-vmscan-fix-a-lot-of-comments.patch added to mm-unstable branch
+Message-Id: <20220902232605.8FCCCC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmscan-fix-a-lot-of-comments-vs-mglru
+     Subject: mm/vmscan: fix a lot of comments
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-fix-a-lot-of-comments-vs-mglru.patch
+     mm-vmscan-fix-a-lot-of-comments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-a-lot-of-comments-vs-mglru.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-a-lot-of-comments.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,89 +64,822 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-fix-a-lot-of-comments-vs-mglru
-Date: Fri Sep  2 03:39:50 PM PDT 2022
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/vmscan: fix a lot of comments
+Date: Fri, 2 Sep 2022 20:45:57 +0100
 
-fixups for mglru additions
+Patch series "MM folio changes for 6.1", v2.
 
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Yu Zhao <yuzhao@google.com>
+My focus this round has been on shmem.  I believe it is now fully
+converted to folios.  Of course, shmem interacts with a lot of the swap
+cache and other parts of the kernel, so there are patches all over the MM.
+
+This patch series survives a round of xfstests on tmpfs, which is nice,
+but hardly an exhaustive test.  Hugh was nice enough to run a round of
+tests on it and found a bug which is fixed in this edition.
+
+
+This patch (of 57):
+
+A lot of comments mention pages when they should say folios.
+Fix them up.
+
+Link: https://lkml.kernel.org/r/20220902194653.1739778-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/vmscan.c |  253 ++++++++++++++++++++++++--------------------------
+ 1 file changed, 125 insertions(+), 128 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-a-lot-of-comments-vs-mglru
+--- a/mm/vmscan.c~mm-vmscan-fix-a-lot-of-comments
 +++ a/mm/vmscan.c
-@@ -3643,7 +3643,7 @@ static int folio_update_gen(struct folio
- 	do {
- 		/* lru_gen_del_folio() has isolated this page? */
- 		if (!(old_flags & LRU_GEN_MASK)) {
--			/* for shrink_page_list() */
-+			/* for shrink_folio_list() */
- 			new_flags = old_flags | BIT(PG_referenced);
- 			continue;
- 		}
-@@ -4571,7 +4571,7 @@ static void lru_gen_age_node(struct pgli
+@@ -90,7 +90,7 @@ struct scan_control {
+ 	unsigned long	anon_cost;
+ 	unsigned long	file_cost;
+ 
+-	/* Can active pages be deactivated as part of reclaim? */
++	/* Can active folios be deactivated as part of reclaim? */
+ #define DEACTIVATE_ANON 1
+ #define DEACTIVATE_FILE 2
+ 	unsigned int may_deactivate:2;
+@@ -100,10 +100,10 @@ struct scan_control {
+ 	/* Writepage batching in laptop mode; RECLAIM_WRITE */
+ 	unsigned int may_writepage:1;
+ 
+-	/* Can mapped pages be reclaimed? */
++	/* Can mapped folios be reclaimed? */
+ 	unsigned int may_unmap:1;
+ 
+-	/* Can pages be swapped as part of reclaim? */
++	/* Can folios be swapped as part of reclaim? */
+ 	unsigned int may_swap:1;
+ 
+ 	/* Proactive reclaim invoked by userspace through memory.reclaim */
+@@ -128,7 +128,7 @@ struct scan_control {
+ 	/* There is easily reclaimable cold cache in the current node */
+ 	unsigned int cache_trim_mode:1;
+ 
+-	/* The file pages on the current node are dangerously low */
++	/* The file folios on the current node are dangerously low */
+ 	unsigned int file_is_tiny:1;
+ 
+ 	/* Always discard instead of demoting to lower tier memory */
+@@ -147,7 +147,7 @@ struct scan_control {
+ 	/* Scan (total_size >> priority) pages at once */
+ 	s8 priority;
+ 
+-	/* The highest zone to isolate pages for reclaim from */
++	/* The highest zone to isolate folios for reclaim from */
+ 	s8 reclaim_idx;
+ 
+ 	/* This context's GFP mask */
+@@ -455,7 +455,7 @@ static bool cgroup_reclaim(struct scan_c
+  *
+  * The normal page dirty throttling mechanism in balance_dirty_pages() is
+  * completely broken with the legacy memcg and direct stalling in
+- * shrink_page_list() is used for throttling instead, which lacks all the
++ * shrink_folio_list() is used for throttling instead, which lacks all the
+  * niceties such as fairness, adaptive pausing, bandwidth proportional
+  * allocation and configurability.
+  *
+@@ -576,9 +576,9 @@ static inline bool can_reclaim_anon_page
  }
  
  /*
-- * This function exploits spatial locality when shrink_page_list() walks the
-+ * This function exploits spatial locality when shrink_folio_list() walks the
-  * rmap. It scans the adjacent PTEs of a young PTE and promotes hot pages. If
-  * the scan was done cacheline efficiently, it adds the PMD entry pointing to
-  * the PTE table to the Bloom filter. This forms a feedback loop between the
-@@ -4790,7 +4790,7 @@ static bool isolate_folio(struct lruvec
- 	if (!folio_test_referenced(folio))
- 		set_mask_bits(&folio->flags, LRU_REFS_MASK | LRU_REFS_FLAGS, 0);
+- * This misses isolated pages which are not accounted for to save counters.
++ * This misses isolated folios which are not accounted for to save counters.
+  * As the data only determines if reclaim or compaction continues, it is
+- * not expected that isolated pages will be a dominating factor.
++ * not expected that isolated folios will be a dominating factor.
+  */
+ unsigned long zone_reclaimable_pages(struct zone *zone)
+ {
+@@ -1051,9 +1051,9 @@ void drop_slab(void)
+ static inline int is_page_cache_freeable(struct folio *folio)
+ {
+ 	/*
+-	 * A freeable page cache page is referenced only by the caller
+-	 * that isolated the page, the page cache and optional buffer
+-	 * heads at page->private.
++	 * A freeable page cache folio is referenced only by the caller
++	 * that isolated the folio, the page cache and optional filesystem
++	 * private data at folio->private.
+ 	 */
+ 	return folio_ref_count(folio) - folio_test_private(folio) ==
+ 		1 + folio_nr_pages(folio);
+@@ -1093,8 +1093,8 @@ static bool skip_throttle_noprogress(pg_
+ 		return true;
  
--	/* for shrink_page_list() */
-+	/* for shrink_folio_list() */
- 	folio_clear_reclaim(folio);
- 	folio_clear_referenced(folio);
+ 	/*
+-	 * If there are a lot of dirty/writeback pages then do not
+-	 * throttle as throttling will occur when the pages cycle
++	 * If there are a lot of dirty/writeback folios then do not
++	 * throttle as throttling will occur when the folios cycle
+ 	 * towards the end of the LRU if still under writeback.
+ 	 */
+ 	for (i = 0; i < MAX_NR_ZONES; i++) {
+@@ -1137,7 +1137,7 @@ void reclaim_throttle(pg_data_t *pgdat,
+ 	 * short. Failing to make progress or waiting on writeback are
+ 	 * potentially long-lived events so use a longer timeout. This is shaky
+ 	 * logic as a failure to make progress could be due to anything from
+-	 * writeback to a slow device to excessive references pages at the tail
++	 * writeback to a slow device to excessive referenced folios at the tail
+ 	 * of the inactive LRU.
+ 	 */
+ 	switch(reason) {
+@@ -1183,8 +1183,8 @@ void reclaim_throttle(pg_data_t *pgdat,
+ }
  
-@@ -4993,7 +4993,7 @@ static int evict_folios(struct lruvec *l
- 	if (list_empty(&list))
- 		return scanned;
+ /*
+- * Account for pages written if tasks are throttled waiting on dirty
+- * pages to clean. If enough pages have been cleaned since throttling
++ * Account for folios written if tasks are throttled waiting on dirty
++ * folios to clean. If enough folios have been cleaned since throttling
+  * started then wakeup the throttled tasks.
+  */
+ void __acct_reclaim_writeback(pg_data_t *pgdat, struct folio *folio,
+@@ -1210,18 +1210,18 @@ void __acct_reclaim_writeback(pg_data_t
  
--	reclaimed = shrink_page_list(&list, pgdat, sc, &stat, false);
-+	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false);
+ /* possible outcome of pageout() */
+ typedef enum {
+-	/* failed to write page out, page is locked */
++	/* failed to write folio out, folio is locked */
+ 	PAGE_KEEP,
+-	/* move page to the active list, page is locked */
++	/* move folio to the active list, folio is locked */
+ 	PAGE_ACTIVATE,
+-	/* page has been sent to the disk successfully, page is unlocked */
++	/* folio has been sent to the disk successfully, folio is unlocked */
+ 	PAGE_SUCCESS,
+-	/* page is clean and locked */
++	/* folio is clean and locked */
+ 	PAGE_CLEAN,
+ } pageout_t;
  
- 	list_for_each_entry(folio, &list, lru) {
- 		/* restore LRU_REFS_FLAGS cleared by isolate_folio() */
-@@ -5010,7 +5010,7 @@ static int evict_folios(struct lruvec *l
+ /*
+- * pageout is called by shrink_page_list() for each dirty page.
++ * pageout is called by shrink_folio_list() for each dirty folio.
+  * Calls ->writepage().
+  */
+ static pageout_t pageout(struct folio *folio, struct address_space *mapping,
+@@ -1295,7 +1295,7 @@ static pageout_t pageout(struct folio *f
+ }
+ 
+ /*
+- * Same as remove_mapping, but if the page is removed from the mapping, it
++ * Same as remove_mapping, but if the folio is removed from the mapping, it
+  * gets returned with a refcount of 0.
+  */
+ static int __remove_mapping(struct address_space *mapping, struct folio *folio,
+@@ -1311,34 +1311,34 @@ static int __remove_mapping(struct addre
+ 		spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	/*
+-	 * The non racy check for a busy page.
++	 * The non racy check for a busy folio.
+ 	 *
+ 	 * Must be careful with the order of the tests. When someone has
+-	 * a ref to the page, it may be possible that they dirty it then
+-	 * drop the reference. So if PageDirty is tested before page_count
+-	 * here, then the following race may occur:
++	 * a ref to the folio, it may be possible that they dirty it then
++	 * drop the reference. So if the dirty flag is tested before the
++	 * refcount here, then the following race may occur:
+ 	 *
+ 	 * get_user_pages(&page);
+ 	 * [user mapping goes away]
+ 	 * write_to(page);
+-	 *				!PageDirty(page)    [good]
+-	 * SetPageDirty(page);
+-	 * put_page(page);
+-	 *				!page_count(page)   [good, discard it]
++	 *				!folio_test_dirty(folio)    [good]
++	 * folio_set_dirty(folio);
++	 * folio_put(folio);
++	 *				!refcount(folio)   [good, discard it]
+ 	 *
+ 	 * [oops, our write_to data is lost]
+ 	 *
+ 	 * Reversing the order of the tests ensures such a situation cannot
+-	 * escape unnoticed. The smp_rmb is needed to ensure the page->flags
+-	 * load is not satisfied before that of page->_refcount.
++	 * escape unnoticed. The smp_rmb is needed to ensure the folio->flags
++	 * load is not satisfied before that of folio->_refcount.
+ 	 *
+-	 * Note that if SetPageDirty is always performed via set_page_dirty,
++	 * Note that if the dirty flag is always set via folio_mark_dirty,
+ 	 * and thus under the i_pages lock, then this ordering is not required.
+ 	 */
+ 	refcount = 1 + folio_nr_pages(folio);
+ 	if (!folio_ref_freeze(folio, refcount))
+ 		goto cannot_free;
+-	/* note: atomic_cmpxchg in page_ref_freeze provides the smp_rmb */
++	/* note: atomic_cmpxchg in folio_ref_freeze provides the smp_rmb */
+ 	if (unlikely(folio_test_dirty(folio))) {
+ 		folio_ref_unfreeze(folio, refcount);
+ 		goto cannot_free;
+@@ -1369,7 +1369,7 @@ static int __remove_mapping(struct addre
+ 		 * back.
+ 		 *
+ 		 * We also don't store shadows for DAX mappings because the
+-		 * only page cache pages found in these are zero pages
++		 * only page cache folios found in these are zero pages
+ 		 * covering holes, and because we don't want to mix DAX
+ 		 * exceptional entries and shadow exceptional entries in the
+ 		 * same address_space.
+@@ -1437,14 +1437,14 @@ void folio_putback_lru(struct folio *fol
+ 	folio_put(folio);		/* drop ref from isolate */
+ }
+ 
+-enum page_references {
+-	PAGEREF_RECLAIM,
+-	PAGEREF_RECLAIM_CLEAN,
+-	PAGEREF_KEEP,
+-	PAGEREF_ACTIVATE,
++enum folio_references {
++	FOLIOREF_RECLAIM,
++	FOLIOREF_RECLAIM_CLEAN,
++	FOLIOREF_KEEP,
++	FOLIOREF_ACTIVATE,
+ };
+ 
+-static enum page_references folio_check_references(struct folio *folio,
++static enum folio_references folio_check_references(struct folio *folio,
+ 						  struct scan_control *sc)
+ {
+ 	int referenced_ptes, referenced_folio;
+@@ -1459,11 +1459,11 @@ static enum page_references folio_check_
+ 	 * Let the folio, now marked Mlocked, be moved to the unevictable list.
+ 	 */
+ 	if (vm_flags & VM_LOCKED)
+-		return PAGEREF_ACTIVATE;
++		return FOLIOREF_ACTIVATE;
+ 
+ 	/* rmap lock contention: rotate */
+ 	if (referenced_ptes == -1)
+-		return PAGEREF_KEEP;
++		return FOLIOREF_KEEP;
+ 
+ 	if (referenced_ptes) {
+ 		/*
+@@ -1483,34 +1483,34 @@ static enum page_references folio_check_
+ 		folio_set_referenced(folio);
+ 
+ 		if (referenced_folio || referenced_ptes > 1)
+-			return PAGEREF_ACTIVATE;
++			return FOLIOREF_ACTIVATE;
+ 
+ 		/*
+ 		 * Activate file-backed executable folios after first usage.
+ 		 */
+ 		if ((vm_flags & VM_EXEC) && folio_is_file_lru(folio))
+-			return PAGEREF_ACTIVATE;
++			return FOLIOREF_ACTIVATE;
+ 
+-		return PAGEREF_KEEP;
++		return FOLIOREF_KEEP;
+ 	}
+ 
+ 	/* Reclaim if clean, defer dirty folios to writeback */
+ 	if (referenced_folio && folio_is_file_lru(folio))
+-		return PAGEREF_RECLAIM_CLEAN;
++		return FOLIOREF_RECLAIM_CLEAN;
+ 
+-	return PAGEREF_RECLAIM;
++	return FOLIOREF_RECLAIM;
+ }
+ 
+-/* Check if a page is dirty or under writeback */
++/* Check if a folio is dirty or under writeback */
+ static void folio_check_dirty_writeback(struct folio *folio,
+ 				       bool *dirty, bool *writeback)
+ {
+ 	struct address_space *mapping;
+ 
+ 	/*
+-	 * Anonymous pages are not handled by flushers and must be written
++	 * Anonymous folios are not handled by flushers and must be written
+ 	 * from reclaim context. Do not stall reclaim based on them.
+-	 * MADV_FREE anonymous pages are put into inactive file list too.
++	 * MADV_FREE anonymous folios are put into inactive file list too.
+ 	 * They could be mistakenly treated as file lru. So further anon
+ 	 * test is needed.
+ 	 */
+@@ -1565,11 +1565,10 @@ static struct page *alloc_demote_page(st
+ }
+ 
+ /*
+- * Take pages on @demote_list and attempt to demote them to
+- * another node.  Pages which are not demoted are left on
+- * @demote_pages.
++ * Take folios on @demote_folios and attempt to demote them to another node.
++ * Folios which are not demoted are left on @demote_folios.
+  */
+-static unsigned int demote_page_list(struct list_head *demote_pages,
++static unsigned int demote_folio_list(struct list_head *demote_folios,
+ 				     struct pglist_data *pgdat)
+ {
+ 	int target_nid = next_demotion_node(pgdat->node_id);
+@@ -1588,7 +1587,7 @@ static unsigned int demote_page_list(str
+ 		.nmask = &allowed_mask
+ 	};
+ 
+-	if (list_empty(demote_pages))
++	if (list_empty(demote_folios))
+ 		return 0;
+ 
+ 	if (target_nid == NUMA_NO_NODE)
+@@ -1597,7 +1596,7 @@ static unsigned int demote_page_list(str
+ 	node_get_allowed_targets(pgdat, &allowed_mask);
+ 
+ 	/* Demotion ignores all cpuset and mempolicy settings */
+-	migrate_pages(demote_pages, alloc_demote_page, NULL,
++	migrate_pages(demote_folios, alloc_demote_page, NULL,
+ 		      (unsigned long)&mtc, MIGRATE_ASYNC, MR_DEMOTION,
+ 		      &nr_succeeded);
+ 
+@@ -1626,17 +1625,15 @@ static bool may_enter_fs(struct folio *f
+ }
+ 
+ /*
+- * shrink_page_list() returns the number of reclaimed pages
++ * shrink_folio_list() returns the number of reclaimed pages
+  */
+-static unsigned int shrink_page_list(struct list_head *page_list,
+-				     struct pglist_data *pgdat,
+-				     struct scan_control *sc,
+-				     struct reclaim_stat *stat,
+-				     bool ignore_references)
+-{
+-	LIST_HEAD(ret_pages);
+-	LIST_HEAD(free_pages);
+-	LIST_HEAD(demote_pages);
++static unsigned int shrink_folio_list(struct list_head *folio_list,
++		struct pglist_data *pgdat, struct scan_control *sc,
++		struct reclaim_stat *stat, bool ignore_references)
++{
++	LIST_HEAD(ret_folios);
++	LIST_HEAD(free_folios);
++	LIST_HEAD(demote_folios);
+ 	unsigned int nr_reclaimed = 0;
+ 	unsigned int pgactivate = 0;
+ 	bool do_demote_pass;
+@@ -1647,16 +1644,16 @@ static unsigned int shrink_page_list(str
+ 	do_demote_pass = can_demote(pgdat->node_id, sc);
+ 
+ retry:
+-	while (!list_empty(page_list)) {
++	while (!list_empty(folio_list)) {
+ 		struct address_space *mapping;
+ 		struct folio *folio;
+-		enum page_references references = PAGEREF_RECLAIM;
++		enum folio_references references = FOLIOREF_RECLAIM;
+ 		bool dirty, writeback;
+ 		unsigned int nr_pages;
+ 
+ 		cond_resched();
+ 
+-		folio = lru_to_folio(page_list);
++		folio = lru_to_folio(folio_list);
+ 		list_del(&folio->lru);
+ 
+ 		if (!folio_trylock(folio))
+@@ -1780,7 +1777,7 @@ retry:
+ 				folio_unlock(folio);
+ 				folio_wait_writeback(folio);
+ 				/* then go back and try same folio again */
+-				list_add_tail(&folio->lru, page_list);
++				list_add_tail(&folio->lru, folio_list);
+ 				continue;
+ 			}
+ 		}
+@@ -1789,13 +1786,13 @@ retry:
+ 			references = folio_check_references(folio, sc);
+ 
+ 		switch (references) {
+-		case PAGEREF_ACTIVATE:
++		case FOLIOREF_ACTIVATE:
+ 			goto activate_locked;
+-		case PAGEREF_KEEP:
++		case FOLIOREF_KEEP:
+ 			stat->nr_ref_keep += nr_pages;
+ 			goto keep_locked;
+-		case PAGEREF_RECLAIM:
+-		case PAGEREF_RECLAIM_CLEAN:
++		case FOLIOREF_RECLAIM:
++		case FOLIOREF_RECLAIM_CLEAN:
+ 			; /* try to reclaim the folio below */
+ 		}
+ 
+@@ -1805,7 +1802,7 @@ retry:
+ 		 */
+ 		if (do_demote_pass &&
+ 		    (thp_migration_supported() || !folio_test_large(folio))) {
+-			list_add(&folio->lru, &demote_pages);
++			list_add(&folio->lru, &demote_folios);
+ 			folio_unlock(folio);
+ 			continue;
+ 		}
+@@ -1832,7 +1829,7 @@ retry:
+ 					 */
+ 					if (!folio_entire_mapcount(folio) &&
+ 					    split_folio_to_list(folio,
+-								page_list))
++								folio_list))
+ 						goto activate_locked;
+ 				}
+ 				if (!add_to_swap(folio)) {
+@@ -1840,7 +1837,7 @@ retry:
+ 						goto activate_locked_split;
+ 					/* Fallback to swap normal pages */
+ 					if (split_folio_to_list(folio,
+-								page_list))
++								folio_list))
+ 						goto activate_locked;
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 					count_vm_event(THP_SWPOUT_FALLBACK);
+@@ -1852,7 +1849,7 @@ retry:
+ 		} else if (folio_test_swapbacked(folio) &&
+ 			   folio_test_large(folio)) {
+ 			/* Split shmem folio */
+-			if (split_folio_to_list(folio, page_list))
++			if (split_folio_to_list(folio, folio_list))
+ 				goto keep_locked;
+ 		}
+ 
+@@ -1917,7 +1914,7 @@ retry:
+ 				goto activate_locked;
+ 			}
+ 
+-			if (references == PAGEREF_RECLAIM_CLEAN)
++			if (references == FOLIOREF_RECLAIM_CLEAN)
+ 				goto keep_locked;
+ 			if (!may_enter_fs(folio, sc->gfp_mask))
+ 				goto keep_locked;
+@@ -2030,13 +2027,13 @@ free_it:
+ 		nr_reclaimed += nr_pages;
+ 
+ 		/*
+-		 * Is there need to periodically free_page_list? It would
++		 * Is there need to periodically free_folio_list? It would
+ 		 * appear not as the counts should be low
+ 		 */
+ 		if (unlikely(folio_test_large(folio)))
+ 			destroy_large_folio(folio);
+ 		else
+-			list_add(&folio->lru, &free_pages);
++			list_add(&folio->lru, &free_folios);
+ 		continue;
+ 
+ activate_locked_split:
+@@ -2064,29 +2061,29 @@ activate_locked:
+ keep_locked:
+ 		folio_unlock(folio);
+ keep:
+-		list_add(&folio->lru, &ret_pages);
++		list_add(&folio->lru, &ret_folios);
+ 		VM_BUG_ON_FOLIO(folio_test_lru(folio) ||
+ 				folio_test_unevictable(folio), folio);
+ 	}
+-	/* 'page_list' is always empty here */
++	/* 'folio_list' is always empty here */
+ 
+ 	/* Migrate folios selected for demotion */
+-	nr_reclaimed += demote_page_list(&demote_pages, pgdat);
+-	/* Folios that could not be demoted are still in @demote_pages */
+-	if (!list_empty(&demote_pages)) {
+-		/* Folios which weren't demoted go back on @page_list for retry: */
+-		list_splice_init(&demote_pages, page_list);
++	nr_reclaimed += demote_folio_list(&demote_folios, pgdat);
++	/* Folios that could not be demoted are still in @demote_folios */
++	if (!list_empty(&demote_folios)) {
++		/* Folios which weren't demoted go back on @folio_list for retry: */
++		list_splice_init(&demote_folios, folio_list);
+ 		do_demote_pass = false;
+ 		goto retry;
+ 	}
+ 
+ 	pgactivate = stat->nr_activate[0] + stat->nr_activate[1];
+ 
+-	mem_cgroup_uncharge_list(&free_pages);
++	mem_cgroup_uncharge_list(&free_folios);
+ 	try_to_unmap_flush();
+-	free_unref_page_list(&free_pages);
++	free_unref_page_list(&free_folios);
+ 
+-	list_splice(&ret_pages, page_list);
++	list_splice(&ret_folios, folio_list);
+ 	count_vm_events(PGACTIVATE, pgactivate);
+ 
+ 	if (plug)
+@@ -2095,7 +2092,7 @@ keep:
+ }
+ 
+ unsigned int reclaim_clean_pages_from_list(struct zone *zone,
+-					    struct list_head *folio_list)
++					   struct list_head *folio_list)
+ {
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+@@ -2123,7 +2120,7 @@ unsigned int reclaim_clean_pages_from_li
+ 	 * change in the future.
+ 	 */
+ 	noreclaim_flag = memalloc_noreclaim_save();
+-	nr_reclaimed = shrink_page_list(&clean_folios, zone->zone_pgdat, &sc,
++	nr_reclaimed = shrink_folio_list(&clean_folios, zone->zone_pgdat, &sc,
+ 					&stat, true);
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 
+@@ -2182,7 +2179,7 @@ static __always_inline void update_lru_s
+  *
+  * returns how many pages were moved onto *@dst.
+  */
+-static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
++static unsigned long isolate_lru_folios(unsigned long nr_to_scan,
+ 		struct lruvec *lruvec, struct list_head *dst,
+ 		unsigned long *nr_scanned, struct scan_control *sc,
+ 		enum lru_list lru)
+@@ -2289,8 +2286,8 @@ move:
+  *
+  * Context:
+  *
+- * (1) Must be called with an elevated refcount on the page. This is a
+- *     fundamental difference from isolate_lru_pages() (which is called
++ * (1) Must be called with an elevated refcount on the folio. This is a
++ *     fundamental difference from isolate_lru_folios() (which is called
+  *     without a stable reference).
+  * (2) The lru_lock must not be held.
+  * (3) Interrupts must be enabled.
+@@ -2362,13 +2359,13 @@ static int too_many_isolated(struct pgli
+ }
+ 
+ /*
+- * move_pages_to_lru() moves folios from private @list to appropriate LRU list.
++ * move_folios_to_lru() moves folios from private @list to appropriate LRU list.
+  * On return, @list is reused as a list of folios to be freed by the caller.
+  *
+  * Returns the number of pages moved to the given lruvec.
+  */
+-static unsigned int move_pages_to_lru(struct lruvec *lruvec,
+-				      struct list_head *list)
++static unsigned int move_folios_to_lru(struct lruvec *lruvec,
++		struct list_head *list)
+ {
+ 	int nr_pages, nr_moved = 0;
+ 	LIST_HEAD(folios_to_free);
+@@ -2388,7 +2385,7 @@ static unsigned int move_pages_to_lru(st
+ 		/*
+ 		 * The folio_set_lru needs to be kept here for list integrity.
+ 		 * Otherwise:
+-		 *   #0 move_pages_to_lru             #1 release_pages
++		 *   #0 move_folios_to_lru             #1 release_pages
+ 		 *   if (!folio_put_testzero())
+ 		 *				      if (folio_put_testzero())
+ 		 *				        !lru //skip lru_lock
+@@ -2445,11 +2442,11 @@ static int current_may_throttle(void)
+  * shrink_inactive_list() is a helper for shrink_node().  It returns the number
+  * of reclaimed pages
+  */
+-static unsigned long
+-shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
+-		     struct scan_control *sc, enum lru_list lru)
++static unsigned long shrink_inactive_list(unsigned long nr_to_scan,
++		struct lruvec *lruvec, struct scan_control *sc,
++		enum lru_list lru)
+ {
+-	LIST_HEAD(page_list);
++	LIST_HEAD(folio_list);
+ 	unsigned long nr_scanned;
+ 	unsigned int nr_reclaimed = 0;
+ 	unsigned long nr_taken;
+@@ -2476,7 +2473,7 @@ shrink_inactive_list(unsigned long nr_to
  
  	spin_lock_irq(&lruvec->lru_lock);
  
--	move_pages_to_lru(lruvec, &list);
-+	move_folios_to_lru(lruvec, &list);
+-	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &page_list,
++	nr_taken = isolate_lru_folios(nr_to_scan, lruvec, &folio_list,
+ 				     &nr_scanned, sc, lru);
  
- 	walk = current->reclaim_state->mm_walk;
- 	if (walk && walk->batched)
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
+@@ -2491,10 +2488,10 @@ shrink_inactive_list(unsigned long nr_to
+ 	if (nr_taken == 0)
+ 		return 0;
+ 
+-	nr_reclaimed = shrink_page_list(&page_list, pgdat, sc, &stat, false);
++	nr_reclaimed = shrink_folio_list(&folio_list, pgdat, sc, &stat, false);
+ 
+ 	spin_lock_irq(&lruvec->lru_lock);
+-	move_pages_to_lru(lruvec, &page_list);
++	move_folios_to_lru(lruvec, &folio_list);
+ 
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+ 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
+@@ -2505,16 +2502,16 @@ shrink_inactive_list(unsigned long nr_to
+ 	spin_unlock_irq(&lruvec->lru_lock);
+ 
+ 	lru_note_cost(lruvec, file, stat.nr_pageout);
+-	mem_cgroup_uncharge_list(&page_list);
+-	free_unref_page_list(&page_list);
++	mem_cgroup_uncharge_list(&folio_list);
++	free_unref_page_list(&folio_list);
+ 
+ 	/*
+-	 * If dirty pages are scanned that are not queued for IO, it
++	 * If dirty folios are scanned that are not queued for IO, it
+ 	 * implies that flushers are not doing their job. This can
+-	 * happen when memory pressure pushes dirty pages to the end of
++	 * happen when memory pressure pushes dirty folios to the end of
+ 	 * the LRU before the dirty limits are breached and the dirty
+ 	 * data has expired. It can also happen when the proportion of
+-	 * dirty pages grows not through writes but through memory
++	 * dirty folios grows not through writes but through memory
+ 	 * pressure reclaiming all the clean cache. And in some cases,
+ 	 * the flushers simply cannot keep up with the allocation
+ 	 * rate. Nudge the flusher threads in case they are asleep.
+@@ -2573,7 +2570,7 @@ static void shrink_active_list(unsigned
+ 
+ 	spin_lock_irq(&lruvec->lru_lock);
+ 
+-	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &l_hold,
++	nr_taken = isolate_lru_folios(nr_to_scan, lruvec, &l_hold,
+ 				     &nr_scanned, sc, lru);
+ 
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
+@@ -2633,8 +2630,8 @@ static void shrink_active_list(unsigned
+ 	 */
+ 	spin_lock_irq(&lruvec->lru_lock);
+ 
+-	nr_activate = move_pages_to_lru(lruvec, &l_active);
+-	nr_deactivate = move_pages_to_lru(lruvec, &l_inactive);
++	nr_activate = move_folios_to_lru(lruvec, &l_active);
++	nr_deactivate = move_folios_to_lru(lruvec, &l_inactive);
+ 	/* Keep all free folios in l_active list */
+ 	list_splice(&l_inactive, &l_active);
+ 
+@@ -2650,7 +2647,7 @@ static void shrink_active_list(unsigned
+ 			nr_deactivate, nr_rotated, sc->priority, file);
+ }
+ 
+-static unsigned int reclaim_page_list(struct list_head *page_list,
++static unsigned int reclaim_folio_list(struct list_head *folio_list,
+ 				      struct pglist_data *pgdat)
+ {
+ 	struct reclaim_stat dummy_stat;
+@@ -2664,9 +2661,9 @@ static unsigned int reclaim_page_list(st
+ 		.no_demotion = 1,
+ 	};
+ 
+-	nr_reclaimed = shrink_page_list(page_list, pgdat, &sc, &dummy_stat, false);
+-	while (!list_empty(page_list)) {
+-		folio = lru_to_folio(page_list);
++	nr_reclaimed = shrink_folio_list(folio_list, pgdat, &sc, &dummy_stat, false);
++	while (!list_empty(folio_list)) {
++		folio = lru_to_folio(folio_list);
+ 		list_del(&folio->lru);
+ 		folio_putback_lru(folio);
+ 	}
+@@ -2696,11 +2693,11 @@ unsigned long reclaim_pages(struct list_
+ 			continue;
+ 		}
+ 
+-		nr_reclaimed += reclaim_page_list(&node_folio_list, NODE_DATA(nid));
++		nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid));
+ 		nid = folio_nid(lru_to_folio(folio_list));
+ 	} while (!list_empty(folio_list));
+ 
+-	nr_reclaimed += reclaim_page_list(&node_folio_list, NODE_DATA(nid));
++	nr_reclaimed += reclaim_folio_list(&node_folio_list, NODE_DATA(nid));
+ 
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 
+@@ -2730,13 +2727,13 @@ static unsigned long shrink_list(enum lr
+  * but large enough to avoid thrashing the aggregate readahead window.
+  *
+  * Both inactive lists should also be large enough that each inactive
+- * page has a chance to be referenced again before it is reclaimed.
++ * folio has a chance to be referenced again before it is reclaimed.
+  *
+  * If that fails and refaulting is observed, the inactive list grows.
+  *
+- * The inactive_ratio is the target ratio of ACTIVE to INACTIVE pages
++ * The inactive_ratio is the target ratio of ACTIVE to INACTIVE folios
+  * on this LRU, maintained by the pageout code. An inactive_ratio
+- * of 3 means 3:1 or 25% of the pages are kept on the inactive list.
++ * of 3 means 3:1 or 25% of the folios are kept on the inactive list.
+  *
+  * total     target    max
+  * memory    ratio     inactive
+@@ -2885,8 +2882,8 @@ static void prepare_scan_count(pg_data_t
+  * Determine how aggressively the anon and file LRU lists should be
+  * scanned.
+  *
+- * nr[0] = anon inactive pages to scan; nr[1] = anon active pages to scan
+- * nr[2] = file inactive pages to scan; nr[3] = file active pages to scan
++ * nr[0] = anon inactive folios to scan; nr[1] = anon active folios to scan
++ * nr[2] = file inactive folios to scan; nr[3] = file active folios to scan
+  */
+ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+ 			   unsigned long *nr)
+@@ -2901,7 +2898,7 @@ static void get_scan_count(struct lruvec
+ 	unsigned long ap, fp;
+ 	enum lru_list lru;
+ 
+-	/* If we have no swap space, do not bother scanning anon pages. */
++	/* If we have no swap space, do not bother scanning anon folios. */
+ 	if (!sc->may_swap || !can_reclaim_anon_pages(memcg, pgdat->node_id, sc)) {
+ 		scan_balance = SCAN_FILE;
+ 		goto out;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
-procfs-add-path-to-proc-pid-fdinfo-fix.patch
-zsmalloc-zs_object_copy-add-clarifying-comment-fix.patch
-mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes-fix-fix.patch
-mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
-zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch
-mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
-mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
-mm-drop-oom-code-from-exit_mmap-fix-fix.patch
-mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
-mm-gupc-refactor-check_and_migrate_movable_pages-fix.patch
-hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache-fix.patch
-hugetlb-handle-truncate-racing-with-page-faults-fix-fix.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree-fix.patch
-page_ext-introduce-boot-parameter-early_page_ext-fix.patch
-mm-fix-null-ptr-deref-in-kswapd_is_running-fix.patch
-mm-vmscan-fix-a-lot-of-comments-vs-mglru.patch
-ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
+tools-fix-compilation-after-gfp_typesh-split.patch
+mm-fix-vm_bug_on-in-__delete_from_swap_cache.patch
+vmscan-check-folio_test_private-not-folio_get_private.patch
+support-highmem-pages-in-vmap_pages_range_noflush.patch
+mm-add-vma-iterator.patch
+mmap-use-the-vma-iterator-in-count_vma_pages_range.patch
+proc-remove-vma-rbtree-use-from-nommu.patch
+arm64-remove-mmap-linked-list-from-vdso.patch
+parisc-remove-mmap-linked-list-from-cache-handling.patch
+powerpc-remove-mmap-linked-list-walks.patch
+s390-remove-vma-linked-list-walks.patch
+x86-remove-vma-linked-list-walks.patch
+xtensa-remove-vma-linked-list-walks.patch
+cxl-remove-vma-linked-list-walk.patch
+optee-remove-vma-linked-list-walk.patch
+um-remove-vma-linked-list-walk.patch
+coredump-remove-vma-linked-list-walk.patch
+exec-use-vma-iterator-instead-of-linked-list.patch
+fs-proc-task_mmu-stop-using-linked-list-and-highest_vm_end.patch
+acct-use-vma-iterator-instead-of-linked-list.patch
+perf-use-vma-iterator.patch
+sched-use-maple-tree-iterator-to-walk-vmas.patch
+fork-use-vma-iterator.patch
+mm-khugepaged-stop-using-vma-linked-list.patch
+mm-ksm-use-vma-iterators-instead-of-vma-linked-list.patch
+mm-mlock-use-vma-iterator-and-maple-state-instead-of-vma-linked-list.patch
+mm-pagewalk-use-vma_find-instead-of-vma-linked-list.patch
+i915-use-the-vma-iterator.patch
+nommu-remove-uses-of-vma-linked-list.patch
+mm-vmscan-fix-a-lot-of-comments.patch
+mm-add-the-first-tail-page-to-struct-folio.patch
+mm-reimplement-folio_order-and-folio_nr_pages.patch
+mm-add-split_folio.patch
+mm-add-folio_add_lru_vma.patch
+shmem-convert-shmem_writepage-to-use-a-folio-throughout.patch
+shmem-convert-shmem_delete_from_page_cache-to-take-a-folio.patch
+shmem-convert-shmem_replace_page-to-use-folios-throughout.patch
+mm-swapfile-remove-page_swapcount.patch
+mm-swapfile-convert-try_to_free_swap-to-folio_free_swap.patch
+mm-swap-convert-__read_swap_cache_async-to-use-a-folio.patch
+mm-swap-convert-add_to_swap_cache-to-take-a-folio.patch
+mm-swap-convert-put_swap_page-to-put_swap_folio.patch
+mm-convert-do_swap_page-to-use-a-folio.patch
+mm-convert-do_swap_pages-swapcache-variable-to-a-folio.patch
+memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio.patch
+shmem-convert-shmem_mfill_atomic_pte-to-use-a-folio.patch
+shmem-convert-shmem_replace_page-to-shmem_replace_folio.patch
+swap-add-swap_cache_get_folio.patch
+shmem-eliminate-struct-page-from-shmem_swapin_folio.patch
+shmem-convert-shmem_getpage_gfp-to-shmem_get_folio_gfp.patch
+shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp.patch
+shmem-convert-shmem_read_mapping_page_gfp-to-use-shmem_get_folio_gfp.patch
+shmem-add-shmem_get_folio.patch
+shmem-convert-shmem_get_partial_folio-to-use-shmem_get_folio.patch
+shmem-convert-shmem_write_begin-to-use-shmem_get_folio.patch
+shmem-convert-shmem_file_read_iter-to-use-shmem_get_folio.patch
+shmem-convert-shmem_fallocate-to-use-a-folio.patch
+shmem-convert-shmem_symlink-to-use-a-folio.patch
+shmem-convert-shmem_get_link-to-use-a-folio.patch
+khugepaged-call-shmem_get_folio.patch
+userfaultfd-convert-mcontinue_atomic_pte-to-use-a-folio.patch
+shmem-remove-shmem_getpage.patch
+swapfile-convert-try_to_unuse-to-use-a-folio.patch
+swapfile-convert-__try_to_reclaim_swap-to-use-a-folio.patch
+swapfile-convert-unuse_pte_range-to-use-a-folio.patch
+mm-convert-do_swap_page-to-use-swap_cache_get_folio.patch
+mm-remove-lookup_swap_cache.patch
+swap_state-convert-free_swap_cache-to-use-a-folio.patch
+swap-convert-swap_writepage-to-use-a-folio.patch
+mm-convert-do_wp_page-to-use-a-folio.patch
+huge_memory-convert-do_huge_pmd_wp_page-to-use-a-folio.patch
+madvise-convert-madvise_free_pte_range-to-use-a-folio.patch
+uprobes-use-folios-more-widely-in-__replace_page.patch
+ksm-use-a-folio-in-replace_page.patch
+mm-convert-do_swap_page-to-use-folio_free_swap.patch
+memcg-convert-mem_cgroup_swap_full-to-take-a-folio.patch
+mm-remove-try_to_free_swap.patch
+rmap-convert-page_move_anon_rmap-to-use-a-folio.patch
+migrate-convert-__unmap_and_move-to-use-folios.patch
+migrate-convert-unmap_and_move_huge_page-to-use-folios.patch
+huge_memory-convert-split_huge_page_to_list-to-use-a-folio.patch
+huge_memory-convert-unmap_page-to-unmap_folio.patch
+mm-convert-page_get_anon_vma-to-folio_get_anon_vma.patch
+rmap-remove-page_unlock_anon_vma_read.patch
+uprobes-use-new_folio-in-__replace_page.patch
+mm-convert-lock_page_or_retry-to-folio_lock_or_retry.patch
 
