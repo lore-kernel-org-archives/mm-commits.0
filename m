@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52712ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:26:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4708C54EE9
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:26:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229893AbiIBX0t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:26:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54108 "EHLO
+        id S229936AbiIBX0v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:26:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230178AbiIBX0f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:26:35 -0400
+        with ESMTP id S230285AbiIBX0k (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:26:40 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C491AAF4B8
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0C3FB99FD
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4037261F92
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 976A5C433C1;
-        Fri,  2 Sep 2022 23:26:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F19AA61F87
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 535E7C433D6;
+        Fri,  2 Sep 2022 23:26:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161192;
-        bh=uNQjSaLgu+xMhDEqvNwZUpEHrxVA1aTdx/NVH5lfDZI=;
+        s=korg; t=1662161195;
+        bh=ZLtWCPrRh6KKy7NgxT0LcXPq/11Z+bZ0iln04Mly9yw=;
         h=Date:To:From:Subject:From;
-        b=q1XLL3NJFuy3Kss7Pque3UBK2bo4Fn9lmI63/LKABEmBxhcdNorKWZZIBK+g5cKXt
-         CEBuKj/6HnmI1xLW7hXoClBkkfw8Sw2mm2tw2MKPlDYCG5kAm4E38vwXSqzYWeunSx
-         GujHj2NlwEfBblMw4dcRjUPKHrMCaq0pYQrNHB5I=
-Date:   Fri, 02 Sep 2022 16:26:31 -0700
+        b=sopZgUYn87rlN4gUs+VQbBoft48mk4boKu6A4QzS17bjdKVLCvp5jVmkkJ94ynapr
+         SkkXHgwCq4JAizgXrwxVEFuE0Ttc/+SraJs/x/E/sorxuhjT+QRPiKxwtENBClBgXE
+         iTzbzkuhVgAsnREazppHfaNwOlFw+lxuhovDXUm0=
+Date:   Fri, 02 Sep 2022 16:26:34 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-convert-add_to_swap_cache-to-take-a-folio.patch added to mm-unstable branch
-Message-Id: <20220902232632.976A5C433C1@smtp.kernel.org>
+Subject: + mm-swap-convert-put_swap_page-to-put_swap_folio.patch added to mm-unstable branch
+Message-Id: <20220902232635.535E7C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: convert add_to_swap_cache() to take a folio
+     Subject: mm/swap: convert put_swap_page() to put_swap_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-convert-add_to_swap_cache-to-take-a-folio.patch
+     mm-swap-convert-put_swap_page-to-put_swap_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-add_to_swap_cache-to-take-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-put_swap_page-to-put_swap_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,139 +65,126 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: convert add_to_swap_cache() to take a folio
-Date: Fri, 2 Sep 2022 20:46:08 +0100
+Subject: mm/swap: convert put_swap_page() to put_swap_folio()
+Date: Fri, 2 Sep 2022 20:46:09 +0100
 
-With all callers using folios, we can convert add_to_swap_cache() to take
-a folio and use it throughout.
+With all callers now using a folio, we can convert this function.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-13-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-14-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c      |    2 +-
- mm/swap.h       |    4 ++--
- mm/swap_state.c |   34 +++++++++++++++++-----------------
- 3 files changed, 20 insertions(+), 20 deletions(-)
+ include/linux/swap.h |    4 ++--
+ mm/shmem.c           |    2 +-
+ mm/swap_slots.c      |    2 +-
+ mm/swap_state.c      |    6 +++---
+ mm/swapfile.c        |    4 ++--
+ mm/vmscan.c          |    2 +-
+ 6 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/mm/shmem.c~mm-swap-convert-add_to_swap_cache-to-take-a-folio
+--- a/include/linux/swap.h~mm-swap-convert-put_swap_page-to-put_swap_folio
++++ a/include/linux/swap.h
+@@ -491,7 +491,7 @@ static inline long get_nr_swap_pages(voi
+ extern void si_swapinfo(struct sysinfo *);
+ swp_entry_t folio_alloc_swap(struct folio *folio);
+ bool folio_free_swap(struct folio *folio);
+-extern void put_swap_page(struct page *page, swp_entry_t entry);
++void put_swap_folio(struct folio *folio, swp_entry_t entry);
+ extern swp_entry_t get_swap_page_of_type(int);
+ extern int get_swap_pages(int n, swp_entry_t swp_entries[], int entry_size);
+ extern int add_swap_count_continuation(swp_entry_t, gfp_t);
+@@ -576,7 +576,7 @@ static inline void swap_free(swp_entry_t
+ {
+ }
+ 
+-static inline void put_swap_page(struct page *page, swp_entry_t swp)
++static inline void put_swap_folio(struct folio *folio, swp_entry_t swp)
+ {
+ }
+ 
+--- a/mm/shmem.c~mm-swap-convert-put_swap_page-to-put_swap_folio
 +++ a/mm/shmem.c
-@@ -1406,7 +1406,7 @@ static int shmem_writepage(struct page *
- 	if (list_empty(&info->swaplist))
- 		list_add(&info->swaplist, &shmem_swaplist);
+@@ -1424,7 +1424,7 @@ static int shmem_writepage(struct page *
+ 	}
  
--	if (add_to_swap_cache(&folio->page, swap,
-+	if (add_to_swap_cache(folio, swap,
- 			__GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN,
- 			NULL) == 0) {
- 		spin_lock_irq(&info->lock);
---- a/mm/swap.h~mm-swap-convert-add_to_swap_cache-to-take-a-folio
-+++ a/mm/swap.h
-@@ -32,7 +32,7 @@ extern struct address_space *swapper_spa
- void show_swap_cache_info(void);
- bool add_to_swap(struct folio *folio);
- void *get_shadow_from_swap_cache(swp_entry_t entry);
--int add_to_swap_cache(struct page *page, swp_entry_t entry,
-+int add_to_swap_cache(struct folio *folio, swp_entry_t entry,
- 		      gfp_t gfp, void **shadowp);
- void __delete_from_swap_cache(struct folio *folio,
- 			      swp_entry_t entry, void *shadow);
-@@ -122,7 +122,7 @@ static inline void *get_shadow_from_swap
- 	return NULL;
- }
- 
--static inline int add_to_swap_cache(struct page *page, swp_entry_t entry,
-+static inline int add_to_swap_cache(struct folio *folio, swp_entry_t entry,
- 					gfp_t gfp_mask, void **shadowp)
- {
- 	return -1;
---- a/mm/swap_state.c~mm-swap-convert-add_to_swap_cache-to-take-a-folio
-+++ a/mm/swap_state.c
-@@ -85,21 +85,21 @@ void *get_shadow_from_swap_cache(swp_ent
-  * add_to_swap_cache resembles filemap_add_folio on swapper_space,
-  * but sets SwapCache flag and private instead of mapping and index.
+ 	mutex_unlock(&shmem_swaplist_mutex);
+-	put_swap_page(&folio->page, swap);
++	put_swap_folio(folio, swap);
+ redirty:
+ 	folio_mark_dirty(folio);
+ 	if (wbc->for_reclaim)
+--- a/mm/swapfile.c~mm-swap-convert-put_swap_page-to-put_swap_folio
++++ a/mm/swapfile.c
+@@ -1332,7 +1332,7 @@ void swap_free(swp_entry_t entry)
+ /*
+  * Called after dropping swapcache to decrease refcnt to swap entries.
   */
--int add_to_swap_cache(struct page *page, swp_entry_t entry,
-+int add_to_swap_cache(struct folio *folio, swp_entry_t entry,
- 			gfp_t gfp, void **shadowp)
+-void put_swap_page(struct page *page, swp_entry_t entry)
++void put_swap_folio(struct folio *folio, swp_entry_t entry)
  {
- 	struct address_space *address_space = swap_address_space(entry);
- 	pgoff_t idx = swp_offset(entry);
--	XA_STATE_ORDER(xas, &address_space->i_pages, idx, compound_order(page));
--	unsigned long i, nr = thp_nr_pages(page);
-+	XA_STATE_ORDER(xas, &address_space->i_pages, idx, folio_order(folio));
-+	unsigned long i, nr = folio_nr_pages(folio);
- 	void *old;
+ 	unsigned long offset = swp_offset(entry);
+ 	unsigned long idx = offset / SWAPFILE_CLUSTER;
+@@ -1341,7 +1341,7 @@ void put_swap_page(struct page *page, sw
+ 	unsigned char *map;
+ 	unsigned int i, free_entries = 0;
+ 	unsigned char val;
+-	int size = swap_entry_size(thp_nr_pages(page));
++	int size = swap_entry_size(folio_nr_pages(folio));
  
--	VM_BUG_ON_PAGE(!PageLocked(page), page);
--	VM_BUG_ON_PAGE(PageSwapCache(page), page);
--	VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-+	VM_BUG_ON_FOLIO(folio_test_swapcache(folio), folio);
-+	VM_BUG_ON_FOLIO(!folio_test_swapbacked(folio), folio);
+ 	si = _swap_info_get(entry);
+ 	if (!si)
+--- a/mm/swap_slots.c~mm-swap-convert-put_swap_page-to-put_swap_folio
++++ a/mm/swap_slots.c
+@@ -343,7 +343,7 @@ repeat:
+ 	get_swap_pages(1, &entry, 1);
+ out:
+ 	if (mem_cgroup_try_charge_swap(folio, entry)) {
+-		put_swap_page(&folio->page, entry);
++		put_swap_folio(folio, entry);
+ 		entry.val = 0;
+ 	}
+ 	return entry;
+--- a/mm/swap_state.c~mm-swap-convert-put_swap_page-to-put_swap_folio
++++ a/mm/swap_state.c
+@@ -218,7 +218,7 @@ bool add_to_swap(struct folio *folio)
+ 	return true;
  
--	page_ref_add(page, nr);
--	SetPageSwapCache(page);
-+	folio_ref_add(folio, nr);
-+	folio_set_swapcache(folio);
- 
- 	do {
- 		xas_lock_irq(&xas);
-@@ -107,19 +107,19 @@ int add_to_swap_cache(struct page *page,
- 		if (xas_error(&xas))
- 			goto unlock;
- 		for (i = 0; i < nr; i++) {
--			VM_BUG_ON_PAGE(xas.xa_index != idx + i, page);
-+			VM_BUG_ON_FOLIO(xas.xa_index != idx + i, folio);
- 			old = xas_load(&xas);
- 			if (xa_is_value(old)) {
- 				if (shadowp)
- 					*shadowp = old;
- 			}
--			set_page_private(page + i, entry.val + i);
--			xas_store(&xas, page);
-+			set_page_private(folio_page(folio, i), entry.val + i);
-+			xas_store(&xas, folio);
- 			xas_next(&xas);
- 		}
- 		address_space->nrpages += nr;
--		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
--		__mod_lruvec_page_state(page, NR_SWAPCACHE, nr);
-+		__node_stat_mod_folio(folio, NR_FILE_PAGES, nr);
-+		__lruvec_stat_mod_folio(folio, NR_SWAPCACHE, nr);
- unlock:
- 		xas_unlock_irq(&xas);
- 	} while (xas_nomem(&xas, gfp));
-@@ -127,8 +127,8 @@ unlock:
- 	if (!xas_error(&xas))
- 		return 0;
- 
--	ClearPageSwapCache(page);
--	page_ref_sub(page, nr);
-+	folio_clear_swapcache(folio);
-+	folio_ref_sub(folio, nr);
- 	return xas_error(&xas);
+ fail:
+-	put_swap_page(&folio->page, entry);
++	put_swap_folio(folio, entry);
+ 	return false;
  }
  
-@@ -194,7 +194,7 @@ bool add_to_swap(struct folio *folio)
- 	/*
- 	 * Add it to the swap cache.
- 	 */
--	err = add_to_swap_cache(&folio->page, entry,
-+	err = add_to_swap_cache(folio, entry,
- 			__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN, NULL);
- 	if (err)
- 		/*
-@@ -484,7 +484,7 @@ struct page *__read_swap_cache_async(swp
- 		goto fail_unlock;
+@@ -237,7 +237,7 @@ void delete_from_swap_cache(struct folio
+ 	__delete_from_swap_cache(folio, entry, NULL);
+ 	xa_unlock_irq(&address_space->i_pages);
  
- 	/* May fail (-ENOMEM) if XArray node allocation failed. */
--	if (add_to_swap_cache(&folio->page, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
-+	if (add_to_swap_cache(folio, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
- 		goto fail_unlock;
+-	put_swap_page(&folio->page, entry);
++	put_swap_folio(folio, entry);
+ 	folio_ref_sub(folio, folio_nr_pages(folio));
+ }
  
- 	mem_cgroup_swapin_uncharge_swap(entry);
+@@ -498,7 +498,7 @@ struct page *__read_swap_cache_async(swp
+ 	return &folio->page;
+ 
+ fail_unlock:
+-	put_swap_page(&folio->page, entry);
++	put_swap_folio(folio, entry);
+ 	folio_unlock(folio);
+ 	folio_put(folio);
+ 	return NULL;
+--- a/mm/vmscan.c~mm-swap-convert-put_swap_page-to-put_swap_folio
++++ a/mm/vmscan.c
+@@ -1353,7 +1353,7 @@ static int __remove_mapping(struct addre
+ 		mem_cgroup_swapout(folio, swap);
+ 		__delete_from_swap_cache(folio, swap, shadow);
+ 		xa_unlock_irq(&mapping->i_pages);
+-		put_swap_page(&folio->page, swap);
++		put_swap_folio(folio, swap);
+ 	} else {
+ 		void (*free_folio)(struct folio *);
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
