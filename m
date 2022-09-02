@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8C2FC6FA82
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:26:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABD0EECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:26:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230178AbiIBX0x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:26:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54482 "EHLO
+        id S230269AbiIBX04 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:26:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230380AbiIBX0r (ORCPT
+        with ESMTP id S230394AbiIBX0r (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:26:47 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59279C00D4
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4F32C57BA
         for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 08533B82E07
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6612C433C1;
-        Fri,  2 Sep 2022 23:26:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 73FEF61F87
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5712C433C1;
+        Fri,  2 Sep 2022 23:26:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161198;
-        bh=64Z6tLfA0A9ewEqtPWAy1Dhyt6Lj6PeDt6cDDx83eXE=;
+        s=korg; t=1662161200;
+        bh=MhthiUmD9khlewA0X9vBFJzUbjh6kjfx6mdo0VllYzU=;
         h=Date:To:From:Subject:From;
-        b=ygF+//usiq3+/rbtoDJGThsNXblk03bnGwjjdU4RSNHqh9Dh+NI6XZ/tunQQU9jC6
-         obnuXFo/PzGJ3E/r6MgBja4MEXNyqvHSh6JEP30k19V43NYJiapEwJhhx5DsYaYVdj
-         awO8H0tV4akYnfnxcz+4PqohlD8KAM3FcyqEXc4M=
-Date:   Fri, 02 Sep 2022 16:26:38 -0700
+        b=aqu7ZU21DmVgDWb+kTFCDTrebFld/jv8TAPHbxGLIZZRuX5dVbccfjjFuv0a9Prka
+         g3Q1eSjDpC2MSOHlPi4paHtdbU+x2qVcaSlZDG1PEY6Qr1Z6Cnk8gR4zevAYUBnm75
+         ahzLlg16T5PzosdCee5YUnhKfVK9P/MKz5Mvlvws=
+Date:   Fri, 02 Sep 2022 16:26:40 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-do_swap_page-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20220902232638.B6612C433C1@smtp.kernel.org>
+Subject: + mm-convert-do_swap_pages-swapcache-variable-to-a-folio.patch added to mm-unstable branch
+Message-Id: <20220902232640.C5712C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert do_swap_page() to use a folio
+     Subject: mm: convert do_swap_page()'s swapcache variable to a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-do_swap_page-to-use-a-folio.patch
+     mm-convert-do_swap_pages-swapcache-variable-to-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-do_swap_page-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-do_swap_pages-swapcache-variable-to-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,191 +65,132 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert do_swap_page() to use a folio
-Date: Fri, 2 Sep 2022 20:46:10 +0100
+Subject: mm: convert do_swap_page()'s swapcache variable to a folio
+Date: Fri, 2 Sep 2022 20:46:11 +0100
 
-Removes quite a lot of calls to compound_head().
+The 'swapcache' variable is used to track whether the page is from the
+swapcache or not.  It can do this equally well by being the folio of the
+page rather than the page itself, and this saves a number of calls to
+compound_head().
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-15-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-16-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   57 ++++++++++++++++++++++++++++----------------------
- 1 file changed, 33 insertions(+), 24 deletions(-)
+ mm/memory.c |   31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
---- a/mm/memory.c~mm-convert-do_swap_page-to-use-a-folio
+--- a/mm/memory.c~mm-convert-do_swap_pages-swapcache-variable-to-a-folio
 +++ a/mm/memory.c
-@@ -3726,6 +3726,7 @@ static vm_fault_t handle_pte_marker(stru
+@@ -3726,8 +3726,8 @@ static vm_fault_t handle_pte_marker(stru
  vm_fault_t do_swap_page(struct vm_fault *vmf)
  {
  	struct vm_area_struct *vma = vmf->vma;
-+	struct folio *folio;
- 	struct page *page = NULL, *swapcache;
+-	struct folio *folio;
+-	struct page *page = NULL, *swapcache;
++	struct folio *swapcache, *folio = NULL;
++	struct page *page;
  	struct swap_info_struct *si = NULL;
  	rmap_t rmap_flags = RMAP_NONE;
-@@ -3770,19 +3771,23 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	bool exclusive = false;
+@@ -3770,11 +3770,11 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		goto out;
  
  	page = lookup_swap_cache(entry, vma, vmf->address);
- 	swapcache = page;
-+	if (page)
-+		folio = page_folio(page);
+-	swapcache = page;
+ 	if (page)
+ 		folio = page_folio(page);
++	swapcache = folio;
  
- 	if (!page) {
+-	if (!page) {
++	if (!folio) {
  		if (data_race(si->flags & SWP_SYNCHRONOUS_IO) &&
  		    __swap_count(entry) == 1) {
  			/* skip swapcache */
--			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
--							vmf->address);
--			if (page) {
--				__SetPageLocked(page);
--				__SetPageSwapBacked(page);
-+			folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0,
-+						vma, vmf->address, false);
-+			page = &folio->page;
-+			if (folio) {
-+				__folio_set_locked(folio);
-+				__folio_set_swapbacked(folio);
- 
- 				if (mem_cgroup_swapin_charge_page(page,
--					vma->vm_mm, GFP_KERNEL, entry)) {
-+							vma->vm_mm, GFP_KERNEL,
-+							entry)) {
- 					ret = VM_FAULT_OOM;
- 					goto out_page;
- 				}
-@@ -3790,20 +3795,21 @@ vm_fault_t do_swap_page(struct vm_fault
- 
- 				shadow = get_shadow_from_swap_cache(entry);
- 				if (shadow)
--					workingset_refault(page_folio(page),
--								shadow);
-+					workingset_refault(folio, shadow);
- 
--				lru_cache_add(page);
-+				folio_add_lru(folio);
- 
- 				/* To provide entry to swap_readpage() */
--				set_page_private(page, entry.val);
-+				folio_set_swap_entry(folio, entry);
- 				swap_readpage(page, true, NULL);
--				set_page_private(page, 0);
-+				folio->private = NULL;
- 			}
+@@ -3807,12 +3807,12 @@ vm_fault_t do_swap_page(struct vm_fault
  		} else {
  			page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
  						vmf);
- 			swapcache = page;
-+			if (page)
-+				folio = page_folio(page);
+-			swapcache = page;
+ 			if (page)
+ 				folio = page_folio(page);
++			swapcache = folio;
  		}
  
- 		if (!page) {
-@@ -3846,7 +3852,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 		 * swapcache, we need to check that the page's swap has not
- 		 * changed.
- 		 */
--		if (unlikely(!PageSwapCache(page) ||
-+		if (unlikely(!folio_test_swapcache(folio) ||
- 			     page_private(page) != entry.val))
- 			goto out_page;
- 
-@@ -3861,6 +3867,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 			page = swapcache;
+-		if (!page) {
++		if (!folio) {
+ 			/*
+ 			 * Back out if somebody else faulted in this pte
+ 			 * while we released the pte lock.
+@@ -3864,7 +3864,6 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		page = ksm_might_need_to_copy(page, vma, vmf->address);
+ 		if (unlikely(!page)) {
+ 			ret = VM_FAULT_OOM;
+-			page = swapcache;
  			goto out_page;
  		}
-+		folio = page_folio(page);
- 
- 		/*
- 		 * If we want to map a page that's in the swapcache writable, we
-@@ -3869,7 +3876,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		folio = page_folio(page);
+@@ -3875,7 +3874,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		 * owner. Try removing the extra reference from the local LRU
  		 * pagevecs if required.
  		 */
- 		if ((vmf->flags & FAULT_FLAG_WRITE) && page == swapcache &&
--		    !PageKsm(page) && !PageLRU(page))
-+		    !folio_test_ksm(folio) && !folio_test_lru(folio))
+-		if ((vmf->flags & FAULT_FLAG_WRITE) && page == swapcache &&
++		if ((vmf->flags & FAULT_FLAG_WRITE) && folio == swapcache &&
+ 		    !folio_test_ksm(folio) && !folio_test_lru(folio))
  			lru_add_drain();
  	}
- 
-@@ -3883,7 +3890,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 	if (unlikely(!pte_same(*vmf->pte, vmf->orig_pte)))
- 		goto out_nomap;
- 
--	if (unlikely(!PageUptodate(page))) {
-+	if (unlikely(!folio_test_uptodate(folio))) {
- 		ret = VM_FAULT_SIGBUS;
- 		goto out_nomap;
- 	}
-@@ -3896,14 +3903,14 @@ vm_fault_t do_swap_page(struct vm_fault
- 	 * check after taking the PT lock and making sure that nobody
- 	 * concurrently faulted in this page and set PG_anon_exclusive.
- 	 */
--	BUG_ON(!PageAnon(page) && PageMappedToDisk(page));
--	BUG_ON(PageAnon(page) && PageAnonExclusive(page));
-+	BUG_ON(!folio_test_anon(folio) && folio_test_mappedtodisk(folio));
-+	BUG_ON(folio_test_anon(folio) && PageAnonExclusive(page));
- 
- 	/*
- 	 * Check under PT lock (to protect against concurrent fork() sharing
- 	 * the swap entry concurrently) for certainly exclusive pages.
- 	 */
--	if (!PageKsm(page)) {
-+	if (!folio_test_ksm(folio)) {
- 		/*
- 		 * Note that pte_swp_exclusive() == false for architectures
+@@ -3916,7 +3915,7 @@ vm_fault_t do_swap_page(struct vm_fault
  		 * without __HAVE_ARCH_PTE_SWP_EXCLUSIVE.
-@@ -3915,7 +3922,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 			 * swapcache -> certainly exclusive.
- 			 */
- 			exclusive = true;
--		} else if (exclusive && PageWriteback(page) &&
-+		} else if (exclusive && folio_test_writeback(folio) &&
- 			  data_race(si->flags & SWP_STABLE_WRITES)) {
+ 		 */
+ 		exclusive = pte_swp_exclusive(vmf->orig_pte);
+-		if (page != swapcache) {
++		if (folio != swapcache) {
  			/*
- 			 * This is tricky: not all swap backends support
-@@ -3958,7 +3965,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 	 * exposing them to the swapcache or because the swap entry indicates
- 	 * exclusivity.
- 	 */
--	if (!PageKsm(page) && (exclusive || page_count(page) == 1)) {
-+	if (!folio_test_ksm(folio) &&
-+	    (exclusive || folio_ref_count(folio) == 1)) {
- 		if (vmf->flags & FAULT_FLAG_WRITE) {
- 			pte = maybe_mkwrite(pte_mkdirty(pte), vma);
- 			vmf->flags &= ~FAULT_FLAG_WRITE;
-@@ -3978,16 +3986,17 @@ vm_fault_t do_swap_page(struct vm_fault
- 	/* ksm created a completely new copy */
- 	if (unlikely(page != swapcache && swapcache)) {
- 		page_add_new_anon_rmap(page, vma, vmf->address);
--		lru_cache_add_inactive_or_unevictable(page, vma);
-+		folio_add_lru_vma(folio, vma);
- 	} else {
- 		page_add_anon_rmap(page, vma, vmf->address, rmap_flags);
- 	}
+ 			 * We have a fresh page that is not exposed to the
+ 			 * swapcache -> certainly exclusive.
+@@ -3984,7 +3983,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	vmf->orig_pte = pte;
  
--	VM_BUG_ON(!PageAnon(page) || (pte_write(pte) && !PageAnonExclusive(page)));
-+	VM_BUG_ON(!folio_test_anon(folio) ||
-+			(pte_write(pte) && !PageAnonExclusive(page)));
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
+ 	/* ksm created a completely new copy */
+-	if (unlikely(page != swapcache && swapcache)) {
++	if (unlikely(folio != swapcache && swapcache)) {
+ 		page_add_new_anon_rmap(page, vma, vmf->address);
+ 		folio_add_lru_vma(folio, vma);
+ 	} else {
+@@ -3997,7 +3996,7 @@ vm_fault_t do_swap_page(struct vm_fault
  	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
  
--	unlock_page(page);
-+	folio_unlock(folio);
- 	if (page != swapcache && swapcache) {
+ 	folio_unlock(folio);
+-	if (page != swapcache && swapcache) {
++	if (folio != swapcache && swapcache) {
  		/*
  		 * Hold the lock to avoid the swap entry to be reused
-@@ -4019,9 +4028,9 @@ out:
- out_nomap:
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- out_page:
--	unlock_page(page);
-+	folio_unlock(folio);
+ 		 * until we take the PT lock for the pte_same() check
+@@ -4006,8 +4005,8 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		 * so that the swap count won't change under a
+ 		 * parallel locked swapcache.
+ 		 */
+-		unlock_page(swapcache);
+-		put_page(swapcache);
++		folio_unlock(swapcache);
++		folio_put(swapcache);
+ 	}
+ 
+ 	if (vmf->flags & FAULT_FLAG_WRITE) {
+@@ -4031,9 +4030,9 @@ out_page:
+ 	folio_unlock(folio);
  out_release:
--	put_page(page);
-+	folio_put(folio);
- 	if (page != swapcache && swapcache) {
- 		unlock_page(swapcache);
- 		put_page(swapcache);
+ 	folio_put(folio);
+-	if (page != swapcache && swapcache) {
+-		unlock_page(swapcache);
+-		put_page(swapcache);
++	if (folio != swapcache && swapcache) {
++		folio_unlock(swapcache);
++		folio_put(swapcache);
+ 	}
+ 	if (si)
+ 		put_swap_device(si);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
