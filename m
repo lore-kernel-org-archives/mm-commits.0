@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E43DC6FA8B
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:26:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB04DECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:26:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229716AbiIBX0b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:26:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53908 "EHLO
+        id S230382AbiIBX0r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:26:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53910 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230325AbiIBX02 (ORCPT
+        with ESMTP id S230346AbiIBX02 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:26:28 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB7BEAF0CA
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:25 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE230AF0E0
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AC956B82E03
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62E76C433C1;
-        Fri,  2 Sep 2022 23:26:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5AB3D61F92
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0882C433D6;
+        Fri,  2 Sep 2022 23:26:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161183;
-        bh=rfUZIha2d90x5ggT1/VEHeRgZ1Lk97+f0keUS476sWk=;
+        s=korg; t=1662161185;
+        bh=tD6jvly4Nf0PBzc2nft9gzqoes3fal4Qt4vugDPLZOk=;
         h=Date:To:From:Subject:From;
-        b=MgCe2DuEudppFN+jzwWYJw4cGBPQxArzjKbM56WWciqGXzL+ORfuQmEenfnW5KHww
-         eKfKsID474hwGxhNS9VslX/2vkBpGJ3q1TNwwcKuanig9tpZUx21IxeuMfkVRTY8V1
-         2GxZhKDsI2yUqVxyW1DxtnzoIIUq0OLw9jvIflKs=
-Date:   Fri, 02 Sep 2022 16:26:22 -0700
+        b=UyC+SUIIx8bCEPfp2MikHwxyC8fv3JjJj1tIKnCB4/7r3JVy5NJJRsBhGsF/1sN0y
+         MMIm9j6ddV0qABxeWaOdVOxm3PPhtpNmgQPzEubN0Dlf6SSvF3LaUE2mWTxQTWz8G5
+         JNaUUbzJhKyyCRfN9dV3c0uXXzt1u1Lkoj6zg0OY=
+Date:   Fri, 02 Sep 2022 16:26:25 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-convert-shmem_replace_page-to-use-folios-throughout.patch added to mm-unstable branch
-Message-Id: <20220902232623.62E76C433C1@smtp.kernel.org>
+Subject: + mm-swapfile-remove-page_swapcount.patch added to mm-unstable branch
+Message-Id: <20220902232625.B0882C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: convert shmem_replace_page() to use folios throughout
+     Subject: mm/swapfile: remove page_swapcount()
 has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-convert-shmem_replace_page-to-use-folios-throughout.patch
+     mm-swapfile-remove-page_swapcount.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-convert-shmem_replace_page-to-use-folios-throughout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-remove-page_swapcount.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,164 +65,96 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: shmem: convert shmem_replace_page() to use folios throughout
-Date: Fri, 2 Sep 2022 20:46:04 +0100
+Subject: mm/swapfile: remove page_swapcount()
+Date: Fri, 2 Sep 2022 20:46:05 +0100
 
-Introduce folio_set_swap_entry() to abstract how both folio->private and
-swp_entry_t work.  Use swap_address_space() directly instead of
-indirecting through folio_mapping().  Include an assertion that the old
-folio is not large as we only allocate a single-page folio to replace it. 
-Use folio_put_refs() instead of calling folio_put() twice.
+By restructuring folio_swapped(), it can use swap_swapcount() instead of
+page_swapcount().  It's even a little more efficient.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    5 ++
- mm/shmem.c           |   69 +++++++++++++++++++----------------------
- 2 files changed, 38 insertions(+), 36 deletions(-)
+ mm/swapfile.c |   46 +++++++++++++---------------------------------
+ 1 file changed, 13 insertions(+), 33 deletions(-)
 
---- a/include/linux/swap.h~shmem-convert-shmem_replace_page-to-use-folios-throughout
-+++ a/include/linux/swap.h
-@@ -355,6 +355,11 @@ static inline swp_entry_t folio_swap_ent
- 	return entry;
+--- a/mm/swapfile.c~mm-swapfile-remove-page_swapcount
++++ a/mm/swapfile.c
+@@ -1431,30 +1431,6 @@ void swapcache_free_entries(swp_entry_t
+ 		spin_unlock(&p->lock);
  }
  
-+static inline void folio_set_swap_entry(struct folio *folio, swp_entry_t entry)
-+{
-+	folio->private = (void *)entry.val;
-+}
-+
- /* linux/mm/workingset.c */
- void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
- void *workingset_eviction(struct folio *folio, struct mem_cgroup *target_memcg);
---- a/mm/shmem.c~shmem-convert-shmem_replace_page-to-use-folios-throughout
-+++ a/mm/shmem.c
-@@ -1560,12 +1560,6 @@ static struct folio *shmem_alloc_folio(g
- 	return folio;
- }
- 
--static struct page *shmem_alloc_page(gfp_t gfp,
--			struct shmem_inode_info *info, pgoff_t index)
+-/*
+- * How many references to page are currently swapped out?
+- * This does not give an exact answer when swap count is continued,
+- * but does include the high COUNT_CONTINUED flag to allow for that.
+- */
+-static int page_swapcount(struct page *page)
 -{
--	return &shmem_alloc_folio(gfp, info, index)->page;
+-	int count = 0;
+-	struct swap_info_struct *p;
+-	struct swap_cluster_info *ci;
+-	swp_entry_t entry;
+-	unsigned long offset;
+-
+-	entry.val = page_private(page);
+-	p = _swap_info_get(entry);
+-	if (p) {
+-		offset = swp_offset(entry);
+-		ci = lock_cluster_or_swap_info(p, offset);
+-		count = swap_count(p->swap_map[offset]);
+-		unlock_cluster_or_swap_info(p, ci);
+-	}
+-	return count;
 -}
 -
- static struct folio *shmem_alloc_and_acct_folio(gfp_t gfp, struct inode *inode,
- 		pgoff_t index, bool huge)
+ int __swap_count(swp_entry_t entry)
  {
-@@ -1617,51 +1611,49 @@ static bool shmem_should_replace_folio(s
- static int shmem_replace_page(struct page **pagep, gfp_t gfp,
- 				struct shmem_inode_info *info, pgoff_t index)
- {
--	struct page *oldpage, *newpage;
- 	struct folio *old, *new;
- 	struct address_space *swap_mapping;
- 	swp_entry_t entry;
- 	pgoff_t swap_index;
- 	int error;
- 
--	oldpage = *pagep;
--	entry.val = page_private(oldpage);
-+	old = page_folio(*pagep);
-+	entry = folio_swap_entry(old);
- 	swap_index = swp_offset(entry);
--	swap_mapping = page_mapping(oldpage);
-+	swap_mapping = swap_address_space(entry);
- 
- 	/*
- 	 * We have arrived here because our zones are constrained, so don't
- 	 * limit chance of success by further cpuset and node constraints.
- 	 */
- 	gfp &= ~GFP_CONSTRAINT_MASK;
--	newpage = shmem_alloc_page(gfp, info, index);
--	if (!newpage)
-+	VM_BUG_ON_FOLIO(folio_test_large(old), old);
-+	new = shmem_alloc_folio(gfp, info, index);
-+	if (!new)
- 		return -ENOMEM;
- 
--	get_page(newpage);
--	copy_highpage(newpage, oldpage);
--	flush_dcache_page(newpage);
--
--	__SetPageLocked(newpage);
--	__SetPageSwapBacked(newpage);
--	SetPageUptodate(newpage);
--	set_page_private(newpage, entry.val);
--	SetPageSwapCache(newpage);
-+	folio_get(new);
-+	folio_copy(new, old);
-+	flush_dcache_folio(new);
-+
-+	__folio_set_locked(new);
-+	__folio_set_swapbacked(new);
-+	folio_mark_uptodate(new);
-+	folio_set_swap_entry(new, entry);
-+	folio_set_swapcache(new);
- 
- 	/*
- 	 * Our caller will very soon move newpage out of swapcache, but it's
- 	 * a nice clean interface for us to replace oldpage by newpage there.
- 	 */
- 	xa_lock_irq(&swap_mapping->i_pages);
--	error = shmem_replace_entry(swap_mapping, swap_index, oldpage, newpage);
-+	error = shmem_replace_entry(swap_mapping, swap_index, old, new);
- 	if (!error) {
--		old = page_folio(oldpage);
--		new = page_folio(newpage);
- 		mem_cgroup_migrate(old, new);
--		__inc_lruvec_page_state(newpage, NR_FILE_PAGES);
--		__inc_lruvec_page_state(newpage, NR_SHMEM);
--		__dec_lruvec_page_state(oldpage, NR_FILE_PAGES);
--		__dec_lruvec_page_state(oldpage, NR_SHMEM);
-+		__lruvec_stat_mod_folio(new, NR_FILE_PAGES, 1);
-+		__lruvec_stat_mod_folio(new, NR_SHMEM, 1);
-+		__lruvec_stat_mod_folio(old, NR_FILE_PAGES, -1);
-+		__lruvec_stat_mod_folio(old, NR_SHMEM, -1);
- 	}
- 	xa_unlock_irq(&swap_mapping->i_pages);
- 
-@@ -1671,18 +1663,17 @@ static int shmem_replace_page(struct pag
- 		 * both PageSwapCache and page_private after getting page lock;
- 		 * but be defensive.  Reverse old to newpage for clear and free.
- 		 */
--		oldpage = newpage;
-+		old = new;
- 	} else {
--		lru_cache_add(newpage);
--		*pagep = newpage;
-+		folio_add_lru(new);
-+		*pagep = &new->page;
- 	}
- 
--	ClearPageSwapCache(oldpage);
--	set_page_private(oldpage, 0);
-+	folio_clear_swapcache(old);
-+	old->private = NULL;
- 
--	unlock_page(oldpage);
--	put_page(oldpage);
--	put_page(oldpage);
-+	folio_unlock(old);
-+	folio_put_refs(old, 2);
- 	return error;
+ 	struct swap_info_struct *si;
+@@ -1469,11 +1445,16 @@ int __swap_count(swp_entry_t entry)
+ 	return count;
  }
  
-@@ -2383,6 +2374,12 @@ static struct inode *shmem_get_inode(str
++/*
++ * How many references to @entry are currently swapped out?
++ * This does not give an exact answer when swap count is continued,
++ * but does include the high COUNT_CONTINUED flag to allow for that.
++ */
+ static int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry)
+ {
+-	int count = 0;
+ 	pgoff_t offset = swp_offset(entry);
+ 	struct swap_cluster_info *ci;
++	int count;
+ 
+ 	ci = lock_cluster_or_swap_info(si, offset);
+ 	count = swap_count(si->swap_map[offset]);
+@@ -1574,17 +1555,16 @@ unlock_out:
+ 
+ static bool folio_swapped(struct folio *folio)
+ {
+-	swp_entry_t entry;
+-	struct swap_info_struct *si;
++	swp_entry_t entry = folio_swap_entry(folio);
++	struct swap_info_struct *si = _swap_info_get(entry);
++
++	if (!si)
++		return false;
+ 
+ 	if (!IS_ENABLED(CONFIG_THP_SWAP) || likely(!folio_test_large(folio)))
+-		return page_swapcount(&folio->page) != 0;
++		return swap_swapcount(si, entry) != 0;
+ 
+-	entry = folio_swap_entry(folio);
+-	si = _swap_info_get(entry);
+-	if (si)
+-		return swap_page_trans_huge_swapped(si, entry);
+-	return false;
++	return swap_page_trans_huge_swapped(si, entry);
  }
  
- #ifdef CONFIG_USERFAULTFD
-+static struct page *shmem_alloc_page(gfp_t gfp,
-+			struct shmem_inode_info *info, pgoff_t index)
-+{
-+	return &shmem_alloc_folio(gfp, info, index)->page;
-+}
-+
- int shmem_mfill_atomic_pte(struct mm_struct *dst_mm,
- 			   pmd_t *dst_pmd,
- 			   struct vm_area_struct *dst_vma,
+ /*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
