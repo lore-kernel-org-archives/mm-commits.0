@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABD0EECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:26:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E376ECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:27:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230269AbiIBX04 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:26:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54010 "EHLO
+        id S230414AbiIBX1D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:27:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230394AbiIBX0r (ORCPT
+        with ESMTP id S230513AbiIBX0r (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:26:47 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4F32C57BA
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2E05D2E86
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 73FEF61F87
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5712C433C1;
-        Fri,  2 Sep 2022 23:26:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 71B7C61F92
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6F6AC433D6;
+        Fri,  2 Sep 2022 23:26:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161200;
-        bh=MhthiUmD9khlewA0X9vBFJzUbjh6kjfx6mdo0VllYzU=;
+        s=korg; t=1662161202;
+        bh=gK/xaTtFG9NYug+REaOUyzD9DV9F/Igqxxx5oUCMyz4=;
         h=Date:To:From:Subject:From;
-        b=aqu7ZU21DmVgDWb+kTFCDTrebFld/jv8TAPHbxGLIZZRuX5dVbccfjjFuv0a9Prka
-         g3Q1eSjDpC2MSOHlPi4paHtdbU+x2qVcaSlZDG1PEY6Qr1Z6Cnk8gR4zevAYUBnm75
-         ahzLlg16T5PzosdCee5YUnhKfVK9P/MKz5Mvlvws=
-Date:   Fri, 02 Sep 2022 16:26:40 -0700
+        b=J0r8gC8MCcD4hFi9naTBdIvnzvHN7qhmTGu+cp6hS3tFti8pxgb3njoiiMJXtUrwE
+         X1fxIkhv/LgUY/CZp7/1IfHW5RgUyZx7NWyu3m0H7Vfkks5Yqko5uLTO+7wT53PPoc
+         UjPKEyjpR1JqfAf5epIRZWvOcG1xjXcgDYNlfCWU=
+Date:   Fri, 02 Sep 2022 16:26:42 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-do_swap_pages-swapcache-variable-to-a-folio.patch added to mm-unstable branch
-Message-Id: <20220902232640.C5712C433C1@smtp.kernel.org>
+Subject: + memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio.patch added to mm-unstable branch
+Message-Id: <20220902232642.C6F6AC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert do_swap_page()'s swapcache variable to a folio
+     Subject: memcg: convert mem_cgroup_swapin_charge_page() to mem_cgroup_swapin_charge_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-do_swap_pages-swapcache-variable-to-a-folio.patch
+     memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-do_swap_pages-swapcache-variable-to-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,132 +65,95 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert do_swap_page()'s swapcache variable to a folio
-Date: Fri, 2 Sep 2022 20:46:11 +0100
+Subject: memcg: convert mem_cgroup_swapin_charge_page() to mem_cgroup_swapin_charge_folio()
+Date: Fri, 2 Sep 2022 20:46:12 +0100
 
-The 'swapcache' variable is used to track whether the page is from the
-swapcache or not.  It can do this equally well by being the folio of the
-page rather than the page itself, and this saves a number of calls to
-compound_head().
+All callers now have a folio, so pass it in here and remove an unnecessary
+call to page_folio().
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-16-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-17-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ include/linux/memcontrol.h |    4 ++--
+ mm/memcontrol.c            |   13 ++++++-------
+ mm/memory.c                |    2 +-
+ mm/swap_state.c            |    2 +-
+ 4 files changed, 10 insertions(+), 11 deletions(-)
 
---- a/mm/memory.c~mm-convert-do_swap_pages-swapcache-variable-to-a-folio
-+++ a/mm/memory.c
-@@ -3726,8 +3726,8 @@ static vm_fault_t handle_pte_marker(stru
- vm_fault_t do_swap_page(struct vm_fault *vmf)
+--- a/include/linux/memcontrol.h~memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio
++++ a/include/linux/memcontrol.h
+@@ -688,7 +688,7 @@ static inline int mem_cgroup_charge(stru
+ 	return __mem_cgroup_charge(folio, mm, gfp);
+ }
+ 
+-int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
++int mem_cgroup_swapin_charge_folio(struct folio *folio, struct mm_struct *mm,
+ 				  gfp_t gfp, swp_entry_t entry);
+ void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry);
+ 
+@@ -1254,7 +1254,7 @@ static inline int mem_cgroup_charge(stru
+ 	return 0;
+ }
+ 
+-static inline int mem_cgroup_swapin_charge_page(struct page *page,
++static inline int mem_cgroup_swapin_charge_folio(struct folio *folio,
+ 			struct mm_struct *mm, gfp_t gfp, swp_entry_t entry)
  {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct folio *folio;
--	struct page *page = NULL, *swapcache;
-+	struct folio *swapcache, *folio = NULL;
-+	struct page *page;
- 	struct swap_info_struct *si = NULL;
- 	rmap_t rmap_flags = RMAP_NONE;
- 	bool exclusive = false;
-@@ -3770,11 +3770,11 @@ vm_fault_t do_swap_page(struct vm_fault
- 		goto out;
+ 	return 0;
+--- a/mm/memcontrol.c~memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio
++++ a/mm/memcontrol.c
+@@ -6844,21 +6844,20 @@ int __mem_cgroup_charge(struct folio *fo
+ }
  
- 	page = lookup_swap_cache(entry, vma, vmf->address);
--	swapcache = page;
- 	if (page)
- 		folio = page_folio(page);
-+	swapcache = folio;
+ /**
+- * mem_cgroup_swapin_charge_page - charge a newly allocated page for swapin
+- * @page: page to charge
++ * mem_cgroup_swapin_charge_folio - Charge a newly allocated folio for swapin.
++ * @folio: folio to charge.
+  * @mm: mm context of the victim
+  * @gfp: reclaim mode
+- * @entry: swap entry for which the page is allocated
++ * @entry: swap entry for which the folio is allocated
+  *
+- * This function charges a page allocated for swapin. Please call this before
+- * adding the page to the swapcache.
++ * This function charges a folio allocated for swapin. Please call this before
++ * adding the folio to the swapcache.
+  *
+  * Returns 0 on success. Otherwise, an error code is returned.
+  */
+-int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
++int mem_cgroup_swapin_charge_folio(struct folio *folio, struct mm_struct *mm,
+ 				  gfp_t gfp, swp_entry_t entry)
+ {
+-	struct folio *folio = page_folio(page);
+ 	struct mem_cgroup *memcg;
+ 	unsigned short id;
+ 	int ret;
+--- a/mm/memory.c~memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio
++++ a/mm/memory.c
+@@ -3785,7 +3785,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 				__folio_set_locked(folio);
+ 				__folio_set_swapbacked(folio);
  
--	if (!page) {
-+	if (!folio) {
- 		if (data_race(si->flags & SWP_SYNCHRONOUS_IO) &&
- 		    __swap_count(entry) == 1) {
- 			/* skip swapcache */
-@@ -3807,12 +3807,12 @@ vm_fault_t do_swap_page(struct vm_fault
- 		} else {
- 			page = swapin_readahead(entry, GFP_HIGHUSER_MOVABLE,
- 						vmf);
--			swapcache = page;
- 			if (page)
- 				folio = page_folio(page);
-+			swapcache = folio;
- 		}
+-				if (mem_cgroup_swapin_charge_page(page,
++				if (mem_cgroup_swapin_charge_folio(folio,
+ 							vma->vm_mm, GFP_KERNEL,
+ 							entry)) {
+ 					ret = VM_FAULT_OOM;
+--- a/mm/swap_state.c~memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio
++++ a/mm/swap_state.c
+@@ -480,7 +480,7 @@ struct page *__read_swap_cache_async(swp
+ 	__folio_set_locked(folio);
+ 	__folio_set_swapbacked(folio);
  
--		if (!page) {
-+		if (!folio) {
- 			/*
- 			 * Back out if somebody else faulted in this pte
- 			 * while we released the pte lock.
-@@ -3864,7 +3864,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 		page = ksm_might_need_to_copy(page, vma, vmf->address);
- 		if (unlikely(!page)) {
- 			ret = VM_FAULT_OOM;
--			page = swapcache;
- 			goto out_page;
- 		}
- 		folio = page_folio(page);
-@@ -3875,7 +3874,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 		 * owner. Try removing the extra reference from the local LRU
- 		 * pagevecs if required.
- 		 */
--		if ((vmf->flags & FAULT_FLAG_WRITE) && page == swapcache &&
-+		if ((vmf->flags & FAULT_FLAG_WRITE) && folio == swapcache &&
- 		    !folio_test_ksm(folio) && !folio_test_lru(folio))
- 			lru_add_drain();
- 	}
-@@ -3916,7 +3915,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 		 * without __HAVE_ARCH_PTE_SWP_EXCLUSIVE.
- 		 */
- 		exclusive = pte_swp_exclusive(vmf->orig_pte);
--		if (page != swapcache) {
-+		if (folio != swapcache) {
- 			/*
- 			 * We have a fresh page that is not exposed to the
- 			 * swapcache -> certainly exclusive.
-@@ -3984,7 +3983,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 	vmf->orig_pte = pte;
+-	if (mem_cgroup_swapin_charge_page(&folio->page, NULL, gfp_mask, entry))
++	if (mem_cgroup_swapin_charge_folio(folio, NULL, gfp_mask, entry))
+ 		goto fail_unlock;
  
- 	/* ksm created a completely new copy */
--	if (unlikely(page != swapcache && swapcache)) {
-+	if (unlikely(folio != swapcache && swapcache)) {
- 		page_add_new_anon_rmap(page, vma, vmf->address);
- 		folio_add_lru_vma(folio, vma);
- 	} else {
-@@ -3997,7 +3996,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
- 
- 	folio_unlock(folio);
--	if (page != swapcache && swapcache) {
-+	if (folio != swapcache && swapcache) {
- 		/*
- 		 * Hold the lock to avoid the swap entry to be reused
- 		 * until we take the PT lock for the pte_same() check
-@@ -4006,8 +4005,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 		 * so that the swap count won't change under a
- 		 * parallel locked swapcache.
- 		 */
--		unlock_page(swapcache);
--		put_page(swapcache);
-+		folio_unlock(swapcache);
-+		folio_put(swapcache);
- 	}
- 
- 	if (vmf->flags & FAULT_FLAG_WRITE) {
-@@ -4031,9 +4030,9 @@ out_page:
- 	folio_unlock(folio);
- out_release:
- 	folio_put(folio);
--	if (page != swapcache && swapcache) {
--		unlock_page(swapcache);
--		put_page(swapcache);
-+	if (folio != swapcache && swapcache) {
-+		folio_unlock(swapcache);
-+		folio_put(swapcache);
- 	}
- 	if (si)
- 		put_swap_device(si);
+ 	/* May fail (-ENOMEM) if XArray node allocation failed. */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
