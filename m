@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5D6CC54EE9
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:28:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C4FBC6FA82
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:28:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230380AbiIBX2e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:28:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54130 "EHLO
+        id S231270AbiIBX2h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:28:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229905AbiIBX1p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:45 -0400
+        with ESMTP id S230138AbiIBX1q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9AF3FC122
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80943FC12B
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D95A61E2F
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 729C2C433C1;
-        Fri,  2 Sep 2022 23:27:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1018860EAD
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69DA7C433D7;
+        Fri,  2 Sep 2022 23:27:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161254;
-        bh=Rq4zkz+1XiMDHHG9rv73JKmW5DbewTdMiKLoATR4SZk=;
+        s=korg; t=1662161256;
+        bh=3wjHzrb6Mkdg3oM22jrQvhjRtvSC1dAxL7XNtdwSABA=;
         h=Date:To:From:Subject:From;
-        b=wRZT5rnQ99QaylxZ/6TKO8lnDPl4OXFsPNYAXCxmqASIAMNHaFIWaWMHpuki6gMFh
-         EfWePx3fdfrNHqd2TIQrLtLVuJ/AXbxwvTxMUiGj26ZwRdLKtsT8dDoO3Rek+MU1jz
-         hSBjGvxODMfmkFGKpSxGegymn0j801DZqMH+aCp0=
-Date:   Fri, 02 Sep 2022 16:27:33 -0700
+        b=T5SXPZA6YZq1dLU0HhoUx6U7eVnY6HdWynppMSSMmKYYcB8UgVnjchwb/OGX6fnjT
+         iqn+ji+kraZiSpRIYgvy5QV0Nv2QLSAfBOrYeEQFs4rRBgjdlRnWptszQfX9dKFILr
+         WD2q3bHuwWQydcHURnm+INaRZEa+S2lqUSa1lWUE=
+Date:   Fri, 02 Sep 2022 16:27:35 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-do_wp_page-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20220902232734.729C2C433C1@smtp.kernel.org>
+Subject: + huge_memory-convert-do_huge_pmd_wp_page-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20220902232736.69DA7C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert do_wp_page() to use a folio
+     Subject: huge_memory: convert do_huge_pmd_wp_page() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-do_wp_page-to-use-a-folio.patch
+     huge_memory-convert-do_huge_pmd_wp_page-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-do_wp_page-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_memory-convert-do_huge_pmd_wp_page-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,97 +65,103 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert do_wp_page() to use a folio
-Date: Fri, 2 Sep 2022 20:46:37 +0100
+Subject: huge_memory: convert do_huge_pmd_wp_page() to use a folio
+Date: Fri, 2 Sep 2022 20:46:38 +0100
 
-Saves many calls to compound_head().
+Removes many calls to compound_head().  Does not remove the assumption
+that a folio may not be larger than a PMD.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-42-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-43-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ mm/huge_memory.c |   35 +++++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 16 deletions(-)
 
---- a/mm/memory.c~mm-convert-do_wp_page-to-use-a-folio
-+++ a/mm/memory.c
-@@ -3370,6 +3370,7 @@ static vm_fault_t do_wp_page(struct vm_f
+--- a/mm/huge_memory.c~huge_memory-convert-do_huge_pmd_wp_page-to-use-a-folio
++++ a/mm/huge_memory.c
+@@ -1305,6 +1305,7 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
  {
  	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
  	struct vm_area_struct *vma = vmf->vma;
 +	struct folio *folio;
+ 	struct page *page;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+ 	pmd_t orig_pmd = vmf->orig_pmd;
+@@ -1326,46 +1327,48 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ 	}
  
- 	VM_BUG_ON(unshare && (vmf->flags & FAULT_FLAG_WRITE));
- 	VM_BUG_ON(!unshare && !(vmf->flags & FAULT_FLAG_WRITE));
-@@ -3416,48 +3417,47 @@ static vm_fault_t do_wp_page(struct vm_f
- 	 * Take out anonymous pages first, anonymous shared vmas are
- 	 * not dirty accountable.
- 	 */
--	if (PageAnon(vmf->page)) {
--		struct page *page = vmf->page;
--
-+	folio = page_folio(vmf->page);
-+	if (folio_test_anon(folio)) {
- 		/*
- 		 * If the page is exclusive to this process we must reuse the
- 		 * page without further checks.
- 		 */
--		if (PageAnonExclusive(page))
-+		if (PageAnonExclusive(vmf->page))
- 			goto reuse;
+ 	page = pmd_page(orig_pmd);
++	folio = page_folio(page);
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
  
- 		/*
--		 * We have to verify under page lock: these early checks are
--		 * just an optimization to avoid locking the page and freeing
-+		 * We have to verify under folio lock: these early checks are
-+		 * just an optimization to avoid locking the folio and freeing
- 		 * the swapcache if there is little hope that we can reuse.
- 		 *
--		 * PageKsm() doesn't necessarily raise the page refcount.
-+		 * KSM doesn't necessarily raise the folio refcount.
- 		 */
--		if (PageKsm(page) || page_count(page) > 3)
-+		if (folio_test_ksm(folio) || folio_ref_count(folio) > 3)
- 			goto copy;
--		if (!PageLRU(page))
-+		if (!folio_test_lru(folio))
- 			/*
- 			 * Note: We cannot easily detect+handle references from
--			 * remote LRU pagevecs or references to PageLRU() pages.
-+			 * remote LRU pagevecs or references to LRU folios.
- 			 */
- 			lru_add_drain();
--		if (page_count(page) > 1 + PageSwapCache(page))
-+		if (folio_ref_count(folio) > 1 + folio_test_swapcache(folio))
- 			goto copy;
--		if (!trylock_page(page))
-+		if (!folio_trylock(folio))
- 			goto copy;
--		if (PageSwapCache(page))
--			try_to_free_swap(page);
--		if (PageKsm(page) || page_count(page) != 1) {
+ 	/* Early check when only holding the PT lock. */
+ 	if (PageAnonExclusive(page))
+ 		goto reuse;
+ 
+-	if (!trylock_page(page)) {
+-		get_page(page);
++	if (!folio_trylock(folio)) {
++		folio_get(folio);
+ 		spin_unlock(vmf->ptl);
+-		lock_page(page);
++		folio_lock(folio);
+ 		spin_lock(vmf->ptl);
+ 		if (unlikely(!pmd_same(*vmf->pmd, orig_pmd))) {
+ 			spin_unlock(vmf->ptl);
 -			unlock_page(page);
-+		if (folio_test_swapcache(folio))
-+			folio_free_swap(folio);
-+		if (folio_test_ksm(folio) || folio_ref_count(folio) != 1) {
+-			put_page(page);
 +			folio_unlock(folio);
- 			goto copy;
++			folio_put(folio);
+ 			return 0;
  		}
- 		/*
--		 * Ok, we've got the only page reference from our mapping
--		 * and the page is locked, it's dark out, and we're wearing
-+		 * Ok, we've got the only folio reference from our mapping
-+		 * and the folio is locked, it's dark out, and we're wearing
- 		 * sunglasses. Hit it.
- 		 */
--		page_move_anon_rmap(page, vma);
+-		put_page(page);
++		folio_put(folio);
+ 	}
+ 
+ 	/* Recheck after temporarily dropping the PT lock. */
+ 	if (PageAnonExclusive(page)) {
 -		unlock_page(page);
-+		page_move_anon_rmap(vmf->page, vma);
++		folio_unlock(folio);
+ 		goto reuse;
+ 	}
+ 
+ 	/*
+-	 * See do_wp_page(): we can only reuse the page exclusively if there are
+-	 * no additional references. Note that we always drain the LRU
+-	 * pagevecs immediately after adding a THP.
++	 * See do_wp_page(): we can only reuse the folio exclusively if
++	 * there are no additional references. Note that we always drain
++	 * the LRU pagevecs immediately after adding a THP.
+ 	 */
+-	if (page_count(page) > 1 + PageSwapCache(page) * thp_nr_pages(page))
++	if (folio_ref_count(folio) >
++			1 + folio_test_swapcache(folio) * folio_nr_pages(folio))
+ 		goto unlock_fallback;
+-	if (PageSwapCache(page))
+-		try_to_free_swap(page);
+-	if (page_count(page) == 1) {
++	if (folio_test_swapcache(folio))
++		folio_free_swap(folio);
++	if (folio_ref_count(folio) == 1) {
+ 		pmd_t entry;
+ 
+ 		page_move_anon_rmap(page, vma);
+-		unlock_page(page);
 +		folio_unlock(folio);
  reuse:
  		if (unlikely(unshare)) {
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 			spin_unlock(vmf->ptl);
+@@ -1380,7 +1383,7 @@ reuse:
+ 	}
+ 
+ unlock_fallback:
+-	unlock_page(page);
++	folio_unlock(folio);
+ 	spin_unlock(vmf->ptl);
+ fallback:
+ 	__split_huge_pmd(vma, vmf->pmd, vmf->address, false, NULL);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
