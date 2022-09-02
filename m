@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6365C6FA86
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:28:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57CD2ECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:28:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231163AbiIBX24 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:28:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55022 "EHLO
+        id S230137AbiIBX25 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:28:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230137AbiIBX1y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:54 -0400
+        with ESMTP id S230173AbiIBX1v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:51 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1855D2E86
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FDEED2927
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6E9EE61F9E
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C84F9C433C1;
-        Fri,  2 Sep 2022 23:27:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F3B2460EAD
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 533C1C433C1;
+        Fri,  2 Sep 2022 23:27:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161271;
-        bh=75oMIDk/EzizwrCqkSCkJSBnx2mOBoU6nlQXDAFVY8o=;
+        s=korg; t=1662161269;
+        bh=qao9TNP+ldWW32jNffQ6iOTr98Hxa4f7MDJf8yznwxk=;
         h=Date:To:From:Subject:From;
-        b=cV0wGof9mHPXOoa7/Z+S0y/5TTvk5aWuBMLacug+ceTYVTJjj+77O95c2l+lAOI2n
-         64a0iQQBFlAe2EZpF3uvBV0/yryMpdVVxviC+N8gQ540oi8AXmHfCmw7aApPKQ6+dw
-         UzFE4iSuaN3WyFw+dsQa34A4sA4cgo8LVXfHdtxc=
-Date:   Fri, 02 Sep 2022 16:27:51 -0700
+        b=Miv9Y9oTMWxg+eNw6g4VCCRu8y3zufM6ofeJ2Tmw/42PvBwVCcPEpJ3Hx+JqIHxTX
+         iEa34lysc161XCEqo2UmiNb2v3ZxfD5FBG9wWa/8zw02EftTGhMYJ9OsYuIS2SOT0f
+         E9NPXW4xDM1F9hJJZh7n3xWJrzWxY0Ia0HW8TK6g=
+Date:   Fri, 02 Sep 2022 16:27:48 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + rmap-convert-page_move_anon_rmap-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20220902232751.C84F9C433C1@smtp.kernel.org>
+Subject: + mm-remove-try_to_free_swap.patch added to mm-unstable branch
+Message-Id: <20220902232749.533C1C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rmap: convert page_move_anon_rmap() to use a folio
+     Subject: mm: remove try_to_free_swap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     rmap-convert-page_move_anon_rmap-to-use-a-folio.patch
+     mm-remove-try_to_free_swap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rmap-convert-page_move_anon_rmap-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-try_to_free_swap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,50 +65,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: rmap: convert page_move_anon_rmap() to use a folio
-Date: Fri, 2 Sep 2022 20:46:45 +0100
+Subject: mm: remove try_to_free_swap()
+Date: Fri, 2 Sep 2022 20:46:44 +0100
 
-Removes one call to compound_head() and a reference to page->mapping.
+All callers have now been converted to folio_free_swap() and we can remove
+this wrapper.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-50-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-49-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ include/linux/swap.h |    6 ------
+ mm/folio-compat.c    |    7 -------
+ mm/memory.c          |    2 +-
+ 3 files changed, 1 insertion(+), 14 deletions(-)
 
---- a/mm/rmap.c~rmap-convert-page_move_anon_rmap-to-use-a-folio
-+++ a/mm/rmap.c
-@@ -1099,22 +1099,20 @@ int pfn_mkclean_range(unsigned long pfn,
-  */
- void page_move_anon_rmap(struct page *page, struct vm_area_struct *vma)
+--- a/include/linux/swap.h~mm-remove-try_to_free_swap
++++ a/include/linux/swap.h
+@@ -510,7 +510,6 @@ extern int __swp_swapcount(swp_entry_t e
+ extern int swp_swapcount(swp_entry_t entry);
+ extern struct swap_info_struct *page_swap_info(struct page *);
+ extern struct swap_info_struct *swp_swap_info(swp_entry_t entry);
+-extern int try_to_free_swap(struct page *);
+ struct backing_dev_info;
+ extern int init_swap_address_space(unsigned int type, unsigned long nr_pages);
+ extern void exit_swap_address_space(unsigned int type);
+@@ -594,11 +593,6 @@ static inline int swp_swapcount(swp_entr
  {
--	struct anon_vma *anon_vma = vma->anon_vma;
--	struct page *subpage = page;
-+	void *anon_vma = vma->anon_vma;
-+	struct folio *folio = page_folio(page);
- 
--	page = compound_head(page);
--
--	VM_BUG_ON_PAGE(!PageLocked(page), page);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 	VM_BUG_ON_VMA(!anon_vma, vma);
- 
--	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
-+	anon_vma += PAGE_MAPPING_ANON;
- 	/*
- 	 * Ensure that anon_vma and the PAGE_MAPPING_ANON bit are written
- 	 * simultaneously, so a concurrent reader (eg folio_referenced()'s
- 	 * folio_test_anon()) will not see one without the other.
- 	 */
--	WRITE_ONCE(page->mapping, (struct address_space *) anon_vma);
--	SetPageAnonExclusive(subpage);
-+	WRITE_ONCE(folio->mapping, anon_vma);
-+	SetPageAnonExclusive(page);
+ 	return 0;
  }
+-
+-static inline int try_to_free_swap(struct page *page)
+-{
+-	return 0;
+-}
  
- /**
+ static inline swp_entry_t folio_alloc_swap(struct folio *folio)
+ {
+--- a/mm/folio-compat.c~mm-remove-try_to_free_swap
++++ a/mm/folio-compat.c
+@@ -146,10 +146,3 @@ void putback_lru_page(struct page *page)
+ {
+ 	folio_putback_lru(page_folio(page));
+ }
+-
+-#ifdef CONFIG_SWAP
+-int try_to_free_swap(struct page *page)
+-{
+-	return folio_free_swap(page_folio(page));
+-}
+-#endif
+--- a/mm/memory.c~mm-remove-try_to_free_swap
++++ a/mm/memory.c
+@@ -3846,7 +3846,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 
+ 	if (swapcache) {
+ 		/*
+-		 * Make sure try_to_free_swap or swapoff did not release the
++		 * Make sure folio_free_swap() or swapoff did not release the
+ 		 * swapcache from under us.  The page pin, and pte_same test
+ 		 * below, are not enough to exclude that.  Even if it is still
+ 		 * swapcache, we need to check that the page's swap has not
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
