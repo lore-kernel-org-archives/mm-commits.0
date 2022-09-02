@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9199CC54EE9
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:28:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6258CC6FA82
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:28:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231388AbiIBX2v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:28:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54794 "EHLO
+        id S231408AbiIBX2w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:28:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231298AbiIBX1q (ORCPT
+        with ESMTP id S231299AbiIBX1q (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:46 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27FAAFC305
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC072FC308
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B2E37B82E07
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5138DC433C1;
-        Fri,  2 Sep 2022 23:27:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 85A05B82E0B
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EA01C433C1;
+        Fri,  2 Sep 2022 23:27:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161260;
-        bh=PBlojHUTNelX0SHTxVTnt87OmdFd9EDGL5KQpg40ons=;
+        s=korg; t=1662161262;
+        bh=x8Yr5aIX6pM2LLJwAXHOijE/lwN8+EqIy7ArNNPhqJw=;
         h=Date:To:From:Subject:From;
-        b=IXSTvx6mNTrNu5kKaxAGiioJGC03QD48pnZBsHJ6mKAvK+MHfK/sebZ5TJ4XMpanM
-         8e6RJSuCBAXij5Xzj22QLrQOPqro/fsL9pjfPejOUpi01NGysUZ5Kw0sgMDzhnR57d
-         NDBnhggjCRql3pO0SSh/Q2O0oTS5gbpNL2av/x0w=
-Date:   Fri, 02 Sep 2022 16:27:39 -0700
+        b=FrH7aY9x6NIoxuDZCzkDLCVRGKmj0FFijQ4sfqspCYnbLe6NzEAoVeR2ZTF2vX5rj
+         HFosHJ7X7Ec3ZLjXq+t+Rh5A2xdj8mmLOD0cdZddvwmucuLVPRiyqrLVmDs9gzFy8K
+         2SmSiLogr3Yv7SHdRoNpyQTk5j5VLLJES+3Lmx6o=
+Date:   Fri, 02 Sep 2022 16:27:41 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + uprobes-use-folios-more-widely-in-__replace_page.patch added to mm-unstable branch
-Message-Id: <20220902232740.5138DC433C1@smtp.kernel.org>
+Subject: + ksm-use-a-folio-in-replace_page.patch added to mm-unstable branch
+Message-Id: <20220902232742.3EA01C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uprobes: use folios more widely in __replace_page()
+     Subject: ksm: use a folio in replace_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     uprobes-use-folios-more-widely-in-__replace_page.patch
+     ksm-use-a-folio-in-replace_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uprobes-use-folios-more-widely-in-__replace_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-use-a-folio-in-replace_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,81 +65,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: uprobes: use folios more widely in __replace_page()
-Date: Fri, 2 Sep 2022 20:46:40 +0100
+Subject: ksm: use a folio in replace_page()
+Date: Fri, 2 Sep 2022 20:46:41 +0100
 
-Remove a few hidden calls to compound_head().
+Replace three calls to compound_head() with one.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-45-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-46-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ mm/ksm.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/kernel/events/uprobes.c~uprobes-use-folios-more-widely-in-__replace_page
-+++ a/kernel/events/uprobes.c
-@@ -19,7 +19,7 @@
- #include <linux/export.h>
- #include <linux/rmap.h>		/* anon_vma_prepare */
- #include <linux/mmu_notifier.h>	/* set_pte_at_notify */
--#include <linux/swap.h>		/* try_to_free_swap */
-+#include <linux/swap.h>		/* folio_free_swap */
- #include <linux/ptrace.h>	/* user_enable_single_step */
- #include <linux/kdebug.h>	/* notifier mechanism */
- #include "../../mm/internal.h"	/* munlock_vma_page */
-@@ -154,8 +154,9 @@ static loff_t vaddr_to_offset(struct vm_
- static int __replace_page(struct vm_area_struct *vma, unsigned long addr,
- 				struct page *old_page, struct page *new_page)
+--- a/mm/ksm.c~ksm-use-a-folio-in-replace_page
++++ a/mm/ksm.c
+@@ -1110,6 +1110,7 @@ static int replace_page(struct vm_area_s
+ 			struct page *kpage, pte_t orig_pte)
  {
-+	struct folio *old_folio = page_folio(old_page);
  	struct mm_struct *mm = vma->vm_mm;
--	DEFINE_FOLIO_VMA_WALK(pvmw, page_folio(old_page), vma, addr, 0);
-+	DEFINE_FOLIO_VMA_WALK(pvmw, old_folio, vma, addr, 0);
- 	int err;
- 	struct mmu_notifier_range range;
++	struct folio *folio;
+ 	pmd_t *pmd;
+ 	pmd_t pmde;
+ 	pte_t *ptep;
+@@ -1178,10 +1179,11 @@ static int replace_page(struct vm_area_s
+ 	ptep_clear_flush(vma, addr, ptep);
+ 	set_pte_at_notify(mm, addr, ptep, newpte);
  
-@@ -169,8 +170,8 @@ static int __replace_page(struct vm_area
- 			return err;
- 	}
++	folio = page_folio(page);
+ 	page_remove_rmap(page, vma, false);
+-	if (!page_mapped(page))
+-		try_to_free_swap(page);
+-	put_page(page);
++	if (!folio_mapped(folio))
++		folio_free_swap(folio);
++	folio_put(folio);
  
--	/* For try_to_free_swap() below */
--	lock_page(old_page);
-+	/* For folio_free_swap() below */
-+	folio_lock(old_folio);
- 
- 	mmu_notifier_invalidate_range_start(&range);
- 	err = -EAGAIN;
-@@ -186,7 +187,7 @@ static int __replace_page(struct vm_area
- 		/* no new page, just dec_mm_counter for old_page */
- 		dec_mm_counter(mm, MM_ANONPAGES);
- 
--	if (!PageAnon(old_page)) {
-+	if (!folio_test_anon(old_folio)) {
- 		dec_mm_counter(mm, mm_counter_file(old_page));
- 		inc_mm_counter(mm, MM_ANONPAGES);
- 	}
-@@ -198,15 +199,15 @@ static int __replace_page(struct vm_area
- 				  mk_pte(new_page, vma->vm_page_prot));
- 
- 	page_remove_rmap(old_page, vma, false);
--	if (!page_mapped(old_page))
--		try_to_free_swap(old_page);
-+	if (!folio_mapped(old_folio))
-+		folio_free_swap(old_folio);
- 	page_vma_mapped_walk_done(&pvmw);
--	put_page(old_page);
-+	folio_put(old_folio);
- 
+ 	pte_unmap_unlock(ptep, ptl);
  	err = 0;
-  unlock:
- 	mmu_notifier_invalidate_range_end(&range);
--	unlock_page(old_page);
-+	folio_unlock(old_folio);
- 	return err;
- }
- 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
