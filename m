@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57936C6FA82
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:27:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21F6CECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:27:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230093AbiIBX1d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:27:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54762 "EHLO
+        id S231303AbiIBX1r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:27:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230397AbiIBX1C (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:02 -0400
+        with ESMTP id S231153AbiIBX1H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D17C8FB2AC
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16E3FF5480
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6F30E61E2F
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7B41C433D6;
-        Fri,  2 Sep 2022 23:26:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A83561F9E
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0F51C433C1;
+        Fri,  2 Sep 2022 23:27:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161219;
-        bh=KgTiKln5ux1RLO0K+K8lKYmyKZL4r1qq3mMyrNuRHAM=;
+        s=korg; t=1662161224;
+        bh=u6LJZvVohKU2hwHi5TbI6F8ulmika8Q25/QlcYowH1M=;
         h=Date:To:From:Subject:From;
-        b=NDgo/ka5ybyhyFzDGY9E74FiH13qX/gWjjHn9fhGPmxhKIoUdbxygpmr/OxW4gOfb
-         LT8fFkq93pRNs1zkmcxiyChrVksudBVx/LXB0rSlk8prJguxLrdY6Z6qAzVRZS6ttr
-         M06RJ1VLPg4KtrnloDj99NJ5hZSe02378c8dUguQ=
-Date:   Fri, 02 Sep 2022 16:26:59 -0700
+        b=kssaaDmoxZOgnOjOOiQSMcU9wD3cjgC1r2PIHQSGjgRnr2FMSHy2eLenAIzuLUFXg
+         zKuCVoSZxs8G3zRKrrGtGCn3UWzAEkyEE0H7yhuYNtAoFKi6nTd/7sMK3GL0/rAuBj
+         77mgfUgf2jsAF5awlSOqyFK27rhJa5ozMUCsFe88=
+Date:   Fri, 02 Sep 2022 16:27:03 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-add-shmem_get_folio.patch added to mm-unstable branch
-Message-Id: <20220902232659.C7B41C433D6@smtp.kernel.org>
+Subject: + shmem-convert-shmem_write_begin-to-use-shmem_get_folio.patch added to mm-unstable branch
+Message-Id: <20220902232703.F0F51C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: add shmem_get_folio()
+     Subject: shmem: convert shmem_write_begin() to use shmem_get_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-add-shmem_get_folio.patch
+     shmem-convert-shmem_write_begin-to-use-shmem_get_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-add-shmem_get_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-convert-shmem_write_begin-to-use-shmem_get_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,73 +65,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: shmem: add shmem_get_folio()
-Date: Fri, 2 Sep 2022 20:46:20 +0100
+Subject: shmem: convert shmem_write_begin() to use shmem_get_folio()
+Date: Fri, 2 Sep 2022 20:46:22 +0100
 
-With no remaining callers of shmem_getpage_gfp(), add shmem_get_folio()
-and reimplement shmem_getpage() as a call to shmem_get_folio().
+Use a folio throughout this function, saving a couple of calls to
+compound_head().
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-25-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-27-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |    2 ++
- mm/shmem.c               |   23 ++++++++++-------------
- 2 files changed, 12 insertions(+), 13 deletions(-)
+ mm/shmem.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/include/linux/shmem_fs.h~shmem-add-shmem_get_folio
-+++ a/include/linux/shmem_fs.h
-@@ -113,6 +113,8 @@ enum sgp_type {
- 
- extern int shmem_getpage(struct inode *inode, pgoff_t index,
- 		struct page **pagep, enum sgp_type sgp);
-+int shmem_get_folio(struct inode *inode, pgoff_t index, struct folio **foliop,
-+		enum sgp_type sgp);
- 
- static inline struct page *shmem_read_mapping_page(
- 				struct address_space *mapping, pgoff_t index)
---- a/mm/shmem.c~shmem-add-shmem_get_folio
+--- a/mm/shmem.c~shmem-convert-shmem_write_begin-to-use-shmem_get_folio
 +++ a/mm/shmem.c
-@@ -2025,14 +2025,18 @@ unlock:
- 	return error;
- }
+@@ -2497,6 +2497,7 @@ shmem_write_begin(struct file *file, str
+ 	struct inode *inode = mapping->host;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	pgoff_t index = pos >> PAGE_SHIFT;
++	struct folio *folio;
+ 	int ret = 0;
  
--static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
--		struct page **pagep, enum sgp_type sgp,
--		gfp_t gfp, struct vm_area_struct *vma,
--		struct vm_fault *vmf, vm_fault_t *fault_type)
-+int shmem_get_folio(struct inode *inode, pgoff_t index, struct folio **foliop,
-+		enum sgp_type sgp)
-+{
-+	return shmem_get_folio_gfp(inode, index, foliop, sgp,
-+			mapping_gfp_mask(inode->i_mapping), NULL, NULL, NULL);
-+}
-+
-+int shmem_getpage(struct inode *inode, pgoff_t index,
-+		struct page **pagep, enum sgp_type sgp)
- {
- 	struct folio *folio = NULL;
--	int ret = shmem_get_folio_gfp(inode, index, &folio, sgp, gfp, vma,
--			vmf, fault_type);
-+	int ret = shmem_get_folio(inode, index, &folio, sgp);
+ 	/* i_rwsem is held by caller */
+@@ -2508,14 +2509,15 @@ shmem_write_begin(struct file *file, str
+ 			return -EPERM;
+ 	}
  
- 	if (folio)
- 		*pagep = folio_file_page(folio, index);
-@@ -2041,13 +2045,6 @@ static int shmem_getpage_gfp(struct inod
- 	return ret;
- }
+-	ret = shmem_getpage(inode, index, pagep, SGP_WRITE);
++	ret = shmem_get_folio(inode, index, &folio, SGP_WRITE);
  
--int shmem_getpage(struct inode *inode, pgoff_t index,
--		struct page **pagep, enum sgp_type sgp)
--{
--	return shmem_getpage_gfp(inode, index, pagep, sgp,
--		mapping_gfp_mask(inode->i_mapping), NULL, NULL, NULL);
--}
--
- /*
-  * This is like autoremove_wake_function, but it removes the wait queue
-  * entry unconditionally - even if something else had already woken the
+ 	if (ret)
+ 		return ret;
+ 
++	*pagep = folio_file_page(folio, index);
+ 	if (PageHWPoison(*pagep)) {
+-		unlock_page(*pagep);
+-		put_page(*pagep);
++		folio_unlock(folio);
++		folio_put(folio);
+ 		*pagep = NULL;
+ 		return -EIO;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
