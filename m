@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5283C54EE9
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:29:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69134C54EE9
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:29:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231251AbiIBX3R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:29:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55082 "EHLO
+        id S231311AbiIBX31 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:29:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230311AbiIBX2I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:28:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 955E6FBA6D
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:28:05 -0700 (PDT)
+        with ESMTP id S230435AbiIBX2K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:28:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7352FFBA76
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:28:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3299461F87
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:28:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89A57C433C1;
-        Fri,  2 Sep 2022 23:28:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A966661F92
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:28:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E33BC433C1;
+        Fri,  2 Sep 2022 23:28:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161284;
-        bh=mjudPoWu7sNK4uMn3IgZlZGWwigCHetT2tq1qKwYgiE=;
+        s=korg; t=1662161287;
+        bh=fhJDcm4BRbSg+OlEku30AnxwJkQlOAXpXH+Vg788134=;
         h=Date:To:From:Subject:From;
-        b=U8x+YPGcvumHJbZ4dFtPq4nw33O7uCz0TDZ1YCf1dpKiXr0zHfL74nObE6UnpNkDY
-         APzevmNBSeQRknS9DhgIktSGbPbuP5AoiF8tn5cG7mEoJjkvs+cZg2EGE3XH14L05m
-         TCaQaktZXfN57N7BNvg78aMyIQv1n7TWSbRc9cP8=
-Date:   Fri, 02 Sep 2022 16:28:03 -0700
+        b=rbmxA3MIVpBP0b++rnFQVbA/u6CIflf2UR0srQZ4QHPfyxpKmlhAQbjmORBQjKAvl
+         jxqBMAwY3Tc8JgqopFSgklcpJaAlBMZFOCPaSx/EQQiA/vAAm551XkWXnd/fXrJOfi
+         d0e+Hj8yVSGIh6QINN6RPgEqgWzUQoenp9GT/ub4=
+Date:   Fri, 02 Sep 2022 16:28:06 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + rmap-remove-page_unlock_anon_vma_read.patch added to mm-unstable branch
-Message-Id: <20220902232804.89A57C433C1@smtp.kernel.org>
+Subject: + uprobes-use-new_folio-in-__replace_page.patch added to mm-unstable branch
+Message-Id: <20220902232807.0E33BC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rmap: remove page_unlock_anon_vma_read()
+     Subject: uprobes: use new_folio in __replace_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     rmap-remove-page_unlock_anon_vma_read.patch
+     uprobes-use-new_folio-in-__replace_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rmap-remove-page_unlock_anon_vma_read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uprobes-use-new_folio-in-__replace_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,62 +65,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: rmap: remove page_unlock_anon_vma_read()
-Date: Fri, 2 Sep 2022 20:46:51 +0100
+Subject: uprobes: use new_folio in __replace_page()
+Date: Fri, 2 Sep 2022 20:46:52 +0100
 
-This was simply an alias for anon_vma_unlock_read() since 2011.
+Saves several calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-56-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-57-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    5 -----
- mm/memory-failure.c  |    2 +-
- mm/rmap.c            |    5 -----
- 3 files changed, 1 insertion(+), 11 deletions(-)
+ kernel/events/uprobes.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/include/linux/rmap.h~rmap-remove-page_unlock_anon_vma_read
-+++ a/include/linux/rmap.h
-@@ -458,13 +458,8 @@ struct rmap_walk_control {
+--- a/kernel/events/uprobes.c~uprobes-use-new_folio-in-__replace_page
++++ a/kernel/events/uprobes.c
+@@ -155,6 +155,7 @@ static int __replace_page(struct vm_area
+ 				struct page *old_page, struct page *new_page)
+ {
+ 	struct folio *old_folio = page_folio(old_page);
++	struct folio *new_folio;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	DEFINE_FOLIO_VMA_WALK(pvmw, old_folio, vma, addr, 0);
+ 	int err;
+@@ -164,8 +165,8 @@ static int __replace_page(struct vm_area
+ 				addr + PAGE_SIZE);
  
- void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc);
- void rmap_walk_locked(struct folio *folio, struct rmap_walk_control *rwc);
--
--/*
-- * Called by memory-failure.c to kill processes.
-- */
- struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
- 					  struct rmap_walk_control *rwc);
--void page_unlock_anon_vma_read(struct anon_vma *anon_vma);
- 
- #else	/* !CONFIG_MMU */
- 
---- a/mm/memory-failure.c~rmap-remove-page_unlock_anon_vma_read
-+++ a/mm/memory-failure.c
-@@ -529,7 +529,7 @@ static void collect_procs_anon(struct pa
- 		}
+ 	if (new_page) {
+-		err = mem_cgroup_charge(page_folio(new_page), vma->vm_mm,
+-					GFP_KERNEL);
++		new_folio = page_folio(new_page);
++		err = mem_cgroup_charge(new_folio, vma->vm_mm, GFP_KERNEL);
+ 		if (err)
+ 			return err;
  	}
- 	read_unlock(&tasklist_lock);
--	page_unlock_anon_vma_read(av);
-+	anon_vma_unlock_read(av);
- }
+@@ -180,9 +181,9 @@ static int __replace_page(struct vm_area
+ 	VM_BUG_ON_PAGE(addr != pvmw.address, old_page);
  
- /*
---- a/mm/rmap.c~rmap-remove-page_unlock_anon_vma_read
-+++ a/mm/rmap.c
-@@ -599,11 +599,6 @@ out:
- 	return anon_vma;
- }
- 
--void page_unlock_anon_vma_read(struct anon_vma *anon_vma)
--{
--	anon_vma_unlock_read(anon_vma);
--}
--
- #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- /*
-  * Flush TLB entries for recently unmapped pages from remote CPUs. It is
+ 	if (new_page) {
+-		get_page(new_page);
++		folio_get(new_folio);
+ 		page_add_new_anon_rmap(new_page, vma, addr);
+-		lru_cache_add_inactive_or_unevictable(new_page, vma);
++		folio_add_lru_vma(new_folio, vma);
+ 	} else
+ 		/* no new page, just dec_mm_counter for old_page */
+ 		dec_mm_counter(mm, MM_ANONPAGES);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
