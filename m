@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3C89C54EE9
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:27:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7B7AECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:27:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229794AbiIBX13 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:27:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54732 "EHLO
+        id S230375AbiIBX1d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:27:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230346AbiIBX1A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75F0AFB0D4
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:58 -0700 (PDT)
+        with ESMTP id S230394AbiIBX1C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:02 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91FD0FB29A
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 38102B82E0C
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5E13C433D7;
-        Fri,  2 Sep 2022 23:26:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4362BB82E02
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEF26C433D6;
+        Fri,  2 Sep 2022 23:26:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161216;
-        bh=BgYksXGFDISAkLfUyazJ4CK+wun/fPAIDzgvkHuYIac=;
+        s=korg; t=1662161217;
+        bh=uz/u+fU04LUdq1k+nO2LapYanfqx9KfbCv73B2ahvo8=;
         h=Date:To:From:Subject:From;
-        b=uYIR1l3EvMwLzdCJCsaakLhYZ0VNYm1YHpB6WXk4TcPn42Z/CBJlTseLZbb03GEqJ
-         oWH6/qHIuJKE6Tlbf9s/4fVDkufLIX3j5Iro8sw7bCeZJoZBZZiXWCvQBUfhd7XQFq
-         kmyna+sM0ZSbI34KIK82m4yOCSSwiAVoqVIwNYa0=
-Date:   Fri, 02 Sep 2022 16:26:55 -0700
+        b=jrFIPeiOhytrAQWCpWVf8Trg4sUqx9RkoBLQbfaR3dWm/jLTPpwgel2u0TE9n7+dW
+         9ZGSfrE+mwzZVh8XyX3ocC/iCjhWl50zFHGKkrWdCu7LPCUMl0mCSbi1gzy2g9dCsF
+         hZMAKRx2f0j3pXjz12DHHX6zxCTjQ1eyv7VTW0RM=
+Date:   Fri, 02 Sep 2022 16:26:57 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp.patch added to mm-unstable branch
-Message-Id: <20220902232655.E5E13C433D7@smtp.kernel.org>
+Subject: + shmem-convert-shmem_read_mapping_page_gfp-to-use-shmem_get_folio_gfp.patch added to mm-unstable branch
+Message-Id: <20220902232657.CEF26C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: convert shmem_fault() to use shmem_get_folio_gfp()
+     Subject: shmem: convert shmem_read_mapping_page_gfp() to use shmem_get_folio_gfp()
 has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp.patch
+     shmem-convert-shmem_read_mapping_page_gfp-to-use-shmem_get_folio_gfp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-convert-shmem_read_mapping_page_gfp-to-use-shmem_get_folio_gfp.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,42 +65,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: shmem: convert shmem_fault() to use shmem_get_folio_gfp()
-Date: Fri, 2 Sep 2022 20:46:18 +0100
+Subject: shmem: convert shmem_read_mapping_page_gfp() to use shmem_get_folio_gfp()
+Date: Fri, 2 Sep 2022 20:46:19 +0100
 
-No particular advantage for this function, but necessary to remove
-shmem_getpage_gfp().
+Saves a couple of calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-23-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-24-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/shmem.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/shmem.c~shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp
+--- a/mm/shmem.c~shmem-convert-shmem_read_mapping_page_gfp-to-use-shmem_get_folio_gfp
 +++ a/mm/shmem.c
-@@ -2065,6 +2065,7 @@ static vm_fault_t shmem_fault(struct vm_
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct inode *inode = file_inode(vma->vm_file);
- 	gfp_t gfp = mapping_gfp_mask(inode->i_mapping);
+@@ -4269,18 +4269,20 @@ struct page *shmem_read_mapping_page_gfp
+ {
+ #ifdef CONFIG_SHMEM
+ 	struct inode *inode = mapping->host;
 +	struct folio *folio;
- 	int err;
- 	vm_fault_t ret = VM_FAULT_LOCKED;
+ 	struct page *page;
+ 	int error;
  
-@@ -2127,10 +2128,11 @@ static vm_fault_t shmem_fault(struct vm_
- 		spin_unlock(&inode->i_lock);
+ 	BUG_ON(!shmem_mapping(mapping));
+-	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE,
++	error = shmem_get_folio_gfp(inode, index, &folio, SGP_CACHE,
+ 				  gfp, NULL, NULL, NULL);
+ 	if (error)
+ 		return ERR_PTR(error);
+ 
+-	unlock_page(page);
++	folio_unlock(folio);
++	page = folio_file_page(folio, index);
+ 	if (PageHWPoison(page)) {
+-		put_page(page);
++		folio_put(folio);
+ 		return ERR_PTR(-EIO);
  	}
- 
--	err = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, SGP_CACHE,
-+	err = shmem_get_folio_gfp(inode, vmf->pgoff, &folio, SGP_CACHE,
- 				  gfp, vma, vmf, &ret);
- 	if (err)
- 		return vmf_error(err);
-+	vmf->page = folio_file_page(folio, vmf->pgoff);
- 	return ret;
- }
  
 _
 
