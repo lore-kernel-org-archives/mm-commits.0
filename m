@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26C0AC54EE9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 793B2C6FA8B
 	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:27:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230358AbiIBX1t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:27:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54832 "EHLO
+        id S230429AbiIBX1u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:27:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231237AbiIBX1U (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:20 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71AF4FBA6C
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:12 -0700 (PDT)
+        with ESMTP id S231247AbiIBX1V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47165FBA76
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 209EDB82E03
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA21FC433D6;
-        Fri,  2 Sep 2022 23:27:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0BA96B82E03
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1E9CC433D6;
+        Fri,  2 Sep 2022 23:27:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161229;
-        bh=KVs3w8Fb9VzwtS332ML8OX0DMd78l/LOPULMIMFbIaY=;
+        s=korg; t=1662161233;
+        bh=9a6ERYPOmRNQtF4Ia/bgjVgCiAtEbLBH5eGTLCSD2Ss=;
         h=Date:To:From:Subject:From;
-        b=dUJ4sw4zzdc56hlj4JLcGyaSLdlY/a92AFPIvTcJVcALEKSWL5jTmclKqD445ycIQ
-         jjAGSGfXC2chbj7mESXGPPe4pcRYBXAOp0lM22FcO7Yry9CnZkr4vcEB/YWDfRPsWC
-         lAimoXFv2665MLXASg3++5XZBKbc21YiEmRrmYpg=
-Date:   Fri, 02 Sep 2022 16:27:09 -0700
+        b=HYOoVULJsIt0qCk2ESYxiZ2aWCpyvCH5QYMvKT3lcPqs7JDuY7vr69hmhhAkCIJBZ
+         DcN4Cr5u7i+eSXzZ0VKWqTMOLPmDF//1tEIvBzd1GCYxssZDRpvVoUr3+/ftFfvwoy
+         BpDhF90YMmjrEJfDkOwgXD+eOejJl3W74bcjJQIc=
+Date:   Fri, 02 Sep 2022 16:27:13 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-convert-shmem_symlink-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20220902232709.CA21FC433D6@smtp.kernel.org>
+Subject: + khugepaged-call-shmem_get_folio.patch added to mm-unstable branch
+Message-Id: <20220902232713.C1E9CC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: convert shmem_symlink() to use a folio
+     Subject: khugepaged: call shmem_get_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-convert-shmem_symlink-to-use-a-folio.patch
+     khugepaged-call-shmem_get_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-convert-shmem_symlink-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-call-shmem_get_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,56 +65,62 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: shmem: convert shmem_symlink() to use a folio
-Date: Fri, 2 Sep 2022 20:46:25 +0100
+Subject: khugepaged: call shmem_get_folio()
+Date: Fri, 2 Sep 2022 20:46:27 +0100
 
-While symlinks will always be < PAGE_SIZE, using the folio APIs gets rid
-of unnecessary calls to compound_head().
+shmem_getpage() is being removed, so call its replacement and find the
+precise page ourselves.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-30-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-32-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/khugepaged.c |    7 +++++--
+ mm/shmem.c      |    4 ++--
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
---- a/mm/shmem.c~shmem-convert-shmem_symlink-to-use-a-folio
-+++ a/mm/shmem.c
-@@ -3092,7 +3092,7 @@ static int shmem_symlink(struct user_nam
- 	int error;
- 	int len;
- 	struct inode *inode;
--	struct page *page;
-+	struct folio *folio;
+--- a/mm/khugepaged.c~khugepaged-call-shmem_get_folio
++++ a/mm/khugepaged.c
+@@ -1650,13 +1650,16 @@ static int collapse_file(struct mm_struc
+ 			}
  
- 	len = strlen(symname) + 1;
- 	if (len > PAGE_SIZE)
-@@ -3120,18 +3120,18 @@ static int shmem_symlink(struct user_nam
- 		inode->i_op = &shmem_short_symlink_operations;
- 	} else {
- 		inode_nohighmem(inode);
--		error = shmem_getpage(inode, 0, &page, SGP_WRITE);
-+		error = shmem_get_folio(inode, 0, &folio, SGP_WRITE);
- 		if (error) {
- 			iput(inode);
- 			return error;
- 		}
- 		inode->i_mapping->a_ops = &shmem_aops;
- 		inode->i_op = &shmem_symlink_inode_operations;
--		memcpy(page_address(page), symname, len);
--		SetPageUptodate(page);
--		set_page_dirty(page);
--		unlock_page(page);
--		put_page(page);
-+		memcpy(folio_address(folio), symname, len);
-+		folio_mark_uptodate(folio);
-+		folio_mark_dirty(folio);
-+		folio_unlock(folio);
-+		folio_put(folio);
- 	}
- 	dir->i_size += BOGO_DIRENT_SIZE;
- 	dir->i_ctime = dir->i_mtime = current_time(dir);
+ 			if (xa_is_value(page) || !PageUptodate(page)) {
++				struct folio *folio;
++
+ 				xas_unlock_irq(&xas);
+ 				/* swap in or instantiate fallocated page */
+-				if (shmem_getpage(mapping->host, index, &page,
+-						  SGP_NOALLOC)) {
++				if (shmem_get_folio(mapping->host, index,
++						&folio, SGP_NOALLOC)) {
+ 					result = SCAN_FAIL;
+ 					goto xa_unlocked;
+ 				}
++				page = folio_file_page(folio, index);
+ 			} else if (trylock_page(page)) {
+ 				get_page(page);
+ 				xas_unlock_irq(&xas);
+--- a/mm/shmem.c~khugepaged-call-shmem_get_folio
++++ a/mm/shmem.c
+@@ -3157,7 +3157,7 @@ static const char *shmem_get_link(struct
+ 		folio = filemap_get_folio(inode->i_mapping, 0);
+ 		if (!folio)
+ 			return ERR_PTR(-ECHILD);
+-		if (PageHWPoison(&folio->page) ||
++		if (PageHWPoison(folio_page(folio, 0)) ||
+ 		    !folio_test_uptodate(folio)) {
+ 			folio_put(folio);
+ 			return ERR_PTR(-ECHILD);
+@@ -3168,7 +3168,7 @@ static const char *shmem_get_link(struct
+ 			return ERR_PTR(error);
+ 		if (!folio)
+ 			return ERR_PTR(-ECHILD);
+-		if (PageHWPoison(&folio->page)) {
++		if (PageHWPoison(folio_page(folio, 0))) {
+ 			folio_unlock(folio);
+ 			folio_put(folio);
+ 			return ERR_PTR(-ECHILD);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
