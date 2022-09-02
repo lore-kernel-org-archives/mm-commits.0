@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57CD2ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:28:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 243FDC6FA82
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:29:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230137AbiIBX25 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:28:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55012 "EHLO
+        id S230173AbiIBX26 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:28:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230173AbiIBX1v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:51 -0400
+        with ESMTP id S229583AbiIBX2B (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:28:01 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FDEED2927
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7FE0B7779
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:28:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F3B2460EAD
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 533C1C433C1;
-        Fri,  2 Sep 2022 23:27:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 57A5B61FA5
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:28:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF99CC433D7;
+        Fri,  2 Sep 2022 23:27:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161269;
-        bh=qao9TNP+ldWW32jNffQ6iOTr98Hxa4f7MDJf8yznwxk=;
+        s=korg; t=1662161279;
+        bh=Eln1so3hZLu2tRFsUdsVLhTj65zSvmBVhgW41B+P2pE=;
         h=Date:To:From:Subject:From;
-        b=Miv9Y9oTMWxg+eNw6g4VCCRu8y3zufM6ofeJ2Tmw/42PvBwVCcPEpJ3Hx+JqIHxTX
-         iEa34lysc161XCEqo2UmiNb2v3ZxfD5FBG9wWa/8zw02EftTGhMYJ9OsYuIS2SOT0f
-         E9NPXW4xDM1F9hJJZh7n3xWJrzWxY0Ia0HW8TK6g=
-Date:   Fri, 02 Sep 2022 16:27:48 -0700
+        b=tY2wjPt7geOksX9wrrh3Om1xgJtUBMkw0zm/1aLLFznjbkqkboZq4M9XhX7i76d8L
+         YVj7dc0JWkJDTjy1rIP2KAwah1o4YIml7eqx5eM2AsH4s4j7vgq6cwyfreJar55eoP
+         EExvcisNzYjwB1QvvrTn1a8+93qxkc3ZjrhDJCLI=
+Date:   Fri, 02 Sep 2022 16:27:59 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-try_to_free_swap.patch added to mm-unstable branch
-Message-Id: <20220902232749.533C1C433C1@smtp.kernel.org>
+Subject: + huge_memory-convert-unmap_page-to-unmap_folio.patch added to mm-unstable branch
+Message-Id: <20220902232759.AF99CC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove try_to_free_swap()
+     Subject: huge_memory: convert unmap_page() to unmap_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-try_to_free_swap.patch
+     huge_memory-convert-unmap_page-to-unmap_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-try_to_free_swap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_memory-convert-unmap_page-to-unmap_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,68 +65,73 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove try_to_free_swap()
-Date: Fri, 2 Sep 2022 20:46:44 +0100
+Subject: huge_memory: convert unmap_page() to unmap_folio()
+Date: Fri, 2 Sep 2022 20:46:49 +0100
 
-All callers have now been converted to folio_free_swap() and we can remove
-this wrapper.
+Remove a folio->page->folio conversion.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-49-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-54-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 ------
- mm/folio-compat.c    |    7 -------
- mm/memory.c          |    2 +-
- 3 files changed, 1 insertion(+), 14 deletions(-)
+ mm/huge_memory.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/include/linux/swap.h~mm-remove-try_to_free_swap
-+++ a/include/linux/swap.h
-@@ -510,7 +510,6 @@ extern int __swp_swapcount(swp_entry_t e
- extern int swp_swapcount(swp_entry_t entry);
- extern struct swap_info_struct *page_swap_info(struct page *);
- extern struct swap_info_struct *swp_swap_info(swp_entry_t entry);
--extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
- extern int init_swap_address_space(unsigned int type, unsigned long nr_pages);
- extern void exit_swap_address_space(unsigned int type);
-@@ -594,11 +593,6 @@ static inline int swp_swapcount(swp_entr
- {
- 	return 0;
+--- a/mm/huge_memory.c~huge_memory-convert-unmap_page-to-unmap_folio
++++ a/mm/huge_memory.c
+@@ -2355,13 +2355,12 @@ void vma_adjust_trans_huge(struct vm_are
+ 	}
  }
--
--static inline int try_to_free_swap(struct page *page)
--{
--	return 0;
--}
  
- static inline swp_entry_t folio_alloc_swap(struct folio *folio)
+-static void unmap_page(struct page *page)
++static void unmap_folio(struct folio *folio)
  {
---- a/mm/folio-compat.c~mm-remove-try_to_free_swap
-+++ a/mm/folio-compat.c
-@@ -146,10 +146,3 @@ void putback_lru_page(struct page *page)
- {
- 	folio_putback_lru(page_folio(page));
- }
--
--#ifdef CONFIG_SWAP
--int try_to_free_swap(struct page *page)
--{
--	return folio_free_swap(page_folio(page));
--}
--#endif
---- a/mm/memory.c~mm-remove-try_to_free_swap
-+++ a/mm/memory.c
-@@ -3846,7 +3846,7 @@ vm_fault_t do_swap_page(struct vm_fault
+-	struct folio *folio = page_folio(page);
+ 	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD |
+ 		TTU_SYNC;
  
- 	if (swapcache) {
- 		/*
--		 * Make sure try_to_free_swap or swapoff did not release the
-+		 * Make sure folio_free_swap() or swapoff did not release the
- 		 * swapcache from under us.  The page pin, and pte_same test
- 		 * below, are not enough to exclude that.  Even if it is still
- 		 * swapcache, we need to check that the page's swap has not
+-	VM_BUG_ON_PAGE(!PageHead(page), page);
++	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
+ 
+ 	/*
+ 	 * Anon pages need migration entries to preserve them, but file
+@@ -2378,7 +2377,7 @@ static void remap_page(struct folio *fol
+ {
+ 	int i = 0;
+ 
+-	/* If unmap_page() uses try_to_migrate() on file, remove this check */
++	/* If unmap_folio() uses try_to_migrate() on file, remove this check */
+ 	if (!folio_test_anon(folio))
+ 		return;
+ 	for (;;) {
+@@ -2428,7 +2427,7 @@ static void __split_huge_page_tail(struc
+ 	 * for example lock_page() which set PG_waiters.
+ 	 *
+ 	 * Note that for mapped sub-pages of an anonymous THP,
+-	 * PG_anon_exclusive has been cleared in unmap_page() and is stored in
++	 * PG_anon_exclusive has been cleared in unmap_folio() and is stored in
+ 	 * the migration entry instead from where remap_page() will restore it.
+ 	 * We can still have PG_anon_exclusive set on effectively unmapped and
+ 	 * unreferenced sub-pages of an anonymous THP: we can simply drop
+@@ -2700,7 +2699,7 @@ int split_huge_page_to_list(struct page
+ 	}
+ 
+ 	/*
+-	 * Racy check if we can split the page, before unmap_page() will
++	 * Racy check if we can split the page, before unmap_folio() will
+ 	 * split PMDs
+ 	 */
+ 	if (!can_split_folio(folio, &extra_pins)) {
+@@ -2708,7 +2707,7 @@ int split_huge_page_to_list(struct page
+ 		goto out_unlock;
+ 	}
+ 
+-	unmap_page(&folio->page);
++	unmap_folio(folio);
+ 
+ 	/* block interrupt reentry in xa_lock and spinlock */
+ 	local_irq_disable();
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
