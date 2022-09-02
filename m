@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C918EC6FA86
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:29:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43DD1C6FA82
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:29:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231210AbiIBX3A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:29:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55042 "EHLO
+        id S231240AbiIBX3C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:29:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231240AbiIBX16 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD935F5480
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:54 -0700 (PDT)
+        with ESMTP id S230163AbiIBX2I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:28:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81B58FBA6C
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:28:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6AE6161E2F
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCE17C433C1;
-        Fri,  2 Sep 2022 23:27:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 08D8CB82E02
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:28:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB347C433D7;
+        Fri,  2 Sep 2022 23:28:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161273;
-        bh=4rmjsV+lXq9AcNazGs+/4jSBFANG3d5vXzo9BkmZ+XQ=;
+        s=korg; t=1662161281;
+        bh=Dnas6tVC3wqgfJN3yvvlztj0yFnxJwiQ+ozRoT9HT5Q=;
         h=Date:To:From:Subject:From;
-        b=SKMxjhA+IpaMi7VZ8m4qSWFyTRluXoATOCFpGXVqg+d5RAG4cpcPbh86B1mqEFqBi
-         4bUmRcYriGCZ4EXiFXx74mWG4qAmEr8KEM36ENMh1LFOubVgIQMMHPoKFh8PoTk7tP
-         3ieQ9iaKU15U2ADj6FAg46pgXgs/ycFvKICDJ5x0=
-Date:   Fri, 02 Sep 2022 16:27:53 -0700
+        b=HtWqP4vWtQHU2lPGGQa8dn7bBHVTu0HWYd7/sr2b90Ieoj8+cnIfs4R8gVk/biniZ
+         87WFynF/2s0GJax54o7WVJW4c14m9Qu7NZbYTAzbcmrbKkv3aril5kpS7S+xiYvmFl
+         gl7ie4wLPOBMk8JJBaqiEzBQN+0suAdlQvmvungE=
+Date:   Fri, 02 Sep 2022 16:28:01 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + migrate-convert-__unmap_and_move-to-use-folios.patch added to mm-unstable branch
-Message-Id: <20220902232753.BCE17C433C1@smtp.kernel.org>
+Subject: + mm-convert-page_get_anon_vma-to-folio_get_anon_vma.patch added to mm-unstable branch
+Message-Id: <20220902232801.AB347C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: migrate: convert __unmap_and_move() to use folios
+     Subject: mm: convert page_get_anon_vma() to folio_get_anon_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     migrate-convert-__unmap_and_move-to-use-folios.patch
+     mm-convert-page_get_anon_vma-to-folio_get_anon_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate-convert-__unmap_and_move-to-use-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-page_get_anon_vma-to-folio_get_anon_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,207 +65,126 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: migrate: convert __unmap_and_move() to use folios
-Date: Fri, 2 Sep 2022 20:46:46 +0100
+Subject: mm: convert page_get_anon_vma() to folio_get_anon_vma()
+Date: Fri, 2 Sep 2022 20:46:50 +0100
 
-Removes a lot of calls to compound_head().  Also remove a VM_BUG_ON that
-can never trigger as the PageAnon bit is the bottom bit of page->mapping.
+With all callers now passing in a folio, rename the function and convert
+all callers.  Removes a couple of calls to compound_head() and a reference
+to page->mapping.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-51-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-55-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   75 ++++++++++++++++++++++++-------------------------
- 1 file changed, 37 insertions(+), 38 deletions(-)
+ include/linux/rmap.h |    2 +-
+ mm/huge_memory.c     |    2 +-
+ mm/migrate.c         |    6 +++---
+ mm/rmap.c            |   14 +++++++-------
+ 4 files changed, 12 insertions(+), 12 deletions(-)
 
---- a/mm/migrate.c~migrate-convert-__unmap_and_move-to-use-folios
-+++ a/mm/migrate.c
-@@ -993,17 +993,15 @@ out:
- 	return rc;
+--- a/include/linux/rmap.h~mm-convert-page_get_anon_vma-to-folio_get_anon_vma
++++ a/include/linux/rmap.h
+@@ -163,7 +163,7 @@ static inline void anon_vma_merge(struct
+ 	unlink_anon_vmas(next);
  }
  
--static int __unmap_and_move(struct page *page, struct page *newpage,
-+static int __unmap_and_move(struct folio *src, struct folio *dst,
- 				int force, enum migrate_mode mode)
- {
--	struct folio *folio = page_folio(page);
--	struct folio *dst = page_folio(newpage);
- 	int rc = -EAGAIN;
- 	bool page_was_mapped = false;
- 	struct anon_vma *anon_vma = NULL;
--	bool is_lru = !__PageMovable(page);
-+	bool is_lru = !__PageMovable(&src->page);
+-struct anon_vma *page_get_anon_vma(struct page *page);
++struct anon_vma *folio_get_anon_vma(struct folio *folio);
  
--	if (!trylock_page(page)) {
-+	if (!folio_trylock(src)) {
- 		if (!force || mode == MIGRATE_ASYNC)
+ /* RMAP flags, currently only relevant for some anon rmap operations. */
+ typedef int __bitwise rmap_t;
+--- a/mm/huge_memory.c~mm-convert-page_get_anon_vma-to-folio_get_anon_vma
++++ a/mm/huge_memory.c
+@@ -2649,7 +2649,7 @@ int split_huge_page_to_list(struct page
+ 		 * is taken to serialise against parallel split or collapse
+ 		 * operations.
+ 		 */
+-		anon_vma = page_get_anon_vma(&folio->page);
++		anon_vma = folio_get_anon_vma(folio);
+ 		if (!anon_vma) {
+ 			ret = -EBUSY;
  			goto out;
- 
-@@ -1023,10 +1021,10 @@ static int __unmap_and_move(struct page
- 		if (current->flags & PF_MEMALLOC)
- 			goto out;
- 
--		lock_page(page);
-+		folio_lock(src);
- 	}
- 
--	if (PageWriteback(page)) {
-+	if (folio_test_writeback(src)) {
- 		/*
- 		 * Only in the case of a full synchronous migration is it
- 		 * necessary to wait for PageWriteback. In the async case,
-@@ -1043,12 +1041,12 @@ static int __unmap_and_move(struct page
- 		}
- 		if (!force)
- 			goto out_unlock;
--		wait_on_page_writeback(page);
-+		folio_wait_writeback(src);
- 	}
- 
- 	/*
--	 * By try_to_migrate(), page->mapcount goes down to 0 here. In this case,
--	 * we cannot notice that anon_vma is freed while we migrates a page.
-+	 * By try_to_migrate(), src->mapcount goes down to 0 here. In this case,
-+	 * we cannot notice that anon_vma is freed while we migrate a page.
- 	 * This get_anon_vma() delays freeing anon_vma pointer until the end
- 	 * of migration. File cache pages are no problem because of page_lock()
+--- a/mm/migrate.c~mm-convert-page_get_anon_vma-to-folio_get_anon_vma
++++ a/mm/migrate.c
+@@ -1052,14 +1052,14 @@ static int __unmap_and_move(struct folio
  	 * File Caches may use write_page() or lock_page() in migration, then,
-@@ -1060,22 +1058,22 @@ static int __unmap_and_move(struct page
+ 	 * just care Anon page here.
+ 	 *
+-	 * Only page_get_anon_vma() understands the subtleties of
++	 * Only folio_get_anon_vma() understands the subtleties of
+ 	 * getting a hold on an anon_vma from outside one of its mms.
+ 	 * But if we cannot get anon_vma, then we won't need it anyway,
  	 * because that implies that the anon page is no longer mapped
  	 * (and cannot be remapped so long as we hold the page lock).
  	 */
--	if (PageAnon(page) && !PageKsm(page))
--		anon_vma = page_get_anon_vma(page);
-+	if (folio_test_anon(src) && !folio_test_ksm(src))
-+		anon_vma = page_get_anon_vma(&src->page);
+ 	if (folio_test_anon(src) && !folio_test_ksm(src))
+-		anon_vma = page_get_anon_vma(&src->page);
++		anon_vma = folio_get_anon_vma(src);
  
  	/*
  	 * Block others from accessing the new page when we get around to
- 	 * establishing additional references. We are usually the only one
--	 * holding a reference to newpage at this point. We used to have a BUG
--	 * here if trylock_page(newpage) fails, but would like to allow for
--	 * cases where there might be a race with the previous use of newpage.
-+	 * holding a reference to dst at this point. We used to have a BUG
-+	 * here if folio_trylock(dst) fails, but would like to allow for
-+	 * cases where there might be a race with the previous use of dst.
- 	 * This is much like races on refcount of oldpage: just don't BUG().
- 	 */
--	if (unlikely(!trylock_page(newpage)))
-+	if (unlikely(!folio_trylock(dst)))
- 		goto out_unlock;
- 
- 	if (unlikely(!is_lru)) {
--		rc = move_to_new_folio(dst, folio, mode);
-+		rc = move_to_new_folio(dst, src, mode);
- 		goto out_unlock_both;
+@@ -1298,7 +1298,7 @@ static int unmap_and_move_huge_page(new_
  	}
  
-@@ -1083,7 +1081,7 @@ static int __unmap_and_move(struct page
- 	 * Corner case handling:
- 	 * 1. When a new swap-cache page is read into, it is added to the LRU
- 	 * and treated as swapcache but it has no rmap yet.
--	 * Calling try_to_unmap() against a page->mapping==NULL page will
-+	 * Calling try_to_unmap() against a src->mapping==NULL page will
- 	 * trigger a BUG.  So handle it here.
- 	 * 2. An orphaned page (see truncate_cleanup_page) might have
- 	 * fs-private metadata. The page can be picked up due to memory
-@@ -1091,57 +1089,56 @@ static int __unmap_and_move(struct page
- 	 * invisible to the vm, so the page can not be migrated.  So try to
- 	 * free the metadata, so the page can be freed.
- 	 */
--	if (!page->mapping) {
--		VM_BUG_ON_PAGE(PageAnon(page), page);
--		if (page_has_private(page)) {
--			try_to_free_buffers(folio);
-+	if (!src->mapping) {
-+		if (folio_test_private(src)) {
-+			try_to_free_buffers(src);
- 			goto out_unlock_both;
- 		}
--	} else if (page_mapped(page)) {
-+	} else if (folio_mapped(src)) {
- 		/* Establish migration ptes */
--		VM_BUG_ON_PAGE(PageAnon(page) && !PageKsm(page) && !anon_vma,
--				page);
--		try_to_migrate(folio, 0);
-+		VM_BUG_ON_FOLIO(folio_test_anon(src) &&
-+			       !folio_test_ksm(src) && !anon_vma, src);
-+		try_to_migrate(src, 0);
- 		page_was_mapped = true;
- 	}
+ 	if (folio_test_anon(src))
+-		anon_vma = page_get_anon_vma(&src->page);
++		anon_vma = folio_get_anon_vma(src);
  
--	if (!page_mapped(page))
--		rc = move_to_new_folio(dst, folio, mode);
-+	if (!folio_mapped(src))
-+		rc = move_to_new_folio(dst, src, mode);
- 
- 	/*
--	 * When successful, push newpage to LRU immediately: so that if it
-+	 * When successful, push dst to LRU immediately: so that if it
- 	 * turns out to be an mlocked page, remove_migration_ptes() will
--	 * automatically build up the correct newpage->mlock_count for it.
-+	 * automatically build up the correct dst->mlock_count for it.
- 	 *
- 	 * We would like to do something similar for the old page, when
- 	 * unsuccessful, and other cases when a page has been temporarily
- 	 * isolated from the unevictable LRU: but this case is the easiest.
- 	 */
- 	if (rc == MIGRATEPAGE_SUCCESS) {
--		lru_cache_add(newpage);
-+		folio_add_lru(dst);
- 		if (page_was_mapped)
- 			lru_add_drain();
- 	}
- 
- 	if (page_was_mapped)
--		remove_migration_ptes(folio,
--			rc == MIGRATEPAGE_SUCCESS ? dst : folio, false);
-+		remove_migration_ptes(src,
-+			rc == MIGRATEPAGE_SUCCESS ? dst : src, false);
- 
- out_unlock_both:
--	unlock_page(newpage);
-+	folio_unlock(dst);
- out_unlock:
- 	/* Drop an anon_vma reference if we took one */
- 	if (anon_vma)
- 		put_anon_vma(anon_vma);
--	unlock_page(page);
-+	folio_unlock(src);
- out:
- 	/*
--	 * If migration is successful, decrease refcount of the newpage,
-+	 * If migration is successful, decrease refcount of dst,
- 	 * which will not free the page because new page owner increased
- 	 * refcounter.
- 	 */
- 	if (rc == MIGRATEPAGE_SUCCESS)
--		put_page(newpage);
-+		folio_put(dst);
- 
- 	return rc;
- }
-@@ -1157,6 +1154,7 @@ static int unmap_and_move(new_page_t get
- 				   enum migrate_reason reason,
- 				   struct list_head *ret)
+ 	if (unlikely(!folio_trylock(dst)))
+ 		goto put_anon;
+--- a/mm/rmap.c~mm-convert-page_get_anon_vma-to-folio_get_anon_vma
++++ a/mm/rmap.c
+@@ -486,16 +486,16 @@ void __init anon_vma_init(void)
+  * if there is a mapcount, we can dereference the anon_vma after observing
+  * those.
+  */
+-struct anon_vma *page_get_anon_vma(struct page *page)
++struct anon_vma *folio_get_anon_vma(struct folio *folio)
  {
-+	struct folio *dst, *src = page_folio(page);
- 	int rc = MIGRATEPAGE_SUCCESS;
- 	struct page *newpage = NULL;
+ 	struct anon_vma *anon_vma = NULL;
+ 	unsigned long anon_mapping;
  
-@@ -1174,9 +1172,10 @@ static int unmap_and_move(new_page_t get
- 	newpage = get_new_page(page, private);
- 	if (!newpage)
- 		return -ENOMEM;
-+	dst = page_folio(newpage);
+ 	rcu_read_lock();
+-	anon_mapping = (unsigned long)READ_ONCE(page->mapping);
++	anon_mapping = (unsigned long)READ_ONCE(folio->mapping);
+ 	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
+ 		goto out;
+-	if (!page_mapped(page))
++	if (!folio_mapped(folio))
+ 		goto out;
  
- 	newpage->private = 0;
--	rc = __unmap_and_move(page, newpage, force, mode);
-+	rc = __unmap_and_move(src, dst, force, mode);
- 	if (rc == MIGRATEPAGE_SUCCESS)
- 		set_page_owner_migrate_reason(newpage, reason);
+ 	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
+@@ -505,13 +505,13 @@ struct anon_vma *page_get_anon_vma(struc
+ 	}
  
+ 	/*
+-	 * If this page is still mapped, then its anon_vma cannot have been
++	 * If this folio is still mapped, then its anon_vma cannot have been
+ 	 * freed.  But if it has been unmapped, we have no security against the
+ 	 * anon_vma structure being freed and reused (for another anon_vma:
+ 	 * SLAB_TYPESAFE_BY_RCU guarantees that - so the atomic_inc_not_zero()
+ 	 * above cannot corrupt).
+ 	 */
+-	if (!page_mapped(page)) {
++	if (!folio_mapped(folio)) {
+ 		rcu_read_unlock();
+ 		put_anon_vma(anon_vma);
+ 		return NULL;
+@@ -523,11 +523,11 @@ out:
+ }
+ 
+ /*
+- * Similar to page_get_anon_vma() except it locks the anon_vma.
++ * Similar to folio_get_anon_vma() except it locks the anon_vma.
+  *
+  * Its a little more complex as it tries to keep the fast path to a single
+  * atomic op -- the trylock. If we fail the trylock, we fall back to getting a
+- * reference like with page_get_anon_vma() and then block on the mutex
++ * reference like with folio_get_anon_vma() and then block on the mutex
+  * on !rwc->try_lock case.
+  */
+ struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
