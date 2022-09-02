@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E436C54EE9
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:27:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3C89C54EE9
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:27:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230230AbiIBX10 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:27:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54714 "EHLO
+        id S229794AbiIBX13 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:27:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230325AbiIBX06 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:26:58 -0400
+        with ESMTP id S230346AbiIBX1A (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:00 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A082FE115F
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75F0AFB0D4
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 355C2B82E02
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2386C433B5;
-        Fri,  2 Sep 2022 23:26:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 38102B82E0C
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5E13C433D7;
+        Fri,  2 Sep 2022 23:26:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161213;
-        bh=I8f22b+PzZqzhtr5R37vCk3MpixLii8IWQWXuPFu4Rw=;
+        s=korg; t=1662161216;
+        bh=BgYksXGFDISAkLfUyazJ4CK+wun/fPAIDzgvkHuYIac=;
         h=Date:To:From:Subject:From;
-        b=yxFjrYDmtfj5kIcFJ1ldZ44gz1Ri/g3bj1T67M4Fg9AuzMa+uFC9um6BFr5a/xV2U
-         erHzz7cd0WFI9PQTkaEWPFo2u1wdvlxfPoGDYK+2hNeWW3fhbS/X/fv3jwM/GLAX7x
-         k+bEQNASeB+T22L3X/JXqBJ04j/0c69NFxUaUFQI=
-Date:   Fri, 02 Sep 2022 16:26:53 -0700
+        b=uYIR1l3EvMwLzdCJCsaakLhYZ0VNYm1YHpB6WXk4TcPn42Z/CBJlTseLZbb03GEqJ
+         oWH6/qHIuJKE6Tlbf9s/4fVDkufLIX3j5Iro8sw7bCeZJoZBZZiXWCvQBUfhd7XQFq
+         kmyna+sM0ZSbI34KIK82m4yOCSSwiAVoqVIwNYa0=
+Date:   Fri, 02 Sep 2022 16:26:55 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-convert-shmem_getpage_gfp-to-shmem_get_folio_gfp.patch added to mm-unstable branch
-Message-Id: <20220902232653.D2386C433B5@smtp.kernel.org>
+Subject: + shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp.patch added to mm-unstable branch
+Message-Id: <20220902232655.E5E13C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: convert shmem_getpage_gfp() to shmem_get_folio_gfp()
+     Subject: shmem: convert shmem_fault() to use shmem_get_folio_gfp()
 has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-convert-shmem_getpage_gfp-to-shmem_get_folio_gfp.patch
+     shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-convert-shmem_getpage_gfp-to-shmem_get_folio_gfp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,182 +65,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: shmem: convert shmem_getpage_gfp() to shmem_get_folio_gfp()
-Date: Fri, 2 Sep 2022 20:46:17 +0100
+Subject: shmem: convert shmem_fault() to use shmem_get_folio_gfp()
+Date: Fri, 2 Sep 2022 20:46:18 +0100
 
-Add a shmem_getpage_gfp() wrapper for compatibility with current users.
+No particular advantage for this function, but necessary to remove
+shmem_getpage_gfp().
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-22-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-23-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   70 +++++++++++++++++++++++++++++----------------------
- 1 file changed, 41 insertions(+), 29 deletions(-)
+ mm/shmem.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~shmem-convert-shmem_getpage_gfp-to-shmem_get_folio_gfp
+--- a/mm/shmem.c~shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp
 +++ a/mm/shmem.c
-@@ -139,17 +139,6 @@ static int shmem_swapin_folio(struct ino
- 			     struct folio **foliop, enum sgp_type sgp,
- 			     gfp_t gfp, struct vm_area_struct *vma,
- 			     vm_fault_t *fault_type);
--static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
--		struct page **pagep, enum sgp_type sgp,
--		gfp_t gfp, struct vm_area_struct *vma,
--		struct vm_fault *vmf, vm_fault_t *fault_type);
--
--int shmem_getpage(struct inode *inode, pgoff_t index,
--		struct page **pagep, enum sgp_type sgp)
--{
--	return shmem_getpage_gfp(inode, index, pagep, sgp,
--		mapping_gfp_mask(inode->i_mapping), NULL, NULL, NULL);
--}
+@@ -2065,6 +2065,7 @@ static vm_fault_t shmem_fault(struct vm_
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct inode *inode = file_inode(vma->vm_file);
+ 	gfp_t gfp = mapping_gfp_mask(inode->i_mapping);
++	struct folio *folio;
+ 	int err;
+ 	vm_fault_t ret = VM_FAULT_LOCKED;
  
- static inline struct shmem_sb_info *SHMEM_SB(struct super_block *sb)
- {
-@@ -1595,7 +1584,7 @@ failed:
+@@ -2127,10 +2128,11 @@ static vm_fault_t shmem_fault(struct vm_
+ 		spin_unlock(&inode->i_lock);
+ 	}
  
- /*
-  * When a page is moved from swapcache to shmem filecache (either by the
-- * usual swapin of shmem_getpage_gfp(), or by the less common swapoff of
-+ * usual swapin of shmem_get_folio_gfp(), or by the less common swapoff of
-  * shmem_unuse_inode()), it may have been read in earlier from swap, in
-  * ignorance of the mapping it belongs to.  If that mapping has special
-  * constraints (like the gma500 GEM driver, which requires RAM below 4GB),
-@@ -1812,7 +1801,7 @@ unlock:
+-	err = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, SGP_CACHE,
++	err = shmem_get_folio_gfp(inode, vmf->pgoff, &folio, SGP_CACHE,
+ 				  gfp, vma, vmf, &ret);
+ 	if (err)
+ 		return vmf_error(err);
++	vmf->page = folio_file_page(folio, vmf->pgoff);
+ 	return ret;
  }
  
- /*
-- * shmem_getpage_gfp - find page in cache, or get from swap, or allocate
-+ * shmem_get_folio_gfp - find page in cache, or get from swap, or allocate
-  *
-  * If we allocate a new one we do not mark it dirty. That's up to the
-  * vm. If we swap it in we mark it dirty since we also free the swap
-@@ -1821,10 +1810,10 @@ unlock:
-  * vma, vmf, and fault_type are only supplied by shmem_fault:
-  * otherwise they are NULL.
-  */
--static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
--	struct page **pagep, enum sgp_type sgp, gfp_t gfp,
--	struct vm_area_struct *vma, struct vm_fault *vmf,
--			vm_fault_t *fault_type)
-+static int shmem_get_folio_gfp(struct inode *inode, pgoff_t index,
-+		struct folio **foliop, enum sgp_type sgp, gfp_t gfp,
-+		struct vm_area_struct *vma, struct vm_fault *vmf,
-+		vm_fault_t *fault_type)
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
-@@ -1864,7 +1853,7 @@ repeat:
- 		if (error == -EEXIST)
- 			goto repeat;
- 
--		*pagep = &folio->page;
-+		*foliop = folio;
- 		return error;
- 	}
- 
-@@ -1874,7 +1863,7 @@ repeat:
- 			folio_mark_accessed(folio);
- 		if (folio_test_uptodate(folio))
- 			goto out;
--		/* fallocated page */
-+		/* fallocated folio */
- 		if (sgp != SGP_READ)
- 			goto clear;
- 		folio_unlock(folio);
-@@ -1882,10 +1871,10 @@ repeat:
- 	}
- 
- 	/*
--	 * SGP_READ: succeed on hole, with NULL page, letting caller zero.
--	 * SGP_NOALLOC: fail on hole, with NULL page, letting caller fail.
-+	 * SGP_READ: succeed on hole, with NULL folio, letting caller zero.
-+	 * SGP_NOALLOC: fail on hole, with NULL folio, letting caller fail.
- 	 */
--	*pagep = NULL;
-+	*foliop = NULL;
- 	if (sgp == SGP_READ)
- 		return 0;
- 	if (sgp == SGP_NOALLOC)
-@@ -1918,7 +1907,7 @@ alloc_nohuge:
- 		if (error != -ENOSPC)
- 			goto unlock;
- 		/*
--		 * Try to reclaim some space by splitting a huge page
-+		 * Try to reclaim some space by splitting a large folio
- 		 * beyond i_size on the filesystem.
- 		 */
- 		while (retry--) {
-@@ -1954,9 +1943,9 @@ alloc_nohuge:
- 
- 	if (folio_test_pmd_mappable(folio) &&
- 	    DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE) <
--			hindex + HPAGE_PMD_NR - 1) {
-+					folio_next_index(folio) - 1) {
- 		/*
--		 * Part of the huge page is beyond i_size: subject
-+		 * Part of the large folio is beyond i_size: subject
- 		 * to shrink under memory pressure.
- 		 */
- 		spin_lock(&sbinfo->shrinklist_lock);
-@@ -1973,14 +1962,14 @@ alloc_nohuge:
- 	}
- 
- 	/*
--	 * Let SGP_FALLOC use the SGP_WRITE optimization on a new page.
-+	 * Let SGP_FALLOC use the SGP_WRITE optimization on a new folio.
- 	 */
- 	if (sgp == SGP_FALLOC)
- 		sgp = SGP_WRITE;
- clear:
- 	/*
--	 * Let SGP_WRITE caller clear ends if write does not fill page;
--	 * but SGP_FALLOC on a page fallocated earlier must initialize
-+	 * Let SGP_WRITE caller clear ends if write does not fill folio;
-+	 * but SGP_FALLOC on a folio fallocated earlier must initialize
- 	 * it now, lest undo on failure cancel our earlier guarantee.
- 	 */
- 	if (sgp != SGP_WRITE && !folio_test_uptodate(folio)) {
-@@ -2006,7 +1995,7 @@ clear:
- 		goto unlock;
- 	}
- out:
--	*pagep = folio_page(folio, index - hindex);
-+	*foliop = folio;
- 	return 0;
- 
- 	/*
-@@ -2036,6 +2025,29 @@ unlock:
- 	return error;
- }
- 
-+static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
-+		struct page **pagep, enum sgp_type sgp,
-+		gfp_t gfp, struct vm_area_struct *vma,
-+		struct vm_fault *vmf, vm_fault_t *fault_type)
-+{
-+	struct folio *folio = NULL;
-+	int ret = shmem_get_folio_gfp(inode, index, &folio, sgp, gfp, vma,
-+			vmf, fault_type);
-+
-+	if (folio)
-+		*pagep = folio_file_page(folio, index);
-+	else
-+		*pagep = NULL;
-+	return ret;
-+}
-+
-+int shmem_getpage(struct inode *inode, pgoff_t index,
-+		struct page **pagep, enum sgp_type sgp)
-+{
-+	return shmem_getpage_gfp(inode, index, pagep, sgp,
-+		mapping_gfp_mask(inode->i_mapping), NULL, NULL, NULL);
-+}
-+
- /*
-  * This is like autoremove_wake_function, but it removes the wait queue
-  * entry unconditionally - even if something else had already woken the
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
