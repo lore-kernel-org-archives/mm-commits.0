@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83BFDC6FA86
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94D42C6FA89
 	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:26:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230117AbiIBX0a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:26:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53896 "EHLO
+        id S230128AbiIBX0b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:26:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230257AbiIBX02 (ORCPT
+        with ESMTP id S230269AbiIBX02 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:26:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 589CEAE9E7
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:20 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2244AF0C8
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:26:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EBE2861EC0
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BC72C433C1;
-        Fri,  2 Sep 2022 23:26:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A0830B82E0B
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:26:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55A30C433C1;
+        Fri,  2 Sep 2022 23:26:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161179;
-        bh=tKrUiA4OxHBkAZJiIs2052X2431WfannKsEVucu4G6g=;
+        s=korg; t=1662161181;
+        bh=C4z9Jb5WXpTsSRTdbOM/TuB9+MHiSDWWs09dVQtQtrI=;
         h=Date:To:From:Subject:From;
-        b=MXkrJ6KoBBTemrnhpKwpKuzhnFRcDvbX7y9ITyoaaI3I+Yx6h3UGg5gfG78gQEiWz
-         cah2feQ2NDRLKw6AHBMUSN/35RNKvUHDvQo6BkCpIAtTYJs2z4DBcOyjXH4X8o/nZO
-         4pAAv9dWDSCoyFeIKvv6kM87iQaj4WwfXAABcj6A=
-Date:   Fri, 02 Sep 2022 16:26:18 -0700
+        b=yg2JkiNeqUQDuA4R7uOm4wpdWe5H3BlLrSd1enEMDKhra8XG1Sfsvt8kaJYGOiKaS
+         WWyv1P0qWo8LINvKAvdcGYgNKv8DhtX2uWPGL9pxExrAWrxlha8hOs0z/c7eXyEoV0
+         g17lAQ0RAqKxYiXBuJgQOhpTomuO5esBDoTU6M9M=
+Date:   Fri, 02 Sep 2022 16:26:20 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-convert-shmem_writepage-to-use-a-folio-throughout.patch added to mm-unstable branch
-Message-Id: <20220902232619.4BC72C433C1@smtp.kernel.org>
+Subject: + shmem-convert-shmem_delete_from_page_cache-to-take-a-folio.patch added to mm-unstable branch
+Message-Id: <20220902232621.55A30C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: convert shmem_writepage() to use a folio throughout
+     Subject: shmem: convert shmem_delete_from_page_cache() to take a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-convert-shmem_writepage-to-use-a-folio-throughout.patch
+     shmem-convert-shmem_delete_from_page_cache-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-convert-shmem_writepage-to-use-a-folio-throughout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-convert-shmem_delete_from_page_cache-to-take-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,129 +65,65 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: shmem: convert shmem_writepage() to use a folio throughout
-Date: Fri, 2 Sep 2022 20:46:02 +0100
+Subject: shmem: convert shmem_delete_from_page_cache() to take a folio
+Date: Fri, 2 Sep 2022 20:46:03 +0100
 
-Even though we will split any large folio that comes in, write the code to
-handle large folios so as to not leave a trap for whoever tries to handle
-large folios in the swap cache.
+Remove the assertion that the page is not Compound as this function now
+handles large folios correctly.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   47 ++++++++++++++++++++++++-----------------------
- 1 file changed, 24 insertions(+), 23 deletions(-)
+ mm/shmem.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
---- a/mm/shmem.c~shmem-convert-shmem_writepage-to-use-a-folio-throughout
+--- a/mm/shmem.c~shmem-convert-shmem_delete_from_page_cache-to-take-a-folio
 +++ a/mm/shmem.c
-@@ -1328,17 +1328,18 @@ static int shmem_writepage(struct page *
- 	 * "force", drivers/gpu/drm/i915/gem/i915_gem_shmem.c gets huge pages,
- 	 * and its shmem_writeback() needs them to be split when swapping.
- 	 */
--	if (PageTransCompound(page)) {
-+	if (folio_test_large(folio)) {
- 		/* Ensure the subpages are still dirty */
--		SetPageDirty(page);
-+		folio_test_set_dirty(folio);
- 		if (split_huge_page(page) < 0)
- 			goto redirty;
--		ClearPageDirty(page);
-+		folio = page_folio(page);
-+		folio_clear_dirty(folio);
- 	}
+@@ -763,23 +763,22 @@ error:
+ }
  
--	BUG_ON(!PageLocked(page));
--	mapping = page->mapping;
--	index = page->index;
-+	BUG_ON(!folio_test_locked(folio));
-+	mapping = folio->mapping;
-+	index = folio->index;
- 	inode = mapping->host;
- 	info = SHMEM_I(inode);
- 	if (info->flags & VM_LOCKED)
-@@ -1361,15 +1362,15 @@ static int shmem_writepage(struct page *
- 	/*
- 	 * This is somewhat ridiculous, but without plumbing a SWAP_MAP_FALLOC
- 	 * value into swapfile.c, the only way we can correctly account for a
--	 * fallocated page arriving here is now to initialize it and write it.
-+	 * fallocated folio arriving here is now to initialize it and write it.
- 	 *
--	 * That's okay for a page already fallocated earlier, but if we have
-+	 * That's okay for a folio already fallocated earlier, but if we have
- 	 * not yet completed the fallocation, then (a) we want to keep track
--	 * of this page in case we have to undo it, and (b) it may not be a
-+	 * of this folio in case we have to undo it, and (b) it may not be a
- 	 * good idea to continue anyway, once we're pushing into swap.  So
--	 * reactivate the page, and let shmem_fallocate() quit when too many.
-+	 * reactivate the folio, and let shmem_fallocate() quit when too many.
- 	 */
--	if (!PageUptodate(page)) {
-+	if (!folio_test_uptodate(folio)) {
- 		if (inode->i_private) {
- 			struct shmem_falloc *shmem_falloc;
- 			spin_lock(&inode->i_lock);
-@@ -1385,9 +1386,9 @@ static int shmem_writepage(struct page *
- 			if (shmem_falloc)
- 				goto redirty;
- 		}
--		clear_highpage(page);
--		flush_dcache_page(page);
--		SetPageUptodate(page);
-+		folio_zero_range(folio, 0, folio_size(folio));
-+		flush_dcache_folio(folio);
-+		folio_mark_uptodate(folio);
- 	}
+ /*
+- * Like delete_from_page_cache, but substitutes swap for page.
++ * Like delete_from_page_cache, but substitutes swap for @folio.
+  */
+-static void shmem_delete_from_page_cache(struct page *page, void *radswap)
++static void shmem_delete_from_page_cache(struct folio *folio, void *radswap)
+ {
+-	struct address_space *mapping = page->mapping;
++	struct address_space *mapping = folio->mapping;
++	long nr = folio_nr_pages(folio);
+ 	int error;
  
- 	swap = folio_alloc_swap(folio);
-@@ -1396,7 +1397,7 @@ static int shmem_writepage(struct page *
+-	VM_BUG_ON_PAGE(PageCompound(page), page);
+-
+ 	xa_lock_irq(&mapping->i_pages);
+-	error = shmem_replace_entry(mapping, page->index, page, radswap);
+-	page->mapping = NULL;
+-	mapping->nrpages--;
+-	__dec_lruvec_page_state(page, NR_FILE_PAGES);
+-	__dec_lruvec_page_state(page, NR_SHMEM);
++	error = shmem_replace_entry(mapping, folio->index, folio, radswap);
++	folio->mapping = NULL;
++	mapping->nrpages -= nr;
++	__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, -nr);
++	__lruvec_stat_mod_folio(folio, NR_SHMEM, -nr);
+ 	xa_unlock_irq(&mapping->i_pages);
+-	put_page(page);
++	folio_put(folio);
+ 	BUG_ON(error);
+ }
  
- 	/*
- 	 * Add inode to shmem_unuse()'s list of swapped-out inodes,
--	 * if it's not already there.  Do it now before the page is
-+	 * if it's not already there.  Do it now before the folio is
- 	 * moved to swap cache, when its pagelock no longer protects
- 	 * the inode from eviction.  But don't unlock the mutex until
- 	 * we've incremented swapped, because shmem_unuse_inode() will
-@@ -1406,7 +1407,7 @@ static int shmem_writepage(struct page *
- 	if (list_empty(&info->swaplist))
- 		list_add(&info->swaplist, &shmem_swaplist);
- 
--	if (add_to_swap_cache(page, swap,
-+	if (add_to_swap_cache(&folio->page, swap,
- 			__GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN,
- 			NULL) == 0) {
- 		spin_lock_irq(&info->lock);
-@@ -1415,21 +1416,21 @@ static int shmem_writepage(struct page *
+@@ -1416,7 +1415,7 @@ static int shmem_writepage(struct page *
  		spin_unlock_irq(&info->lock);
  
  		swap_shmem_alloc(swap);
--		shmem_delete_from_page_cache(page, swp_to_radix_entry(swap));
-+		shmem_delete_from_page_cache(&folio->page, swp_to_radix_entry(swap));
+-		shmem_delete_from_page_cache(&folio->page, swp_to_radix_entry(swap));
++		shmem_delete_from_page_cache(folio, swp_to_radix_entry(swap));
  
  		mutex_unlock(&shmem_swaplist_mutex);
--		BUG_ON(page_mapped(page));
--		swap_writepage(page, wbc);
-+		BUG_ON(folio_mapped(folio));
-+		swap_writepage(&folio->page, wbc);
- 		return 0;
- 	}
- 
- 	mutex_unlock(&shmem_swaplist_mutex);
--	put_swap_page(page, swap);
-+	put_swap_page(&folio->page, swap);
- redirty:
--	set_page_dirty(page);
-+	folio_mark_dirty(folio);
- 	if (wbc->for_reclaim)
--		return AOP_WRITEPAGE_ACTIVATE;	/* Return with page locked */
--	unlock_page(page);
-+		return AOP_WRITEPAGE_ACTIVATE;	/* Return with folio locked */
-+	folio_unlock(folio);
- 	return 0;
- }
- 
+ 		BUG_ON(folio_mapped(folio));
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
