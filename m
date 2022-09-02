@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D446C54EE9
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:29:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ACDCECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:29:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229583AbiIBX26 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 19:28:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54846 "EHLO
+        id S231247AbiIBX3A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 19:29:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231311AbiIBX2A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:28:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BDF6FBA66
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:58 -0700 (PDT)
+        with ESMTP id S231210AbiIBX2C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:28:02 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F883B0B15
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:28:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2B66DB82E0B
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3B6BC433D7;
-        Fri,  2 Sep 2022 23:27:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F33FFB82E07
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B200BC433D7;
+        Fri,  2 Sep 2022 23:27:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161275;
-        bh=KoXj7sjsAtMnoVUg+LXCk24tVeO8TMSEA0xi9qnE1is=;
+        s=korg; t=1662161277;
+        bh=Y+dwxk4EmNo60tk3Y9SsnxfrilL58TF4qzSjzumbK84=;
         h=Date:To:From:Subject:From;
-        b=x1DDS4QK12iLgl18wuSmpkLrQE6XcsxYMo18X1TNRZM9WZYg9Gwpk4xu7IVdK/YEH
-         Oj+KkVTNONJ6dvpEzHxbvUuXf020UwZDl3eT1rWV8jUs5wiH03BV0HnvjgrVi5teW1
-         19ofEWYTpAwAArLaidcWVPOQD6jv033zWgunzO1Q=
-Date:   Fri, 02 Sep 2022 16:27:55 -0700
+        b=I4CfHMEDnXB6cGLxPyB43wkhg86H6fkNfS0epLBEGVdpW8tHoNgC8syBUVGgnVsZY
+         54iHp36iRz6JFKYndRl2U1J3gRN48e9Fnrmp4ERg06Y5IDSDuAugnWG0OecH4KLrBb
+         kU75719Us9pEY5Ckj1haTp0EO5v6gjJyY+wEk3YQ=
+Date:   Fri, 02 Sep 2022 16:27:57 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + migrate-convert-unmap_and_move_huge_page-to-use-folios.patch added to mm-unstable branch
-Message-Id: <20220902232755.C3B6BC433D7@smtp.kernel.org>
+Subject: + huge_memory-convert-split_huge_page_to_list-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20220902232757.B200BC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: migrate: convert unmap_and_move_huge_page() to use folios
+     Subject: huge_memory: convert split_huge_page_to_list() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     migrate-convert-unmap_and_move_huge_page-to-use-folios.patch
+     huge_memory-convert-split_huge_page_to_list-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate-convert-unmap_and_move_huge_page-to-use-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_memory-convert-split_huge_page_to_list-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,111 +65,144 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: migrate: convert unmap_and_move_huge_page() to use folios
-Date: Fri, 2 Sep 2022 20:46:47 +0100
+Subject: huge_memory: convert split_huge_page_to_list() to use a folio
+Date: Fri, 2 Sep 2022 20:46:48 +0100
 
-Saves several calls to compound_head() and removes a couple of uses of
-page->lru.
+Saves many calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-52-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-53-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/huge_memory.c |   49 ++++++++++++++++++++++-----------------------
+ 1 file changed, 24 insertions(+), 25 deletions(-)
 
---- a/mm/migrate.c~migrate-convert-unmap_and_move_huge_page-to-use-folios
-+++ a/mm/migrate.c
-@@ -1263,7 +1263,7 @@ static int unmap_and_move_huge_page(new_
- 	if (!hugepage_migration_supported(page_hstate(hpage)))
- 		return -ENOSYS;
+--- a/mm/huge_memory.c~huge_memory-convert-split_huge_page_to_list-to-use-a-folio
++++ a/mm/huge_memory.c
+@@ -2622,27 +2622,26 @@ bool can_split_folio(struct folio *folio
+ int split_huge_page_to_list(struct page *page, struct list_head *list)
+ {
+ 	struct folio *folio = page_folio(page);
+-	struct page *head = &folio->page;
+-	struct deferred_split *ds_queue = get_deferred_split_queue(head);
+-	XA_STATE(xas, &head->mapping->i_pages, head->index);
++	struct deferred_split *ds_queue = get_deferred_split_queue(&folio->page);
++	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct address_space *mapping = NULL;
+ 	int extra_pins, ret;
+ 	pgoff_t end;
+ 	bool is_hzp;
  
--	if (page_count(hpage) == 1) {
-+	if (folio_ref_count(src) == 1) {
- 		/* page was freed from under us. So we are done. */
- 		putback_active_hugepage(hpage);
- 		return MIGRATEPAGE_SUCCESS;
-@@ -1274,7 +1274,7 @@ static int unmap_and_move_huge_page(new_
- 		return -ENOMEM;
- 	dst = page_folio(new_hpage);
+-	VM_BUG_ON_PAGE(!PageLocked(head), head);
+-	VM_BUG_ON_PAGE(!PageCompound(head), head);
++	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
++	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
  
--	if (!trylock_page(hpage)) {
-+	if (!folio_trylock(src)) {
- 		if (!force)
+-	is_hzp = is_huge_zero_page(head);
+-	VM_WARN_ON_ONCE_PAGE(is_hzp, head);
++	is_hzp = is_huge_zero_page(&folio->page);
++	VM_WARN_ON_ONCE_FOLIO(is_hzp, folio);
+ 	if (is_hzp)
+ 		return -EBUSY;
+ 
+-	if (PageWriteback(head))
++	if (folio_test_writeback(folio))
+ 		return -EBUSY;
+ 
+-	if (PageAnon(head)) {
++	if (folio_test_anon(folio)) {
+ 		/*
+ 		 * The caller does not necessarily hold an mmap_lock that would
+ 		 * prevent the anon_vma disappearing so we first we take a
+@@ -2651,7 +2650,7 @@ int split_huge_page_to_list(struct page
+ 		 * is taken to serialise against parallel split or collapse
+ 		 * operations.
+ 		 */
+-		anon_vma = page_get_anon_vma(head);
++		anon_vma = page_get_anon_vma(&folio->page);
+ 		if (!anon_vma) {
+ 			ret = -EBUSY;
  			goto out;
- 		switch (mode) {
-@@ -1284,29 +1284,29 @@ static int unmap_and_move_huge_page(new_
- 		default:
+@@ -2662,7 +2661,7 @@ int split_huge_page_to_list(struct page
+ 	} else {
+ 		gfp_t gfp;
+ 
+-		mapping = head->mapping;
++		mapping = folio->mapping;
+ 
+ 		/* Truncated ? */
+ 		if (!mapping) {
+@@ -2679,7 +2678,7 @@ int split_huge_page_to_list(struct page
  			goto out;
  		}
--		lock_page(hpage);
-+		folio_lock(src);
- 	}
  
- 	/*
- 	 * Check for pages which are in the process of being freed.  Without
--	 * page_mapping() set, hugetlbfs specific move page routine will not
-+	 * folio_mapping() set, hugetlbfs specific move page routine will not
- 	 * be called and we could leak usage counts for subpools.
- 	 */
--	if (hugetlb_page_subpool(hpage) && !page_mapping(hpage)) {
-+	if (hugetlb_page_subpool(hpage) && !folio_mapping(src)) {
- 		rc = -EBUSY;
+-		xas_split_alloc(&xas, head, compound_order(head), gfp);
++		xas_split_alloc(&xas, folio, folio_order(folio), gfp);
+ 		if (xas_error(&xas)) {
+ 			ret = xas_error(&xas);
+ 			goto out;
+@@ -2693,7 +2692,7 @@ int split_huge_page_to_list(struct page
+ 		 * but on 32-bit, i_size_read() takes an irq-unsafe seqlock,
+ 		 * which cannot be nested inside the page tree lock. So note
+ 		 * end now: i_size itself may be changed at any moment, but
+-		 * head page lock is good enough to serialize the trimming.
++		 * folio lock is good enough to serialize the trimming.
+ 		 */
+ 		end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE);
+ 		if (shmem_mapping(mapping))
+@@ -2709,38 +2708,38 @@ int split_huge_page_to_list(struct page
  		goto out_unlock;
  	}
  
--	if (PageAnon(hpage))
--		anon_vma = page_get_anon_vma(hpage);
-+	if (folio_test_anon(src))
-+		anon_vma = page_get_anon_vma(&src->page);
+-	unmap_page(head);
++	unmap_page(&folio->page);
  
--	if (unlikely(!trylock_page(new_hpage)))
-+	if (unlikely(!folio_trylock(dst)))
- 		goto put_anon;
- 
--	if (page_mapped(hpage)) {
-+	if (folio_mapped(src)) {
- 		enum ttu_flags ttu = 0;
- 
--		if (!PageAnon(hpage)) {
-+		if (!folio_test_anon(src)) {
- 			/*
- 			 * In shared mappings, try_to_unmap could potentially
- 			 * call huge_pmd_unshare.  Because of this, take
-@@ -1327,7 +1327,7 @@ static int unmap_and_move_huge_page(new_
- 			i_mmap_unlock_write(mapping);
+ 	/* block interrupt reentry in xa_lock and spinlock */
+ 	local_irq_disable();
+ 	if (mapping) {
+ 		/*
+-		 * Check if the head page is present in page cache.
+-		 * We assume all tail are present too, if head is there.
++		 * Check if the folio is present in page cache.
++		 * We assume all tail are present too, if folio is there.
+ 		 */
+ 		xas_lock(&xas);
+ 		xas_reset(&xas);
+-		if (xas_load(&xas) != head)
++		if (xas_load(&xas) != folio)
+ 			goto fail;
  	}
  
--	if (!page_mapped(hpage))
-+	if (!folio_mapped(src))
- 		rc = move_to_new_folio(dst, src, mode);
+ 	/* Prevent deferred_split_scan() touching ->_refcount */
+ 	spin_lock(&ds_queue->split_queue_lock);
+-	if (page_ref_freeze(head, 1 + extra_pins)) {
+-		if (!list_empty(page_deferred_list(head))) {
++	if (folio_ref_freeze(folio, 1 + extra_pins)) {
++		if (!list_empty(page_deferred_list(&folio->page))) {
+ 			ds_queue->split_queue_len--;
+-			list_del(page_deferred_list(head));
++			list_del(page_deferred_list(&folio->page));
+ 		}
+ 		spin_unlock(&ds_queue->split_queue_lock);
+ 		if (mapping) {
+-			int nr = thp_nr_pages(head);
++			int nr = folio_nr_pages(folio);
  
- 	if (page_was_mapped)
-@@ -1335,7 +1335,7 @@ static int unmap_and_move_huge_page(new_
- 			rc == MIGRATEPAGE_SUCCESS ? dst : src, false);
- 
- unlock_put_anon:
--	unlock_page(new_hpage);
-+	folio_unlock(dst);
- 
- put_anon:
- 	if (anon_vma)
-@@ -1347,12 +1347,12 @@ put_anon:
- 	}
- 
- out_unlock:
--	unlock_page(hpage);
-+	folio_unlock(src);
- out:
- 	if (rc == MIGRATEPAGE_SUCCESS)
- 		putback_active_hugepage(hpage);
- 	else if (rc != -EAGAIN)
--		list_move_tail(&hpage->lru, ret);
-+		list_move_tail(&src->lru, ret);
- 
- 	/*
- 	 * If migration was not successful and there's a freeing callback, use
+-			xas_split(&xas, head, thp_order(head));
+-			if (PageSwapBacked(head)) {
+-				__mod_lruvec_page_state(head, NR_SHMEM_THPS,
++			xas_split(&xas, folio, folio_order(folio));
++			if (folio_test_swapbacked(folio)) {
++				__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS,
+ 							-nr);
+ 			} else {
+-				__mod_lruvec_page_state(head, NR_FILE_THPS,
++				__lruvec_stat_mod_folio(folio, NR_FILE_THPS,
+ 							-nr);
+ 				filemap_nr_thps_dec(mapping);
+ 			}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
