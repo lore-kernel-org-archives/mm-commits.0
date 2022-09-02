@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B0B4ECAAD5
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 19:29:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F45FECAAD5
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 19:31:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230319AbiIBT32 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Sep 2022 15:29:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46898 "EHLO
+        id S230311AbiIBTbL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Sep 2022 15:31:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230301AbiIBT31 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 15:29:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D969510F7
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 12:29:22 -0700 (PDT)
+        with ESMTP id S229595AbiIBTbK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 15:31:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C29F2FCA0E
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 12:31:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7D79660DB6
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 19:29:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF786C433C1;
-        Fri,  2 Sep 2022 19:29:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 623CF60BBA
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 19:31:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF8B7C433D6;
+        Fri,  2 Sep 2022 19:31:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662146961;
-        bh=YqyAeVQJEyqSe24BROqS/KqKwfV8nS/OUxhGVejWR5M=;
+        s=korg; t=1662147068;
+        bh=UoAKb+w25Z9mLl84H2+N5j6gWQ7SKTEYLHBYYPqc4mU=;
         h=Date:To:From:Subject:From;
-        b=G7C/YmcTeGekRj8qehffLqrSt0DwekOVQTYN92vkeearQSwRt7fWXbOpr2dNCitnL
-         aX9h/ewwal2T4cEdqAZw7ifYtrHHDXdJthRAY4p+4vQ2svyU2FMeWev/3yAps02eCk
-         eRgD5jx44RK6wY+DitQkhl5zbUEDCznBQkV5pg9g=
-Date:   Fri, 02 Sep 2022 12:29:20 -0700
-To:     mm-commits@vger.kernel.org, yury.norov@gmail.com, mingo@kernel.org,
-        Liam.Howlett@oracle.com, willy@infradead.org,
+        b=tK8urVvJ1VbXJHhs+ur0siNPxz5dAq3kvWpS9PqANtRqIAKdRTX2WUGtuQeM3AZwj
+         1mByzWlYrOzbII2dWjimObVPsO2Tmyq+my+kvOHOp69Z5gGNQZ3JQypmduxotfgcGb
+         3boCGxsZSGVNmJxPfAnmG43nslnhMGkPzfIrQHOY=
+Date:   Fri, 02 Sep 2022 12:31:07 -0700
+To:     mm-commits@vger.kernel.org, hughd@google.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-fix-compilation-after-gfp_typesh-split.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220902192921.BF786C433C1@smtp.kernel.org>
+Subject: + mm-fix-vm_bug_on-in-__delete_from_swap_cache.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220902193108.AF8B7C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: fix compilation after gfp_types.h split
+     Subject: mm: fix VM_BUG_ON in __delete_from_swap_cache()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     tools-fix-compilation-after-gfp_typesh-split.patch
+     mm-fix-vm_bug_on-in-__delete_from_swap_cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-fix-compilation-after-gfp_typesh-split.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-vm_bug_on-in-__delete_from_swap_cache.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,64 +65,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: tools: fix compilation after gfp_types.h split
-Date: Fri, 2 Sep 2022 20:19:23 +0100
+Subject: mm: fix VM_BUG_ON in __delete_from_swap_cache()
+Date: Fri, 2 Sep 2022 20:26:38 +0100
 
-When gfp_types.h was split from gfp.h, it broke the radix test suite.  Fix
-the test suite by using gfp_types.h in the tools gfp.h header.
+Patch series "Folio fixes for 6.0".
 
-Link: https://lkml.kernel.org/r/20220902191923.1735933-1-willy@infradead.org
-Fixes: cb5a065b4ea9 (headers/deps: mm: Split <linux/gfp_types.h> out of <linux/gfp.h>)
+
+This patch (of 2):
+
+The recent folio conversion changed the VM_BUG_ON() to dump the folio
+we're storing instead of the entry we retrieved.  This was a mistake;
+the entry we retrieved is the more interesting page to dump.
+
+Link: https://lkml.kernel.org/r/20220902192639.1737108-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902192639.1737108-2-willy@infradead.org
+Fixes: ceff9d3354e9 ("mm/swap: convert __delete_from_swap_cache() to a folio")
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Yury Norov <yury.norov@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/linux/gfp.h       |   21 +--------------------
- tools/include/linux/gfp_types.h |    1 +
- 2 files changed, 2 insertions(+), 20 deletions(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/include/linux/gfp.h~tools-fix-compilation-after-gfp_typesh-split
-+++ a/tools/include/linux/gfp.h
-@@ -3,26 +3,7 @@
- #define _TOOLS_INCLUDE_LINUX_GFP_H
+--- a/mm/swap_state.c~mm-fix-vm_bug_on-in-__delete_from_swap_cache
++++ a/mm/swap_state.c
+@@ -151,7 +151,7 @@ void __delete_from_swap_cache(struct fol
  
- #include <linux/types.h>
--
--#define __GFP_BITS_SHIFT 26
--#define __GFP_BITS_MASK ((gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
--
--#define __GFP_HIGH		0x20u
--#define __GFP_IO		0x40u
--#define __GFP_FS		0x80u
--#define __GFP_NOWARN		0x200u
--#define __GFP_ZERO		0x8000u
--#define __GFP_ATOMIC		0x80000u
--#define __GFP_ACCOUNT		0x100000u
--#define __GFP_DIRECT_RECLAIM	0x400000u
--#define __GFP_KSWAPD_RECLAIM	0x2000000u
--
--#define __GFP_RECLAIM	(__GFP_DIRECT_RECLAIM | __GFP_KSWAPD_RECLAIM)
--
--#define GFP_ZONEMASK	0x0fu
--#define GFP_ATOMIC	(__GFP_HIGH | __GFP_ATOMIC | __GFP_KSWAPD_RECLAIM)
--#define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
--#define GFP_NOWAIT	(__GFP_KSWAPD_RECLAIM)
-+#include <linux/gfp_types.h>
- 
- static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
- {
---- /dev/null
-+++ a/tools/include/linux/gfp_types.h
-@@ -0,0 +1 @@
-+#include "../../../include/linux/gfp_types.h"
+ 	for (i = 0; i < nr; i++) {
+ 		void *entry = xas_store(&xas, shadow);
+-		VM_BUG_ON_FOLIO(entry != folio, folio);
++		VM_BUG_ON_PAGE(entry != folio, entry);
+ 		set_page_private(folio_page(folio, i), 0);
+ 		xas_next(&xas);
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
 
 tools-fix-compilation-after-gfp_typesh-split.patch
+mm-fix-vm_bug_on-in-__delete_from_swap_cache.patch
+vmscan-check-folio_test_private-not-folio_get_private.patch
 support-highmem-pages-in-vmap_pages_range_noflush.patch
 mm-add-vma-iterator.patch
 mmap-use-the-vma-iterator-in-count_vma_pages_range.patch
