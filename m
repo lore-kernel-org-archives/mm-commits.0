@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF68ECAAD4
-	for <mm-commits@archiver.kernel.org>; Sat,  3 Sep 2022 19:42:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40914C6FA83
+	for <mm-commits@archiver.kernel.org>; Sun,  4 Sep 2022 17:54:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230052AbiICTmk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 3 Sep 2022 15:42:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58006 "EHLO
+        id S230013AbiIDRyR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 4 Sep 2022 13:54:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229657AbiICTmj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 3 Sep 2022 15:42:39 -0400
+        with ESMTP id S229725AbiIDRyQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 4 Sep 2022 13:54:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4848F543CB
-        for <mm-commits@vger.kernel.org>; Sat,  3 Sep 2022 12:42:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B562F2D1C9;
+        Sun,  4 Sep 2022 10:54:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D0D3560DB4
-        for <mm-commits@vger.kernel.org>; Sat,  3 Sep 2022 19:42:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EE16C433D7;
-        Sat,  3 Sep 2022 19:42:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BEF7A60FFF;
+        Sun,  4 Sep 2022 17:54:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBCC2C433D6;
+        Sun,  4 Sep 2022 17:54:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662234157;
-        bh=nZRcNgp6eK8LsGeJoE8jUkkY8iRQD4LSy+1Ty7NT6jw=;
+        s=korg; t=1662314053;
+        bh=Cad+RFMq7QmDEB5EXqy7yV0zZjDCCSLmr0nt4OUkZRg=;
         h=Date:To:From:Subject:From;
-        b=0Emxydm9C0MWHfUlLqcyTW4WYEciV+UqN/94tQAhte+dn5qD9U08O9rA57l0/v/yu
-         RJknBuHS2eAHuSPKuzxSq4YrW+sMZnhwaqwQTU1JnNJ2/dhB94ZKuBs+fxw1tB6JnP
-         OZOj50z6fMyNyEbuAaMLtvZX7nq/qS6UFLxUk2vg=
-Date:   Sat, 03 Sep 2022 12:42:36 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, lkp@intel.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=y296WWD1vCJM5tbIVt0VbfIk8MWRAIk+bm5r1louDViNtgelIvJMOi/4dTvNclCIc
+         0zw2buUGTDLLSvojAPVe1lQdfozicd/VO9bOBc5pYv/XI0ZBvlVKVzrjrOCGLzU6TY
+         fUy59n6rFwfqy1rj2Emv4e65+kNWOmnpZiEbophU=
+Date:   Sun, 04 Sep 2022 10:54:12 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        rppt@kernel.org, James.Bottomley@HansenPartnership.com,
+        hagen@jauu.net, ammarfaizi2@gnuweeb.org, akpm@linux-foudation.org,
+        dantengknight@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + swap-add-swap_cache_get_folio-fix.patch added to mm-hotfixes-stable branch
-Message-Id: <20220903194237.2EE16C433D7@smtp.kernel.org>
+Subject: + mm-fix-dereferencing-possible-err_ptr.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220904175412.EBCC2C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap-add-swap_cache_get_folio-fix
-has been added to the -mm mm-hotfixes-stable branch.  Its filename is
-     swap-add-swap_cache_get_folio-fix.patch
+     Subject: mm: fix dereferencing possible ERR_PTR
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-dereferencing-possible-err_ptr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap-add-swap_cache_get_folio-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-dereferencing-possible-err_ptr.patch
 
-This patch will later appear in the mm-hotfixes-stable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,59 +66,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: swap-add-swap_cache_get_folio-fix
-Date: Sat Sep  3 12:35:09 PM PDT 2022
+From: Binyi Han <dantengknight@gmail.com>
+Subject: mm: fix dereferencing possible ERR_PTR
+Date: Sun, 4 Sep 2022 00:46:47 -0700
 
-add CONFIG_SWAP=n stub for swap_cache_get_folio()
+Smatch checker complains that 'secretmem_mnt' dereferencing possible
+ERR_PTR().  Let the function return if 'secretmem_mnt' is ERR_PTR, to
+avoid deferencing it.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20220904074647.GA64291@cloud-MacBookPro
+Fixes: 1507f51255c9f ("mm: introduce memfd_secret system call to create "secret" memory areas")
+Signed-off-by: Binyi Han <dantengknight@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foudation.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ammar Faizi <ammarfaizi2@gnuweeb.org>
+Cc: Hagen Paul Pfeifer <hagen@jauu.net>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/secretmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swap.h~swap-add-swap_cache_get_folio-fix
-+++ a/mm/swap.h
-@@ -101,6 +101,12 @@ static inline int swap_writepage(struct
- 	return 0;
- }
+--- a/mm/secretmem.c~mm-fix-dereferencing-possible-err_ptr
++++ a/mm/secretmem.c
+@@ -285,7 +285,7 @@ static int secretmem_init(void)
  
-+static inline struct folio *swap_cache_get_folio(swp_entry_t entry,
-+		struct vm_area_struct *vma, unsigned long addr)
-+{
-+	return NULL;
-+}
-+
- static inline struct page *lookup_swap_cache(swp_entry_t swp,
- 					     struct vm_area_struct *vma,
- 					     unsigned long addr)
+ 	secretmem_mnt = kern_mount(&secretmem_fs);
+ 	if (IS_ERR(secretmem_mnt))
+-		ret = PTR_ERR(secretmem_mnt);
++		return PTR_ERR(secretmem_mnt);
+ 
+ 	/* prevent secretmem mappings from ever getting PROT_EXEC */
+ 	secretmem_mnt->mnt_flags |= MNT_NOEXEC;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dantengknight@gmail.com are
 
-mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
-procfs-add-path-to-proc-pid-fdinfo-fix.patch
-zsmalloc-zs_object_copy-add-clarifying-comment-fix.patch
-mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes-fix-fix.patch
-mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
-zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch
-zsmalloc-zs_object_copy-replace-email-link-to-doc-fix.patch
-mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
-mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
-mm-drop-oom-code-from-exit_mmap-fix-fix.patch
-mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
-mm-gupc-refactor-check_and_migrate_movable_pages-fix.patch
-hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache-fix.patch
-hugetlb-handle-truncate-racing-with-page-faults-fix-fix.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree-fix.patch
-page_ext-introduce-boot-parameter-early_page_ext-fix.patch
-mm-fix-null-ptr-deref-in-kswapd_is_running-fix.patch
-mm-vmscan-fix-a-lot-of-comments-vs-mglru.patch
-swap-add-swap_cache_get_folio-fix.patch
-ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
+mm-fix-dereferencing-possible-err_ptr.patch
 
