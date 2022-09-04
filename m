@@ -2,43 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14D0CC54EE9
-	for <mm-commits@archiver.kernel.org>; Sun,  4 Sep 2022 18:28:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB8A6ECAAD3
+	for <mm-commits@archiver.kernel.org>; Sun,  4 Sep 2022 18:39:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234657AbiIDS2c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 4 Sep 2022 14:28:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36142 "EHLO
+        id S233715AbiIDSi7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 4 Sep 2022 14:38:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231181AbiIDS2b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 4 Sep 2022 14:28:31 -0400
+        with ESMTP id S229938AbiIDSi6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 4 Sep 2022 14:38:58 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EC21303F9
-        for <mm-commits@vger.kernel.org>; Sun,  4 Sep 2022 11:28:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53AA530575
+        for <mm-commits@vger.kernel.org>; Sun,  4 Sep 2022 11:38:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id F10F9B80E38
-        for <mm-commits@vger.kernel.org>; Sun,  4 Sep 2022 18:28:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CCBFC433C1;
-        Sun,  4 Sep 2022 18:28:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DE559B80D5A
+        for <mm-commits@vger.kernel.org>; Sun,  4 Sep 2022 18:38:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7432CC433C1;
+        Sun,  4 Sep 2022 18:38:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662316107;
-        bh=dAyWHzznylVKiO5yG/ua3MXNQf9O0oSueBkBrKQEsS0=;
+        s=korg; t=1662316734;
+        bh=UlK2BXeKLTQT1X2LNB1iEgBSsO5Gzzgs1y0xEQ6pv0M=;
         h=Date:To:From:Subject:From;
-        b=EgB2LRu9ygAJWdZLgkDfud0FDr6Neac8ttu6wicWNr5Xz2VVbIUjxIP5GEZoDEUIz
-         xAcKbBRIJBnLbYyD/bBDJCMyZc3XkgVqQfojIW6CcdhhCPDvzyzUPrTznQXxw0VW9q
-         fblbKCxb1QcXtajhWPDyKdeb6x61VQNnrBUwpvYo=
-Date:   Sun, 04 Sep 2022 11:28:26 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com, will@kernel.org,
-        viro@zeniv.linux.org.uk, steve@sk2.org, robh@kernel.org,
-        rmetrich@redhat.com, oleg@redhat.com, nixiaoming@huawei.com,
-        mcgrof@kernel.org, ldufour@linux.ibm.com, keescook@chromium.org,
-        jsavitz@redhat.com, Jason@zx2c4.com, gpiccoli@igalia.com,
-        ghalat@redhat.com, ebiederm@xmission.com, corbet@lwn.net,
-        oleksandr@redhat.com, akpm@linux-foundation.org
+        b=qRbFFZFfpQe8LA8eSSggrPhDCWSgpugsRUok7xGr9Gf2zNZM8NJQR2ek4jwN9+42b
+         q0ep2jy2mAdx4TdD0kmXE8nb90t1wnhCRjZtE7d8GdleTJVlYcVIaHz41h0pbvbgMr
+         3MQ2H2LZAPa7Sy3QYfl3DbprweRFiXOcb0TxBI1k=
+Date:   Sun, 04 Sep 2022 11:38:53 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + core_pattern-add-cpu-specifier.patch added to mm-nonmm-unstable branch
-Message-Id: <20220904182827.9CCBFC433C1@smtp.kernel.org>
+Subject: + mm-khugepaged-add-struct-collapse_control-fix-fix-fix.patch added to mm-unstable branch
+Message-Id: <20220904183854.7432CC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: core_pattern: add CPU specifier
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     core_pattern-add-cpu-specifier.patch
+     Subject: mm/khugepaged: fix struct collapse_control load_node definition
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-khugepaged-add-struct-collapse_control-fix-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/core_pattern-add-cpu-specifier.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-add-struct-collapse_control-fix-fix-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -69,91 +64,134 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oleksandr Natalenko <oleksandr@redhat.com>
-Subject: core_pattern: add CPU specifier
-Date: Sat, 3 Sep 2022 08:43:30 +0200
+From: "Zach O'Keefe" <zokeefe@google.com>
+Subject: mm/khugepaged: fix struct collapse_control load_node definition
+Date: Fri, 2 Sep 2022 19:12:21 -0700
 
-Statistically, in a large deployment regular segfaults may indicate a CPU
-issue.
+HPAGE_PMD_ORDER is used to determine a minimal amount of bits needed to
+store per-node counters in struct collapse_control, defining the array to
+be either a u16[HPAGE_PMD_ORDER] or u32[HPAGE_PMD_ORDER].
 
-Currently, it is not possible to find out what CPU the segfault happened
-on.  There are at least two attempts to improve segfault logging with this
-regard, but they do not help in case the logs rotate.
+For some architectures/configs, HPAGE_PMD_ORDER isn't resolved at
+preprocessor time (suitable for resolving preprocessor directives) but
+rather expands into a compiler built-in that is resolved at compile-time. 
+E.g.  for 32-bit MIPS (see link for full config):
 
-Hence, lets make sure it is possible to permanently record a CPU the task
-ran on using a new core_pattern specifier.
+---8<--
+>> arch/mips/include/asm/pgtable.h:238:26: warning: "__builtin_ffs" is not defined, evaluates to 0 [-Wundef]
+     238 | #define PTE_T_LOG2      (__builtin_ffs(sizeof(pte_t)) - 1)
+         |                          ^~~~~~~~~~~~~
+   arch/mips/include/asm/pgtable-32.h:65:43: note: in expansion of macro 'PTE_T_LOG2'
+      65 | # define PGDIR_SHIFT    (2 * PAGE_SHIFT - PTE_T_LOG2 - 1)
+         |                                           ^~~~~~~~~~
+   include/asm-generic/pgtable-nop4d.h:11:33: note: in expansion of macro 'PGDIR_SHIFT'
+      11 | #define P4D_SHIFT               PGDIR_SHIFT
+         |                                 ^~~~~~~~~~~
+   include/asm-generic/pgtable-nopud.h:18:25: note: in expansion of macro 'P4D_SHIFT'
+      18 | #define PUD_SHIFT       P4D_SHIFT
+         |                         ^~~~~~~~~
+   include/asm-generic/pgtable-nopmd.h:20:25: note: in expansion of macro 'PUD_SHIFT'
+      20 | #define PMD_SHIFT       PUD_SHIFT
+         |                         ^~~~~~~~~
+   include/linux/huge_mm.h:109:25: note: in expansion of macro 'PMD_SHIFT'
+     109 | #define HPAGE_PMD_SHIFT PMD_SHIFT
+         |                         ^~~~~~~~~
+   include/linux/huge_mm.h:105:26: note: in expansion of macro 'HPAGE_PMD_SHIFT'
+     105 | #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
+         |                          ^~~~~~~~~~~~~~~
+   mm/khugepaged.c:90:5: note: in expansion of macro 'HPAGE_PMD_ORDER'
+      90 | #if HPAGE_PMD_ORDER < 16
+         |     ^~~~~~~~~~~~~~~
+>> arch/mips/include/asm/pgtable.h:238:39: error: missing binary operator before token "("
+     238 | #define PTE_T_LOG2      (__builtin_ffs(sizeof(pte_t)) - 1)
+         |                                       ^
+   arch/mips/include/asm/pgtable-32.h:65:43: note: in expansion of macro 'PTE_T_LOG2'
+      65 | # define PGDIR_SHIFT    (2 * PAGE_SHIFT - PTE_T_LOG2 - 1)
+         |                                           ^~~~~~~~~~
+   include/asm-generic/pgtable-nop4d.h:11:33: note: in expansion of macro 'PGDIR_SHIFT'
+      11 | #define P4D_SHIFT               PGDIR_SHIFT
+         |                                 ^~~~~~~~~~~
+   include/asm-generic/pgtable-nopud.h:18:25: note: in expansion of macro 'P4D_SHIFT'
+      18 | #define PUD_SHIFT       P4D_SHIFT
+         |                         ^~~~~~~~~
+   include/asm-generic/pgtable-nopmd.h:20:25: note: in expansion of macro 'PUD_SHIFT'
+      20 | #define PMD_SHIFT       PUD_SHIFT
+         |                         ^~~~~~~~~
+   include/linux/huge_mm.h:109:25: note: in expansion of macro 'PMD_SHIFT'
+     109 | #define HPAGE_PMD_SHIFT PMD_SHIFT
+         |                         ^~~~~~~~~
+   include/linux/huge_mm.h:105:26: note: in expansion of macro 'HPAGE_PMD_SHIFT'
+     105 | #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
+         |                          ^~~~~~~~~~~~~~~
+   mm/khugepaged.c:90:5: note: in expansion of macro 'HPAGE_PMD_ORDER'
+      90 | #if HPAGE_PMD_ORDER < 16
+         |     ^~~~~~~~~~~~~~~
+---8<--
 
-Link: https://lkml.kernel.org/r/20220903064330.20772-1-oleksandr@redhat.com
-Signed-off-by: Oleksandr Natalenko <oleksandr@redhat.com>
-Suggested-by: Renaud Métrich <rmetrich@redhat.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Grzegorz Halat <ghalat@redhat.com>
-Cc: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Jason A. Donenfeld <Jason@zx2c4.com>
-Cc: Joel Savitz <jsavitz@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Stephen Kitt <steve@sk2.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
+load_node is already special-cased for CONFIG_PPC64 in
+"mm-khugepaged-add-struct-collapse_control-fix-fix", and we could continue
+down that path by #define'ing away edge cases, but I think at this point
+it easier to just let load_node be an array of u32s.  If it's ever an
+issue, we can revisit.
+
+This essentially rolls back both:
+
+"mm/khugepaged: use minimal bits to store num page < HPAGE_PMD_NR"
+"mm-khugepaged-add-struct-collapse_control-fix-fix"
+
+(though we'll leave it as a u32 vs an int).
+
+Link: https://lore.kernel.org/linux-mm/202209021349.F73i5d6X-lkp@intel.com/
+Link: https://lkml.kernel.org/r/20220903021221.1130021-1-zokeefe@google.com
+Fixes: 5f7bb00bd9cd ("mm/khugepaged: use minimal bits to store num page < HPAGE_PMD_NR")
+Fixes: 03053c821af2 ("mm-khugepaged-add-struct-collapse_control-fix-fix")
+Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    1 +
- fs/coredump.c                               |    5 +++++
- include/linux/coredump.h                    |    1 +
- 3 files changed, 7 insertions(+)
+ mm/khugepaged.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~core_pattern-add-cpu-specifier
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -174,6 +174,7 @@ core_pattern
- 	%f      	executable filename
- 	%E		executable path
- 	%c		maximum size of core file by resource limit RLIMIT_CORE
-+	%C		CPU the task ran on
- 	%<OTHER>	both are dropped
- 	========	==========================================
+--- a/mm/khugepaged.c~mm-khugepaged-add-struct-collapse_control-fix-fix-fix
++++ a/mm/khugepaged.c
+@@ -87,13 +87,8 @@ static struct kmem_cache *mm_slot_cache
  
---- a/fs/coredump.c~core_pattern-add-cpu-specifier
-+++ a/fs/coredump.c
-@@ -325,6 +325,10 @@ static int format_corename(struct core_n
- 				err = cn_printf(cn, "%lu",
- 					      rlimit(RLIMIT_CORE));
- 				break;
-+			/* CPU the task ran on */
-+			case 'C':
-+				err = cn_printf(cn, "%d", cprm->cpu);
-+				break;
- 			default:
- 				break;
- 			}
-@@ -535,6 +539,7 @@ void do_coredump(const kernel_siginfo_t
- 		 */
- 		.mm_flags = mm->flags,
- 		.vma_meta = NULL,
-+		.cpu = raw_smp_processor_id(),
- 	};
- 
- 	audit_core_dumps(siginfo->si_signo);
---- a/include/linux/coredump.h~core_pattern-add-cpu-specifier
-+++ a/include/linux/coredump.h
-@@ -22,6 +22,7 @@ struct coredump_params {
- 	struct file *file;
- 	unsigned long limit;
- 	unsigned long mm_flags;
-+	int cpu;
- 	loff_t written;
- 	loff_t pos;
- 	loff_t to_skip;
+ struct collapse_control {
+ 	/* Num pages scanned per node */
+-#if defined(CONFIG_PPC64)
+ 	u32 node_load[MAX_NUMNODES];
+-#elif HPAGE_PMD_ORDER < 16
+-	u16 node_load[MAX_NUMNODES];
+-#else
+-	u32 node_load[MAX_NUMNODES];
+-#endif
++
+ 	/* Last target selected in khugepaged_find_target_node() */
+ 	int last_target_node;
+ };
 _
 
-Patches currently in -mm which might be from oleksandr@redhat.com are
+Patches currently in -mm which might be from zokeefe@google.com are
 
-core_pattern-add-cpu-specifier.patch
+mm-khugepaged-add-struct-collapse_control.patch
+mm-khugepaged-add-struct-collapse_control-fix.patch
+mm-khugepaged-add-struct-collapse_control-fix-fix-fix.patch
+mm-khugepaged-dedup-and-simplify-hugepage-alloc-and-charging.patch
+mm-khugepaged-pipe-enum-scan_result-codes-back-to-callers.patch
+mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior.patch
+mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check.patch
+mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior-fix.patch
+mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch
+mm-madvise-introduce-madv_collapse-sync-hugepage-collapse.patch
+mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch
+mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-3.patch
+mm-khugepaged-rename-prefix-of-shared-collapse-functions.patch
+mm-madvise-add-madv_collapse-to-process_madvise.patch
+mm-madvise-add-madv_collapse-to-process_madvise-fix.patch
+selftests-vm-modularize-collapse-selftests.patch
+selftests-vm-dedup-hugepage-allocation-logic.patch
+selftests-vm-add-madv_collapse-collapse-context-to-selftests.patch
+selftests-vm-add-selftest-to-verify-recollapse-of-thps.patch
+selftests-vm-add-selftest-to-verify-multi-thp-collapse.patch
 
