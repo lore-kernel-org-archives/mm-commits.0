@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07A63C6FA8B
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:49:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2293ECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:49:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229842AbiIEWtL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 18:49:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40568 "EHLO
+        id S232419AbiIEWtM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 18:49:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232464AbiIEWsr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:47 -0400
+        with ESMTP id S232527AbiIEWss (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:48 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 403B967C97
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19C4567CA4
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EE9F0B81598
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5C6EC433B5;
-        Mon,  5 Sep 2022 22:48:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C8D7FB815E6
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67FEBC433D6;
+        Mon,  5 Sep 2022 22:48:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418118;
-        bh=t08MRH6H5lFTC9E7ycGCq1cbod6Z5pjQa7wS83Ao1SI=;
+        s=korg; t=1662418123;
+        bh=9+5dA1NZE/WU3RQoug9vhm574jg5e8chZPXfVW8sCe0=;
         h=Date:To:From:Subject:From;
-        b=ZHHA4a2Dnlu5TG4zsEjypxSVtn5sFnyvLXGolt19kMxOspNWtTZ6CVXK6IFri94YR
-         lb+2R1tQRDOuA3TgRQArNrtVQMCbYPwxIjTpRkHXVj4r7mQFbBgJPQ1p/XjUajgKR5
-         fizeE91Jyo0UHJ6T6xmacMsZUfOk57rQCyUfzEGI=
-Date:   Mon, 05 Sep 2022 15:48:37 -0700
+        b=g/zEGqpYcNkXAha9IIPRcrEtjw2xnqkWIHgYdNsxrYivbM/a7QSKGTqh/dvBmKToI
+         87fkPklgn8K3j2GtmeoPpeUKu5xcAIJHwjw03VU2ZbXArVnq1lE3OJPRP0KcmLSMjk
+         YcqY7GCT/qNx5UWoVZ5dffOdjVaJJvsKDOh3oA6M=
+Date:   Mon, 05 Sep 2022 15:48:42 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-introduce-complete_report_info.patch added to mm-unstable branch
-Message-Id: <20220905224838.A5C6EC433B5@smtp.kernel.org>
+Subject: + kasan-rework-function-arguments-in-reportc.patch added to mm-unstable branch
+Message-Id: <20220905224843.67FEBC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: introduce complete_report_info
+     Subject: kasan: rework function arguments in report.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-introduce-complete_report_info.patch
+     kasan-rework-function-arguments-in-reportc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-introduce-complete_report_info.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-rework-function-arguments-in-reportc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: introduce complete_report_info
-Date: Mon, 5 Sep 2022 23:05:41 +0200
+Subject: kasan: rework function arguments in report.c
+Date: Mon, 5 Sep 2022 23:05:43 +0200
 
-Introduce a complete_report_info() function that fills in the
-first_bad_addr field of kasan_report_info instead of doing it in
-kasan_report_*().
+Pass a pointer to kasan_report_info to describe_object() and
+describe_object_stacks(), instead of passing the structure's fields.
 
-This function will be extended in the next patch.
+The untagged pointer and the tag are still passed as separate arguments to
+some of the functions to avoid duplicating the untagging logic.
 
-Link: https://lkml.kernel.org/r/8eb1a9bd01f5d31eab4524da54a101b8720b469e.1662411799.git.andreyknvl@google.com
+This is preparatory change for the next patch.
+
+Link: https://lkml.kernel.org/r/2e0cdb91524ab528a3c2b12b6d8bcb69512fc4af.1662411799.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -87,77 +89,73 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h  |    5 ++++-
- mm/kasan/report.c |   17 +++++++++++++++--
- 2 files changed, 19 insertions(+), 3 deletions(-)
+ mm/kasan/report.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-introduce-complete_report_info
-+++ a/mm/kasan/kasan.h
-@@ -153,12 +153,15 @@ enum kasan_report_type {
- };
- 
- struct kasan_report_info {
-+	/* Filled in by kasan_report_*(). */
- 	enum kasan_report_type type;
- 	void *access_addr;
--	void *first_bad_addr;
- 	size_t access_size;
- 	bool is_write;
- 	unsigned long ip;
-+
-+	/* Filled in by the common reporting code. */
-+	void *first_bad_addr;
- };
- 
- /* Do not change the struct layout: compiler ABI. */
---- a/mm/kasan/report.c~kasan-introduce-complete_report_info
+--- a/mm/kasan/report.c~kasan-rework-function-arguments-in-reportc
 +++ a/mm/kasan/report.c
-@@ -413,6 +413,17 @@ static void print_report(struct kasan_re
- 	}
+@@ -213,8 +213,8 @@ static inline struct page *addr_to_page(
+ 	return NULL;
  }
  
-+static void complete_report_info(struct kasan_report_info *info)
-+{
-+	void *addr = kasan_reset_tag(info->access_addr);
-+
-+	if (info->type == KASAN_REPORT_ACCESS)
-+		info->first_bad_addr = kasan_find_first_bad_addr(
-+					info->access_addr, info->access_size);
-+	else
-+		info->first_bad_addr = addr;
-+}
-+
- void kasan_report_invalid_free(void *ptr, unsigned long ip, enum kasan_report_type type)
+-static void describe_object_addr(struct kmem_cache *cache, void *object,
+-				const void *addr)
++static void describe_object_addr(const void *addr, struct kmem_cache *cache,
++				 void *object)
  {
- 	unsigned long flags;
-@@ -430,11 +441,12 @@ void kasan_report_invalid_free(void *ptr
+ 	unsigned long access_addr = (unsigned long)addr;
+ 	unsigned long object_addr = (unsigned long)object;
+@@ -242,33 +242,32 @@ static void describe_object_addr(struct
+ 		(void *)(object_addr + cache->object_size));
+ }
  
- 	info.type = type;
- 	info.access_addr = ptr;
--	info.first_bad_addr = kasan_reset_tag(ptr);
- 	info.access_size = 0;
- 	info.is_write = false;
- 	info.ip = ip;
+-static void describe_object_stacks(struct kmem_cache *cache, void *object,
+-					const void *addr, u8 tag)
++static void describe_object_stacks(u8 tag, struct kasan_report_info *info)
+ {
+ 	struct kasan_track *alloc_track;
+ 	struct kasan_track *free_track;
  
-+	complete_report_info(&info);
-+
- 	print_report(&info);
+-	alloc_track = kasan_get_alloc_track(cache, object);
++	alloc_track = kasan_get_alloc_track(info->cache, info->object);
+ 	if (alloc_track) {
+ 		print_track(alloc_track, "Allocated");
+ 		pr_err("\n");
+ 	}
  
- 	end_report(&flags, ptr);
-@@ -463,11 +475,12 @@ bool kasan_report(unsigned long addr, si
+-	free_track = kasan_get_free_track(cache, object, tag);
++	free_track = kasan_get_free_track(info->cache, info->object, tag);
+ 	if (free_track) {
+ 		print_track(free_track, "Freed");
+ 		pr_err("\n");
+ 	}
  
- 	info.type = KASAN_REPORT_ACCESS;
- 	info.access_addr = ptr;
--	info.first_bad_addr = kasan_find_first_bad_addr(ptr, size);
- 	info.access_size = size;
- 	info.is_write = is_write;
- 	info.ip = ip;
+-	kasan_print_aux_stacks(cache, object);
++	kasan_print_aux_stacks(info->cache, info->object);
+ }
  
-+	complete_report_info(&info);
-+
- 	print_report(&info);
+-static void describe_object(struct kmem_cache *cache, void *object,
+-				const void *addr, u8 tag)
++static void describe_object(const void *addr, u8 tag,
++			    struct kasan_report_info *info)
+ {
+ 	if (kasan_stack_collection_enabled())
+-		describe_object_stacks(cache, object, addr, tag);
+-	describe_object_addr(cache, object, addr);
++		describe_object_stacks(tag, info);
++	describe_object_addr(addr, info->cache, info->object);
+ }
  
- 	end_report(&irq_flags, ptr);
+ static inline bool kernel_or_module_addr(const void *addr)
+@@ -296,7 +295,7 @@ static void print_address_description(vo
+ 	pr_err("\n");
+ 
+ 	if (info->cache && info->object) {
+-		describe_object(info->cache, info->object, addr, tag);
++		describe_object(addr, tag, info);
+ 		pr_err("\n");
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
