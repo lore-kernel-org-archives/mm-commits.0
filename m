@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B6AECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 919ADECAAA1
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232540AbiIEWss (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 18:48:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40568 "EHLO
+        id S231393AbiIEWst (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 18:48:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232482AbiIEWsb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72CA36745D
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:20 -0700 (PDT)
+        with ESMTP id S232453AbiIEWsc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3B2367C80
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B75C60ACE
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62F32C433D6;
-        Mon,  5 Sep 2022 22:48:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 92324B81598
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5040BC433D6;
+        Mon,  5 Sep 2022 22:48:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418099;
-        bh=I6/QaOkWo7S2nx9IulDxxQtjfV8AvIu4guHn4oDRwWE=;
+        s=korg; t=1662418102;
+        bh=B1ZuSIOEiy886jlf+l1Q4Fx1uhuhK0YTjIUonOrTRCE=;
         h=Date:To:From:Subject:From;
-        b=PNpsU3PvLuRgPeZTciaEf95wUnms6CaX6zPvMC+wa1JKr3jTuXaLCPeNGKxSKbQQd
-         Xv8yoFGBDzmvsYOilhJq/MmOVeN1Va9yQWtO75Utb8f8eQoYo1oEAaSvIeR6520DtU
-         IWdkIvIck2W/Aqjz97CujVgUKYBEHxffvCur2e8k=
-Date:   Mon, 05 Sep 2022 15:48:18 -0700
+        b=EHaERM+jfYKc59TOdJiQlVoWROeAKLMEXsL7jJGldZEQhyWMFD2UNdeoAPXdeVM8x
+         4ep9nO15hJnXgS5jxnOF64sqV5qfScyA/LT4pTcgaaE7sf+5ynaLZU0qBgoOCR0rUk
+         zvsvOGP65Sg5TV9kK/ZJaeOCWUF8x9F3rhtk5/ws=
+Date:   Mon, 05 Sep 2022 15:48:21 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-only-define-kasan_cache_create-for-generic-mode.patch added to mm-unstable branch
-Message-Id: <20220905224819.62F32C433D6@smtp.kernel.org>
+Subject: + kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info.patch added to mm-unstable branch
+Message-Id: <20220905224822.5040BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: only define kasan_cache_create for Generic mode
+     Subject: kasan: pass tagged pointers to kasan_save_alloc/free_info
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-only-define-kasan_cache_create-for-generic-mode.patch
+     kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-only-define-kasan_cache_create-for-generic-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,28 +67,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: only define kasan_cache_create for Generic mode
-Date: Mon, 5 Sep 2022 23:05:33 +0200
+Subject: kasan: pass tagged pointers to kasan_save_alloc/free_info
+Date: Mon, 5 Sep 2022 23:05:34 +0200
 
-Right now, kasan_cache_create() assigns SLAB_KASAN for all KASAN modes and
-then sets up metadata-related cache parameters for the Generic mode.
+Pass tagged pointers to kasan_save_alloc/free_info().
 
-SLAB_KASAN is used in two places:
+This is a preparatory patch to simplify other changes in the series.
 
-1. In slab_ksize() to account for per-object metadata when
-   calculating the size of the accessible memory within the object.
-2. In slab_common.c via kasan_never_merge() to prevent merging of
-   caches with per-object metadata.
-
-Both cases are only relevant when per-object metadata is present, which is
-only the case with the Generic mode.
-
-Thus, assign SLAB_KASAN and define kasan_cache_create() only for the
-Generic mode.
-
-Also update the SLAB_KASAN-related comment.
-
-Link: https://lkml.kernel.org/r/61faa2aa1906e2d02c97d00ddf99ce8911dda095.1662411799.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/d5bc48cfcf0dca8269dc3ed863047e4d4d2030f1.1662411799.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -99,126 +85,81 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   18 ++++++------------
- include/linux/slab.h  |    2 +-
- mm/kasan/common.c     |   16 ----------------
- mm/kasan/generic.c    |   17 ++++++++++++++++-
- 4 files changed, 23 insertions(+), 30 deletions(-)
+ mm/kasan/common.c  |    6 ++----
+ mm/kasan/generic.c |    3 +--
+ mm/kasan/kasan.h   |    2 +-
+ mm/kasan/tags.c    |    3 +--
+ 4 files changed, 5 insertions(+), 9 deletions(-)
 
---- a/include/linux/kasan.h~kasan-only-define-kasan_cache_create-for-generic-mode
-+++ a/include/linux/kasan.h
-@@ -128,15 +128,6 @@ static __always_inline void kasan_unpois
- 		__kasan_unpoison_pages(page, order, init);
- }
- 
--void __kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
--				slab_flags_t *flags);
--static __always_inline void kasan_cache_create(struct kmem_cache *cache,
--				unsigned int *size, slab_flags_t *flags)
--{
--	if (kasan_enabled())
--		__kasan_cache_create(cache, size, flags);
--}
--
- void __kasan_cache_create_kmalloc(struct kmem_cache *cache);
- static __always_inline void kasan_cache_create_kmalloc(struct kmem_cache *cache)
- {
-@@ -260,9 +251,6 @@ static inline void kasan_poison_pages(st
- 				      bool init) {}
- static inline void kasan_unpoison_pages(struct page *page, unsigned int order,
- 					bool init) {}
--static inline void kasan_cache_create(struct kmem_cache *cache,
--				      unsigned int *size,
--				      slab_flags_t *flags) {}
- static inline void kasan_cache_create_kmalloc(struct kmem_cache *cache) {}
- static inline void kasan_poison_slab(struct slab *slab) {}
- static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
-@@ -316,6 +304,8 @@ static inline void kasan_unpoison_task_s
- 
- size_t kasan_metadata_size(struct kmem_cache *cache);
- slab_flags_t kasan_never_merge(void);
-+void kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
-+			slab_flags_t *flags);
- 
- void kasan_cache_shrink(struct kmem_cache *cache);
- void kasan_cache_shutdown(struct kmem_cache *cache);
-@@ -334,6 +324,10 @@ static inline slab_flags_t kasan_never_m
- {
- 	return 0;
- }
-+/* And no cache-related metadata initialization is required. */
-+static inline void kasan_cache_create(struct kmem_cache *cache,
-+				      unsigned int *size,
-+				      slab_flags_t *flags) {}
- 
- static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
- static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
---- a/include/linux/slab.h~kasan-only-define-kasan_cache_create-for-generic-mode
-+++ a/include/linux/slab.h
-@@ -106,7 +106,7 @@
- # define SLAB_ACCOUNT		0
- #endif
- 
--#ifdef CONFIG_KASAN
-+#ifdef CONFIG_KASAN_GENERIC
- #define SLAB_KASAN		((slab_flags_t __force)0x08000000U)
- #else
- #define SLAB_KASAN		0
---- a/mm/kasan/common.c~kasan-only-define-kasan_cache_create-for-generic-mode
+--- a/mm/kasan/common.c~kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info
 +++ a/mm/kasan/common.c
-@@ -110,22 +110,6 @@ void __kasan_poison_pages(struct page *p
- 			     KASAN_PAGE_FREE, init);
- }
- 
--void __kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
--			  slab_flags_t *flags)
--{
--	/*
--	 * SLAB_KASAN is used to mark caches as ones that are sanitized by
--	 * KASAN. Currently this flag is used in two places:
--	 * 1. In slab_ksize() when calculating the size of the accessible
--	 *    memory within the object.
--	 * 2. In slab_common.c to prevent merging of sanitized caches.
--	 */
--	*flags |= SLAB_KASAN;
--
--	if (kasan_requires_meta())
--		kasan_init_cache_meta(cache, size);
--}
--
- void __kasan_cache_create_kmalloc(struct kmem_cache *cache)
+@@ -193,13 +193,11 @@ void * __must_check __kasan_init_slab_ob
+ static inline bool ____kasan_slab_free(struct kmem_cache *cache, void *object,
+ 				unsigned long ip, bool quarantine, bool init)
  {
- 	cache->kasan_info.is_kmalloc = true;
---- a/mm/kasan/generic.c~kasan-only-define-kasan_cache_create-for-generic-mode
+-	u8 tag;
+ 	void *tagged_object;
+ 
+ 	if (!kasan_arch_is_ready())
+ 		return false;
+ 
+-	tag = get_tag(object);
+ 	tagged_object = object;
+ 	object = kasan_reset_tag(object);
+ 
+@@ -228,7 +226,7 @@ static inline bool ____kasan_slab_free(s
+ 		return false;
+ 
+ 	if (kasan_stack_collection_enabled())
+-		kasan_save_free_info(cache, object, tag);
++		kasan_save_free_info(cache, tagged_object);
+ 
+ 	return kasan_quarantine_put(cache, object);
+ }
+@@ -317,7 +315,7 @@ void * __must_check __kasan_slab_alloc(s
+ 
+ 	/* Save alloc info (if possible) for non-kmalloc() allocations. */
+ 	if (kasan_stack_collection_enabled() && !cache->kasan_info.is_kmalloc)
+-		kasan_save_alloc_info(cache, (void *)object, flags);
++		kasan_save_alloc_info(cache, tagged_object, flags);
+ 
+ 	return tagged_object;
+ }
+--- a/mm/kasan/generic.c~kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info
 +++ a/mm/kasan/generic.c
-@@ -352,11 +352,26 @@ static inline unsigned int optimal_redzo
- 		object_size <= (1 << 16) - 1024 ? 1024 : 2048;
+@@ -500,8 +500,7 @@ void kasan_save_alloc_info(struct kmem_c
+ 		kasan_set_track(&alloc_meta->alloc_track, flags);
  }
  
--void kasan_init_cache_meta(struct kmem_cache *cache, unsigned int *size)
-+void kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
-+			  slab_flags_t *flags)
+-void kasan_save_free_info(struct kmem_cache *cache,
+-				void *object, u8 tag)
++void kasan_save_free_info(struct kmem_cache *cache, void *object)
  {
- 	unsigned int ok_size;
- 	unsigned int optimal_size;
+ 	struct kasan_free_meta *free_meta;
  
-+	if (!kasan_requires_meta())
-+		return;
-+
-+	/*
-+	 * SLAB_KASAN is used to mark caches that are sanitized by KASAN
-+	 * and that thus have per-object metadata.
-+	 * Currently this flag is used in two places:
-+	 * 1. In slab_ksize() to account for per-object metadata when
-+	 *    calculating the size of the accessible memory within the object.
-+	 * 2. In slab_common.c via kasan_never_merge() to prevent merging of
-+	 *    caches with per-object metadata.
-+	 */
-+	*flags |= SLAB_KASAN;
-+
- 	ok_size = *size;
+--- a/mm/kasan/kasan.h~kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info
++++ a/mm/kasan/kasan.h
+@@ -309,7 +309,7 @@ static inline void kasan_init_object_met
+ depot_stack_handle_t kasan_save_stack(gfp_t flags, bool can_alloc);
+ void kasan_set_track(struct kasan_track *track, gfp_t flags);
+ void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags);
+-void kasan_save_free_info(struct kmem_cache *cache, void *object, u8 tag);
++void kasan_save_free_info(struct kmem_cache *cache, void *object);
+ struct kasan_track *kasan_get_alloc_track(struct kmem_cache *cache,
+ 						void *object);
+ struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
+--- a/mm/kasan/tags.c~kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info
++++ a/mm/kasan/tags.c
+@@ -21,8 +21,7 @@ void kasan_save_alloc_info(struct kmem_c
+ {
+ }
  
- 	/* Add alloc meta into redzone. */
+-void kasan_save_free_info(struct kmem_cache *cache,
+-				void *object, u8 tag)
++void kasan_save_free_info(struct kmem_cache *cache, void *object)
+ {
+ }
+ 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
