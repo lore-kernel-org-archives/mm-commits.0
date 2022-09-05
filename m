@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AC30ECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:47:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6861ECAAA1
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:47:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232375AbiIEWrv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 18:47:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40306 "EHLO
+        id S231966AbiIEWrw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 18:47:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231966AbiIEWro (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:47:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D05E3C8D4
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:47:42 -0700 (PDT)
+        with ESMTP id S232346AbiIEWrp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:47:45 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A47E444576
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:47:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3609E60DC5
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:47:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F625C433C1;
-        Mon,  5 Sep 2022 22:47:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3C27060DC5
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:47:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 930ADC433C1;
+        Mon,  5 Sep 2022 22:47:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418061;
-        bh=9ZQiLTkpUwJpQTkX42JCtDAm4pUIKHdVZZHHmV2k1Co=;
+        s=korg; t=1662418063;
+        bh=K7fAVy2Rzk/129D6L8qEgtV6zbYgJ0yVqrKrMc0ahLw=;
         h=Date:To:From:Subject:From;
-        b=dMBR6nLt7Wpm3M5cokGnIm+QI2amnhLuT6TJ7tufgpUb66RDni4dzMFQ9WbgpQGln
-         T/ley7JXB2D62J/57/+vNWq2nmKPFOW49qe7+rdTAahta3rcS1mVtWctXZ41TqnqeL
-         j9BVjnucOZvV5QtVkYyvqzck0m9u/v9DpVHTGzy0=
-Date:   Mon, 05 Sep 2022 15:47:40 -0700
+        b=WnPS35BX507Nshv87XbXcGgAP8q5KyzAO9QG8A1Cu3mQc4YAvolLlHAJ2HLTMWYrI
+         Cda41wh5pO9Q58Jlg+9UItaTNjotm3TwO5pqu094Z1TKekpCbbX3zCazbVX4B8SKnm
+         etX0O0SW14qIzCjXJDzuLmVsxF7GYK7sy6M+3BTw=
+Date:   Mon, 05 Sep 2022 15:47:42 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-move-is_kmalloc-check-out-of-save_alloc_info.patch added to mm-unstable branch
-Message-Id: <20220905224741.8F625C433C1@smtp.kernel.org>
+Subject: + kasan-split-save_alloc_info-implementations.patch added to mm-unstable branch
+Message-Id: <20220905224743.930ADC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: move is_kmalloc check out of save_alloc_info
+     Subject: kasan: split save_alloc_info implementations
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-move-is_kmalloc-check-out-of-save_alloc_info.patch
+     kasan-split-save_alloc_info-implementations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-move-is_kmalloc-check-out-of-save_alloc_info.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-split-save_alloc_info-implementations.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,15 +67,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: move is_kmalloc check out of save_alloc_info
-Date: Mon, 5 Sep 2022 23:05:18 +0200
+Subject: kasan: split save_alloc_info implementations
+Date: Mon, 5 Sep 2022 23:05:19 +0200
 
-Move kasan_info.is_kmalloc check out of save_alloc_info().
+Provide standalone implementations of save_alloc_info() for the Generic
+and tag-based modes.
 
-This is a preparatory change that simplifies the following patches in this
-series.
+For now, the implementations are the same, but they will diverge later in
+the series.
 
-Link: https://lkml.kernel.org/r/df89f1915b788f9a10319905af6d0202a3b30c30.1662411799.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/77f1a078489c1e859aedb5403f772e5e1f7410a0.1662411799.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -86,50 +87,94 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ mm/kasan/common.c  |   13 ++-----------
+ mm/kasan/generic.c |    9 +++++++++
+ mm/kasan/kasan.h   |    1 +
+ mm/kasan/tags.c    |    9 +++++++++
+ 4 files changed, 21 insertions(+), 11 deletions(-)
 
---- a/mm/kasan/common.c~kasan-move-is_kmalloc-check-out-of-save_alloc_info
+--- a/mm/kasan/common.c~kasan-split-save_alloc_info-implementations
 +++ a/mm/kasan/common.c
-@@ -424,15 +424,10 @@ void __kasan_slab_free_mempool(void *ptr
+@@ -424,15 +424,6 @@ void __kasan_slab_free_mempool(void *ptr
  	}
  }
  
--static void save_alloc_info(struct kmem_cache *cache, void *object,
--				gfp_t flags, bool is_kmalloc)
-+static void save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
- {
- 	struct kasan_alloc_meta *alloc_meta;
- 
--	/* Don't save alloc info for kmalloc caches in kasan_slab_alloc(). */
--	if (cache->kasan_info.is_kmalloc && !is_kmalloc)
--		return;
+-static void save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
+-{
+-	struct kasan_alloc_meta *alloc_meta;
 -
- 	alloc_meta = kasan_get_alloc_meta(cache, object);
- 	if (alloc_meta)
- 		kasan_set_track(&alloc_meta->alloc_track, flags);
-@@ -467,8 +462,8 @@ void * __must_check __kasan_slab_alloc(s
- 	kasan_unpoison(tagged_object, cache->object_size, init);
+-	alloc_meta = kasan_get_alloc_meta(cache, object);
+-	if (alloc_meta)
+-		kasan_set_track(&alloc_meta->alloc_track, flags);
+-}
+-
+ void * __must_check __kasan_slab_alloc(struct kmem_cache *cache,
+ 					void *object, gfp_t flags, bool init)
+ {
+@@ -463,7 +454,7 @@ void * __must_check __kasan_slab_alloc(s
  
  	/* Save alloc info (if possible) for non-kmalloc() allocations. */
--	if (kasan_stack_collection_enabled())
--		save_alloc_info(cache, (void *)object, flags, false);
-+	if (kasan_stack_collection_enabled() && !cache->kasan_info.is_kmalloc)
-+		save_alloc_info(cache, (void *)object, flags);
+ 	if (kasan_stack_collection_enabled() && !cache->kasan_info.is_kmalloc)
+-		save_alloc_info(cache, (void *)object, flags);
++		kasan_save_alloc_info(cache, (void *)object, flags);
  
  	return tagged_object;
  }
-@@ -513,8 +508,8 @@ static inline void *____kasan_kmalloc(st
- 	 * Save alloc info (if possible) for kmalloc() allocations.
+@@ -509,7 +500,7 @@ static inline void *____kasan_kmalloc(st
  	 * This also rewrites the alloc info when called from kasan_krealloc().
  	 */
--	if (kasan_stack_collection_enabled())
--		save_alloc_info(cache, (void *)object, flags, true);
-+	if (kasan_stack_collection_enabled() && cache->kasan_info.is_kmalloc)
-+		save_alloc_info(cache, (void *)object, flags);
+ 	if (kasan_stack_collection_enabled() && cache->kasan_info.is_kmalloc)
+-		save_alloc_info(cache, (void *)object, flags);
++		kasan_save_alloc_info(cache, (void *)object, flags);
  
  	/* Keep the tag that was set by kasan_slab_alloc(). */
  	return (void *)object;
+--- a/mm/kasan/generic.c~kasan-split-save_alloc_info-implementations
++++ a/mm/kasan/generic.c
+@@ -358,6 +358,15 @@ void kasan_record_aux_stack_noalloc(void
+ 	return __kasan_record_aux_stack(addr, false);
+ }
+ 
++void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
++{
++	struct kasan_alloc_meta *alloc_meta;
++
++	alloc_meta = kasan_get_alloc_meta(cache, object);
++	if (alloc_meta)
++		kasan_set_track(&alloc_meta->alloc_track, flags);
++}
++
+ void kasan_save_free_info(struct kmem_cache *cache,
+ 				void *object, u8 tag)
+ {
+--- a/mm/kasan/kasan.h~kasan-split-save_alloc_info-implementations
++++ a/mm/kasan/kasan.h
+@@ -285,6 +285,7 @@ struct slab *kasan_addr_to_slab(const vo
+ 
+ depot_stack_handle_t kasan_save_stack(gfp_t flags, bool can_alloc);
+ void kasan_set_track(struct kasan_track *track, gfp_t flags);
++void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags);
+ void kasan_save_free_info(struct kmem_cache *cache, void *object, u8 tag);
+ struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
+ 				void *object, u8 tag);
+--- a/mm/kasan/tags.c~kasan-split-save_alloc_info-implementations
++++ a/mm/kasan/tags.c
+@@ -17,6 +17,15 @@
+ 
+ #include "kasan.h"
+ 
++void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
++{
++	struct kasan_alloc_meta *alloc_meta;
++
++	alloc_meta = kasan_get_alloc_meta(cache, object);
++	if (alloc_meta)
++		kasan_set_track(&alloc_meta->alloc_track, flags);
++}
++
+ void kasan_save_free_info(struct kmem_cache *cache,
+ 				void *object, u8 tag)
+ {
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
