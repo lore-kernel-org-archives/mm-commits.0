@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88DB2ECAAD3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE32AC6FA83
 	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:27:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231421AbiIEU0l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 16:26:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56134 "EHLO
+        id S231583AbiIEU0n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 16:26:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231551AbiIEU0Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:26:25 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A62D1EEE3
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:26:24 -0700 (PDT)
+        with ESMTP id S231791AbiIEU0a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:26:30 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 627431EEE3
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:26:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2B860B815D1
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B25C2C433D6;
-        Mon,  5 Sep 2022 20:26:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 13C8CB815CE
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7B92C433C1;
+        Mon,  5 Sep 2022 20:26:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409581;
-        bh=w4lh/NzsaMJj+SpJMXTh6VIQ4vlWB2Xd2w8zmuTVUxs=;
+        s=korg; t=1662409586;
+        bh=PaXuCMG++lmurbbDM/vs43/J5ezc6U2lW3eN1jHETN4=;
         h=Date:To:From:Subject:From;
-        b=SeCzXyh8gL3w2AZ6++HrnTnVGYbBT7PqhRJYYr5pNv7ElL07MLfIyu5q7piDh7dyz
-         OFbq/rfcIWSjwzPSCQZg1BSS9F9UI00W4tXgZN4FSwAeX10O7NUjoFTbGigw9r/o3i
-         RuAX2Z2QVO1/oufFy1qeSZbZBuukpbCzwZngJJeM=
-Date:   Mon, 05 Sep 2022 13:26:20 -0700
+        b=ihi0PyfN3VDTMZ7FSa0xXWQLMdLJWRQSET1RMmu7pH7m9xpiWjasl300hppgIuyTD
+         eyBllQt5JpkW5ZxIEN2xA/EmRm1sd9BAnA9Lvd+Q1gkHQPEvodezMMyH1Gc7kZb5lj
+         g2oiy5fCdQj5WS5K5WGV0GgHa2w5RnMQEFxlVEgU=
+Date:   Mon, 05 Sep 2022 13:26:26 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks.patch added to mm-unstable branch
-Message-Id: <20220905202621.B25C2C433D6@smtp.kernel.org>
+Subject: + x86-kmsan-pgtable-reduce-vmalloc-space.patch added to mm-unstable branch
+Message-Id: <20220905202626.A7B92C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: introduce __no_sanitize_memory and __no_kmsan_checks
+     Subject: x86: kmsan: pgtable: reduce vmalloc space
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks.patch
+     x86-kmsan-pgtable-reduce-vmalloc-space.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-pgtable-reduce-vmalloc-space.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,28 +76,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: introduce __no_sanitize_memory and __no_kmsan_checks
-Date: Mon, 5 Sep 2022 14:24:15 +0200
+Subject: x86: kmsan: pgtable: reduce vmalloc space
+Date: Mon, 5 Sep 2022 14:24:17 +0200
 
-__no_sanitize_memory is a function attribute that instructs KMSAN to skip
-a function during instrumentation.  This is needed to e.g.  implement the
-noinstr functions.
+KMSAN is going to use 3/4 of existing vmalloc space to hold the metadata,
+therefore we lower VMALLOC_END to make sure vmalloc() doesn't allocate
+past the first 1/4.
 
-__no_kmsan_checks is a function attribute that makes KMSAN ignore the
-uninitialized values coming from the function's inputs, and initialize the
-function's outputs.
-
-Functions marked with this attribute can't be inlined into functions not
-marked with it, and vice versa.  This behavior is overridden by
-__always_inline.
-
-__SANITIZE_MEMORY__ is a macro that's defined iff the file is instrumented
-with KMSAN.  This is not the same as CONFIG_KMSAN, which is defined for
-every file.
-
-Link: https://lkml.kernel.org/r/20220905122452.2258262-8-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-10-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -119,6 +106,7 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -133,57 +121,77 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-clang.h |   23 +++++++++++++++++++++++
- include/linux/compiler-gcc.h   |    6 ++++++
- 2 files changed, 29 insertions(+)
+ arch/x86/include/asm/pgtable_64_types.h |   47 +++++++++++++++++++++-
+ arch/x86/mm/init_64.c                   |    2 
+ 2 files changed, 47 insertions(+), 2 deletions(-)
 
---- a/include/linux/compiler-clang.h~kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks
-+++ a/include/linux/compiler-clang.h
-@@ -51,6 +51,29 @@
- #define __no_sanitize_undefined
- #endif
+--- a/arch/x86/include/asm/pgtable_64_types.h~x86-kmsan-pgtable-reduce-vmalloc-space
++++ a/arch/x86/include/asm/pgtable_64_types.h
+@@ -139,7 +139,52 @@ extern unsigned int ptrs_per_p4d;
+ # define VMEMMAP_START		__VMEMMAP_BASE_L4
+ #endif /* CONFIG_DYNAMIC_MEMORY_LAYOUT */
  
-+#if __has_feature(memory_sanitizer)
-+#define __SANITIZE_MEMORY__
+-#define VMALLOC_END		(VMALLOC_START + (VMALLOC_SIZE_TB << 40) - 1)
 +/*
-+ * Unlike other sanitizers, KMSAN still inserts code into functions marked with
-+ * no_sanitize("kernel-memory"). Using disable_sanitizer_instrumentation
-+ * provides the behavior consistent with other __no_sanitize_ attributes,
-+ * guaranteeing that __no_sanitize_memory functions remain uninstrumented.
++ * End of the region for which vmalloc page tables are pre-allocated.
++ * For non-KMSAN builds, this is the same as VMALLOC_END.
++ * For KMSAN builds, VMALLOC_START..VMEMORY_END is 4 times bigger than
++ * VMALLOC_START..VMALLOC_END (see below).
 + */
-+#define __no_sanitize_memory __disable_sanitizer_instrumentation
++#define VMEMORY_END		(VMALLOC_START + (VMALLOC_SIZE_TB << 40) - 1)
 +
-+/*
-+ * The __no_kmsan_checks attribute ensures that a function does not produce
-+ * false positive reports by:
-+ *  - initializing all local variables and memory stores in this function;
-+ *  - skipping all shadow checks;
-+ *  - passing initialized arguments to this function's callees.
-+ */
-+#define __no_kmsan_checks __attribute__((no_sanitize("kernel-memory")))
++#ifndef CONFIG_KMSAN
++#define VMALLOC_END		VMEMORY_END
 +#else
-+#define __no_sanitize_memory
-+#define __no_kmsan_checks
-+#endif
-+
- /*
-  * Support for __has_feature(coverage_sanitizer) was added in Clang 13 together
-  * with no_sanitize("coverage"). Prior versions of Clang support coverage
---- a/include/linux/compiler-gcc.h~kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks
-+++ a/include/linux/compiler-gcc.h
-@@ -115,6 +115,12 @@
- #endif
- 
- /*
-+ * GCC does not support KMSAN.
++/*
++ * In KMSAN builds vmalloc area is four times smaller, and the remaining 3/4
++ * are used to keep the metadata for virtual pages. The memory formerly
++ * belonging to vmalloc area is now laid out as follows:
++ *
++ * 1st quarter: VMALLOC_START to VMALLOC_END - new vmalloc area
++ * 2nd quarter: KMSAN_VMALLOC_SHADOW_START to
++ *              VMALLOC_END+KMSAN_VMALLOC_SHADOW_OFFSET - vmalloc area shadow
++ * 3rd quarter: KMSAN_VMALLOC_ORIGIN_START to
++ *              VMALLOC_END+KMSAN_VMALLOC_ORIGIN_OFFSET - vmalloc area origins
++ * 4th quarter: KMSAN_MODULES_SHADOW_START to KMSAN_MODULES_ORIGIN_START
++ *              - shadow for modules,
++ *              KMSAN_MODULES_ORIGIN_START to
++ *              KMSAN_MODULES_ORIGIN_START + MODULES_LEN - origins for modules.
 + */
-+#define __no_sanitize_memory
-+#define __no_kmsan_checks
++#define VMALLOC_QUARTER_SIZE	((VMALLOC_SIZE_TB << 40) >> 2)
++#define VMALLOC_END		(VMALLOC_START + VMALLOC_QUARTER_SIZE - 1)
 +
 +/*
-  * Turn individual warnings and errors on and off locally, depending
-  * on version.
-  */
++ * vmalloc metadata addresses are calculated by adding shadow/origin offsets
++ * to vmalloc address.
++ */
++#define KMSAN_VMALLOC_SHADOW_OFFSET	VMALLOC_QUARTER_SIZE
++#define KMSAN_VMALLOC_ORIGIN_OFFSET	(VMALLOC_QUARTER_SIZE << 1)
++
++#define KMSAN_VMALLOC_SHADOW_START	(VMALLOC_START + KMSAN_VMALLOC_SHADOW_OFFSET)
++#define KMSAN_VMALLOC_ORIGIN_START	(VMALLOC_START + KMSAN_VMALLOC_ORIGIN_OFFSET)
++
++/*
++ * The shadow/origin for modules are placed one by one in the last 1/4 of
++ * vmalloc space.
++ */
++#define KMSAN_MODULES_SHADOW_START	(VMALLOC_END + KMSAN_VMALLOC_ORIGIN_OFFSET + 1)
++#define KMSAN_MODULES_ORIGIN_START	(KMSAN_MODULES_SHADOW_START + MODULES_LEN)
++#endif /* CONFIG_KMSAN */
+ 
+ #define MODULES_VADDR		(__START_KERNEL_map + KERNEL_IMAGE_SIZE)
+ /* The module sections ends with the start of the fixmap */
+--- a/arch/x86/mm/init_64.c~x86-kmsan-pgtable-reduce-vmalloc-space
++++ a/arch/x86/mm/init_64.c
+@@ -1287,7 +1287,7 @@ static void __init preallocate_vmalloc_p
+ 	unsigned long addr;
+ 	const char *lvl;
+ 
+-	for (addr = VMALLOC_START; addr <= VMALLOC_END; addr = ALIGN(addr + 1, PGDIR_SIZE)) {
++	for (addr = VMALLOC_START; addr <= VMEMORY_END; addr = ALIGN(addr + 1, PGDIR_SIZE)) {
+ 		pgd_t *pgd = pgd_offset_k(addr);
+ 		p4d_t *p4d;
+ 		pud_t *pud;
 _
 
 Patches currently in -mm which might be from glider@google.com are
