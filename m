@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B56FFECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:49:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E445DECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:49:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231345AbiIEWtn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 18:49:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40658 "EHLO
+        id S230005AbiIEWto (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 18:49:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232499AbiIEWtC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:49:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4503E696D1
+        with ESMTP id S232496AbiIEWtB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:49:01 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2690D67C89
         for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:49:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2B9EA60C94
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:49:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81CD1C433C1;
-        Mon,  5 Sep 2022 22:48:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C8881B815D7
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FE5FC433B5;
+        Mon,  5 Sep 2022 22:48:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418139;
-        bh=Jfl/XfbtmuenpXDyeMwq38Gwn5sLg5v7Z7U6YyyXEWU=;
+        s=korg; t=1662418137;
+        bh=n37PvtJUseML2Scl3y1jIYVRp1nD+jPgEWf79fpNA1M=;
         h=Date:To:From:Subject:From;
-        b=nqLriZa7Wznh4MYG19oTGOHyl9RaNzSrAmQe5BluIhQ3Y76ptnH01SXh0Vo2QlxqK
-         cTuwusdUqQcpXoaA/XDUDGl8e5mM94ie1XATZzRESSJi0BTVnjSxDSPKelqsK6r/Io
-         Xtsg8DNfB8GAv72sZTgLq9lgR1O6m/VzONPTt/wg=
-Date:   Mon, 05 Sep 2022 15:48:58 -0700
+        b=PNTzBZEwA4A5dtwlDuXEjLa2RRlGGxquR+UKlA1tEMugxQgQ9VZ4MpdFFL03QfV03
+         4jl5N3/BczsDo0UHbHv9Q5Dw5c4yZuJWSKCbnpfhgydbXEAQWlyb64z6YrtyuA0Jar
+         qPyrxPVQqXnDm68OxEL+Qps4zVJFHxmvfnlQb+Fc=
+Date:   Mon, 05 Sep 2022 15:48:56 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-add-another-use-after-free-test.patch added to mm-unstable branch
-Message-Id: <20220905224859.81CD1C433C1@smtp.kernel.org>
+Subject: + kasan-better-identify-bug-types-for-tag-based-modes.patch added to mm-unstable branch
+Message-Id: <20220905224857.6FE5FC433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add another use-after-free test
+     Subject: kasan: better identify bug types for tag-based modes
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-add-another-use-after-free-test.patch
+     kasan-better-identify-bug-types-for-tag-based-modes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-add-another-use-after-free-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-better-identify-bug-types-for-tag-based-modes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,74 +67,90 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: add another use-after-free test
-Date: Mon, 5 Sep 2022 23:05:49 +0200
+Subject: kasan: better identify bug types for tag-based modes
+Date: Mon, 5 Sep 2022 23:05:48 +0200
 
-Add a new use-after-free test that checks that KASAN detects
-use-after-free when another object was allocated in the same slot.
+Identify the bug type for the tag-based modes based on the stack trace
+entries found in the stack ring.
 
-This test is mainly relevant for the tag-based modes, which do not use
-quarantine.
+If a free entry is found first (meaning that it was added last), mark the
+bug as use-after-free.  If an alloc entry is found first, mark the bug as
+slab-out-of-bounds.  Otherwise, assign the common bug type.
 
-Once [1] is resolved, this test can be extended to check that the stack
-traces in the report point to the proper kmalloc/kfree calls.
+This change returns the functionalify of the previously dropped
+CONFIG_KASAN_TAGS_IDENTIFY.
 
-[1] https://bugzilla.kernel.org/show_bug.cgi?id=212203
-
-Link: https://lkml.kernel.org/r/0659cfa15809dd38faa02bc0a59d0b5dbbd81211.1662411800.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/13ce7fa07d9d995caedd1439dfae4d51401842f2.1662411800.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ mm/kasan/report_tags.c |   25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
---- a/lib/test_kasan.c~kasan-add-another-use-after-free-test
-+++ a/lib/test_kasan.c
-@@ -612,6 +612,29 @@ again:
- 	kfree(ptr2);
- }
+--- a/mm/kasan/report_tags.c~kasan-better-identify-bug-types-for-tag-based-modes
++++ a/mm/kasan/report_tags.c
+@@ -10,7 +10,7 @@
  
-+/*
-+ * Check that KASAN detects use-after-free when another object was allocated in
-+ * the same slot. Relevant for the tag-based modes, which do not use quarantine.
-+ */
-+static void kmalloc_uaf3(struct kunit *test)
-+{
-+	char *ptr1, *ptr2;
-+	size_t size = 100;
-+
-+	/* This test is specifically crafted for tag-based modes. */
-+	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_GENERIC);
-+
-+	ptr1 = kmalloc(size, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
-+	kfree(ptr1);
-+
-+	ptr2 = kmalloc(size, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
-+	kfree(ptr2);
-+
-+	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr1)[8]);
-+}
-+
- static void kfree_via_page(struct kunit *test)
+ extern struct kasan_stack_ring stack_ring;
+ 
+-static const char *get_bug_type(struct kasan_report_info *info)
++static const char *get_common_bug_type(struct kasan_report_info *info)
  {
- 	char *ptr;
-@@ -1382,6 +1405,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kmalloc_uaf),
- 	KUNIT_CASE(kmalloc_uaf_memset),
- 	KUNIT_CASE(kmalloc_uaf2),
-+	KUNIT_CASE(kmalloc_uaf3),
- 	KUNIT_CASE(kfree_via_page),
- 	KUNIT_CASE(kfree_via_phys),
- 	KUNIT_CASE(kmem_cache_oob),
+ 	/*
+ 	 * If access_size is a negative number, then it has reason to be
+@@ -37,9 +37,8 @@ void kasan_complete_mode_report_info(str
+ 	bool is_free;
+ 	bool alloc_found = false, free_found = false;
+ 
+-	info->bug_type = get_bug_type(info);
+-
+-	if (!info->cache || !info->object)
++	if (!info->cache || !info->object) {
++		info->bug_type = get_common_bug_type(info);
+ 		return;
+ 	}
+ 
+@@ -84,6 +83,13 @@ void kasan_complete_mode_report_info(str
+ 			info->free_track.pid = pid;
+ 			info->free_track.stack = stack;
+ 			free_found = true;
++
++			/*
++			 * If a free entry is found first, the bug is likely
++			 * a use-after-free.
++			 */
++			if (!info->bug_type)
++				info->bug_type = "use-after-free";
+ 		} else {
+ 			/* Second alloc of the same object. Give up. */
+ 			if (alloc_found)
+@@ -92,8 +98,19 @@ void kasan_complete_mode_report_info(str
+ 			info->alloc_track.pid = pid;
+ 			info->alloc_track.stack = stack;
+ 			alloc_found = true;
++
++			/*
++			 * If an alloc entry is found first, the bug is likely
++			 * an out-of-bounds.
++			 */
++			if (!info->bug_type)
++				info->bug_type = "slab-out-of-bounds";
+ 		}
+ 	}
+ 
+ 	write_unlock_irqrestore(&stack_ring.lock, flags);
++
++	/* Assign the common bug type if no entries were found. */
++	if (!info->bug_type)
++		info->bug_type = get_common_bug_type(info);
+ }
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
