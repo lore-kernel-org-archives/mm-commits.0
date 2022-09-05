@@ -2,38 +2,49 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB8A6ECAAD3
-	for <mm-commits@archiver.kernel.org>; Sun,  4 Sep 2022 18:39:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B09EECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:26:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233715AbiIDSi7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 4 Sep 2022 14:38:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45320 "EHLO
+        id S230020AbiIEU0J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 16:26:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229938AbiIDSi6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 4 Sep 2022 14:38:58 -0400
+        with ESMTP id S229842AbiIEU0I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:26:08 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53AA530575
-        for <mm-commits@vger.kernel.org>; Sun,  4 Sep 2022 11:38:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1D9A1EEE3
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:26:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DE559B80D5A
-        for <mm-commits@vger.kernel.org>; Sun,  4 Sep 2022 18:38:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7432CC433C1;
-        Sun,  4 Sep 2022 18:38:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8D9B1B81118
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C3A7C433D6;
+        Mon,  5 Sep 2022 20:26:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662316734;
-        bh=UlK2BXeKLTQT1X2LNB1iEgBSsO5Gzzgs1y0xEQ6pv0M=;
+        s=korg; t=1662409564;
+        bh=iTFEfD2NS5LYNTu6lEJXzxN/FiSvVudEZ8rF3hR9Gjg=;
         h=Date:To:From:Subject:From;
-        b=qRbFFZFfpQe8LA8eSSggrPhDCWSgpugsRUok7xGr9Gf2zNZM8NJQR2ek4jwN9+42b
-         q0ep2jy2mAdx4TdD0kmXE8nb90t1wnhCRjZtE7d8GdleTJVlYcVIaHz41h0pbvbgMr
-         3MQ2H2LZAPa7Sy3QYfl3DbprweRFiXOcb0TxBI1k=
-Date:   Sun, 04 Sep 2022 11:38:53 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com,
-        akpm@linux-foundation.org
+        b=FXZ4xE9hnT4Yi950q51YPI1qxImziqNpRXxgNKxHuSBYEl/5mqHH9gKzq31ScvDA4
+         dZ4+9p7mXkW/8jcAVthqx60lewA/Eb6VwQdfNPdq6JRBHAhV0CPG3xe53itToyxWKW
+         LeRYX/D5K+R/Wj40OYWfJ31TWbR/ni+dX2GK9Fmk=
+Date:   Mon, 05 Sep 2022 13:26:03 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
+        tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
+        pmladek@suse.com, peterz@infradead.org, penberg@kernel.org,
+        mst@redhat.com, mingo@redhat.com, mark.rutland@arm.com,
+        luto@kernel.org, liushixin2@huawei.com, keescook@chromium.org,
+        iii@linux.ibm.com, iamjoonsoo.kim@lge.com,
+        herbert@gondor.apana.org.au, hch@lst.de,
+        gregkh@linuxfoundation.org, gor@linux.ibm.com, glider@google.com,
+        elver@google.com, edumazet@google.com, ebiggers@google.com,
+        cl@linux.com, bp@alien8.de, axboe@kernel.dk, ast@kernel.org,
+        arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
+        dvyukov@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-add-struct-collapse_control-fix-fix-fix.patch added to mm-unstable branch
-Message-Id: <20220904183854.7432CC433C1@smtp.kernel.org>
+Subject: + x86-add-missing-include-to-sparsememh.patch added to mm-unstable branch
+Message-Id: <20220905202604.2C3A7C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: fix struct collapse_control load_node definition
+     Subject: x86: add missing include to sparsemem.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-add-struct-collapse_control-fix-fix-fix.patch
+     x86-add-missing-include-to-sparsememh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-add-struct-collapse_control-fix-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-add-missing-include-to-sparsememh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,134 +75,191 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/khugepaged: fix struct collapse_control load_node definition
-Date: Fri, 2 Sep 2022 19:12:21 -0700
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: x86: add missing include to sparsemem.h
+Date: Mon, 5 Sep 2022 14:24:09 +0200
 
-HPAGE_PMD_ORDER is used to determine a minimal amount of bits needed to
-store per-node counters in struct collapse_control, defining the array to
-be either a u16[HPAGE_PMD_ORDER] or u32[HPAGE_PMD_ORDER].
+Patch series "Add KernelMemorySanitizer infrastructure", v6.
 
-For some architectures/configs, HPAGE_PMD_ORDER isn't resolved at
-preprocessor time (suitable for resolving preprocessor directives) but
-rather expands into a compiler built-in that is resolved at compile-time. 
-E.g.  for 32-bit MIPS (see link for full config):
+KernelMemorySanitizer (KMSAN) is a detector of errors related to uses of
+uninitialized memory.  It relies on compile-time Clang instrumentation
+(similar to MSan in the userspace [1]) and tracks the state of every bit
+of kernel memory, being able to report an error if uninitialized value is
+used in a condition, dereferenced, or escapes to userspace, USB or DMA.
 
----8<--
->> arch/mips/include/asm/pgtable.h:238:26: warning: "__builtin_ffs" is not defined, evaluates to 0 [-Wundef]
-     238 | #define PTE_T_LOG2      (__builtin_ffs(sizeof(pte_t)) - 1)
-         |                          ^~~~~~~~~~~~~
-   arch/mips/include/asm/pgtable-32.h:65:43: note: in expansion of macro 'PTE_T_LOG2'
-      65 | # define PGDIR_SHIFT    (2 * PAGE_SHIFT - PTE_T_LOG2 - 1)
-         |                                           ^~~~~~~~~~
-   include/asm-generic/pgtable-nop4d.h:11:33: note: in expansion of macro 'PGDIR_SHIFT'
-      11 | #define P4D_SHIFT               PGDIR_SHIFT
-         |                                 ^~~~~~~~~~~
-   include/asm-generic/pgtable-nopud.h:18:25: note: in expansion of macro 'P4D_SHIFT'
-      18 | #define PUD_SHIFT       P4D_SHIFT
-         |                         ^~~~~~~~~
-   include/asm-generic/pgtable-nopmd.h:20:25: note: in expansion of macro 'PUD_SHIFT'
-      20 | #define PMD_SHIFT       PUD_SHIFT
-         |                         ^~~~~~~~~
-   include/linux/huge_mm.h:109:25: note: in expansion of macro 'PMD_SHIFT'
-     109 | #define HPAGE_PMD_SHIFT PMD_SHIFT
-         |                         ^~~~~~~~~
-   include/linux/huge_mm.h:105:26: note: in expansion of macro 'HPAGE_PMD_SHIFT'
-     105 | #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
-         |                          ^~~~~~~~~~~~~~~
-   mm/khugepaged.c:90:5: note: in expansion of macro 'HPAGE_PMD_ORDER'
-      90 | #if HPAGE_PMD_ORDER < 16
-         |     ^~~~~~~~~~~~~~~
->> arch/mips/include/asm/pgtable.h:238:39: error: missing binary operator before token "("
-     238 | #define PTE_T_LOG2      (__builtin_ffs(sizeof(pte_t)) - 1)
-         |                                       ^
-   arch/mips/include/asm/pgtable-32.h:65:43: note: in expansion of macro 'PTE_T_LOG2'
-      65 | # define PGDIR_SHIFT    (2 * PAGE_SHIFT - PTE_T_LOG2 - 1)
-         |                                           ^~~~~~~~~~
-   include/asm-generic/pgtable-nop4d.h:11:33: note: in expansion of macro 'PGDIR_SHIFT'
-      11 | #define P4D_SHIFT               PGDIR_SHIFT
-         |                                 ^~~~~~~~~~~
-   include/asm-generic/pgtable-nopud.h:18:25: note: in expansion of macro 'P4D_SHIFT'
-      18 | #define PUD_SHIFT       P4D_SHIFT
-         |                         ^~~~~~~~~
-   include/asm-generic/pgtable-nopmd.h:20:25: note: in expansion of macro 'PUD_SHIFT'
-      20 | #define PMD_SHIFT       PUD_SHIFT
-         |                         ^~~~~~~~~
-   include/linux/huge_mm.h:109:25: note: in expansion of macro 'PMD_SHIFT'
-     109 | #define HPAGE_PMD_SHIFT PMD_SHIFT
-         |                         ^~~~~~~~~
-   include/linux/huge_mm.h:105:26: note: in expansion of macro 'HPAGE_PMD_SHIFT'
-     105 | #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
-         |                          ^~~~~~~~~~~~~~~
-   mm/khugepaged.c:90:5: note: in expansion of macro 'HPAGE_PMD_ORDER'
-      90 | #if HPAGE_PMD_ORDER < 16
-         |     ^~~~~~~~~~~~~~~
----8<--
+KMSAN has reported more than 300 bugs in the past few years (recently
+fixed bugs: [2]), most of them with the help of syzkaller.  Such bugs keep
+getting introduced into the kernel despite new compiler warnings and other
+analyses (the 6.0 cycle already resulted in several KMSAN-reported bugs,
+e.g.  [3]).  Mitigations like total stack and heap initialization are
+unfortunately very far from being deployable.
 
-load_node is already special-cased for CONFIG_PPC64 in
-"mm-khugepaged-add-struct-collapse_control-fix-fix", and we could continue
-down that path by #define'ing away edge cases, but I think at this point
-it easier to just let load_node be an array of u32s.  If it's ever an
-issue, we can revisit.
+The proposed patchset contains KMSAN runtime implementation together with
+small changes to other subsystems needed to make KMSAN work.
 
-This essentially rolls back both:
+The latter changes fall into several categories:
 
-"mm/khugepaged: use minimal bits to store num page < HPAGE_PMD_NR"
-"mm-khugepaged-add-struct-collapse_control-fix-fix"
+1. Changes and refactorings of existing code required to add KMSAN:
+ - [01/44] x86: add missing include to sparsemem.h
+ - [02/44] stackdepot: reserve 5 extra bits in depot_stack_handle_t
+ - [03/44] instrumented.h: allow instrumenting both sides of copy_from_user()
+ - [04/44] x86: asm: instrument usercopy in get_user() and __put_user_size()
+ - [05/44] asm-generic: instrument usercopy in cacheflush.h
+ - [10/44] libnvdimm/pfn_dev: increase MAX_STRUCT_PAGE_SIZE
 
-(though we'll leave it as a u32 vs an int).
+2. KMSAN-related declarations in generic code, KMSAN runtime library,
+   docs and configs:
+ - [06/44] kmsan: add ReST documentation
+ - [07/44] kmsan: introduce __no_sanitize_memory and __no_kmsan_checks
+ - [09/44] x86: kmsan: pgtable: reduce vmalloc space
+ - [11/44] kmsan: add KMSAN runtime core
+ - [13/44] MAINTAINERS: add entry for KMSAN
+ - [25/44] kmsan: add tests for KMSAN
+ - [32/44] objtool: kmsan: list KMSAN API functions as uaccess-safe
+ - [36/44] x86: kmsan: use __msan_ string functions where possible
+ - [44/44] x86: kmsan: enable KMSAN builds for x86
 
-Link: https://lore.kernel.org/linux-mm/202209021349.F73i5d6X-lkp@intel.com/
-Link: https://lkml.kernel.org/r/20220903021221.1130021-1-zokeefe@google.com
-Fixes: 5f7bb00bd9cd ("mm/khugepaged: use minimal bits to store num page < HPAGE_PMD_NR")
-Fixes: 03053c821af2 ("mm-khugepaged-add-struct-collapse_control-fix-fix")
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+3. Adding hooks from different subsystems to notify KMSAN about memory
+   state changes:
+ - [14/44] mm: kmsan: maintain KMSAN metadata for page
+ - [15/44] mm: kmsan: call KMSAN hooks from SLUB code
+ - [16/44] kmsan: handle task creation and exiting
+ - [17/44] init: kmsan: call KMSAN initialization routines
+ - [18/44] instrumented.h: add KMSAN support
+ - [20/44] kmsan: add iomap support
+ - [21/44] Input: libps2: mark data received in __ps2_command() as initialized
+ - [22/44] dma: kmsan: unpoison DMA mappings
+ - [35/44] x86: kmsan: handle open-coded assembly in lib/iomem.c
+ - [37/43] x86: kmsan: sync metadata pages on page fault
 
+4. Changes that prevent false reports by explicitly initializing memory,
+   disabling optimized code that may trick KMSAN, selectively skipping
+   instrumentation:
+ - [08/44] kmsan: mark noinstr as __no_sanitize_memory
+ - [12/44] kmsan: disable instrumentation of unsupported common kernel code
+ - [19/44] kmsan: unpoison @tlb in arch_tlb_gather_mmu()
+ - [23/44] virtio: kmsan: check/unpoison scatterlist in vring_map_one_sg()
+ - [24/44] kmsan: handle memory sent to/from USB
+ - [26/44] kmsan: disable strscpy() optimization under KMSAN
+ - [27/44] crypto: kmsan: disable accelerated configs under KMSAN
+ - [28/44] kmsan: disable physical page merging in biovec
+ - [29/44] block: kmsan: skip bio block merging logic for KMSAN
+ - [30/44] kcov: kmsan: unpoison area->list in kcov_remote_area_put()
+ - [31/44] security: kmsan: fix interoperability with auto-initialization
+ - [33/44] x86: kmsan: disable instrumentation of unsupported code
+ - [34/44] x86: kmsan: skip shadow checks in __switch_to()
+ - [38/44] x86: kasan: kmsan: support CONFIG_GENERIC_CSUM on x86, enable it for KASAN/KMSAN
+ - [39/44] x86: fs: kmsan: disable CONFIG_DCACHE_WORD_ACCESS
+ - [40/44] x86: kmsan: don't instrument stack walking functions
+ - [41/44] entry: kmsan: introduce kmsan_unpoison_entry_regs()
+
+5. Fixes for bugs detected with CONFIG_KMSAN_CHECK_PARAM_RETVAL:
+ - [42/44] bpf: kmsan: initialize BPF registers with zeroes
+ - [43/44] mm: fs: initialize fsdata passed to write_begin/write_end interface
+
+This patchset allows one to boot and run a defconfig+KMSAN kernel on a
+QEMU without known false positives.  It however doesn't guarantee there
+are no false positives in drivers of certain devices or less tested
+subsystems, although KMSAN is actively tested on syzbot with a large
+config.
+
+By default, KMSAN enforces conservative checks of most kernel function
+parameters passed by value (via CONFIG_KMSAN_CHECK_PARAM_RETVAL, which
+maps to the -fsanitize-memory-param-retval compiler flag).  As discussed
+in [4] and [5], passing uninitialized values as function parameters is
+considered undefined behavior, therefore KMSAN now reports such cases as
+errors.  Several newly added patches fix known manifestations of these
+errors.
+
+The patchset was generated relative to Linux v6.0-rc4.  The most
+up-to-date KMSAN tree currently resides at
+https://github.com/google/kmsan/.  One may find it handy to review these
+patches in Gerrit [6].
+
+A huge thanks goes to the reviewers of the RFC patch series sent to LKML
+in 2020 ([7]).
+
+[1] https://clang.llvm.org/docs/MemorySanitizer.html
+[2] https://syzkaller.appspot.com/upstream/fixed?manager=ci-upstream-kmsan-gce
+[3] https://lore.kernel.org/all/0000000000002c7abf05e721698d@google.com/
+[4] https://lore.kernel.org/all/20220614144853.3693273-1-glider@google.com/ 
+[5] https://lore.kernel.org/linux-mm/20220701142310.2188015-45-glider@google.com/
+[6] https://linux-review.googlesource.com/c/linux/kernel/git/torvalds/linux/+/12604/ 
+[7] https://lore.kernel.org/all/20200325161249.55095-1-glider@google.com/
+
+
+This patch (of 44):
+
+Including sparsemem.h from other files (e.g.  transitively via
+asm/pgtable_64_types.h) results in compilation errors due to unknown
+types:
+
+sparsemem.h:34:32: error: unknown type name 'phys_addr_t'
+extern int phys_to_target_node(phys_addr_t start);
+                               ^
+sparsemem.h:36:39: error: unknown type name 'u64'
+extern int memory_add_physaddr_to_nid(u64 start);
+                                      ^
+Fix these errors by including linux/types.h from sparsemem.h This is
+required for the upcoming KMSAN patches.
+
+Link: https://lkml.kernel.org/r/20220905122452.2258262-1-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-2-glider@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Ilya Leoshkevich <iii@linux.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: kasan-dev@googlegroups.com
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Eric Biggers <ebiggers@google.com>
+Cc: Liu Shixin <liushixin2@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ arch/x86/include/asm/sparsemem.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/khugepaged.c~mm-khugepaged-add-struct-collapse_control-fix-fix-fix
-+++ a/mm/khugepaged.c
-@@ -87,13 +87,8 @@ static struct kmem_cache *mm_slot_cache
+--- a/arch/x86/include/asm/sparsemem.h~x86-add-missing-include-to-sparsememh
++++ a/arch/x86/include/asm/sparsemem.h
+@@ -2,6 +2,8 @@
+ #ifndef _ASM_X86_SPARSEMEM_H
+ #define _ASM_X86_SPARSEMEM_H
  
- struct collapse_control {
- 	/* Num pages scanned per node */
--#if defined(CONFIG_PPC64)
- 	u32 node_load[MAX_NUMNODES];
--#elif HPAGE_PMD_ORDER < 16
--	u16 node_load[MAX_NUMNODES];
--#else
--	u32 node_load[MAX_NUMNODES];
--#endif
++#include <linux/types.h>
 +
- 	/* Last target selected in khugepaged_find_target_node() */
- 	int last_target_node;
- };
+ #ifdef CONFIG_SPARSEMEM
+ /*
+  * generic non-linear memory support:
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from dvyukov@google.com are
 
-mm-khugepaged-add-struct-collapse_control.patch
-mm-khugepaged-add-struct-collapse_control-fix.patch
-mm-khugepaged-add-struct-collapse_control-fix-fix-fix.patch
-mm-khugepaged-dedup-and-simplify-hugepage-alloc-and-charging.patch
-mm-khugepaged-pipe-enum-scan_result-codes-back-to-callers.patch
-mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior.patch
-mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check.patch
-mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior-fix.patch
-mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch
-mm-madvise-introduce-madv_collapse-sync-hugepage-collapse.patch
-mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch
-mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-3.patch
-mm-khugepaged-rename-prefix-of-shared-collapse-functions.patch
-mm-madvise-add-madv_collapse-to-process_madvise.patch
-mm-madvise-add-madv_collapse-to-process_madvise-fix.patch
-selftests-vm-modularize-collapse-selftests.patch
-selftests-vm-dedup-hugepage-allocation-logic.patch
-selftests-vm-add-madv_collapse-collapse-context-to-selftests.patch
-selftests-vm-add-selftest-to-verify-recollapse-of-thps.patch
-selftests-vm-add-selftest-to-verify-multi-thp-collapse.patch
+x86-add-missing-include-to-sparsememh.patch
 
