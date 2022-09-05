@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D59FECAAD5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88DB2ECAAD3
 	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:27:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231475AbiIEU0l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231421AbiIEU0l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 5 Sep 2022 16:26:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56144 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56134 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231583AbiIEU02 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:26:28 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 016361EEE3
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:26:27 -0700 (PDT)
+        with ESMTP id S231551AbiIEU0Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:26:25 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A62D1EEE3
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:26:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B1B36B81118
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57B7CC433C1;
-        Mon,  5 Sep 2022 20:26:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2B860B815D1
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B25C2C433D6;
+        Mon,  5 Sep 2022 20:26:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409584;
-        bh=c7gAsjNzcQ4F6EXWipDWQn6ow5mRa7uzu0ZRxuQtD3I=;
+        s=korg; t=1662409581;
+        bh=w4lh/NzsaMJj+SpJMXTh6VIQ4vlWB2Xd2w8zmuTVUxs=;
         h=Date:To:From:Subject:From;
-        b=BDMjd+2O2d6CL4WCd3YHdKwObFhvD+jHWN5yIRdkz03qpt163edJqZiIgdhzGucvc
-         A2u1PJas2ae0H5cZL0rFsbnml38uAsoWkPH7j2HTRamJZxMJdEb9cch6jqNHPbqxre
-         2I/of34i1+2r7/TtQPaozpCGinzIYgrzLAIeG6bM=
-Date:   Mon, 05 Sep 2022 13:26:23 -0700
+        b=SeCzXyh8gL3w2AZ6++HrnTnVGYbBT7PqhRJYYr5pNv7ElL07MLfIyu5q7piDh7dyz
+         OFbq/rfcIWSjwzPSCQZg1BSS9F9UI00W4tXgZN4FSwAeX10O7NUjoFTbGigw9r/o3i
+         RuAX2Z2QVO1/oufFy1qeSZbZBuukpbCzwZngJJeM=
+Date:   Mon, 05 Sep 2022 13:26:20 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-mark-noinstr-as-__no_sanitize_memory.patch added to mm-unstable branch
-Message-Id: <20220905202624.57B7CC433C1@smtp.kernel.org>
+Subject: + kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks.patch added to mm-unstable branch
+Message-Id: <20220905202621.B25C2C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: mark noinstr as __no_sanitize_memory
+     Subject: kmsan: introduce __no_sanitize_memory and __no_kmsan_checks
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-mark-noinstr-as-__no_sanitize_memory.patch
+     kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-mark-noinstr-as-__no_sanitize_memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,13 +76,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: mark noinstr as __no_sanitize_memory
-Date: Mon, 5 Sep 2022 14:24:16 +0200
+Subject: kmsan: introduce __no_sanitize_memory and __no_kmsan_checks
+Date: Mon, 5 Sep 2022 14:24:15 +0200
 
-noinstr functions should never be instrumented, so make KMSAN skip them by
-applying the __no_sanitize_memory attribute.
+__no_sanitize_memory is a function attribute that instructs KMSAN to skip
+a function during instrumentation.  This is needed to e.g.  implement the
+noinstr functions.
 
-Link: https://lkml.kernel.org/r/20220905122452.2258262-9-glider@google.com
+__no_kmsan_checks is a function attribute that makes KMSAN ignore the
+uninitialized values coming from the function's inputs, and initialize the
+function's outputs.
+
+Functions marked with this attribute can't be inlined into functions not
+marked with it, and vice versa.  This behavior is overridden by
+__always_inline.
+
+__SANITIZE_MEMORY__ is a macro that's defined iff the file is instrumented
+with KMSAN.  This is not the same as CONFIG_KMSAN, which is defined for
+every file.
+
+Link: https://lkml.kernel.org/r/20220905122452.2258262-8-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -120,21 +133,57 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler_types.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/compiler-clang.h |   23 +++++++++++++++++++++++
+ include/linux/compiler-gcc.h   |    6 ++++++
+ 2 files changed, 29 insertions(+)
 
---- a/include/linux/compiler_types.h~kmsan-mark-noinstr-as-__no_sanitize_memory
-+++ a/include/linux/compiler_types.h
-@@ -229,7 +229,8 @@ struct ftrace_likely_data {
- /* Section for code which can't be instrumented at all */
- #define noinstr								\
- 	noinline notrace __attribute((__section__(".noinstr.text")))	\
--	__no_kcsan __no_sanitize_address __no_profile __no_sanitize_coverage
-+	__no_kcsan __no_sanitize_address __no_profile __no_sanitize_coverage \
-+	__no_sanitize_memory
+--- a/include/linux/compiler-clang.h~kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks
++++ a/include/linux/compiler-clang.h
+@@ -51,6 +51,29 @@
+ #define __no_sanitize_undefined
+ #endif
  
- #endif /* __KERNEL__ */
++#if __has_feature(memory_sanitizer)
++#define __SANITIZE_MEMORY__
++/*
++ * Unlike other sanitizers, KMSAN still inserts code into functions marked with
++ * no_sanitize("kernel-memory"). Using disable_sanitizer_instrumentation
++ * provides the behavior consistent with other __no_sanitize_ attributes,
++ * guaranteeing that __no_sanitize_memory functions remain uninstrumented.
++ */
++#define __no_sanitize_memory __disable_sanitizer_instrumentation
++
++/*
++ * The __no_kmsan_checks attribute ensures that a function does not produce
++ * false positive reports by:
++ *  - initializing all local variables and memory stores in this function;
++ *  - skipping all shadow checks;
++ *  - passing initialized arguments to this function's callees.
++ */
++#define __no_kmsan_checks __attribute__((no_sanitize("kernel-memory")))
++#else
++#define __no_sanitize_memory
++#define __no_kmsan_checks
++#endif
++
+ /*
+  * Support for __has_feature(coverage_sanitizer) was added in Clang 13 together
+  * with no_sanitize("coverage"). Prior versions of Clang support coverage
+--- a/include/linux/compiler-gcc.h~kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks
++++ a/include/linux/compiler-gcc.h
+@@ -115,6 +115,12 @@
+ #endif
  
+ /*
++ * GCC does not support KMSAN.
++ */
++#define __no_sanitize_memory
++#define __no_kmsan_checks
++
++/*
+  * Turn individual warnings and errors on and off locally, depending
+  * on version.
+  */
 _
 
 Patches currently in -mm which might be from glider@google.com are
