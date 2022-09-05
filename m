@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35813C6FA89
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:49:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B56FFECAAA1
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:49:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232096AbiIEWtO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 18:49:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40928 "EHLO
+        id S231345AbiIEWtn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 18:49:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232392AbiIEWsy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:54 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5587F67C80
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:52 -0700 (PDT)
+        with ESMTP id S232499AbiIEWtC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:49:02 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4503E696D1
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:49:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E5C4160ECE
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 440B9C433D7;
-        Mon,  5 Sep 2022 22:48:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2B9EA60C94
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:49:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81CD1C433C1;
+        Mon,  5 Sep 2022 22:48:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418131;
-        bh=a3g+lXMdFK1qq8ZFQpcNxrFg0da/pHZR5Vj3BFC8bx0=;
+        s=korg; t=1662418139;
+        bh=Jfl/XfbtmuenpXDyeMwq38Gwn5sLg5v7Z7U6YyyXEWU=;
         h=Date:To:From:Subject:From;
-        b=If5s33zQZENvg6/A9kSl0wHl4ym3k4p2HzY4xQxMy7blsxJqg6Y5Ps0TtiC9M2hFJ
-         i36mclAu9qzE1KqMJ789C++4yjBiWHpulD+L2PdC62urdSbM/VWMCCFMBRjD2sQZo8
-         Uu2BQzmNL7QOhtRy7h3MiiHTZV4F1xUH8Hsn5u6w=
-Date:   Mon, 05 Sep 2022 15:48:50 -0700
+        b=nqLriZa7Wznh4MYG19oTGOHyl9RaNzSrAmQe5BluIhQ3Y76ptnH01SXh0Vo2QlxqK
+         cTuwusdUqQcpXoaA/XDUDGl8e5mM94ie1XATZzRESSJi0BTVnjSxDSPKelqsK6r/Io
+         Xtsg8DNfB8GAv72sZTgLq9lgR1O6m/VzONPTt/wg=
+Date:   Mon, 05 Sep 2022 15:48:58 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-support-kasanstacktrace-for-sw_tags.patch added to mm-unstable branch
-Message-Id: <20220905224851.440B9C433D7@smtp.kernel.org>
+Subject: + kasan-add-another-use-after-free-test.patch added to mm-unstable branch
+Message-Id: <20220905224859.81CD1C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: support kasan.stacktrace for SW_TAGS
+     Subject: kasan: add another use-after-free test
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-support-kasanstacktrace-for-sw_tags.patch
+     kasan-add-another-use-after-free-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-support-kasanstacktrace-for-sw_tags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-add-another-use-after-free-test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,280 +67,74 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: support kasan.stacktrace for SW_TAGS
-Date: Mon, 5 Sep 2022 23:05:46 +0200
+Subject: kasan: add another use-after-free test
+Date: Mon, 5 Sep 2022 23:05:49 +0200
 
-Add support for the kasan.stacktrace command-line argument for Software
-Tag-Based KASAN.
+Add a new use-after-free test that checks that KASAN detects
+use-after-free when another object was allocated in the same slot.
 
-The following patch adds a command-line argument for selecting the stack
-ring size, and, as the stack ring is supported by both the Software and
-the Hardware Tag-Based KASAN modes, it is natural that both of them have
-support for kasan.stacktrace too.
+This test is mainly relevant for the tag-based modes, which do not use
+quarantine.
 
-Link: https://lkml.kernel.org/r/3b43059103faa7f8796017847b7d674b658f11b5.1662411799.git.andreyknvl@google.com
+Once [1] is resolved, this test can be extended to check that the stack
+traces in the report point to the proper kmalloc/kfree calls.
+
+[1] https://bugzilla.kernel.org/show_bug.cgi?id=212203
+
+Link: https://lkml.kernel.org/r/0659cfa15809dd38faa02bc0a59d0b5dbbd81211.1662411800.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   15 +++++----
- mm/kasan/hw_tags.c                |   39 -------------------------
- mm/kasan/kasan.h                  |   36 +++++++++++++++--------
- mm/kasan/sw_tags.c                |    5 ++-
- mm/kasan/tags.c                   |   43 ++++++++++++++++++++++++++++
- 5 files changed, 81 insertions(+), 57 deletions(-)
+ lib/test_kasan.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-support-kasanstacktrace-for-sw_tags
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -111,9 +111,15 @@ parameter can be used to control panic a
-   report or also panic the kernel (default: ``report``). The panic happens even
-   if ``kasan_multi_shot`` is enabled.
- 
--Hardware Tag-Based KASAN mode (see the section about various modes below) is
--intended for use in production as a security mitigation. Therefore, it supports
--additional boot parameters that allow disabling KASAN or controlling features:
-+Software and Hardware Tag-Based KASAN modes (see the section about various
-+modes below) support disabling stack trace collection:
-+
-+- ``kasan.stacktrace=off`` or ``=on`` disables or enables alloc and free stack
-+  traces collection (default: ``on``).
-+
-+Hardware Tag-Based KASAN mode is intended for use in production as a security
-+mitigation. Therefore, it supports additional boot parameters that allow
-+disabling KASAN altogether or controlling its features:
- 
- - ``kasan=off`` or ``=on`` controls whether KASAN is enabled (default: ``on``).
- 
-@@ -132,9 +138,6 @@ additional boot parameters that allow di
- - ``kasan.vmalloc=off`` or ``=on`` disables or enables tagging of vmalloc
-   allocations (default: ``on``).
- 
--- ``kasan.stacktrace=off`` or ``=on`` disables or enables alloc and free stack
--  traces collection (default: ``on``).
--
- Error reports
- ~~~~~~~~~~~~~
- 
---- a/mm/kasan/hw_tags.c~kasan-support-kasanstacktrace-for-sw_tags
-+++ a/mm/kasan/hw_tags.c
-@@ -38,16 +38,9 @@ enum kasan_arg_vmalloc {
- 	KASAN_ARG_VMALLOC_ON,
- };
- 
--enum kasan_arg_stacktrace {
--	KASAN_ARG_STACKTRACE_DEFAULT,
--	KASAN_ARG_STACKTRACE_OFF,
--	KASAN_ARG_STACKTRACE_ON,
--};
--
- static enum kasan_arg kasan_arg __ro_after_init;
- static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
- static enum kasan_arg_vmalloc kasan_arg_vmalloc __initdata;
--static enum kasan_arg_stacktrace kasan_arg_stacktrace __initdata;
- 
- /*
-  * Whether KASAN is enabled at all.
-@@ -66,9 +59,6 @@ EXPORT_SYMBOL_GPL(kasan_mode);
- /* Whether to enable vmalloc tagging. */
- DEFINE_STATIC_KEY_TRUE(kasan_flag_vmalloc);
- 
--/* Whether to collect alloc/free stack traces. */
--DEFINE_STATIC_KEY_TRUE(kasan_flag_stacktrace);
--
- /* kasan=off/on */
- static int __init early_kasan_flag(char *arg)
- {
-@@ -122,23 +112,6 @@ static int __init early_kasan_flag_vmall
- }
- early_param("kasan.vmalloc", early_kasan_flag_vmalloc);
- 
--/* kasan.stacktrace=off/on */
--static int __init early_kasan_flag_stacktrace(char *arg)
--{
--	if (!arg)
--		return -EINVAL;
--
--	if (!strcmp(arg, "off"))
--		kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_OFF;
--	else if (!strcmp(arg, "on"))
--		kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_ON;
--	else
--		return -EINVAL;
--
--	return 0;
--}
--early_param("kasan.stacktrace", early_kasan_flag_stacktrace);
--
- static inline const char *kasan_mode_info(void)
- {
- 	if (kasan_mode == KASAN_MODE_ASYNC)
-@@ -213,17 +186,7 @@ void __init kasan_init_hw_tags(void)
- 		break;
- 	}
- 
--	switch (kasan_arg_stacktrace) {
--	case KASAN_ARG_STACKTRACE_DEFAULT:
--		/* Default is specified by kasan_flag_stacktrace definition. */
--		break;
--	case KASAN_ARG_STACKTRACE_OFF:
--		static_branch_disable(&kasan_flag_stacktrace);
--		break;
--	case KASAN_ARG_STACKTRACE_ON:
--		static_branch_enable(&kasan_flag_stacktrace);
--		break;
--	}
-+	kasan_init_tags();
- 
- 	/* KASAN is now initialized, enable it. */
- 	static_branch_enable(&kasan_flag_enabled);
---- a/mm/kasan/kasan.h~kasan-support-kasanstacktrace-for-sw_tags
-+++ a/mm/kasan/kasan.h
-@@ -8,13 +8,31 @@
- #include <linux/kfence.h>
- #include <linux/stackdepot.h>
- 
--#ifdef CONFIG_KASAN_HW_TAGS
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
- 
- #include <linux/static_key.h>
-+
-+DECLARE_STATIC_KEY_TRUE(kasan_flag_stacktrace);
-+
-+static inline bool kasan_stack_collection_enabled(void)
-+{
-+	return static_branch_unlikely(&kasan_flag_stacktrace);
-+}
-+
-+#else /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
-+
-+static inline bool kasan_stack_collection_enabled(void)
-+{
-+	return true;
-+}
-+
-+#endif /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
-+
-+#ifdef CONFIG_KASAN_HW_TAGS
-+
- #include "../slab.h"
- 
- DECLARE_STATIC_KEY_TRUE(kasan_flag_vmalloc);
--DECLARE_STATIC_KEY_TRUE(kasan_flag_stacktrace);
- 
- enum kasan_mode {
- 	KASAN_MODE_SYNC,
-@@ -29,11 +47,6 @@ static inline bool kasan_vmalloc_enabled
- 	return static_branch_likely(&kasan_flag_vmalloc);
+--- a/lib/test_kasan.c~kasan-add-another-use-after-free-test
++++ a/lib/test_kasan.c
+@@ -612,6 +612,29 @@ again:
+ 	kfree(ptr2);
  }
  
--static inline bool kasan_stack_collection_enabled(void)
--{
--	return static_branch_unlikely(&kasan_flag_stacktrace);
--}
--
- static inline bool kasan_async_fault_possible(void)
- {
- 	return kasan_mode == KASAN_MODE_ASYNC || kasan_mode == KASAN_MODE_ASYMM;
-@@ -46,11 +59,6 @@ static inline bool kasan_sync_fault_poss
- 
- #else /* CONFIG_KASAN_HW_TAGS */
- 
--static inline bool kasan_stack_collection_enabled(void)
--{
--	return true;
--}
--
- static inline bool kasan_async_fault_possible(void)
- {
- 	return false;
-@@ -410,6 +418,10 @@ static inline void kasan_enable_tagging(
- 
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
-+#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
-+void __init kasan_init_tags(void);
-+#endif /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
-+
- #if defined(CONFIG_KASAN_HW_TAGS) && IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
- 
- void kasan_force_async_fault(void);
---- a/mm/kasan/sw_tags.c~kasan-support-kasanstacktrace-for-sw_tags
-+++ a/mm/kasan/sw_tags.c
-@@ -42,7 +42,10 @@ void __init kasan_init_sw_tags(void)
- 	for_each_possible_cpu(cpu)
- 		per_cpu(prng_state, cpu) = (u32)get_cycles();
- 
--	pr_info("KernelAddressSanitizer initialized (sw-tags)\n");
-+	kasan_init_tags();
-+
-+	pr_info("KernelAddressSanitizer initialized (sw-tags, stacktrace=%s)\n",
-+		kasan_stack_collection_enabled() ? "on" : "off");
- }
- 
- /*
---- a/mm/kasan/tags.c~kasan-support-kasanstacktrace-for-sw_tags
-+++ a/mm/kasan/tags.c
-@@ -19,11 +19,54 @@
- #include "kasan.h"
- #include "../slab.h"
- 
-+enum kasan_arg_stacktrace {
-+	KASAN_ARG_STACKTRACE_DEFAULT,
-+	KASAN_ARG_STACKTRACE_OFF,
-+	KASAN_ARG_STACKTRACE_ON,
-+};
-+
-+static enum kasan_arg_stacktrace kasan_arg_stacktrace __initdata;
-+
-+/* Whether to collect alloc/free stack traces. */
-+DEFINE_STATIC_KEY_TRUE(kasan_flag_stacktrace);
-+
- /* Non-zero, as initial pointer values are 0. */
- #define STACK_RING_BUSY_PTR ((void *)1)
- 
- struct kasan_stack_ring stack_ring;
- 
-+/* kasan.stacktrace=off/on */
-+static int __init early_kasan_flag_stacktrace(char *arg)
++/*
++ * Check that KASAN detects use-after-free when another object was allocated in
++ * the same slot. Relevant for the tag-based modes, which do not use quarantine.
++ */
++static void kmalloc_uaf3(struct kunit *test)
 +{
-+	if (!arg)
-+		return -EINVAL;
++	char *ptr1, *ptr2;
++	size_t size = 100;
 +
-+	if (!strcmp(arg, "off"))
-+		kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_OFF;
-+	else if (!strcmp(arg, "on"))
-+		kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_ON;
-+	else
-+		return -EINVAL;
++	/* This test is specifically crafted for tag-based modes. */
++	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_GENERIC);
 +
-+	return 0;
-+}
-+early_param("kasan.stacktrace", early_kasan_flag_stacktrace);
++	ptr1 = kmalloc(size, GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
++	kfree(ptr1);
 +
-+void __init kasan_init_tags(void)
-+{
-+	switch (kasan_arg_stacktrace) {
-+	case KASAN_ARG_STACKTRACE_DEFAULT:
-+		/* Default is specified by kasan_flag_stacktrace definition. */
-+		break;
-+	case KASAN_ARG_STACKTRACE_OFF:
-+		static_branch_disable(&kasan_flag_stacktrace);
-+		break;
-+	case KASAN_ARG_STACKTRACE_ON:
-+		static_branch_enable(&kasan_flag_stacktrace);
-+		break;
-+	}
++	ptr2 = kmalloc(size, GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
++	kfree(ptr2);
++
++	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr1)[8]);
 +}
 +
- static void save_stack_info(struct kmem_cache *cache, void *object,
- 			gfp_t gfp_flags, bool is_free)
+ static void kfree_via_page(struct kunit *test)
  {
+ 	char *ptr;
+@@ -1382,6 +1405,7 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(kmalloc_uaf),
+ 	KUNIT_CASE(kmalloc_uaf_memset),
+ 	KUNIT_CASE(kmalloc_uaf2),
++	KUNIT_CASE(kmalloc_uaf3),
+ 	KUNIT_CASE(kfree_via_page),
+ 	KUNIT_CASE(kfree_via_phys),
+ 	KUNIT_CASE(kmem_cache_oob),
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
