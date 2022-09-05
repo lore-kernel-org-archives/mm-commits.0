@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 919ADECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49008C54EE9
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231393AbiIEWst (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 18:48:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40592 "EHLO
+        id S232339AbiIEWsu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 18:48:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232453AbiIEWsc (ORCPT
+        with ESMTP id S232515AbiIEWsc (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:32 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3B2367C80
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAF5345067
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 92324B81598
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5040BC433D6;
-        Mon,  5 Sep 2022 22:48:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7EF4AB81112
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CF7CC433C1;
+        Mon,  5 Sep 2022 22:48:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418102;
-        bh=B1ZuSIOEiy886jlf+l1Q4Fx1uhuhK0YTjIUonOrTRCE=;
+        s=korg; t=1662418105;
+        bh=x32J80VlT4pQQeUEfOoLkfeFNBu2wO9BwyT2omHGpiw=;
         h=Date:To:From:Subject:From;
-        b=EHaERM+jfYKc59TOdJiQlVoWROeAKLMEXsL7jJGldZEQhyWMFD2UNdeoAPXdeVM8x
-         4ep9nO15hJnXgS5jxnOF64sqV5qfScyA/LT4pTcgaaE7sf+5ynaLZU0qBgoOCR0rUk
-         zvsvOGP65Sg5TV9kK/ZJaeOCWUF8x9F3rhtk5/ws=
-Date:   Mon, 05 Sep 2022 15:48:21 -0700
+        b=BUbLu+oYI83UosQ6gD7FfFxfx0vP+CxVl9wiqKcoKgL5zwfmATD58qN/nMsKY5gLL
+         jg5owolDUZwJOXfZoBjoWiUti5PB1PS2EMccyTb8z/55NFW3ib/nkuBVfCd7tMXlan
+         coX/dHuzkrkL7hgu5uxJFHls0CSljpU3FeuUd45g=
+Date:   Mon, 05 Sep 2022 15:48:24 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info.patch added to mm-unstable branch
-Message-Id: <20220905224822.5040BC433D6@smtp.kernel.org>
+Subject: + kasan-move-kasan_get_alloc-free_track-definitions.patch added to mm-unstable branch
+Message-Id: <20220905224825.2CF7CC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: pass tagged pointers to kasan_save_alloc/free_info
+     Subject: kasan: move kasan_get_alloc/free_track definitions
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info.patch
+     kasan-move-kasan_get_alloc-free_track-definitions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-move-kasan_get_alloc-free_track-definitions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,14 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: pass tagged pointers to kasan_save_alloc/free_info
-Date: Mon, 5 Sep 2022 23:05:34 +0200
+Subject: kasan: move kasan_get_alloc/free_track definitions
+Date: Mon, 5 Sep 2022 23:05:35 +0200
 
-Pass tagged pointers to kasan_save_alloc/free_info().
+Move the definitions of kasan_get_alloc/free_track() to report_*.c, as
+they belong with other the reporting code.
 
-This is a preparatory patch to simplify other changes in the series.
-
-Link: https://lkml.kernel.org/r/d5bc48cfcf0dca8269dc3ed863047e4d4d2030f1.1662411799.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/0cb15423956889b3905a0174b58782633bbbd72e.1662411799.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -85,81 +84,105 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c  |    6 ++----
- mm/kasan/generic.c |    3 +--
- mm/kasan/kasan.h   |    2 +-
- mm/kasan/tags.c    |    3 +--
- 4 files changed, 5 insertions(+), 9 deletions(-)
+ mm/kasan/generic.c        |   21 ---------------------
+ mm/kasan/report_generic.c |   21 +++++++++++++++++++++
+ mm/kasan/report_tags.c    |   12 ++++++++++++
+ mm/kasan/tags.c           |   12 ------------
+ 4 files changed, 33 insertions(+), 33 deletions(-)
 
---- a/mm/kasan/common.c~kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info
-+++ a/mm/kasan/common.c
-@@ -193,13 +193,11 @@ void * __must_check __kasan_init_slab_ob
- static inline bool ____kasan_slab_free(struct kmem_cache *cache, void *object,
- 				unsigned long ip, bool quarantine, bool init)
- {
--	u8 tag;
- 	void *tagged_object;
- 
- 	if (!kasan_arch_is_ready())
- 		return false;
- 
--	tag = get_tag(object);
- 	tagged_object = object;
- 	object = kasan_reset_tag(object);
- 
-@@ -228,7 +226,7 @@ static inline bool ____kasan_slab_free(s
- 		return false;
- 
- 	if (kasan_stack_collection_enabled())
--		kasan_save_free_info(cache, object, tag);
-+		kasan_save_free_info(cache, tagged_object);
- 
- 	return kasan_quarantine_put(cache, object);
- }
-@@ -317,7 +315,7 @@ void * __must_check __kasan_slab_alloc(s
- 
- 	/* Save alloc info (if possible) for non-kmalloc() allocations. */
- 	if (kasan_stack_collection_enabled() && !cache->kasan_info.is_kmalloc)
--		kasan_save_alloc_info(cache, (void *)object, flags);
-+		kasan_save_alloc_info(cache, tagged_object, flags);
- 
- 	return tagged_object;
- }
---- a/mm/kasan/generic.c~kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info
+--- a/mm/kasan/generic.c~kasan-move-kasan_get_alloc-free_track-definitions
 +++ a/mm/kasan/generic.c
-@@ -500,8 +500,7 @@ void kasan_save_alloc_info(struct kmem_c
- 		kasan_set_track(&alloc_meta->alloc_track, flags);
+@@ -512,24 +512,3 @@ void kasan_save_free_info(struct kmem_ca
+ 	/* The object was freed and has free track set. */
+ 	*(u8 *)kasan_mem_to_shadow(object) = KASAN_SLAB_FREETRACK;
+ }
+-
+-struct kasan_track *kasan_get_alloc_track(struct kmem_cache *cache,
+-						void *object)
+-{
+-	struct kasan_alloc_meta *alloc_meta;
+-
+-	alloc_meta = kasan_get_alloc_meta(cache, object);
+-	if (!alloc_meta)
+-		return NULL;
+-
+-	return &alloc_meta->alloc_track;
+-}
+-
+-struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
+-						void *object, u8 tag)
+-{
+-	if (*(u8 *)kasan_mem_to_shadow(object) != KASAN_SLAB_FREETRACK)
+-		return NULL;
+-	/* Free meta must be present with KASAN_SLAB_FREETRACK. */
+-	return &kasan_get_free_meta(cache, object)->free_track;
+-}
+--- a/mm/kasan/report_generic.c~kasan-move-kasan_get_alloc-free_track-definitions
++++ a/mm/kasan/report_generic.c
+@@ -127,6 +127,27 @@ const char *kasan_get_bug_type(struct ka
+ 	return get_wild_bug_type(info);
  }
  
--void kasan_save_free_info(struct kmem_cache *cache,
--				void *object, u8 tag)
-+void kasan_save_free_info(struct kmem_cache *cache, void *object)
++struct kasan_track *kasan_get_alloc_track(struct kmem_cache *cache,
++						void *object)
++{
++	struct kasan_alloc_meta *alloc_meta;
++
++	alloc_meta = kasan_get_alloc_meta(cache, object);
++	if (!alloc_meta)
++		return NULL;
++
++	return &alloc_meta->alloc_track;
++}
++
++struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
++						void *object, u8 tag)
++{
++	if (*(u8 *)kasan_mem_to_shadow(object) != KASAN_SLAB_FREETRACK)
++		return NULL;
++	/* Free meta must be present with KASAN_SLAB_FREETRACK. */
++	return &kasan_get_free_meta(cache, object)->free_track;
++}
++
+ void kasan_metadata_fetch_row(char *buffer, void *row)
  {
- 	struct kasan_free_meta *free_meta;
+ 	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
+--- a/mm/kasan/report_tags.c~kasan-move-kasan_get_alloc-free_track-definitions
++++ a/mm/kasan/report_tags.c
+@@ -21,3 +21,15 @@ const char *kasan_get_bug_type(struct ka
  
---- a/mm/kasan/kasan.h~kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info
-+++ a/mm/kasan/kasan.h
-@@ -309,7 +309,7 @@ static inline void kasan_init_object_met
- depot_stack_handle_t kasan_save_stack(gfp_t flags, bool can_alloc);
- void kasan_set_track(struct kasan_track *track, gfp_t flags);
- void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags);
--void kasan_save_free_info(struct kmem_cache *cache, void *object, u8 tag);
-+void kasan_save_free_info(struct kmem_cache *cache, void *object);
- struct kasan_track *kasan_get_alloc_track(struct kmem_cache *cache,
- 						void *object);
- struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
---- a/mm/kasan/tags.c~kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info
+ 	return "invalid-access";
+ }
++
++struct kasan_track *kasan_get_alloc_track(struct kmem_cache *cache,
++						void *object)
++{
++	return NULL;
++}
++
++struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
++						void *object, u8 tag)
++{
++	return NULL;
++}
+--- a/mm/kasan/tags.c~kasan-move-kasan_get_alloc-free_track-definitions
 +++ a/mm/kasan/tags.c
-@@ -21,8 +21,7 @@ void kasan_save_alloc_info(struct kmem_c
+@@ -24,15 +24,3 @@ void kasan_save_alloc_info(struct kmem_c
+ void kasan_save_free_info(struct kmem_cache *cache, void *object)
  {
  }
- 
--void kasan_save_free_info(struct kmem_cache *cache,
--				void *object, u8 tag)
-+void kasan_save_free_info(struct kmem_cache *cache, void *object)
- {
- }
- 
+-
+-struct kasan_track *kasan_get_alloc_track(struct kmem_cache *cache,
+-						void *object)
+-{
+-	return NULL;
+-}
+-
+-struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
+-						void *object, u8 tag)
+-{
+-	return NULL;
+-}
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
