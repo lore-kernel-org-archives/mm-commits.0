@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5892BECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:28:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CA11C6FA83
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:28:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232067AbiIEU2G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 16:28:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56614 "EHLO
+        id S232096AbiIEU2H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 16:28:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232097AbiIEU1i (ORCPT
+        with ESMTP id S232080AbiIEU1i (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:27:38 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5AEF642C5
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:26:57 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E49761DA1
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 0BF4BCE12B2
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BAECC433C1;
-        Mon,  5 Sep 2022 20:26:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 45EF5B81118
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCFEFC433C1;
+        Mon,  5 Sep 2022 20:26:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409614;
-        bh=5WIsy/hMoFC+MgZKaS0kvYjdhS6eC2SgA9HGPCi7hlE=;
+        s=korg; t=1662409618;
+        bh=+z4ay8QgNoCmKfl5Lrs3qPmZq7UwR9ziGKiHqSdOiaM=;
         h=Date:To:From:Subject:From;
-        b=NnSM+UKMoextb/39oBn3YmIo9ldBzYhG1gaM/elp5oh9xmMyMpe705cHzD7ECCwMw
-         es6rzcuuZYp+30jPMDUpCNPAT05cfIe6RHKnRKMXFb7tM1i2NCdbnYffJCyJGQLsfi
-         g77lQnGHNdhxTLY7znoP7oFLKt/ZhX8coDghRP4w=
-Date:   Mon, 05 Sep 2022 13:26:53 -0700
+        b=nzuKL7n9WJWDyG739W0H/d4m2KYmtMVO1sRrk2q5amjLxOvEyOE9xpshegj98gbjR
+         6yq7Op89UFmLzjHfw8rcSL6fH47ZxXWvHUOtZWcTby8mFTq2UdVaYKgTnM5svI6DtF
+         +feJCR08DxN56P0BXkL59Ssusw1kgTc0g1fTISvY=
+Date:   Mon, 05 Sep 2022 13:26:57 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmsan-call-kmsan-hooks-from-slub-code.patch added to mm-unstable branch
-Message-Id: <20220905202654.5BAECC433C1@smtp.kernel.org>
+Subject: + kmsan-handle-task-creation-and-exiting.patch added to mm-unstable branch
+Message-Id: <20220905202657.DCFEFC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmsan: call KMSAN hooks from SLUB code
+     Subject: kmsan: handle task creation and exiting
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmsan-call-kmsan-hooks-from-slub-code.patch
+     kmsan-handle-task-creation-and-exiting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-call-kmsan-hooks-from-slub-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-handle-task-creation-and-exiting.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,22 +76,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: mm: kmsan: call KMSAN hooks from SLUB code
-Date: Mon, 5 Sep 2022 14:24:23 +0200
+Subject: kmsan: handle task creation and exiting
+Date: Mon, 5 Sep 2022 14:24:24 +0200
 
-In order to report uninitialized memory coming from heap allocations KMSAN
-has to poison them unless they're created with __GFP_ZERO.
+Tell KMSAN that a new task is created, so the tool creates a backing
+metadata structure for that task.
 
-It's handy that we need KMSAN hooks in the places where
-init_on_alloc/init_on_free initialization is performed.
-
-In addition, we apply __no_kmsan_checks to get_freepointer_safe() to
-suppress reports when accessing freelist pointers that reside in freed
-objects.
-
-Link: https://lkml.kernel.org/r/20220905122452.2258262-16-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-17-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -113,6 +105,7 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -127,254 +120,147 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmsan.h |   57 ++++++++++++++++++++++++++++++
- mm/kmsan/hooks.c      |   76 ++++++++++++++++++++++++++++++++++++++++
- mm/slab.h             |    1 
- mm/slub.c             |   17 ++++++++
- 4 files changed, 151 insertions(+)
+ include/linux/kmsan.h |   21 +++++++++++++++++++++
+ kernel/exit.c         |    2 ++
+ kernel/fork.c         |    2 ++
+ mm/kmsan/core.c       |   10 ++++++++++
+ mm/kmsan/hooks.c      |   17 +++++++++++++++++
+ mm/kmsan/kmsan.h      |    2 ++
+ 6 files changed, 54 insertions(+)
 
---- a/include/linux/kmsan.h~mm-kmsan-call-kmsan-hooks-from-slub-code
+--- a/include/linux/kmsan.h~kmsan-handle-task-creation-and-exiting
 +++ a/include/linux/kmsan.h
-@@ -14,6 +14,7 @@
- #include <linux/types.h>
+@@ -15,10 +15,23 @@
  
  struct page;
-+struct kmem_cache;
+ struct kmem_cache;
++struct task_struct;
  
  #ifdef CONFIG_KMSAN
  
-@@ -49,6 +50,44 @@ void kmsan_free_page(struct page *page,
- void kmsan_copy_page_meta(struct page *dst, struct page *src);
- 
  /**
-+ * kmsan_slab_alloc() - Notify KMSAN about a slab allocation.
-+ * @s:      slab cache the object belongs to.
-+ * @object: object pointer.
-+ * @flags:  GFP flags passed to the allocator.
-+ *
-+ * Depending on cache flags and GFP flags, KMSAN sets up the metadata of the
-+ * newly created object, marking it as initialized or uninitialized.
++ * kmsan_task_create() - Initialize KMSAN state for the task.
++ * @task: task to initialize.
 + */
-+void kmsan_slab_alloc(struct kmem_cache *s, void *object, gfp_t flags);
++void kmsan_task_create(struct task_struct *task);
 +
 +/**
-+ * kmsan_slab_free() - Notify KMSAN about a slab deallocation.
-+ * @s:      slab cache the object belongs to.
-+ * @object: object pointer.
-+ *
-+ * KMSAN marks the freed object as uninitialized.
++ * kmsan_task_exit() - Notify KMSAN that a task has exited.
++ * @task: task about to finish.
 + */
-+void kmsan_slab_free(struct kmem_cache *s, void *object);
++void kmsan_task_exit(struct task_struct *task);
 +
 +/**
-+ * kmsan_kmalloc_large() - Notify KMSAN about a large slab allocation.
-+ * @ptr:   object pointer.
-+ * @size:  object size.
-+ * @flags: GFP flags passed to the allocator.
-+ *
-+ * Similar to kmsan_slab_alloc(), but for large allocations.
-+ */
-+void kmsan_kmalloc_large(const void *ptr, size_t size, gfp_t flags);
-+
-+/**
-+ * kmsan_kfree_large() - Notify KMSAN about a large slab deallocation.
-+ * @ptr: object pointer.
-+ *
-+ * Similar to kmsan_slab_free(), but for large allocations.
-+ */
-+void kmsan_kfree_large(const void *ptr);
-+
-+/**
-  * kmsan_map_kernel_range_noflush() - Notify KMSAN about a vmap.
-  * @start:	start of vmapped range.
-  * @end:	end of vmapped range.
-@@ -114,6 +153,24 @@ static inline void kmsan_copy_page_meta(
- {
- }
+  * kmsan_alloc_page() - Notify KMSAN about an alloc_pages() call.
+  * @page:  struct page pointer returned by alloc_pages().
+  * @order: order of allocated struct page.
+@@ -139,6 +152,14 @@ void kmsan_iounmap_page_range(unsigned l
  
-+static inline void kmsan_slab_alloc(struct kmem_cache *s, void *object,
-+				    gfp_t flags)
+ #else
+ 
++static inline void kmsan_task_create(struct task_struct *task)
 +{
 +}
 +
-+static inline void kmsan_slab_free(struct kmem_cache *s, void *object)
++static inline void kmsan_task_exit(struct task_struct *task)
 +{
 +}
 +
-+static inline void kmsan_kmalloc_large(const void *ptr, size_t size,
-+				       gfp_t flags)
+ static inline int kmsan_alloc_page(struct page *page, unsigned int order,
+ 				   gfp_t flags)
+ {
+--- a/kernel/exit.c~kmsan-handle-task-creation-and-exiting
++++ a/kernel/exit.c
+@@ -60,6 +60,7 @@
+ #include <linux/writeback.h>
+ #include <linux/shm.h>
+ #include <linux/kcov.h>
++#include <linux/kmsan.h>
+ #include <linux/random.h>
+ #include <linux/rcuwait.h>
+ #include <linux/compat.h>
+@@ -742,6 +743,7 @@ void __noreturn do_exit(long code)
+ 	WARN_ON(tsk->plug);
+ 
+ 	kcov_task_exit(tsk);
++	kmsan_task_exit(tsk);
+ 
+ 	coredump_task_exit(tsk);
+ 	ptrace_event(PTRACE_EVENT_EXIT, code);
+--- a/kernel/fork.c~kmsan-handle-task-creation-and-exiting
++++ a/kernel/fork.c
+@@ -37,6 +37,7 @@
+ #include <linux/fdtable.h>
+ #include <linux/iocontext.h>
+ #include <linux/key.h>
++#include <linux/kmsan.h>
+ #include <linux/binfmts.h>
+ #include <linux/mman.h>
+ #include <linux/mmu_notifier.h>
+@@ -1023,6 +1024,7 @@ static struct task_struct *dup_task_stru
+ 	tsk->worker_private = NULL;
+ 
+ 	kcov_task_init(tsk);
++	kmsan_task_create(tsk);
+ 	kmap_local_fork(tsk);
+ 
+ #ifdef CONFIG_FAULT_INJECTION
+--- a/mm/kmsan/core.c~kmsan-handle-task-creation-and-exiting
++++ a/mm/kmsan/core.c
+@@ -44,6 +44,16 @@ bool kmsan_enabled __read_mostly;
+  */
+ DEFINE_PER_CPU(struct kmsan_ctx, kmsan_percpu_ctx);
+ 
++void kmsan_internal_task_create(struct task_struct *task)
 +{
++	struct kmsan_ctx *ctx = &task->kmsan_ctx;
++	struct thread_info *info = current_thread_info();
++
++	__memset(ctx, 0, sizeof(*ctx));
++	ctx->allow_reporting = true;
++	kmsan_internal_unpoison_memory(info, sizeof(*info), false);
 +}
 +
-+static inline void kmsan_kfree_large(const void *ptr)
-+{
-+}
-+
- static inline void kmsan_vmap_pages_range_noflush(unsigned long start,
- 						  unsigned long end,
- 						  pgprot_t prot,
---- a/mm/kmsan/hooks.c~mm-kmsan-call-kmsan-hooks-from-slub-code
+ void kmsan_internal_poison_memory(void *address, size_t size, gfp_t flags,
+ 				  unsigned int poison_flags)
+ {
+--- a/mm/kmsan/hooks.c~kmsan-handle-task-creation-and-exiting
 +++ a/mm/kmsan/hooks.c
-@@ -27,6 +27,82 @@
+@@ -27,6 +27,23 @@
   * skipping effects of functions like memset() inside instrumented code.
   */
  
-+void kmsan_slab_alloc(struct kmem_cache *s, void *object, gfp_t flags)
++void kmsan_task_create(struct task_struct *task)
 +{
-+	if (unlikely(object == NULL))
-+		return;
-+	if (!kmsan_enabled || kmsan_in_runtime())
-+		return;
-+	/*
-+	 * There's a ctor or this is an RCU cache - do nothing. The memory
-+	 * status hasn't changed since last use.
-+	 */
-+	if (s->ctor || (s->flags & SLAB_TYPESAFE_BY_RCU))
-+		return;
-+
 +	kmsan_enter_runtime();
-+	if (flags & __GFP_ZERO)
-+		kmsan_internal_unpoison_memory(object, s->object_size,
-+					       KMSAN_POISON_CHECK);
-+	else
-+		kmsan_internal_poison_memory(object, s->object_size, flags,
-+					     KMSAN_POISON_CHECK);
++	kmsan_internal_task_create(task);
 +	kmsan_leave_runtime();
 +}
 +
-+void kmsan_slab_free(struct kmem_cache *s, void *object)
++void kmsan_task_exit(struct task_struct *task)
 +{
++	struct kmsan_ctx *ctx = &task->kmsan_ctx;
++
 +	if (!kmsan_enabled || kmsan_in_runtime())
 +		return;
 +
-+	/* RCU slabs could be legally used after free within the RCU period */
-+	if (unlikely(s->flags & (SLAB_TYPESAFE_BY_RCU | SLAB_POISON)))
-+		return;
-+	/*
-+	 * If there's a constructor, freed memory must remain in the same state
-+	 * until the next allocation. We cannot save its state to detect
-+	 * use-after-free bugs, instead we just keep it unpoisoned.
-+	 */
-+	if (s->ctor)
-+		return;
-+	kmsan_enter_runtime();
-+	kmsan_internal_poison_memory(object, s->object_size, GFP_KERNEL,
-+				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
-+	kmsan_leave_runtime();
++	ctx->allow_reporting = false;
 +}
 +
-+void kmsan_kmalloc_large(const void *ptr, size_t size, gfp_t flags)
-+{
-+	if (unlikely(ptr == NULL))
-+		return;
-+	if (!kmsan_enabled || kmsan_in_runtime())
-+		return;
-+	kmsan_enter_runtime();
-+	if (flags & __GFP_ZERO)
-+		kmsan_internal_unpoison_memory((void *)ptr, size,
-+					       /*checked*/ true);
-+	else
-+		kmsan_internal_poison_memory((void *)ptr, size, flags,
-+					     KMSAN_POISON_CHECK);
-+	kmsan_leave_runtime();
-+}
+ void kmsan_slab_alloc(struct kmem_cache *s, void *object, gfp_t flags)
+ {
+ 	if (unlikely(object == NULL))
+--- a/mm/kmsan/kmsan.h~kmsan-handle-task-creation-and-exiting
++++ a/mm/kmsan/kmsan.h
+@@ -179,6 +179,8 @@ void kmsan_internal_set_shadow_origin(vo
+ 				      u32 origin, bool checked);
+ depot_stack_handle_t kmsan_internal_chain_origin(depot_stack_handle_t id);
+ 
++void kmsan_internal_task_create(struct task_struct *task);
 +
-+void kmsan_kfree_large(const void *ptr)
-+{
-+	struct page *page;
-+
-+	if (!kmsan_enabled || kmsan_in_runtime())
-+		return;
-+	kmsan_enter_runtime();
-+	page = virt_to_head_page((void *)ptr);
-+	KMSAN_WARN_ON(ptr != page_address(page));
-+	kmsan_internal_poison_memory((void *)ptr,
-+				     PAGE_SIZE << compound_order(page),
-+				     GFP_KERNEL,
-+				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
-+	kmsan_leave_runtime();
-+}
-+
- static unsigned long vmalloc_shadow(unsigned long addr)
- {
- 	return (unsigned long)kmsan_get_metadata((void *)addr,
---- a/mm/slab.h~mm-kmsan-call-kmsan-hooks-from-slub-code
-+++ a/mm/slab.h
-@@ -729,6 +729,7 @@ static inline void slab_post_alloc_hook(
- 			memset(p[i], 0, s->object_size);
- 		kmemleak_alloc_recursive(p[i], s->object_size, 1,
- 					 s->flags, flags);
-+		kmsan_slab_alloc(s, p[i], flags);
- 	}
- 
- 	memcg_slab_post_alloc_hook(s, objcg, flags, size, p);
---- a/mm/slub.c~mm-kmsan-call-kmsan-hooks-from-slub-code
-+++ a/mm/slub.c
-@@ -22,6 +22,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/kasan.h>
-+#include <linux/kmsan.h>
- #include <linux/cpu.h>
- #include <linux/cpuset.h>
- #include <linux/mempolicy.h>
-@@ -359,6 +360,17 @@ static void prefetch_freepointer(const s
- 	prefetchw(object + s->offset);
- }
- 
-+/*
-+ * When running under KMSAN, get_freepointer_safe() may return an uninitialized
-+ * pointer value in the case the current thread loses the race for the next
-+ * memory chunk in the freelist. In that case this_cpu_cmpxchg_double() in
-+ * slab_alloc_node() will fail, so the uninitialized value won't be used, but
-+ * KMSAN will still check all arguments of cmpxchg because of imperfect
-+ * handling of inline assembly.
-+ * To work around this problem, we apply __no_kmsan_checks to ensure that
-+ * get_freepointer_safe() returns initialized memory.
-+ */
-+__no_kmsan_checks
- static inline void *get_freepointer_safe(struct kmem_cache *s, void *object)
- {
- 	unsigned long freepointer_addr;
-@@ -1709,6 +1721,7 @@ static inline void *kmalloc_large_node_h
- 	ptr = kasan_kmalloc_large(ptr, size, flags);
- 	/* As ptr might get tagged, call kmemleak hook after KASAN. */
- 	kmemleak_alloc(ptr, size, 1, flags);
-+	kmsan_kmalloc_large(ptr, size, flags);
- 	return ptr;
- }
- 
-@@ -1716,12 +1729,14 @@ static __always_inline void kfree_hook(v
- {
- 	kmemleak_free(x);
- 	kasan_kfree_large(x);
-+	kmsan_kfree_large(x);
- }
- 
- static __always_inline bool slab_free_hook(struct kmem_cache *s,
- 						void *x, bool init)
- {
- 	kmemleak_free_recursive(x, s->flags);
-+	kmsan_slab_free(s, x);
- 
- 	debug_check_no_locks_freed(x, s->object_size);
- 
-@@ -5941,6 +5956,7 @@ static char *create_unique_id(struct kme
- 	p += sprintf(p, "%07u", s->size);
- 
- 	BUG_ON(p > name + ID_STR_LENGTH - 1);
-+	kmsan_unpoison_memory(name, p - name);
- 	return name;
- }
- 
-@@ -6042,6 +6058,7 @@ static int sysfs_slab_alias(struct kmem_
- 	al->name = name;
- 	al->next = alias_list;
- 	alias_list = al;
-+	kmsan_unpoison_memory(al, sizeof(*al));
- 	return 0;
- }
- 
+ bool kmsan_metadata_is_contiguous(void *addr, size_t size);
+ void kmsan_internal_check_memory(void *addr, size_t size, const void *user_addr,
+ 				 int reason);
 _
 
 Patches currently in -mm which might be from glider@google.com are
