@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61B1AECAAA1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF9D0C54EE9
 	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:49:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232524AbiIEWtH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232441AbiIEWtH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 5 Sep 2022 18:49:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40602 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232441AbiIEWsc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 207B067C8C
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:31 -0700 (PDT)
+        with ESMTP id S232371AbiIEWsh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:37 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81F8344576
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A0D9560ECA
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02E0AC433C1;
-        Mon,  5 Sep 2022 22:48:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 43FA7B815D5
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01D1BC433D7;
+        Mon,  5 Sep 2022 22:48:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418110;
-        bh=pWoNqBo/eTgAaW7FKrk3uvz3vz35OphISBP5b4uvbV8=;
+        s=korg; t=1662418112;
+        bh=ejUWWE1r18b1AdcY3jDzdrck1NLiMERvvfHBqeej9BM=;
         h=Date:To:From:Subject:From;
-        b=bUqA6jF+GaaPJ+7etPnYP+KmuSVP2+3NV0Bk9pD6XrcB4Wa+QlrYBwNJgQ8OwV39x
-         6UU7sTt7WXn91nVh6Bw9xq3iGniFMOmJSwr5s94vlfoEFDwdkMTRQxAWpgJ3v09vyA
-         IbGzd0xcYtN2HzgGZ1eNA16+STMEzf9asBhjgaIQ=
-Date:   Mon, 05 Sep 2022 15:48:29 -0700
+        b=mDr05oPq6znJdwnuUU1i9kvB2jYssaDJtc5D2lon4VgB1Qg756MLt3aKfRNjIniJo
+         2msMzcH41IAi6/xLjaKbCxBH+h4idxFLbBHMyPPt9JFTORxi9YX6zqQB/WibcXJ/BR
+         qIX+WU4WQM6Rt3II1lMFxZ+aj6qz10tBH2H6XwQ0=
+Date:   Mon, 05 Sep 2022 15:48:31 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-use-virt_addr_valid-in-kasan_addr_to_page-slab.patch added to mm-unstable branch
-Message-Id: <20220905224830.02E0AC433C1@smtp.kernel.org>
+Subject: + kasan-use-kasan_addr_to_slab-in-print_address_description.patch added to mm-unstable branch
+Message-Id: <20220905224832.01D1BC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: use virt_addr_valid in kasan_addr_to_page/slab
+     Subject: kasan: use kasan_addr_to_slab in print_address_description
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-use-virt_addr_valid-in-kasan_addr_to_page-slab.patch
+     kasan-use-kasan_addr_to_slab-in-print_address_description.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-use-virt_addr_valid-in-kasan_addr_to_page-slab.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-use-kasan_addr_to_slab-in-print_address_description.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: use virt_addr_valid in kasan_addr_to_page/slab
-Date: Mon, 5 Sep 2022 23:05:37 +0200
+Subject: kasan: use kasan_addr_to_slab in print_address_description
+Date: Mon, 5 Sep 2022 23:05:38 +0200
 
-Instead of open-coding the validity checks for addr in
-kasan_addr_to_page/slab(), use the virt_addr_valid() helper.
+Use the kasan_addr_to_slab() helper in print_address_description() instead
+of separately invoking PageSlab() and page_slab().
 
-Link: https://lkml.kernel.org/r/c22a4850d74d7430f8a6c08216fd55c2860a2b9e.1662411799.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/8b744fbf8c3c7fc5d34329ec70b60ee5c8dba66c.1662411799.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -84,28 +84,57 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/kasan/common.c |    7 +++++++
+ mm/kasan/report.c |   11 ++---------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/kasan/report.c~kasan-use-virt_addr_valid-in-kasan_addr_to_page-slab
+--- a/mm/kasan/common.c~kasan-use-kasan_addr_to_slab-in-print_address_description
++++ a/mm/kasan/common.c
+@@ -30,6 +30,13 @@
+ #include "kasan.h"
+ #include "../slab.h"
+ 
++struct slab *kasan_addr_to_slab(const void *addr)
++{
++	if (virt_addr_valid(addr))
++		return virt_to_slab(addr);
++	return NULL;
++}
++
+ depot_stack_handle_t kasan_save_stack(gfp_t flags, bool can_alloc)
+ {
+ 	unsigned long entries[KASAN_STACK_DEPTH];
+--- a/mm/kasan/report.c~kasan-use-kasan_addr_to_slab-in-print_address_description
 +++ a/mm/kasan/report.c
-@@ -208,14 +208,14 @@ static void print_track(struct kasan_tra
- 
- struct page *kasan_addr_to_page(const void *addr)
- {
--	if ((addr >= (void *)PAGE_OFFSET) && (addr < high_memory))
-+	if (virt_addr_valid(addr))
- 		return virt_to_head_page(addr);
+@@ -213,13 +213,6 @@ struct page *kasan_addr_to_page(const vo
  	return NULL;
  }
  
- struct slab *kasan_addr_to_slab(const void *addr)
+-struct slab *kasan_addr_to_slab(const void *addr)
+-{
+-	if (virt_addr_valid(addr))
+-		return virt_to_slab(addr);
+-	return NULL;
+-}
+-
+ static void describe_object_addr(struct kmem_cache *cache, void *object,
+ 				const void *addr)
  {
--	if ((addr >= (void *)PAGE_OFFSET) && (addr < high_memory))
-+	if (virt_addr_valid(addr))
- 		return virt_to_slab(addr);
- 	return NULL;
- }
+@@ -297,12 +290,12 @@ static inline bool init_task_stack_addr(
+ static void print_address_description(void *addr, u8 tag)
+ {
+ 	struct page *page = kasan_addr_to_page(addr);
++	struct slab *slab = kasan_addr_to_slab(addr);
+ 
+ 	dump_stack_lvl(KERN_ERR);
+ 	pr_err("\n");
+ 
+-	if (page && PageSlab(page)) {
+-		struct slab *slab = page_slab(page);
++	if (slab) {
+ 		struct kmem_cache *cache = slab->slab_cache;
+ 		void *object = nearest_obj(cache, slab,	addr);
+ 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
