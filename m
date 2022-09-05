@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06705C54EE9
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:47:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 576E5ECAAA1
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232346AbiIEWrw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 18:47:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40366 "EHLO
+        id S232388AbiIEWsC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 18:48:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232371AbiIEWru (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:47:50 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5ED1857548
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:47:49 -0700 (PDT)
+        with ESMTP id S232355AbiIEWrx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:47:53 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 131883C8D4
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:47:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E7F76B81112
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:47:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88009C433D6;
-        Mon,  5 Sep 2022 22:47:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C825AB815D5
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:47:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E4C0C433C1;
+        Mon,  5 Sep 2022 22:47:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418066;
-        bh=n8kalkiDSRXg4MB7Xt4b6G1mmN2ZFi5KAZdPGng6OeE=;
+        s=korg; t=1662418069;
+        bh=2DU6OS0A64LF2IWtRLKO//wlbZIGm8fohHjqACLsYHc=;
         h=Date:To:From:Subject:From;
-        b=16W3Q6yKj4wOqWnNESagQP1t9UXV543YY+DjYe3Kb4xrvW/6dG8mEvKH+P9htRvXD
-         DXvf0K5DOSidlpIqWDDl/x9VeS7WM05k2R7pVMEy1zsuPWwQZLp9EisJcl3q64Oco1
-         zLuRlxWQybXlb4GieGDi5MtsiI9KJqdfa1kHw54I=
-Date:   Mon, 05 Sep 2022 15:47:45 -0700
+        b=VAQ+R3xsIhigDZQZz8T0eUPCU7YBYX2XqGOiDhCLkHLXbM9ewF646HTdXk8H0lEcO
+         fbjOCL/34k5fc/A1LhYhTn8qu2SxCf7HpG/FUlfZIkyCxojlZttpLcA0GAeDQJm5Le
+         rgemn1gF1FDknDSbQgznjeDZM4GVhepuGY54n+8Y=
+Date:   Mon, 05 Sep 2022 15:47:48 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-drop-config_kasan_tags_identify.patch added to mm-unstable branch
-Message-Id: <20220905224746.88009C433D6@smtp.kernel.org>
+Subject: + kasan-introduce-kasan_print_aux_stacks.patch added to mm-unstable branch
+Message-Id: <20220905224749.6E4C0C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: drop CONFIG_KASAN_TAGS_IDENTIFY
+     Subject: kasan: introduce kasan_print_aux_stacks
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-drop-config_kasan_tags_identify.patch
+     kasan-introduce-kasan_print_aux_stacks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-drop-config_kasan_tags_identify.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-introduce-kasan_print_aux_stacks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: drop CONFIG_KASAN_TAGS_IDENTIFY
-Date: Mon, 5 Sep 2022 23:05:20 +0200
+Subject: kasan: introduce kasan_print_aux_stacks
+Date: Mon, 5 Sep 2022 23:05:21 +0200
 
-Drop CONFIG_KASAN_TAGS_IDENTIFY and related code to simplify making
-changes to the reporting code.
+Add a kasan_print_aux_stacks() helper that prints the auxiliary stack
+traces for the Generic mode.
 
-The dropped functionality will be restored in the following patches in
-this series.
+This change hides references to alloc_meta from the common reporting code.
+This is desired as only the Generic mode will be using per-object
+metadata after this series.
 
-Link: https://lkml.kernel.org/r/4c66ba98eb237e9ed9312c19d423bbcf4ecf88f8.1662411799.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/67c7a9ea6615533762b1f8ccc267cd7f9bafb749.1662411799.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -87,140 +88,79 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan      |    8 --------
- mm/kasan/kasan.h       |   12 +-----------
- mm/kasan/report_tags.c |   28 ----------------------------
- mm/kasan/tags.c        |   21 ++-------------------
- 4 files changed, 3 insertions(+), 66 deletions(-)
+ mm/kasan/kasan.h          |    6 ++++++
+ mm/kasan/report.c         |   15 +--------------
+ mm/kasan/report_generic.c |   20 ++++++++++++++++++++
+ 3 files changed, 27 insertions(+), 14 deletions(-)
 
---- a/lib/Kconfig.kasan~kasan-drop-config_kasan_tags_identify
-+++ a/lib/Kconfig.kasan
-@@ -167,14 +167,6 @@ config KASAN_STACK
- 	  as well, as it adds inline-style instrumentation that is run
- 	  unconditionally.
- 
--config KASAN_TAGS_IDENTIFY
--	bool "Memory corruption type identification"
--	depends on KASAN_SW_TAGS || KASAN_HW_TAGS
--	help
--	  Enables best-effort identification of the bug types (use-after-free
--	  or out-of-bounds) at the cost of increased memory consumption.
--	  Only applicable for the tag-based KASAN modes.
--
- config KASAN_VMALLOC
- 	bool "Check accesses to vmalloc allocations"
- 	depends on HAVE_ARCH_KASAN_VMALLOC
---- a/mm/kasan/kasan.h~kasan-drop-config_kasan_tags_identify
+--- a/mm/kasan/kasan.h~kasan-introduce-kasan_print_aux_stacks
 +++ a/mm/kasan/kasan.h
-@@ -169,23 +169,13 @@ struct kasan_track {
- 	depot_stack_handle_t stack;
- };
- 
--#if defined(CONFIG_KASAN_TAGS_IDENTIFY) && defined(CONFIG_KASAN_SW_TAGS)
--#define KASAN_NR_FREE_STACKS 5
--#else
--#define KASAN_NR_FREE_STACKS 1
--#endif
--
- struct kasan_alloc_meta {
- 	struct kasan_track alloc_track;
- 	/* Generic mode stores free track in kasan_free_meta. */
- #ifdef CONFIG_KASAN_GENERIC
- 	depot_stack_handle_t aux_stack[2];
- #else
--	struct kasan_track free_track[KASAN_NR_FREE_STACKS];
--#endif
--#ifdef CONFIG_KASAN_TAGS_IDENTIFY
--	u8 free_pointer_tag[KASAN_NR_FREE_STACKS];
--	u8 free_track_idx;
-+	struct kasan_track free_track;
+@@ -266,6 +266,12 @@ void kasan_print_address_stack_frame(con
+ static inline void kasan_print_address_stack_frame(const void *addr) { }
  #endif
- };
  
---- a/mm/kasan/report_tags.c~kasan-drop-config_kasan_tags_identify
-+++ a/mm/kasan/report_tags.c
-@@ -5,37 +5,9 @@
-  */
++#ifdef CONFIG_KASAN_GENERIC
++void kasan_print_aux_stacks(struct kmem_cache *cache, const void *object);
++#else
++static inline void kasan_print_aux_stacks(struct kmem_cache *cache, const void *object) { }
++#endif
++
+ bool kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
+ void kasan_report_invalid_free(void *object, unsigned long ip, enum kasan_report_type type);
+--- a/mm/kasan/report.c~kasan-introduce-kasan_print_aux_stacks
++++ a/mm/kasan/report.c
+@@ -270,20 +270,7 @@ static void describe_object_stacks(struc
+ 		pr_err("\n");
+ 	}
  
- #include "kasan.h"
--#include "../slab.h"
- 
- const char *kasan_get_bug_type(struct kasan_report_info *info)
- {
--#ifdef CONFIG_KASAN_TAGS_IDENTIFY
--	struct kasan_alloc_meta *alloc_meta;
--	struct kmem_cache *cache;
--	struct slab *slab;
--	const void *addr;
--	void *object;
--	u8 tag;
--	int i;
--
--	tag = get_tag(info->access_addr);
--	addr = kasan_reset_tag(info->access_addr);
--	slab = kasan_addr_to_slab(addr);
--	if (slab) {
--		cache = slab->slab_cache;
--		object = nearest_obj(cache, slab, (void *)addr);
--		alloc_meta = kasan_get_alloc_meta(cache, object);
--
--		if (alloc_meta) {
--			for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
--				if (alloc_meta->free_pointer_tag[i] == tag)
--					return "use-after-free";
--			}
--		}
--		return "out-of-bounds";
+-#ifdef CONFIG_KASAN_GENERIC
+-	if (!alloc_meta)
+-		return;
+-	if (alloc_meta->aux_stack[0]) {
+-		pr_err("Last potentially related work creation:\n");
+-		stack_depot_print(alloc_meta->aux_stack[0]);
+-		pr_err("\n");
+-	}
+-	if (alloc_meta->aux_stack[1]) {
+-		pr_err("Second to last potentially related work creation:\n");
+-		stack_depot_print(alloc_meta->aux_stack[1]);
+-		pr_err("\n");
 -	}
 -#endif
--
- 	/*
- 	 * If access_size is a negative number, then it has reason to be
- 	 * defined as out-of-bounds bug type.
---- a/mm/kasan/tags.c~kasan-drop-config_kasan_tags_identify
-+++ a/mm/kasan/tags.c
-@@ -30,39 +30,22 @@ void kasan_save_free_info(struct kmem_ca
- 				void *object, u8 tag)
- {
- 	struct kasan_alloc_meta *alloc_meta;
--	u8 idx = 0;
- 
- 	alloc_meta = kasan_get_alloc_meta(cache, object);
- 	if (!alloc_meta)
- 		return;
- 
--#ifdef CONFIG_KASAN_TAGS_IDENTIFY
--	idx = alloc_meta->free_track_idx;
--	alloc_meta->free_pointer_tag[idx] = tag;
--	alloc_meta->free_track_idx = (idx + 1) % KASAN_NR_FREE_STACKS;
--#endif
--
--	kasan_set_track(&alloc_meta->free_track[idx], GFP_NOWAIT);
-+	kasan_set_track(&alloc_meta->free_track, GFP_NOWAIT);
++	kasan_print_aux_stacks(cache, object);
  }
  
- struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
- 				void *object, u8 tag)
- {
- 	struct kasan_alloc_meta *alloc_meta;
--	int i = 0;
- 
- 	alloc_meta = kasan_get_alloc_meta(cache, object);
- 	if (!alloc_meta)
- 		return NULL;
- 
--#ifdef CONFIG_KASAN_TAGS_IDENTIFY
--	for (i = 0; i < KASAN_NR_FREE_STACKS; i++) {
--		if (alloc_meta->free_pointer_tag[i] == tag)
--			break;
--	}
--	if (i == KASAN_NR_FREE_STACKS)
--		i = alloc_meta->free_track_idx;
--#endif
--
--	return &alloc_meta->free_track[i];
-+	return &alloc_meta->free_track;
+ static void describe_object(struct kmem_cache *cache, void *object,
+--- a/mm/kasan/report_generic.c~kasan-introduce-kasan_print_aux_stacks
++++ a/mm/kasan/report_generic.c
+@@ -132,6 +132,26 @@ void kasan_metadata_fetch_row(char *buff
+ 	memcpy(buffer, kasan_mem_to_shadow(row), META_BYTES_PER_ROW);
  }
+ 
++void kasan_print_aux_stacks(struct kmem_cache *cache, const void *object)
++{
++	struct kasan_alloc_meta *alloc_meta;
++
++	alloc_meta = kasan_get_alloc_meta(cache, object);
++	if (!alloc_meta)
++		return;
++
++	if (alloc_meta->aux_stack[0]) {
++		pr_err("Last potentially related work creation:\n");
++		stack_depot_print(alloc_meta->aux_stack[0]);
++		pr_err("\n");
++	}
++	if (alloc_meta->aux_stack[1]) {
++		pr_err("Second to last potentially related work creation:\n");
++		stack_depot_print(alloc_meta->aux_stack[1]);
++		pr_err("\n");
++	}
++}
++
+ #ifdef CONFIG_KASAN_STACK
+ static bool __must_check tokenize_frame_descr(const char **frame_descr,
+ 					      char *token, size_t max_tok_len,
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
