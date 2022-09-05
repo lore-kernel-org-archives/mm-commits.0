@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57CE1C6FA8D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB30FC6FA8C
 	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:26:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231273AbiIEU0k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230036AbiIEU0k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 5 Sep 2022 16:26:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56120 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56128 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231318AbiIEU0S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:26:18 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC1761EEE3
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:26:16 -0700 (PDT)
+        with ESMTP id S231421AbiIEU0V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:26:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D96391EEE3
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:26:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 30D2ACE1283
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A00AC433D6;
-        Mon,  5 Sep 2022 20:26:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A441601C0
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2377C433D7;
+        Mon,  5 Sep 2022 20:26:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409573;
-        bh=yEC6/60elbhacgQNRUiv+OMJUdae7+IyBLDDWlZordE=;
+        s=korg; t=1662409578;
+        bh=k8Ll5SjY1NMMyqUVMD7Fh22JC8pkTH+QBzR8XprWX5M=;
         h=Date:To:From:Subject:From;
-        b=RsGHgWFjyQiHIx+5MyqxOMQVZijMeQfZjdf3URrgSm5d4D6MDd8GtNwoO1LzZEwde
-         Hy0o4dhjv9XXRZet+nX9HLg5uRWLpENPWB8Dw6nv228S8yhfLE4pejEYirwWfdjHvs
-         sKhSpTCCCr2/LYrzPiXxPlXPvMCKDmA0yIJRUCRw=
-Date:   Mon, 05 Sep 2022 13:26:12 -0700
+        b=ZPak/y9hX1hEt/6MYiQQX7a3k1suZq4ozpIq8Bmjmzh156IaeX5mciMYXRb4eKXsY
+         vkuDNSdlLh5XjSN41hFbqxf2O7+T9BmeCSaEXznNhD+QI1/hQ4G7Yx2x38WPKajOs3
+         ubGjBAZ5gTZxuS3MUH8inLXn5zIQ5xo5D8c9R7q8=
+Date:   Mon, 05 Sep 2022 13:26:18 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-asm-instrument-usercopy-in-get_user-and-put_user.patch added to mm-unstable branch
-Message-Id: <20220905202613.5A00AC433D6@smtp.kernel.org>
+Subject: + kmsan-add-rest-documentation.patch added to mm-unstable branch
+Message-Id: <20220905202618.B2377C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: asm: instrument usercopy in get_user() and put_user()
+     Subject: kmsan: add ReST documentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-asm-instrument-usercopy-in-get_user-and-put_user.patch
+     kmsan-add-rest-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-asm-instrument-usercopy-in-get_user-and-put_user.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-add-rest-documentation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,13 +76,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: asm: instrument usercopy in get_user() and put_user()
-Date: Mon, 5 Sep 2022 14:24:12 +0200
+Subject: kmsan: add ReST documentation
+Date: Mon, 5 Sep 2022 14:24:14 +0200
 
-Use hooks from instrumented.h to notify bug detection tools about usercopy
-events in variations of get_user() and put_user().
+Add Documentation/dev-tools/kmsan.rst and reference it in the dev-tools
+index.
 
-Link: https://lkml.kernel.org/r/20220905122452.2258262-5-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-7-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -120,124 +120,450 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uaccess.h |   22 +++++++++++++++-------
- include/linux/instrumented.h   |   28 ++++++++++++++++++++++++++++
- 2 files changed, 43 insertions(+), 7 deletions(-)
+ Documentation/dev-tools/index.rst |    1 
+ Documentation/dev-tools/kmsan.rst |  427 ++++++++++++++++++++++++++++
+ 2 files changed, 428 insertions(+)
 
---- a/arch/x86/include/asm/uaccess.h~x86-asm-instrument-usercopy-in-get_user-and-put_user
-+++ a/arch/x86/include/asm/uaccess.h
-@@ -5,6 +5,7 @@
-  * User space memory access functions
-  */
- #include <linux/compiler.h>
-+#include <linux/instrumented.h>
- #include <linux/kasan-checks.h>
- #include <linux/string.h>
- #include <asm/asm.h>
-@@ -103,6 +104,7 @@ extern int __get_user_bad(void);
- 		     : "=a" (__ret_gu), "=r" (__val_gu),		\
- 			ASM_CALL_CONSTRAINT				\
- 		     : "0" (ptr), "i" (sizeof(*(ptr))));		\
-+	instrument_get_user(__val_gu);					\
- 	(x) = (__force __typeof__(*(ptr))) __val_gu;			\
- 	__builtin_expect(__ret_gu, 0);					\
- })
-@@ -192,9 +194,11 @@ extern void __put_user_nocheck_8(void);
- 	int __ret_pu;							\
- 	void __user *__ptr_pu;						\
- 	register __typeof__(*(ptr)) __val_pu asm("%"_ASM_AX);		\
--	__chk_user_ptr(ptr);						\
--	__ptr_pu = (ptr);						\
--	__val_pu = (x);							\
-+	__typeof__(*(ptr)) __x = (x); /* eval x once */			\
-+	__typeof__(ptr) __ptr = (ptr); /* eval ptr once */		\
-+	__chk_user_ptr(__ptr);						\
-+	__ptr_pu = __ptr;						\
-+	__val_pu = __x;							\
- 	asm volatile("call __" #fn "_%P[size]"				\
- 		     : "=c" (__ret_pu),					\
- 			ASM_CALL_CONSTRAINT				\
-@@ -202,6 +206,7 @@ extern void __put_user_nocheck_8(void);
- 		       "r" (__val_pu),					\
- 		       [size] "i" (sizeof(*(ptr)))			\
- 		     :"ebx");						\
-+	instrument_put_user(__x, __ptr, sizeof(*(ptr)));		\
- 	__builtin_expect(__ret_pu, 0);					\
- })
- 
-@@ -248,23 +253,25 @@ extern void __put_user_nocheck_8(void);
- 
- #define __put_user_size(x, ptr, size, label)				\
- do {									\
-+	__typeof__(*(ptr)) __x = (x); /* eval x once */			\
- 	__chk_user_ptr(ptr);						\
- 	switch (size) {							\
- 	case 1:								\
--		__put_user_goto(x, ptr, "b", "iq", label);		\
-+		__put_user_goto(__x, ptr, "b", "iq", label);		\
- 		break;							\
- 	case 2:								\
--		__put_user_goto(x, ptr, "w", "ir", label);		\
-+		__put_user_goto(__x, ptr, "w", "ir", label);		\
- 		break;							\
- 	case 4:								\
--		__put_user_goto(x, ptr, "l", "ir", label);		\
-+		__put_user_goto(__x, ptr, "l", "ir", label);		\
- 		break;							\
- 	case 8:								\
--		__put_user_goto_u64(x, ptr, label);			\
-+		__put_user_goto_u64(__x, ptr, label);			\
- 		break;							\
- 	default:							\
- 		__put_user_bad();					\
- 	}								\
-+	instrument_put_user(__x, ptr, size);				\
- } while (0)
- 
- #ifdef CONFIG_CC_HAS_ASM_GOTO_OUTPUT
-@@ -305,6 +312,7 @@ do {									\
- 	default:							\
- 		(x) = __get_user_bad();					\
- 	}								\
-+	instrument_get_user(x);						\
- } while (0)
- 
- #define __get_user_asm(x, addr, itype, ltype, label)			\
---- a/include/linux/instrumented.h~x86-asm-instrument-usercopy-in-get_user-and-put_user
-+++ a/include/linux/instrumented.h
-@@ -153,4 +153,32 @@ instrument_copy_from_user_after(const vo
- {
- }
- 
-+/**
-+ * instrument_get_user() - add instrumentation to get_user()-like macros
-+ *
-+ * get_user() and friends are fragile, so it may depend on the implementation
-+ * whether the instrumentation happens before or after the data is copied from
-+ * the userspace.
-+ *
-+ * @to destination variable, may not be address-taken
-+ */
-+#define instrument_get_user(to)                         \
-+({                                                      \
-+})
+--- a/Documentation/dev-tools/index.rst~kmsan-add-rest-documentation
++++ a/Documentation/dev-tools/index.rst
+@@ -24,6 +24,7 @@ Documentation/dev-tools/testing-overview
+    kcov
+    gcov
+    kasan
++   kmsan
+    ubsan
+    kmemleak
+    kcsan
+--- /dev/null
++++ a/Documentation/dev-tools/kmsan.rst
+@@ -0,0 +1,427 @@
++.. SPDX-License-Identifier: GPL-2.0
++.. Copyright (C) 2022, Google LLC.
 +
-+/**
-+ * instrument_put_user() - add instrumentation to put_user()-like macros
-+ *
-+ * put_user() and friends are fragile, so it may depend on the implementation
-+ * whether the instrumentation happens before or after the data is copied from
-+ * the userspace.
-+ *
-+ * @from source address
-+ * @ptr userspace pointer to copy to
-+ * @size number of bytes to copy
-+ */
-+#define instrument_put_user(from, ptr, size)                    \
-+({                                                              \
-+})
++===================================
++The Kernel Memory Sanitizer (KMSAN)
++===================================
 +
- #endif /* _LINUX_INSTRUMENTED_H */
++KMSAN is a dynamic error detector aimed at finding uses of uninitialized
++values. It is based on compiler instrumentation, and is quite similar to the
++userspace `MemorySanitizer tool`_.
++
++An important note is that KMSAN is not intended for production use, because it
++drastically increases kernel memory footprint and slows the whole system down.
++
++Usage
++=====
++
++Building the kernel
++-------------------
++
++In order to build a kernel with KMSAN you will need a fresh Clang (14.0.6+).
++Please refer to `LLVM documentation`_ for the instructions on how to build Clang.
++
++Now configure and build the kernel with CONFIG_KMSAN enabled.
++
++Example report
++--------------
++
++Here is an example of a KMSAN report::
++
++  =====================================================
++  BUG: KMSAN: uninit-value in test_uninit_kmsan_check_memory+0x1be/0x380 [kmsan_test]
++   test_uninit_kmsan_check_memory+0x1be/0x380 mm/kmsan/kmsan_test.c:273
++   kunit_run_case_internal lib/kunit/test.c:333
++   kunit_try_run_case+0x206/0x420 lib/kunit/test.c:374
++   kunit_generic_run_threadfn_adapter+0x6d/0xc0 lib/kunit/try-catch.c:28
++   kthread+0x721/0x850 kernel/kthread.c:327
++   ret_from_fork+0x1f/0x30 ??:?
++
++  Uninit was stored to memory at:
++   do_uninit_local_array+0xfa/0x110 mm/kmsan/kmsan_test.c:260
++   test_uninit_kmsan_check_memory+0x1a2/0x380 mm/kmsan/kmsan_test.c:271
++   kunit_run_case_internal lib/kunit/test.c:333
++   kunit_try_run_case+0x206/0x420 lib/kunit/test.c:374
++   kunit_generic_run_threadfn_adapter+0x6d/0xc0 lib/kunit/try-catch.c:28
++   kthread+0x721/0x850 kernel/kthread.c:327
++   ret_from_fork+0x1f/0x30 ??:?
++
++  Local variable uninit created at:
++   do_uninit_local_array+0x4a/0x110 mm/kmsan/kmsan_test.c:256
++   test_uninit_kmsan_check_memory+0x1a2/0x380 mm/kmsan/kmsan_test.c:271
++
++  Bytes 4-7 of 8 are uninitialized
++  Memory access of size 8 starts at ffff888083fe3da0
++
++  CPU: 0 PID: 6731 Comm: kunit_try_catch Tainted: G    B       E     5.16.0-rc3+ #104
++  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
++  =====================================================
++
++The report says that the local variable ``uninit`` was created uninitialized in
++``do_uninit_local_array()``. The third stack trace corresponds to the place
++where this variable was created.
++
++The first stack trace shows where the uninit value was used (in
++``test_uninit_kmsan_check_memory()``). The tool shows the bytes which were left
++uninitialized in the local variable, as well as the stack where the value was
++copied to another memory location before use.
++
++A use of uninitialized value ``v`` is reported by KMSAN in the following cases:
++ - in a condition, e.g. ``if (v) { ... }``;
++ - in an indexing or pointer dereferencing, e.g. ``array[v]`` or ``*v``;
++ - when it is copied to userspace or hardware, e.g. ``copy_to_user(..., &v, ...)``;
++ - when it is passed as an argument to a function, and
++   ``CONFIG_KMSAN_CHECK_PARAM_RETVAL`` is enabled (see below).
++
++The mentioned cases (apart from copying data to userspace or hardware, which is
++a security issue) are considered undefined behavior from the C11 Standard point
++of view.
++
++Disabling the instrumentation
++-----------------------------
++
++A function can be marked with ``__no_kmsan_checks``. Doing so makes KMSAN
++ignore uninitialized values in that function and mark its output as initialized.
++As a result, the user will not get KMSAN reports related to that function.
++
++Another function attribute supported by KMSAN is ``__no_sanitize_memory``.
++Applying this attribute to a function will result in KMSAN not instrumenting
++it, which can be helpful if we do not want the compiler to interfere with some
++low-level code (e.g. that marked with ``noinstr`` which implicitly adds
++``__no_sanitize_memory``).
++
++This however comes at a cost: stack allocations from such functions will have
++incorrect shadow/origin values, likely leading to false positives. Functions
++called from non-instrumented code may also receive incorrect metadata for their
++parameters.
++
++As a rule of thumb, avoid using ``__no_sanitize_memory`` explicitly.
++
++It is also possible to disable KMSAN for a single file (e.g. main.o)::
++
++  KMSAN_SANITIZE_main.o := n
++
++or for the whole directory::
++
++  KMSAN_SANITIZE := n
++
++in the Makefile. Think of this as applying ``__no_sanitize_memory`` to every
++function in the file or directory. Most users won't need KMSAN_SANITIZE, unless
++their code gets broken by KMSAN (e.g. runs at early boot time).
++
++Support
++=======
++
++In order for KMSAN to work the kernel must be built with Clang, which so far is
++the only compiler that has KMSAN support. The kernel instrumentation pass is
++based on the userspace `MemorySanitizer tool`_.
++
++The runtime library only supports x86_64 at the moment.
++
++How KMSAN works
++===============
++
++KMSAN shadow memory
++-------------------
++
++KMSAN associates a metadata byte (also called shadow byte) with every byte of
++kernel memory. A bit in the shadow byte is set iff the corresponding bit of the
++kernel memory byte is uninitialized. Marking the memory uninitialized (i.e.
++setting its shadow bytes to ``0xff``) is called poisoning, marking it
++initialized (setting the shadow bytes to ``0x00``) is called unpoisoning.
++
++When a new variable is allocated on the stack, it is poisoned by default by
++instrumentation code inserted by the compiler (unless it is a stack variable
++that is immediately initialized). Any new heap allocation done without
++``__GFP_ZERO`` is also poisoned.
++
++Compiler instrumentation also tracks the shadow values as they are used along
++the code. When needed, instrumentation code invokes the runtime library in
++``mm/kmsan/`` to persist shadow values.
++
++The shadow value of a basic or compound type is an array of bytes of the same
++length. When a constant value is written into memory, that memory is unpoisoned.
++When a value is read from memory, its shadow memory is also obtained and
++propagated into all the operations which use that value. For every instruction
++that takes one or more values the compiler generates code that calculates the
++shadow of the result depending on those values and their shadows.
++
++Example::
++
++  int a = 0xff;  // i.e. 0x000000ff
++  int b;
++  int c = a | b;
++
++In this case the shadow of ``a`` is ``0``, shadow of ``b`` is ``0xffffffff``,
++shadow of ``c`` is ``0xffffff00``. This means that the upper three bytes of
++``c`` are uninitialized, while the lower byte is initialized.
++
++Origin tracking
++---------------
++
++Every four bytes of kernel memory also have a so-called origin mapped to them.
++This origin describes the point in program execution at which the uninitialized
++value was created. Every origin is associated with either the full allocation
++stack (for heap-allocated memory), or the function containing the uninitialized
++variable (for locals).
++
++When an uninitialized variable is allocated on stack or heap, a new origin
++value is created, and that variable's origin is filled with that value. When a
++value is read from memory, its origin is also read and kept together with the
++shadow. For every instruction that takes one or more values, the origin of the
++result is one of the origins corresponding to any of the uninitialized inputs.
++If a poisoned value is written into memory, its origin is written to the
++corresponding storage as well.
++
++Example 1::
++
++  int a = 42;
++  int b;
++  int c = a + b;
++
++In this case the origin of ``b`` is generated upon function entry, and is
++stored to the origin of ``c`` right before the addition result is written into
++memory.
++
++Several variables may share the same origin address, if they are stored in the
++same four-byte chunk. In this case every write to either variable updates the
++origin for all of them. We have to sacrifice precision in this case, because
++storing origins for individual bits (and even bytes) would be too costly.
++
++Example 2::
++
++  int combine(short a, short b) {
++    union ret_t {
++      int i;
++      short s[2];
++    } ret;
++    ret.s[0] = a;
++    ret.s[1] = b;
++    return ret.i;
++  }
++
++If ``a`` is initialized and ``b`` is not, the shadow of the result would be
++0xffff0000, and the origin of the result would be the origin of ``b``.
++``ret.s[0]`` would have the same origin, but it will never be used, because
++that variable is initialized.
++
++If both function arguments are uninitialized, only the origin of the second
++argument is preserved.
++
++Origin chaining
++~~~~~~~~~~~~~~~
++
++To ease debugging, KMSAN creates a new origin for every store of an
++uninitialized value to memory. The new origin references both its creation stack
++and the previous origin the value had. This may cause increased memory
++consumption, so we limit the length of origin chains in the runtime.
++
++Clang instrumentation API
++-------------------------
++
++Clang instrumentation pass inserts calls to functions defined in
++``mm/kmsan/nstrumentation.c`` into the kernel code.
++
++Shadow manipulation
++~~~~~~~~~~~~~~~~~~~
++
++For every memory access the compiler emits a call to a function that returns a
++pair of pointers to the shadow and origin addresses of the given memory::
++
++  typedef struct {
++    void *shadow, *origin;
++  } shadow_origin_ptr_t
++
++  shadow_origin_ptr_t __msan_metadata_ptr_for_load_{1,2,4,8}(void *addr)
++  shadow_origin_ptr_t __msan_metadata_ptr_for_store_{1,2,4,8}(void *addr)
++  shadow_origin_ptr_t __msan_metadata_ptr_for_load_n(void *addr, uintptr_t size)
++  shadow_origin_ptr_t __msan_metadata_ptr_for_store_n(void *addr, uintptr_t size)
++
++The function name depends on the memory access size.
++
++The compiler makes sure that for every loaded value its shadow and origin
++values are read from memory. When a value is stored to memory, its shadow and
++origin are also stored using the metadata pointers.
++
++Handling locals
++~~~~~~~~~~~~~~~
++
++A special function is used to create a new origin value for a local variable and
++set the origin of that variable to that value::
++
++  void __msan_poison_alloca(void *addr, uintptr_t size, char *descr)
++
++Access to per-task data
++~~~~~~~~~~~~~~~~~~~~~~~
++
++At the beginning of every instrumented function KMSAN inserts a call to
++``__msan_get_context_state()``::
++
++  kmsan_context_state *__msan_get_context_state(void)
++
++``kmsan_context_state`` is declared in ``include/linux/kmsan.h``::
++
++  struct kmsan_context_state {
++    char param_tls[KMSAN_PARAM_SIZE];
++    char retval_tls[KMSAN_RETVAL_SIZE];
++    char va_arg_tls[KMSAN_PARAM_SIZE];
++    char va_arg_origin_tls[KMSAN_PARAM_SIZE];
++    u64 va_arg_overflow_size_tls;
++    char param_origin_tls[KMSAN_PARAM_SIZE];
++    depot_stack_handle_t retval_origin_tls;
++  };
++
++This structure is used by KMSAN to pass parameter shadows and origins between
++instrumented functions (unless the parameters are checked immediately by
++``CONFIG_KMSAN_CHECK_PARAM_RETVAL``).
++
++Passing uninitialized values to functions
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++Clang's MemorySanitizer instrumentation has an option,
++``-fsanitize-memory-param-retval``, which makes the compiler check function
++parameters passed by value, as well as function return values.
++
++The option is controlled by ``CONFIG_KMSAN_CHECK_PARAM_RETVAL``, which is
++enabled by default to let KMSAN report uninitialized values earlier.
++Please refer to the `LKML discussion`_ for more details.
++
++Because of the way the checks are implemented in LLVM (they are only applied to
++parameters marked as ``noundef``), not all parameters are guaranteed to be
++checked, so we cannot give up the metadata storage in ``kmsan_context_state``.
++
++String functions
++~~~~~~~~~~~~~~~~
++
++The compiler replaces calls to ``memcpy()``/``memmove()``/``memset()`` with the
++following functions. These functions are also called when data structures are
++initialized or copied, making sure shadow and origin values are copied alongside
++with the data::
++
++  void *__msan_memcpy(void *dst, void *src, uintptr_t n)
++  void *__msan_memmove(void *dst, void *src, uintptr_t n)
++  void *__msan_memset(void *dst, int c, uintptr_t n)
++
++Error reporting
++~~~~~~~~~~~~~~~
++
++For each use of a value the compiler emits a shadow check that calls
++``__msan_warning()`` in the case that value is poisoned::
++
++  void __msan_warning(u32 origin)
++
++``__msan_warning()`` causes KMSAN runtime to print an error report.
++
++Inline assembly instrumentation
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++KMSAN instruments every inline assembly output with a call to::
++
++  void __msan_instrument_asm_store(void *addr, uintptr_t size)
++
++, which unpoisons the memory region.
++
++This approach may mask certain errors, but it also helps to avoid a lot of
++false positives in bitwise operations, atomics etc.
++
++Sometimes the pointers passed into inline assembly do not point to valid memory.
++In such cases they are ignored at runtime.
++
++
++Runtime library
++---------------
++
++The code is located in ``mm/kmsan/``.
++
++Per-task KMSAN state
++~~~~~~~~~~~~~~~~~~~~
++
++Every task_struct has an associated KMSAN task state that holds the KMSAN
++context (see above) and a per-task flag disallowing KMSAN reports::
++
++  struct kmsan_context {
++    ...
++    bool allow_reporting;
++    struct kmsan_context_state cstate;
++    ...
++  }
++
++  struct task_struct {
++    ...
++    struct kmsan_context kmsan;
++    ...
++  }
++
++KMSAN contexts
++~~~~~~~~~~~~~~
++
++When running in a kernel task context, KMSAN uses ``current->kmsan.cstate`` to
++hold the metadata for function parameters and return values.
++
++But in the case the kernel is running in the interrupt, softirq or NMI context,
++where ``current`` is unavailable, KMSAN switches to per-cpu interrupt state::
++
++  DEFINE_PER_CPU(struct kmsan_ctx, kmsan_percpu_ctx);
++
++Metadata allocation
++~~~~~~~~~~~~~~~~~~~
++
++There are several places in the kernel for which the metadata is stored.
++
++1. Each ``struct page`` instance contains two pointers to its shadow and
++origin pages::
++
++  struct page {
++    ...
++    struct page *shadow, *origin;
++    ...
++  };
++
++At boot-time, the kernel allocates shadow and origin pages for every available
++kernel page. This is done quite late, when the kernel address space is already
++fragmented, so normal data pages may arbitrarily interleave with the metadata
++pages.
++
++This means that in general for two contiguous memory pages their shadow/origin
++pages may not be contiguous. Consequently, if a memory access crosses the
++boundary of a memory block, accesses to shadow/origin memory may potentially
++corrupt other pages or read incorrect values from them.
++
++In practice, contiguous memory pages returned by the same ``alloc_pages()``
++call will have contiguous metadata, whereas if these pages belong to two
++different allocations their metadata pages can be fragmented.
++
++For the kernel data (``.data``, ``.bss`` etc.) and percpu memory regions
++there also are no guarantees on metadata contiguity.
++
++In the case ``__msan_metadata_ptr_for_XXX_YYY()`` hits the border between two
++pages with non-contiguous metadata, it returns pointers to fake shadow/origin regions::
++
++  char dummy_load_page[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
++  char dummy_store_page[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
++
++``dummy_load_page`` is zero-initialized, so reads from it always yield zeroes.
++All stores to ``dummy_store_page`` are ignored.
++
++2. For vmalloc memory and modules, there is a direct mapping between the memory
++range, its shadow and origin. KMSAN reduces the vmalloc area by 3/4, making only
++the first quarter available to ``vmalloc()``. The second quarter of the vmalloc
++area contains shadow memory for the first quarter, the third one holds the
++origins. A small part of the fourth quarter contains shadow and origins for the
++kernel modules. Please refer to ``arch/x86/include/asm/pgtable_64_types.h`` for
++more details.
++
++When an array of pages is mapped into a contiguous virtual memory space, their
++shadow and origin pages are similarly mapped into contiguous regions.
++
++References
++==========
++
++E. Stepanov, K. Serebryany. `MemorySanitizer: fast detector of uninitialized
++memory use in C++
++<https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/43308.pdf>`_.
++In Proceedings of CGO 2015.
++
++.. _MemorySanitizer tool: https://clang.llvm.org/docs/MemorySanitizer.html
++.. _LLVM documentation: https://llvm.org/docs/GettingStarted.html
++.. _LKML discussion: https://lore.kernel.org/all/20220614144853.3693273-1-glider@google.com/
 _
 
 Patches currently in -mm which might be from glider@google.com are
