@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CDECECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:30:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16301ECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:30:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232592AbiIEUaJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 16:30:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57700 "EHLO
+        id S232880AbiIEUaN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 16:30:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232597AbiIEU2c (ORCPT
+        with ESMTP id S232613AbiIEU2c (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D188B62AA9
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:58 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6A635789D
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:28:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6037D60688
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD36EC433D6;
-        Mon,  5 Sep 2022 20:27:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7EB62B815C6
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:28:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AA10C433C1;
+        Mon,  5 Sep 2022 20:28:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409677;
-        bh=Nt+2t915vmwqEGN5Ydmh5W80woSp+eNSbIEkG6rZpII=;
+        s=korg; t=1662409680;
+        bh=3fq+N/Sk+oitOZTiovsX9kHxOduASeGzuPViKr+EGqU=;
         h=Date:To:From:Subject:From;
-        b=I1hFIfgW9hlZgGx0Dd3/Sd3Avjj5lye8xiTSyyL//I5mn77tDEcI6BWCBHDteslo3
-         8J/WI48abFl67azqDx+1kgbkfAwRPIz1I38zdtZVgYYRAebk0K5xSUiDsdAl134paL
-         5fPZqTcy9de7N58stta4nomB4IYeWtvJ4QRfVjj4=
-Date:   Mon, 05 Sep 2022 13:27:57 -0700
+        b=Ldjcfkj9e6WH0ZJzKrmtor8K11QjA1A/aGvPGd2Y1yPkiebaVLU2++zqOtebR3AzY
+         QfymP4lxMAxOspJgTJRRcnoeYBKp71zAW7XbW4aKtv1dgQgfdQC4MCS5DN63/TRvi4
+         3K7jM6Zyo0/JD+2ZzMl7+vmVU0xuDKeorAOBqujg=
+Date:   Mon, 05 Sep 2022 13:27:59 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kmsan-sync-metadata-pages-on-page-fault.patch added to mm-unstable branch
-Message-Id: <20220905202757.AD36EC433D6@smtp.kernel.org>
+Subject: + x86-kasan-kmsan-support-config_generic_csum-on-x86-enable-it-for-kasan-kmsan.patch added to mm-unstable branch
+Message-Id: <20220905202800.1AA10C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: kmsan: sync metadata pages on page fault
+     Subject: x86: kasan: kmsan: support CONFIG_GENERIC_CSUM on x86, enable it for KASAN/KMSAN
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-kmsan-sync-metadata-pages-on-page-fault.patch
+     x86-kasan-kmsan-support-config_generic_csum-on-x86-enable-it-for-kasan-kmsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-sync-metadata-pages-on-page-fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kasan-kmsan-support-config_generic_csum-on-x86-enable-it-for-kasan-kmsan.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,15 +76,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: kmsan: sync metadata pages on page fault
-Date: Mon, 5 Sep 2022 14:24:45 +0200
+Subject: x86: kasan: kmsan: support CONFIG_GENERIC_CSUM on x86, enable it for KASAN/KMSAN
+Date: Mon, 5 Sep 2022 14:24:46 +0200
 
-KMSAN assumes shadow and origin pages for every allocated page are
-accessible.  For pages between [VMALLOC_START, VMALLOC_END] those metadata
-pages start at KMSAN_VMALLOC_SHADOW_START and KMSAN_VMALLOC_ORIGIN_START,
-therefore we must sync a bigger memory region.
+This is needed to allow memory tools like KASAN and KMSAN see the memory
+accesses from the checksum code.  Without CONFIG_GENERIC_CSUM the tools
+can't see memory accesses originating from handwritten assembly code.
 
-Link: https://lkml.kernel.org/r/20220905122452.2258262-38-glider@google.com
+For KASAN it's a question of detecting more bugs, for KMSAN using the C
+implementation also helps avoid false positives originating from seemingly
+uninitialized checksum values.
+
+Link: https://lkml.kernel.org/r/20220905122452.2258262-39-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -122,48 +125,58 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ arch/x86/Kconfig                |    4 ++++
+ arch/x86/include/asm/checksum.h |   16 ++++++++++------
+ arch/x86/lib/Makefile           |    2 ++
+ 3 files changed, 16 insertions(+), 6 deletions(-)
 
---- a/arch/x86/mm/fault.c~x86-kmsan-sync-metadata-pages-on-page-fault
-+++ a/arch/x86/mm/fault.c
-@@ -260,7 +260,7 @@ static noinline int vmalloc_fault(unsign
- }
- NOKPROBE_SYMBOL(vmalloc_fault);
+--- a/arch/x86/include/asm/checksum.h~x86-kasan-kmsan-support-config_generic_csum-on-x86-enable-it-for-kasan-kmsan
++++ a/arch/x86/include/asm/checksum.h
+@@ -1,9 +1,13 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+-#define  _HAVE_ARCH_COPY_AND_CSUM_FROM_USER 1
+-#define HAVE_CSUM_COPY_USER
+-#define _HAVE_ARCH_CSUM_AND_COPY
+-#ifdef CONFIG_X86_32
+-# include <asm/checksum_32.h>
++#ifdef CONFIG_GENERIC_CSUM
++# include <asm-generic/checksum.h>
+ #else
+-# include <asm/checksum_64.h>
++# define  _HAVE_ARCH_COPY_AND_CSUM_FROM_USER 1
++# define HAVE_CSUM_COPY_USER
++# define _HAVE_ARCH_CSUM_AND_COPY
++# ifdef CONFIG_X86_32
++#  include <asm/checksum_32.h>
++# else
++#  include <asm/checksum_64.h>
++# endif
+ #endif
+--- a/arch/x86/Kconfig~x86-kasan-kmsan-support-config_generic_csum-on-x86-enable-it-for-kasan-kmsan
++++ a/arch/x86/Kconfig
+@@ -325,6 +325,10 @@ config GENERIC_ISA_DMA
+ 	def_bool y
+ 	depends on ISA_DMA_API
  
--void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
-+static void __arch_sync_kernel_mappings(unsigned long start, unsigned long end)
- {
- 	unsigned long addr;
- 
-@@ -284,6 +284,27 @@ void arch_sync_kernel_mappings(unsigned
- 	}
- }
- 
-+void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
-+{
-+	__arch_sync_kernel_mappings(start, end);
-+#ifdef CONFIG_KMSAN
-+	/*
-+	 * KMSAN maintains two additional metadata page mappings for the
-+	 * [VMALLOC_START, VMALLOC_END) range. These mappings start at
-+	 * KMSAN_VMALLOC_SHADOW_START and KMSAN_VMALLOC_ORIGIN_START and
-+	 * have to be synced together with the vmalloc memory mapping.
-+	 */
-+	if (start >= VMALLOC_START && end < VMALLOC_END) {
-+		__arch_sync_kernel_mappings(
-+			start - VMALLOC_START + KMSAN_VMALLOC_SHADOW_START,
-+			end - VMALLOC_START + KMSAN_VMALLOC_SHADOW_START);
-+		__arch_sync_kernel_mappings(
-+			start - VMALLOC_START + KMSAN_VMALLOC_ORIGIN_START,
-+			end - VMALLOC_START + KMSAN_VMALLOC_ORIGIN_START);
-+	}
-+#endif
-+}
++config GENERIC_CSUM
++	bool
++	default y if KMSAN || KASAN
 +
- static bool low_pfn(unsigned long pfn)
- {
- 	return pfn < max_low_pfn;
+ config GENERIC_BUG
+ 	def_bool y
+ 	depends on BUG
+--- a/arch/x86/lib/Makefile~x86-kasan-kmsan-support-config_generic_csum-on-x86-enable-it-for-kasan-kmsan
++++ a/arch/x86/lib/Makefile
+@@ -65,7 +65,9 @@ ifneq ($(CONFIG_X86_CMPXCHG64),y)
+ endif
+ else
+         obj-y += iomap_copy_64.o
++ifneq ($(CONFIG_GENERIC_CSUM),y)
+         lib-y += csum-partial_64.o csum-copy_64.o csum-wrappers_64.o
++endif
+         lib-y += clear_page_64.o copy_page_64.o
+         lib-y += memmove_64.o memset_64.o
+         lib-y += copy_user_64.o
 _
 
 Patches currently in -mm which might be from glider@google.com are
