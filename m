@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC595ECAAD5
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:30:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CDECECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:30:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232587AbiIEUaI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 16:30:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57488 "EHLO
+        id S232592AbiIEUaJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 16:30:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232261AbiIEU2c (ORCPT
+        with ESMTP id S232597AbiIEU2c (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:32 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EFF865567
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D188B62AA9
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B1AEE60688
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF0D7C433C1;
-        Mon,  5 Sep 2022 20:27:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6037D60688
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD36EC433D6;
+        Mon,  5 Sep 2022 20:27:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409675;
-        bh=lresyC4jf6F6vBP2OQeOpPevvRbECq29Ptxv/paF6+8=;
+        s=korg; t=1662409677;
+        bh=Nt+2t915vmwqEGN5Ydmh5W80woSp+eNSbIEkG6rZpII=;
         h=Date:To:From:Subject:From;
-        b=PK93vtus2KWOPqBhgLgMk2hLSHBhK+qKgc3u62NFGresFwTt2SzQWkALp20JcTazZ
-         Ze4aw069RBvALSW38A2IpmSTzXevV0dc8NjsFqoXhZbdPmjybhCSTiICjls50PUNGs
-         spwDDNhB3JoMiVWHK05TdqNwNSq/ItOzRSeJMf5w=
-Date:   Mon, 05 Sep 2022 13:27:54 -0700
+        b=I1hFIfgW9hlZgGx0Dd3/Sd3Avjj5lye8xiTSyyL//I5mn77tDEcI6BWCBHDteslo3
+         8J/WI48abFl67azqDx+1kgbkfAwRPIz1I38zdtZVgYYRAebk0K5xSUiDsdAl134paL
+         5fPZqTcy9de7N58stta4nomB4IYeWtvJ4QRfVjj4=
+Date:   Mon, 05 Sep 2022 13:27:57 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kmsan-use-__msan_-string-functions-where-possible.patch added to mm-unstable branch
-Message-Id: <20220905202754.CF0D7C433C1@smtp.kernel.org>
+Subject: + x86-kmsan-sync-metadata-pages-on-page-fault.patch added to mm-unstable branch
+Message-Id: <20220905202757.AD36EC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: kmsan: use __msan_ string functions where possible.
+     Subject: x86: kmsan: sync metadata pages on page fault
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-kmsan-use-__msan_-string-functions-where-possible.patch
+     x86-kmsan-sync-metadata-pages-on-page-fault.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-use-__msan_-string-functions-where-possible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-sync-metadata-pages-on-page-fault.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,17 +76,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: kmsan: use __msan_ string functions where possible.
-Date: Mon, 5 Sep 2022 14:24:44 +0200
+Subject: x86: kmsan: sync metadata pages on page fault
+Date: Mon, 5 Sep 2022 14:24:45 +0200
 
-Unless stated otherwise (by explicitly calling __memcpy(), __memset() or
-__memmove()) we want all string functions to call their __msan_ versions
-(e.g.  __msan_memcpy() instead of memcpy()), so that shadow and origin
-values are updated accordingly.
+KMSAN assumes shadow and origin pages for every allocated page are
+accessible.  For pages between [VMALLOC_START, VMALLOC_END] those metadata
+pages start at KMSAN_VMALLOC_SHADOW_START and KMSAN_VMALLOC_ORIGIN_START,
+therefore we must sync a bigger memory region.
 
-Bootloader must still use the default string functions to avoid crashes.
-
-Link: https://lkml.kernel.org/r/20220905122452.2258262-37-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-38-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -124,83 +122,48 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/string_64.h |   23 +++++++++++++++++++++--
- include/linux/fortify-string.h   |    2 ++
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ arch/x86/mm/fault.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
---- a/arch/x86/include/asm/string_64.h~x86-kmsan-use-__msan_-string-functions-where-possible
-+++ a/arch/x86/include/asm/string_64.h
-@@ -11,11 +11,23 @@
-    function. */
+--- a/arch/x86/mm/fault.c~x86-kmsan-sync-metadata-pages-on-page-fault
++++ a/arch/x86/mm/fault.c
+@@ -260,7 +260,7 @@ static noinline int vmalloc_fault(unsign
+ }
+ NOKPROBE_SYMBOL(vmalloc_fault);
  
- #define __HAVE_ARCH_MEMCPY 1
-+#if defined(__SANITIZE_MEMORY__)
-+#undef memcpy
-+void *__msan_memcpy(void *dst, const void *src, size_t size);
-+#define memcpy __msan_memcpy
-+#else
- extern void *memcpy(void *to, const void *from, size_t len);
-+#endif
- extern void *__memcpy(void *to, const void *from, size_t len);
+-void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
++static void __arch_sync_kernel_mappings(unsigned long start, unsigned long end)
+ {
+ 	unsigned long addr;
  
- #define __HAVE_ARCH_MEMSET
-+#if defined(__SANITIZE_MEMORY__)
-+extern void *__msan_memset(void *s, int c, size_t n);
-+#undef memset
-+#define memset __msan_memset
-+#else
- void *memset(void *s, int c, size_t n);
-+#endif
- void *__memset(void *s, int c, size_t n);
- 
- #define __HAVE_ARCH_MEMSET16
-@@ -55,7 +67,13 @@ static inline void *memset64(uint64_t *s
+@@ -284,6 +284,27 @@ void arch_sync_kernel_mappings(unsigned
+ 	}
  }
  
- #define __HAVE_ARCH_MEMMOVE
-+#if defined(__SANITIZE_MEMORY__)
-+#undef memmove
-+void *__msan_memmove(void *dest, const void *src, size_t len);
-+#define memmove __msan_memmove
-+#else
- void *memmove(void *dest, const void *src, size_t count);
++void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
++{
++	__arch_sync_kernel_mappings(start, end);
++#ifdef CONFIG_KMSAN
++	/*
++	 * KMSAN maintains two additional metadata page mappings for the
++	 * [VMALLOC_START, VMALLOC_END) range. These mappings start at
++	 * KMSAN_VMALLOC_SHADOW_START and KMSAN_VMALLOC_ORIGIN_START and
++	 * have to be synced together with the vmalloc memory mapping.
++	 */
++	if (start >= VMALLOC_START && end < VMALLOC_END) {
++		__arch_sync_kernel_mappings(
++			start - VMALLOC_START + KMSAN_VMALLOC_SHADOW_START,
++			end - VMALLOC_START + KMSAN_VMALLOC_SHADOW_START);
++		__arch_sync_kernel_mappings(
++			start - VMALLOC_START + KMSAN_VMALLOC_ORIGIN_START,
++			end - VMALLOC_START + KMSAN_VMALLOC_ORIGIN_START);
++	}
 +#endif
- void *__memmove(void *dest, const void *src, size_t count);
- 
- int memcmp(const void *cs, const void *ct, size_t count);
-@@ -64,8 +82,7 @@ char *strcpy(char *dest, const char *src
- char *strcat(char *dest, const char *src);
- int strcmp(const char *cs, const char *ct);
- 
--#if defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__)
--
-+#if (defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__))
- /*
-  * For files that not instrumented (e.g. mm/slub.c) we
-  * should use not instrumented version of mem* functions.
-@@ -73,7 +90,9 @@ int strcmp(const char *cs, const char *c
- 
- #undef memcpy
- #define memcpy(dst, src, len) __memcpy(dst, src, len)
-+#undef memmove
- #define memmove(dst, src, len) __memmove(dst, src, len)
-+#undef memset
- #define memset(s, c, n) __memset(s, c, n)
- 
- #ifndef __NO_FORTIFY
---- a/include/linux/fortify-string.h~x86-kmsan-use-__msan_-string-functions-where-possible
-+++ a/include/linux/fortify-string.h
-@@ -285,8 +285,10 @@ __FORTIFY_INLINE void fortify_memset_chk
-  * __builtin_object_size() must be captured here to avoid evaluating argument
-  * side-effects further into the macro layers.
-  */
-+#ifndef CONFIG_KMSAN
- #define memset(p, c, s) __fortify_memset_chk(p, c, s,			\
- 		__builtin_object_size(p, 0), __builtin_object_size(p, 1))
-+#endif
- 
- /*
-  * To make sure the compiler can enforce protection against buffer overflows,
++}
++
+ static bool low_pfn(unsigned long pfn)
+ {
+ 	return pfn < max_low_pfn;
 _
 
 Patches currently in -mm which might be from glider@google.com are
