@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAF83ECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE82CC54EE9
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232355AbiIEWsD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230402AbiIEWsD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 5 Sep 2022 18:48:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40382 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230402AbiIEWr4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:47:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFF2444548
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:47:54 -0700 (PDT)
+        with ESMTP id S232362AbiIEWr5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:47:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2895944576
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:47:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 84223B815D5
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:47:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 292D7C433D6;
-        Mon,  5 Sep 2022 22:47:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B5A4060EF3
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:47:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15B15C433D7;
+        Mon,  5 Sep 2022 22:47:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418072;
-        bh=aXbel+EjodEh0jYEetcX+v0CKJOv6yahO4xIcSj7BD8=;
+        s=korg; t=1662418075;
+        bh=gFv6bY1e96dCJ6TjFKtEdq6nT3HcWluQ1AMwPTgSj8g=;
         h=Date:To:From:Subject:From;
-        b=IOYUPn6b36fxaTe6USJ3yQ4NlLpAYQxhyO5I1Tmt9J/YiMcOn4NwH6J2snIJVVFb7
-         RgceVJLudm9QAaG2Xi9RvwSaNurg0pomHPJML7aa0U3fxqKnQCfiZo7+mTRAcLkueM
-         qSqwAi3Qfr6x4QY1T7MDSGH4TU5rJeIkxMwanF+M=
-Date:   Mon, 05 Sep 2022 15:47:51 -0700
+        b=CQxPScakn/jPhZQb5LqYtDx9RxOz/ryK2AAlF90wLCsEv0o9Vi5sCXXRGFFKv6xoL
+         fvPCsGujRMejf71wsJr0kdKgiqqmkdUcqfl2TC0JZl+CLH/0+PWtwh72fpC9LPNPdn
+         DVNbjLHTvrBKAMrkLPFn+jVmL7VJGm3LERz6QBAE=
+Date:   Mon, 05 Sep 2022 15:47:54 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-introduce-kasan_get_alloc_track.patch added to mm-unstable branch
-Message-Id: <20220905224752.292D7C433D6@smtp.kernel.org>
+Subject: + kasan-introduce-kasan_init_object_meta.patch added to mm-unstable branch
+Message-Id: <20220905224755.15B15C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: introduce kasan_get_alloc_track
+     Subject: kasan: introduce kasan_init_object_meta
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-introduce-kasan_get_alloc_track.patch
+     kasan-introduce-kasan_init_object_meta.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-introduce-kasan_get_alloc_track.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-introduce-kasan_init_object_meta.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,20 +67,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: introduce kasan_get_alloc_track
-Date: Mon, 5 Sep 2022 23:05:22 +0200
+Subject: kasan: introduce kasan_init_object_meta
+Date: Mon, 5 Sep 2022 23:05:23 +0200
 
-Add a kasan_get_alloc_track() helper that fetches alloc_track for a slab
-object and use this helper in the common reporting code.
+Add a kasan_init_object_meta() helper that initializes metadata for a slab
+object and use it in the common code.
 
 For now, the implementations of this helper are the same for the Generic
 and tag-based modes, but they will diverge later in the series.
 
-This change hides references to alloc_meta from the common reporting code.
-This is desired as only the Generic mode will be using per-object
-metadata after this series.
+This change hides references to alloc_meta from the common code.  This is
+desired as only the Generic mode will be using per-object metadata after
+this series.
 
-Link: https://lkml.kernel.org/r/0c365a35f4a833fff46f9d42c3212b32f7166556.1662411799.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/47c12938fc7f8105e7aaa592527c0e9d3c81fc37.1662411799.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -91,93 +91,78 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/generic.c |   14 +++++++++++++-
- mm/kasan/kasan.h   |    4 +++-
- mm/kasan/report.c  |    8 ++++----
- mm/kasan/tags.c    |   14 +++++++++++++-
- 4 files changed, 33 insertions(+), 7 deletions(-)
+ mm/kasan/common.c  |   10 +++-------
+ mm/kasan/generic.c |    9 +++++++++
+ mm/kasan/kasan.h   |    2 ++
+ mm/kasan/tags.c    |    9 +++++++++
+ 4 files changed, 23 insertions(+), 7 deletions(-)
 
---- a/mm/kasan/generic.c~kasan-introduce-kasan_get_alloc_track
-+++ a/mm/kasan/generic.c
-@@ -381,8 +381,20 @@ void kasan_save_free_info(struct kmem_ca
- 	*(u8 *)kasan_mem_to_shadow(object) = KASAN_SLAB_FREETRACK;
- }
- 
-+struct kasan_track *kasan_get_alloc_track(struct kmem_cache *cache,
-+						void *object)
-+{
-+	struct kasan_alloc_meta *alloc_meta;
-+
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (!alloc_meta)
-+		return NULL;
-+
-+	return &alloc_meta->alloc_track;
-+}
-+
- struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
--				void *object, u8 tag)
-+						void *object, u8 tag)
- {
- 	if (*(u8 *)kasan_mem_to_shadow(object) != KASAN_SLAB_FREETRACK)
- 		return NULL;
---- a/mm/kasan/kasan.h~kasan-introduce-kasan_get_alloc_track
-+++ a/mm/kasan/kasan.h
-@@ -283,8 +283,10 @@ depot_stack_handle_t kasan_save_stack(gf
- void kasan_set_track(struct kasan_track *track, gfp_t flags);
- void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags);
- void kasan_save_free_info(struct kmem_cache *cache, void *object, u8 tag);
-+struct kasan_track *kasan_get_alloc_track(struct kmem_cache *cache,
-+						void *object);
- struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
--				void *object, u8 tag);
-+						void *object, u8 tag);
- 
- #if defined(CONFIG_KASAN_GENERIC) && \
- 	(defined(CONFIG_SLAB) || defined(CONFIG_SLUB))
---- a/mm/kasan/report.c~kasan-introduce-kasan_get_alloc_track
-+++ a/mm/kasan/report.c
-@@ -255,12 +255,12 @@ static void describe_object_addr(struct
- static void describe_object_stacks(struct kmem_cache *cache, void *object,
- 					const void *addr, u8 tag)
+--- a/mm/kasan/common.c~kasan-introduce-kasan_init_object_meta
++++ a/mm/kasan/common.c
+@@ -313,13 +313,9 @@ static inline u8 assign_tag(struct kmem_
+ void * __must_check __kasan_init_slab_obj(struct kmem_cache *cache,
+ 						const void *object)
  {
 -	struct kasan_alloc_meta *alloc_meta;
-+	struct kasan_track *alloc_track;
- 	struct kasan_track *free_track;
+-
+-	if (kasan_stack_collection_enabled()) {
+-		alloc_meta = kasan_get_alloc_meta(cache, object);
+-		if (alloc_meta)
+-			__memset(alloc_meta, 0, sizeof(*alloc_meta));
+-	}
++	/* Initialize per-object metadata if it is present. */
++	if (kasan_stack_collection_enabled())
++		kasan_init_object_meta(cache, object);
  
--	alloc_meta = kasan_get_alloc_meta(cache, object);
--	if (alloc_meta) {
--		print_track(&alloc_meta->alloc_track, "Allocated");
-+	alloc_track = kasan_get_alloc_track(cache, object);
-+	if (alloc_track) {
-+		print_track(alloc_track, "Allocated");
- 		pr_err("\n");
- 	}
+ 	/* Tag is ignored in set_tag() without CONFIG_KASAN_SW/HW_TAGS */
+ 	object = set_tag(object, assign_tag(cache, object, true));
+--- a/mm/kasan/generic.c~kasan-introduce-kasan_init_object_meta
++++ a/mm/kasan/generic.c
+@@ -328,6 +328,15 @@ DEFINE_ASAN_SET_SHADOW(f3);
+ DEFINE_ASAN_SET_SHADOW(f5);
+ DEFINE_ASAN_SET_SHADOW(f8);
  
---- a/mm/kasan/tags.c~kasan-introduce-kasan_get_alloc_track
-+++ a/mm/kasan/tags.c
-@@ -38,8 +38,20 @@ void kasan_save_free_info(struct kmem_ca
- 	kasan_set_track(&alloc_meta->free_track, GFP_NOWAIT);
- }
- 
-+struct kasan_track *kasan_get_alloc_track(struct kmem_cache *cache,
-+						void *object)
++void kasan_init_object_meta(struct kmem_cache *cache, const void *object)
 +{
 +	struct kasan_alloc_meta *alloc_meta;
 +
 +	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (!alloc_meta)
-+		return NULL;
-+
-+	return &alloc_meta->alloc_track;
++	if (alloc_meta)
++		__memset(alloc_meta, 0, sizeof(*alloc_meta));
 +}
 +
- struct kasan_track *kasan_get_free_track(struct kmem_cache *cache,
--				void *object, u8 tag)
-+						void *object, u8 tag)
+ static void __kasan_record_aux_stack(void *addr, bool can_alloc)
+ {
+ 	struct slab *slab = kasan_addr_to_slab(addr);
+--- a/mm/kasan/kasan.h~kasan-introduce-kasan_init_object_meta
++++ a/mm/kasan/kasan.h
+@@ -279,6 +279,8 @@ void kasan_report_invalid_free(void *obj
+ struct page *kasan_addr_to_page(const void *addr);
+ struct slab *kasan_addr_to_slab(const void *addr);
+ 
++void kasan_init_object_meta(struct kmem_cache *cache, const void *object);
++
+ depot_stack_handle_t kasan_save_stack(gfp_t flags, bool can_alloc);
+ void kasan_set_track(struct kasan_track *track, gfp_t flags);
+ void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags);
+--- a/mm/kasan/tags.c~kasan-introduce-kasan_init_object_meta
++++ a/mm/kasan/tags.c
+@@ -17,6 +17,15 @@
+ 
+ #include "kasan.h"
+ 
++void kasan_init_object_meta(struct kmem_cache *cache, const void *object)
++{
++	struct kasan_alloc_meta *alloc_meta;
++
++	alloc_meta = kasan_get_alloc_meta(cache, object);
++	if (alloc_meta)
++		__memset(alloc_meta, 0, sizeof(*alloc_meta));
++}
++
+ void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
  {
  	struct kasan_alloc_meta *alloc_meta;
- 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
