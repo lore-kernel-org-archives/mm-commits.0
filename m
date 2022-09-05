@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00B75ECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:30:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1318ECAAD5
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:30:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232908AbiIEUab (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232721AbiIEUab (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 5 Sep 2022 16:30:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57724 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232721AbiIEU2j (ORCPT
+        with ESMTP id S232750AbiIEU2j (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:39 -0400
 Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E03D642E8
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:28:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0F7C65566
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:28:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 7BBF4CE1304
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:28:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9EF9C433C1;
-        Mon,  5 Sep 2022 20:28:10 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 4EB73CE13BA
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:28:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A30F4C433C1;
+        Mon,  5 Sep 2022 20:28:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409690;
-        bh=63s9s2gxwccqmyVv63pu4nS4VGv86zSZk6lmcq0dDXc=;
+        s=korg; t=1662409693;
+        bh=YUMjsVatOLYz4CPddeuTH+Lyl1GI/Xkto+Py+coQ8KE=;
         h=Date:To:From:Subject:From;
-        b=vczFdXy6wL+AW0oDR5USJAYsPgliMagtizg7gItJrgxRxv7TFF4dvZymsHqhzygCa
-         2GQTBMVyn5dSJA0uN/vUp0AWcaJcvupZysCgkEuPNBpLGhmlYG+GT5BeDeIZk9eZpB
-         caXwUWUiz9hEmWEAdevz7fyOa2vWvB1li7qyhkg0=
-Date:   Mon, 05 Sep 2022 13:28:10 -0700
+        b=NJWfqp3wMsRRcjnPkwluOx6ImWVCysgoU4f9F6URrh9Ydx5ZomxRTUAuRGUFt/TSp
+         Ub1mZOniHmfyHl0yyooa7mJn3iGoP5JKHsfh8fCrv+98gjFYclZDdxnmiYuObHgrok
+         BvGezQvDcDlJhpNLWVFIYdefhVP+5SmO2VAPU8R4=
+Date:   Mon, 05 Sep 2022 13:28:12 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fs-initialize-fsdata-passed-to-write_begin-write_end-interface.patch added to mm-unstable branch
-Message-Id: <20220905202810.A9EF9C433C1@smtp.kernel.org>
+Subject: + x86-kmsan-enable-kmsan-builds-for-x86.patch added to mm-unstable branch
+Message-Id: <20220905202813.A30F4C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fs: initialize fsdata passed to write_begin/write_end interface
+     Subject: x86: kmsan: enable KMSAN builds for x86
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fs-initialize-fsdata-passed-to-write_begin-write_end-interface.patch
+     x86-kmsan-enable-kmsan-builds-for-x86.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fs-initialize-fsdata-passed-to-write_begin-write_end-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-enable-kmsan-builds-for-x86.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,30 +76,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: mm: fs: initialize fsdata passed to write_begin/write_end interface
-Date: Mon, 5 Sep 2022 14:24:51 +0200
+Subject: x86: kmsan: enable KMSAN builds for x86
+Date: Mon, 5 Sep 2022 14:24:52 +0200
 
-Functions implementing the a_ops->write_end() interface accept the `void
-*fsdata` parameter that is supposed to be initialized by the corresponding
-a_ops->write_begin() (which accepts `void **fsdata`).
+Make KMSAN usable by adding the necessary Kconfig bits.
 
-However not all a_ops->write_begin() implementations initialize `fsdata`
-unconditionally, so it may get passed uninitialized to a_ops->write_end(),
-resulting in undefined behavior.
+Also declare x86-specific functions checking address validity
+in arch/x86/include/asm/kmsan.h.
 
-Fix this by initializing fsdata with NULL before the call to
-write_begin(), rather than doing so in all possible a_ops implementations.
-
-This patch covers only the following cases found by running x86 KMSAN
-under syzkaller:
-
- - generic_perform_write()
- - cont_expand_zero() and generic_cont_expand_simple()
- - page_symlink()
-
-Other cases of passing uninitialized fsdata may persist in the codebase.
-
-Link: https://lkml.kernel.org/r/20220905122452.2258262-44-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-45-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -137,53 +122,78 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c  |    4 ++--
- fs/namei.c   |    2 +-
- mm/filemap.c |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/Kconfig             |    1 
+ arch/x86/include/asm/kmsan.h |   55 +++++++++++++++++++++++++++++++++
+ 2 files changed, 56 insertions(+)
 
---- a/fs/buffer.c~mm-fs-initialize-fsdata-passed-to-write_begin-write_end-interface
-+++ a/fs/buffer.c
-@@ -2341,7 +2341,7 @@ int generic_cont_expand_simple(struct in
- 	struct address_space *mapping = inode->i_mapping;
- 	const struct address_space_operations *aops = mapping->a_ops;
- 	struct page *page;
--	void *fsdata;
-+	void *fsdata = NULL;
- 	int err;
- 
- 	err = inode_newsize_ok(inode, size);
-@@ -2367,7 +2367,7 @@ static int cont_expand_zero(struct file
- 	const struct address_space_operations *aops = mapping->a_ops;
- 	unsigned int blocksize = i_blocksize(inode);
- 	struct page *page;
--	void *fsdata;
-+	void *fsdata = NULL;
- 	pgoff_t index, curidx;
- 	loff_t curpos;
- 	unsigned zerofrom, offset, len;
---- a/fs/namei.c~mm-fs-initialize-fsdata-passed-to-write_begin-write_end-interface
-+++ a/fs/namei.c
-@@ -5088,7 +5088,7 @@ int page_symlink(struct inode *inode, co
- 	const struct address_space_operations *aops = mapping->a_ops;
- 	bool nofs = !mapping_gfp_constraint(mapping, __GFP_FS);
- 	struct page *page;
--	void *fsdata;
-+	void *fsdata = NULL;
- 	int err;
- 	unsigned int flags;
- 
---- a/mm/filemap.c~mm-fs-initialize-fsdata-passed-to-write_begin-write_end-interface
-+++ a/mm/filemap.c
-@@ -3719,7 +3719,7 @@ ssize_t generic_perform_write(struct kio
- 		unsigned long offset;	/* Offset into pagecache page */
- 		unsigned long bytes;	/* Bytes to write to page */
- 		size_t copied;		/* Bytes copied from user */
--		void *fsdata;
-+		void *fsdata = NULL;
- 
- 		offset = (pos & (PAGE_SIZE - 1));
- 		bytes = min_t(unsigned long, PAGE_SIZE - offset,
+--- /dev/null
++++ a/arch/x86/include/asm/kmsan.h
+@@ -0,0 +1,55 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * x86 KMSAN support.
++ *
++ * Copyright (C) 2022, Google LLC
++ * Author: Alexander Potapenko <glider@google.com>
++ */
++
++#ifndef _ASM_X86_KMSAN_H
++#define _ASM_X86_KMSAN_H
++
++#ifndef MODULE
++
++#include <asm/processor.h>
++#include <linux/mmzone.h>
++
++/*
++ * Taken from arch/x86/mm/physaddr.h to avoid using an instrumented version.
++ */
++static inline bool kmsan_phys_addr_valid(unsigned long addr)
++{
++	if (IS_ENABLED(CONFIG_PHYS_ADDR_T_64BIT))
++		return !(addr >> boot_cpu_data.x86_phys_bits);
++	else
++		return true;
++}
++
++/*
++ * Taken from arch/x86/mm/physaddr.c to avoid using an instrumented version.
++ */
++static inline bool kmsan_virt_addr_valid(void *addr)
++{
++	unsigned long x = (unsigned long)addr;
++	unsigned long y = x - __START_KERNEL_map;
++
++	/* use the carry flag to determine if x was < __START_KERNEL_map */
++	if (unlikely(x > y)) {
++		x = y + phys_base;
++
++		if (y >= KERNEL_IMAGE_SIZE)
++			return false;
++	} else {
++		x = y + (__START_KERNEL_map - PAGE_OFFSET);
++
++		/* carry flag will be set if starting x was >= PAGE_OFFSET */
++		if ((x > y) || !kmsan_phys_addr_valid(x))
++			return false;
++	}
++
++	return pfn_valid(x >> PAGE_SHIFT);
++}
++
++#endif /* !MODULE */
++
++#endif /* _ASM_X86_KMSAN_H */
+--- a/arch/x86/Kconfig~x86-kmsan-enable-kmsan-builds-for-x86
++++ a/arch/x86/Kconfig
+@@ -169,6 +169,7 @@ config X86
+ 	select HAVE_ARCH_KASAN			if X86_64
+ 	select HAVE_ARCH_KASAN_VMALLOC		if X86_64
+ 	select HAVE_ARCH_KFENCE
++	select HAVE_ARCH_KMSAN			if X86_64
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS		if MMU
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS	if MMU && COMPAT
 _
 
 Patches currently in -mm which might be from glider@google.com are
