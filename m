@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C081EECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75361C6FA89
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230425AbiIEWsR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 18:48:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40442 "EHLO
+        id S232385AbiIEWsT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 18:48:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232385AbiIEWsM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2879345067
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:11 -0700 (PDT)
+        with ESMTP id S232392AbiIEWsP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B99CA53002
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B94E960ECA
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A479C433C1;
-        Mon,  5 Sep 2022 22:48:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 582DE60ECE
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACF81C433C1;
+        Mon,  5 Sep 2022 22:48:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418090;
-        bh=c7+iNLA0Lbi0paVtLGYvi2wkwA4n5kZtVnuyV+Oq7MU=;
+        s=korg; t=1662418092;
+        bh=vuIo6ETu2mDq7V20fPGCr09RC0SxmGf26Sr0VYHZBV4=;
         h=Date:To:From:Subject:From;
-        b=STvPE7nw/tzANOfIpv6Fyve44o+EgLTHMeKQm45p9DJmBEwDPABTYLnXCy3p6D1cp
-         Jk4rsR8szBCE6kKp9Jk45/vPxYfovKfZWdDumKEvLGySXJ9lV2VrsJIXL6hc4HT9XD
-         ucCt/1QVRPadZaKcI+oIR88YomYysADh3QITEGHQ=
-Date:   Mon, 05 Sep 2022 15:48:09 -0700
+        b=TLqgEHY391H+MAzlyGd/S1tdawsXil5loMFq+hbgcA+No1tPem9wpFaH9lu4OJm0M
+         yyfcG0M3JJlCe4+NEfDMISRs6sKAl88QrfPBwWSzH5MHvXtQW8cQNMBHId8fgop5ah
+         9v+ysHtqcn1Nop0sRBWpmitMffCuvZiuW9SrsXRU=
+Date:   Mon, 05 Sep 2022 15:48:12 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-only-define-kasan_metadata_size-for-generic-mode.patch added to mm-unstable branch
-Message-Id: <20220905224810.1A479C433C1@smtp.kernel.org>
+Subject: + kasan-only-define-kasan_never_merge-for-generic-mode.patch added to mm-unstable branch
+Message-Id: <20220905224812.ACF81C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: only define kasan_metadata_size for Generic mode
+     Subject: kasan: only define kasan_never_merge for Generic mode
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-only-define-kasan_metadata_size-for-generic-mode.patch
+     kasan-only-define-kasan_never_merge-for-generic-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-only-define-kasan_metadata_size-for-generic-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-only-define-kasan_never_merge-for-generic-mode.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: only define kasan_metadata_size for Generic mode
-Date: Mon, 5 Sep 2022 23:05:29 +0200
+Subject: kasan: only define kasan_never_merge for Generic mode
+Date: Mon, 5 Sep 2022 23:05:30 +0200
 
-KASAN provides a helper for calculating the size of per-object metadata
-stored in the redzone.
+KASAN prevents merging of slab caches whose objects have per-object
+metadata stored in redzones.
 
-As now only the Generic mode uses per-object metadata, only define
-kasan_metadata_size() for this mode.
+As now only the Generic mode uses per-object metadata, define
+kasan_never_merge() only for this mode.
 
-Link: https://lkml.kernel.org/r/8f81d4938b80446bc72538a08217009f328a3e23.1662411799.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/81ed01f29ff3443580b7e2fe362a8b47b1e8006d.1662411799.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -87,98 +87,93 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   17 ++++++++---------
- mm/kasan/common.c     |   11 -----------
- mm/kasan/generic.c    |   11 +++++++++++
- 3 files changed, 19 insertions(+), 20 deletions(-)
+ include/linux/kasan.h |   18 ++++++------------
+ mm/kasan/common.c     |    8 --------
+ mm/kasan/generic.c    |    8 ++++++++
+ 3 files changed, 14 insertions(+), 20 deletions(-)
 
---- a/include/linux/kasan.h~kasan-only-define-kasan_metadata_size-for-generic-mode
+--- a/include/linux/kasan.h~kasan-only-define-kasan_never_merge-for-generic-mode
 +++ a/include/linux/kasan.h
-@@ -150,14 +150,6 @@ static __always_inline void kasan_cache_
- 		__kasan_cache_create_kmalloc(cache);
- }
+@@ -103,14 +103,6 @@ struct kasan_cache {
+ 	bool is_kmalloc;
+ };
  
--size_t __kasan_metadata_size(struct kmem_cache *cache);
--static __always_inline size_t kasan_metadata_size(struct kmem_cache *cache)
+-slab_flags_t __kasan_never_merge(void);
+-static __always_inline slab_flags_t kasan_never_merge(void)
 -{
 -	if (kasan_enabled())
--		return __kasan_metadata_size(cache);
+-		return __kasan_never_merge();
 -	return 0;
 -}
 -
- void __kasan_poison_slab(struct slab *slab);
- static __always_inline void kasan_poison_slab(struct slab *slab)
+ void __kasan_unpoison_range(const void *addr, size_t size);
+ static __always_inline void kasan_unpoison_range(const void *addr, size_t size)
  {
-@@ -282,7 +274,6 @@ static inline void kasan_cache_create(st
- 				      unsigned int *size,
- 				      slab_flags_t *flags) {}
- static inline void kasan_cache_create_kmalloc(struct kmem_cache *cache) {}
--static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
- static inline void kasan_poison_slab(struct slab *slab) {}
- static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
- 					void *object) {}
-@@ -333,6 +324,8 @@ static inline void kasan_unpoison_task_s
+@@ -261,10 +253,6 @@ static __always_inline bool kasan_check_
  
+ #else /* CONFIG_KASAN */
+ 
+-static inline slab_flags_t kasan_never_merge(void)
+-{
+-	return 0;
+-}
+ static inline void kasan_unpoison_range(const void *address, size_t size) {}
+ static inline void kasan_poison_pages(struct page *page, unsigned int order,
+ 				      bool init) {}
+@@ -325,6 +313,7 @@ static inline void kasan_unpoison_task_s
  #ifdef CONFIG_KASAN_GENERIC
  
-+size_t kasan_metadata_size(struct kmem_cache *cache);
-+
+ size_t kasan_metadata_size(struct kmem_cache *cache);
++slab_flags_t kasan_never_merge(void);
+ 
  void kasan_cache_shrink(struct kmem_cache *cache);
  void kasan_cache_shutdown(struct kmem_cache *cache);
- void kasan_record_aux_stack(void *ptr);
-@@ -340,6 +333,12 @@ void kasan_record_aux_stack_noalloc(void
- 
- #else /* CONFIG_KASAN_GENERIC */
- 
-+/* Tag-based KASAN modes do not use per-object metadata. */
-+static inline size_t kasan_metadata_size(struct kmem_cache *cache)
+@@ -338,6 +327,11 @@ static inline size_t kasan_metadata_size
+ {
+ 	return 0;
+ }
++/* And thus nothing prevents cache merging. */
++static inline slab_flags_t kasan_never_merge(void)
 +{
 +	return 0;
 +}
-+
+ 
  static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
  static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
- static inline void kasan_record_aux_stack(void *ptr) {}
---- a/mm/kasan/common.c~kasan-only-define-kasan_metadata_size-for-generic-mode
+--- a/mm/kasan/common.c~kasan-only-define-kasan_never_merge-for-generic-mode
 +++ a/mm/kasan/common.c
-@@ -139,17 +139,6 @@ void __kasan_cache_create_kmalloc(struct
- 	cache->kasan_info.is_kmalloc = true;
+@@ -88,14 +88,6 @@ asmlinkage void kasan_unpoison_task_stac
  }
+ #endif /* CONFIG_KASAN_STACK */
  
--size_t __kasan_metadata_size(struct kmem_cache *cache)
+-/* Only allow cache merging when no per-object metadata is present. */
+-slab_flags_t __kasan_never_merge(void)
 -{
--	if (!kasan_requires_meta())
--		return 0;
--	return (cache->kasan_info.alloc_meta_offset ?
--		sizeof(struct kasan_alloc_meta) : 0) +
--		((cache->kasan_info.free_meta_offset &&
--		  cache->kasan_info.free_meta_offset != KASAN_NO_FREE_META) ?
--		 sizeof(struct kasan_free_meta) : 0);
+-	if (kasan_requires_meta())
+-		return SLAB_KASAN;
+-	return 0;
 -}
 -
- void __kasan_poison_slab(struct slab *slab)
+ void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init)
  {
- 	struct page *page = slab_page(slab);
---- a/mm/kasan/generic.c~kasan-only-define-kasan_metadata_size-for-generic-mode
+ 	u8 tag;
+--- a/mm/kasan/generic.c~kasan-only-define-kasan_never_merge-for-generic-mode
 +++ a/mm/kasan/generic.c
-@@ -427,6 +427,17 @@ void kasan_init_object_meta(struct kmem_
- 		__memset(alloc_meta, 0, sizeof(*alloc_meta));
- }
+@@ -328,6 +328,14 @@ DEFINE_ASAN_SET_SHADOW(f3);
+ DEFINE_ASAN_SET_SHADOW(f5);
+ DEFINE_ASAN_SET_SHADOW(f8);
  
-+size_t kasan_metadata_size(struct kmem_cache *cache)
++/* Only allow cache merging when no per-object metadata is present. */
++slab_flags_t kasan_never_merge(void)
 +{
 +	if (!kasan_requires_meta())
 +		return 0;
-+	return (cache->kasan_info.alloc_meta_offset ?
-+		sizeof(struct kasan_alloc_meta) : 0) +
-+		((cache->kasan_info.free_meta_offset &&
-+		  cache->kasan_info.free_meta_offset != KASAN_NO_FREE_META) ?
-+		 sizeof(struct kasan_free_meta) : 0);
++	return SLAB_KASAN;
 +}
 +
- static void __kasan_record_aux_stack(void *addr, bool can_alloc)
- {
- 	struct slab *slab = kasan_addr_to_slab(addr);
+ /*
+  * Adaptive redzone policy taken from the userspace AddressSanitizer runtime.
+  * For larger allocations larger redzones are used.
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
