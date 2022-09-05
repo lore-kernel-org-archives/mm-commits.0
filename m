@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0840BECAAD5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 963F9ECAAD3
 	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:29:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232048AbiIEU3I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232388AbiIEU3I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 5 Sep 2022 16:29:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57548 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232411AbiIEU2G (ORCPT
+        with ESMTP id S232437AbiIEU2G (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:06 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A923865268
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:23 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5480965273
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id D9CAECE13B8
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13964C433D6;
-        Mon,  5 Sep 2022 20:27:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D640BB815D4
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 701D0C433D6;
+        Mon,  5 Sep 2022 20:27:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409640;
-        bh=sRgKA7V1G57pjrN7R6ghqBohruV6jzZk1cs8WPJDxFE=;
+        s=korg; t=1662409642;
+        bh=gOJ7rVWUtOE2fcJ/+po+hTEsMPpeRy3OamykqGV6EYo=;
         h=Date:To:From:Subject:From;
-        b=KXuxxhCHhmP4NwuDrpluhbVB+xpAXOXM9QlkRN9VJrWjEQtL5+ldMjhBFzZqJ2nsE
-         d6jxtdUabbxMUETYDSJotrrpoV0q+lwX/53XCRiZlPFjSZgELbnYTBoy6MT/K88K4T
-         n0NsYE+iATFqAMpKK3o/vwmo4fSDzMlfSNu8ZF4g=
-Date:   Mon, 05 Sep 2022 13:27:19 -0700
+        b=WwbbCJL1nRD8tJX7JmrObmmmBmi4txKo8kmBlUb+mWmUz6lMWfFebsxBSyH7oHWox
+         sLCCS9RqksnlqOl91Dmq4OvC3fKWj6r9ikY7sngVGFgjIH0/BE2FSUO0ALPpqIj6Lw
+         iKcCJ5sF2/EL1JXVFBklr/kssPIPAVbapPDUbB6o=
+Date:   Mon, 05 Sep 2022 13:27:21 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + virtio-kmsan-check-unpoison-scatterlist-in-vring_map_one_sg.patch added to mm-unstable branch
-Message-Id: <20220905202720.13964C433D6@smtp.kernel.org>
+Subject: + kmsan-handle-memory-sent-to-from-usb.patch added to mm-unstable branch
+Message-Id: <20220905202722.701D0C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: virtio: kmsan: check/unpoison scatterlist in vring_map_one_sg()
+     Subject: kmsan: handle memory sent to/from USB
 has been added to the -mm mm-unstable branch.  Its filename is
-     virtio-kmsan-check-unpoison-scatterlist-in-vring_map_one_sg.patch
+     kmsan-handle-memory-sent-to-from-usb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/virtio-kmsan-check-unpoison-scatterlist-in-vring_map_one_sg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-handle-memory-sent-to-from-usb.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,16 +76,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: virtio: kmsan: check/unpoison scatterlist in vring_map_one_sg()
-Date: Mon, 5 Sep 2022 14:24:31 +0200
+Subject: kmsan: handle memory sent to/from USB
+Date: Mon, 5 Sep 2022 14:24:32 +0200
 
-If vring doesn't use the DMA API, KMSAN is unable to tell whether the
-memory is initialized by hardware.  Explicitly call kmsan_handle_dma()
-from vring_map_one_sg() in this case to prevent false positives.
+Depending on the value of is_out kmsan_handle_urb() KMSAN either marks the
+data copied to the kernel from a USB device as initialized, or checks the
+data sent to the device for being initialized.
 
-Link: https://lkml.kernel.org/r/20220905122452.2258262-24-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-25-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -110,6 +109,7 @@ Cc: Liu Shixin <liushixin2@huawei.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael S. Tsirkin <mst@redhat.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Petr Mladek <pmladek@suse.com>
@@ -121,36 +121,99 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_ring.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/usb/core/urb.c |    2 ++
+ include/linux/kmsan.h  |   15 +++++++++++++++
+ mm/kmsan/hooks.c       |   16 ++++++++++++++++
+ 3 files changed, 33 insertions(+)
 
---- a/drivers/virtio/virtio_ring.c~virtio-kmsan-check-unpoison-scatterlist-in-vring_map_one_sg
-+++ a/drivers/virtio/virtio_ring.c
-@@ -11,6 +11,7 @@
- #include <linux/module.h>
- #include <linux/hrtimer.h>
- #include <linux/dma-mapping.h>
+--- a/drivers/usb/core/urb.c~kmsan-handle-memory-sent-to-from-usb
++++ a/drivers/usb/core/urb.c
+@@ -8,6 +8,7 @@
+ #include <linux/bitops.h>
+ #include <linux/slab.h>
+ #include <linux/log2.h>
 +#include <linux/kmsan.h>
- #include <linux/spinlock.h>
- #include <xen/xen.h>
+ #include <linux/usb.h>
+ #include <linux/wait.h>
+ #include <linux/usb/hcd.h>
+@@ -426,6 +427,7 @@ int usb_submit_urb(struct urb *urb, gfp_
+ 			URB_SETUP_MAP_SINGLE | URB_SETUP_MAP_LOCAL |
+ 			URB_DMA_SG_COMBINED);
+ 	urb->transfer_flags |= (is_out ? URB_DIR_OUT : URB_DIR_IN);
++	kmsan_handle_urb(urb, is_out);
  
-@@ -352,8 +353,15 @@ static dma_addr_t vring_map_one_sg(const
- 				   struct scatterlist *sg,
- 				   enum dma_data_direction direction)
+ 	if (xfertype != USB_ENDPOINT_XFER_CONTROL &&
+ 			dev->state < USB_STATE_CONFIGURED)
+--- a/include/linux/kmsan.h~kmsan-handle-memory-sent-to-from-usb
++++ a/include/linux/kmsan.h
+@@ -18,6 +18,7 @@ struct page;
+ struct kmem_cache;
+ struct task_struct;
+ struct scatterlist;
++struct urb;
+ 
+ #ifdef CONFIG_KMSAN
+ 
+@@ -203,6 +204,16 @@ void kmsan_handle_dma(struct page *page,
+ void kmsan_handle_dma_sg(struct scatterlist *sg, int nents,
+ 			 enum dma_data_direction dir);
+ 
++/**
++ * kmsan_handle_urb() - Handle a USB data transfer.
++ * @urb:    struct urb pointer.
++ * @is_out: data transfer direction (true means output to hardware).
++ *
++ * If @is_out is true, KMSAN checks the transfer buffer of @urb. Otherwise,
++ * KMSAN initializes the transfer buffer.
++ */
++void kmsan_handle_urb(const struct urb *urb, bool is_out);
++
+ #else
+ 
+ static inline void kmsan_init_shadow(void)
+@@ -295,6 +306,10 @@ static inline void kmsan_handle_dma_sg(s
  {
--	if (!vq->use_dma_api)
-+	if (!vq->use_dma_api) {
-+		/*
-+		 * If DMA is not used, KMSAN doesn't know that the scatterlist
-+		 * is initialized by the hardware. Explicitly check/unpoison it
-+		 * depending on the direction.
-+		 */
-+		kmsan_handle_dma(sg_page(sg), sg->offset, sg->length, direction);
- 		return (dma_addr_t)sg_phys(sg);
-+	}
+ }
  
- 	/*
- 	 * We can't use dma_map_sg, because we don't use scatterlists in
++static inline void kmsan_handle_urb(const struct urb *urb, bool is_out)
++{
++}
++
+ #endif
+ 
+ #endif /* _LINUX_KMSAN_H */
+--- a/mm/kmsan/hooks.c~kmsan-handle-memory-sent-to-from-usb
++++ a/mm/kmsan/hooks.c
+@@ -18,6 +18,7 @@
+ #include <linux/scatterlist.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
++#include <linux/usb.h>
+ 
+ #include "../internal.h"
+ #include "../slab.h"
+@@ -245,6 +246,21 @@ void kmsan_copy_to_user(void __user *to,
+ }
+ EXPORT_SYMBOL(kmsan_copy_to_user);
+ 
++/* Helper function to check an URB. */
++void kmsan_handle_urb(const struct urb *urb, bool is_out)
++{
++	if (!urb)
++		return;
++	if (is_out)
++		kmsan_internal_check_memory(urb->transfer_buffer,
++					    urb->transfer_buffer_length,
++					    /*user_addr*/ 0, REASON_SUBMIT_URB);
++	else
++		kmsan_internal_unpoison_memory(urb->transfer_buffer,
++					       urb->transfer_buffer_length,
++					       /*checked*/ false);
++}
++
+ static void kmsan_handle_dma_page(const void *addr, size_t size,
+ 				  enum dma_data_direction dir)
+ {
 _
 
 Patches currently in -mm which might be from glider@google.com are
