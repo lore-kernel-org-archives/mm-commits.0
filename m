@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88AFAC6FA83
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:27:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65479ECAAD5
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:27:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232120AbiIEU1i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 16:27:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56646 "EHLO
+        id S232148AbiIEU1j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 16:27:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232076AbiIEU0x (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:26:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD4D963F03
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:26:44 -0700 (PDT)
+        with ESMTP id S231706AbiIEU1J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:27:09 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6ED7F61D50
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:26:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A17D7601D7
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00E19C433D6;
-        Mon,  5 Sep 2022 20:26:42 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id BD8B2CE1283
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:26:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16039C433D6;
+        Mon,  5 Sep 2022 20:26:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409603;
-        bh=CF7RYqox8O7smaEqN7zmd8x8TCXiJXNT/HJj6wz6dXA=;
+        s=korg; t=1662409606;
+        bh=sGwY3SrusZtV9evsBykgJss4mhjvcFQmwMqirDg7KnA=;
         h=Date:To:From:Subject:From;
-        b=plzzrzFjtqRWTRMBZAILKdLyxzanQRIzZvEcZV8MBqX0lpoxmtpYYRDJ0maBwYT7G
-         YOzzvwGQZrPbKxUWDeM7fjxToENrKxMRmO6WkvQvqGD1FrmmKfpvcZQMiYeb2meRo2
-         BFb28hr6QdYVPbnr9Wwc6EjnoYBcBKItiNYDI+ng=
-Date:   Mon, 05 Sep 2022 13:26:42 -0700
+        b=qCbcjlwk9ZuKolLv172DYcGdqkYfuAb4eWq174p7jcU56wPYYgWhq0hesUSDv8YTR
+         8ZJSfR72pO2iN/1gqAHF29wwnCQXQ/uWYeBxzymLjvlz1I4NHwy7orKA/7tL1+eUNe
+         kDvvIGkly8mrnIp7Fo0Rdn9wbXey179p/64PeExA=
+Date:   Mon, 05 Sep 2022 13:26:45 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-disable-instrumentation-of-unsupported-common-kernel-code.patch added to mm-unstable branch
-Message-Id: <20220905202643.00E19C433D6@smtp.kernel.org>
+Subject: + maintainers-add-entry-for-kmsan.patch added to mm-unstable branch
+Message-Id: <20220905202646.16039C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: disable instrumentation of unsupported common kernel code
+     Subject: MAINTAINERS: add entry for KMSAN
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-disable-instrumentation-of-unsupported-common-kernel-code.patch
+     maintainers-add-entry-for-kmsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-disable-instrumentation-of-unsupported-common-kernel-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-entry-for-kmsan.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,18 +76,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: disable instrumentation of unsupported common kernel code
-Date: Mon, 5 Sep 2022 14:24:20 +0200
+Subject: MAINTAINERS: add entry for KMSAN
+Date: Mon, 5 Sep 2022 14:24:21 +0200
 
-EFI stub cannot be linked with KMSAN runtime, so we disable
-instrumentation for it.
+Add entry for KMSAN maintainers/reviewers.
 
-Instrumenting kcov, stackdepot or lockdep leads to infinite recursion
-caused by instrumentation hooks calling instrumented code again.
-
-Link: https://lkml.kernel.org/r/20220905122452.2258262-13-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-14-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -109,6 +104,7 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -123,57 +119,31 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/efi/libstub/Makefile |    1 +
- kernel/Makefile                       |    1 +
- kernel/locking/Makefile               |    3 ++-
- lib/Makefile                          |    3 +++
- 4 files changed, 7 insertions(+), 1 deletion(-)
+ MAINTAINERS |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/drivers/firmware/efi/libstub/Makefile~kmsan-disable-instrumentation-of-unsupported-common-kernel-code
-+++ a/drivers/firmware/efi/libstub/Makefile
-@@ -46,6 +46,7 @@ GCOV_PROFILE			:= n
- # Sanitizer runtimes are unavailable and cannot be linked here.
- KASAN_SANITIZE			:= n
- KCSAN_SANITIZE			:= n
-+KMSAN_SANITIZE			:= n
- UBSAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
+--- a/MAINTAINERS~maintainers-add-entry-for-kmsan
++++ a/MAINTAINERS
+@@ -11372,6 +11372,19 @@ F:	kernel/kmod.c
+ F:	lib/test_kmod.c
+ F:	tools/testing/selftests/kmod/
  
---- a/kernel/locking/Makefile~kmsan-disable-instrumentation-of-unsupported-common-kernel-code
-+++ a/kernel/locking/Makefile
-@@ -5,8 +5,9 @@ KCOV_INSTRUMENT		:= n
- 
- obj-y += mutex.o semaphore.o rwsem.o percpu-rwsem.o
- 
--# Avoid recursion lockdep -> KCSAN -> ... -> lockdep.
-+# Avoid recursion lockdep -> sanitizer -> ... -> lockdep.
- KCSAN_SANITIZE_lockdep.o := n
-+KMSAN_SANITIZE_lockdep.o := n
- 
- ifdef CONFIG_FUNCTION_TRACER
- CFLAGS_REMOVE_lockdep.o = $(CC_FLAGS_FTRACE)
---- a/kernel/Makefile~kmsan-disable-instrumentation-of-unsupported-common-kernel-code
-+++ a/kernel/Makefile
-@@ -38,6 +38,7 @@ KCOV_INSTRUMENT_kcov.o := n
- KASAN_SANITIZE_kcov.o := n
- KCSAN_SANITIZE_kcov.o := n
- UBSAN_SANITIZE_kcov.o := n
-+KMSAN_SANITIZE_kcov.o := n
- CFLAGS_kcov.o := $(call cc-option, -fno-conserve-stack) -fno-stack-protector
- 
- # Don't instrument error handlers
---- a/lib/Makefile~kmsan-disable-instrumentation-of-unsupported-common-kernel-code
-+++ a/lib/Makefile
-@@ -275,6 +275,9 @@ obj-$(CONFIG_POLYNOMIAL) += polynomial.o
- CFLAGS_stackdepot.o += -fno-builtin
- obj-$(CONFIG_STACKDEPOT) += stackdepot.o
- KASAN_SANITIZE_stackdepot.o := n
-+# In particular, instrumenting stackdepot.c with KMSAN will result in infinite
-+# recursion.
-+KMSAN_SANITIZE_stackdepot.o := n
- KCOV_INSTRUMENT_stackdepot.o := n
- 
- obj-$(CONFIG_REF_TRACKER) += ref_tracker.o
++KMSAN
++M:	Alexander Potapenko <glider@google.com>
++R:	Marco Elver <elver@google.com>
++R:	Dmitry Vyukov <dvyukov@google.com>
++L:	kasan-dev@googlegroups.com
++S:	Maintained
++F:	Documentation/dev-tools/kmsan.rst
++F:	arch/*/include/asm/kmsan.h
++F:	include/linux/kmsan*.h
++F:	lib/Kconfig.kmsan
++F:	mm/kmsan/
++F:	scripts/Makefile.kmsan
++
+ KPROBES
+ M:	Naveen N. Rao <naveen.n.rao@linux.ibm.com>
+ M:	Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 _
 
 Patches currently in -mm which might be from glider@google.com are
