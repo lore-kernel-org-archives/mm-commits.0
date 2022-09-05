@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 519CBC54EE9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C081EECAAA1
 	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232362AbiIEWsR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230425AbiIEWsR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 5 Sep 2022 18:48:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40436 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40442 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232370AbiIEWsJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31AED45053
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:09 -0700 (PDT)
+        with ESMTP id S232385AbiIEWsM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:12 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2879345067
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C2BBD60ECA
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23AFAC433C1;
-        Mon,  5 Sep 2022 22:48:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B94E960ECA
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A479C433C1;
+        Mon,  5 Sep 2022 22:48:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418088;
-        bh=K+NMTyeMmSMwvcxneA+DRQu864j3CY/FJzv6/G+yVR4=;
+        s=korg; t=1662418090;
+        bh=c7+iNLA0Lbi0paVtLGYvi2wkwA4n5kZtVnuyV+Oq7MU=;
         h=Date:To:From:Subject:From;
-        b=IDwmR9mCdhb9SSCKwLeU8FHTmYAofRxo4bf5JIU9mef2DgbWXmuLjM5nhzIqdm1j4
-         FkBCzA9THI0rKqLaQC+8AYHSSPLdItOq0U9SldosVX9K8dcN/2VzFqR1w+Lk3yeGuI
-         3ISKlWhoiup5nSGWQpPmL1iKLJ4z1TIzFMJOHaoQ=
-Date:   Mon, 05 Sep 2022 15:48:07 -0700
+        b=STvPE7nw/tzANOfIpv6Fyve44o+EgLTHMeKQm45p9DJmBEwDPABTYLnXCy3p6D1cp
+         Jk4rsR8szBCE6kKp9Jk45/vPxYfovKfZWdDumKEvLGySXJ9lV2VrsJIXL6hc4HT9XD
+         ucCt/1QVRPadZaKcI+oIR88YomYysADh3QITEGHQ=
+Date:   Mon, 05 Sep 2022 15:48:09 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-drop-config_kasan_generic-check-from-kasan_init_cache_meta.patch added to mm-unstable branch
-Message-Id: <20220905224808.23AFAC433C1@smtp.kernel.org>
+Subject: + kasan-only-define-kasan_metadata_size-for-generic-mode.patch added to mm-unstable branch
+Message-Id: <20220905224810.1A479C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: drop CONFIG_KASAN_GENERIC check from kasan_init_cache_meta
+     Subject: kasan: only define kasan_metadata_size for Generic mode
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-drop-config_kasan_generic-check-from-kasan_init_cache_meta.patch
+     kasan-only-define-kasan_metadata_size-for-generic-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-drop-config_kasan_generic-check-from-kasan_init_cache_meta.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-only-define-kasan_metadata_size-for-generic-mode.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: drop CONFIG_KASAN_GENERIC check from kasan_init_cache_meta
-Date: Mon, 5 Sep 2022 23:05:28 +0200
+Subject: kasan: only define kasan_metadata_size for Generic mode
+Date: Mon, 5 Sep 2022 23:05:29 +0200
 
-As kasan_init_cache_meta() is only defined for the Generic mode, it does
-not require the CONFIG_KASAN_GENERIC check.
+KASAN provides a helper for calculating the size of per-object metadata
+stored in the redzone.
 
-Link: https://lkml.kernel.org/r/211f8f2b213aa91e9148ca63342990b491c4917a.1662411799.git.andreyknvl@google.com
+As now only the Generic mode uses per-object metadata, only define
+kasan_metadata_size() for this mode.
+
+Link: https://lkml.kernel.org/r/8f81d4938b80446bc72538a08217009f328a3e23.1662411799.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -84,24 +87,98 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/generic.c |    6 ------
- 1 file changed, 6 deletions(-)
+ include/linux/kasan.h |   17 ++++++++---------
+ mm/kasan/common.c     |   11 -----------
+ mm/kasan/generic.c    |   11 +++++++++++
+ 3 files changed, 19 insertions(+), 20 deletions(-)
 
---- a/mm/kasan/generic.c~kasan-drop-config_kasan_generic-check-from-kasan_init_cache_meta
-+++ a/mm/kasan/generic.c
-@@ -367,12 +367,6 @@ void kasan_init_cache_meta(struct kmem_c
- 		/* Continue, since free meta might still fit. */
- 	}
+--- a/include/linux/kasan.h~kasan-only-define-kasan_metadata_size-for-generic-mode
++++ a/include/linux/kasan.h
+@@ -150,14 +150,6 @@ static __always_inline void kasan_cache_
+ 		__kasan_cache_create_kmalloc(cache);
+ }
  
--	/* Only the generic mode uses free meta or flexible redzones. */
--	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
--		cache->kasan_info.free_meta_offset = KASAN_NO_FREE_META;
--		return;
--	}
+-size_t __kasan_metadata_size(struct kmem_cache *cache);
+-static __always_inline size_t kasan_metadata_size(struct kmem_cache *cache)
+-{
+-	if (kasan_enabled())
+-		return __kasan_metadata_size(cache);
+-	return 0;
+-}
 -
- 	/*
- 	 * Add free meta into redzone when it's not possible to store
- 	 * it in the object. This is the case when:
+ void __kasan_poison_slab(struct slab *slab);
+ static __always_inline void kasan_poison_slab(struct slab *slab)
+ {
+@@ -282,7 +274,6 @@ static inline void kasan_cache_create(st
+ 				      unsigned int *size,
+ 				      slab_flags_t *flags) {}
+ static inline void kasan_cache_create_kmalloc(struct kmem_cache *cache) {}
+-static inline size_t kasan_metadata_size(struct kmem_cache *cache) { return 0; }
+ static inline void kasan_poison_slab(struct slab *slab) {}
+ static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
+ 					void *object) {}
+@@ -333,6 +324,8 @@ static inline void kasan_unpoison_task_s
+ 
+ #ifdef CONFIG_KASAN_GENERIC
+ 
++size_t kasan_metadata_size(struct kmem_cache *cache);
++
+ void kasan_cache_shrink(struct kmem_cache *cache);
+ void kasan_cache_shutdown(struct kmem_cache *cache);
+ void kasan_record_aux_stack(void *ptr);
+@@ -340,6 +333,12 @@ void kasan_record_aux_stack_noalloc(void
+ 
+ #else /* CONFIG_KASAN_GENERIC */
+ 
++/* Tag-based KASAN modes do not use per-object metadata. */
++static inline size_t kasan_metadata_size(struct kmem_cache *cache)
++{
++	return 0;
++}
++
+ static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
+ static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
+ static inline void kasan_record_aux_stack(void *ptr) {}
+--- a/mm/kasan/common.c~kasan-only-define-kasan_metadata_size-for-generic-mode
++++ a/mm/kasan/common.c
+@@ -139,17 +139,6 @@ void __kasan_cache_create_kmalloc(struct
+ 	cache->kasan_info.is_kmalloc = true;
+ }
+ 
+-size_t __kasan_metadata_size(struct kmem_cache *cache)
+-{
+-	if (!kasan_requires_meta())
+-		return 0;
+-	return (cache->kasan_info.alloc_meta_offset ?
+-		sizeof(struct kasan_alloc_meta) : 0) +
+-		((cache->kasan_info.free_meta_offset &&
+-		  cache->kasan_info.free_meta_offset != KASAN_NO_FREE_META) ?
+-		 sizeof(struct kasan_free_meta) : 0);
+-}
+-
+ void __kasan_poison_slab(struct slab *slab)
+ {
+ 	struct page *page = slab_page(slab);
+--- a/mm/kasan/generic.c~kasan-only-define-kasan_metadata_size-for-generic-mode
++++ a/mm/kasan/generic.c
+@@ -427,6 +427,17 @@ void kasan_init_object_meta(struct kmem_
+ 		__memset(alloc_meta, 0, sizeof(*alloc_meta));
+ }
+ 
++size_t kasan_metadata_size(struct kmem_cache *cache)
++{
++	if (!kasan_requires_meta())
++		return 0;
++	return (cache->kasan_info.alloc_meta_offset ?
++		sizeof(struct kasan_alloc_meta) : 0) +
++		((cache->kasan_info.free_meta_offset &&
++		  cache->kasan_info.free_meta_offset != KASAN_NO_FREE_META) ?
++		 sizeof(struct kasan_free_meta) : 0);
++}
++
+ static void __kasan_record_aux_stack(void *addr, bool can_alloc)
+ {
+ 	struct slab *slab = kasan_addr_to_slab(addr);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
