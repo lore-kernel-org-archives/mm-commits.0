@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 026EBECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:29:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 143A5C6FA83
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:29:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232802AbiIEU3w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232824AbiIEU3w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 5 Sep 2022 16:29:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57678 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232206AbiIEU23 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:29 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFDC165554
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:43 -0700 (PDT)
+        with ESMTP id S231821AbiIEU2a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:30 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68B5265556
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6F8CFB815C6
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25711C433D6;
-        Mon,  5 Sep 2022 20:27:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 25216B81118
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0D5DC433C1;
+        Mon,  5 Sep 2022 20:27:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409661;
-        bh=2ynKQy+KoOOxlR/q7I6BARFcg6vGveQe1XBgu+NBWgE=;
+        s=korg; t=1662409663;
+        bh=NW0Mw11W8xRAriErFS6NxgwBpb+K/ygvGzYPbNC1poo=;
         h=Date:To:From:Subject:From;
-        b=huVxEBUy6OTadQ8VQm1HJ8rQgwplT9Eq5rDd3v9UrA3RZJ5VddazWfxxxqAQrD1pZ
-         LURLtQB5b3fxOuLmDdyebJuGHUXt7slNDYhpcti4dE7ofxeupK7UF+LEer8k2YXC+l
-         ohPt7wi67kM8hIXVfWo+ctF00oDhb3I/aL4BwGWA=
-Date:   Mon, 05 Sep 2022 13:27:40 -0700
+        b=qUWi87WHHK9RW74aNdkCqhHS0oZOS/KW8DHmvJxItrQnW4yobtQi9BzILRodemUtT
+         3xy7LCdewN98QwqlmM43F+l/zHFjbasNs/HIQDgAcaNsb9W3Dd49ddz2U8XVre9zXC
+         40aEaqmjJos19lmcS/OWlMFxnB9bFZ/p5D8tat1w=
+Date:   Mon, 05 Sep 2022 13:27:43 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + security-kmsan-fix-interoperability-with-auto-initialization.patch added to mm-unstable branch
-Message-Id: <20220905202741.25711C433D6@smtp.kernel.org>
+Subject: + objtool-kmsan-list-kmsan-api-functions-as-uaccess-safe.patch added to mm-unstable branch
+Message-Id: <20220905202743.D0D5DC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: security: kmsan: fix interoperability with auto-initialization
+     Subject: objtool: kmsan: list KMSAN API functions as uaccess-safe
 has been added to the -mm mm-unstable branch.  Its filename is
-     security-kmsan-fix-interoperability-with-auto-initialization.patch
+     objtool-kmsan-list-kmsan-api-functions-as-uaccess-safe.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/security-kmsan-fix-interoperability-with-auto-initialization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/objtool-kmsan-list-kmsan-api-functions-as-uaccess-safe.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,24 +76,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: security: kmsan: fix interoperability with auto-initialization
-Date: Mon, 5 Sep 2022 14:24:39 +0200
+Subject: objtool: kmsan: list KMSAN API functions as uaccess-safe
+Date: Mon, 5 Sep 2022 14:24:40 +0200
 
-Heap and stack initialization is great, but not when we are trying uses of
-uninitialized memory.  When the kernel is built with KMSAN, having kernel
-memory initialization enabled may introduce false negatives.
+KMSAN inserts API function calls in a lot of places (function entries and
+exits, local variables, memory accesses), so they may get called from the
+uaccess regions as well.
 
-We disable CONFIG_INIT_STACK_ALL_PATTERN and CONFIG_INIT_STACK_ALL_ZERO
-under CONFIG_KMSAN, making it impossible to auto-initialize stack
-variables in KMSAN builds.  We also disable
-CONFIG_INIT_ON_ALLOC_DEFAULT_ON and CONFIG_INIT_ON_FREE_DEFAULT_ON to
-prevent accidental use of heap auto-initialization.
+KMSAN API functions are used to update the metadata (shadow/origin pages)
+for kernel memory accesses.  The metadata pages for kernel pointers are
+also located in the kernel memory, so touching them is not a problem.  For
+userspace pointers, no metadata is allocated.
 
-We however still let the users enable heap auto-initialization at
-boot-time (by setting init_on_alloc=1 or init_on_free=1), in which case a
-warning is printed.
+If an API function is supposed to read or modify the metadata, it does so
+for kernel pointers and ignores userspace pointers.  If an API function is
+supposed to return a pair of metadata pointers for the instrumentation to
+use (like all __msan_metadata_ptr_for_TYPE_SIZE() functions do), it
+returns the allocated metadata for kernel pointers and special dummy
+buffers residing in the kernel memory for userspace pointers.
 
-Link: https://lkml.kernel.org/r/20220905122452.2258262-32-glider@google.com
+As a result, none of KMSAN API functions perform userspace accesses, but
+since they might be called from UACCESS regions they use
+user_access_save/restore().
+
+Link: https://lkml.kernel.org/r/20220905122452.2258262-33-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -131,57 +137,38 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c            |    4 ++++
- security/Kconfig.hardening |    4 ++++
- 2 files changed, 8 insertions(+)
+ tools/objtool/check.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/mm/page_alloc.c~security-kmsan-fix-interoperability-with-auto-initialization
-+++ a/mm/page_alloc.c
-@@ -938,6 +938,10 @@ void init_mem_debugging_and_hardening(vo
- 	else
- 		static_branch_disable(&init_on_free);
- 
-+	if (IS_ENABLED(CONFIG_KMSAN) &&
-+	    (_init_on_alloc_enabled_early || _init_on_free_enabled_early))
-+		pr_info("mem auto-init: please make sure init_on_alloc and init_on_free are disabled when running KMSAN\n");
-+
- #ifdef CONFIG_DEBUG_PAGEALLOC
- 	if (!debug_pagealloc_enabled())
- 		return;
---- a/security/Kconfig.hardening~security-kmsan-fix-interoperability-with-auto-initialization
-+++ a/security/Kconfig.hardening
-@@ -106,6 +106,7 @@ choice
- 	config INIT_STACK_ALL_PATTERN
- 		bool "pattern-init everything (strongest)"
- 		depends on CC_HAS_AUTO_VAR_INIT_PATTERN
-+		depends on !KMSAN
- 		help
- 		  Initializes everything on the stack (including padding)
- 		  with a specific debug value. This is intended to eliminate
-@@ -124,6 +125,7 @@ choice
- 	config INIT_STACK_ALL_ZERO
- 		bool "zero-init everything (strongest and safest)"
- 		depends on CC_HAS_AUTO_VAR_INIT_ZERO
-+		depends on !KMSAN
- 		help
- 		  Initializes everything on the stack (including padding)
- 		  with a zero value. This is intended to eliminate all
-@@ -218,6 +220,7 @@ config STACKLEAK_RUNTIME_DISABLE
- 
- config INIT_ON_ALLOC_DEFAULT_ON
- 	bool "Enable heap memory zeroing on allocation by default"
-+	depends on !KMSAN
- 	help
- 	  This has the effect of setting "init_on_alloc=1" on the kernel
- 	  command line. This can be disabled with "init_on_alloc=0".
-@@ -230,6 +233,7 @@ config INIT_ON_ALLOC_DEFAULT_ON
- 
- config INIT_ON_FREE_DEFAULT_ON
- 	bool "Enable heap memory zeroing on free by default"
-+	depends on !KMSAN
- 	help
- 	  This has the effect of setting "init_on_free=1" on the kernel
- 	  command line. This can be disabled with "init_on_free=0".
+--- a/tools/objtool/check.c~objtool-kmsan-list-kmsan-api-functions-as-uaccess-safe
++++ a/tools/objtool/check.c
+@@ -1062,6 +1062,26 @@ static const char *uaccess_safe_builtin[
+ 	"__sanitizer_cov_trace_cmp4",
+ 	"__sanitizer_cov_trace_cmp8",
+ 	"__sanitizer_cov_trace_switch",
++	/* KMSAN */
++	"kmsan_copy_to_user",
++	"kmsan_report",
++	"kmsan_unpoison_entry_regs",
++	"kmsan_unpoison_memory",
++	"__msan_chain_origin",
++	"__msan_get_context_state",
++	"__msan_instrument_asm_store",
++	"__msan_metadata_ptr_for_load_1",
++	"__msan_metadata_ptr_for_load_2",
++	"__msan_metadata_ptr_for_load_4",
++	"__msan_metadata_ptr_for_load_8",
++	"__msan_metadata_ptr_for_load_n",
++	"__msan_metadata_ptr_for_store_1",
++	"__msan_metadata_ptr_for_store_2",
++	"__msan_metadata_ptr_for_store_4",
++	"__msan_metadata_ptr_for_store_8",
++	"__msan_metadata_ptr_for_store_n",
++	"__msan_poison_alloca",
++	"__msan_warning",
+ 	/* UBSAN */
+ 	"ubsan_type_mismatch_common",
+ 	"__ubsan_handle_type_mismatch",
 _
 
 Patches currently in -mm which might be from glider@google.com are
