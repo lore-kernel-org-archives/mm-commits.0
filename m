@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1653AECAAD5
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:29:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A66AC6FA83
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:29:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232097AbiIEU3Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 16:29:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57660 "EHLO
+        id S232444AbiIEU31 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 16:29:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57664 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231545AbiIEU22 (ORCPT
+        with ESMTP id S232144AbiIEU22 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:28 -0400
 Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73FEB65542
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1634B65547
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id C8244CE13B8
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29221C433C1;
-        Mon,  5 Sep 2022 20:27:29 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 216ABCE13BA
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EBA3C433C1;
+        Mon,  5 Sep 2022 20:27:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409649;
-        bh=zaSvsr4qWhBviTiFEygDQkU6PnC5WLCzFo7GUUV840k=;
+        s=korg; t=1662409651;
+        bh=ulatQfwBjn0X/Vp9qjcg3wyAzKmKCaY7yrtgixd5RmM=;
         h=Date:To:From:Subject:From;
-        b=AJijwqz1uxVuVvpsdpOhhm7XM23Vahra/42KySAlUe83rZJ5DDS5e+1QVtXNtsObU
-         GFtWNY21ndHrQmioa5320VnWp7dPMA/EVAk7jfWifgHuzSvvK4nJcaDmbRCgc3cMdw
-         AZCZKz78kGdh08I440ipZg0KeN1e9Ti4eOa8LdGs=
-Date:   Mon, 05 Sep 2022 13:27:28 -0700
+        b=N1AvuXn2gUkxlbTsaMFeOVyqxwGad3zjDgGCwgBm8nXuBS9sQfpRpyAjohEZu3kTy
+         84Y5pdszqfGb3owUcHquZrWM0MIwzUuBL58MI0UAXUYwKwgIp85TBy4OOZ/7Vx+xpc
+         dTzzKdQJtwd+SqhE3yWM30sePVk36XeFL/y/q1xI=
+Date:   Mon, 05 Sep 2022 13:27:30 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-disable-strscpy-optimization-under-kmsan.patch added to mm-unstable branch
-Message-Id: <20220905202729.29221C433C1@smtp.kernel.org>
+Subject: + crypto-kmsan-disable-accelerated-configs-under-kmsan.patch added to mm-unstable branch
+Message-Id: <20220905202731.7EBA3C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: disable strscpy() optimization under KMSAN
+     Subject: crypto: kmsan: disable accelerated configs under KMSAN
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-disable-strscpy-optimization-under-kmsan.patch
+     crypto-kmsan-disable-accelerated-configs-under-kmsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-disable-strscpy-optimization-under-kmsan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crypto-kmsan-disable-accelerated-configs-under-kmsan.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,12 +76,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: disable strscpy() optimization under KMSAN
-Date: Mon, 5 Sep 2022 14:24:34 +0200
+Subject: crypto: kmsan: disable accelerated configs under KMSAN
+Date: Mon, 5 Sep 2022 14:24:35 +0200
 
-Disable the efficient 8-byte reading under KMSAN to avoid false positives.
+KMSAN is unable to understand when initialized values come from assembly. 
+Disable accelerated configs in KMSAN builds to prevent false positive
+reports.
 
-Link: https://lkml.kernel.org/r/20220905122452.2258262-27-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-28-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -119,26 +121,260 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ crypto/Kconfig      |   30 ++++++++++++++++++++++++++++++
+ drivers/net/Kconfig |    1 +
+ 2 files changed, 31 insertions(+)
 
---- a/lib/string.c~kmsan-disable-strscpy-optimization-under-kmsan
-+++ a/lib/string.c
-@@ -197,6 +197,14 @@ ssize_t strscpy(char *dest, const char *
- 		max = 0;
- #endif
+--- a/crypto/Kconfig~crypto-kmsan-disable-accelerated-configs-under-kmsan
++++ a/crypto/Kconfig
+@@ -319,6 +319,7 @@ config CRYPTO_CURVE25519
+ config CRYPTO_CURVE25519_X86
+ 	tristate "x86_64 accelerated Curve25519 scalar multiplication library"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_LIB_CURVE25519_GENERIC
+ 	select CRYPTO_ARCH_HAVE_LIB_CURVE25519
  
-+	/*
-+	 * read_word_at_a_time() below may read uninitialized bytes after the
-+	 * trailing zero and use them in comparisons. Disable this optimization
-+	 * under KMSAN to prevent false positive reports.
-+	 */
-+	if (IS_ENABLED(CONFIG_KMSAN))
-+		max = 0;
-+
- 	while (max >= sizeof(unsigned long)) {
- 		unsigned long c, data;
+@@ -367,11 +368,13 @@ config CRYPTO_AEGIS128
+ config CRYPTO_AEGIS128_SIMD
+ 	bool "Support SIMD acceleration for AEGIS-128"
+ 	depends on CRYPTO_AEGIS128 && ((ARM || ARM64) && KERNEL_MODE_NEON)
++	depends on !KMSAN # avoid false positives from assembly
+ 	default y
  
+ config CRYPTO_AEGIS128_AESNI_SSE2
+ 	tristate "AEGIS-128 AEAD algorithm (x86_64 AESNI+SSE2 implementation)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_AEAD
+ 	select CRYPTO_SIMD
+ 	help
+@@ -517,6 +520,7 @@ config CRYPTO_NHPOLY1305
+ config CRYPTO_NHPOLY1305_SSE2
+ 	tristate "NHPoly1305 hash function (x86_64 SSE2 implementation)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_NHPOLY1305
+ 	help
+ 	  SSE2 optimized implementation of the hash function used by the
+@@ -525,6 +529,7 @@ config CRYPTO_NHPOLY1305_SSE2
+ config CRYPTO_NHPOLY1305_AVX2
+ 	tristate "NHPoly1305 hash function (x86_64 AVX2 implementation)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_NHPOLY1305
+ 	help
+ 	  AVX2 optimized implementation of the hash function used by the
+@@ -649,6 +654,7 @@ config CRYPTO_CRC32C
+ config CRYPTO_CRC32C_INTEL
+ 	tristate "CRC32c INTEL hardware acceleration"
+ 	depends on X86
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_HASH
+ 	help
+ 	  In Intel processor with SSE4.2 supported, the processor will
+@@ -689,6 +695,7 @@ config CRYPTO_CRC32
+ config CRYPTO_CRC32_PCLMUL
+ 	tristate "CRC32 PCLMULQDQ hardware acceleration"
+ 	depends on X86
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_HASH
+ 	select CRC32
+ 	help
+@@ -748,6 +755,7 @@ config CRYPTO_BLAKE2B
+ config CRYPTO_BLAKE2S_X86
+ 	bool "BLAKE2s digest algorithm (x86 accelerated version)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_LIB_BLAKE2S_GENERIC
+ 	select CRYPTO_ARCH_HAVE_LIB_BLAKE2S
+ 
+@@ -762,6 +770,7 @@ config CRYPTO_CRCT10DIF
+ config CRYPTO_CRCT10DIF_PCLMUL
+ 	tristate "CRCT10DIF PCLMULQDQ hardware acceleration"
+ 	depends on X86 && 64BIT && CRC_T10DIF
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_HASH
+ 	help
+ 	  For x86_64 processors with SSE4.2 and PCLMULQDQ supported,
+@@ -831,6 +840,7 @@ config CRYPTO_POLY1305
+ config CRYPTO_POLY1305_X86_64
+ 	tristate "Poly1305 authenticator algorithm (x86_64/SSE2/AVX2)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_LIB_POLY1305_GENERIC
+ 	select CRYPTO_ARCH_HAVE_LIB_POLY1305
+ 	help
+@@ -920,6 +930,7 @@ config CRYPTO_SHA1
+ config CRYPTO_SHA1_SSSE3
+ 	tristate "SHA1 digest algorithm (SSSE3/AVX/AVX2/SHA-NI)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SHA1
+ 	select CRYPTO_HASH
+ 	help
+@@ -931,6 +942,7 @@ config CRYPTO_SHA1_SSSE3
+ config CRYPTO_SHA256_SSSE3
+ 	tristate "SHA256 digest algorithm (SSSE3/AVX/AVX2/SHA-NI)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SHA256
+ 	select CRYPTO_HASH
+ 	help
+@@ -943,6 +955,7 @@ config CRYPTO_SHA256_SSSE3
+ config CRYPTO_SHA512_SSSE3
+ 	tristate "SHA512 digest algorithm (SSSE3/AVX/AVX2)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SHA512
+ 	select CRYPTO_HASH
+ 	help
+@@ -1168,6 +1181,7 @@ config CRYPTO_WP512
+ config CRYPTO_GHASH_CLMUL_NI_INTEL
+ 	tristate "GHASH hash function (CLMUL-NI accelerated)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_CRYPTD
+ 	help
+ 	  This is the x86_64 CLMUL-NI accelerated implementation of
+@@ -1228,6 +1242,7 @@ config CRYPTO_AES_TI
+ config CRYPTO_AES_NI_INTEL
+ 	tristate "AES cipher algorithms (AES-NI)"
+ 	depends on X86
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_AEAD
+ 	select CRYPTO_LIB_AES
+ 	select CRYPTO_ALGAPI
+@@ -1369,6 +1384,7 @@ config CRYPTO_BLOWFISH_COMMON
+ config CRYPTO_BLOWFISH_X86_64
+ 	tristate "Blowfish cipher algorithm (x86_64)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_BLOWFISH_COMMON
+ 	imply CRYPTO_CTR
+@@ -1399,6 +1415,7 @@ config CRYPTO_CAMELLIA
+ config CRYPTO_CAMELLIA_X86_64
+ 	tristate "Camellia cipher algorithm (x86_64)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	imply CRYPTO_CTR
+ 	help
+@@ -1415,6 +1432,7 @@ config CRYPTO_CAMELLIA_X86_64
+ config CRYPTO_CAMELLIA_AESNI_AVX_X86_64
+ 	tristate "Camellia cipher algorithm (x86_64/AES-NI/AVX)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_CAMELLIA_X86_64
+ 	select CRYPTO_SIMD
+@@ -1433,6 +1451,7 @@ config CRYPTO_CAMELLIA_AESNI_AVX_X86_64
+ config CRYPTO_CAMELLIA_AESNI_AVX2_X86_64
+ 	tristate "Camellia cipher algorithm (x86_64/AES-NI/AVX2)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_CAMELLIA_AESNI_AVX_X86_64
+ 	help
+ 	  Camellia cipher algorithm module (x86_64/AES-NI/AVX2).
+@@ -1478,6 +1497,7 @@ config CRYPTO_CAST5
+ config CRYPTO_CAST5_AVX_X86_64
+ 	tristate "CAST5 (CAST-128) cipher algorithm (x86_64/AVX)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_CAST5
+ 	select CRYPTO_CAST_COMMON
+@@ -1501,6 +1521,7 @@ config CRYPTO_CAST6
+ config CRYPTO_CAST6_AVX_X86_64
+ 	tristate "CAST6 (CAST-256) cipher algorithm (x86_64/AVX)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_CAST6
+ 	select CRYPTO_CAST_COMMON
+@@ -1534,6 +1555,7 @@ config CRYPTO_DES_SPARC64
+ config CRYPTO_DES3_EDE_X86_64
+ 	tristate "Triple DES EDE cipher algorithm (x86-64)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_LIB_DES
+ 	imply CRYPTO_CTR
+@@ -1604,6 +1626,7 @@ config CRYPTO_CHACHA20
+ config CRYPTO_CHACHA20_X86_64
+ 	tristate "ChaCha stream cipher algorithms (x86_64/SSSE3/AVX2/AVX-512VL)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_LIB_CHACHA_GENERIC
+ 	select CRYPTO_ARCH_HAVE_LIB_CHACHA
+@@ -1674,6 +1697,7 @@ config CRYPTO_SERPENT
+ config CRYPTO_SERPENT_SSE2_X86_64
+ 	tristate "Serpent cipher algorithm (x86_64/SSE2)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_SERPENT
+ 	select CRYPTO_SIMD
+@@ -1693,6 +1717,7 @@ config CRYPTO_SERPENT_SSE2_X86_64
+ config CRYPTO_SERPENT_SSE2_586
+ 	tristate "Serpent cipher algorithm (i586/SSE2)"
+ 	depends on X86 && !64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_SERPENT
+ 	select CRYPTO_SIMD
+@@ -1712,6 +1737,7 @@ config CRYPTO_SERPENT_SSE2_586
+ config CRYPTO_SERPENT_AVX_X86_64
+ 	tristate "Serpent cipher algorithm (x86_64/AVX)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_SERPENT
+ 	select CRYPTO_SIMD
+@@ -1732,6 +1758,7 @@ config CRYPTO_SERPENT_AVX_X86_64
+ config CRYPTO_SERPENT_AVX2_X86_64
+ 	tristate "Serpent cipher algorithm (x86_64/AVX2)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SERPENT_AVX_X86_64
+ 	help
+ 	  Serpent cipher algorithm, by Anderson, Biham & Knudsen.
+@@ -1876,6 +1903,7 @@ config CRYPTO_TWOFISH_586
+ config CRYPTO_TWOFISH_X86_64
+ 	tristate "Twofish cipher algorithm (x86_64)"
+ 	depends on (X86 || UML_X86) && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_ALGAPI
+ 	select CRYPTO_TWOFISH_COMMON
+ 	imply CRYPTO_CTR
+@@ -1893,6 +1921,7 @@ config CRYPTO_TWOFISH_X86_64
+ config CRYPTO_TWOFISH_X86_64_3WAY
+ 	tristate "Twofish cipher algorithm (x86_64, 3-way parallel)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_TWOFISH_COMMON
+ 	select CRYPTO_TWOFISH_X86_64
+@@ -1913,6 +1942,7 @@ config CRYPTO_TWOFISH_X86_64_3WAY
+ config CRYPTO_TWOFISH_AVX_X86_64
+ 	tristate "Twofish cipher algorithm (x86_64/AVX)"
+ 	depends on X86 && 64BIT
++	depends on !KMSAN # avoid false positives from assembly
+ 	select CRYPTO_SKCIPHER
+ 	select CRYPTO_SIMD
+ 	select CRYPTO_TWOFISH_COMMON
+--- a/drivers/net/Kconfig~crypto-kmsan-disable-accelerated-configs-under-kmsan
++++ a/drivers/net/Kconfig
+@@ -76,6 +76,7 @@ config WIREGUARD
+ 	tristate "WireGuard secure network tunnel"
+ 	depends on NET && INET
+ 	depends on IPV6 || !IPV6
++	depends on !KMSAN # KMSAN doesn't support the crypto configs below
+ 	select NET_UDP_TUNNEL
+ 	select DST_CACHE
+ 	select CRYPTO
 _
 
 Patches currently in -mm which might be from glider@google.com are
