@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 612D5ECAAD5
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:29:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8494DECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:29:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232516AbiIEU3k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 16:29:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57358 "EHLO
+        id S232796AbiIEU3l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 16:29:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232505AbiIEU23 (ORCPT
+        with ESMTP id S232160AbiIEU23 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:29 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FB706554A
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:36 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 228AA501A1
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5DE9DB81118
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13951C433D7;
-        Mon,  5 Sep 2022 20:27:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BA9B5B811FE
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DDDEC433C1;
+        Mon,  5 Sep 2022 20:27:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409654;
-        bh=JvB8aP4r5A0dvif5lk/3TrpTeVVSb6DnEEp/ngUv3rg=;
+        s=korg; t=1662409656;
+        bh=LjkDI1JWCCuzktOvvu16zGsyuFbISeqe4IBeViPeoq0=;
         h=Date:To:From:Subject:From;
-        b=pl+DRjWWpx0aX71u68+vwYZ5/qQhEyc60+Jb9dQROOIz+FOON0SqCRXlxPKrMlASt
-         +7Ey5dNolVIMA4xLT6ZqZPRUIFp64SnOjGZKr1OgbEnrvuKlK6y2V4Hp+iN4t4Sx5P
-         YXX1zQFs5/PvA4UhdwOMANWTt/YYPEnFXt72okXM=
-Date:   Mon, 05 Sep 2022 13:27:33 -0700
+        b=uo/4d9Zf8lu4noVbHpp2H7kfmO9vAkrfccRO+zrHDNAZ1zU/AP69NQ79WyV5hx11n
+         h/GUY4IUHKfAoElBenRAFRYI4SNwgk5tOm+44/mInqzyB3Q5HbK/vDEIjvRgjtU8pf
+         PdN10OqZK8HXWk+CQSXyq90+ZddwA+tjQFtvkDQM=
+Date:   Mon, 05 Sep 2022 13:27:35 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-disable-physical-page-merging-in-biovec.patch added to mm-unstable branch
-Message-Id: <20220905202734.13951C433D7@smtp.kernel.org>
+Subject: + block-kmsan-skip-bio-block-merging-logic-for-kmsan.patch added to mm-unstable branch
+Message-Id: <20220905202736.6DDDEC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: disable physical page merging in biovec
+     Subject: block: kmsan: skip bio block merging logic for KMSAN
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-disable-physical-page-merging-in-biovec.patch
+     block-kmsan-skip-bio-block-merging-logic-for-kmsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-disable-physical-page-merging-in-biovec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/block-kmsan-skip-bio-block-merging-logic-for-kmsan.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,15 +76,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: disable physical page merging in biovec
-Date: Mon, 5 Sep 2022 14:24:36 +0200
+Subject: block: kmsan: skip bio block merging logic for KMSAN
+Date: Mon, 5 Sep 2022 14:24:37 +0200
 
-KMSAN metadata for adjacent physical pages may not be adjacent, therefore
-accessing such pages together may lead to metadata corruption.
+KMSAN doesn't allow treating adjacent memory pages as such, if they were
+allocated by different alloc_pages() calls.
 
-We disable merging pages in biovec to prevent such corruptions.
+The block layer however does so: adjacent pages end up being used
+together.  To prevent this, make page_is_mergeable() return false under
+KMSAN.
 
-Link: https://lkml.kernel.org/r/20220905122452.2258262-29-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-30-glider@google.com
+Suggested-by: Eric Biggers <ebiggers@google.com>
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -97,7 +100,6 @@ Cc: Christoph Hellwig <hch@lst.de>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Eric Biggers <ebiggers@google.com>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
@@ -122,25 +124,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ block/bio.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/block/blk.h~kmsan-disable-physical-page-merging-in-biovec
-+++ a/block/blk.h
-@@ -88,6 +88,13 @@ static inline bool biovec_phys_mergeable
- 	phys_addr_t addr1 = page_to_phys(vec1->bv_page) + vec1->bv_offset;
- 	phys_addr_t addr2 = page_to_phys(vec2->bv_page) + vec2->bv_offset;
- 
-+	/*
-+	 * Merging adjacent physical pages may not work correctly under KMSAN
-+	 * if their metadata pages aren't adjacent. Just disable merging.
-+	 */
-+	if (IS_ENABLED(CONFIG_KMSAN))
+--- a/block/bio.c~block-kmsan-skip-bio-block-merging-logic-for-kmsan
++++ a/block/bio.c
+@@ -869,6 +869,8 @@ static inline bool page_is_mergeable(con
+ 	*same_page = ((vec_end_addr & PAGE_MASK) == page_addr);
+ 	if (*same_page)
+ 		return true;
++	else if (IS_ENABLED(CONFIG_KMSAN))
 +		return false;
-+
- 	if (addr1 + vec1->bv_len != addr2)
- 		return false;
- 	if (xen_domain() && !xen_biovec_phys_mergeable(vec1, vec2->bv_page))
+ 	return (bv->bv_page + bv_end / PAGE_SIZE) == (page + off / PAGE_SIZE);
+ }
+ 
 _
 
 Patches currently in -mm which might be from glider@google.com are
