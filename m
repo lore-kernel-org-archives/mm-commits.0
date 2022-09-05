@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67DB8ECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:15:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5F2AECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:22:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229767AbiIEWPY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 18:15:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37792 "EHLO
+        id S230402AbiIEWWu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 18:22:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229577AbiIEWPX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:15:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 770D53DBE4
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:15:22 -0700 (PDT)
+        with ESMTP id S230216AbiIEWWq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:22:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E8D467169
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:22:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 12A9A60CD4
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:15:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56B4EC433C1;
-        Mon,  5 Sep 2022 22:15:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ECF5560DC7
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:22:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57547C433C1;
+        Mon,  5 Sep 2022 22:22:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662416121;
-        bh=tvDmoqB2ExWFFX309PaZdcu+/IWramMVdmHkkT/8RbU=;
+        s=korg; t=1662416564;
+        bh=hajnAgv6+QzwmjVYlX22j2Upbs7GBFNDzCXrbat2IFU=;
         h=Date:To:From:Subject:From;
-        b=W4+VVWD27jG3MfGAYzp4+kxE+pXa+Pnw6tARfdMuZ8A77Lnl7q06LEOgEdqL9s1Je
-         j1nxyYK1vFwJ7bk1PXVwfzqioQLcelOsoLYq/1vwu51melf5z1vI14Gd4JZJL3pc6V
-         iHnVoFyQt3iruj5Px06lXHOcTevz09VFJPTkbmy8=
-Date:   Mon, 05 Sep 2022 15:15:20 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
-        akpm@linux-foundation.org
+        b=eaoP0o399BcCzkWHl7GZVEeWhbCdtVbKUyS+n3TdBznKV3z1DcV+udZ3zC5fwmVLb
+         ngc2sI9o76VtdrgOK2OPrZNIYNt0u5BGwwanB3GCguOQzHO2ia5wvpBogrFwVFCbPC
+         LeQUw4aBrmv4phwWLW7TehDKPneH8239/4AhITuM=
+Date:   Mon, 05 Sep 2022 15:22:43 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        rdunlap@infradead.org, mike.kravetz@oracle.com,
+        matthias.goergens@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch added to mm-unstable branch
-Message-Id: <20220905221521.56B4EC433C1@smtp.kernel.org>
+Subject: + tools-headers-fix-undefined-behaviour-34-26.patch added to mm-unstable branch
+Message-Id: <20220905222244.57547C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs: simplify the judgement whether kdamonds are busy
+     Subject: hugetlb_encode.h: fix undefined behaviour (34 << 26)
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch
+     tools-headers-fix-undefined-behaviour-34-26.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-headers-fix-undefined-behaviour-34-26.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,82 +65,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kaixu Xia <kaixuxia@tencent.com>
-Subject: mm/damon/sysfs: simplify the judgement whether kdamonds are busy
-Date: Sun, 4 Sep 2022 22:36:06 +0800
+From: Matthias Goergens <matthias.goergens@gmail.com>
+Subject: hugetlb_encode.h: fix undefined behaviour (34 << 26)
+Date: Mon, 5 Sep 2022 11:19:04 +0800
 
-It is unnecessary to get the number of the running kdamond to judge
-whether kdamonds are busy.  Here we can use the
-damon_sysfs_kdamond_running() helper and return -EBUSY directly when
-finding a running kdamond.  Meanwhile, merging with the judgement that a
-kdamond has current sysfs command callback request to make the code more
-clear.
+Left-shifting past the size of your datatype is undefined behaviour in C. 
+The literal 34 gets the type `int`, and that one is not big enough to be
+left shifted by 26 bits.
 
-Link: https://lkml.kernel.org/r/1662302166-13216-1-git-send-email-kaixuxia@tencent.com
-Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+An `unsigned` is long enough (on any machine that has at least 32 bits for
+their ints.)
+
+For uniformity, we mark all the literals as unsigned.  But it's only
+really needed for HUGETLB_FLAG_ENCODE_16GB.
+
+Thanks to Randy Dunlap for an initial review and suggestion.
+
+Link: https://lkml.kernel.org/r/20220905031904.150925-1-matthias.goergens@gmail.com
+Signed-off-by: Matthias Goergens <matthias.goergens@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   25 +++++++------------------
- 1 file changed, 7 insertions(+), 18 deletions(-)
+ include/uapi/asm-generic/hugetlb_encode.h  |   26 +++++++++----------
+ tools/include/asm-generic/hugetlb_encode.h |   26 +++++++++----------
+ 2 files changed, 26 insertions(+), 26 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy
-+++ a/mm/damon/sysfs.c
-@@ -2657,23 +2657,18 @@ static void damon_sysfs_kdamonds_rm_dirs
- 	kdamonds->kdamonds_arr = NULL;
- }
+--- a/include/uapi/asm-generic/hugetlb_encode.h~tools-headers-fix-undefined-behaviour-34-26
++++ a/include/uapi/asm-generic/hugetlb_encode.h
+@@ -20,18 +20,18 @@
+ #define HUGETLB_FLAG_ENCODE_SHIFT	26
+ #define HUGETLB_FLAG_ENCODE_MASK	0x3f
  
--static int damon_sysfs_nr_running_ctxs(struct damon_sysfs_kdamond **kdamonds,
-+static bool damon_sysfs_kdamonds_busy(struct damon_sysfs_kdamond **kdamonds,
- 		int nr_kdamonds)
- {
--	int nr_running_ctxs = 0;
- 	int i;
+-#define HUGETLB_FLAG_ENCODE_16KB	(14 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_64KB	(16 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_512KB	(19 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_1MB		(20 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_2MB		(21 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_8MB		(23 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_16MB	(24 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_32MB	(25 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_256MB	(28 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_512MB	(29 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_1GB		(30 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_2GB		(31 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_16GB	(34 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_16KB	(14U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_64KB	(16U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_512KB	(19U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_1MB		(20U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_2MB		(21U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_8MB		(23U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_16MB	(24U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_32MB	(25U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_256MB	(28U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_512MB	(29U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_1GB		(30U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_2GB		(31U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_16GB	(34U << HUGETLB_FLAG_ENCODE_SHIFT)
  
- 	for (i = 0; i < nr_kdamonds; i++) {
--		struct damon_ctx *ctx = kdamonds[i]->damon_ctx;
--
--		if (!ctx)
--			continue;
--		mutex_lock(&ctx->kdamond_lock);
--		if (ctx->kdamond)
--			nr_running_ctxs++;
--		mutex_unlock(&ctx->kdamond_lock);
-+		if (damon_sysfs_kdamond_running(kdamonds[i]) ||
-+		    damon_sysfs_cmd_request.kdamond == kdamonds[i])
-+			return true;
- 	}
--	return nr_running_ctxs;
-+
-+	return false;
- }
+ #endif /* _ASM_GENERIC_HUGETLB_ENCODE_H_ */
+--- a/tools/include/asm-generic/hugetlb_encode.h~tools-headers-fix-undefined-behaviour-34-26
++++ a/tools/include/asm-generic/hugetlb_encode.h
+@@ -20,18 +20,18 @@
+ #define HUGETLB_FLAG_ENCODE_SHIFT	26
+ #define HUGETLB_FLAG_ENCODE_MASK	0x3f
  
- static int damon_sysfs_kdamonds_add_dirs(struct damon_sysfs_kdamonds *kdamonds,
-@@ -2682,15 +2677,9 @@ static int damon_sysfs_kdamonds_add_dirs
- 	struct damon_sysfs_kdamond **kdamonds_arr, *kdamond;
- 	int err, i;
+-#define HUGETLB_FLAG_ENCODE_16KB	(14 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_64KB	(16 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_512KB	(19 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_1MB		(20 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_2MB		(21 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_8MB		(23 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_16MB	(24 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_32MB	(25 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_256MB	(28 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_512MB	(29 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_1GB		(30 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_2GB		(31 << HUGETLB_FLAG_ENCODE_SHIFT)
+-#define HUGETLB_FLAG_ENCODE_16GB	(34 << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_16KB	(14U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_64KB	(16U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_512KB	(19U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_1MB		(20U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_2MB		(21U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_8MB		(23U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_16MB	(24U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_32MB	(25U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_256MB	(28U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_512MB	(29U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_1GB		(30U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_2GB		(31U << HUGETLB_FLAG_ENCODE_SHIFT)
++#define HUGETLB_FLAG_ENCODE_16GB	(34U << HUGETLB_FLAG_ENCODE_SHIFT)
  
--	if (damon_sysfs_nr_running_ctxs(kdamonds->kdamonds_arr, kdamonds->nr))
-+	if (damon_sysfs_kdamonds_busy(kdamonds->kdamonds_arr, kdamonds->nr))
- 		return -EBUSY;
- 
--	for (i = 0; i < kdamonds->nr; i++) {
--		if (damon_sysfs_cmd_request.kdamond ==
--				kdamonds->kdamonds_arr[i])
--			return -EBUSY;
--	}
--
- 	damon_sysfs_kdamonds_rm_dirs(kdamonds);
- 	if (!nr_kdamonds)
- 		return 0;
+ #endif /* _ASM_GENERIC_HUGETLB_ENCODE_H_ */
 _
 
-Patches currently in -mm which might be from kaixuxia@tencent.com are
+Patches currently in -mm which might be from matthias.goergens@gmail.com are
 
-mm-damon-core-simplify-the-parameter-passing-for-region-split-operation.patch
-mm-damon-simplify-the-parameter-passing-for-check_accesses.patch
-mm-damon-vaddr-remove-comparison-between-mm-and-last_mm-when-checking-region-accesses.patch
-mm-damon-get-the-hotness-from-damon_hot_score-in-damon_pageout_score.patch
-mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch
+tools-headers-fix-undefined-behaviour-34-26.patch
 
