@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6D5BECAAD5
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:28:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADFECECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:28:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232270AbiIEU2q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 16:28:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57498 "EHLO
+        id S232287AbiIEU2r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 16:28:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232318AbiIEU2A (ORCPT
+        with ESMTP id S232312AbiIEU2A (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DEEA61B0E
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:13 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDAB465254
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:27:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BF27360689
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19994C433B5;
-        Mon,  5 Sep 2022 20:27:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6168360689
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:27:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC444C43470;
+        Mon,  5 Sep 2022 20:27:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409632;
-        bh=K/ivmqv5VN1pPoiaNN4NdRK/9CTRanTvuTvKR2BNfbw=;
+        s=korg; t=1662409629;
+        bh=5etc+6H+B4ogF9pYEx+GGabdtY+YASSEDHP2XBr9Zfc=;
         h=Date:To:From:Subject:From;
-        b=SlnL4zZLNIcMyTujc5TG9nOqYF9NHr4EcL4LwqhzEtWj9KkBIrdOrg6O76v3dRpjB
-         MoD2aT1mVeZeeQrY+LoEXaxPWXS6Xy5h6WyDLTU9YspvMOEktpiUuuuzIW54r5z9mU
-         xdcJzGcCrWhAMgmMpCA2Shwg7WQJH/AbtXeskZ5E=
-Date:   Mon, 05 Sep 2022 13:27:11 -0700
+        b=t2GLAMOhH3jOgj6dwo3qvMeLRwKaBnR6Vv+vyf5L1G0No7bX4D1KrFwI9jesfJ23O
+         LzkVbBvVQzNr7+8h4Af7+H3RX8dDb6B3tNpgGRcIVPf9knqkvhqdBJGVgjgpsi78yG
+         e2U145lOYa2QW89VTC+1sRZP9mlFvIoK7WEERPBQ=
+Date:   Mon, 05 Sep 2022 13:27:09 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-add-iomap-support.patch added to mm-unstable branch
-Message-Id: <20220905202712.19994C433B5@smtp.kernel.org>
+Subject: + kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch added to mm-unstable branch
+Message-Id: <20220905202709.AC444C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: add iomap support
+     Subject: kmsan: unpoison @tlb in arch_tlb_gather_mmu()
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-add-iomap-support.patch
+     kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-add-iomap-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,16 +76,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: add iomap support
-Date: Mon, 5 Sep 2022 14:24:28 +0200
+Subject: kmsan: unpoison @tlb in arch_tlb_gather_mmu()
+Date: Mon, 5 Sep 2022 14:24:27 +0200
 
-Functions from lib/iomap.c interact with hardware, so KMSAN must ensure
-that:
- - every read function returns an initialized value
- - every write function checks values before sending them to hardware.
+This is an optimization to reduce stackdepot pressure.
 
-Link: https://lkml.kernel.org/r/20220905122452.2258262-21-glider@google.com
+struct mmu_gather contains 7 1-bit fields packed into a 32-bit unsigned
+int value.  The remaining 25 bits remain uninitialized and are never used,
+but KMSAN updates the origin for them in zap_pXX_range() in mm/memory.c,
+thus creating very long origin chains.  This is technically correct, but
+consumes too much memory.
+
+Unpoisoning the whole structure will prevent creating such chains.
+
+Link: https://lkml.kernel.org/r/20220905122452.2258262-20-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
+Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -107,7 +113,6 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -122,193 +127,35 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iomap.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ mm/mmu_gather.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/lib/iomap.c~kmsan-add-iomap-support
-+++ a/lib/iomap.c
-@@ -6,6 +6,7 @@
-  */
- #include <linux/pci.h>
- #include <linux/io.h>
+--- a/mm/mmu_gather.c~kmsan-unpoison-tlb-in-arch_tlb_gather_mmu
++++ a/mm/mmu_gather.c
+@@ -1,6 +1,7 @@
+ #include <linux/gfp.h>
+ #include <linux/highmem.h>
+ #include <linux/kernel.h>
 +#include <linux/kmsan-checks.h>
+ #include <linux/mmdebug.h>
+ #include <linux/mm_types.h>
+ #include <linux/mm_inline.h>
+@@ -265,6 +266,15 @@ void tlb_flush_mmu(struct mmu_gather *tl
+ static void __tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
+ 			     bool fullmm)
+ {
++	/*
++	 * struct mmu_gather contains 7 1-bit fields packed into a 32-bit
++	 * unsigned int value. The remaining 25 bits remain uninitialized
++	 * and are never used, but KMSAN updates the origin for them in
++	 * zap_pXX_range() in mm/memory.c, thus creating very long origin
++	 * chains. This is technically correct, but consumes too much memory.
++	 * Unpoisoning the whole structure will prevent creating such chains.
++	 */
++	kmsan_unpoison_memory(tlb, sizeof(*tlb));
+ 	tlb->mm = mm;
+ 	tlb->fullmm = fullmm;
  
- #include <linux/export.h>
- 
-@@ -70,26 +71,35 @@ static void bad_io_access(unsigned long
- #define mmio_read64be(addr) swab64(readq(addr))
- #endif
- 
-+/*
-+ * Here and below, we apply __no_kmsan_checks to functions reading data from
-+ * hardware, to ensure that KMSAN marks their return values as initialized.
-+ */
-+__no_kmsan_checks
- unsigned int ioread8(const void __iomem *addr)
- {
- 	IO_COND(addr, return inb(port), return readb(addr));
- 	return 0xff;
- }
-+__no_kmsan_checks
- unsigned int ioread16(const void __iomem *addr)
- {
- 	IO_COND(addr, return inw(port), return readw(addr));
- 	return 0xffff;
- }
-+__no_kmsan_checks
- unsigned int ioread16be(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read16be(port), return mmio_read16be(addr));
- 	return 0xffff;
- }
-+__no_kmsan_checks
- unsigned int ioread32(const void __iomem *addr)
- {
- 	IO_COND(addr, return inl(port), return readl(addr));
- 	return 0xffffffff;
- }
-+__no_kmsan_checks
- unsigned int ioread32be(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read32be(port), return mmio_read32be(addr));
-@@ -142,18 +152,21 @@ static u64 pio_read64be_hi_lo(unsigned l
- 	return lo | (hi << 32);
- }
- 
-+__no_kmsan_checks
- u64 ioread64_lo_hi(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64_lo_hi(port), return readq(addr));
- 	return 0xffffffffffffffffULL;
- }
- 
-+__no_kmsan_checks
- u64 ioread64_hi_lo(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64_hi_lo(port), return readq(addr));
- 	return 0xffffffffffffffffULL;
- }
- 
-+__no_kmsan_checks
- u64 ioread64be_lo_hi(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64be_lo_hi(port),
-@@ -161,6 +174,7 @@ u64 ioread64be_lo_hi(const void __iomem
- 	return 0xffffffffffffffffULL;
- }
- 
-+__no_kmsan_checks
- u64 ioread64be_hi_lo(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64be_hi_lo(port),
-@@ -188,22 +202,32 @@ EXPORT_SYMBOL(ioread64be_hi_lo);
- 
- void iowrite8(u8 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, outb(val,port), writeb(val, addr));
- }
- void iowrite16(u16 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, outw(val,port), writew(val, addr));
- }
- void iowrite16be(u16 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write16be(val,port), mmio_write16be(val, addr));
- }
- void iowrite32(u32 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, outl(val,port), writel(val, addr));
- }
- void iowrite32be(u32 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write32be(val,port), mmio_write32be(val, addr));
- }
- EXPORT_SYMBOL(iowrite8);
-@@ -239,24 +263,32 @@ static void pio_write64be_hi_lo(u64 val,
- 
- void iowrite64_lo_hi(u64 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write64_lo_hi(val, port),
- 		writeq(val, addr));
- }
- 
- void iowrite64_hi_lo(u64 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write64_hi_lo(val, port),
- 		writeq(val, addr));
- }
- 
- void iowrite64be_lo_hi(u64 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write64be_lo_hi(val, port),
- 		mmio_write64be(val, addr));
- }
- 
- void iowrite64be_hi_lo(u64 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write64be_hi_lo(val, port),
- 		mmio_write64be(val, addr));
- }
-@@ -328,14 +360,20 @@ static inline void mmio_outsl(void __iom
- void ioread8_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insb(port,dst,count), mmio_insb(addr, dst, count));
-+	/* KMSAN must treat values read from devices as initialized. */
-+	kmsan_unpoison_memory(dst, count);
- }
- void ioread16_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insw(port,dst,count), mmio_insw(addr, dst, count));
-+	/* KMSAN must treat values read from devices as initialized. */
-+	kmsan_unpoison_memory(dst, count * 2);
- }
- void ioread32_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insl(port,dst,count), mmio_insl(addr, dst, count));
-+	/* KMSAN must treat values read from devices as initialized. */
-+	kmsan_unpoison_memory(dst, count * 4);
- }
- EXPORT_SYMBOL(ioread8_rep);
- EXPORT_SYMBOL(ioread16_rep);
-@@ -343,14 +381,20 @@ EXPORT_SYMBOL(ioread32_rep);
- 
- void iowrite8_rep(void __iomem *addr, const void *src, unsigned long count)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(src, count);
- 	IO_COND(addr, outsb(port, src, count), mmio_outsb(addr, src, count));
- }
- void iowrite16_rep(void __iomem *addr, const void *src, unsigned long count)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(src, count * 2);
- 	IO_COND(addr, outsw(port, src, count), mmio_outsw(addr, src, count));
- }
- void iowrite32_rep(void __iomem *addr, const void *src, unsigned long count)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(src, count * 4);
- 	IO_COND(addr, outsl(port, src,count), mmio_outsl(addr, src, count));
- }
- EXPORT_SYMBOL(iowrite8_rep);
 _
 
 Patches currently in -mm which might be from glider@google.com are
