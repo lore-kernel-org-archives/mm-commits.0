@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5F2AECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:22:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D848ECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:27:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230402AbiIEWWu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 18:22:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44202 "EHLO
+        id S229453AbiIEW1I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 18:27:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230216AbiIEWWq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:22:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E8D467169
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:22:45 -0700 (PDT)
+        with ESMTP id S231226AbiIEW1H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:27:07 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A8B62BB2D
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:27:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ECF5560DC7
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:22:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57547C433C1;
-        Mon,  5 Sep 2022 22:22:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E9CBAB81598
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:27:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83E86C433C1;
+        Mon,  5 Sep 2022 22:27:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662416564;
-        bh=hajnAgv6+QzwmjVYlX22j2Upbs7GBFNDzCXrbat2IFU=;
+        s=korg; t=1662416823;
+        bh=AT7GQXmIchxV94CZiaq51dL3b2QnDTAIvc3idRXXs+Q=;
         h=Date:To:From:Subject:From;
-        b=eaoP0o399BcCzkWHl7GZVEeWhbCdtVbKUyS+n3TdBznKV3z1DcV+udZ3zC5fwmVLb
-         ngc2sI9o76VtdrgOK2OPrZNIYNt0u5BGwwanB3GCguOQzHO2ia5wvpBogrFwVFCbPC
-         LeQUw4aBrmv4phwWLW7TehDKPneH8239/4AhITuM=
-Date:   Mon, 05 Sep 2022 15:22:43 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        rdunlap@infradead.org, mike.kravetz@oracle.com,
-        matthias.goergens@gmail.com, akpm@linux-foundation.org
+        b=omr9mSLzyxoWrrLSR648s7qe+oCA1JWb2hOrLQq+JuCsodHwjMGq2rr7dzq2qT2Qd
+         p9p4WWK0stoQO2NCUNeN8K2gkRa8yAmyClQPH+yMbz5HC6XlF3sCoValR7jfqLu6fV
+         95myR/W4d/8JYBkkIERnL4N/O3lRUDDx4oy2nZO0=
+Date:   Mon, 05 Sep 2022 15:27:02 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-headers-fix-undefined-behaviour-34-26.patch added to mm-unstable branch
-Message-Id: <20220905222244.57547C433C1@smtp.kernel.org>
+Subject: + filemap-convert-filemap_range_has_writeback-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20220905222703.83E86C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb_encode.h: fix undefined behaviour (34 << 26)
+     Subject: filemap: convert filemap_range_has_writeback() to use folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     tools-headers-fix-undefined-behaviour-34-26.patch
+     filemap-convert-filemap_range_has_writeback-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-headers-fix-undefined-behaviour-34-26.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-convert-filemap_range_has_writeback-to-use-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,105 +64,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Matthias Goergens <matthias.goergens@gmail.com>
-Subject: hugetlb_encode.h: fix undefined behaviour (34 << 26)
-Date: Mon, 5 Sep 2022 11:19:04 +0800
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: filemap: convert filemap_range_has_writeback() to use folios
+Date: Mon, 5 Sep 2022 14:45:57 -0700
 
-Left-shifting past the size of your datatype is undefined behaviour in C. 
-The literal 34 gets the type `int`, and that one is not big enough to be
-left shifted by 26 bits.
+Removes 3 calls to compound_head().
 
-An `unsigned` is long enough (on any machine that has at least 32 bits for
-their ints.)
-
-For uniformity, we mark all the literals as unsigned.  But it's only
-really needed for HUGETLB_FLAG_ENCODE_16GB.
-
-Thanks to Randy Dunlap for an initial review and suggestion.
-
-Link: https://lkml.kernel.org/r/20220905031904.150925-1-matthias.goergens@gmail.com
-Signed-off-by: Matthias Goergens <matthias.goergens@gmail.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20220905214557.868606-1-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/asm-generic/hugetlb_encode.h  |   26 +++++++++----------
- tools/include/asm-generic/hugetlb_encode.h |   26 +++++++++----------
- 2 files changed, 26 insertions(+), 26 deletions(-)
+ mm/filemap.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/include/uapi/asm-generic/hugetlb_encode.h~tools-headers-fix-undefined-behaviour-34-26
-+++ a/include/uapi/asm-generic/hugetlb_encode.h
-@@ -20,18 +20,18 @@
- #define HUGETLB_FLAG_ENCODE_SHIFT	26
- #define HUGETLB_FLAG_ENCODE_MASK	0x3f
+--- a/mm/filemap.c~filemap-convert-filemap_range_has_writeback-to-use-folios
++++ a/mm/filemap.c
+@@ -632,22 +632,23 @@ bool filemap_range_has_writeback(struct
+ {
+ 	XA_STATE(xas, &mapping->i_pages, start_byte >> PAGE_SHIFT);
+ 	pgoff_t max = end_byte >> PAGE_SHIFT;
+-	struct page *page;
++	struct folio *folio;
  
--#define HUGETLB_FLAG_ENCODE_16KB	(14 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_64KB	(16 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_512KB	(19 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_1MB		(20 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_2MB		(21 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_8MB		(23 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_16MB	(24 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_32MB	(25 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_256MB	(28 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_512MB	(29 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_1GB		(30 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_2GB		(31 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_16GB	(34 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_16KB	(14U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_64KB	(16U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_512KB	(19U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_1MB		(20U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_2MB		(21U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_8MB		(23U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_16MB	(24U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_32MB	(25U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_256MB	(28U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_512MB	(29U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_1GB		(30U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_2GB		(31U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_16GB	(34U << HUGETLB_FLAG_ENCODE_SHIFT)
+ 	if (end_byte < start_byte)
+ 		return false;
  
- #endif /* _ASM_GENERIC_HUGETLB_ENCODE_H_ */
---- a/tools/include/asm-generic/hugetlb_encode.h~tools-headers-fix-undefined-behaviour-34-26
-+++ a/tools/include/asm-generic/hugetlb_encode.h
-@@ -20,18 +20,18 @@
- #define HUGETLB_FLAG_ENCODE_SHIFT	26
- #define HUGETLB_FLAG_ENCODE_MASK	0x3f
+ 	rcu_read_lock();
+-	xas_for_each(&xas, page, max) {
+-		if (xas_retry(&xas, page))
++	xas_for_each(&xas, folio, max) {
++		if (xas_retry(&xas, folio))
+ 			continue;
+-		if (xa_is_value(page))
++		if (xa_is_value(folio))
+ 			continue;
+-		if (PageDirty(page) || PageLocked(page) || PageWriteback(page))
++		if (folio_test_dirty(folio) || folio_test_locked(folio) ||
++				folio_test_writeback(folio))
+ 			break;
+ 	}
+ 	rcu_read_unlock();
+-	return page != NULL;
++	return folio != NULL;
+ }
+ EXPORT_SYMBOL_GPL(filemap_range_has_writeback);
  
--#define HUGETLB_FLAG_ENCODE_16KB	(14 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_64KB	(16 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_512KB	(19 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_1MB		(20 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_2MB		(21 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_8MB		(23 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_16MB	(24 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_32MB	(25 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_256MB	(28 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_512MB	(29 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_1GB		(30 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_2GB		(31 << HUGETLB_FLAG_ENCODE_SHIFT)
--#define HUGETLB_FLAG_ENCODE_16GB	(34 << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_16KB	(14U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_64KB	(16U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_512KB	(19U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_1MB		(20U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_2MB		(21U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_8MB		(23U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_16MB	(24U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_32MB	(25U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_256MB	(28U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_512MB	(29U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_1GB		(30U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_2GB		(31U << HUGETLB_FLAG_ENCODE_SHIFT)
-+#define HUGETLB_FLAG_ENCODE_16GB	(34U << HUGETLB_FLAG_ENCODE_SHIFT)
- 
- #endif /* _ASM_GENERIC_HUGETLB_ENCODE_H_ */
 _
 
-Patches currently in -mm which might be from matthias.goergens@gmail.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
-tools-headers-fix-undefined-behaviour-34-26.patch
+filemap-add-filemap_get_folios_contig.patch
+btrfs-convert-__process_pages_contig-to-use-filemap_get_folios_contig.patch
+btrfs-convert-end_compressed_writeback-to-use-filemap_get_folios.patch
+btrfs-convert-process_page_range-to-use-filemap_get_folios_contig.patch
+nilfs2-convert-nilfs_find_uncommited_extent-to-use-filemap_get_folios_contig.patch
+ramfs-convert-ramfs_nommu_get_unmapped_area-to-use-filemap_get_folios_contig.patch
+filemap-remove-find_get_pages_contig.patch
+filemap-convert-filemap_range_has_writeback-to-use-folios.patch
 
