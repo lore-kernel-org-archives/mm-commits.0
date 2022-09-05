@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65C48C6FA83
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:30:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA688ECAAD5
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 20:30:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232660AbiIEUaQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Sep 2022 16:30:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57716 "EHLO
+        id S232890AbiIEUa2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Sep 2022 16:30:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232684AbiIEU2i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7112261B1D
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:28:06 -0700 (PDT)
+        with ESMTP id S232709AbiIEU2j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 16:28:39 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB91662A9D
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 13:28:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 008A960A37
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:28:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D099C433C1;
-        Mon,  5 Sep 2022 20:28:05 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A75F7B815D7
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 20:28:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46BFDC433D6;
+        Mon,  5 Sep 2022 20:28:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662409685;
-        bh=L24eDQJiN1VO24ht8SwZXLbGp4SdVU6d692XKyokD9Y=;
+        s=korg; t=1662409688;
+        bh=hg0UQ0R6IIrZn/EegktEcGyeLMCO2s90ALULTiuAcUU=;
         h=Date:To:From:Subject:From;
-        b=CF6AK63Vr49ZfwuNqfmwrUSI0UQHS0eTru2yhdoCvmn4lCRz1l3lO9Orz6y6xMRIo
-         YWXpcn0vCLSwSz+ke/umQSuFRSWfbuSrTlqo2rFn59wX7PvCgD8lkIuxMeUIpjgut6
-         /P49me08X027r/ol2osNG4QYCbj2hI0B/Xs3oiEw=
-Date:   Mon, 05 Sep 2022 13:28:04 -0700
+        b=q57jaAf00hJcDVsXUSagJXV6Ivtbr35pdeH8AvLe52JerJqkP2I7l7ZnQoYHOBvsV
+         If6cBT+m2HjyulAx5MJLO8BWwJCuvhR2l5Qxs8fSVVPZ6jbZvDqlZLlJq+mtNsX64e
+         qoQlyIXGFIZev/Jh31RHUMuLn7WGgOqrgMzxFrXA=
+Date:   Mon, 05 Sep 2022 13:28:07 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + entry-kmsan-introduce-kmsan_unpoison_entry_regs.patch added to mm-unstable branch
-Message-Id: <20220905202805.4D099C433C1@smtp.kernel.org>
+Subject: + bpf-kmsan-initialize-bpf-registers-with-zeroes.patch added to mm-unstable branch
+Message-Id: <20220905202808.46BFDC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: entry: kmsan: introduce kmsan_unpoison_entry_regs()
+     Subject: bpf: kmsan: initialize BPF registers with zeroes
 has been added to the -mm mm-unstable branch.  Its filename is
-     entry-kmsan-introduce-kmsan_unpoison_entry_regs.patch
+     bpf-kmsan-initialize-bpf-registers-with-zeroes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/entry-kmsan-introduce-kmsan_unpoison_entry_regs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bpf-kmsan-initialize-bpf-registers-with-zeroes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,18 +76,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: entry: kmsan: introduce kmsan_unpoison_entry_regs()
-Date: Mon, 5 Sep 2022 14:24:49 +0200
+Subject: bpf: kmsan: initialize BPF registers with zeroes
+Date: Mon, 5 Sep 2022 14:24:50 +0200
 
-struct pt_regs passed into IRQ entry code is set up by uninstrumented asm
-functions, therefore KMSAN may not notice the registers are initialized.
+When executing BPF programs, certain registers may get passed
+uninitialized to helper functions.  E.g.  when performing a JMP_CALL,
+registers BPF_R1-BPF_R5 are always passed to the helper, no matter how
+many of them are actually used.
 
-kmsan_unpoison_entry_regs() unpoisons the contents of struct pt_regs,
-preventing potential false positives.  Unlike kmsan_unpoison_memory(), it
-can be called under kmsan_in_runtime(), which is often the case in IRQ
-entry code.
+Passing uninitialized values as function parameters is technically
+undefined behavior, so we work around it by always initializing the
+registers.
 
-Link: https://lkml.kernel.org/r/20220905122452.2258262-42-glider@google.com
+Link: https://lkml.kernel.org/r/20220905122452.2258262-43-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -125,119 +126,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmsan.h |   15 +++++++++++++++
- kernel/entry/common.c |    5 +++++
- mm/kmsan/hooks.c      |   26 ++++++++++++++++++++++++++
- 3 files changed, 46 insertions(+)
+ kernel/bpf/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kmsan.h~entry-kmsan-introduce-kmsan_unpoison_entry_regs
-+++ a/include/linux/kmsan.h
-@@ -214,6 +214,17 @@ void kmsan_handle_dma_sg(struct scatterl
-  */
- void kmsan_handle_urb(const struct urb *urb, bool is_out);
- 
-+/**
-+ * kmsan_unpoison_entry_regs() - Handle pt_regs in low-level entry code.
-+ * @regs:	struct pt_regs pointer received from assembly code.
-+ *
-+ * KMSAN unpoisons the contents of the passed pt_regs, preventing potential
-+ * false positive reports. Unlike kmsan_unpoison_memory(),
-+ * kmsan_unpoison_entry_regs() can be called from the regions where
-+ * kmsan_in_runtime() returns true, which is the case in early entry code.
-+ */
-+void kmsan_unpoison_entry_regs(const struct pt_regs *regs);
-+
- #else
- 
- static inline void kmsan_init_shadow(void)
-@@ -310,6 +321,10 @@ static inline void kmsan_handle_urb(cons
- {
- }
- 
-+static inline void kmsan_unpoison_entry_regs(const struct pt_regs *regs)
-+{
-+}
-+
- #endif
- 
- #endif /* _LINUX_KMSAN_H */
---- a/kernel/entry/common.c~entry-kmsan-introduce-kmsan_unpoison_entry_regs
-+++ a/kernel/entry/common.c
-@@ -5,6 +5,7 @@
- #include <linux/resume_user_mode.h>
- #include <linux/highmem.h>
- #include <linux/jump_label.h>
-+#include <linux/kmsan.h>
- #include <linux/livepatch.h>
- #include <linux/audit.h>
- #include <linux/tick.h>
-@@ -24,6 +25,7 @@ static __always_inline void __enter_from
- 	user_exit_irqoff();
- 
- 	instrumentation_begin();
-+	kmsan_unpoison_entry_regs(regs);
- 	trace_hardirqs_off_finish();
- 	instrumentation_end();
- }
-@@ -352,6 +354,7 @@ noinstr irqentry_state_t irqentry_enter(
- 		lockdep_hardirqs_off(CALLER_ADDR0);
- 		ct_irq_enter();
- 		instrumentation_begin();
-+		kmsan_unpoison_entry_regs(regs);
- 		trace_hardirqs_off_finish();
- 		instrumentation_end();
- 
-@@ -367,6 +370,7 @@ noinstr irqentry_state_t irqentry_enter(
- 	 */
- 	lockdep_hardirqs_off(CALLER_ADDR0);
- 	instrumentation_begin();
-+	kmsan_unpoison_entry_regs(regs);
- 	rcu_irq_enter_check_tick();
- 	trace_hardirqs_off_finish();
- 	instrumentation_end();
-@@ -452,6 +456,7 @@ irqentry_state_t noinstr irqentry_nmi_en
- 	ct_nmi_enter();
- 
- 	instrumentation_begin();
-+	kmsan_unpoison_entry_regs(regs);
- 	trace_hardirqs_off_finish();
- 	ftrace_nmi_enter();
- 	instrumentation_end();
---- a/mm/kmsan/hooks.c~entry-kmsan-introduce-kmsan_unpoison_entry_regs
-+++ a/mm/kmsan/hooks.c
-@@ -348,6 +348,32 @@ void kmsan_unpoison_memory(const void *a
- }
- EXPORT_SYMBOL(kmsan_unpoison_memory);
- 
-+/*
-+ * Version of kmsan_unpoison_memory() that can be called from within the KMSAN
-+ * runtime.
-+ *
-+ * Non-instrumented IRQ entry functions receive struct pt_regs from assembly
-+ * code. Those regs need to be unpoisoned, otherwise using them will result in
-+ * false positives.
-+ * Using kmsan_unpoison_memory() is not an option in entry code, because the
-+ * return value of in_task() is inconsistent - as a result, certain calls to
-+ * kmsan_unpoison_memory() are ignored. kmsan_unpoison_entry_regs() ensures that
-+ * the registers are unpoisoned even if kmsan_in_runtime() is true in the early
-+ * entry code.
-+ */
-+void kmsan_unpoison_entry_regs(const struct pt_regs *regs)
-+{
-+	unsigned long ua_flags;
-+
-+	if (!kmsan_enabled)
-+		return;
-+
-+	ua_flags = user_access_save();
-+	kmsan_internal_unpoison_memory((void *)regs, sizeof(*regs),
-+				       KMSAN_POISON_NOCHECK);
-+	user_access_restore(ua_flags);
-+}
-+
- void kmsan_check_memory(const void *addr, size_t size)
- {
- 	if (!kmsan_enabled)
+--- a/kernel/bpf/core.c~bpf-kmsan-initialize-bpf-registers-with-zeroes
++++ a/kernel/bpf/core.c
+@@ -2002,7 +2002,7 @@ out:
+ static unsigned int PROG_NAME(stack_size)(const void *ctx, const struct bpf_insn *insn) \
+ { \
+ 	u64 stack[stack_size / sizeof(u64)]; \
+-	u64 regs[MAX_BPF_EXT_REG]; \
++	u64 regs[MAX_BPF_EXT_REG] = {}; \
+ \
+ 	FP = (u64) (unsigned long) &stack[ARRAY_SIZE(stack)]; \
+ 	ARG1 = (u64) (unsigned long) ctx; \
 _
 
 Patches currently in -mm which might be from glider@google.com are
