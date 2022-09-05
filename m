@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29509ECAAA1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5B6AECAAD3
 	for <mm-commits@archiver.kernel.org>; Mon,  5 Sep 2022 22:48:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232409AbiIEWsQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232283AbiIEWsQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 5 Sep 2022 18:48:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40422 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232362AbiIEWsH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:07 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8117A44548
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:05 -0700 (PDT)
+        with ESMTP id S232371AbiIEWsJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Sep 2022 18:48:09 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2887444576
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 15:48:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 09607B815E6
-        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CE1FC433D6;
-        Mon,  5 Sep 2022 22:48:02 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B6711B815D7
+        for <mm-commits@vger.kernel.org>; Mon,  5 Sep 2022 22:48:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BFA5C43470;
+        Mon,  5 Sep 2022 22:48:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662418082;
-        bh=F+dAcizvbX9Vah+60bCU0sj8NsqIE0EoKgjsDUWiZI8=;
+        s=korg; t=1662418085;
+        bh=hUeoYAKEMpgIJKg1xgfXOCAe8ZV80sMWxNsMHtD70Dc=;
         h=Date:To:From:Subject:From;
-        b=JFXh9r1zxOAHZgS0lR3K9nrryl94ORlTwop+wdz2fDPGQOO/M4HmZavQ51Q/Tc/js
-         ZuhVkhbPSxObFhoTHL78sDU++wClXncnl4lzhDgzM3MUb+1oArFl9ToWuUH65nNzeD
-         xCv/z0h0WH3Ov2SQm0FssrOr6pKTaWkY6oSlON0I=
-Date:   Mon, 05 Sep 2022 15:48:01 -0700
+        b=lrfuL3oqj5R/E6HfDGnKddagGod3RSGkJnQkKo7DuDyTCFCnM6zLvTKOOgwkVZ/t1
+         8qLG1aMDO225MgJny5c2fchKpGKigTIR5OXClfH5X450v7Z0kpw6E4LeywvB/eV5q2
+         ZtNhkIQccLJb2ttE8vSAOUBjCJEKJMi/6xgTzrw8=
+Date:   Mon, 05 Sep 2022 15:48:04 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-introduce-kasan_requires_meta.patch added to mm-unstable branch
-Message-Id: <20220905224802.9CE1FC433D6@smtp.kernel.org>
+Subject: + kasan-introduce-kasan_init_cache_meta.patch added to mm-unstable branch
+Message-Id: <20220905224805.5BFA5C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: introduce kasan_requires_meta
+     Subject: kasan: introduce kasan_init_cache_meta
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-introduce-kasan_requires_meta.patch
+     kasan-introduce-kasan_init_cache_meta.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-introduce-kasan_requires_meta.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-introduce-kasan_init_cache_meta.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,21 +67,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: introduce kasan_requires_meta
-Date: Mon, 5 Sep 2022 23:05:26 +0200
+Subject: kasan: introduce kasan_init_cache_meta
+Date: Mon, 5 Sep 2022 23:05:27 +0200
 
-Add a kasan_requires_meta() helper that indicates whether the enabled
-KASAN mode requires per-object metadata and use this helper in the common
-code.
+Add a kasan_init_cache_meta() helper that initializes metadata-related
+cache parameters and use this helper in the common KASAN code.
 
-Also hide kasan_init_object_meta() under CONFIG_KASAN_GENERIC ifdef check,
-as Generic is the only mode that uses per-object metadata.
+Put the implementation of this new helper into generic.c, as only the
+Generic mode uses per-object metadata.
 
-To allow for a potential future change that makes Generic KASAN support
-the kasan.stacktrace command-line parameter, let kasan_requires_meta()
-return kasan_stack_collection_enabled() instead of simply returning true.
-
-Link: https://lkml.kernel.org/r/cf837e9996246aaaeebf704ccf8ec26a34fcf64f.1662411799.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/a6d7ea01876eb36472c9879f7b23f1b24766276e.1662411799.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -92,130 +87,215 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   13 +++++--------
- mm/kasan/kasan.h  |   33 +++++++++++++++++++++++++++++----
- mm/kasan/tags.c   |    4 ----
- 3 files changed, 34 insertions(+), 16 deletions(-)
+ mm/kasan/common.c  |   80 +------------------------------------------
+ mm/kasan/generic.c |   79 ++++++++++++++++++++++++++++++++++++++++++
+ mm/kasan/kasan.h   |    2 +
+ 3 files changed, 83 insertions(+), 78 deletions(-)
 
---- a/mm/kasan/common.c~kasan-introduce-kasan_requires_meta
+--- a/mm/kasan/common.c~kasan-introduce-kasan_init_cache_meta
 +++ a/mm/kasan/common.c
-@@ -88,13 +88,10 @@ asmlinkage void kasan_unpoison_task_stac
+@@ -118,28 +118,9 @@ void __kasan_poison_pages(struct page *p
+ 			     KASAN_PAGE_FREE, init);
  }
- #endif /* CONFIG_KASAN_STACK */
  
 -/*
-- * Only allow cache merging when stack collection is disabled and no metadata
-- * is present.
+- * Adaptive redzone policy taken from the userspace AddressSanitizer runtime.
+- * For larger allocations larger redzones are used.
 - */
-+/* Only allow cache merging when no per-object metadata is present. */
- slab_flags_t __kasan_never_merge(void)
+-static inline unsigned int optimal_redzone(unsigned int object_size)
+-{
+-	return
+-		object_size <= 64        - 16   ? 16 :
+-		object_size <= 128       - 32   ? 32 :
+-		object_size <= 512       - 64   ? 64 :
+-		object_size <= 4096      - 128  ? 128 :
+-		object_size <= (1 << 14) - 256  ? 256 :
+-		object_size <= (1 << 15) - 512  ? 512 :
+-		object_size <= (1 << 16) - 1024 ? 1024 : 2048;
+-}
+-
+ void __kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
+ 			  slab_flags_t *flags)
  {
--	if (kasan_stack_collection_enabled())
-+	if (kasan_requires_meta())
- 		return SLAB_KASAN;
- 	return 0;
- }
-@@ -152,7 +149,7 @@ void __kasan_cache_create(struct kmem_ca
+-	unsigned int ok_size;
+-	unsigned int optimal_size;
+-
+ 	/*
+ 	 * SLAB_KASAN is used to mark caches as ones that are sanitized by
+ 	 * KASAN. Currently this flag is used in two places:
+@@ -149,65 +130,8 @@ void __kasan_cache_create(struct kmem_ca
  	 */
  	*flags |= SLAB_KASAN;
  
--	if (!kasan_stack_collection_enabled())
-+	if (!kasan_requires_meta())
- 		return;
- 
- 	ok_size = *size;
-@@ -220,7 +217,7 @@ void __kasan_cache_create_kmalloc(struct
- 
- size_t __kasan_metadata_size(struct kmem_cache *cache)
- {
--	if (!kasan_stack_collection_enabled())
-+	if (!kasan_requires_meta())
- 		return 0;
- 	return (cache->kasan_info.alloc_meta_offset ?
- 		sizeof(struct kasan_alloc_meta) : 0) +
-@@ -295,7 +292,7 @@ void * __must_check __kasan_init_slab_ob
- 						const void *object)
- {
- 	/* Initialize per-object metadata if it is present. */
--	if (kasan_stack_collection_enabled())
+-	if (!kasan_requires_meta())
+-		return;
+-
+-	ok_size = *size;
+-
+-	/* Add alloc meta into redzone. */
+-	cache->kasan_info.alloc_meta_offset = *size;
+-	*size += sizeof(struct kasan_alloc_meta);
+-
+-	/*
+-	 * If alloc meta doesn't fit, don't add it.
+-	 * This can only happen with SLAB, as it has KMALLOC_MAX_SIZE equal
+-	 * to KMALLOC_MAX_CACHE_SIZE and doesn't fall back to page_alloc for
+-	 * larger sizes.
+-	 */
+-	if (*size > KMALLOC_MAX_SIZE) {
+-		cache->kasan_info.alloc_meta_offset = 0;
+-		*size = ok_size;
+-		/* Continue, since free meta might still fit. */
+-	}
+-
+-	/* Only the generic mode uses free meta or flexible redzones. */
+-	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
+-		cache->kasan_info.free_meta_offset = KASAN_NO_FREE_META;
+-		return;
+-	}
+-
+-	/*
+-	 * Add free meta into redzone when it's not possible to store
+-	 * it in the object. This is the case when:
+-	 * 1. Object is SLAB_TYPESAFE_BY_RCU, which means that it can
+-	 *    be touched after it was freed, or
+-	 * 2. Object has a constructor, which means it's expected to
+-	 *    retain its content until the next allocation, or
+-	 * 3. Object is too small.
+-	 * Otherwise cache->kasan_info.free_meta_offset = 0 is implied.
+-	 */
+-	if ((cache->flags & SLAB_TYPESAFE_BY_RCU) || cache->ctor ||
+-	    cache->object_size < sizeof(struct kasan_free_meta)) {
+-		ok_size = *size;
+-
+-		cache->kasan_info.free_meta_offset = *size;
+-		*size += sizeof(struct kasan_free_meta);
+-
+-		/* If free meta doesn't fit, don't add it. */
+-		if (*size > KMALLOC_MAX_SIZE) {
+-			cache->kasan_info.free_meta_offset = KASAN_NO_FREE_META;
+-			*size = ok_size;
+-		}
+-	}
+-
+-	/* Calculate size with optimal redzone. */
+-	optimal_size = cache->object_size + optimal_redzone(cache->object_size);
+-	/* Limit it with KMALLOC_MAX_SIZE (relevant for SLAB only). */
+-	if (optimal_size > KMALLOC_MAX_SIZE)
+-		optimal_size = KMALLOC_MAX_SIZE;
+-	/* Use optimal size if the size with added metas is not large enough. */
+-	if (*size < optimal_size)
+-		*size = optimal_size;
 +	if (kasan_requires_meta())
- 		kasan_init_object_meta(cache, object);
- 
- 	/* Tag is ignored in set_tag() without CONFIG_KASAN_SW/HW_TAGS */
---- a/mm/kasan/kasan.h~kasan-introduce-kasan_requires_meta
-+++ a/mm/kasan/kasan.h
-@@ -43,7 +43,7 @@ static inline bool kasan_sync_fault_poss
- 	return kasan_mode == KASAN_MODE_SYNC || kasan_mode == KASAN_MODE_ASYMM;
++		kasan_init_cache_meta(cache, size);
  }
  
--#else
-+#else /* CONFIG_KASAN_HW_TAGS */
+ void __kasan_cache_create_kmalloc(struct kmem_cache *cache)
+--- a/mm/kasan/generic.c~kasan-introduce-kasan_init_cache_meta
++++ a/mm/kasan/generic.c
+@@ -328,6 +328,85 @@ DEFINE_ASAN_SET_SHADOW(f3);
+ DEFINE_ASAN_SET_SHADOW(f5);
+ DEFINE_ASAN_SET_SHADOW(f8);
  
- static inline bool kasan_stack_collection_enabled(void)
- {
-@@ -60,7 +60,31 @@ static inline bool kasan_sync_fault_poss
- 	return true;
- }
- 
--#endif
-+#endif /* CONFIG_KASAN_HW_TAGS */
-+
-+#ifdef CONFIG_KASAN_GENERIC
-+
-+/* Generic KASAN uses per-object metadata to store stack traces. */
-+static inline bool kasan_requires_meta(void)
++/*
++ * Adaptive redzone policy taken from the userspace AddressSanitizer runtime.
++ * For larger allocations larger redzones are used.
++ */
++static inline unsigned int optimal_redzone(unsigned int object_size)
 +{
++	return
++		object_size <= 64        - 16   ? 16 :
++		object_size <= 128       - 32   ? 32 :
++		object_size <= 512       - 64   ? 64 :
++		object_size <= 4096      - 128  ? 128 :
++		object_size <= (1 << 14) - 256  ? 256 :
++		object_size <= (1 << 15) - 512  ? 512 :
++		object_size <= (1 << 16) - 1024 ? 1024 : 2048;
++}
++
++void kasan_init_cache_meta(struct kmem_cache *cache, unsigned int *size)
++{
++	unsigned int ok_size;
++	unsigned int optimal_size;
++
++	ok_size = *size;
++
++	/* Add alloc meta into redzone. */
++	cache->kasan_info.alloc_meta_offset = *size;
++	*size += sizeof(struct kasan_alloc_meta);
++
 +	/*
-+	 * Technically, Generic KASAN always collects stack traces right now.
-+	 * However, let's use kasan_stack_collection_enabled() in case the
-+	 * kasan.stacktrace command-line argument is changed to affect
-+	 * Generic KASAN.
++	 * If alloc meta doesn't fit, don't add it.
++	 * This can only happen with SLAB, as it has KMALLOC_MAX_SIZE equal
++	 * to KMALLOC_MAX_CACHE_SIZE and doesn't fall back to page_alloc for
++	 * larger sizes.
 +	 */
-+	return kasan_stack_collection_enabled();
++	if (*size > KMALLOC_MAX_SIZE) {
++		cache->kasan_info.alloc_meta_offset = 0;
++		*size = ok_size;
++		/* Continue, since free meta might still fit. */
++	}
++
++	/* Only the generic mode uses free meta or flexible redzones. */
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC)) {
++		cache->kasan_info.free_meta_offset = KASAN_NO_FREE_META;
++		return;
++	}
++
++	/*
++	 * Add free meta into redzone when it's not possible to store
++	 * it in the object. This is the case when:
++	 * 1. Object is SLAB_TYPESAFE_BY_RCU, which means that it can
++	 *    be touched after it was freed, or
++	 * 2. Object has a constructor, which means it's expected to
++	 *    retain its content until the next allocation, or
++	 * 3. Object is too small.
++	 * Otherwise cache->kasan_info.free_meta_offset = 0 is implied.
++	 */
++	if ((cache->flags & SLAB_TYPESAFE_BY_RCU) || cache->ctor ||
++	    cache->object_size < sizeof(struct kasan_free_meta)) {
++		ok_size = *size;
++
++		cache->kasan_info.free_meta_offset = *size;
++		*size += sizeof(struct kasan_free_meta);
++
++		/* If free meta doesn't fit, don't add it. */
++		if (*size > KMALLOC_MAX_SIZE) {
++			cache->kasan_info.free_meta_offset = KASAN_NO_FREE_META;
++			*size = ok_size;
++		}
++	}
++
++	/* Calculate size with optimal redzone. */
++	optimal_size = cache->object_size + optimal_redzone(cache->object_size);
++	/* Limit it with KMALLOC_MAX_SIZE (relevant for SLAB only). */
++	if (optimal_size > KMALLOC_MAX_SIZE)
++		optimal_size = KMALLOC_MAX_SIZE;
++	/* Use optimal size if the size with added metas is not large enough. */
++	if (*size < optimal_size)
++		*size = optimal_size;
 +}
 +
-+#else /* CONFIG_KASAN_GENERIC */
-+
-+/* Tag-based KASAN modes do not use per-object metadata. */
-+static inline bool kasan_requires_meta(void)
-+{
-+	return false;
-+}
-+
-+#endif /* CONFIG_KASAN_GENERIC */
- 
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- #define KASAN_GRANULE_SIZE	(1UL << KASAN_SHADOW_SCALE_SHIFT)
-@@ -272,13 +296,14 @@ void kasan_report_invalid_free(void *obj
- struct page *kasan_addr_to_page(const void *addr);
+ struct kasan_alloc_meta *kasan_get_alloc_meta(struct kmem_cache *cache,
+ 					      const void *object)
+ {
+--- a/mm/kasan/kasan.h~kasan-introduce-kasan_init_cache_meta
++++ a/mm/kasan/kasan.h
+@@ -297,12 +297,14 @@ struct page *kasan_addr_to_page(const vo
  struct slab *kasan_addr_to_slab(const void *addr);
  
--void kasan_init_object_meta(struct kmem_cache *cache, const void *object);
--
  #ifdef CONFIG_KASAN_GENERIC
-+void kasan_init_object_meta(struct kmem_cache *cache, const void *object);
++void kasan_init_cache_meta(struct kmem_cache *cache, unsigned int *size);
+ void kasan_init_object_meta(struct kmem_cache *cache, const void *object);
  struct kasan_alloc_meta *kasan_get_alloc_meta(struct kmem_cache *cache,
  						const void *object);
  struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
  						const void *object);
-+#else
-+static inline void kasan_init_object_meta(struct kmem_cache *cache, const void *object) { }
+ #else
++static inline void kasan_init_cache_meta(struct kmem_cache *cache, unsigned int *size) { }
+ static inline void kasan_init_object_meta(struct kmem_cache *cache, const void *object) { }
  #endif
  
- depot_stack_handle_t kasan_save_stack(gfp_t flags, bool can_alloc);
---- a/mm/kasan/tags.c~kasan-introduce-kasan_requires_meta
-+++ a/mm/kasan/tags.c
-@@ -17,10 +17,6 @@
- 
- #include "kasan.h"
- 
--void kasan_init_object_meta(struct kmem_cache *cache, const void *object)
--{
--}
--
- void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
- {
- }
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
