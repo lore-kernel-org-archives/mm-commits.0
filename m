@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D595DECAAA1
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Sep 2022 19:38:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 142BDECAAA1
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Sep 2022 19:38:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229918AbiIFTi0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Sep 2022 15:38:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45112 "EHLO
+        id S229504AbiIFTi3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Sep 2022 15:38:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229897AbiIFTiZ (ORCPT
+        with ESMTP id S229757AbiIFTiZ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2022 15:38:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C9179A9DA
-        for <mm-commits@vger.kernel.org>; Tue,  6 Sep 2022 12:38:23 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C91AA9A9FA
+        for <mm-commits@vger.kernel.org>; Tue,  6 Sep 2022 12:38:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E120A61662
-        for <mm-commits@vger.kernel.org>; Tue,  6 Sep 2022 19:38:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4378AC433D6;
-        Tue,  6 Sep 2022 19:38:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 279A6B818C7
+        for <mm-commits@vger.kernel.org>; Tue,  6 Sep 2022 19:38:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE77AC433C1;
+        Tue,  6 Sep 2022 19:38:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662493102;
-        bh=8Gyxb3ZUnwzGVvifObQLHTpHNgqJwOyUA1DqI1rJt7E=;
+        s=korg; t=1662493099;
+        bh=S/5KNvE2ivqhjZmlmmhqRzTirnim7Wwxp5+OnBexWq4=;
         h=Date:To:From:Subject:From;
-        b=w3HkvnE3mWFYNHlh4qTheA6ZW2mOvDts3aIiMFKIZLTvDXrSA5+FlM62Oa2gKzgUK
-         z8ZW0E2q1psLdBJxfZrJt+S5/lyrfWs43/2DY3wI9hxqNOCT24MkWDrA3pyYB9OvxC
-         5euOG9oHRTdd6ZagQ/cpZpypTtqeql4K8uEK8k/Q=
-Date:   Tue, 06 Sep 2022 12:38:21 -0700
+        b=TiazkkBmjhr3IJ3UukCOVVGbEA9FiihIXmFDZt2UThYKRcheBHLfkFBF+LCYfHGSx
+         Bur1UFlg8fSVaottD2/QirHoOzSJeInl5ejDo3Abk49KD9fqN6Vdr06roZZw7gKJ7h
+         w5gtq+K32Rz7FRIVc/+wFoVksOCE/FUEYniWb7FM=
+Date:   Tue, 06 Sep 2022 12:38:18 -0700
 To:     mm-commits@vger.kernel.org, eb@emlix.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-pagewalk-allow-walk_page_range_novma-without-mm.patch removed from -mm tree
-Message-Id: <20220906193822.4378AC433D6@smtp.kernel.org>
+Subject: [to-be-updated] mm-pagewalk-make-error-checks-more-obvious.patch removed from -mm tree
+Message-Id: <20220906193819.BE77AC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,61 +40,433 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: pagewalk: allow walk_page_range_novma() without mm
+     Subject: mm: pagewalk: make error checks more obvious
 has been removed from the -mm tree.  Its filename was
-     mm-pagewalk-allow-walk_page_range_novma-without-mm.patch
+     mm-pagewalk-make-error-checks-more-obvious.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Rolf Eike Beer <eb@emlix.com>
-Subject: mm: pagewalk: allow walk_page_range_novma() without mm
-Date: Mon, 22 Aug 2022 15:03:29 +0200
+Subject: mm: pagewalk: make error checks more obvious
+Date: Mon, 22 Aug 2022 15:00:05 +0200
 
-Since e47690d756a7 ("x86: mm: avoid allocating struct mm_struct on the
-stack") a pgd can be passed to walk_page_range_novma().  In case it is set
-no place in the pagewalk code use the walk.mm anymore, so permit to pass a
-NULL mm instead.  It is up to the caller to ensure proper locking on the
-pgd in this case.
+Patch series "Minor improvements for pagewalk code".
 
-Link: https://lkml.kernel.org/r/5760214.MhkbZ0Pkbq@devpool047
+For some project I had to use the pagewalk API for certain things and
+during this have read through the code multiple times.  Our usage has
+changed several times depending on our current state of research as well.
+
+During all of this I have made some tweaks to the code to be able to follow it 
+better when hunting my own problems, and not call into some things that I 
+actually don't need. The patches are more or less independent of each other. 
+
+
+This patch (of 6):
+
+The err variable only needs to be checked when it was assigned directly
+before, it is not carried on to any later checks.  Move the checks into
+the same "if" conditions where they are assigned.  Also just return the
+error at the relevant places.  While at it move these err variables to a
+more local scope at some places.
+
+[eb@emlix.com: add back missing variable initializations]
+  Link: https://lkml.kernel.org/r/2123960.ggj6I0NvhH@mobilepool36.emlix.com
+  Link: https://lkml.kernel.org/r/2123960.ggj6I0NvhH@mobilepool36.emlix.com
+Link: https://lkml.kernel.org/r/3200642.44csPzL39Z@devpool047
+Link: https://lkml.kernel.org/r/2203731.iZASKD2KPV@devpool047
 Signed-off-by: Rolf Eike Beer <eb@emlix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/pagewalk.c |  140 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 77 insertions(+), 63 deletions(-)
 
---- a/mm/pagewalk.c~mm-pagewalk-allow-walk_page_range_novma-without-mm
+--- a/mm/pagewalk.c~mm-pagewalk-make-error-checks-more-obvious
 +++ a/mm/pagewalk.c
-@@ -506,6 +506,8 @@ int walk_page_range(struct mm_struct *mm
-  * not backed by VMAs. Because 'unusual' entries may be walked this function
-  * will also not lock the PTEs for the pte_entry() callback. This is useful for
-  * walking the kernel pages tables or page tables for firmware.
-+ *
-+ * Either mm or pgd may be NULL, but not both.
-  */
- int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
-@@ -520,10 +522,11 @@ int walk_page_range_novma(struct mm_stru
- 		.no_vma		= true
- 	};
+@@ -24,25 +24,24 @@ static int walk_pte_range_inner(pte_t *p
+ 				unsigned long end, struct mm_walk *walk)
+ {
+ 	const struct mm_walk_ops *ops = walk->ops;
+-	int err = 0;
  
--	if (start >= end || !walk.mm)
-+	if (start >= end || (!walk.mm && !walk.pgd))
- 		return -EINVAL;
+ 	for (;;) {
+-		err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
++		int err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
+ 		if (err)
+-		       break;
++			return err;
+ 		if (addr >= end - PAGE_SIZE)
+ 			break;
+ 		addr += PAGE_SIZE;
+ 		pte++;
+ 	}
+-	return err;
++	return 0;
+ }
  
--	mmap_assert_locked(walk.mm);
-+	if (walk.mm)
-+		mmap_assert_locked(walk.mm);
+ static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			  struct mm_walk *walk)
+ {
+ 	pte_t *pte;
+-	int err = 0;
++	int err;
+ 	spinlock_t *ptl;
  
- 	return walk_pgd_range(start, end, &walk);
+ 	if (walk->no_vma) {
+@@ -62,7 +61,6 @@ static int walk_pte_range(pmd_t *pmd, un
+ static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
+ 			     unsigned long end, struct mm_walk *walk, int pdshift)
+ {
+-	int err = 0;
+ 	const struct mm_walk_ops *ops = walk->ops;
+ 	int shift = hugepd_shift(*phpd);
+ 	int page_size = 1 << shift;
+@@ -75,6 +73,7 @@ static int walk_hugepd_range(hugepd_t *p
+ 
+ 	for (;;) {
+ 		pte_t *pte;
++		int err;
+ 
+ 		spin_lock(&walk->mm->page_table_lock);
+ 		pte = hugepte_offset(*phpd, addr, pdshift);
+@@ -82,12 +81,12 @@ static int walk_hugepd_range(hugepd_t *p
+ 		spin_unlock(&walk->mm->page_table_lock);
+ 
+ 		if (err)
+-			break;
++			return err;
+ 		if (addr >= end - page_size)
+ 			break;
+ 		addr += page_size;
+ 	}
+-	return err;
++	return 0;
+ }
+ #else
+ static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
+@@ -103,18 +102,20 @@ static int walk_pmd_range(pud_t *pud, un
+ 	pmd_t *pmd;
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
+-	int err = 0;
+ 	int depth = real_depth(3);
+ 
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+-again:
++		int err;
++
++ again:
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_none(*pmd) || (!walk->vma && !walk->no_vma)) {
+-			if (ops->pte_hole)
++			if (ops->pte_hole) {
+ 				err = ops->pte_hole(addr, next, depth, walk);
+-			if (err)
+-				break;
++				if (err)
++					return err;
++			}
+ 			continue;
+ 		}
+ 
+@@ -124,10 +125,11 @@ again:
+ 		 * This implies that each ->pmd_entry() handler
+ 		 * needs to know about pmd_trans_huge() pmds
+ 		 */
+-		if (ops->pmd_entry)
++		if (ops->pmd_entry) {
+ 			err = ops->pmd_entry(pmd, addr, next, walk);
+-		if (err)
+-			break;
++			if (err)
++				return err;
++		}
+ 
+ 		if (walk->action == ACTION_AGAIN)
+ 			goto again;
+@@ -152,10 +154,10 @@ again:
+ 		else
+ 			err = walk_pte_range(pmd, addr, next, walk);
+ 		if (err)
+-			break;
++			return err;
+ 	} while (pmd++, addr = next, addr != end);
+ 
+-	return err;
++	return 0;
+ }
+ 
+ static int walk_pud_range(p4d_t *p4d, unsigned long addr, unsigned long end,
+@@ -164,27 +166,30 @@ static int walk_pud_range(p4d_t *p4d, un
+ 	pud_t *pud;
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
+-	int err = 0;
+ 	int depth = real_depth(2);
+ 
+ 	pud = pud_offset(p4d, addr);
+ 	do {
++		int err;
++
+  again:
+ 		next = pud_addr_end(addr, end);
+ 		if (pud_none(*pud) || (!walk->vma && !walk->no_vma)) {
+-			if (ops->pte_hole)
++			if (ops->pte_hole) {
+ 				err = ops->pte_hole(addr, next, depth, walk);
+-			if (err)
+-				break;
++				if (err)
++					return err;
++			}
+ 			continue;
+ 		}
+ 
+ 		walk->action = ACTION_SUBTREE;
+ 
+-		if (ops->pud_entry)
++		if (ops->pud_entry) {
+ 			err = ops->pud_entry(pud, addr, next, walk);
+-		if (err)
+-			break;
++			if (err)
++				return err;
++		}
+ 
+ 		if (walk->action == ACTION_AGAIN)
+ 			goto again;
+@@ -204,10 +209,10 @@ static int walk_pud_range(p4d_t *p4d, un
+ 		else
+ 			err = walk_pmd_range(pud, addr, next, walk);
+ 		if (err)
+-			break;
++			return err;
+ 	} while (pud++, addr = next, addr != end);
+ 
+-	return err;
++	return 0;
+ }
+ 
+ static int walk_p4d_range(pgd_t *pgd, unsigned long addr, unsigned long end,
+@@ -216,33 +221,35 @@ static int walk_p4d_range(pgd_t *pgd, un
+ 	p4d_t *p4d;
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
+-	int err = 0;
+ 	int depth = real_depth(1);
+ 
+ 	p4d = p4d_offset(pgd, addr);
+ 	do {
++		int err = 0;
++
+ 		next = p4d_addr_end(addr, end);
+ 		if (p4d_none_or_clear_bad(p4d)) {
+-			if (ops->pte_hole)
++			if (ops->pte_hole) {
+ 				err = ops->pte_hole(addr, next, depth, walk);
+-			if (err)
+-				break;
++				if (err)
++					return err;
++			}
+ 			continue;
+ 		}
+ 		if (ops->p4d_entry) {
+ 			err = ops->p4d_entry(p4d, addr, next, walk);
+ 			if (err)
+-				break;
++				return err;
+ 		}
+ 		if (is_hugepd(__hugepd(p4d_val(*p4d))))
+ 			err = walk_hugepd_range((hugepd_t *)p4d, addr, next, walk, P4D_SHIFT);
+ 		else if (ops->pud_entry || ops->pmd_entry || ops->pte_entry)
+ 			err = walk_pud_range(p4d, addr, next, walk);
+ 		if (err)
+-			break;
++			return err;
+ 	} while (p4d++, addr = next, addr != end);
+ 
+-	return err;
++	return 0;
+ }
+ 
+ static int walk_pgd_range(unsigned long addr, unsigned long end,
+@@ -251,35 +258,37 @@ static int walk_pgd_range(unsigned long
+ 	pgd_t *pgd;
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
+-	int err = 0;
+ 
+ 	if (walk->pgd)
+ 		pgd = walk->pgd + pgd_index(addr);
+ 	else
+ 		pgd = pgd_offset(walk->mm, addr);
+ 	do {
++		int err = 0;
++
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none_or_clear_bad(pgd)) {
+-			if (ops->pte_hole)
++			if (ops->pte_hole) {
+ 				err = ops->pte_hole(addr, next, 0, walk);
+-			if (err)
+-				break;
++				if (err)
++					return err;
++			}
+ 			continue;
+ 		}
+ 		if (ops->pgd_entry) {
+ 			err = ops->pgd_entry(pgd, addr, next, walk);
+ 			if (err)
+-				break;
++				return err;
+ 		}
+ 		if (is_hugepd(__hugepd(pgd_val(*pgd))))
+ 			err = walk_hugepd_range((hugepd_t *)pgd, addr, next, walk, PGDIR_SHIFT);
+ 		else if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry || ops->pte_entry)
+ 			err = walk_p4d_range(pgd, addr, next, walk);
+ 		if (err)
+-			break;
++			return err;
+ 	} while (pgd++, addr = next, addr != end);
+ 
+-	return err;
++	return 0;
+ }
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+@@ -300,9 +309,10 @@ static int walk_hugetlb_range(unsigned l
+ 	unsigned long sz = huge_page_size(h);
+ 	pte_t *pte;
+ 	const struct mm_walk_ops *ops = walk->ops;
+-	int err = 0;
+ 
+ 	do {
++		int err;
++
+ 		next = hugetlb_entry_end(h, addr, end);
+ 		pte = huge_pte_offset(walk->mm, addr & hmask, sz);
+ 
+@@ -312,10 +322,10 @@ static int walk_hugetlb_range(unsigned l
+ 			err = ops->pte_hole(addr, next, -1, walk);
+ 
+ 		if (err)
+-			break;
++			return err;
+ 	} while (addr = next, addr != end);
+ 
+-	return err;
++	return 0;
+ }
+ 
+ #else /* CONFIG_HUGETLB_PAGE */
+@@ -351,10 +361,13 @@ static int walk_page_test(unsigned long
+ 	 * vma(VM_PFNMAP).
+ 	 */
+ 	if (vma->vm_flags & VM_PFNMAP) {
+-		int err = 1;
+-		if (ops->pte_hole)
+-			err = ops->pte_hole(start, end, -1, walk);
+-		return err ? err : 1;
++		if (ops->pte_hole) {
++			int err = ops->pte_hole(start, end, -1, walk);
++
++			return err ? err : 1;
++		}
++
++		return 1;
+ 	}
+ 	return 0;
+ }
+@@ -428,7 +441,6 @@ int walk_page_range(struct mm_struct *mm
+ 		unsigned long end, const struct mm_walk_ops *ops,
+ 		void *private)
+ {
+-	int err = 0;
+ 	unsigned long next;
+ 	struct vm_area_struct *vma;
+ 	struct mm_walk walk = {
+@@ -447,6 +459,8 @@ int walk_page_range(struct mm_struct *mm
+ 
+ 	vma = find_vma(walk.mm, start);
+ 	do {
++		int err;
++
+ 		if (!vma) { /* after the last vma */
+ 			walk.vma = NULL;
+ 			next = end;
+@@ -465,18 +479,18 @@ int walk_page_range(struct mm_struct *mm
+ 				 * controlling the pagewalk, so should never
+ 				 * be passed to the callers.
+ 				 */
+-				err = 0;
+ 				continue;
+ 			}
+ 			if (err < 0)
+-				break;
++				return err;
+ 		}
+-		if (walk.vma || walk.ops->pte_hole)
++		if (walk.vma || walk.ops->pte_hole) {
+ 			err = __walk_page_range(start, next, &walk);
+-		if (err)
+-			break;
++			if (err)
++				return err;
++		}
+ 	} while (start = next, start < end);
+-	return err;
++	return 0;
+ }
+ 
+ /*
+@@ -571,11 +585,12 @@ int walk_page_mapping(struct address_spa
+ 	struct vm_area_struct *vma;
+ 	pgoff_t vba, vea, cba, cea;
+ 	unsigned long start_addr, end_addr;
+-	int err = 0;
+ 
+ 	lockdep_assert_held(&mapping->i_mmap_rwsem);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, first_index,
+ 				  first_index + nr - 1) {
++		int err;
++
+ 		/* Clip to the vma */
+ 		vba = vma->vm_pgoff;
+ 		vea = vba + vma_pages(vma);
+@@ -593,16 +608,15 @@ int walk_page_mapping(struct address_spa
+ 		walk.mm = vma->vm_mm;
+ 
+ 		err = walk_page_test(vma->vm_start, vma->vm_end, &walk);
+-		if (err > 0) {
+-			err = 0;
+-			break;
+-		} else if (err < 0)
+-			break;
++		if (err > 0)
++			return 0;
++		else if (err < 0)
++			return err;
+ 
+ 		err = __walk_page_range(start_addr, end_addr, &walk);
+ 		if (err)
+-			break;
++			return err;
+ 	}
+ 
+-	return err;
++	return 0;
  }
 _
 
 Patches currently in -mm which might be from eb@emlix.com are
 
+mm-pagewalk-dont-check-vma-in-walk_page_range_novma.patch
 mm-pagewalk-fix-documentation-of-pte-hole-handling.patch
 mm-pagewalk-add-api-documentation-for-walk_page_range_novma.patch
+mm-pagewalk-allow-walk_page_range_novma-without-mm.patch
 mm-pagewalk-move-variables-to-more-local-scope-tweak-loops.patch
 
