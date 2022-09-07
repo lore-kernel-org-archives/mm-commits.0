@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B30EBC54EE9
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Sep 2022 22:20:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6304FC38145
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Sep 2022 22:20:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229516AbiIGWUJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Sep 2022 18:20:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56324 "EHLO
+        id S229970AbiIGWUX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Sep 2022 18:20:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56574 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229619AbiIGWUI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Sep 2022 18:20:08 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7E57275E3
-        for <mm-commits@vger.kernel.org>; Wed,  7 Sep 2022 15:20:06 -0700 (PDT)
+        with ESMTP id S229552AbiIGWUJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Sep 2022 18:20:09 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C081622BDD
+        for <mm-commits@vger.kernel.org>; Wed,  7 Sep 2022 15:20:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id BA1F6CE1DF2
-        for <mm-commits@vger.kernel.org>; Wed,  7 Sep 2022 22:20:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9D0FC433C1;
-        Wed,  7 Sep 2022 22:20:02 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 63D5CB81F27
+        for <mm-commits@vger.kernel.org>; Wed,  7 Sep 2022 22:20:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1718DC433D6;
+        Wed,  7 Sep 2022 22:20:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662589202;
-        bh=E/6WH9hAkrbmVzEWPnXwzGcLXI9Hxe1Z4l0MHH85qnA=;
+        s=korg; t=1662589205;
+        bh=O6diY65EOWo24xCXyYayRN6uZ/3JLYAMg6vvZ6AAINQ=;
         h=Date:To:From:Subject:From;
-        b=FGRIjyrpKG4daduM06gkkzZP9FdXnWt28DaS92R88vBiFokpr2LX60OgJ3Mo4ZMUy
-         OrRF9UcqCob6hEYy24cdXFQ9tUTScp8jDbB7LzVdG1vZFpBgW62wSUmQu1ib/eO2v7
-         XIXo0ZjOqbtpjba7etOJJSEusKdaHO+aTIdtlNTc=
-Date:   Wed, 07 Sep 2022 15:20:02 -0700
+        b=HtWu7eehf9QNNoX8gW2VVctLRLzS4bCBRm4v525cdWtweD7manqmstbhx3PXPJ69+
+         jG6tW5CrLOgKnU3BndfTy7RBveV2rngSgj+Y+mr8GCk80O9UnhbtWnoJgD8wWPqRh0
+         9r5V8n4fairfQ9GJg4EtYgqNdDdfrgO6akHZlHiU=
+Date:   Wed, 07 Sep 2022 15:20:04 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         songliubraving@fb.com, sj@kernel.org, shy828301@gmail.com,
         rongwei.wang@linux.alibaba.com, rientjes@google.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         ckennelly@google.com, axelrasmussen@google.com, zokeefe@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-add-tracepoint-to-hpage_collapse_scan_file.patch added to mm-unstable branch
-Message-Id: <20220907222002.B9D0FC433C1@smtp.kernel.org>
+Subject: + selftests-vm-dedup-thp-helpers.patch added to mm-unstable branch
+Message-Id: <20220907222005.1718DC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: add tracepoint to hpage_collapse_scan_file()
+     Subject: selftests/vm: dedup THP helpers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-add-tracepoint-to-hpage_collapse_scan_file.patch
+     selftests-vm-dedup-thp-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-add-tracepoint-to-hpage_collapse_scan_file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-dedup-thp-helpers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,18 +71,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/khugepaged: add tracepoint to hpage_collapse_scan_file()
-Date: Wed, 7 Sep 2022 07:45:15 -0700
+Subject: selftests/vm: dedup THP helpers
+Date: Wed, 7 Sep 2022 07:45:16 -0700
 
-Add huge_memory:trace_mm_khugepaged_scan_file tracepoint to
-hpage_collapse_scan_file() analogously to hpage_collapse_scan_pmd().
+These files:
 
-While this change is targeted at debugging MADV_COLLAPSE pathway, the
-"mm_khugepaged" prefix is retained for symmetry with
-huge_memory:trace_mm_khugepaged_scan_pmd, which retains it's legacy name
-to prevent changing kernel ABI as much as possible.
+tools/testing/selftests/vm/vm_util.c
+tools/testing/selftests/vm/khugepaged.c
 
-Link: https://lkml.kernel.org/r/20220907144521.3115321-5-zokeefe@google.com
+Both contain logic to:
+
+1) Determine hugepage size on current system
+2) Read /proc/self/smaps to determine number of THPs at an address
+
+Refactor selftests/vm/khugepaged.c to use the vm_util common helpers and
+add it as a build dependency.
+
+Since selftests/vm/khugepaged.c is the largest user of check_huge(),
+change the signature of check_huge() to match selftests/vm/khugepaged.c's
+useage: take an expected number of hugepages, and return a bool indicating
+if the correct number of hugepages were found.  Add a wrapper,
+check_huge_anon(), in anticipation of checking smaps for file and shmem
+hugepages.
+
+Update existing callsites to use the new pattern / function.
+
+Likewise, check_for_pattern() was duplicated, and it's a general enough
+helper to include in vm_util helpers as well.
+
+Link: https://lkml.kernel.org/r/20220907144521.3115321-6-zokeefe@google.com
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Chris Kennelly <ckennelly@google.com>
@@ -104,64 +121,252 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   34 +++++++++++++++++++++++++++
- mm/khugepaged.c                    |    3 +-
- 2 files changed, 36 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/Makefile               |    1 
+ tools/testing/selftests/vm/khugepaged.c           |   64 +-----------
+ tools/testing/selftests/vm/soft-dirty.c           |    2 
+ tools/testing/selftests/vm/split_huge_page_test.c |   12 --
+ tools/testing/selftests/vm/vm_util.c              |   26 +++-
+ tools/testing/selftests/vm/vm_util.h              |    3 
+ 6 files changed, 32 insertions(+), 76 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-add-tracepoint-to-hpage_collapse_scan_file
-+++ a/include/trace/events/huge_memory.h
-@@ -169,5 +169,39 @@ TRACE_EVENT(mm_collapse_huge_page_swapin
- 		__entry->ret)
- );
+--- a/tools/testing/selftests/vm/khugepaged.c~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/khugepaged.c
+@@ -11,6 +11,8 @@
+ #include <sys/mman.h>
+ #include <sys/wait.h>
  
-+TRACE_EVENT(mm_khugepaged_scan_file,
++#include "vm_util.h"
 +
-+	TP_PROTO(struct mm_struct *mm, struct page *page, const char *filename,
-+		 int present, int swap, int result),
-+
-+	TP_ARGS(mm, page, filename, present, swap, result),
-+
-+	TP_STRUCT__entry(
-+		__field(struct mm_struct *, mm)
-+		__field(unsigned long, pfn)
-+		__string(filename, filename)
-+		__field(int, present)
-+		__field(int, swap)
-+		__field(int, result)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->mm = mm;
-+		__entry->pfn = page ? page_to_pfn(page) : -1;
-+		__assign_str(filename, filename);
-+		__entry->present = present;
-+		__entry->swap = swap;
-+		__entry->result = result;
-+	),
-+
-+	TP_printk("mm=%p, scan_pfn=0x%lx, filename=%s, present=%d, swap=%d, result=%s",
-+		__entry->mm,
-+		__entry->pfn,
-+		__get_str(filename),
-+		__entry->present,
-+		__entry->swap,
-+		__print_symbolic(__entry->result, SCAN_STATUS))
-+);
-+
- #endif /* __HUGE_MEMORY_H */
- #include <trace/define_trace.h>
---- a/mm/khugepaged.c~mm-khugepaged-add-tracepoint-to-hpage_collapse_scan_file
-+++ a/mm/khugepaged.c
-@@ -2154,7 +2154,8 @@ static int hpage_collapse_scan_file(stru
+ #ifndef MADV_PAGEOUT
+ #define MADV_PAGEOUT 21
+ #endif
+@@ -351,64 +353,12 @@ static void save_settings(void)
+ 	signal(SIGQUIT, restore_settings);
+ }
+ 
+-#define MAX_LINE_LENGTH 500
+-
+-static bool check_for_pattern(FILE *fp, char *pattern, char *buf)
+-{
+-	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
+-		if (!strncmp(buf, pattern, strlen(pattern)))
+-			return true;
+-	}
+-	return false;
+-}
+-
+ static bool check_huge(void *addr, int nr_hpages)
+ {
+-	bool thp = false;
+-	int ret;
+-	FILE *fp;
+-	char buffer[MAX_LINE_LENGTH];
+-	char addr_pattern[MAX_LINE_LENGTH];
+-
+-	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08lx-",
+-		       (unsigned long) addr);
+-	if (ret >= MAX_LINE_LENGTH) {
+-		printf("%s: Pattern is too long\n", __func__);
+-		exit(EXIT_FAILURE);
+-	}
+-
+-
+-	fp = fopen(PID_SMAPS, "r");
+-	if (!fp) {
+-		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
+-		exit(EXIT_FAILURE);
+-	}
+-	if (!check_for_pattern(fp, addr_pattern, buffer))
+-		goto err_out;
+-
+-	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "AnonHugePages:%10ld kB",
+-		       nr_hpages * (hpage_pmd_size >> 10));
+-	if (ret >= MAX_LINE_LENGTH) {
+-		printf("%s: Pattern is too long\n", __func__);
+-		exit(EXIT_FAILURE);
+-	}
+-	/*
+-	 * Fetch the AnonHugePages: in the same block and check whether it got
+-	 * the expected number of hugeepages next.
+-	 */
+-	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
+-		goto err_out;
+-
+-	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
+-		goto err_out;
+-
+-	thp = true;
+-err_out:
+-	fclose(fp);
+-	return thp;
++	return check_huge_anon(addr, nr_hpages, hpage_pmd_size);
+ }
+ 
+-
++#define MAX_LINE_LENGTH 500
+ static bool check_swap(void *addr, unsigned long size)
+ {
+ 	bool swap = false;
+@@ -430,7 +380,7 @@ static bool check_swap(void *addr, unsig
+ 		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	if (!check_for_pattern(fp, addr_pattern, buffer))
++	if (!check_for_pattern(fp, addr_pattern, buffer, sizeof(buffer)))
+ 		goto err_out;
+ 
+ 	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "Swap:%19ld kB",
+@@ -443,7 +393,7 @@ static bool check_swap(void *addr, unsig
+ 	 * Fetch the Swap: in the same block and check whether it got
+ 	 * the expected number of hugeepages next.
+ 	 */
+-	if (!check_for_pattern(fp, "Swap:", buffer))
++	if (!check_for_pattern(fp, "Swap:", buffer, sizeof(buffer)))
+ 		goto err_out;
+ 
+ 	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
+@@ -1045,7 +995,7 @@ int main(int argc, const char **argv)
+ 	setbuf(stdout, NULL);
+ 
+ 	page_size = getpagesize();
+-	hpage_pmd_size = read_num("hpage_pmd_size");
++	hpage_pmd_size = read_pmd_pagesize();
+ 	hpage_pmd_nr = hpage_pmd_size / page_size;
+ 
+ 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/Makefile
+@@ -95,6 +95,7 @@ TEST_FILES += va_128TBswitch.sh
+ 
+ include ../lib.mk
+ 
++$(OUTPUT)/khugepaged: vm_util.c
+ $(OUTPUT)/madv_populate: vm_util.c
+ $(OUTPUT)/soft-dirty: vm_util.c
+ $(OUTPUT)/split_huge_page_test: vm_util.c
+--- a/tools/testing/selftests/vm/soft-dirty.c~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/soft-dirty.c
+@@ -91,7 +91,7 @@ static void test_hugepage(int pagemap_fd
+ 	for (i = 0; i < hpage_len; i++)
+ 		map[i] = (char)i;
+ 
+-	if (check_huge(map)) {
++	if (check_huge_anon(map, 1, hpage_len)) {
+ 		ksft_test_result_pass("Test %s huge page allocation\n", __func__);
+ 
+ 		clear_softdirty();
+--- a/tools/testing/selftests/vm/split_huge_page_test.c~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/split_huge_page_test.c
+@@ -92,7 +92,6 @@ void split_pmd_thp(void)
+ {
+ 	char *one_page;
+ 	size_t len = 4 * pmd_pagesize;
+-	uint64_t thp_size;
+ 	size_t i;
+ 
+ 	one_page = memalign(pmd_pagesize, len);
+@@ -107,8 +106,7 @@ void split_pmd_thp(void)
+ 	for (i = 0; i < len; i++)
+ 		one_page[i] = (char)i;
+ 
+-	thp_size = check_huge(one_page);
+-	if (!thp_size) {
++	if (!check_huge_anon(one_page, 1, pmd_pagesize)) {
+ 		printf("No THP is allocated\n");
+ 		exit(EXIT_FAILURE);
+ 	}
+@@ -124,9 +122,8 @@ void split_pmd_thp(void)
  		}
+ 
+ 
+-	thp_size = check_huge(one_page);
+-	if (thp_size) {
+-		printf("Still %ld kB AnonHugePages not split\n", thp_size);
++	if (check_huge_anon(one_page, 0, pmd_pagesize)) {
++		printf("Still AnonHugePages not split\n");
+ 		exit(EXIT_FAILURE);
  	}
  
--	/* TODO: tracepoints */
-+	trace_mm_khugepaged_scan_file(mm, page, file->f_path.dentry->d_iname,
-+				      present, swap, result);
- 	return result;
+@@ -172,8 +169,7 @@ void split_pte_mapped_thp(void)
+ 	for (i = 0; i < len; i++)
+ 		one_page[i] = (char)i;
+ 
+-	thp_size = check_huge(one_page);
+-	if (!thp_size) {
++	if (!check_huge_anon(one_page, 1, pmd_pagesize)) {
+ 		printf("No THP is allocated\n");
+ 		exit(EXIT_FAILURE);
+ 	}
+--- a/tools/testing/selftests/vm/vm_util.c~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/vm_util.c
+@@ -42,9 +42,9 @@ void clear_softdirty(void)
+ 		ksft_exit_fail_msg("writing clear_refs failed\n");
  }
- #else
+ 
+-static bool check_for_pattern(FILE *fp, const char *pattern, char *buf)
++bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len)
+ {
+-	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
++	while (fgets(buf, len, fp)) {
+ 		if (!strncmp(buf, pattern, strlen(pattern)))
+ 			return true;
+ 	}
+@@ -72,9 +72,10 @@ uint64_t read_pmd_pagesize(void)
+ 	return strtoul(buf, NULL, 10);
+ }
+ 
+-uint64_t check_huge(void *addr)
++bool __check_huge(void *addr, char *pattern, int nr_hpages,
++		  uint64_t hpage_size)
+ {
+-	uint64_t thp = 0;
++	uint64_t thp = -1;
+ 	int ret;
+ 	FILE *fp;
+ 	char buffer[MAX_LINE_LENGTH];
+@@ -89,20 +90,27 @@ uint64_t check_huge(void *addr)
+ 	if (!fp)
+ 		ksft_exit_fail_msg("%s: Failed to open file %s\n", __func__, SMAP_FILE_PATH);
+ 
+-	if (!check_for_pattern(fp, addr_pattern, buffer))
++	if (!check_for_pattern(fp, addr_pattern, buffer, sizeof(buffer)))
+ 		goto err_out;
+ 
+ 	/*
+-	 * Fetch the AnonHugePages: in the same block and check the number of
++	 * Fetch the pattern in the same block and check the number of
+ 	 * hugepages.
+ 	 */
+-	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
++	if (!check_for_pattern(fp, pattern, buffer, sizeof(buffer)))
+ 		goto err_out;
+ 
+-	if (sscanf(buffer, "AnonHugePages:%10ld kB", &thp) != 1)
++	snprintf(addr_pattern, MAX_LINE_LENGTH, "%s%%9ld kB", pattern);
++
++	if (sscanf(buffer, addr_pattern, &thp) != 1)
+ 		ksft_exit_fail_msg("Reading smap error\n");
+ 
+ err_out:
+ 	fclose(fp);
+-	return thp;
++	return thp == (nr_hpages * (hpage_size >> 10));
++}
++
++bool check_huge_anon(void *addr, int nr_hpages, uint64_t hpage_size)
++{
++	return __check_huge(addr, "AnonHugePages: ", nr_hpages, hpage_size);
+ }
+--- a/tools/testing/selftests/vm/vm_util.h~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/vm_util.h
+@@ -5,5 +5,6 @@
+ uint64_t pagemap_get_entry(int fd, char *start);
+ bool pagemap_is_softdirty(int fd, char *start);
+ void clear_softdirty(void);
++bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
+ uint64_t read_pmd_pagesize(void);
+-uint64_t check_huge(void *addr);
++bool check_huge_anon(void *addr, int nr_hpages, uint64_t hpage_size);
 _
 
 Patches currently in -mm which might be from zokeefe@google.com are
