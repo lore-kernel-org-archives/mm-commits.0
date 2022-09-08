@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D29AAC54EE9
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Sep 2022 22:32:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B50EC6FA82
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Sep 2022 22:37:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229792AbiIHWcL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Sep 2022 18:32:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58196 "EHLO
+        id S229608AbiIHWh6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Sep 2022 18:37:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229632AbiIHWcK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2022 18:32:10 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33026F6B99
-        for <mm-commits@vger.kernel.org>; Thu,  8 Sep 2022 15:32:09 -0700 (PDT)
+        with ESMTP id S229820AbiIHWh4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2022 18:37:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5B0FC04E6
+        for <mm-commits@vger.kernel.org>; Thu,  8 Sep 2022 15:37:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C2350B8229C
-        for <mm-commits@vger.kernel.org>; Thu,  8 Sep 2022 22:32:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56CB0C433C1;
-        Thu,  8 Sep 2022 22:32:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F1C561D52
+        for <mm-commits@vger.kernel.org>; Thu,  8 Sep 2022 22:37:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E061CC433C1;
+        Thu,  8 Sep 2022 22:37:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662676326;
-        bh=rx2pXYN1cJXwJEQpWG9HIJrKjqRl5HVUKB+Rxc8SKXA=;
+        s=korg; t=1662676671;
+        bh=a+VXSps1YDdJnSodtf1wLRZwqq1oqwkV6s7d1Y792LQ=;
         h=Date:To:From:Subject:From;
-        b=Yc+atY+aKzz0MsP65OcsCWUPnWtRFPu5Y24X9UMyawwyXVV2Ic3/ab1y/SxF2apO7
-         FaFRCmZlWXvu/hqxk0nYOBD6SFjtUiTqOtDNbjJEHIpTUBVxyL/+kWn+mB3dtyV1gd
-         O5oQtLDL/49EiUyuuXYzwQBSfrN+uMxMHvyBPCXc=
-Date:   Thu, 08 Sep 2022 15:32:05 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=bobQBtQnE5HFLSDmxxo0EXZCa+4+KomhgD8kauOP9gr1ozIg88BCmRf+YvXAuVq+I
+         bmQKFWf0F0SRPeCN7ASQiuJwNWEj5rc9G7zeb5cvLvcdwyjSZoni3N6MaiCj8SQkMU
+         eWrr96oB4d/zldj4WrdakYHH1B3OAAqFD9X1vYgs=
+Date:   Thu, 08 Sep 2022 15:37:50 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme-fix.patch added to mm-unstable branch
-Message-Id: <20220908223206.56CB0C433C1@smtp.kernel.org>
+Subject: + memcg-reduce-size-of-memcg-vmstats-structures-fix.patch added to mm-unstable branch
+Message-Id: <20220908223750.E061CC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme-fix
+     Subject: memcg-reduce-size-of-memcg-vmstats-structures-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme-fix.patch
+     memcg-reduce-size-of-memcg-vmstats-structures-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-reduce-size-of-memcg-vmstats-structures-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,30 +67,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme-fix
-Date: Thu Sep  8 03:31:21 PM PDT 2022
+Subject: memcg-reduce-size-of-memcg-vmstats-structures-fix
+Date: Thu Sep  8 03:35:53 PM PDT 2022
 
-fx comment grammar
+fix memcg_events_local() array index, per Shakeel
 
-Cc: Kaixu Xia <kaixuxia@tencent.com>
-Cc: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/CALvZod70Mvxr+Nzb6k0yiU2RFYjTD=0NFhKK-Eyp+5ejd1PSFw@mail.gmail.com
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |    2 +-
+ mm/memcontrol.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme-fix
-+++ a/mm/damon/vaddr.c
-@@ -659,7 +659,7 @@ static unsigned long damon_va_apply_sche
+--- a/mm/memcontrol.c~memcg-reduce-size-of-memcg-vmstats-structures-fix
++++ a/mm/memcontrol.c
+@@ -921,7 +921,7 @@ static unsigned long memcg_events_local(
  		return 0;
- 	default:
- 		/*
--		 * DAMOS actions that not yet supported by 'vaddr'.
-+		 * DAMOS actions that are not yet supported by 'vaddr'.
- 		 */
- 		return 0;
- 	}
+ 
+ 	for_each_possible_cpu(cpu)
+-		x += per_cpu(memcg->vmstats_percpu->events[event], cpu);
++		x += per_cpu(memcg->vmstats_percpu->events[index], cpu);
+ 	return x;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +118,7 @@ page_ext-introduce-boot-parameter-early_page_ext-fix.patch
 mm-fix-null-ptr-deref-in-kswapd_is_running-fix.patch
 mm-vmscan-fix-a-lot-of-comments-vs-mglru.patch
 swap-add-swap_cache_get_folio-fix.patch
+memcg-reduce-size-of-memcg-vmstats-structures-fix.patch
 mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme-fix.patch
 ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
 
