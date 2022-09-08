@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1C10C38145
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Sep 2022 20:43:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DB33C6FA82
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Sep 2022 21:00:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229586AbiIHUnZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Sep 2022 16:43:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36268 "EHLO
+        id S229907AbiIHVAV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Sep 2022 17:00:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229494AbiIHUnY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2022 16:43:24 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD046B5A7C
-        for <mm-commits@vger.kernel.org>; Thu,  8 Sep 2022 13:43:23 -0700 (PDT)
+        with ESMTP id S229905AbiIHVAS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2022 17:00:18 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0C138048C;
+        Thu,  8 Sep 2022 14:00:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5E151B82292
-        for <mm-commits@vger.kernel.org>; Thu,  8 Sep 2022 20:43:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04D10C433D6;
-        Thu,  8 Sep 2022 20:43:20 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id C2566CE20F4;
+        Thu,  8 Sep 2022 21:00:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F7DCC433D7;
+        Thu,  8 Sep 2022 21:00:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662669801;
-        bh=7pmMR9pe+2JS5x24LEOKvPvi6LY1gcgNcDbYTdqNn/0=;
+        s=korg; t=1662670810;
+        bh=14wgeL8T2xIyd7x1twsfoGhvJoQDSKZ48Nxm+eTUIPI=;
         h=Date:To:From:Subject:From;
-        b=Gx4WWML/RCLgxTh4j6gQ6dsbY4S+KCjl9joYdPgXH1dBV9LMEyT/+lWySRVObeQDk
-         t4YEPdy8dvWZktj8bhyg7zKC7QJlbSm8YaPQleEBFOA0auYIYp3Q098K64J4akDxOp
-         2FJl09fU3Vj7FKzxVz6cm9pW9vpYBcgmave9GMLo=
-Date:   Thu, 08 Sep 2022 13:43:20 -0700
-To:     mm-commits@vger.kernel.org, roman.gushchin@linux.dev,
-        jingyuwang_vip@163.com, akpm@linux-foundation.org
+        b=SdoH+cl8uxPLRfIR2QXL5MIHgxLjzORMJAazpDipssbJDzMijeqOmbumcuBb5H985
+         V/3lzUuUgNI1BXgv2uuLe616p0rvi6Tpe8ypOcOMIalgdWLdIcWCoNHaTYQuF5ddPk
+         GQma4LQ5totk+XJbyUBr6GdcaetgY2Syf1iCKOmQ=
+Date:   Thu, 08 Sep 2022 14:00:09 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        shy828301@gmail.com, hantianshuo@iie.ac.cn, minchan@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-mqueue-remove-unnecessary-conditionals.patch added to mm-nonmm-unstable branch
-Message-Id: <20220908204321.04D10C433D6@smtp.kernel.org>
+Subject: + mm-fix-madivse_pageout-mishandling-on-non-lru-page.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220908210010.1F7DCC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: mqueue: remove unnecessary conditionals
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-mqueue-remove-unnecessary-conditionals.patch
+     Subject: mm: fix madivse_pageout mishandling on non-LRU page
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-madivse_pageout-mishandling-on-non-lru-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-mqueue-remove-unnecessary-conditionals.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-madivse_pageout-mishandling-on-non-lru-page.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,37 +65,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jingyu Wang <jingyuwang_vip@163.com>
-Subject: ipc: mqueue: remove unnecessary conditionals
-Date: Fri, 9 Sep 2022 02:54:52 +0800
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: fix madivse_pageout mishandling on non-LRU page
+Date: Thu, 8 Sep 2022 08:12:04 -0700
 
-iput() already handles null and non-null parameters, so there is no need
-to use if().
+MADV_PAGEOUT tries to isolate non-LRU pages and gets a warning from
+isolate_lru_page below.
 
-Link: https://lkml.kernel.org/r/20220908185452.76590-1-jingyuwang_vip@163.com
-Signed-off-by: Jingyu Wang <jingyuwang_vip@163.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Fix it by checking PageLRU in advance.
+
+------------[ cut here ]------------
+trying to isolate tail page
+WARNING: CPU: 0 PID: 6175 at mm/folio-compat.c:158 isolate_lru_page+0x130/0x140
+Modules linked in:
+CPU: 0 PID: 6175 Comm: syz-executor.0 Not tainted 5.18.12 #1
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
+RIP: 0010:isolate_lru_page+0x130/0x140
+
+Link: https://lore.kernel.org/linux-mm/485f8c33.2471b.182d5726afb.Coremail.hantianshuo@iie.ac.cn/
+Link: https://lkml.kernel.org/r/20220908151204.762596-1-minchan@kernel.org
+Fixes: 1a4e58cce84e ("mm: introduce MADV_PAGEOUT")
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: éŸ©å¤©ç`• <hantianshuo@iie.ac.cn>
+Suggested-by: Yang Shi <shy828301@gmail.com>
+Acked-by: Yang Shi <shy828301@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/madvise.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/ipc/mqueue.c~ipc-mqueue-remove-unnecessary-conditionals
-+++ a/ipc/mqueue.c
-@@ -986,8 +986,7 @@ SYSCALL_DEFINE1(mq_unlink, const char __
+--- a/mm/madvise.c~mm-fix-madivse_pageout-mishandling-on-non-lru-page
++++ a/mm/madvise.c
+@@ -451,8 +451,11 @@ regular_page:
+ 			continue;
+ 		}
  
- out_unlock:
- 	inode_unlock(d_inode(mnt->mnt_root));
--	if (inode)
--		iput(inode);
-+	iput(inode);
- 	mnt_drop_write(mnt);
- out_name:
- 	putname(name);
+-		/* Do not interfere with other mappings of this page */
+-		if (page_mapcount(page) != 1)
++		/*
++		 * Do not interfere with other mappings of this page and
++		 * non-LRU page.
++		 */
++		if (!PageLRU(page) || page_mapcount(page) != 1)
+ 			continue;
+ 
+ 		VM_BUG_ON_PAGE(PageTransCompound(page), page);
 _
 
-Patches currently in -mm which might be from jingyuwang_vip@163.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-ipc-mqueue-remove-unnecessary-conditionals.patch
+mm-fix-madivse_pageout-mishandling-on-non-lru-page.patch
 
