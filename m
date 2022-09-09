@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5889ECAAD3
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 20:20:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37FF2ECAAD5
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 20:25:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231406AbiIIUUr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Sep 2022 16:20:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43200 "EHLO
+        id S232090AbiIIUZn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Sep 2022 16:25:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231663AbiIIUUp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 16:20:45 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 837B792F6F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 13:20:43 -0700 (PDT)
+        with ESMTP id S232166AbiIIUZg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 16:25:36 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EC14C58C7
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 13:25:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2278BB8262E
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 20:20:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC6AFC433D6;
-        Fri,  9 Sep 2022 20:20:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 60329620E3
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 20:25:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A994FC43141;
+        Fri,  9 Sep 2022 20:25:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662754840;
-        bh=UQ4tZnky0H2y93L7yrhbiLfUBVAkUCC6CC7uHfNKu0k=;
+        s=korg; t=1662755123;
+        bh=g5XqbfC6RIlo6dB7C6pwmSq6xU0Po00GZod1Rwox5+Y=;
         h=Date:To:From:Subject:From;
-        b=r7HCRrpCuYAPK+3dgDeFPlJ1Ubn0ws2hXImHRAzu2iu1kq4Z9hCSmascyD5arLN+8
-         rX7Btg1CdKQtz+cbpAvptd8IlWtHwhTfpDQqWR2V9/bep2u+SkyhPihs3hNgRIxN4+
-         XUsGDFhVF/kkX7zFYfVQ/7KPYhr6GiYKGSrKuDuc=
-Date:   Fri, 09 Sep 2022 13:20:39 -0700
-To:     mm-commits@vger.kernel.org, pmladek@suse.com, jwerner@chromium.org,
-        gregkh@linuxfoundation.org, evgreen@chromium.org,
-        davidgow@google.com, ardb@kernel.org, gpiccoli@igalia.com,
-        akpm@linux-foundation.org
+        b=OLnRnFhwLIRsdqEE+RDAVIthQ59FFmW3pyZWI7G0ovLO0A6ns4bmP8WqrAv1CJTFz
+         CKl5CXWo2mL9f3/Iwxu6VYIwASqbz7mWbuDhf5/blBxGZgZHK0K2K8HTUfNkl4fQZh
+         Ewj3zRc1K46zi1pOlNZ+VwjwfhlJS484UrTRo4Ts=
+Date:   Fri, 09 Sep 2022 13:25:22 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        pcc@google.com, oleg@redhat.com, keescook@chromium.org,
+        eugenis@google.com, ebiederm@xmission.com, corbet@lwn.net,
+        brauner@kernel.org, fmayer@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + firmware-google-test-spinlock-on-panic-path-to-avoid-lockups.patch added to mm-nonmm-unstable branch
-Message-Id: <20220909202040.BC6AFC433D6@smtp.kernel.org>
+Subject: + add-sicode-to-proc-pid-stat.patch added to mm-nonmm-unstable branch
+Message-Id: <20220909202523.A994FC43141@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: firmware: google: test spinlock on panic path to avoid lockups
+     Subject: procfs: add sicode to /proc/<PID>/stat.
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     firmware-google-test-spinlock-on-panic-path-to-avoid-lockups.patch
+     add-sicode-to-proc-pid-stat.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/firmware-google-test-spinlock-on-panic-path-to-avoid-lockups.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/add-sicode-to-proc-pid-stat.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,56 +66,390 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-Subject: firmware: google: test spinlock on panic path to avoid lockups
-Date: Fri, 9 Sep 2022 17:07:55 -0300
+From: Florian Mayer <fmayer@google.com>
+Subject: procfs: add sicode to /proc/<PID>/stat.
+Date: Fri, 9 Sep 2022 11:06:17 -0700
 
-Currently the gsmi driver registers a panic notifier as well as reboot and
-die notifiers.  The callbacks registered are called in atomic and very
-limited context - for instance, panic disables preemption and local IRQs,
-also all secondary CPUs (not executing the panic path) are shutdown.
+In order to enable additional debugging features, Android init needs a way
+to distinguish MTE-related SEGVs (with si_code of SEGV_MTEAERR) from other
+SEGVs.  This is not possible with current APIs, neither by the existing
+information in /proc/<pid>/stat, nor via waitpid.
 
-With that said, taking a spinlock in this scenario is a dangerous
-invitation for lockup scenarios.  So, fix that by checking if the spinlock
-is free to acquire in the panic notifier callback - if not, bail-out and
-avoid a potential hang.
+Tested with the following program
 
-Link: https://lkml.kernel.org/r/20220909200755.189679-1-gpiccoli@igalia.com
-Fixes: 74c5b31c6618 ("driver: Google EFI SMI")
-Signed-off-by: Guilherme G. Piccoli <gpiccoli@igalia.com>
-Reviewed-by: Evan Green <evgreen@chromium.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: David Gow <davidgow@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Julius Werner <jwerner@chromium.org>
-Cc: Petr Mladek <pmladek@suse.com>
+int main(int argc, char** argv) {
+  int pid = fork();
+  if (!pid) {
+    if (strcmp(argv[1], "sigqueue") == 0) {
+    union sigval value;
+    value.sival_int = 0;
+    sigqueue(getpid(), SIGSEGV, value);
+    } else if (strcmp(argv[1], "raise") == 0) {
+     raise(SIGSEGV);
+    } else if (strcmp(argv[1], "kill") == 0) {
+      kill(getpid(), SIGSEGV);
+    } else if (strcmp(argv[1], "raisestop") == 0) {
+      raise(SIGSTOP);
+    } else if (strcmp(argv[1], "crash") == 0) {
+      volatile int* x = (int*)(0x23);
+      *x = 1;
+    } else if (strcmp(argv[1], "mte") == 0) {
+      volatile char* y = malloc(1);
+      y += 100;
+      *y = 1;
+    }
+  } else {
+    printf("%d\n", pid);
+    sleep(5);
+    char buf[1024];
+    sprintf(buf, "/proc/%d/stat", pid);
+    int fd = open(buf, O_RDONLY);
+    char statb[1024];
+    read(fd, statb, sizeof(statb));
+    printf("%s\n", statb);
+  }
+}
+
+Link: https://lkml.kernel.org/r/20220909180617.374238-1-fmayer@google.com
+Signed-off-by: Florian Mayer <fmayer@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/google/gsmi.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ Documentation/filesystems/proc.rst |    2 +
+ fs/coredump.c                      |   17 +++++++++------
+ fs/proc/array.c                    |   12 +++++++----
+ include/linux/sched/signal.h       |    1 
+ include/linux/sched/task.h         |    2 -
+ kernel/exit.c                      |    5 ++--
+ kernel/pid_namespace.c             |    4 ++-
+ kernel/signal.c                    |   29 +++++++++++++++++----------
+ 8 files changed, 47 insertions(+), 25 deletions(-)
 
---- a/drivers/firmware/google/gsmi.c~firmware-google-test-spinlock-on-panic-path-to-avoid-lockups
-+++ a/drivers/firmware/google/gsmi.c
-@@ -681,6 +681,15 @@ static struct notifier_block gsmi_die_no
- static int gsmi_panic_callback(struct notifier_block *nb,
- 			       unsigned long reason, void *arg)
- {
-+
-+	/*
-+	 * Panic callbacks are executed with all other CPUs stopped,
-+	 * so we must not attempt to spin waiting for gsmi_dev.lock
-+	 * to be released.
-+	 */
-+	if (spin_is_locked(&gsmi_dev.lock))
-+		return NOTIFY_DONE;
-+
- 	gsmi_shutdown_reason(GSMI_SHUTDOWN_PANIC);
- 	return NOTIFY_DONE;
+--- a/Documentation/filesystems/proc.rst~add-sicode-to-proc-pid-stat
++++ a/Documentation/filesystems/proc.rst
+@@ -381,6 +381,8 @@ It's slow but very precise.
+   env_end       address below which program environment is placed
+   exit_code     the thread's exit_code in the form reported by the waitpid
+ 		system call
++  exit_sicode   if the process was stopped or terminated by a signal, the
++		signal's si_code. 0 otherwise
+   ============= ===============================================================
+ 
+ The /proc/PID/maps file contains the currently mapped memory regions and
+--- a/fs/coredump.c~add-sicode-to-proc-pid-stat
++++ a/fs/coredump.c
+@@ -353,7 +353,7 @@ out:
+ 	return ispipe;
  }
+ 
+-static int zap_process(struct task_struct *start, int exit_code)
++static int zap_process(struct task_struct *start, int exit_code, int sicode)
+ {
+ 	struct task_struct *t;
+ 	int nr = 0;
+@@ -361,6 +361,7 @@ static int zap_process(struct task_struc
+ 	/* ignore all signals except SIGKILL, see prepare_signal() */
+ 	start->signal->flags = SIGNAL_GROUP_EXIT;
+ 	start->signal->group_exit_code = exit_code;
++	start->signal->group_exit_sicode = sicode;
+ 	start->signal->group_stop_count = 0;
+ 
+ 	for_each_thread(start, t) {
+@@ -375,8 +376,8 @@ static int zap_process(struct task_struc
+ 	return nr;
+ }
+ 
+-static int zap_threads(struct task_struct *tsk,
+-			struct core_state *core_state, int exit_code)
++static int zap_threads(struct task_struct *tsk, struct core_state *core_state,
++		       int exit_code, int sicode)
+ {
+ 	struct signal_struct *signal = tsk->signal;
+ 	int nr = -EAGAIN;
+@@ -384,7 +385,7 @@ static int zap_threads(struct task_struc
+ 	spin_lock_irq(&tsk->sighand->siglock);
+ 	if (!(signal->flags & SIGNAL_GROUP_EXIT) && !signal->group_exec_task) {
+ 		signal->core_state = core_state;
+-		nr = zap_process(tsk, exit_code);
++		nr = zap_process(tsk, exit_code, sicode);
+ 		clear_tsk_thread_flag(tsk, TIF_SIGPENDING);
+ 		tsk->flags |= PF_DUMPCORE;
+ 		atomic_set(&core_state->nr_threads, nr);
+@@ -393,7 +394,8 @@ static int zap_threads(struct task_struc
+ 	return nr;
+ }
+ 
+-static int coredump_wait(int exit_code, struct core_state *core_state)
++static int coredump_wait(int exit_code, int sicode,
++			 struct core_state *core_state)
+ {
+ 	struct task_struct *tsk = current;
+ 	int core_waiters = -EBUSY;
+@@ -402,7 +404,7 @@ static int coredump_wait(int exit_code,
+ 	core_state->dumper.task = tsk;
+ 	core_state->dumper.next = NULL;
+ 
+-	core_waiters = zap_threads(tsk, core_state, exit_code);
++	core_waiters = zap_threads(tsk, core_state, exit_code, sicode);
+ 	if (core_waiters > 0) {
+ 		struct core_thread *ptr;
+ 
+@@ -565,7 +567,8 @@ void do_coredump(const kernel_siginfo_t
+ 		need_suid_safe = true;
+ 	}
+ 
+-	retval = coredump_wait(siginfo->si_signo, &core_state);
++	retval =
++		coredump_wait(siginfo->si_signo, siginfo->si_code, &core_state);
+ 	if (retval < 0)
+ 		goto fail_creds;
+ 
+--- a/fs/proc/array.c~add-sicode-to-proc-pid-stat
++++ a/fs/proc/array.c
+@@ -474,6 +474,7 @@ static int do_task_stat(struct seq_file
+ 	unsigned long rsslim = 0;
+ 	unsigned long flags;
+ 	int exit_code = task->exit_code;
++	int exit_sicode = 0;
+ 
+ 	state = *get_task_state(task);
+ 	vsize = eip = esp = 0;
+@@ -538,8 +539,10 @@ static int do_task_stat(struct seq_file
+ 			thread_group_cputime_adjusted(task, &utime, &stime);
+ 			gtime += sig->gtime;
+ 
+-			if (sig->flags & (SIGNAL_GROUP_EXIT | SIGNAL_STOP_STOPPED))
++			if (sig->flags & (SIGNAL_GROUP_EXIT | SIGNAL_STOP_STOPPED)) {
+ 				exit_code = sig->group_exit_code;
++				exit_sicode = sig->group_exit_sicode;
++			}
+ 		}
+ 
+ 		sid = task_session_nr_ns(task, ns);
+@@ -638,10 +641,11 @@ static int do_task_stat(struct seq_file
+ 	} else
+ 		seq_puts(m, " 0 0 0 0 0 0 0");
+ 
+-	if (permitted)
++	if (permitted) {
+ 		seq_put_decimal_ll(m, " ", exit_code);
+-	else
+-		seq_puts(m, " 0");
++		seq_put_decimal_ll(m, " ", exit_sicode);
++	} else
++		seq_puts(m, " 0 0");
+ 
+ 	seq_putc(m, '\n');
+ 	if (mm)
+--- a/include/linux/sched/signal.h~add-sicode-to-proc-pid-stat
++++ a/include/linux/sched/signal.h
+@@ -109,6 +109,7 @@ struct signal_struct {
+ 
+ 	/* thread group exit support */
+ 	int			group_exit_code;
++	int			group_exit_sicode;
+ 	/* notify group_exec_task when notify_count is less or equal to 0 */
+ 	int			notify_count;
+ 	struct task_struct	*group_exec_task;
+--- a/include/linux/sched/task.h~add-sicode-to-proc-pid-stat
++++ a/include/linux/sched/task.h
+@@ -82,7 +82,7 @@ static inline void exit_thread(struct ta
+ {
+ }
+ #endif
+-extern __noreturn void do_group_exit(int);
++extern __noreturn void do_group_exit(int,int);
+ 
+ extern void exit_files(struct task_struct *);
+ extern void exit_itimers(struct task_struct *);
+--- a/kernel/exit.c~add-sicode-to-proc-pid-stat
++++ a/kernel/exit.c
+@@ -904,7 +904,7 @@ SYSCALL_DEFINE1(exit, int, error_code)
+  * as well as by sys_exit_group (below).
+  */
+ void __noreturn
+-do_group_exit(int exit_code)
++do_group_exit(int exit_code, int sicode)
+ {
+ 	struct signal_struct *sig = current->signal;
+ 
+@@ -923,6 +923,7 @@ do_group_exit(int exit_code)
+ 			exit_code = 0;
+ 		else {
+ 			sig->group_exit_code = exit_code;
++			sig->group_exit_sicode = sicode;
+ 			sig->flags = SIGNAL_GROUP_EXIT;
+ 			zap_other_threads(current);
+ 		}
+@@ -940,7 +941,7 @@ do_group_exit(int exit_code)
+  */
+ SYSCALL_DEFINE1(exit_group, int, error_code)
+ {
+-	do_group_exit((error_code & 0xff) << 8);
++	do_group_exit((error_code & 0xff) << 8, 0);
+ 	/* NOTREACHED */
+ 	return 0;
+ }
+--- a/kernel/pid_namespace.c~add-sicode-to-proc-pid-stat
++++ a/kernel/pid_namespace.c
+@@ -248,8 +248,10 @@ void zap_pid_ns_processes(struct pid_nam
+ 	}
+ 	__set_current_state(TASK_RUNNING);
+ 
+-	if (pid_ns->reboot)
++	if (pid_ns->reboot) {
+ 		current->signal->group_exit_code = pid_ns->reboot;
++		current->signal->group_exit_sicode = 0;
++	}
+ 
+ 	acct_exit_ns(pid_ns);
+ 	return;
+--- a/kernel/signal.c~add-sicode-to-proc-pid-stat
++++ a/kernel/signal.c
+@@ -963,6 +963,7 @@ static bool prepare_signal(int sig, stru
+ 			signal_set_stop_flags(signal, why | SIGNAL_STOP_CONTINUED);
+ 			signal->group_stop_count = 0;
+ 			signal->group_exit_code = 0;
++			signal->group_exit_sicode = 0;
+ 		}
+ 	}
+ 
+@@ -994,7 +995,8 @@ static inline bool wants_signal(int sig,
+ 	return task_curr(p) || !task_sigpending(p);
+ }
+ 
+-static void complete_signal(int sig, struct task_struct *p, enum pid_type type)
++static void complete_signal(int sig, int code, struct task_struct *p,
++			    enum pid_type type)
+ {
+ 	struct signal_struct *signal = p->signal;
+ 	struct task_struct *t;
+@@ -1051,6 +1053,7 @@ static void complete_signal(int sig, str
+ 			 */
+ 			signal->flags = SIGNAL_GROUP_EXIT;
+ 			signal->group_exit_code = sig;
++			signal->group_exit_sicode = code;
+ 			signal->group_stop_count = 0;
+ 			t = p;
+ 			do {
+@@ -1082,6 +1085,7 @@ static int __send_signal_locked(int sig,
+ 	struct sigqueue *q;
+ 	int override_rlimit;
+ 	int ret = 0, result;
++	int code = 0;
+ 
+ 	lockdep_assert_held(&t->sighand->siglock);
+ 
+@@ -1129,7 +1133,7 @@ static int __send_signal_locked(int sig,
+ 			clear_siginfo(&q->info);
+ 			q->info.si_signo = sig;
+ 			q->info.si_errno = 0;
+-			q->info.si_code = SI_USER;
++			code = q->info.si_code = SI_USER;
+ 			q->info.si_pid = task_tgid_nr_ns(current,
+ 							task_active_pid_ns(t));
+ 			rcu_read_lock();
+@@ -1142,12 +1146,13 @@ static int __send_signal_locked(int sig,
+ 			clear_siginfo(&q->info);
+ 			q->info.si_signo = sig;
+ 			q->info.si_errno = 0;
+-			q->info.si_code = SI_KERNEL;
++			code = q->info.si_code = SI_KERNEL;
+ 			q->info.si_pid = 0;
+ 			q->info.si_uid = 0;
+ 			break;
+ 		default:
+ 			copy_siginfo(&q->info, info);
++			code = info->si_code;
+ 			break;
+ 		}
+ 	} else if (!is_si_special(info) &&
+@@ -1186,7 +1191,7 @@ out_set:
+ 		}
+ 	}
+ 
+-	complete_signal(sig, t, type);
++	complete_signal(sig, code, t, type);
+ ret:
+ 	trace_signal_generate(sig, info, t, type != PIDTYPE_PID, result);
+ 	return ret;
+@@ -1960,6 +1965,7 @@ void sigqueue_free(struct sigqueue *q)
+ int send_sigqueue(struct sigqueue *q, struct pid *pid, enum pid_type type)
+ {
+ 	int sig = q->info.si_signo;
++	int code = q->info.si_code;
+ 	struct sigpending *pending;
+ 	struct task_struct *t;
+ 	unsigned long flags;
+@@ -1995,7 +2001,7 @@ int send_sigqueue(struct sigqueue *q, st
+ 	pending = (type != PIDTYPE_PID) ? &t->signal->shared_pending : &t->pending;
+ 	list_add_tail(&q->list, &pending->list);
+ 	sigaddset(&pending->signal, sig);
+-	complete_signal(sig, t, type);
++	complete_signal(sig, code, t, type);
+ 	result = TRACE_SIGNAL_DELIVERED;
+ out:
+ 	trace_signal_generate(sig, &q->info, t, type != PIDTYPE_PID, result);
+@@ -2380,7 +2386,7 @@ int ptrace_notify(int exit_code, unsigne
+  * %false if group stop is already cancelled or ptrace trap is scheduled.
+  * %true if participated in group stop.
+  */
+-static bool do_signal_stop(int signr)
++static bool do_signal_stop(int signr, int sicode)
+ 	__releases(&current->sighand->siglock)
+ {
+ 	struct signal_struct *sig = current->signal;
+@@ -2415,8 +2421,10 @@ static bool do_signal_stop(int signr)
+ 		 * an intervening stop signal is required to cause two
+ 		 * continued events regardless of ptrace.
+ 		 */
+-		if (!(sig->flags & SIGNAL_STOP_STOPPED))
++		if (!(sig->flags & SIGNAL_STOP_STOPPED)) {
+ 			sig->group_exit_code = signr;
++			sig->group_exit_sicode = sicode;
++		}
+ 
+ 		sig->group_stop_count = 0;
+ 
+@@ -2701,7 +2709,7 @@ relock:
+ 		}
+ 
+ 		if (unlikely(current->jobctl & JOBCTL_STOP_PENDING) &&
+-		    do_signal_stop(0))
++		    do_signal_stop(0, 0))
+ 			goto relock;
+ 
+ 		if (unlikely(current->jobctl &
+@@ -2806,7 +2814,8 @@ relock:
+ 				spin_lock_irq(&sighand->siglock);
+ 			}
+ 
+-			if (likely(do_signal_stop(ksig->info.si_signo))) {
++			if (likely(do_signal_stop(ksig->info.si_signo,
++						  ksig->info.si_code))) {
+ 				/* It released the siglock.  */
+ 				goto relock;
+ 			}
+@@ -2854,7 +2863,7 @@ relock:
+ 		/*
+ 		 * Death signals, no core dump.
+ 		 */
+-		do_group_exit(ksig->info.si_signo);
++		do_group_exit(ksig->info.si_signo, ksig->info.si_code);
+ 		/* NOTREACHED */
+ 	}
+ 	spin_unlock_irq(&sighand->siglock);
 _
 
-Patches currently in -mm which might be from gpiccoli@igalia.com are
+Patches currently in -mm which might be from fmayer@google.com are
 
-firmware-google-test-spinlock-on-panic-path-to-avoid-lockups.patch
+add-sicode-to-proc-pid-stat.patch
 
