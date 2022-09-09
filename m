@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0AC6ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 22:31:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43DF1ECAAD3
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 22:44:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229965AbiIIWbv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Sep 2022 18:31:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43326 "EHLO
+        id S230103AbiIIWo5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Sep 2022 18:44:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229774AbiIIWbt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 18:31:49 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DD1399B4C
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 15:31:49 -0700 (PDT)
+        with ESMTP id S230268AbiIIWoz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 18:44:55 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D5D43E761
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 15:44:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C4510B82680
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 22:31:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51189C433C1;
-        Fri,  9 Sep 2022 22:31:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C74346213D
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 22:44:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DFA9C433C1;
+        Fri,  9 Sep 2022 22:44:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662762706;
-        bh=HlmdyNX4ZIyHokNLn+ZwwXFgtTbKdnICPOOCC8xhtqE=;
+        s=korg; t=1662763485;
+        bh=v1YKkDIzHVRmSmBn7iqfy+BYA/EjkfAbpzUlmjxGQwY=;
         h=Date:To:From:Subject:From;
-        b=nJqV8NL9+fMGhuP6IS9ZN8+a9oAP/dOuRlIrdh+vZuSS/uemwVovkPCOsi84n9KSn
-         pKhy5EfhbIEjdn4VVJYsmjJrPwSp+h29dELPSXYnGhZYDcbMIBKzrFhqlSr0osXE30
-         1dRDn7mt0AX58WxPdAYJGk9q00zauoFNZkRT1LDM=
-Date:   Fri, 09 Sep 2022 15:31:45 -0700
-To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
-        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
-        wangjianli@cdjrlc.com, akpm@linux-foundation.org
+        b=1050/DYckixsoerV+uQ+L//E4CJXuy3qVRsHF5Y/6MCYx/F2Sq8RyvKUi/psMcpHi
+         AXJUYDh2f1KXCubaah2Uj+GK75KxoDwwVg4cXut2gQ7DlorL/Qos/04iND7cucH3ie
+         MQ14mgEIO9oG8BfQIe8uVIFdyz3WZLPNV0M4VeI4=
+Date:   Fri, 09 Sep 2022 15:44:44 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, xhao@linux.alibaba.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-ocfs2-fix-repeated-words-in-comments.patch added to mm-nonmm-unstable branch
-Message-Id: <20220909223146.51189C433C1@smtp.kernel.org>
+Subject: + mm-damon-sysfs-change-few-functions-execute-order.patch added to mm-unstable branch
+Message-Id: <20220909224445.1DFA9C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ocfs2: fix repeated words in comments
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-ocfs2-fix-repeated-words-in-comments.patch
+     Subject: mm/damon/sysfs: change few functions execute order
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-sysfs-change-few-functions-execute-order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-ocfs2-fix-repeated-words-in-comments.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-change-few-functions-execute-order.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,41 +64,124 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wangjianli <wangjianli@cdjrlc.com>
-Subject: fs/ocfs2: fix repeated words in comments
-Date: Thu, 8 Sep 2022 21:00:36 +0800
+From: Xin Hao <xhao@linux.alibaba.com>
+Subject: mm/damon/sysfs: change few functions execute order
+Date: Thu, 8 Sep 2022 16:19:32 +0800
 
-Delete the redundant word 'to'.
+There's no need to run container_of() as early as we do.
 
-Link: https://lkml.kernel.org/r/20220908130036.31149-1-wangjianli@cdjrlc.com
-Signed-off-by: wangjianli <wangjianli@cdjrlc.com>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+The compiler figures this out, but the resulting code is more readable.
+
+Link: https://lkml.kernel.org/r/20220908081932.77370-1-xhao@linux.alibaba.com
+Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/sysfs.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
---- a/fs/ocfs2/refcounttree.c~fs-ocfs2-fix-repeated-words-in-comments
-+++ a/fs/ocfs2/refcounttree.c
-@@ -2614,7 +2614,7 @@ static inline unsigned int ocfs2_cow_ali
- }
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-change-few-functions-execute-order
++++ a/mm/damon/sysfs.c
+@@ -1031,8 +1031,7 @@ static ssize_t nr_schemes_show(struct ko
+ static ssize_t nr_schemes_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+ {
+-	struct damon_sysfs_schemes *schemes = container_of(kobj,
+-			struct damon_sysfs_schemes, kobj);
++	struct damon_sysfs_schemes *schemes;
+ 	int nr, err = kstrtoint(buf, 0, &nr);
  
- /*
-- * Calculate out the start and number of virtual clusters we need to to CoW.
-+ * Calculate out the start and number of virtual clusters we need to CoW.
-  *
-  * cpos is vitual start cluster position we want to do CoW in a
-  * file and write_len is the cluster length.
+ 	if (err)
+@@ -1040,6 +1039,8 @@ static ssize_t nr_schemes_store(struct k
+ 	if (nr < 0)
+ 		return -EINVAL;
+ 
++	schemes = container_of(kobj, struct damon_sysfs_schemes, kobj);
++
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+ 	err = damon_sysfs_schemes_add_dirs(schemes, nr);
+@@ -1237,8 +1238,7 @@ static ssize_t nr_regions_show(struct ko
+ static ssize_t nr_regions_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+ {
+-	struct damon_sysfs_regions *regions = container_of(kobj,
+-			struct damon_sysfs_regions, kobj);
++	struct damon_sysfs_regions *regions;
+ 	int nr, err = kstrtoint(buf, 0, &nr);
+ 
+ 	if (err)
+@@ -1246,6 +1246,8 @@ static ssize_t nr_regions_store(struct k
+ 	if (nr < 0)
+ 		return -EINVAL;
+ 
++	regions = container_of(kobj, struct damon_sysfs_regions, kobj);
++
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+ 	err = damon_sysfs_regions_add_dirs(regions, nr);
+@@ -1440,8 +1442,7 @@ static ssize_t nr_targets_show(struct ko
+ static ssize_t nr_targets_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+ {
+-	struct damon_sysfs_targets *targets = container_of(kobj,
+-			struct damon_sysfs_targets, kobj);
++	struct damon_sysfs_targets *targets;
+ 	int nr, err = kstrtoint(buf, 0, &nr);
+ 
+ 	if (err)
+@@ -1449,6 +1450,8 @@ static ssize_t nr_targets_store(struct k
+ 	if (nr < 0)
+ 		return -EINVAL;
+ 
++	targets = container_of(kobj, struct damon_sysfs_targets, kobj);
++
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+ 	err = damon_sysfs_targets_add_dirs(targets, nr);
+@@ -1962,8 +1965,7 @@ static ssize_t nr_contexts_show(struct k
+ static ssize_t nr_contexts_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+ {
+-	struct damon_sysfs_contexts *contexts = container_of(kobj,
+-			struct damon_sysfs_contexts, kobj);
++	struct damon_sysfs_contexts *contexts;
+ 	int nr, err;
+ 
+ 	err = kstrtoint(buf, 0, &nr);
+@@ -1973,6 +1975,7 @@ static ssize_t nr_contexts_store(struct
+ 	if (nr < 0 || 1 < nr)
+ 		return -EINVAL;
+ 
++	contexts = container_of(kobj, struct damon_sysfs_contexts, kobj);
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+ 	err = damon_sysfs_contexts_add_dirs(contexts, nr);
+@@ -2737,8 +2740,7 @@ static ssize_t nr_kdamonds_show(struct k
+ static ssize_t nr_kdamonds_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+ {
+-	struct damon_sysfs_kdamonds *kdamonds = container_of(kobj,
+-			struct damon_sysfs_kdamonds, kobj);
++	struct damon_sysfs_kdamonds *kdamonds;
+ 	int nr, err;
+ 
+ 	err = kstrtoint(buf, 0, &nr);
+@@ -2747,6 +2749,8 @@ static ssize_t nr_kdamonds_store(struct
+ 	if (nr < 0)
+ 		return -EINVAL;
+ 
++	kdamonds = container_of(kobj, struct damon_sysfs_kdamonds, kobj);
++
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+ 	err = damon_sysfs_kdamonds_add_dirs(kdamonds, nr);
 _
 
-Patches currently in -mm which might be from wangjianli@cdjrlc.com are
+Patches currently in -mm which might be from xhao@linux.alibaba.com are
 
-fs-ocfs2-fix-repeated-words-in-comments.patch
+mm-damon-simply-damon_ctx-check-in-damon_sysfs_before_terminate.patch
+mm-damon-remove-duplicate-get_monitoring_region-definitions.patch
+mm-damon-sysfs-change-few-functions-execute-order.patch
 
