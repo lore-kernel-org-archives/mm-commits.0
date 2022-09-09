@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E327ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 20:32:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6CC9ECAAD3
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 20:33:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230512AbiIIUcr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Sep 2022 16:32:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37204 "EHLO
+        id S232292AbiIIUdK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Sep 2022 16:33:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35006 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232167AbiIIUcX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 16:32:23 -0400
+        with ESMTP id S232330AbiIIUcm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 16:32:42 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA8A0143425
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 13:31:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22F3A459BE
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 13:32:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CAFF562031
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 20:31:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CCB6C433C1;
-        Fri,  9 Sep 2022 20:31:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 741CA61FF5
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 20:32:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C72B9C433C1;
+        Fri,  9 Sep 2022 20:32:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662755500;
-        bh=w4xN0/z2X47dm3VwPr0q7Bljc4drhRN7lZW2+LwgINA=;
+        s=korg; t=1662755549;
+        bh=g26YgQyoWp8NDpT6YGR208nrZkSAy+DgVllFGYzvRBI=;
         h=Date:To:From:Subject:From;
-        b=Nu4akGBGqAcPTyWwsivX1lb52kErJ4n+AG71zGObJngnuBblUSU3A9daC1FIfw3Ij
-         BfIXibImjeOyHF+X5NNAHN0tyNBVNKW6wpHvHGed/1fBkMSaRCOtwm5jW7qEnrXm2a
-         See8vyXcjMSwPlKdpSBUisNxPqxkTj+sr2MlI08M=
-Date:   Fri, 09 Sep 2022 13:31:39 -0700
+        b=QU4pv6lFoXKpGON50jyVhjJP5312wsJtOlq4ku8JcNokf4gtkJ8aIs9HOqhb5JO/w
+         elr3/EPCaT7iBo+fMYapV4HPugRPrVPjvd1bH8UGeQluLlEYvVEhUkfceDMwHGbfWT
+         xnkfhftU11h84sdEDvzErJQfKK2G9EcWNf7/Qia8=
+Date:   Fri, 09 Sep 2022 13:32:29 -0700
 To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
         vitaly.wool@konsulko.com, sjenning@redhat.com, nathan@kernel.org,
         konrad.wilk@oracle.com, hch@lst.de, ddstreet@ieee.org,
         liushixin2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] revert-frontswap-remove-support-for-multiple-ops.patch removed from -mm tree
-Message-Id: <20220909203140.1CCB6C433C1@smtp.kernel.org>
+Subject: [to-be-updated] revert-mm-mark-swap_lock-and-swap_active_head-static.patch removed from -mm tree
+Message-Id: <20220909203229.C72B9C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,16 +43,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Revert "frontswap: remove support for multiple ops"
+     Subject: Revert "mm: mark swap_lock and swap_active_head static"
 has been removed from the -mm tree.  Its filename was
-     revert-frontswap-remove-support-for-multiple-ops.patch
+     revert-mm-mark-swap_lock-and-swap_active_head-static.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Liu Shixin <liushixin2@huawei.com>
-Subject: Revert "frontswap: remove support for multiple ops"
-Date: Mon, 29 Aug 2022 21:22:57 +0800
+Subject: Revert "mm: mark swap_lock and swap_active_head static"
+Date: Mon, 29 Aug 2022 21:22:58 +0800
 
 Patch series "Delay the initializaton of zswap", v4.
 
@@ -61,265 +61,64 @@ zswap_pool.  Since not all users use zswap, the memory may be wasted.
 Save the memory for these users by delaying the initialization of zswap to
 first enablement.  
 
+This patch (of 5):
 
-This patch (of 6):
+This reverts commit 633423a09cb5cfe61438283e1ce49c23cf4a0611.
 
-This reverts commit 1da0d94a3ec8c5f3793b7be8538b55e60ebeefe3.
+swap_lock and swap_active_head will be used in the next patch, so export
+them again.
 
-If zswap initialization failed or has not been initialized, frontswap_ops
-will be NULL.  In such a situation, swap device enabling fails with
-following stack trace:
-
-  Unable to handle kernel access to user memory outside uaccess routines at virtual address 0000000000000000
-  Mem abort info:
-    ESR = 0x0000000096000004
-    EC = 0x25: DABT (current EL), IL = 32 bits
-    SET = 0, FnV = 0
-    EA = 0, S1PTW = 0
-    FSC = 0x04: level 0 translation fault
-  Data abort info:
-    ISV = 0, ISS = 0x00000004
-    CM = 0, WnR = 0
-  user pgtable: 4k pages, 48-bit VAs, pgdp=00000020a4fab000
-  [0000000000000000] pgd=0000000000000000, p4d=0000000000000000
-  Internal error: Oops: 96000004 [#1] SMP
-  Modules linked in: zram fsl_dpaa2_eth pcs_lynx phylink ahci_qoriq crct10dif_ce ghash_ce sbsa_gwdt fsl_mc_dpio nvme lm90 nvme_core at803x xhci_plat_hcd rtc_fsl_ftm_alarm xgmac_mdio ahci_platform i2c_imx ip6_tables ip_tables fuse
-  Unloaded tainted modules: cppc_cpufreq():1
-  CPU: 10 PID: 761 Comm: swapon Not tainted 6.0.0-rc2-00454-g22100432cf14 #1
-  Hardware name: SolidRun Ltd. SolidRun CEX7 Platform, BIOS EDK II Jun 21 2022
-  pstate: 00400005 (nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-  pc : frontswap_init+0x38/0x60
-  lr : __do_sys_swapon+0x8a8/0x9f4
-  sp : ffff80000969bcf0
-  x29: ffff80000969bcf0 x28: ffff37bee0d8fc00 x27: ffff80000a7f5000
-  x26: fffffcdefb971e80 x25: ffffaba797453b90 x24: 0000000000000064
-  x23: ffff37c1f209d1a8 x22: ffff37bee880e000 x21: ffffaba797748560
-  x20: ffff37bee0d8fce4 x19: ffffaba797748488 x18: 0000000000000014
-  x17: 0000000030ec029a x16: ffffaba795a479b0 x15: 0000000000000000
-  x14: 0000000000000000 x13: 0000000000000030 x12: 0000000000000001
-  x11: ffff37c63c0aba18 x10: 0000000000000000 x9 : ffffaba7956b8c88
-  x8 : ffff80000969bcd0 x7 : 0000000000000000 x6 : 0000000000000000
-  x5 : 0000000000000001 x4 : 0000000000000000 x3 : ffffaba79730f000
-  x2 : ffff37bee0d8fc00 x1 : 0000000000000000 x0 : 0000000000000000
-  Call trace:
-  frontswap_init+0x38/0x60
-  __do_sys_swapon+0x8a8/0x9f4
-  __arm64_sys_swapon+0x28/0x3c
-  invoke_syscall+0x78/0x100
-  el0_svc_common.constprop.0+0xd4/0xf4
-  do_el0_svc+0x38/0x4c
-  el0_svc+0x34/0x10c
-  el0t_64_sync_handler+0x11c/0x150
-  el0t_64_sync+0x190/0x194
-  Code: d000e283 910003fd f9006c41 f946d461 (f9400021)
-  ---[ end trace 0000000000000000 ]---
-
-Link: https://lkml.kernel.org/r/20220829132302.3367054-1-liushixin2@huawei.com
-Link: https://lkml.kernel.org/r/20220829132302.3367054-2-liushixin2@huawei.com
+Link: https://lkml.kernel.org/r/20220829132302.3367054-3-liushixin2@huawei.com
 Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Reported-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/frontswap.h |    3 +-
- mm/frontswap.c            |   50 +++++++++++++++++++++++++++---------
- mm/zswap.c                |    8 +----
- 3 files changed, 42 insertions(+), 19 deletions(-)
+ include/linux/swapfile.h |    2 ++
+ mm/swapfile.c            |    4 ++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/frontswap.h~revert-frontswap-remove-support-for-multiple-ops
-+++ a/include/linux/frontswap.h
-@@ -13,9 +13,10 @@ struct frontswap_ops {
- 	int (*load)(unsigned, pgoff_t, struct page *); /* load a page */
- 	void (*invalidate_page)(unsigned, pgoff_t); /* page no longer needed */
- 	void (*invalidate_area)(unsigned); /* swap type just swapoff'ed */
-+	struct frontswap_ops *next; /* private pointer to next ops */
- };
- 
--int frontswap_register_ops(const struct frontswap_ops *ops);
-+extern void frontswap_register_ops(struct frontswap_ops *ops);
- 
- extern void frontswap_init(unsigned type, unsigned long *map);
- extern int __frontswap_store(struct page *page);
---- a/mm/frontswap.c~revert-frontswap-remove-support-for-multiple-ops
-+++ a/mm/frontswap.c
-@@ -27,7 +27,10 @@ DEFINE_STATIC_KEY_FALSE(frontswap_enable
-  * may be registered, but implementations can never deregister.  This
-  * is a simple singly-linked list of all registered implementations.
+--- a/include/linux/swapfile.h~revert-mm-mark-swap_lock-and-swap_active_head-static
++++ a/include/linux/swapfile.h
+@@ -6,6 +6,8 @@
+  * these were static in swapfile.c but frontswap.c needs them and we don't
+  * want to expose them to the dozens of source files that include swap.h
   */
--static const struct frontswap_ops *frontswap_ops __read_mostly;
-+static struct frontswap_ops *frontswap_ops __read_mostly;
-+
-+#define for_each_frontswap_ops(ops)		\
-+	for ((ops) = frontswap_ops; (ops); (ops) = (ops)->next)
++extern spinlock_t swap_lock;
++extern struct plist_head swap_active_head;
+ extern struct swap_info_struct *swap_info[];
+ extern unsigned long generic_max_swapfile_size(void);
+ unsigned long arch_max_swapfile_size(void);
+--- a/mm/swapfile.c~revert-mm-mark-swap_lock-and-swap_active_head-static
++++ a/mm/swapfile.c
+@@ -51,7 +51,7 @@ static bool swap_count_continued(struct
+ 				 unsigned char);
+ static void free_swap_count_continuations(struct swap_info_struct *);
  
- #ifdef CONFIG_DEBUG_FS
+-static DEFINE_SPINLOCK(swap_lock);
++DEFINE_SPINLOCK(swap_lock);
+ static unsigned int nr_swapfiles;
+ atomic_long_t nr_swap_pages;
  /*
-@@ -94,14 +97,18 @@ static inline void inc_frontswap_invalid
- /*
-  * Register operations for frontswap
+@@ -77,7 +77,7 @@ static const char Unused_offset[] = "Unu
+  * all active swap_info_structs
+  * protected with swap_lock, and ordered by priority.
   */
--int frontswap_register_ops(const struct frontswap_ops *ops)
-+void frontswap_register_ops(struct frontswap_ops *ops)
- {
--	if (frontswap_ops)
--		return -EINVAL;
-+	/*
-+	 * Setting frontswap_ops must happen after the ops->init() calls
-+	 * above; cmpxchg implies smp_mb() which will ensure the init is
-+	 * complete at this point.
-+	 */
-+	do {
-+		ops->next = frontswap_ops;
-+	} while (cmpxchg(&frontswap_ops, ops->next, ops) != ops->next);
- 
--	frontswap_ops = ops;
- 	static_branch_inc(&frontswap_enabled_key);
--	return 0;
- }
+-static PLIST_HEAD(swap_active_head);
++PLIST_HEAD(swap_active_head);
  
  /*
-@@ -110,6 +117,7 @@ int frontswap_register_ops(const struct
- void frontswap_init(unsigned type, unsigned long *map)
- {
- 	struct swap_info_struct *sis = swap_info[type];
-+	struct frontswap_ops *ops;
- 
- 	VM_BUG_ON(sis == NULL);
- 
-@@ -125,7 +133,9 @@ void frontswap_init(unsigned type, unsig
- 	 * p->frontswap set to something valid to work properly.
- 	 */
- 	frontswap_map_set(sis, map);
--	frontswap_ops->init(type);
-+
-+	for_each_frontswap_ops(ops)
-+		ops->init(type);
- }
- 
- static bool __frontswap_test(struct swap_info_struct *sis,
-@@ -164,6 +174,7 @@ int __frontswap_store(struct page *page)
- 	int type = swp_type(entry);
- 	struct swap_info_struct *sis = swap_info[type];
- 	pgoff_t offset = swp_offset(entry);
-+	struct frontswap_ops *ops;
- 
- 	VM_BUG_ON(!frontswap_ops);
- 	VM_BUG_ON(!PageLocked(page));
-@@ -177,10 +188,16 @@ int __frontswap_store(struct page *page)
- 	 */
- 	if (__frontswap_test(sis, offset)) {
- 		__frontswap_clear(sis, offset);
--		frontswap_ops->invalidate_page(type, offset);
-+		for_each_frontswap_ops(ops)
-+			ops->invalidate_page(type, offset);
- 	}
- 
--	ret = frontswap_ops->store(type, offset, page);
-+	/* Try to store in each implementation, until one succeeds. */
-+	for_each_frontswap_ops(ops) {
-+		ret = ops->store(type, offset, page);
-+		if (!ret) /* successful store */
-+			break;
-+	}
- 	if (ret == 0) {
- 		__frontswap_set(sis, offset);
- 		inc_frontswap_succ_stores();
-@@ -203,6 +220,7 @@ int __frontswap_load(struct page *page)
- 	int type = swp_type(entry);
- 	struct swap_info_struct *sis = swap_info[type];
- 	pgoff_t offset = swp_offset(entry);
-+	struct frontswap_ops *ops;
- 
- 	VM_BUG_ON(!frontswap_ops);
- 	VM_BUG_ON(!PageLocked(page));
-@@ -212,7 +230,11 @@ int __frontswap_load(struct page *page)
- 		return -1;
- 
- 	/* Try loading from each implementation, until one succeeds. */
--	ret = frontswap_ops->load(type, offset, page);
-+	for_each_frontswap_ops(ops) {
-+		ret = ops->load(type, offset, page);
-+		if (!ret) /* successful load */
-+			break;
-+	}
- 	if (ret == 0)
- 		inc_frontswap_loads();
- 	return ret;
-@@ -225,6 +247,7 @@ int __frontswap_load(struct page *page)
- void __frontswap_invalidate_page(unsigned type, pgoff_t offset)
- {
- 	struct swap_info_struct *sis = swap_info[type];
-+	struct frontswap_ops *ops;
- 
- 	VM_BUG_ON(!frontswap_ops);
- 	VM_BUG_ON(sis == NULL);
-@@ -232,7 +255,8 @@ void __frontswap_invalidate_page(unsigne
- 	if (!__frontswap_test(sis, offset))
- 		return;
- 
--	frontswap_ops->invalidate_page(type, offset);
-+	for_each_frontswap_ops(ops)
-+		ops->invalidate_page(type, offset);
- 	__frontswap_clear(sis, offset);
- 	inc_frontswap_invalidates();
- }
-@@ -244,6 +268,7 @@ void __frontswap_invalidate_page(unsigne
- void __frontswap_invalidate_area(unsigned type)
- {
- 	struct swap_info_struct *sis = swap_info[type];
-+	struct frontswap_ops *ops;
- 
- 	VM_BUG_ON(!frontswap_ops);
- 	VM_BUG_ON(sis == NULL);
-@@ -251,7 +276,8 @@ void __frontswap_invalidate_area(unsigne
- 	if (sis->frontswap_map == NULL)
- 		return;
- 
--	frontswap_ops->invalidate_area(type);
-+	for_each_frontswap_ops(ops)
-+		ops->invalidate_area(type);
- 	atomic_set(&sis->frontswap_pages, 0);
- 	bitmap_zero(sis->frontswap_map, sis->max);
- }
---- a/mm/zswap.c~revert-frontswap-remove-support-for-multiple-ops
-+++ a/mm/zswap.c
-@@ -1415,7 +1415,7 @@ static void zswap_frontswap_init(unsigne
- 	zswap_trees[type] = tree;
- }
- 
--static const struct frontswap_ops zswap_frontswap_ops = {
-+static struct frontswap_ops zswap_frontswap_ops = {
- 	.store = zswap_frontswap_store,
- 	.load = zswap_frontswap_load,
- 	.invalidate_page = zswap_frontswap_invalidate_page,
-@@ -1512,15 +1512,11 @@ static int __init init_zswap(void)
- 	if (!shrink_wq)
- 		goto fallback_fail;
- 
--	ret = frontswap_register_ops(&zswap_frontswap_ops);
--	if (ret)
--		goto destroy_wq;
-+	frontswap_register_ops(&zswap_frontswap_ops);
- 	if (zswap_debugfs_init())
- 		pr_warn("debugfs initialization failed\n");
- 	return 0;
- 
--destroy_wq:
--	destroy_workqueue(shrink_wq);
- fallback_fail:
- 	if (pool)
- 		zswap_pool_destroy(pool);
+  * all available (active, not full) swap_info_structs
 _
 
 Patches currently in -mm which might be from liushixin2@huawei.com are
 
-revert-mm-mark-swap_lock-and-swap_active_head-static.patch
 revert-frontswap-simplify-frontswap_register_ops.patch
 mm-zswap-replace-zswap_init_started-failed-with-zswap_init_state.patch
 mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement.patch
