@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50C2CECAAD3
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 21:55:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0322FECAAD3
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 21:58:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231966AbiIIVzb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Sep 2022 17:55:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35766 "EHLO
+        id S229464AbiIIV6U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Sep 2022 17:58:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231905AbiIIVza (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 17:55:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB314A4044
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 14:55:28 -0700 (PDT)
+        with ESMTP id S232022AbiIIV6R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 17:58:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BB30110A99
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 14:58:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BF75AB82320
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 21:55:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72D82C433D6;
-        Fri,  9 Sep 2022 21:55:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EBB5262107
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 21:58:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49E23C433C1;
+        Fri,  9 Sep 2022 21:58:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662760525;
-        bh=wRveH5YRN0bbZAj2g5N7Q7oiPd01qcZBlvhSTLC8feM=;
+        s=korg; t=1662760694;
+        bh=auFbShl8rdRXVhJVMMljvWLyutXVXmejfHMzsGtnm9k=;
         h=Date:To:From:Subject:From;
-        b=b06bTKbkZN67ZuvGjbBHtj4K4jsjfiC1P8js0eQrLNLrFr3CmyFNaLZLFBHPjjlbm
-         pym/HVae1YqYJl2IwogPjDNvtYH2PeWAUbgFA8Pw+5E2c7LUPjvAUZwCbC3duC6ejb
-         q6A4gAXC4FhrDIGz9eRp6IlsOP0wej5KzmzUCo48=
-Date:   Fri, 09 Sep 2022 14:55:24 -0700
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        ngupta@vflare.org, minchan@kernel.org, avromanov@sberdevices.ru,
-        akpm@linux-foundation.org
+        b=Bjq7y2x3+LMFSin+dxltMKGM/mOyH+UI9NONWFK852kOgwNjKpuIOKJz3Dagya3d0
+         nBQ3sui9lBhytTFxbuU+E05UZX4Jsks9d12cKAcm8dL8e4ptQ4r0mCSnalSRbwSfFp
+         +6UxAjKmtAinYRNfiyKSNt094K7jTtU4ZYweDvIk=
+Date:   Fri, 09 Sep 2022 14:58:13 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        liushixin2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-use-correct-types-in-_first_obj_offset-functions.patch added to mm-unstable branch
-Message-Id: <20220909215525.72D82C433D6@smtp.kernel.org>
+Subject: + mm-kfence-convert-to-define_seq_attribute.patch added to mm-unstable branch
+Message-Id: <20220909215814.49E23C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: use correct types in _first_obj_offset functions
+     Subject: mm: kfence: convert to DEFINE_SEQ_ATTRIBUTE
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-use-correct-types-in-_first_obj_offset-functions.patch
+     mm-kfence-convert-to-define_seq_attribute.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-use-correct-types-in-_first_obj_offset-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-convert-to-define_seq_attribute.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,71 +65,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Romanov <avromanov@sberdevices.ru>
-Subject: zsmalloc: use correct types in _first_obj_offset functions
-Date: Fri, 9 Sep 2022 11:37:22 +0300
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm: kfence: convert to DEFINE_SEQ_ATTRIBUTE
+Date: Fri, 9 Sep 2022 16:31:40 +0800
 
-Since commit ffedd09fa9b0 ("zsmalloc: Stop using slab fields in struct
-page") we are using page->page_type (unsigned int) field instead of
-page->units (int) as first object offset in a subpage of zspage.  So
-get_first_obj_offset() and set_first_obj_offset() functions should work
-with unsigned int type.
+Use DEFINE_SEQ_ATTRIBUTE helper macro to simplify the code.
 
-Link: https://lkml.kernel.org/r/20220909083722.85024-1-avromanov@sberdevices.ru
-Fixes: ffedd09fa9b0 ("zsmalloc: Stop using slab fields in struct page")
-Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Alexey Romanov <avromanov@sberdevices.ru>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+Link: https://lkml.kernel.org/r/20220909083140.3592919-1-liushixin2@huawei.com
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Tested-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/kfence/core.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-use-correct-types-in-_first_obj_offset-functions
-+++ a/mm/zsmalloc.c
-@@ -472,12 +472,12 @@ static inline struct page *get_first_pag
- 	return first_page;
+--- a/mm/kfence/core.c~mm-kfence-convert-to-define_seq_attribute
++++ a/mm/kfence/core.c
+@@ -719,24 +719,13 @@ static int show_object(struct seq_file *
+ 	return 0;
  }
  
--static inline int get_first_obj_offset(struct page *page)
-+static inline unsigned int get_first_obj_offset(struct page *page)
- {
- 	return page->page_type;
- }
+-static const struct seq_operations object_seqops = {
++static const struct seq_operations objects_sops = {
+ 	.start = start_object,
+ 	.next = next_object,
+ 	.stop = stop_object,
+ 	.show = show_object,
+ };
+-
+-static int open_objects(struct inode *inode, struct file *file)
+-{
+-	return seq_open(file, &object_seqops);
+-}
+-
+-static const struct file_operations objects_fops = {
+-	.open = open_objects,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = seq_release,
+-};
++DEFINE_SEQ_ATTRIBUTE(objects);
  
--static inline void set_first_obj_offset(struct page *page, int offset)
-+static inline void set_first_obj_offset(struct page *page, unsigned int offset)
+ static int __init kfence_debugfs_init(void)
  {
- 	page->page_type = offset;
- }
-@@ -1592,7 +1592,7 @@ static void zs_object_copy(struct size_c
- static unsigned long find_alloced_obj(struct size_class *class,
- 					struct page *page, int *obj_idx)
- {
--	int offset = 0;
-+	unsigned int offset;
- 	int index = *obj_idx;
- 	unsigned long handle = 0;
- 	void *addr = kmap_atomic(page);
-@@ -1846,7 +1846,7 @@ static int zs_page_migrate(struct page *
- 	struct zspage *zspage;
- 	struct page *dummy;
- 	void *s_addr, *d_addr, *addr;
--	int offset;
-+	unsigned int offset;
- 	unsigned long handle;
- 	unsigned long old_obj, new_obj;
- 	unsigned int obj_idx;
 _
 
-Patches currently in -mm which might be from avromanov@sberdevices.ru are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-zsmalloc-zs_object_copy-add-clarifying-comment.patch
-zsmalloc-remove-unnecessary-size_class-null-check.patch
-zsmalloc-zs_object_copy-replace-email-link-to-doc.patch
-zram-dont-retry-compress-incompressible-page.patch
-zsmalloc-use-correct-types-in-_first_obj_offset-functions.patch
+mm-thp-simplify-has_transparent_hugepage-by-using-is_builtin.patch
+mm-thp-remove-redundant-config_transparent_hugepage.patch
+mm-kmemleak-make-create_object-return-void.patch
+mm-huge_memory-prevent-thp_zero_page_alloc-increased-twice.patch
+mm-memcontrol-use-kstrtobool-for-swapaccount-param-parsing.patch
+mm-shuffle-convert-module_param_call-to-module_param_cb.patch
+mm-kfence-convert-to-define_seq_attribute.patch
 
