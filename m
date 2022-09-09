@@ -2,437 +2,261 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 988BDECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 22:00:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B0C9ECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 22:01:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229698AbiIIWAg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Sep 2022 18:00:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46652 "EHLO
+        id S232101AbiIIWBl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Sep 2022 18:01:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230033AbiIIWAf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 18:00:35 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8D5710B55D
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 15:00:32 -0700 (PDT)
+        with ESMTP id S231395AbiIIWB0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 18:01:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D99D144807
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 15:01:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7FF50B82656
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 22:00:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34B18C433C1;
-        Fri,  9 Sep 2022 22:00:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6EDAE62116
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 22:01:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6800C433D6;
+        Fri,  9 Sep 2022 22:01:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662760830;
-        bh=+YNFF558tlQWZdVS4Ur7GQAfc5UAPIYZrNAixjt5m4s=;
+        s=korg; t=1662760883;
+        bh=6YpXKGy5NSHLbot9QG8UocVZMH1wSKhzzkVCdrF/eas=;
         h=Date:To:From:Subject:From;
-        b=U+kFmAUOSZR3PRcVu3ZLkcNVI9WZmcfzD73do1WOzpthWCTeCmuWBuu+ferbhTcqi
-         6YjlmbBX/S3zv9XNiB3TsW442uGz3+Eyzp3OaKKDkSvONdQLIhgreB4/2HmC3+zYW0
-         yxOURLHGDTuphnFwEg9F7zSlh+CsvX03558CIW0A=
-Date:   Fri, 09 Sep 2022 15:00:29 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        pcc@google.com, oleg@redhat.com, keescook@chromium.org,
-        eugenis@google.com, ebiederm@xmission.com, corbet@lwn.net,
-        brauner@kernel.org, fmayer@google.com, akpm@linux-foundation.org
+        b=H7O2vT/L1Ch8Hh3Owg0T6GmojSfCebTakdsBGDmu/r/NFSN8iZImUuGAcTFttMDz3
+         UzbS3zxcrWA9qxHVf3+ZVTBC5c03E0yYukpHde6e1TIFEq+42XVDYED8ExwoQvZZns
+         eODu59G8frqPEv28IUNmJajQmOQeSp93AxZWpEbc=
+Date:   Fri, 09 Sep 2022 15:01:23 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, xhao@linux.alibaba.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] add-sicode-to-proc-pid-stat.patch removed from -mm tree
-Message-Id: <20220909220030.34B18C433C1@smtp.kernel.org>
+Subject: + mm-damon-remove-duplicate-get_monitoring_region-definitions.patch added to mm-unstable branch
+Message-Id: <20220909220123.C6800C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: procfs: add sicode to /proc/<PID>/stat.
-has been removed from the -mm tree.  Its filename was
-     add-sicode-to-proc-pid-stat.patch
+The patch titled
+     Subject: mm/damon: remove duplicate get_monitoring_region() definitions
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-remove-duplicate-get_monitoring_region-definitions.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-duplicate-get_monitoring_region-definitions.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Florian Mayer <fmayer@google.com>
-Subject: procfs: add sicode to /proc/<PID>/stat.
-Date: Fri, 9 Sep 2022 11:06:17 -0700
+From: Xin Hao <xhao@linux.alibaba.com>
+Subject: mm/damon: remove duplicate get_monitoring_region() definitions
+Date: Fri, 9 Sep 2022 21:36:06 +0000
 
-In order to enable additional debugging features, Android init needs a way
-to distinguish MTE-related SEGVs (with si_code of SEGV_MTEAERR) from other
-SEGVs.  This is not possible with current APIs, neither by the existing
-information in /proc/<pid>/stat, nor via waitpid.
+In lru_sort.c and reclaim.c, they are all defining get_monitoring_region()
+function, there is no need to define it separately.
 
-Tested with the following program
+As 'get_monitoring_region()' is not a 'static' function anymore, we try to
+use a prefix to distinguish with other functions, so there rename it to
+'damon_find_biggest_system_ram'.
 
-int main(int argc, char** argv) {
-  int pid = fork();
-  if (!pid) {
-    if (strcmp(argv[1], "sigqueue") == 0) {
-    union sigval value;
-    value.sival_int = 0;
-    sigqueue(getpid(), SIGSEGV, value);
-    } else if (strcmp(argv[1], "raise") == 0) {
-     raise(SIGSEGV);
-    } else if (strcmp(argv[1], "kill") == 0) {
-      kill(getpid(), SIGSEGV);
-    } else if (strcmp(argv[1], "raisestop") == 0) {
-      raise(SIGSTOP);
-    } else if (strcmp(argv[1], "crash") == 0) {
-      volatile int* x = (int*)(0x23);
-      *x = 1;
-    } else if (strcmp(argv[1], "mte") == 0) {
-      volatile char* y = malloc(1);
-      y += 100;
-      *y = 1;
-    }
-  } else {
-    printf("%d\n", pid);
-    sleep(5);
-    char buf[1024];
-    sprintf(buf, "/proc/%d/stat", pid);
-    int fd = open(buf, O_RDONLY);
-    char statb[1024];
-    read(fd, statb, sizeof(statb));
-    printf("%s\n", statb);
-  }
-}
-
-Link: https://lkml.kernel.org/r/20220909180617.374238-1-fmayer@google.com
-Signed-off-by: Florian Mayer <fmayer@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Collingbourne <pcc@google.com>
+Link: https://lkml.kernel.org/r/20220909213606.136221-1-sj@kernel.org
+Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Suggested-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    2 +
- fs/coredump.c                      |   17 +++++++++------
- fs/proc/array.c                    |   12 +++++++----
- include/linux/sched/signal.h       |    1 
- include/linux/sched/task.h         |    2 -
- kernel/exit.c                      |    5 ++--
- kernel/pid_namespace.c             |    4 ++-
- kernel/signal.c                    |   29 +++++++++++++++++----------
- 8 files changed, 47 insertions(+), 25 deletions(-)
+ include/linux/damon.h |    2 ++
+ mm/damon/core.c       |   40 ++++++++++++++++++++++++++++++++++++++++
+ mm/damon/lru_sort.c   |   37 ++-----------------------------------
+ mm/damon/reclaim.c    |   37 ++-----------------------------------
+ 4 files changed, 46 insertions(+), 70 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~add-sicode-to-proc-pid-stat
-+++ a/Documentation/filesystems/proc.rst
-@@ -381,6 +381,8 @@ It's slow but very precise.
-   env_end       address below which program environment is placed
-   exit_code     the thread's exit_code in the form reported by the waitpid
- 		system call
-+  exit_sicode   if the process was stopped or terminated by a signal, the
-+		signal's si_code. 0 otherwise
-   ============= ===============================================================
+--- a/include/linux/damon.h~mm-damon-remove-duplicate-get_monitoring_region-definitions
++++ a/include/linux/damon.h
+@@ -549,6 +549,8 @@ static inline bool damon_target_has_pid(
+ int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
+ int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
  
- The /proc/PID/maps file contains the currently mapped memory regions and
---- a/fs/coredump.c~add-sicode-to-proc-pid-stat
-+++ a/fs/coredump.c
-@@ -353,7 +353,7 @@ out:
- 	return ispipe;
- }
++bool damon_find_biggest_system_ram(unsigned long *start, unsigned long *end);
++
+ #endif	/* CONFIG_DAMON */
  
--static int zap_process(struct task_struct *start, int exit_code)
-+static int zap_process(struct task_struct *start, int exit_code, int sicode)
- {
- 	struct task_struct *t;
- 	int nr = 0;
-@@ -361,6 +361,7 @@ static int zap_process(struct task_struc
- 	/* ignore all signals except SIGKILL, see prepare_signal() */
- 	start->signal->flags = SIGNAL_GROUP_EXIT;
- 	start->signal->group_exit_code = exit_code;
-+	start->signal->group_exit_sicode = sicode;
- 	start->signal->group_stop_count = 0;
- 
- 	for_each_thread(start, t) {
-@@ -375,8 +376,8 @@ static int zap_process(struct task_struc
- 	return nr;
- }
- 
--static int zap_threads(struct task_struct *tsk,
--			struct core_state *core_state, int exit_code)
-+static int zap_threads(struct task_struct *tsk, struct core_state *core_state,
-+		       int exit_code, int sicode)
- {
- 	struct signal_struct *signal = tsk->signal;
- 	int nr = -EAGAIN;
-@@ -384,7 +385,7 @@ static int zap_threads(struct task_struc
- 	spin_lock_irq(&tsk->sighand->siglock);
- 	if (!(signal->flags & SIGNAL_GROUP_EXIT) && !signal->group_exec_task) {
- 		signal->core_state = core_state;
--		nr = zap_process(tsk, exit_code);
-+		nr = zap_process(tsk, exit_code, sicode);
- 		clear_tsk_thread_flag(tsk, TIF_SIGPENDING);
- 		tsk->flags |= PF_DUMPCORE;
- 		atomic_set(&core_state->nr_threads, nr);
-@@ -393,7 +394,8 @@ static int zap_threads(struct task_struc
- 	return nr;
- }
- 
--static int coredump_wait(int exit_code, struct core_state *core_state)
-+static int coredump_wait(int exit_code, int sicode,
-+			 struct core_state *core_state)
- {
- 	struct task_struct *tsk = current;
- 	int core_waiters = -EBUSY;
-@@ -402,7 +404,7 @@ static int coredump_wait(int exit_code,
- 	core_state->dumper.task = tsk;
- 	core_state->dumper.next = NULL;
- 
--	core_waiters = zap_threads(tsk, core_state, exit_code);
-+	core_waiters = zap_threads(tsk, core_state, exit_code, sicode);
- 	if (core_waiters > 0) {
- 		struct core_thread *ptr;
- 
-@@ -565,7 +567,8 @@ void do_coredump(const kernel_siginfo_t
- 		need_suid_safe = true;
- 	}
- 
--	retval = coredump_wait(siginfo->si_signo, &core_state);
-+	retval =
-+		coredump_wait(siginfo->si_signo, siginfo->si_code, &core_state);
- 	if (retval < 0)
- 		goto fail_creds;
- 
---- a/fs/proc/array.c~add-sicode-to-proc-pid-stat
-+++ a/fs/proc/array.c
-@@ -474,6 +474,7 @@ static int do_task_stat(struct seq_file
- 	unsigned long rsslim = 0;
- 	unsigned long flags;
- 	int exit_code = task->exit_code;
-+	int exit_sicode = 0;
- 
- 	state = *get_task_state(task);
- 	vsize = eip = esp = 0;
-@@ -538,8 +539,10 @@ static int do_task_stat(struct seq_file
- 			thread_group_cputime_adjusted(task, &utime, &stime);
- 			gtime += sig->gtime;
- 
--			if (sig->flags & (SIGNAL_GROUP_EXIT | SIGNAL_STOP_STOPPED))
-+			if (sig->flags & (SIGNAL_GROUP_EXIT | SIGNAL_STOP_STOPPED)) {
- 				exit_code = sig->group_exit_code;
-+				exit_sicode = sig->group_exit_sicode;
-+			}
- 		}
- 
- 		sid = task_session_nr_ns(task, ns);
-@@ -638,10 +641,11 @@ static int do_task_stat(struct seq_file
- 	} else
- 		seq_puts(m, " 0 0 0 0 0 0 0");
- 
--	if (permitted)
-+	if (permitted) {
- 		seq_put_decimal_ll(m, " ", exit_code);
--	else
--		seq_puts(m, " 0");
-+		seq_put_decimal_ll(m, " ", exit_sicode);
-+	} else
-+		seq_puts(m, " 0 0");
- 
- 	seq_putc(m, '\n');
- 	if (mm)
---- a/include/linux/sched/signal.h~add-sicode-to-proc-pid-stat
-+++ a/include/linux/sched/signal.h
-@@ -109,6 +109,7 @@ struct signal_struct {
- 
- 	/* thread group exit support */
- 	int			group_exit_code;
-+	int			group_exit_sicode;
- 	/* notify group_exec_task when notify_count is less or equal to 0 */
- 	int			notify_count;
- 	struct task_struct	*group_exec_task;
---- a/include/linux/sched/task.h~add-sicode-to-proc-pid-stat
-+++ a/include/linux/sched/task.h
-@@ -82,7 +82,7 @@ static inline void exit_thread(struct ta
- {
- }
- #endif
--extern __noreturn void do_group_exit(int);
-+extern __noreturn void do_group_exit(int,int);
- 
- extern void exit_files(struct task_struct *);
- extern void exit_itimers(struct task_struct *);
---- a/kernel/exit.c~add-sicode-to-proc-pid-stat
-+++ a/kernel/exit.c
-@@ -904,7 +904,7 @@ SYSCALL_DEFINE1(exit, int, error_code)
-  * as well as by sys_exit_group (below).
-  */
- void __noreturn
--do_group_exit(int exit_code)
-+do_group_exit(int exit_code, int sicode)
- {
- 	struct signal_struct *sig = current->signal;
- 
-@@ -923,6 +923,7 @@ do_group_exit(int exit_code)
- 			exit_code = 0;
- 		else {
- 			sig->group_exit_code = exit_code;
-+			sig->group_exit_sicode = sicode;
- 			sig->flags = SIGNAL_GROUP_EXIT;
- 			zap_other_threads(current);
- 		}
-@@ -940,7 +941,7 @@ do_group_exit(int exit_code)
-  */
- SYSCALL_DEFINE1(exit_group, int, error_code)
- {
--	do_group_exit((error_code & 0xff) << 8);
-+	do_group_exit((error_code & 0xff) << 8, 0);
- 	/* NOTREACHED */
+ #endif	/* _DAMON_H */
+--- a/mm/damon/core.c~mm-damon-remove-duplicate-get_monitoring_region-definitions
++++ a/mm/damon/core.c
+@@ -1239,4 +1239,44 @@ static int kdamond_fn(void *data)
  	return 0;
  }
---- a/kernel/pid_namespace.c~add-sicode-to-proc-pid-stat
-+++ a/kernel/pid_namespace.c
-@@ -248,8 +248,10 @@ void zap_pid_ns_processes(struct pid_nam
- 	}
- 	__set_current_state(TASK_RUNNING);
  
--	if (pid_ns->reboot)
-+	if (pid_ns->reboot) {
- 		current->signal->group_exit_code = pid_ns->reboot;
-+		current->signal->group_exit_sicode = 0;
++/*
++ * struct damon_system_ram_region - System RAM resource address region of
++ *				    [@start, @end).
++ * @start:	Start address of the region (inclusive).
++ * @end:	End address of the region (exclusive).
++ */
++struct damon_system_ram_region {
++	unsigned long start;
++	unsigned long end;
++};
++
++static int walk_system_ram(struct resource *res, void *arg)
++{
++	struct damon_system_ram_region *a = arg;
++
++	if (a->end - a->start < resource_size(res)) {
++		a->start = res->start;
++		a->end = res->end;
 +	}
++	return 0;
++}
++
++/*
++ * Find biggest 'System RAM' resource and store its start and end address in
++ * @start and @end, respectively.  If no System RAM is found, returns false.
++ */
++bool damon_find_biggest_system_ram(unsigned long *start, unsigned long *end)
++
++{
++	struct damon_system_ram_region arg = {};
++
++	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
++	if (arg.end <= arg.start)
++		return false;
++
++	*start = arg.start;
++	*end = arg.end;
++	return true;
++}
++
+ #include "core-test.h"
+--- a/mm/damon/lru_sort.c~mm-damon-remove-duplicate-get_monitoring_region-definitions
++++ a/mm/damon/lru_sort.c
+@@ -257,39 +257,6 @@ module_param(nr_cold_quota_exceeds, ulon
+ static struct damon_ctx *ctx;
+ static struct damon_target *target;
  
- 	acct_exit_ns(pid_ns);
- 	return;
---- a/kernel/signal.c~add-sicode-to-proc-pid-stat
-+++ a/kernel/signal.c
-@@ -963,6 +963,7 @@ static bool prepare_signal(int sig, stru
- 			signal_set_stop_flags(signal, why | SIGNAL_STOP_CONTINUED);
- 			signal->group_stop_count = 0;
- 			signal->group_exit_code = 0;
-+			signal->group_exit_sicode = 0;
- 		}
- 	}
- 
-@@ -994,7 +995,8 @@ static inline bool wants_signal(int sig,
- 	return task_curr(p) || !task_sigpending(p);
- }
- 
--static void complete_signal(int sig, struct task_struct *p, enum pid_type type)
-+static void complete_signal(int sig, int code, struct task_struct *p,
-+			    enum pid_type type)
+-struct damon_lru_sort_ram_walk_arg {
+-	unsigned long start;
+-	unsigned long end;
+-};
+-
+-static int walk_system_ram(struct resource *res, void *arg)
+-{
+-	struct damon_lru_sort_ram_walk_arg *a = arg;
+-
+-	if (a->end - a->start < resource_size(res)) {
+-		a->start = res->start;
+-		a->end = res->end;
+-	}
+-	return 0;
+-}
+-
+-/*
+- * Find biggest 'System RAM' resource and store its start and end address in
+- * @start and @end, respectively.  If no System RAM is found, returns false.
+- */
+-static bool get_monitoring_region(unsigned long *start, unsigned long *end)
+-{
+-	struct damon_lru_sort_ram_walk_arg arg = {};
+-
+-	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
+-	if (arg.end <= arg.start)
+-		return false;
+-
+-	*start = arg.start;
+-	*end = arg.end;
+-	return true;
+-}
+-
+ /* Create a DAMON-based operation scheme for hot memory regions */
+ static struct damos *damon_lru_sort_new_hot_scheme(unsigned int hot_thres)
  {
- 	struct signal_struct *signal = p->signal;
- 	struct task_struct *t;
-@@ -1051,6 +1053,7 @@ static void complete_signal(int sig, str
- 			 */
- 			signal->flags = SIGNAL_GROUP_EXIT;
- 			signal->group_exit_code = sig;
-+			signal->group_exit_sicode = code;
- 			signal->group_stop_count = 0;
- 			t = p;
- 			do {
-@@ -1082,6 +1085,7 @@ static int __send_signal_locked(int sig,
- 	struct sigqueue *q;
- 	int override_rlimit;
- 	int ret = 0, result;
-+	int code = 0;
+@@ -414,8 +381,8 @@ static int damon_lru_sort_apply_paramete
+ 	if (monitor_region_start > monitor_region_end)
+ 		return -EINVAL;
+ 	if (!monitor_region_start && !monitor_region_end &&
+-			!get_monitoring_region(&monitor_region_start,
+-				&monitor_region_end))
++	    !damon_find_biggest_system_ram(&monitor_region_start,
++					   &monitor_region_end))
+ 		return -EINVAL;
+ 	addr_range.start = monitor_region_start;
+ 	addr_range.end = monitor_region_end;
+--- a/mm/damon/reclaim.c~mm-damon-remove-duplicate-get_monitoring_region-definitions
++++ a/mm/damon/reclaim.c
+@@ -229,39 +229,6 @@ module_param(nr_quota_exceeds, ulong, 04
+ static struct damon_ctx *ctx;
+ static struct damon_target *target;
  
- 	lockdep_assert_held(&t->sighand->siglock);
- 
-@@ -1129,7 +1133,7 @@ static int __send_signal_locked(int sig,
- 			clear_siginfo(&q->info);
- 			q->info.si_signo = sig;
- 			q->info.si_errno = 0;
--			q->info.si_code = SI_USER;
-+			code = q->info.si_code = SI_USER;
- 			q->info.si_pid = task_tgid_nr_ns(current,
- 							task_active_pid_ns(t));
- 			rcu_read_lock();
-@@ -1142,12 +1146,13 @@ static int __send_signal_locked(int sig,
- 			clear_siginfo(&q->info);
- 			q->info.si_signo = sig;
- 			q->info.si_errno = 0;
--			q->info.si_code = SI_KERNEL;
-+			code = q->info.si_code = SI_KERNEL;
- 			q->info.si_pid = 0;
- 			q->info.si_uid = 0;
- 			break;
- 		default:
- 			copy_siginfo(&q->info, info);
-+			code = info->si_code;
- 			break;
- 		}
- 	} else if (!is_si_special(info) &&
-@@ -1186,7 +1191,7 @@ out_set:
- 		}
- 	}
- 
--	complete_signal(sig, t, type);
-+	complete_signal(sig, code, t, type);
- ret:
- 	trace_signal_generate(sig, info, t, type != PIDTYPE_PID, result);
- 	return ret;
-@@ -1960,6 +1965,7 @@ void sigqueue_free(struct sigqueue *q)
- int send_sigqueue(struct sigqueue *q, struct pid *pid, enum pid_type type)
+-struct damon_reclaim_ram_walk_arg {
+-	unsigned long start;
+-	unsigned long end;
+-};
+-
+-static int walk_system_ram(struct resource *res, void *arg)
+-{
+-	struct damon_reclaim_ram_walk_arg *a = arg;
+-
+-	if (a->end - a->start < resource_size(res)) {
+-		a->start = res->start;
+-		a->end = res->end;
+-	}
+-	return 0;
+-}
+-
+-/*
+- * Find biggest 'System RAM' resource and store its start and end address in
+- * @start and @end, respectively.  If no System RAM is found, returns false.
+- */
+-static bool get_monitoring_region(unsigned long *start, unsigned long *end)
+-{
+-	struct damon_reclaim_ram_walk_arg arg = {};
+-
+-	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
+-	if (arg.end <= arg.start)
+-		return false;
+-
+-	*start = arg.start;
+-	*end = arg.end;
+-	return true;
+-}
+-
+ static struct damos *damon_reclaim_new_scheme(void)
  {
- 	int sig = q->info.si_signo;
-+	int code = q->info.si_code;
- 	struct sigpending *pending;
- 	struct task_struct *t;
- 	unsigned long flags;
-@@ -1995,7 +2001,7 @@ int send_sigqueue(struct sigqueue *q, st
- 	pending = (type != PIDTYPE_PID) ? &t->signal->shared_pending : &t->pending;
- 	list_add_tail(&q->list, &pending->list);
- 	sigaddset(&pending->signal, sig);
--	complete_signal(sig, t, type);
-+	complete_signal(sig, code, t, type);
- 	result = TRACE_SIGNAL_DELIVERED;
- out:
- 	trace_signal_generate(sig, &q->info, t, type != PIDTYPE_PID, result);
-@@ -2380,7 +2386,7 @@ int ptrace_notify(int exit_code, unsigne
-  * %false if group stop is already cancelled or ptrace trap is scheduled.
-  * %true if participated in group stop.
-  */
--static bool do_signal_stop(int signr)
-+static bool do_signal_stop(int signr, int sicode)
- 	__releases(&current->sighand->siglock)
- {
- 	struct signal_struct *sig = current->signal;
-@@ -2415,8 +2421,10 @@ static bool do_signal_stop(int signr)
- 		 * an intervening stop signal is required to cause two
- 		 * continued events regardless of ptrace.
- 		 */
--		if (!(sig->flags & SIGNAL_STOP_STOPPED))
-+		if (!(sig->flags & SIGNAL_STOP_STOPPED)) {
- 			sig->group_exit_code = signr;
-+			sig->group_exit_sicode = sicode;
-+		}
- 
- 		sig->group_stop_count = 0;
- 
-@@ -2701,7 +2709,7 @@ relock:
- 		}
- 
- 		if (unlikely(current->jobctl & JOBCTL_STOP_PENDING) &&
--		    do_signal_stop(0))
-+		    do_signal_stop(0, 0))
- 			goto relock;
- 
- 		if (unlikely(current->jobctl &
-@@ -2806,7 +2814,8 @@ relock:
- 				spin_lock_irq(&sighand->siglock);
- 			}
- 
--			if (likely(do_signal_stop(ksig->info.si_signo))) {
-+			if (likely(do_signal_stop(ksig->info.si_signo,
-+						  ksig->info.si_code))) {
- 				/* It released the siglock.  */
- 				goto relock;
- 			}
-@@ -2854,7 +2863,7 @@ relock:
- 		/*
- 		 * Death signals, no core dump.
- 		 */
--		do_group_exit(ksig->info.si_signo);
-+		do_group_exit(ksig->info.si_signo, ksig->info.si_code);
- 		/* NOTREACHED */
- 	}
- 	spin_unlock_irq(&sighand->siglock);
+ 	struct damos_access_pattern pattern = {
+@@ -328,8 +295,8 @@ static int damon_reclaim_apply_parameter
+ 	if (monitor_region_start > monitor_region_end)
+ 		return -EINVAL;
+ 	if (!monitor_region_start && !monitor_region_end &&
+-			!get_monitoring_region(&monitor_region_start,
+-				&monitor_region_end))
++	    !damon_find_biggest_system_ram(&monitor_region_start,
++					   &monitor_region_end))
+ 		return -EINVAL;
+ 	addr_range.start = monitor_region_start;
+ 	addr_range.end = monitor_region_end;
 _
 
-Patches currently in -mm which might be from fmayer@google.com are
+Patches currently in -mm which might be from xhao@linux.alibaba.com are
 
+mm-damon-simply-damon_ctx-check-in-damon_sysfs_before_terminate.patch
+mm-damon-remove-duplicate-get_monitoring_region-definitions.patch
 
