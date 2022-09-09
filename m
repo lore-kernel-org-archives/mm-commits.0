@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E91EECAAD5
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 20:26:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BCD7ECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 20:28:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232236AbiIIU0I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Sep 2022 16:26:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52432 "EHLO
+        id S231974AbiIIU2a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Sep 2022 16:28:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232182AbiIIUZi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 16:25:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E007DFF7F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 13:25:29 -0700 (PDT)
+        with ESMTP id S231759AbiIIU2H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 16:28:07 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FA32128C0E;
+        Fri,  9 Sep 2022 13:26:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 68159620CC
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 20:25:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD63BC433C1;
-        Fri,  9 Sep 2022 20:25:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B6BD3B8261D;
+        Fri,  9 Sep 2022 20:26:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CCC1C433C1;
+        Fri,  9 Sep 2022 20:26:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662755127;
-        bh=dX9l9vO+cotWTfGpAm1BK54LyP7y/h3umw0r/PrceYg=;
+        s=korg; t=1662755209;
+        bh=Q4su0ZuO4kXSL1ZZStcaaMZSAIC+ec0q2gIAB1m9DTs=;
         h=Date:To:From:Subject:From;
-        b=On1l53/c4n2dUflu1I3N725/Tztu/4XPm8K2a96P/dgRmy+67PnceVNjWmYb6wBkM
-         VhriWJHdnneHrBVHMOMU9bj2zCZn0cqBcZpHmM5ohRKXnEOWUfF030/tfXrYO0++hx
-         AWGz6E+9fM6vq2EfjZ4n/lmJLOqzlX+Usj+Lfsls=
-Date:   Fri, 09 Sep 2022 13:25:27 -0700
-To:     mm-commits@vger.kernel.org, fmayer@google.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=mNrGCEDP/GaIOvnZCpDZmMqY4yMARhRC2zPKlChqTa25YUbL+HmiCZ2ZX7bu12tM3
+         ozWdisCF4E+UL0W/67XGOx4cVfswLTXAQ3y5fsUjaz04O0nfM/xix4GuKlFZFGPusk
+         dGiXjBd6ppNgSwdeKOFjIPRX06P9iOkNUGDhsnDY=
+Date:   Fri, 09 Sep 2022 13:26:48 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        nathan@kernel.org, liushixin2@huawei.com, konrad.wilk@oracle.com,
+        hch@lst.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + add-sicode-to-proc-pid-stat-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20220909202527.BD63BC433C1@smtp.kernel.org>
+Subject: + frontswap-dont-call-init-if-no-ops-are-registered.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220909202649.6CCC1C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: add-sicode-to-proc-pid-stat-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     add-sicode-to-proc-pid-stat-fix.patch
+     Subject: frontswap: don't call ->init if no ops are registered
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     frontswap-dont-call-init-if-no-ops-are-registered.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/add-sicode-to-proc-pid-stat-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/frontswap-dont-call-init-if-no-ops-are-registered.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,55 +65,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: add-sicode-to-proc-pid-stat-fix
-Date: Fri Sep  9 01:23:07 PM PDT 2022
+From: Christoph Hellwig <hch@lst.de>
+Subject: frontswap: don't call ->init if no ops are registered
+Date: Fri, 9 Sep 2022 15:08:29 +0200
 
-tidy up do_group_exit() prototype
+If no frontswap module (i.e.  zswap) was registered, frontswap_ops will be
+NULL.  In such situation, swapon crashes with the following stack trace:
 
-Cc: Florian Mayer <fmayer@google.com>
+  Unable to handle kernel access to user memory outside uaccess routines at virtual address 0000000000000000
+  Mem abort info:
+    ESR = 0x0000000096000004
+    EC = 0x25: DABT (current EL), IL = 32 bits
+    SET = 0, FnV = 0
+    EA = 0, S1PTW = 0
+    FSC = 0x04: level 0 translation fault
+  Data abort info:
+    ISV = 0, ISS = 0x00000004
+    CM = 0, WnR = 0
+  user pgtable: 4k pages, 48-bit VAs, pgdp=00000020a4fab000
+  [0000000000000000] pgd=0000000000000000, p4d=0000000000000000
+  Internal error: Oops: 96000004 [#1] SMP
+  Modules linked in: zram fsl_dpaa2_eth pcs_lynx phylink ahci_qoriq crct10dif_ce ghash_ce sbsa_gwdt fsl_mc_dpio nvme lm90 nvme_core at803x xhci_plat_hcd rtc_fsl_ftm_alarm xgmac_mdio ahci_platform i2c_imx ip6_tables ip_tables fuse
+  Unloaded tainted modules: cppc_cpufreq():1
+  CPU: 10 PID: 761 Comm: swapon Not tainted 6.0.0-rc2-00454-g22100432cf14 #1
+  Hardware name: SolidRun Ltd. SolidRun CEX7 Platform, BIOS EDK II Jun 21 2022
+  pstate: 00400005 (nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+  pc : frontswap_init+0x38/0x60
+  lr : __do_sys_swapon+0x8a8/0x9f4
+  sp : ffff80000969bcf0
+  x29: ffff80000969bcf0 x28: ffff37bee0d8fc00 x27: ffff80000a7f5000
+  x26: fffffcdefb971e80 x25: ffffaba797453b90 x24: 0000000000000064
+  x23: ffff37c1f209d1a8 x22: ffff37bee880e000 x21: ffffaba797748560
+  x20: ffff37bee0d8fce4 x19: ffffaba797748488 x18: 0000000000000014
+  x17: 0000000030ec029a x16: ffffaba795a479b0 x15: 0000000000000000
+  x14: 0000000000000000 x13: 0000000000000030 x12: 0000000000000001
+  x11: ffff37c63c0aba18 x10: 0000000000000000 x9 : ffffaba7956b8c88
+  x8 : ffff80000969bcd0 x7 : 0000000000000000 x6 : 0000000000000000
+  x5 : 0000000000000001 x4 : 0000000000000000 x3 : ffffaba79730f000
+  x2 : ffff37bee0d8fc00 x1 : 0000000000000000 x0 : 0000000000000000
+  Call trace:
+  frontswap_init+0x38/0x60
+  __do_sys_swapon+0x8a8/0x9f4
+  __arm64_sys_swapon+0x28/0x3c
+  invoke_syscall+0x78/0x100
+  el0_svc_common.constprop.0+0xd4/0xf4
+  do_el0_svc+0x38/0x4c
+  el0_svc+0x34/0x10c
+  el0t_64_sync_handler+0x11c/0x150
+  el0t_64_sync+0x190/0x194
+  Code: d000e283 910003fd f9006c41 f946d461 (f9400021)
+  ---[ end trace 0000000000000000 ]---
+
+Link: https://lkml.kernel.org/r/20220909130829.3262926-1-hch@lst.de
+Fixes: 1da0d94a3ec8 ("frontswap: remove support for multiple ops")
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/task.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/frontswap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/sched/task.h~add-sicode-to-proc-pid-stat-fix
-+++ a/include/linux/sched/task.h
-@@ -82,7 +82,7 @@ static inline void exit_thread(struct ta
- {
+--- a/mm/frontswap.c~frontswap-dont-call-init-if-no-ops-are-registered
++++ a/mm/frontswap.c
+@@ -125,6 +125,9 @@ void frontswap_init(unsigned type, unsig
+ 	 * p->frontswap set to something valid to work properly.
+ 	 */
+ 	frontswap_map_set(sis, map);
++
++	if (!frontswap_enabled())
++		return;
+ 	frontswap_ops->init(type);
  }
- #endif
--extern __noreturn void do_group_exit(int,int);
-+extern __noreturn void do_group_exit(int exit_code, int sicode);
  
- extern void exit_files(struct task_struct *);
- extern void exit_itimers(struct task_struct *);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
-procfs-add-path-to-proc-pid-fdinfo-fix.patch
-zsmalloc-zs_object_copy-add-clarifying-comment-fix.patch
-mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes-fix-fix.patch
-mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
-zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch
-zsmalloc-zs_object_copy-replace-email-link-to-doc-fix.patch
-mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
-mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
-mm-drop-oom-code-from-exit_mmap-fix-fix.patch
-mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
-mm-gupc-refactor-check_and_migrate_movable_pages-fix.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree-fix.patch
-page_ext-introduce-boot-parameter-early_page_ext-fix.patch
-mm-fix-null-ptr-deref-in-kswapd_is_running-fix.patch
-mm-vmscan-fix-a-lot-of-comments-vs-mglru.patch
-swap-add-swap_cache_get_folio-fix.patch
-memcg-reduce-size-of-memcg-vmstats-structures-fix.patch
-mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme-fix.patch
-ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
-add-sicode-to-proc-pid-stat-fix.patch
+frontswap-dont-call-init-if-no-ops-are-registered.patch
+mm-remove-the-end_write_func-argument-to-__swap_writepage.patch
 
