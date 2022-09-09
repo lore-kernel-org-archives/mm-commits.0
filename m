@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C592ECAAD5
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 21:41:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C70F6ECAAD3
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 21:48:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229631AbiIIVlT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Sep 2022 17:41:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35312 "EHLO
+        id S230171AbiIIVsn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Sep 2022 17:48:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229728AbiIIVlS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 17:41:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7D08133A18;
-        Fri,  9 Sep 2022 14:41:17 -0700 (PDT)
+        with ESMTP id S231646AbiIIVsb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 17:48:31 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ACB8115CE7
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 14:48:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 85CAF620F0;
-        Fri,  9 Sep 2022 21:41:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCEB2C433D7;
-        Fri,  9 Sep 2022 21:41:16 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 26E3EB82660
+        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 21:48:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9478C433D7;
+        Fri,  9 Sep 2022 21:48:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662759677;
-        bh=Loma5kjli1hRx5nh9T5jYPU7tWkgTs9wosoJfDY4NCM=;
+        s=korg; t=1662760107;
+        bh=BfJHhKZy46j3H94HP3RCwj6PmnfpTlhsYYgXpgBhE/Q=;
         h=Date:To:From:Subject:From;
-        b=iG9iUqFJ6RqWxhsVLC2hW31y21CIG/WHkcO7Bt+2qevE1opFq5PTx2HKnkiMFUxmL
-         pX/6wC5igWDc/1gXY69g4Vi6kTn3HNXbWlygO+VzduXJRDBZkgEggeirqqMNZDsnoP
-         PKhqTjUyFoaYkKtiwFj0iYuOCUyT/h6C+uXuUtgg=
-Date:   Fri, 09 Sep 2022 14:41:16 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        stable@vger.kernel.org, kirill.shutemov@linux.intel.com,
-        saproj@gmail.com, akpm@linux-foundation.org
+        b=KUupu7lb4WVW+lFB0shLDQ3UngdSCEoeohJ4BO/RiVj1y3F6HrXFosoIK4HKSYcHB
+         voIRIZo/Zxp320O5gXf9mZsV1pLEdV3EYIfR4zrXmNS9qMSsQZyl0gTVgnESE4UKs/
+         Zq6CNdWCDBghIf+2apieb74+dSrn1nOhYWSIk5G0=
+Date:   Fri, 09 Sep 2022 14:48:26 -0700
+To:     mm-commits@vger.kernel.org, hch@lst.de, axboe@kernel.dk,
+        wuchi.zero@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-bring-back-update_mmu_cache-to-finish_fault.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220909214116.DCEB2C433D7@smtp.kernel.org>
+Subject: + relay-use-kvcalloc-to-alloc-page-array-in-relay_alloc_page_array.patch added to mm-nonmm-unstable branch
+Message-Id: <20220909214827.B9478C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: bring back update_mmu_cache() to finish_fault()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-bring-back-update_mmu_cache-to-finish_fault.patch
+     Subject: relay: use kvcalloc to alloc page array in relay_alloc_page_array
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     relay-use-kvcalloc-to-alloc-page-array-in-relay_alloc_page_array.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bring-back-update_mmu_cache-to-finish_fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/relay-use-kvcalloc-to-alloc-page-array-in-relay_alloc_page_array.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,96 +64,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergei Antonov <saproj@gmail.com>
-Subject: mm: bring back update_mmu_cache() to finish_fault()
-Date: Thu, 8 Sep 2022 23:48:09 +0300
+From: wuchi <wuchi.zero@gmail.com>
+Subject: relay: use kvcalloc to alloc page array in relay_alloc_page_array
+Date: Fri, 9 Sep 2022 18:10:25 +0800
 
-Running this test program on ARMv4 a few times (sometimes just once)
-reproduces the bug.
+kvcalloc() is safer because it will check the integer overflows, and using
+it will simple the logic of allocation size.
 
-int main()
-{
-        unsigned i;
-        char paragon[SIZE];
-        void* ptr;
-
-        memset(paragon, 0xAA, SIZE);
-        ptr = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
-                   MAP_ANON | MAP_SHARED, -1, 0);
-        if (ptr == MAP_FAILED) return 1;
-        printf("ptr = %p\n", ptr);
-        for (i=0;i<10000;i++){
-                memset(ptr, 0xAA, SIZE);
-                if (memcmp(ptr, paragon, SIZE)) {
-                        printf("Unexpected bytes on iteration %u!!!\n", i);
-                        break;
-                }
-        }
-        munmap(ptr, SIZE);
-}
-
-In the "ptr" buffer there appear runs of zero bytes which are aligned
-by 16 and their lengths are multiple of 16.
-
-Linux v5.11 does not have the bug, "git bisect" finds the first bad commit:
-f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
-
-Before the commit update_mmu_cache() was called during a call to
-filemap_map_pages() as well as finish_fault(). After the commit
-finish_fault() lacks it.
-
-Bring back update_mmu_cache() to finish_fault() to fix the bug.
-Also call update_mmu_tlb() only when returning VM_FAULT_NOPAGE to more
-closely reproduce the code of alloc_set_pte() function that existed before
-the commit.
-
-On many platforms update_mmu_cache() is nop:
- x86, see arch/x86/include/asm/pgtable
- ARMv6+, see arch/arm/include/asm/tlbflush.h
-So, it seems, few users ran into this bug.
-
-Link: https://lkml.kernel.org/r/20220908204809.2012451-1-saproj@gmail.com
-Fixes: f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
-Signed-off-by: Sergei Antonov <saproj@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220909101025.82955-1-wuchi.zero@gmail.com
+Signed-off-by: wuchi <wuchi.zero@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ kernel/relay.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/memory.c~mm-bring-back-update_mmu_cache-to-finish_fault
-+++ a/mm/memory.c
-@@ -4386,14 +4386,20 @@ vm_fault_t finish_fault(struct vm_fault
- 
- 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 				      vmf->address, &vmf->ptl);
--	ret = 0;
-+
- 	/* Re-check under ptl */
--	if (likely(!vmf_pte_changed(vmf)))
-+	if (likely(!vmf_pte_changed(vmf))) {
- 		do_set_pte(vmf, page, vmf->address);
--	else
-+
-+		/* no need to invalidate: a not-present page won't be cached */
-+		update_mmu_cache(vma, vmf->address, vmf->pte);
-+
-+		ret = 0;
-+	} else {
-+		update_mmu_tlb(vma, vmf->address, vmf->pte);
- 		ret = VM_FAULT_NOPAGE;
-+	}
- 
--	update_mmu_tlb(vma, vmf->address, vmf->pte);
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	return ret;
+--- a/kernel/relay.c~relay-use-kvcalloc-to-alloc-page-array-in-relay_alloc_page_array
++++ a/kernel/relay.c
+@@ -60,10 +60,7 @@ static const struct vm_operations_struct
+  */
+ static struct page **relay_alloc_page_array(unsigned int n_pages)
+ {
+-	const size_t pa_size = n_pages * sizeof(struct page *);
+-	if (pa_size > PAGE_SIZE)
+-		return vzalloc(pa_size);
+-	return kzalloc(pa_size, GFP_KERNEL);
++	return kvcalloc(n_pages, sizeof(struct page *), GFP_KERNEL);
  }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from saproj@gmail.com are
+Patches currently in -mm which might be from wuchi.zero@gmail.com are
 
-mm-bring-back-update_mmu_cache-to-finish_fault.patch
+lib-debugobjects-fix-stat-count-and-optimize-debug_objects_mem_init.patch
+initramfs-mask-my_inptr-as-__initdata.patch
+profile-simplify-redundant-code-in-profile_setup.patch
+latencytop-use-the-last-element-of-latency_record-of-system.patch
+relay-use-kvcalloc-to-alloc-page-array-in-relay_alloc_page_array.patch
 
