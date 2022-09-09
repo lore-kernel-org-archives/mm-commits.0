@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 048A1ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 21:37:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C592ECAAD5
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Sep 2022 21:41:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229607AbiIIVhG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Sep 2022 17:37:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55040 "EHLO
+        id S229631AbiIIVlT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Sep 2022 17:41:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229811AbiIIVhF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 17:37:05 -0400
+        with ESMTP id S229728AbiIIVlS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2022 17:41:18 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94BE0138137
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 14:37:04 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7D08133A18;
+        Fri,  9 Sep 2022 14:41:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D500D620D6
-        for <mm-commits@vger.kernel.org>; Fri,  9 Sep 2022 21:37:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3181DC433D6;
-        Fri,  9 Sep 2022 21:37:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 85CAF620F0;
+        Fri,  9 Sep 2022 21:41:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCEB2C433D7;
+        Fri,  9 Sep 2022 21:41:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662759423;
-        bh=WB/0jh/sQrv2yRNdNUbA7EOeketlESjb0iRIzo2rVf4=;
+        s=korg; t=1662759677;
+        bh=Loma5kjli1hRx5nh9T5jYPU7tWkgTs9wosoJfDY4NCM=;
         h=Date:To:From:Subject:From;
-        b=oZ2x2BFjTHFBtE+meaRyZ47X4Hdk98JMOhBanbcM+ORVz5Duzv9Qnou7VfYRUXMlk
-         4ujptE5+2xD0X30+JpCwiGrhsF2Y1RjkB3ZHaCl6qdZIResg6BeMh7et++DlekduuD
-         qtwu3T/CKSuzxQmBxFKIOAnQAQI2DsLXzmi833Hw=
-Date:   Fri, 09 Sep 2022 14:37:02 -0700
-To:     mm-commits@vger.kernel.org, iago@endocode.com, adobriyan@gmail.com,
-        lukas.bulwahn@gmail.com, akpm@linux-foundation.org
+        b=iG9iUqFJ6RqWxhsVLC2hW31y21CIG/WHkcO7Bt+2qevE1opFq5PTx2HKnkiMFUxmL
+         pX/6wC5igWDc/1gXY69g4Vi6kTn3HNXbWlygO+VzduXJRDBZkgEggeirqqMNZDsnoP
+         PKhqTjUyFoaYkKtiwFj0iYuOCUyT/h6C+uXuUtgg=
+Date:   Fri, 09 Sep 2022 14:41:16 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        stable@vger.kernel.org, kirill.shutemov@linux.intel.com,
+        saproj@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-make-config-proc_children-depend-on-proc_fs.patch added to mm-nonmm-unstable branch
-Message-Id: <20220909213703.3181DC433D6@smtp.kernel.org>
+Subject: + mm-bring-back-update_mmu_cache-to-finish_fault.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220909214116.DCEB2C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: make config PROC_CHILDREN depend on PROC_FS
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-make-config-proc_children-depend-on-proc_fs.patch
+     Subject: mm: bring back update_mmu_cache() to finish_fault()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-bring-back-update_mmu_cache-to-finish_fault.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-make-config-proc_children-depend-on-proc_fs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bring-back-update_mmu_cache-to-finish_fault.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,46 +65,96 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: proc: make config PROC_CHILDREN depend on PROC_FS
-Date: Fri, 9 Sep 2022 14:25:29 +0200
+From: Sergei Antonov <saproj@gmail.com>
+Subject: mm: bring back update_mmu_cache() to finish_fault()
+Date: Thu, 8 Sep 2022 23:48:09 +0300
 
-Commit 2e13ba54a268 ("fs, proc: introduce CONFIG_PROC_CHILDREN")
-introduces the config PROC_CHILDREN to configure kernels to provide the
-/proc/<pid>/task/<tid>/children file.
+Running this test program on ARMv4 a few times (sometimes just once)
+reproduces the bug.
 
-When one deselects PROC_FS for kernel builds without /proc/, the config
-PROC_CHILDREN has no effect anymore, but is still visible in menuconfig.
+int main()
+{
+        unsigned i;
+        char paragon[SIZE];
+        void* ptr;
 
-Add the dependency on PROC_FS to make the PROC_CHILDREN option disappear
-for kernel builds without /proc/.
+        memset(paragon, 0xAA, SIZE);
+        ptr = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
+                   MAP_ANON | MAP_SHARED, -1, 0);
+        if (ptr == MAP_FAILED) return 1;
+        printf("ptr = %p\n", ptr);
+        for (i=0;i<10000;i++){
+                memset(ptr, 0xAA, SIZE);
+                if (memcmp(ptr, paragon, SIZE)) {
+                        printf("Unexpected bytes on iteration %u!!!\n", i);
+                        break;
+                }
+        }
+        munmap(ptr, SIZE);
+}
 
-Link: https://lkml.kernel.org/r/20220909122529.1941-1-lukas.bulwahn@gmail.com
-Fixes: 2e13ba54a268 ("fs, proc: introduce CONFIG_PROC_CHILDREN")
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+In the "ptr" buffer there appear runs of zero bytes which are aligned
+by 16 and their lengths are multiple of 16.
 
-Cc: Iago López Galeiras <iago@endocode.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Linux v5.11 does not have the bug, "git bisect" finds the first bad commit:
+f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
+
+Before the commit update_mmu_cache() was called during a call to
+filemap_map_pages() as well as finish_fault(). After the commit
+finish_fault() lacks it.
+
+Bring back update_mmu_cache() to finish_fault() to fix the bug.
+Also call update_mmu_tlb() only when returning VM_FAULT_NOPAGE to more
+closely reproduce the code of alloc_set_pte() function that existed before
+the commit.
+
+On many platforms update_mmu_cache() is nop:
+ x86, see arch/x86/include/asm/pgtable
+ ARMv6+, see arch/arm/include/asm/tlbflush.h
+So, it seems, few users ran into this bug.
+
+Link: https://lkml.kernel.org/r/20220908204809.2012451-1-saproj@gmail.com
+Fixes: f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
+Signed-off-by: Sergei Antonov <saproj@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/fs/proc/Kconfig~proc-make-config-proc_children-depend-on-proc_fs
-+++ a/fs/proc/Kconfig
-@@ -92,6 +92,7 @@ config PROC_PAGE_MONITOR
+--- a/mm/memory.c~mm-bring-back-update_mmu_cache-to-finish_fault
++++ a/mm/memory.c
+@@ -4386,14 +4386,20 @@ vm_fault_t finish_fault(struct vm_fault
  
- config PROC_CHILDREN
- 	bool "Include /proc/<pid>/task/<tid>/children file"
-+	depends on PROC_FS
- 	default n
- 	help
- 	  Provides a fast way to retrieve first level children pids of a task. See
+ 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+ 				      vmf->address, &vmf->ptl);
+-	ret = 0;
++
+ 	/* Re-check under ptl */
+-	if (likely(!vmf_pte_changed(vmf)))
++	if (likely(!vmf_pte_changed(vmf))) {
+ 		do_set_pte(vmf, page, vmf->address);
+-	else
++
++		/* no need to invalidate: a not-present page won't be cached */
++		update_mmu_cache(vma, vmf->address, vmf->pte);
++
++		ret = 0;
++	} else {
++		update_mmu_tlb(vma, vmf->address, vmf->pte);
+ 		ret = VM_FAULT_NOPAGE;
++	}
+ 
+-	update_mmu_tlb(vma, vmf->address, vmf->pte);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from saproj@gmail.com are
 
-mm-hugetlb-make-detecting-shared-pte-more-reliable-fix.patch
-proc-make-config-proc_children-depend-on-proc_fs.patch
+mm-bring-back-update_mmu_cache-to-finish_fault.patch
 
