@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37057C6FA8B
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Sep 2022 23:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D21CECAAD3
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Sep 2022 23:23:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229614AbiIKXXU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 19:23:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38172 "EHLO
+        id S229646AbiIKXXV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 19:23:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38244 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229572AbiIKXXO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 19:23:14 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9B7B24F29
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 16:23:13 -0700 (PDT)
+        with ESMTP id S229599AbiIKXXR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 19:23:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00CA724F29
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 16:23:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 473E961035
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 23:23:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C338C433D6;
-        Sun, 11 Sep 2022 23:23:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 88388610A4
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 23:23:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD3DCC433D6;
+        Sun, 11 Sep 2022 23:23:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662938592;
-        bh=u15U3Do+A1RMK8TXOWVChmfFsJPL4Ht+zIlV2a1ixg4=;
+        s=korg; t=1662938595;
+        bh=aRlV1hQnW6IF6wvsxprm3juHqTEY3YJXWdfsx3OAwsQ=;
         h=Date:To:From:Subject:From;
-        b=mrQorPb1feaaWe6WhbtE765JaGY08qgwhAFkvyK0TdvY6pLNWTe463xGqHYMUr6JG
-         nRvE4mUbWdgus4VPzvYL79w9e80bM95+ph8k6yXYgJhXTS3uYygjI7WRFlBLDbKe0E
-         XboLGUfGb9mO01rrfZJ/ZNqNyIP77th2xIwrdU6w=
-Date:   Sun, 11 Sep 2022 16:23:11 -0700
-To:     mm-commits@vger.kernel.org, yury.norov@gmail.com, mingo@kernel.org,
-        Liam.Howlett@oracle.com, willy@infradead.org,
+        b=Jgj+ixYLVlSD9Gz7GI6a1iAuGxU6gcLhUmy9i8jRsLXpvqSJ3O4AMcqIKEc15Ta9j
+         0fdE0ImbPZluKFa+A123yPyoluB6TbOf4BzVFv0CrvkEzltN+UkdGMhaG+D7lFMF2U
+         YYPdfs5DkEq/nU0Iwz2MrCnLfajWmmPeLKNaznDA=
+Date:   Sun, 11 Sep 2022 16:23:14 -0700
+To:     mm-commits@vger.kernel.org, hughd@google.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] tools-fix-compilation-after-gfp_typesh-split.patch removed from -mm tree
-Message-Id: <20220911232312.9C338C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] vmscan-check-folio_test_private-not-folio_get_private.patch removed from -mm tree
+Message-Id: <20220911232314.DD3DCC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,68 +41,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: tools: fix compilation after gfp_types.h split
+     Subject: vmscan: check folio_test_private(), not folio_get_private()
 has been removed from the -mm tree.  Its filename was
-     tools-fix-compilation-after-gfp_typesh-split.patch
+     vmscan-check-folio_test_private-not-folio_get_private.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: tools: fix compilation after gfp_types.h split
-Date: Fri, 2 Sep 2022 20:19:23 +0100
+Subject: vmscan: check folio_test_private(), not folio_get_private()
+Date: Fri, 2 Sep 2022 20:26:39 +0100
 
-When gfp_types.h was split from gfp.h, it broke the radix test suite.  Fix
-the test suite by using gfp_types.h in the tools gfp.h header.
+These two predicates are the same for file pages, but are not the same for
+anonymous pages.
 
-Link: https://lkml.kernel.org/r/20220902191923.1735933-1-willy@infradead.org
-Fixes: cb5a065b4ea9 (headers/deps: mm: Split <linux/gfp_types.h> out of <linux/gfp.h>)
+Link: https://lkml.kernel.org/r/20220902192639.1737108-3-willy@infradead.org
+Fixes: 07f67a8dedc0 ("mm/vmscan: convert shrink_active_list() to use a folio")
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Yury Norov <yury.norov@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Reported-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/linux/gfp.h       |   21 +--------------------
- tools/include/linux/gfp_types.h |    1 +
- 2 files changed, 2 insertions(+), 20 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/include/linux/gfp.h~tools-fix-compilation-after-gfp_typesh-split
-+++ a/tools/include/linux/gfp.h
-@@ -3,26 +3,7 @@
- #define _TOOLS_INCLUDE_LINUX_GFP_H
+--- a/mm/vmscan.c~vmscan-check-folio_test_private-not-folio_get_private
++++ a/mm/vmscan.c
+@@ -2550,8 +2550,8 @@ static void shrink_active_list(unsigned
+ 		}
  
- #include <linux/types.h>
--
--#define __GFP_BITS_SHIFT 26
--#define __GFP_BITS_MASK ((gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
--
--#define __GFP_HIGH		0x20u
--#define __GFP_IO		0x40u
--#define __GFP_FS		0x80u
--#define __GFP_NOWARN		0x200u
--#define __GFP_ZERO		0x8000u
--#define __GFP_ATOMIC		0x80000u
--#define __GFP_ACCOUNT		0x100000u
--#define __GFP_DIRECT_RECLAIM	0x400000u
--#define __GFP_KSWAPD_RECLAIM	0x2000000u
--
--#define __GFP_RECLAIM	(__GFP_DIRECT_RECLAIM | __GFP_KSWAPD_RECLAIM)
--
--#define GFP_ZONEMASK	0x0fu
--#define GFP_ATOMIC	(__GFP_HIGH | __GFP_ATOMIC | __GFP_KSWAPD_RECLAIM)
--#define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
--#define GFP_NOWAIT	(__GFP_KSWAPD_RECLAIM)
-+#include <linux/gfp_types.h>
- 
- static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
- {
---- /dev/null
-+++ a/tools/include/linux/gfp_types.h
-@@ -0,0 +1 @@
-+#include "../../../include/linux/gfp_types.h"
+ 		if (unlikely(buffer_heads_over_limit)) {
+-			if (folio_get_private(folio) && folio_trylock(folio)) {
+-				if (folio_get_private(folio))
++			if (folio_test_private(folio) && folio_trylock(folio)) {
++				if (folio_test_private(folio))
+ 					filemap_release_folio(folio, 0);
+ 				folio_unlock(folio);
+ 			}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
