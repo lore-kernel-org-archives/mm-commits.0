@@ -2,38 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89C61C6FA83
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Sep 2022 23:26:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 222C8C6FA83
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Sep 2022 23:28:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229521AbiIKX0I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 19:26:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42168 "EHLO
+        id S229488AbiIKX2w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 19:28:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229499AbiIKX0H (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 19:26:07 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C652B2559C
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 16:26:06 -0700 (PDT)
+        with ESMTP id S229479AbiIKX2v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 19:28:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 974802559D
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 16:28:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 80235B80B22
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 23:26:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2394BC433B5;
-        Sun, 11 Sep 2022 23:26:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3684C61117
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 23:28:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A2E4C433C1;
+        Sun, 11 Sep 2022 23:28:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662938764;
-        bh=2kMpd/Ry5g+84rcQeSdvNE8eGkBgyNpY4HCrIZi3VLY=;
+        s=korg; t=1662938929;
+        bh=GUzdYsKT64DXgyeql0JjEUCz9NTMFm8ik4DfQjaH0S0=;
         h=Date:To:From:Subject:From;
-        b=e8JwUcGbnTlxvdgg2vYl+vUn+FJc8Br4I74AUyiiJCPRdDqff/RF+wBwfVg8d23G8
-         R6K1+gaA9gB28+g6sERV37zeYdzKpZxoN75Ok61PT2Z7AjUMdO3M+s67R/eURXv+Ds
-         YGMndgkq8i2I+6iGOLpn0+XkqPJxdJqW18wwgllE=
-Date:   Sun, 11 Sep 2022 16:26:03 -0700
-To:     mm-commits@vger.kernel.org, joao.m.martins@oracle.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=ZhTMLlX4u3PiVlgLLsIZrJCtSwW5tLZKKEOwxeepCUH9S8Bs65XTbzL2GhUD5PX9m
+         iO6S94I1JFUWABZA0tD900V/cFHwpj0n7kL/QlqreFZ6kGNnXQZag2T+ppTPGubn8x
+         s5DpJQI4uVCR2GZ9UjvgEEC5N7ScBQgTO1AK+2ds=
+Date:   Sun, 11 Sep 2022 16:28:48 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        tjmercier@google.com, surenb@google.com, sumit.semwal@linaro.org,
+        stephen.s.brennan@oracle.com, rdunlap@infradead.org,
+        paul.gortmaker@windriver.com, mail@christoph.anton.mitterer.name,
+        ilkos@google.com, hch@infradead.org, hannes@cmpxchg.org,
+        David.Laight@ACULAB.COM, corbet@lwn.net, christian.koenig@amd.com,
+        ccross@google.com, adobriyan@gmail.com, kaleshsingh@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch removed from -mm tree
-Message-Id: <20220911232604.2394BC433B5@smtp.kernel.org>
+Subject: [folded-merged] procfs-add-path-to-proc-pid-fdinfo.patch removed from -mm tree
+Message-Id: <20220911232849.8A2E4C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,98 +47,188 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: minor clean up for memmap_init_compound()
+     Subject: procfs: add 'path' to /proc/<pid>/fdinfo/
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+     procfs-add-path-to-proc-pid-fdinfo.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into procfs-add-size-to-proc-pid-fdinfo.patch
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/page_alloc: minor clean up for memmap_init_compound()
-Date: Sat, 11 Jun 2022 10:13:52 +0800
+From: Kalesh Singh <kaleshsingh@google.com>
+Subject: procfs: add 'path' to /proc/<pid>/fdinfo/
+Date: Thu, 23 Jun 2022 15:06:07 -0700
 
-Since commit 5232c63f46fd ("mm: Make compound_pincount always available"),
-compound_pincount_ptr is stored at first tail page now.  So we should call
-prep_compound_head() after the first tail page is initialized to take
-advantage of the likelihood of that tail struct page being cached given
-that we will read them right after in prep_compound_head().
+In order to identify the type of memory a process has pinned through its
+open fds, add the file path to fdinfo output.  This allows identifying
+memory types based on common prefixes: e.g.  "/memfd...", "/dmabuf...",
+"/dev/ashmem...".
 
-Link: https://lkml.kernel.org/r/20220611021352.13529-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
+To be cautious, only expose the paths for anonymous inodes, and this also
+avoids printing path names with strange characters.
+
+Access to /proc/<pid>/fdinfo is governed by PTRACE_MODE_READ_FSCREDS the
+same as /proc/<pid>/maps which also exposes the file path of mappings; so
+the security permissions for accessing path is consistent with that of
+/proc/<pid>/maps.
+
+Link: https://lkml.kernel.org/r/20220623220613.3014268-3-kaleshsingh@google.com
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Colin Cross <ccross@google.com>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Cc: Ioannis Ilkos <ilkos@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Paul Gortmaker<paul.gortmaker@windriver.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Brennan <stephen.s.brennan@oracle.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: T.J. Mercier <tjmercier@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ Documentation/filesystems/proc.rst |   10 ++++++++++
+ fs/libfs.c                         |    9 +++++++++
+ fs/proc/fd.c                       |   13 +++++++++++--
+ include/linux/fs.h                 |    1 +
+ 4 files changed, 31 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-minor-clean-up-for-memmap_init_compound
-+++ a/mm/page_alloc.c
-@@ -6811,13 +6811,18 @@ static void __ref memmap_init_compound(s
- 		set_page_count(page, 0);
+--- a/Documentation/filesystems/proc.rst~procfs-add-path-to-proc-pid-fdinfo
++++ a/Documentation/filesystems/proc.rst
+@@ -1912,6 +1912,9 @@ All locks associated with a file descrip
  
- 		/*
--		 * The first tail page stores compound_mapcount_ptr() and
--		 * compound_order() and the second tail page stores
--		 * compound_pincount_ptr(). Call prep_compound_head() after
--		 * the first and second tail pages have been initialized to
--		 * not have the data overwritten.
-+		 * The first tail page stores compound_mapcount_ptr(),
-+		 * compound_order() and compound_pincount_ptr(). Call
-+		 * prep_compound_head() after the first tail page have
-+		 * been initialized to not have the data overwritten.
-+		 *
-+		 * Note the idea to make this right after we initialize
-+		 * the offending tail pages is trying to take advantage
-+		 * of the likelihood of those tail struct pages being
-+		 * cached given that we will read them right after in
-+		 * prep_compound_head().
- 		 */
--		if (pfn == head_pfn + 2)
-+		if (unlikely(pfn == head_pfn + 1))
- 			prep_compound_head(head, order);
- 	}
+     lock:       1: FLOCK  ADVISORY  WRITE 359 00:13:11691 0 EOF
+ 
++Files with anonymous inodes have an additional 'path' field which represents
++the anonymous file path.
++
+ The files such as eventfd, fsnotify, signalfd, epoll among the regular pos/flags
+ pair provide additional information particular to the objects they represent.
+ 
+@@ -1925,6 +1928,7 @@ Eventfd files
+ 	mnt_id:	9
+ 	ino:	63107
+ 	size:   0
++	path:	anon_inode:[eventfd]
+ 	eventfd-count:	5a
+ 
+ where 'eventfd-count' is hex value of a counter.
+@@ -1939,6 +1943,7 @@ Signalfd files
+ 	mnt_id:	9
+ 	ino:	63107
+ 	size:   0
++	path:	anon_inode:[signalfd]
+ 	sigmask:	0000000000000200
+ 
+ where 'sigmask' is hex value of the signal mask associated
+@@ -1954,6 +1959,7 @@ Epoll files
+ 	mnt_id:	9
+ 	ino:	63107
+ 	size:   0
++	path:	anon_inode:[eventpoll]
+ 	tfd:        5 events:       1d data: ffffffffffffffff pos:0 ino:61af sdev:7
+ 
+ where 'tfd' is a target file descriptor number in decimal form,
+@@ -1973,6 +1979,7 @@ For inotify files the format is the foll
+ 	mnt_id:	9
+ 	ino:	63107
+ 	size:   0
++	path:	anon_inode:inotify
+ 	inotify wd:3 ino:9e7e sdev:800013 mask:800afce ignored_mask:0 fhandle-bytes:8 fhandle-type:1 f_handle:7e9e0000640d1b6d
+ 
+ where 'wd' is a watch descriptor in decimal form, i.e. a target file
+@@ -1997,6 +2004,7 @@ For fanotify files the format is::
+ 	mnt_id:	9
+ 	ino:	63107
+ 	size:   0
++	path:	anon_inode:[fanotify]
+ 	fanotify flags:10 event-flags:0
+ 	fanotify mnt_id:12 mflags:40 mask:38 ignored_mask:40000003
+ 	fanotify ino:4f969 sdev:800013 mflags:0 mask:3b ignored_mask:40000000 fhandle-bytes:8 fhandle-type:1 f_handle:69f90400c275b5b4
+@@ -2023,6 +2031,7 @@ Timerfd files
+ 	mnt_id:	9
+ 	ino:	63107
+ 	size:   0
++	path:	anon_inode:[timerfd]
+ 	clockid: 0
+ 	ticks: 0
+ 	settime flags: 01
+@@ -2047,6 +2056,7 @@ DMA Buffer files
+ 	mnt_id:	9
+ 	ino:	63107
+ 	size:   32768
++	path:	/dmabuf:
+ 	count:  2
+ 	exp_name:  system-heap
+ 
+--- a/fs/libfs.c~procfs-add-path-to-proc-pid-fdinfo
++++ a/fs/libfs.c
+@@ -1217,6 +1217,15 @@ void kfree_link(void *p)
  }
+ EXPORT_SYMBOL(kfree_link);
+ 
++static const struct address_space_operations anon_aops = {
++	.dirty_folio	= noop_dirty_folio,
++};
++
++bool is_anon_inode(struct inode *inode)
++{
++	return inode->i_mapping->a_ops == &anon_aops;
++}
++
+ struct inode *alloc_anon_inode(struct super_block *s)
+ {
+ 	static const struct address_space_operations anon_aops = {
+--- a/fs/proc/fd.c~procfs-add-path-to-proc-pid-fdinfo
++++ a/fs/proc/fd.c
+@@ -23,6 +23,7 @@ static int seq_show(struct seq_file *m,
+ 	struct files_struct *files = NULL;
+ 	int f_flags = 0, ret = -ENOENT;
+ 	struct file *file = NULL;
++	struct inode *inode = NULL;
+ 	struct task_struct *task;
+ 
+ 	task = get_proc_task(m->private);
+@@ -54,11 +55,19 @@ static int seq_show(struct seq_file *m,
+ 	if (ret)
+ 		return ret;
+ 
++	inode = file_inode(file);
++
+ 	seq_printf(m, "pos:\t%lli\n", (long long)file->f_pos);
+ 	seq_printf(m, "flags:\t0%o\n", f_flags);
+ 	seq_printf(m, "mnt_id:\t%i\n", real_mount(file->f_path.mnt)->mnt_id);
+-	seq_printf(m, "ino:\t%lu\n", file_inode(file)->i_ino);
+-	seq_printf(m, "size:\t%lli\n", (long long)file_inode(file)->i_size);
++	seq_printf(m, "ino:\t%lu\n", inode->i_ino);
++	seq_printf(m, "size:\t%lli\n", (long long)inode->i_size);
++
++	if (is_anon_inode(inode)) {
++		seq_puts(m, "path:\t");
++		seq_file_path(m, file, "\n");
++		seq_putc(m, '\n');
++	}
+ 
+ 	/* show_fd_locks() never deferences files so a stale value is safe */
+ 	show_fd_locks(m, file, files);
+--- a/include/linux/fs.h~procfs-add-path-to-proc-pid-fdinfo
++++ a/include/linux/fs.h
+@@ -3249,6 +3249,7 @@ extern void page_put_link(void *);
+ extern int page_symlink(struct inode *inode, const char *symname, int len);
+ extern const struct inode_operations page_symlink_inode_operations;
+ extern void kfree_link(void *);
++extern bool is_anon_inode(struct inode *inode);
+ void generic_fillattr(struct user_namespace *, struct inode *, struct kstat *);
+ void generic_fill_statx_attr(struct inode *inode, struct kstat *stat);
+ extern int vfs_getattr_nosec(const struct path *, struct kstat *, u32, unsigned int);
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from kaleshsingh@google.com are
 
-hugetlb_cgroup-remove-unneeded-nr_pages-0-check.patch
-hugetlb_cgroup-hugetlbfs-use-helper-macro-sz_1kmg.patch
-hugetlb_cgroup-remove-unneeded-return-value.patch
-hugetlb_cgroup-use-helper-macro-numa_no_node.patch
-hugetlb_cgroup-use-helper-for_each_hstate-and-hstate_index.patch
-mm-hugetlb-fix-incorrect-update-of-max_huge_pages.patch
-mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch
-mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch
-mm-hugetlb-fix-missing-call-to-restore_reserve_on_error-v2.patch
-mm-hugetlb_vmemmap-add-missing-smp_wmb-before-set_pte_at.patch
-mm-hugetlb-fix-sysfs-group-leak-in-hugetlb_unregister_node.patch
-mm-hugetlb-make-detecting-shared-pte-more-reliable.patch
-mm-hwpoison-fix-page-refcnt-leaking-in-try_memory_failure_hugetlb.patch
-mm-hwpoison-fix-page-refcnt-leaking-in-unpoison_memory.patch
-mm-hwpoison-fix-extra-put_page-in-soft_offline_page.patch
-mm-hwpoison-fix-possible-use-after-free-in-mf_dax_kill_procs-v2.patch
-mm-hwpoison-kill-procs-if-unmap-fails.patch
-mm-hwpoison-kill-procs-if-unmap-fails-v2.patch
-mm-hwpoison-avoid-trying-to-unpoison-reserved-page.patch
-mm-hwpoison-use-clearpagehwpoison-in-memory_failure.patch
-mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages.patch
-mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages-fix.patch
-mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch
-mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
-mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings.patch
-mm-hwpoison-cleanup-some-obsolete-comments.patch
-hugetlb-make-hugetlb_cma_check-static.patch
-hugetlb-use-helper-macro-sz_1k.patch
-hugetlb-use-list_head-to-define-a-list-head.patch
-hugetlb-use-sizeof-to-get-the-array-size.patch
-hugetlb-use-helper-huge_ptepmd_lock.patch
-hugetlb-pass-null-to-kobj_to_hstate-if-nid-is-unused.patch
-hugetlb-kill-hugetlbfs_pagecache_page.patch
-hugetlb-add-comment-for-subtle-sethpagevmemmapoptimized.patch
-hugetlb-remove-meaningless-bug_onhuge_pte_none.patch
-hugetlb-make-hugetlb-depends-on-sysfs-or-sysctl.patch
-writeback-remove-unused-macro-dirty_full_scope.patch
+procfs-add-size-to-proc-pid-fdinfo.patch
 
