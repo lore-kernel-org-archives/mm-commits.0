@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4D24C6FA83
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Sep 2022 23:23:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37057C6FA8B
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Sep 2022 23:23:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229565AbiIKXXT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 19:23:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38194 "EHLO
+        id S229614AbiIKXXU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 19:23:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229614AbiIKXXN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 19:23:13 -0400
+        with ESMTP id S229572AbiIKXXO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 19:23:14 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83C6B26577;
-        Sun, 11 Sep 2022 16:23:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9B7B24F29
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 16:23:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 20236610A4;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 473E961035
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 23:23:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C338C433D6;
         Sun, 11 Sep 2022 23:23:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EC31C433D7;
-        Sun, 11 Sep 2022 23:23:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662938591;
-        bh=PZCJ2Eusa2Nqhe0c6aDFdtESndG5NT96OZEjoj4Cr4w=;
+        s=korg; t=1662938592;
+        bh=u15U3Do+A1RMK8TXOWVChmfFsJPL4Ht+zIlV2a1ixg4=;
         h=Date:To:From:Subject:From;
-        b=FGFi6bVLikh0S5E6KtbYN4m9ViesHqGf5rm2odyMJ2UYSHZwlELKQXdXwZbnUa9l1
-         cDOHjc/u7hNYLRwmVaONkdCAYDIYedU9DBFm+5iO/quwhAy3CBbDx/MFA+hQilF/bq
-         9IT60EypDb7sU0f/yW84K5Kq8G0ZhFece+6422cc=
-Date:   Sun, 11 Sep 2022 16:23:10 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
-        gregkh@linuxfoundation.org, akpm@linux-foundation.org
+        b=mrQorPb1feaaWe6WhbtE765JaGY08qgwhAFkvyK0TdvY6pLNWTe463xGqHYMUr6JG
+         nRvE4mUbWdgus4VPzvYL79w9e80bM95+ph8k6yXYgJhXTS3uYygjI7WRFlBLDbKe0E
+         XboLGUfGb9mO01rrfZJ/ZNqNyIP77th2xIwrdU6w=
+Date:   Sun, 11 Sep 2022 16:23:11 -0700
+To:     mm-commits@vger.kernel.org, yury.norov@gmail.com, mingo@kernel.org,
+        Liam.Howlett@oracle.com, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-dbgfs-fix-memory-leak-when-using.patch removed from -mm tree
-Message-Id: <20220911232311.6EC31C433D7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] tools-fix-compilation-after-gfp_typesh-split.patch removed from -mm tree
+Message-Id: <20220911232312.9C338C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,81 +42,153 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/dbgfs: fix memory leak when using debugfs_lookup()
+     Subject: tools: fix compilation after gfp_types.h split
 has been removed from the -mm tree.  Its filename was
-     mm-damon-dbgfs-fix-memory-leak-when-using.patch
+     tools-fix-compilation-after-gfp_typesh-split.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: mm/damon/dbgfs: fix memory leak when using debugfs_lookup()
-Date: Fri, 2 Sep 2022 19:11:49 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: tools: fix compilation after gfp_types.h split
+Date: Fri, 2 Sep 2022 20:19:23 +0100
 
-When calling debugfs_lookup() the result must have dput() called on it,
-otherwise the memory will leak over time.  Fix this up by properly calling
-dput().
+When gfp_types.h was split from gfp.h, it broke the radix test suite.  Fix
+the test suite by using gfp_types.h in the tools gfp.h header.
 
-Link: https://lkml.kernel.org/r/20220902191149.112434-1-sj@kernel.org
-Fixes: 75c1c2b53c78b ("mm/damon/dbgfs: support multiple contexts")
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220902191923.1735933-1-willy@infradead.org
+Fixes: cb5a065b4ea9 (headers/deps: mm: Split <linux/gfp_types.h> out of <linux/gfp.h>)
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Yury Norov <yury.norov@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ tools/include/linux/gfp.h       |   21 +--------------------
+ tools/include/linux/gfp_types.h |    1 +
+ 2 files changed, 2 insertions(+), 20 deletions(-)
 
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-fix-memory-leak-when-using
-+++ a/mm/damon/dbgfs.c
-@@ -884,6 +884,7 @@ static int dbgfs_rm_context(char *name)
- 	struct dentry *root, *dir, **new_dirs;
- 	struct damon_ctx **new_ctxs;
- 	int i, j;
-+	int ret = 0;
+--- a/tools/include/linux/gfp.h~tools-fix-compilation-after-gfp_typesh-split
++++ a/tools/include/linux/gfp.h
+@@ -3,26 +3,7 @@
+ #define _TOOLS_INCLUDE_LINUX_GFP_H
  
- 	if (damon_nr_running_ctxs())
- 		return -EBUSY;
-@@ -898,14 +899,16 @@ static int dbgfs_rm_context(char *name)
+ #include <linux/types.h>
+-
+-#define __GFP_BITS_SHIFT 26
+-#define __GFP_BITS_MASK ((gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+-
+-#define __GFP_HIGH		0x20u
+-#define __GFP_IO		0x40u
+-#define __GFP_FS		0x80u
+-#define __GFP_NOWARN		0x200u
+-#define __GFP_ZERO		0x8000u
+-#define __GFP_ATOMIC		0x80000u
+-#define __GFP_ACCOUNT		0x100000u
+-#define __GFP_DIRECT_RECLAIM	0x400000u
+-#define __GFP_KSWAPD_RECLAIM	0x2000000u
+-
+-#define __GFP_RECLAIM	(__GFP_DIRECT_RECLAIM | __GFP_KSWAPD_RECLAIM)
+-
+-#define GFP_ZONEMASK	0x0fu
+-#define GFP_ATOMIC	(__GFP_HIGH | __GFP_ATOMIC | __GFP_KSWAPD_RECLAIM)
+-#define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
+-#define GFP_NOWAIT	(__GFP_KSWAPD_RECLAIM)
++#include <linux/gfp_types.h>
  
- 	new_dirs = kmalloc_array(dbgfs_nr_ctxs - 1, sizeof(*dbgfs_dirs),
- 			GFP_KERNEL);
--	if (!new_dirs)
--		return -ENOMEM;
-+	if (!new_dirs) {
-+		ret = -ENOMEM;
-+		goto out_dput;
-+	}
- 
- 	new_ctxs = kmalloc_array(dbgfs_nr_ctxs - 1, sizeof(*dbgfs_ctxs),
- 			GFP_KERNEL);
- 	if (!new_ctxs) {
--		kfree(new_dirs);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto out_new_dirs;
- 	}
- 
- 	for (i = 0, j = 0; i < dbgfs_nr_ctxs; i++) {
-@@ -925,7 +928,13 @@ static int dbgfs_rm_context(char *name)
- 	dbgfs_ctxs = new_ctxs;
- 	dbgfs_nr_ctxs--;
- 
--	return 0;
-+	goto out_dput;
-+
-+out_new_dirs:
-+	kfree(new_dirs);
-+out_dput:
-+	dput(dir);
-+	return ret;
- }
- 
- static ssize_t dbgfs_rm_context_write(struct file *file,
+ static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
+ {
+--- /dev/null
++++ a/tools/include/linux/gfp_types.h
+@@ -0,0 +1 @@
++#include "../../../include/linux/gfp_types.h"
 _
 
-Patches currently in -mm which might be from gregkh@linuxfoundation.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
+support-highmem-pages-in-vmap_pages_range_noflush.patch
+mm-add-vma-iterator.patch
+mmap-use-the-vma-iterator-in-count_vma_pages_range.patch
+proc-remove-vma-rbtree-use-from-nommu.patch
+arm64-remove-mmap-linked-list-from-vdso.patch
+parisc-remove-mmap-linked-list-from-cache-handling.patch
+powerpc-remove-mmap-linked-list-walks.patch
+s390-remove-vma-linked-list-walks.patch
+x86-remove-vma-linked-list-walks.patch
+xtensa-remove-vma-linked-list-walks.patch
+cxl-remove-vma-linked-list-walk.patch
+optee-remove-vma-linked-list-walk.patch
+um-remove-vma-linked-list-walk.patch
+coredump-remove-vma-linked-list-walk.patch
+exec-use-vma-iterator-instead-of-linked-list.patch
+fs-proc-task_mmu-stop-using-linked-list-and-highest_vm_end.patch
+acct-use-vma-iterator-instead-of-linked-list.patch
+perf-use-vma-iterator.patch
+sched-use-maple-tree-iterator-to-walk-vmas.patch
+fork-use-vma-iterator.patch
+mm-khugepaged-stop-using-vma-linked-list.patch
+mm-ksm-use-vma-iterators-instead-of-vma-linked-list.patch
+mm-mlock-use-vma-iterator-and-maple-state-instead-of-vma-linked-list.patch
+mm-pagewalk-use-vma_find-instead-of-vma-linked-list.patch
+i915-use-the-vma-iterator.patch
+nommu-remove-uses-of-vma-linked-list.patch
+mm-vmscan-fix-a-lot-of-comments.patch
+mm-add-the-first-tail-page-to-struct-folio.patch
+mm-reimplement-folio_order-and-folio_nr_pages.patch
+mm-add-split_folio.patch
+mm-add-folio_add_lru_vma.patch
+shmem-convert-shmem_writepage-to-use-a-folio-throughout.patch
+shmem-convert-shmem_delete_from_page_cache-to-take-a-folio.patch
+shmem-convert-shmem_replace_page-to-use-folios-throughout.patch
+mm-swapfile-remove-page_swapcount.patch
+mm-swapfile-convert-try_to_free_swap-to-folio_free_swap.patch
+mm-swap-convert-__read_swap_cache_async-to-use-a-folio.patch
+mm-swap-convert-add_to_swap_cache-to-take-a-folio.patch
+mm-swap-convert-put_swap_page-to-put_swap_folio.patch
+mm-convert-do_swap_page-to-use-a-folio.patch
+mm-convert-do_swap_pages-swapcache-variable-to-a-folio.patch
+memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio.patch
+shmem-convert-shmem_mfill_atomic_pte-to-use-a-folio.patch
+shmem-convert-shmem_replace_page-to-shmem_replace_folio.patch
+swap-add-swap_cache_get_folio.patch
+shmem-eliminate-struct-page-from-shmem_swapin_folio.patch
+shmem-convert-shmem_getpage_gfp-to-shmem_get_folio_gfp.patch
+shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp.patch
+shmem-convert-shmem_read_mapping_page_gfp-to-use-shmem_get_folio_gfp.patch
+shmem-add-shmem_get_folio.patch
+shmem-convert-shmem_get_partial_folio-to-use-shmem_get_folio.patch
+shmem-convert-shmem_write_begin-to-use-shmem_get_folio.patch
+shmem-convert-shmem_file_read_iter-to-use-shmem_get_folio.patch
+shmem-convert-shmem_fallocate-to-use-a-folio.patch
+shmem-convert-shmem_symlink-to-use-a-folio.patch
+shmem-convert-shmem_get_link-to-use-a-folio.patch
+khugepaged-call-shmem_get_folio.patch
+userfaultfd-convert-mcontinue_atomic_pte-to-use-a-folio.patch
+shmem-remove-shmem_getpage.patch
+swapfile-convert-try_to_unuse-to-use-a-folio.patch
+swapfile-convert-__try_to_reclaim_swap-to-use-a-folio.patch
+swapfile-convert-unuse_pte_range-to-use-a-folio.patch
+mm-convert-do_swap_page-to-use-swap_cache_get_folio.patch
+mm-remove-lookup_swap_cache.patch
+swap_state-convert-free_swap_cache-to-use-a-folio.patch
+swap-convert-swap_writepage-to-use-a-folio.patch
+mm-convert-do_wp_page-to-use-a-folio.patch
+huge_memory-convert-do_huge_pmd_wp_page-to-use-a-folio.patch
+madvise-convert-madvise_free_pte_range-to-use-a-folio.patch
+uprobes-use-folios-more-widely-in-__replace_page.patch
+ksm-use-a-folio-in-replace_page.patch
+mm-convert-do_swap_page-to-use-folio_free_swap.patch
+memcg-convert-mem_cgroup_swap_full-to-take-a-folio.patch
+mm-remove-try_to_free_swap.patch
+rmap-convert-page_move_anon_rmap-to-use-a-folio.patch
+migrate-convert-__unmap_and_move-to-use-folios.patch
+migrate-convert-unmap_and_move_huge_page-to-use-folios.patch
+huge_memory-convert-split_huge_page_to_list-to-use-a-folio.patch
+huge_memory-convert-unmap_page-to-unmap_folio.patch
+mm-convert-page_get_anon_vma-to-folio_get_anon_vma.patch
+rmap-remove-page_unlock_anon_vma_read.patch
+uprobes-use-new_folio-in-__replace_page.patch
+mm-convert-lock_page_or_retry-to-folio_lock_or_retry.patch
 
