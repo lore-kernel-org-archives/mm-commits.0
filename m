@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAF6AC6FA83
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 19:29:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7808EC6FA82
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 20:28:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229764AbiILT3K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Sep 2022 15:29:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51790 "EHLO
+        id S229718AbiILU2K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Sep 2022 16:28:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229616AbiILT3J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 15:29:09 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C224E459AA
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 12:29:08 -0700 (PDT)
+        with ESMTP id S229459AbiILU2E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 16:28:04 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E3562DA9F
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 13:28:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7B3AAB80DBF
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 19:29:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 337C7C433D6;
-        Mon, 12 Sep 2022 19:29:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EB0DCB80C68
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 20:28:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 849FAC433D6;
+        Mon, 12 Sep 2022 20:27:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663010946;
-        bh=L31EYHG16kMmuVopyK0e1jNq4isRCEzFoVPRqzfkpxA=;
+        s=korg; t=1663014479;
+        bh=adhn0qs3uMKQ4bz8xLFprBehpW/rryEADER/cBtMrY4=;
         h=Date:To:From:Subject:From;
-        b=z+Hb+9J+4tJWeQ/cay0aPdV6ikUMWs8l9pRo0R6VR3h715I88xb9ZzSts75dXobQy
-         UsfVzXE851VoeCsm8+CngnjQkRk43d9paeHzM+0V2XByyqAXr/duDfB9kFVIyRIzCj
-         JYUFQsbCSzSpqZHMjo6VcY87mxJ3XYYxLoVVZNvo=
-Date:   Mon, 12 Sep 2022 12:29:05 -0700
-To:     mm-commits@vger.kernel.org, zealci@zte.com.cn, tglx@linutronix.de,
-        luto@kernel.org, liam.howlett@oracle.com, fenghua.yu@intel.com,
-        ebiederm@xmission.com, brauner@kernel.org, bigeasy@linutronix.de,
-        xu.panda@zte.com.cn, akpm@linux-foundation.org
+        b=iTB48YIDIrVCEUMW0mgMZHhveWUeCHnUnY7jxCyp3I0Fq98Rm+oDoFksxkyFIFMtU
+         /UOnLbcoye0MWTcqZtZfT5PmF41f0H5urp+XsFTuwx1+0VzXh6j5RYfyKXINIQENBj
+         RHJw1hP+MFMv9SU2c6ciYdtfcZ8HoO6L+mruzkMc=
+Date:   Mon, 12 Sep 2022 13:27:59 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, xhao@linux.alibaba.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fork-remove-duplicate-included-header-files.patch added to mm-nonmm-unstable branch
-Message-Id: <20220912192906.337C7C433D6@smtp.kernel.org>
+Subject: + mm-damon-simplify-scheme-create-in-damon_lru_sort_apply_parameters.patch added to mm-unstable branch
+Message-Id: <20220912202759.849FAC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fork: remove duplicate included header files
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fork-remove-duplicate-included-header-files.patch
+     Subject: mm/damon: simplify scheme create in damon_lru_sort_apply_parameters
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-simplify-scheme-create-in-damon_lru_sort_apply_parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-remove-duplicate-included-header-files.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-simplify-scheme-create-in-damon_lru_sort_apply_parameters.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,41 +64,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xu Panda <xu.panda@zte.com.cn>
-Subject: fork: remove duplicate included header files
-Date: Mon, 12 Sep 2022 07:15:57 +0000
+From: Xin Hao <xhao@linux.alibaba.com>
+Subject: mm/damon: simplify scheme create in damon_lru_sort_apply_parameters
+Date: Sun, 11 Sep 2022 08:59:17 +0800
 
-linux/sched/mm.h is included more than once.
+In damon_lru_sort_apply_parameters(), we can use damon_set_schemes() to
+replace the way of creating the first 'scheme' in original code, this
+makes the code look cleaner.
 
-Link: https://lkml.kernel.org/r/20220912071556.16811-1-xu.panda@zte.com.cn
-Signed-off-by: Xu Panda <xu.panda@zte.com.cn>
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20220911005917.835-1-xhao@linux.alibaba.com
+Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/damon/lru_sort.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/kernel/fork.c~fork-remove-duplicate-included-header-files
-+++ a/kernel/fork.c
-@@ -97,7 +97,6 @@
- #include <linux/scs.h>
- #include <linux/io_uring.h>
- #include <linux/bpf.h>
--#include <linux/sched/mm.h>
+--- a/mm/damon/lru_sort.c~mm-damon-simplify-scheme-create-in-damon_lru_sort_apply_parameters
++++ a/mm/damon/lru_sort.c
+@@ -350,7 +350,7 @@ static struct damos *damon_lru_sort_new_
  
- #include <asm/pgalloc.h>
- #include <linux/uaccess.h>
+ static int damon_lru_sort_apply_parameters(void)
+ {
+-	struct damos *scheme, *next_scheme;
++	struct damos *scheme;
+ 	struct damon_addr_range addr_range;
+ 	unsigned int hot_thres, cold_thres;
+ 	int err = 0;
+@@ -360,17 +360,15 @@ static int damon_lru_sort_apply_paramete
+ 	if (err)
+ 		return err;
+ 
+-	/* free previously set schemes */
+-	damon_for_each_scheme_safe(scheme, next_scheme, ctx)
+-		damon_destroy_scheme(scheme);
+-
+ 	/* aggr_interval / sample_interval is the maximum nr_accesses */
+ 	hot_thres = aggr_interval / sample_interval * hot_thres_access_freq /
+ 		1000;
+ 	scheme = damon_lru_sort_new_hot_scheme(hot_thres);
+ 	if (!scheme)
+ 		return -ENOMEM;
+-	damon_add_scheme(ctx, scheme);
++	err = damon_set_schemes(ctx, &scheme, 1);
++	if (err)
++		return err;
+ 
+ 	cold_thres = cold_min_age / aggr_interval;
+ 	scheme = damon_lru_sort_new_cold_scheme(cold_thres);
 _
 
-Patches currently in -mm which might be from xu.panda@zte.com.cn are
+Patches currently in -mm which might be from xhao@linux.alibaba.com are
 
-fork-remove-duplicate-included-header-files.patch
+mm-damon-simply-damon_ctx-check-in-damon_sysfs_before_terminate.patch
+mm-damon-remove-duplicate-get_monitoring_region-definitions.patch
+mm-damon-sysfs-change-few-functions-execute-order.patch
+mm-damon-simplify-scheme-create-in-damon_lru_sort_apply_parameters.patch
 
