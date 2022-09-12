@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 288E1ECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:34:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D6E1C54EE9
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:34:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229630AbiILDd5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:33:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60310 "EHLO
+        id S229646AbiILDd6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:33:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57014 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229765AbiILDcS (ORCPT
+        with ESMTP id S229748AbiILDcS (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:32:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 886D51DA4C
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:07 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A6CE1D328
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1556E61169
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6ADB9C433C1;
-        Mon, 12 Sep 2022 03:30:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 41585B80C80
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC0B6C433C1;
+        Mon, 12 Sep 2022 03:30:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953406;
-        bh=1GrVMJG02WK2r0w/Y2wcHVLTIC2nrepnVnYkqYfH+Ec=;
+        s=korg; t=1662953404;
+        bh=nod+GxdLPb4vtQynDy6PIcU2jHASo8QNPEhlBSPg5l0=;
         h=Date:To:From:Subject:From;
-        b=Bn4UjDLpovhUkg0GCDWRu6+g/7l96jkJMJvsWekcLDpiK09YEMN0M8jJFQtodN77v
-         U1oWAGPfuQK1vup9R1B3oHFQnj3B5Lvyxokr456+wNlP8uEkXhqPWOjGdchKI71b2f
-         +xRsGlJ4N5Noh7da/fM7yZEYp/v/XMY1KYKFBA5U=
-Date:   Sun, 11 Sep 2022 20:30:05 -0700
+        b=AiriyEnj+uTiIoDQfmTrHpmMyAgeecLlT+M1aCzQ6lkOjX/BBQ6bYyUHWipgb9uwq
+         BGkGbi/FANUCQzA1s36mKFOpBXCHOmjq6aV5R+tZUq9HwuF3DFg8BYxlgcYO8okDuu
+         wRLDFZUqKNLWeVURJ9+z7sx8vWxN8Ubc4njsrR+s=
+Date:   Sun, 11 Sep 2022 20:30:03 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, konishi.ryusuke@gmail.com,
         josef@toxicpanda.com, dsterb@suse.com, dsterba@suse.com,
         clm@fb.com, vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ramfs-convert-ramfs_nommu_get_unmapped_area-to-use-filemap_get_folios_contig.patch removed from -mm tree
-Message-Id: <20220912033006.6ADB9C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] btrfs-convert-process_page_range-to-use-filemap_get_folios_contig.patch removed from -mm tree
+Message-Id: <20220912033003.EC0B6C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,121 +43,120 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ramfs: convert ramfs_nommu_get_unmapped_area() to use filemap_get_folios_contig()
+     Subject: btrfs: convert process_page_range() to use filemap_get_folios_contig()
 has been removed from the -mm tree.  Its filename was
-     ramfs-convert-ramfs_nommu_get_unmapped_area-to-use-filemap_get_folios_contig.patch
+     btrfs-convert-process_page_range-to-use-filemap_get_folios_contig.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: ramfs: convert ramfs_nommu_get_unmapped_area() to use filemap_get_folios_contig()
-Date: Tue, 23 Aug 2022 17:40:22 -0700
+Subject: btrfs: convert process_page_range() to use filemap_get_folios_contig()
+Date: Tue, 23 Aug 2022 17:40:20 -0700
 
-Convert to use folios throughout.  This is in preparation for the removal
-for find_get_pages_contig().  Now also supports large folios.
+Converted function to use folios throughout.  This is in preparation for
+the removal of find_get_pages_contig().  Now also supports large folios.
 
-The initial version of this function set the page_address to be returned
-after finishing all the checks.  Since folio_batches have a maximum of 15
-folios, the function had to be modified to support getting and checking up
-to lpages, 15 pages at a time while still returning the initial page
-address.  Now the function sets ret as soon as the first batch arrives,
-and updates it only if a check fails.
+Since we may receive more than nr_pages pages, nr_pages may underflow. 
+Since nr_pages > 0 is equivalent to index <= end_index, we replaced it
+with this check instead.
 
-The physical adjacency check utilizes the page frame numbers.  The page
-frame number of each folio must be nr_pages away from the first folio.
+Also minor comment renaming for consistency in subpage.
 
-Link: https://lkml.kernel.org/r/20220824004023.77310-7-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20220824004023.77310-5-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Acked-by: David Sterba <dsterb@suse.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Chris Mason <clm@fb.com>
 Cc: David Sterba <dsterba@suse.com>
-Cc: David Sterba <dsterb@suse.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |   54 ++++++++++++++++++++++------------------
- 1 file changed, 31 insertions(+), 23 deletions(-)
+ fs/btrfs/subpage.c               |    2 -
+ fs/btrfs/tests/extent-io-tests.c |   32 +++++++++++++++--------------
+ 2 files changed, 18 insertions(+), 16 deletions(-)
 
---- a/fs/ramfs/file-nommu.c~ramfs-convert-ramfs_nommu_get_unmapped_area-to-use-filemap_get_folios_contig
-+++ a/fs/ramfs/file-nommu.c
-@@ -203,9 +203,9 @@ static unsigned long ramfs_nommu_get_unm
- 					    unsigned long addr, unsigned long len,
- 					    unsigned long pgoff, unsigned long flags)
+--- a/fs/btrfs/subpage.c~btrfs-convert-process_page_range-to-use-filemap_get_folios_contig
++++ a/fs/btrfs/subpage.c
+@@ -337,7 +337,7 @@ bool btrfs_subpage_end_and_test_writer(c
+  *
+  * Even with 0 returned, the page still need extra check to make sure
+  * it's really the correct page, as the caller is using
+- * find_get_pages_contig(), which can race with page invalidating.
++ * filemap_get_folios_contig(), which can race with page invalidating.
+  */
+ int btrfs_page_start_writer_lock(const struct btrfs_fs_info *fs_info,
+ 		struct page *page, u64 start, u32 len)
+--- a/fs/btrfs/tests/extent-io-tests.c~btrfs-convert-process_page_range-to-use-filemap_get_folios_contig
++++ a/fs/btrfs/tests/extent-io-tests.c
+@@ -4,6 +4,7 @@
+  */
+ 
+ #include <linux/pagemap.h>
++#include <linux/pagevec.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/sizes.h>
+@@ -20,39 +21,40 @@ static noinline int process_page_range(s
+ 				       unsigned long flags)
  {
--	unsigned long maxpages, lpages, nr, loop, ret;
-+	unsigned long maxpages, lpages, nr_folios, loop, ret, nr_pages, pfn;
- 	struct inode *inode = file_inode(file);
--	struct page **pages = NULL, **ptr, *page;
+ 	int ret;
+-	struct page *pages[16];
 +	struct folio_batch fbatch;
- 	loff_t isize;
+ 	unsigned long index = start >> PAGE_SHIFT;
+ 	unsigned long end_index = end >> PAGE_SHIFT;
+-	unsigned long nr_pages = end_index - index + 1;
+ 	int i;
+ 	int count = 0;
+ 	int loops = 0;
  
- 	/* the mapping mustn't extend beyond the EOF */
-@@ -221,31 +221,39 @@ static unsigned long ramfs_nommu_get_unm
- 		goto out;
- 
- 	/* gang-find the pages */
--	pages = kcalloc(lpages, sizeof(struct page *), GFP_KERNEL);
--	if (!pages)
--		goto out_free;
--
--	nr = find_get_pages_contig(inode->i_mapping, pgoff, lpages, pages);
--	if (nr != lpages)
--		goto out_free_pages; /* leave if some pages were missing */
--
+-	while (nr_pages > 0) {
+-		ret = find_get_pages_contig(inode->i_mapping, index,
+-				     min_t(unsigned long, nr_pages,
+-				     ARRAY_SIZE(pages)), pages);
 +	folio_batch_init(&fbatch);
-+	nr_pages = 0;
-+repeat:
-+	nr_folios = filemap_get_folios_contig(inode->i_mapping, &pgoff,
-+			ULONG_MAX, &fbatch);
-+	if (!nr_folios) {
-+		ret = -ENOSYS;
-+		return ret;
-+	}
 +
-+	if (ret == -ENOSYS) {
-+		ret = (unsigned long) folio_address(fbatch.folios[0]);
-+		pfn = folio_pfn(fbatch.folios[0]);
-+	}
- 	/* check the pages for physical adjacency */
--	ptr = pages;
--	page = *ptr++;
--	page++;
--	for (loop = lpages; loop > 1; loop--)
--		if (*ptr++ != page++)
--			goto out_free_pages;
--
-+	for (loop = 0; loop < nr_folios; loop++) {
-+		if (pfn + nr_pages != folio_pfn(fbatch.folios[loop])) {
-+			ret = -ENOSYS;
-+			goto out_free; /* leave if not physical adjacent */
-+		}
-+		nr_pages += folio_nr_pages(fbatch.folios[loop]);
-+		if (nr_pages >= lpages)
-+			goto out_free; /* successfully found desired pages*/
-+	}
++	while (index <= end_index) {
++		ret = filemap_get_folios_contig(inode->i_mapping, &index,
++				end_index, &fbatch);
+ 		for (i = 0; i < ret; i++) {
++			struct folio *folio = fbatch.folios[i];
 +
-+	if (nr_pages < lpages) {
+ 			if (flags & PROCESS_TEST_LOCKED &&
+-			    !PageLocked(pages[i]))
++			    !folio_test_locked(folio))
+ 				count++;
+-			if (flags & PROCESS_UNLOCK && PageLocked(pages[i]))
+-				unlock_page(pages[i]);
+-			put_page(pages[i]);
++			if (flags & PROCESS_UNLOCK && folio_test_locked(folio))
++				folio_unlock(folio);
+ 			if (flags & PROCESS_RELEASE)
+-				put_page(pages[i]);
++				folio_put(folio);
+ 		}
+-		nr_pages -= ret;
+-		index += ret;
 +		folio_batch_release(&fbatch);
-+		goto repeat; /* loop if pages are missing */
-+	}
- 	/* okay - all conditions fulfilled */
--	ret = (unsigned long) page_address(pages[0]);
- 
--out_free_pages:
--	ptr = pages;
--	for (loop = nr; loop > 0; loop--)
--		put_page(*ptr++);
- out_free:
--	kfree(pages);
-+	folio_batch_release(&fbatch);
- out:
- 	return ret;
+ 		cond_resched();
+ 		loops++;
+ 		if (loops > 100000) {
+ 			printk(KERN_ERR
+-		"stuck in a loop, start %llu, end %llu, nr_pages %lu, ret %d\n",
+-				start, end, nr_pages, ret);
++		"stuck in a loop, start %llu, end %llu, ret %d\n",
++				start, end, ret);
+ 			break;
+ 		}
+ 	}
++
+ 	return count;
  }
+ 
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
