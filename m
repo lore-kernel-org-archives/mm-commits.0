@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 347A6ECAAD5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2770ECAAA1
 	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:58:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229636AbiILE6j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Sep 2022 00:58:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54628 "EHLO
+        id S229584AbiILE6k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Sep 2022 00:58:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229584AbiILE5L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:57:11 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A646A28E19
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:57:09 -0700 (PDT)
+        with ESMTP id S229703AbiILE5G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:57:06 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C5CC2872A
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:57:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D9045B802BD
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:57:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EDF0C433D6;
-        Mon, 12 Sep 2022 04:57:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 97B1960EFD
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:57:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0EEDC433C1;
+        Mon, 12 Sep 2022 04:57:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662958626;
-        bh=WvYOi4fiEvJWikAqWp47QBZ+d/m/gf0w21nkHiku6Jw=;
+        s=korg; t=1662958624;
+        bh=NZCbDZklLQcYWpU07eh2BEFq2lbBGYLjUN3bF6ljWMI=;
         h=Date:To:From:Subject:From;
-        b=Gxokr+Dcc4Z4rp41jGPS0yI6MSnJ6zWb/w/gdcmFfqemSuoIomfpH76mNVLWfqCyQ
-         9I7QpUaGBLunqrCQ2ZRMwb76zUdr0Ltx4WAASrHrch+Q56AJXTJNrZr/TJ4NtskzDr
-         bWWBcOcA6buS7hK8nDhyaIlyrpFUywO+f5bvZN5Q=
-Date:   Sun, 11 Sep 2022 21:57:05 -0700
-To:     mm-commits@vger.kernel.org, rafael@kernel.org,
-        gregkh@linuxfoundation.org, ebiederm@xmission.com,
-        dsterba@suse.com, pvorel@suse.cz, akpm@linux-foundation.org
+        b=cgbHA6W5HiLxLMjcRWfO354Y2kNG3lK7jJrcXGl4PDnxHi3TniTGswvEGQA11u/Up
+         fG0xkzSVv7gW/fI5HPC13Zs2yEGT42A8JqELZwdhGtD6ouK8uX3nGQ3UTinHMBplKA
+         3QcvBdR6HT3nOhEzlW3x8w7/8S0G55XiNyL5jh0Y=
+Date:   Sun, 11 Sep 2022 21:57:03 -0700
+To:     mm-commits@vger.kernel.org, kbusch@kernel.org, arnd@arndb.de,
+        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-utsname_sysctlc-print-kernel-arch.patch removed from -mm tree
-Message-Id: <20220912045706.8EDF0C433D6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] asm-generic-make-parameter-types-consisten-in-_unaligned_be48.patch removed from -mm tree
+Message-Id: <20220912045703.F0EEDC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,69 +41,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kernel/utsname_sysctl.c: print kernel arch
+     Subject: asm-generic: make parameter types consistent in _unaligned_be48()
 has been removed from the -mm tree.  Its filename was
-     kernel-utsname_sysctlc-print-kernel-arch.patch
+     asm-generic-make-parameter-types-consisten-in-_unaligned_be48.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Petr Vorel <pvorel@suse.cz>
-Subject: kernel/utsname_sysctl.c: print kernel arch
-Date: Thu, 1 Sep 2022 21:44:03 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: asm-generic: make parameter types consistent in _unaligned_be48()
+Date: Tue, 30 Aug 2022 20:27:13 +0300
 
-Print the machine hardware name (UTS_MACHINE) in /proc/sys/kernel/arch.
+There is a convention to use internal kernel types, so replace __u8 by u8.
 
-This helps people who debug kernel with initramfs with minimal environment
-(i.e.  without coreutils or even busybox) or allow to open sysfs file
-instead of run 'uname -m' in high level languages.
-
-Link: https://lkml.kernel.org/r/20220901194403.3819-1-pvorel@suse.cz
-Signed-off-by: Petr Vorel <pvorel@suse.cz>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: David Sterba <dsterba@suse.com>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
+Link: https://lkml.kernel.org/r/20220830172713.43686-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Keith Busch <kbusch@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    5 +++++
- kernel/utsname_sysctl.c                     |    7 +++++++
- 2 files changed, 12 insertions(+)
+ include/asm-generic/unaligned.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~kernel-utsname_sysctlc-print-kernel-arch
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -65,6 +65,11 @@ combining the following values:
- 4 s3_beep
- = =======
+--- a/include/asm-generic/unaligned.h~asm-generic-make-parameter-types-consisten-in-_unaligned_be48
++++ a/include/asm-generic/unaligned.h
+@@ -126,7 +126,7 @@ static inline void put_unaligned_le24(co
+ 	__put_unaligned_le24(val, p);
+ }
  
-+arch
-+====
-+
-+The machine hardware name, the same output as ``uname -m``
-+(e.g. ``x86_64`` or ``aarch64``).
- 
- auto_msgmni
- ===========
---- a/kernel/utsname_sysctl.c~kernel-utsname_sysctlc-print-kernel-arch
-+++ a/kernel/utsname_sysctl.c
-@@ -74,6 +74,13 @@ static DEFINE_CTL_TABLE_POLL(domainname_
- 
- static struct ctl_table uts_kern_table[] = {
- 	{
-+		.procname	= "arch",
-+		.data		= init_uts_ns.name.machine,
-+		.maxlen		= sizeof(init_uts_ns.name.machine),
-+		.mode		= 0444,
-+		.proc_handler	= proc_do_uts_string,
-+	},
-+	{
- 		.procname	= "ostype",
- 		.data		= init_uts_ns.name.sysname,
- 		.maxlen		= sizeof(init_uts_ns.name.sysname),
+-static inline void __put_unaligned_be48(const u64 val, __u8 *p)
++static inline void __put_unaligned_be48(const u64 val, u8 *p)
+ {
+ 	*p++ = val >> 40;
+ 	*p++ = val >> 32;
 _
 
-Patches currently in -mm which might be from pvorel@suse.cz are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 
