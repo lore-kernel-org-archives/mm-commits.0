@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8AAAECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:32:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DF5CECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:32:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229767AbiILDcT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:32:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57014 "EHLO
+        id S229768AbiILDcU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:32:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229808AbiILDa2 (ORCPT
+        with ESMTP id S229807AbiILDa2 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:30:28 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9264B6244
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4D9F6311
         for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1AE01B80C6D
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2831C433B5;
-        Mon, 12 Sep 2022 03:29:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C690C61178
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26BFEC433D7;
+        Mon, 12 Sep 2022 03:29:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953370;
-        bh=uQY83n7157iXooGrVOp5C5R3WZVFk/x6ln/Nvn7eJRE=;
+        s=korg; t=1662953373;
+        bh=cfMic3i4heQp5l08j9NK3Pc41j7clK3R+UlF/U11ay8=;
         h=Date:To:From:Subject:From;
-        b=poy6Pl5yBUQXdNJzVrcovhs6csSgqu8I/3bIhBGZbFPtGFHv6/+z6XeK04Kl4Iqt2
-         W8h4luDHAbbChPLAT/uErU3+jMenAxtFP/eAUldcypWTrpuRvQ7I9gcvRxvXHicbMy
-         iKZxXdRMLqTakaOm0T3onJ6BTLk6xIm49a174U3Y=
-Date:   Sun, 11 Sep 2022 20:29:30 -0700
-To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
-        linmiaohe@huawei.com, songmuchun@bytedance.com,
-        akpm@linux-foundation.org
+        b=t6G85JPt6N/IoEFKVUowF0xZXnmSOkTwAmJOIYMpQ/FrDKHn4XuhDRnZJk/CriSC9
+         ZiKBY+02W7rIyeGWNs/xxvkSURjqe6245KMYHejuBpZhRv0H5hWKgAdfZo7GlU0gy1
+         u+ERBUFvuzmSw+6RX+R5j/DtmlaCXJCSI8kxFSL8=
+Date:   Sun, 11 Sep 2022 20:29:32 -0700
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, david@redhat.com, anshuman.khandual@arm.com,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb_vmemmap-simplify-reset_struct_pages.patch removed from -mm tree
-Message-Id: <20220912032930.C2831C433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-kill-__soft_offline_page.patch removed from -mm tree
+Message-Id: <20220912032933.26BFEC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,52 +42,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: hugetlb_vmemmap: simplify reset_struct_pages()
+     Subject: mm: memory-failure: kill __soft_offline_page()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_vmemmap-simplify-reset_struct_pages.patch
+     mm-memory-failure-kill-__soft_offline_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb_vmemmap: simplify reset_struct_pages()
-Date: Fri, 19 Aug 2022 11:55:32 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: memory-failure: kill __soft_offline_page()
+Date: Fri, 19 Aug 2022 11:34:02 +0800
 
-We can choose to copy three contiguous tail pages' content to the first
-three pages instead of copying one by one to simplify the code and reduce
-code size from 229 bytes to 63 bytes.  The BUILD_BUG_ON() aims to avoid
-out-of-bounds accesses.
+Squash the __soft_offline_page() into soft_offline_in_use_page() and kill
+__soft_offline_page().
 
-Link: https://lkml.kernel.org/r/20220819035532.6189-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+[wangkefeng.wang@huawei.com: update hpage when try_to_split_thp_page() succeeds]
+  Link: https://lkml.kernel.org/r/20220830104654.28234-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20220819033402.156519-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |   25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-simplify-reset_struct_pages
-+++ a/mm/hugetlb_vmemmap.c
-@@ -265,11 +265,10 @@ static void vmemmap_remap_pte(pte_t *pte
- 
- static inline void reset_struct_pages(struct page *start)
- {
--	int i;
- 	struct page *from = start + NR_RESET_STRUCT_PAGE;
- 
--	for (i = 0; i < NR_RESET_STRUCT_PAGE; i++)
--		memcpy(start + i, from, sizeof(*from));
-+	BUILD_BUG_ON(NR_RESET_STRUCT_PAGE * 2 > PAGE_SIZE / sizeof(struct page));
-+	memcpy(start, from, sizeof(*from) * NR_RESET_STRUCT_PAGE);
+--- a/mm/memory-failure.c~mm-memory-failure-kill-__soft_offline_page
++++ a/mm/memory-failure.c
+@@ -2432,11 +2432,11 @@ static bool isolate_page(struct page *pa
  }
  
- static void vmemmap_restore_pte(pte_t *pte, unsigned long addr,
+ /*
+- * __soft_offline_page handles hugetlb-pages and non-hugetlb pages.
++ * soft_offline_in_use_page handles hugetlb-pages and non-hugetlb pages.
+  * If the page is a non-dirty unmapped page-cache page, it simply invalidates.
+  * If the page is mapped, it migrates the contents over.
+  */
+-static int __soft_offline_page(struct page *page)
++static int soft_offline_in_use_page(struct page *page)
+ {
+ 	long ret = 0;
+ 	unsigned long pfn = page_to_pfn(page);
+@@ -2449,6 +2449,14 @@ static int __soft_offline_page(struct pa
+ 		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
+ 	};
+ 
++	if (!huge && PageTransHuge(hpage)) {
++		if (try_to_split_thp_page(page)) {
++			pr_info("soft offline: %#lx: thp split failed\n", pfn);
++			return -EBUSY;
++		}
++		hpage = page;
++	}
++
+ 	lock_page(page);
+ 	if (!PageHuge(page))
+ 		wait_on_page_writeback(page);
+@@ -2498,19 +2506,6 @@ static int __soft_offline_page(struct pa
+ 	return ret;
+ }
+ 
+-static int soft_offline_in_use_page(struct page *page)
+-{
+-	struct page *hpage = compound_head(page);
+-
+-	if (!PageHuge(page) && PageTransHuge(hpage))
+-		if (try_to_split_thp_page(page) < 0) {
+-			pr_info("soft offline: %#lx: thp split failed\n",
+-				page_to_pfn(page));
+-			return -EBUSY;
+-		}
+-	return __soft_offline_page(page);
+-}
+-
+ static void put_ref_page(struct page *page)
+ {
+ 	if (page)
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-hugetlb-eliminate-memory-less-nodes-handling.patch
+mm-reuse-pageblock_start-end_pfn-macro.patch
+mm-add-pageblock_align-macro.patch
+mm-add-pageblock_aligned-macro.patch
+memblock-tests-add-new-pageblock-related-macro.patch
+kernel-exit-cleanup-release_thread.patch
 
