@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0A0EECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:57:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AEC3C6FA82
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:57:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229689AbiILE5A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Sep 2022 00:57:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54516 "EHLO
+        id S229561AbiILE5B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Sep 2022 00:57:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54636 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229588AbiILE4r (ORCPT
+        with ESMTP id S229640AbiILE4r (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:56:47 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C43B27DDA
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8CBD27FE5
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CCB3BB80BA8
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F853C433D7;
-        Mon, 12 Sep 2022 04:56:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7601EB80BA9
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F1CEC433D7;
+        Mon, 12 Sep 2022 04:56:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662958588;
-        bh=2fV+WsI9vErRJiNO93/BQwnuot7mhovW36ERXbKRoj0=;
+        s=korg; t=1662958595;
+        bh=dujiLLqlIxobUWnQOao5aV48ql251GFH4EH2R0ma8Yk=;
         h=Date:To:From:Subject:From;
-        b=DYyCrlmLSaqdjiyhOeKYVMGbxAub6WM6Yya+GaxN9qH0xT8Ru+6ZDFMSVqBM5GzV9
-         YD2wMsRmKndSfEdfZz6A3FKct3Pm5NLF0MpSrOvYQkJPapXuCCdC/dY5drWqVyAv5k
-         eT+9gfXALjpPPYTevQsa+5i9PPpadxldY6NI1iVo=
-Date:   Sun, 11 Sep 2022 21:56:27 -0700
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
-        bfoster@redhat.com, akpm@linux-foundation.org
+        b=bvsWT2YHpOBgB8yAiNIbyrhTnTc0XUCE0rESoe1QzH4HseIqn+Oy8q/PBQ9XN3utj
+         MHgNgsDFedkK9FDBbgxF4PNmiAZakEE9HwTdfaGETprM/UwkqER4llTrwG8AcCATxb
+         gG4bRKY4PqneacYJtqvr81Q2mij1tbpJ7VS+55Eo=
+Date:   Sun, 11 Sep 2022 21:56:34 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        ubizjak@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] proc-save-loc-in-vsyscall-test.patch removed from -mm tree
-Message-Id: <20220912045628.7F853C433D7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] buffer-use-try_cmpxchg-in-discard_buffer.patch removed from -mm tree
+Message-Id: <20220912045635.2F1CEC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,129 +41,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: proc: save LOC in vsyscall test
+     Subject: buffer: use try_cmpxchg in discard_buffer
 has been removed from the -mm tree.  Its filename was
-     proc-save-loc-in-vsyscall-test.patch
+     buffer-use-try_cmpxchg-in-discard_buffer.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Brian Foster <bfoster@redhat.com>
-Subject: proc: save LOC in vsyscall test
-Date: Mon, 15 Aug 2022 12:50:04 +0300
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: buffer: use try_cmpxchg in discard_buffer
+Date: Thu, 14 Jul 2022 19:16:53 +0200
 
-Do one fork in vsyscall detection code and let SIGSEGV handler exit and
-carry information to the parent saving LOC.
+Use try_cmpxchg instead of cmpxchg (*ptr, old, new) == old in
+discard_buffer.  x86 CMPXCHG instruction returns success in ZF flag, so
+this change saves a compare after cmpxchg (and related move instruction in
+front of cmpxchg).
 
-[adobriyan@gmail.com: redo original patch, delete unnecessary variables, minimise code changes]
-Link: https://lkml.kernel.org/r/YvoWzAn5dlhF75xa@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: Brian Foster <bfoster@redhat.com>
-Reviewed-by: Brian Foster <bfoster@redhat.com>
-Tested-by: Brian Foster <bfoster@redhat.com>
+Also, try_cmpxchg implicitly assigns old *ptr value to "old" when cmpxchg
+fails, enabling further code simplifications.
+
+Note that the value from *ptr should be read using READ_ONCE to prevent
+the compiler from merging, refetching or reordering the read.
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20220714171653.12128-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/proc-pid-vm.c |   56 +++++--------------
- 1 file changed, 16 insertions(+), 40 deletions(-)
+ fs/buffer.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/proc/proc-pid-vm.c~proc-save-loc-in-vsyscall-test
-+++ a/tools/testing/selftests/proc/proc-pid-vm.c
-@@ -213,22 +213,22 @@ static int make_exe(const uint8_t *paylo
+--- a/fs/buffer.c~buffer-use-try_cmpxchg-in-discard_buffer
++++ a/fs/buffer.c
+@@ -1464,19 +1464,15 @@ EXPORT_SYMBOL(set_bh_page);
  
- /*
-  * 0: vsyscall VMA doesn't exist	vsyscall=none
-- * 1: vsyscall VMA is r-xp		vsyscall=emulate
-- * 2: vsyscall VMA is --xp		vsyscall=xonly
-+ * 1: vsyscall VMA is --xp		vsyscall=xonly
-+ * 2: vsyscall VMA is r-xp		vsyscall=emulate
-  */
--static int g_vsyscall;
-+static volatile int g_vsyscall;
- static const char *str_vsyscall;
- 
- static const char str_vsyscall_0[] = "";
- static const char str_vsyscall_1[] =
--"ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]\n";
--static const char str_vsyscall_2[] =
- "ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]\n";
-+static const char str_vsyscall_2[] =
-+"ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]\n";
- 
- #ifdef __x86_64__
- static void sigaction_SIGSEGV(int _, siginfo_t *__, void *___)
+ static void discard_buffer(struct buffer_head * bh)
  {
--	_exit(1);
-+	_exit(g_vsyscall);
+-	unsigned long b_state, b_state_old;
++	unsigned long b_state;
+ 
+ 	lock_buffer(bh);
+ 	clear_buffer_dirty(bh);
+ 	bh->b_bdev = NULL;
+-	b_state = bh->b_state;
+-	for (;;) {
+-		b_state_old = cmpxchg(&bh->b_state, b_state,
+-				      (b_state & ~BUFFER_FLAGS_DISCARD));
+-		if (b_state_old == b_state)
+-			break;
+-		b_state = b_state_old;
+-	}
++	b_state = READ_ONCE(bh->b_state);
++	do {
++	} while (!try_cmpxchg(&bh->b_state, &b_state,
++			      b_state & ~BUFFER_FLAGS_DISCARD));
+ 	unlock_buffer(bh);
  }
  
- /*
-@@ -255,6 +255,7 @@ static void vsyscall(void)
- 		act.sa_sigaction = sigaction_SIGSEGV;
- 		(void)sigaction(SIGSEGV, &act, NULL);
- 
-+		g_vsyscall = 0;
- 		/* gettimeofday(NULL, NULL); */
- 		asm volatile (
- 			"call %P0"
-@@ -262,45 +263,20 @@ static void vsyscall(void)
- 			: "i" (0xffffffffff600000), "D" (NULL), "S" (NULL)
- 			: "rax", "rcx", "r11"
- 		);
--		exit(0);
--	}
--	waitpid(pid, &wstatus, 0);
--	if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) == 0) {
--		/* vsyscall page exists and is executable. */
--	} else {
--		/* vsyscall page doesn't exist. */
--		g_vsyscall = 0;
--		return;
--	}
--
--	pid = fork();
--	if (pid < 0) {
--		fprintf(stderr, "fork, errno %d\n", errno);
--		exit(1);
--	}
--	if (pid == 0) {
--		struct rlimit rlim = {0, 0};
--		(void)setrlimit(RLIMIT_CORE, &rlim);
--
--		/* Hide "segfault at ffffffffff600000" messages. */
--		struct sigaction act;
--		memset(&act, 0, sizeof(struct sigaction));
--		act.sa_flags = SA_SIGINFO;
--		act.sa_sigaction = sigaction_SIGSEGV;
--		(void)sigaction(SIGSEGV, &act, NULL);
- 
-+		g_vsyscall = 1;
- 		*(volatile int *)0xffffffffff600000UL;
--		exit(0);
-+
-+		g_vsyscall = 2;
-+		exit(g_vsyscall);
- 	}
- 	waitpid(pid, &wstatus, 0);
--	if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) == 0) {
--		/* vsyscall page is readable and executable. */
--		g_vsyscall = 1;
--		return;
-+	if (WIFEXITED(wstatus)) {
-+		g_vsyscall = WEXITSTATUS(wstatus);
-+	} else {
-+		fprintf(stderr, "error: wstatus %08x\n", wstatus);
-+		exit(1);
- 	}
--
--	/* vsyscall page is executable but unreadable. */
--	g_vsyscall = 2;
- }
- 
- int main(void)
 _
 
-Patches currently in -mm which might be from bfoster@redhat.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
 
