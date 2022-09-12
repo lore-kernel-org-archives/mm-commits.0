@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9765BC54EE9
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:34:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74702C6FA8A
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:34:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229689AbiILDeE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:34:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57072 "EHLO
+        id S229721AbiILDeG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:34:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229779AbiILDc3 (ORCPT
+        with ESMTP id S229788AbiILDc3 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:32:29 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A173F1EAD0
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:12 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06BE727CED
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5BD30B8085E
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1695AC433D7;
-        Mon, 12 Sep 2022 03:30:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A5286116F
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBF09C433D6;
+        Mon, 12 Sep 2022 03:30:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953410;
-        bh=DKrkryV9s9y2sJw7PGRkCgbmemrDXKxsxRBOzw4Kxk0=;
+        s=korg; t=1662953414;
+        bh=hfa3tDl7+Xi60sMpcLu/kf/4MLaKOuKkq9mNLJm77Dw=;
         h=Date:To:From:Subject:From;
-        b=EctHOnTA/vucU7Qe6wV51LPOWTN9IyQneCU3Jk5F9TjlKQt82oX9IaFOHEso0O8Y9
-         v1a6wMsSlMLt7DWMMEOu0w7qf9/LENIg60o1EfbV4OoH6Ce3oXqyLJ5OCY1sKjejtu
-         rbwBlh6OWn6ryVJ9CST/1Ugg+dXAC1RLNwcgrOmQ=
-Date:   Sun, 11 Sep 2022 20:30:09 -0700
-To:     mm-commits@vger.kernel.org, muchun.song@linux.dev,
-        david@redhat.com, wangkefeng.wang@huawei.com,
+        b=ydeRgWQeLnH5Xw9uf3weWKIVX1uTVnvweZ4bSm9k4NlFiTZl+yhywx88t/kz0764U
+         L2JYJNBJYKYHXV22CL0hRHSNiEjMxOXzzaoKdIEtFRnP0/5AioYQO/C+p9XLUEj/32
+         QIDvJQS4ZST7HmyjlvPzuL1c13/7kLEL4NnEfoEA=
+Date:   Sun, 11 Sep 2022 20:30:13 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        hughd@google.com, david@redhat.com, liushixin2@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-null-ptr-deref-in-kswapd_is_running.patch removed from -mm tree
-Message-Id: <20220912033010.1695AC433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-thp-simplify-has_transparent_hugepage-by-using-is_builtin.patch removed from -mm tree
+Message-Id: <20220912033013.EBF09C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,229 +42,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: fix null-ptr-deref in kswapd_is_running()
+     Subject: mm/thp: simplify has_transparent_hugepage by using IS_BUILTIN
 has been removed from the -mm tree.  Its filename was
-     mm-fix-null-ptr-deref-in-kswapd_is_running.patch
+     mm-thp-simplify-has_transparent_hugepage-by-using-is_builtin.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: fix null-ptr-deref in kswapd_is_running()
-Date: Sat, 27 Aug 2022 19:19:59 +0800
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm/thp: simplify has_transparent_hugepage by using IS_BUILTIN
+Date: Mon, 29 Aug 2022 17:57:09 +0800
 
-kswapd_run/stop() will set pgdat->kswapd to NULL, which could race with
-kswapd_is_running() in kcompactd(),
+Simplify code of has_transparent_hugepage define by using IS_BUILTIN.
 
-kswapd_run/stop()                       kcompactd()
-                                          kswapd_is_running()
-  pgdat->kswapd // error or nomal ptr
-                                          verify pgdat->kswapd
-                                            // load non-NULL
-pgdat->kswapd
-  pgdat->kswapd = NULL
-                                          task_is_running(pgdat->kswapd)
-                                            // Null pointer derefence
+No functional change.
 
-KASAN reports the null-ptr-deref shown below,
-
-  vmscan: Failed to start kswapd on node 0
-  ...
-  BUG: KASAN: null-ptr-deref in kcompactd+0x440/0x504
-  Read of size 8 at addr 0000000000000024 by task kcompactd0/37
-
-  CPU: 0 PID: 37 Comm: kcompactd0 Kdump: loaded Tainted: G           OE     5.10.60 #1
-  Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
-  Call trace:
-   dump_backtrace+0x0/0x394
-   show_stack+0x34/0x4c
-   dump_stack+0x158/0x1e4
-   __kasan_report+0x138/0x140
-   kasan_report+0x44/0xdc
-   __asan_load8+0x94/0xd0
-   kcompactd+0x440/0x504
-   kthread+0x1a4/0x1f0
-   ret_from_fork+0x10/0x18
-
-At present kswapd/kcompactd_run() and kswapd/kcompactd_stop() are protected
-by mem_hotplug_begin/done(), but without kcompactd(). There is no need to
-involve memory hotplug lock in kcompactd(), so let's add a new mutex to
-protect pgdat->kswapd accesses.
-
-Also, because the kcompactd task will check the state of kswapd task, it's
-better to call kcompactd_stop() before kswapd_stop() to reduce lock
-conflicts.
-
-[akpm@linux-foundation.org: add comments]
-Link: https://lkml.kernel.org/r/20220827111959.186838-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20220829095709.3287462-1-liushixin2@huawei.com
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |   20 ++++++++++++++++++++
- include/linux/mmzone.h         |    6 ++++--
- mm/compaction.c                |   14 +++++++++++++-
- mm/memory_hotplug.c            |    2 +-
- mm/page_alloc.c                |    1 +
- mm/vmscan.c                    |   27 ++++++++++++++++-----------
- 6 files changed, 55 insertions(+), 15 deletions(-)
+ include/linux/pgtable.h |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/include/linux/memory_hotplug.h~mm-fix-null-ptr-deref-in-kswapd_is_running
-+++ a/include/linux/memory_hotplug.h
-@@ -215,6 +215,22 @@ void put_online_mems(void);
- void mem_hotplug_begin(void);
- void mem_hotplug_done(void);
+--- a/include/linux/pgtable.h~mm-thp-simplify-has_transparent_hugepage-by-using-is_builtin
++++ a/include/linux/pgtable.h
+@@ -1598,11 +1598,7 @@ typedef unsigned int pgtbl_mod_mask;
+ #endif
  
-+/* See kswapd_is_running() */
-+static inline void pgdat_kswapd_lock(pg_data_t *pgdat)
-+{
-+	mutex_lock(&pgdat->kswapd_lock);
-+}
-+
-+static inline void pgdat_kswapd_unlock(pg_data_t *pgdat)
-+{
-+	mutex_unlock(&pgdat->kswapd_lock);
-+}
-+
-+static inline void pgdat_kswapd_lock_init(pg_data_t *pgdat)
-+{
-+	mutex_init(&pgdat->kswapd_lock);
-+}
-+
- #else /* ! CONFIG_MEMORY_HOTPLUG */
- #define pfn_to_online_page(pfn)			\
- ({						\
-@@ -251,6 +267,10 @@ static inline bool movable_node_is_enabl
- {
- 	return false;
- }
-+
-+static inline void pgdat_kswapd_lock(pg_data_t *pgdat) {}
-+static inline void pgdat_kswapd_unlock(pg_data_t *pgdat) {}
-+static inline void pgdat_kswapd_lock_init(pg_data_t *pgdat) {}
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
+ #ifndef has_transparent_hugepage
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-#define has_transparent_hugepage() 1
+-#else
+-#define has_transparent_hugepage() 0
+-#endif
++#define has_transparent_hugepage() IS_BUILTIN(CONFIG_TRANSPARENT_HUGEPAGE)
+ #endif
  
  /*
---- a/include/linux/mmzone.h~mm-fix-null-ptr-deref-in-kswapd_is_running
-+++ a/include/linux/mmzone.h
-@@ -956,8 +956,10 @@ typedef struct pglist_data {
- 	atomic_t nr_writeback_throttled;/* nr of writeback-throttled tasks */
- 	unsigned long nr_reclaim_start;	/* nr pages written while throttled
- 					 * when throttling started. */
--	struct task_struct *kswapd;	/* Protected by
--					   mem_hotplug_begin/done() */
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+	struct mutex kswapd_lock;
-+#endif
-+	struct task_struct *kswapd;	/* Protected by kswapd_lock */
- 	int kswapd_order;
- 	enum zone_type kswapd_highest_zoneidx;
- 
---- a/mm/compaction.c~mm-fix-null-ptr-deref-in-kswapd_is_running
-+++ a/mm/compaction.c
-@@ -1981,9 +1981,21 @@ static inline bool is_via_compact_memory
- 	return order == -1;
- }
- 
-+/*
-+ * Determine whether kswapd is (or recently was!) running on this node.
-+ *
-+ * pgdat_kswapd_lock() pins pgdat->kswapd, so a concurrent kswapd_stop() can't
-+ * zero it.
-+ */
- static bool kswapd_is_running(pg_data_t *pgdat)
- {
--	return pgdat->kswapd && task_is_running(pgdat->kswapd);
-+	bool running;
-+
-+	pgdat_kswapd_lock(pgdat);
-+	running = pgdat->kswapd && task_is_running(pgdat->kswapd);
-+	pgdat_kswapd_unlock(pgdat);
-+
-+	return running;
- }
- 
- /*
---- a/mm/memory_hotplug.c~mm-fix-null-ptr-deref-in-kswapd_is_running
-+++ a/mm/memory_hotplug.c
-@@ -1940,8 +1940,8 @@ int __ref offline_pages(unsigned long st
- 
- 	node_states_clear_node(node, &arg);
- 	if (arg.status_change_nid >= 0) {
--		kswapd_stop(node);
- 		kcompactd_stop(node);
-+		kswapd_stop(node);
- 	}
- 
- 	writeback_set_ratelimit();
---- a/mm/page_alloc.c~mm-fix-null-ptr-deref-in-kswapd_is_running
-+++ a/mm/page_alloc.c
-@@ -7616,6 +7616,7 @@ static void __meminit pgdat_init_interna
- 	int i;
- 
- 	pgdat_resize_init(pgdat);
-+	pgdat_kswapd_lock_init(pgdat);
- 
- 	pgdat_init_split_queue(pgdat);
- 	pgdat_init_kcompactd(pgdat);
---- a/mm/vmscan.c~mm-fix-null-ptr-deref-in-kswapd_is_running
-+++ a/mm/vmscan.c
-@@ -4643,16 +4643,17 @@ void kswapd_run(int nid)
- {
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 
--	if (pgdat->kswapd)
--		return;
--
--	pgdat->kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
--	if (IS_ERR(pgdat->kswapd)) {
--		/* failure at boot is fatal */
--		BUG_ON(system_state < SYSTEM_RUNNING);
--		pr_err("Failed to start kswapd on node %d\n", nid);
--		pgdat->kswapd = NULL;
-+	pgdat_kswapd_lock(pgdat);
-+	if (!pgdat->kswapd) {
-+		pgdat->kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
-+		if (IS_ERR(pgdat->kswapd)) {
-+			/* failure at boot is fatal */
-+			BUG_ON(system_state < SYSTEM_RUNNING);
-+			pr_err("Failed to start kswapd on node %d\n", nid);
-+			pgdat->kswapd = NULL;
-+		}
- 	}
-+	pgdat_kswapd_unlock(pgdat);
- }
- 
- /*
-@@ -4661,12 +4662,16 @@ void kswapd_run(int nid)
-  */
- void kswapd_stop(int nid)
- {
--	struct task_struct *kswapd = NODE_DATA(nid)->kswapd;
-+	pg_data_t *pgdat = NODE_DATA(nid);
-+	struct task_struct *kswapd;
- 
-+	pgdat_kswapd_lock(pgdat);
-+	kswapd = pgdat->kswapd;
- 	if (kswapd) {
- 		kthread_stop(kswapd);
--		NODE_DATA(nid)->kswapd = NULL;
-+		pgdat->kswapd = NULL;
- 	}
-+	pgdat_kswapd_unlock(pgdat);
- }
- 
- static int __init kswapd_init(void)
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-mm-reuse-pageblock_start-end_pfn-macro.patch
-mm-add-pageblock_align-macro.patch
-mm-add-pageblock_aligned-macro.patch
-memblock-tests-add-new-pageblock-related-macro.patch
-kernel-exit-cleanup-release_thread.patch
+mm-shuffle-convert-module_param_call-to-module_param_cb.patch
+mm-kfence-convert-to-define_seq_attribute.patch
+mm-huge_memory-prevent-thp_zero_page_alloc-increased-twice.patch
 
