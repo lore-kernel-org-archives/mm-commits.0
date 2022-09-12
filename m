@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACE70ECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:30:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CE28C6FA89
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:30:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229629AbiILDac (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:30:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56828 "EHLO
+        id S229593AbiILDae (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:30:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57104 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229593AbiILD26 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:28:58 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21F4C27CF5
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:28:57 -0700 (PDT)
+        with ESMTP id S229732AbiILD3C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:29:02 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04B5627DE7
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:28:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CCF64B80C70
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:28:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70BFCC433B5;
-        Mon, 12 Sep 2022 03:28:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 614176117F
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:28:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B56E2C433B5;
+        Mon, 12 Sep 2022 03:28:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953334;
-        bh=SKEdY0UE/9yjk6OJo/OOxIMZEijx5JZjKB9ZXzZxHvQ=;
+        s=korg; t=1662953336;
+        bh=czFmR0Dsv90n7p9srzgYJdwkxSC8booByYwynrFtpUU=;
         h=Date:To:From:Subject:From;
-        b=GSJmwxpNSrfmxl8LnYcBcLlYuDngxUpEYZ3cCN1VDuyDFYi5n6CaKVaATXM737T4f
-         UDz2tyIMasXJ3vsS1MzEevdxNBkOewyh41evwyanP51ZoSjOiiyEWGAf3CQapYSPBQ
-         A1//ucb0S9GL7f44tNBqt7ljAhM4a/V3UjzbdRxk=
-Date:   Sun, 11 Sep 2022 20:28:53 -0700
+        b=o35I4TCAmfN126UbG0ZxQiX5RuRWCWb3NetG4gnYHhuRwCFwky8RscpKyrwj4VnTz
+         v6x2ShvKA4ZMrg03tM2o19aO8s3RRAiyHI3nxX53sKO+YKuPlIqjVz02WKSUr6i+d0
+         dXdX5y+aP5EixcCDhvBfT28jSFCxnfPyQUM//Lec=
+Date:   Sun, 11 Sep 2022 20:28:56 -0700
 To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
         almasrymina@google.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb_cgroup-remove-unneeded-nr_pages-0-check.patch removed from -mm tree
-Message-Id: <20220912032854.70BFCC433B5@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb_cgroup-remove-unneeded-return-value.patch removed from -mm tree
+Message-Id: <20220912032856.B56E2C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,52 +42,91 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlb_cgroup: remove unneeded nr_pages > 0 check
+     Subject: hugetlb_cgroup: remove unneeded return value
 has been removed from the -mm tree.  Its filename was
-     hugetlb_cgroup-remove-unneeded-nr_pages-0-check.patch
+     hugetlb_cgroup-remove-unneeded-return-value.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlb_cgroup: remove unneeded nr_pages > 0 check
-Date: Fri, 29 Jul 2022 16:01:02 +0800
+Subject: hugetlb_cgroup: remove unneeded return value
+Date: Fri, 29 Jul 2022 16:01:04 +0800
 
-Patch series "A few cleanup patches for hugetlb_cgroup", v2.
+The return value of set_hugetlb_cgroup and set_hugetlb_cgroup_rsvd are
+always ignored. Remove them to clean up the code.
 
-This series contains a few cleaup patches to remove unneeded check, use
-helper macro, remove unneeded return value and so on.  More details can be
-found in the respective changelogs.
-
-
-This patch (of 5):
-
-When code reaches here, nr_pages must be > 0. Remove unneeded nr_pages > 0
-check to simplify the code.
-
-Link: https://lkml.kernel.org/r/20220729080106.12752-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220729080106.12752-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220729080106.12752-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mina Almasry <almasrymina@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/hugetlb_cgroup.h |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-remove-unneeded-nr_pages-0-check
-+++ a/mm/hugetlb_cgroup.c
-@@ -442,7 +442,7 @@ void hugetlb_cgroup_uncharge_file_region
- 	if (hugetlb_cgroup_disabled() || !resv || !rg || !nr_pages)
- 		return;
+--- a/include/linux/hugetlb_cgroup.h~hugetlb_cgroup-remove-unneeded-return-value
++++ a/include/linux/hugetlb_cgroup.h
+@@ -90,32 +90,31 @@ hugetlb_cgroup_from_page_rsvd(struct pag
+ 	return __hugetlb_cgroup_from_page(page, true);
+ }
  
--	if (rg->reservation_counter && resv->pages_per_hpage && nr_pages > 0 &&
-+	if (rg->reservation_counter && resv->pages_per_hpage &&
- 	    !resv->reservation_counter) {
- 		page_counter_uncharge(rg->reservation_counter,
- 				      nr_pages * resv->pages_per_hpage);
+-static inline int __set_hugetlb_cgroup(struct page *page,
++static inline void __set_hugetlb_cgroup(struct page *page,
+ 				       struct hugetlb_cgroup *h_cg, bool rsvd)
+ {
+ 	VM_BUG_ON_PAGE(!PageHuge(page), page);
+ 
+ 	if (compound_order(page) < HUGETLB_CGROUP_MIN_ORDER)
+-		return -1;
++		return;
+ 	if (rsvd)
+ 		set_page_private(page + SUBPAGE_INDEX_CGROUP_RSVD,
+ 				 (unsigned long)h_cg);
+ 	else
+ 		set_page_private(page + SUBPAGE_INDEX_CGROUP,
+ 				 (unsigned long)h_cg);
+-	return 0;
+ }
+ 
+-static inline int set_hugetlb_cgroup(struct page *page,
++static inline void set_hugetlb_cgroup(struct page *page,
+ 				     struct hugetlb_cgroup *h_cg)
+ {
+-	return __set_hugetlb_cgroup(page, h_cg, false);
++	__set_hugetlb_cgroup(page, h_cg, false);
+ }
+ 
+-static inline int set_hugetlb_cgroup_rsvd(struct page *page,
++static inline void set_hugetlb_cgroup_rsvd(struct page *page,
+ 					  struct hugetlb_cgroup *h_cg)
+ {
+-	return __set_hugetlb_cgroup(page, h_cg, true);
++	__set_hugetlb_cgroup(page, h_cg, true);
+ }
+ 
+ static inline bool hugetlb_cgroup_disabled(void)
+@@ -199,16 +198,14 @@ hugetlb_cgroup_from_page_rsvd(struct pag
+ 	return NULL;
+ }
+ 
+-static inline int set_hugetlb_cgroup(struct page *page,
++static inline void set_hugetlb_cgroup(struct page *page,
+ 				     struct hugetlb_cgroup *h_cg)
+ {
+-	return 0;
+ }
+ 
+-static inline int set_hugetlb_cgroup_rsvd(struct page *page,
++static inline void set_hugetlb_cgroup_rsvd(struct page *page,
+ 					  struct hugetlb_cgroup *h_cg)
+ {
+-	return 0;
+ }
+ 
+ static inline bool hugetlb_cgroup_disabled(void)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
