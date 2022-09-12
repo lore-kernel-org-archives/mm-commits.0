@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C663ECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:31:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DBFFC6FA89
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:31:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229836AbiILDbR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:31:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57460 "EHLO
+        id S229543AbiILDbT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:31:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229700AbiILD31 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:29:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6011B286FF
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:06 -0700 (PDT)
+        with ESMTP id S229498AbiILD3a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:29:30 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F161A28702
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 403436116E
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 960F0C433D6;
-        Mon, 12 Sep 2022 03:29:05 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 99BD4B80C76
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 389F8C433D6;
+        Mon, 12 Sep 2022 03:29:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953345;
-        bh=GQrKi9HyawiN964q/XANH65mvqXhniDbeeX0Vo6Co9Y=;
+        s=korg; t=1662953349;
+        bh=nqWBRHB7tFF54mE1QvuGNMqQuLESgxscP+Y0rLTyV18=;
         h=Date:To:From:Subject:From;
-        b=o0maeDWkH4OX6WapMCTxS5PyLy1vL8moXPc3pxHklcumqfqI9iH4CvUo9u9mmDHAN
-         W7AnRQOxQIw+NDQKYXCHH528giBRksWIcdrxjrqV8iKeMM+zDhBUQc5J/U93GddBNF
-         TRhCPa2Lpj56gkduXtc2vukosJD1ecKsQfu7r4Tw=
-Date:   Sun, 11 Sep 2022 20:29:04 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
-        zhongjiang-ali@linux.alibaba.com, weixugc@google.com,
-        shy828301@gmail.com, shakeelb@google.com, riel@surriel.com,
-        peterz@infradead.org, osalvador@suse.de, mhocko@suse.com,
-        mgorman@techsingularity.net, hannes@cmpxchg.org,
-        dave.hansen@linux.intel.com, baolin.wang@linux.alibaba.com,
-        ying.huang@intel.com, akpm@linux-foundation.org
+        b=OqGzcHmyguXEBVIQCjYR/dyCZ6GXY2iXWQbqhkWFkuIC3CVREOZ09MlTJGf8fUq46
+         YBG8+emeUms0lp6/K+j9zDtpxozUG920HTITKTofNMBi1G0qKh7WfSQSbFSwH1329j
+         VNPCrx/xW4bBarW2n+yFLEtn6JLPWO1byug9m7yM=
+Date:   Sun, 11 Sep 2022 20:29:08 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-tiering-rate-limit-numa-migration-throughput.patch removed from -mm tree
-Message-Id: <20220912032905.960F0C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch removed from -mm tree
+Message-Id: <20220912032909.389F8C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,219 +42,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memory tiering: rate limit NUMA migration throughput
+     Subject: mm/hugetlb: fix WARN_ON(!kobj) in sysfs_create_group()
 has been removed from the -mm tree.  Its filename was
-     memory-tiering-rate-limit-numa-migration-throughput.patch
+     mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: memory tiering: rate limit NUMA migration throughput
-Date: Wed, 13 Jul 2022 16:39:52 +0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/hugetlb: fix WARN_ON(!kobj) in sysfs_create_group()
+Date: Tue, 16 Aug 2022 21:05:49 +0800
 
-In NUMA balancing memory tiering mode, if there are hot pages in slow
-memory node and cold pages in fast memory node, we need to promote/demote
-hot/cold pages between the fast and cold memory nodes.
+If sysfs_create_group() fails with hstate_attr_group, hstate_kobjs[hi]
+will be set to NULL.  Then it will be passed to sysfs_create_group() if
+h->demote_order != 0 thus triggering WARN_ON(!kobj) check.  Fix this by
+making sure hstate_kobjs[hi] != NULL when calling sysfs_create_group.
 
-A choice is to promote/demote as fast as possible.  But the CPU cycles and
-memory bandwidth consumed by the high promoting/demoting throughput will
-hurt the latency of some workload because of accessing inflating and slow
-memory bandwidth contention.
-
-A way to resolve this issue is to restrict the max promoting/demoting
-throughput.  It will take longer to finish the promoting/demoting.  But
-the workload latency will be better.  This is implemented in this patch as
-the page promotion rate limit mechanism.
-
-The number of the candidate pages to be promoted to the fast memory node
-via NUMA balancing is counted, if the count exceeds the limit specified by
-the users, the NUMA balancing promotion will be stopped until the next
-second.
-
-A new sysctl knob kernel.numa_balancing_promote_rate_limit_MBps is added
-for the users to specify the limit.
-
-Link: https://lkml.kernel.org/r/20220713083954.34196-3-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: osalvador <osalvador@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zhong Jiang <zhongjiang-ali@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20220816130553.31406-3-linmiaohe@huawei.com
+Fixes: 79dfc695525f ("hugetlb: add demote hugetlb page sysfs interfaces")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |   11 ++++++
- include/linux/mmzone.h                      |    7 +++
- include/linux/sched/sysctl.h                |    1 
- kernel/sched/fair.c                         |   33 ++++++++++++++++--
- kernel/sysctl.c                             |    8 ++++
- mm/vmstat.c                                 |    1 
- 6 files changed, 59 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~memory-tiering-rate-limit-numa-migration-throughput
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -635,6 +635,17 @@ different types of memory (represented a
- place the hot pages in the fast memory.  This is implemented based on
- unmapping and page fault too.
- 
-+numa_balancing_promote_rate_limit_MBps
-+======================================
-+
-+Too high promotion/demotion throughput between different memory types
-+may hurt application latency.  This can be used to rate limit the
-+promotion throughput.  The per-node max promotion throughput in MB/s
-+will be limited to be no more than the set value.
-+
-+A rule of thumb is to set this to less than 1/10 of the PMEM node
-+write bandwidth.
-+
- oops_all_cpu_backtrace
- ======================
- 
---- a/include/linux/mmzone.h~memory-tiering-rate-limit-numa-migration-throughput
-+++ a/include/linux/mmzone.h
-@@ -221,6 +221,7 @@ enum node_stat_item {
- #endif
- #ifdef CONFIG_NUMA_BALANCING
- 	PGPROMOTE_SUCCESS,	/* promote successfully */
-+	PGPROMOTE_CANDIDATE,	/* candidate pages to promote */
- #endif
- 	NR_VM_NODE_STAT_ITEMS
- };
-@@ -998,6 +999,12 @@ typedef struct pglist_data {
- 	struct deferred_split deferred_split_queue;
- #endif
- 
-+#ifdef CONFIG_NUMA_BALANCING
-+	/* start time in ms of current promote rate limit period */
-+	unsigned int nbp_rl_start;
-+	/* number of promote candidate pages at start time of current rate limit period */
-+	unsigned long nbp_rl_nr_cand;
-+#endif
- 	/* Fields commonly accessed by the page reclaim scanner */
- 
- 	/*
---- a/include/linux/sched/sysctl.h~memory-tiering-rate-limit-numa-migration-throughput
-+++ a/include/linux/sched/sysctl.h
-@@ -27,6 +27,7 @@ enum sched_tunable_scaling {
- 
- #ifdef CONFIG_NUMA_BALANCING
- extern int sysctl_numa_balancing_mode;
-+extern unsigned int sysctl_numa_balancing_promote_rate_limit;
- #else
- #define sysctl_numa_balancing_mode	0
- #endif
---- a/kernel/sched/fair.c~memory-tiering-rate-limit-numa-migration-throughput
-+++ a/kernel/sched/fair.c
-@@ -1097,6 +1097,9 @@ unsigned int sysctl_numa_balancing_scan_
- /* The page with hint page fault latency < threshold in ms is considered hot */
- unsigned int sysctl_numa_balancing_hot_threshold = MSEC_PER_SEC;
- 
-+/* Restrict the NUMA promotion throughput (MB/s) for each target node. */
-+unsigned int sysctl_numa_balancing_promote_rate_limit = 65536;
-+
- struct numa_group {
- 	refcount_t refcount;
- 
-@@ -1501,6 +1504,29 @@ static int numa_hint_fault_latency(struc
- 	return (time - last_time) & PAGE_ACCESS_TIME_MASK;
- }
- 
-+/*
-+ * For memory tiering mode, too high promotion/demotion throughput may
-+ * hurt application latency.  So we provide a mechanism to rate limit
-+ * the number of pages that are tried to be promoted.
-+ */
-+static bool numa_promotion_rate_limit(struct pglist_data *pgdat,
-+				      unsigned long rate_limit, int nr)
-+{
-+	unsigned long nr_cand;
-+	unsigned int now, start;
-+
-+	now = jiffies_to_msecs(jiffies);
-+	mod_node_page_state(pgdat, PGPROMOTE_CANDIDATE, nr);
-+	nr_cand = node_page_state(pgdat, PGPROMOTE_CANDIDATE);
-+	start = pgdat->nbp_rl_start;
-+	if (now - start > MSEC_PER_SEC &&
-+	    cmpxchg(&pgdat->nbp_rl_start, start, now) == start)
-+		pgdat->nbp_rl_nr_cand = nr_cand;
-+	if (nr_cand - pgdat->nbp_rl_nr_cand >= rate_limit)
-+		return true;
-+	return false;
-+}
-+
- bool should_numa_migrate_memory(struct task_struct *p, struct page * page,
- 				int src_nid, int dst_cpu)
- {
-@@ -1515,7 +1541,7 @@ bool should_numa_migrate_memory(struct t
- 	if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING &&
- 	    !node_is_toptier(src_nid)) {
- 		struct pglist_data *pgdat;
--		unsigned long latency, th;
-+		unsigned long rate_limit, latency, th;
- 
- 		pgdat = NODE_DATA(dst_nid);
- 		if (pgdat_free_space_enough(pgdat))
-@@ -1526,7 +1552,10 @@ bool should_numa_migrate_memory(struct t
- 		if (latency >= th)
- 			return false;
- 
--		return true;
-+		rate_limit = sysctl_numa_balancing_promote_rate_limit << \
-+			(20 - PAGE_SHIFT);
-+		return !numa_promotion_rate_limit(pgdat, rate_limit,
-+						  thp_nr_pages(page));
+--- a/mm/hugetlb.c~mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group
++++ a/mm/hugetlb.c
+@@ -3846,6 +3846,7 @@ static int hugetlb_sysfs_add_hstate(stru
+ 	if (retval) {
+ 		kobject_put(hstate_kobjs[hi]);
+ 		hstate_kobjs[hi] = NULL;
++		return retval;
  	}
  
- 	this_cpupid = cpu_pid_to_cpupid(dst_cpu, current->pid);
---- a/kernel/sysctl.c~memory-tiering-rate-limit-numa-migration-throughput
-+++ a/kernel/sysctl.c
-@@ -1641,6 +1641,14 @@ static struct ctl_table kern_table[] = {
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_FOUR,
- 	},
-+	{
-+		.procname	= "numa_balancing_promote_rate_limit_MBps",
-+		.data		= &sysctl_numa_balancing_promote_rate_limit,
-+		.maxlen		= sizeof(unsigned int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+	},
- #endif /* CONFIG_NUMA_BALANCING */
- 	{
- 		.procname	= "panic",
---- a/mm/vmstat.c~memory-tiering-rate-limit-numa-migration-throughput
-+++ a/mm/vmstat.c
-@@ -1252,6 +1252,7 @@ const char * const vmstat_text[] = {
- #endif
- #ifdef CONFIG_NUMA_BALANCING
- 	"pgpromote_success",
-+	"pgpromote_candidate",
- #endif
- 
- 	/* enum writeback_stat_item counters */
+ 	if (h->demote_order) {
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-migrate-fix-syscall-move_pages-return-value-for-failure.patch
-migrate_pages-remove-unnecessary-list_safe_reset_next.patch
-migrate_pages-fix-thp-failure-counting-for-enomem.patch
-migrate_pages-fix-failure-counting-for-thp-subpages-retrying.patch
-migrate_pages-fix-failure-counting-for-thp-on-enosys.patch
-migrate_pages-fix-failure-counting-for-thp-splitting.patch
-migrate_pages-fix-failure-counting-for-retry.patch
+mm-hwpoison-use-clearpagehwpoison-in-memory_failure.patch
+mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages.patch
+mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch
+mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
+mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings.patch
+mm-hwpoison-cleanup-some-obsolete-comments.patch
+writeback-remove-unused-macro-dirty_full_scope.patch
 
