@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0929CC54EE9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9DADC6FA89
 	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:28:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229636AbiILD25 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:28:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56650 "EHLO
+        id S229662AbiILD26 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:28:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229662AbiILD2b (ORCPT
+        with ESMTP id S229665AbiILD2b (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:28:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 580EF26AFE
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A423427150
         for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:28:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CE2286116F
+        by ams.source.kernel.org (Postfix) with ESMTPS id 13BCEB80C6D
         for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:28:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C024C433D6;
-        Mon, 12 Sep 2022 03:28:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D9E2C433B5;
+        Mon, 12 Sep 2022 03:28:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953308;
-        bh=Lx1SWfw4JIu0vW2nwSD8h0hgnh2Ia8h72UiEKPDjgk8=;
+        s=korg; t=1662953306;
+        bh=YubiFVJqBJRAdUoPbj2qg941Km8I6rXlLnG0kmbEzPY=;
         h=Date:To:From:Subject:From;
-        b=pKm/yxFrBY+AYaDM34rpe8A59JhanH8vFAb7L4eBb18RsZzLJGWx4EIGvdgLMrJor
-         Ys/4tLrnwKG91xo47eP45PA4+uI1meyXWOw81eG1/KZJnh1FAyZ/E+lQlkzXWigQAS
-         8iNOcpSUDpFT9G/hxRaoZU6pGQlY3xdUEt/NZUJk=
-Date:   Sun, 11 Sep 2022 20:28:27 -0700
+        b=XEB+Ed4MFgj/r1wLG25epGVVbEMHh4EWrQHbEf3OTZBgfBzZwQSdA+k0a/4/GrUxd
+         gW48+gS4vUvw5hJKhyPsdY78Mo8TMzqCxGeGS2w0duh+eN3lfrX7jmBr0FwGiAIsju
+         y/OoITVxrHI1md0Lble74H348yQVDxhfMKWKAqjg=
+Date:   Sun, 11 Sep 2022 20:28:25 -0700
 To:     mm-commits@vger.kernel.org, yi.zhang@huawei.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, surenb@google.com,
         skhan@linuxfoundation.org, shuah@kernel.org, rppt@linux.ibm.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, yi.zhang@huawei.com,
         glebfm@altlinux.org, dave.hansen@linux.intel.com, corbet@lwn.net,
         axelrasmussen@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control.patch removed from -mm tree
-Message-Id: <20220912032828.2C024C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-add-hugetlb_shared-userfaultfd-test-to-run_vmtestssh.patch removed from -mm tree
+Message-Id: <20220912032826.9D9E2C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,58 +47,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: userfaultfd: add /dev/userfaultfd for fine grained access control
+     Subject: selftests: vm: add hugetlb_shared userfaultfd test to run_vmtests.sh
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control.patch
+     selftests-vm-add-hugetlb_shared-userfaultfd-test-to-run_vmtestssh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd: add /dev/userfaultfd for fine grained access control
-Date: Mon, 8 Aug 2022 10:56:11 -0700
+Subject: selftests: vm: add hugetlb_shared userfaultfd test to run_vmtests.sh
+Date: Mon, 8 Aug 2022 10:56:10 -0700
 
-Historically, it has been shown that intercepting kernel faults with
-userfaultfd (thereby forcing the kernel to wait for an arbitrary amount of
-time) can be exploited, or at least can make some kinds of exploits
-easier.  So, in 37cd0575b8 "userfaultfd: add UFFD_USER_MODE_ONLY" we
-changed things so, in order for kernel faults to be handled by
-userfaultfd, either the process needs CAP_SYS_PTRACE, or this sysctl must
-be configured so that any unprivileged user can do it.
+Patch series "userfaultfd: add /dev/userfaultfd for fine grained access
+control", v7.
 
-In a typical implementation of a hypervisor with live migration (take
-QEMU/KVM as one such example), we do indeed need to be able to handle
-kernel faults.  But, both options above are less than ideal:
+Why not ...?
+============
 
-- Toggling the sysctl increases attack surface by allowing any
-  unprivileged user to do it.
+- Why not /proc/[pid]/userfaultfd? Two main points (additional discussion [1]):
 
-- Granting the live migration process CAP_SYS_PTRACE gives it this
-  ability, but *also* the ability to "observe and control the
-  execution of another process [...], and examine and change [its]
-  memory and registers" (from ptrace(2)). This isn't something we need
-  or want to be able to do, so granting this permission violates the
-  "principle of least privilege".
+    - /proc/[pid]/* files are all owned by the user/group of the process, and
+      they don't really support chmod/chown. So, without extending procfs it
+      doesn't solve the problem this series is trying to solve.
 
-This is all a long winded way to say: we want a more fine-grained way to
-grant access to userfaultfd, without granting other additional permissions
-at the same time.
+    - The main argument *for* this was to support creating UFFDs for remote
+      processes. But, that use case clearly calls for CAP_SYS_PTRACE, so to
+      support this we could just use the UFFD syscall as-is.
 
-To achieve this, add a /dev/userfaultfd misc device.  This device provides
-an alternative to the userfaultfd(2) syscall for the creation of new
-userfaultfds.  The idea is, any userfaultfds created this way will be able
-to handle kernel faults, without the caller having any special
-capabilities.  Access to this mechanism is instead restricted using e.g. 
-standard filesystem permissions.
+- Why not use a syscall? Access to syscalls is generally controlled by
+  capabilities. We don't have a capability which is used for userfaultfd access
+  without also granting more / other permissions as well, and adding a new
+  capability was rejected [2].
 
-[axelrasmussen@google.com: Handle misc_register() failure properly]
-  Link: https://lkml.kernel.org/r/20220819205201.658693-3-axelrasmussen@google.com
-Link: https://lkml.kernel.org/r/20220808175614.3885028-3-axelrasmussen@google.com
+    - It's possible a LSM could be used to control access instead, but I have
+      some concerns. I don't think this approach would be as easy to use,
+      particularly if we were to try to solve this with something heavyweight
+      like SELinux. Maybe we could pursue adding a new LSM specifically for
+      this user case, but it may be too narrow of a case to justify that.
+
+[1]: https://patchwork.kernel.org/project/linux-mm/cover/20220719195628.3415852-1-axelrasmussen@google.com/
+[2]: https://lore.kernel.org/lkml/686276b9-4530-2045-6bd8-170e5943abe4@schaufler-ca.com/T/
+
+
+This patch (of 5):
+
+This not being included was just a simple oversight.  There are certain
+features (like minor fault support) which are only enabled on shared
+mappings, so without including hugetlb_shared we actually lose a
+significant amount of test coverage.
+
+Link: https://lkml.kernel.org/r/20220808175614.3885028-1-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20220808175614.3885028-2-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Acked-by: Nadav Amit <namit@vmware.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dmitry V. Levin <ldv@altlinux.org>
@@ -108,140 +111,35 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nadav Amit <namit@vmware.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zhang Yi <yi.zhang@huawei.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c                 |   71 ++++++++++++++++++++++-------
- include/uapi/linux/userfaultfd.h |    4 +
- 2 files changed, 59 insertions(+), 16 deletions(-)
+ tools/testing/selftests/vm/run_vmtests.sh |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/fs/userfaultfd.c~userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control
-+++ a/fs/userfaultfd.c
-@@ -30,6 +30,7 @@
- #include <linux/security.h>
- #include <linux/hugetlb.h>
- #include <linux/swapops.h>
-+#include <linux/miscdevice.h>
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-hugetlb_shared-userfaultfd-test-to-run_vmtestssh
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -121,9 +121,11 @@ run_test ./gup_test -a
+ run_test ./gup_test -ct -F 0x1 0 19 0x1000
  
- int sysctl_unprivileged_userfaultfd __read_mostly;
+ run_test ./userfaultfd anon 20 16
+-# Test requires source and destination huge pages.  Size of source
+-# (half_ufd_size_MB) is passed as argument to test.
++# Hugetlb tests require source and destination huge pages. Pass in half the
++# size ($half_ufd_size_MB), which is used for *each*.
+ run_test ./userfaultfd hugetlb "$half_ufd_size_MB" 32
++run_test ./userfaultfd hugetlb_shared "$half_ufd_size_MB" 32 "$mnt"/uffd-test
++rm -f "$mnt"/uffd-test
+ run_test ./userfaultfd shmem 20 16
  
-@@ -415,13 +416,8 @@ vm_fault_t handle_userfault(struct vm_fa
- 
- 	if (ctx->features & UFFD_FEATURE_SIGBUS)
- 		goto out;
--	if ((vmf->flags & FAULT_FLAG_USER) == 0 &&
--	    ctx->flags & UFFD_USER_MODE_ONLY) {
--		printk_once(KERN_WARNING "uffd: Set unprivileged_userfaultfd "
--			"sysctl knob to 1 if kernel faults must be handled "
--			"without obtaining CAP_SYS_PTRACE capability\n");
-+	if (!(vmf->flags & FAULT_FLAG_USER) && (ctx->flags & UFFD_USER_MODE_ONLY))
- 		goto out;
--	}
- 
- 	/*
- 	 * If it's already released don't get it. This avoids to loop
-@@ -2056,20 +2052,11 @@ static void init_once_userfaultfd_ctx(vo
- 	seqcount_spinlock_init(&ctx->refile_seq, &ctx->fault_pending_wqh.lock);
- }
- 
--SYSCALL_DEFINE1(userfaultfd, int, flags)
-+static int new_userfaultfd(int flags)
- {
- 	struct userfaultfd_ctx *ctx;
- 	int fd;
- 
--	if (!sysctl_unprivileged_userfaultfd &&
--	    (flags & UFFD_USER_MODE_ONLY) == 0 &&
--	    !capable(CAP_SYS_PTRACE)) {
--		printk_once(KERN_WARNING "uffd: Set unprivileged_userfaultfd "
--			"sysctl knob to 1 if kernel faults must be handled "
--			"without obtaining CAP_SYS_PTRACE capability\n");
--		return -EPERM;
--	}
--
- 	BUG_ON(!current->mm);
- 
- 	/* Check the UFFD_* constants for consistency.  */
-@@ -2102,8 +2089,60 @@ SYSCALL_DEFINE1(userfaultfd, int, flags)
- 	return fd;
- }
- 
-+static inline bool userfaultfd_syscall_allowed(int flags)
-+{
-+	/* Userspace-only page faults are always allowed */
-+	if (flags & UFFD_USER_MODE_ONLY)
-+		return true;
-+
-+	/*
-+	 * The user is requesting a userfaultfd which can handle kernel faults.
-+	 * Privileged users are always allowed to do this.
-+	 */
-+	if (capable(CAP_SYS_PTRACE))
-+		return true;
-+
-+	/* Otherwise, access to kernel fault handling is sysctl controlled. */
-+	return sysctl_unprivileged_userfaultfd;
-+}
-+
-+SYSCALL_DEFINE1(userfaultfd, int, flags)
-+{
-+	if (!userfaultfd_syscall_allowed(flags))
-+		return -EPERM;
-+
-+	return new_userfaultfd(flags);
-+}
-+
-+static long userfaultfd_dev_ioctl(struct file *file, unsigned int cmd, unsigned long flags)
-+{
-+	if (cmd != USERFAULTFD_IOC_NEW)
-+		return -EINVAL;
-+
-+	return new_userfaultfd(flags);
-+}
-+
-+static const struct file_operations userfaultfd_dev_fops = {
-+	.unlocked_ioctl = userfaultfd_dev_ioctl,
-+	.compat_ioctl = userfaultfd_dev_ioctl,
-+	.owner = THIS_MODULE,
-+	.llseek = noop_llseek,
-+};
-+
-+static struct miscdevice userfaultfd_misc = {
-+	.minor = MISC_DYNAMIC_MINOR,
-+	.name = "userfaultfd",
-+	.fops = &userfaultfd_dev_fops
-+};
-+
- static int __init userfaultfd_init(void)
- {
-+	int ret;
-+
-+	ret = misc_register(&userfaultfd_misc);
-+	if (ret)
-+		return ret;
-+
- 	userfaultfd_ctx_cachep = kmem_cache_create("userfaultfd_ctx_cache",
- 						sizeof(struct userfaultfd_ctx),
- 						0,
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -12,6 +12,10 @@
- 
- #include <linux/types.h>
- 
-+/* ioctls for /dev/userfaultfd */
-+#define USERFAULTFD_IOC 0xAA
-+#define USERFAULTFD_IOC_NEW _IO(USERFAULTFD_IOC, 0x00)
-+
- /*
-  * If the UFFDIO_API is upgraded someday, the UFFDIO_UNREGISTER and
-  * UFFDIO_WAKE ioctls should be defined as _IOW and not as _IOR.  In
+ #cleanup
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
