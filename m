@@ -2,42 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4655C54EE9
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:33:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C94CECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:33:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229521AbiILDdc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:33:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59054 "EHLO
+        id S229622AbiILDdj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:33:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229529AbiILDb6 (ORCPT
+        with ESMTP id S229533AbiILDb6 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:31:58 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5417A1570F
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3C6D15822
         for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 89641CE0E79
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51130C433C1;
-        Mon, 12 Sep 2022 03:29:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D6C696116D
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DDE5C433D7;
+        Mon, 12 Sep 2022 03:29:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953387;
-        bh=I8C0I3Xe5oZI9cGLmdgWm2iQKD7g3iKVyTomJ5mApIg=;
+        s=korg; t=1662953391;
+        bh=aLZY8cS+UzhORTxiUBB2tbCwkKbF21DViCcEg4v3j4A=;
         h=Date:To:From:Subject:From;
-        b=DQXiwMuK786e1xQs5ZuNaKxbDENuUleswJHn1JBKbcb6tp0XtQIUZajwkmrBaij1l
-         tYmiM8ZhNWdPmaBJmT0kFtKPbijO9l3+u7r/YvYNSXFhFmLNW4eXtzPqC2trxBDGbV
-         JZfXqRGW4yH3IRiKlOkRP76YoYA2WM0OYh2zbVis=
-Date:   Sun, 11 Sep 2022 20:29:46 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        syoshida@redhat.com, songmuchun@bytedance.com,
-        rcampbell@nvidia.com, logang@deltatee.com, linmiaohe@huawei.com,
-        jhubbard@nvidia.com, jgg@nvidia.com, felix.kuehling@amd.com,
-        david@redhat.com, dan.j.williams@intel.com, alex.sierra@amd.com,
-        apopple@nvidia.com, akpm@linux-foundation.org
+        b=byZv20oLP59of4eCt6v9qyKC1apNJOIR3BX3II4QsGjp3a1C9YmQYVFggNny0tWFN
+         LmRAMUWUI+tVF9bi4Xk9+W5bP1ElRqa/E9JujBTVT3ZGYKGzr5Yii2GEWNNaKALbH/
+         OJArMPmx4jT9+eTBu4iD92eoYtigKFlHIhMtyLL8=
+Date:   Sun, 11 Sep 2022 20:29:50 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        soheil@google.com, roman.gushchin@linux.dev, oliver.sang@intel.com,
+        mkoutny@suse.com, mhocko@suse.com, hannes@cmpxchg.org,
+        feng.tang@intel.com, edumazet@google.com, shakeelb@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gupc-refactor-check_and_migrate_movable_pages.patch removed from -mm tree
-Message-Id: <20220912032947.51130C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_counter-remove-unneeded-atomic-ops-for-low-min.patch removed from -mm tree
+Message-Id: <20220912032951.3DDE5C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,294 +44,145 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup.c: refactor check_and_migrate_movable_pages()
+     Subject: mm: page_counter: remove unneeded atomic ops for low/min
 has been removed from the -mm tree.  Its filename was
-     mm-gupc-refactor-check_and_migrate_movable_pages.patch
+     mm-page_counter-remove-unneeded-atomic-ops-for-low-min.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/gup.c: refactor check_and_migrate_movable_pages()
-Date: Wed, 24 Aug 2022 15:09:52 +1000
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: page_counter: remove unneeded atomic ops for low/min
+Date: Thu, 25 Aug 2022 00:05:04 +0000
 
-When pinning pages with FOLL_LONGTERM check_and_migrate_movable_pages() is
-called to migrate pages out of zones which should not contain any longterm
-pinned pages.
+Patch series "memcg: optimize charge codepath", v2.
 
-When migration succeeds all pages will have been unpinned so pinning needs
-to be retried.  Migration can also fail, in which case the pages will also
-have been unpinned but the operation should not be retried.  If all pages
-are in the correct zone nothing will be unpinned and no retry is required.
+Recently Linux networking stack has moved from a very old per socket
+pre-charge caching to per-cpu caching to avoid pre-charge fragmentation
+and unwarranted OOMs.  One impact of this change is that for network
+traffic workloads, memcg charging codepath can become a bottleneck.  The
+kernel test robot has also reported this regression[1].  This patch series
+tries to improve the memcg charging for such workloads.
 
-The logic in check_and_migrate_movable_pages() tracks unnecessary state
-and the return codes for each case are difficult to follow.  Refactor the
-code to clean this up.  No behaviour change is intended.
+This patch series implement three optimizations:
+(A) Reduce atomic ops in page counter update path.
+(B) Change layout of struct page_counter to eliminate false sharing
+    between usage and high.
+(C) Increase the memcg charge batch to 64.
 
-[akpm@linux-foundation.org: fix unused var warning]
-Link: https://lkml.kernel.org/r/19583d1df07fdcb99cfa05c265588a3fa58d1902.1661317396.git-series.apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Alex Sierra <alex.sierra@amd.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Felix Kuehling <felix.kuehling@amd.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+To evaluate the impact of these optimizations, on a 72 CPUs machine, we
+ran the following workload in root memcg and then compared with scenario
+where the workload is run in a three level of cgroup hierarchy with top
+level having min and low setup appropriately.
+
+ $ netserver -6
+ # 36 instances of netperf with following params
+ $ netperf -6 -H ::1 -l 60 -t TCP_SENDFILE -- -m 10K
+
+Results (average throughput of netperf):
+1. root memcg		21694.8 Mbps
+2. 6.0-rc1		10482.7 Mbps (-51.6%)
+3. 6.0-rc1 + (A)	14542.5 Mbps (-32.9%)
+4. 6.0-rc1 + (B)	12413.7 Mbps (-42.7%)
+5. 6.0-rc1 + (C)	17063.7 Mbps (-21.3%)
+6. 6.0-rc1 + (A+B+C)	20120.3 Mbps (-7.2%)
+
+With all three optimizations, the memcg overhead of this workload has
+been reduced from 51.6% to just 7.2%.
+
+[1] https://lore.kernel.org/linux-mm/20220619150456.GB34471@xsang-OptiPlex-9020/
+
+
+This patch (of 3):
+
+For cgroups using low or min protections, the function
+propagate_protected_usage() was doing an atomic xchg() operation
+irrespectively.  We can optimize out this atomic operation for one
+specific scenario where the workload is using the protection (i.e.  min >
+0) and the usage is above the protection (i.e.  usage > min).
+
+This scenario is actually very common where the users want a part of their
+workload to be protected against the external reclaim.  Though this
+optimization does introduce a race when the usage is around the protection
+and concurrent charges and uncharged trip it over or under the protection.
+In such cases, we might see lower effective protection but the subsequent
+charge/uncharge will correct it.
+
+To evaluate the impact of this optimization, on a 72 CPUs machine, we ran
+the following workload in a three level of cgroup hierarchy with top level
+having min and low setup appropriately to see if this optimization is
+effective for the mentioned case.
+
+ $ netserver -6
+ # 36 instances of netperf with following params
+ $ netperf -6 -H ::1 -l 60 -t TCP_SENDFILE -- -m 10K
+
+Results (average throughput of netperf):
+Without (6.0-rc1)	10482.7 Mbps
+With patch		14542.5 Mbps (38.7% improvement)
+
+With the patch, the throughput improved by 38.7%
+
+Link: https://lkml.kernel.org/r/20220825000506.239406-1-shakeelb@google.com
+Link: https://lkml.kernel.org/r/20220825000506.239406-2-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Acked-by: Soheil Hassas Yeganeh <soheil@google.com>
+Reviewed-by: Feng Tang <feng.tang@intel.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Michal Koutný" <mkoutny@suse.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Shigeru Yoshida <syoshida@redhat.com>
+Cc: Oliver Sang <oliver.sang@intel.com>
+Cc: Soheil Hassas Yeganeh <soheil@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  179 ++++++++++++++++++++++++++++++++---------------------
- 1 file changed, 111 insertions(+), 68 deletions(-)
+ mm/page_counter.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/mm/gup.c~mm-gupc-refactor-check_and_migrate_movable_pages
-+++ a/mm/gup.c
-@@ -1927,19 +1927,16 @@ struct page *get_dump_page(unsigned long
- 
- #ifdef CONFIG_MIGRATION
- /*
-- * Check whether all pages are pinnable. If some pages are not pinnable migrate
-- * them and unpin all the pages. Returns -EAGAIN if pages were unpinned or zero
-- * if all pages are pinnable and in the right zone. Other errors indicate
-- * migration failure.
-+ * Returns the number of collected pages. Return value is always >= 0.
-  */
--static long check_and_migrate_movable_pages(unsigned long nr_pages,
--					    struct page **pages)
-+static unsigned long collect_longterm_unpinnable_pages(
-+					struct list_head *movable_page_list,
-+					unsigned long nr_pages,
-+					struct page **pages)
+--- a/mm/page_counter.c~mm-page_counter-remove-unneeded-atomic-ops-for-low-min
++++ a/mm/page_counter.c
+@@ -17,24 +17,23 @@ static void propagate_protected_usage(st
+ 				      unsigned long usage)
  {
--	unsigned long i;
-+	unsigned long i, collected = 0;
- 	struct folio *prev_folio = NULL;
--	LIST_HEAD(movable_page_list);
--	bool drain_allow = true, coherent_pages = false;
--	int ret = 0;
-+	bool drain_allow = true;
+ 	unsigned long protected, old_protected;
+-	unsigned long low, min;
+ 	long delta;
  
- 	for (i = 0; i < nr_pages; i++) {
- 		struct folio *folio = page_folio(pages[i]);
-@@ -1948,43 +1945,16 @@ static long check_and_migrate_movable_pa
- 			continue;
- 		prev_folio = folio;
+ 	if (!c->parent)
+ 		return;
  
--		/*
--		 * Device coherent pages are managed by a driver and should not
--		 * be pinned indefinitely as it prevents the driver moving the
--		 * page. So when trying to pin with FOLL_LONGTERM instead try
--		 * to migrate the page out of device memory.
--		 */
--		if (folio_is_device_coherent(folio)) {
--			/*
--			 * We always want a new GUP lookup with device coherent
--			 * pages.
--			 */
--			pages[i] = 0;
--			coherent_pages = true;
-+		if (folio_is_longterm_pinnable(folio))
-+			continue;
- 
--			/*
--			 * Migration will fail if the page is pinned, so convert
--			 * the pin on the source page to a normal reference.
--			 */
--			get_page(&folio->page);
--			unpin_user_page(&folio->page);
-+		collected++;
- 
--			if (migrate_device_coherent_page(&folio->page)) {
--				ret = -EBUSY;
--				break;
--			}
-+		if (folio_is_device_coherent(folio))
- 			continue;
--		}
- 
--		if (folio_is_longterm_pinnable(folio))
--			continue;
--		/*
--		 * Try to move out any movable page before pinning the range.
--		 */
- 		if (folio_test_hugetlb(folio)) {
--			if (isolate_hugetlb(&folio->page,
--						&movable_page_list))
--				ret = -EBUSY;
-+			isolate_hugetlb(&folio->page, movable_page_list);
- 			continue;
- 		}
- 
-@@ -1993,53 +1963,118 @@ static long check_and_migrate_movable_pa
- 			drain_allow = false;
- 		}
- 
--		if (folio_isolate_lru(folio)) {
--			ret = -EBUSY;
-+		if (!folio_isolate_lru(folio))
- 			continue;
--		}
--		list_add_tail(&folio->lru, &movable_page_list);
-+
-+		list_add_tail(&folio->lru, movable_page_list);
- 		node_stat_mod_folio(folio,
- 				    NR_ISOLATED_ANON + folio_is_file_lru(folio),
- 				    folio_nr_pages(folio));
+-	min = READ_ONCE(c->min);
+-	if (min || atomic_long_read(&c->min_usage)) {
+-		protected = min(usage, min);
++	protected = min(usage, READ_ONCE(c->min));
++	old_protected = atomic_long_read(&c->min_usage);
++	if (protected != old_protected) {
+ 		old_protected = atomic_long_xchg(&c->min_usage, protected);
+ 		delta = protected - old_protected;
+ 		if (delta)
+ 			atomic_long_add(delta, &c->parent->children_min_usage);
  	}
  
--	/*
--	 * If list is empty, and no isolation errors, means that all pages are
--	 * in the correct zone. If there were device coherent pages some pages
--	 * have been unpinned.
--	 */
--	if (list_empty(&movable_page_list) && !ret && !coherent_pages)
--		return 0;
-+	return collected;
-+}
-+
-+/*
-+ * Unpins all pages and migrates device coherent pages and movable_page_list.
-+ * Returns -EAGAIN if all pages were successfully migrated or -errno for failure
-+ * (or partial success).
-+ */
-+static int migrate_longterm_unpinnable_pages(
-+					struct list_head *movable_page_list,
-+					unsigned long nr_pages,
-+					struct page **pages)
-+{
-+	int ret;
-+	unsigned long i;
- 
--	/*
--	 * Unpin all pages. If device coherent pages were found
--	 * migrate_device_coherent_page() will have dropped the pin and set
--	 * pages[i] == NULL.
--	 */
- 	for (i = 0; i < nr_pages; i++) {
--		if (!pages[i])
-+		struct folio *folio = page_folio(pages[i]);
-+
-+		if (folio_is_device_coherent(folio)) {
-+			/*
-+			 * Migration will fail if the page is pinned, so convert
-+			 * the pin on the source page to a normal reference.
-+			 */
-+			pages[i] = NULL;
-+			folio_get(folio);
-+			gup_put_folio(folio, 1, FOLL_PIN);
-+
-+			if (migrate_device_coherent_page(&folio->page)) {
-+				ret = -EBUSY;
-+				goto err;
-+			}
-+
- 			continue;
-+		}
- 
-+		/*
-+		 * We can't migrate pages with unexpected references, so drop
-+		 * the reference obtained by __get_user_pages_locked().
-+		 * Migrating pages have been added to movable_page_list after
-+		 * calling folio_isolate_lru() which takes a reference so the
-+		 * page won't be freed if it's migrating.
-+		 */
- 		unpin_user_page(pages[i]);
-+		pages[i] = NULL;
- 	}
- 
--	if (!list_empty(&movable_page_list)) {
-+	if (!list_empty(movable_page_list)) {
- 		struct migration_target_control mtc = {
- 			.nid = NUMA_NO_NODE,
- 			.gfp_mask = GFP_USER | __GFP_NOWARN,
- 		};
- 
--		ret = migrate_pages(&movable_page_list, alloc_migration_target,
--				    NULL, (unsigned long)&mtc, MIGRATE_SYNC,
--				    MR_LONGTERM_PIN, NULL);
--		if (ret > 0) /* number of pages not migrated */
-+		if (migrate_pages(movable_page_list, alloc_migration_target,
-+				  NULL, (unsigned long)&mtc, MIGRATE_SYNC,
-+				  MR_LONGTERM_PIN, NULL)) {
- 			ret = -ENOMEM;
-+			goto err;
-+		}
- 	}
- 
--	if (ret && !list_empty(&movable_page_list))
--		putback_movable_pages(&movable_page_list);
-+	putback_movable_pages(movable_page_list);
-+
-+	return -EAGAIN;
-+
-+err:
-+	for (i = 0; i < nr_pages; i++)
-+		if (pages[i])
-+			unpin_user_page(pages[i]);
-+	putback_movable_pages(movable_page_list);
- 
--	return ret ? ret : -EAGAIN;
-+	return ret;
-+}
-+
-+/*
-+ * Check whether all pages are *allowed* to be pinned. Rather confusingly, all
-+ * pages in the range are required to be pinned via FOLL_PIN, before calling
-+ * this routine.
-+ *
-+ * If any pages in the range are not allowed to be pinned, then this routine
-+ * will migrate those pages away, unpin all the pages in the range and return
-+ * -EAGAIN. The caller should re-pin the entire range with FOLL_PIN and then
-+ * call this routine again.
-+ *
-+ * If an error other than -EAGAIN occurs, this indicates a migration failure.
-+ * The caller should give up, and propagate the error back up the call stack.
-+ *
-+ * If everything is OK and all pages in the range are allowed to be pinned, then
-+ * this routine leaves all pages pinned and returns zero for success.
-+ */
-+static long check_and_migrate_movable_pages(unsigned long nr_pages,
-+					    struct page **pages)
-+{
-+	unsigned long collected;
-+	LIST_HEAD(movable_page_list);
-+
-+	collected = collect_longterm_unpinnable_pages(&movable_page_list,
-+						nr_pages, pages);
-+	if (!collected)
-+		return 0;
-+
-+	return migrate_longterm_unpinnable_pages(&movable_page_list, nr_pages,
-+						pages);
- }
- #else
- static long check_and_migrate_movable_pages(unsigned long nr_pages,
-@@ -2066,7 +2101,15 @@ static long __gup_longterm_locked(struct
- 	if (!(gup_flags & FOLL_LONGTERM))
- 		return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
- 					       NULL, gup_flags);
--	/* check_and_migrate_movable_pages() assumes pages have been pinned. */
-+
-+	/*
-+	 * If we get to this point then FOLL_LONGTERM is set, and FOLL_LONGTERM
-+	 * implies FOLL_PIN (although the reverse is not true). Therefore it is
-+	 * correct to unconditionally call check_and_migrate_movable_pages()
-+	 * which assumes pages have been pinned via FOLL_PIN.
-+	 *
-+	 * Enforce the above reasoning by asserting that FOLL_PIN is set.
-+	 */
- 	if (WARN_ON(!(gup_flags & FOLL_PIN)))
- 		return -EINVAL;
- 	flags = memalloc_pin_save();
+-	low = READ_ONCE(c->low);
+-	if (low || atomic_long_read(&c->low_usage)) {
+-		protected = min(usage, low);
++	protected = min(usage, READ_ONCE(c->low));
++	old_protected = atomic_long_read(&c->low_usage);
++	if (protected != old_protected) {
+ 		old_protected = atomic_long_xchg(&c->low_usage, protected);
+ 		delta = protected - old_protected;
+ 		if (delta)
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-selftests-hmm-tests-add-test-for-dirty-bits.patch
+mm-deduplicate-cacheline-padding-code.patch
+memcg-extract-memcg_vmstats-from-struct-mem_cgroup.patch
+memcg-rearrange-code.patch
+memcg-reduce-size-of-memcg-vmstats-structures.patch
 
