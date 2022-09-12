@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AC3CECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:33:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 596DEECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229566AbiILDdm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:33:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59266 "EHLO
+        id S229677AbiILDdo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:33:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229582AbiILDcD (ORCPT
+        with ESMTP id S229583AbiILDcD (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:32:03 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 486A618E17
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:55 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5690B192B6
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DD061B80C74
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7ECF7C433D6;
-        Mon, 12 Sep 2022 03:29:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 193B7B8085E
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3C0FC433D7;
+        Mon, 12 Sep 2022 03:29:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953392;
-        bh=E4rDgOuNbGLcGry1j7+Ray/SIwMtIdoX0lX4ZkVTuRc=;
+        s=korg; t=1662953393;
+        bh=5PXdVq/nsqIZwobKzVhU8dGFspxZE23LEr/+Tvqe1UM=;
         h=Date:To:From:Subject:From;
-        b=xiJBrKJ30vwXZfP/QRlid9xLffh2LdlP4ZQQvIILprNpGY3ZUMlyzqrRZ/A2V7UMX
-         xyInwi2U48rbBP4LijEW2WD/ijORs30EKK4D7BJ8f2CoH4L5okfN7Cu2ygBcJ71PxK
-         I0wPQnhXFosRrGx56rU2eqhdOrQ0ijpjILchEeLc=
-Date:   Sun, 11 Sep 2022 20:29:51 -0700
+        b=UEUCsFvfbrQXoENyvWg2T6bu0Gb2PXHcYb/tL7dvP/UhdKCjpSRSUu2l1YAGil9xc
+         8DYtP7nUw3WjolzGCOq5Ovs9Of12Q9A1BxlvQOBlNnfuk0OxCKnrrje5m9cqaP2SPa
+         wfK8Jl+NmDeOpr1IQpteLTY5qKjXZWfohta3MQuE=
+Date:   Sun, 11 Sep 2022 20:29:53 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         soheil@google.com, roman.gushchin@linux.dev, oliver.sang@intel.com,
         mkoutny@suse.com, mhocko@suse.com, hannes@cmpxchg.org,
         feng.tang@intel.com, edumazet@google.com, shakeelb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_counter-rearrange-struct-page_counter-fields.patch removed from -mm tree
-Message-Id: <20220912032952.7ECF7C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-increase-memcg_charge_batch-to-64.patch removed from -mm tree
+Message-Id: <20220912032953.B3C0FC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,122 +44,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_counter: rearrange struct page_counter fields
+     Subject: memcg: increase MEMCG_CHARGE_BATCH to 64
 has been removed from the -mm tree.  Its filename was
-     mm-page_counter-rearrange-struct-page_counter-fields.patch
+     memcg-increase-memcg_charge_batch-to-64.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: page_counter: rearrange struct page_counter fields
-Date: Thu, 25 Aug 2022 00:05:05 +0000
+Subject: memcg: increase MEMCG_CHARGE_BATCH to 64
+Date: Thu, 25 Aug 2022 00:05:06 +0000
 
-With memcg v2 enabled, memcg->memory.usage is a very hot member for the
-workloads doing memcg charging on multiple CPUs concurrently. 
-Particularly the network intensive workloads.  In addition, there is a
-false cache sharing between memory.usage and memory.high on the charge
-path.  This patch moves the usage into a separate cacheline and move all
-the read most fields into separate cacheline.
+For several years, MEMCG_CHARGE_BATCH was kept at 32 but with bigger
+machines and the network intensive workloads requiring througput in Gbps,
+32 is too small and makes the memcg charging path a bottleneck.  For now,
+increase it to 64 for easy acceptance to 6.0.  We will need to revisit
+this in future for ever increasing demand of higher performance.
 
-To evaluate the impact of this optimization, on a 72 CPUs machine, we ran
-the following workload in a three level of cgroup hierarchy.
+Please note that the memcg charge path drain the per-cpu memcg charge
+stock, so there should not be any oom behavior change.  Though it does
+have impact on rstat flushing and high limit reclaim backoff.
+
+To evaluate the impact of this optimization, on a 72 CPUs machine, we
+ran the following workload in a three level of cgroup hierarchy.
 
  $ netserver -6
  # 36 instances of netperf with following params
  $ netperf -6 -H ::1 -l 60 -t TCP_SENDFILE -- -m 10K
 
 Results (average throughput of netperf):
-Without (6.0-rc1)	10482.7 Mbps
-With patch		12413.7 Mbps (18.4% improvement)
+Without (6.0-rc1)       10482.7 Mbps
+With patch              17064.7 Mbps (62.7% improvement)
 
-With the patch, the throughput improved by 18.4%.
+With the patch, the throughput improved by 62.7%.
 
-One side-effect of this patch is the increase in the size of struct
-mem_cgroup.  For example with this patch on 64 bit build, the size of
-struct mem_cgroup increased from 4032 bytes to 4416 bytes.  However for
-the performance improvement, this additional size is worth it.  In
-addition there are opportunities to reduce the size of struct mem_cgroup
-like deprecation of kmem and tcpmem page counters and better packing.
-
-Link: https://lkml.kernel.org/r/20220825000506.239406-3-shakeelb@google.com
+Link: https://lkml.kernel.org/r/20220825000506.239406-4-shakeelb@google.com
 Signed-off-by: Shakeel Butt <shakeelb@google.com>
 Reported-by: kernel test robot <oliver.sang@intel.com>
-Reviewed-by: Feng Tang <feng.tang@intel.com>
 Acked-by: Soheil Hassas Yeganeh <soheil@google.com>
+Reviewed-by: Feng Tang <feng.tang@intel.com>
 Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "Michal Koutný" <mkoutny@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_counter.h |   35 +++++++++++++++++++++------------
- 1 file changed, 23 insertions(+), 12 deletions(-)
+ include/linux/memcontrol.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/page_counter.h~mm-page_counter-rearrange-struct-page_counter-fields
-+++ a/include/linux/page_counter.h
-@@ -3,15 +3,26 @@
- #define _LINUX_PAGE_COUNTER_H
+--- a/include/linux/memcontrol.h~memcg-increase-memcg_charge_batch-to-64
++++ a/include/linux/memcontrol.h
+@@ -354,10 +354,11 @@ struct mem_cgroup {
+ };
  
- #include <linux/atomic.h>
-+#include <linux/cache.h>
- #include <linux/kernel.h>
- #include <asm/page.h>
+ /*
+- * size of first charge trial. "32" comes from vmscan.c's magic value.
+- * TODO: maybe necessary to use big numbers in big irons.
++ * size of first charge trial.
++ * TODO: maybe necessary to use big numbers in big irons or dynamic based of the
++ * workload.
+  */
+-#define MEMCG_CHARGE_BATCH 32U
++#define MEMCG_CHARGE_BATCH 64U
  
-+#if defined(CONFIG_SMP)
-+struct pc_padding {
-+	char x[0];
-+} ____cacheline_internodealigned_in_smp;
-+#define PC_PADDING(name)	struct pc_padding name
-+#else
-+#define PC_PADDING(name)
-+#endif
-+
- struct page_counter {
-+	/*
-+	 * Make sure 'usage' does not share cacheline with any other field. The
-+	 * memcg->memory.usage is a hot member of struct mem_cgroup.
-+	 */
- 	atomic_long_t usage;
--	unsigned long min;
--	unsigned long low;
--	unsigned long high;
--	unsigned long max;
-+	PC_PADDING(_pad1_);
+ extern struct mem_cgroup *root_mem_cgroup;
  
- 	/* effective memory.min and memory.min usage tracking */
- 	unsigned long emin;
-@@ -23,18 +34,18 @@ struct page_counter {
- 	atomic_long_t low_usage;
- 	atomic_long_t children_low_usage;
- 
--	/* legacy */
- 	unsigned long watermark;
- 	unsigned long failcnt;
- 
--	/*
--	 * 'parent' is placed here to be far from 'usage' to reduce
--	 * cache false sharing, as 'usage' is written mostly while
--	 * parent is frequently read for cgroup's hierarchical
--	 * counting nature.
--	 */
-+	/* Keep all the read most fields in a separete cacheline. */
-+	PC_PADDING(_pad2_);
-+
-+	unsigned long min;
-+	unsigned long low;
-+	unsigned long high;
-+	unsigned long max;
- 	struct page_counter *parent;
--};
-+} ____cacheline_internodealigned_in_smp;
- 
- #if BITS_PER_LONG == 32
- #define PAGE_COUNTER_MAX LONG_MAX
 _
 
 Patches currently in -mm which might be from shakeelb@google.com are
