@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57988C6FA8A
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:31:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB04AC54EE9
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:31:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229514AbiILDbU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:31:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57594 "EHLO
+        id S229759AbiILDbS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:31:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56542 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229607AbiILD3a (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:29:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE75D28707
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:12 -0700 (PDT)
+        with ESMTP id S229758AbiILD32 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:29:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 016B428701
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A5A68B80C7B
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BBB7C433B5;
-        Mon, 12 Sep 2022 03:29:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 932216116E
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E823FC433D6;
+        Mon, 12 Sep 2022 03:29:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953350;
-        bh=LRBe8YQZKBSmvVHubE/hypk0YXFaj3+drytfaGUgebw=;
+        s=korg; t=1662953347;
+        bh=dcDis4smMBZHMrv7FsBohtVNx5aUeGBxuSK4re8Wu0M=;
         h=Date:To:From:Subject:From;
-        b=Jz/n6JhrPANN8RgcNS/OQ3i7fHymidPHexFiwaxk2Ov2+IDzmUiqsBLRB+T6Ay/cN
-         iRndoZj9bzH2nCcoAPrMNk3HP1V8wILEaQFpMT27EYucADsoQDyX6tS3TAXn90NHlj
-         BmqnwuWfO1FYzT/08kidQZ+CbYMAWcjxJEymb9/8=
-Date:   Sun, 11 Sep 2022 20:29:09 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=b+9K0NLYbRf8oo4+Yh0mJh0ByNFxhTOhuNtELFtBerggURg/UmoUaafyMvBh2wC9L
+         T8koEW9jSDqjKL64miAXI/kAoH4Ot1+h1js96cFoBK7tuxn8DqXVgFGt+QhHK4TfdX
+         Fb6VKTwUHt3ccdpbCdOStLq2dMcyJ8wtEcyst0HA=
+Date:   Sun, 11 Sep 2022 20:29:06 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
+        zhongjiang-ali@linux.alibaba.com, weixugc@google.com,
+        shy828301@gmail.com, shakeelb@google.com, riel@surriel.com,
+        peterz@infradead.org, osalvador@suse.de, mhocko@suse.com,
+        mgorman@techsingularity.net, hannes@cmpxchg.org,
+        dave.hansen@linux.intel.com, baolin.wang@linux.alibaba.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch removed from -mm tree
-Message-Id: <20220912032910.5BBB7C433B5@smtp.kernel.org>
+Subject: [merged mm-stable] memory-tiering-adjust-hot-threshold-automatically.patch removed from -mm tree
+Message-Id: <20220912032906.E823FC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,72 +46,191 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix missing call to restore_reserve_on_error()
+     Subject: memory tiering: adjust hot threshold automatically
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch
+     memory-tiering-adjust-hot-threshold-automatically.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix missing call to restore_reserve_on_error()
-Date: Tue, 16 Aug 2022 21:05:50 +0800
+From: Huang Ying <ying.huang@intel.com>
+Subject: memory tiering: adjust hot threshold automatically
+Date: Wed, 13 Jul 2022 16:39:53 +0800
 
-When huge_add_to_page_cache() fails, the page is freed directly without
-calling restore_reserve_on_error() to restore reserve for newly allocated
-pages not in page cache.  Fix this by calling restore_reserve_on_error()
-when huge_add_to_page_cache fails.
+The promotion hot threshold is workload and system configuration
+dependent.  So in this patch, a method to adjust the hot threshold
+automatically is implemented.  The basic idea is to control the number of
+the candidate promotion pages to match the promotion rate limit.  If the
+hint page fault latency of a page is less than the hot threshold, we will
+try to promote the page, and the page is called the candidate promotion
+page.
 
-[linmiaohe@huawei.com: remove err == -EEXIST check and retry logic]
-  Link: https://lkml.kernel.org/r/20220823030209.57434-4-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220816130553.31406-4-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+If the number of the candidate promotion pages in the statistics interval
+is much more than the promotion rate limit, the hot threshold will be
+decreased to reduce the number of the candidate promotion pages. 
+Otherwise, the hot threshold will be increased to increase the number of
+the candidate promotion pages.
+
+To make the above method works, in each statistics interval, the total
+number of the pages to check (on which the hint page faults occur) and the
+hot/cold distribution need to be stable.  Because the page tables are
+scanned linearly in NUMA balancing, but the hot/cold distribution isn't
+uniform along the address usually, the statistics interval should be
+larger than the NUMA balancing scan period.  So in the patch, the max scan
+period is used as statistics interval and it works well in our tests.
+
+Link: https://lkml.kernel.org/r/20220713083954.34196-4-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: osalvador <osalvador@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zhong Jiang <zhongjiang-ali@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    9 +++++++
+ kernel/sched/core.c    |   14 +++++++++++
+ kernel/sched/fair.c    |   46 ++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 64 insertions(+), 5 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-missing-call-to-restore_reserve_on_error
-+++ a/mm/hugetlb.c
-@@ -5563,7 +5563,6 @@ static vm_fault_t hugetlb_no_page(struct
- 	if (idx >= size)
- 		goto out;
+--- a/include/linux/mmzone.h~memory-tiering-adjust-hot-threshold-automatically
++++ a/include/linux/mmzone.h
+@@ -1004,6 +1004,15 @@ typedef struct pglist_data {
+ 	unsigned int nbp_rl_start;
+ 	/* number of promote candidate pages at start time of current rate limit period */
+ 	unsigned long nbp_rl_nr_cand;
++	/* promote threshold in ms */
++	unsigned int nbp_threshold;
++	/* start time in ms of current promote threshold adjustment period */
++	unsigned int nbp_th_start;
++	/*
++	 * number of promote candidate pages at stat time of current promote
++	 * threshold adjustment period
++	 */
++	unsigned long nbp_th_nr_cand;
+ #endif
+ 	/* Fields commonly accessed by the page reclaim scanner */
  
--retry:
- 	new_page = false;
- 	page = find_lock_page(mapping, idx);
- 	if (!page) {
-@@ -5603,9 +5602,15 @@ retry:
- 		if (vma->vm_flags & VM_MAYSHARE) {
- 			int err = huge_add_to_page_cache(page, mapping, idx);
- 			if (err) {
-+				/*
-+				 * err can't be -EEXIST which implies someone
-+				 * else consumed the reservation since hugetlb
-+				 * fault mutex is held when add a hugetlb page
-+				 * to the page cache. So it's safe to call
-+				 * restore_reserve_on_error() here.
-+				 */
-+				restore_reserve_on_error(h, vma, haddr, page);
- 				put_page(page);
--				if (err == -EEXIST)
--					goto retry;
- 				goto out;
- 			}
- 			new_pagecache_page = true;
+--- a/kernel/sched/core.c~memory-tiering-adjust-hot-threshold-automatically
++++ a/kernel/sched/core.c
+@@ -4396,6 +4396,17 @@ void set_numabalancing_state(bool enable
+ }
+ 
+ #ifdef CONFIG_PROC_SYSCTL
++static void reset_memory_tiering(void)
++{
++	struct pglist_data *pgdat;
++
++	for_each_online_pgdat(pgdat) {
++		pgdat->nbp_threshold = 0;
++		pgdat->nbp_th_nr_cand = node_page_state(pgdat, PGPROMOTE_CANDIDATE);
++		pgdat->nbp_th_start = jiffies_to_msecs(jiffies);
++	}
++}
++
+ int sysctl_numa_balancing(struct ctl_table *table, int write,
+ 			  void *buffer, size_t *lenp, loff_t *ppos)
+ {
+@@ -4412,6 +4423,9 @@ int sysctl_numa_balancing(struct ctl_tab
+ 	if (err < 0)
+ 		return err;
+ 	if (write) {
++		if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING) &&
++		    (state & NUMA_BALANCING_MEMORY_TIERING))
++			reset_memory_tiering();
+ 		sysctl_numa_balancing_mode = state;
+ 		__set_numabalancing_state(state);
+ 	}
+--- a/kernel/sched/fair.c~memory-tiering-adjust-hot-threshold-automatically
++++ a/kernel/sched/fair.c
+@@ -1527,6 +1527,35 @@ static bool numa_promotion_rate_limit(st
+ 	return false;
+ }
+ 
++#define NUMA_MIGRATION_ADJUST_STEPS	16
++
++static void numa_promotion_adjust_threshold(struct pglist_data *pgdat,
++					    unsigned long rate_limit,
++					    unsigned int ref_th)
++{
++	unsigned int now, start, th_period, unit_th, th;
++	unsigned long nr_cand, ref_cand, diff_cand;
++
++	now = jiffies_to_msecs(jiffies);
++	th_period = sysctl_numa_balancing_scan_period_max;
++	start = pgdat->nbp_th_start;
++	if (now - start > th_period &&
++	    cmpxchg(&pgdat->nbp_th_start, start, now) == start) {
++		ref_cand = rate_limit *
++			sysctl_numa_balancing_scan_period_max / MSEC_PER_SEC;
++		nr_cand = node_page_state(pgdat, PGPROMOTE_CANDIDATE);
++		diff_cand = nr_cand - pgdat->nbp_th_nr_cand;
++		unit_th = ref_th * 2 / NUMA_MIGRATION_ADJUST_STEPS;
++		th = pgdat->nbp_threshold ? : ref_th;
++		if (diff_cand > ref_cand * 11 / 10)
++			th = max(th - unit_th, unit_th);
++		else if (diff_cand < ref_cand * 9 / 10)
++			th = min(th + unit_th, ref_th * 2);
++		pgdat->nbp_th_nr_cand = nr_cand;
++		pgdat->nbp_threshold = th;
++	}
++}
++
+ bool should_numa_migrate_memory(struct task_struct *p, struct page * page,
+ 				int src_nid, int dst_cpu)
+ {
+@@ -1541,19 +1570,26 @@ bool should_numa_migrate_memory(struct t
+ 	if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING &&
+ 	    !node_is_toptier(src_nid)) {
+ 		struct pglist_data *pgdat;
+-		unsigned long rate_limit, latency, th;
++		unsigned long rate_limit;
++		unsigned int latency, th, def_th;
+ 
+ 		pgdat = NODE_DATA(dst_nid);
+-		if (pgdat_free_space_enough(pgdat))
++		if (pgdat_free_space_enough(pgdat)) {
++			/* workload changed, reset hot threshold */
++			pgdat->nbp_threshold = 0;
+ 			return true;
++		}
+ 
+-		th = sysctl_numa_balancing_hot_threshold;
++		def_th = sysctl_numa_balancing_hot_threshold;
++		rate_limit = sysctl_numa_balancing_promote_rate_limit << \
++			(20 - PAGE_SHIFT);
++		numa_promotion_adjust_threshold(pgdat, rate_limit, def_th);
++
++		th = pgdat->nbp_threshold ? : def_th;
+ 		latency = numa_hint_fault_latency(page);
+ 		if (latency >= th)
+ 			return false;
+ 
+-		rate_limit = sysctl_numa_balancing_promote_rate_limit << \
+-			(20 - PAGE_SHIFT);
+ 		return !numa_promotion_rate_limit(pgdat, rate_limit,
+ 						  thp_nr_pages(page));
+ 	}
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-hwpoison-use-clearpagehwpoison-in-memory_failure.patch
-mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages.patch
-mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch
-mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
-mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings.patch
-mm-hwpoison-cleanup-some-obsolete-comments.patch
-writeback-remove-unused-macro-dirty_full_scope.patch
+migrate-fix-syscall-move_pages-return-value-for-failure.patch
+migrate_pages-remove-unnecessary-list_safe_reset_next.patch
+migrate_pages-fix-thp-failure-counting-for-enomem.patch
+migrate_pages-fix-failure-counting-for-thp-subpages-retrying.patch
+migrate_pages-fix-failure-counting-for-thp-on-enosys.patch
+migrate_pages-fix-failure-counting-for-thp-splitting.patch
+migrate_pages-fix-failure-counting-for-retry.patch
 
