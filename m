@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAFBEECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 00:39:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D0BECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 00:40:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229543AbiILAjk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 20:39:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50500 "EHLO
+        id S229552AbiILAkQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 20:40:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51984 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229510AbiILAjk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 20:39:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B50E163A2
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 17:39:38 -0700 (PDT)
+        with ESMTP id S229510AbiILAkP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 20:40:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B558D140F9
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 17:40:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 510D76114D
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 00:39:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6B11C433C1;
-        Mon, 12 Sep 2022 00:39:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4FC536114D
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 00:40:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1D1BC433C1;
+        Mon, 12 Sep 2022 00:40:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662943177;
-        bh=4lGiiDoJUm4mTKx8/po6ABK7aZPEt9ZHV1Pngx7dWbs=;
+        s=korg; t=1662943213;
+        bh=7Hs0lDjIKnRekMab4mLOsUn+9dafHoUJwm+yQvXXfAA=;
         h=Date:To:From:Subject:From;
-        b=o6UqNdxmd2wNoJDx8FbT+nsOJjqo5Q1FelvVKeEEkbDWf5MD7ILYZ9CLI+lcZ6cHf
-         drYY9Gbdf2jlr3GFdHg4gCyDx+I6qr/wROc5S5EnEqukdBz9IhzNmWQRbRhmfJ7NsT
-         HFIhUBCh0EJnjeHeVxqYoOBAXwmx2UKoknC0C/oU=
-Date:   Sun, 11 Sep 2022 17:39:36 -0700
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
-        lukas.bulwahn@gmail.com, akpm@linux-foundation.org
+        b=omnyHyiT56F0XafskX+Jau8oAF9w/XJa+lzO6W8myH//SgMDgsNroJjrqvDYwaJJ7
+         bjClG0xDcPL1mqPYmPyjRGrM9DBRCisiLF/AbQ6/3IcbE2PckyZDJ3bqUm92Ze5xDS
+         g8SDoSJc3PohFT0UN28jMVcQ7886pu20+kf0pZW8=
+Date:   Sun, 11 Sep 2022 17:40:12 -0700
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        ngupta@vflare.org, minchan@kernel.org, avromanov@sberdevices.ru,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugetlb-make-detecting-shared-pte-more-reliable-fix.patch removed from -mm tree
-Message-Id: <20220912003937.A6B11C433C1@smtp.kernel.org>
+Subject: [folded-merged] zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch removed from -mm tree
+Message-Id: <20220912004013.A1D1BC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,66 +42,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: remove unused local variable dst_entry in copy_hugetlb_page_range()
+     Subject: zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-make-detecting-shared-pte-more-reliable-fix.patch
+     zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-hugetlb-make-detecting-shared-pte-more-reliable.patch
+This patch was dropped because it was folded into zsmalloc-zs_object_copy-replace-email-link-to-doc.patch
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: mm/hugetlb: remove unused local variable dst_entry in copy_hugetlb_page_range()
-Date: Mon, 22 Aug 2022 10:25:25 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes
+Date: Wed Aug 17 10:42:29 AM PDT 2022
 
-Commit a0e4f7b82610 ("mm/hugetlb: make detecting shared pte more
-reliable") modifies copy_hugetlb_page_range() such that
-huge_ptep_get(dst_pte) and the local variable dst_entry is not used
-explicitly in this function.
 
-Remove this unused local variable dst_entry in copy_hugetlb_page_range().
-No functional change.
+ERROR: code indent should use tabs where possible
+#26: FILE: mm/zsmalloc.c:1562:
++         * kunmap_atomic(d_addr). For more details see$
 
-Link: https://lkml.kernel.org/r/20220822082525.26071-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+ERROR: code indent should use tabs where possible
+#27: FILE: mm/zsmalloc.c:1563:
++         * Documentation/mm/highmem$
+
+total: 2 errors, 0 warnings, 10 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/zsmalloc-zs_object_copy-replace-email-link-to-doc.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alexey Romanov <avromanov@sberdevices.ru>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/zsmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-make-detecting-shared-pte-more-reliable-fix
-+++ a/mm/hugetlb.c
-@@ -4750,7 +4750,7 @@ int copy_hugetlb_page_range(struct mm_st
- 			    struct vm_area_struct *dst_vma,
- 			    struct vm_area_struct *src_vma)
- {
--	pte_t *src_pte, *dst_pte, entry, dst_entry;
-+	pte_t *src_pte, *dst_pte, entry;
- 	struct page *ptepage;
- 	unsigned long addr;
- 	bool cow = is_cow_mapping(src_vma->vm_flags);
-@@ -4810,7 +4810,6 @@ int copy_hugetlb_page_range(struct mm_st
- 		src_ptl = huge_pte_lockptr(h, src, src_pte);
- 		spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
- 		entry = huge_ptep_get(src_pte);
--		dst_entry = huge_ptep_get(dst_pte);
- again:
- 		if (huge_pte_none(entry)) {
- 			/*
-@@ -4893,7 +4892,7 @@ again:
- 					restore_reserve_on_error(h, dst_vma, addr,
- 								new);
- 					put_page(new);
--					/* dst_entry won't change as in child */
-+					/* huge_ptep of dst_pte won't change as in child */
- 					goto again;
- 				}
- 				hugetlb_install_page(dst_vma, dst_pte, addr, new);
+--- a/mm/zsmalloc.c~zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes
++++ a/mm/zsmalloc.c
+@@ -1559,8 +1559,8 @@ static void zs_object_copy(struct size_c
+ 		 * Calling kunmap_atomic(d_addr) is necessary. kunmap_atomic()
+ 		 * calls must occurs in reverse order of calls to kmap_atomic().
+ 		 * So, to call kunmap_atomic(s_addr) we should first call
+-         * kunmap_atomic(d_addr). For more details see
+-         * Documentation/mm/highmem
++		 * kunmap_atomic(d_addr). For more details see
++		 * Documentation/mm/highmem.
+ 		 */
+ 		if (s_off >= PAGE_SIZE) {
+ 			kunmap_atomic(d_addr);
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-make-detecting-shared-pte-more-reliable.patch
-proc-make-config-proc_children-depend-on-proc_fs.patch
+zsmalloc-zs_object_copy-replace-email-link-to-doc.patch
+zsmalloc-zs_object_copy-replace-email-link-to-doc-fix.patch
+mm-gupc-refactor-check_and_migrate_movable_pages-fix.patch
+page_ext-introduce-boot-parameter-early_page_ext-fix.patch
+mm-fix-null-ptr-deref-in-kswapd_is_running-fix.patch
+mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
+mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
+mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
+mm-drop-oom-code-from-exit_mmap-fix-fix.patch
+mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
+mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
+mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree.patch
+mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree-fix.patch
+mm-vmscan-fix-a-lot-of-comments-vs-mglru.patch
+swap-add-swap_cache_get_folio-fix.patch
+memcg-reduce-size-of-memcg-vmstats-structures-fix.patch
+mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme-fix.patch
+ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
+fs-uninline-inode_maybe_inc_iversion.patch
 
