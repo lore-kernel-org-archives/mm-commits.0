@@ -2,49 +2,49 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46C8FECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:28:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C157ECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:28:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229588AbiILD2D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229510AbiILD2D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 11 Sep 2022 23:28:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56280 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229510AbiILD2B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:28:01 -0400
+        with ESMTP id S229584AbiILD2C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:28:02 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4406D1CFC9
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:27:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 137BB1C93F
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:28:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1A180B80C63
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:27:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BE87C433D7;
-        Mon, 12 Sep 2022 03:27:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9ECEEB8085E
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:27:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C9DCC433B5;
+        Mon, 12 Sep 2022 03:27:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953275;
-        bh=uHRUUE74DeaywH7S876lLoFT1y4kB43IgiXawQgbO5A=;
+        s=korg; t=1662953277;
+        bh=pdfsKW5hiHLwLG71Il+CKX7lS8aKD5XlbdRCs5NBKY4=;
         h=Date:To:From:Subject:From;
-        b=ENQ9TpQ8h9dygCAkTSBXG6jy2vOmJ5fRZVHxVcEnp+SCQ8W87Up8Gy632rkHXpm1H
-         bCBTJS4cOxcrxpoaf4i57TNucGFEcLa1MU/sr+QUKFUYvRNA83x6T0K+wKKF/foIO8
-         tYC2d8xICH1FCGdBAFJGYllsQauwBKe6LZJQCMIg=
-Date:   Sun, 11 Sep 2022 20:27:54 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com, ziy@nvidia.com,
-        willy@infradead.org, vbabka@suse.cz, tsbogend@alpha.franken.de,
-        songliubraving@fb.com, sj@kernel.org,
-        rongwei.wang@linux.alibaba.com, rientjes@google.com,
-        peterx@redhat.com, pasha.tatashin@soleen.com, minchan@kernel.org,
-        mhocko@suse.com, mattst88@gmail.com, linmiaohe@huawei.com,
-        kirill.shutemov@linux.intel.com, jrdr.linux@gmail.com,
-        jcmvbkbc@gmail.com, James.Bottomley@HansenPartnership.com,
-        ink@jurassic.park.msu.ru, hughd@google.com, deller@gmx.de,
-        david@redhat.com, dan.carpenter@oracle.com, ckennelly@google.com,
-        chris@zankel.net, axelrasmussen@google.com, axboe@kernel.dk,
-        asml.silence@gmail.com, arnd@arndb.de, alex.shi@linux.alibaba.com,
-        aarcange@redhat.com, shy828301@gmail.com, akpm@linux-foundation.org
+        b=fRM9K0Yv3buzufvv5crALWf9EHLsm55vpcYLTfJGvkzoS80Xc4HMyr1TOT8sm08q0
+         /Ryfj4CgJ1zybu6/ht1o3Fth6ZiyDTnouY6N2cx3YxoKJVNrYe7UT93Rc4J3hkCTXx
+         +4Y+s/bKzCdQmh/1NU+o1b/MOn6oHLYLxJY2IFuk=
+Date:   Sun, 11 Sep 2022 20:27:56 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
+        vbabka@suse.cz, tsbogend@alpha.franken.de, songliubraving@fb.com,
+        sj@kernel.org, shy828301@gmail.com, rongwei.wang@linux.alibaba.com,
+        rientjes@google.com, peterx@redhat.com, pasha.tatashin@soleen.com,
+        minchan@kernel.org, mhocko@suse.com, mattst88@gmail.com,
+        linmiaohe@huawei.com, kirill.shutemov@linux.intel.com,
+        jrdr.linux@gmail.com, jcmvbkbc@gmail.com,
+        James.Bottomley@HansenPartnership.com, ink@jurassic.park.msu.ru,
+        hughd@google.com, deller@gmx.de, david@redhat.com,
+        dan.carpenter@oracle.com, ckennelly@google.com, chris@zankel.net,
+        axelrasmussen@google.com, axboe@kernel.dk, asml.silence@gmail.com,
+        arnd@arndb.de, alex.shi@linux.alibaba.com, aarcange@redhat.com,
+        zokeefe@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-dont-carry-huge-page-to-the-next-loop-for-config_numa.patch removed from -mm tree
-Message-Id: <20220912032755.9BE87C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-add-struct-collapse_control.patch removed from -mm tree
+Message-Id: <20220912032757.4C9DCC433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,150 +52,37 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: khugepaged: don't carry huge page to the next loop for !CONFIG_NUMA
+     Subject: mm/khugepaged: add struct collapse_control
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-dont-carry-huge-page-to-the-next-loop-for-config_numa.patch
+     mm-khugepaged-add-struct-collapse_control.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: khugepaged: don't carry huge page to the next loop for !CONFIG_NUMA
-Date: Wed, 6 Jul 2022 16:59:20 -0700
+From: "Zach O'Keefe" <zokeefe@google.com>
+Subject: mm/khugepaged: add struct collapse_control
+Date: Wed, 6 Jul 2022 16:59:21 -0700
 
-Patch series "mm: userspace hugepage collapse", v7.
+Modularize hugepage collapse by introducing struct collapse_control.  This
+structure serves to describe the properties of the requested collapse, as
+well as serve as a local scratch pad to use during the collapse itself.
 
-Introduction
---------------------------------
+Start by moving global per-node khugepaged statistics into this new
+structure.  Note that this structure is still statically allocated since
+CONFIG_NODES_SHIFT might be arbitrary large, and stack-allocating a
+MAX_NUMNODES-sized array could cause -Wframe-large-than= errors.
 
-This series provides a mechanism for userspace to induce a collapse of
-eligible ranges of memory into transparent hugepages in process context,
-thus permitting users to more tightly control their own hugepage
-utilization policy at their own expense.
-
-This idea was introduced by David Rientjes[5].
-
-Interface
---------------------------------
-
-The proposed interface adds a new madvise(2) mode, MADV_COLLAPSE, and
-leverages the new process_madvise(2) call.
-
-process_madvise(2)
-
-	Performs a synchronous collapse of the native pages
-	mapped by the list of iovecs into transparent hugepages.
-
-	This operation is independent of the system THP sysfs settings,
-	but attempts to collapse VMAs marked VM_NOHUGEPAGE will still fail.
-
-	THP allocation may enter direct reclaim and/or compaction.
-
-	When a range spans multiple VMAs, the semantics of the collapse
-	over of each VMA is independent from the others.
-
-	Caller must have CAP_SYS_ADMIN if not acting on self.
-
-	Return value follows existing process_madvise(2) conventions.  A
-	“success” indicates that all hugepage-sized/aligned regions
-	covered by the provided range were either successfully
-	collapsed, or were already pmd-mapped THPs.
-
-madvise(2)
-
-	Equivalent to process_madvise(2) on self, with 0 returned on
-	“success”.
-
-Current Use-Cases
---------------------------------
-
-(1)	Immediately back executable text by THPs.  Current support provided
-	by CONFIG_READ_ONLY_THP_FOR_FS may take a long time on a large
-	system which might impair services from serving at their full rated
-	load after (re)starting.  Tricks like mremap(2)'ing text onto
-	anonymous memory to immediately realize iTLB performance prevents
-	page sharing and demand paging, both of which increase steady state
-	memory footprint.  With MADV_COLLAPSE, we get the best of both
-	worlds: Peak upfront performance and lower RAM footprints.  Note
-	that subsequent support for file-backed memory is required here.
-
-(2)	malloc() implementations that manage memory in hugepage-sized
-	chunks, but sometimes subrelease memory back to the system in
-	native-sized chunks via MADV_DONTNEED; zapping the pmd.  Later,
-	when the memory is hot, the implementation could
-	madvise(MADV_COLLAPSE) to re-back the memory by THPs to regain
-	hugepage coverage and dTLB performance.  TCMalloc is such an
-	implementation that could benefit from this[6].  A prior study of
-	Google internal workloads during evaluation of Temeraire, a
-	hugepage-aware enhancement to TCMalloc, showed that nearly 20% of
-	all cpu cycles were spent in dTLB stalls, and that increasing
-	hugepage coverage by even small amount can help with that[7].
-
-(3)	userfaultfd-based live migration of virtual machines satisfy UFFD
-	faults by fetching native-sized pages over the network (to avoid
-	latency of transferring an entire hugepage).  However, after guest
-	memory has been fully copied to the new host, MADV_COLLAPSE can
-	be used to immediately increase guest performance.  Note that
-	subsequent support for file/shmem-backed memory is required here.
-
-(4)	HugeTLB high-granularity mapping allows HugeTLB a HugeTLB page to
-	be mapped at different levels in the page tables[8].  As it's not
-	"transparent" like THP, HugeTLB high-granularity mappings require
-	an explicit user API. It is intended that MADV_COLLAPSE be co-opted
-	for this use case[9].  Note that subsequent support for HugeTLB
-	memory is required here.
-
-Future work
---------------------------------
-
-Only private anonymous memory is supported by this series. File and
-shmem memory support will be added later.
-
-One possible user of this functionality is a userspace agent that
-attempts to optimize THP utilization system-wide by allocating THPs
-based on, for example, task priority, task performance requirements, or
-heatmaps.  For the latter, one idea that has already surfaced is using
-DAMON to identify hot regions, and driving THP collapse through a new
-DAMOS_COLLAPSE scheme[10].
-
-
-This patch (of 17):
-
-The khugepaged has optimization to reduce huge page allocation calls for
-!CONFIG_NUMA by carrying the allocated but failed to collapse huge page to
-the next loop.  CONFIG_NUMA doesn't do so since the next loop may try to
-collapse huge page from a different node, so it doesn't make too much
-sense to carry it.
-
-But when NUMA=n, the huge page is allocated by khugepaged_prealloc_page()
-before scanning the address space, so it means huge page may be allocated
-even though there is no suitable range for collapsing.  Then the page
-would be just freed if khugepaged already made enough progress.  This
-could make NUMA=n run have 5 times as much thp_collapse_alloc as NUMA=y
-run.  This problem actually makes things worse due to the way more
-pointless THP allocations and makes the optimization pointless.
-
-This could be fixed by carrying the huge page across scans, but it will
-complicate the code further and the huge page may be carried indefinitely.
-But if we take one step back, the optimization itself seems not worth
-keeping nowadays since:
-
-  * Not too many users build NUMA=n kernel nowadays even though the kernel is
-    actually running on a non-NUMA machine. Some small devices may run NUMA=n
-    kernel, but I don't think they actually use THP.
-  * Since commit 44042b449872 ("mm/page_alloc: allow high-order pages to be
-    stored on the per-cpu lists"), THP could be cached by pcp.  This actually
-    somehow does the job done by the optimization.
-
-Link: https://lkml.kernel.org/r/20220706235936.2197195-1-zokeefe@google.com
-Link: https://lkml.kernel.org/r/20220706235936.2197195-3-zokeefe@google.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
+[zokeefe@google.com: use minimal bits to store num page < HPAGE_PMD_NR]
+  Link: https://lkml.kernel.org/r/20220720140603.1958773-2-zokeefe@google.com
+  Link: https://lore.kernel.org/linux-mm/Ys2CeIm%2FQmQwWh9a@google.com/
+[sfr@canb.auug.org.au: fix build]
+  Link: https://lkml.kernel.org/r/20220721195508.15f1e07a@canb.auug.org.au
+[zokeefe@google.com: fix struct collapse_control load_node definition]
+  Link: https://lore.kernel.org/linux-mm/202209021349.F73i5d6X-lkp@intel.com/
+  Link: https://lkml.kernel.org/r/20220903021221.1130021-1-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220706235936.2197195-4-zokeefe@google.com
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Co-developed-by: Peter Xu <peterx@redhat.com>
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -205,9 +92,11 @@ Cc: Chris Zankel <chris@zankel.net>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Helge Deller <deller@gmx.de>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Matt Turner <mattst88@gmail.com>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
@@ -216,197 +105,283 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Pavel Begunkov <asml.silence@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Rongwei Wang <rongwei.wang@linux.alibaba.com>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Song Liu <songliubraving@fb.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Cc: "Souptick Joarder (HPE)" <jrdr.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |  120 +++++++++-------------------------------------
- 1 file changed, 26 insertions(+), 94 deletions(-)
+ mm/khugepaged.c |   87 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 50 insertions(+), 37 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-dont-carry-huge-page-to-the-next-loop-for-config_numa
+--- a/mm/khugepaged.c~mm-khugepaged-add-struct-collapse_control
 +++ a/mm/khugepaged.c
-@@ -796,29 +796,16 @@ static int khugepaged_find_target_node(v
- 	last_khugepaged_target_node = target_node;
+@@ -85,6 +85,14 @@ static struct kmem_cache *mm_slot_cache
+ 
+ #define MAX_PTE_MAPPED_THP 8
+ 
++struct collapse_control {
++	/* Num pages scanned per node */
++	u32 node_load[MAX_NUMNODES];
++
++	/* Last target selected in khugepaged_find_target_node() */
++	int last_target_node;
++};
++
+ /**
+  * struct mm_slot - hash lookup from mm to mm_slot
+  * @hash: hash collision list
+@@ -735,9 +743,12 @@ static void khugepaged_alloc_sleep(void)
+ 	remove_wait_queue(&khugepaged_wait, &wait);
+ }
+ 
+-static int khugepaged_node_load[MAX_NUMNODES];
+ 
+-static bool khugepaged_scan_abort(int nid)
++struct collapse_control khugepaged_collapse_control = {
++	.last_target_node = NUMA_NO_NODE,
++};
++
++static bool khugepaged_scan_abort(int nid, struct collapse_control *cc)
+ {
+ 	int i;
+ 
+@@ -749,11 +760,11 @@ static bool khugepaged_scan_abort(int ni
+ 		return false;
+ 
+ 	/* If there is a count for this node already, it must be acceptable */
+-	if (khugepaged_node_load[nid])
++	if (cc->node_load[nid])
+ 		return false;
+ 
+ 	for (i = 0; i < MAX_NUMNODES; i++) {
+-		if (!khugepaged_node_load[i])
++		if (!cc->node_load[i])
+ 			continue;
+ 		if (node_distance(nid, i) > node_reclaim_distance)
+ 			return true;
+@@ -772,32 +783,31 @@ static inline gfp_t alloc_hugepage_khuge
+ }
+ 
+ #ifdef CONFIG_NUMA
+-static int khugepaged_find_target_node(void)
++static int khugepaged_find_target_node(struct collapse_control *cc)
+ {
+-	static int last_khugepaged_target_node = NUMA_NO_NODE;
+ 	int nid, target_node = 0, max_value = 0;
+ 
+ 	/* find first node with max normal pages hit */
+ 	for (nid = 0; nid < MAX_NUMNODES; nid++)
+-		if (khugepaged_node_load[nid] > max_value) {
+-			max_value = khugepaged_node_load[nid];
++		if (cc->node_load[nid] > max_value) {
++			max_value = cc->node_load[nid];
+ 			target_node = nid;
+ 		}
+ 
+ 	/* do some balance if several nodes have the same hit record */
+-	if (target_node <= last_khugepaged_target_node)
+-		for (nid = last_khugepaged_target_node + 1; nid < MAX_NUMNODES;
+-				nid++)
+-			if (max_value == khugepaged_node_load[nid]) {
++	if (target_node <= cc->last_target_node)
++		for (nid = cc->last_target_node + 1; nid < MAX_NUMNODES;
++		     nid++)
++			if (max_value == cc->node_load[nid]) {
+ 				target_node = nid;
+ 				break;
+ 			}
+ 
+-	last_khugepaged_target_node = target_node;
++	cc->last_target_node = target_node;
  	return target_node;
  }
--
--static bool khugepaged_prealloc_page(struct page **hpage, bool *wait)
-+#else
-+static int khugepaged_find_target_node(void)
- {
--	if (IS_ERR(*hpage)) {
--		if (!*wait)
--			return false;
--
--		*wait = false;
--		*hpage = NULL;
--		khugepaged_alloc_sleep();
--	} else if (*hpage) {
--		put_page(*hpage);
--		*hpage = NULL;
--	}
--
--	return true;
-+	return 0;
- }
-+#endif
- 
- static struct page *
- khugepaged_alloc_page(struct page **hpage, gfp_t gfp, int node)
- {
--	VM_BUG_ON_PAGE(*hpage, *hpage);
--
- 	*hpage = __alloc_pages_node(node, gfp, HPAGE_PMD_ORDER);
- 	if (unlikely(!*hpage)) {
- 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
-@@ -830,74 +817,6 @@ khugepaged_alloc_page(struct page **hpag
- 	count_vm_event(THP_COLLAPSE_ALLOC);
- 	return *hpage;
- }
--#else
+ #else
 -static int khugepaged_find_target_node(void)
--{
--	return 0;
--}
--
--static inline struct page *alloc_khugepaged_hugepage(void)
--{
--	struct page *page;
--
--	page = alloc_pages(alloc_hugepage_khugepaged_gfpmask(),
--			   HPAGE_PMD_ORDER);
--	if (page)
--		prep_transhuge_page(page);
--	return page;
--}
--
--static struct page *khugepaged_alloc_hugepage(bool *wait)
--{
--	struct page *hpage;
--
--	do {
--		hpage = alloc_khugepaged_hugepage();
--		if (!hpage) {
--			count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
--			if (!*wait)
--				return NULL;
--
--			*wait = false;
--			khugepaged_alloc_sleep();
--		} else
--			count_vm_event(THP_COLLAPSE_ALLOC);
--	} while (unlikely(!hpage) && likely(hugepage_flags_enabled()));
--
--	return hpage;
--}
--
--static bool khugepaged_prealloc_page(struct page **hpage, bool *wait)
--{
--	/*
--	 * If the hpage allocated earlier was briefly exposed in page cache
--	 * before collapse_file() failed, it is possible that racing lookups
--	 * have not yet completed, and would then be unpleasantly surprised by
--	 * finding the hpage reused for the same mapping at a different offset.
--	 * Just release the previous allocation if there is any danger of that.
--	 */
--	if (*hpage && page_count(*hpage) > 1) {
--		put_page(*hpage);
--		*hpage = NULL;
--	}
--
--	if (!*hpage)
--		*hpage = khugepaged_alloc_hugepage(wait);
--
--	if (unlikely(!*hpage))
--		return false;
--
--	return true;
--}
--
--static struct page *
--khugepaged_alloc_page(struct page **hpage, gfp_t gfp, int node)
--{
--	VM_BUG_ON(!*hpage);
--
--	return  *hpage;
--}
--#endif
- 
- /*
-  * If mmap_lock temporarily dropped, revalidate vma
-@@ -1150,8 +1069,10 @@ static void collapse_huge_page(struct mm
- out_up_write:
- 	mmap_write_unlock(mm);
- out_nolock:
--	if (!IS_ERR_OR_NULL(*hpage))
-+	if (!IS_ERR_OR_NULL(*hpage)) {
- 		mem_cgroup_uncharge(page_folio(*hpage));
-+		put_page(*hpage);
-+	}
- 	trace_mm_collapse_huge_page(mm, isolated, result);
++static int khugepaged_find_target_node(struct collapse_control *cc)
+ {
+ 	return 0;
+ }
+@@ -1077,10 +1087,9 @@ out_nolock:
  	return;
  }
-@@ -1953,8 +1874,10 @@ xa_unlocked:
- 	unlock_page(new_page);
- out:
- 	VM_BUG_ON(!list_empty(&pagelist));
--	if (!IS_ERR_OR_NULL(*hpage))
-+	if (!IS_ERR_OR_NULL(*hpage)) {
- 		mem_cgroup_uncharge(page_folio(*hpage));
-+		put_page(*hpage);
-+	}
+ 
+-static int khugepaged_scan_pmd(struct mm_struct *mm,
+-			       struct vm_area_struct *vma,
+-			       unsigned long address,
+-			       struct page **hpage)
++static int khugepaged_scan_pmd(struct mm_struct *mm, struct vm_area_struct *vma,
++			       unsigned long address, struct page **hpage,
++			       struct collapse_control *cc)
+ {
+ 	pmd_t *pmd;
+ 	pte_t *pte, *_pte;
+@@ -1100,7 +1109,7 @@ static int khugepaged_scan_pmd(struct mm
+ 		goto out;
+ 	}
+ 
+-	memset(khugepaged_node_load, 0, sizeof(khugepaged_node_load));
++	memset(cc->node_load, 0, sizeof(cc->node_load));
+ 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 	for (_address = address, _pte = pte; _pte < pte + HPAGE_PMD_NR;
+ 	     _pte++, _address += PAGE_SIZE) {
+@@ -1166,16 +1175,16 @@ static int khugepaged_scan_pmd(struct mm
+ 
+ 		/*
+ 		 * Record which node the original page is from and save this
+-		 * information to khugepaged_node_load[].
++		 * information to cc->node_load[].
+ 		 * Khugepaged will allocate hugepage from the node has the max
+ 		 * hit record.
+ 		 */
+ 		node = page_to_nid(page);
+-		if (khugepaged_scan_abort(node)) {
++		if (khugepaged_scan_abort(node, cc)) {
+ 			result = SCAN_SCAN_ABORT;
+ 			goto out_unmap;
+ 		}
+-		khugepaged_node_load[node]++;
++		cc->node_load[node]++;
+ 		if (!PageLRU(page)) {
+ 			result = SCAN_PAGE_LRU;
+ 			goto out_unmap;
+@@ -1226,7 +1235,7 @@ static int khugepaged_scan_pmd(struct mm
+ out_unmap:
+ 	pte_unmap_unlock(pte, ptl);
+ 	if (ret) {
+-		node = khugepaged_find_target_node();
++		node = khugepaged_find_target_node(cc);
+ 		/* collapse_huge_page will return with the mmap_lock released */
+ 		collapse_huge_page(mm, address, hpage, node,
+ 				referenced, unmapped);
+@@ -1881,8 +1890,9 @@ out:
  	/* TODO: tracepoints */
  }
  
-@@ -2194,10 +2117,7 @@ static void khugepaged_do_scan(void)
+-static void khugepaged_scan_file(struct mm_struct *mm,
+-		struct file *file, pgoff_t start, struct page **hpage)
++static void khugepaged_scan_file(struct mm_struct *mm, struct file *file,
++				 pgoff_t start, struct page **hpage,
++				 struct collapse_control *cc)
+ {
+ 	struct page *page = NULL;
+ 	struct address_space *mapping = file->f_mapping;
+@@ -1893,7 +1903,7 @@ static void khugepaged_scan_file(struct
  
- 	lru_add_drain_all();
+ 	present = 0;
+ 	swap = 0;
+-	memset(khugepaged_node_load, 0, sizeof(khugepaged_node_load));
++	memset(cc->node_load, 0, sizeof(cc->node_load));
+ 	rcu_read_lock();
+ 	xas_for_each(&xas, page, start + HPAGE_PMD_NR - 1) {
+ 		if (xas_retry(&xas, page))
+@@ -1918,11 +1928,11 @@ static void khugepaged_scan_file(struct
+ 		}
  
--	while (progress < pages) {
--		if (!khugepaged_prealloc_page(&hpage, &wait))
--			break;
--
-+	while (true) {
- 		cond_resched();
+ 		node = page_to_nid(page);
+-		if (khugepaged_scan_abort(node)) {
++		if (khugepaged_scan_abort(node, cc)) {
+ 			result = SCAN_SCAN_ABORT;
+ 			break;
+ 		}
+-		khugepaged_node_load[node]++;
++		cc->node_load[node]++;
  
- 		if (unlikely(kthread_should_stop() || try_to_freeze()))
-@@ -2213,10 +2133,22 @@ static void khugepaged_do_scan(void)
+ 		if (!PageLRU(page)) {
+ 			result = SCAN_PAGE_LRU;
+@@ -1955,7 +1965,7 @@ static void khugepaged_scan_file(struct
+ 			result = SCAN_EXCEED_NONE_PTE;
+ 			count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
+ 		} else {
+-			node = khugepaged_find_target_node();
++			node = khugepaged_find_target_node(cc);
+ 			collapse_file(mm, file, start, hpage, node);
+ 		}
+ 	}
+@@ -1963,8 +1973,9 @@ static void khugepaged_scan_file(struct
+ 	/* TODO: tracepoints */
+ }
+ #else
+-static void khugepaged_scan_file(struct mm_struct *mm,
+-		struct file *file, pgoff_t start, struct page **hpage)
++static void khugepaged_scan_file(struct mm_struct *mm, struct file *file,
++				 pgoff_t start, struct page **hpage,
++				 struct collapse_control *cc)
+ {
+ 	BUILD_BUG();
+ }
+@@ -1975,7 +1986,8 @@ static void khugepaged_collapse_pte_mapp
+ #endif
+ 
+ static unsigned int khugepaged_scan_mm_slot(unsigned int pages,
+-					    struct page **hpage)
++					    struct page **hpage,
++					    struct collapse_control *cc)
+ 	__releases(&khugepaged_mm_lock)
+ 	__acquires(&khugepaged_mm_lock)
+ {
+@@ -2047,12 +2059,13 @@ skip:
+ 
+ 				mmap_read_unlock(mm);
+ 				ret = 1;
+-				khugepaged_scan_file(mm, file, pgoff, hpage);
++				khugepaged_scan_file(mm, file, pgoff, hpage,
++						     cc);
+ 				fput(file);
+ 			} else {
+ 				ret = khugepaged_scan_pmd(mm, vma,
+ 						khugepaged_scan.address,
+-						hpage);
++						hpage, cc);
+ 			}
+ 			/* move to next address */
+ 			khugepaged_scan.address += HPAGE_PMD_SIZE;
+@@ -2108,7 +2121,7 @@ static int khugepaged_wait_event(void)
+ 		kthread_should_stop();
+ }
+ 
+-static void khugepaged_do_scan(void)
++static void khugepaged_do_scan(struct collapse_control *cc)
+ {
+ 	struct page *hpage = NULL;
+ 	unsigned int progress = 0, pass_through_head = 0;
+@@ -2129,7 +2142,7 @@ static void khugepaged_do_scan(void)
+ 		if (khugepaged_has_work() &&
+ 		    pass_through_head < 2)
+ 			progress += khugepaged_scan_mm_slot(pages - progress,
+-							    &hpage);
++							    &hpage, cc);
  		else
  			progress = pages;
  		spin_unlock(&khugepaged_mm_lock);
--	}
+@@ -2185,7 +2198,7 @@ static int khugepaged(void *none)
+ 	set_user_nice(current, MAX_NICE);
  
--	if (!IS_ERR_OR_NULL(hpage))
--		put_page(hpage);
-+		if (progress >= pages)
-+			break;
-+
-+		if (IS_ERR(hpage)) {
-+			/*
-+			 * If fail to allocate the first time, try to sleep for
-+			 * a while.  When hit again, cancel the scan.
-+			 */
-+			if (!wait)
-+				break;
-+			wait = false;
-+			hpage = NULL;
-+			khugepaged_alloc_sleep();
-+		}
-+	}
- }
+ 	while (!kthread_should_stop()) {
+-		khugepaged_do_scan();
++		khugepaged_do_scan(&khugepaged_collapse_control);
+ 		khugepaged_wait_work();
+ 	}
  
- static bool khugepaged_should_wakeup(void)
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from zokeefe@google.com are
 
-mm-gup-fix-the-fast-gup-race-against-thp-collapse.patch
-powerpc-64s-radix-dont-need-to-broadcast-ipi-for-radix-pmd-collapse-flush.patch
+mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check.patch
+mm-khugepaged-attempt-to-map-file-shmem-backed-pte-mapped-thps-by-pmds.patch
+mm-madvise-add-file-and-shmem-support-to-madv_collapse.patch
+mm-khugepaged-add-tracepoint-to-hpage_collapse_scan_file.patch
+selftests-vm-dedup-thp-helpers.patch
+selftests-vm-modularize-thp-collapse-memory-operations.patch
+selftests-vm-add-thp-collapse-file-and-tmpfs-testing.patch
+selftests-vm-add-thp-collapse-shmem-testing.patch
+selftests-vm-add-file-shmem-madv_collapse-selftest-for-cleared-pmd.patch
+selftests-vm-add-selftest-for-madv_collapse-of-uffd-minor-memory.patch
 
