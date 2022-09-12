@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68C2DECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:58:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26664C6FA82
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:58:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229776AbiILE6e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Sep 2022 00:58:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54874 "EHLO
+        id S229789AbiILE6f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Sep 2022 00:58:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229700AbiILE5C (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:57:02 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF0C127FE2
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:57:01 -0700 (PDT)
+        with ESMTP id S229544AbiILE5F (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:57:05 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79A12220E9
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:57:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6858AB80BA8
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:57:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E834C433D6;
-        Mon, 12 Sep 2022 04:56:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CC55AB80B9F
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:57:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70427C433C1;
+        Mon, 12 Sep 2022 04:57:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662958619;
-        bh=eR8TCXwmbg/zJOYuIZhYSnNAJLUUfNdHg9xpou2qJJ8=;
+        s=korg; t=1662958620;
+        bh=OCV2hiQveIkapoKS6h9F92z6/SFuPA5AbugOZbU4Bl8=;
         h=Date:To:From:Subject:From;
-        b=W2gElhgv7ZpdM5S5P9FX48nDv93t9tXBjT1ReEpcuQ/IY/VmWHHmeL54jIgKnP4WS
-         ZID5h3O6kDBhmdM28JebN1hs8ocrp6khCprfhrDujSYQl6nL6j1Kp0t1CsfwgK74Ht
-         KLi8dhPUITLBc70FuKI4xKW1dSJp8RPF6FZag/pw=
-Date:   Sun, 11 Sep 2022 21:56:58 -0700
+        b=S1tGcJUTy6Ka4N2c0FAuxaAX24Y1heDdoYFHj5DCHbk2PIHlsDu7MTA8Jx0W9nT/F
+         i4slC3IVLMn16vBu5qZrYbAX2iu3YraeoRhErU3CqWV5rE/rscwtBwnTyZvO4a/y6R
+         QQaE/WQXASxhEtGIand/Tc+i90hSQ3QT2EPmARgU=
+Date:   Sun, 11 Sep 2022 21:56:59 -0700
 To:     mm-commits@vger.kernel.org, syzkaller-bugs@googlegroups.com,
         dan.carpenter@oracle.com, chenxiaosong2@huawei.com,
         anton@tuxera.com, yin31149@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ntfs-fix-use-after-free-in-ntfs_attr_find.patch removed from -mm tree
-Message-Id: <20220912045659.1E834C433D6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ntfs-fix-out-of-bounds-read-in-ntfs_attr_find.patch removed from -mm tree
+Message-Id: <20220912045700.70427C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,43 +42,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ntfs: fix use-after-free in ntfs_attr_find()
+     Subject: ntfs: fix out-of-bounds read in ntfs_attr_find()
 has been removed from the -mm tree.  Its filename was
-     ntfs-fix-use-after-free-in-ntfs_attr_find.patch
+     ntfs-fix-out-of-bounds-read-in-ntfs_attr_find.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hawkins Jiawei <yin31149@gmail.com>
-Subject: ntfs: fix use-after-free in ntfs_attr_find()
-Date: Thu, 1 Sep 2022 00:09:34 +0800
+Subject: ntfs: fix out-of-bounds read in ntfs_attr_find()
+Date: Thu, 1 Sep 2022 00:09:36 +0800
 
-Patch series "ntfs: fix bugs about Attribute", v2.
+Kernel iterates over ATTR_RECORDs in mft record in ntfs_attr_find().  To
+ensure access on these ATTR_RECORDs are within bounds, kernel will do some
+checking during iteration.
 
-This patchset fixes three bugs relative to Attribute in record:
+The problem is that during checking whether ATTR_RECORD's name is within
+bounds, kernel will dereferences the ATTR_RECORD name_offset field, before
+checking this ATTR_RECORD strcture is within bounds.  This problem may
+result out-of-bounds read in ntfs_attr_find(), reported by Syzkaller:
 
-Patch 1 adds a sanity check to ensure that, attrs_offset field in first
-mft record loading from disk is within bounds.
-
-Patch 2 moves the ATTR_RECORD's bounds checking earlier, to avoid
-dereferencing ATTR_RECORD before checking this ATTR_RECORD is within
-bounds.
-
-Patch 3 adds an overflow checking to avoid possible forever loop in
-ntfs_attr_find().
-
-Without patch 1 and patch 2, the kernel triggersa KASAN use-after-free
-detection as reported by Syzkaller.
-
-Although one of patch 1 or patch 2 can fix this, we still need both of
-them.  Because patch 1 fixes the root cause, and patch 2 not only fixes
-the direct cause, but also fixes the potential out-of-bounds bug.
-
-
-This patch (of 3):
-
-Syzkaller reported use-after-free read as follows:
 ==================================================================
 BUG: KASAN: use-after-free in ntfs_attr_find+0xc02/0xce0 fs/ntfs/attrib.c:597
 Read of size 2 at addr ffff88807e352009 by task syz-executor153/3607
@@ -126,49 +110,57 @@ Memory state around the buggy address:
  ffff88807e352100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
 ==================================================================
 
-Kernel will loads $MFT/$DATA's first mft record in
-ntfs_read_inode_mount().
+This patch solves it by moving the ATTR_RECORD strcture's bounds checking
+earlier, then checking whether ATTR_RECORD's name is within bounds. 
+What's more, this patch also add some comments to improve its
+maintainability.
 
-Yet the problem is that after loading, kernel doesn't check whether
-attrs_offset field is a valid value.
-
-To be more specific, if attrs_offset field is larger than bytes_allocated
-field, then it may trigger the out-of-bounds read bug(reported as
-use-after-free bug) in ntfs_attr_find(), when kernel tries to access the
-corresponding mft record's attribute.
-
-This patch solves it by adding the sanity check between attrs_offset field
-and bytes_allocated field, after loading the first mft record.
-
-Link: https://lkml.kernel.org/r/20220831160935.3409-1-yin31149@gmail.com
-Link: https://lkml.kernel.org/r/20220831160935.3409-2-yin31149@gmail.com
+Link: https://lkml.kernel.org/r/20220831160935.3409-3-yin31149@gmail.com
+Link: https://lore.kernel.org/all/1636796c-c85e-7f47-e96f-e074fee3c7d3@huawei.com/
+Link: https://groups.google.com/g/syzkaller-bugs/c/t_XdeKPGTR4/m/LECAuIGcBgAJ
+Signed-off-by: chenxiaosong (A) <chenxiaosong2@huawei.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Hawkins Jiawei <yin31149@gmail.com>
+Reported-by: syzbot+5f8dcabe4a3b2c51c607@syzkaller.appspotmail.com
+Tested-by: syzbot+5f8dcabe4a3b2c51c607@syzkaller.appspotmail.com
 Cc: Anton Altaparmakov <anton@tuxera.com>
-Cc: ChenXiaoSong <chenxiaosong2@huawei.com>
 Cc: syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/inode.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/ntfs/attrib.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
---- a/fs/ntfs/inode.c~ntfs-fix-use-after-free-in-ntfs_attr_find
-+++ a/fs/ntfs/inode.c
-@@ -1829,6 +1829,13 @@ int ntfs_read_inode_mount(struct inode *
- 		goto err_out;
- 	}
- 
-+	/* Sanity check offset to the first attribute */
-+	if (le16_to_cpu(m->attrs_offset) >= le32_to_cpu(m->bytes_allocated)) {
-+		ntfs_error(sb, "Incorrect mft offset to the first attribute %u in superblock.",
-+			       le16_to_cpu(m->attrs_offset));
-+		goto err_out;
-+	}
+--- a/fs/ntfs/attrib.c~ntfs-fix-out-of-bounds-read-in-ntfs_attr_find
++++ a/fs/ntfs/attrib.c
+@@ -594,11 +594,23 @@ static int ntfs_attr_find(const ATTR_TYP
+ 	for (;;	a = (ATTR_RECORD*)((u8*)a + le32_to_cpu(a->length))) {
+ 		u8 *mrec_end = (u8 *)ctx->mrec +
+ 		               le32_to_cpu(ctx->mrec->bytes_allocated);
+-		u8 *name_end = (u8 *)a + le16_to_cpu(a->name_offset) +
+-			       a->name_length * sizeof(ntfschar);
+-		if ((u8*)a < (u8*)ctx->mrec || (u8*)a > mrec_end ||
+-		    name_end > mrec_end)
++		u8 *name_end;
 +
- 	/* Need this to sanity check attribute list references to $MFT. */
- 	vi->i_generation = ni->seq_no = le16_to_cpu(m->sequence_number);
- 
++		/* check whether ATTR_RECORD wrap */
++		if ((u8 *)a < (u8 *)ctx->mrec)
+ 			break;
++
++		/* check whether Attribute Record Header is within bounds */
++		if ((u8 *)a > mrec_end ||
++		    (u8 *)a + sizeof(ATTR_RECORD) > mrec_end)
++			break;
++
++		/* check whether ATTR_RECORD's name is within bounds */
++		name_end = (u8 *)a + le16_to_cpu(a->name_offset) +
++			   a->name_length * sizeof(ntfschar);
++		if (name_end > mrec_end)
++			break;
++
+ 		ctx->attr = a;
+ 		if (unlikely(le32_to_cpu(a->type) > le32_to_cpu(type) ||
+ 				a->type == AT_END))
 _
 
 Patches currently in -mm which might be from yin31149@gmail.com are
