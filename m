@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85F9CECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:56:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F220C6FA82
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:56:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229585AbiILE4Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Sep 2022 00:56:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54338 "EHLO
+        id S229582AbiILE4g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Sep 2022 00:56:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229593AbiILE4V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:56:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDDBC220FD
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:18 -0700 (PDT)
+        with ESMTP id S229584AbiILE4Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:56:25 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D6D6220EA
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B68B60D28
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5436C433D7;
-        Mon, 12 Sep 2022 04:56:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0B2A3B80BA8
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99521C433D7;
+        Mon, 12 Sep 2022 04:56:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662958578;
-        bh=3rDZTijQ7DEl3PRKexYF1Vu3T0EkJvL2X62cZsgIJJ0=;
+        s=korg; t=1662958580;
+        bh=hZHQYgBj+aoepqTTkUaE071+sxMisCNOGWlUiYuEVz0=;
         h=Date:To:From:Subject:From;
-        b=vrOX1O+REbdxWXLXb81WYl6c4hkkJauOMraiFpEnSB73btEHXbbBH3oMYe/az3rQP
-         L0fBi3zQAmxuqw/7NxcH0dtrQ2Np73yLHm0RcLewHk6t2eClEPUPsXz+zFxteVa9Tw
-         EeqW9rtI9AkdZdnFdn8aKGs9rQEJDgFTC8rW66MM=
-Date:   Sun, 11 Sep 2022 21:56:17 -0700
-To:     mm-commits@vger.kernel.org, longman@redhat.com,
-        ebiederm@xmission.com, dave@stgolabs.net, 1vier1@web.de,
-        manfred@colorfullife.com, akpm@linux-foundation.org
+        b=Od3WU0v5vi5cV77Q3RZKED/uTbLQikSDqR2OMseg1fcHFY30p9VICKq9b+aganAew
+         k/Yts64J1/VEZmw0gQPGvMaCG9K7yBxMUuw/5Sy12HV6PcgeZg7HUiYXrpEJgGbJUX
+         wh5F1nhl45YekVyLx/4h0RpjWzHKLWKOhsD7gn/o=
+Date:   Sun, 11 Sep 2022 21:56:19 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
+        songmuchun@bytedance.com, roman.gushchin@linux.dev,
+        pali@kernel.org, jack@suse.cz, ira.weiny@intel.com,
+        fmdefrancesco@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ipc-utilc-cleanup-and-improve-sysvipc_find_ipc-v3.patch removed from -mm tree
-Message-Id: <20220912045617.E5436C433D7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fs-isofs-replace-kmap-with-kmap_local_page.patch removed from -mm tree
+Message-Id: <20220912045620.99521C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,127 +43,132 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ipc/util.c: cleanup and improve sysvipc_find_ipc()
+     Subject: fs/isofs: replace kmap() with kmap_local_page()
 has been removed from the -mm tree.  Its filename was
-     ipc-utilc-cleanup-and-improve-sysvipc_find_ipc-v3.patch
+     fs-isofs-replace-kmap-with-kmap_local_page.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/util.c: cleanup and improve sysvipc_find_ipc()
-Date: Fri, 5 Aug 2022 13:57:33 +0200
+From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Subject: fs/isofs: replace kmap() with kmap_local_page()
+Date: Mon, 1 Aug 2022 14:27:09 +0200
 
-sysvipc_find_ipc() can be simplified further:
+The use of kmap() is being deprecated in favor of kmap_local_page().
 
-- It uses a for() loop to locate the next entry in the idr.
-  This can be replaced with idr_get_next().
+There are two main problems with kmap(): (1) It comes with an overhead as
+mapping space is restricted and protected by a global lock for
+synchronization and (2) it also requires global TLB invalidation when the
+kmap's pool wraps and it might block when the mapping space is fully
+utilized until a slot becomes available.
 
-- It receives two parameters (pos - which is actually
-  an idr index and not a position, and new_pos, which
-  is really a position).
-  One parameter is sufficient.
+With kmap_local_page() the mappings are per thread, CPU local, can take
+page faults, and can be called from any context (including interrupts). 
+Tasks can be preempted and, when scheduled to run again, the kernel
+virtual addresses are restored and still valid.  It is faster than kmap()
+in kernels with HIGHMEM enabled.
 
-Link: https://lore.kernel.org/all/20210903052020.3265-3-manfred@colorfullife.com/
-Link: https://lkml.kernel.org/r/20220805115733.104763-1-manfred@colorfullife.com
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: Davidlohr Bueso <dave@stgolabs.net>
-Acked-by: Waiman Long <longman@redhat.com>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: <1vier1@web.de>
+Since kmap_local_page() can be safely used in compress.c, it should be
+called everywhere instead of kmap().
+
+Therefore, replace kmap() with kmap_local_page() in compress.c.  Where it
+is needed, use memzero_page() instead of open coding kmap_local_page()
+plus memset() to fill the pages with zeros.  Delete the redundant
+flush_dcache_page() in the two call sites of memzero_page().
+
+Tested with mkisofs on a QEMU/KVM x86_32 VM, 6GB RAM, booting a kernel
+with HIGHMEM64GB enabled.
+
+Link: https://lkml.kernel.org/r/20220801122709.8164-1-fmdefrancesco@gmail.com
+Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
+Suggested-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Pali Rohár <pali@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   53 ++++++++++++++++++++++++++++++---------------------
- 1 file changed, 32 insertions(+), 21 deletions(-)
+ fs/isofs/compress.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/ipc/util.c~ipc-utilc-cleanup-and-improve-sysvipc_find_ipc-v3
-+++ a/ipc/util.c
-@@ -782,28 +782,37 @@ struct pid_namespace *ipc_seq_pid_ns(str
- 	return iter->pid_ns;
- }
- 
--/*
-- * This routine locks the ipc structure found at least at position pos.
-+/**
-+ * sysvipc_find_ipc - Find and lock the ipc structure based on seq pos
-+ * @ids: ipc identifier set
-+ * @pos: expected position
-+ *
-+ * The function finds an ipc structure, based on the sequence file
-+ * position @pos. If there is no ipc structure at position @pos, then
-+ * the successor is selected.
-+ * If a structure is found, then it is locked (both rcu_read_lock() and
-+ * ipc_lock_object()) and  @pos is set to the position needed to locate
-+ * the found ipc structure.
-+ * If nothing is found (i.e. EOF), @pos is not modified.
-+ *
-+ * The function returns the found ipc structure, or NULL at EOF.
-  */
--static struct kern_ipc_perm *sysvipc_find_ipc(struct ipc_ids *ids, loff_t pos,
--					      loff_t *new_pos)
-+static struct kern_ipc_perm *sysvipc_find_ipc(struct ipc_ids *ids, loff_t *pos)
- {
--	struct kern_ipc_perm *ipc = NULL;
--	int max_idx = ipc_get_maxidx(ids);
-+	int tmpidx;
-+	struct kern_ipc_perm *ipc;
-+
-+	/* convert from position to idr index -> "-1" */
-+	tmpidx = *pos - 1;
- 
--	if (max_idx == -1 || pos > max_idx)
--		goto out;
-+	ipc = idr_get_next(&ids->ipcs_idr, &tmpidx);
-+	if (ipc != NULL) {
-+		rcu_read_lock();
-+		ipc_lock_object(ipc);
- 
--	for (; pos <= max_idx; pos++) {
--		ipc = idr_find(&ids->ipcs_idr, pos);
--		if (ipc != NULL) {
--			rcu_read_lock();
--			ipc_lock_object(ipc);
--			break;
--		}
-+		/* convert from idr index to position  -> "+1" */
-+		*pos = tmpidx + 1;
+--- a/fs/isofs/compress.c~fs-isofs-replace-kmap-with-kmap_local_page
++++ a/fs/isofs/compress.c
+@@ -67,8 +67,7 @@ static loff_t zisofs_uncompress_block(st
+ 		for ( i = 0 ; i < pcount ; i++ ) {
+ 			if (!pages[i])
+ 				continue;
+-			memset(page_address(pages[i]), 0, PAGE_SIZE);
+-			flush_dcache_page(pages[i]);
++			memzero_page(pages[i], 0, PAGE_SIZE);
+ 			SetPageUptodate(pages[i]);
+ 		}
+ 		return ((loff_t)pcount) << PAGE_SHIFT;
+@@ -120,7 +119,7 @@ static loff_t zisofs_uncompress_block(st
+ 	       zerr != Z_STREAM_END) {
+ 		if (!stream.avail_out) {
+ 			if (pages[curpage]) {
+-				stream.next_out = page_address(pages[curpage])
++				stream.next_out = kmap_local_page(pages[curpage])
+ 						+ poffset;
+ 				stream.avail_out = PAGE_SIZE - poffset;
+ 				poffset = 0;
+@@ -176,6 +175,10 @@ static loff_t zisofs_uncompress_block(st
+ 				flush_dcache_page(pages[curpage]);
+ 				SetPageUptodate(pages[curpage]);
+ 			}
++			if (stream.next_out != (unsigned char *)zisofs_sink_page) {
++				kunmap_local(stream.next_out);
++				stream.next_out = NULL;
++			}
+ 			curpage++;
+ 		}
+ 		if (!stream.avail_in)
+@@ -183,6 +186,8 @@ static loff_t zisofs_uncompress_block(st
  	}
--out:
--	*new_pos = pos + 1;
- 	return ipc;
- }
+ inflate_out:
+ 	zlib_inflateEnd(&stream);
++	if (stream.next_out && stream.next_out != (unsigned char *)zisofs_sink_page)
++		kunmap_local(stream.next_out);
  
-@@ -817,11 +826,13 @@ static void *sysvipc_proc_next(struct se
- 	if (ipc && ipc != SEQ_START_TOKEN)
- 		ipc_unlock(ipc);
+ z_eio:
+ 	mutex_unlock(&zisofs_zlib_lock);
+@@ -283,9 +288,7 @@ static int zisofs_fill_pages(struct inod
+ 	}
  
--	return sysvipc_find_ipc(&iter->ns->ids[iface->ids], *pos, pos);
-+	/* Next -> search for *pos+1 */
-+	(*pos)++;
-+	return sysvipc_find_ipc(&iter->ns->ids[iface->ids], pos);
- }
+ 	if (poffset && *pages) {
+-		memset(page_address(*pages) + poffset, 0,
+-		       PAGE_SIZE - poffset);
+-		flush_dcache_page(*pages);
++		memzero_page(*pages, poffset, PAGE_SIZE - poffset);
+ 		SetPageUptodate(*pages);
+ 	}
+ 	return 0;
+@@ -343,10 +346,8 @@ static int zisofs_read_folio(struct file
+ 	for (i = 0; i < pcount; i++, index++) {
+ 		if (i != full_page)
+ 			pages[i] = grab_cache_page_nowait(mapping, index);
+-		if (pages[i]) {
++		if (pages[i])
+ 			ClearPageError(pages[i]);
+-			kmap(pages[i]);
+-		}
+ 	}
  
- /*
-- * File positions: pos 0 -> header, pos n -> ipc id = n - 1.
-+ * File positions: pos 0 -> header, pos n -> ipc idx = n - 1.
-  * SeqFile iterator: iterator value locked ipc pointer or SEQ_TOKEN_START.
-  */
- static void *sysvipc_proc_start(struct seq_file *s, loff_t *pos)
-@@ -846,8 +857,8 @@ static void *sysvipc_proc_start(struct s
- 	if (*pos == 0)
- 		return SEQ_START_TOKEN;
- 
--	/* Find the (pos-1)th ipc */
--	return sysvipc_find_ipc(ids, *pos - 1, pos);
-+	/* Otherwise return the correct ipc structure */
-+	return sysvipc_find_ipc(ids, pos);
- }
- 
- static void sysvipc_proc_stop(struct seq_file *s, void *it)
+ 	err = zisofs_fill_pages(inode, full_page, pcount, pages);
+@@ -357,7 +358,6 @@ static int zisofs_read_folio(struct file
+ 			flush_dcache_page(pages[i]);
+ 			if (i == full_page && err)
+ 				SetPageError(pages[i]);
+-			kunmap(pages[i]);
+ 			unlock_page(pages[i]);
+ 			if (i != full_page)
+ 				put_page(pages[i]);
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from fmdefrancesco@gmail.com are
 
 
