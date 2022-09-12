@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE6AECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:30:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C3A7ECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:31:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229697AbiILDa6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:30:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57266 "EHLO
+        id S229828AbiILDbI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:31:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229751AbiILD3S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:29:18 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC508286D8
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:02 -0700 (PDT)
+        with ESMTP id S229695AbiILD31 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:29:27 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3CAA286E8
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 74D3EB8085E
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28C64C433D7;
-        Mon, 12 Sep 2022 03:29:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 474FA6116D
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E1F2C433D7;
+        Mon, 12 Sep 2022 03:29:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953340;
-        bh=RZ/TiV/IYHI+sUfdfNhmT/5Pi24dqeKYrNfHywSCOmA=;
+        s=korg; t=1662953342;
+        bh=sg7f8csQQOL0tdQWSCSgeQOrNNrEKuLSUznBD9Pmi5M=;
         h=Date:To:From:Subject:From;
-        b=ptnvXxZ95uD6G4wWwerBBToEHqNSQLLCNgz7y/W69WkhGMx4vahvsvFg6dUyh6Bbs
-         +p+WmCJWHwU1Z/k3+4uRCaA19EJ3u7P4+8YUXiXbCs3jslqPeiwIOB8hF1fGZVIIyG
-         s8LgdpXwdH3V0vs8OoWJ58VTICAvz7Z0Rox+Ti/Q=
-Date:   Sun, 11 Sep 2022 20:28:59 -0700
-To:     mm-commits@vger.kernel.org, syoshida@redhat.com,
-        pasha.tatashin@soleen.com, minchan@kernel.org, jhubbard@nvidia.com,
-        jgg@nvidia.com, david@redhat.com, apopple@nvidia.com,
+        b=QZGCajQqtYBv8vbMZaxHuTRFChUS0ppbFoVZ6mIVlH+7wJ12EWXSTnzXksuV/8B4Z
+         fiPpPdwNELGtMCXsQ13Bt/EFleegEIxJGWUodgTLQEG5iGfWVX46XjMDZt6wGsvVJE
+         LivHqDbuUGypuc07F57Cs1Xdo/yZEPM9Xb+vNbK8=
+Date:   Sun, 11 Sep 2022 20:29:01 -0700
+To:     mm-commits@vger.kernel.org, liuyongqiang13@huawei.com,
+        david@redhat.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes.patch removed from -mm tree
-Message-Id: <20220912032900.28C64C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-warning-if-__vm_enough_memory-fails.patch removed from -mm tree
+Message-Id: <20220912032902.9E1F2C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,195 +42,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup.c: simplify and fix check_and_migrate_movable_pages() return codes
+     Subject: mm/util.c: add warning if __vm_enough_memory fails
 has been removed from the -mm tree.  Its filename was
-     mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes.patch
+     mm-add-warning-if-__vm_enough_memory-fails.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/gup.c: simplify and fix check_and_migrate_movable_pages() return codes
-Date: Fri, 29 Jul 2022 12:46:45 +1000
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm/util.c: add warning if __vm_enough_memory fails
+Date: Tue, 26 Jul 2022 22:54:28 +0800
 
-When pinning pages with FOLL_LONGTERM check_and_migrate_movable_pages() is
-called to migrate pages out of zones which should not contain any longterm
-pinned pages.
+If a process has not enough memory to allocate a new virtual mapping, we
+may meet verious kinds of error, eg, fork cannot allocate memory, SIGBUS
+error in shmem, but it is difficult to confirm them, let's add some debug
+information to easily to check this scenario if __vm_enough_memory fails.
 
-When migration succeeds all pages will have been unpinned so pinning needs
-to be retried.  This is indicated by returning zero.  When all pages are
-in the correct zone the number of pinned pages is returned.
-
-However migration can also fail, in which case pages are unpinned and
--ENOMEM is returned.  However if the failure was due to not being unable
-to isolate a page zero is returned.  This leads to indefinite looping in
-__gup_longterm_locked().
-
-Fix this by simplifying the return codes such that zero indicates all
-pages were successfully pinned in the correct zone while errors indicate
-either pages were migrated and pinning should be retried or that migration
-has failed and therefore the pinning operation should fail.
-
-[syoshida@redhat.com: fix return value for __gup_longterm_locked()]
-  Link: https://lkml.kernel.org/r/20220821183547.950370-1-syoshida@redhat.com
-[akpm@linux-foundation.org: fix code layout, per John]
-[yshigeru@gmail.com: fix uninitialized return value on __gup_longterm_locked()]
-  Link: https://lkml.kernel.org/r/20220827230037.78876-1-syoshida@redhat.com
-Link: https://lkml.kernel.org/r/20220729024645.764366-1-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Signed-off-by: Shigeru Yoshida <syoshida@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Link: https://lkml.kernel.org/r/20220726145428.8030-1-wangkefeng.wang@huawei.com
+Reported-by: Yongqiang Liu <liuyongqiang13@huawei.com>
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   60 ++++++++++++++++++++++++++++-------------------------
- 1 file changed, 32 insertions(+), 28 deletions(-)
+ mm/util.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/gup.c~mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes
-+++ a/mm/gup.c
-@@ -1927,16 +1927,16 @@ struct page *get_dump_page(unsigned long
+--- a/mm/util.c~mm-add-warning-if-__vm_enough_memory-fails
++++ a/mm/util.c
+@@ -1052,6 +1052,8 @@ int __vm_enough_memory(struct mm_struct
+ 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
+ 		return 0;
+ error:
++	pr_warn_ratelimited("%s: pid: %d, comm: %s, no enough memory for the allocation\n",
++			    __func__, current->pid, current->comm);
+ 	vm_unacct_memory(pages);
  
- #ifdef CONFIG_MIGRATION
- /*
-- * Check whether all pages are pinnable, if so return number of pages.  If some
-- * pages are not pinnable, migrate them, and unpin all pages. Return zero if
-- * pages were migrated, or if some pages were not successfully isolated.
-- * Return negative error if migration fails.
-+ * Check whether all pages are pinnable. If some pages are not pinnable migrate
-+ * them and unpin all the pages. Returns -EAGAIN if pages were unpinned or zero
-+ * if all pages are pinnable and in the right zone. Other errors indicate
-+ * migration failure.
-  */
- static long check_and_migrate_movable_pages(unsigned long nr_pages,
- 					    struct page **pages,
- 					    unsigned int gup_flags)
- {
--	unsigned long isolation_error_count = 0, i;
-+	unsigned long i;
- 	struct folio *prev_folio = NULL;
- 	LIST_HEAD(movable_page_list);
- 	bool drain_allow = true, coherent_pages = false;
-@@ -1972,10 +1972,10 @@ static long check_and_migrate_movable_pa
- 				unpin_user_page(&folio->page);
- 			}
- 
--			ret = migrate_device_coherent_page(&folio->page);
--			if (ret)
--				goto unpin_pages;
--
-+			if (migrate_device_coherent_page(&folio->page)) {
-+				ret = -EBUSY;
-+				break;
-+			}
- 			continue;
- 		}
- 
-@@ -1987,7 +1987,7 @@ static long check_and_migrate_movable_pa
- 		if (folio_test_hugetlb(folio)) {
- 			if (isolate_hugetlb(&folio->page,
- 						&movable_page_list))
--				isolation_error_count++;
-+				ret = -EBUSY;
- 			continue;
- 		}
- 
-@@ -1997,7 +1997,7 @@ static long check_and_migrate_movable_pa
- 		}
- 
- 		if (folio_isolate_lru(folio)) {
--			isolation_error_count++;
-+			ret = -EBUSY;
- 			continue;
- 		}
- 		list_add_tail(&folio->lru, &movable_page_list);
-@@ -2006,19 +2006,18 @@ static long check_and_migrate_movable_pa
- 				    folio_nr_pages(folio));
- 	}
- 
--	if (!list_empty(&movable_page_list) || isolation_error_count ||
--	    coherent_pages)
--		goto unpin_pages;
--
- 	/*
- 	 * If list is empty, and no isolation errors, means that all pages are
--	 * in the correct zone.
-+	 * in the correct zone. If there were device coherent pages some pages
-+	 * have been unpinned.
- 	 */
--	return nr_pages;
-+	if (list_empty(&movable_page_list) && !ret && !coherent_pages)
-+		return 0;
- 
--unpin_pages:
- 	/*
--	 * pages[i] might be NULL if any device coherent pages were found.
-+	 * Unpin all pages. If device coherent pages were found
-+	 * migrate_device_coherent_page() will have dropped the pin and set
-+	 * pages[i] == NULL.
- 	 */
- 	for (i = 0; i < nr_pages; i++) {
- 		if (!pages[i])
-@@ -2045,14 +2044,15 @@ unpin_pages:
- 
- 	if (ret && !list_empty(&movable_page_list))
- 		putback_movable_pages(&movable_page_list);
--	return ret;
-+
-+	return ret ? ret : -EAGAIN;
- }
- #else
- static long check_and_migrate_movable_pages(unsigned long nr_pages,
- 					    struct page **pages,
- 					    unsigned int gup_flags)
- {
--	return nr_pages;
-+	return 0;
- }
- #endif /* CONFIG_MIGRATION */
- 
-@@ -2068,22 +2068,26 @@ static long __gup_longterm_locked(struct
- 				  unsigned int gup_flags)
- {
- 	unsigned int flags;
--	long rc;
-+	long rc, nr_pinned_pages;
- 
- 	if (!(gup_flags & FOLL_LONGTERM))
- 		return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
- 					       NULL, gup_flags);
- 	flags = memalloc_pin_save();
- 	do {
--		rc = __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
--					     NULL, gup_flags);
--		if (rc <= 0)
-+		nr_pinned_pages = __get_user_pages_locked(mm, start, nr_pages,
-+							  pages, vmas, NULL,
-+							  gup_flags);
-+		if (nr_pinned_pages <= 0) {
-+			rc = nr_pinned_pages;
- 			break;
--		rc = check_and_migrate_movable_pages(rc, pages, gup_flags);
--	} while (!rc);
-+		}
-+		rc = check_and_migrate_movable_pages(nr_pinned_pages, pages,
-+						     gup_flags);
-+	} while (rc == -EAGAIN);
- 	memalloc_pin_restore(flags);
- 
--	return rc;
-+	return rc ? rc : nr_pinned_pages;
- }
- 
- static bool is_valid_gup_flags(unsigned int gup_flags)
+ 	return -ENOMEM;
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-selftests-hmm-tests-add-test-for-dirty-bits.patch
+mm-reuse-pageblock_start-end_pfn-macro.patch
+mm-add-pageblock_align-macro.patch
+mm-add-pageblock_aligned-macro.patch
+memblock-tests-add-new-pageblock-related-macro.patch
+kernel-exit-cleanup-release_thread.patch
 
