@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4353ECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:34:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9765BC54EE9
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:34:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229457AbiILDeD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:34:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60334 "EHLO
+        id S229689AbiILDeE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:34:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229780AbiILDc3 (ORCPT
+        with ESMTP id S229779AbiILDc3 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:32:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4BDB27B3D
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:13 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A173F1EAD0
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 541E26116D
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8982C433D7;
-        Mon, 12 Sep 2022 03:30:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5BD30B8085E
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1695AC433D7;
+        Mon, 12 Sep 2022 03:30:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953412;
-        bh=9np0H/7c2Whx/xBCwYOvPB0grh7B2EPeXnQZxW8unrE=;
+        s=korg; t=1662953410;
+        bh=DKrkryV9s9y2sJw7PGRkCgbmemrDXKxsxRBOzw4Kxk0=;
         h=Date:To:From:Subject:From;
-        b=G6Fe8PK/QolzilIzRwXgARcwSy1xHyW+/ajJBDJQmc0qUEQE7wXNZu6PRFiPw159T
-         +TyG6Kdk0SxZ46GIrEs/pSkCIebPg6LcApfOhiq3QGqpHZDQnUuU8bjpBORkp06pkO
-         l1ks5TLXvRN+ZaWT9slgd3T/fXQm3zCBR6emZsvI=
-Date:   Sun, 11 Sep 2022 20:30:11 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
+        b=EctHOnTA/vucU7Qe6wV51LPOWTN9IyQneCU3Jk5F9TjlKQt82oX9IaFOHEso0O8Y9
+         v1a6wMsSlMLt7DWMMEOu0w7qf9/LENIg60o1EfbV4OoH6Ce3oXqyLJ5OCY1sKjejtu
+         rbwBlh6OWn6ryVJ9CST/1Ugg+dXAC1RLNwcgrOmQ=
+Date:   Sun, 11 Sep 2022 20:30:09 -0700
+To:     mm-commits@vger.kernel.org, muchun.song@linux.dev,
+        david@redhat.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-vaddr-remove-comparison-between-mm-and-last_mm-when-checking-region-accesses.patch removed from -mm tree
-Message-Id: <20220912033012.A8982C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fix-null-ptr-deref-in-kswapd_is_running.patch removed from -mm tree
+Message-Id: <20220912033010.1695AC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,86 +42,229 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: remove comparison between mm and last_mm when checking region accesses
+     Subject: mm: fix null-ptr-deref in kswapd_is_running()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-remove-comparison-between-mm-and-last_mm-when-checking-region-accesses.patch
+     mm-fix-null-ptr-deref-in-kswapd_is_running.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kaixu Xia <kaixuxia@tencent.com>
-Subject: mm/damon/vaddr: remove comparison between mm and last_mm when checking region accesses
-Date: Sat, 27 Aug 2022 17:02:51 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: fix null-ptr-deref in kswapd_is_running()
+Date: Sat, 27 Aug 2022 19:19:59 +0800
 
-The damon regions that belong to the same damon target have the same
-'struct mm_struct *mm', so it's unnecessary to compare the mm and last_mm
-objects among the damon regions in one damon target when checking
-accesses.  But the check is necessary when the target changed in
-'__damon_va_check_accesses()', so we can simplify the whole operation by
-using the bool 'same_target' to indicate whether the target changed.
+kswapd_run/stop() will set pgdat->kswapd to NULL, which could race with
+kswapd_is_running() in kcompactd(),
 
-Link: https://lkml.kernel.org/r/1661590971-20893-3-git-send-email-kaixuxia@tencent.com
-Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+kswapd_run/stop()                       kcompactd()
+                                          kswapd_is_running()
+  pgdat->kswapd // error or nomal ptr
+                                          verify pgdat->kswapd
+                                            // load non-NULL
+pgdat->kswapd
+  pgdat->kswapd = NULL
+                                          task_is_running(pgdat->kswapd)
+                                            // Null pointer derefence
+
+KASAN reports the null-ptr-deref shown below,
+
+  vmscan: Failed to start kswapd on node 0
+  ...
+  BUG: KASAN: null-ptr-deref in kcompactd+0x440/0x504
+  Read of size 8 at addr 0000000000000024 by task kcompactd0/37
+
+  CPU: 0 PID: 37 Comm: kcompactd0 Kdump: loaded Tainted: G           OE     5.10.60 #1
+  Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
+  Call trace:
+   dump_backtrace+0x0/0x394
+   show_stack+0x34/0x4c
+   dump_stack+0x158/0x1e4
+   __kasan_report+0x138/0x140
+   kasan_report+0x44/0xdc
+   __asan_load8+0x94/0xd0
+   kcompactd+0x440/0x504
+   kthread+0x1a4/0x1f0
+   ret_from_fork+0x10/0x18
+
+At present kswapd/kcompactd_run() and kswapd/kcompactd_stop() are protected
+by mem_hotplug_begin/done(), but without kcompactd(). There is no need to
+involve memory hotplug lock in kcompactd(), so let's add a new mutex to
+protect pgdat->kswapd accesses.
+
+Also, because the kcompactd task will check the state of kswapd task, it's
+better to call kcompactd_stop() before kswapd_stop() to reduce lock
+conflicts.
+
+[akpm@linux-foundation.org: add comments]
+Link: https://lkml.kernel.org/r/20220827111959.186838-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/linux/memory_hotplug.h |   20 ++++++++++++++++++++
+ include/linux/mmzone.h         |    6 ++++--
+ mm/compaction.c                |   14 +++++++++++++-
+ mm/memory_hotplug.c            |    2 +-
+ mm/page_alloc.c                |    1 +
+ mm/vmscan.c                    |   27 ++++++++++++++++-----------
+ 6 files changed, 55 insertions(+), 15 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-remove-comparison-between-mm-and-last_mm-when-checking-region-accesses
-+++ a/mm/damon/vaddr.c
-@@ -543,15 +543,14 @@ static bool damon_va_young(struct mm_str
-  * r	the region to be checked
-  */
- static void __damon_va_check_access(struct mm_struct *mm,
--				struct damon_region *r)
-+				struct damon_region *r, bool same_target)
+--- a/include/linux/memory_hotplug.h~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/include/linux/memory_hotplug.h
+@@ -215,6 +215,22 @@ void put_online_mems(void);
+ void mem_hotplug_begin(void);
+ void mem_hotplug_done(void);
+ 
++/* See kswapd_is_running() */
++static inline void pgdat_kswapd_lock(pg_data_t *pgdat)
++{
++	mutex_lock(&pgdat->kswapd_lock);
++}
++
++static inline void pgdat_kswapd_unlock(pg_data_t *pgdat)
++{
++	mutex_unlock(&pgdat->kswapd_lock);
++}
++
++static inline void pgdat_kswapd_lock_init(pg_data_t *pgdat)
++{
++	mutex_init(&pgdat->kswapd_lock);
++}
++
+ #else /* ! CONFIG_MEMORY_HOTPLUG */
+ #define pfn_to_online_page(pfn)			\
+ ({						\
+@@ -251,6 +267,10 @@ static inline bool movable_node_is_enabl
  {
--	static struct mm_struct *last_mm;
- 	static unsigned long last_addr;
- 	static unsigned long last_page_sz = PAGE_SIZE;
- 	static bool last_accessed;
+ 	return false;
+ }
++
++static inline void pgdat_kswapd_lock(pg_data_t *pgdat) {}
++static inline void pgdat_kswapd_unlock(pg_data_t *pgdat) {}
++static inline void pgdat_kswapd_lock_init(pg_data_t *pgdat) {}
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
  
- 	/* If the region is in the last checked page, reuse the result */
--	if (mm == last_mm && (ALIGN_DOWN(last_addr, last_page_sz) ==
-+	if (same_target && (ALIGN_DOWN(last_addr, last_page_sz) ==
- 				ALIGN_DOWN(r->sampling_addr, last_page_sz))) {
- 		if (last_accessed)
- 			r->nr_accesses++;
-@@ -562,7 +561,6 @@ static void __damon_va_check_access(stru
- 	if (last_accessed)
- 		r->nr_accesses++;
+ /*
+--- a/include/linux/mmzone.h~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/include/linux/mmzone.h
+@@ -956,8 +956,10 @@ typedef struct pglist_data {
+ 	atomic_t nr_writeback_throttled;/* nr of writeback-throttled tasks */
+ 	unsigned long nr_reclaim_start;	/* nr pages written while throttled
+ 					 * when throttling started. */
+-	struct task_struct *kswapd;	/* Protected by
+-					   mem_hotplug_begin/done() */
++#ifdef CONFIG_MEMORY_HOTPLUG
++	struct mutex kswapd_lock;
++#endif
++	struct task_struct *kswapd;	/* Protected by kswapd_lock */
+ 	int kswapd_order;
+ 	enum zone_type kswapd_highest_zoneidx;
  
--	last_mm = mm;
- 	last_addr = r->sampling_addr;
+--- a/mm/compaction.c~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/mm/compaction.c
+@@ -1981,9 +1981,21 @@ static inline bool is_via_compact_memory
+ 	return order == -1;
  }
  
-@@ -572,14 +570,17 @@ static unsigned int damon_va_check_acces
- 	struct mm_struct *mm;
- 	struct damon_region *r;
- 	unsigned int max_nr_accesses = 0;
-+	bool same_target;
++/*
++ * Determine whether kswapd is (or recently was!) running on this node.
++ *
++ * pgdat_kswapd_lock() pins pgdat->kswapd, so a concurrent kswapd_stop() can't
++ * zero it.
++ */
+ static bool kswapd_is_running(pg_data_t *pgdat)
+ {
+-	return pgdat->kswapd && task_is_running(pgdat->kswapd);
++	bool running;
++
++	pgdat_kswapd_lock(pgdat);
++	running = pgdat->kswapd && task_is_running(pgdat->kswapd);
++	pgdat_kswapd_unlock(pgdat);
++
++	return running;
+ }
  
- 	damon_for_each_target(t, ctx) {
- 		mm = damon_get_mm(t);
- 		if (!mm)
- 			continue;
-+		same_target = false;
- 		damon_for_each_region(r, t) {
--			__damon_va_check_access(mm, r);
-+			__damon_va_check_access(mm, r, same_target);
- 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
-+			same_target = true;
- 		}
- 		mmput(mm);
+ /*
+--- a/mm/memory_hotplug.c~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/mm/memory_hotplug.c
+@@ -1940,8 +1940,8 @@ int __ref offline_pages(unsigned long st
+ 
+ 	node_states_clear_node(node, &arg);
+ 	if (arg.status_change_nid >= 0) {
+-		kswapd_stop(node);
+ 		kcompactd_stop(node);
++		kswapd_stop(node);
  	}
+ 
+ 	writeback_set_ratelimit();
+--- a/mm/page_alloc.c~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/mm/page_alloc.c
+@@ -7616,6 +7616,7 @@ static void __meminit pgdat_init_interna
+ 	int i;
+ 
+ 	pgdat_resize_init(pgdat);
++	pgdat_kswapd_lock_init(pgdat);
+ 
+ 	pgdat_init_split_queue(pgdat);
+ 	pgdat_init_kcompactd(pgdat);
+--- a/mm/vmscan.c~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/mm/vmscan.c
+@@ -4643,16 +4643,17 @@ void kswapd_run(int nid)
+ {
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+ 
+-	if (pgdat->kswapd)
+-		return;
+-
+-	pgdat->kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
+-	if (IS_ERR(pgdat->kswapd)) {
+-		/* failure at boot is fatal */
+-		BUG_ON(system_state < SYSTEM_RUNNING);
+-		pr_err("Failed to start kswapd on node %d\n", nid);
+-		pgdat->kswapd = NULL;
++	pgdat_kswapd_lock(pgdat);
++	if (!pgdat->kswapd) {
++		pgdat->kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
++		if (IS_ERR(pgdat->kswapd)) {
++			/* failure at boot is fatal */
++			BUG_ON(system_state < SYSTEM_RUNNING);
++			pr_err("Failed to start kswapd on node %d\n", nid);
++			pgdat->kswapd = NULL;
++		}
+ 	}
++	pgdat_kswapd_unlock(pgdat);
+ }
+ 
+ /*
+@@ -4661,12 +4662,16 @@ void kswapd_run(int nid)
+  */
+ void kswapd_stop(int nid)
+ {
+-	struct task_struct *kswapd = NODE_DATA(nid)->kswapd;
++	pg_data_t *pgdat = NODE_DATA(nid);
++	struct task_struct *kswapd;
+ 
++	pgdat_kswapd_lock(pgdat);
++	kswapd = pgdat->kswapd;
+ 	if (kswapd) {
+ 		kthread_stop(kswapd);
+-		NODE_DATA(nid)->kswapd = NULL;
++		pgdat->kswapd = NULL;
+ 	}
++	pgdat_kswapd_unlock(pgdat);
+ }
+ 
+ static int __init kswapd_init(void)
 _
 
-Patches currently in -mm which might be from kaixuxia@tencent.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch
-mm-damon-core-iterate-the-regions-list-from-current-point-in-damon_set_regions.patch
-mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme.patch
+mm-reuse-pageblock_start-end_pfn-macro.patch
+mm-add-pageblock_align-macro.patch
+mm-add-pageblock_aligned-macro.patch
+memblock-tests-add-new-pageblock-related-macro.patch
+kernel-exit-cleanup-release_thread.patch
 
