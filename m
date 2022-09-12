@@ -2,38 +2,49 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26468ECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 00:44:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46C8FECAAA1
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:28:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229691AbiILAov (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 20:44:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54098 "EHLO
+        id S229588AbiILD2D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:28:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229742AbiILAon (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 20:44:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7509C6403
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 17:44:39 -0700 (PDT)
+        with ESMTP id S229510AbiILD2B (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:28:01 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4406D1CFC9
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:27:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DDCED61155
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 00:44:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45303C433D6;
-        Mon, 12 Sep 2022 00:44:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1A180B80C63
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:27:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BE87C433D7;
+        Mon, 12 Sep 2022 03:27:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662943478;
-        bh=I0Xw2DrdkTeqiPG40obNeBzDe/7eBrudNUcn58eX+lk=;
+        s=korg; t=1662953275;
+        bh=uHRUUE74DeaywH7S876lLoFT1y4kB43IgiXawQgbO5A=;
         h=Date:To:From:Subject:From;
-        b=qqLipTMKbfRYUhz1+4UFjNxC9VDcFX9D/EYvM3dp+MZgxOzzU5Ehwqxv9bD7OscSa
-         nsL+jRMkfXuXxcYskhS//aiiCw3YUPA97ioga0b31K8+0hGhxHrUQeUpaCWG9Yv3s/
-         C1wprq1AB25qMbCtniUSzA5p+B9LdOUHwwXe/sxQ=
-Date:   Sun, 11 Sep 2022 17:44:37 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=ENQ9TpQ8h9dygCAkTSBXG6jy2vOmJ5fRZVHxVcEnp+SCQ8W87Up8Gy632rkHXpm1H
+         bCBTJS4cOxcrxpoaf4i57TNucGFEcLa1MU/sr+QUKFUYvRNA83x6T0K+wKKF/foIO8
+         tYC2d8xICH1FCGdBAFJGYllsQauwBKe6LZJQCMIg=
+Date:   Sun, 11 Sep 2022 20:27:54 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com, ziy@nvidia.com,
+        willy@infradead.org, vbabka@suse.cz, tsbogend@alpha.franken.de,
+        songliubraving@fb.com, sj@kernel.org,
+        rongwei.wang@linux.alibaba.com, rientjes@google.com,
+        peterx@redhat.com, pasha.tatashin@soleen.com, minchan@kernel.org,
+        mhocko@suse.com, mattst88@gmail.com, linmiaohe@huawei.com,
+        kirill.shutemov@linux.intel.com, jrdr.linux@gmail.com,
+        jcmvbkbc@gmail.com, James.Bottomley@HansenPartnership.com,
+        ink@jurassic.park.msu.ru, hughd@google.com, deller@gmx.de,
+        david@redhat.com, dan.carpenter@oracle.com, ckennelly@google.com,
+        chris@zankel.net, axelrasmussen@google.com, axboe@kernel.dk,
+        asml.silence@gmail.com, arnd@arndb.de, alex.shi@linux.alibaba.com,
+        aarcange@redhat.com, shy828301@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages-fix.patch removed from -mm tree
-Message-Id: <20220912004438.45303C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-dont-carry-huge-page-to-the-next-loop-for-config_numa.patch removed from -mm tree
+Message-Id: <20220912032755.9BE87C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,99 +52,361 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages-fix
+     Subject: mm: khugepaged: don't carry huge page to the next loop for !CONFIG_NUMA
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages-fix.patch
+     mm-khugepaged-dont-carry-huge-page-to-the-next-loop-for-config_numa.patch
 
-This patch was dropped because it was folded into mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages-fix
-Date: Mon, 5 Sep 2022 14:53:41 +0800
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: khugepaged: don't carry huge page to the next loop for !CONFIG_NUMA
+Date: Wed, 6 Jul 2022 16:59:20 -0700
 
-fixes per Naoya Horiguchi
+Patch series "mm: userspace hugepage collapse", v7.
 
-Link: https://lkml.kernel.org/r/1f7ee86e-7d28-0d8c-e0de-b7a5a94519e8@huawei.com
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Introduction
+--------------------------------
+
+This series provides a mechanism for userspace to induce a collapse of
+eligible ranges of memory into transparent hugepages in process context,
+thus permitting users to more tightly control their own hugepage
+utilization policy at their own expense.
+
+This idea was introduced by David Rientjes[5].
+
+Interface
+--------------------------------
+
+The proposed interface adds a new madvise(2) mode, MADV_COLLAPSE, and
+leverages the new process_madvise(2) call.
+
+process_madvise(2)
+
+	Performs a synchronous collapse of the native pages
+	mapped by the list of iovecs into transparent hugepages.
+
+	This operation is independent of the system THP sysfs settings,
+	but attempts to collapse VMAs marked VM_NOHUGEPAGE will still fail.
+
+	THP allocation may enter direct reclaim and/or compaction.
+
+	When a range spans multiple VMAs, the semantics of the collapse
+	over of each VMA is independent from the others.
+
+	Caller must have CAP_SYS_ADMIN if not acting on self.
+
+	Return value follows existing process_madvise(2) conventions.  A
+	“success” indicates that all hugepage-sized/aligned regions
+	covered by the provided range were either successfully
+	collapsed, or were already pmd-mapped THPs.
+
+madvise(2)
+
+	Equivalent to process_madvise(2) on self, with 0 returned on
+	“success”.
+
+Current Use-Cases
+--------------------------------
+
+(1)	Immediately back executable text by THPs.  Current support provided
+	by CONFIG_READ_ONLY_THP_FOR_FS may take a long time on a large
+	system which might impair services from serving at their full rated
+	load after (re)starting.  Tricks like mremap(2)'ing text onto
+	anonymous memory to immediately realize iTLB performance prevents
+	page sharing and demand paging, both of which increase steady state
+	memory footprint.  With MADV_COLLAPSE, we get the best of both
+	worlds: Peak upfront performance and lower RAM footprints.  Note
+	that subsequent support for file-backed memory is required here.
+
+(2)	malloc() implementations that manage memory in hugepage-sized
+	chunks, but sometimes subrelease memory back to the system in
+	native-sized chunks via MADV_DONTNEED; zapping the pmd.  Later,
+	when the memory is hot, the implementation could
+	madvise(MADV_COLLAPSE) to re-back the memory by THPs to regain
+	hugepage coverage and dTLB performance.  TCMalloc is such an
+	implementation that could benefit from this[6].  A prior study of
+	Google internal workloads during evaluation of Temeraire, a
+	hugepage-aware enhancement to TCMalloc, showed that nearly 20% of
+	all cpu cycles were spent in dTLB stalls, and that increasing
+	hugepage coverage by even small amount can help with that[7].
+
+(3)	userfaultfd-based live migration of virtual machines satisfy UFFD
+	faults by fetching native-sized pages over the network (to avoid
+	latency of transferring an entire hugepage).  However, after guest
+	memory has been fully copied to the new host, MADV_COLLAPSE can
+	be used to immediately increase guest performance.  Note that
+	subsequent support for file/shmem-backed memory is required here.
+
+(4)	HugeTLB high-granularity mapping allows HugeTLB a HugeTLB page to
+	be mapped at different levels in the page tables[8].  As it's not
+	"transparent" like THP, HugeTLB high-granularity mappings require
+	an explicit user API. It is intended that MADV_COLLAPSE be co-opted
+	for this use case[9].  Note that subsequent support for HugeTLB
+	memory is required here.
+
+Future work
+--------------------------------
+
+Only private anonymous memory is supported by this series. File and
+shmem memory support will be added later.
+
+One possible user of this functionality is a userspace agent that
+attempts to optimize THP utilization system-wide by allocating THPs
+based on, for example, task priority, task performance requirements, or
+heatmaps.  For the latter, one idea that has already surfaced is using
+DAMON to identify hot regions, and driving THP collapse through a new
+DAMOS_COLLAPSE scheme[10].
+
+
+This patch (of 17):
+
+The khugepaged has optimization to reduce huge page allocation calls for
+!CONFIG_NUMA by carrying the allocated but failed to collapse huge page to
+the next loop.  CONFIG_NUMA doesn't do so since the next loop may try to
+collapse huge page from a different node, so it doesn't make too much
+sense to carry it.
+
+But when NUMA=n, the huge page is allocated by khugepaged_prealloc_page()
+before scanning the address space, so it means huge page may be allocated
+even though there is no suitable range for collapsing.  Then the page
+would be just freed if khugepaged already made enough progress.  This
+could make NUMA=n run have 5 times as much thp_collapse_alloc as NUMA=y
+run.  This problem actually makes things worse due to the way more
+pointless THP allocations and makes the optimization pointless.
+
+This could be fixed by carrying the huge page across scans, but it will
+complicate the code further and the huge page may be carried indefinitely.
+But if we take one step back, the optimization itself seems not worth
+keeping nowadays since:
+
+  * Not too many users build NUMA=n kernel nowadays even though the kernel is
+    actually running on a non-NUMA machine. Some small devices may run NUMA=n
+    kernel, but I don't think they actually use THP.
+  * Since commit 44042b449872 ("mm/page_alloc: allow high-order pages to be
+    stored on the per-cpu lists"), THP could be cached by pcp.  This actually
+    somehow does the job done by the optimization.
+
+Link: https://lkml.kernel.org/r/20220706235936.2197195-1-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220706235936.2197195-3-zokeefe@google.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+Co-developed-by: Peter Xu <peterx@redhat.com>
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Chris Kennelly <ckennelly@google.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Pavel Begunkov <asml.silence@gmail.com>
+Cc: Rongwei Wang <rongwei.wang@linux.alibaba.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: "Souptick Joarder (HPE)" <jrdr.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ mm/khugepaged.c |  120 +++++++++-------------------------------------
+ 1 file changed, 26 insertions(+), 94 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages-fix
-+++ a/mm/memory-failure.c
-@@ -2404,24 +2404,26 @@ EXPORT_SYMBOL(unpoison_memory);
- static bool isolate_page(struct page *page, struct list_head *pagelist)
- {
- 	bool isolated = false;
--	bool lru = !__PageMovable(page);
- 
- 	if (PageHuge(page)) {
- 		isolated = !isolate_hugetlb(page, pagelist);
- 	} else {
-+		bool lru = !__PageMovable(page);
-+
- 		if (lru)
- 			isolated = !isolate_lru_page(page);
- 		else
--			isolated = !isolate_movable_page(page, ISOLATE_UNEVICTABLE);
-+			isolated = !isolate_movable_page(page,
-+							 ISOLATE_UNEVICTABLE);
- 
--		if (isolated)
-+		if (isolated) {
- 			list_add(&page->lru, pagelist);
-+			if (lru)
-+				inc_node_page_state(page, NR_ISOLATED_ANON +
-+						    page_is_file_lru(page));
-+		}
- 	}
- 
--	if (isolated && lru)
--		inc_node_page_state(page, NR_ISOLATED_ANON +
--				    page_is_file_lru(page));
+--- a/mm/khugepaged.c~mm-khugepaged-dont-carry-huge-page-to-the-next-loop-for-config_numa
++++ a/mm/khugepaged.c
+@@ -796,29 +796,16 @@ static int khugepaged_find_target_node(v
+ 	last_khugepaged_target_node = target_node;
+ 	return target_node;
+ }
 -
- 	/*
- 	 * If we succeed to isolate the page, we grabbed another refcount on
- 	 * the page, so we can safely drop the one we got from get_any_pages().
+-static bool khugepaged_prealloc_page(struct page **hpage, bool *wait)
++#else
++static int khugepaged_find_target_node(void)
+ {
+-	if (IS_ERR(*hpage)) {
+-		if (!*wait)
+-			return false;
+-
+-		*wait = false;
+-		*hpage = NULL;
+-		khugepaged_alloc_sleep();
+-	} else if (*hpage) {
+-		put_page(*hpage);
+-		*hpage = NULL;
+-	}
+-
+-	return true;
++	return 0;
+ }
++#endif
+ 
+ static struct page *
+ khugepaged_alloc_page(struct page **hpage, gfp_t gfp, int node)
+ {
+-	VM_BUG_ON_PAGE(*hpage, *hpage);
+-
+ 	*hpage = __alloc_pages_node(node, gfp, HPAGE_PMD_ORDER);
+ 	if (unlikely(!*hpage)) {
+ 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
+@@ -830,74 +817,6 @@ khugepaged_alloc_page(struct page **hpag
+ 	count_vm_event(THP_COLLAPSE_ALLOC);
+ 	return *hpage;
+ }
+-#else
+-static int khugepaged_find_target_node(void)
+-{
+-	return 0;
+-}
+-
+-static inline struct page *alloc_khugepaged_hugepage(void)
+-{
+-	struct page *page;
+-
+-	page = alloc_pages(alloc_hugepage_khugepaged_gfpmask(),
+-			   HPAGE_PMD_ORDER);
+-	if (page)
+-		prep_transhuge_page(page);
+-	return page;
+-}
+-
+-static struct page *khugepaged_alloc_hugepage(bool *wait)
+-{
+-	struct page *hpage;
+-
+-	do {
+-		hpage = alloc_khugepaged_hugepage();
+-		if (!hpage) {
+-			count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
+-			if (!*wait)
+-				return NULL;
+-
+-			*wait = false;
+-			khugepaged_alloc_sleep();
+-		} else
+-			count_vm_event(THP_COLLAPSE_ALLOC);
+-	} while (unlikely(!hpage) && likely(hugepage_flags_enabled()));
+-
+-	return hpage;
+-}
+-
+-static bool khugepaged_prealloc_page(struct page **hpage, bool *wait)
+-{
+-	/*
+-	 * If the hpage allocated earlier was briefly exposed in page cache
+-	 * before collapse_file() failed, it is possible that racing lookups
+-	 * have not yet completed, and would then be unpleasantly surprised by
+-	 * finding the hpage reused for the same mapping at a different offset.
+-	 * Just release the previous allocation if there is any danger of that.
+-	 */
+-	if (*hpage && page_count(*hpage) > 1) {
+-		put_page(*hpage);
+-		*hpage = NULL;
+-	}
+-
+-	if (!*hpage)
+-		*hpage = khugepaged_alloc_hugepage(wait);
+-
+-	if (unlikely(!*hpage))
+-		return false;
+-
+-	return true;
+-}
+-
+-static struct page *
+-khugepaged_alloc_page(struct page **hpage, gfp_t gfp, int node)
+-{
+-	VM_BUG_ON(!*hpage);
+-
+-	return  *hpage;
+-}
+-#endif
+ 
+ /*
+  * If mmap_lock temporarily dropped, revalidate vma
+@@ -1150,8 +1069,10 @@ static void collapse_huge_page(struct mm
+ out_up_write:
+ 	mmap_write_unlock(mm);
+ out_nolock:
+-	if (!IS_ERR_OR_NULL(*hpage))
++	if (!IS_ERR_OR_NULL(*hpage)) {
+ 		mem_cgroup_uncharge(page_folio(*hpage));
++		put_page(*hpage);
++	}
+ 	trace_mm_collapse_huge_page(mm, isolated, result);
+ 	return;
+ }
+@@ -1953,8 +1874,10 @@ xa_unlocked:
+ 	unlock_page(new_page);
+ out:
+ 	VM_BUG_ON(!list_empty(&pagelist));
+-	if (!IS_ERR_OR_NULL(*hpage))
++	if (!IS_ERR_OR_NULL(*hpage)) {
+ 		mem_cgroup_uncharge(page_folio(*hpage));
++		put_page(*hpage);
++	}
+ 	/* TODO: tracepoints */
+ }
+ 
+@@ -2194,10 +2117,7 @@ static void khugepaged_do_scan(void)
+ 
+ 	lru_add_drain_all();
+ 
+-	while (progress < pages) {
+-		if (!khugepaged_prealloc_page(&hpage, &wait))
+-			break;
+-
++	while (true) {
+ 		cond_resched();
+ 
+ 		if (unlikely(kthread_should_stop() || try_to_freeze()))
+@@ -2213,10 +2133,22 @@ static void khugepaged_do_scan(void)
+ 		else
+ 			progress = pages;
+ 		spin_unlock(&khugepaged_mm_lock);
+-	}
+ 
+-	if (!IS_ERR_OR_NULL(hpage))
+-		put_page(hpage);
++		if (progress >= pages)
++			break;
++
++		if (IS_ERR(hpage)) {
++			/*
++			 * If fail to allocate the first time, try to sleep for
++			 * a while.  When hit again, cancel the scan.
++			 */
++			if (!wait)
++				break;
++			wait = false;
++			hpage = NULL;
++			khugepaged_alloc_sleep();
++		}
++	}
+ }
+ 
+ static bool khugepaged_should_wakeup(void)
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-hugetlb_cgroup-remove-unneeded-nr_pages-0-check.patch
-hugetlb_cgroup-hugetlbfs-use-helper-macro-sz_1kmg.patch
-hugetlb_cgroup-remove-unneeded-return-value.patch
-hugetlb_cgroup-use-helper-macro-numa_no_node.patch
-hugetlb_cgroup-use-helper-for_each_hstate-and-hstate_index.patch
-mm-hugetlb-fix-incorrect-update-of-max_huge_pages.patch
-mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch
-mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch
-mm-hugetlb_vmemmap-add-missing-smp_wmb-before-set_pte_at.patch
-mm-hugetlb-fix-sysfs-group-leak-in-hugetlb_unregister_node.patch
-mm-hugetlb-make-detecting-shared-pte-more-reliable.patch
-mm-hwpoison-fix-page-refcnt-leaking-in-try_memory_failure_hugetlb.patch
-mm-hwpoison-fix-page-refcnt-leaking-in-unpoison_memory.patch
-mm-hwpoison-fix-extra-put_page-in-soft_offline_page.patch
-mm-hwpoison-fix-possible-use-after-free-in-mf_dax_kill_procs-v2.patch
-mm-hwpoison-kill-procs-if-unmap-fails.patch
-mm-hwpoison-avoid-trying-to-unpoison-reserved-page.patch
-mm-hwpoison-use-clearpagehwpoison-in-memory_failure.patch
-mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages.patch
-mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch
-mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
-mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings.patch
-mm-hwpoison-cleanup-some-obsolete-comments.patch
-hugetlb-make-hugetlb_cma_check-static.patch
-hugetlb-use-helper-macro-sz_1k.patch
-hugetlb-use-list_head-to-define-a-list-head.patch
-hugetlb-use-sizeof-to-get-the-array-size.patch
-hugetlb-use-helper-huge_ptepmd_lock.patch
-hugetlb-pass-null-to-kobj_to_hstate-if-nid-is-unused.patch
-hugetlb-kill-hugetlbfs_pagecache_page.patch
-hugetlb-add-comment-for-subtle-sethpagevmemmapoptimized.patch
-hugetlb-remove-meaningless-bug_onhuge_pte_none.patch
-hugetlb-make-hugetlb-depends-on-sysfs-or-sysctl.patch
-writeback-remove-unused-macro-dirty_full_scope.patch
+mm-gup-fix-the-fast-gup-race-against-thp-collapse.patch
+powerpc-64s-radix-dont-need-to-broadcast-ipi-for-radix-pmd-collapse-flush.patch
 
