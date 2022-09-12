@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 596DEECAAD3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC6CCC54EE9
 	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229677AbiILDdo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229583AbiILDdo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 11 Sep 2022 23:33:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56868 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229583AbiILDcD (ORCPT
+        with ESMTP id S229586AbiILDcD (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:32:03 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5690B192B6
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:56 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D08D1C10B
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 193B7B8085E
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3C0FC433D7;
-        Mon, 12 Sep 2022 03:29:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CEE3E61169
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34CEDC433D6;
+        Mon, 12 Sep 2022 03:29:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953393;
-        bh=5PXdVq/nsqIZwobKzVhU8dGFspxZE23LEr/+Tvqe1UM=;
+        s=korg; t=1662953396;
+        bh=fvRyftG7v52Cv1bDq2y3HTNsa3fhuifJQXMDG5Ly4K8=;
         h=Date:To:From:Subject:From;
-        b=UEUCsFvfbrQXoENyvWg2T6bu0Gb2PXHcYb/tL7dvP/UhdKCjpSRSUu2l1YAGil9xc
-         8DYtP7nUw3WjolzGCOq5Ovs9Of12Q9A1BxlvQOBlNnfuk0OxCKnrrje5m9cqaP2SPa
-         wfK8Jl+NmDeOpr1IQpteLTY5qKjXZWfohta3MQuE=
-Date:   Sun, 11 Sep 2022 20:29:53 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        soheil@google.com, roman.gushchin@linux.dev, oliver.sang@intel.com,
-        mkoutny@suse.com, mhocko@suse.com, hannes@cmpxchg.org,
-        feng.tang@intel.com, edumazet@google.com, shakeelb@google.com,
-        akpm@linux-foundation.org
+        b=RiJ+TPu1BZdhOzn1AUHKL9PNHf5G6DhDHkeQYh9H5qzULyUh+rolQrbl4TPrh5hah
+         r5qFWI/roqrGKwNtUBCf4sJUMly0f8/Y2aj8FjWJrLuB6vS0SuMOJi+Acp6ods9QOM
+         +E24Z3dhj5cT9Ys1KLyZXwmbzPlc/E6+kYMElZBc=
+Date:   Sun, 11 Sep 2022 20:29:55 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rostedt@goodmis.org,
+        mhocko@suse.com, mhiramat@kernel.org, mark-pk.tsai@mediatek.com,
+        keescook@chromium.org, Jason@zx2c4.com, corbet@lwn.net,
+        lizhe.67@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-increase-memcg_charge_batch-to-64.patch removed from -mm tree
-Message-Id: <20220912032953.B3C0FC433D7@smtp.kernel.org>
+Subject: [merged mm-stable] page_ext-introduce-boot-parameter-early_page_ext.patch removed from -mm tree
+Message-Id: <20220912032956.34CEDC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,81 +43,153 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memcg: increase MEMCG_CHARGE_BATCH to 64
+     Subject: page_ext: introduce boot parameter 'early_page_ext'
 has been removed from the -mm tree.  Its filename was
-     memcg-increase-memcg_charge_batch-to-64.patch
+     page_ext-introduce-boot-parameter-early_page_ext.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: increase MEMCG_CHARGE_BATCH to 64
-Date: Thu, 25 Aug 2022 00:05:06 +0000
+From: Li Zhe <lizhe.67@bytedance.com>
+Subject: page_ext: introduce boot parameter 'early_page_ext'
+Date: Thu, 25 Aug 2022 18:27:14 +0800
 
-For several years, MEMCG_CHARGE_BATCH was kept at 32 but with bigger
-machines and the network intensive workloads requiring througput in Gbps,
-32 is too small and makes the memcg charging path a bottleneck.  For now,
-increase it to 64 for easy acceptance to 6.0.  We will need to revisit
-this in future for ever increasing demand of higher performance.
+In commit 2f1ee0913ce5 ("Revert "mm: use early_pfn_to_nid in
+page_ext_init""), we call page_ext_init() after page_alloc_init_late() to
+avoid some panic problem.  It seems that we cannot track early page
+allocations in current kernel even if page structure has been initialized
+early.
 
-Please note that the memcg charge path drain the per-cpu memcg charge
-stock, so there should not be any oom behavior change.  Though it does
-have impact on rstat flushing and high limit reclaim backoff.
+This patch introduces a new boot parameter 'early_page_ext' to resolve
+this problem.  If we pass it to the kernel, page_ext_init() will be moved
+up and the feature 'deferred initialization of struct pages' will be
+disabled to initialize the page allocator early and prevent the panic
+problem above.  It can help us to catch early page allocations.  This is
+useful especially when we find that the free memory value is not the same
+right after different kernel booting.
 
-To evaluate the impact of this optimization, on a 72 CPUs machine, we
-ran the following workload in a three level of cgroup hierarchy.
-
- $ netserver -6
- # 36 instances of netperf with following params
- $ netperf -6 -H ::1 -l 60 -t TCP_SENDFILE -- -m 10K
-
-Results (average throughput of netperf):
-Without (6.0-rc1)       10482.7 Mbps
-With patch              17064.7 Mbps (62.7% improvement)
-
-With the patch, the throughput improved by 62.7%.
-
-Link: https://lkml.kernel.org/r/20220825000506.239406-4-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Acked-by: Soheil Hassas Yeganeh <soheil@google.com>
-Reviewed-by: Feng Tang <feng.tang@intel.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Muchun Song <songmuchun@bytedance.com>
+[akpm@linux-foundation.org: fix section issue by removing __meminitdata]
+Link: https://lkml.kernel.org/r/20220825102714.669-1-lizhe.67@bytedance.com
+Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Michal Koutný" <mkoutny@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    8 ++++++++
+ include/linux/page_ext.h                        |   11 +++++++++++
+ init/main.c                                     |    6 +++++-
+ mm/page_alloc.c                                 |    2 ++
+ mm/page_ext.c                                   |    8 ++++++++
+ 5 files changed, 34 insertions(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~memcg-increase-memcg_charge_batch-to-64
-+++ a/include/linux/memcontrol.h
-@@ -354,10 +354,11 @@ struct mem_cgroup {
+--- a/Documentation/admin-guide/kernel-parameters.txt~page_ext-introduce-boot-parameter-early_page_ext
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1471,6 +1471,14 @@
+ 			Permit 'security.evm' to be updated regardless of
+ 			current integrity status.
+ 
++	early_page_ext [KNL] Enforces page_ext initialization to earlier
++			stages so cover more early boot allocations.
++			Please note that as side effect some optimizations
++			might be disabled to achieve that (e.g. parallelized
++			memory initialization is disabled) so the boot process
++			might take longer, especially on systems with a lot of
++			memory. Available with CONFIG_PAGE_EXTENSION=y.
++
+ 	failslab=
+ 	fail_usercopy=
+ 	fail_page_alloc=
+--- a/include/linux/page_ext.h~page_ext-introduce-boot-parameter-early_page_ext
++++ a/include/linux/page_ext.h
+@@ -36,9 +36,15 @@ struct page_ext {
+ 	unsigned long flags;
  };
  
- /*
-- * size of first charge trial. "32" comes from vmscan.c's magic value.
-- * TODO: maybe necessary to use big numbers in big irons.
-+ * size of first charge trial.
-+ * TODO: maybe necessary to use big numbers in big irons or dynamic based of the
-+ * workload.
-  */
--#define MEMCG_CHARGE_BATCH 32U
-+#define MEMCG_CHARGE_BATCH 64U
++extern bool early_page_ext;
+ extern unsigned long page_ext_size;
+ extern void pgdat_page_ext_init(struct pglist_data *pgdat);
  
- extern struct mem_cgroup *root_mem_cgroup;
++static inline bool early_page_ext_enabled(void)
++{
++	return early_page_ext;
++}
++
+ #ifdef CONFIG_SPARSEMEM
+ static inline void page_ext_init_flatmem(void)
+ {
+@@ -68,6 +74,11 @@ static inline struct page_ext *page_ext_
+ #else /* !CONFIG_PAGE_EXTENSION */
+ struct page_ext;
  
++static inline bool early_page_ext_enabled(void)
++{
++	return false;
++}
++
+ static inline void pgdat_page_ext_init(struct pglist_data *pgdat)
+ {
+ }
+--- a/init/main.c~page_ext-introduce-boot-parameter-early_page_ext
++++ a/init/main.c
+@@ -849,6 +849,9 @@ static void __init mm_init(void)
+ 	pgtable_init();
+ 	debug_objects_mem_init();
+ 	vmalloc_init();
++	/* Should be run after vmap initialization */
++	if (early_page_ext_enabled())
++		page_ext_init();
+ 	/* Should be run before the first non-init thread is created */
+ 	init_espfix_bsp();
+ 	/* Should be run after espfix64 is set up. */
+@@ -1618,7 +1621,8 @@ static noinline void __init kernel_init_
+ 	padata_init();
+ 	page_alloc_init_late();
+ 	/* Initialize page ext after all struct pages are initialized. */
+-	page_ext_init();
++	if (!early_page_ext_enabled())
++		page_ext_init();
+ 
+ 	do_basic_setup();
+ 
+--- a/mm/page_alloc.c~page_ext-introduce-boot-parameter-early_page_ext
++++ a/mm/page_alloc.c
+@@ -482,6 +482,8 @@ defer_init(int nid, unsigned long pfn, u
+ {
+ 	static unsigned long prev_end_pfn, nr_initialised;
+ 
++	if (early_page_ext_enabled())
++		return false;
+ 	/*
+ 	 * prev_end_pfn static that contains the end of previous zone
+ 	 * No need to protect because called very early in boot before smp_init.
+--- a/mm/page_ext.c~page_ext-introduce-boot-parameter-early_page_ext
++++ a/mm/page_ext.c
+@@ -91,6 +91,14 @@ unsigned long page_ext_size = sizeof(str
+ static unsigned long total_usage;
+ static struct page_ext *lookup_page_ext(const struct page *page);
+ 
++bool early_page_ext;
++static int __init setup_early_page_ext(char *str)
++{
++	early_page_ext = true;
++	return 0;
++}
++early_param("early_page_ext", setup_early_page_ext);
++
+ static bool __init invoke_need_callbacks(void)
+ {
+ 	int i;
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from lizhe.67@bytedance.com are
 
-mm-deduplicate-cacheline-padding-code.patch
-memcg-extract-memcg_vmstats-from-struct-mem_cgroup.patch
-memcg-rearrange-code.patch
-memcg-reduce-size-of-memcg-vmstats-structures.patch
 
