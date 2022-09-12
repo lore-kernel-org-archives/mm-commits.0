@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DBFFC6FA89
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57988C6FA8A
 	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:31:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229543AbiILDbT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:31:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56436 "EHLO
+        id S229514AbiILDbU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:31:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229498AbiILD3a (ORCPT
+        with ESMTP id S229607AbiILD3a (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:29:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F161A28702
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:11 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE75D28707
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 99BD4B80C76
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 389F8C433D6;
-        Mon, 12 Sep 2022 03:29:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A5A68B80C7B
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BBB7C433B5;
+        Mon, 12 Sep 2022 03:29:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953349;
-        bh=nqWBRHB7tFF54mE1QvuGNMqQuLESgxscP+Y0rLTyV18=;
+        s=korg; t=1662953350;
+        bh=LRBe8YQZKBSmvVHubE/hypk0YXFaj3+drytfaGUgebw=;
         h=Date:To:From:Subject:From;
-        b=OqGzcHmyguXEBVIQCjYR/dyCZ6GXY2iXWQbqhkWFkuIC3CVREOZ09MlTJGf8fUq46
-         YBG8+emeUms0lp6/K+j9zDtpxozUG920HTITKTofNMBi1G0qKh7WfSQSbFSwH1329j
-         VNPCrx/xW4bBarW2n+yFLEtn6JLPWO1byug9m7yM=
-Date:   Sun, 11 Sep 2022 20:29:08 -0700
+        b=Jz/n6JhrPANN8RgcNS/OQ3i7fHymidPHexFiwaxk2Ov2+IDzmUiqsBLRB+T6Ay/cN
+         iRndoZj9bzH2nCcoAPrMNk3HP1V8wILEaQFpMT27EYucADsoQDyX6tS3TAXn90NHlj
+         BmqnwuWfO1FYzT/08kidQZ+CbYMAWcjxJEymb9/8=
+Date:   Sun, 11 Sep 2022 20:29:09 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         mike.kravetz@oracle.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch removed from -mm tree
-Message-Id: <20220912032909.389F8C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch removed from -mm tree
+Message-Id: <20220912032910.5BBB7C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,44 +42,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix WARN_ON(!kobj) in sysfs_create_group()
+     Subject: mm/hugetlb: fix missing call to restore_reserve_on_error()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch
+     mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix WARN_ON(!kobj) in sysfs_create_group()
-Date: Tue, 16 Aug 2022 21:05:49 +0800
+Subject: mm/hugetlb: fix missing call to restore_reserve_on_error()
+Date: Tue, 16 Aug 2022 21:05:50 +0800
 
-If sysfs_create_group() fails with hstate_attr_group, hstate_kobjs[hi]
-will be set to NULL.  Then it will be passed to sysfs_create_group() if
-h->demote_order != 0 thus triggering WARN_ON(!kobj) check.  Fix this by
-making sure hstate_kobjs[hi] != NULL when calling sysfs_create_group.
+When huge_add_to_page_cache() fails, the page is freed directly without
+calling restore_reserve_on_error() to restore reserve for newly allocated
+pages not in page cache.  Fix this by calling restore_reserve_on_error()
+when huge_add_to_page_cache fails.
 
-Link: https://lkml.kernel.org/r/20220816130553.31406-3-linmiaohe@huawei.com
-Fixes: 79dfc695525f ("hugetlb: add demote hugetlb page sysfs interfaces")
+[linmiaohe@huawei.com: remove err == -EEXIST check and retry logic]
+  Link: https://lkml.kernel.org/r/20220823030209.57434-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220816130553.31406-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/hugetlb.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group
+--- a/mm/hugetlb.c~mm-hugetlb-fix-missing-call-to-restore_reserve_on_error
 +++ a/mm/hugetlb.c
-@@ -3846,6 +3846,7 @@ static int hugetlb_sysfs_add_hstate(stru
- 	if (retval) {
- 		kobject_put(hstate_kobjs[hi]);
- 		hstate_kobjs[hi] = NULL;
-+		return retval;
- 	}
+@@ -5563,7 +5563,6 @@ static vm_fault_t hugetlb_no_page(struct
+ 	if (idx >= size)
+ 		goto out;
  
- 	if (h->demote_order) {
+-retry:
+ 	new_page = false;
+ 	page = find_lock_page(mapping, idx);
+ 	if (!page) {
+@@ -5603,9 +5602,15 @@ retry:
+ 		if (vma->vm_flags & VM_MAYSHARE) {
+ 			int err = huge_add_to_page_cache(page, mapping, idx);
+ 			if (err) {
++				/*
++				 * err can't be -EEXIST which implies someone
++				 * else consumed the reservation since hugetlb
++				 * fault mutex is held when add a hugetlb page
++				 * to the page cache. So it's safe to call
++				 * restore_reserve_on_error() here.
++				 */
++				restore_reserve_on_error(h, vma, haddr, page);
+ 				put_page(page);
+-				if (err == -EEXIST)
+-					goto retry;
+ 				goto out;
+ 			}
+ 			new_pagecache_page = true;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
