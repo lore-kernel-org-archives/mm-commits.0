@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC7DCC6FA8A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7C7C6FA8B
 	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:36:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229700AbiILDgB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:36:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57104 "EHLO
+        id S229880AbiILDgA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:36:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57014 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229833AbiILDdw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:33:52 -0400
+        with ESMTP id S229635AbiILDdv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:33:51 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACC2A2A27E
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B3822A274
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 690FAB80C75
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FDFFC433D6;
-        Mon, 12 Sep 2022 03:30:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 01D42B80C74
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BA95C433C1;
+        Mon, 12 Sep 2022 03:30:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953448;
-        bh=rcK7lB0dnR8cdkx95i8lQseZG7T9F+qhfCe9byaSUS0=;
+        s=korg; t=1662953445;
+        bh=EMlXhClcSoXJ4ullv8O+j9MvYkMLhCJdb6L+tuki/UA=;
         h=Date:To:From:Subject:From;
-        b=DFGhCPaN+WUJr2arOt4Bs+ut/Fph941/oEbvt+qhF68k9OuiBDr8MYeZZHPtcdw8H
-         0texp22te8jT68CTsTsfAVkK9spCW4tBuv0ZhNjmbXuFdXbJrzTskGHiD8bZozxIJN
-         re/rz85UMzMU5BgKCapFR5FjADsSDeP2A/+DEjL0=
-Date:   Sun, 11 Sep 2022 20:30:47 -0700
+        b=qBgOHbnZ/Yf1McpA4f7lFhFu4xm0CjZUFd+vuRhq5a0z0sxyGpBOMGnLTJe3AJlm5
+         WJVXILTnrNMch5ImyAjlcmoS5lkJ23MM3YHUo2O7iqv7AP1vMyawzspBNe99SHne6H
+         kW6v12L0Izr61iU4VQOL6rsalQv6S9iAjHozhUdQ=
+Date:   Sun, 11 Sep 2022 20:30:44 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         mike.kravetz@oracle.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-kill-hugetlbfs_pagecache_page.patch removed from -mm tree
-Message-Id: <20220912033048.1FDFFC433D6@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-use-helper-huge_ptepmd_lock.patch removed from -mm tree
+Message-Id: <20220912033045.9BA95C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,62 +42,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlb: kill hugetlbfs_pagecache_page()
+     Subject: hugetlb: use helper {huge_pte|pmd}_lock()
 has been removed from the -mm tree.  Its filename was
-     hugetlb-kill-hugetlbfs_pagecache_page.patch
+     hugetlb-use-helper-huge_ptepmd_lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlb: kill hugetlbfs_pagecache_page()
-Date: Thu, 1 Sep 2022 20:00:27 +0800
+Subject: hugetlb: use helper {huge_pte|pmd}_lock()
+Date: Thu, 1 Sep 2022 20:00:25 +0800
 
-Fold hugetlbfs_pagecache_page() into its sole caller to remove some
-duplicated code. No functional change intended.
+Use helper huge_pte_lock and pmd_lock to simplify the code. No functional
+change intended.
 
-Link: https://lkml.kernel.org/r/20220901120030.63318-8-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220901120030.63318-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ mm/hugetlb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-kill-hugetlbfs_pagecache_page
+--- a/mm/hugetlb.c~hugetlb-use-helper-huge_ptepmd_lock
 +++ a/mm/hugetlb.c
-@@ -5433,19 +5433,6 @@ out_release_old:
- 	return ret;
- }
- 
--/* Return the pagecache page at a given address within a VMA */
--static struct page *hugetlbfs_pagecache_page(struct hstate *h,
--			struct vm_area_struct *vma, unsigned long address)
--{
--	struct address_space *mapping;
--	pgoff_t idx;
--
--	mapping = vma->vm_file->f_mapping;
--	idx = vma_hugecache_offset(h, vma, address);
--
--	return find_lock_page(mapping, idx);
--}
--
- /*
-  * Return whether there is a pagecache page to back given address within VMA.
-  * Caller follow_hugetlb_page() holds page_table_lock so we cannot lock_page.
-@@ -5840,7 +5827,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		/* Just decrements count, does not deallocate */
- 		vma_end_reservation(h, vma, haddr);
- 
--		pagecache_page = hugetlbfs_pagecache_page(h, vma, haddr);
-+		pagecache_page = find_lock_page(mapping, idx);
+@@ -6049,8 +6049,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 		page_in_pagecache = true;
  	}
  
- 	ptl = huge_pte_lock(h, mm, ptep);
+-	ptl = huge_pte_lockptr(h, dst_mm, dst_pte);
+-	spin_lock(ptl);
++	ptl = huge_pte_lock(h, dst_mm, dst_pte);
+ 
+ 	/*
+ 	 * Recheck the i_size after holding PT lock to make sure not
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
