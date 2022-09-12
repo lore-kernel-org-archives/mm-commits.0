@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F26D4ECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:57:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F71FECAAD5
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:57:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229630AbiILE5T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Sep 2022 00:57:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54506 "EHLO
+        id S229732AbiILE51 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Sep 2022 00:57:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229665AbiILE5A (ORCPT
+        with ESMTP id S229679AbiILE5A (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:57:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA4DA27B35
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:49 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FD5D286F0
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9D2A9B80B9F
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FC67C433D6;
-        Mon, 12 Sep 2022 04:56:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 22302B80B9F
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD75AC433C1;
+        Mon, 12 Sep 2022 04:56:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662958607;
-        bh=4sb4AAWvDvDdfx8bw65qTZNs/ebeQxC4VEWI8t+SjI0=;
+        s=korg; t=1662958610;
+        bh=Fo1eh4X/3STFhorDedTo40Oqjcwg8ySk0f74lIWrPdg=;
         h=Date:To:From:Subject:From;
-        b=sKzCZvWeO5MNTK/R3nwplc0LmNPRNHMReQmWefyTS5LQZloVi86QoZlj2fKoIWU6v
-         b44eVnmdbtALlu9bYc375qGDoYC3cFXcVbUmBQa9HbmSivuQDi4QR/1N7Xvxo+/2GL
-         6DRY9NvhcfdbTp5VRzL4vRtt6hIlXjx89YkXVcZ4=
-Date:   Sun, 11 Sep 2022 21:56:46 -0700
-To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
-        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
-        wsa+renesas@sang-engineering.com, akpm@linux-foundation.org
+        b=PSPCSFL4EO4HbhdYA/tK6kaAdvRVRp8l9eA7SU2QDOjJT7N6na3AJY5BrBRunpBwW
+         aFaK6VlpmNVsOrTs4cqbjIRvKizoHuDY7qek3bQqRfZz5odd7WDBqG0/eh+54AXLPx
+         8On6WuwNBdzNtWZcV5H6PjJ9dZ+XoKDF+zc7AQjI=
+Date:   Sun, 11 Sep 2022 21:56:50 -0700
+To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-move-from-strlcpy-with-unused-retval-to-strscpy.patch removed from -mm tree
-Message-Id: <20220912045647.4FC67C433D6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-move-from-strlcpy-with-unused-retval-to-strscpy.patch removed from -mm tree
+Message-Id: <20220912045650.BD75AC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,66 +41,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ocfs2: move from strlcpy with unused retval to strscpy
+     Subject: lib: move from strlcpy with unused retval to strscpy
 has been removed from the -mm tree.  Its filename was
-     ocfs2-move-from-strlcpy-with-unused-retval-to-strscpy.patch
+     lib-move-from-strlcpy-with-unused-retval-to-strscpy.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: ocfs2: move from strlcpy with unused retval to strscpy
-Date: Thu, 18 Aug 2022 23:01:13 +0200
+Subject: lib: move from strlcpy with unused retval to strscpy
+Date: Thu, 18 Aug 2022 23:02:03 +0200
 
 Follow the advice of the below link and prefer 'strscpy' in this
 subsystem.  Conversion is 1:1 because the return value is not used. 
 Generated by a coccinelle script.
 
 Link: https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20220818210123.7637-4-wsa+renesas@sang-engineering.com
+Link: https://lkml.kernel.org/r/20220818210203.8251-1-wsa+renesas@sang-engineering.com
 Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |    4 ++--
- fs/ocfs2/super.c     |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ lib/earlycpio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/stackglue.c~ocfs2-move-from-strlcpy-with-unused-retval-to-strscpy
-+++ a/fs/ocfs2/stackglue.c
-@@ -334,10 +334,10 @@ int ocfs2_cluster_connect(const char *st
- 		goto out;
- 	}
+--- a/lib/earlycpio.c~lib-move-from-strlcpy-with-unused-retval-to-strscpy
++++ a/lib/earlycpio.c
+@@ -126,7 +126,7 @@ struct cpio_data find_cpio_data(const ch
+ 				"File %s exceeding MAX_CPIO_FILE_NAME [%d]\n",
+ 				p, MAX_CPIO_FILE_NAME);
+ 			}
+-			strlcpy(cd.name, p + mypathsize, MAX_CPIO_FILE_NAME);
++			strscpy(cd.name, p + mypathsize, MAX_CPIO_FILE_NAME);
  
--	strlcpy(new_conn->cc_name, group, GROUP_NAME_MAX + 1);
-+	strscpy(new_conn->cc_name, group, GROUP_NAME_MAX + 1);
- 	new_conn->cc_namelen = grouplen;
- 	if (cluster_name_len)
--		strlcpy(new_conn->cc_cluster_name, cluster_name,
-+		strscpy(new_conn->cc_cluster_name, cluster_name,
- 			CLUSTER_NAME_MAX + 1);
- 	new_conn->cc_cluster_name_len = cluster_name_len;
- 	new_conn->cc_recovery_handler = recovery_handler;
---- a/fs/ocfs2/super.c~ocfs2-move-from-strlcpy-with-unused-retval-to-strscpy
-+++ a/fs/ocfs2/super.c
-@@ -2221,7 +2221,7 @@ static int ocfs2_initialize_super(struct
- 		goto out_journal;
- 	}
- 
--	strlcpy(osb->vol_label, di->id2.i_super.s_label,
-+	strscpy(osb->vol_label, di->id2.i_super.s_label,
- 		OCFS2_MAX_VOL_LABEL_LEN);
- 	osb->root_blkno = le64_to_cpu(di->id2.i_super.s_root_blkno);
- 	osb->system_dir_blkno = le64_to_cpu(di->id2.i_super.s_system_dir_blkno);
+ 			cd.data = (void *)dptr;
+ 			cd.size = ch[C_FILESIZE];
 _
 
 Patches currently in -mm which might be from wsa+renesas@sang-engineering.com are
