@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A5D2C6FA89
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:34:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DC7CECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:34:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229728AbiILDeH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:34:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60770 "EHLO
+        id S229758AbiILDek (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:34:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229597AbiILDch (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:32:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50FF628734
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:18 -0700 (PDT)
+        with ESMTP id S229808AbiILDc5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:32:57 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D2F928E3D
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D79FA61169
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38C3EC433C1;
-        Mon, 12 Sep 2022 03:30:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DCC41B80C6D
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77FCCC433C1;
+        Mon, 12 Sep 2022 03:30:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953417;
-        bh=N0atVup6mPrDTzcT9YLpGN2TJ60FiJo2+fGfctYzfLM=;
+        s=korg; t=1662953420;
+        bh=SQpUNWzsXn0zQmgWnoKrKQQccfsr9gOP8flTWa/F7I4=;
         h=Date:To:From:Subject:From;
-        b=w/8Rrkj1q3wWP+R+bIi7m3Sxyczr0XRsPC0FD62/LhxJ8eEyv8X41IDfYVgYP1rx2
-         F58AHLAiWKWN4NIinka0eQh7Tj2jpMzSe6DsaTEAvt4QAYf6pV2X1qNrwma3CeRiWf
-         M2UDghM2dCT+r1V2VnHyitNOU/bqEvOer/Ar/ZTw=
-Date:   Sun, 11 Sep 2022 20:30:15 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
-        akpm@linux-foundation.org
+        b=XTQEPCgy2tnkL93zgeLGvXpd+3MGdLpItCAzS50Efg0K39orSQGQ4M1j30x5ofkvn
+         ijNX0yjW8/bxLsbBUQKW45SlbpBqbTPNOLcVHUky5IEcGfoDDbfnJnz4STKAQEcWt7
+         eZKpaZBSK/4RSOPAkDTkVGTyHBLzTVeBzfqvNR9c=
+Date:   Sun, 11 Sep 2022 20:30:17 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        zuoze1@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-get-the-hotness-from-damon_hot_score-in-damon_pageout_score.patch removed from -mm tree
-Message-Id: <20220912033017.38C3EC433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-delete-a-redundant-parameter-of-rmqueue_pcplist.patch removed from -mm tree
+Message-Id: <20220912033020.77FCCC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,100 +41,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon: get the hotness from damon_hot_score() in damon_pageout_score()
+     Subject: mm/page_alloc.c: delete a redundant parameter of rmqueue_pcplist
 has been removed from the -mm tree.  Its filename was
-     mm-damon-get-the-hotness-from-damon_hot_score-in-damon_pageout_score.patch
+     mm-delete-a-redundant-parameter-of-rmqueue_pcplist.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kaixu Xia <kaixuxia@tencent.com>
-Subject: mm/damon: get the hotness from damon_hot_score() in damon_pageout_score()
-Date: Mon, 29 Aug 2022 17:46:06 +0800
+From: zezuo <zuoze1@huawei.com>
+Subject: mm/page_alloc.c: delete a redundant parameter of rmqueue_pcplist
+Date: Wed, 31 Aug 2022 01:34:04 +0000
 
-We can get the hotness value from damon_hot_score() directly in
-damon_pageout_score() function and improve the code readability.
+The gfp_flags parameter is not used in rmqueue_pcplist, so directly delete
+this parameter.
 
-Link: https://lkml.kernel.org/r/1661766366-20998-1-git-send-email-kaixuxia@tencent.com
-Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20220831013404.3360714-1-zuoze1@huawei.com
+Signed-off-by: zezuo <zuoze1@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |   46 +++++-----------------------------------
- 1 file changed, 6 insertions(+), 40 deletions(-)
+ mm/page_alloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/damon/ops-common.c~mm-damon-get-the-hotness-from-damon_hot_score-in-damon_pageout_score
-+++ a/mm/damon/ops-common.c
-@@ -88,7 +88,7 @@ void damon_pmdp_mkold(pmd_t *pmd, struct
- #define DAMON_MAX_SUBSCORE	(100)
- #define DAMON_MAX_AGE_IN_LOG	(32)
- 
--int damon_pageout_score(struct damon_ctx *c, struct damon_region *r,
-+int damon_hot_score(struct damon_ctx *c, struct damon_region *r,
- 			struct damos *s)
+--- a/mm/page_alloc.c~mm-delete-a-redundant-parameter-of-rmqueue_pcplist
++++ a/mm/page_alloc.c
+@@ -3779,8 +3779,7 @@ struct page *__rmqueue_pcplist(struct zo
+ /* Lock and remove page from the per-cpu list */
+ static struct page *rmqueue_pcplist(struct zone *preferred_zone,
+ 			struct zone *zone, unsigned int order,
+-			gfp_t gfp_flags, int migratetype,
+-			unsigned int alloc_flags)
++			int migratetype, unsigned int alloc_flags)
  {
- 	unsigned int max_nr_accesses;
-@@ -127,48 +127,14 @@ int damon_pageout_score(struct damon_ctx
- 	 */
- 	hotness = hotness * DAMOS_MAX_SCORE / DAMON_MAX_SUBSCORE;
- 
--	/* Return coldness of the region */
--	return DAMOS_MAX_SCORE - hotness;
-+	return hotness;
- }
- 
--int damon_hot_score(struct damon_ctx *c, struct damon_region *r,
-+int damon_pageout_score(struct damon_ctx *c, struct damon_region *r,
- 			struct damos *s)
- {
--	unsigned int max_nr_accesses;
--	int freq_subscore;
--	unsigned int age_in_sec;
--	int age_in_log, age_subscore;
--	unsigned int freq_weight = s->quota.weight_nr_accesses;
--	unsigned int age_weight = s->quota.weight_age;
--	int hotness;
--
--	max_nr_accesses = c->aggr_interval / c->sample_interval;
--	freq_subscore = r->nr_accesses * DAMON_MAX_SUBSCORE / max_nr_accesses;
-+	int hotness = damon_hot_score(c, r, s);
- 
--	age_in_sec = (unsigned long)r->age * c->aggr_interval / 1000000;
--	for (age_in_log = 0; age_in_log < DAMON_MAX_AGE_IN_LOG && age_in_sec;
--			age_in_log++, age_in_sec >>= 1)
--		;
--
--	/* If frequency is 0, higher age means it's colder */
--	if (freq_subscore == 0)
--		age_in_log *= -1;
--
--	/*
--	 * Now age_in_log is in [-DAMON_MAX_AGE_IN_LOG, DAMON_MAX_AGE_IN_LOG].
--	 * Scale it to be in [0, 100] and set it as age subscore.
--	 */
--	age_in_log += DAMON_MAX_AGE_IN_LOG;
--	age_subscore = age_in_log * DAMON_MAX_SUBSCORE /
--		DAMON_MAX_AGE_IN_LOG / 2;
--
--	hotness = (freq_weight * freq_subscore + age_weight * age_subscore);
--	if (freq_weight + age_weight)
--		hotness /= freq_weight + age_weight;
--	/*
--	 * Transform it to fit in [0, DAMOS_MAX_SCORE]
--	 */
--	hotness = hotness * DAMOS_MAX_SCORE / DAMON_MAX_SUBSCORE;
--
--	return hotness;
-+	/* Return coldness of the region */
-+	return DAMOS_MAX_SCORE - hotness;
- }
+ 	struct per_cpu_pages *pcp;
+ 	struct list_head *list;
+@@ -3841,7 +3840,7 @@ struct page *rmqueue(struct zone *prefer
+ 		if (!IS_ENABLED(CONFIG_CMA) || alloc_flags & ALLOC_CMA ||
+ 				migratetype != MIGRATE_MOVABLE) {
+ 			page = rmqueue_pcplist(preferred_zone, zone, order,
+-					gfp_flags, migratetype, alloc_flags);
++					migratetype, alloc_flags);
+ 			if (likely(page))
+ 				goto out;
+ 		}
 _
 
-Patches currently in -mm which might be from kaixuxia@tencent.com are
+Patches currently in -mm which might be from zuoze1@huawei.com are
 
-mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch
-mm-damon-core-iterate-the-regions-list-from-current-point-in-damon_set_regions.patch
-mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme.patch
 
