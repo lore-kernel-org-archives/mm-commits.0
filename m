@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2CEFC54EE9
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:28:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E69CC6FA89
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:28:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229598AbiILD22 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:28:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56438 "EHLO
+        id S229622AbiILD23 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:28:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229626AbiILD2V (ORCPT
+        with ESMTP id S229601AbiILD2V (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:28:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AB482612F
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 267E626129
         for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:28:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AED7E61169
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:28:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 084FAC433D6;
-        Mon, 12 Sep 2022 03:28:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A2B82B80C6D
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:28:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4121CC433D7;
+        Mon, 12 Sep 2022 03:28:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953293;
-        bh=lKN6bl3bR3v7sm0cNbUM0StddLKrAgAfq5xqvFtCAjg=;
+        s=korg; t=1662953291;
+        bh=z0jvOaveP+6VX8hsKyyJEMOWi1AbwIccmm60m5+HG6M=;
         h=Date:To:From:Subject:From;
-        b=tVcrI3IYH416q53Zg9OYgN6e85q4+BvqlPrDnn4zJdd1gfli9fAS1ey2cD2NQ0Fmw
-         N8ZRa3F7VShGAsEzeNuhiHXQ02yFIVHFQCcUvbS3OTV4fV9/iDMIVIud39LmRHp5f9
-         RM1a8nKmH5Q9+bgX6zoJb8iXKxcjJ4JzyeOvFoIk=
-Date:   Sun, 11 Sep 2022 20:28:12 -0700
+        b=sLTDa8Q6IpwR+Y8y3Z0DIV9plX3q/ll/P7zWYNJvqsChAidmf+SzxDlzI1PYDQ7CU
+         SPeG0HdwTUS6jINUJoZBfSeNM2NjlTp+IOACQVxuhrQM47WNUFO/tFmRXETh/0nh5O
+         mS6iBfOpZzhqaY7CwCkQQwOlSYwGJKpTIuKnY8hk=
+Date:   Sun, 11 Sep 2022 20:28:10 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tsbogend@alpha.franken.de, songliubraving@fb.com,
         sj@kernel.org, shy828301@gmail.com, rongwei.wang@linux.alibaba.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         arnd@arndb.de, alex.shi@linux.alibaba.com, aarcange@redhat.com,
         zokeefe@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-modularize-collapse-selftests.patch removed from -mm tree
-Message-Id: <20220912032813.084FAC433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-add-madv_collapse-to-process_madvise.patch removed from -mm tree
+Message-Id: <20220912032811.4121CC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,30 +52,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: modularize collapse selftests
+     Subject: mm/madvise: add MADV_COLLAPSE to process_madvise()
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-modularize-collapse-selftests.patch
+     mm-madvise-add-madv_collapse-to-process_madvise.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: selftests/vm: modularize collapse selftests
-Date: Wed, 6 Jul 2022 16:59:32 -0700
+Subject: mm/madvise: add MADV_COLLAPSE to process_madvise()
+Date: Wed, 6 Jul 2022 16:59:30 -0700
 
-Modularize the collapse action of khugepaged collapse selftests by
-introducing a struct collapse_context which specifies how to collapse a
-given memory range and the expected semantics of the collapse.  This can
-be reused later to test other collapse contexts.
+Allow MADV_COLLAPSE behavior for process_madvise(2) if caller has
+CAP_SYS_ADMIN or is requesting collapse of it's own memory.
 
-Additionally, all tests have logic that checks if a collapse occurred via
-reading /proc/self/smaps, and report if this is different than expected. 
-Move this logic into the per-context ->collapse() hook instead of
-repeating it in every test.
+This is useful for the development of userspace agents that seek to
+optimize THP utilization system-wide by using userspace signals to
+prioritize what memory is most deserving of being THP-backed.
 
-Link: https://lkml.kernel.org/r/20220706235936.2197195-15-zokeefe@google.com
+[zokeefe@google.com: remove CAP_SYS_ADMIN requirement for process_madvise(MADV_COLLAPSE)]
+  Link: https://lkml.kernel.org/r/20220801210946.3069083-1-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220706235936.2197195-13-zokeefe@google.com
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -83,7 +83,6 @@ Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Chris Kennelly <ckennelly@google.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
@@ -111,430 +110,27 @@ Cc: "Souptick Joarder (HPE)" <jrdr.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/khugepaged.c |  247 +++++++++-------------
- 1 file changed, 108 insertions(+), 139 deletions(-)
+ mm/madvise.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/vm/khugepaged.c~selftests-vm-modularize-collapse-selftests
-+++ a/tools/testing/selftests/vm/khugepaged.c
-@@ -23,6 +23,11 @@ static int hpage_pmd_nr;
- #define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
- #define PID_SMAPS "/proc/self/smaps"
- 
-+struct collapse_context {
-+	void (*collapse)(const char *msg, char *p, bool expect);
-+	bool enforce_pte_scan_limits;
-+};
-+
- enum thp_enabled {
- 	THP_ALWAYS,
- 	THP_MADVISE,
-@@ -501,6 +506,21 @@ static bool wait_for_scan(const char *ms
- 	return timeout == -1;
- }
- 
-+static void khugepaged_collapse(const char *msg, char *p, bool expect)
-+{
-+	if (wait_for_scan(msg, p)) {
-+		if (expect)
-+			fail("Timeout");
-+		else
-+			success("OK");
-+		return;
-+	} else if (check_huge(p) == expect) {
-+		success("OK");
-+	} else {
-+		fail("Fail");
-+	}
-+}
-+
- static void alloc_at_fault(void)
- {
- 	struct settings settings = default_settings;
-@@ -528,53 +548,39 @@ static void alloc_at_fault(void)
- 	munmap(p, hpage_pmd_size);
- }
- 
--static void collapse_full(void)
-+static void collapse_full(struct collapse_context *c)
- {
- 	void *p;
- 
- 	p = alloc_mapping();
- 	fill_memory(p, 0, hpage_pmd_size);
--	if (wait_for_scan("Collapse fully populated PTE table", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		success("OK");
--	else
--		fail("Fail");
-+	c->collapse("Collapse fully populated PTE table", p, true);
- 	validate_memory(p, 0, hpage_pmd_size);
- 	munmap(p, hpage_pmd_size);
- }
- 
--static void collapse_empty(void)
-+static void collapse_empty(struct collapse_context *c)
- {
- 	void *p;
- 
- 	p = alloc_mapping();
--	if (wait_for_scan("Do not collapse empty PTE table", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		fail("Fail");
--	else
--		success("OK");
-+	c->collapse("Do not collapse empty PTE table", p, false);
- 	munmap(p, hpage_pmd_size);
- }
- 
--static void collapse_single_pte_entry(void)
-+static void collapse_single_pte_entry(struct collapse_context *c)
- {
- 	void *p;
- 
- 	p = alloc_mapping();
- 	fill_memory(p, 0, page_size);
--	if (wait_for_scan("Collapse PTE table with single PTE entry present", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		success("OK");
--	else
--		fail("Fail");
-+	c->collapse("Collapse PTE table with single PTE entry present", p,
-+		    true);
- 	validate_memory(p, 0, page_size);
- 	munmap(p, hpage_pmd_size);
- }
- 
--static void collapse_max_ptes_none(void)
-+static void collapse_max_ptes_none(struct collapse_context *c)
- {
- 	int max_ptes_none = hpage_pmd_nr / 2;
- 	struct settings settings = default_settings;
-@@ -586,28 +592,22 @@ static void collapse_max_ptes_none(void)
- 	p = alloc_mapping();
- 
- 	fill_memory(p, 0, (hpage_pmd_nr - max_ptes_none - 1) * page_size);
--	if (wait_for_scan("Do not collapse with max_ptes_none exceeded", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		fail("Fail");
--	else
--		success("OK");
-+	c->collapse("Maybe collapse with max_ptes_none exceeded", p,
-+		    !c->enforce_pte_scan_limits);
- 	validate_memory(p, 0, (hpage_pmd_nr - max_ptes_none - 1) * page_size);
- 
--	fill_memory(p, 0, (hpage_pmd_nr - max_ptes_none) * page_size);
--	if (wait_for_scan("Collapse with max_ptes_none PTEs empty", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		success("OK");
--	else
--		fail("Fail");
--	validate_memory(p, 0, (hpage_pmd_nr - max_ptes_none) * page_size);
-+	if (c->enforce_pte_scan_limits) {
-+		fill_memory(p, 0, (hpage_pmd_nr - max_ptes_none) * page_size);
-+		c->collapse("Collapse with max_ptes_none PTEs empty", p, true);
-+		validate_memory(p, 0,
-+				(hpage_pmd_nr - max_ptes_none) * page_size);
-+	}
- 
- 	munmap(p, hpage_pmd_size);
- 	write_settings(&default_settings);
- }
- 
--static void collapse_swapin_single_pte(void)
-+static void collapse_swapin_single_pte(struct collapse_context *c)
- {
- 	void *p;
- 	p = alloc_mapping();
-@@ -625,18 +625,13 @@ static void collapse_swapin_single_pte(v
- 		goto out;
+--- a/mm/madvise.c~mm-madvise-add-madv_collapse-to-process_madvise
++++ a/mm/madvise.c
+@@ -1170,13 +1170,13 @@ madvise_behavior_valid(int behavior)
  	}
- 
--	if (wait_for_scan("Collapse with swapping in single PTE entry", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		success("OK");
--	else
--		fail("Fail");
-+	c->collapse("Collapse with swapping in single PTE entry", p, true);
- 	validate_memory(p, 0, hpage_pmd_size);
- out:
- 	munmap(p, hpage_pmd_size);
  }
  
--static void collapse_max_ptes_swap(void)
-+static void collapse_max_ptes_swap(struct collapse_context *c)
+-static bool
+-process_madvise_behavior_valid(int behavior)
++static bool process_madvise_behavior_valid(int behavior)
  {
- 	int max_ptes_swap = read_num("khugepaged/max_ptes_swap");
- 	void *p;
-@@ -656,39 +651,34 @@ static void collapse_max_ptes_swap(void)
- 		goto out;
- 	}
- 
--	if (wait_for_scan("Do not collapse with max_ptes_swap exceeded", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		fail("Fail");
--	else
--		success("OK");
-+	c->collapse("Maybe collapse with max_ptes_swap exceeded", p,
-+		    !c->enforce_pte_scan_limits);
- 	validate_memory(p, 0, hpage_pmd_size);
- 
--	fill_memory(p, 0, hpage_pmd_size);
--	printf("Swapout %d of %d pages...", max_ptes_swap, hpage_pmd_nr);
--	if (madvise(p, max_ptes_swap * page_size, MADV_PAGEOUT)) {
--		perror("madvise(MADV_PAGEOUT)");
--		exit(EXIT_FAILURE);
--	}
--	if (check_swap(p, max_ptes_swap * page_size)) {
--		success("OK");
--	} else {
--		fail("Fail");
--		goto out;
--	}
-+	if (c->enforce_pte_scan_limits) {
-+		fill_memory(p, 0, hpage_pmd_size);
-+		printf("Swapout %d of %d pages...", max_ptes_swap,
-+		       hpage_pmd_nr);
-+		if (madvise(p, max_ptes_swap * page_size, MADV_PAGEOUT)) {
-+			perror("madvise(MADV_PAGEOUT)");
-+			exit(EXIT_FAILURE);
-+		}
-+		if (check_swap(p, max_ptes_swap * page_size)) {
-+			success("OK");
-+		} else {
-+			fail("Fail");
-+			goto out;
-+		}
- 
--	if (wait_for_scan("Collapse with max_ptes_swap pages swapped out", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		success("OK");
--	else
--		fail("Fail");
--	validate_memory(p, 0, hpage_pmd_size);
-+		c->collapse("Collapse with max_ptes_swap pages swapped out", p,
-+			    true);
-+		validate_memory(p, 0, hpage_pmd_size);
-+	}
- out:
- 	munmap(p, hpage_pmd_size);
- }
- 
--static void collapse_single_pte_entry_compound(void)
-+static void collapse_single_pte_entry_compound(struct collapse_context *c)
- {
- 	void *p;
- 
-@@ -710,17 +700,13 @@ static void collapse_single_pte_entry_co
- 	else
- 		fail("Fail");
- 
--	if (wait_for_scan("Collapse PTE table with single PTE mapping compound page", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		success("OK");
--	else
--		fail("Fail");
-+	c->collapse("Collapse PTE table with single PTE mapping compound page",
-+		    p, true);
- 	validate_memory(p, 0, page_size);
- 	munmap(p, hpage_pmd_size);
- }
- 
--static void collapse_full_of_compound(void)
-+static void collapse_full_of_compound(struct collapse_context *c)
- {
- 	void *p;
- 
-@@ -742,17 +728,12 @@ static void collapse_full_of_compound(vo
- 	else
- 		fail("Fail");
- 
--	if (wait_for_scan("Collapse PTE table full of compound pages", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		success("OK");
--	else
--		fail("Fail");
-+	c->collapse("Collapse PTE table full of compound pages", p, true);
- 	validate_memory(p, 0, hpage_pmd_size);
- 	munmap(p, hpage_pmd_size);
- }
- 
--static void collapse_compound_extreme(void)
-+static void collapse_compound_extreme(struct collapse_context *c)
- {
- 	void *p;
- 	int i;
-@@ -798,18 +779,14 @@ static void collapse_compound_extreme(vo
- 	else
- 		fail("Fail");
- 
--	if (wait_for_scan("Collapse PTE table full of different compound pages", p))
--		fail("Timeout");
--	else if (check_huge(p))
--		success("OK");
--	else
--		fail("Fail");
-+	c->collapse("Collapse PTE table full of different compound pages", p,
-+		    true);
- 
- 	validate_memory(p, 0, hpage_pmd_size);
- 	munmap(p, hpage_pmd_size);
- }
- 
--static void collapse_fork(void)
-+static void collapse_fork(struct collapse_context *c)
- {
- 	int wstatus;
- 	void *p;
-@@ -835,13 +812,8 @@ static void collapse_fork(void)
- 			fail("Fail");
- 
- 		fill_memory(p, page_size, 2 * page_size);
--
--		if (wait_for_scan("Collapse PTE table with single page shared with parent process", p))
--			fail("Timeout");
--		else if (check_huge(p))
--			success("OK");
--		else
--			fail("Fail");
-+		c->collapse("Collapse PTE table with single page shared with parent process",
-+			    p, true);
- 
- 		validate_memory(p, 0, page_size);
- 		munmap(p, hpage_pmd_size);
-@@ -860,7 +832,7 @@ static void collapse_fork(void)
- 	munmap(p, hpage_pmd_size);
- }
- 
--static void collapse_fork_compound(void)
-+static void collapse_fork_compound(struct collapse_context *c)
- {
- 	int wstatus;
- 	void *p;
-@@ -896,14 +868,10 @@ static void collapse_fork_compound(void)
- 		fill_memory(p, 0, page_size);
- 
- 		write_num("khugepaged/max_ptes_shared", hpage_pmd_nr - 1);
--		if (wait_for_scan("Collapse PTE table full of compound pages in child", p))
--			fail("Timeout");
--		else if (check_huge(p))
--			success("OK");
--		else
--			fail("Fail");
-+		c->collapse("Collapse PTE table full of compound pages in child",
-+			    p, true);
- 		write_num("khugepaged/max_ptes_shared",
--				default_settings.khugepaged.max_ptes_shared);
-+			  default_settings.khugepaged.max_ptes_shared);
- 
- 		validate_memory(p, 0, hpage_pmd_size);
- 		munmap(p, hpage_pmd_size);
-@@ -922,7 +890,7 @@ static void collapse_fork_compound(void)
- 	munmap(p, hpage_pmd_size);
- }
- 
--static void collapse_max_ptes_shared()
-+static void collapse_max_ptes_shared(struct collapse_context *c)
- {
- 	int max_ptes_shared = read_num("khugepaged/max_ptes_shared");
- 	int wstatus;
-@@ -957,28 +925,22 @@ static void collapse_max_ptes_shared()
- 		else
- 			fail("Fail");
- 
--		if (wait_for_scan("Do not collapse with max_ptes_shared exceeded", p))
--			fail("Timeout");
--		else if (!check_huge(p))
--			success("OK");
--		else
--			fail("Fail");
--
--		printf("Trigger CoW on page %d of %d...",
--				hpage_pmd_nr - max_ptes_shared, hpage_pmd_nr);
--		fill_memory(p, 0, (hpage_pmd_nr - max_ptes_shared) * page_size);
--		if (!check_huge(p))
--			success("OK");
--		else
--			fail("Fail");
-+		c->collapse("Maybe collapse with max_ptes_shared exceeded", p,
-+			    !c->enforce_pte_scan_limits);
- 
-+		if (c->enforce_pte_scan_limits) {
-+			printf("Trigger CoW on page %d of %d...",
-+			       hpage_pmd_nr - max_ptes_shared, hpage_pmd_nr);
-+			fill_memory(p, 0, (hpage_pmd_nr - max_ptes_shared) *
-+				    page_size);
-+			if (!check_huge(p))
-+				success("OK");
-+			else
-+				fail("Fail");
- 
--		if (wait_for_scan("Collapse with max_ptes_shared PTEs shared", p))
--			fail("Timeout");
--		else if (check_huge(p))
--			success("OK");
--		else
--			fail("Fail");
-+			c->collapse("Collapse with max_ptes_shared PTEs shared",
-+				    p, true);
-+		}
- 
- 		validate_memory(p, 0, hpage_pmd_size);
- 		munmap(p, hpage_pmd_size);
-@@ -999,6 +961,8 @@ static void collapse_max_ptes_shared()
- 
- int main(void)
- {
-+	struct collapse_context c;
-+
- 	setbuf(stdout, NULL);
- 
- 	page_size = getpagesize();
-@@ -1014,18 +978,23 @@ int main(void)
- 	adjust_settings();
- 
- 	alloc_at_fault();
--	collapse_full();
--	collapse_empty();
--	collapse_single_pte_entry();
--	collapse_max_ptes_none();
--	collapse_swapin_single_pte();
--	collapse_max_ptes_swap();
--	collapse_single_pte_entry_compound();
--	collapse_full_of_compound();
--	collapse_compound_extreme();
--	collapse_fork();
--	collapse_fork_compound();
--	collapse_max_ptes_shared();
-+
-+	printf("\n*** Testing context: khugepaged ***\n");
-+	c.collapse = &khugepaged_collapse;
-+	c.enforce_pte_scan_limits = true;
-+
-+	collapse_full(&c);
-+	collapse_empty(&c);
-+	collapse_single_pte_entry(&c);
-+	collapse_max_ptes_none(&c);
-+	collapse_swapin_single_pte(&c);
-+	collapse_max_ptes_swap(&c);
-+	collapse_single_pte_entry_compound(&c);
-+	collapse_full_of_compound(&c);
-+	collapse_compound_extreme(&c);
-+	collapse_fork(&c);
-+	collapse_fork_compound(&c);
-+	collapse_max_ptes_shared(&c);
- 
- 	restore_settings(0);
- }
+ 	switch (behavior) {
+ 	case MADV_COLD:
+ 	case MADV_PAGEOUT:
+ 	case MADV_WILLNEED:
++	case MADV_COLLAPSE:
+ 		return true;
+ 	default:
+ 		return false;
 _
 
 Patches currently in -mm which might be from zokeefe@google.com are
