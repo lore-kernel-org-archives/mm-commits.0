@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA0DFECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:56:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFA7DC6FA82
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:56:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229660AbiILE44 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Sep 2022 00:56:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54588 "EHLO
+        id S229479AbiILE45 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Sep 2022 00:56:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229584AbiILE4n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:56:43 -0400
+        with ESMTP id S229577AbiILE4q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:56:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24162220F9
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4086627CCE
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A915760CF6
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E01CC433B5;
-        Mon, 12 Sep 2022 04:56:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CF11960C5E
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C7BEC433C1;
+        Mon, 12 Sep 2022 04:56:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662958586;
-        bh=M3CX5YlmSXIpP8WU74i9R79EgTc4ShHHhxqCUBjDRSQ=;
+        s=korg; t=1662958587;
+        bh=RMJ0JSkMijYnWOVKdWUhAObCfvmEYVfThCSXXhnZsqo=;
         h=Date:To:From:Subject:From;
-        b=doNScpSVzkmD73ttK79/kKyPLwk+Bp93n4Jq2quwHN3Q/niOb/7hgH8tJiHjfW0mC
-         LMEizzB5jn8kGUfowGAQb6RVLxxUqCIn/OT1Bv0QXp16F5ULzjZ3Ue+gTtbr9spct3
-         PkDmXIWaFqcwv+jMvyAL9VPiWqPNdpaUvfEeMsE8=
-Date:   Sun, 11 Sep 2022 21:56:25 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de, pmladek@suse.com,
-        linmiaohe@huawei.com, lgoncalv@redhat.com, jlelli@redhat.com,
-        ebiederm@xmission.com, bigeasy@linutronix.de, bhe@redhat.com,
-        arnd@arndb.de, vschneid@redhat.com, akpm@linux-foundation.org
+        b=090I/jY1xxFGqjfs58wkQnLYxwaOFJK0kVEs+wh9VYJB084fOzyk+oCfeGPFQrvwr
+         mKzp+fhQZAHXHXDf89yv4VIl9OXWoVv8j3gYGmWWIyUQ9Ui0PVyct9u/hQUSxJrZjH
+         7NA+Bx4OIB/NhxxfDpakyj2Ne/2dGtR6H1x52/SM=
+Date:   Sun, 11 Sep 2022 21:56:26 -0700
+To:     mm-commits@vger.kernel.org, ubizjak@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] panic-kexec-make-__crash_kexec-nmi-safe.patch removed from -mm tree
-Message-Id: <20220912045626.0E01CC433B5@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] llist-use-try_cmpxchg-in-llist_add_batch-and-llist_del_first.patch removed from -mm tree
+Message-Id: <20220912045627.2C7BEC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,237 +41,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: panic, kexec: make __crash_kexec() NMI safe
+     Subject: llist: use try_cmpxchg in llist_add_batch and llist_del_first
 has been removed from the -mm tree.  Its filename was
-     panic-kexec-make-__crash_kexec-nmi-safe.patch
+     llist-use-try_cmpxchg-in-llist_add_batch-and-llist_del_first.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Valentin Schneider <vschneid@redhat.com>
-Subject: panic, kexec: make __crash_kexec() NMI safe
-Date: Thu, 30 Jun 2022 23:32:58 +0100
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: llist: use try_cmpxchg in llist_add_batch and llist_del_first
+Date: Tue, 12 Jul 2022 16:49:17 +0200
 
-Attempting to get a crash dump out of a debug PREEMPT_RT kernel via an NMI
-panic() doesn't work.  The cause of that lies in the PREEMPT_RT definition
-of mutex_trylock():
+Use try_cmpxchg instead of cmpxchg (*ptr, old, new) == old in
+llist_add_batch and llist_del_first.  x86 CMPXCHG instruction returns
+success in ZF flag, so this change saves a compare after cmpxchg.
 
-	if (IS_ENABLED(CONFIG_DEBUG_RT_MUTEXES) && WARN_ON_ONCE(!in_task()))
-		return 0;
+Also, try_cmpxchg implicitly assigns old *ptr value to "old" when cmpxchg
+fails, enabling further code simplifications.
 
-This prevents an nmi_panic() from executing the main body of
-__crash_kexec() which does the actual kexec into the kdump kernel.  The
-warning and return are explained by:
+No functional change intended.
 
-  6ce47fd961fa ("rtmutex: Warn if trylock is called from hard/softirq context")
-  [...]
-  The reasons for this are:
-
-      1) There is a potential deadlock in the slowpath
-
-      2) Another cpu which blocks on the rtmutex will boost the task
-	 which allegedly locked the rtmutex, but that cannot work
-	 because the hard/softirq context borrows the task context.
-
-Furthermore, grabbing the lock isn't NMI safe, so do away with kexec_mutex
-and replace it with an atomic variable.  This is somewhat overzealous as
-*some* callsites could keep using a mutex (e.g.  the sysfs-facing ones
-like crash_shrink_memory()), but this has the benefit of involving a
-single unified lock and preventing any future NMI-related surprises.
-
-Tested by triggering NMI panics via:
-
-  $ echo 1 > /proc/sys/kernel/panic_on_unrecovered_nmi
-  $ echo 1 > /proc/sys/kernel/unknown_nmi_panic
-  $ echo 1 > /proc/sys/kernel/panic
-
-  $ ipmitool power diag
-
-Link: https://lkml.kernel.org/r/20220630223258.4144112-3-vschneid@redhat.com
-Fixes: 6ce47fd961fa ("rtmutex: Warn if trylock is called from hard/softirq context")
-Signed-off-by: Valentin Schneider <vschneid@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Juri Lelli <jlelli@redhat.com>
-Cc: Luis Claudio R. Goncalves <lgoncalv@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20220712144917.4497-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c          |   11 ++++-------
- kernel/kexec_core.c     |   20 ++++++++++----------
- kernel/kexec_file.c     |    4 ++--
- kernel/kexec_internal.h |   15 ++++++++++++++-
- 4 files changed, 30 insertions(+), 20 deletions(-)
+ lib/llist.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
---- a/kernel/kexec.c~panic-kexec-make-__crash_kexec-nmi-safe
-+++ a/kernel/kexec.c
-@@ -93,13 +93,10 @@ static int do_kexec_load(unsigned long e
+--- a/lib/llist.c~llist-use-try_cmpxchg-in-llist_add_batch-and-llist_del_first
++++ a/lib/llist.c
+@@ -30,7 +30,7 @@ bool llist_add_batch(struct llist_node *
  
- 	/*
- 	 * Because we write directly to the reserved memory region when loading
--	 * crash kernels we need a mutex here to prevent multiple crash kernels
--	 * from attempting to load simultaneously, and to prevent a crash kernel
--	 * from loading over the top of a in use crash kernel.
--	 *
--	 * KISS: always take the mutex.
-+	 * crash kernels we need a serialization here to prevent multiple crash
-+	 * kernels from attempting to load simultaneously.
- 	 */
--	if (!mutex_trylock(&kexec_mutex))
-+	if (!kexec_trylock())
- 		return -EBUSY;
+ 	do {
+ 		new_last->next = first = READ_ONCE(head->first);
+-	} while (cmpxchg(&head->first, first, new_first) != first);
++	} while (!try_cmpxchg(&head->first, &first, new_first));
  
- 	if (flags & KEXEC_ON_CRASH) {
-@@ -165,7 +162,7 @@ out:
- 
- 	kimage_free(image);
- out_unlock:
--	mutex_unlock(&kexec_mutex);
-+	kexec_unlock();
- 	return ret;
+ 	return !first;
  }
- 
---- a/kernel/kexec_core.c~panic-kexec-make-__crash_kexec-nmi-safe
-+++ a/kernel/kexec_core.c
-@@ -46,7 +46,7 @@
- #include <crypto/hash.h>
- #include "kexec_internal.h"
- 
--DEFINE_MUTEX(kexec_mutex);
-+atomic_t __kexec_lock = ATOMIC_INIT(0);
- 
- /* Per cpu memory for storing cpu states in case of system crash. */
- note_buf_t __percpu *crash_notes;
-@@ -959,7 +959,7 @@ late_initcall(kexec_core_sysctl_init);
+@@ -52,18 +52,14 @@ EXPORT_SYMBOL_GPL(llist_add_batch);
   */
- void __noclone __crash_kexec(struct pt_regs *regs)
+ struct llist_node *llist_del_first(struct llist_head *head)
  {
--	/* Take the kexec_mutex here to prevent sys_kexec_load
-+	/* Take the kexec_lock here to prevent sys_kexec_load
- 	 * running on one cpu from replacing the crash kernel
- 	 * we are using after a panic on a different cpu.
- 	 *
-@@ -967,7 +967,7 @@ void __noclone __crash_kexec(struct pt_r
- 	 * of memory the xchg(&kexec_crash_image) would be
- 	 * sufficient.  But since I reuse the memory...
- 	 */
--	if (mutex_trylock(&kexec_mutex)) {
-+	if (kexec_trylock()) {
- 		if (kexec_crash_image) {
- 			struct pt_regs fixed_regs;
+-	struct llist_node *entry, *old_entry, *next;
++	struct llist_node *entry, *next;
  
-@@ -976,7 +976,7 @@ void __noclone __crash_kexec(struct pt_r
- 			machine_crash_shutdown(&fixed_regs);
- 			machine_kexec(kexec_crash_image);
- 		}
--		mutex_unlock(&kexec_mutex);
-+		kexec_unlock();
- 	}
+ 	entry = smp_load_acquire(&head->first);
+-	for (;;) {
++	do {
+ 		if (entry == NULL)
+ 			return NULL;
+-		old_entry = entry;
+ 		next = READ_ONCE(entry->next);
+-		entry = cmpxchg(&head->first, old_entry, next);
+-		if (entry == old_entry)
+-			break;
+-	}
++	} while (!try_cmpxchg(&head->first, &entry, next));
+ 
+ 	return entry;
  }
- STACK_FRAME_NON_STANDARD(__crash_kexec);
-@@ -1008,13 +1008,13 @@ ssize_t crash_get_memory_size(void)
- {
- 	ssize_t size = 0;
- 
--	if (!mutex_trylock(&kexec_mutex))
-+	if (!kexec_trylock())
- 		return -EBUSY;
- 
- 	if (crashk_res.end != crashk_res.start)
- 		size = resource_size(&crashk_res);
- 
--	mutex_unlock(&kexec_mutex);
-+	kexec_unlock();
- 	return size;
- }
- 
-@@ -1025,7 +1025,7 @@ int crash_shrink_memory(unsigned long ne
- 	unsigned long old_size;
- 	struct resource *ram_res;
- 
--	if (!mutex_trylock(&kexec_mutex))
-+	if (!kexec_trylock())
- 		return -EBUSY;
- 
- 	if (kexec_crash_image) {
-@@ -1064,7 +1064,7 @@ int crash_shrink_memory(unsigned long ne
- 	insert_resource(&iomem_resource, ram_res);
- 
- unlock:
--	mutex_unlock(&kexec_mutex);
-+	kexec_unlock();
- 	return ret;
- }
- 
-@@ -1136,7 +1136,7 @@ int kernel_kexec(void)
- {
- 	int error = 0;
- 
--	if (!mutex_trylock(&kexec_mutex))
-+	if (!kexec_trylock())
- 		return -EBUSY;
- 	if (!kexec_image) {
- 		error = -EINVAL;
-@@ -1212,6 +1212,6 @@ int kernel_kexec(void)
- #endif
- 
-  Unlock:
--	mutex_unlock(&kexec_mutex);
-+	kexec_unlock();
- 	return error;
- }
---- a/kernel/kexec_file.c~panic-kexec-make-__crash_kexec-nmi-safe
-+++ a/kernel/kexec_file.c
-@@ -339,7 +339,7 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
- 
- 	image = NULL;
- 
--	if (!mutex_trylock(&kexec_mutex))
-+	if (!kexec_trylock())
- 		return -EBUSY;
- 
- 	dest_image = &kexec_image;
-@@ -411,7 +411,7 @@ out:
- 	if ((flags & KEXEC_FILE_ON_CRASH) && kexec_crash_image)
- 		arch_kexec_protect_crashkres();
- 
--	mutex_unlock(&kexec_mutex);
-+	kexec_unlock();
- 	kimage_free(image);
- 	return ret;
- }
---- a/kernel/kexec_internal.h~panic-kexec-make-__crash_kexec-nmi-safe
-+++ a/kernel/kexec_internal.h
-@@ -13,7 +13,20 @@ void kimage_terminate(struct kimage *ima
- int kimage_is_destination_range(struct kimage *image,
- 				unsigned long start, unsigned long end);
- 
--extern struct mutex kexec_mutex;
-+/*
-+ * Whatever is used to serialize accesses to the kexec_crash_image needs to be
-+ * NMI safe, as __crash_kexec() can happen during nmi_panic(), so here we use a
-+ * "simple" atomic variable that is acquired with a cmpxchg().
-+ */
-+extern atomic_t __kexec_lock;
-+static inline bool kexec_trylock(void)
-+{
-+	return atomic_cmpxchg_acquire(&__kexec_lock, 0, 1) == 0;
-+}
-+static inline void kexec_unlock(void)
-+{
-+	atomic_set_release(&__kexec_lock, 0);
-+}
- 
- #ifdef CONFIG_KEXEC_FILE
- #include <linux/purgatory.h>
 _
 
-Patches currently in -mm which might be from vschneid@redhat.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
 
