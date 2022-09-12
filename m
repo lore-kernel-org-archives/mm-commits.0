@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7021ECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:32:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9A2CC54EE9
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:32:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229456AbiILDck (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:32:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57260 "EHLO
+        id S229453AbiILDcm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:32:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56496 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229453AbiILDah (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:30:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B6D9F5B1;
-        Sun, 11 Sep 2022 20:29:38 -0700 (PDT)
+        with ESMTP id S229457AbiILDaq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:30:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BE69FD31
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D978661169;
-        Mon, 12 Sep 2022 03:29:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C74AC433C1;
-        Mon, 12 Sep 2022 03:29:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1CCF461171
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 729F9C433D7;
+        Mon, 12 Sep 2022 03:29:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953377;
-        bh=6R5mwzvO7OWFHz1BIwigDG8GJ04gn2lLzJgyI2uCb3Y=;
+        s=korg; t=1662953378;
+        bh=9gNMcrRPo/RxEVhXfMK2urduXI+WWK22dUHnGrsxIwQ=;
         h=Date:To:From:Subject:From;
-        b=KZDXNBhfw8/QmOb7Smjt374BzqvX84+fqbk9jzgR3fCCFVL11Ejzrsdy87YEBYdCi
-         qJyzfOG9sctdBbZeB1Qf90n4aTsfWc25+L61t9MR4pOE2b7DqyAetgB+wGXg5YF56i
-         tRGEiIz6W8BZ5JpyU/x8oGXuA9xCxdXPNA7Dz/9k=
-Date:   Sun, 11 Sep 2022 20:29:36 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        songmuchun@bytedance.com, sj@kernel.org, mike.kravetz@oracle.com,
+        b=AAWHwKIjgMu8jCvVTQ4vapw14YdWBHJZuV3vC1vBRizXB1uLJuE5qZq0WtEJnfeli
+         eZLRmMjXi2ZzInbNkN+bfH/N/S7epfdx8HGT22EYJzN8ehgRoPMFegTeYf17mmuUVr
+         MkWxcHdEalHQjpD3GJ2nUCYsJW9NHkOARPfXGwSk=
+Date:   Sun, 11 Sep 2022 20:29:37 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        sj@kernel.org, mike.kravetz@oracle.com,
         baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-validate-if-the-pmd-entry-is-present-before-accessing.patch removed from -mm tree
-Message-Id: <20220912032937.3C74AC433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-replace-pmd_huge-with-pmd_trans_huge-for-thp.patch removed from -mm tree
+Message-Id: <20220912032938.729F9C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,75 +42,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon: validate if the pmd entry is present before accessing
+     Subject: mm/damon: replace pmd_huge() with pmd_trans_huge() for THP
 has been removed from the -mm tree.  Its filename was
-     mm-damon-validate-if-the-pmd-entry-is-present-before-accessing.patch
+     mm-damon-replace-pmd_huge-with-pmd_trans_huge-for-thp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm/damon: validate if the pmd entry is present before accessing
-Date: Thu, 18 Aug 2022 15:37:43 +0800
+Subject: mm/damon: replace pmd_huge() with pmd_trans_huge() for THP
+Date: Thu, 18 Aug 2022 15:37:44 +0800
 
-pmd_huge() is used to validate if the pmd entry is mapped by a huge page,
-also including the case of non-present (migration or hwpoisoned) pmd entry
-on arm64 or x86 architectures.  This means that pmd_pfn() can not get the
-correct pfn number for a non-present pmd entry, which will cause
-damon_get_page() to get an incorrect page struct (also may be NULL by
-pfn_to_online_page()), making the access statistics incorrect.
+pmd_huge() is usually used to indicate a pmd level hugetlb.  However a pmd
+mapped huge page can only be THP in damon_mkold_pmd_entry() or
+damon_young_pmd_entry(), so replace pmd_huge() with pmd_trans_huge() in
+this case to make the code more readable according to the discussion [1].
 
-This means that the DAMON may make incorrect decision according to the
-incorrect statistics, for example, DAMON may can not reclaim cold page
-in time due to this cold page was regarded as accessed mistakenly if
-DAMOS_PAGEOUT operation is specified.
+[1] https://lore.kernel.org/all/098c1480-416d-bca9-cedb-ca495df69b64@linux.alibaba.com/
 
-Moreover it does not make sense that we still waste time to get the page
-of the non-present entry.  Just treat it as not-accessed and skip it,
-which maintains consistency with non-present pte level entries.
-
-So add pmd entry present validation to fix the above issues.
-
-Link: https://lkml.kernel.org/r/58b1d1f5fbda7db49ca886d9ef6783e3dcbbbc98.1660805030.git.baolin.wang@linux.alibaba.com
-Fixes: 3f49584b262c ("mm/damon: implement primitives for the virtual memory address spaces")
+Link: https://lkml.kernel.org/r/a9e010ca5d299e18d740c7c52290ecb6a014dde6.1660805030.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/damon/vaddr.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-validate-if-the-pmd-entry-is-present-before-accessing
+--- a/mm/damon/vaddr.c~mm-damon-replace-pmd_huge-with-pmd_trans_huge-for-thp
 +++ a/mm/damon/vaddr.c
-@@ -304,6 +304,11 @@ static int damon_mkold_pmd_entry(pmd_t *
+@@ -302,14 +302,14 @@ static int damon_mkold_pmd_entry(pmd_t *
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
  
- 	if (pmd_huge(*pmd)) {
+-	if (pmd_huge(*pmd)) {
++	if (pmd_trans_huge(*pmd)) {
  		ptl = pmd_lock(walk->mm, pmd);
-+		if (!pmd_present(*pmd)) {
-+			spin_unlock(ptl);
-+			return 0;
-+		}
-+
- 		if (pmd_huge(*pmd)) {
+ 		if (!pmd_present(*pmd)) {
+ 			spin_unlock(ptl);
+ 			return 0;
+ 		}
+ 
+-		if (pmd_huge(*pmd)) {
++		if (pmd_trans_huge(*pmd)) {
  			damon_pmdp_mkold(pmd, walk->mm, addr);
  			spin_unlock(ptl);
-@@ -431,6 +436,11 @@ static int damon_young_pmd_entry(pmd_t *
+ 			return 0;
+@@ -434,14 +434,14 @@ static int damon_young_pmd_entry(pmd_t *
+ 	struct damon_young_walk_private *priv = walk->private;
+ 
  #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (pmd_huge(*pmd)) {
+-	if (pmd_huge(*pmd)) {
++	if (pmd_trans_huge(*pmd)) {
  		ptl = pmd_lock(walk->mm, pmd);
-+		if (!pmd_present(*pmd)) {
-+			spin_unlock(ptl);
-+			return 0;
-+		}
-+
- 		if (!pmd_huge(*pmd)) {
+ 		if (!pmd_present(*pmd)) {
+ 			spin_unlock(ptl);
+ 			return 0;
+ 		}
+ 
+-		if (!pmd_huge(*pmd)) {
++		if (!pmd_trans_huge(*pmd)) {
  			spin_unlock(ptl);
  			goto regular_page;
+ 		}
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
