@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7EDEECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:34:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4353ECAAA1
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:34:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229693AbiILDeC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:34:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57070 "EHLO
+        id S229457AbiILDeD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:34:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229610AbiILDcX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:32:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDC631EACA
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:09 -0700 (PDT)
+        with ESMTP id S229780AbiILDc3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:32:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4BDB27B3D
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:30:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7EB856116F
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D52D0C433D6;
-        Mon, 12 Sep 2022 03:30:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 541E26116D
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:30:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8982C433D7;
+        Mon, 12 Sep 2022 03:30:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953408;
-        bh=6djkjJ4XBaTC8O0u3UjX6MkeKOrJJ48/bBTMGuPp7Mo=;
+        s=korg; t=1662953412;
+        bh=9np0H/7c2Whx/xBCwYOvPB0grh7B2EPeXnQZxW8unrE=;
         h=Date:To:From:Subject:From;
-        b=0dsWzgqnnnFtt8pOSCe5X3N+tefcGwuajoORn/26AbM2irOk2XYDUUvjgCUFVU18e
-         /IWKb0JXu3jkrnlqW0Jl16T+tbR+T4PhK3FGsr01ZpCMGX3MVL0k9GcyGMC2teJRFp
-         lCbLLIk7gPrqXmMZoN0K5uEeuv9goEV5EsUJvFnI=
-Date:   Sun, 11 Sep 2022 20:30:08 -0700
-To:     mm-commits@vger.kernel.org, osalvador@suse.de, david@redhat.com,
-        anshuman.khandual@arm.com, wangkefeng.wang@huawei.com,
+        b=G6Fe8PK/QolzilIzRwXgARcwSy1xHyW+/ajJBDJQmc0qUEQE7wXNZu6PRFiPw159T
+         +TyG6Kdk0SxZ46GIrEs/pSkCIebPg6LcApfOhiq3QGqpHZDQnUuU8bjpBORkp06pkO
+         l1ks5TLXvRN+ZaWT9slgd3T/fXQm3zCBR6emZsvI=
+Date:   Sun, 11 Sep 2022 20:30:11 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kill-is_memblock_offlined.patch removed from -mm tree
-Message-Id: <20220912033008.D52D0C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-vaddr-remove-comparison-between-mm-and-last_mm-when-checking-region-accesses.patch removed from -mm tree
+Message-Id: <20220912033012.A8982C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,88 +41,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: kill is_memblock_offlined()
+     Subject: mm/damon/vaddr: remove comparison between mm and last_mm when checking region accesses
 has been removed from the -mm tree.  Its filename was
-     mm-kill-is_memblock_offlined.patch
+     mm-damon-vaddr-remove-comparison-between-mm-and-last_mm-when-checking-region-accesses.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: kill is_memblock_offlined()
-Date: Sat, 27 Aug 2022 19:20:43 +0800
+From: Kaixu Xia <kaixuxia@tencent.com>
+Subject: mm/damon/vaddr: remove comparison between mm and last_mm when checking region accesses
+Date: Sat, 27 Aug 2022 17:02:51 +0800
 
-Directly check state of struct memory_block, no need a single function.
+The damon regions that belong to the same damon target have the same
+'struct mm_struct *mm', so it's unnecessary to compare the mm and last_mm
+objects among the damon regions in one damon target when checking
+accesses.  But the check is necessary when the target changed in
+'__damon_va_check_accesses()', so we can simplify the whole operation by
+using the bool 'same_target' to indicate whether the target changed.
 
-Link: https://lkml.kernel.org/r/20220827112043.187028-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Link: https://lkml.kernel.org/r/1661590971-20893-3-git-send-email-kaixuxia@tencent.com
+Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |    6 ------
- include/linux/memory_hotplug.h |    2 --
- mm/memory_hotplug.c            |    3 +--
- 3 files changed, 1 insertion(+), 10 deletions(-)
+ mm/damon/vaddr.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/drivers/base/memory.c~mm-kill-is_memblock_offlined
-+++ a/drivers/base/memory.c
-@@ -869,12 +869,6 @@ void remove_memory_block_devices(unsigne
- 	}
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-remove-comparison-between-mm-and-last_mm-when-checking-region-accesses
++++ a/mm/damon/vaddr.c
+@@ -543,15 +543,14 @@ static bool damon_va_young(struct mm_str
+  * r	the region to be checked
+  */
+ static void __damon_va_check_access(struct mm_struct *mm,
+-				struct damon_region *r)
++				struct damon_region *r, bool same_target)
+ {
+-	static struct mm_struct *last_mm;
+ 	static unsigned long last_addr;
+ 	static unsigned long last_page_sz = PAGE_SIZE;
+ 	static bool last_accessed;
+ 
+ 	/* If the region is in the last checked page, reuse the result */
+-	if (mm == last_mm && (ALIGN_DOWN(last_addr, last_page_sz) ==
++	if (same_target && (ALIGN_DOWN(last_addr, last_page_sz) ==
+ 				ALIGN_DOWN(r->sampling_addr, last_page_sz))) {
+ 		if (last_accessed)
+ 			r->nr_accesses++;
+@@ -562,7 +561,6 @@ static void __damon_va_check_access(stru
+ 	if (last_accessed)
+ 		r->nr_accesses++;
+ 
+-	last_mm = mm;
+ 	last_addr = r->sampling_addr;
  }
  
--/* return true if the memory block is offlined, otherwise, return false */
--bool is_memblock_offlined(struct memory_block *mem)
--{
--	return mem->state == MEM_OFFLINE;
--}
--
- static struct attribute *memory_root_attrs[] = {
- #ifdef CONFIG_ARCH_MEMORY_PROBE
- 	&dev_attr_probe.attr,
---- a/include/linux/memory_hotplug.h~mm-kill-is_memblock_offlined
-+++ a/include/linux/memory_hotplug.h
-@@ -11,7 +11,6 @@ struct page;
- struct zone;
- struct pglist_data;
- struct mem_section;
--struct memory_block;
- struct memory_group;
- struct resource;
- struct vmem_altmap;
-@@ -333,7 +332,6 @@ extern void move_pfn_range_to_zone(struc
- extern void remove_pfn_range_from_zone(struct zone *zone,
- 				       unsigned long start_pfn,
- 				       unsigned long nr_pages);
--extern bool is_memblock_offlined(struct memory_block *mem);
- extern int sparse_add_section(int nid, unsigned long pfn,
- 		unsigned long nr_pages, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap);
---- a/mm/memory_hotplug.c~mm-kill-is_memblock_offlined
-+++ a/mm/memory_hotplug.c
-@@ -1969,11 +1969,10 @@ failed_removal:
+@@ -572,14 +570,17 @@ static unsigned int damon_va_check_acces
+ 	struct mm_struct *mm;
+ 	struct damon_region *r;
+ 	unsigned int max_nr_accesses = 0;
++	bool same_target;
  
- static int check_memblock_offlined_cb(struct memory_block *mem, void *arg)
- {
--	int ret = !is_memblock_offlined(mem);
- 	int *nid = arg;
- 
- 	*nid = mem->nid;
--	if (unlikely(ret)) {
-+	if (unlikely(mem->state != MEM_OFFLINE)) {
- 		phys_addr_t beginpa, endpa;
- 
- 		beginpa = PFN_PHYS(section_nr_to_pfn(mem->start_section_nr));
+ 	damon_for_each_target(t, ctx) {
+ 		mm = damon_get_mm(t);
+ 		if (!mm)
+ 			continue;
++		same_target = false;
+ 		damon_for_each_region(r, t) {
+-			__damon_va_check_access(mm, r);
++			__damon_va_check_access(mm, r, same_target);
+ 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
++			same_target = true;
+ 		}
+ 		mmput(mm);
+ 	}
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from kaixuxia@tencent.com are
 
-mm-reuse-pageblock_start-end_pfn-macro.patch
-mm-add-pageblock_align-macro.patch
-mm-add-pageblock_aligned-macro.patch
-memblock-tests-add-new-pageblock-related-macro.patch
-kernel-exit-cleanup-release_thread.patch
+mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch
+mm-damon-core-iterate-the-regions-list-from-current-point-in-damon_set_regions.patch
+mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme.patch
 
