@@ -2,43 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C0A7ECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:29:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D555EECAAA1
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:29:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229679AbiILD27 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:28:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56728 "EHLO
+        id S229670AbiILD3A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:29:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229670AbiILD2k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:28:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09666275C3
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:28:31 -0700 (PDT)
+        with ESMTP id S229689AbiILD2v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:28:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4899D275E9
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:28:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E2F36113D
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:28:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D42E3C433D6;
-        Mon, 12 Sep 2022 03:28:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CD2F160CFB
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:28:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29B70C433D6;
+        Mon, 12 Sep 2022 03:28:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953309;
-        bh=VJvwzc9wDTTwTRqRJxqicdmPEKnAXlA5NgdN//Bu2gY=;
+        s=korg; t=1662953313;
+        bh=IOdIEjSOTkW1KapFAua2TbJdjd5B9UPfQ5dYtPvXjcM=;
         h=Date:To:From:Subject:From;
-        b=giVoPxDmwsW49rAaBzcPRrRsWuy60d4VvvjAcrxGn9lhbaAeRNNAOd3FHzCjrwy+d
-         4LJrF74kr9Kb3lim60CHAZFAr3Wqw5LzLMHQUX6O+OZtbPt5P7Bf67Wp8YUJwo6iYj
-         /DlkCZu9qzyjlYcpuZZjcSrsn5JBTJEp8vayzB5Y=
-Date:   Sun, 11 Sep 2022 20:28:29 -0700
+        b=mATWYFU5hrDJ6aJ290GOrrWYXE/YFngBUSlMMe5k3dSw3hANfzGOKa4WEJAPVRlzH
+         5Z17OomHoRn4M6XmvNK2i46ZDO6nEbHeU8P9xJAy2xrbHW5KVRugXp+7yUoXaOobRH
+         D0v/5FU2i5DHVHruj79M8hCiNh17CXDvpbdt/L80=
+Date:   Sun, 11 Sep 2022 20:28:32 -0700
 To:     mm-commits@vger.kernel.org, yi.zhang@huawei.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, surenb@google.com,
         skhan@linuxfoundation.org, shuah@kernel.org, rppt@linux.ibm.com,
-        rppt@kernel.org, peterx@redhat.com, mike.kravetz@oracle.com,
-        mgorman@techsingularity.net, ldv@altlinux.org, jack@suse.cz,
-        hughd@google.com, glebfm@altlinux.org, dave.hansen@linux.intel.com,
-        corbet@lwn.net, axelrasmussen@google.com, akpm@linux-foundation.org
+        rppt@kernel.org, peterx@redhat.com, namit@vmware.com,
+        mike.kravetz@oracle.com, mgorman@techsingularity.net,
+        ldv@altlinux.org, jack@suse.cz, hughd@google.com,
+        glebfm@altlinux.org, dave.hansen@linux.intel.com, corbet@lwn.net,
+        axelrasmussen@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-selftests-modify-selftest-to-use-dev-userfaultfd.patch removed from -mm tree
-Message-Id: <20220912032829.D42E3C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-add-dev-userfaultfd-test-cases-to-run_vmtestssh.patch removed from -mm tree
+Message-Id: <20220912032833.29B70C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,42 +47,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: userfaultfd: selftests: modify selftest to use /dev/userfaultfd
+     Subject: selftests: vm: add /dev/userfaultfd test cases to run_vmtests.sh
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-modify-selftest-to-use-dev-userfaultfd.patch
+     selftests-vm-add-dev-userfaultfd-test-cases-to-run_vmtestssh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd: selftests: modify selftest to use /dev/userfaultfd
-Date: Mon, 8 Aug 2022 10:56:12 -0700
+Subject: selftests: vm: add /dev/userfaultfd test cases to run_vmtests.sh
+Date: Mon, 8 Aug 2022 10:56:14 -0700
 
-We clearly want to ensure both userfaultfd(2) and /dev/userfaultfd keep
-working into the future, so just run the test twice, using each interface.
+This new mode was recently added to the userfaultfd selftest. We want to
+exercise both userfaultfd(2) as well as /dev/userfaultfd, so add both
+test cases to the script.
 
-Instead of always testing both userfaultfd(2) and /dev/userfaultfd, let
-the user choose which to test.
-
-As with other test features, change the behavior based on a new command
-line flag.  Introduce the idea of "test mods", which are generic (not
-specific to a test type) modifications to the behavior of the test.  This
-is sort of borrowed from this RFC patch series [1], but simplified a bit.
-
-The benefit is, in "typical" configurations this test is somewhat slow
-(say, 30sec or something).  Testing both clearly doubles it, so it may not
-always be desirable, as users are likely to use one or the other, but
-never both, in the "real world".
-
-[1]: https://patchwork.kernel.org/project/linux-mm/patch/20201129004548.1619714-14-namit@vmware.com/
-
-[axelrasmussen@google.com: modify selftest to exit with KSFT_SKIP *only* when features are unsupported, per Mike]
-  Link: https://lkml.kernel.org/r/20220819205201.658693-4-axelrasmussen@google.com
-Link: https://lkml.kernel.org/r/20220808175614.3885028-4-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20220808175614.3885028-6-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
 Acked-by: Peter Xu <peterx@redhat.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dmitry V. Levin <ldv@altlinux.org>
@@ -91,161 +76,45 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nadav Amit <namit@vmware.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zhang Yi <yi.zhang@huawei.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   76 ++++++++++++++++++---
- 1 file changed, 66 insertions(+), 10 deletions(-)
+ tools/testing/selftests/vm/run_vmtests.sh |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-modify-selftest-to-use-dev-userfaultfd
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -77,6 +77,11 @@ static int bounces;
- #define TEST_SHMEM	3
- static int test_type;
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-dev-userfaultfd-test-cases-to-run_vmtestssh
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -120,13 +120,16 @@ run_test ./gup_test -a
+ # Dump pages 0, 19, and 4096, using pin_user_pages:
+ run_test ./gup_test -ct -F 0x1 0 19 0x1000
  
-+#define UFFD_FLAGS	(O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY)
-+
-+/* test using /dev/userfaultfd, instead of userfaultfd(2) */
-+static bool test_dev_userfaultfd;
-+
- /* exercise the test_uffdio_*_eexist every ALARM_INTERVAL_SECS */
- #define ALARM_INTERVAL_SECS 10
- static volatile bool test_uffdio_copy_eexist = true;
-@@ -125,6 +130,8 @@ struct uffd_stats {
- const char *examples =
-     "# Run anonymous memory test on 100MiB region with 99999 bounces:\n"
-     "./userfaultfd anon 100 99999\n\n"
-+    "# Run the same anonymous memory test, but using /dev/userfaultfd:\n"
-+    "./userfaultfd anon:dev 100 99999\n\n"
-     "# Run share memory test on 1GiB region with 99 bounces:\n"
-     "./userfaultfd shmem 1000 99\n\n"
-     "# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
-@@ -141,6 +148,14 @@ static void usage(void)
- 		"[hugetlbfs_file]\n\n");
- 	fprintf(stderr, "Supported <test type>: anon, hugetlb, "
- 		"hugetlb_shared, shmem\n\n");
-+	fprintf(stderr, "'Test mods' can be joined to the test type string with a ':'. "
-+		"Supported mods:\n");
-+	fprintf(stderr, "\tsyscall - Use userfaultfd(2) (default)\n");
-+	fprintf(stderr, "\tdev - Use /dev/userfaultfd instead of userfaultfd(2)\n");
-+	fprintf(stderr, "\nExample test mod usage:\n");
-+	fprintf(stderr, "# Run anonymous memory test with /dev/userfaultfd:\n");
-+	fprintf(stderr, "./userfaultfd anon:dev 100 99999\n\n");
-+
- 	fprintf(stderr, "Examples:\n\n");
- 	fprintf(stderr, "%s", examples);
- 	exit(1);
-@@ -154,12 +169,14 @@ static void usage(void)
- 			ret, __LINE__);				\
- 	} while (0)
+-run_test ./userfaultfd anon 20 16
+-# Hugetlb tests require source and destination huge pages. Pass in half the
+-# size ($half_ufd_size_MB), which is used for *each*.
+-run_test ./userfaultfd hugetlb "$half_ufd_size_MB" 32
+-run_test ./userfaultfd hugetlb_shared "$half_ufd_size_MB" 32 "$mnt"/uffd-test
+-rm -f "$mnt"/uffd-test
+-run_test ./userfaultfd shmem 20 16
++uffd_mods=("" ":dev")
++for mod in "${uffd_mods[@]}"; do
++	run_test ./userfaultfd anon${mod} 20 16
++	# Hugetlb tests require source and destination huge pages. Pass in half
++	# the size ($half_ufd_size_MB), which is used for *each*.
++	run_test ./userfaultfd hugetlb${mod} "$half_ufd_size_MB" 32
++	run_test ./userfaultfd hugetlb_shared${mod} "$half_ufd_size_MB" 32 "$mnt"/uffd-test
++	rm -f "$mnt"/uffd-test
++	run_test ./userfaultfd shmem${mod} 20 16
++done
  
--#define err(fmt, ...)				\
-+#define errexit(exitcode, fmt, ...)		\
- 	do {					\
- 		_err(fmt, ##__VA_ARGS__);	\
--		exit(1);			\
-+		exit(exitcode);			\
- 	} while (0)
- 
-+#define err(fmt, ...) errexit(1, fmt, ##__VA_ARGS__)
-+
- static void uffd_stats_reset(struct uffd_stats *uffd_stats,
- 			     unsigned long n_cpus)
- {
-@@ -383,13 +400,34 @@ static void assert_expected_ioctls_prese
- 	}
- }
- 
-+static int __userfaultfd_open_dev(void)
-+{
-+	int fd, _uffd;
-+
-+	fd = open("/dev/userfaultfd", O_RDWR | O_CLOEXEC);
-+	if (fd < 0)
-+		errexit(KSFT_SKIP, "opening /dev/userfaultfd failed");
-+
-+	_uffd = ioctl(fd, USERFAULTFD_IOC_NEW, UFFD_FLAGS);
-+	if (_uffd < 0)
-+		errexit(errno == ENOTTY ? KSFT_SKIP : 1,
-+			"creating userfaultfd failed");
-+	close(fd);
-+	return _uffd;
-+}
-+
- static void userfaultfd_open(uint64_t *features)
- {
- 	struct uffdio_api uffdio_api;
- 
--	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY);
--	if (uffd < 0)
--		err("userfaultfd syscall not available in this kernel");
-+	if (test_dev_userfaultfd)
-+		uffd = __userfaultfd_open_dev();
-+	else {
-+		uffd = syscall(__NR_userfaultfd, UFFD_FLAGS);
-+		if (uffd < 0)
-+			errexit(errno == ENOSYS ? KSFT_SKIP : 1,
-+				"creating userfaultfd failed");
-+	}
- 	uffd_flags = fcntl(uffd, F_GETFD, NULL);
- 
- 	uffdio_api.api = UFFD_API;
-@@ -1584,8 +1622,6 @@ unsigned long default_huge_page_size(voi
- 
- static void set_test_type(const char *type)
- {
--	uint64_t features = UFFD_API_FEATURES;
--
- 	if (!strcmp(type, "anon")) {
- 		test_type = TEST_ANON;
- 		uffd_test_ops = &anon_uffd_test_ops;
-@@ -1603,9 +1639,29 @@ static void set_test_type(const char *ty
- 		test_type = TEST_SHMEM;
- 		uffd_test_ops = &shmem_uffd_test_ops;
- 		test_uffdio_minor = true;
--	} else {
--		err("Unknown test type: %s", type);
- 	}
-+}
-+
-+static void parse_test_type_arg(const char *raw_type)
-+{
-+	char *buf = strdup(raw_type);
-+	uint64_t features = UFFD_API_FEATURES;
-+
-+	while (buf) {
-+		const char *token = strsep(&buf, ":");
-+
-+		if (!test_type)
-+			set_test_type(token);
-+		else if (!strcmp(token, "dev"))
-+			test_dev_userfaultfd = true;
-+		else if (!strcmp(token, "syscall"))
-+			test_dev_userfaultfd = false;
-+		else
-+			err("unrecognized test mod '%s'", token);
-+	}
-+
-+	if (!test_type)
-+		err("failed to parse test type argument: '%s'", raw_type);
- 
- 	if (test_type == TEST_HUGETLB)
- 		page_size = default_huge_page_size();
-@@ -1653,7 +1709,7 @@ int main(int argc, char **argv)
- 		err("failed to arm SIGALRM");
- 	alarm(ALARM_INTERVAL_SECS);
- 
--	set_test_type(argv[1]);
-+	parse_test_type_arg(argv[1]);
- 
- 	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
- 	nr_pages_per_cpu = atol(argv[2]) * 1024*1024 / page_size /
+ #cleanup
+ umount "$mnt"
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
