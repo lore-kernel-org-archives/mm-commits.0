@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF054ECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:33:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AC4BECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 03:33:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229744AbiILDdI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Sep 2022 23:33:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57448 "EHLO
+        id S229754AbiILDdP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Sep 2022 23:33:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56542 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229827AbiILDbI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:31:08 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA90B12ADB
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:43 -0700 (PDT)
+        with ESMTP id S229834AbiILDbR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Sep 2022 23:31:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BA0F13F05
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 20:29:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3F1E8B80C76
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C86D0C433C1;
-        Mon, 12 Sep 2022 03:29:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 033156116D
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 03:29:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57999C433D6;
+        Mon, 12 Sep 2022 03:29:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662953380;
-        bh=ZL+jnLFW3yEC94hyA3z8NO4sw4piElBTLLov3C4SPzg=;
+        s=korg; t=1662953384;
+        bh=WWrsXuj8ER0FzgI7LZFshHf11nthGGSW+0gbeiXwyDg=;
         h=Date:To:From:Subject:From;
-        b=PhaTN9/+/En4rg3vt5g/6g7dyMhfQ+2ZxLtL0Cvum7qX4PYShQn2nGS+DHc4zm+dF
-         jMKDDlxFumRdr+Fw6Df8Thd3Jkr7cpbppdaHWYpGJ4ZXEnYhiw9tr/sCJysp4cF2z+
-         Br91XSrC4OQsr9rKyH9iONJogpXJEV7e2GN3JfMU=
-Date:   Sun, 11 Sep 2022 20:29:40 -0700
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        songmuchun@bytedance.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
-        shy828301@gmail.com, akpm@linux-foundation.org
+        b=p9RCVSQ20wgNb9bcIPTqPQEUowtWMCxe/AW4sSI54Kxv8tUBoRaQG2Pg7aObOCxQx
+         U7YZyw6FmupqJohDaWBdsNjy1Rp+vTdv4Vgw6hTCRr9FBizwNBMux8W5NCp99kT/PU
+         I0kjy91fCxRIa7OdtL9d1Shyr8Hlp4jLekX7YomM=
+Date:   Sun, 11 Sep 2022 20:29:43 -0700
+To:     mm-commits@vger.kernel.org, minhquangbui99@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-export-workingset-refault-stats-for-cgroup-v1.patch removed from -mm tree
-Message-Id: <20220912032940.C86D0C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-skip-retry-when-new-limit-is-not-below-old-one-in-page_counter_set_max.patch removed from -mm tree
+Message-Id: <20220912032944.57999C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,80 +41,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memcg: export workingset refault stats for cgroup v1
+     Subject: mm: skip retry when new limit is not below old one in page_counter_set_max
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-export-workingset-refault-stats-for-cgroup-v1.patch
+     mm-skip-retry-when-new-limit-is-not-below-old-one-in-page_counter_set_max.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: memcg: export workingset refault stats for cgroup v1
-Date: Tue, 16 Aug 2022 11:58:01 -0700
+From: Bui Quang Minh <minhquangbui99@gmail.com>
+Subject: mm: skip retry when new limit is not below old one in page_counter_set_max
+Date: Sun, 21 Aug 2022 22:40:55 +0700
 
-Workingset refault stats are important and useful metrics to measure how
-well reclaimer and swapping work and how healthy the services are, but
-they are just available for cgroup v2.  There are still plenty users with
-cgroup v1, export the stats for cgroup v1.
+In page_counter_set_max, we want to make sure the new limit is not below
+the concurrently-changing counter value.  We read the counter and check
+that the limit is not below the counter before the swap.  After the swap,
+we read the counter again and retry in case the counter is incremented as
+this may violate the requirement.  Even though the page_counter_try_charge
+can see the old limit, it is guaranteed that the counter is not above the
+old limit after the increment.  So in case the new limit is not below the
+old limit, the counter is guaranteed to be not above the new limit too. 
+We can skip the retry in this case to optimize a little bit.
 
-Link: https://lkml.kernel.org/r/20220816185801.651091-1-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/20220821154055.109635-1-minhquangbui99@gmail.com
+Signed-off-by: Bui Quang Minh <minhquangbui99@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/page_counter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-export-workingset-refault-stats-for-cgroup-v1
-+++ a/mm/memcontrol.c
-@@ -3975,6 +3975,8 @@ static const unsigned int memcg1_stats[]
- 	NR_FILE_MAPPED,
- 	NR_FILE_DIRTY,
- 	NR_WRITEBACK,
-+	WORKINGSET_REFAULT_ANON,
-+	WORKINGSET_REFAULT_FILE,
- 	MEMCG_SWAP,
- };
+--- a/mm/page_counter.c~mm-skip-retry-when-new-limit-is-not-below-old-one-in-page_counter_set_max
++++ a/mm/page_counter.c
+@@ -193,7 +193,7 @@ int page_counter_set_max(struct page_cou
  
-@@ -3988,6 +3990,8 @@ static const char *const memcg1_stat_nam
- 	"mapped_file",
- 	"dirty",
- 	"writeback",
-+	"workingset_refault_anon",
-+	"workingset_refault_file",
- 	"swap",
- };
+ 		old = xchg(&counter->max, nr_pages);
  
-@@ -4016,7 +4020,8 @@ static int memcg_stat_show(struct seq_fi
- 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
- 		nr = memcg_page_state_local(memcg, memcg1_stats[i]);
--		seq_printf(m, "%s %lu\n", memcg1_stat_names[i], nr * PAGE_SIZE);
-+		seq_printf(m, "%s %lu\n", memcg1_stat_names[i],
-+			   nr * memcg_page_state_unit(memcg1_stats[i]));
- 	}
+-		if (page_counter_read(counter) <= usage)
++		if (page_counter_read(counter) <= usage || nr_pages >= old)
+ 			return 0;
  
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
-@@ -4047,7 +4052,7 @@ static int memcg_stat_show(struct seq_fi
- 			continue;
- 		nr = memcg_page_state(memcg, memcg1_stats[i]);
- 		seq_printf(m, "total_%s %llu\n", memcg1_stat_names[i],
--						(u64)nr * PAGE_SIZE);
-+			   (u64)nr * memcg_page_state_unit(memcg1_stats[i]));
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
+ 		counter->max = old;
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from minhquangbui99@gmail.com are
 
-mm-gup-fix-the-fast-gup-race-against-thp-collapse.patch
-powerpc-64s-radix-dont-need-to-broadcast-ipi-for-radix-pmd-collapse-flush.patch
 
