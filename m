@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2A6EC6FA82
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75598ECAAA1
 	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:56:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229593AbiILE4t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Sep 2022 00:56:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54516 "EHLO
+        id S229601AbiILE4s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Sep 2022 00:56:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229614AbiILE4f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:56:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C49F427CED
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:25 -0700 (PDT)
+        with ESMTP id S229593AbiILE40 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:56:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AAC5C27178
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4F3AB60C5E
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAF3CC433C1;
-        Mon, 12 Sep 2022 04:56:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B08C60DBE
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63A3EC433C1;
+        Mon, 12 Sep 2022 04:56:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662958584;
-        bh=NoWBNyKGD4/eROBIbvu6whCjbqdtzkSGG5GwTKwXPM8=;
+        s=korg; t=1662958583;
+        bh=PS3ztpmz6x4IpuFKGDR0g9eJVYANgewg21DOai6kKac=;
         h=Date:To:From:Subject:From;
-        b=C5deIMed8SytcaYXUa4evGQySgh+iuUiXEcES1HrJgRNrzR+jUx7LtT3IAe58BBzs
-         eNm8tcHqKC/aCog3m4puhWB1dCbAeyYRMc/eknzLiRoL++ju7+dFNCuX3eIovCp2Cd
-         3L/m32P8i579mGbNQAF2hXjFJphhMlup1XE+Cub8=
-Date:   Sun, 11 Sep 2022 21:56:23 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de, pmladek@suse.com,
-        linmiaohe@huawei.com, lgoncalv@redhat.com, jlelli@redhat.com,
-        ebiederm@xmission.com, bigeasy@linutronix.de, bhe@redhat.com,
-        arnd@arndb.de, vschneid@redhat.com, akpm@linux-foundation.org
+        b=fwvl9V+FfDhHfiDzDCnLzwsRfOSrxPshkeApKC3vmWNDD34tAAoeZzhHktai8Vp9z
+         SvVrA0AQbNYlPrl+fzL66yhSKoOYOL/bgs7+FXvIyPU54xA5+cbR3TyzuSsNM6aIji
+         FQE62Rz1vI/5YD1YNYqzEKwBpM6n/J5uCxTljdMg=
+Date:   Sun, 11 Sep 2022 21:56:22 -0700
+To:     mm-commits@vger.kernel.org, edumazet@google.com,
+        neelnatu@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kexec-turn-all-kexec_mutex-acquisitions-into-trylocks.patch removed from -mm tree
-Message-Id: <20220912045624.AAF3CC433C1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-cmdline-avoid-page-fault-in-next_arg.patch removed from -mm tree
+Message-Id: <20220912045623.63A3EC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,120 +41,106 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kexec: turn all kexec_mutex acquisitions into trylocks
+     Subject: lib/cmdline: avoid page fault in next_arg
 has been removed from the -mm tree.  Its filename was
-     kexec-turn-all-kexec_mutex-acquisitions-into-trylocks.patch
+     lib-cmdline-avoid-page-fault-in-next_arg.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Valentin Schneider <vschneid@redhat.com>
-Subject: kexec: turn all kexec_mutex acquisitions into trylocks
-Date: Thu, 30 Jun 2022 23:32:57 +0100
+From: Neel Natu <neelnatu@google.com>
+Subject: lib/cmdline: avoid page fault in next_arg
+Date: Thu, 28 Jul 2022 16:24:34 -0700
 
-Patch series "kexec, panic: Making crash_kexec() NMI safe", v4.
+An argument list like "arg=val arg2 \"" can trigger a page fault if the
+page pointed by 'args[0xffffffff]' is not mapped and potential memory
+corruption otherwise (unlikely but possible if the bogus address is mapped
+and contents happen to match the ascii value of the quote character).
 
+The fix is to ensure that we load 'args[i-1]' only when (i > 0).
 
-This patch (of 2):
+Prior to this commit the following command would trigger an
+unhandled page fault in the kernel:
 
-Most acquistions of kexec_mutex are done via mutex_trylock() - those were
-a direct "translation" from:
+root@(none):/linus/fs/fat# insmod ./fat.ko  "foo=bar \""
+[   33.870507] BUG: unable to handle page fault for address: ffff888204252608
+[   33.872180] #PF: supervisor read access in kernel mode
+[   33.873414] #PF: error_code(0x0000) - not-present page
+[   33.874650] PGD 4401067 P4D 4401067 PUD 0
+[   33.875321] Oops: 0000 [#1] SMP DEBUG_PAGEALLOC PTI
+[   33.876113] CPU: 16 PID: 399 Comm: insmod Not tainted 5.19.0-dbg-DEV #4
+[   33.877193] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.0-debian-1.16.0-4 04/01/2014
+[   33.878739] RIP: 0010:next_arg+0xd1/0x110
+[   33.879399] Code: 22 75 1d 41 c6 04 01 00 41 80 f8 22 74 18 eb 35 4c 89 0e 45 31 d2 4c 89 cf 48 c7 02 00 00 00 00 41 80 f8 22 75 1f 41 8d 42 ff <41> 80 3c 01 22 75 14 41 c6 04 01 00 eb 0d 48 c7 02 00 00 00 00 41
+[   33.882338] RSP: 0018:ffffc90001253d08 EFLAGS: 00010246
+[   33.883174] RAX: 00000000ffffffff RBX: ffff888104252608 RCX: 0fc317bba1c1dd00
+[   33.884311] RDX: ffffc90001253d40 RSI: ffffc90001253d48 RDI: ffff888104252609
+[   33.885450] RBP: ffffc90001253d10 R08: 0000000000000022 R09: ffff888104252609
+[   33.886595] R10: 0000000000000000 R11: ffffffff82c7ff20 R12: 0000000000000282
+[   33.887748] R13: 00000000ffff8000 R14: 0000000000000000 R15: 0000000000007fff
+[   33.888887] FS:  00007f04ec7432c0(0000) GS:ffff88813d300000(0000) knlGS:0000000000000000
+[   33.890183] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   33.891111] CR2: ffff888204252608 CR3: 0000000100f36005 CR4: 0000000000170ee0
+[   33.892241] Call Trace:
+[   33.892641]  <TASK>
+[   33.892989]  parse_args+0x8f/0x220
+[   33.893538]  load_module+0x138b/0x15a0
+[   33.894149]  ? prepare_coming_module+0x50/0x50
+[   33.894879]  ? kernel_read_file_from_fd+0x5f/0x90
+[   33.895639]  __se_sys_finit_module+0xce/0x130
+[   33.896342]  __x64_sys_finit_module+0x1d/0x20
+[   33.897042]  do_syscall_64+0x44/0xa0
+[   33.897622]  entry_SYSCALL_64_after_hwframe+0x63/0xcd
+[   33.898434] RIP: 0033:0x7f04ec85ef79
+[   33.899009] Code: 48 8d 3d da db 0d 00 0f 05 eb a5 66 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d c7 9e 0d 00 f7 d8 64 89 01 48
+[   33.901912] RSP: 002b:00007fffae81bfe8 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
+[   33.903081] RAX: ffffffffffffffda RBX: 0000559c5f1d2640 RCX: 00007f04ec85ef79
+[   33.904191] RDX: 0000000000000000 RSI: 0000559c5f1d12a0 RDI: 0000000000000003
+[   33.905304] RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+[   33.906421] R10: 0000000000000003 R11: 0000000000000246 R12: 0000559c5f1d12a0
+[   33.907526] R13: 0000000000000000 R14: 0000559c5f1d25f0 R15: 0000559c5f1d12a0
+[   33.908631]  </TASK>
+[   33.908986] Modules linked in: fat(+) [last unloaded: fat]
+[   33.909843] CR2: ffff888204252608
+[   33.910375] ---[ end trace 0000000000000000 ]---
+[   33.911172] RIP: 0010:next_arg+0xd1/0x110
+[   33.911796] Code: 22 75 1d 41 c6 04 01 00 41 80 f8 22 74 18 eb 35 4c 89 0e 45 31 d2 4c 89 cf 48 c7 02 00 00 00 00 41 80 f8 22 75 1f 41 8d 42 ff <41> 80 3c 01 22 75 14 41 c6 04 01 00 eb 0d 48 c7 02 00 00 00 00 41
+[   33.914643] RSP: 0018:ffffc90001253d08 EFLAGS: 00010246
+[   33.915446] RAX: 00000000ffffffff RBX: ffff888104252608 RCX: 0fc317bba1c1dd00
+[   33.916544] RDX: ffffc90001253d40 RSI: ffffc90001253d48 RDI: ffff888104252609
+[   33.917636] RBP: ffffc90001253d10 R08: 0000000000000022 R09: ffff888104252609
+[   33.918727] R10: 0000000000000000 R11: ffffffff82c7ff20 R12: 0000000000000282
+[   33.919821] R13: 00000000ffff8000 R14: 0000000000000000 R15: 0000000000007fff
+[   33.920908] FS:  00007f04ec7432c0(0000) GS:ffff88813d300000(0000) knlGS:0000000000000000
+[   33.922125] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   33.923017] CR2: ffff888204252608 CR3: 0000000100f36005 CR4: 0000000000170ee0
+[   33.924098] Kernel panic - not syncing: Fatal exception
+[   33.925776] Kernel Offset: disabled
+[   33.926347] Rebooting in 10 seconds..
 
-  8c5a1cf0ad3a ("kexec: use a mutex for locking rather than xchg()")
-
-there have however been two additions since then that use mutex_lock():
-crash_get_memory_size() and crash_shrink_memory().
-
-A later commit will replace said mutex with an atomic variable, and
-locking operations will become atomic_cmpxchg().  Rather than having those
-mutex_lock() become while (atomic_cmpxchg(&lock, 0, 1)), turn them into
-trylocks that can return -EBUSY on acquisition failure.
-
-This does halve the printable size of the crash kernel, but that's still
-neighbouring 2G for 32bit kernels which should be ample enough.
-
-Link: https://lkml.kernel.org/r/20220630223258.4144112-1-vschneid@redhat.com
-Link: https://lkml.kernel.org/r/20220630223258.4144112-2-vschneid@redhat.com
-Signed-off-by: Valentin Schneider <vschneid@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Juri Lelli <jlelli@redhat.com>
-Cc: Luis Claudio R. Goncalves <lgoncalv@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Baoquan He <bhe@redhat.com>
+Link: https://lkml.kernel.org/r/20220728232434.1666488-1-neelnatu@google.com
+Signed-off-by: Neel Natu <neelnatu@google.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    2 +-
- kernel/kexec_core.c   |   12 ++++++++----
- kernel/ksysfs.c       |    7 ++++++-
- 3 files changed, 15 insertions(+), 6 deletions(-)
+ lib/cmdline.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kexec.h~kexec-turn-all-kexec_mutex-acquisitions-into-trylocks
-+++ a/include/linux/kexec.h
-@@ -427,7 +427,7 @@ extern int kexec_load_disabled;
- extern bool kexec_in_progress;
- 
- int crash_shrink_memory(unsigned long new_size);
--size_t crash_get_memory_size(void);
-+ssize_t crash_get_memory_size(void);
- 
- #ifndef arch_kexec_protect_crashkres
- /*
---- a/kernel/kexec_core.c~kexec-turn-all-kexec_mutex-acquisitions-into-trylocks
-+++ a/kernel/kexec_core.c
-@@ -1004,13 +1004,16 @@ void crash_kexec(struct pt_regs *regs)
+--- a/lib/cmdline.c~lib-cmdline-avoid-page-fault-in-next_arg
++++ a/lib/cmdline.c
+@@ -260,7 +260,7 @@ char *next_arg(char *args, char **param,
+ 				args[i-1] = '\0';
+ 		}
  	}
- }
+-	if (quoted && args[i-1] == '"')
++	if (quoted && i > 0 && args[i-1] == '"')
+ 		args[i-1] = '\0';
  
--size_t crash_get_memory_size(void)
-+ssize_t crash_get_memory_size(void)
- {
--	size_t size = 0;
-+	ssize_t size = 0;
-+
-+	if (!mutex_trylock(&kexec_mutex))
-+		return -EBUSY;
- 
--	mutex_lock(&kexec_mutex);
- 	if (crashk_res.end != crashk_res.start)
- 		size = resource_size(&crashk_res);
-+
- 	mutex_unlock(&kexec_mutex);
- 	return size;
- }
-@@ -1022,7 +1025,8 @@ int crash_shrink_memory(unsigned long ne
- 	unsigned long old_size;
- 	struct resource *ram_res;
- 
--	mutex_lock(&kexec_mutex);
-+	if (!mutex_trylock(&kexec_mutex))
-+		return -EBUSY;
- 
- 	if (kexec_crash_image) {
- 		ret = -ENOENT;
---- a/kernel/ksysfs.c~kexec-turn-all-kexec_mutex-acquisitions-into-trylocks
-+++ a/kernel/ksysfs.c
-@@ -105,7 +105,12 @@ KERNEL_ATTR_RO(kexec_crash_loaded);
- static ssize_t kexec_crash_size_show(struct kobject *kobj,
- 				       struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%zu\n", crash_get_memory_size());
-+	ssize_t size = crash_get_memory_size();
-+
-+	if (size < 0)
-+		return size;
-+
-+	return sprintf(buf, "%zd\n", size);
- }
- static ssize_t kexec_crash_size_store(struct kobject *kobj,
- 				   struct kobj_attribute *attr,
+ 	if (args[i]) {
 _
 
-Patches currently in -mm which might be from vschneid@redhat.com are
+Patches currently in -mm which might be from neelnatu@google.com are
 
 
