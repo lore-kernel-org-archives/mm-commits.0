@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58C80ECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:57:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E5A8C6FA82
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Sep 2022 04:57:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229520AbiILE5E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Sep 2022 00:57:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54634 "EHLO
+        id S229527AbiILE5F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Sep 2022 00:57:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229636AbiILE4r (ORCPT
+        with ESMTP id S229626AbiILE4r (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2022 00:56:47 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D47327FE2
-        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:37 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BEB127DE7
+        for <mm-commits@vger.kernel.org>; Sun, 11 Sep 2022 21:56:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F369260AF4
-        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58A3FC433C1;
-        Mon, 12 Sep 2022 04:56:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3577460C90
+        for <mm-commits@vger.kernel.org>; Mon, 12 Sep 2022 04:56:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91EF4C433C1;
+        Mon, 12 Sep 2022 04:56:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662958596;
-        bh=DTFRenkSK/6d0vSvDnajzMqoEhjS4nZaRgV/lbPIZsc=;
+        s=korg; t=1662958592;
+        bh=aLLbMUgDciCP5LN6nWNaA1LkKje27g4JimxKC2wB6B8=;
         h=Date:To:From:Subject:From;
-        b=MlrtuPXz8T+WtyqMX1LKutV0tN0+OxrR+Bu2GgA4b4GAjcbQB4v8Yqxejz50WCxi/
-         uw2qRtADTtKcxPW5khJXZGi17AQfFnim2euFLdYYdKS9c5jopL32N2AWMr3WJ/MCnD
-         iuYoEmP0vmX/EbUAdqYOukL4cD9/xoi/ImjMAxAs=
-Date:   Sun, 11 Sep 2022 21:56:35 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        bcrl@kvack.org, ubizjak@gmail.com, akpm@linux-foundation.org
+        b=DXD8/vo2F1Ex4FANzquIGBmRuE8llQ1EJAbboARraCXNDJ92z+3K29E3/KU1PD/8o
+         iH6UNOkmdhuAd8GA02DHcO9VXOyu/IKD49BaUxFWX45UB6Af8d6FcnxeuFG0rEDrZd
+         0JsHjE94ewVclwQz4IsoChXy1AdRAwYed/el5hGA=
+Date:   Sun, 11 Sep 2022 21:56:31 -0700
+To:     mm-commits@vger.kernel.org, matoro_mailinglist_kernel@matoro.tk,
+        emeric.maschino@gmail.com, slyich@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] aio-use-atomic_try_cmpxchg-in-__get_reqs_available.patch removed from -mm tree
-Message-Id: <20220912045636.58A3FC433C1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency.patch removed from -mm tree
+Message-Id: <20220912045632.91EF4C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,62 +42,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: aio: use atomic_try_cmpxchg in __get_reqs_available
+     Subject: ia64: fix clock_getres(CLOCK_MONOTONIC) to report ITC frequency
 has been removed from the -mm tree.  Its filename was
-     aio-use-atomic_try_cmpxchg-in-__get_reqs_available.patch
+     ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: aio: use atomic_try_cmpxchg in __get_reqs_available
-Date: Thu, 14 Jul 2022 18:48:51 +0200
+From: Sergei Trofimovich <slyich@gmail.com>
+Subject: ia64: fix clock_getres(CLOCK_MONOTONIC) to report ITC frequency
+Date: Sat, 20 Aug 2022 19:18:13 +0100
 
-Use atomic_try_cmpxchg instead of atomic_cmpxchg (*ptr, old, new) == old
-in __get_reqs_available.  x86 CMPXCHG instruction returns success in ZF
-flag, so this change saves a compare after cmpxchg (and related move
-instruction in front of cmpxchg).
+clock_gettime(CLOCK_MONOTONIC, &tp) is very precise on ia64 as it uses ITC
+(similar to rdtsc on x86).  It's not quite a hrtimer as it is a few times
+slower than 1ns.  Usually 2-3ns.
 
-Also, atomic_try_cmpxchg implicitly assigns old *ptr value to "old" when
-cmpxchg fails, enabling further code simplifications.
+clock_getres(CLOCK_MONOTONIC, &res) never reflected that fact and reported
+0.04s precision (1/HZ value).
 
-No functional change intended.
+In https://bugs.gentoo.org/596382 gstreamer's test suite failed loudly
+when it noticed precision discrepancy.
 
-Link: https://lkml.kernel.org/r/20220714164851.3055-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Before the change:
+
+    clock_getres(CLOCK_MONOTONIC, &res) reported 250Hz precision.
+
+After the change:
+
+    clock_getres(CLOCK_MONOTONIC, &res) reports ITC (400Mhz) precision.
+
+The patch is based on matoro's fix. I added a bit of explanation why we
+need to special-case arch-specific clock_getres().
+
+[akpm@linux-foundation.org: coding-style cleanups]
+Link: https://lkml.kernel.org/r/20220820181813.2275195-1-slyich@gmail.com
+Signed-off-by: Sergei Trofimovich <slyich@gmail.com>
+Cc: matoro <matoro_mailinglist_kernel@matoro.tk>
+Cc: Émeric Maschino <emeric.maschino@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ arch/ia64/kernel/sys_ia64.c           |   26 ++++++++++++++++++++++++
+ arch/ia64/kernel/syscalls/syscall.tbl |    2 -
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 
---- a/fs/aio.c~aio-use-atomic_try_cmpxchg-in-__get_reqs_available
-+++ a/fs/aio.c
-@@ -951,16 +951,13 @@ static bool __get_reqs_available(struct
- 	local_irq_save(flags);
- 	kcpu = this_cpu_ptr(ctx->cpu);
- 	if (!kcpu->reqs_available) {
--		int old, avail = atomic_read(&ctx->reqs_available);
-+		int avail = atomic_read(&ctx->reqs_available);
- 
- 		do {
- 			if (avail < ctx->req_batch)
- 				goto out;
--
--			old = avail;
--			avail = atomic_cmpxchg(&ctx->reqs_available,
--					       avail, avail - ctx->req_batch);
--		} while (avail != old);
-+		} while (!atomic_try_cmpxchg(&ctx->reqs_available,
-+					     &avail, avail - ctx->req_batch));
- 
- 		kcpu->reqs_available += ctx->req_batch;
- 	}
+--- a/arch/ia64/kernel/syscalls/syscall.tbl~ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency
++++ a/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -240,7 +240,7 @@
+ 228	common	timer_delete			sys_timer_delete
+ 229	common	clock_settime			sys_clock_settime
+ 230	common	clock_gettime			sys_clock_gettime
+-231	common	clock_getres			sys_clock_getres
++231	common	clock_getres			ia64_clock_getres
+ 232	common	clock_nanosleep			sys_clock_nanosleep
+ 233	common	fstatfs64			sys_fstatfs64
+ 234	common	statfs64			sys_statfs64
+--- a/arch/ia64/kernel/sys_ia64.c~ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency
++++ a/arch/ia64/kernel/sys_ia64.c
+@@ -166,3 +166,29 @@ ia64_mremap (unsigned long addr, unsigne
+ 		force_successful_syscall_return();
+ 	return addr;
+ }
++
++asmlinkage long
++ia64_clock_getres(const clockid_t which_clock, struct __kernel_timespec __user *tp)
++{
++	/*
++	 * ia64's clock_gettime() syscall is implemented as a vdso call
++	 * fsys_clock_gettime(). Currently it handles only
++	 * CLOCK_REALTIME and CLOCK_MONOTONIC. Both are based on
++	 * 'ar.itc' counter which gets incremented at a constant
++	 * frequency. It's usually 400MHz, ~2.5x times slower than CPU
++	 * clock frequency. Which is almost a 1ns hrtimer, but not quite.
++	 *
++	 * Let's special-case these timers to report correct precision
++	 * based on ITC frequency and not HZ frequency for supported
++	 * clocks.
++	 */
++	switch (which_clock) {
++	case CLOCK_REALTIME:
++	case CLOCK_MONOTONIC:
++		s64 tick_ns = DIV_ROUND_UP(NSEC_PER_SEC, local_cpu_data->itc_freq);
++		struct timespec64 rtn_tp = ns_to_timespec64(tick_ns);
++		return put_timespec64(&rtn_tp, tp);
++	}
++
++	return sys_clock_getres(which_clock, tp);
++}
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from slyich@gmail.com are
 
 
