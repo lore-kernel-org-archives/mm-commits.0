@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 663D8ECAAD8
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 22:40:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93B79ECAAD8
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 22:40:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229518AbiIMWkL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Sep 2022 18:40:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48572 "EHLO
+        id S229473AbiIMWkO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Sep 2022 18:40:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229473AbiIMWkI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 18:40:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A45B4D26E
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 15:40:07 -0700 (PDT)
+        with ESMTP id S229611AbiIMWkM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 18:40:12 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 589B44D26E
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 15:40:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CACCE615E0
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 22:40:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A2E1C433D6;
-        Tue, 13 Sep 2022 22:40:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A14F2B810F3
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 22:40:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38E27C433C1;
+        Tue, 13 Sep 2022 22:40:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663108806;
-        bh=asDIj/NXrJp7iPcvGVomMky7lqtql6SwZYCc8h8d/TM=;
+        s=korg; t=1663108808;
+        bh=+6cBRTGyYqyoFXRS1WdtTT/SDf0eyLbMaAM2JPQk1KE=;
         h=Date:To:From:Subject:From;
-        b=k5BsGnftZyqAT47cuJhEux0Dw5pv93eRk3DMOP4vI7lFvStDPSPcrMUlGRUEMZPbz
-         zRp6rPJp769nIRcQaQZJn8HM2BjbL4GSfqCp5WPMR9VEG1ZH0IEXCOHsdo8F0qkKfx
-         MOQ3jyejOSKK5RldEvJDetUGCF04jyE9UxHEjXjA=
-Date:   Tue, 13 Sep 2022 15:40:05 -0700
+        b=RTsoKOPNEdBlZ4W+ijt+4ZBB2Ild1ewqwCjrUbX5T5RxPzrHkjfzLLZwFIIErEJp7
+         BmDZtQ4dbaDvxNeBoLYT2m2TMFCVszBsX1bNRzkB1LMTaImcQ+Jpt1jeUS7pa6AGS2
+         UFIGKiwbcJnPiGX8oC/RvQ0k4c4Y+etAv0OSBwIc=
+Date:   Tue, 13 Sep 2022 15:40:07 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         ke.wang@unisoc.com, huangzhaoyang@gmail.com,
         catalin.marinas@arm.com, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_allocc-rename-check_free_page-to-free_page_is_bad-fix.patch added to mm-unstable branch
-Message-Id: <20220913224006.2A2E1C433D6@smtp.kernel.org>
+Subject: + mm-page_allocc-document-bulkfree_pcp_prepare-return-value.patch added to mm-unstable branch
+Message-Id: <20220913224008.38E27C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_allocc-rename-check_free_page-to-free_page_is_bad-fix
+     Subject: mm/page_alloc.c: document bulkfree_pcp_prepare() return value
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_allocc-rename-check_free_page-to-free_page_is_bad-fix.patch
+     mm-page_allocc-document-bulkfree_pcp_prepare-return-value.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_allocc-rename-check_free_page-to-free_page_is_bad-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_allocc-document-bulkfree_pcp_prepare-return-value.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,10 +67,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_allocc-rename-check_free_page-to-free_page_is_bad-fix
-Date: Tue Sep 13 03:37:49 PM PDT 2022
-
-don't use bool as int
+Subject: mm/page_alloc.c: document bulkfree_pcp_prepare() return value
+Date: Tue Sep 13 03:30:38 PM PDT 2022
 
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: ke.wang <ke.wang@unisoc.com>
@@ -79,22 +77,19 @@ Cc: Zhaoyang Huang <huangzhaoyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/page_alloc.c~mm-page_allocc-rename-check_free_page-to-free_page_is_bad-fix
+--- a/mm/page_alloc.c~mm-page_allocc-document-bulkfree_pcp_prepare-return-value
 +++ a/mm/page_alloc.c
-@@ -1447,8 +1447,8 @@ static __always_inline bool free_pages_p
- 		page->mapping = NULL;
- 	if (memcg_kmem_enabled() && PageMemcgKmem(page))
- 		__memcg_kmem_uncharge_page(page, order);
--	if (check_free)
--		bad += free_page_is_bad(page);
-+	if (check_free && free_page_is_bad(page))
-+		bad++;
- 	if (bad)
- 		return false;
+@@ -1507,6 +1507,7 @@ static bool free_pcp_prepare(struct page
+ 	return free_pages_prepare(page, order, true, FPI_NONE);
+ }
  
++/* return true if this page has an inappropriate state */
+ static bool bulkfree_pcp_prepare(struct page *page)
+ {
+ 	if (debug_pagealloc_enabled_static())
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
