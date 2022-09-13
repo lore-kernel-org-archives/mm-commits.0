@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E9EDECAAD8
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 21:53:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF2EDECAAD8
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 21:53:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229506AbiIMVxo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Sep 2022 17:53:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45866 "EHLO
+        id S229657AbiIMVxx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Sep 2022 17:53:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229666AbiIMVxl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 17:53:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B14916DAF8
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 14:53:38 -0700 (PDT)
+        with ESMTP id S229659AbiIMVxp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 17:53:45 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3DC96DAEA
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 14:53:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 405AD615AE
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 21:53:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9732DC433D6;
-        Tue, 13 Sep 2022 21:53:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6A646B810EA
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 21:53:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11DE4C433D6;
+        Tue, 13 Sep 2022 21:53:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663106017;
-        bh=DAvIcvSLA/0knu6BECHhz+W3F5qzsbyoymrb4rLKpVs=;
+        s=korg; t=1663106021;
+        bh=0cw2yEulutg5LUueTPqxs6xRIDMOROEdXNn6nGbwnCY=;
         h=Date:To:From:Subject:From;
-        b=LR4c3ef34ynQdRPdm6hm39Kk91GmUdOfpqXNytyVYP4DxXBWcUueuKFQqAr5AG3dF
-         mp1bYUTDq2soCbJ5nV/Xm6VfONlnN8apnbGIr//3XsoqtDro4npj/sEyxbobZ/On3i
-         4bZMq24Zz8K4wB7MZzgHjF9ILhlfT1QqCgbYETjY=
-Date:   Tue, 13 Sep 2022 14:53:36 -0700
+        b=A4714iI8CQwj94qK2POaQ3+7lCaLnVaQXEhz0gKWs3GDuoJ10hB0oTiirp9iCpbWk
+         LK2BVV5Nex9K8am1/wq9cZX81BTG83nzP8ssHuBdkAgmzDFAZ9pfTwko5eWoqLKei3
+         TpQmF9NF7nVeMvc0LP1hL2D3ROaGrnI274DxrKmo=
+Date:   Tue, 13 Sep 2022 14:53:40 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-reduce-parameters-for-damon_set_attrs.patch added to mm-unstable branch
-Message-Id: <20220913215337.9732DC433D6@smtp.kernel.org>
+Subject: + mm-damon-reclaim-use-struct-damon_attrs-for-storing-parameters-for-it.patch added to mm-unstable branch
+Message-Id: <20220913215341.11DE4C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: reduce parameters for damon_set_attrs()
+     Subject: mm/damon/reclaim: use 'struct damon_attrs' for storing parameters for it
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-reduce-parameters-for-damon_set_attrs.patch
+     mm-damon-reclaim-use-struct-damon_attrs-for-storing-parameters-for-it.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-reduce-parameters-for-damon_set_attrs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-use-struct-damon_attrs-for-storing-parameters-for-it.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,179 +65,112 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: reduce parameters for damon_set_attrs()
-Date: Tue, 13 Sep 2022 17:44:33 +0000
+Subject: mm/damon/reclaim: use 'struct damon_attrs' for storing parameters for it
+Date: Tue, 13 Sep 2022 17:44:34 +0000
 
-Number of parameters for 'damon_set_attrs()' is six.  As it could be
-confusing and verbose, this commit reduces the number by receiving single
-pointer to a 'struct damon_attrs'.
+DAMON_RECLAIM receives monitoring attributes by parameters one by one to
+separate variables, and then combine those into 'struct damon_attrs'. 
+This commit makes the module directly stores the parameter values to a
+static 'struct damon_attrs' variable and use it to simplify the code.
 
-Link: https://lkml.kernel.org/r/20220913174449.50645-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220913174449.50645-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    4 +---
- mm/damon/core.c       |   21 +++++----------------
- mm/damon/dbgfs.c      |    9 ++++++---
- mm/damon/lru_sort.c   |   10 ++++++++--
- mm/damon/reclaim.c    |   10 ++++++++--
- mm/damon/sysfs.c      |   12 ++++++++----
- 6 files changed, 36 insertions(+), 30 deletions(-)
+ mm/damon/reclaim.c |   36 +++++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-reduce-parameters-for-damon_set_attrs
-+++ a/include/linux/damon.h
-@@ -540,9 +540,7 @@ unsigned int damon_nr_regions(struct dam
- 
- struct damon_ctx *damon_new_ctx(void);
- void damon_destroy_ctx(struct damon_ctx *ctx);
--int damon_set_attrs(struct damon_ctx *ctx, unsigned long sample_int,
--		unsigned long aggr_int, unsigned long ops_upd_int,
--		unsigned long min_nr_reg, unsigned long max_nr_reg);
-+int damon_set_attrs(struct damon_ctx *ctx, struct damon_attrs *attrs);
- int damon_set_schemes(struct damon_ctx *ctx,
- 			struct damos **schemes, ssize_t nr_schemes);
- int damon_nr_running_ctxs(void);
---- a/mm/damon/core.c~mm-damon-core-reduce-parameters-for-damon_set_attrs
-+++ a/mm/damon/core.c
-@@ -422,32 +422,21 @@ void damon_destroy_ctx(struct damon_ctx
- /**
-  * damon_set_attrs() - Set attributes for the monitoring.
-  * @ctx:		monitoring context
-- * @sample_int:		time interval between samplings
-- * @aggr_int:		time interval between aggregations
-- * @ops_upd_int:	time interval between monitoring operations updates
-- * @min_nr_reg:		minimal number of regions
-- * @max_nr_reg:		maximum number of regions
-+ * @attrs:		monitoring attributes
-  *
-  * This function should not be called while the kdamond is running.
-  * Every time interval is in micro-seconds.
-  *
-  * Return: 0 on success, negative error code otherwise.
-  */
--int damon_set_attrs(struct damon_ctx *ctx, unsigned long sample_int,
--		    unsigned long aggr_int, unsigned long ops_upd_int,
--		    unsigned long min_nr_reg, unsigned long max_nr_reg)
-+int damon_set_attrs(struct damon_ctx *ctx, struct damon_attrs *attrs)
- {
--	if (min_nr_reg < 3)
-+	if (attrs->min_nr_regions < 3)
- 		return -EINVAL;
--	if (min_nr_reg > max_nr_reg)
-+	if (attrs->min_nr_regions > attrs->max_nr_regions)
- 		return -EINVAL;
- 
--	ctx->attrs.sample_interval = sample_int;
--	ctx->attrs.aggr_interval = aggr_int;
--	ctx->attrs.ops_update_interval = ops_upd_int;
--	ctx->attrs.min_nr_regions = min_nr_reg;
--	ctx->attrs.max_nr_regions = max_nr_reg;
--
-+	ctx->attrs = *attrs;
- 	return 0;
- }
- 
---- a/mm/damon/dbgfs.c~mm-damon-core-reduce-parameters-for-damon_set_attrs
-+++ a/mm/damon/dbgfs.c
-@@ -67,7 +67,7 @@ static ssize_t dbgfs_attrs_write(struct
- 		const char __user *buf, size_t count, loff_t *ppos)
- {
- 	struct damon_ctx *ctx = file->private_data;
--	unsigned long s, a, r, minr, maxr;
-+	struct damon_attrs attrs;
- 	char *kbuf;
- 	ssize_t ret;
- 
-@@ -76,7 +76,10 @@ static ssize_t dbgfs_attrs_write(struct
- 		return PTR_ERR(kbuf);
- 
- 	if (sscanf(kbuf, "%lu %lu %lu %lu %lu",
--				&s, &a, &r, &minr, &maxr) != 5) {
-+				&attrs.sample_interval, &attrs.aggr_interval,
-+				&attrs.ops_update_interval,
-+				&attrs.min_nr_regions,
-+				&attrs.max_nr_regions) != 5) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
-@@ -87,7 +90,7 @@ static ssize_t dbgfs_attrs_write(struct
- 		goto unlock_out;
- 	}
- 
--	ret = damon_set_attrs(ctx, s, a, r, minr, maxr);
-+	ret = damon_set_attrs(ctx, &attrs);
- 	if (!ret)
- 		ret = count;
- unlock_out:
---- a/mm/damon/lru_sort.c~mm-damon-core-reduce-parameters-for-damon_set_attrs
-+++ a/mm/damon/lru_sort.c
-@@ -350,13 +350,19 @@ static struct damos *damon_lru_sort_new_
- 
- static int damon_lru_sort_apply_parameters(void)
- {
-+	struct damon_attrs attrs = {
-+		.sample_interval = sample_interval,
-+		.aggr_interval = aggr_interval,
-+		.ops_update_interval = 0,
-+		.min_nr_regions = min_nr_regions,
-+		.max_nr_regions = max_nr_regions,
-+	};
- 	struct damos *scheme;
- 	struct damon_addr_range addr_range;
- 	unsigned int hot_thres, cold_thres;
- 	int err = 0;
- 
--	err = damon_set_attrs(ctx, sample_interval, aggr_interval, 0,
--			min_nr_regions, max_nr_regions);
-+	err = damon_set_attrs(ctx, &attrs);
- 	if (err)
- 		return err;
- 
---- a/mm/damon/reclaim.c~mm-damon-core-reduce-parameters-for-damon_set_attrs
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-use-struct-damon_attrs-for-storing-parameters-for-it
 +++ a/mm/damon/reclaim.c
-@@ -275,12 +275,18 @@ static struct damos *damon_reclaim_new_s
+@@ -129,14 +129,22 @@ module_param(wmarks_mid, ulong, 0600);
+ static unsigned long wmarks_low __read_mostly = 200;
+ module_param(wmarks_low, ulong, 0600);
+ 
++static struct damon_attrs damon_reclaim_mon_attrs = {
++	.sample_interval = 5000,
++	.aggr_interval = 100000,
++	.ops_update_interval = 0,
++	.min_nr_regions = 10,
++	.max_nr_regions = 1000,
++};
++
+ /*
+  * Sampling interval for the monitoring in microseconds.
+  *
+  * The sampling interval of DAMON for the cold memory monitoring.  Please refer
+  * to the DAMON documentation for more detail.  5 ms by default.
+  */
+-static unsigned long sample_interval __read_mostly = 5000;
+-module_param(sample_interval, ulong, 0600);
++module_param_named(sample_interval, damon_reclaim_mon_attrs.sample_interval,
++		ulong, 0600);
+ 
+ /*
+  * Aggregation interval for the monitoring in microseconds.
+@@ -144,8 +152,8 @@ module_param(sample_interval, ulong, 060
+  * The aggregation interval of DAMON for the cold memory monitoring.  Please
+  * refer to the DAMON documentation for more detail.  100 ms by default.
+  */
+-static unsigned long aggr_interval __read_mostly = 100000;
+-module_param(aggr_interval, ulong, 0600);
++module_param_named(aggr_interval, damon_reclaim_mon_attrs.aggr_interval, ulong,
++		0600);
+ 
+ /*
+  * Minimum number of monitoring regions.
+@@ -155,8 +163,8 @@ module_param(aggr_interval, ulong, 0600)
+  * But, setting this too high could result in increased monitoring overhead.
+  * Please refer to the DAMON documentation for more detail.  10 by default.
+  */
+-static unsigned long min_nr_regions __read_mostly = 10;
+-module_param(min_nr_regions, ulong, 0600);
++module_param_named(min_nr_regions, damon_reclaim_mon_attrs.min_nr_regions,
++		ulong, 0600);
+ 
+ /*
+  * Maximum number of monitoring regions.
+@@ -166,8 +174,8 @@ module_param(min_nr_regions, ulong, 0600
+  * However, setting this too low could result in bad monitoring quality.
+  * Please refer to the DAMON documentation for more detail.  1000 by default.
+  */
+-static unsigned long max_nr_regions __read_mostly = 1000;
+-module_param(max_nr_regions, ulong, 0600);
++module_param_named(max_nr_regions, damon_reclaim_mon_attrs.max_nr_regions,
++		ulong, 0600);
+ 
+ /*
+  * Start of the target memory region in physical address.
+@@ -239,7 +247,8 @@ static struct damos *damon_reclaim_new_s
+ 		.min_nr_accesses = 0,
+ 		.max_nr_accesses = 0,
+ 		/* for min_age or more micro-seconds */
+-		.min_age_region = min_age / aggr_interval,
++		.min_age_region = min_age /
++			damon_reclaim_mon_attrs.aggr_interval,
+ 		.max_age_region = UINT_MAX,
+ 	};
+ 	struct damos_watermarks wmarks = {
+@@ -275,18 +284,11 @@ static struct damos *damon_reclaim_new_s
  
  static int damon_reclaim_apply_parameters(void)
  {
-+	struct damon_attrs attrs = {
-+		.sample_interval = sample_interval,
-+		.aggr_interval = aggr_interval,
-+		.ops_update_interval = 0,
-+		.min_nr_regions = min_nr_regions,
-+		.max_nr_regions = max_nr_regions,
-+	};
+-	struct damon_attrs attrs = {
+-		.sample_interval = sample_interval,
+-		.aggr_interval = aggr_interval,
+-		.ops_update_interval = 0,
+-		.min_nr_regions = min_nr_regions,
+-		.max_nr_regions = max_nr_regions,
+-	};
  	struct damos *scheme;
  	struct damon_addr_range addr_range;
  	int err = 0;
  
--	err = damon_set_attrs(ctx, sample_interval, aggr_interval, 0,
--			min_nr_regions, max_nr_regions);
-+	err = damon_set_attrs(ctx, &attrs);
+-	err = damon_set_attrs(ctx, &attrs);
++	err = damon_set_attrs(ctx, &damon_reclaim_mon_attrs);
  	if (err)
  		return err;
  
---- a/mm/damon/sysfs.c~mm-damon-core-reduce-parameters-for-damon_set_attrs
-+++ a/mm/damon/sysfs.c
-@@ -2130,10 +2130,14 @@ static int damon_sysfs_set_attrs(struct
- 	struct damon_sysfs_intervals *sys_intervals = sys_attrs->intervals;
- 	struct damon_sysfs_ul_range *sys_nr_regions =
- 		sys_attrs->nr_regions_range;
--
--	return damon_set_attrs(ctx, sys_intervals->sample_us,
--			sys_intervals->aggr_us, sys_intervals->update_us,
--			sys_nr_regions->min, sys_nr_regions->max);
-+	struct damon_attrs attrs = {
-+		.sample_interval = sys_intervals->sample_us,
-+		.aggr_interval = sys_intervals->aggr_us,
-+		.ops_update_interval = sys_intervals->update_us,
-+		.min_nr_regions = sys_nr_regions->min,
-+		.max_nr_regions = sys_nr_regions->max,
-+	};
-+	return damon_set_attrs(ctx, &attrs);
- }
- 
- static void damon_sysfs_destroy_targets(struct damon_ctx *ctx)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
