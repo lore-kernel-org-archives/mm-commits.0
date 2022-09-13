@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65FFFC54EE9
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 23:33:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB432C54EE9
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 23:57:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229569AbiIMXdI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Sep 2022 19:33:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50746 "EHLO
+        id S229560AbiIMX5L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Sep 2022 19:57:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229521AbiIMXdI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 19:33:08 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5065171724
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 16:33:07 -0700 (PDT)
+        with ESMTP id S229665AbiIMX5K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 19:57:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37C88481E5
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 16:57:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1A376B8117D
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 23:33:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACD24C433C1;
-        Tue, 13 Sep 2022 23:33:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C07DA60F3D
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 23:57:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13201C433C1;
+        Tue, 13 Sep 2022 23:57:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663111984;
-        bh=Jr8wXZOOA2rLZgAlELf7tcMFWmp1vlo1zkYIqdLO1/Y=;
+        s=korg; t=1663113429;
+        bh=TBmn6mR1jwxWJD1TwrjhLkkx2DO9xTlQj0mfhjfq7gk=;
         h=Date:To:From:Subject:From;
-        b=HHx7JQnJ4B/cu7dd5akazMrZIuEw0qmY4nMHTKkgDi810W516wzpMjVZZV6MmJXXv
-         9kt2GjSzvMZSTN2p7hjQJ5DfvGmRz+FCg/SJjK2Gy4cWt29ViUG+SY/3Brw/CNPmot
-         dQ5mgUFUoFSetDs/+nBqFVVsau5MnKJriZQs7WlU=
-Date:   Tue, 13 Sep 2022 16:33:03 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        zuoze1@huawei.com, akpm@linux-foundation.org
+        b=mpuyuqoty5LxgnulWxJaFO/LaqgBcp/GkHwKZcmwkGJ9Fy4w7HmCtqowgsuMVFY/3
+         jGFdwbEdnTFYIoT10kPhfJv+bMoFQVwrFnU6KA2AUfaaG+Gd2McuR/NEEBajNKBuYe
+         AwJvVImiMWhkrwcZqby+GuzU8DnhsLGS3dcdKWLg=
+Date:   Tue, 13 Sep 2022 16:57:08 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com,
+        shy828301@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-use-page_align-instead-of-open-coding-it.patch added to mm-unstable branch
-Message-Id: <20220913233304.ACD24C433C1@smtp.kernel.org>
+Subject: + mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix.patch added to mm-unstable branch
+Message-Id: <20220913235709.13201C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: use PAGE_ALIGN instead of open-coding it
+     subject: mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-use-page_align-instead-of-open-coding-it.patch
+     mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-use-page_align-instead-of-open-coding-it.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,44 +64,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ze zuo <zuoze1@huawei.com>
-Subject: mm/mempolicy: use PAGE_ALIGN instead of open-coding it
-Date: Tue, 13 Sep 2022 01:55:05 +0000
+From: Yang Shi <shy828301@gmail.com>
+subject: mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix
+Date: Tue, 13 Sep 2022 09:14:15 -0700
 
-Replace the simple calculation with PAGE_ALIGN.
-
-Link: https://lkml.kernel.org/r/20220913015505.1998958-1-zuoze1@huawei.com
-Signed-off-by: ze zuo <zuoze1@huawei.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/CAHbLzkrr3PvKjs2vanVi5JFTQQ3R7hSNRWoHhAw+gBWOcFurcw@mail.gmail.com
+Fixes: 7d8faaf155454 ("mm/madvise: introduce MADV_COLLAPSE sync hugepage collapse")
+Signed-off-by:: Yang Shi <shy828301@gmail.com>
+Reported-by: syzbot+915f3e317adb0e85835f@syzkaller.appspotmail.com
+Cc: "Zach O'Keefe" <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/mempolicy.c~mm-mempolicy-use-page_align-instead-of-open-coding-it
-+++ a/mm/mempolicy.c
-@@ -1270,7 +1270,7 @@ static long do_mbind(unsigned long start
- 	if (mode == MPOL_DEFAULT)
- 		flags &= ~MPOL_MF_STRICT;
- 
--	len = (len + PAGE_SIZE - 1) & PAGE_MASK;
-+	len = PAGE_ALIGN(len);
- 	end = start + len;
- 
- 	if (end < start)
-@@ -1507,7 +1507,7 @@ SYSCALL_DEFINE4(set_mempolicy_home_node,
- 	if (home_node >= MAX_NUMNODES || !node_online(home_node))
- 		return -EINVAL;
- 
--	len = (len + PAGE_SIZE - 1) & PAGE_MASK;
-+	len = PAGE_ALIGN(len);
- 	end = start + len;
- 
- 	if (end < start)
+--- a/mm/khugepaged.c~mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix
++++ a/mm/khugepaged.c
+@@ -2438,6 +2438,8 @@ int madvise_collapse(struct vm_area_stru
+ 				last_fail = result;
+ 				goto out_nolock;
+ 			}
++
++			hend = vma->vm_end & HPAGE_PMD_MASK;
+ 		}
+ 		mmap_assert_locked(mm);
+ 		memset(cc->node_load, 0, sizeof(cc->node_load));
 _
 
-Patches currently in -mm which might be from zuoze1@huawei.com are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-mm-mempolicy-use-page_align-instead-of-open-coding-it.patch
+mm-gup-fix-the-fast-gup-race-against-thp-collapse.patch
+powerpc-64s-radix-dont-need-to-broadcast-ipi-for-radix-pmd-collapse-flush.patch
+mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix.patch
 
