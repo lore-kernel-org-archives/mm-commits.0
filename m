@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16A31ECAAD8
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 21:54:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB19CC54EE9
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 21:54:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229499AbiIMVyc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229557AbiIMVyc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 13 Sep 2022 17:54:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46228 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229698AbiIMVyK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 17:54:10 -0400
+        with ESMTP id S229671AbiIMVyM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 17:54:12 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 288DC6E2DD
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 14:54:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11DF56E2E3
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 14:54:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D3F87B810BD
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 21:54:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 872B2C433C1;
-        Tue, 13 Sep 2022 21:54:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C86BFB810EE
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 21:54:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 868ABC433C1;
+        Tue, 13 Sep 2022 21:54:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663106046;
-        bh=up0xD1KEnOfB08g/VVNzv3eksRp6ygY8XGjm52V+GDQ=;
+        s=korg; t=1663106048;
+        bh=jDGIZoZsZNKeZSJnvwQ7XWWNKkXjazPOAQbqjlbUnSU=;
         h=Date:To:From:Subject:From;
-        b=jbNSd01WbPt9D6ieoynr+VXnypbLY+5nrdUD7AL5zNd7sX8OKD0L/rQ++SmANcUK4
-         3ZL3FPkuqM1ItSMJKfnOWdadp/D9RFtapfSELbOHsU/pyi47esSWuElbVpT9HGMJVj
-         F4ZE9/6CaajBgwPomxp33CN/IemE5/AtrWp7pKOU=
-Date:   Tue, 13 Sep 2022 14:54:05 -0700
+        b=lQ/lEHZONgGAFAfn1MbVUfOGHBZXAI7w1S1KsPXtdO1f4ndqbhrWhcic+dJ/WyhSJ
+         MoEFYfgq0Ae6xV2pxuFaBtOZgHOviQEHDMoUtdidMssRi/UCSuPVkIKcJBSaEvmlDv
+         0okl+ljAbGjw4+HOyEfW85voZM27YwnQZhefePXA=
+Date:   Tue, 13 Sep 2022 14:54:07 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-modules-common-implement-damos-time-quota-params-generator.patch added to mm-unstable branch
-Message-Id: <20220913215406.872B2C433C1@smtp.kernel.org>
+Subject: + mm-damon-reclaim-use-the-quota-params-generator-macro.patch added to mm-unstable branch
+Message-Id: <20220913215408.868ABC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/modules-common: implement damos time quota params generator
+     Subject: mm/damon/reclaim: use the quota params generator macro
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-modules-common-implement-damos-time-quota-params-generator.patch
+     mm-damon-reclaim-use-the-quota-params-generator-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-modules-common-implement-damos-time-quota-params-generator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-use-the-quota-params-generator-macro.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,41 +65,107 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/modules-common: implement damos time quota params generator
-Date: Tue, 13 Sep 2022 17:44:46 +0000
+Subject: mm/damon/reclaim: use the quota params generator macro
+Date: Tue, 13 Sep 2022 17:44:47 +0000
 
-DAMON_LRU_SORT have module parameters for DAMOS time quota only but size
-quota.  This commit implements a macro for generating the module
-parameters so that we can reuse later.
+This commit makes DAMON_RECLAIM to generate the module parameters for
+DAMOS quotas using the generator macro to simplify the code and reduce
+duplicates.
 
-Link: https://lkml.kernel.org/r/20220913174449.50645-20-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220913174449.50645-21-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/modules-common.h |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/damon/reclaim.c |   64 ++++++++-----------------------------------
+ 1 file changed, 12 insertions(+), 52 deletions(-)
 
---- a/mm/damon/modules-common.h~mm-damon-modules-common-implement-damos-time-quota-params-generator
-+++ a/mm/damon/modules-common.h
-@@ -17,12 +17,15 @@
- 	module_param_named(max_nr_regions, attrs.max_nr_regions, ulong,	\
- 			0600);
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-use-the-quota-params-generator-macro
++++ a/mm/damon/reclaim.c
+@@ -52,44 +52,17 @@ module_param(commit_inputs, bool, 0600);
+ static unsigned long min_age __read_mostly = 120000000;
+ module_param(min_age, ulong, 0600);
  
--#define DEFINE_DAMON_MODULES_DAMOS_QUOTAS(quota)			\
-+#define DEFINE_DAMON_MODULES_DAMOS_TIME_QUOTA(quota)			\
- 	module_param_named(quota_ms, quota.ms, ulong, 0600);		\
--	module_param_named(quota_sz, quota.sz, ulong, 0600);		\
- 	module_param_named(quota_reset_interval_ms,			\
- 			quota.reset_interval, ulong, 0600);
+-/*
+- * Limit of time for trying the reclamation in milliseconds.
+- *
+- * DAMON_RECLAIM tries to use only up to this time within a time window
+- * (quota_reset_interval_ms) for trying reclamation of cold pages.  This can be
+- * used for limiting CPU consumption of DAMON_RECLAIM.  If the value is zero,
+- * the limit is disabled.
+- *
+- * 10 ms by default.
+- */
+-static unsigned long quota_ms __read_mostly = 10;
+-module_param(quota_ms, ulong, 0600);
+-
+-/*
+- * Limit of size of memory for the reclamation in bytes.
+- *
+- * DAMON_RECLAIM charges amount of memory which it tried to reclaim within a
+- * time window (quota_reset_interval_ms) and makes no more than this limit is
+- * tried.  This can be used for limiting consumption of CPU and IO.  If this
+- * value is zero, the limit is disabled.
+- *
+- * 128 MiB by default.
+- */
+-static unsigned long quota_sz __read_mostly = 128 * 1024 * 1024;
+-module_param(quota_sz, ulong, 0600);
+-
+-/*
+- * The time/size quota charge reset interval in milliseconds.
+- *
+- * The charge reset interval for the quota of time (quota_ms) and size
+- * (quota_sz).  That is, DAMON_RECLAIM does not try reclamation for more than
+- * quota_ms milliseconds or quota_sz bytes within quota_reset_interval_ms
+- * milliseconds.
+- *
+- * 1 second by default.
+- */
+-static unsigned long quota_reset_interval_ms __read_mostly = 1000;
+-module_param(quota_reset_interval_ms, ulong, 0600);
++static struct damos_quota damon_reclaim_quota = {
++	/* use up to 10 ms time, reclaim up to 128 MiB per 1 sec by default */
++	.ms = 10,
++	.sz = 128 * 1024 * 1024,
++	.reset_interval = 1000,
++	/* Within the quota, page out older regions first. */
++	.weight_sz = 0,
++	.weight_nr_accesses = 0,
++	.weight_age = 1
++};
++DEFINE_DAMON_MODULES_DAMOS_QUOTAS(damon_reclaim_quota);
  
-+#define DEFINE_DAMON_MODULES_DAMOS_QUOTAS(quota)			\
-+	DEFINE_DAMON_MODULES_DAMOS_TIME_QUOTA(quota)			\
-+	module_param_named(quota_sz, quota.sz, ulong, 0600);
-+
- #define DEFINE_DAMON_MODULES_WMARKS_PARAMS(wmarks)			\
- 	module_param_named(wmarks_interval, wmarks.interval, ulong,	\
- 			0600);						\
+ struct damos_watermarks damon_reclaim_wmarks = {
+ 	.metric = DAMOS_WMARK_FREE_MEM_RATE,
+@@ -157,26 +130,13 @@ static struct damos *damon_reclaim_new_s
+ 			damon_reclaim_mon_attrs.aggr_interval,
+ 		.max_age_region = UINT_MAX,
+ 	};
+-	struct damos_quota quota = {
+-		/*
+-		 * Do not try reclamation for more than quota_ms milliseconds
+-		 * or quota_sz bytes within quota_reset_interval_ms.
+-		 */
+-		.ms = quota_ms,
+-		.sz = quota_sz,
+-		.reset_interval = quota_reset_interval_ms,
+-		/* Within the quota, page out older regions first. */
+-		.weight_sz = 0,
+-		.weight_nr_accesses = 0,
+-		.weight_age = 1
+-	};
+ 
+ 	return damon_new_scheme(
+ 			&pattern,
+ 			/* page out those, as soon as found */
+ 			DAMOS_PAGEOUT,
+ 			/* under the quota. */
+-			&quota,
++			&damon_reclaim_quota,
+ 			/* (De)activate this according to the watermarks. */
+ 			&damon_reclaim_wmarks);
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
