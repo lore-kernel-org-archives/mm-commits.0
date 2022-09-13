@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3597C54EE9
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 22:07:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE436ECAAD8
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 22:09:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229445AbiIMWHZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Sep 2022 18:07:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36054 "EHLO
+        id S229459AbiIMWJr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Sep 2022 18:09:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229446AbiIMWHX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 18:07:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CCA774B9E
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 15:07:23 -0700 (PDT)
+        with ESMTP id S229446AbiIMWJp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 18:09:45 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5353CE30
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 15:09:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8EA4E61595
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 22:07:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E654CC433C1;
-        Tue, 13 Sep 2022 22:07:21 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id DC899CE1276
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 22:09:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C15D5C433D7;
+        Tue, 13 Sep 2022 22:09:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663106842;
-        bh=ouHHQOGuYAGaOPQbpu8p0bmD2YiUsyD82sOmmlshUi0=;
+        s=korg; t=1663106977;
+        bh=YGTP6z0f/mEML/GxUDI8ygPnQBIjKVCZ6c8F82b2qP8=;
         h=Date:To:From:Subject:From;
-        b=fcWEINNT/mkxrv6ZCZqw29GRel9i9tnBT5IxrJ07ZwVMUBwVUXFZ5T87woDQggKFK
-         oQdDT4ei29yZ5Zhhkbgg2FGJbivj2EkvaI4i/2/azv+OKoUuxn0wMoF/xj9NJDwwAq
-         nhV+Hm7vbUfiq+8pMd2ZHPmTqqdcxXuuCK48EPLk=
-Date:   Tue, 13 Sep 2022 15:07:21 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        b=gIQN1tY/LWuuz0htRV+1ZVbaIX0B+8x7Cq9NlyxrFuVPappUar6CUyo7oXg0zM8KN
+         Vo/3MdIpMxc4gjmU6XJ4dwL553VC3Tb+NHbR5YicGmlCFKdELmD7Y7+XIYmUPM2qEG
+         /ZLiu2ueXzJgj//BaWN2c/HHM31yN7TCTXfYmbuk=
+Date:   Tue, 13 Sep 2022 15:09:36 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, set_pte_at@outlook.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-avoid-holes-in-newly-set-monitoring-target-ranges-fix.patch added to mm-unstable branch
-Message-Id: <20220913220721.E654CC433C1@smtp.kernel.org>
+Subject: + mm-damon-improve-damon_new_region-strategy-fix.patch added to mm-unstable branch
+Message-Id: <20220913220937.C15D5C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: handle error from 'damon_fill_regions_holes()'
+     Subject: mm/damon: creating kmem cache for damon regions by KMEM_CACHE()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-avoid-holes-in-newly-set-monitoring-target-ranges-fix.patch
+     mm-damon-improve-damon_new_region-strategy-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-avoid-holes-in-newly-set-monitoring-target-ranges-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-improve-damon_new_region-strategy-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,103 +64,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: handle error from 'damon_fill_regions_holes()'
-Date: Tue, 13 Sep 2022 21:54:20 +0000
+From: Dawei Li <set_pte_at@outlook.com>
+Subject: mm/damon: creating kmem cache for damon regions by KMEM_CACHE()
+Date: Wed, 14 Sep 2022 00:21:58 +0800
 
-Commit 91fc6af21c61 ("mm/damon/core: avoid holes in newly set monitoring
-target ranges") in mm-unstable tree introduces
-'damon_fill_regions_holes()', which does not check failures of
-'damon_new_region()' call, so NULL dereferencing is available.  This
-commit fixes the issue by checking failure of the function and returning
-an error code.
+Damon regions are dynamic objects which can be created and destroyed
+frequently, a dedicated slab cache is created by KMEM_CACHE(), as
+suggested by akpm.
 
-Link: https://lkml.kernel.org/r/20220913215420.57761-1-sj@kernel.org
-Fixes: 91fc6af21c61 ("mm/damon/core: avoid holes in newly set monitoring target ranges") in mm-unstable
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: Coverity Static Analyzer CID 1524904
+Link: https://lkml.kernel.org/r/Message-ID:
+Signed-off-by: Dawei Li <set_pte_at@outlook.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/damon/core.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-avoid-holes-in-newly-set-monitoring-target-ranges-fix
+--- a/mm/damon/core.c~mm-damon-improve-damon_new_region-strategy-fix
 +++ a/mm/damon/core.c
-@@ -171,7 +171,7 @@ static bool damon_intersect(struct damon
- /*
-  * Fill holes in regions with new regions.
-  */
--static void damon_fill_regions_holes(struct damon_region *first,
-+static int damon_fill_regions_holes(struct damon_region *first,
- 		struct damon_region *last, struct damon_target *t)
+@@ -1289,8 +1289,7 @@ bool damon_find_biggest_system_ram(unsig
+ 
+ static int __init damon_init(void)
  {
- 	struct damon_region *r = first;
-@@ -184,9 +184,12 @@ static void damon_fill_regions_holes(str
- 		next = damon_next_region(r);
- 		if (r->ar.end != next->ar.start) {
- 			newr = damon_new_region(r->ar.end, next->ar.start);
-+			if (!newr)
-+				return -ENOMEM;
- 			damon_insert_region(newr, r, next, t);
- 		}
- 	}
-+	return 0;
- }
- 
- /*
-@@ -205,6 +208,7 @@ int damon_set_regions(struct damon_targe
- {
- 	struct damon_region *r, *next;
- 	unsigned int i;
-+	int err;
- 
- 	/* Remove regions which are not in the new ranges */
- 	damon_for_each_region_safe(r, next, t) {
-@@ -249,7 +253,9 @@ int damon_set_regions(struct damon_targe
- 			last->ar.end = ALIGN(range->end, DAMON_MIN_REGION);
- 
- 			/* fill possible holes in the range */
--			damon_fill_regions_holes(first, last, t);
-+			err = damon_fill_regions_holes(first, last, t);
-+			if (err)
-+				return err;
- 		}
- 	}
- 	return 0;
+-	damon_region_cache = kmem_cache_create("damon_region_cache", sizeof(struct damon_region),
+-		0, 0, NULL);
++	damon_region_cache = KMEM_CACHE(damon_region, 0);
+ 	if (unlikely(!damon_region_cache)) {
+ 		pr_err("creating damon_region_cache fails\n");
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from set_pte_at@outlook.com are
 
-mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix.patch
-selftest-damon-add-a-test-for-duplicate-context-dirs-creation.patch
-mm-damon-core-avoid-holes-in-newly-set-monitoring-target-ranges.patch
-mm-damon-core-avoid-holes-in-newly-set-monitoring-target-ranges-fix.patch
-mm-damon-core-test-test-damon_set_regions.patch
-docs-admin-guide-mm-damon-rename-the-title-of-the-document.patch
-mm-damon-kconfig-notify-debugfs-deprecation-plan.patch
-docs-admin-guide-mm-damon-start-mention-the-dependency-as-sysfs-instead-of-debugfs.patch
-docs-admin-guide-mm-damon-usage-note-damon-debugfs-interface-deprecation-plan.patch
-mm-damon-paddr-make-supported-damos-actions-of-paddr-clear.patch
-mm-damon-paddr-deduplicate-damon_pa_mark_accesseddeactivate_pages.patch
-mm-damon-core-copy-struct-to-struct-instead-of-field-to-field-in-damon_new_scheme.patch
-mm-damon-core-factor-out-damos_quota-private-fileds-initialization.patch
-mm-damon-core-use-a-dedicated-struct-for-monitoring-attributes.patch
-mm-damon-core-reduce-parameters-for-damon_set_attrs.patch
-mm-damon-reclaim-use-struct-damon_attrs-for-storing-parameters-for-it.patch
-mm-damon-lru_sort-use-struct-damon_attrs-for-storing-parameters-for-it.patch
-mm-damon-implement-a-monitoring-attributes-module-parameters-generator-macro.patch
-mm-damon-lru_sort-use-monitoring-attributes-parameters-generaotr-macro.patch
-mm-damon-reclaim-use-monitoring-attributes-parameters-generator-macro.patch
-mm-damon-modules-common-implement-a-watermarks-module-parameters-generator-macro.patch
-mm-damon-lru_sort-use-watermarks-parameters-generator-macro.patch
-mm-damon-reclaim-use-watermarks-parameters-generator-macro.patch
-mm-damon-modules-common-implement-a-stats-parameters-generator-macro.patch
-mm-damon-reclaim-use-stat-parameters-generator.patch
-mm-damon-lru_sort-use-stat-generator.patch
-mm-damon-modules-common-implement-a-damos-quota-params-generator.patch
-mm-damon-modules-common-implement-damos-time-quota-params-generator.patch
-mm-damon-reclaim-use-the-quota-params-generator-macro.patch
-mm-damon-lru_sort-use-quotas-param-generator.patch
-mm-damon-lru_sort-deduplicate-hot-cold-schemes-generators.patch
+mm-damon-improve-damon_new_region-strategy.patch
+mm-damon-improve-damon_new_region-strategy-fix.patch
 
