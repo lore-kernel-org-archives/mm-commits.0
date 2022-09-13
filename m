@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE436ECAAD8
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 22:09:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC10CECAAD8
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Sep 2022 22:14:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229459AbiIMWJr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Sep 2022 18:09:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37358 "EHLO
+        id S229446AbiIMWOy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Sep 2022 18:14:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42442 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229446AbiIMWJp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 18:09:45 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5353CE30
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 15:09:41 -0700 (PDT)
+        with ESMTP id S229480AbiIMWOx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2022 18:14:53 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BBC45FB3
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 15:14:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id DC899CE1276
-        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 22:09:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C15D5C433D7;
-        Tue, 13 Sep 2022 22:09:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1F411B810EA
+        for <mm-commits@vger.kernel.org>; Tue, 13 Sep 2022 22:14:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBF75C433C1;
+        Tue, 13 Sep 2022 22:14:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663106977;
-        bh=YGTP6z0f/mEML/GxUDI8ygPnQBIjKVCZ6c8F82b2qP8=;
+        s=korg; t=1663107288;
+        bh=2F0tQCBGcU7cIvmcVXaNyirmIk1clpBsgb5jc/rLlE4=;
         h=Date:To:From:Subject:From;
-        b=gIQN1tY/LWuuz0htRV+1ZVbaIX0B+8x7Cq9NlyxrFuVPappUar6CUyo7oXg0zM8KN
-         Vo/3MdIpMxc4gjmU6XJ4dwL553VC3Tb+NHbR5YicGmlCFKdELmD7Y7+XIYmUPM2qEG
-         /ZLiu2ueXzJgj//BaWN2c/HHM31yN7TCTXfYmbuk=
-Date:   Tue, 13 Sep 2022 15:09:36 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, set_pte_at@outlook.com,
+        b=YqjTzsS2nJsGZhPmgrCUZFVJZl0BDrAZ9AI9l8swbWN97zvxcL3la3TQNlIRTrgvx
+         eEZ2nvt7bfXSrtYI/7oOPjILd4orLwMP3KemZ1tc/oG8Y6p4SF9WgzQaEORJ4kw3lP
+         kVQxXBiBpzjvYFqdlC8ECFBKh20mLHl0nuJ4Dnco=
+Date:   Tue, 13 Sep 2022 15:14:47 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-improve-damon_new_region-strategy-fix.patch added to mm-unstable branch
-Message-Id: <20220913220937.C15D5C433D7@smtp.kernel.org>
+Subject: + mm-damon-simplify-the-parameter-passing-for-prepare_access_checks.patch added to mm-unstable branch
+Message-Id: <20220913221448.BBF75C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: creating kmem cache for damon regions by KMEM_CACHE()
+     Subject: mm/damon: simplify the parameter passing for 'prepare_access_checks'
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-improve-damon_new_region-strategy-fix.patch
+     mm-damon-simplify-the-parameter-passing-for-prepare_access_checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-improve-damon_new_region-strategy-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-simplify-the-parameter-passing-for-prepare_access_checks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,39 +64,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dawei Li <set_pte_at@outlook.com>
-Subject: mm/damon: creating kmem cache for damon regions by KMEM_CACHE()
-Date: Wed, 14 Sep 2022 00:21:58 +0800
+From: Kaixu Xia <kaixuxia@tencent.com>
+Subject: mm/damon: simplify the parameter passing for 'prepare_access_checks'
+Date: Tue, 13 Sep 2022 17:11:24 +0800
 
-Damon regions are dynamic objects which can be created and destroyed
-frequently, a dedicated slab cache is created by KMEM_CACHE(), as
-suggested by akpm.
+Patch series "mm/damon: code simplifications and cleanups".
 
-Link: https://lkml.kernel.org/r/Message-ID:
-Signed-off-by: Dawei Li <set_pte_at@outlook.com>
+This patchset contains some code simplifications and cleanups for DAMON.
+
+
+This patch (of 4):
+
+The parameter 'struct damon_ctx *ctx' isn't used in the functions
+__damon_{p,v}a_prepare_access_check(), so we can remove it and simplify
+the parameter passing.
+
+Link: https://lkml.kernel.org/r/1663060287-30201-1-git-send-email-kaixuxia@tencent.com
+Link: https://lkml.kernel.org/r/1663060287-30201-2-git-send-email-kaixuxia@tencent.com
+Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/damon/paddr.c |    5 ++---
+ mm/damon/vaddr.c |    6 +++---
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-improve-damon_new_region-strategy-fix
-+++ a/mm/damon/core.c
-@@ -1289,8 +1289,7 @@ bool damon_find_biggest_system_ram(unsig
+--- a/mm/damon/paddr.c~mm-damon-simplify-the-parameter-passing-for-prepare_access_checks
++++ a/mm/damon/paddr.c
+@@ -63,8 +63,7 @@ out:
+ 	folio_put(folio);
+ }
  
- static int __init damon_init(void)
+-static void __damon_pa_prepare_access_check(struct damon_ctx *ctx,
+-					    struct damon_region *r)
++static void __damon_pa_prepare_access_check(struct damon_region *r)
  {
--	damon_region_cache = kmem_cache_create("damon_region_cache", sizeof(struct damon_region),
--		0, 0, NULL);
-+	damon_region_cache = KMEM_CACHE(damon_region, 0);
- 	if (unlikely(!damon_region_cache)) {
- 		pr_err("creating damon_region_cache fails\n");
- 		return -ENOMEM;
+ 	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
+ 
+@@ -78,7 +77,7 @@ static void damon_pa_prepare_access_chec
+ 
+ 	damon_for_each_target(t, ctx) {
+ 		damon_for_each_region(r, t)
+-			__damon_pa_prepare_access_check(ctx, r);
++			__damon_pa_prepare_access_check(r);
+ 	}
+ }
+ 
+--- a/mm/damon/vaddr.c~mm-damon-simplify-the-parameter-passing-for-prepare_access_checks
++++ a/mm/damon/vaddr.c
+@@ -397,8 +397,8 @@ static void damon_va_mkold(struct mm_str
+  * Functions for the access checking of the regions
+  */
+ 
+-static void __damon_va_prepare_access_check(struct damon_ctx *ctx,
+-			struct mm_struct *mm, struct damon_region *r)
++static void __damon_va_prepare_access_check(struct mm_struct *mm,
++					struct damon_region *r)
+ {
+ 	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
+ 
+@@ -416,7 +416,7 @@ static void damon_va_prepare_access_chec
+ 		if (!mm)
+ 			continue;
+ 		damon_for_each_region(r, t)
+-			__damon_va_prepare_access_check(ctx, mm, r);
++			__damon_va_prepare_access_check(mm, r);
+ 		mmput(mm);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from set_pte_at@outlook.com are
+Patches currently in -mm which might be from kaixuxia@tencent.com are
 
-mm-damon-improve-damon_new_region-strategy.patch
-mm-damon-improve-damon_new_region-strategy-fix.patch
+mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch
+mm-damon-core-iterate-the-regions-list-from-current-point-in-damon_set_regions.patch
+mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme.patch
+mm-damon-sysfs-use-the-wrapper-directly-to-check-if-the-kdamond-is-running.patch
+mm-damon-simplify-the-parameter-passing-for-prepare_access_checks.patch
+mm-damon-sysfs-simplify-the-variable-pid-assignment-operation.patch
+mm-damon-core-simplify-the-kdamond-stop-mechanism-by-removing-done.patch
+mm-damon-vaddr-indicate-the-target-is-invalid-when-nr_regions-is-zero.patch
 
