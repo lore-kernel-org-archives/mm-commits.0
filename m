@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A8F1ECAAD3
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Sep 2022 23:01:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53A31C6FA86
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Sep 2022 23:01:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229513AbiINXBI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229521AbiINXBI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 14 Sep 2022 19:01:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42968 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229521AbiINXBC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2022 19:01:02 -0400
+        with ESMTP id S229480AbiINXBI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2022 19:01:08 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D78EF52FD8
-        for <mm-commits@vger.kernel.org>; Wed, 14 Sep 2022 16:01:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E42DBA4
+        for <mm-commits@vger.kernel.org>; Wed, 14 Sep 2022 16:01:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5F66161F79
-        for <mm-commits@vger.kernel.org>; Wed, 14 Sep 2022 23:01:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABE53C433C1;
-        Wed, 14 Sep 2022 23:01:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2B10961F79
+        for <mm-commits@vger.kernel.org>; Wed, 14 Sep 2022 23:01:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 817C2C433C1;
+        Wed, 14 Sep 2022 23:01:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663196460;
-        bh=QWvK7XKgLU/yexjfUZwCml6kM0WxMxF7sx4wdIM1bE8=;
+        s=korg; t=1663196465;
+        bh=hj6i2W/EMJHoDNciY2/BshIYNO7LVCg3HVbiEXhQFWw=;
         h=Date:To:From:Subject:From;
-        b=zKvwNovvz6a7fcAPnMgOX4lOcPcLLs4CjKWeqfiN2QiV4zZwY+iPoXClJ0r92gWVV
-         8guaEvNBt/5KpedxhO51QMo6TbeZzIDf+xl+7rmYytYIaKxC/xSM4eas9Z3b1aHoWB
-         ld0qHNyAl2E6GlJ6DBPGo1I4oFilJ2bk9oUyXnRA=
-Date:   Wed, 14 Sep 2022 16:01:00 -0700
+        b=YVPle5IZdcZnh9BnR6lE+39SztT8oygAl//8Ovkd9yje/snOtOvTx1eeY0L29vqFx
+         O3Ie1Uek7K9Qb9NoJDzVjURP+Wq0/72bCspu2yx5YAySIuNTeVxZ2f4+S6PMDf+zFk
+         icH2/V2+jRPoVKABdPQL5NeYmj3Gtgc8UuDL2re8=
+Date:   Wed, 14 Sep 2022 16:01:02 -0700
 To:     mm-commits@vger.kernel.org, svens@linux.ibm.com,
         songmuchun@bytedance.com, prakash.sangappa@oracle.com,
         peterx@redhat.com, pasha.tatashin@soleen.com,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, svens@linux.ibm.com,
         aarcange@redhat.com, mike.kravetz@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache.patch added to mm-unstable branch
-Message-Id: <20220914230100.ABE53C433C1@smtp.kernel.org>
+Subject: + hugetlb-create-remove_inode_single_folio-to-remove-single-file-folio.patch added to mm-unstable branch
+Message-Id: <20220914230105.817C2C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +48,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: rename remove_huge_page to hugetlb_delete_from_page_cache
+     Subject: hugetlb: create remove_inode_single_folio to remove single file folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache.patch
+     hugetlb-create-remove_inode_single_folio-to-remove-single-file-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-create-remove_inode_single_folio-to-remove-single-file-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -72,17 +72,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: rename remove_huge_page to hugetlb_delete_from_page_cache
-Date: Wed, 14 Sep 2022 15:18:04 -0700
+Subject: hugetlb: create remove_inode_single_folio to remove single file folio
+Date: Wed, 14 Sep 2022 15:18:05 -0700
 
-remove_huge_page removes a hugetlb page from the page cache.  Change to
-hugetlb_delete_from_page_cache as it is a more descriptive name. 
-huge_add_to_page_cache is global in scope, but only deals with hugetlb
-pages.  For consistency and clarity, rename to hugetlb_add_to_page_cache.
+Create the new routine remove_inode_single_folio that will remove a single
+folio from a file.  This is refactored code from remove_inode_hugepages. 
+It checks for the uncommon case in which the folio is still mapped and
+unmaps.
 
-Link: https://lkml.kernel.org/r/20220914221810.95771-4-mike.kravetz@oracle.com
+No functional change.  This refactoring will be put to use and expanded
+upon in a subsequent patches.
+
+Link: https://lkml.kernel.org/r/20220914221810.95771-5-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -90,6 +92,7 @@ Cc: David Hildenbrand <david@redhat.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: James Houghton <jthoughton@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mina Almasry <almasrymina@google.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
@@ -101,116 +104,136 @@ Cc: Sven Schnelle <svens@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   21 ++++++++++-----------
- include/linux/hugetlb.h |    2 +-
- mm/hugetlb.c            |    8 ++++----
- 3 files changed, 15 insertions(+), 16 deletions(-)
+ fs/hugetlbfs/inode.c |  103 ++++++++++++++++++++++++-----------------
+ 1 file changed, 62 insertions(+), 41 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache
+--- a/fs/hugetlbfs/inode.c~hugetlb-create-remove_inode_single_folio-to-remove-single-file-folio
 +++ a/fs/hugetlbfs/inode.c
-@@ -364,7 +364,7 @@ static int hugetlbfs_write_end(struct fi
- 	return -EINVAL;
+@@ -412,17 +412,70 @@ hugetlb_vmdelete_list(struct rb_root_cac
  }
  
--static void remove_huge_page(struct page *page)
-+static void hugetlb_delete_from_page_cache(struct page *page)
- {
- 	ClearPageDirty(page);
- 	ClearPageUptodate(page);
-@@ -478,15 +478,14 @@ static void remove_inode_hugepages(struc
- 			folio_lock(folio);
+ /*
++ * Called with hugetlb fault mutex held.
++ * Returns true if page was actually removed, false otherwise.
++ */
++static bool remove_inode_single_folio(struct hstate *h, struct inode *inode,
++					struct address_space *mapping,
++					struct folio *folio, pgoff_t index,
++					bool truncate_op)
++{
++	bool ret = false;
++
++	/*
++	 * If folio is mapped, it was faulted in after being
++	 * unmapped in caller.  Unmap (again) while holding
++	 * the fault mutex.  The mutex will prevent faults
++	 * until we finish removing the folio.
++	 */
++	if (unlikely(folio_mapped(folio))) {
++		i_mmap_lock_write(mapping);
++		hugetlb_vmdelete_list(&mapping->i_mmap,
++			index * pages_per_huge_page(h),
++			(index + 1) * pages_per_huge_page(h),
++			ZAP_FLAG_DROP_MARKER);
++		i_mmap_unlock_write(mapping);
++	}
++
++	folio_lock(folio);
++	/*
++	 * After locking page, make sure mapping is the same.
++	 * We could have raced with page fault populate and
++	 * backout code.
++	 */
++	if (folio_mapping(folio) == mapping) {
++		/*
++		 * We must remove the folio from page cache before removing
++		 * the region/ reserve map (hugetlb_unreserve_pages).  In
++		 * rare out of memory conditions, removal of the region/reserve
++		 * map could fail.  Correspondingly, the subpool and global
++		 * reserve usage count can need to be adjusted.
++		 */
++		VM_BUG_ON(HPageRestoreReserve(&folio->page));
++		hugetlb_delete_from_page_cache(&folio->page);
++		ret = true;
++		if (!truncate_op) {
++			if (unlikely(hugetlb_unreserve_pages(inode, index,
++								index + 1, 1)))
++				hugetlb_fix_reserve_counts(inode);
++		}
++	}
++
++	folio_unlock(folio);
++	return ret;
++}
++
++/*
+  * remove_inode_hugepages handles two distinct cases: truncation and hole
+  * punch.  There are subtle differences in operation for each case.
+  *
+  * truncation is indicated by end of range being LLONG_MAX
+  *	In this case, we first scan the range and release found pages.
+  *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserve
+- *	maps and global counts.  Page faults can not race with truncation
+- *	in this routine.  hugetlb_no_page() prevents page faults in the
+- *	truncated range.  It checks i_size before allocation, and again after
+- *	with the page table lock for the page held.  The same lock must be
+- *	acquired to unmap a page.
++ *	maps and global counts.  Page faults can race with truncation.
++ *	During faults, hugetlb_no_page() checks i_size before page allocation,
++ *	and again after obtaining page table lock.  It will 'back out'
++ *	allocations in the truncated range.
+  * hole punch is indicated if end is not LLONG_MAX
+  *	In the hole punch case we scan the range and release found pages.
+  *	Only when releasing a page is the associated region/reserve map
+@@ -456,44 +509,12 @@ static void remove_inode_hugepages(struc
+ 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 
  			/*
- 			 * We must free the huge page and remove from page
--			 * cache (remove_huge_page) BEFORE removing the
--			 * region/reserve map (hugetlb_unreserve_pages).  In
--			 * rare out of memory conditions, removal of the
--			 * region/reserve map could fail. Correspondingly,
--			 * the subpool and global reserve usage count can need
--			 * to be adjusted.
-+			 * cache BEFORE removing the region/reserve map
-+			 * (hugetlb_unreserve_pages).  In rare out of memory
-+			 * conditions, removal of the region/reserve map could
-+			 * fail. Correspondingly, the subpool and global
-+			 * reserve usage count can need to be adjusted.
+-			 * If folio is mapped, it was faulted in after being
+-			 * unmapped in caller.  Unmap (again) now after taking
+-			 * the fault mutex.  The mutex will prevent faults
+-			 * until we finish removing the folio.
+-			 *
+-			 * This race can only happen in the hole punch case.
+-			 * Getting here in a truncate operation is a bug.
+-			 */
+-			if (unlikely(folio_mapped(folio))) {
+-				BUG_ON(truncate_op);
+-
+-				i_mmap_lock_write(mapping);
+-				hugetlb_vmdelete_list(&mapping->i_mmap,
+-					index * pages_per_huge_page(h),
+-					(index + 1) * pages_per_huge_page(h),
+-					ZAP_FLAG_DROP_MARKER);
+-				i_mmap_unlock_write(mapping);
+-			}
+-
+-			folio_lock(folio);
+-			/*
+-			 * We must free the huge page and remove from page
+-			 * cache BEFORE removing the region/reserve map
+-			 * (hugetlb_unreserve_pages).  In rare out of memory
+-			 * conditions, removal of the region/reserve map could
+-			 * fail. Correspondingly, the subpool and global
+-			 * reserve usage count can need to be adjusted.
++			 * Remove folio that was part of folio_batch.
  			 */
- 			VM_BUG_ON(HPageRestoreReserve(&folio->page));
--			remove_huge_page(&folio->page);
-+			hugetlb_delete_from_page_cache(&folio->page);
- 			freed++;
- 			if (!truncate_op) {
- 				if (unlikely(hugetlb_unreserve_pages(inode,
-@@ -723,7 +722,7 @@ static long hugetlbfs_fallocate(struct f
+-			VM_BUG_ON(HPageRestoreReserve(&folio->page));
+-			hugetlb_delete_from_page_cache(&folio->page);
+-			freed++;
+-			if (!truncate_op) {
+-				if (unlikely(hugetlb_unreserve_pages(inode,
+-							index, index + 1, 1)))
+-					hugetlb_fix_reserve_counts(inode);
+-			}
++			if (remove_inode_single_folio(h, inode, mapping, folio,
++							index, truncate_op))
++				freed++;
+ 
+-			folio_unlock(folio);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
  		}
- 		clear_huge_page(page, addr, pages_per_huge_page(h));
- 		__SetPageUptodate(page);
--		error = huge_add_to_page_cache(page, mapping, index);
-+		error = hugetlb_add_to_page_cache(page, mapping, index);
- 		if (unlikely(error)) {
- 			restore_reserve_on_error(h, &pseudo_vma, addr, page);
- 			put_page(page);
-@@ -735,7 +734,7 @@ static long hugetlbfs_fallocate(struct f
- 
- 		SetHPageMigratable(page);
- 		/*
--		 * unlock_page because locked by huge_add_to_page_cache()
-+		 * unlock_page because locked by hugetlb_add_to_page_cache()
- 		 * put_page() due to reference from alloc_huge_page()
- 		 */
- 		unlock_page(page);
-@@ -980,7 +979,7 @@ static int hugetlbfs_error_remove_page(s
- 	struct inode *inode = mapping->host;
- 	pgoff_t index = page->index;
- 
--	remove_huge_page(page);
-+	hugetlb_delete_from_page_cache(page);
- 	if (unlikely(hugetlb_unreserve_pages(inode, index, index + 1, 1)))
- 		hugetlb_fix_reserve_counts(inode);
- 
---- a/include/linux/hugetlb.h~hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache
-+++ a/include/linux/hugetlb.h
-@@ -666,7 +666,7 @@ struct page *alloc_huge_page_nodemask(st
- 				nodemask_t *nmask, gfp_t gfp_mask);
- struct page *alloc_huge_page_vma(struct hstate *h, struct vm_area_struct *vma,
- 				unsigned long address);
--int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
-+int hugetlb_add_to_page_cache(struct page *page, struct address_space *mapping,
- 			pgoff_t idx);
- void restore_reserve_on_error(struct hstate *h, struct vm_area_struct *vma,
- 				unsigned long address, struct page *page);
---- a/mm/hugetlb.c~hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache
-+++ a/mm/hugetlb.c
-@@ -5430,7 +5430,7 @@ static bool hugetlbfs_pagecache_present(
- 	return page != NULL;
- }
- 
--int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
-+int hugetlb_add_to_page_cache(struct page *page, struct address_space *mapping,
- 			   pgoff_t idx)
- {
- 	struct folio *folio = page_folio(page);
-@@ -5569,7 +5569,7 @@ static vm_fault_t hugetlb_no_page(struct
- 		new_page = true;
- 
- 		if (vma->vm_flags & VM_MAYSHARE) {
--			int err = huge_add_to_page_cache(page, mapping, idx);
-+			int err = hugetlb_add_to_page_cache(page, mapping, idx);
- 			if (err) {
- 				/*
- 				 * err can't be -EEXIST which implies someone
-@@ -5981,11 +5981,11 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 
- 		/*
- 		 * Serialization between remove_inode_hugepages() and
--		 * huge_add_to_page_cache() below happens through the
-+		 * hugetlb_add_to_page_cache() below happens through the
- 		 * hugetlb_fault_mutex_table that here must be hold by
- 		 * the caller.
- 		 */
--		ret = huge_add_to_page_cache(page, mapping, idx);
-+		ret = hugetlb_add_to_page_cache(page, mapping, idx);
- 		if (ret)
- 			goto out_release_nounlock;
- 		page_in_pagecache = true;
+ 		folio_batch_release(&fbatch);
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
