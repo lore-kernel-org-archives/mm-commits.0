@@ -2,128 +2,93 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B95CECAAD3
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Sep 2022 22:38:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B75EC6FA82
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Sep 2022 22:39:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229518AbiINWiV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Sep 2022 18:38:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46072 "EHLO
+        id S229588AbiINWjR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Sep 2022 18:39:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229459AbiINWiU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2022 18:38:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 244A67F26B
-        for <mm-commits@vger.kernel.org>; Wed, 14 Sep 2022 15:38:19 -0700 (PDT)
+        with ESMTP id S229459AbiINWjP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2022 18:39:15 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1B0B7F26B
+        for <mm-commits@vger.kernel.org>; Wed, 14 Sep 2022 15:39:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B3F0861F13
-        for <mm-commits@vger.kernel.org>; Wed, 14 Sep 2022 22:38:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A3F8C433D6;
-        Wed, 14 Sep 2022 22:38:18 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A19EDB81CE0
+        for <mm-commits@vger.kernel.org>; Wed, 14 Sep 2022 22:39:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FA08C433D6;
+        Wed, 14 Sep 2022 22:39:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663195098;
-        bh=0BfCj05tm20ijF27fGGYuwhWRCbA5nKD7IOtSaIEASY=;
+        s=korg; t=1663195152;
+        bh=7qibSSkCy5tV5Fn75SadsP7wYx6y/2PyhpSSs20hhqQ=;
         h=Date:To:From:Subject:From;
-        b=f1UYo0/EvZvAD+cdyXD7ZxYLO2aSpu6AYn213bqQljBWn05+nGjdqwimwtoQAi4x/
-         VNV9MWOR0O1oSdvUc9ExzULTRIJ2Tw/LwA2pFmrcdAveJ15m8Ho9mv86Jskz6sj1S+
-         SWh9p8A/qWCCBFCq5HjXT9LIBZG2W/4iMyq9XuQg=
-Date:   Wed, 14 Sep 2022 15:38:17 -0700
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        b=XwqwPTsdHVqMhzjZ6MFz6fB+RjRPS09Lb0nt6MEwZMIRtydSNGccUvK0v7pUJPDXW
+         HpS4hn4UxBuV/VzMBnQcIJpXRkNb97vQ3YPTf0GUsng9/YB4Xn1mIinCxrZFksioSJ
+         cSGF+WbFTMTDE7goihbPL52Pg3eOMlSc8dGt5dzU=
+Date:   Wed, 14 Sep 2022 15:39:11 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-keep-comments-within-80-columns-limit.patch added to mm-unstable branch
-Message-Id: <20220914223818.1A3F8C433D6@smtp.kernel.org>
+Subject: [nacked] mm-damon-vaddr-indicate-the-target-is-invalid-when-nr_regions-is-zero.patch removed from -mm tree
+Message-Id: <20220914223912.4FA08C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: zram: keep comments within 80-columns limit
-has been added to the -mm mm-unstable branch.  Its filename is
-     zram-keep-comments-within-80-columns-limit.patch
+The quilt patch titled
+     Subject: mm/damon/vaddr: indicate the target is invalid when 'nr_regions' is zero
+has been removed from the -mm tree.  Its filename was
+     mm-damon-vaddr-indicate-the-target-is-invalid-when-nr_regions-is-zero.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-keep-comments-within-80-columns-limit.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: keep comments within 80-columns limit
-Date: Wed, 14 Sep 2022 14:20:33 +0900
+From: Kaixu Xia <kaixuxia@tencent.com>
+Subject: mm/damon/vaddr: indicate the target is invalid when 'nr_regions' is zero
+Date: Tue, 13 Sep 2022 17:11:27 +0800
 
-Several trivial fixups (that I should have spotted during review).
+When 'init()' and 'update()' DAMON operations failed and the number of the
+damon_target regions is zero, the kdamond would do nothing to this
+monitoring target in this case.  It makes no sense to run kdamond when all
+of monitoring targets have no regions.  So add the judgement in
+'target_valid()' operation to indicate the target is invalid when
+'nr_regions' is zero.
 
-Link: https://lkml.kernel.org/r/20220914052033.838050-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/1663060287-30201-5-git-send-email-kaixuxia@tencent.com
+Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ mm/damon/vaddr.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-keep-comments-within-80-columns-limit
-+++ a/drivers/block/zram/zram_drv.c
-@@ -329,8 +329,8 @@ static ssize_t idle_store(struct device
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-indicate-the-target-is-invalid-when-nr_regions-is-zero
++++ a/mm/damon/vaddr.c
+@@ -598,6 +598,9 @@ static bool damon_va_target_valid(void *
+ 	struct damon_target *t = target;
+ 	struct task_struct *task;
  
- 	if (!sysfs_streq(buf, "all")) {
- 		/*
--		 * If it did not parse as 'all' try to treat it as an integer when
--		 * we have memory tracking enabled.
-+		 * If it did not parse as 'all' try to treat it as an integer
-+		 * when we have memory tracking enabled.
- 		 */
- 		u64 age_sec;
- 
-@@ -345,7 +345,10 @@ static ssize_t idle_store(struct device
- 	if (!init_done(zram))
- 		goto out_unlock;
- 
--	/* A cutoff_time of 0 marks everything as idle, this is the "all" behavior */
-+	/*
-+	 * A cutoff_time of 0 marks everything as idle, this is the
-+	 * "all" behavior.
-+	 */
- 	mark_idle(zram, cutoff_time);
- 	rv = len;
- 
-@@ -1416,11 +1419,11 @@ compress_again:
- 		if (comp_len != PAGE_SIZE)
- 			goto compress_again;
- 		/*
--		 * If the page is not compressible, you need to acquire the lock and
--		 * execute the code below. The zcomp_stream_get() call is needed to
--		 * disable the cpu hotplug and grab the zstrm buffer back.
--		 * It is necessary that the dereferencing of the zstrm variable below
--		 * occurs correctly.
-+		 * If the page is not compressible, you need to acquire the
-+		 * lock and execute the code below. The zcomp_stream_get()
-+		 * call is needed to disable the cpu hotplug and grab the
-+		 * zstrm buffer back. It is necessary that the dereferencing
-+		 * of the zstrm variable below occurs correctly.
- 		 */
- 		zstrm = zcomp_stream_get(zram->comp);
- 	}
++	if (!damon_nr_regions(t))
++		return false;
++
+ 	task = damon_get_task_struct(t);
+ 	if (task) {
+ 		put_task_struct(task);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from kaixuxia@tencent.com are
 
-zram-do-not-waste-zram_table_entry-flags-bits.patch
-zram-keep-comments-within-80-columns-limit.patch
+mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch
+mm-damon-core-iterate-the-regions-list-from-current-point-in-damon_set_regions.patch
+mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme.patch
+mm-damon-sysfs-use-the-wrapper-directly-to-check-if-the-kdamond-is-running.patch
+mm-damon-simplify-the-parameter-passing-for-prepare_access_checks.patch
+mm-damon-sysfs-simplify-the-variable-pid-assignment-operation.patch
+mm-damon-core-simplify-the-kdamond-stop-mechanism-by-removing-done.patch
 
