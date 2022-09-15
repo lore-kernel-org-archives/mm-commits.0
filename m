@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E2B5C32771
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Sep 2022 21:26:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6BCEECAAA1
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Sep 2022 21:30:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229548AbiIOV0w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Sep 2022 17:26:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50880 "EHLO
+        id S229448AbiIOVan (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Sep 2022 17:30:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229591AbiIOV0v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2022 17:26:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A574A51A3C
-        for <mm-commits@vger.kernel.org>; Thu, 15 Sep 2022 14:26:50 -0700 (PDT)
+        with ESMTP id S229533AbiIOVam (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2022 17:30:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 175BC95691
+        for <mm-commits@vger.kernel.org>; Thu, 15 Sep 2022 14:30:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5A3F1B8226E
-        for <mm-commits@vger.kernel.org>; Thu, 15 Sep 2022 21:26:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 076C2C433D6;
-        Thu, 15 Sep 2022 21:26:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 44B00624C8
+        for <mm-commits@vger.kernel.org>; Thu, 15 Sep 2022 21:30:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D0DEC433B5;
+        Thu, 15 Sep 2022 21:30:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663277208;
-        bh=C2cMB52D0WIooGFQReYlfNMW95sNEre3pfmeWsceZdk=;
+        s=korg; t=1663277437;
+        bh=mwtPIMsL3Kwt2wVr9kBuQDtxsJ/68/h6jQAr3wdKy7c=;
         h=Date:To:From:Subject:From;
-        b=gzVGiFjzaCcGUUkoQv+KBG1A0/A0f8YKGF/qP8kMdnfSumaqKm5GVAjgTFHjUaBEH
-         fe4fIXQXu0bUw4FazAIQJo4m6M1+0YNTTczGRyGBt917/md9zEsRAaxn+w9ECyt7am
-         CCmuK7UvcFejl7CsDHVy8l0hiIyVprvvv+E60iwo=
-Date:   Thu, 15 Sep 2022 14:26:47 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
+        b=Iqf2lUPGlIh5FbQl5NbbcG/J5MGMzNdDh0I5o1S05Gw4S+SLZ5jxczgNGFdN4URVB
+         Jthw4mv6lwvqKnvxPSgf0wVbVM8AfgEcyUv/zDjNxNUqRcc+9MvkW/zZC5o2jCus62
+         DKqOYUxMpsxeqOsf+42pMgT+Q7T871I7pcbBuvp0=
+Date:   Thu, 15 Sep 2022 14:30:36 -0700
+To:     mm-commits@vger.kernel.org, xiang@kernel.org, willy@infradead.org,
+        surenb@google.com, josef@toxicpanda.com,
+        hsiangkao@linux.alibaba.com, hannes@cmpxchg.org, dsterba@suse.com,
+        clm@fb.com, chao@kernel.org, axboe@kernel.dk, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-use-struct-damon_target-instead-of-void-in-target_valid.patch added to mm-unstable branch
-Message-Id: <20220915212648.076C2C433D6@smtp.kernel.org>
+Subject: + mm-add-psi-accounting-around-read_folio-and-readahead-calls.patch added to mm-unstable branch
+Message-Id: <20220915213037.8D0DEC433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: use 'struct damon_target *' instead of 'void *' in target_valid()
+     Subject: mm: add PSI accounting around ->read_folio and ->readahead calls
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-use-struct-damon_target-instead-of-void-in-target_valid.patch
+     mm-add-psi-accounting-around-read_folio-and-readahead-calls.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-use-struct-damon_target-instead-of-void-in-target_valid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-psi-accounting-around-read_folio-and-readahead-calls.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,57 +67,168 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kaixu Xia <kaixuxia@tencent.com>
-Subject: mm/damon: use 'struct damon_target *' instead of 'void *' in target_valid()
-Date: Thu, 15 Sep 2022 19:33:41 +0800
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: add PSI accounting around ->read_folio and ->readahead calls
+Date: Thu, 15 Sep 2022 10:41:56 +0100
 
-We could use 'struct damon_target *' directly instead of 'void *' in
-target_valid() operation to make code simple.
+Patch series "improve pagecache PSI annotations", v2.
 
-Link: https://lkml.kernel.org/r/1663241621-13293-1-git-send-email-kaixuxia@tencent.com
-Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Currently the VM tries to abuse the block layer submission path for the
+page cache PSI annotations.  This series instead annotates the
+->read_folio and ->readahead calls in the core VM code, and then only
+deals with the odd direct add_to_page_cache_lru calls manually.
+
+
+This patch (of 5):
+
+PSI tries to account for the cost of bringing back in pages discarded by
+the MM LRU management.  Currently the prime place for that is hooked into
+the bio submission path, which is a rather bad place:
+
+ - it does not actually account I/O for non-block file systems, of which
+   we have many
+ - it adds overhead and a layering violation to the block layer
+
+Add the accounting into the two places in the core MM code that read pages
+into an address space by calling into ->read_folio and ->readahead so that
+the entire file system operations are covered, to broaden the coverage and
+allow removing the accounting in the block layer going forward.
+
+As psi_memstall_enter can deal with nested calls this will not lead to
+double accounting even while the bio annotations are still present.
+
+Link: https://lkml.kernel.org/r/20220915094200.139713-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20220915094200.139713-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Chris Mason <clm@fb.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 +-
- mm/damon/vaddr.c      |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ include/linux/pagemap.h |    2 ++
+ mm/filemap.c            |    7 +++++++
+ mm/readahead.c          |   22 ++++++++++++++++++----
+ 3 files changed, 27 insertions(+), 4 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-use-struct-damon_target-instead-of-void-in-target_valid
-+++ a/include/linux/damon.h
-@@ -346,7 +346,7 @@ struct damon_operations {
- 	unsigned long (*apply_scheme)(struct damon_ctx *context,
- 			struct damon_target *t, struct damon_region *r,
- 			struct damos *scheme);
--	bool (*target_valid)(void *target);
-+	bool (*target_valid)(struct damon_target *t);
- 	void (*cleanup)(struct damon_ctx *context);
+--- a/include/linux/pagemap.h~mm-add-psi-accounting-around-read_folio-and-readahead-calls
++++ a/include/linux/pagemap.h
+@@ -1169,6 +1169,8 @@ struct readahead_control {
+ 	pgoff_t _index;
+ 	unsigned int _nr_pages;
+ 	unsigned int _batch_count;
++	bool _workingset;
++	unsigned long _pflags;
  };
  
---- a/mm/damon/vaddr.c~mm-damon-use-struct-damon_target-instead-of-void-in-target_valid
-+++ a/mm/damon/vaddr.c
-@@ -591,9 +591,8 @@ static unsigned int damon_va_check_acces
-  * Functions for the target validity check and cleanup
-  */
- 
--static bool damon_va_target_valid(void *target)
-+static bool damon_va_target_valid(struct damon_target *t)
+ #define DEFINE_READAHEAD(ractl, f, r, m, i)				\
+--- a/mm/filemap.c~mm-add-psi-accounting-around-read_folio-and-readahead-calls
++++ a/mm/filemap.c
+@@ -2390,6 +2390,8 @@ retry:
+ static int filemap_read_folio(struct file *file, filler_t filler,
+ 		struct folio *folio)
  {
--	struct damon_target *t = target;
- 	struct task_struct *task;
++	bool workingset = folio_test_workingset(folio);
++	unsigned long pflags;
+ 	int error;
  
- 	task = damon_get_task_struct(t);
+ 	/*
+@@ -2398,8 +2400,13 @@ static int filemap_read_folio(struct fil
+ 	 * fails.
+ 	 */
+ 	folio_clear_error(folio);
++
+ 	/* Start the actual read. The read will unlock the page. */
++	if (unlikely(workingset))
++		psi_memstall_enter(&pflags);
+ 	error = filler(file, folio);
++	if (unlikely(workingset))
++		psi_memstall_leave(&pflags);
+ 	if (error)
+ 		return error;
+ 
+--- a/mm/readahead.c~mm-add-psi-accounting-around-read_folio-and-readahead-calls
++++ a/mm/readahead.c
+@@ -122,6 +122,7 @@
+ #include <linux/task_io_accounting_ops.h>
+ #include <linux/pagevec.h>
+ #include <linux/pagemap.h>
++#include <linux/psi.h>
+ #include <linux/syscalls.h>
+ #include <linux/file.h>
+ #include <linux/mm_inline.h>
+@@ -152,6 +153,8 @@ static void read_pages(struct readahead_
+ 	if (!readahead_count(rac))
+ 		return;
+ 
++	if (unlikely(rac->_workingset))
++		psi_memstall_enter(&rac->_pflags);
+ 	blk_start_plug(&plug);
+ 
+ 	if (aops->readahead) {
+@@ -179,6 +182,9 @@ static void read_pages(struct readahead_
+ 	}
+ 
+ 	blk_finish_plug(&plug);
++	if (unlikely(rac->_workingset))
++		psi_memstall_leave(&rac->_pflags);
++	rac->_workingset = false;
+ 
+ 	BUG_ON(readahead_count(rac));
+ }
+@@ -252,6 +258,7 @@ void page_cache_ra_unbounded(struct read
+ 		}
+ 		if (i == nr_to_read - lookahead_size)
+ 			folio_set_readahead(folio);
++		ractl->_workingset |= folio_test_workingset(folio);
+ 		ractl->_nr_pages++;
+ 	}
+ 
+@@ -480,11 +487,14 @@ static inline int ra_alloc_folio(struct
+ 	if (index == mark)
+ 		folio_set_readahead(folio);
+ 	err = filemap_add_folio(ractl->mapping, folio, index, gfp);
+-	if (err)
++	if (err) {
+ 		folio_put(folio);
+-	else
+-		ractl->_nr_pages += 1UL << order;
+-	return err;
++		return err;
++	}
++
++	ractl->_nr_pages += 1UL << order;
++	ractl->_workingset |= folio_test_workingset(folio);
++	return 0;
+ }
+ 
+ void page_cache_ra_order(struct readahead_control *ractl,
+@@ -826,6 +836,10 @@ void readahead_expand(struct readahead_c
+ 			put_page(page);
+ 			return;
+ 		}
++		if (unlikely(PageWorkingset(page)) && !ractl->_workingset) {
++			ractl->_workingset = true;
++			psi_memstall_enter(&ractl->_pflags);
++		}
+ 		ractl->_nr_pages++;
+ 		if (ra) {
+ 			ra->size++;
 _
 
-Patches currently in -mm which might be from kaixuxia@tencent.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch
-mm-damon-core-iterate-the-regions-list-from-current-point-in-damon_set_regions.patch
-mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme.patch
-mm-damon-sysfs-use-the-wrapper-directly-to-check-if-the-kdamond-is-running.patch
-mm-damon-simplify-the-parameter-passing-for-prepare_access_checks.patch
-mm-damon-sysfs-simplify-the-variable-pid-assignment-operation.patch
-mm-damon-core-simplify-the-kdamond-stop-mechanism-by-removing-done.patch
-mm-damon-use-struct-damon_target-instead-of-void-in-target_valid.patch
+frontswap-dont-call-init-if-no-ops-are-registered.patch
+mm-add-psi-accounting-around-read_folio-and-readahead-calls.patch
+sched-psi-export-psi_memstall_enterleave.patch
+btrfs-add-manual-psi-accounting-for-compressed-reads.patch
+erofs-add-manual-psi-accounting-for-the-compressed-address-space.patch
+block-remove-psi-accounting-from-the-bio-layer.patch
 
