@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC4B4C6FA86
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:07:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E795ECAAD8
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:07:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229579AbiIPUHE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Sep 2022 16:07:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35236 "EHLO
+        id S230391AbiIPUHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Sep 2022 16:07:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230292AbiIPUGz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:06:55 -0400
+        with ESMTP id S230343AbiIPUHA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:07:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 710C3B99F5
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:06:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D0E1B99E0
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:06:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B99C62D76
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62E36C433C1;
-        Fri, 16 Sep 2022 20:06:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A81262D76
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57081C433C1;
+        Fri, 16 Sep 2022 20:06:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663358813;
-        bh=iChKuBB1Up5upBoAtvoN5mgtB+by/7nI/zlUDAtSCxY=;
+        s=korg; t=1663358815;
+        bh=cPBnK/bwTVBXtUWz1rL60rruqgwmhxO+6iPLpO/2ZAM=;
         h=Date:To:From:Subject:From;
-        b=pTGTPH37HLHZsIAluxQWSfUh631bIsn0mvhpeXb44M9jdZVNsHeGUyXpvqdFJJT4u
-         phGHPK36C1wrGZhiLlH06aEPwEtB2GtlwxycOEaTI8Yq75cxIEvfxotY/tckv4Tt2F
-         WbcL2Zhe4XlP68CfzV8yw6b7VngiX7AUYgDK8UrE=
-Date:   Fri, 16 Sep 2022 13:06:52 -0700
+        b=Z3AUV1bf1rA40cvqgwm9+uZJa9Q6ePVNhgyiO8O7zqpXHS1eTpoi4qJDGt0kVsJHe
+         xep/qRLiqY/JfDJqZ1UX0OewiHj0wbLunBE4Gfo8NqvAWZOu085Yn4qSQu8SIuzQUD
+         ZY2a96RDco+pMOGQcERa81Fmg3hgBdzjMpegsCzM=
+Date:   Fri, 16 Sep 2022 13:06:54 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, osalvador@suse.de,
         david@redhat.com, anshuman.khandual@arm.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-remove-obsolete-generic_free_nodedata.patch added to mm-unstable branch
-Message-Id: <20220916200653.62E36C433C1@smtp.kernel.org>
+Subject: + mm-page_alloc-make-boot_nodestats-static.patch added to mm-unstable branch
+Message-Id: <20220916200655.57081C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: remove obsolete generic_free_nodedata()
+     Subject: mm/page_alloc: make boot_nodestats static
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-remove-obsolete-generic_free_nodedata.patch
+     mm-page_alloc-make-boot_nodestats-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-remove-obsolete-generic_free_nodedata.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-make-boot_nodestats-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,13 +66,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm, memory_hotplug: remove obsolete generic_free_nodedata()
-Date: Fri, 16 Sep 2022 15:22:51 +0800
+Subject: mm/page_alloc: make boot_nodestats static
+Date: Fri, 16 Sep 2022 15:22:52 +0800
 
-Commit 390511e1476e ("mm, memory_hotplug: drop arch_free_nodedata") drops
-the last caller of generic_free_nodedata().  Remove it too.
+It's only used in mm/page_alloc.c now.  Make it static.
 
-Link: https://lkml.kernel.org/r/20220916072257.9639-11-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220916072257.9639-12-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -81,33 +80,32 @@ Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    8 --------
- 1 file changed, 8 deletions(-)
+ mm/internal.h   |    2 --
+ mm/page_alloc.c |    2 +-
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-remove-obsolete-generic_free_nodedata
-+++ a/include/linux/memory_hotplug.h
-@@ -43,11 +43,6 @@ extern void arch_refresh_nodedata(int ni
- ({								\
- 	memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);	\
- })
--/*
-- * This definition is just for error path in node hotadd.
-- * For node hotremove, we have to replace this.
-- */
--#define generic_free_nodedata(pgdat)	kfree(pgdat)
+--- a/mm/internal.h~mm-page_alloc-make-boot_nodestats-static
++++ a/mm/internal.h
+@@ -836,8 +836,6 @@ int migrate_device_coherent_page(struct
+  */
+ struct folio *try_grab_folio(struct page *page, int refs, unsigned int flags);
  
- extern pg_data_t *node_data[];
- static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
-@@ -63,9 +58,6 @@ static inline pg_data_t *generic_alloc_n
- 	BUG();
- 	return NULL;
- }
--static inline void generic_free_nodedata(pg_data_t *pgdat)
--{
--}
- static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
+-DECLARE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
+-
+ extern bool mirrored_kernelcore;
+ 
+ static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
+--- a/mm/page_alloc.c~mm-page_alloc-make-boot_nodestats-static
++++ a/mm/page_alloc.c
+@@ -6571,7 +6571,7 @@ static void per_cpu_pages_init(struct pe
+ #define BOOT_PAGESET_BATCH	1
+ static DEFINE_PER_CPU(struct per_cpu_pages, boot_pageset);
+ static DEFINE_PER_CPU(struct per_cpu_zonestat, boot_zonestats);
+-DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
++static DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
+ 
+ static void __build_all_zonelists(void *data)
  {
- }
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
