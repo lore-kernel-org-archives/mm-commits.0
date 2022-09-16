@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1CC3C6FA86
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:07:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70677C6FA90
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:07:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230362AbiIPUHB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Sep 2022 16:07:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35142 "EHLO
+        id S230365AbiIPUHC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Sep 2022 16:07:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229579AbiIPUGv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:06:51 -0400
+        with ESMTP id S230223AbiIPUGx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:06:53 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 110B7B8F2F
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:06:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BB91B7282
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:06:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BCD2EB82938
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5822CC433D7;
-        Fri, 16 Sep 2022 20:06:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A4399B823FA
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 496E4C433D6;
+        Fri, 16 Sep 2022 20:06:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663358807;
-        bh=fJCORIxasVvtfpST0r+HPrfzj7P2EvBYX28dmdwToDg=;
+        s=korg; t=1663358809;
+        bh=Xr+QXwwFIYTyV8YXzzXoAYzcGoKn6X9rHy6ang9ohQI=;
         h=Date:To:From:Subject:From;
-        b=O0tOGi5DbSW9fcF1LV+ehV1AVdDfZ/+dZ3pI2b/UHSvg1ZOowSXYne5JVbrmCthw4
-         3I/VT4ODmrTkBzB0C1VyCgNMDdI0LDglQ74Ag2v/CNmWQuVNHIr/9Q8tIXoKqgmp51
-         GXWWKss+ZGMwZot1fBwW2n7dSrnITodxDYx/XPRM=
-Date:   Fri, 16 Sep 2022 13:06:46 -0700
+        b=PyQ0m9Lw9KvDpWH5IREl+zBl+QoSOQ0YljAg/phGeZLWh7aocnxZyQbvHlVIx5Sk8
+         bY3lqhcPSDoQnJaBGZDj51Kie3PZkIQNF++wah27Km8bkEwmqCeI6q0yhcqYHGBRE0
+         L9M4XUIN6G1a6MdiuMMRcPWZR8nyr2XSg0O97R7M=
+Date:   Fri, 16 Sep 2022 13:06:48 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, osalvador@suse.de,
         david@redhat.com, anshuman.khandual@arm.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-obsolete-pgdat_is_empty.patch added to mm-unstable branch
-Message-Id: <20220916200647.5822CC433D7@smtp.kernel.org>
+Subject: + mm-page_alloc-add-missing-is_migrate_isolate-check-in-set_page_guard.patch added to mm-unstable branch
+Message-Id: <20220916200649.496E4C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove obsolete pgdat_is_empty()
+     Subject: mm/page_alloc: add missing is_migrate_isolate() check in set_page_guard()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-obsolete-pgdat_is_empty.patch
+     mm-page_alloc-add-missing-is_migrate_isolate-check-in-set_page_guard.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-obsolete-pgdat_is_empty.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-add-missing-is_migrate_isolate-check-in-set_page_guard.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,37 +66,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: remove obsolete pgdat_is_empty()
-Date: Fri, 16 Sep 2022 15:22:48 +0800
+Subject: mm/page_alloc: add missing is_migrate_isolate() check in set_page_guard()
+Date: Fri, 16 Sep 2022 15:22:49 +0800
 
-There's no caller.  Remove it.
+In MIGRATE_ISOLATE case, zone freepage state shouldn't be modified as
+caller will take care of it.  Add missing is_migrate_isolate() here to
+avoid possible unbalanced freepage state.  This would happen if someone
+isolates the block, and then we face an MCE failure/soft-offline on a page
+within that block.  __mod_zone_freepage_state() will be triggered via
+below call trace which already had been triggered back when block was
+isolated:
 
-Link: https://lkml.kernel.org/r/20220916072257.9639-8-linmiaohe@huawei.com
+take_page_off_buddy
+  break_down_buddy_pages
+    set_page_guard
+
+Link: https://lkml.kernel.org/r/20220916072257.9639-9-linmiaohe@huawei.com
+Fixes: 06be6ff3d2ec ("mm,hwpoison: rework soft offline for free pages")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-remove-obsolete-pgdat_is_empty
-+++ a/include/linux/mmzone.h
-@@ -1241,11 +1241,6 @@ static inline unsigned long pgdat_end_pf
- 	return pgdat->node_start_pfn + pgdat->node_spanned_pages;
+--- a/mm/page_alloc.c~mm-page_alloc-add-missing-is_migrate_isolate-check-in-set_page_guard
++++ a/mm/page_alloc.c
+@@ -873,7 +873,8 @@ static inline bool set_page_guard(struct
+ 	INIT_LIST_HEAD(&page->buddy_list);
+ 	set_page_private(page, order);
+ 	/* Guard pages are not available for any usage */
+-	__mod_zone_freepage_state(zone, -(1 << order), migratetype);
++	if (!is_migrate_isolate(migratetype))
++		__mod_zone_freepage_state(zone, -(1 << order), migratetype);
+ 
+ 	return true;
  }
- 
--static inline bool pgdat_is_empty(pg_data_t *pgdat)
--{
--	return !pgdat->node_start_pfn && !pgdat->node_spanned_pages;
--}
--
- #include <linux/memory_hotplug.h>
- 
- void build_all_zonelists(pg_data_t *pgdat);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
