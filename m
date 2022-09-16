@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8185ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:06:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88875ECAAD8
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:06:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229838AbiIPUGv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Sep 2022 16:06:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35070 "EHLO
+        id S230046AbiIPUGw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Sep 2022 16:06:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230228AbiIPUGr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:06:47 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6A06B7282
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:06:45 -0700 (PDT)
+        with ESMTP id S230238AbiIPUGs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:06:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8720BB9411
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:06:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5FB69B82930
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06953C433B5;
-        Fri, 16 Sep 2022 20:06:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E8A8662D7C
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A44EC433D7;
+        Fri, 16 Sep 2022 20:06:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663358803;
-        bh=hr6elbVdoBc8OS30lEGyQKJ9XTm7GdXOFSXlyUcf+ic=;
+        s=korg; t=1663358805;
+        bh=paHz7nKPNEaTV3fo7gmyK8A/GgJZk76yG+mkETskwrs=;
         h=Date:To:From:Subject:From;
-        b=g+BlM4sVl1QTkuq7V/j6BEdMLMHgRt04Z8lyHHXxSXUuwS0A/ToDmyBvk1lJoij44
-         uWfSUQ9fW5GJMDaHE3gXuHz9L//87DrDa6N8jVPmFopiBz67c1o+VrUElIgXt8uhe1
-         0qdKvQUMTm6nu7/Yr4rx8e7AWiFzCuqfk0Q0Gic4=
-Date:   Fri, 16 Sep 2022 13:06:42 -0700
+        b=m6A38AaJtMVQ+bEBeLZGBNRJtl575HnUkz7gftYUPovHZiGKhuiS6j00dP8X6aaPG
+         MEvbjYeh91VdQ4J2H3oDRjWgbH/DIGn2CNuy2vGpPSwpO1/CIbiCSTLToo5qSYNVFp
+         I9e9zss3CQEz4vaZ49MwdbDektlJ3UIpBClUvEHE=
+Date:   Fri, 16 Sep 2022 13:06:44 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, osalvador@suse.de,
         david@redhat.com, anshuman.khandual@arm.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-add-__init-annotations-to-init_mem_debugging_and_hardening.patch added to mm-unstable branch
-Message-Id: <20220916200643.06953C433B5@smtp.kernel.org>
+Subject: + mm-page_alloc-fix-freeing-static-percpu-memory.patch added to mm-unstable branch
+Message-Id: <20220916200645.4A44EC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: add __init annotations to init_mem_debugging_and_hardening()
+     Subject: mm/page_alloc: fix freeing static percpu memory
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-add-__init-annotations-to-init_mem_debugging_and_hardening.patch
+     mm-page_alloc-fix-freeing-static-percpu-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-add-__init-annotations-to-init_mem_debugging_and_hardening.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-freeing-static-percpu-memory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,45 +66,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/page_alloc: add __init annotations to init_mem_debugging_and_hardening()
-Date: Fri, 16 Sep 2022 15:22:46 +0800
+Subject: mm/page_alloc: fix freeing static percpu memory
+Date: Fri, 16 Sep 2022 15:22:47 +0800
 
-It's only called by mm_init(). Add __init annotations to it.
+The size of struct per_cpu_zonestat can be 0 on !SMP && !NUMA.  In that
+case, zone->per_cpu_zonestats will always equal to boot_zonestats.  But in
+zone_pcp_reset(), zone->per_cpu_zonestats is freed via free_percpu()
+directly without checking against boot_zonestats first.  boot_zonestats
+will be released by free_percpu() unexpectedly.
 
-Link: https://lkml.kernel.org/r/20220916072257.9639-6-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220916072257.9639-7-linmiaohe@huawei.com
+Fixes: 28f836b6777b ("mm/page_alloc: split per cpu page lists and zone stats")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/page_alloc.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-page_alloc-add-__init-annotations-to-init_mem_debugging_and_hardening
-+++ a/include/linux/mm.h
-@@ -3093,7 +3093,7 @@ extern int apply_to_existing_page_range(
- 				   unsigned long address, unsigned long size,
- 				   pte_fn_t fn, void *data);
- 
--extern void init_mem_debugging_and_hardening(void);
-+extern void __init init_mem_debugging_and_hardening(void);
- #ifdef CONFIG_PAGE_POISONING
- extern void __kernel_poison_pages(struct page *page, int numpages);
- extern void __kernel_unpoison_pages(struct page *page, int numpages);
---- a/mm/page_alloc.c~mm-page_alloc-add-__init-annotations-to-init_mem_debugging_and_hardening
+--- a/mm/page_alloc.c~mm-page_alloc-fix-freeing-static-percpu-memory
 +++ a/mm/page_alloc.c
-@@ -903,7 +903,7 @@ static inline void clear_page_guard(stru
-  * order of appearance. So we need to first gather the full picture of what was
-  * enabled, and then make decisions.
-  */
--void init_mem_debugging_and_hardening(void)
-+void __init init_mem_debugging_and_hardening(void)
- {
- 	bool page_poisoning_requested = false;
+@@ -9505,9 +9505,11 @@ void zone_pcp_reset(struct zone *zone)
+ 			drain_zonestat(zone, pzstats);
+ 		}
+ 		free_percpu(zone->per_cpu_pageset);
+-		free_percpu(zone->per_cpu_zonestats);
+ 		zone->per_cpu_pageset = &boot_pageset;
+-		zone->per_cpu_zonestats = &boot_zonestats;
++		if (zone->per_cpu_zonestats != &boot_zonestats) {
++			free_percpu(zone->per_cpu_zonestats);
++			zone->per_cpu_zonestats = &boot_zonestats;
++		}
+ 	}
+ }
  
 _
 
