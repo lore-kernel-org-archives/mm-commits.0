@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2506ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:07:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 572DAECAAD8
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:07:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230216AbiIPUHW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Sep 2022 16:07:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35178 "EHLO
+        id S230228AbiIPUHY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Sep 2022 16:07:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230228AbiIPUHD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:07:03 -0400
+        with ESMTP id S230273AbiIPUHB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:07:01 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52AE7B8F2F
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:07:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 543EDB8A45
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:07:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 02234B823FA
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:07:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BC84C433C1;
-        Fri, 16 Sep 2022 20:06:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 004BBB82930
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A02C7C433D6;
+        Fri, 16 Sep 2022 20:06:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663358819;
-        bh=PziJe6AqWRqoV6nuuKlLn+g1BW0OcYjkqSXdh3gNBAc=;
+        s=korg; t=1663358817;
+        bh=13oquKsJSYy0RRqh4rQmGevm65B2scs79d0X7YQPpes=;
         h=Date:To:From:Subject:From;
-        b=zciGnwSr7T0wsSSP3bM8wPi0j84+RD9brl/hosbNo8F8KLaC2uOIhOaOMsy9/m8/5
-         xXn4ubcZ5Z6AadFaEi961MkNpR3B+MgonJwaxEjWuB3AY8MoO/TFEKCmb85gMMQnn+
-         qcKEH7mEqmNG8wNSLPXyaB0LC+ibUMO3NSap9dc8=
-Date:   Fri, 16 Sep 2022 13:06:58 -0700
+        b=PLFgkIb2KkHE0Q2rGbFcJZERQ672He2mG8g6EC6/sRQcXvOiXMauXfbXBFZuBjxj0
+         CNcOdYI2QfjHcNYjXoINn5j1E5s8mdS/oDHYHfEScdLMqLvuYN9haXpG7fqdk+1THA
+         i6KVfDoH4xGbLWChuRLYk67VoJ32g9yhDOMzYYts=
+Date:   Fri, 16 Sep 2022 13:06:56 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, osalvador@suse.de,
         david@redhat.com, anshuman.khandual@arm.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-init-local-variable-buddy_pfn.patch added to mm-unstable branch
-Message-Id: <20220916200659.9BC84C433C1@smtp.kernel.org>
+Subject: + mm-page_alloc-use-helper-macro-sz_1km.patch added to mm-unstable branch
+Message-Id: <20220916200657.A02C7C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: init local variable buddy_pfn
+     Subject: mm/page_alloc: use helper macro SZ_1{K,M}
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-init-local-variable-buddy_pfn.patch
+     mm-page_alloc-use-helper-macro-sz_1km.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-init-local-variable-buddy_pfn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-helper-macro-sz_1km.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,38 +66,57 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/page_alloc: init local variable buddy_pfn
-Date: Fri, 16 Sep 2022 15:22:54 +0800
+Subject: mm/page_alloc: use helper macro SZ_1{K,M}
+Date: Fri, 16 Sep 2022 15:22:53 +0800
 
-The local variable buddy_pfn could be passed to buddy_merge_likely()
-without initialization if the passed in order is MAX_ORDER - 1.  This
-looks buggy but buddy_pfn won't be used in this case as there's a order >=
-MAX_ORDER - 2 check.  Init buddy_pfn to 0 anyway to avoid possible future
-misuse.
+Use helper macro SZ_1K and SZ_1M to do the size conversion.  Minor
+readability improvement.
 
-Link: https://lkml.kernel.org/r/20220916072257.9639-14-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220916072257.9639-13-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-init-local-variable-buddy_pfn
+--- a/mm/page_alloc.c~mm-page_alloc-use-helper-macro-sz_1km
 +++ a/mm/page_alloc.c
-@@ -1113,7 +1113,7 @@ static inline void __free_one_page(struc
- 		int migratetype, fpi_t fpi_flags)
- {
- 	struct capture_control *capc = task_capc(zone);
--	unsigned long buddy_pfn;
-+	unsigned long buddy_pfn = 0;
- 	unsigned long combined_pfn;
- 	struct page *buddy;
- 	bool to_tail;
+@@ -7048,7 +7048,7 @@ static int zone_batchsize(struct zone *z
+ 	 * size is striking a balance between allocation latency
+ 	 * and zone lock contention.
+ 	 */
+-	batch = min(zone_managed_pages(zone) >> 10, (1024 * 1024) / PAGE_SIZE);
++	batch = min(zone_managed_pages(zone) >> 10, SZ_1M / PAGE_SIZE);
+ 	batch /= 4;		/* We effectively *= 4 below */
+ 	if (batch < 1)
+ 		batch = 1;
+@@ -8523,8 +8523,8 @@ void __init mem_init_print_info(void)
+ #endif
+ 		")\n",
+ 		K(nr_free_pages()), K(physpages),
+-		codesize >> 10, datasize >> 10, rosize >> 10,
+-		(init_data_size + init_code_size) >> 10, bss_size >> 10,
++		codesize / SZ_1K, datasize / SZ_1K, rosize / SZ_1K,
++		(init_data_size + init_code_size) / SZ_1K, bss_size / SZ_1K,
+ 		K(physpages - totalram_pages() - totalcma_pages),
+ 		K(totalcma_pages)
+ #ifdef	CONFIG_HIGHMEM
+@@ -9049,8 +9049,8 @@ void *__init alloc_large_system_hash(con
+ 		numentries -= arch_reserved_kernel_pages();
+ 
+ 		/* It isn't necessary when PAGE_SIZE >= 1MB */
+-		if (PAGE_SHIFT < 20)
+-			numentries = round_up(numentries, (1<<20)/PAGE_SIZE);
++		if (PAGE_SIZE < SZ_1M)
++			numentries = round_up(numentries, SZ_1M / PAGE_SIZE);
+ 
+ #if __BITS_PER_LONG > 32
+ 		if (!high_limit) {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
