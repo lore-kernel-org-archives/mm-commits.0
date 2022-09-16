@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 064E9ECAAD8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 839E0C6FA8B
 	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:06:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230152AbiIPUGk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230148AbiIPUGk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 16 Sep 2022 16:06:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34938 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230213AbiIPUGg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:06:36 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31A0CB7282
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:06:35 -0700 (PDT)
+        with ESMTP id S230220AbiIPUGi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:06:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59B39B7288
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:06:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BEBD062D76
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25E98C433D6;
-        Fri, 16 Sep 2022 20:06:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EA26862D75
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CD48C433C1;
+        Fri, 16 Sep 2022 20:06:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663358794;
-        bh=af/iofOeIudTgGVkbv3q1Meo+lGYHimZQn09wuEJCD0=;
+        s=korg; t=1663358796;
+        bh=aDkQ7cldfhGalr5mBfS9EdyynlTHoaNJM9N7ps9W4GE=;
         h=Date:To:From:Subject:From;
-        b=nn2tNcay9xBHAD7LDXBGc9hYtTWOq8SnyI4Ffqyhke9NB875rdXksT9y3hWLkKmrm
-         VkP+l99eCEIVSPLNqZdTtgFzC1kzewvydJTSnuDg4JLqa4LBXtKxgojKJy+tnhYA1e
-         3ZSXD58oorzV/rQV/TgMstArVl4P469/PSGo/5nw=
-Date:   Fri, 16 Sep 2022 13:06:33 -0700
+        b=Hb1xFqD11Zxtu8fnLxkio/O7/Iviny6FSt3wMI6Kp4dxzV3tKkXeyWRltS56MlzBY
+         Jz5/b6cFjhz+2Quw7EcIu4Bsmdqr66HqNcJsvUB/c27BR4Gd7FS8cxkmnNPYJcOuj/
+         j67sE/5s03EaQpMu4NJwdlcP9wjiilNQCvnlTjtE=
+Date:   Fri, 16 Sep 2022 13:06:35 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, osalvador@suse.de,
         david@redhat.com, anshuman.khandual@arm.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-ensure-kswapd-doesnt-accidentally-go-to-sleep.patch added to mm-unstable branch
-Message-Id: <20220916200634.25E98C433D6@smtp.kernel.org>
+Subject: + mm-page_alloc-make-zone_pcp_update-static.patch added to mm-unstable branch
+Message-Id: <20220916200636.4CD48C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: ensure kswapd doesn't accidentally go to sleep
+     Subject: mm/page_alloc: make zone_pcp_update() static
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-ensure-kswapd-doesnt-accidentally-go-to-sleep.patch
+     mm-page_alloc-make-zone_pcp_update-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-ensure-kswapd-doesnt-accidentally-go-to-sleep.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-make-zone_pcp_update-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,50 +66,75 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/page_alloc: ensure kswapd doesn't accidentally go to sleep
-Date: Fri, 16 Sep 2022 15:22:42 +0800
+Subject: mm/page_alloc: make zone_pcp_update() static
+Date: Fri, 16 Sep 2022 15:22:43 +0800
 
-Patch series "A few cleanup patches for mm", v2.
+Since commit b92ca18e8ca5 ("mm/page_alloc: disassociate the pcp->high from
+pcp->batch"), zone_pcp_update() is only used in mm/page_alloc.c.  Move
+zone_pcp_update() up to avoid forward declaration and then make it static.
+No functional change intended.
 
-This series contains a few cleanup patches to remove the obsolete comments
-and functions, use helper macro to improve readability and so on.  More
-details can be found in the respective changelogs.
-
-
-This patch (of 16):
-
-If ALLOC_KSWAPD is set, wake_all_kswapds() will be called to ensure kswapd
-doesn't accidentally go to sleep.  But when reserve_flags is set,
-alloc_flags will be overwritten and ALLOC_KSWAPD is thus lost.  Preserve
-the ALLOC_KSWAPD flag in alloc_flags to ensure kswapd won't go to sleep
-accidentally.
-
-Link: https://lkml.kernel.org/r/20220916072257.9639-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220916072257.9639-2-linmiaohe@huawei.com
-Fixes: 0a79cdad5eb2 ("mm: use alloc_flags to record if kswapd can wake")
+Link: https://lkml.kernel.org/r/20220916072257.9639-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/internal.h   |    1 -
+ mm/page_alloc.c |   22 +++++++++++-----------
+ 2 files changed, 11 insertions(+), 12 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-ensure-kswapd-doesnt-accidentally-go-to-sleep
+--- a/mm/internal.h~mm-page_alloc-make-zone_pcp_update-static
++++ a/mm/internal.h
+@@ -367,7 +367,6 @@ extern int user_min_free_kbytes;
+ extern void free_unref_page(struct page *page, unsigned int order);
+ extern void free_unref_page_list(struct list_head *list);
+ 
+-extern void zone_pcp_update(struct zone *zone, int cpu_online);
+ extern void zone_pcp_reset(struct zone *zone);
+ extern void zone_pcp_disable(struct zone *zone);
+ extern void zone_pcp_enable(struct zone *zone);
+--- a/mm/page_alloc.c~mm-page_alloc-make-zone_pcp_update-static
 +++ a/mm/page_alloc.c
-@@ -5148,7 +5148,8 @@ retry:
+@@ -7235,6 +7235,17 @@ void __meminit setup_zone_pageset(struct
+ }
  
- 	reserve_flags = __gfp_pfmemalloc_flags(gfp_mask);
- 	if (reserve_flags)
--		alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, reserve_flags);
-+		alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, reserve_flags) |
-+					  (alloc_flags & ALLOC_KSWAPD);
+ /*
++ * The zone indicated has a new number of managed_pages; batch sizes and percpu
++ * page high values need to be recalculated.
++ */
++static void zone_pcp_update(struct zone *zone, int cpu_online)
++{
++	mutex_lock(&pcp_batch_high_lock);
++	zone_set_pageset_high_and_batch(zone, cpu_online);
++	mutex_unlock(&pcp_batch_high_lock);
++}
++
++/*
+  * Allocate per cpu pagesets and initialize them.
+  * Before this call only boot pagesets were available.
+  */
+@@ -9466,17 +9477,6 @@ void free_contig_range(unsigned long pfn
+ EXPORT_SYMBOL(free_contig_range);
  
- 	/*
- 	 * Reset the nodemask and zonelist iterators if memory policies can be
+ /*
+- * The zone indicated has a new number of managed_pages; batch sizes and percpu
+- * page high values need to be recalculated.
+- */
+-void zone_pcp_update(struct zone *zone, int cpu_online)
+-{
+-	mutex_lock(&pcp_batch_high_lock);
+-	zone_set_pageset_high_and_batch(zone, cpu_online);
+-	mutex_unlock(&pcp_batch_high_lock);
+-}
+-
+-/*
+  * Effectively disable pcplists for the zone by setting the high limit to 0
+  * and draining all cpus. A concurrent page freeing on another CPU that's about
+  * to put the page on pcplist will either finish before the drain and the page
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
