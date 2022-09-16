@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 839E0C6FA8B
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:06:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D28EECAAD8
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Sep 2022 20:06:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230148AbiIPUGk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Sep 2022 16:06:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34952 "EHLO
+        id S230248AbiIPUGs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Sep 2022 16:06:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230220AbiIPUGi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:06:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59B39B7288
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:06:37 -0700 (PDT)
+        with ESMTP id S229838AbiIPUGn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2022 16:06:43 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E979A5C51
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 13:06:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EA26862D75
-        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CD48C433C1;
-        Fri, 16 Sep 2022 20:06:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 07327B82938
+        for <mm-commits@vger.kernel.org>; Fri, 16 Sep 2022 20:06:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6B5EC433C1;
+        Fri, 16 Sep 2022 20:06:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663358796;
-        bh=aDkQ7cldfhGalr5mBfS9EdyynlTHoaNJM9N7ps9W4GE=;
+        s=korg; t=1663358798;
+        bh=fE6ZXoBQEVmyuAwP6PoToel/VfrSLsi0DBpOfdFqgoY=;
         h=Date:To:From:Subject:From;
-        b=Hb1xFqD11Zxtu8fnLxkio/O7/Iviny6FSt3wMI6Kp4dxzV3tKkXeyWRltS56MlzBY
-         Jz5/b6cFjhz+2Quw7EcIu4Bsmdqr66HqNcJsvUB/c27BR4Gd7FS8cxkmnNPYJcOuj/
-         j67sE/5s03EaQpMu4NJwdlcP9wjiilNQCvnlTjtE=
-Date:   Fri, 16 Sep 2022 13:06:35 -0700
+        b=KIEPIDzVn2yuWguibIR3LIWNTK5TQp0V02+cZq5fWqe6aSTdcF0GkM4+9WY+NhHq5
+         nX4wBJiB2h2zgJjwrfLJwgw3XjgWXDv38jQRRRgeCOgkoDilO8By17X+ZqbUaxPf7t
+         p6qufuOIsIFnWGgN3a/HNC584k9ZA8s9UN0eOt0o=
+Date:   Fri, 16 Sep 2022 13:06:37 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, osalvador@suse.de,
         david@redhat.com, anshuman.khandual@arm.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-make-zone_pcp_update-static.patch added to mm-unstable branch
-Message-Id: <20220916200636.4CD48C433C1@smtp.kernel.org>
+Subject: + mm-remove-obsolete-macro-nr_pcp_order_mask-and-nr_pcp_order_width.patch added to mm-unstable branch
+Message-Id: <20220916200638.B6B5EC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: make zone_pcp_update() static
+     Subject: mm: remove obsolete macro NR_PCP_ORDER_MASK and NR_PCP_ORDER_WIDTH
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-make-zone_pcp_update-static.patch
+     mm-remove-obsolete-macro-nr_pcp_order_mask-and-nr_pcp_order_width.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-make-zone_pcp_update-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-obsolete-macro-nr_pcp_order_mask-and-nr_pcp_order_width.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,15 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/page_alloc: make zone_pcp_update() static
-Date: Fri, 16 Sep 2022 15:22:43 +0800
+Subject: mm: remove obsolete macro NR_PCP_ORDER_MASK and NR_PCP_ORDER_WIDTH
+Date: Fri, 16 Sep 2022 15:22:44 +0800
 
-Since commit b92ca18e8ca5 ("mm/page_alloc: disassociate the pcp->high from
-pcp->batch"), zone_pcp_update() is only used in mm/page_alloc.c.  Move
-zone_pcp_update() up to avoid forward declaration and then make it static.
-No functional change intended.
+Since commit 8b10b465d0e1 ("mm/page_alloc: free pages in a single pass
+during bulk free"), they're not used anymore.  Remove them.
 
-Link: https://lkml.kernel.org/r/20220916072257.9639-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220916072257.9639-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -83,58 +81,36 @@ Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    1 -
- mm/page_alloc.c |   22 +++++++++++-----------
- 2 files changed, 11 insertions(+), 12 deletions(-)
+ include/linux/mmzone.h |    7 -------
+ mm/page_alloc.c        |    1 -
+ 2 files changed, 8 deletions(-)
 
---- a/mm/internal.h~mm-page_alloc-make-zone_pcp_update-static
-+++ a/mm/internal.h
-@@ -367,7 +367,6 @@ extern int user_min_free_kbytes;
- extern void free_unref_page(struct page *page, unsigned int order);
- extern void free_unref_page_list(struct list_head *list);
+--- a/include/linux/mmzone.h~mm-remove-obsolete-macro-nr_pcp_order_mask-and-nr_pcp_order_width
++++ a/include/linux/mmzone.h
+@@ -564,13 +564,6 @@ enum zone_watermarks {
+ #define NR_LOWORDER_PCP_LISTS (MIGRATE_PCPTYPES * (PAGE_ALLOC_COSTLY_ORDER + 1))
+ #define NR_PCP_LISTS (NR_LOWORDER_PCP_LISTS + NR_PCP_THP)
  
--extern void zone_pcp_update(struct zone *zone, int cpu_online);
- extern void zone_pcp_reset(struct zone *zone);
- extern void zone_pcp_disable(struct zone *zone);
- extern void zone_pcp_enable(struct zone *zone);
---- a/mm/page_alloc.c~mm-page_alloc-make-zone_pcp_update-static
-+++ a/mm/page_alloc.c
-@@ -7235,6 +7235,17 @@ void __meminit setup_zone_pageset(struct
- }
- 
- /*
-+ * The zone indicated has a new number of managed_pages; batch sizes and percpu
-+ * page high values need to be recalculated.
-+ */
-+static void zone_pcp_update(struct zone *zone, int cpu_online)
-+{
-+	mutex_lock(&pcp_batch_high_lock);
-+	zone_set_pageset_high_and_batch(zone, cpu_online);
-+	mutex_unlock(&pcp_batch_high_lock);
-+}
-+
-+/*
-  * Allocate per cpu pagesets and initialize them.
-  * Before this call only boot pagesets were available.
-  */
-@@ -9466,17 +9477,6 @@ void free_contig_range(unsigned long pfn
- EXPORT_SYMBOL(free_contig_range);
- 
- /*
-- * The zone indicated has a new number of managed_pages; batch sizes and percpu
-- * page high values need to be recalculated.
-- */
--void zone_pcp_update(struct zone *zone, int cpu_online)
--{
--	mutex_lock(&pcp_batch_high_lock);
--	zone_set_pageset_high_and_batch(zone, cpu_online);
--	mutex_unlock(&pcp_batch_high_lock);
--}
--
 -/*
-  * Effectively disable pcplists for the zone by setting the high limit to 0
-  * and draining all cpus. A concurrent page freeing on another CPU that's about
-  * to put the page on pcplist will either finish before the drain and the page
+- * Shift to encode migratetype and order in the same integer, with order
+- * in the least significant bits.
+- */
+-#define NR_PCP_ORDER_WIDTH 8
+-#define NR_PCP_ORDER_MASK ((1<<NR_PCP_ORDER_WIDTH) - 1)
+-
+ #define min_wmark_pages(z) (z->_watermark[WMARK_MIN] + z->watermark_boost)
+ #define low_wmark_pages(z) (z->_watermark[WMARK_LOW] + z->watermark_boost)
+ #define high_wmark_pages(z) (z->_watermark[WMARK_HIGH] + z->watermark_boost)
+--- a/mm/page_alloc.c~mm-remove-obsolete-macro-nr_pcp_order_mask-and-nr_pcp_order_width
++++ a/mm/page_alloc.c
+@@ -1584,7 +1584,6 @@ static void free_pcppages_bulk(struct zo
+ 
+ 		order = pindex_to_order(pindex);
+ 		nr_pages = 1 << order;
+-		BUILD_BUG_ON(MAX_ORDER >= (1<<NR_PCP_ORDER_WIDTH));
+ 		do {
+ 			int mt;
+ 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
