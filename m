@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 583EDECAAD3
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Sep 2022 20:26:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CD3EECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Sep 2022 20:46:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229645AbiISU0E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Sep 2022 16:26:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55494 "EHLO
+        id S229740AbiISUqj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Sep 2022 16:46:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229666AbiISU0D (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2022 16:26:03 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A85BAE0D3
-        for <mm-commits@vger.kernel.org>; Mon, 19 Sep 2022 13:26:02 -0700 (PDT)
+        with ESMTP id S229698AbiISUqi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2022 16:46:38 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B72214A13E;
+        Mon, 19 Sep 2022 13:46:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 66FE3B803F5
-        for <mm-commits@vger.kernel.org>; Mon, 19 Sep 2022 20:26:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CA0FC433C1;
-        Mon, 19 Sep 2022 20:25:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6A92DB8075E;
+        Mon, 19 Sep 2022 20:46:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 412CFC433D7;
+        Mon, 19 Sep 2022 20:46:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663619160;
-        bh=TnD/ouv8twoVbWqDhXvBwP3hh87wjPTHhvrRLSWgqiA=;
+        s=korg; t=1663620395;
+        bh=u1SDgvSXYjTwmjtA4RdrNikaaGPV+fMFiGpOU+oQPzw=;
         h=Date:To:From:Subject:From;
-        b=H+6Vc8t5wT/gwhD/opKlfYNr59GlOucTTuO7nTux2VUqZDBBmnbl5yRf2tBK1rMsn
-         qDoypxPsHeW+ua4ldQkAGbtbDSZVkVUsjR54RU5gDh+dFFBfwNB9ufudVr3DbeO03x
-         wTJ8ufx+bYXW8KWPHpzYqFR3jDuUTUHNdhu/keJI=
-Date:   Mon, 19 Sep 2022 13:25:50 -0700
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=sRT5/QRKdGWOiJZZ9SoCfgjelRnmAxbOEde1Th5fRhV6q32/1Xx1+A/b12ZnNonNF
+         MvC/lAXgz6f0x827t2YA1OZEij7CfiDg3/ZiOcPzzzNi95opLIKd6WDJVDt2xT9BOn
+         GA2UjvKVN8JAWdcKs3zzg15WRhitswns++GqJqI0=
+Date:   Mon, 19 Sep 2022 13:46:26 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        stable@vger.kernel.org, peterz@infradead.org, jpoimboe@kernel.org,
+        dev@der-flo.net, dave.hansen@linux.intel.com,
+        akpm@linux-foundation.org, keescook@chromium.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix.patch added to mm-unstable branch
-Message-Id: <20220919202559.4CA0FC433C1@smtp.kernel.org>
+Subject: + x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220919204634.412CFC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix.patch
+     Subject: x86/uaccess: avoid check_object_size() in copy_from_user_nmi()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,56 +67,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix
-Date: Mon, 19 Sep 2022 17:30:51 +0800
+From: Kees Cook <keescook@chromium.org>
+Subject: x86/uaccess: avoid check_object_size() in copy_from_user_nmi()
+Date: Mon, 19 Sep 2022 13:16:48 -0700
 
-fix htmldocs
+The check_object_size() helper under CONFIG_HARDENED_USERCOPY is designed
+to skip any checks where the length is known at compile time as a
+reasonable heuristic to avoid "likely known-good" cases.  However, it can
+only do this when the copy_*_user() helpers are, themselves, inline too.
 
-Link: https://lkml.kernel.org/r/1bc55727-9b66-0e9e-c306-f10c4716ea89@huawei.com
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Using find_vmap_area() requires taking a spinlock.  The
+check_object_size() helper can call find_vmap_area() when the destination
+is in vmap memory.  If show_regs() is called in interrupt context, it will
+attempt a call to copy_from_user_nmi(), which may call check_object_size()
+and then find_vmap_area().  If something in normal context happens to be
+in the middle of calling find_vmap_area() (with the spinlock held), the
+interrupt handler will hang forever.
+
+The copy_from_user_nmi() call is actually being called with a fixed-size
+length, so check_object_size() should never have been called in the first
+place.  Given the narrow constraints, just replace the
+__copy_from_user_inatomic() call with an open-coded version that calls
+only into the sanitizers and not check_object_size(), followed by a call
+to raw_copy_from_user().
+
+Link: https://lkml.kernel.org/r/20220919201648.2250764-1-keescook@chromium.org
+Link: https://lore.kernel.org/all/CAOUHufaPshtKrTWOz7T7QFYUNVGFm0JBjvM700Nhf9qEL9b3EQ@mail.gmail.com
+Fixes: 0aef499f3172 ("mm/usercopy: Detect vmalloc overruns")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Yu Zhao <yuzhao@google.com>
+Reported-by: <dev@der-flo.net>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/core-api/mm-api.rst~mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix
-+++ a/Documentation/core-api/mm-api.rst
-@@ -19,9 +19,6 @@ User Space Memory Access
- Memory Allocation Controls
- ==========================
+--- a/arch/x86/lib/usercopy.c~x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi
++++ a/arch/x86/lib/usercopy.c
+@@ -44,7 +44,8 @@ copy_from_user_nmi(void *to, const void
+ 	 * called from other contexts.
+ 	 */
+ 	pagefault_disable();
+-	ret = __copy_from_user_inatomic(to, from, n);
++	instrument_copy_from_user(to, from, n);
++	ret = raw_copy_from_user(to, from, n);
+ 	pagefault_enable();
  
--.. kernel-doc:: include/linux/gfp.h
--   :internal:
--
- .. kernel-doc:: include/linux/gfp_types.h
-    :doc: Page mobility and placement hints
- 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-mm-hwpoison-use-clearpagehwpoison-in-memory_failure.patch
-mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages.patch
-mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch
-mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
-mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings.patch
-mm-hwpoison-cleanup-some-obsolete-comments.patch
-writeback-remove-unused-macro-dirty_full_scope.patch
-mm-page_alloc-ensure-kswapd-doesnt-accidentally-go-to-sleep.patch
-mm-page_alloc-make-zone_pcp_update-static.patch
-mm-remove-obsolete-macro-nr_pcp_order_mask-and-nr_pcp_order_width.patch
-mm-page_alloc-remove-obsolete-comment-in-zone_statistics.patch
-mm-page_alloc-add-__init-annotations-to-init_mem_debugging_and_hardening.patch
-mm-page_alloc-fix-freeing-static-percpu-memory.patch
-mm-remove-obsolete-pgdat_is_empty.patch
-mm-page_alloc-add-missing-is_migrate_isolate-check-in-set_page_guard.patch
-mm-page_alloc-use-local-variable-zone_idx-directly.patch
-mm-memory_hotplug-remove-obsolete-generic_free_nodedata.patch
-mm-page_alloc-make-boot_nodestats-static.patch
-mm-page_alloc-use-helper-macro-sz_1km.patch
-mm-page_alloc-init-local-variable-buddy_pfn.patch
-mm-page_alloc-use-costly_order-in-warn_on_once_gfp.patch
-mm-page_alloc-remove-obsolete-gfpflags_normal_context.patch
-mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix.patch
-mm-page_alloc-fix-obsolete-comment-in-deferred_pfn_valid.patch
+x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi.patch
 
