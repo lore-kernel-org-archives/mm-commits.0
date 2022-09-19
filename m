@@ -2,50 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1141CECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Sep 2022 20:17:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 583EDECAAD3
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Sep 2022 20:26:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229640AbiISURh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Sep 2022 16:17:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45208 "EHLO
+        id S229645AbiISU0E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Sep 2022 16:26:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229577AbiISURf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2022 16:17:35 -0400
+        with ESMTP id S229666AbiISU0D (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2022 16:26:03 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03BC64A12A
-        for <mm-commits@vger.kernel.org>; Mon, 19 Sep 2022 13:17:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A85BAE0D3
+        for <mm-commits@vger.kernel.org>; Mon, 19 Sep 2022 13:26:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6CD92B81B11
-        for <mm-commits@vger.kernel.org>; Mon, 19 Sep 2022 20:17:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3904EC433D7;
-        Mon, 19 Sep 2022 20:17:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 66FE3B803F5
+        for <mm-commits@vger.kernel.org>; Mon, 19 Sep 2022 20:26:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CA0FC433C1;
+        Mon, 19 Sep 2022 20:25:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663618651;
-        bh=AAmWdgqZQWIHKdG2brTmE/o7heV4dqZwQXuXOpx+D1o=;
+        s=korg; t=1663619160;
+        bh=TnD/ouv8twoVbWqDhXvBwP3hh87wjPTHhvrRLSWgqiA=;
         h=Date:To:From:Subject:From;
-        b=rEAO6juwl2gBjlmZkK3iKQ71atwSVCdD8Uephd/H5yPREUbC5DGKDcmHtELU/PT9S
-         7Zf9xPXnRYpt7lWEEPwJUld8F6AmRa2MkG5xyu1CG6yfOXHCE0b5DUnxPPrxhvbM2V
-         +f09N83vFd5XE6vbY5OekttH48Otz58F9QtzqVMI=
-Date:   Mon, 19 Sep 2022 13:17:21 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        willy@infradead.org, will@kernel.org, vbabka@suse.cz,
-        vaibhav@linux.ibm.com, torvalds@linux-foundation.org,
-        tj@kernel.org, szhai2@cs.rochester.edu, suleiman@google.com,
-        steven@liquorix.net, sofia.trinh@edi.works, rppt@linux.ibm.com,
-        rppt@kernel.org, peterz@infradead.org, oleksandr@natalenko.name,
-        Michael@MichaelLarabel.com, mhocko@kernel.org, mgorman@suse.de,
-        linmiaohe@huawei.com, holger@applied-asynchrony.com,
-        Hi-Angel@yandex.ru, heftig@archlinux.org, hdanton@sina.com,
-        hannes@cmpxchg.org, djbyrne@mtu.edu, d@chaos-reins.com,
-        dave.hansen@linux.intel.com, corbet@lwn.net,
-        catalin.marinas@arm.com, bgeffon@google.com, baohua@kernel.org,
-        axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
-        yuzhao@google.com, akpm@linux-foundation.org
+        b=H+6Vc8t5wT/gwhD/opKlfYNr59GlOucTTuO7nTux2VUqZDBBmnbl5yRf2tBK1rMsn
+         qDoypxPsHeW+ua4ldQkAGbtbDSZVkVUsjR54RU5gDh+dFFBfwNB9ufudVr3DbeO03x
+         wTJ8ufx+bYXW8KWPHpzYqFR3jDuUTUHNdhu/keJI=
+Date:   Mon, 19 Sep 2022 13:25:50 -0700
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-multi-gen-lru-design-doc.patch added to mm-unstable branch
-Message-Id: <20220919201730.3904EC433D7@smtp.kernel.org>
+Subject: + mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix.patch added to mm-unstable branch
+Message-Id: <20220919202559.4CA0FC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: multi-gen LRU: design doc
+     Subject: mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-multi-gen-lru-design-doc.patch
+     mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-design-doc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,241 +64,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: design doc
-Date: Sun, 18 Sep 2022 02:00:11 -0600
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix
+Date: Mon, 19 Sep 2022 17:30:51 +0800
 
-Add a design doc.
+fix htmldocs
 
-Link: https://lkml.kernel.org/r/20220918080010.2920238-15-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Acked-by: Brian Geffon <bgeffon@google.com>
-Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
-Acked-by: Oleksandr Natalenko <oleksandr@natalenko.name>
-Acked-by: Steven Barrett <steven@liquorix.net>
-Acked-by: Suleiman Souhlal <suleiman@google.com>
-Tested-by: Daniel Byrne <djbyrne@mtu.edu>
-Tested-by: Donald Carr <d@chaos-reins.com>
-Tested-by: Holger Hoffstätte <holger@applied-asynchrony.com>
-Tested-by: Konstantin Kharlamov <Hi-Angel@yandex.ru>
-Tested-by: Shuang Zhai <szhai2@cs.rochester.edu>
-Tested-by: Sofia Trinh <sofia.trinh@edi.works>
-Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michael Larabel <Michael@MichaelLarabel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/1bc55727-9b66-0e9e-c306-f10c4716ea89@huawei.com
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/mm/index.rst~mm-multi-gen-lru-design-doc
-+++ a/Documentation/mm/index.rst
-@@ -51,6 +51,7 @@ above structured documentation, or delet
-    ksm
-    memory-model
-    mmu_notifier
-+   multigen_lru
-    numa
-    overcommit-accounting
-    page_migration
---- /dev/null
-+++ a/Documentation/mm/multigen_lru.rst
-@@ -0,0 +1,159 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+=============
-+Multi-Gen LRU
-+=============
-+The multi-gen LRU is an alternative LRU implementation that optimizes
-+page reclaim and improves performance under memory pressure. Page
-+reclaim decides the kernel's caching policy and ability to overcommit
-+memory. It directly impacts the kswapd CPU usage and RAM efficiency.
-+
-+Design overview
-+===============
-+Objectives
-+----------
-+The design objectives are:
-+
-+* Good representation of access recency
-+* Try to profit from spatial locality
-+* Fast paths to make obvious choices
-+* Simple self-correcting heuristics
-+
-+The representation of access recency is at the core of all LRU
-+implementations. In the multi-gen LRU, each generation represents a
-+group of pages with similar access recency. Generations establish a
-+(time-based) common frame of reference and therefore help make better
-+choices, e.g., between different memcgs on a computer or different
-+computers in a data center (for job scheduling).
-+
-+Exploiting spatial locality improves efficiency when gathering the
-+accessed bit. A rmap walk targets a single page and does not try to
-+profit from discovering a young PTE. A page table walk can sweep all
-+the young PTEs in an address space, but the address space can be too
-+sparse to make a profit. The key is to optimize both methods and use
-+them in combination.
-+
-+Fast paths reduce code complexity and runtime overhead. Unmapped pages
-+do not require TLB flushes; clean pages do not require writeback.
-+These facts are only helpful when other conditions, e.g., access
-+recency, are similar. With generations as a common frame of reference,
-+additional factors stand out. But obvious choices might not be good
-+choices; thus self-correction is necessary.
-+
-+The benefits of simple self-correcting heuristics are self-evident.
-+Again, with generations as a common frame of reference, this becomes
-+attainable. Specifically, pages in the same generation can be
-+categorized based on additional factors, and a feedback loop can
-+statistically compare the refault percentages across those categories
-+and infer which of them are better choices.
-+
-+Assumptions
-+-----------
-+The protection of hot pages and the selection of cold pages are based
-+on page access channels and patterns. There are two access channels:
-+
-+* Accesses through page tables
-+* Accesses through file descriptors
-+
-+The protection of the former channel is by design stronger because:
-+
-+1. The uncertainty in determining the access patterns of the former
-+   channel is higher due to the approximation of the accessed bit.
-+2. The cost of evicting the former channel is higher due to the TLB
-+   flushes required and the likelihood of encountering the dirty bit.
-+3. The penalty of underprotecting the former channel is higher because
-+   applications usually do not prepare themselves for major page
-+   faults like they do for blocked I/O. E.g., GUI applications
-+   commonly use dedicated I/O threads to avoid blocking rendering
-+   threads.
-+
-+There are also two access patterns:
-+
-+* Accesses exhibiting temporal locality
-+* Accesses not exhibiting temporal locality
-+
-+For the reasons listed above, the former channel is assumed to follow
-+the former pattern unless ``VM_SEQ_READ`` or ``VM_RAND_READ`` is
-+present, and the latter channel is assumed to follow the latter
-+pattern unless outlying refaults have been observed.
-+
-+Workflow overview
-+=================
-+Evictable pages are divided into multiple generations for each
-+``lruvec``. The youngest generation number is stored in
-+``lrugen->max_seq`` for both anon and file types as they are aged on
-+an equal footing. The oldest generation numbers are stored in
-+``lrugen->min_seq[]`` separately for anon and file types as clean file
-+pages can be evicted regardless of swap constraints. These three
-+variables are monotonically increasing.
-+
-+Generation numbers are truncated into ``order_base_2(MAX_NR_GENS+1)``
-+bits in order to fit into the gen counter in ``folio->flags``. Each
-+truncated generation number is an index to ``lrugen->lists[]``. The
-+sliding window technique is used to track at least ``MIN_NR_GENS`` and
-+at most ``MAX_NR_GENS`` generations. The gen counter stores a value
-+within ``[1, MAX_NR_GENS]`` while a page is on one of
-+``lrugen->lists[]``; otherwise it stores zero.
-+
-+Each generation is divided into multiple tiers. A page accessed ``N``
-+times through file descriptors is in tier ``order_base_2(N)``. Unlike
-+generations, tiers do not have dedicated ``lrugen->lists[]``. In
-+contrast to moving across generations, which requires the LRU lock,
-+moving across tiers only involves atomic operations on
-+``folio->flags`` and therefore has a negligible cost. A feedback loop
-+modeled after the PID controller monitors refaults over all the tiers
-+from anon and file types and decides which tiers from which types to
-+evict or protect.
-+
-+There are two conceptually independent procedures: the aging and the
-+eviction. They form a closed-loop system, i.e., the page reclaim.
-+
-+Aging
-+-----
-+The aging produces young generations. Given an ``lruvec``, it
-+increments ``max_seq`` when ``max_seq-min_seq+1`` approaches
-+``MIN_NR_GENS``. The aging promotes hot pages to the youngest
-+generation when it finds them accessed through page tables; the
-+demotion of cold pages happens consequently when it increments
-+``max_seq``. The aging uses page table walks and rmap walks to find
-+young PTEs. For the former, it iterates ``lruvec_memcg()->mm_list``
-+and calls ``walk_page_range()`` with each ``mm_struct`` on this list
-+to scan PTEs, and after each iteration, it increments ``max_seq``. For
-+the latter, when the eviction walks the rmap and finds a young PTE,
-+the aging scans the adjacent PTEs. For both, on finding a young PTE,
-+the aging clears the accessed bit and updates the gen counter of the
-+page mapped by this PTE to ``(max_seq%MAX_NR_GENS)+1``.
-+
-+Eviction
-+--------
-+The eviction consumes old generations. Given an ``lruvec``, it
-+increments ``min_seq`` when ``lrugen->lists[]`` indexed by
-+``min_seq%MAX_NR_GENS`` becomes empty. To select a type and a tier to
-+evict from, it first compares ``min_seq[]`` to select the older type.
-+If both types are equally old, it selects the one whose first tier has
-+a lower refault percentage. The first tier contains single-use
-+unmapped clean pages, which are the best bet. The eviction sorts a
-+page according to its gen counter if the aging has found this page
-+accessed through page tables and updated its gen counter. It also
-+moves a page to the next generation, i.e., ``min_seq+1``, if this page
-+was accessed multiple times through file descriptors and the feedback
-+loop has detected outlying refaults from the tier this page is in. To
-+this end, the feedback loop uses the first tier as the baseline, for
-+the reason stated earlier.
-+
-+Summary
-+-------
-+The multi-gen LRU can be disassembled into the following parts:
-+
-+* Generations
-+* Rmap walks
-+* Page table walks
-+* Bloom filters
-+* PID controller
-+
-+The aging and the eviction form a producer-consumer model;
-+specifically, the latter drives the former by the sliding window over
-+generations. Within the aging, rmap walks drive page table walks by
-+inserting hot densely populated page tables to the Bloom filters.
-+Within the eviction, the PID controller uses refaults as the feedback
-+to select types to evict and tiers to protect.
+--- a/Documentation/core-api/mm-api.rst~mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix
++++ a/Documentation/core-api/mm-api.rst
+@@ -19,9 +19,6 @@ User Space Memory Access
+ Memory Allocation Controls
+ ==========================
+ 
+-.. kernel-doc:: include/linux/gfp.h
+-   :internal:
+-
+ .. kernel-doc:: include/linux/gfp_types.h
+    :doc: Page mobility and placement hints
+ 
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-x86-arm64-add-arch_has_hw_pte_young.patch
-mm-x86-add-config_arch_has_nonleaf_pmd_young.patch
-mm-vmscanc-refactor-shrink_node.patch
-revert-include-linux-mm_inlineh-fold-__update_lru_size-into-its-sole-caller.patch
-mm-multi-gen-lru-groundwork.patch
-mm-multi-gen-lru-minimal-implementation.patch
-mm-multi-gen-lru-exploit-locality-in-rmap.patch
-mm-multi-gen-lru-support-page-table-walks.patch
-mm-multi-gen-lru-optimize-multiple-memcgs.patch
-mm-multi-gen-lru-kill-switch.patch
-mm-multi-gen-lru-thrashing-prevention.patch
-mm-multi-gen-lru-debugfs-interface.patch
-mm-multi-gen-lru-admin-guide.patch
-mm-multi-gen-lru-design-doc.patch
-mm-vmscan-use-vma-iterator-instead-of-vm_next-fix.patch
+mm-hwpoison-use-clearpagehwpoison-in-memory_failure.patch
+mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages.patch
+mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch
+mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
+mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings.patch
+mm-hwpoison-cleanup-some-obsolete-comments.patch
+writeback-remove-unused-macro-dirty_full_scope.patch
+mm-page_alloc-ensure-kswapd-doesnt-accidentally-go-to-sleep.patch
+mm-page_alloc-make-zone_pcp_update-static.patch
+mm-remove-obsolete-macro-nr_pcp_order_mask-and-nr_pcp_order_width.patch
+mm-page_alloc-remove-obsolete-comment-in-zone_statistics.patch
+mm-page_alloc-add-__init-annotations-to-init_mem_debugging_and_hardening.patch
+mm-page_alloc-fix-freeing-static-percpu-memory.patch
+mm-remove-obsolete-pgdat_is_empty.patch
+mm-page_alloc-add-missing-is_migrate_isolate-check-in-set_page_guard.patch
+mm-page_alloc-use-local-variable-zone_idx-directly.patch
+mm-memory_hotplug-remove-obsolete-generic_free_nodedata.patch
+mm-page_alloc-make-boot_nodestats-static.patch
+mm-page_alloc-use-helper-macro-sz_1km.patch
+mm-page_alloc-init-local-variable-buddy_pfn.patch
+mm-page_alloc-use-costly_order-in-warn_on_once_gfp.patch
+mm-page_alloc-remove-obsolete-gfpflags_normal_context.patch
+mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix.patch
+mm-page_alloc-fix-obsolete-comment-in-deferred_pfn_valid.patch
 
