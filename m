@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE56BC6FA8B
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Sep 2022 18:32:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA4FCC6FA82
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Sep 2022 18:32:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229518AbiIUScF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Sep 2022 14:32:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38800 "EHLO
+        id S229523AbiIUScQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Sep 2022 14:32:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229523AbiIUScE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2022 14:32:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5347E9F77C
-        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 11:32:03 -0700 (PDT)
+        with ESMTP id S229519AbiIUScJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2022 14:32:09 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 914C79F8F0
+        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 11:32:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CC456612E4
-        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 18:32:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 092F5C433C1;
-        Wed, 21 Sep 2022 18:32:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 08E79B8172C
+        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 18:32:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91FD8C433C1;
+        Wed, 21 Sep 2022 18:32:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663785122;
-        bh=oTe6MBLyHmuUgYuED8Cn3q5wz7aanPpLw5jfX8iTdX4=;
+        s=korg; t=1663785124;
+        bh=frk19eNeaKoqHmRedyyWiTmHkoRdmtQQET8lhhSJIbs=;
         h=Date:To:From:Subject:From;
-        b=huCEG2zjtKzmPsQgDXsO6bXXEXyofBquGEDFWv9Q024IxF14E407pKk+qY99GgN4t
-         3ebTUgf/4vCxJRK1ahdpA2Zmlw+UU8zOYtznO1ARoL2049BuHbZhQRpX0pWcMlRdwz
-         w0ye1Vyk6KhTGcmidvAfBI5KuXoORh0PyEHhM0rQ=
-Date:   Wed, 21 Sep 2022 11:32:00 -0700
+        b=kmA+dvUXh0eJcMGKrZ4d5gl2Pz8Q73to0jVu6Z5YEHLQsSq1qt1QqEGLJdxjKa/jo
+         33ODUKovvgafxLCFdisbl4wptX1k/GZu2qeyyyrADn6j8ObHjOPUjUH1ukITPhp1dw
+         mSbawWmVnlY8hjaLkgg5fH7r5LcxXSenPwoVXlxk=
+Date:   Wed, 21 Sep 2022 11:32:03 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         shy828301@gmail.com, osalvador@suse.de, mike.kravetz@oracle.com,
         linmiaohe@huawei.com, jane.chu@oracle.com, david@redhat.com,
         naoya.horiguchi@nec.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-pass-pfn-to-num_poisoned_pages_.patch added to mm-unstable branch
-Message-Id: <20220921183202.092F5C433C1@smtp.kernel.org>
+Subject: + mm-hwpoison-introduce-per-memory_block-hwpoison-counter.patch added to mm-unstable branch
+Message-Id: <20220921183204.91FD8C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: pass pfn to num_poisoned_pages_*()
+     Subject: mm/hwpoison: introduce per-memory_block hwpoison counter
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-pass-pfn-to-num_poisoned_pages_.patch
+     mm-hwpoison-introduce-per-memory_block-hwpoison-counter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-pass-pfn-to-num_poisoned_pages_.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-introduce-per-memory_block-hwpoison-counter.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: pass pfn to num_poisoned_pages_*()
-Date: Wed, 21 Sep 2022 18:13:58 +0900
+Subject: mm/hwpoison: introduce per-memory_block hwpoison counter
+Date: Wed, 21 Sep 2022 18:13:59 +0900
 
-No functional change.
+Currently PageHWPoison flag does not behave well when experiencing memory
+hotremove/hotplug.  Any data field in struct page is unreliable when the
+associated memory is offlined, and the current mechanism can't tell
+whether a memory section is onlined because a new memory devices is
+installed or because previous failed offline operations are undone. 
+Especially if there's a hwpoisoned memory, it's unclear what the best
+option is.
 
-Link: https://lkml.kernel.org/r/20220921091359.25889-4-naoya.horiguchi@linux.dev
+So introduce a new mechanism to make struct memory_block remember that a
+memory block has hwpoisoned memory inside it.  And make any online event
+fail if the onlined memory block contains hwpoison.  struct memory_block
+is freed and reallocated over ACPI-based hotremove/hotplug, but not over
+sysfs-based hotremove/hotplug.  So it's desirable to implement hwpoison
+counter on this struct.
+
+Note that clear_hwpoisoned_pages() is relocated to be called earlier than
+now, just before unregistering struct memory_block.  Otherwise, the
+per-memory_block hwpoison counter is freed and we fail to adjust global
+hwpoison counter properly.
+
+Link: https://lkml.kernel.org/r/20220921091359.25889-5-naoya.horiguchi@linux.dev
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Oscar Salvador <osalvador@suse.de>
@@ -85,89 +103,186 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/parisc/kernel/pdt.c~mm-hwpoison-pass-pfn-to-num_poisoned_pages_
-+++ a/arch/parisc/kernel/pdt.c
-@@ -231,7 +231,7 @@ void __init pdc_pdt_init(void)
+--- a/drivers/base/memory.c~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
++++ a/drivers/base/memory.c
+@@ -183,6 +183,9 @@ static int memory_block_online(struct me
+ 	struct zone *zone;
+ 	int ret;
  
- 		/* mark memory page bad */
- 		memblock_reserve(pdt_entry[i] & PAGE_MASK, PAGE_SIZE);
--		num_poisoned_pages_inc();
-+		num_poisoned_pages_inc(addr >> PAGE_SHIFT);
++	if (atomic_long_read(&mem->nr_hwpoison))
++		return -EHWPOISON;
++
+ 	zone = zone_for_pfn_range(mem->online_type, mem->nid, mem->group,
+ 				  start_pfn, nr_pages);
+ 
+@@ -864,6 +867,7 @@ void remove_memory_block_devices(unsigne
+ 		mem = find_memory_block_by_id(block_id);
+ 		if (WARN_ON_ONCE(!mem))
+ 			continue;
++		clear_hwpoisoned_pages(atomic_long_read(&mem->nr_hwpoison));
+ 		unregister_memory_block_under_nodes(mem);
+ 		remove_memory_block(mem);
  	}
+@@ -1164,3 +1168,35 @@ int walk_dynamic_memory_groups(int nid,
+ 	}
+ 	return ret;
  }
++
++#ifdef CONFIG_MEMORY_FAILURE
++
++void memblk_nr_poison_inc(unsigned long pfn)
++{
++	const unsigned long block_id = pfn_to_block_id(pfn);
++	struct memory_block *mem = find_memory_block_by_id(block_id);
++
++	if (mem)
++		atomic_long_inc(&mem->nr_hwpoison);
++}
++
++void memblk_nr_poison_sub(unsigned long pfn, long i)
++{
++	const unsigned long block_id = pfn_to_block_id(pfn);
++	struct memory_block *mem = find_memory_block_by_id(block_id);
++
++	if (mem)
++		atomic_long_sub(i, &mem->nr_hwpoison);
++}
++
++unsigned long memblk_nr_poison(unsigned long pfn)
++{
++	const unsigned long block_id = pfn_to_block_id(pfn);
++	struct memory_block *mem = find_memory_block_by_id(block_id);
++
++	if (mem)
++		return atomic_long_read(&mem->nr_hwpoison);
++	return 0;
++}
++
++#endif
+--- a/include/linux/memory.h~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
++++ a/include/linux/memory.h
+@@ -85,6 +85,9 @@ struct memory_block {
+ 	unsigned long nr_vmemmap_pages;
+ 	struct memory_group *group;	/* group (if any) for this block */
+ 	struct list_head group_next;	/* next block inside memory group */
++#ifdef CONFIG_MEMORY_FAILURE
++	atomic_long_t nr_hwpoison;
++#endif
+ };
  
---- a/include/linux/mm.h~mm-hwpoison-pass-pfn-to-num_poisoned_pages_
+ int arch_get_memory_phys_device(unsigned long start_pfn);
+--- a/include/linux/mm.h~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
 +++ a/include/linux/mm.h
-@@ -3279,14 +3279,14 @@ extern atomic_long_t num_poisoned_pages
- extern int soft_offline_page(unsigned long pfn, int flags);
+@@ -3280,6 +3280,10 @@ extern int soft_offline_page(unsigned lo
  #ifdef CONFIG_MEMORY_FAILURE
  extern int __get_huge_page_for_hwpoison(unsigned long pfn, int flags);
--extern void num_poisoned_pages_inc(void);
-+extern void num_poisoned_pages_inc(unsigned long pfn);
+ extern void num_poisoned_pages_inc(unsigned long pfn);
++extern void memblk_nr_poison_inc(unsigned long pfn);
++extern void memblk_nr_poison_sub(unsigned long pfn, long i);
++extern unsigned long memblk_nr_poison(unsigned long pfn);
++extern void clear_hwpoisoned_pages(long nr_poison);
  #else
  static inline int __get_huge_page_for_hwpoison(unsigned long pfn, int flags)
  {
- 	return 0;
- }
- 
--static inline void num_poisoned_pages_inc(void)
-+static inline void num_poisoned_pages_inc(unsigned long pfn)
+@@ -3289,6 +3293,10 @@ static inline int __get_huge_page_for_hw
+ static inline void num_poisoned_pages_inc(unsigned long pfn)
  {
  }
++
++static inline void clear_hwpoisoned_pages(long nr_poison)
++{
++}
  #endif
---- a/mm/memory-failure.c~mm-hwpoison-pass-pfn-to-num_poisoned_pages_
+ 
+ #ifndef arch_memory_failure
+--- a/mm/internal.h~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
++++ a/mm/internal.h
+@@ -708,14 +708,6 @@ extern u64 hwpoison_filter_flags_value;
+ extern u64 hwpoison_filter_memcg;
+ extern u32 hwpoison_filter_enable;
+ 
+-#ifdef CONFIG_MEMORY_FAILURE
+-void clear_hwpoisoned_pages(struct page *memmap, int nr_pages);
+-#else
+-static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
+-{
+-}
+-#endif
+-
+ extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
+         unsigned long, unsigned long,
+         unsigned long, unsigned long);
+--- a/mm/memory-failure.c~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
 +++ a/mm/memory-failure.c
-@@ -74,12 +74,12 @@ atomic_long_t num_poisoned_pages __read_
+@@ -74,14 +74,17 @@ atomic_long_t num_poisoned_pages __read_
  
  static bool hw_memory_failure __read_mostly = false;
  
--static inline void num_poisoned_pages_inc(void)
-+static inline void num_poisoned_pages_inc(unsigned long pfn)
+-static inline void num_poisoned_pages_inc(unsigned long pfn)
++void num_poisoned_pages_inc(unsigned long pfn)
  {
  	atomic_long_inc(&num_poisoned_pages);
++	memblk_nr_poison_inc(pfn);
  }
  
--static inline void num_poisoned_pages_sub(long i)
-+static inline void num_poisoned_pages_sub(unsigned long pfn, long i)
+ static inline void num_poisoned_pages_sub(unsigned long pfn, long i)
  {
  	atomic_long_sub(i, &num_poisoned_pages);
++	if (pfn != -1UL)
++		memblk_nr_poison_sub(pfn, i);
  }
-@@ -125,7 +125,7 @@ static bool page_handle_poison(struct pa
- 	if (release)
- 		put_page(page);
- 	page_ref_inc(page);
--	num_poisoned_pages_inc();
-+	num_poisoned_pages_inc(page_to_pfn(page));
  
- 	return true;
- }
-@@ -1194,7 +1194,7 @@ static void action_result(unsigned long
- {
- 	trace_memory_failure_event(pfn, type, result);
- 
--	num_poisoned_pages_inc();
-+	num_poisoned_pages_inc(pfn);
- 	pr_err("%#lx: recovery action for %s: %s\n",
- 		pfn, action_page_types[type], action_name[result]);
- }
-@@ -1741,7 +1741,7 @@ static int hugetlb_set_page_hwpoison(str
- 		llist_add(&raw_hwp->node, head);
- 		/* the first error event will be counted in action_result(). */
- 		if (ret)
--			num_poisoned_pages_inc();
-+			num_poisoned_pages_inc(page_to_pfn(page));
- 	} else {
- 		/*
- 		 * Failed to save raw error info.  We no longer trace all
-@@ -2414,7 +2414,7 @@ int unpoison_memory(unsigned long pfn)
+ /*
+@@ -2414,6 +2417,10 @@ int unpoison_memory(unsigned long pfn)
  unlock_mutex:
  	mutex_unlock(&mf_mutex);
  	if (!ret || freeit) {
--		num_poisoned_pages_sub(count);
-+		num_poisoned_pages_sub(pfn, count);
++		/*
++		 * TODO: per-memory_block counter might break when the page
++		 * size to be unpoisoned is larger than a memory_block.
++		 */
+ 		num_poisoned_pages_sub(pfn, count);
  		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
  				 page_to_pfn(p), &unpoison_rs);
- 	}
+@@ -2618,25 +2625,7 @@ retry:
+ 	return ret;
+ }
+ 
+-void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
++void clear_hwpoisoned_pages(long nr_poison)
+ {
+-	int i, total = 0;
+-
+-	/*
+-	 * A further optimization is to have per section refcounted
+-	 * num_poisoned_pages.  But that would need more space per memmap, so
+-	 * for now just do a quick global check to speed up this routine in the
+-	 * absence of bad pages.
+-	 */
+-	if (atomic_long_read(&num_poisoned_pages) == 0)
+-		return;
+-
+-	for (i = 0; i < nr_pages; i++) {
+-		if (PageHWPoison(&memmap[i])) {
+-			total++;
+-			ClearPageHWPoison(&memmap[i]);
+-		}
+-	}
+-	if (total)
+-		num_poisoned_pages_sub(total);
++	num_poisoned_pages_sub(-1UL, nr_poison);
+ }
+--- a/mm/sparse.c~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
++++ a/mm/sparse.c
+@@ -926,8 +926,6 @@ void sparse_remove_section(struct mem_se
+ 		unsigned long nr_pages, unsigned long map_offset,
+ 		struct vmem_altmap *altmap)
+ {
+-	clear_hwpoisoned_pages(pfn_to_page(pfn) + map_offset,
+-			nr_pages - map_offset);
+ 	section_deactivate(pfn, nr_pages, altmap);
+ }
+ #endif /* CONFIG_MEMORY_HOTPLUG */
 _
 
 Patches currently in -mm which might be from naoya.horiguchi@nec.com are
