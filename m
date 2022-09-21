@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A8BEC6FA82
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Sep 2022 18:32:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41962ECAAD8
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Sep 2022 18:32:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229618AbiIUScA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Sep 2022 14:32:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38748 "EHLO
+        id S229506AbiIUScF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Sep 2022 14:32:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229518AbiIUSb6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2022 14:31:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B9939F76C
-        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 11:31:57 -0700 (PDT)
+        with ESMTP id S229518AbiIUScD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2022 14:32:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0115F9F8D3
+        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 11:32:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AA09F627EA
-        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 18:31:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDC7AC433D6;
-        Wed, 21 Sep 2022 18:31:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8C96FB8172C
+        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 18:32:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 188F4C433D6;
+        Wed, 21 Sep 2022 18:31:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663785116;
-        bh=2PwEG3wgeBu336WfcJJpIfHkAjCpaQ7Ivxxsb6oWx0g=;
+        s=korg; t=1663785119;
+        bh=O48OsQ2z+whVtrIQSNWBZNckbgIpu3j8aRzXuu1bhP8=;
         h=Date:To:From:Subject:From;
-        b=fHveLyL+3Abl5PJ8OcNg66dedgnKMXyFrmFbxyhUUa4SajrhlxZNVwCsuMX8aFZuU
-         N7gQmU9RSaLogCA24TUIF4r6g57qEhVP/rcFgqByCPGEkbelrNPN6KArmOWDaZ3fH1
-         259aETGtFG2mWB5SaInDFWGzopny4UzwDBzWBors=
-Date:   Wed, 21 Sep 2022 11:31:54 -0700
+        b=fJLj7SgsFHH5oToq7FywhBGGQdJ+dNBxi2PvYjhDotkIE6widEdk20YCKiIU6gXG+
+         b8JMelWB7UUH+7t2QmWw59t2Llvzvuj1iIDa7P5KuRaCpm6wrN04Ohk4cN+4fYZ3zv
+         0uwpSwK0g/22kgB26uAdFmuTN5xbs0dXS9pU6EbA=
+Date:   Wed, 21 Sep 2022 11:31:57 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         shy828301@gmail.com, osalvador@suse.de, mike.kravetz@oracle.com,
         linmiaohe@huawei.com, jane.chu@oracle.com, david@redhat.com,
         naoya.horiguchi@nec.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmhwpoisonhugetlbmemory_hotplug-hotremove-memory-section-with-hwpoisoned-hugepage.patch added to mm-unstable branch
-Message-Id: <20220921183155.DDC7AC433D6@smtp.kernel.org>
+Subject: + mm-hwpoison-move-definitions-of-num_poisoned_pages_-to-memory-failurec.patch added to mm-unstable branch
+Message-Id: <20220921183159.188F4C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison,hugetlb,memory_hotplug: hotremove memory section with hwpoisoned hugepage
+     Subject: mm/hwpoison: move definitions of num_poisoned_pages_* to memory-failure.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmhwpoisonhugetlbmemory_hotplug-hotremove-memory-section-with-hwpoisoned-hugepage.patch
+     mm-hwpoison-move-definitions-of-num_poisoned_pages_-to-memory-failurec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhwpoisonhugetlbmemory_hotplug-hotremove-memory-section-with-hwpoisoned-hugepage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-move-definitions-of-num_poisoned_pages_-to-memory-failurec.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,133 +67,123 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm,hwpoison,hugetlb,memory_hotplug: hotremove memory section with hwpoisoned hugepage
-Date: Wed, 21 Sep 2022 18:13:56 +0900
+Subject: mm/hwpoison: move definitions of num_poisoned_pages_* to memory-failure.c
+Date: Wed, 21 Sep 2022 18:13:57 +0900
 
-Patch series " mm, hwpoison: improve handling workload related to hugetlb
-and memory_hotplug", v3.
+These interfaces will be used by drivers/base/core.c by later patch, so as
+a preparatory work move them to more common header file visible to the
+file.
 
-This patchset tries to solve the issue among memory_hotplug, hugetlb and
-hwpoison.  Based on the review over v2 by Miaohe (thank you!), 1/4 takes
-another approach to prevent hwpoisoned hugepages to be migrated (i.e.
-the corrupted data is accessed) in memory hotremove.
-
-In this patchset, memory hotplug handles hwpoison pages like below:
-
-  - hwpoison pages should not prevent memory hotremove,
-  - memory block with hwpoison pages should not be onlined.
-
-
-This patch (of 4):
-
-HWPoisoned page is not supposed to be accessed once marked, but currently
-such accesses can happen during memory hotremove because do_migrate_range()
-can be called before dissolve_free_huge_pages() is called.
-
-Clear HPageMigratable for hwpoisoned hugepages to prevent them from being
-migrated.  This should be done in hugetlb_lock to avoid race against
-isolate_hugetlb().
-
-get_hwpoison_huge_page() needs to have a flag to show it's called from
-unpoison to take refcount of hwpoisoned hugepages, so add it.
-
-Link: https://lkml.kernel.org/r/20220921091359.25889-1-naoya.horiguchi@linux.dev
-Link: https://lkml.kernel.org/r/20220921091359.25889-2-naoya.horiguchi@linux.dev
+Link: https://lkml.kernel.org/r/20220921091359.25889-3-naoya.horiguchi@linux.dev
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/hugetlb.h~mmhwpoisonhugetlbmemory_hotplug-hotremove-memory-section-with-hwpoisoned-hugepage
-+++ a/include/linux/hugetlb.h
-@@ -183,7 +183,7 @@ bool hugetlb_reserve_pages(struct inode
- long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
- 						long freed);
- int isolate_hugetlb(struct page *page, struct list_head *list);
--int get_hwpoison_huge_page(struct page *page, bool *hugetlb);
-+int get_hwpoison_huge_page(struct page *page, bool *hugetlb, bool unpoison);
- int get_huge_page_for_hwpoison(unsigned long pfn, int flags);
- void putback_active_hugepage(struct page *page);
- void move_hugetlb_state(struct page *oldpage, struct page *newpage, int reason);
-@@ -391,7 +391,7 @@ static inline int isolate_hugetlb(struct
- 	return -EBUSY;
- }
+--- a/arch/parisc/kernel/pdt.c~mm-hwpoison-move-definitions-of-num_poisoned_pages_-to-memory-failurec
++++ a/arch/parisc/kernel/pdt.c
+@@ -18,8 +18,7 @@
+ #include <linux/kthread.h>
+ #include <linux/initrd.h>
+ #include <linux/pgtable.h>
+-#include <linux/swap.h>
+-#include <linux/swapops.h>
++#include <linux/mm.h>
  
--static inline int get_hwpoison_huge_page(struct page *page, bool *hugetlb)
-+static inline int get_hwpoison_huge_page(struct page *page, bool *hugetlb, bool unpoison)
+ #include <asm/pdc.h>
+ #include <asm/pdcpat.h>
+--- a/include/linux/mm.h~mm-hwpoison-move-definitions-of-num_poisoned_pages_-to-memory-failurec
++++ a/include/linux/mm.h
+@@ -3279,11 +3279,16 @@ extern atomic_long_t num_poisoned_pages
+ extern int soft_offline_page(unsigned long pfn, int flags);
+ #ifdef CONFIG_MEMORY_FAILURE
+ extern int __get_huge_page_for_hwpoison(unsigned long pfn, int flags);
++extern void num_poisoned_pages_inc(void);
+ #else
+ static inline int __get_huge_page_for_hwpoison(unsigned long pfn, int flags)
  {
  	return 0;
  }
---- a/mm/hugetlb.c~mmhwpoisonhugetlbmemory_hotplug-hotremove-memory-section-with-hwpoisoned-hugepage
-+++ a/mm/hugetlb.c
-@@ -7207,7 +7207,7 @@ unlock:
- 	return ret;
++
++static inline void num_poisoned_pages_inc(void)
++{
++}
+ #endif
+ 
+ #ifndef arch_memory_failure
+--- a/include/linux/swapops.h~mm-hwpoison-move-definitions-of-num_poisoned_pages_-to-memory-failurec
++++ a/include/linux/swapops.h
+@@ -581,8 +581,6 @@ static inline int is_pmd_migration_entry
+ 
+ #ifdef CONFIG_MEMORY_FAILURE
+ 
+-extern atomic_long_t num_poisoned_pages __read_mostly;
+-
+ /*
+  * Support for hardware poisoned pages
+  */
+@@ -597,17 +595,7 @@ static inline int is_hwpoison_entry(swp_
+ 	return swp_type(entry) == SWP_HWPOISON;
  }
  
--int get_hwpoison_huge_page(struct page *page, bool *hugetlb)
-+int get_hwpoison_huge_page(struct page *page, bool *hugetlb, bool unpoison)
+-static inline void num_poisoned_pages_inc(void)
+-{
+-	atomic_long_inc(&num_poisoned_pages);
+-}
+-
+-static inline void num_poisoned_pages_sub(long i)
+-{
+-	atomic_long_sub(i, &num_poisoned_pages);
+-}
+-
+-#else  /* CONFIG_MEMORY_FAILURE */
++#else
+ 
+ static inline swp_entry_t make_hwpoison_entry(struct page *page)
  {
- 	int ret = 0;
+@@ -618,15 +606,7 @@ static inline int is_hwpoison_entry(swp_
+ {
+ 	return 0;
+ }
+-
+-static inline void num_poisoned_pages_inc(void)
+-{
+-}
+-
+-static inline void num_poisoned_pages_sub(long i)
+-{
+-}
+-#endif  /* CONFIG_MEMORY_FAILURE */
++#endif
  
-@@ -7217,7 +7217,7 @@ int get_hwpoison_huge_page(struct page *
- 		*hugetlb = true;
- 		if (HPageFreed(page))
- 			ret = 0;
--		else if (HPageMigratable(page))
-+		else if (HPageMigratable(page) || unpoison)
- 			ret = get_page_unless_zero(page);
- 		else
- 			ret = -EBUSY;
---- a/mm/memory-failure.c~mmhwpoisonhugetlbmemory_hotplug-hotremove-memory-section-with-hwpoisoned-hugepage
+ static inline int non_swap_entry(swp_entry_t entry)
+ {
+--- a/mm/memory-failure.c~mm-hwpoison-move-definitions-of-num_poisoned_pages_-to-memory-failurec
 +++ a/mm/memory-failure.c
-@@ -1244,7 +1244,7 @@ static int __get_hwpoison_page(struct pa
- 	int ret = 0;
- 	bool hugetlb = false;
+@@ -74,6 +74,16 @@ atomic_long_t num_poisoned_pages __read_
  
--	ret = get_hwpoison_huge_page(head, &hugetlb);
-+	ret = get_hwpoison_huge_page(head, &hugetlb, false);
- 	if (hugetlb)
- 		return ret;
+ static bool hw_memory_failure __read_mostly = false;
  
-@@ -1334,7 +1334,7 @@ static int __get_unpoison_page(struct pa
- 	int ret = 0;
- 	bool hugetlb = false;
- 
--	ret = get_hwpoison_huge_page(head, &hugetlb);
-+	ret = get_hwpoison_huge_page(head, &hugetlb, true);
- 	if (hugetlb)
- 		return ret;
- 
-@@ -1815,6 +1815,13 @@ int __get_huge_page_for_hwpoison(unsigne
- 		goto out;
- 	}
- 
-+	/*
-+	 * Clearing HPageMigratable for hwpoisoned hugepages to prevent them
-+	 * from being migrated by memory hotremove.
-+	 */
-+	if (count_increased)
-+		ClearHPageMigratable(head);
++static inline void num_poisoned_pages_inc(void)
++{
++	atomic_long_inc(&num_poisoned_pages);
++}
 +
- 	return ret;
- out:
- 	if (count_increased)
-@@ -1862,6 +1869,7 @@ retry:
- 
- 	if (hwpoison_filter(p)) {
- 		hugetlb_clear_page_hwpoison(head);
-+		SetHPageMigratable(head);
- 		unlock_page(head);
- 		if (res == 1)
- 			put_page(head);
++static inline void num_poisoned_pages_sub(long i)
++{
++	atomic_long_sub(i, &num_poisoned_pages);
++}
++
+ /*
+  * Return values:
+  *   1:   the page is dissolved (if needed) and taken off from buddy,
 _
 
 Patches currently in -mm which might be from naoya.horiguchi@nec.com are
