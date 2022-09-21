@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C474FC6FA82
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Sep 2022 20:06:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6672C6FA82
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Sep 2022 20:07:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230121AbiIUUG4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Sep 2022 16:06:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51370 "EHLO
+        id S230264AbiIUUHF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Sep 2022 16:07:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230100AbiIUUGz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2022 16:06:55 -0400
+        with ESMTP id S230150AbiIUUG7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2022 16:06:59 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72100A00F7
-        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 13:06:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46985A0632
+        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 13:06:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 08D8DB82926
-        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 20:06:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BD06C433C1;
-        Wed, 21 Sep 2022 20:06:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D09D9B832B5
+        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 20:06:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 622FEC433D6;
+        Wed, 21 Sep 2022 20:06:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663790811;
-        bh=nhaN8YjdBw6jLnI1uebpqN3Lu4WTSRSwOvSxz92hUVI=;
+        s=korg; t=1663790814;
+        bh=yAlOXwKDorcXnBEY5FxVY09XeDkpvpaQOTveXyjDDnE=;
         h=Date:To:From:Subject:From;
-        b=tplCtu8vGc0hIZGpKQBvYNnYxc6tV1JACom3XSDELUw5rcRAp1SXBG534Ndt00oeR
-         V10eLI5OBlO8YEahrz7QOV6piGfKmuHAOEvirfuYei7ekOCO0G7Ffx+l/UL5+2I+Y6
-         RyVvJcPu1byOjKO1DVQcX/gs59MIg7Pr5SMBUnHM=
-Date:   Wed, 21 Sep 2022 13:06:50 -0700
+        b=VubJ4LC4LQ+Vthi6QSwNEjAYaJhov89bKVvL+I4H2eJXW1AZIvfyJ2eaKyneMu6AX
+         ehhGcjboDNlNNAEzGUv0LKuAocrOvLr0y4A2czDgQ+aJhA3wD7cavJh20WNNKh6LGv
+         eX1cWdmiMOgjQYs4WvT0KfwvUaukniGnn+kAVv7k=
+Date:   Wed, 21 Sep 2022 13:06:52 -0700
 To:     mm-commits@vger.kernel.org, vgoyal@redhat.com, npiggin@gmail.com,
         mpe@ellerman.id.au, mingo@kernel.org, lukas.bulwahn@gmail.com,
         joe@perches.com, jani.nikula@linux.intel.com, dyoung@redhat.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, vgoyal@redhat.com, npiggin@gmail.com,
         christophe.leroy@csgroup.eu, bhe@redhat.com, apw@canonical.com,
         david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + coding-stylerst-document-bug-and-warn-rules-do-not-crash-the-kernel.patch added to mm-nonmm-unstable branch
-Message-Id: <20220921200651.6BD06C433C1@smtp.kernel.org>
+Subject: + checkpatch-warn-on-usage-of-vm_bug_on-and-other-bug-variants.patch added to mm-nonmm-unstable branch
+Message-Id: <20220921200654.622FEC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coding-style.rst: document BUG() and WARN() rules ("do not crash the kernel")
+     Subject: checkpatch: warn on usage of VM_BUG_ON() and other BUG variants
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     coding-stylerst-document-bug-and-warn-rules-do-not-crash-the-kernel.patch
+     checkpatch-warn-on-usage-of-vm_bug_on-and-other-bug-variants.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/coding-stylerst-document-bug-and-warn-rules-do-not-crash-the-kernel.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-warn-on-usage-of-vm_bug_on-and-other-bug-variants.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,73 +69,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: coding-style.rst: document BUG() and WARN() rules ("do not crash the kernel")
-Date: Tue, 20 Sep 2022 14:23:00 +0200
+Subject: checkpatch: warn on usage of VM_BUG_ON() and other BUG variants
+Date: Tue, 20 Sep 2022 14:23:02 +0200
 
-Linus notes [1] that the introduction of new code that uses VM_BUG_ON()
-is just as bad as BUG_ON(), because it will crash the kernel on
-distributions that enable CONFIG_DEBUG_VM (like Fedora):
+checkpatch does not point out that VM_BUG_ON() and friends should be
+avoided, however, Linus notes:
 
     VM_BUG_ON() has the exact same semantics as BUG_ON. It is literally
     no different, the only difference is "we can make the code smaller
-    because these are less important". [2]
+    because these are less important". [1]
 
-This resulted in a more generic discussion about usage of BUG() and
-friends. While there might be corner cases that still deserve a BUG_ON(),
-most BUG_ON() cases should simply use WARN_ON_ONCE() and implement a
-recovery path if reasonable:
+So let's warn on VM_BUG_ON() and other BUG variants as well.  While at it,
+make it clearer that the kernel really shouldn't be crashed.
 
-    The only possible case where BUG_ON can validly be used is "I have
-    some fundamental data corruption and cannot possibly return an
-    error". [2]
+As there are some subsystem BUG macros that actually don't end up crashing
+the kernel -- for example, KVM_BUG_ON() -- exclude these manually.
 
-As a very good approximation is the general rule:
+[1] https://lore.kernel.org/r/CAHk-=wg40EAZofO16Eviaj7mfqDhZ2gVEbvfsMf6gYzspRjYvw@mail.gmail.com
 
-    "absolutely no new BUG_ON() calls _ever_" [2]
-
-... not even if something really shouldn't ever happen and is merely for
-documenting that an invariant always has to hold. However, there are sill
-exceptions where BUG_ON() may be used:
-
-    If you have a "this is major internal corruption, there's no way we can
-    continue", then BUG_ON() is appropriate. [3]
-
-There is only one good BUG_ON():
-
-    Now, that said, there is one very valid sub-form of BUG_ON():
-    BUILD_BUG_ON() is absolutely 100% fine. [2]
-
-While WARN will also crash the machine with panic_on_warn set, that's
-exactly to be expected:
-
-    So we have two very different cases: the "virtual machine with good
-    logging where a dead machine is fine" - use 'panic_on_warn'. And
-    the actual real hardware with real drivers, running real loads by
-    users. [4]
-
-The basic idea is that warnings will similarly get reported by users
-and be found during testing. However, in contrast to a BUG(), there is a
-way to actually influence the expected behavior (e.g., panic_on_warn)
-and to eventually keep the machine alive to extract some debug info.
-
-Ingo notes that not all WARN_ON_ONCE cases need recovery. If we don't ever
-expect this code to trigger in any case, recovery code is not really
-helpful.
-
-    I'd prefer to keep all these warnings 'simple' - i.e. no attempted
-    recovery & control flow, unless we ever expect these to trigger.
-    [5]
-
-There have been different rules floating around that were never properly
-documented. Let's try to clarify.
-
-[1] https://lkml.kernel.org/r/CAHk-=wiEAH+ojSpAgx_Ep=NKPWHU8AdO3V56BXcCsU97oYJ1EA@mail.gmail.com
-[2] https://lore.kernel.org/r/CAHk-=wg40EAZofO16Eviaj7mfqDhZ2gVEbvfsMf6gYzspRjYvw@mail.gmail.com
-[2] https://lkml.kernel.org/r/CAHk-=wit-DmhMfQErY29JSPjFgebx_Ld+pnerc4J2Ag990WwAA@mail.gmail.com
-[4] https://lore.kernel.org/r/CAHk-=wgF7K2gSSpy=m_=K3Nov4zaceUX9puQf1TjkTJLA2XC_g@mail.gmail.com
-[5] https://lore.kernel.org/r/YwIW+mVeZoTOxn%2F4@gmail.com
-
-Link: https://lkml.kernel.org/r/20220920122302.99195-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20220920122302.99195-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -155,76 +107,24 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/process/coding-style.rst~coding-stylerst-document-bug-and-warn-rules-do-not-crash-the-kernel
-+++ a/Documentation/process/coding-style.rst
-@@ -1186,6 +1186,67 @@ expression used.  For instance:
- 	#endif /* CONFIG_SOMETHING */
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-usage-of-vm_bug_on-and-other-bug-variants
++++ a/scripts/checkpatch.pl
+@@ -4745,12 +4745,12 @@ sub process {
+ 			}
+ 		}
  
+-# avoid BUG() or BUG_ON()
+-		if ($line =~ /\b(?:BUG|BUG_ON)\b/) {
++# do not use BUG() or variants
++		if ($line =~ /\b(?!AA_|BUILD_|DCCP_|IDA_|KVM_|RWLOCK_|snd_|SPIN_)(?:[a-zA-Z_]*_)?BUG(?:_ON)?(?:_[A-Z_]+)?\s*\(/) {
+ 			my $msg_level = \&WARN;
+ 			$msg_level = \&CHK if ($file);
+ 			&{$msg_level}("AVOID_BUG",
+-				      "Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()\n" . $herecurr);
++				      "Do not crash the kernel unless it is unavoidable - use WARN_ON_ONCE & recovery code (if reasonable) rather than BUG() or variants.\n" . $herecurr);
+ 		}
  
-+22) Do not crash the kernel
-+---------------------------
-+
-+In general, it is not the kernel developer's decision to crash the kernel.
-+
-+Avoid panic()
-+=============
-+
-+panic() should be used with care and primarily only during system boot.
-+panic() is, for example, acceptable when running out of memory during boot and
-+not being able to continue.
-+
-+Use WARN() rather than BUG()
-+============================
-+
-+Do not add new code that uses any of the BUG() variants, such as BUG(),
-+BUG_ON(), or VM_BUG_ON(). Instead, use a WARN*() variant, preferably
-+WARN_ON_ONCE(), and possibly with recovery code. Recovery code is not
-+required if there is no reasonable way to at least partially recover.
-+
-+"I'm too lazy to do error handling" is not an excuse for using BUG(). Major
-+internal corruptions with no way of continuing may still use BUG(), but need
-+good justification.
-+
-+Use WARN_ON_ONCE() rather than WARN() or WARN_ON()
-+**************************************************
-+
-+WARN_ON_ONCE() is generally preferred over WARN() or WARN_ON(), because it
-+is common for a given warning condition, if it occurs at all, to occur
-+multiple times. This can fill up and wrap the kernel log, and can even slow
-+the system enough that the excessive logging turns into its own, additional
-+problem.
-+
-+Do not WARN lightly
-+*******************
-+
-+WARN*() is intended for unexpected, this-should-never-happen situations.
-+WARN*() macros are not to be used for anything that is expected to happen
-+during normal operation. These are not pre- or post-condition asserts, for
-+example. Again: WARN*() must not be used for a condition that is expected
-+to trigger easily, for example, by user space actions. pr_warn_once() is a
-+possible alternative, if you need to notify the user of a problem.
-+
-+Do not worry about panic_on_warn users
-+**************************************
-+
-+A few more words about panic_on_warn: Remember that ``panic_on_warn`` is an
-+available kernel option, and that many users set this option. This is why
-+there is a "Do not WARN lightly" writeup, above. However, the existence of
-+panic_on_warn users is not a valid reason to avoid the judicious use
-+WARN*(). That is because, whoever enables panic_on_warn has explicitly
-+asked the kernel to crash if a WARN*() fires, and such users must be
-+prepared to deal with the consequences of a system that is somewhat more
-+likely to crash.
-+
-+Use BUILD_BUG_ON() for compile-time assertions
-+**********************************************
-+
-+The use of BUILD_BUG_ON() is acceptable and encouraged, because it is a
-+compile-time assertion that has no effect at runtime.
-+
- Appendix I) References
- ----------------------
- 
+ # avoid LINUX_VERSION_CODE
 _
 
 Patches currently in -mm which might be from david@redhat.com are
