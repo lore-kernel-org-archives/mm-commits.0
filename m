@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF497ECAAD8
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Sep 2022 19:44:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3BBFECAAD8
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Sep 2022 19:54:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229599AbiIUToT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Sep 2022 15:44:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53770 "EHLO
+        id S230034AbiIUTyk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Sep 2022 15:54:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229472AbiIUToS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2022 15:44:18 -0400
+        with ESMTP id S229962AbiIUTyk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2022 15:54:40 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAD0A9F74A
-        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 12:44:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AD87201AF
+        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 12:54:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7471562D55
-        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 19:44:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97028C433C1;
-        Wed, 21 Sep 2022 19:44:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EA4D063259
+        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 19:54:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AD5CC433B5;
+        Wed, 21 Sep 2022 19:54:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663789456;
-        bh=ZLYLYJ8DylfPVGnQPXEwvPWjWTmRwoJgxQHIjSCMWxE=;
+        s=korg; t=1663790077;
+        bh=9IvDEL1jiPSss9IfayNlgBv+/Sr0d2UiKWBMJ4WU/B4=;
         h=Date:To:From:Subject:From;
-        b=GN2VPm3wA2mVbAADiu4vhRGi1jqKEK9pEqmeT9gPYeg7mjMu1jRX8cMXeqmtk4Lxr
-         2vhP4dCirHwPta19Rr2jZmd+uGG414NEK67ytT+ARX3NbHXG0e/GwdO430KqR9PKlN
-         rNUygtf2xcN9ANwoiAJi7a+xVfnEHSVteC2X+wE8=
-Date:   Wed, 21 Sep 2022 12:44:15 -0700
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
+        b=bML855gQM/mbbO/hOVYw9HWE67th2BqVqkGXpUFfXIkVPL5EUxCcE9ECLRLc3f4DQ
+         edhU1NtnxPTCu2vbKkgePwoUgwQXt1ByZ08ctCkt9/v5K8ToBG9nsYERon5uo02xJ1
+         KwpXujQSFM/3OzszhXRSTLFYxu9mvhQL41RACG58=
+Date:   Wed, 21 Sep 2022 12:54:35 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-mark-more-files-as-permanent.patch added to mm-nonmm-unstable branch
-Message-Id: <20220921194416.97028C433C1@smtp.kernel.org>
+Subject: + mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters.patch added to mm-unstable branch
+Message-Id: <20220921195437.2AD5CC433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: mark more files as permanent
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-mark-more-files-as-permanent.patch
+     Subject: mm/damon: deduplicate damon_{reclaim,lru_sort}_apply_parameters()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-mark-more-files-as-permanent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,199 +64,157 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: mark more files as permanent
-Date: Tue, 20 Sep 2022 20:35:23 +0300
+From: Kaixu Xia <kaixuxia@tencent.com>
+Subject: mm/damon: deduplicate damon_{reclaim,lru_sort}_apply_parameters()
+Date: Tue, 20 Sep 2022 16:53:22 +0000
 
-Mark
-	/proc/devices
-	/proc/kpagecount
-	/proc/kpageflags
-	/proc/kpagecgroup
-	/proc/loadavg
-	/proc/meminfo
-	/proc/softirqs
-	/proc/uptime
-	/proc/version
+The bodies of damon_{reclaim,lru_sort}_apply_parameters() contain
+duplicates.  This commit adds a common function
+damon_set_region_biggest_system_ram_default() to remove the duplicates.
 
-as permanent /proc entries, saving alloc/free and some list/spinlock ops
-per use.
-
-These files are never removed by the kernel so it is OK to mark them.
-
-Link: https://lkml.kernel.org/r/Yyn527DzDMa+r0Yj@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lkml.kernel.org/r/6329f00d.a70a0220.9bb29.3678SMTPIN_ADDED_BROKEN@mx.google.com
+Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
+Suggested-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/proc/devices.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/devices.c
-@@ -4,6 +4,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/blkdev.h>
-+#include "internal.h"
+--- a/include/linux/damon.h~mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters
++++ a/include/linux/damon.h
+@@ -557,7 +557,8 @@ static inline bool damon_target_has_pid(
+ int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
+ int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
  
- static int devinfo_show(struct seq_file *f, void *v)
+-bool damon_find_biggest_system_ram(unsigned long *start, unsigned long *end);
++int damon_set_region_biggest_system_ram_default(struct damon_target *t,
++				unsigned long *start, unsigned long *end);
+ 
+ #endif	/* CONFIG_DAMON */
+ 
+--- a/mm/damon/core.c~mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters
++++ a/mm/damon/core.c
+@@ -1245,7 +1245,8 @@ static int walk_system_ram(struct resour
+  * Find biggest 'System RAM' resource and store its start and end address in
+  * @start and @end, respectively.  If no System RAM is found, returns false.
+  */
+-bool damon_find_biggest_system_ram(unsigned long *start, unsigned long *end)
++static bool damon_find_biggest_system_ram(unsigned long *start,
++						unsigned long *end)
+ 
  {
-@@ -54,7 +55,10 @@ static const struct seq_operations devin
- 
- static int __init proc_devices_init(void)
- {
--	proc_create_seq("devices", 0, NULL, &devinfo_ops);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_seq("devices", 0, NULL, &devinfo_ops);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_devices_init);
---- a/fs/proc/internal.h~proc-mark-more-files-as-permanent
-+++ a/fs/proc/internal.h
-@@ -79,6 +79,11 @@ static inline bool pde_is_permanent(cons
- 	return pde->flags & PROC_ENTRY_PERMANENT;
+ 	struct damon_system_ram_region arg = {};
+@@ -1259,6 +1260,38 @@ bool damon_find_biggest_system_ram(unsig
+ 	return true;
  }
  
-+static inline void pde_make_permanent(struct proc_dir_entry *pde)
++/**
++ * damon_set_region_biggest_system_ram_default() - Set the region of the given
++ * monitoring target as requested, or biggest 'System RAM'.
++ * @t:		The monitoring target to set the region.
++ * @start:	The pointer to the start address of the region.
++ * @end:	The pointer to the end address of the region.
++ *
++ * This function sets the region of @t as requested by @start and @end.  If the
++ * values of @start and @end are zero, however, this function finds the biggest
++ * 'System RAM' resource and sets the region to cover the resource.  In the
++ * latter case, this function saves the start and end addresses of the resource
++ * in @start and @end, respectively.
++ *
++ * Return: 0 on success, negative error code otherwise.
++ */
++int damon_set_region_biggest_system_ram_default(struct damon_target *t,
++			unsigned long *start, unsigned long *end)
 +{
-+	pde->flags |= PROC_ENTRY_PERMANENT;
++	struct damon_addr_range addr_range;
++
++	if (*start > *end)
++		return -EINVAL;
++
++	if (!*start && !*end &&
++		!damon_find_biggest_system_ram(start, end))
++		return -EINVAL;
++
++	addr_range.start = *start;
++	addr_range.end = *end;
++	return damon_set_regions(t, &addr_range, 1);
 +}
 +
- extern struct kmem_cache *proc_dir_entry_cache;
- void pde_free(struct proc_dir_entry *pde);
- 
---- a/fs/proc/loadavg.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/loadavg.c
-@@ -9,6 +9,7 @@
- #include <linux/seq_file.h>
- #include <linux/seqlock.h>
- #include <linux/time.h>
-+#include "internal.h"
- 
- static int loadavg_proc_show(struct seq_file *m, void *v)
+ static int __init damon_init(void)
  {
-@@ -27,7 +28,10 @@ static int loadavg_proc_show(struct seq_
- 
- static int __init proc_loadavg_init(void)
+ 	damon_region_cache = KMEM_CACHE(damon_region, 0);
+--- a/mm/damon/lru_sort.c~mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters
++++ a/mm/damon/lru_sort.c
+@@ -188,7 +188,6 @@ static struct damos *damon_lru_sort_new_
+ static int damon_lru_sort_apply_parameters(void)
  {
--	proc_create_single("loadavg", 0, NULL, loadavg_proc_show);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_single("loadavg", 0, NULL, loadavg_proc_show);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_loadavg_init);
---- a/fs/proc/meminfo.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/meminfo.c
-@@ -162,7 +162,10 @@ static int meminfo_proc_show(struct seq_
+ 	struct damos *scheme;
+-	struct damon_addr_range addr_range;
+ 	unsigned int hot_thres, cold_thres;
+ 	int err = 0;
  
- static int __init proc_meminfo_init(void)
- {
--	proc_create_single("meminfo", 0, NULL, meminfo_proc_show);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_single("meminfo", 0, NULL, meminfo_proc_show);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_meminfo_init);
---- a/fs/proc/page.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/page.c
-@@ -91,6 +91,7 @@ static ssize_t kpagecount_read(struct fi
+@@ -211,15 +210,9 @@ static int damon_lru_sort_apply_paramete
+ 		return -ENOMEM;
+ 	damon_add_scheme(ctx, scheme);
+ 
+-	if (monitor_region_start > monitor_region_end)
+-		return -EINVAL;
+-	if (!monitor_region_start && !monitor_region_end &&
+-	    !damon_find_biggest_system_ram(&monitor_region_start,
+-					   &monitor_region_end))
+-		return -EINVAL;
+-	addr_range.start = monitor_region_start;
+-	addr_range.end = monitor_region_end;
+-	return damon_set_regions(target, &addr_range, 1);
++	return damon_set_region_biggest_system_ram_default(target,
++					&monitor_region_start,
++					&monitor_region_end);
  }
  
- static const struct proc_ops kpagecount_proc_ops = {
-+	.proc_flags	= PROC_ENTRY_PERMANENT,
- 	.proc_lseek	= mem_lseek,
- 	.proc_read	= kpagecount_read,
- };
-@@ -268,6 +269,7 @@ static ssize_t kpageflags_read(struct fi
+ static int damon_lru_sort_turn(bool on)
+--- a/mm/damon/reclaim.c~mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters
++++ a/mm/damon/reclaim.c
+@@ -144,7 +144,6 @@ static struct damos *damon_reclaim_new_s
+ static int damon_reclaim_apply_parameters(void)
+ {
+ 	struct damos *scheme;
+-	struct damon_addr_range addr_range;
+ 	int err = 0;
+ 
+ 	err = damon_set_attrs(ctx, &damon_reclaim_mon_attrs);
+@@ -157,15 +156,9 @@ static int damon_reclaim_apply_parameter
+ 		return -ENOMEM;
+ 	damon_set_schemes(ctx, &scheme, 1);
+ 
+-	if (monitor_region_start > monitor_region_end)
+-		return -EINVAL;
+-	if (!monitor_region_start && !monitor_region_end &&
+-	    !damon_find_biggest_system_ram(&monitor_region_start,
+-					   &monitor_region_end))
+-		return -EINVAL;
+-	addr_range.start = monitor_region_start;
+-	addr_range.end = monitor_region_end;
+-	return damon_set_regions(target, &addr_range, 1);
++	return damon_set_region_biggest_system_ram_default(target,
++					&monitor_region_start,
++					&monitor_region_end);
  }
  
- static const struct proc_ops kpageflags_proc_ops = {
-+	.proc_flags	= PROC_ENTRY_PERMANENT,
- 	.proc_lseek	= mem_lseek,
- 	.proc_read	= kpageflags_read,
- };
-@@ -322,6 +324,7 @@ static ssize_t kpagecgroup_read(struct f
- }
- 
- static const struct proc_ops kpagecgroup_proc_ops = {
-+	.proc_flags	= PROC_ENTRY_PERMANENT,
- 	.proc_lseek	= mem_lseek,
- 	.proc_read	= kpagecgroup_read,
- };
---- a/fs/proc/softirqs.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/softirqs.c
-@@ -3,6 +3,7 @@
- #include <linux/kernel_stat.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-+#include "internal.h"
- 
- /*
-  * /proc/softirqs  ... display the number of softirqs
-@@ -27,7 +28,10 @@ static int show_softirqs(struct seq_file
- 
- static int __init proc_softirqs_init(void)
- {
--	proc_create_single("softirqs", 0, NULL, show_softirqs);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_single("softirqs", 0, NULL, show_softirqs);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_softirqs_init);
---- a/fs/proc/uptime.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/uptime.c
-@@ -7,6 +7,7 @@
- #include <linux/time.h>
- #include <linux/time_namespace.h>
- #include <linux/kernel_stat.h>
-+#include "internal.h"
- 
- static int uptime_proc_show(struct seq_file *m, void *v)
- {
-@@ -39,7 +40,10 @@ static int uptime_proc_show(struct seq_f
- 
- static int __init proc_uptime_init(void)
- {
--	proc_create_single("uptime", 0, NULL, uptime_proc_show);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_single("uptime", 0, NULL, uptime_proc_show);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_uptime_init);
---- a/fs/proc/version.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/version.c
-@@ -5,6 +5,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/utsname.h>
-+#include "internal.h"
- 
- static int version_proc_show(struct seq_file *m, void *v)
- {
-@@ -17,7 +18,10 @@ static int version_proc_show(struct seq_
- 
- static int __init proc_version_init(void)
- {
--	proc_create_single("version", 0, NULL, version_proc_show);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_single("version", 0, NULL, version_proc_show);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_version_init);
+ static int damon_reclaim_turn(bool on)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from kaixuxia@tencent.com are
 
-proc-mark-more-files-as-permanent.patch
+mm-damon-sysfs-simplify-the-judgement-whether-kdamonds-are-busy.patch
+mm-damon-core-iterate-the-regions-list-from-current-point-in-damon_set_regions.patch
+mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme.patch
+mm-damon-sysfs-use-the-wrapper-directly-to-check-if-the-kdamond-is-running.patch
+mm-damon-simplify-the-parameter-passing-for-prepare_access_checks.patch
+mm-damon-sysfs-simplify-the-variable-pid-assignment-operation.patch
+mm-damon-core-simplify-the-kdamond-stop-mechanism-by-removing-done.patch
+mm-damon-use-struct-damon_target-instead-of-void-in-target_valid.patch
+mm-damon-return-void-from-damon_set_schemes.patch
+mm-damon-rename-damon_pageout_score-to-damon_cold_score.patch
+mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters.patch
 
