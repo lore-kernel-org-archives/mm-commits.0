@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60AA1ECAAD8
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Sep 2022 23:58:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA806C32771
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Sep 2022 00:52:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229588AbiIUX6K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Sep 2022 19:58:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40040 "EHLO
+        id S229775AbiIVAwN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Sep 2022 20:52:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229787AbiIUX6I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2022 19:58:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07694A2205
-        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 16:58:08 -0700 (PDT)
+        with ESMTP id S229641AbiIVAwM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2022 20:52:12 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 244DA8A1C9
+        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 17:52:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C22F630E6
-        for <mm-commits@vger.kernel.org>; Wed, 21 Sep 2022 23:58:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B63EC433D6;
-        Wed, 21 Sep 2022 23:58:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AAD89B83303
+        for <mm-commits@vger.kernel.org>; Thu, 22 Sep 2022 00:52:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C17BC433D6;
+        Thu, 22 Sep 2022 00:52:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663804686;
-        bh=VgKNiMmSmSgcpxarNuibHVxrZdZ25f/0gsuHcVmEq/g=;
+        s=korg; t=1663807928;
+        bh=9nyY0rBNquPppTEZQ0riAyFdXWmCBdvGHbIVW9GnISA=;
         h=Date:To:From:Subject:From;
-        b=kjO9CjhTKP9obUAlVy+xg8ni97Wy3CAw2orRZ2iGJStV7JtVN+AtdBNEHEXRMy2op
-         ursEYn8kd3sEDyGGjJohhbYrV9suV3G8MvbT2OqxMmd5Qg+55PnA0+MVVNPnGRkANf
-         WzvGU1KXuUkCPW6KqfGNkg1VXl4EZJ6PiwweeJ1g=
-Date:   Wed, 21 Sep 2022 16:58:05 -0700
-To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=F2yTfxy4XPUQUOlgLz56Wv4o5qBnlt06uPN3nYyBp1LkB3AUG0pB15YQmngp+swyo
+         5IIgbbNPv7oRxhQfCfeY42Q6Wf2DdzaExfIPTDd5x9rSPigqZtOaFuHdi+CJW+zWud
+         TLmozHsp1guQ+KQJgWCS75fs+DOxl4ZAzlYBNb2Y=
+Date:   Wed, 21 Sep 2022 17:52:06 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        peterz@infradead.org, keescook@chromium.org, jpoimboe@kernel.org,
+        dev@der-flo.net, dave.hansen@linux.intel.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-msg-mitigate-the-lock-contention-with-percpu-counter-fix-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20220921235806.9B63EC433D6@smtp.kernel.org>
+Subject: + x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220922005208.3C17BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: a
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-msg-mitigate-the-lock-contention-with-percpu-counter-fix-fix.patch
+     Subject: x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi-fix
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-msg-mitigate-the-lock-contention-with-percpu-counter-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,78 +67,40 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: a
-Date: Wed Sep 21 04:54:33 PM PDT 2022
+Subject: x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi-fix
+Date: Wed Sep 21 05:50:47 PM PDT 2022
 
-In file included from ./include/linux/kernel.h:26,
-                 from ./arch/x86/include/asm/percpu.h:27,
-                 from ./arch/x86/include/asm/preempt.h:6,
-                 from ./include/linux/preempt.h:78,
-                 from ./include/linux/spinlock.h:55,
-                 from ./include/linux/ipc.h:5,
-                 from ./include/uapi/linux/msg.h:5,
-                 from ./include/linux/msg.h:6,
-                 from ipc/msg.c:27:
-ipc/msg.c: In function 'msgctl_info':
-./include/linux/minmax.h:20:35: error: comparison of distinct pointer types lacks a cast [-Werror]
-   20 |         (!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
-      |                                   ^~
-./include/linux/minmax.h:26:18: note: in expansion of macro '__typecheck'
-   26 |                 (__typecheck(x, y) && __no_side_effects(x, y))
-      |                  ^~~~~~~~~~~
-./include/linux/minmax.h:36:31: note: in expansion of macro '__safe_cmp'
-   36 |         __builtin_choose_expr(__safe_cmp(x, y), \
-      |                               ^~~~~~~~~~
-./include/linux/minmax.h:45:25: note: in expansion of macro '__careful_cmp'
-   45 | #define min(x, y)       __careful_cmp(x, y, <)
-      |                         ^~~~~~~~~~~~~
-ipc/msg.c:504:35: note: in expansion of macro 'min'
-  504 |                 msginfo->msgmap = min(percpu_counter_sum(&ns->percpu_msg_hdrs), INT_MAX);
-      |                                   ^~~
-./include/linux/minmax.h:20:35: error: comparison of distinct pointer types lacks a cast [-Werror]
-   20 |         (!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
-      |                                   ^~
-./include/linux/minmax.h:26:18: note: in expansion of macro '__typecheck'
-   26 |                 (__typecheck(x, y) && __no_side_effects(x, y))
-      |                  ^~~~~~~~~~~
-./include/linux/minmax.h:36:31: note: in expansion of macro '__safe_cmp'
-   36 |         __builtin_choose_expr(__safe_cmp(x, y), \
-      |                               ^~~~~~~~~~
-./include/linux/minmax.h:45:25: note: in expansion of macro '__careful_cmp'
-   45 | #define min(x, y)       __careful_cmp(x, y, <)
-      |                         ^~~~~~~~~~~~~
-ipc/msg.c:505:35: note: in expansion of macro 'min'
-  505 |                 msginfo->msgtql = min(percpu_counter_sum(&ns->percpu_msg_bytes), INT_MAX);
-      |                                   ^~~
+no instrument_copy_from_user() in my tree...
 
-
-
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Florian Lehner <dev@der-flo.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Florian Lehner <dev@der-flo.net>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/ipc/msg.c~ipc-msg-mitigate-the-lock-contention-with-percpu-counter-fix-fix
-+++ a/ipc/msg.c
-@@ -501,8 +501,12 @@ static int msgctl_info(struct ipc_namesp
- 	max_idx = ipc_get_maxidx(&msg_ids(ns));
- 	up_read(&msg_ids(ns).rwsem);
- 	if (cmd == MSG_INFO) {
--		msginfo->msgmap = min(percpu_counter_sum(&ns->percpu_msg_hdrs), INT_MAX);
--		msginfo->msgtql = min(percpu_counter_sum(&ns->percpu_msg_bytes), INT_MAX);
-+		msginfo->msgmap = min_t(int,
-+				     percpu_counter_sum(&ns->percpu_msg_hdrs),
-+				     INT_MAX);
-+		msginfo->msgtql = min_t(int,
-+		                     percpu_counter_sum(&ns->percpu_msg_bytes),
-+				     INT_MAX);
- 	} else {
- 		msginfo->msgmap = MSGMAP;
- 		msginfo->msgpool = MSGPOOL;
+--- a/arch/x86/lib/usercopy.c~x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi-fix
++++ a/arch/x86/lib/usercopy.c
+@@ -44,7 +44,6 @@ copy_from_user_nmi(void *to, const void
+ 	 * called from other contexts.
+ 	 */
+ 	pagefault_disable();
+-	instrument_copy_from_user(to, from, n);
+ 	ret = raw_copy_from_user(to, from, n);
+ 	pagefault_enable();
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mmhwpoison-check-mm-when-killing-accessing-process-fix.patch
+x86-uaccess-avoid-check_object_size-in-copy_from_user_nmi-fix.patch
 mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
 mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
 mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
