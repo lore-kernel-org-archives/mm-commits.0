@@ -2,118 +2,145 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5307CC07E9D
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Sep 2022 23:02:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04F73C07E9D
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Sep 2022 23:05:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232812AbiIWXCr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Sep 2022 19:02:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48164 "EHLO
+        id S229724AbiIWXFI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Sep 2022 19:05:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229511AbiIWXCp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2022 19:02:45 -0400
+        with ESMTP id S229833AbiIWXFH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2022 19:05:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0684C1288B8
-        for <mm-commits@vger.kernel.org>; Fri, 23 Sep 2022 16:02:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E56B343E71
+        for <mm-commits@vger.kernel.org>; Fri, 23 Sep 2022 16:05:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 97AAF61CE8
-        for <mm-commits@vger.kernel.org>; Fri, 23 Sep 2022 23:02:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFA69C433C1;
-        Fri, 23 Sep 2022 23:02:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8271A61EAF
+        for <mm-commits@vger.kernel.org>; Fri, 23 Sep 2022 23:05:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B65B2C433C1;
+        Fri, 23 Sep 2022 23:05:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1663974163;
-        bh=400XN+5rldSSBnWjzX6lwjoYZmFMxpaZZV/4h/0u8Ec=;
+        s=korg; t=1663974304;
+        bh=fhrk+HuoJJCcur99p9j1yAbOiJxgoUJgXIlHV98FpBE=;
         h=Date:To:From:Subject:From;
-        b=JS9FJbMAiC5NA1gtb0jrcwSVdub9vuOlhYadnURUFbVvNrMugGYe7HgyjHc4nc1tl
-         Lo5ume8G43GOTKehWm5uRRipcQ7Tu9lQkjt3MRLVNSG1hOLfxJpmuBH5YTQdlrUShc
-         0e2Uc7CSw2K9cJTBHXiZzYHurWhU8mqN5KJhYWho=
-Date:   Fri, 23 Sep 2022 16:02:41 -0700
-To:     mm-commits@vger.kernel.org, vgoyal@redhat.com, npiggin@gmail.com,
-        mpe@ellerman.id.au, mingo@kernel.org, lukas.bulwahn@gmail.com,
-        joe@perches.com, jani.nikula@linux.intel.com, dyoung@redhat.com,
-        dwaipayanray1@gmail.com, David.Laight@ACULAB.COM, corbet@lwn.net,
-        christophe.leroy@csgroup.eu, bhe@redhat.com, apw@canonical.com,
-        david@redhat.com, akpm@linux-foundation.org
+        b=ExjD/ocR/Dunxxp2Q0EcJCzLjPAQ39I0I+L5ogIlbkt/o9b4orhpeoJGcTz09yizK
+         7Fi69qBAf3fCGE0Bb7N9axCs1WixtG+MezWm6Qhj4gzMWGKSr2m/6ArVhX6XMjWdeH
+         Njv6EjqPc6sY5xEHBtRr1wnO9xHCMxPqtWwpKvJU=
+Date:   Fri, 23 Sep 2022 16:05:03 -0700
+To:     mm-commits@vger.kernel.org, lkp@intel.com,
+        naoya.horiguchi@linux.dev, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] checkpatch-warn-on-usage-of-vm_bug_on-and-other-bug-variants.patch removed from -mm tree
-Message-Id: <20220923230242.CFA69C433C1@smtp.kernel.org>
+Subject: + mm-hwpoison-introduce-per-memory_block-hwpoison-counter-fix.patch added to mm-unstable branch
+Message-Id: <20220923230504.B65B2C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: checkpatch: warn on usage of VM_BUG_ON() and other BUG variants
-has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-usage-of-vm_bug_on-and-other-bug-variants.patch
+The patch titled
+     Subject: mm-hwpoison-introduce-per-memory_block-hwpoison-counter-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hwpoison-introduce-per-memory_block-hwpoison-counter-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-introduce-per-memory_block-hwpoison-counter-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: checkpatch: warn on usage of VM_BUG_ON() and other BUG variants
-Date: Tue, 20 Sep 2022 14:23:02 +0200
+From: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Subject: mm-hwpoison-introduce-per-memory_block-hwpoison-counter-fix
+Date: Fri, 23 Sep 2022 17:18:27 +0900
 
-checkpatch does not point out that VM_BUG_ON() and friends should be
-avoided, however, Linus notes:
+>
+> All errors (new ones prefixed by >>):
+>
+>    drivers/base/memory.c: In function 'memory_block_online':
+> >> drivers/base/memory.c:186:34: error: 'struct memory_block' has no member named 'nr_hwpoison'
+>      186 |         if (atomic_long_read(&mem->nr_hwpoison))
+>          |                                  ^~
+>    drivers/base/memory.c: In function 'remove_memory_block_devices':
+>    drivers/base/memory.c:870:61: error: 'struct memory_block' has no member named 'nr_hwpoison'
+>      870 |                 clear_hwpoisoned_pages(atomic_long_read(&mem->nr_hwpoison));
+>          |                                                             ^~
+>
 
-    VM_BUG_ON() has the exact same semantics as BUG_ON. It is literally
-    no different, the only difference is "we can make the code smaller
-    because these are less important". [1]
+I should've used the accessor memblk_nr_poison() to acccess to
+->nr_hwpoison.
 
-So let's warn on VM_BUG_ON() and other BUG variants as well.  While at it,
-make it clearer that the kernel really shouldn't be crashed.
-
-As there are some subsystem BUG macros that actually don't end up crashing
-the kernel -- for example, KVM_BUG_ON() -- exclude these manually.
-
-[1] https://lore.kernel.org/r/CAHk-=wg40EAZofO16Eviaj7mfqDhZ2gVEbvfsMf6gYzspRjYvw@mail.gmail.com
-
-Link: https://lkml.kernel.org/r/20220920122302.99195-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Link: https://lkml.kernel.org/r/20220923081827.GA1357512@ik1-406-35019.vs.sakura.ne.jp
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/scripts/checkpatch.pl~checkpatch-warn-on-usage-of-vm_bug_on-and-other-bug-variants
-+++ a/scripts/checkpatch.pl
-@@ -4745,12 +4745,12 @@ sub process {
- 			}
- 		}
+--- a/drivers/base/memory.c~mm-hwpoison-introduce-per-memory_block-hwpoison-counter-fix
++++ a/drivers/base/memory.c
+@@ -183,7 +183,7 @@ static int memory_block_online(struct me
+ 	struct zone *zone;
+ 	int ret;
  
--# avoid BUG() or BUG_ON()
--		if ($line =~ /\b(?:BUG|BUG_ON)\b/) {
-+# do not use BUG() or variants
-+		if ($line =~ /\b(?!AA_|BUILD_|DCCP_|IDA_|KVM_|RWLOCK_|snd_|SPIN_)(?:[a-zA-Z_]*_)?BUG(?:_ON)?(?:_[A-Z_]+)?\s*\(/) {
- 			my $msg_level = \&WARN;
- 			$msg_level = \&CHK if ($file);
- 			&{$msg_level}("AVOID_BUG",
--				      "Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()\n" . $herecurr);
-+				      "Do not crash the kernel unless it is unavoidable - use WARN_ON_ONCE & recovery code (if reasonable) rather than BUG() or variants.\n" . $herecurr);
- 		}
+-	if (atomic_long_read(&mem->nr_hwpoison))
++	if (memblk_nr_poison(start_pfn))
+ 		return -EHWPOISON;
  
- # avoid LINUX_VERSION_CODE
+ 	zone = zone_for_pfn_range(mem->online_type, mem->nid, mem->group,
+@@ -867,7 +867,7 @@ void remove_memory_block_devices(unsigne
+ 		mem = find_memory_block_by_id(block_id);
+ 		if (WARN_ON_ONCE(!mem))
+ 			continue;
+-		clear_hwpoisoned_pages(atomic_long_read(&mem->nr_hwpoison));
++		clear_hwpoisoned_pages(memblk_nr_poison(start));
+ 		unregister_memory_block_under_nodes(mem);
+ 		remove_memory_block(mem);
+ 	}
+@@ -1199,4 +1199,9 @@ unsigned long memblk_nr_poison(unsigned
+ 	return 0;
+ }
+ 
++#else
++unsigned long memblk_nr_poison(unsigned long pfn)
++{
++	return 0;
++}
+ #endif
+--- a/include/linux/mm.h~mm-hwpoison-introduce-per-memory_block-hwpoison-counter-fix
++++ a/include/linux/mm.h
+@@ -3282,7 +3282,6 @@ extern int __get_huge_page_for_hwpoison(
+ extern void num_poisoned_pages_inc(unsigned long pfn);
+ extern void memblk_nr_poison_inc(unsigned long pfn);
+ extern void memblk_nr_poison_sub(unsigned long pfn, long i);
+-extern unsigned long memblk_nr_poison(unsigned long pfn);
+ extern void clear_hwpoisoned_pages(long nr_poison);
+ #else
+ static inline int __get_huge_page_for_hwpoison(unsigned long pfn, int flags)
+@@ -3298,6 +3297,7 @@ static inline void clear_hwpoisoned_page
+ {
+ }
+ #endif
++extern unsigned long memblk_nr_poison(unsigned long pfn);
+ 
+ #ifndef arch_memory_failure
+ static inline int arch_memory_failure(unsigned long pfn, int flags)
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from naoya.horiguchi@linux.dev are
 
-mm-gup-replace-foll_numa-by-gup_can_follow_protnone.patch
-mm-gup-use-gup_can_follow_protnone-also-in-gup-fast.patch
-mm-fixup-documentation-regarding-pte_numa-and-prot_numa.patch
+mm-hwpoison-introduce-per-memory_block-hwpoison-counter-fix.patch
 
