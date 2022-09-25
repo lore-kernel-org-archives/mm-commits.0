@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E1B9C04A95
-	for <mm-commits@archiver.kernel.org>; Sun, 25 Sep 2022 19:14:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DBBCC6FA8E
+	for <mm-commits@archiver.kernel.org>; Sun, 25 Sep 2022 19:14:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231150AbiIYTOE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 25 Sep 2022 15:14:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35104 "EHLO
+        id S230168AbiIYTOF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 25 Sep 2022 15:14:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35124 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233175AbiIYTNx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 25 Sep 2022 15:13:53 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D77B52983A
-        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 12:13:51 -0700 (PDT)
+        with ESMTP id S233202AbiIYTNz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 25 Sep 2022 15:13:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 962D424BD4
+        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 12:13:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 688E0B80D4E
-        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 19:13:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA3FCC433C1;
-        Sun, 25 Sep 2022 19:13:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4B877B80CC4
+        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 19:13:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2AE0C433D6;
+        Sun, 25 Sep 2022 19:13:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664133229;
-        bh=NlWg1kE7vz+VRChrIswOS+oG2KD3GaDPB2RHqeHQEWc=;
+        s=korg; t=1664133232;
+        bh=3YxcZFJ7BN1pHqts4DbhxnAYZ1QYhWMkFbkvLGFW82g=;
         h=Date:To:From:Subject:From;
-        b=K5taePRULGGXHAf+3v/KnPf3wRmtZZpMKKlQQZYB2DuSsSbwKhyMZ4Ec7noVPwhEF
-         FfCaIY9J57KmIKHDph5BGP9cPxObfySsfaZUofv45k5wLnHcd6CulUHoYTBkwnZkCV
-         6QPILTMEDFXDhLbC47lSxQrr/GBok7c/eGomPcKs=
-Date:   Sun, 25 Sep 2022 12:13:47 -0700
+        b=cUjpxTW2lbrQ8LMUMoqbem9FOfNw9PqGQO0skaRSWhKRhhrZTuPudUSTZvckED6f5
+         ywVeyZ9WGkBsUUrQwrmV89O2QjtACNbPVos8tuE1dn/UQHwRFhd2iFFI7FdT77GYPG
+         Kabc6bmnnKpWBN9P/murE0mRzqF47SnhzmXw0uWM=
+Date:   Sun, 25 Sep 2022 12:13:50 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         songliubraving@fb.com, sj@kernel.org, shy828301@gmail.com,
         rongwei.wang@linux.alibaba.com, rientjes@google.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         ckennelly@google.com, axelrasmussen@google.com, zokeefe@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-add-thp-collapse-shmem-testing.patch added to mm-unstable branch
-Message-Id: <20220925191348.DA3FCC433C1@smtp.kernel.org>
+Subject: + selftests-vm-add-file-shmem-madv_collapse-selftest-for-cleared-pmd.patch added to mm-unstable branch
+Message-Id: <20220925191351.D2AE0C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: add thp collapse shmem testing
+     Subject: selftests/vm: add file/shmem MADV_COLLAPSE selftest for cleared pmd
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-add-thp-collapse-shmem-testing.patch
+     selftests-vm-add-file-shmem-madv_collapse-selftest-for-cleared-pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-add-thp-collapse-shmem-testing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-add-file-shmem-madv_collapse-selftest-for-cleared-pmd.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,17 +71,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: selftests/vm: add thp collapse shmem testing
-Date: Thu, 22 Sep 2022 15:40:44 -0700
+Subject: selftests/vm: add file/shmem MADV_COLLAPSE selftest for cleared pmd
+Date: Thu, 22 Sep 2022 15:40:45 -0700
 
-Add memory operations for shmem (memfd) memory, and reuse existing tests
-with the new memory operations.
+This test tests that MADV_COLLAPSE acting on file/shmem memory for which
+(1) the file extent mapping by the memory is already a huge page in the
+page cache, and (2) the pmd mapping this memory in the target process is
+none.
 
-Shmem tests can be called with "shmem" mem_type, and shmem tests are ran
-with "all" mem_type as well.
+In practice, (1)+(2) is the state left over after khugepaged has
+successfully collapsed file/shmem memory for a target VMA, but the memory
+has not yet been refaulted.  So, this test in-effect tests MADV_COLLAPSE
+racing with khugepaged to collapse the memory first.
 
-Link: https://lkml.kernel.org/r/20220907144521.3115321-9-zokeefe@google.com
-Link: https://lkml.kernel.org/r/20220922224046.1143204-9-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220907144521.3115321-10-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220922224046.1143204-10-zokeefe@google.com
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Chris Kennelly <ckennelly@google.com>
@@ -104,142 +108,49 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/tools/testing/selftests/vm/khugepaged.c~selftests-vm-add-thp-collapse-shmem-testing
+--- a/tools/testing/selftests/vm/khugepaged.c~selftests-vm-add-file-shmem-madv_collapse-selftest-for-cleared-pmd
 +++ a/tools/testing/selftests/vm/khugepaged.c
-@@ -59,6 +59,7 @@ struct mem_ops {
- 
- static struct mem_ops *file_ops;
- static struct mem_ops *anon_ops;
-+static struct mem_ops *shmem_ops;
- 
- struct collapse_context {
- 	void (*collapse)(const char *msg, char *p, int nr_hpages,
-@@ -739,6 +740,40 @@ static bool file_check_huge(void *addr,
- 	}
+@@ -1353,6 +1353,33 @@ static void madvise_collapse_existing_th
+ 	ops->cleanup_area(p, hpage_pmd_size);
  }
  
-+static void *shmem_setup_area(int nr_hpages)
++/*
++ * Test race with khugepaged where page tables have been retracted and
++ * pmd cleared.
++ */
++static void madvise_retracted_page_tables(struct collapse_context *c,
++					  struct mem_ops *ops)
 +{
 +	void *p;
++	int nr_hpages = 1;
 +	unsigned long size = nr_hpages * hpage_pmd_size;
 +
-+	finfo.fd = memfd_create("khugepaged-selftest-collapse-shmem", 0);
-+	if (finfo.fd < 0)  {
-+		perror("memfd_create()");
-+		exit(EXIT_FAILURE);
++	p = ops->setup_area(nr_hpages);
++	ops->fault(p, 0, size);
++
++	/* Let khugepaged collapse and leave pmd cleared */
++	if (wait_for_scan("Collapse and leave PMD cleared", p, nr_hpages,
++			  ops)) {
++		fail("Timeout");
++		return;
 +	}
-+	if (ftruncate(finfo.fd, size)) {
-+		perror("ftruncate()");
-+		exit(EXIT_FAILURE);
-+	}
-+	p = mmap(BASE_ADDR, size, PROT_READ | PROT_WRITE, MAP_SHARED, finfo.fd,
-+		 0);
-+	if (p != BASE_ADDR) {
-+		perror("mmap()");
-+		exit(EXIT_FAILURE);
-+	}
-+	return p;
++	success("OK");
++	c->collapse("Install huge PMD from page cache", p, nr_hpages, ops,
++		    true);
++	validate_memory(p, 0, size);
++	ops->cleanup_area(p, size);
 +}
 +
-+static void shmem_cleanup_area(void *p, unsigned long size)
-+{
-+	munmap(p, size);
-+	close(finfo.fd);
-+}
-+
-+static bool shmem_check_huge(void *addr, int nr_hpages)
-+{
-+	return check_huge_shmem(addr, nr_hpages, hpage_pmd_size);
-+}
-+
- static struct mem_ops __anon_ops = {
- 	.setup_area = &anon_setup_area,
- 	.cleanup_area = &anon_cleanup_area,
-@@ -755,6 +790,14 @@ static struct mem_ops __file_ops = {
- 	.name = "file",
- };
- 
-+static struct mem_ops __shmem_ops = {
-+	.setup_area = &shmem_setup_area,
-+	.cleanup_area = &shmem_cleanup_area,
-+	.fault = &anon_fault,
-+	.check_huge = &shmem_check_huge,
-+	.name = "shmem",
-+};
-+
- static void __madvise_collapse(const char *msg, char *p, int nr_hpages,
- 			       struct mem_ops *ops, bool expect)
+ static void usage(void)
  {
-@@ -1315,7 +1358,7 @@ static void usage(void)
  	fprintf(stderr, "\nUsage: ./khugepaged <test type> [dir]\n\n");
- 	fprintf(stderr, "\t<test type>\t: <context>:<mem_type>\n");
- 	fprintf(stderr, "\t<context>\t: [all|khugepaged|madvise]\n");
--	fprintf(stderr, "\t<mem_type>\t: [all|anon|file]\n");
-+	fprintf(stderr, "\t<mem_type>\t: [all|anon|file|shmem]\n");
- 	fprintf(stderr, "\n\t\"file,all\" mem_type requires [dir] argument\n");
- 	fprintf(stderr, "\n\t\"file,all\" mem_type requires kernel built with\n");
- 	fprintf(stderr,	"\tCONFIG_READ_ONLY_THP_FOR_FS=y\n");
-@@ -1357,10 +1400,13 @@ static void parse_test_type(int argc, co
- 	if (!strcmp(buf, "all")) {
- 		file_ops =  &__file_ops;
- 		anon_ops = &__anon_ops;
-+		shmem_ops = &__shmem_ops;
- 	} else if (!strcmp(buf, "anon")) {
- 		anon_ops = &__anon_ops;
- 	} else if (!strcmp(buf, "file")) {
- 		file_ops =  &__file_ops;
-+	} else if (!strcmp(buf, "shmem")) {
-+		shmem_ops = &__shmem_ops;
- 	} else {
- 		usage();
- 	}
-@@ -1377,7 +1423,7 @@ int main(int argc, const char **argv)
- 	struct settings default_settings = {
- 		.thp_enabled = THP_MADVISE,
- 		.thp_defrag = THP_DEFRAG_ALWAYS,
--		.shmem_enabled = SHMEM_NEVER,
-+		.shmem_enabled = SHMEM_ADVISE,
- 		.use_zero_page = 0,
- 		.khugepaged = {
- 			.defrag = 1,
-@@ -1424,16 +1470,20 @@ int main(int argc, const char **argv)
- 
- 	TEST(collapse_full, khugepaged_context, anon_ops);
- 	TEST(collapse_full, khugepaged_context, file_ops);
-+	TEST(collapse_full, khugepaged_context, shmem_ops);
- 	TEST(collapse_full, madvise_context, anon_ops);
- 	TEST(collapse_full, madvise_context, file_ops);
-+	TEST(collapse_full, madvise_context, shmem_ops);
- 
- 	TEST(collapse_empty, khugepaged_context, anon_ops);
- 	TEST(collapse_empty, madvise_context, anon_ops);
- 
- 	TEST(collapse_single_pte_entry, khugepaged_context, anon_ops);
- 	TEST(collapse_single_pte_entry, khugepaged_context, file_ops);
-+	TEST(collapse_single_pte_entry, khugepaged_context, shmem_ops);
- 	TEST(collapse_single_pte_entry, madvise_context, anon_ops);
- 	TEST(collapse_single_pte_entry, madvise_context, file_ops);
-+	TEST(collapse_single_pte_entry, madvise_context, shmem_ops);
- 
- 	TEST(collapse_max_ptes_none, khugepaged_context, anon_ops);
- 	TEST(collapse_max_ptes_none, khugepaged_context, file_ops);
-@@ -1447,8 +1497,10 @@ int main(int argc, const char **argv)
- 
- 	TEST(collapse_full_of_compound, khugepaged_context, anon_ops);
- 	TEST(collapse_full_of_compound, khugepaged_context, file_ops);
-+	TEST(collapse_full_of_compound, khugepaged_context, shmem_ops);
- 	TEST(collapse_full_of_compound, madvise_context, anon_ops);
- 	TEST(collapse_full_of_compound, madvise_context, file_ops);
-+	TEST(collapse_full_of_compound, madvise_context, shmem_ops);
- 
- 	TEST(collapse_compound_extreme, khugepaged_context, anon_ops);
- 	TEST(collapse_compound_extreme, madvise_context, anon_ops);
-@@ -1470,6 +1522,7 @@ int main(int argc, const char **argv)
- 
- 	TEST(madvise_collapse_existing_thps, madvise_context, anon_ops);
+@@ -1524,5 +1551,8 @@ int main(int argc, const char **argv)
  	TEST(madvise_collapse_existing_thps, madvise_context, file_ops);
-+	TEST(madvise_collapse_existing_thps, madvise_context, shmem_ops);
+ 	TEST(madvise_collapse_existing_thps, madvise_context, shmem_ops);
  
++	TEST(madvise_retracted_page_tables, madvise_context, file_ops);
++	TEST(madvise_retracted_page_tables, madvise_context, shmem_ops);
++
  	restore_settings(0);
  }
 _
