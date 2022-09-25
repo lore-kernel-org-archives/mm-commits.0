@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B52BC04A95
-	for <mm-commits@archiver.kernel.org>; Sun, 25 Sep 2022 19:46:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAA70C54EE9
+	for <mm-commits@archiver.kernel.org>; Sun, 25 Sep 2022 19:50:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229722AbiIYTqk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 25 Sep 2022 15:46:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55560 "EHLO
+        id S231521AbiIYTuv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 25 Sep 2022 15:50:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231783AbiIYTqj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 25 Sep 2022 15:46:39 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4986222B1
-        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 12:46:37 -0700 (PDT)
+        with ESMTP id S231783AbiIYTuu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 25 Sep 2022 15:50:50 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9281526104
+        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 12:50:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 894ADB80DE6
-        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 19:46:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A553C433D6;
-        Sun, 25 Sep 2022 19:46:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4590EB80D2F
+        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 19:50:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2870C433D6;
+        Sun, 25 Sep 2022 19:50:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664135195;
-        bh=jC4NKBNyoXXJfN0zZwoMsWQBWcGlF1av++bXYNrCqYQ=;
+        s=korg; t=1664135446;
+        bh=RlLinzjpl3Wja0q6nBl73MEyZZAy+UYvjfq4oWqPCmw=;
         h=Date:To:From:Subject:From;
-        b=qUWhn7KEKY/5zaiNia+/MRy9+TwUHPVVe5grl09dlAVEy19xHRrs5ge0SILu9AOYu
-         iFtCE7TKYkB6z8mgwazPFb3Kywxj3flk32/JnZPNisEbSzUAPX81eSk2TDtiFD09Z4
-         szGPrH8gUf0QAqfpeQavzXYj3laH51jt5U7RB3CQ=
-Date:   Sun, 25 Sep 2022 12:46:33 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com, mike.kravetz@oracle.com,
-        akpm@linux-foundation.org
+        b=OYxQtJYRBQaXzQ+CwqIm8qVWlqJFyAvZilEsdvq9NLjcPHRIzxFY4ixW8S2gN4vrp
+         MjAuDuLRJsrwraJOIb5cfF2YCUeCrU8sHFsR218pi9nqgErWFe0Eq1rnGKO316wQSg
+         Ckzo1sD73SHl9KEqW4mkRtHigBzVqfRJnKtcYqvM=
+Date:   Sun, 25 Sep 2022 12:50:44 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        songmuchun@bytedance.com, peterx@redhat.com, osalvador@suse.de,
+        mhocko@suse.com, linmiaohe@huawei.com, joao.m.martins@oracle.com,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-clean-up-code-checking-for-fault-truncation-races-fix.patch added to mm-unstable branch
-Message-Id: <20220925194635.1A553C433D6@smtp.kernel.org>
+Subject: + hugetlb-freeze-allocated-pages-before-creating-hugetlb-pages-v3.patch added to mm-unstable branch
+Message-Id: <20220925195046.B2870C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix reserve_alloc set but not used compiler warning
+     Subject: hugetlb-freeze-allocated-pages-before-creating-hugetlb-pages-v3
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-clean-up-code-checking-for-fault-truncation-races-fix.patch
+     hugetlb-freeze-allocated-pages-before-creating-hugetlb-pages-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-clean-up-code-checking-for-fault-truncation-races-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-freeze-allocated-pages-before-creating-hugetlb-pages-v3.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,38 +67,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: fix reserve_alloc set but not used compiler warning
+Subject: hugetlb-freeze-allocated-pages-before-creating-hugetlb-pages-v3
+Date: Wed, 21 Sep 2022 13:27:02 -0700
 
-Error path code checking the reserve_alloc variable was removed as it was
-determined it was not necessary.  However, the variable itself was not
-removed at the same time.  Remove now.
+fix NULL pointer dereference in alloc_buddy_huge_page caused by not
+checking for page before attempting to freeze.  Thanks Naoya.
 
-Link: https://lkml.kernel.org/r/Yyj7HsJWfHDoU24U@monkey
+Link: https://lkml.kernel.org/r/20220921202702.106069-1-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: kernel test robot <lkp@intel.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/hugetlb.c~hugetlb-clean-up-code-checking-for-fault-truncation-races-fix
+--- a/mm/hugetlb.c~hugetlb-freeze-allocated-pages-before-creating-hugetlb-pages-v3
 +++ a/mm/hugetlb.c
-@@ -5562,7 +5562,6 @@ static vm_fault_t hugetlb_no_page(struct
- 	spinlock_t *ptl;
- 	unsigned long haddr = address & huge_page_mask(h);
- 	bool new_page, new_pagecache_page = false;
--	bool reserve_alloc = false;
+@@ -1957,7 +1957,7 @@ retry:
+ 	page = __alloc_pages(gfp_mask, order, nid, nmask);
  
- 	/*
- 	 * Currently, we are forced to kill the process in the event the
-@@ -5618,8 +5617,6 @@ static vm_fault_t hugetlb_no_page(struct
- 		clear_huge_page(page, address, pages_per_huge_page(h));
- 		__SetPageUptodate(page);
- 		new_page = true;
--		if (HPageRestoreReserve(page))
--			reserve_alloc = true;
- 
- 		if (vma->vm_flags & VM_MAYSHARE) {
- 			int err = hugetlb_add_to_page_cache(page, mapping, idx);
+ 	/* Freeze head page */
+-	if (!page_ref_freeze(page, 1)) {
++	if (page && !page_ref_freeze(page, 1)) {
+ 		__free_pages(page, order);
+ 		if (retry) {	/* retry once */
+ 			retry = false;
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
@@ -113,5 +113,6 @@ hugetlb-use-new-vma_lock-for-pmd-sharing-synchronization.patch
 hugetlb-clean-up-code-checking-for-fault-truncation-races.patch
 hugetlb-clean-up-code-checking-for-fault-truncation-races-fix.patch
 hugetlb-freeze-allocated-pages-before-creating-hugetlb-pages.patch
+hugetlb-freeze-allocated-pages-before-creating-hugetlb-pages-v3.patch
 hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
 
