@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9B79C04A95
-	for <mm-commits@archiver.kernel.org>; Sun, 25 Sep 2022 19:13:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C4BFC6FA82
+	for <mm-commits@archiver.kernel.org>; Sun, 25 Sep 2022 19:14:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233045AbiIYTN5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 25 Sep 2022 15:13:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35034 "EHLO
+        id S232888AbiIYTN6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 25 Sep 2022 15:13:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232888AbiIYTNt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 25 Sep 2022 15:13:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7791024BD4
-        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 12:13:28 -0700 (PDT)
+        with ESMTP id S233150AbiIYTNv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 25 Sep 2022 15:13:51 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A3E52C640
+        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 12:13:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 06969615F3
-        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 19:13:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3648EC433C1;
-        Sun, 25 Sep 2022 19:13:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CF435B80CC4
+        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 19:13:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62110C433D7;
+        Sun, 25 Sep 2022 19:13:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664133207;
-        bh=RaiiHrQ53M/5f5zdCAqr641kTrb6e5JuZw0hN3VOjBo=;
+        s=korg; t=1664133219;
+        bh=5cxKo2donMntWc9yWT5HpBNu5R0p+dTCO721GhzkMrk=;
         h=Date:To:From:Subject:From;
-        b=DSsBRluGaN+REAvnzQ2qQRL+YhSSOg8LE2GF4nj5HuCj2sHAT+0nxlMO/7ixOEJhw
-         7Fc9TF5l/Dj01f9R3cPhKu8sdvp4WZs8nhcPvbAKBOQECafa8B7hitw9PIa53/bIv3
-         gK5JeMmgGzNmfrG7xlwe7BE3hMkjfJiZYsKWS8VM=
-Date:   Sun, 25 Sep 2022 12:13:25 -0700
+        b=1YmqYhjilL6yiOCK4ifzRBEuDCntiz/hfZ5YVzzA4KhqNOXdxnfeX9gNpgis/2Xlv
+         So5d2Phha2+R7dECQHyIrLHeSV+dWmslBCTioDRG3jK/z7hcxKrHic/SLJI09zrLZi
+         DtKYcxzcARbGRbB7yM4ZO89zOTVeq26B54cWjAg4=
+Date:   Sun, 25 Sep 2022 12:13:38 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         songliubraving@fb.com, sj@kernel.org, shy828301@gmail.com,
         rongwei.wang@linux.alibaba.com, rientjes@google.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         ckennelly@google.com, axelrasmussen@google.com, zokeefe@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check.patch added to mm-unstable branch
-Message-Id: <20220925191327.3648EC433C1@smtp.kernel.org>
+Subject: + selftests-vm-dedup-thp-helpers.patch added to mm-unstable branch
+Message-Id: <20220925191339.62110C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: add flag to enforce shmem THP in hugepage_vma_check()
+     Subject: selftests/vm: dedup THP helpers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check.patch
+     selftests-vm-dedup-thp-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-dedup-thp-helpers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,87 +71,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/shmem: add flag to enforce shmem THP in hugepage_vma_check()
-Date: Thu, 22 Sep 2022 15:40:37 -0700
+Subject: selftests/vm: dedup THP helpers
+Date: Thu, 22 Sep 2022 15:40:41 -0700
 
-Patch series "mm: add file/shmem support to MADV_COLLAPSE", v4.
+These files:
 
-This series builds on top of the previous "mm: userspace hugepage
-collapse" series which introduced the MADV_COLLAPSE madvise mode and added
-support for private, anonymous mappings[2], by adding support for file and
-shmem backed memory to CONFIG_READ_ONLY_THP_FOR_FS=y kernels.
+tools/testing/selftests/vm/vm_util.c
+tools/testing/selftests/vm/khugepaged.c
 
-File and shmem support have been added with effort to align with existing
-MADV_COLLAPSE semantics and policy decisions[3].  Collapse of shmem-backed
-memory ignores kernel-guiding directives and heuristics including all
-sysfs settings (transparent_hugepage/shmem_enabled), and tmpfs huge= mount
-options (shmem always supports large folios).  Like anonymous mappings, on
-successful return of MADV_COLLAPSE on file/shmem memory, the contents of
-memory mapped by the addresses provided will be synchronously pmd-mapped
-THPs.
+Both contain logic to:
 
-This functionality unlocks two important uses:
+1) Determine hugepage size on current system
+2) Read /proc/self/smaps to determine number of THPs at an address
 
-(1)	Immediately back executable text by THPs.  Current support provided
-	by CONFIG_READ_ONLY_THP_FOR_FS may take a long time on a large
-	system which might impair services from serving at their full rated
-	load after (re)starting.  Tricks like mremap(2)'ing text onto
-	anonymous memory to immediately realize iTLB performance prevents
-	page sharing and demand paging, both of which increase steady state
-	memory footprint.  Now, we can have the best of both worlds: Peak
-	upfront performance and lower RAM footprints.
+Refactor selftests/vm/khugepaged.c to use the vm_util common helpers and
+add it as a build dependency.
 
-(2)	userfaultfd-based live migration of virtual machines satisfy UFFD
-	faults by fetching native-sized pages over the network (to avoid
-	latency of transferring an entire hugepage).  However, after guest
-	memory has been fully copied to the new host, MADV_COLLAPSE can
-	be used to immediately increase guest performance.
+Since selftests/vm/khugepaged.c is the largest user of check_huge(),
+change the signature of check_huge() to match selftests/vm/khugepaged.c's
+useage: take an expected number of hugepages, and return a bool indicating
+if the correct number of hugepages were found.  Add a wrapper,
+check_huge_anon(), in anticipation of checking smaps for file and shmem
+hugepages.
 
-khugepaged has received a small improvement by association and can now
-detect and collapse pte-mapped THPs.  However, there is still work to be
-done along the file collapse path.  Compound pages of arbitrary order
-still needs to be supported and THP collapse needs to be converted to
-using folios in general.  Eventually, we'd like to move away from the
-read-only and executable-mapped constraints currently imposed on eligible
-files and support any inode claiming huge folio support.  That said, I
-think the series as-is covers enough to claim that MADV_COLLAPSE supports
-file/shmem memory.
+Update existing callsites to use the new pattern / function.
 
-Patches 1-3	Implement the guts of the series.
-Patch 4 	Is a tracepoint for debugging.
-Patches 5-9 	Refactor existing khugepaged selftests to work with new
-		memory types + new collapse tests.
-Patch 10 	Adds a userfaultfd selftest mode to mimic a functional test
-		of UFFDIO_REGISTER_MODE_MINOR+MADV_COLLAPSE live migration.
-		(v4 note: "userfaultfd shmem" selftest is failing as of
-		Sep 22 mm-unstable)
+Likewise, check_for_pattern() was duplicated, and it's a general enough
+helper to include in vm_util helpers as well.
 
-[1] https://lore.kernel.org/linux-mm/YyiK8YvVcrtZo0z3@google.com/
-[2] https://lore.kernel.org/linux-mm/20220706235936.2197195-1-zokeefe@google.com/
-[3] https://lore.kernel.org/linux-mm/YtBmhaiPHUTkJml8@google.com/
-[4] https://lore.kernel.org/linux-mm/20220922222731.1124481-1-zokeefe@google.com/
-[5] https://lore.kernel.org/linux-mm/20220922184651.1016461-1-zokeefe@google.com/
-
-
-This patch (of 10):
-
-Extend 'mm/thp: add flag to enforce sysfs THP in hugepage_vma_check()' to
-shmem, allowing callers to ignore
-/sys/kernel/transparent_hugepage/shmem_enabled and tmpfs huge= mount.
-
-This is intended to be used by MADV_COLLAPSE, and the rationale is
-analogous to the anon/file case: MADV_COLLAPSE is not coupled to
-directives that advise the kernel's decisions on when THPs should be
-considered eligible.  shmem/tmpfs always claims large folio support,
-regardless of sysfs or mount options.
-
-[shy828301@gmail.com: test shmem_huge_force explicitly]
-  Link: https://lore.kernel.org/linux-mm/CAHbLzko3A5-TpS0BgBeKkx5cuOkWgLvWXQH=TdgW-baO4rPtdg@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20220922224046.1143204-1-zokeefe@google.com
-Link: https://lkml.kernel.org/r/20220907144521.3115321-2-zokeefe@google.com
-Link: https://lkml.kernel.org/r/20220922224046.1143204-2-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220907144521.3115321-6-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220922224046.1143204-6-zokeefe@google.com
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Chris Kennelly <ckennelly@google.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -168,99 +118,249 @@ Cc: Rongwei Wang <rongwei.wang@linux.alibaba.com>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Song Liu <songliubraving@fb.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/shmem_fs.h~mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check
-+++ a/include/linux/shmem_fs.h
-@@ -92,11 +92,13 @@ extern struct page *shmem_read_mapping_p
- extern void shmem_truncate_range(struct inode *inode, loff_t start, loff_t end);
- int shmem_unuse(unsigned int type);
+--- a/tools/testing/selftests/vm/khugepaged.c~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/khugepaged.c
+@@ -12,6 +12,8 @@
+ #include <sys/mman.h>
+ #include <sys/wait.h>
  
--extern bool shmem_is_huge(struct vm_area_struct *vma,
--			  struct inode *inode, pgoff_t index);
--static inline bool shmem_huge_enabled(struct vm_area_struct *vma)
-+extern bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
-+			  pgoff_t index, bool shmem_huge_force);
-+static inline bool shmem_huge_enabled(struct vm_area_struct *vma,
-+				      bool shmem_huge_force)
- {
--	return shmem_is_huge(vma, file_inode(vma->vm_file), vma->vm_pgoff);
-+	return shmem_is_huge(vma, file_inode(vma->vm_file), vma->vm_pgoff,
-+			     shmem_huge_force);
++#include "vm_util.h"
++
+ #ifndef MADV_PAGEOUT
+ #define MADV_PAGEOUT 21
+ #endif
+@@ -352,64 +354,12 @@ static void save_settings(void)
+ 	signal(SIGQUIT, restore_settings);
  }
- extern unsigned long shmem_swap_usage(struct vm_area_struct *vma);
- extern unsigned long shmem_partial_swap_usage(struct address_space *mapping,
---- a/mm/huge_memory.c~mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check
-+++ a/mm/huge_memory.c
-@@ -119,7 +119,7 @@ bool hugepage_vma_check(struct vm_area_s
- 	 * own flags.
+ 
+-#define MAX_LINE_LENGTH 500
+-
+-static bool check_for_pattern(FILE *fp, char *pattern, char *buf)
+-{
+-	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
+-		if (!strncmp(buf, pattern, strlen(pattern)))
+-			return true;
+-	}
+-	return false;
+-}
+-
+ static bool check_huge(void *addr, int nr_hpages)
+ {
+-	bool thp = false;
+-	int ret;
+-	FILE *fp;
+-	char buffer[MAX_LINE_LENGTH];
+-	char addr_pattern[MAX_LINE_LENGTH];
+-
+-	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08lx-",
+-		       (unsigned long) addr);
+-	if (ret >= MAX_LINE_LENGTH) {
+-		printf("%s: Pattern is too long\n", __func__);
+-		exit(EXIT_FAILURE);
+-	}
+-
+-
+-	fp = fopen(PID_SMAPS, "r");
+-	if (!fp) {
+-		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
+-		exit(EXIT_FAILURE);
+-	}
+-	if (!check_for_pattern(fp, addr_pattern, buffer))
+-		goto err_out;
+-
+-	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "AnonHugePages:%10ld kB",
+-		       nr_hpages * (hpage_pmd_size >> 10));
+-	if (ret >= MAX_LINE_LENGTH) {
+-		printf("%s: Pattern is too long\n", __func__);
+-		exit(EXIT_FAILURE);
+-	}
+-	/*
+-	 * Fetch the AnonHugePages: in the same block and check whether it got
+-	 * the expected number of hugeepages next.
+-	 */
+-	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
+-		goto err_out;
+-
+-	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
+-		goto err_out;
+-
+-	thp = true;
+-err_out:
+-	fclose(fp);
+-	return thp;
++	return check_huge_anon(addr, nr_hpages, hpage_pmd_size);
+ }
+ 
+-
++#define MAX_LINE_LENGTH 500
+ static bool check_swap(void *addr, unsigned long size)
+ {
+ 	bool swap = false;
+@@ -431,7 +381,7 @@ static bool check_swap(void *addr, unsig
+ 		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	if (!check_for_pattern(fp, addr_pattern, buffer))
++	if (!check_for_pattern(fp, addr_pattern, buffer, sizeof(buffer)))
+ 		goto err_out;
+ 
+ 	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "Swap:%19ld kB",
+@@ -444,7 +394,7 @@ static bool check_swap(void *addr, unsig
+ 	 * Fetch the Swap: in the same block and check whether it got
+ 	 * the expected number of hugeepages next.
  	 */
- 	if (!in_pf && shmem_file(vma->vm_file))
--		return shmem_huge_enabled(vma);
-+		return shmem_huge_enabled(vma, !enforce_sysfs);
+-	if (!check_for_pattern(fp, "Swap:", buffer))
++	if (!check_for_pattern(fp, "Swap:", buffer, sizeof(buffer)))
+ 		goto err_out;
  
- 	/* Enforce sysfs THP requirements as necessary */
- 	if (enforce_sysfs &&
---- a/mm/shmem.c~mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check
-+++ a/mm/shmem.c
-@@ -462,20 +462,22 @@ static bool shmem_confirm_swap(struct ad
+ 	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
+@@ -1066,7 +1016,7 @@ int main(int argc, const char **argv)
+ 	setbuf(stdout, NULL);
  
- static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
+ 	page_size = getpagesize();
+-	hpage_pmd_size = read_num("hpage_pmd_size");
++	hpage_pmd_size = read_pmd_pagesize();
+ 	hpage_pmd_nr = hpage_pmd_size / page_size;
  
--bool shmem_is_huge(struct vm_area_struct *vma,
--		   struct inode *inode, pgoff_t index)
-+bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
-+		   pgoff_t index, bool shmem_huge_force)
+ 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/Makefile
+@@ -95,6 +95,7 @@ TEST_FILES += va_128TBswitch.sh
+ 
+ include ../lib.mk
+ 
++$(OUTPUT)/khugepaged: vm_util.c
+ $(OUTPUT)/madv_populate: vm_util.c
+ $(OUTPUT)/soft-dirty: vm_util.c
+ $(OUTPUT)/split_huge_page_test: vm_util.c
+--- a/tools/testing/selftests/vm/soft-dirty.c~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/soft-dirty.c
+@@ -91,7 +91,7 @@ static void test_hugepage(int pagemap_fd
+ 	for (i = 0; i < hpage_len; i++)
+ 		map[i] = (char)i;
+ 
+-	if (check_huge(map)) {
++	if (check_huge_anon(map, 1, hpage_len)) {
+ 		ksft_test_result_pass("Test %s huge page allocation\n", __func__);
+ 
+ 		clear_softdirty();
+--- a/tools/testing/selftests/vm/split_huge_page_test.c~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/split_huge_page_test.c
+@@ -92,7 +92,6 @@ void split_pmd_thp(void)
  {
- 	loff_t i_size;
+ 	char *one_page;
+ 	size_t len = 4 * pmd_pagesize;
+-	uint64_t thp_size;
+ 	size_t i;
  
- 	if (!S_ISREG(inode->i_mode))
- 		return false;
--	if (shmem_huge == SHMEM_HUGE_DENY)
--		return false;
- 	if (vma && ((vma->vm_flags & VM_NOHUGEPAGE) ||
- 	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags)))
- 		return false;
-+	if (shmem_huge_force)
-+		return true;
- 	if (shmem_huge == SHMEM_HUGE_FORCE)
- 		return true;
-+	if (shmem_huge == SHMEM_HUGE_DENY)
-+		return false;
+ 	one_page = memalign(pmd_pagesize, len);
+@@ -107,8 +106,7 @@ void split_pmd_thp(void)
+ 	for (i = 0; i < len; i++)
+ 		one_page[i] = (char)i;
  
- 	switch (SHMEM_SB(inode->i_sb)->huge) {
- 	case SHMEM_HUGE_ALWAYS:
-@@ -670,8 +672,8 @@ static long shmem_unused_huge_count(stru
+-	thp_size = check_huge(one_page);
+-	if (!thp_size) {
++	if (!check_huge_anon(one_page, 1, pmd_pagesize)) {
+ 		printf("No THP is allocated\n");
+ 		exit(EXIT_FAILURE);
+ 	}
+@@ -124,9 +122,8 @@ void split_pmd_thp(void)
+ 		}
  
- #define shmem_huge SHMEM_HUGE_DENY
  
--bool shmem_is_huge(struct vm_area_struct *vma,
--		   struct inode *inode, pgoff_t index)
-+bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
-+		   pgoff_t index, bool shmem_huge_force)
- {
- 	return false;
- }
-@@ -1058,7 +1060,7 @@ static int shmem_getattr(struct user_nam
- 			STATX_ATTR_NODUMP);
- 	generic_fillattr(&init_user_ns, inode, stat);
- 
--	if (shmem_is_huge(NULL, inode, 0))
-+	if (shmem_is_huge(NULL, inode, 0, false))
- 		stat->blksize = HPAGE_PMD_SIZE;
- 
- 	if (request_mask & STATX_BTIME) {
-@@ -1900,7 +1902,7 @@ repeat:
- 		return 0;
+-	thp_size = check_huge(one_page);
+-	if (thp_size) {
+-		printf("Still %ld kB AnonHugePages not split\n", thp_size);
++	if (check_huge_anon(one_page, 0, pmd_pagesize)) {
++		printf("Still AnonHugePages not split\n");
+ 		exit(EXIT_FAILURE);
  	}
  
--	if (!shmem_is_huge(vma, inode, index))
-+	if (!shmem_is_huge(vma, inode, index, false))
- 		goto alloc_nohuge;
+@@ -172,8 +169,7 @@ void split_pte_mapped_thp(void)
+ 	for (i = 0; i < len; i++)
+ 		one_page[i] = (char)i;
  
- 	huge_gfp = vma_thp_gfp_mask(vma);
+-	thp_size = check_huge(one_page);
+-	if (!thp_size) {
++	if (!check_huge_anon(one_page, 1, pmd_pagesize)) {
+ 		printf("No THP is allocated\n");
+ 		exit(EXIT_FAILURE);
+ 	}
+--- a/tools/testing/selftests/vm/vm_util.c~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/vm_util.c
+@@ -64,9 +64,9 @@ void clear_softdirty(void)
+ 		ksft_exit_fail_msg("writing clear_refs failed\n");
+ }
+ 
+-static bool check_for_pattern(FILE *fp, const char *pattern, char *buf)
++bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len)
+ {
+-	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
++	while (fgets(buf, len, fp)) {
+ 		if (!strncmp(buf, pattern, strlen(pattern)))
+ 			return true;
+ 	}
+@@ -94,9 +94,10 @@ uint64_t read_pmd_pagesize(void)
+ 	return strtoul(buf, NULL, 10);
+ }
+ 
+-uint64_t check_huge(void *addr)
++bool __check_huge(void *addr, char *pattern, int nr_hpages,
++		  uint64_t hpage_size)
+ {
+-	uint64_t thp = 0;
++	uint64_t thp = -1;
+ 	int ret;
+ 	FILE *fp;
+ 	char buffer[MAX_LINE_LENGTH];
+@@ -111,20 +112,27 @@ uint64_t check_huge(void *addr)
+ 	if (!fp)
+ 		ksft_exit_fail_msg("%s: Failed to open file %s\n", __func__, SMAP_FILE_PATH);
+ 
+-	if (!check_for_pattern(fp, addr_pattern, buffer))
++	if (!check_for_pattern(fp, addr_pattern, buffer, sizeof(buffer)))
+ 		goto err_out;
+ 
+ 	/*
+-	 * Fetch the AnonHugePages: in the same block and check the number of
++	 * Fetch the pattern in the same block and check the number of
+ 	 * hugepages.
+ 	 */
+-	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
++	if (!check_for_pattern(fp, pattern, buffer, sizeof(buffer)))
+ 		goto err_out;
+ 
+-	if (sscanf(buffer, "AnonHugePages:%10ld kB", &thp) != 1)
++	snprintf(addr_pattern, MAX_LINE_LENGTH, "%s%%9ld kB", pattern);
++
++	if (sscanf(buffer, addr_pattern, &thp) != 1)
+ 		ksft_exit_fail_msg("Reading smap error\n");
+ 
+ err_out:
+ 	fclose(fp);
+-	return thp;
++	return thp == (nr_hpages * (hpage_size >> 10));
++}
++
++bool check_huge_anon(void *addr, int nr_hpages, uint64_t hpage_size)
++{
++	return __check_huge(addr, "AnonHugePages: ", nr_hpages, hpage_size);
+ }
+--- a/tools/testing/selftests/vm/vm_util.h~selftests-vm-dedup-thp-helpers
++++ a/tools/testing/selftests/vm/vm_util.h
+@@ -7,5 +7,6 @@ bool pagemap_is_softdirty(int fd, char *
+ bool pagemap_is_swapped(int fd, char *start);
+ bool pagemap_range_some_swapped(int fd, char *start, size_t len);
+ void clear_softdirty(void);
++bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
+ uint64_t read_pmd_pagesize(void);
+-uint64_t check_huge(void *addr);
++bool check_huge_anon(void *addr, int nr_hpages, uint64_t hpage_size);
 _
 
 Patches currently in -mm which might be from zokeefe@google.com are
