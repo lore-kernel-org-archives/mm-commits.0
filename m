@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F79C04A95
-	for <mm-commits@archiver.kernel.org>; Sun, 25 Sep 2022 19:36:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90FA3C04A95
+	for <mm-commits@archiver.kernel.org>; Sun, 25 Sep 2022 19:40:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229674AbiIYTgZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 25 Sep 2022 15:36:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51558 "EHLO
+        id S229867AbiIYTkt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 25 Sep 2022 15:40:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231770AbiIYTgZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 25 Sep 2022 15:36:25 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05F782AC7A
-        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 12:36:24 -0700 (PDT)
+        with ESMTP id S229722AbiIYTks (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 25 Sep 2022 15:40:48 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F2142B193
+        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 12:40:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A9155B80C9F
-        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 19:36:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CF2DC433D6;
-        Sun, 25 Sep 2022 19:36:21 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 77C94CE0FBC
+        for <mm-commits@vger.kernel.org>; Sun, 25 Sep 2022 19:40:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25D05C433C1;
+        Sun, 25 Sep 2022 19:40:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664134581;
-        bh=o94rgjWv7BKsqOvgdy1QFk5a97AXJySB21uypheID30=;
+        s=korg; t=1664134843;
+        bh=hN0DtUsSKIRpT7GKUvbzNRW1unIxgQcy16pZMnJaCAQ=;
         h=Date:To:From:Subject:From;
-        b=0/o+39Jo37x3+qgBsupjW7YTUATP5RFm9srSkZB4eqa3NFEddh+hbB10SJZWsOpOy
-         INr6qaVSmWnfqUMYgjrDkjVD8S9lK8LpKrsaj/7B+mT/uR3oc+/wynuGE1Ozup2H9X
-         x2pU97qWdX5QbmD6lQ4SAScOD6Shx6cmrYg08cmM=
-Date:   Sun, 25 Sep 2022 12:36:19 -0700
-To:     mm-commits@vger.kernel.org, cuigaosheng1@huawei.com,
-        akpm@linux-foundation.org
+        b=YZzeK5F2I39fkNcSnbj9hzormrI4frGT+59zRiRzl8uUvnpVB0j1bwtI4vBqO84VL
+         65NbSqBvRw/+1t75/zVdAbUBbAcZNeXG4Ays46lSNat9ZAj5Hy76VgDhOsVChoY0Ew
+         pxlux/tIVR4Rjoe22A9c1c05fGollZPkHWMsSO/A=
+Date:   Sun, 25 Sep 2022 12:40:41 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        weixugc@google.com, tim.c.chen@intel.com, shy828301@gmail.com,
+        mhocko@kernel.org, jvgediya.oss@gmail.com,
+        Jonathan.Cameron@huawei.com, hesham.almatary@huawei.com,
+        hannes@cmpxchg.org, dave@stgolabs.net, dave.hansen@intel.com,
+        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-unused-inline-functions-from-include-linux-mm_inlineh.patch added to mm-unstable branch
-Message-Id: <20220925193621.1CF2DC433D6@smtp.kernel.org>
+Subject: + mm-demotion-expose-memory-tier-details-via-sysfs-v4.patch added to mm-unstable branch
+Message-Id: <20220925194043.25D05C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove unused inline functions from include/linux/mm_inline.h
+     Subject: mm-demotion-expose-memory-tier-details-via-sysfs-v4
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-unused-inline-functions-from-include-linux-mm_inlineh.patch
+     mm-demotion-expose-memory-tier-details-via-sysfs-v4.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unused-inline-functions-from-include-linux-mm_inlineh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-demotion-expose-memory-tier-details-via-sysfs-v4.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,58 +69,125 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gaosheng Cui <cuigaosheng1@huawei.com>
-Subject: mm: remove unused inline functions from include/linux/mm_inline.h
-Date: Thu, 22 Sep 2022 19:09:35 +0800
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm-demotion-expose-memory-tier-details-via-sysfs-v4
+Date: Thu, 22 Sep 2022 15:52:01 +0530
 
-Remove the following unused inline functions from mm_inline.h:
+drop toptier_nodes from sysfs
 
-1.  All uses of add_page_to_lru_list_tail() have been removed since
-   commit 7a3dbfe8a52b ("mm/swap: convert lru_deactivate_file to a
-   folio_batch"), and it can be replaced by lruvec_add_folio_tail().
-
-2.  All uses of __clear_page_lru_flags() have been removed since commit
-   188e8caee968 ("mm/swap: convert __page_cache_release() to use a
-   folio"), and it can be replaced by __folio_clear_lru_flags().
-
-They are useless, so remove them.
-
-Link: https://lkml.kernel.org/r/20220922110935.1495099-1-cuigaosheng1@huawei.com
-Signed-off-by: Gaosheng Cui <cuigaosheng1@huawei.com>
+Link: https://lkml.kernel.org/r/20220922102201.62168-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hesham Almatary <hesham.almatary@huawei.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Jagdish Gediya <jvgediya.oss@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm_inline.h~mm-remove-unused-inline-functions-from-include-linux-mm_inlineh
-+++ a/include/linux/mm_inline.h
-@@ -76,11 +76,6 @@ static __always_inline void __folio_clea
- 	__folio_clear_unevictable(folio);
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-memory-tiers~mm-demotion-expose-memory-tier-details-via-sysfs-v4
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-memory-tiers
+@@ -23,13 +23,3 @@ Description:	Directory with details of a
+ 
+ 		nodes: NUMA nodes that are part of this memory tier.
+ 
+-
+-What:		/sys/devices/virtual/memory_tiering/toptier_nodes
+-Date:		August 2022
+-Contact:	Linux memory management mailing list <linux-mm@kvack.org>
+-Description:	Toptier node mask
+-
+-		A toptier is defined as the memory tier from which memory promotion
+-		is not done by the kernel.
+-
+-		toptier_nodes: Union of NUMA nodes that are part of each toptier.
+--- a/mm/memory-tiers.c~mm-demotion-expose-memory-tier-details-via-sysfs-v4
++++ a/mm/memory-tiers.c
+@@ -625,57 +625,12 @@ static int __meminit memtier_hotplug_cal
+ 	return notifier_from_errno(0);
  }
  
--static __always_inline void __clear_page_lru_flags(struct page *page)
+-#ifdef CONFIG_MIGRATION
+-static ssize_t toptier_nodes_show(struct device *dev,
+-				     struct device_attribute *attr, char *buf)
 -{
--	__folio_clear_lru_flags(page_folio(page));
--}
+-	int ret;
+-	nodemask_t nmask, top_tier_mask = NODE_MASK_NONE;
+-	struct memory_tier *memtier = to_memory_tier(dev);
 -
- /**
-  * folio_lru_list - Which LRU list should a folio be on?
-  * @folio: The folio to test.
-@@ -348,12 +343,6 @@ void lruvec_add_folio_tail(struct lruvec
- 	list_add_tail(&folio->lru, &lruvec->lists[lru]);
- }
- 
--static __always_inline void add_page_to_lru_list_tail(struct page *page,
--				struct lruvec *lruvec)
+-	mutex_lock(&memory_tier_lock);
+-	list_for_each_entry(memtier, &memory_tiers, list) {
+-		if (memtier->adistance_start > top_tier_adistance)
+-			break;
+-		nmask = get_memtier_nodemask(memtier);
+-		nodes_or(top_tier_mask, top_tier_mask, nmask);
+-	}
+-
+-	ret = sysfs_emit(buf, "%*pbl\n", nodemask_pr_args(&top_tier_mask));
+-	mutex_unlock(&memory_tier_lock);
+-	return ret;
+-}
+-#else
+-static ssize_t toptier_nodes_show(struct device *dev,
+-				  struct device_attribute *attr, char *buf)
 -{
--	lruvec_add_folio_tail(lruvec, page_folio(page));
--}
+-	nodemask_t top_tier_mask = node_states[N_MEMORY];
 -
- static __always_inline
- void lruvec_del_folio(struct lruvec *lruvec, struct folio *folio)
+-	return sysfs_emit(buf, "%*pbl\n", nodemask_pr_args(&top_tier_mask));
+-}
+-#endif
+-static DEVICE_ATTR_RO(toptier_nodes);
+-
+-static struct attribute *memtier_subsys_attrs[] = {
+-	&dev_attr_toptier_nodes.attr,
+-	NULL
+-};
+-
+-static const struct attribute_group memtier_subsys_group = {
+-	.attrs = memtier_subsys_attrs,
+-};
+-
+-static const struct attribute_group *memtier_subsys_groups[] = {
+-	&memtier_subsys_group,
+-	NULL
+-};
+-
+ static int __init memory_tier_init(void)
  {
+ 	int ret, node;
+ 	struct memory_tier *memtier;
+ 
+-	ret = subsys_virtual_register(&memory_tier_subsys, memtier_subsys_groups);
++	ret = subsys_virtual_register(&memory_tier_subsys, NULL);
+ 	if (ret)
+ 		panic("%s() failed to register memory tier subsystem\n", __func__);
+ 
 _
 
-Patches currently in -mm which might be from cuigaosheng1@huawei.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-mm-remove-unused-inline-functions-from-include-linux-mm_inlineh.patch
+mm-demotion-add-support-for-explicit-memory-tiers.patch
+mm-demotion-move-memory-demotion-related-code.patch
+mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined.patch
+mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined-fix.patch
+mm-demotion-dax-kmem-set-nodes-abstract-distance-to-memtier_default_dax_adistance.patch
+mm-demotion-dax-kmem-set-nodes-abstract-distance-to-memtier_default_dax_adistance-fix.patch
+mm-demotion-build-demotion-targets-based-on-explicit-memory-tiers.patch
+mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details.patch
+mm-demotion-drop-memtier-from-memtype.patch
+mm-demotion-update-node_is_toptier-to-work-with-memory-tiers.patch
+mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-3.patch
+lib-nodemask-optimize-node_random-for-nodemask-with-single-numa-node.patch
+mm-demotion-expose-memory-tier-details-via-sysfs.patch
+mm-demotion-expose-memory-tier-details-via-sysfs-v4.patch
 
