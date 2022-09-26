@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6B92C07E9D
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 16:59:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04716C07E9D
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 17:03:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229488AbiIZQ7o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 12:59:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60930 "EHLO
+        id S230071AbiIZRDI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 13:03:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230138AbiIZQ7V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 12:59:21 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72BA42F6;
-        Mon, 26 Sep 2022 08:58:50 -0700 (PDT)
+        with ESMTP id S230051AbiIZRCv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 13:02:51 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7124BE8
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 09:04:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2949FB80B07;
-        Mon, 26 Sep 2022 15:58:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AED18C433C1;
-        Mon, 26 Sep 2022 15:58:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 91FFBB80B07
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 16:04:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31A93C433C1;
+        Mon, 26 Sep 2022 16:04:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664207927;
-        bh=IIFCOMw8OnGQF/HawiQWO19O1GCCEp6RNLt9kEbwXtw=;
+        s=korg; t=1664208281;
+        bh=MMxbe301iVqAvgd+uFfDWhEj4hL+A3KKDmwPNG9KHlw=;
         h=Date:To:From:Subject:From;
-        b=QDyUBT5NfR8suAUf+03nGSx0BJ5S+vZAroyaOZE2IUlVO0kOC1s47Q9CgM72ib9Ew
-         pT4lUxiRHfdqXlL2vvYD/5stoHAMkS4YhliOdfHboWO0PlyGavfQQYArDuGyqUwQGt
-         k8puPBXP/kdo0mv3os6xD29ZlB9t9sxE3s0NkaGw=
-Date:   Mon, 26 Sep 2022 08:58:45 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, urezki@gmail.com,
-        stable@vger.kernel.org, micron10@gmail.com, mhocko@suse.com,
-        fw@strlen.de, akpm@linux-foundation.org
+        b=pSMqUGvgsDEKaFjzB1drfDCtgK/skar0pLIDmF2XkeVcD20aANjoVAKGl7jTTjuGL
+         PWcW495nEhKqWgaiLsXPFgNUsuSJ7JJhfYK7AeEND/w6h1ZNpSVCcJZkcjDSLJcitm
+         jj1sa4J+1KZtR2ziFNC4zi68fAIWthuVQZ542l1w=
+Date:   Mon, 26 Sep 2022 09:04:39 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hughd@google.com,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-bug-splat-with-kvmalloc-gfp_atomic.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220926155847.AED18C433C1@smtp.kernel.org>
+Subject: + mm-memcontrol-deprecate-swapaccounting=0-mode.patch added to mm-unstable branch
+Message-Id: <20220926160441.31A93C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix BUG splat with kvmalloc + GFP_ATOMIC
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-bug-splat-with-kvmalloc-gfp_atomic.patch
+     Subject: mm: memcontrol: deprecate swapaccounting=0 mode
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcontrol-deprecate-swapaccounting=0-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-bug-splat-with-kvmalloc-gfp_atomic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-deprecate-swapaccounting=0-mode.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,56 +65,189 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Florian Westphal <fw@strlen.de>
-Subject: mm: fix BUG splat with kvmalloc + GFP_ATOMIC
-Date: Mon, 26 Sep 2022 17:16:50 +0200
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: deprecate swapaccounting=0 mode
+Date: Mon, 26 Sep 2022 09:57:02 -0400
 
-Martin Zaharinov reports BUG with 5.19.10 kernel:
- kernel BUG at mm/vmalloc.c:2437!
- invalid opcode: 0000 [#1] SMP
- CPU: 28 PID: 0 Comm: swapper/28 Tainted: G        W  O      5.19.9 #1
- [..]
- RIP: 0010:__get_vm_area_node+0x120/0x130
-  __vmalloc_node_range+0x96/0x1e0
-  kvmalloc_node+0x92/0xb0
-  bucket_table_alloc.isra.0+0x47/0x140
-  rhashtable_try_insert+0x3a4/0x440
-  rhashtable_insert_slow+0x1b/0x30
- [..]
+The swapaccounting= commandline option already does very little today.  To
+close a trivial containment failure case, the swap ownership tracking part
+of the swap controller has recently become mandatory (see commit
+2d1c498072de ("mm: memcontrol: make swap tracking an integral part of
+memory control") for details), which makes up the majority of the work
+during swapout, swapin, and the swap slot map.
 
-bucket_table_alloc uses kvzalloc(GPF_ATOMIC).  If kmalloc fails, this now
-falls through to vmalloc and hits code paths that assume GFP_KERNEL.
+The only thing left under this flag is the page_counter operations and the
+visibility of the swap control files in the first place, which are rather
+meager savings.  There also aren't many scenarios, if any, where
+controlling the memory of a cgroup while allowing it unlimited access to a
+global swap space is a workable resource isolation strategy.
 
-Link: https://lkml.kernel.org/r/20220926151650.15293-1-fw@strlen.de
-Fixes: a421ef303008 ("mm: allow !GFP_KERNEL allocations for kvmalloc")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Link: https://lore.kernel.org/linux-mm/Yy3MS2uhSgjF47dy@pc636/T/#t
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Martin Zaharinov <micron10@gmail.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+On the other hand, there have been several bugs and confusion around the
+many possible swap controller states (cgroup1 vs cgroup2 behavior, memory
+accounting without swap accounting, memcg runtime disabled).
+
+This puts the maintenance overhead of retaining the toggle above its
+practical benefits.  Deprecate it.
+
+Link: https://lkml.kernel.org/r/20220926135704.400818-3-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/util.c~mm-fix-bug-splat-with-kvmalloc-gfp_atomic
-+++ a/mm/util.c
-@@ -619,6 +619,10 @@ void *kvmalloc_node(size_t size, gfp_t f
- 	if (ret || size <= PAGE_SIZE)
- 		return ret;
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-memcontrol-deprecate-swapaccounting=0-mode
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -6036,12 +6036,6 @@
+ 			This parameter controls use of the Protected
+ 			Execution Facility on pSeries.
  
-+	/* non-sleeping allocations are not supported by vmalloc */
-+	if (!gfpflags_allow_blocking(flags))
-+		return NULL;
-+
- 	/* Don't even allow crazy sizes */
- 	if (unlikely(size > INT_MAX)) {
- 		WARN_ON_ONCE(!(flags & __GFP_NOWARN));
+-	swapaccount=	[KNL]
+-			Format: [0|1]
+-			Enable accounting of swap in memory resource
+-			controller if no parameter or 1 is given or disable
+-			it if 0 is given (See Documentation/admin-guide/cgroup-v1/memory.rst)
+-
+ 	swiotlb=	[ARM,IA-64,PPC,MIPS,X86]
+ 			Format: { <int> [,<int>] | force | noforce }
+ 			<int> -- Number of I/O TLB slabs
+--- a/mm/memcontrol.c~mm-memcontrol-deprecate-swapaccounting=0-mode
++++ a/mm/memcontrol.c
+@@ -88,22 +88,6 @@ static bool cgroup_memory_nosocket __ro_
+ /* Kernel memory accounting disabled? */
+ static bool cgroup_memory_nokmem __ro_after_init;
+ 
+-/* Whether the swap controller is active */
+-#ifdef CONFIG_MEMCG_SWAP
+-static bool cgroup_memory_noswap __initdata;
+-
+-static DEFINE_STATIC_KEY_FALSE(memcg_swap_enabled_key);
+-static inline bool memcg_swap_enabled(void)
+-{
+-	return static_branch_likely(&memcg_swap_enabled_key);
+-}
+-#else
+-static inline bool memcg_swap_enabled(void)
+-{
+-	return false;
+-}
+-#endif
+-
+ #ifdef CONFIG_CGROUP_WRITEBACK
+ static DECLARE_WAIT_QUEUE_HEAD(memcg_cgwb_frn_waitq);
+ #endif
+@@ -111,7 +95,7 @@ static DECLARE_WAIT_QUEUE_HEAD(memcg_cgw
+ /* Whether legacy memory+swap accounting is active */
+ static bool do_memsw_account(void)
+ {
+-	return !cgroup_subsys_on_dfl(memory_cgrp_subsys) && memcg_swap_enabled();
++	return !cgroup_subsys_on_dfl(memory_cgrp_subsys);
+ }
+ 
+ #define THRESHOLDS_EVENTS_TARGET 128
+@@ -7379,7 +7363,7 @@ void mem_cgroup_swapout(struct folio *fo
+ 	if (!mem_cgroup_is_root(memcg))
+ 		page_counter_uncharge(&memcg->memory, nr_entries);
+ 
+-	if (memcg_swap_enabled() && memcg != swap_memcg) {
++	if (memcg != swap_memcg) {
+ 		if (!mem_cgroup_is_root(swap_memcg))
+ 			page_counter_charge(&swap_memcg->memsw, nr_entries);
+ 		page_counter_uncharge(&memcg->memsw, nr_entries);
+@@ -7431,7 +7415,7 @@ int __mem_cgroup_try_charge_swap(struct
+ 
+ 	memcg = mem_cgroup_id_get_online(memcg);
+ 
+-	if (memcg_swap_enabled() && !mem_cgroup_is_root(memcg) &&
++	if (!mem_cgroup_is_root(memcg) &&
+ 	    !page_counter_try_charge(&memcg->swap, nr_pages, &counter)) {
+ 		memcg_memory_event(memcg, MEMCG_SWAP_MAX);
+ 		memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
+@@ -7466,7 +7450,7 @@ void __mem_cgroup_uncharge_swap(swp_entr
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_id(id);
+ 	if (memcg) {
+-		if (memcg_swap_enabled() && !mem_cgroup_is_root(memcg)) {
++		if (!mem_cgroup_is_root(memcg)) {
+ 			if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 				page_counter_uncharge(&memcg->swap, nr_pages);
+ 			else
+@@ -7482,7 +7466,7 @@ long mem_cgroup_get_nr_swap_pages(struct
+ {
+ 	long nr_swap_pages = get_nr_swap_pages();
+ 
+-	if (!memcg_swap_enabled() || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	if (mem_cgroup_disabled() || do_memsw_account())
+ 		return nr_swap_pages;
+ 	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg))
+ 		nr_swap_pages = min_t(long, nr_swap_pages,
+@@ -7499,7 +7483,7 @@ bool mem_cgroup_swap_full(struct folio *
+ 
+ 	if (vm_swap_full())
+ 		return true;
+-	if (!memcg_swap_enabled() || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	if (do_memsw_account())
+ 		return false;
+ 
+ 	memcg = folio_memcg(folio);
+@@ -7519,10 +7503,9 @@ bool mem_cgroup_swap_full(struct folio *
+ 
+ static int __init setup_swap_account(char *s)
+ {
+-	bool res;
+-
+-	if (!kstrtobool(s, &res))
+-		cgroup_memory_noswap = !res;
++	pr_warn_once("The swapaccount= commandline option is deprecated. "
++		     "Please report your usecase to linux-mm@kvack.org if you "
++		     "depend on this functionality.\n");
+ 	return 1;
+ }
+ __setup("swapaccount=", setup_swap_account);
+@@ -7791,24 +7774,11 @@ static struct cftype zswap_files[] = {
+ };
+ #endif /* CONFIG_MEMCG_KMEM && CONFIG_ZSWAP */
+ 
+-/*
+- * If mem_cgroup_swap_init() is implemented as a subsys_initcall()
+- * instead of a core_initcall(), this could mean cgroup_memory_noswap still
+- * remains set to false even when memcg is disabled via "cgroup_disable=memory"
+- * boot parameter. This may result in premature OOPS inside
+- * mem_cgroup_get_nr_swap_pages() function in corner cases.
+- */
+ static int __init mem_cgroup_swap_init(void)
+ {
+-	/* No memory control -> no swap control */
+ 	if (mem_cgroup_disabled())
+-		cgroup_memory_noswap = true;
+-
+-	if (cgroup_memory_noswap)
+ 		return 0;
+ 
+-	static_branch_enable(&memcg_swap_enabled_key);
+-
+ 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
+ 	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys, memsw_files));
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+@@ -7816,6 +7786,6 @@ static int __init mem_cgroup_swap_init(v
+ #endif
+ 	return 0;
+ }
+-core_initcall(mem_cgroup_swap_init);
++subsys_initcall(mem_cgroup_swap_init);
+ 
+ #endif /* CONFIG_MEMCG_SWAP */
 _
 
-Patches currently in -mm which might be from fw@strlen.de are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-fix-bug-splat-with-kvmalloc-gfp_atomic.patch
+mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
+mm-memcontrol-dont-allocate-cgroup-swap-arrays-when-memcg-is-disabled.patch
+mm-memcontrol-deprecate-swapaccounting=0-mode.patch
+mm-memcontrol-use-do_memsw_account-in-a-few-more-places.patch
+mm-memcontrol-drop-dead-config_memcg_swap-config-symbol.patch
 
