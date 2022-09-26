@@ -2,43 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C7BAC07E9D
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 20:58:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52E6EC32771
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 20:59:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231194AbiIZU6m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 16:58:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48432 "EHLO
+        id S230490AbiIZU71 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 16:59:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230490AbiIZU6l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 16:58:41 -0400
+        with ESMTP id S230147AbiIZU70 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 16:59:26 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 050F3A0317
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 13:58:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D49BA0331
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 13:59:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 998D76140D
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 20:58:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBD80C433C1;
-        Mon, 26 Sep 2022 20:58:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 391BD612D7
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 20:59:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AB09C433C1;
+        Mon, 26 Sep 2022 20:59:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664225920;
-        bh=rD4C7gRZt+lVLXp9+TGve2iJvUmZ6FAyoelbxz7x3Sc=;
+        s=korg; t=1664225964;
+        bh=a2lL2wVtuyfyH4sFcMoSo3TECCeQOIvM/4O+7jDRLFE=;
         h=Date:To:From:Subject:From;
-        b=O49gM8trWfYoqr5i/xT+JhVSgk4E20SqCsfIfCt1wqK29aYlhSiKJQ7kdUBpDCbai
-         +zNwLRLYpdSh+xI1crup92pA3t+lXiEVuGxUfg2FnKGCBMa+ROixyYapDoQyQiWF4m
-         kUP1XVYCoPqu9EUxHB3Ab8FTGPo8VK4LY5W3I6F8=
-Date:   Mon, 26 Sep 2022 13:58:39 -0700
+        b=IqgeDiFSZMr8lWyRb+xVe1DduwBtf+WYG9ECCRrTzi6yfEV/fQahly6XfeeAYtQDg
+         wlGEAqjQS6wZ7Yf59M4jQgo0AiC2JrBocT4YYvSk54EkdMeuKKOjO6KkmGhNH0uH+H
+         /c2H9t8qUpKGUdG5OyQpKddtzdaIyL1V8qx63U5M=
+Date:   Mon, 26 Sep 2022 13:59:23 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        weixugc@google.com, tim.c.chen@intel.com, sj@kernel.org,
-        shy828301@gmail.com, mhocko@kernel.org, jvgediya.oss@gmail.com,
+        weixugc@google.com, tim.c.chen@intel.com, shy828301@gmail.com,
+        mhocko@kernel.org, jvgediya.oss@gmail.com,
         Jonathan.Cameron@huawei.com, hesham.almatary@huawei.com,
         hannes@cmpxchg.org, dave@stgolabs.net, dave.hansen@intel.com,
         dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
-        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
+        aneesh.kumar@linux.ibm.com, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-demotion-dax-kmem-set-nodes-abstract-distance-to-memtier_default_dax_adistance-fix.patch removed from -mm tree
-Message-Id: <20220926205839.EBD80C433C1@smtp.kernel.org>
+Subject: [folded-merged] mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix.patch removed from -mm tree
+Message-Id: <20220926205924.8AB09C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,29 +47,35 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/demotion: assign correct memory type for multiple dax devices with the same node affinity
+     Subject: kernel/sched/fair: include missed header file, memory-tiers.h
 has been removed from the -mm tree.  Its filename was
-     mm-demotion-dax-kmem-set-nodes-abstract-distance-to-memtier_default_dax_adistance-fix.patch
+     mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix.patch
 
-This patch was dropped because it was folded into mm-demotion-dax-kmem-set-nodes-abstract-distance-to-memtier_default_dax_adistance.patch
+This patch was dropped because it was folded into mm-demotion-update-node_is_toptier-to-work-with-memory-tiers.patch
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/demotion: assign correct memory type for multiple dax devices with the same node affinity
-Date: Fri, 26 Aug 2022 15:32:24 +0530
+From: SeongJae Park <sj@kernel.org>
+Subject: kernel/sched/fair: include missed header file, memory-tiers.h
+Date: Sat, 20 Aug 2022 19:07:20 +0000
 
-With multiple dax devices having the same node affinity, the kernel
-wrongly assigned default_dram memory type to some devices after the memory
-hotplug operation.  Fix this by not clearing node_memory_types on the dax
-device remove.
+Commit f66f3c261487 ("mm/demotion: update node_is_toptier to work with
+memory tiers") of the 'mm-unstable' tree moved the declaration of
+'node_is_toptier()' from 'node.h' to 'memory-tiers.h' but didn't include
+the header in a source file using the function, 'kernel/sched/fair.c'.
+As a result, build fails as below:
 
-The current kernel cleared node_memory_type on successful removal of a dax
-device.  But then we can have multiple dax devices with the same node
-affinity.  Clearing the node_memory_type results in assigning other dax
-devices to the default dram type when we bring them online.
+    linux/kernel/sched/fair.c: In function `should_numa_migrate_memory':
+    linux/kernel/sched/fair.c:1571:7: error: implicit declaration of function `node_is_toptier' [-Werror=implicit-function-declaration]
+     1571 |      !node_is_toptier(src_nid)) {
+          |       ^~~~~~~~~~~~~~~
+    cc1: some warnings being treated as errors
 
-Link: https://lkml.kernel.org/r/20220826100224.542312-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+This commit fixes the error by including the missed header file.
+
+Link: https://lkml.kernel.org/r/20220820190720.248704-1-sj@kernel.org
+Fixes: f66f3c261487 ("mm/demotion: update node_is_toptier to work with memory tiers") on mm-unstable
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Bharata B Rao <bharata@amd.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -80,106 +87,58 @@ Cc: Jagdish Gediya <jvgediya.oss@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
 Cc: Tim Chen <tim.c.chen@intel.com>
 Cc: Wei Xu <weixugc@google.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-tiers.c |   37 +++++++++++++++++++++++++++++--------
- 1 file changed, 29 insertions(+), 8 deletions(-)
+ kernel/sched/fair.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memory-tiers.c~mm-demotion-dax-kmem-set-nodes-abstract-distance-to-memtier_default_dax_adistance-fix
-+++ a/mm/memory-tiers.c
-@@ -19,9 +19,14 @@ struct memory_tier {
- 	int adistance_start;
- };
+--- a/kernel/sched/fair.c~mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix
++++ a/kernel/sched/fair.c
+@@ -40,6 +40,7 @@
  
-+struct node_memory_type_map {
-+	struct memory_dev_type *memtype;
-+	int map_count;
-+};
-+
- static DEFINE_MUTEX(memory_tier_lock);
- static LIST_HEAD(memory_tiers);
--static struct memory_dev_type *node_memory_types[MAX_NUMNODES];
-+static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
- static struct memory_dev_type *default_dram_type;
- 
- static struct memory_tier *find_create_memory_tier(struct memory_dev_type *memtype)
-@@ -70,9 +75,19 @@ static struct memory_tier *find_create_m
- 
- static inline void __init_node_memory_type(int node, struct memory_dev_type *memtype)
- {
--	if (!node_memory_types[node]) {
--		node_memory_types[node] = memtype;
--		kref_get(&memtype->kref);
-+	if (!node_memory_types[node].memtype)
-+		node_memory_types[node].memtype = memtype;
-+	/*
-+	 * for each device getting added in the same NUMA node
-+	 * with this specific memtype, bump the map count. We
-+	 * Only take memtype device reference once, so that
-+	 * changing a node memtype can be done by droping the
-+	 * only reference count taken here.
-+	 */
-+
-+	if (node_memory_types[node].memtype == memtype) {
-+		if (!node_memory_types[node].map_count++)
-+			kref_get(&memtype->kref);
- 	}
- }
- 
-@@ -88,7 +103,7 @@ static struct memory_tier *set_node_memo
- 
- 	__init_node_memory_type(node, default_dram_type);
- 
--	memtype = node_memory_types[node];
-+	memtype = node_memory_types[node].memtype;
- 	node_set(node, memtype->nodes);
- 	memtier = find_create_memory_tier(memtype);
- 	return memtier;
-@@ -119,7 +134,7 @@ static bool clear_node_memory_tier(int n
- 	if (memtier) {
- 		struct memory_dev_type *memtype;
- 
--		memtype = node_memory_types[node];
-+		memtype = node_memory_types[node].memtype;
- 		node_clear(node, memtype->nodes);
- 		if (nodes_empty(memtype->nodes)) {
- 			list_del_init(&memtype->tier_sibiling);
-@@ -175,8 +190,14 @@ EXPORT_SYMBOL_GPL(init_node_memory_type)
- void clear_node_memory_type(int node, struct memory_dev_type *memtype)
- {
- 	mutex_lock(&memory_tier_lock);
--	if (node_memory_types[node] == memtype) {
--		node_memory_types[node] = NULL;
-+	if (node_memory_types[node].memtype == memtype)
-+		node_memory_types[node].map_count--;
-+	/*
-+	 * If we umapped all the attached devices to this node,
-+	 * clear the node memory type.
-+	 */
-+	if (!node_memory_types[node].map_count) {
-+		node_memory_types[node].memtype = NULL;
- 		kref_put(&memtype->kref, release_memtype);
- 	}
- 	mutex_unlock(&memory_tier_lock);
+ #include <linux/cpuidle.h>
+ #include <linux/interrupt.h>
++#include <linux/memory-tiers.h>
+ #include <linux/mempolicy.h>
+ #include <linux/mutex_api.h>
+ #include <linux/profile.h>
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-demotion-add-support-for-explicit-memory-tiers.patch
-mm-demotion-move-memory-demotion-related-code.patch
-mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined.patch
-mm-demotion-dax-kmem-set-nodes-abstract-distance-to-memtier_default_dax_adistance.patch
-mm-demotion-build-demotion-targets-based-on-explicit-memory-tiers.patch
-mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details.patch
-mm-demotion-drop-memtier-from-memtype.patch
 mm-demotion-update-node_is_toptier-to-work-with-memory-tiers.patch
-mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-3.patch
-lib-nodemask-optimize-node_random-for-nodemask-with-single-numa-node.patch
-mm-demotion-expose-memory-tier-details-via-sysfs.patch
-mm-demotion-expose-memory-tier-details-via-sysfs-v4.patch
+selftest-damon-add-a-test-for-duplicate-context-dirs-creation.patch
+mm-damon-core-avoid-holes-in-newly-set-monitoring-target-ranges.patch
+mm-damon-core-avoid-holes-in-newly-set-monitoring-target-ranges-fix.patch
+mm-damon-core-test-test-damon_set_regions.patch
+docs-admin-guide-mm-damon-rename-the-title-of-the-document.patch
+mm-damon-kconfig-notify-debugfs-deprecation-plan.patch
+docs-admin-guide-mm-damon-start-mention-the-dependency-as-sysfs-instead-of-debugfs.patch
+docs-admin-guide-mm-damon-usage-note-damon-debugfs-interface-deprecation-plan.patch
+mm-damon-paddr-make-supported-damos-actions-of-paddr-clear.patch
+mm-damon-paddr-deduplicate-damon_pa_mark_accesseddeactivate_pages.patch
+mm-damon-core-copy-struct-to-struct-instead-of-field-to-field-in-damon_new_scheme.patch
+mm-damon-core-factor-out-damos_quota-private-fileds-initialization.patch
+mm-damon-core-use-a-dedicated-struct-for-monitoring-attributes.patch
+mm-damon-core-reduce-parameters-for-damon_set_attrs.patch
+mm-damon-reclaim-use-struct-damon_attrs-for-storing-parameters-for-it.patch
+mm-damon-lru_sort-use-struct-damon_attrs-for-storing-parameters-for-it.patch
+mm-damon-implement-a-monitoring-attributes-module-parameters-generator-macro.patch
+mm-damon-lru_sort-use-monitoring-attributes-parameters-generaotr-macro.patch
+mm-damon-reclaim-use-monitoring-attributes-parameters-generator-macro.patch
+mm-damon-modules-common-implement-a-watermarks-module-parameters-generator-macro.patch
+mm-damon-lru_sort-use-watermarks-parameters-generator-macro.patch
+mm-damon-reclaim-use-watermarks-parameters-generator-macro.patch
+mm-damon-modules-common-implement-a-stats-parameters-generator-macro.patch
+mm-damon-reclaim-use-stat-parameters-generator.patch
+mm-damon-lru_sort-use-stat-generator.patch
+mm-damon-modules-common-implement-a-damos-quota-params-generator.patch
+mm-damon-modules-common-implement-damos-time-quota-params-generator.patch
+mm-damon-reclaim-use-the-quota-params-generator-macro.patch
+mm-damon-lru_sort-use-quotas-param-generator.patch
+mm-damon-lru_sort-deduplicate-hot-cold-schemes-generators.patch
 
