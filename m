@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 493AEC32771
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 17:14:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA4F5C07E9D
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 17:18:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230318AbiIZROr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 13:14:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43120 "EHLO
+        id S229810AbiIZRSl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 13:18:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230322AbiIZROZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 13:14:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C6C84599A;
-        Mon, 26 Sep 2022 09:26:05 -0700 (PDT)
+        with ESMTP id S230236AbiIZRSH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 13:18:07 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B67DCB5E5E
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 09:31:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ACF6D60F93;
-        Mon, 26 Sep 2022 16:26:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0F45C433C1;
-        Mon, 26 Sep 2022 16:26:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 958EDB80B2B
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 16:31:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24BE9C433C1;
+        Mon, 26 Sep 2022 16:31:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664209564;
-        bh=/pMO+HkTnGepokq+oqMOrGh3yo5nDjVI+hg23C63v6Y=;
+        s=korg; t=1664209878;
+        bh=GiOEyKS2dWuKQ8QjDaGTjq/R9sAqEyBuYf0JhW/PBUg=;
         h=Date:To:From:Subject:From;
-        b=D3Gsqz9933T81jfJpRL/LA91Y13JcRBopK5Lr5Oey6K+x8zhxtL8OFww03IY14IKN
-         e257yDdHnndCORhjz5xRZ8lTBNdcQyhg6EoauEjYv3WAKiCUKruvRVXOfNmcS1EIzv
-         Mhb0SB7h2SSBX3AOTIV/pq4KqxVtTdBsnEPzdPg4=
-Date:   Mon, 26 Sep 2022 09:26:02 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
-        ppbuk5246@gmail.com, akpm@linux-foundation.org
+        b=UtUBVyz3JAi2Fk+sYgRSXn57kdUp8yF23Lx3jlIKRNKysVp+gQZmern9Tjqthm0Vm
+         s1Vc22M1n6YFmAqToiJseZcZu9eN2VtNmvCMBNX05qOWQXsSO/FkLPt2SYzFl+JWO0
+         KnDaZJbuhR1ZU+ag9/VOQzBo0hGawp7uAjBA4aKI=
+Date:   Mon, 26 Sep 2022 09:31:15 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, xkernel.wang@foxmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220926162603.E0F45C433C1@smtp.kernel.org>
+Subject: + lib-test_meminit-add-checks-for-the-allocation-functions.patch added to mm-unstable branch
+Message-Id: <20220926163118.24BE9C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: damon/sysfs: fix possible memleak on damon_sysfs_add_target
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target.patch
+     Subject: lib/test_meminit: add checks for the allocation functions
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-test_meminit-add-checks-for-the-allocation-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_meminit-add-checks-for-the-allocation-functions.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,46 +66,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Levi Yun <ppbuk5246@gmail.com>
-Subject: damon/sysfs: fix possible memleak on damon_sysfs_add_target
-Date: Mon, 26 Sep 2022 16:06:11 +0000
+From: Xiaoke Wang <xkernel.wang@foxmail.com>
+Subject: lib/test_meminit: add checks for the allocation functions
+Date: Fri, 4 Mar 2022 17:12:15 +0800
 
-When damon_sysfs_add_target couldn't find proper task, New allocated
-damon_target structure isn't registered yet, So, it's impossible to free
-new allocated one by damon_sysfs_destroy_targets.
+alloc_pages(), kmalloc() and vmalloc() are all memory allocation functions
+which can return NULL when some internal memory failures happen.  So it is
+better to check the return of them to catch the failure in time for better
+test them.
 
-By calling daemon_add_target as soon as allocating new target, Fix this
-possible memory leak.
-
-Link: https://lkml.kernel.org/r/20220926160611.48536-1-sj@kernel.org
-Fixes: a61ea561c871 ("mm/damon/sysfs: link DAMON for virtual address spaces monitoring")
-Signed-off-by: Levi Yun <ppbuk5246@gmail.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[5.17.x]
+Link: https://lkml.kernel.org/r/tencent_D44A49FFB420EDCCBFB9221C8D14DFE12908@qq.com
+Signed-off-by: Xiaoke Wang <xkernel.wang@foxmail.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/damon/sysfs.c~damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target
-+++ a/mm/damon/sysfs.c
-@@ -2182,12 +2182,12 @@ static int damon_sysfs_add_target(struct
+--- a/lib/test_meminit.c~lib-test_meminit-add-checks-for-the-allocation-functions
++++ a/lib/test_meminit.c
+@@ -67,17 +67,24 @@ static int __init do_alloc_pages_order(i
+ 	size_t size = PAGE_SIZE << order;
  
- 	if (!t)
- 		return -ENOMEM;
-+	damon_add_target(ctx, t);
- 	if (damon_target_has_pid(ctx)) {
- 		t->pid = find_get_pid(sys_target->pid);
- 		if (!t->pid)
- 			goto destroy_targets_out;
- 	}
--	damon_add_target(ctx, t);
- 	err = damon_sysfs_set_regions(t, sys_target->regions);
- 	if (err)
- 		goto destroy_targets_out;
+ 	page = alloc_pages(GFP_KERNEL, order);
++	if (!page)
++		goto err;
+ 	buf = page_address(page);
+ 	fill_with_garbage(buf, size);
+ 	__free_pages(page, order);
+ 
+ 	page = alloc_pages(GFP_KERNEL, order);
++	if (!page)
++		goto err;
+ 	buf = page_address(page);
+ 	if (count_nonzero_bytes(buf, size))
+ 		(*total_failures)++;
+ 	fill_with_garbage(buf, size);
+ 	__free_pages(page, order);
+ 	return 1;
++err:
++	(*total_failures)++;
++	return 1;
+ }
+ 
+ /* Test the page allocator by calling alloc_pages with different orders. */
+@@ -100,15 +107,22 @@ static int __init do_kmalloc_size(size_t
+ 	void *buf;
+ 
+ 	buf = kmalloc(size, GFP_KERNEL);
++	if (!buf)
++		goto err;
+ 	fill_with_garbage(buf, size);
+ 	kfree(buf);
+ 
+ 	buf = kmalloc(size, GFP_KERNEL);
++	if (!buf)
++		goto err;
+ 	if (count_nonzero_bytes(buf, size))
+ 		(*total_failures)++;
+ 	fill_with_garbage(buf, size);
+ 	kfree(buf);
+ 	return 1;
++err:
++	(*total_failures)++;
++	return 1;
+ }
+ 
+ /* Test vmalloc() with given parameters. */
+@@ -117,15 +131,22 @@ static int __init do_vmalloc_size(size_t
+ 	void *buf;
+ 
+ 	buf = vmalloc(size);
++	if (!buf)
++		goto err;
+ 	fill_with_garbage(buf, size);
+ 	vfree(buf);
+ 
+ 	buf = vmalloc(size);
++	if (!buf)
++		goto err;
+ 	if (count_nonzero_bytes(buf, size))
+ 		(*total_failures)++;
+ 	fill_with_garbage(buf, size);
+ 	vfree(buf);
+ 	return 1;
++err:
++	(*total_failures)++;
++	return 1;
+ }
+ 
+ /* Test kmalloc()/vmalloc() by allocating objects of different sizes. */
 _
 
-Patches currently in -mm which might be from ppbuk5246@gmail.com are
+Patches currently in -mm which might be from xkernel.wang@foxmail.com are
 
-damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target.patch
+lib-test_meminit-add-checks-for-the-allocation-functions.patch
 
