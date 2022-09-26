@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA4F5C07E9D
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 17:18:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9419CC07E9D
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 18:25:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229810AbiIZRSl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 13:18:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52060 "EHLO
+        id S230299AbiIZSZj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 14:25:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230236AbiIZRSH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 13:18:07 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B67DCB5E5E
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 09:31:22 -0700 (PDT)
+        with ESMTP id S230062AbiIZSZS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 14:25:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02C4213DFC
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 11:23:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 958EDB80B2B
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 16:31:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24BE9C433C1;
-        Mon, 26 Sep 2022 16:31:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 93547611CD
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 18:23:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C152FC433D6;
+        Mon, 26 Sep 2022 18:23:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664209878;
-        bh=GiOEyKS2dWuKQ8QjDaGTjq/R9sAqEyBuYf0JhW/PBUg=;
+        s=korg; t=1664216592;
+        bh=UxIXjnduZOo9zPbgLswXdKlbJsM2InRwwh0qmSc4tYA=;
         h=Date:To:From:Subject:From;
-        b=UtUBVyz3JAi2Fk+sYgRSXn57kdUp8yF23Lx3jlIKRNKysVp+gQZmern9Tjqthm0Vm
-         s1Vc22M1n6YFmAqToiJseZcZu9eN2VtNmvCMBNX05qOWQXsSO/FkLPt2SYzFl+JWO0
-         KnDaZJbuhR1ZU+ag9/VOQzBo0hGawp7uAjBA4aKI=
-Date:   Mon, 26 Sep 2022 09:31:15 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        andreyknvl@gmail.com, xkernel.wang@foxmail.com,
+        b=Ko+qIBi15cnzs2rXQMTvNtRR0jY2UdnE8WcdpO5pQ8Emr8Lho0Gaze4qCOWZvAf4+
+         BtwylH2GKsH+MpeAZy9qtTHFejHuTapQaI3nDnrh4F/7SP91cx1cVjv4j3tdfVArv7
+         zpk/MSABCZ7ZLmiYzSArAOhaOP30TXhmW3ZhxxzI=
+Date:   Mon, 26 Sep 2022 11:23:10 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, lkp@intel.com,
+        keescook@chromium.org, glider@google.com, elver@google.com,
+        dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_meminit-add-checks-for-the-allocation-functions.patch added to mm-unstable branch
-Message-Id: <20220926163118.24BE9C433C1@smtp.kernel.org>
+Subject: + kasan-fix-array-bounds-warnings-in-tests.patch added to mm-unstable branch
+Message-Id: <20220926182311.C152FC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_meminit: add checks for the allocation functions
+     Subject: kasan: fix array-bounds warnings in tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-test_meminit-add-checks-for-the-allocation-functions.patch
+     kasan-fix-array-bounds-warnings-in-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_meminit-add-checks-for-the-allocation-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-fix-array-bounds-warnings-in-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,102 +66,108 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xiaoke Wang <xkernel.wang@foxmail.com>
-Subject: lib/test_meminit: add checks for the allocation functions
-Date: Fri, 4 Mar 2022 17:12:15 +0800
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: fix array-bounds warnings in tests
+Date: Mon, 26 Sep 2022 20:08:47 +0200
 
-alloc_pages(), kmalloc() and vmalloc() are all memory allocation functions
-which can return NULL when some internal memory failures happen.  So it is
-better to check the return of them to catch the failure in time for better
-test them.
+GCC's -Warray-bounds option detects out-of-bounds accesses to
+statically-sized allocations in krealloc out-of-bounds tests.
 
-Link: https://lkml.kernel.org/r/tencent_D44A49FFB420EDCCBFB9221C8D14DFE12908@qq.com
-Signed-off-by: Xiaoke Wang <xkernel.wang@foxmail.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Use OPTIMIZER_HIDE_VAR to suppress the warning.
+
+Also change kmalloc_memmove_invalid_size to use OPTIMIZER_HIDE_VAR
+instead of a volatile variable.
+
+Link: https://lkml.kernel.org/r/e94399242d32e00bba6fd0d9ec4c897f188128e8.1664215688.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/lib/test_meminit.c~lib-test_meminit-add-checks-for-the-allocation-functions
-+++ a/lib/test_meminit.c
-@@ -67,17 +67,24 @@ static int __init do_alloc_pages_order(i
- 	size_t size = PAGE_SIZE << order;
+--- a/mm/kasan/kasan_test.c~kasan-fix-array-bounds-warnings-in-tests
++++ a/mm/kasan/kasan_test.c
+@@ -295,6 +295,9 @@ static void krealloc_more_oob_helper(str
+ 	ptr2 = krealloc(ptr1, size2, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
  
- 	page = alloc_pages(GFP_KERNEL, order);
-+	if (!page)
-+		goto err;
- 	buf = page_address(page);
- 	fill_with_garbage(buf, size);
- 	__free_pages(page, order);
++	/* Suppress -Warray-bounds warnings. */
++	OPTIMIZER_HIDE_VAR(ptr2);
++
+ 	/* All offsets up to size2 must be accessible. */
+ 	ptr2[size1 - 1] = 'x';
+ 	ptr2[size1] = 'x';
+@@ -327,6 +330,9 @@ static void krealloc_less_oob_helper(str
+ 	ptr2 = krealloc(ptr1, size2, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr2);
  
- 	page = alloc_pages(GFP_KERNEL, order);
-+	if (!page)
-+		goto err;
- 	buf = page_address(page);
- 	if (count_nonzero_bytes(buf, size))
- 		(*total_failures)++;
- 	fill_with_garbage(buf, size);
- 	__free_pages(page, order);
- 	return 1;
-+err:
-+	(*total_failures)++;
-+	return 1;
- }
++	/* Suppress -Warray-bounds warnings. */
++	OPTIMIZER_HIDE_VAR(ptr2);
++
+ 	/* Must be accessible for all modes. */
+ 	ptr2[size2 - 1] = 'x';
  
- /* Test the page allocator by calling alloc_pages with different orders. */
-@@ -100,15 +107,22 @@ static int __init do_kmalloc_size(size_t
- 	void *buf;
+@@ -540,13 +546,14 @@ static void kmalloc_memmove_invalid_size
+ {
+ 	char *ptr;
+ 	size_t size = 64;
+-	volatile size_t invalid_size = size;
++	size_t invalid_size = size;
  
- 	buf = kmalloc(size, GFP_KERNEL);
-+	if (!buf)
-+		goto err;
- 	fill_with_garbage(buf, size);
- 	kfree(buf);
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
  
- 	buf = kmalloc(size, GFP_KERNEL);
-+	if (!buf)
-+		goto err;
- 	if (count_nonzero_bytes(buf, size))
- 		(*total_failures)++;
- 	fill_with_garbage(buf, size);
- 	kfree(buf);
- 	return 1;
-+err:
-+	(*total_failures)++;
-+	return 1;
- }
- 
- /* Test vmalloc() with given parameters. */
-@@ -117,15 +131,22 @@ static int __init do_vmalloc_size(size_t
- 	void *buf;
- 
- 	buf = vmalloc(size);
-+	if (!buf)
-+		goto err;
- 	fill_with_garbage(buf, size);
- 	vfree(buf);
- 
- 	buf = vmalloc(size);
-+	if (!buf)
-+		goto err;
- 	if (count_nonzero_bytes(buf, size))
- 		(*total_failures)++;
- 	fill_with_garbage(buf, size);
- 	vfree(buf);
- 	return 1;
-+err:
-+	(*total_failures)++;
-+	return 1;
- }
- 
- /* Test kmalloc()/vmalloc() by allocating objects of different sizes. */
+ 	memset((char *)ptr, 0, 64);
+ 	OPTIMIZER_HIDE_VAR(ptr);
++	OPTIMIZER_HIDE_VAR(invalid_size);
+ 	KUNIT_EXPECT_KASAN_FAIL(test,
+ 		memmove((char *)ptr, (char *)ptr + 4, invalid_size));
+ 	kfree(ptr);
 _
 
-Patches currently in -mm which might be from xkernel.wang@foxmail.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-lib-test_meminit-add-checks-for-the-allocation-functions.patch
+kasan-check-kasan_no_free_meta-in-__kasan_metadata_size.patch
+kasan-rename-kasan_set__info-to-kasan_save__info.patch
+kasan-move-is_kmalloc-check-out-of-save_alloc_info.patch
+kasan-split-save_alloc_info-implementations.patch
+kasan-drop-config_kasan_tags_identify.patch
+kasan-introduce-kasan_print_aux_stacks.patch
+kasan-introduce-kasan_get_alloc_track.patch
+kasan-introduce-kasan_init_object_meta.patch
+kasan-clear-metadata-functions-for-tag-based-modes.patch
+kasan-move-kasan_get__meta-to-genericc.patch
+kasan-introduce-kasan_requires_meta.patch
+kasan-introduce-kasan_init_cache_meta.patch
+kasan-drop-config_kasan_generic-check-from-kasan_init_cache_meta.patch
+kasan-only-define-kasan_metadata_size-for-generic-mode.patch
+kasan-only-define-kasan_never_merge-for-generic-mode.patch
+kasan-only-define-metadata-offsets-for-generic-mode.patch
+kasan-only-define-metadata-structs-for-generic-mode.patch
+kasan-only-define-kasan_cache_create-for-generic-mode.patch
+kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info.patch
+kasan-move-kasan_get_alloc-free_track-definitions.patch
+kasan-cosmetic-changes-in-reportc.patch
+kasan-use-virt_addr_valid-in-kasan_addr_to_page-slab.patch
+kasan-use-kasan_addr_to_slab-in-print_address_description.patch
+kasan-make-kasan_addr_to_page-static.patch
+kasan-simplify-print_report.patch
+kasan-introduce-complete_report_info.patch
+kasan-fill-in-cache-and-object-in-complete_report_info.patch
+kasan-rework-function-arguments-in-reportc.patch
+kasan-introduce-kasan_complete_mode_report_info.patch
+kasan-implement-stack-ring-for-tag-based-modes.patch
+kasan-implement-stack-ring-for-tag-based-modes-fix.patch
+kasan-support-kasanstacktrace-for-sw_tags.patch
+kasan-dynamically-allocate-stack-ring-entries.patch
+kasan-better-identify-bug-types-for-tag-based-modes.patch
+kasan-add-another-use-after-free-test.patch
+kasan-move-tests-to-mm-kasan.patch
+kasan-better-invalid-double-free-report-header.patch
+kasan-fix-array-bounds-warnings-in-tests.patch
 
