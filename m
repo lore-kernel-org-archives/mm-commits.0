@@ -2,52 +2,68 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63C26C07E9D
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 20:27:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F1C6C32771
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 20:28:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230058AbiIZU1W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 16:27:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49112 "EHLO
+        id S229524AbiIZU2d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 16:28:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229734AbiIZU1T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 16:27:19 -0400
+        with ESMTP id S229805AbiIZU2c (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 16:28:32 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD63BA2623
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 13:27:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A69509FA96
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 13:28:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 27FAFB80EF8
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 20:27:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3272C433D7;
-        Mon, 26 Sep 2022 20:27:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4060DB80EF8
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 20:28:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEDACC433D7;
+        Mon, 26 Sep 2022 20:28:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664224034;
-        bh=Ix0+YuifhUIJggWRK9bknT1hUagRxadq8yEcylVwILk=;
+        s=korg; t=1664224108;
+        bh=18FoamuoeONRCO+9/taltqMu6jC9c59hNpIR6Rd4jcA=;
         h=Date:To:From:Subject:From;
-        b=Prl5mRVPm1+QwMeg/dVop7eP8ovnuU3OIWsyvpHeUP2RHHRs4kuFJEc8mZDD89Xtx
-         5g2KgjgNLbwdD+QLMpw0bTUn1qn4sXqyXZKZQx0m6wAmVKGFqSc/U3vQqe52xMcPWn
-         GK+Klk5i5ovgmuLuGiK5cf4uGsrs3AZaMcZSq+J0=
-Date:   Mon, 26 Sep 2022 13:27:14 -0700
+        b=xQQegR48mXE5+V9mA3Fbzx7Es7JOOa9UUvAxMYgfKwLi3isQ9svX4RZ9F6DXpX29M
+         iVvaijk5Uj2lsd39wBaOVSLz7oO5e8fHQDbWfxSR7OESmJEpckRSOvHGIpjltONEVm
+         B5WmC/k5IipLZM66GMk+8/HAepQYEhmILxkpCpRo=
+Date:   Mon, 26 Sep 2022 13:28:27 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         thierry.reding@gmail.com, mhocko@suse.com,
         mgorman@techsingularity.net, neilb@suse.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-discard-__gfp_atomic.patch removed from -mm tree
-Message-Id: <20220926202714.C3272C433D7@smtp.kernel.org>
+Subject: + mm-discard-__gfp_atomic.patch added to mm-unstable branch
+Message-Id: <20220926202827.DEDACC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
+The patch titled
      Subject: mm: discard __GFP_ATOMIC
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      mm-discard-__gfp_atomic.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-discard-__gfp_atomic.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "NeilBrown" <neilb@suse.de>
@@ -284,4 +300,5 @@ _
 
 Patches currently in -mm which might be from neilb@suse.de are
 
+mm-discard-__gfp_atomic.patch
 
