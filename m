@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D776C32771
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 19:15:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75975C6FA82
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 19:15:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229801AbiIZTPj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 15:15:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56638 "EHLO
+        id S230039AbiIZTPp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 15:15:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229754AbiIZTPh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 15:15:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CA73476F0;
-        Mon, 26 Sep 2022 12:15:36 -0700 (PDT)
+        with ESMTP id S229902AbiIZTPk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 15:15:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D92A74B0C8;
+        Mon, 26 Sep 2022 12:15:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E3B6A60EB1;
-        Mon, 26 Sep 2022 19:15:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 411C9C433D6;
-        Mon, 26 Sep 2022 19:15:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 824306126D;
+        Mon, 26 Sep 2022 19:15:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4A75C433D7;
+        Mon, 26 Sep 2022 19:15:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664219735;
-        bh=KPhpBcI4mH9+2pjc4hq3rwiWRb1GOEJSBWxmO+7/JOA=;
+        s=korg; t=1664219737;
+        bh=9vsBVAObZKhaOauFi5FWHH4K1Rty2b6my4mz5BM+HEA=;
         h=Date:To:From:Subject:From;
-        b=TkVQxSi/kyKSwvKa4jMqGfFfKI618IOM4blOcJvBw7PYiT2i5hlQiebYMJdx+BeEf
-         WsRCbmIb70vg8DI2i/PAz1hzG2qRcsyqWLIJsCVgppzJS7dEZkaTG6aM48fSCKqD1X
-         9NtfDIMq6cB2Z7ZGGbSsjFP8A5KucZD/zWhu0lMs=
-Date:   Mon, 26 Sep 2022 12:15:34 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, songmuchun@bytedance.com,
-        shy828301@gmail.com, osalvador@suse.de, mhocko@suse.com,
-        linmiaohe@huawei.com, kirill.shutemov@linux.intel.com,
-        david@redhat.com, naoya.horiguchi@nec.com,
-        akpm@linux-foundation.org
+        b=b48Mrb/u7hKwPltvCfkSsGpUjOsohZH+po51lLfZYKQYlXYQdB7+yzCU9rIZXHF7J
+         6yJIJ+eXccp4mFRi9aWh5To/IlQIwKBZN8wlrHKzKwlV0A143OKpOdZqfOzNKBF/2u
+         4hpHR4ctLWu74z+OkRxSICvZChdy3pN8Ue0UeBUg=
+Date:   Mon, 26 Sep 2022 12:15:37 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        stable@vger.kernel.org, kirill.shutemov@linux.intel.com,
+        saproj@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-huge_memory-use-pfn_to_online_page-in-split_huge_pages_all.patch removed from -mm tree
-Message-Id: <20220926191535.411C9C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-bring-back-update_mmu_cache-to-finish_fault.patch removed from -mm tree
+Message-Id: <20220926191537.D4A75C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,82 +42,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: use pfn_to_online_page() in split_huge_pages_all()
+     Subject: mm: bring back update_mmu_cache() to finish_fault()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-use-pfn_to_online_page-in-split_huge_pages_all.patch
+     mm-bring-back-update_mmu_cache-to-finish_fault.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/huge_memory: use pfn_to_online_page() in split_huge_pages_all()
-Date: Thu, 8 Sep 2022 13:11:50 +0900
+From: Sergei Antonov <saproj@gmail.com>
+Subject: mm: bring back update_mmu_cache() to finish_fault()
+Date: Thu, 8 Sep 2022 23:48:09 +0300
 
-NULL pointer dereference is triggered when calling thp split via debugfs
-on the system with offlined memory blocks.  With debug option enabled, the
-following kernel messages are printed out:
+Running this test program on ARMv4 a few times (sometimes just once)
+reproduces the bug.
 
-  page:00000000467f4890 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x121c000
-  flags: 0x17fffc00000000(node=0|zone=2|lastcpupid=0x1ffff)
-  raw: 0017fffc00000000 0000000000000000 dead000000000122 0000000000000000
-  raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
-  page dumped because: unmovable page
-  page:000000007d7ab72e is uninitialized and poisoned
-  page dumped because: VM_BUG_ON_PAGE(PagePoisoned(p))
-  ------------[ cut here ]------------
-  kernel BUG at include/linux/mm.h:1248!
-  invalid opcode: 0000 [#1] PREEMPT SMP PTI
-  CPU: 16 PID: 20964 Comm: bash Tainted: G          I        6.0.0-rc3-foll-numa+ #41
-  ...
-  RIP: 0010:split_huge_pages_write+0xcf4/0xe30
+int main()
+{
+        unsigned i;
+        char paragon[SIZE];
+        void* ptr;
 
-This shows that page_to_nid() in page_zone() is unexpectedly called for an
-offlined memmap.
+        memset(paragon, 0xAA, SIZE);
+        ptr = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
+                   MAP_ANON | MAP_SHARED, -1, 0);
+        if (ptr == MAP_FAILED) return 1;
+        printf("ptr = %p\n", ptr);
+        for (i=0;i<10000;i++){
+                memset(ptr, 0xAA, SIZE);
+                if (memcmp(ptr, paragon, SIZE)) {
+                        printf("Unexpected bytes on iteration %u!!!\n", i);
+                        break;
+                }
+        }
+        munmap(ptr, SIZE);
+}
 
-Use pfn_to_online_page() to get struct page in PFN walker.
+In the "ptr" buffer there appear runs of zero bytes which are aligned
+by 16 and their lengths are multiple of 16.
 
-Link: https://lkml.kernel.org/r/20220908041150.3430269-1-naoya.horiguchi@linux.dev
-Fixes: f1dd2cd13c4b ("mm, memory_hotplug: do not associate hotadded memory to zones until online")      [visible after d0dc12e86b319]
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Co-developed-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Linux v5.11 does not have the bug, "git bisect" finds the first bad commit:
+f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
+
+Before the commit update_mmu_cache() was called during a call to
+filemap_map_pages() as well as finish_fault(). After the commit
+finish_fault() lacks it.
+
+Bring back update_mmu_cache() to finish_fault() to fix the bug.
+Also call update_mmu_tlb() only when returning VM_FAULT_NOPAGE to more
+closely reproduce the code of alloc_set_pte() function that existed before
+the commit.
+
+On many platforms update_mmu_cache() is nop:
+ x86, see arch/x86/include/asm/pgtable
+ ARMv6+, see arch/arm/include/asm/tlbflush.h
+So, it seems, few users ran into this bug.
+
+Link: https://lkml.kernel.org/r/20220908204809.2012451-1-saproj@gmail.com
+Fixes: f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
+Signed-off-by: Sergei Antonov <saproj@gmail.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: <stable@vger.kernel.org>	[5.10+]
+Cc: Will Deacon <will@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/memory.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-use-pfn_to_online_page-in-split_huge_pages_all
-+++ a/mm/huge_memory.c
-@@ -2894,11 +2894,9 @@ static void split_huge_pages_all(void)
- 		max_zone_pfn = zone_end_pfn(zone);
- 		for (pfn = zone->zone_start_pfn; pfn < max_zone_pfn; pfn++) {
- 			int nr_pages;
--			if (!pfn_valid(pfn))
--				continue;
+--- a/mm/memory.c~mm-bring-back-update_mmu_cache-to-finish_fault
++++ a/mm/memory.c
+@@ -4386,14 +4386,20 @@ vm_fault_t finish_fault(struct vm_fault
  
--			page = pfn_to_page(pfn);
--			if (!get_page_unless_zero(page))
-+			page = pfn_to_online_page(pfn);
-+			if (!page || !get_page_unless_zero(page))
- 				continue;
+ 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+ 				      vmf->address, &vmf->ptl);
+-	ret = 0;
++
+ 	/* Re-check under ptl */
+-	if (likely(!vmf_pte_changed(vmf)))
++	if (likely(!vmf_pte_changed(vmf))) {
+ 		do_set_pte(vmf, page, vmf->address);
+-	else
++
++		/* no need to invalidate: a not-present page won't be cached */
++		update_mmu_cache(vma, vmf->address, vmf->pte);
++
++		ret = 0;
++	} else {
++		update_mmu_tlb(vma, vmf->address, vmf->pte);
+ 		ret = VM_FAULT_NOPAGE;
++	}
  
- 			if (zone != page_zone(page))
+-	update_mmu_tlb(vma, vmf->address, vmf->pte);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from saproj@gmail.com are
 
-mmhwpoisonhugetlbmemory_hotplug-hotremove-memory-section-with-hwpoisoned-hugepage.patch
-mm-hwpoison-move-definitions-of-num_poisoned_pages_-to-memory-failurec.patch
-mm-hwpoison-pass-pfn-to-num_poisoned_pages_.patch
-mm-hwpoison-introduce-per-memory_block-hwpoison-counter.patch
 
