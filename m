@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5098C32771
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 21:03:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76279C07E9D
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 21:04:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231315AbiIZVD6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 17:03:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58906 "EHLO
+        id S231265AbiIZVEX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 17:04:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231303AbiIZVDv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 17:03:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FB33A1D3E
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 14:03:50 -0700 (PDT)
+        with ESMTP id S231205AbiIZVEW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 17:04:22 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05FC2A1D21
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 14:04:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A112CB80AE8
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 21:03:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56C88C433C1;
-        Mon, 26 Sep 2022 21:03:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B048BB80AE8
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 21:04:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69ACBC433D7;
+        Mon, 26 Sep 2022 21:04:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664226227;
-        bh=adexIy7O8pwKcYcpatrGz0exQOwYY0zwRBH3zuwsP5U=;
+        s=korg; t=1664226259;
+        bh=CnAuAlx9F0NLFhB2iQD7LkrBgk+DEVvtQn4S/YXJv4c=;
         h=Date:To:From:Subject:From;
-        b=OZeEMgrUfsQWGzsxxz8JOFXaxYYJ67xDFMU0634ate/OU6hUCf7GlTfGp0JWORl0N
-         8pWXZgae2Agbt2ar6KMsHOUddOYUTgwgtLBcyrsypWE9aepBW7hZthF+FgF1mBTwA1
-         kuU6396+NioE7cST138CY4BA4oVQiuEkekeLOCXg=
-Date:   Mon, 26 Sep 2022 14:03:46 -0700
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        liam.howlett@oracle.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=LqNd4aj/0Yn89WZ6EyICfHPxFA7cAMlxQMzxz39JpE4VVen7HTcMY2Eda7uAwXy1j
+         wcaZWel7TT5TpuzW7EmUb3QZvA5ZM7H2yYmcwC2JtfP7UgUD5cYH+lGdT/ixd60dHW
+         hZP2PG3FpQzNZvF/hbiYobOR06gwI7+W7sdpZCbA=
+Date:   Mon, 26 Sep 2022 14:04:18 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, surenb@google.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-drop-oom-code-from-exit_mmap-fix-fix.patch removed from -mm tree
-Message-Id: <20220926210347.56C88C433C1@smtp.kernel.org>
+Subject: [folded-merged] mm-delete-unused-mmf_oom_victim-flag-fix.patch removed from -mm tree
+Message-Id: <20220926210419.69ACBC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,67 +41,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-drop-oom-code-from-exit_mmap-fix-fix
+     Subject: mm-delete-unused-mmf_oom_victim-flag-fix
 has been removed from the -mm tree.  Its filename was
-     mm-drop-oom-code-from-exit_mmap-fix-fix.patch
+     mm-delete-unused-mmf_oom_victim-flag-fix.patch
 
-This patch was dropped because it was folded into mm-drop-oom-code-from-exit_mmap.patch
+This patch was dropped because it was folded into mm-delete-unused-mmf_oom_victim-flag.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-drop-oom-code-from-exit_mmap-fix-fix
-Date: Wed Jun  1 03:17:52 PM PDT 2022
+Subject: mm-delete-unused-mmf_oom_victim-flag-fix
+Date: Sun Sep 18 05:03:09 PM PDT 2022
 
-restore Suren's mmap_read_lock() optimization
+remove comment about now-removed mm_is_oom_victim()
 
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/mmap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-drop-oom-code-from-exit_mmap-fix-fix
+--- a/mm/mmap.c~mm-delete-unused-mmf_oom_victim-flag-fix
 +++ a/mm/mmap.c
-@@ -3085,13 +3085,13 @@ void exit_mmap(struct mm_struct *mm)
- 	/* mm's last user has gone, and its about to be pulled down */
- 	mmu_notifier_release(mm);
- 
--	mmap_write_lock(mm);
-+	mmap_read_lock(mm);
- 	arch_exit_mmap(mm);
- 
- 	vma = mas_find(&mas, ULONG_MAX);
- 	if (!vma) {
- 		/* Can happen if dup_mmap() received an OOM */
--		mmap_write_unlock(mm);
-+		mmap_read_unlock(mm);
- 		return;
- 	}
- 
-@@ -3101,6 +3101,7 @@ void exit_mmap(struct mm_struct *mm)
- 	/* update_hiwater_rss(mm) here? but nobody should be looking */
- 	/* Use ULONG_MAX here to ensure all VMAs in the mm are unmapped */
- 	unmap_vmas(&tlb, &mm->mm_mt, vma, 0, ULONG_MAX);
-+	mmap_read_unlock(mm);
+@@ -3105,8 +3105,7 @@ void exit_mmap(struct mm_struct *mm)
  
  	/*
  	 * Set MMF_OOM_SKIP to hide this task from the oom killer/reaper
-@@ -3108,6 +3109,7 @@ void exit_mmap(struct mm_struct *mm)
- 	 * mm_is_oom_victim because setting a bit unconditionally is cheaper.
+-	 * because the memory has been already freed. Do not bother checking
+-	 * mm_is_oom_victim because setting a bit unconditionally is cheaper.
++	 * because the memory has been already freed.
  	 */
  	set_bit(MMF_OOM_SKIP, &mm->flags);
-+	mmap_write_lock(mm);
- 	free_pgtables(&tlb, &mm->mm_mt, vma, FIRST_USER_ADDRESS,
- 		      USER_PGTABLES_CEILING);
- 	tlb_finish_mmu(&tlb);
+ 	mmap_write_lock(mm);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-drop-oom-code-from-exit_mmap.patch
-mm-delete-unused-mmf_oom_victim-flag-fix.patch
+mm-delete-unused-mmf_oom_victim-flag.patch
 mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
 mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree.patch
 mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree-fix.patch
