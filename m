@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76279C07E9D
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 21:04:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19550C07E9D
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 21:05:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231265AbiIZVEX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 17:04:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59236 "EHLO
+        id S231205AbiIZVFA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 17:05:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231205AbiIZVEW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 17:04:22 -0400
+        with ESMTP id S231258AbiIZVE7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 17:04:59 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05FC2A1D21
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 14:04:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4943B1D5
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 14:04:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B048BB80AE8
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 21:04:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69ACBC433D7;
-        Mon, 26 Sep 2022 21:04:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9636FB8112D
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 21:04:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34DA0C433D6;
+        Mon, 26 Sep 2022 21:04:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664226259;
-        bh=CnAuAlx9F0NLFhB2iQD7LkrBgk+DEVvtQn4S/YXJv4c=;
+        s=korg; t=1664226295;
+        bh=DAChJHyt8RAP75H3RUvD9tYBJdQiW1hs/2lXqcXIFzA=;
         h=Date:To:From:Subject:From;
-        b=LqNd4aj/0Yn89WZ6EyICfHPxFA7cAMlxQMzxz39JpE4VVen7HTcMY2Eda7uAwXy1j
-         wcaZWel7TT5TpuzW7EmUb3QZvA5ZM7H2yYmcwC2JtfP7UgUD5cYH+lGdT/ixd60dHW
-         hZP2PG3FpQzNZvF/hbiYobOR06gwI7+W7sdpZCbA=
-Date:   Mon, 26 Sep 2022 14:04:18 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, surenb@google.com,
+        b=sAiBEWRwJDLTF1siW9/GgeJ5qChUDjRPEb+9DjoQZii33qbCp15r3arGeG3Vmsx3n
+         GypggARtMPVKiGGcIEtMy+IeXv1amVs68rKly2Is7htNwDT7MiV67e+vl8csbfMj7a
+         UsxHMlbDFEiQf7IA3Hna334x5n5c1hWnlYT+ps8A=
+Date:   Mon, 26 Sep 2022 14:04:54 -0700
+To:     mm-commits@vger.kernel.org, matenajakub@gmail.com,
         akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-delete-unused-mmf_oom_victim-flag-fix.patch removed from -mm tree
-Message-Id: <20220926210419.69ACBC433D7@smtp.kernel.org>
+Subject: [folded-merged] mm-add-merging-after-mremap-resize-checkpatch-fixes.patch removed from -mm tree
+Message-Id: <20220926210455.34DA0C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,45 +41,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-delete-unused-mmf_oom_victim-flag-fix
+     Subject: mm-add-merging-after-mremap-resize-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-delete-unused-mmf_oom_victim-flag-fix.patch
+     mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-delete-unused-mmf_oom_victim-flag.patch
+This patch was dropped because it was folded into mm-add-merging-after-mremap-resize.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-delete-unused-mmf_oom_victim-flag-fix
-Date: Sun Sep 18 05:03:09 PM PDT 2022
+Subject: mm-add-merging-after-mremap-resize-checkpatch-fixes
+Date: Fri Jun  3 10:41:30 AM PDT 2022
 
-remove comment about now-removed mm_is_oom_victim()
+WARNING: line length of 108 exceeds 100 columns
+#97: FILE: tools/testing/selftests/vm/mremap_test.c:136:
++	char *start = mmap(NULL, 3 * page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+WARNING: Missing a blank line after declarations
+#98: FILE: tools/testing/selftests/vm/mremap_test.c:137:
++	char *start = mmap(NULL, 3 * page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	munmap(start + page_size, page_size);
+
+ERROR: space required before the open parenthesis '('
+#107: FILE: tools/testing/selftests/vm/mremap_test.c:146:
++	while(getline(&line, &len, fp) != -1) {
+
+ERROR: space required after that ',' (ctx:VxV)
+#108: FILE: tools/testing/selftests/vm/mremap_test.c:147:
++		char *first = strtok(line,"- ");
+ 		                         ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#110: FILE: tools/testing/selftests/vm/mremap_test.c:149:
++		char *second = strtok(NULL,"- ");
+ 		                          ^
+
+WARNING: Missing a blank line after declarations
+#112: FILE: tools/testing/selftests/vm/mremap_test.c:151:
++		void *second_val = (void *) strtol(second, NULL, 16);
++		if (first_val == start && second_val == start + 3 * page_size) {
+
+total: 3 errors, 3 warnings, 113 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-add-merging-after-mremap-resize.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jakub Matěna <matenajakub@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ tools/testing/selftests/vm/mremap_test.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/mmap.c~mm-delete-unused-mmf_oom_victim-flag-fix
-+++ a/mm/mmap.c
-@@ -3105,8 +3105,7 @@ void exit_mmap(struct mm_struct *mm)
+--- a/tools/testing/selftests/vm/mremap_test.c~mm-add-merging-after-mremap-resize-checkpatch-fixes
++++ a/tools/testing/selftests/vm/mremap_test.c
+@@ -132,8 +132,9 @@ static void mremap_expand_merge(unsigned
+ 	char *line = NULL;
+ 	size_t len = 0;
+ 	bool success = false;
++	char *start = mmap(NULL, 3 * page_size, PROT_READ | PROT_WRITE,
++			   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
  
- 	/*
- 	 * Set MMF_OOM_SKIP to hide this task from the oom killer/reaper
--	 * because the memory has been already freed. Do not bother checking
--	 * mm_is_oom_victim because setting a bit unconditionally is cheaper.
-+	 * because the memory has been already freed.
- 	 */
- 	set_bit(MMF_OOM_SKIP, &mm->flags);
- 	mmap_write_lock(mm);
+-	char *start = mmap(NULL, 3 * page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 	munmap(start + page_size, page_size);
+ 	mremap(start, page_size, 2 * page_size, 0);
+ 
+@@ -143,11 +144,12 @@ static void mremap_expand_merge(unsigned
+ 		return;
+ 	}
+ 
+-	while(getline(&line, &len, fp) != -1) {
+-		char *first = strtok(line,"- ");
+-		void *first_val = (void *) strtol(first, NULL, 16);
+-		char *second = strtok(NULL,"- ");
++	while (getline(&line, &len, fp) != -1) {
++		char *first = strtok(line, "- ");
++		void *first_val = (void *)strtol(first, NULL, 16);
++		char *second = strtok(NULL, "- ");
+ 		void *second_val = (void *) strtol(second, NULL, 16);
++
+ 		if (first_val == start && second_val == start + 3 * page_size) {
+ 			success = true;
+ 			break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-delete-unused-mmf_oom_victim-flag.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
+mm-add-merging-after-mremap-resize.patch
 mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree.patch
 mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree-fix.patch
 mm-vmscan-fix-a-lot-of-comments-vs-mglru.patch
