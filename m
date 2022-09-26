@@ -2,303 +2,320 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F1C6C32771
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 20:28:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07625C32771
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 20:28:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229524AbiIZU2d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 16:28:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50578 "EHLO
+        id S229739AbiIZU2u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 16:28:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229805AbiIZU2c (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 16:28:32 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A69509FA96
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 13:28:30 -0700 (PDT)
+        with ESMTP id S229689AbiIZU2t (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 16:28:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1F46A3456
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 13:28:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4060DB80EF8
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 20:28:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEDACC433D7;
-        Mon, 26 Sep 2022 20:28:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2FDB86131B
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 20:28:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85696C433C1;
+        Mon, 26 Sep 2022 20:28:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664224108;
-        bh=18FoamuoeONRCO+9/taltqMu6jC9c59hNpIR6Rd4jcA=;
+        s=korg; t=1664224126;
+        bh=933Lk9Bb6u9eCMfBhmOyTZ35mdMnpUEP7iU6X8tWITw=;
         h=Date:To:From:Subject:From;
-        b=xQQegR48mXE5+V9mA3Fbzx7Es7JOOa9UUvAxMYgfKwLi3isQ9svX4RZ9F6DXpX29M
-         iVvaijk5Uj2lsd39wBaOVSLz7oO5e8fHQDbWfxSR7OESmJEpckRSOvHGIpjltONEVm
-         B5WmC/k5IipLZM66GMk+8/HAepQYEhmILxkpCpRo=
-Date:   Mon, 26 Sep 2022 13:28:27 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        thierry.reding@gmail.com, mhocko@suse.com,
-        mgorman@techsingularity.net, neilb@suse.de,
+        b=fs57xtlJhFm5bt9/fbDHTcvcJL9sHHdUx6lDU6fhvjske8OC1tCex8/4vTnlGLq6c
+         bycXTrx/EDG5tyzSpy87mKhY3HSjmMficwH4R8Hedvdol6jMbYb3Bpa5SamPOl+eTc
+         yeJXMBrszSXyO/hSvp3TsSfW/IWMlgU/cHH5jH8M=
+Date:   Mon, 26 Sep 2022 13:28:45 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        willy@infradead.org, rcampbell@nvidia.com, peterx@redhat.com,
+        paulus@ozlabs.org, mpenttil@redhat.com, lyude@redhat.com,
+        logang@deltatee.com, kherbst@redhat.com, jhubbard@nvidia.com,
+        jgg@nvidia.com, felix.kuehling@amd.com, david@redhat.com,
+        bskeggs@redhat.com, alex.sierra@amd.com, apopple@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-discard-__gfp_atomic.patch added to mm-unstable branch
-Message-Id: <20220926202827.DEDACC433D7@smtp.kernel.org>
+Subject: [to-be-updated] selftests-hmm-tests-add-test-for-dirty-bits.patch removed from -mm tree
+Message-Id: <20220926202846.85696C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: discard __GFP_ATOMIC
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-discard-__gfp_atomic.patch
+The quilt patch titled
+     Subject: selftests/hmm-tests: add test for dirty bits
+has been removed from the -mm tree.  Its filename was
+     selftests-hmm-tests-add-test-for-dirty-bits.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-discard-__gfp_atomic.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "NeilBrown" <neilb@suse.de>
-Subject: mm: discard __GFP_ATOMIC
+From: Alistair Popple <apopple@nvidia.com>
+Subject: selftests/hmm-tests: add test for dirty bits
+Date: Tue, 16 Aug 2022 17:39:25 +1000
 
-__GFP_ATOMIC serves little purpose.  Its main effect is to set
-ALLOC_HARDER which adds a few little boosts to increase the chance of an
-allocation succeeding, one of which is to lower the water-mark at which it
-will succeed.
+We were not correctly copying PTE dirty bits to pages during
+migrate_vma_setup() calls.  This could potentially lead to data loss, so
+add a test for this.
 
-It is *always* paired with __GFP_HIGH which sets ALLOC_HIGH which also
-adjusts this watermark.  It is probable that other users of __GFP_HIGH
-should benefit from the other little bonuses that __GFP_ATOMIC gets.
-
-__GFP_ATOMIC also gives a warning if used with __GFP_DIRECT_RECLAIM. 
-There is little point to this.  We already get a might_sleep() warning if
-__GFP_DIRECT_RECLAIM is set.
-
-__GFP_ATOMIC allows the "watermark_boost" to be side-stepped.  It is
-probable that testing ALLOC_HARDER is a better fit here.
-
-__GFP_ATOMIC is used by tegra-smmu.c to check if the allocation might
-sleep.  This should test __GFP_DIRECT_RECLAIM instead.
-
-This patch:
- - removes __GFP_ATOMIC
- - causes __GFP_HIGH to set ALLOC_HARDER unless __GFP_NOMEMALLOC is set
-   (as well as ALLOC_HIGH).
- - makes other adjustments as suggested by the above.
-
-The net result is not change to GFP_ATOMIC allocations.  Other
-allocations that use __GFP_HIGH will benefit from a few different extra
-privileges.  This affects:
-  xen, dm, md, ntfs3
-  the vermillion frame buffer
-  hibernation
-  ksm
-  swap
-all of which likely produce more benefit than cost if these selected
-allocation are more likely to succeed quickly.
-
-Link: https://lkml.kernel.org/r/163712397076.13692.4727608274002939094@noble.neil.brown.name
-Signed-off-by: NeilBrown <neilb@suse.de>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+[apopple@nvidia.com: fix migrate_dirty_page test]
+  Link: https://lkml.kernel.org/r/20220914091205.557676-1-apopple@nvidia.com
+Link: https://lkml.kernel.org/r/23069a5c6e07d16d4c4f0951ff003591ffc4f656.1660635033.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/68cf1d70f3fb8ce4e3c1a4899c19df4f6c382a13.1662078528.git-series.apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Mika Penttilä <mpenttil@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Alex Sierra <alex.sierra@amd.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Felix Kuehling <felix.kuehling@amd.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Karol Herbst <kherbst@redhat.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/balance.rst   |    2 +-
- drivers/iommu/tegra-smmu.c     |    4 ++--
- include/linux/gfp_types.h      |   12 ++++--------
- include/trace/events/mmflags.h |    1 -
- lib/test_printf.c              |    8 ++++----
- mm/internal.h                  |    2 +-
- mm/page_alloc.c                |   16 ++++------------
- tools/perf/builtin-kmem.c      |    1 -
- 8 files changed, 16 insertions(+), 30 deletions(-)
+ tools/testing/selftests/vm/Makefile    |    1 
+ tools/testing/selftests/vm/hmm-tests.c |  144 +++++++++++++++++++++++
+ tools/testing/selftests/vm/vm_util.c   |   22 +++
+ tools/testing/selftests/vm/vm_util.h   |    2 
+ 4 files changed, 169 insertions(+)
 
---- a/Documentation/mm/balance.rst~mm-discard-__gfp_atomic
-+++ a/Documentation/mm/balance.rst
-@@ -6,7 +6,7 @@ Memory Balancing
- 
- Started Jan 2000 by Kanoj Sarcar <kanoj@sgi.com>
- 
--Memory balancing is needed for !__GFP_ATOMIC and !__GFP_KSWAPD_RECLAIM as
-+Memory balancing is needed for !__GFP_HIGH and !__GFP_KSWAPD_RECLAIM as
- well as for non __GFP_IO allocations.
- 
- The first reason why a caller may avoid reclaim is that the caller can not
---- a/drivers/iommu/tegra-smmu.c~mm-discard-__gfp_atomic
-+++ a/drivers/iommu/tegra-smmu.c
-@@ -671,12 +671,12 @@ static struct page *as_get_pde_page(stru
- 	 * allocate page in a sleeping context if GFP flags permit. Hence
- 	 * spinlock needs to be unlocked and re-locked after allocation.
- 	 */
--	if (!(gfp & __GFP_ATOMIC))
-+	if (gfp & __GFP_DIRECT_RECLAIM)
- 		spin_unlock_irqrestore(&as->lock, *flags);
- 
- 	page = alloc_page(gfp | __GFP_DMA | __GFP_ZERO);
- 
--	if (!(gfp & __GFP_ATOMIC))
-+	if (gfp & __GFP_DIRECT_RECLAIM)
- 		spin_lock_irqsave(&as->lock, *flags);
- 
- 	/*
---- a/include/linux/gfp_types.h~mm-discard-__gfp_atomic
-+++ a/include/linux/gfp_types.h
-@@ -31,7 +31,7 @@ typedef unsigned int __bitwise gfp_t;
- #define ___GFP_IO		0x40u
- #define ___GFP_FS		0x80u
- #define ___GFP_ZERO		0x100u
--#define ___GFP_ATOMIC		0x200u
-+/* 0x200u unused */
- #define ___GFP_DIRECT_RECLAIM	0x400u
- #define ___GFP_KSWAPD_RECLAIM	0x800u
- #define ___GFP_WRITE		0x1000u
-@@ -116,11 +116,8 @@ typedef unsigned int __bitwise gfp_t;
-  *
-  * %__GFP_HIGH indicates that the caller is high-priority and that granting
-  * the request is necessary before the system can make forward progress.
-- * For example, creating an IO context to clean pages.
-- *
-- * %__GFP_ATOMIC indicates that the caller cannot reclaim or sleep and is
-- * high priority. Users are typically interrupt handlers. This may be
-- * used in conjunction with %__GFP_HIGH
-+ * For example creating an IO context to clean pages and requests
-+ * from atomic context.
-  *
-  * %__GFP_MEMALLOC allows access to all memory. This should only be used when
-  * the caller guarantees the allocation will allow more memory to be freed
-@@ -135,7 +132,6 @@ typedef unsigned int __bitwise gfp_t;
-  * %__GFP_NOMEMALLOC is used to explicitly forbid access to emergency reserves.
-  * This takes precedence over the %__GFP_MEMALLOC flag if both are set.
+--- a/tools/testing/selftests/vm/hmm-tests.c~selftests-hmm-tests-add-test-for-dirty-bits
++++ a/tools/testing/selftests/vm/hmm-tests.c
+@@ -33,6 +33,7 @@
   */
--#define __GFP_ATOMIC	((__force gfp_t)___GFP_ATOMIC)
- #define __GFP_HIGH	((__force gfp_t)___GFP_HIGH)
- #define __GFP_MEMALLOC	((__force gfp_t)___GFP_MEMALLOC)
- #define __GFP_NOMEMALLOC ((__force gfp_t)___GFP_NOMEMALLOC)
-@@ -329,7 +325,7 @@ typedef unsigned int __bitwise gfp_t;
-  * version does not attempt reclaim/compaction at all and is by default used
-  * in page fault path, while the non-light is used by khugepaged.
+ #include "../../../../lib/test_hmm_uapi.h"
+ #include "../../../../mm/gup_test.h"
++#include "vm_util.h"
+ 
+ struct hmm_buffer {
+ 	void		*ptr;
+@@ -1240,6 +1241,149 @@ TEST_F(hmm, migrate_multiple)
+ 	}
+ }
+ 
++static char cgroup[] = "/sys/fs/cgroup/hmm-test-XXXXXX";
++static int write_cgroup_param(char *cgroup_path, char *param, long value)
++{
++	int ret;
++	FILE *f;
++	char *filename;
++
++	if (asprintf(&filename, "%s/%s", cgroup_path, param) < 0)
++		return -1;
++
++	f = fopen(filename, "w");
++	if (!f) {
++		ret = -1;
++		goto out;
++	}
++
++	ret = fprintf(f, "%ld\n", value);
++	if (ret < 0)
++		goto out1;
++
++	ret = 0;
++
++out1:
++	fclose(f);
++out:
++	free(filename);
++
++	return ret;
++}
++
++static int setup_cgroup(void)
++{
++	pid_t pid = getpid();
++	int ret;
++
++	if (!mkdtemp(cgroup))
++		return -1;
++
++	ret = write_cgroup_param(cgroup, "cgroup.procs", pid);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++static int destroy_cgroup(void)
++{
++	pid_t pid = getpid();
++	int ret;
++
++	ret = write_cgroup_param("/sys/fs/cgroup/cgroup.procs",
++				"cgroup.proc", pid);
++	if (ret)
++		return ret;
++
++	if (rmdir(cgroup))
++		return -1;
++
++	return 0;
++}
++
++/* Returns true if at least one page in the range is on swap */
++static bool pages_swapped(void *ptr, size_t size)
++{
++	int fd = open("/proc/self/pagemap", O_RDONLY);
++	bool ret;
++
++	if (fd < 0)
++		return false;
++
++	ret = pagemap_range_some_swapped(fd, ptr, size);
++	close(fd);
++
++	return ret;
++}
++
++/*
++ * Try and migrate a dirty page that has previously been swapped to disk. This
++ * checks that we don't lose dirty bits.
++ */
++TEST_F(hmm, migrate_dirty_page)
++{
++	struct hmm_buffer *buffer;
++	unsigned long npages;
++	unsigned long size;
++	unsigned long i;
++	int *ptr;
++	int tmp = 0;
++
++	npages = ALIGN(HMM_BUFFER_SIZE, self->page_size) >> self->page_shift;
++	ASSERT_NE(npages, 0);
++	size = npages << self->page_shift;
++
++	buffer = malloc(sizeof(*buffer));
++	ASSERT_NE(buffer, NULL);
++
++	buffer->fd = -1;
++	buffer->size = size;
++	buffer->mirror = malloc(size);
++	ASSERT_NE(buffer->mirror, NULL);
++
++	ASSERT_EQ(setup_cgroup(), 0);
++
++	buffer->ptr = mmap(NULL, size,
++			   PROT_READ | PROT_WRITE,
++			   MAP_PRIVATE | MAP_ANONYMOUS,
++			   buffer->fd, 0);
++	ASSERT_NE(buffer->ptr, MAP_FAILED);
++
++	/* Initialize buffer in system memory. */
++	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++		ptr[i] = 0;
++
++	ASSERT_FALSE(write_cgroup_param(cgroup, "memory.reclaim", 1UL<<30));
++
++	/* Make sure at least some pages got paged to disk. */
++	if (!pages_swapped(buffer->ptr, size))
++		SKIP(return, "Pages weren't swapped when they should have been");
++
++	/* Fault pages back in from swap as clean pages */
++	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++		tmp += ptr[i];
++
++	/* Dirty the pte */
++	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++		ptr[i] = i;
++
++	/*
++	 * Attempt to migrate memory to device. This might fail if some pages
++	 * are/were backed by swap but that's ok.
++	 */
++	hmm_migrate_sys_to_dev(self->fd, buffer, npages);
++
++	ASSERT_FALSE(write_cgroup_param(cgroup, "memory.reclaim", 1UL<<30));
++
++	/* Check we still see the updated data after restoring from swap. */
++	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++		ASSERT_EQ(ptr[i], i);
++
++	hmm_buffer_free(buffer);
++	destroy_cgroup();
++}
++
+ /*
+  * Read anonymous memory multiple times.
   */
--#define GFP_ATOMIC	(__GFP_HIGH|__GFP_ATOMIC|__GFP_KSWAPD_RECLAIM)
-+#define GFP_ATOMIC	(__GFP_HIGH|__GFP_KSWAPD_RECLAIM)
- #define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
- #define GFP_KERNEL_ACCOUNT (GFP_KERNEL | __GFP_ACCOUNT)
- #define GFP_NOWAIT	(__GFP_KSWAPD_RECLAIM)
---- a/include/trace/events/mmflags.h~mm-discard-__gfp_atomic
-+++ a/include/trace/events/mmflags.h
-@@ -31,7 +31,6 @@
- 	gfpflag_string(__GFP_HIGHMEM),		\
- 	gfpflag_string(GFP_DMA32),		\
- 	gfpflag_string(__GFP_HIGH),		\
--	gfpflag_string(__GFP_ATOMIC),		\
- 	gfpflag_string(__GFP_IO),		\
- 	gfpflag_string(__GFP_FS),		\
- 	gfpflag_string(__GFP_NOWARN),		\
---- a/lib/test_printf.c~mm-discard-__gfp_atomic
-+++ a/lib/test_printf.c
-@@ -686,17 +686,17 @@ flags(void)
- 	gfp = GFP_ATOMIC|__GFP_DMA;
- 	test("GFP_ATOMIC|GFP_DMA", "%pGg", &gfp);
+--- a/tools/testing/selftests/vm/Makefile~selftests-hmm-tests-add-test-for-dirty-bits
++++ a/tools/testing/selftests/vm/Makefile
+@@ -98,6 +98,7 @@ include ../lib.mk
+ $(OUTPUT)/madv_populate: vm_util.c
+ $(OUTPUT)/soft-dirty: vm_util.c
+ $(OUTPUT)/split_huge_page_test: vm_util.c
++$(OUTPUT)/hmm-tests: vm_util.c
  
--	gfp = __GFP_ATOMIC;
--	test("__GFP_ATOMIC", "%pGg", &gfp);
-+	gfp = __GFP_HIGH;
-+	test("__GFP_HIGH", "%pGg", &gfp);
+ ifeq ($(MACHINE),x86_64)
+ BINARIES_32 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
+--- a/tools/testing/selftests/vm/vm_util.c~selftests-hmm-tests-add-test-for-dirty-bits
++++ a/tools/testing/selftests/vm/vm_util.c
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0
++#include <unistd.h>
+ #include <string.h>
+ #include <fcntl.h>
+ #include "../kselftest.h"
+@@ -20,6 +21,14 @@ uint64_t pagemap_get_entry(int fd, char
+ 	return entry;
+ }
  
- 	/* Any flags not translated by the table should remain numeric */
- 	gfp = ~__GFP_BITS_MASK;
- 	snprintf(cmp_buffer, BUF_SIZE, "%#lx", (unsigned long) gfp);
- 	test(cmp_buffer, "%pGg", &gfp);
++bool pagemap_is_swapped(int fd, char *start)
++{
++	uint64_t entry = pagemap_get_entry(fd, start);
++
++	// Check if swap entry bit (62nd bit) is set
++	return entry & 0x4000000000000000ull;
++}
++
+ bool pagemap_is_softdirty(int fd, char *start)
+ {
+ 	uint64_t entry = pagemap_get_entry(fd, start);
+@@ -28,6 +37,19 @@ bool pagemap_is_softdirty(int fd, char *
+ 	return entry & 0x0080000000000000ull;
+ }
  
--	snprintf(cmp_buffer, BUF_SIZE, "__GFP_ATOMIC|%#lx",
-+	snprintf(cmp_buffer, BUF_SIZE, "__GFP_HIGH|%#lx",
- 							(unsigned long) gfp);
--	gfp |= __GFP_ATOMIC;
-+	gfp |= __GFP_HIGH;
- 	test(cmp_buffer, "%pGg", &gfp);
++/* Returns true if at least one page in the range is in swap */
++bool pagemap_range_some_swapped(int fd, char *start, size_t len)
++{
++	unsigned long i;
++	unsigned long npages = len / getpagesize();
++
++	for (i = 0; i < npages; i++)
++		if (pagemap_is_swapped(fd, start + i * getpagesize()))
++			return true;
++
++	return false;
++}
++
+ void clear_softdirty(void)
+ {
+ 	int ret;
+--- a/tools/testing/selftests/vm/vm_util.h~selftests-hmm-tests-add-test-for-dirty-bits
++++ a/tools/testing/selftests/vm/vm_util.h
+@@ -4,6 +4,8 @@
  
- 	kfree(cmp_buffer);
---- a/mm/internal.h~mm-discard-__gfp_atomic
-+++ a/mm/internal.h
-@@ -24,7 +24,7 @@ struct folio_batch;
- #define GFP_RECLAIM_MASK (__GFP_RECLAIM|__GFP_HIGH|__GFP_IO|__GFP_FS|\
- 			__GFP_NOWARN|__GFP_RETRY_MAYFAIL|__GFP_NOFAIL|\
- 			__GFP_NORETRY|__GFP_MEMALLOC|__GFP_NOMEMALLOC|\
--			__GFP_ATOMIC|__GFP_NOLOCKDEP)
-+			__GFP_NOLOCKDEP)
- 
- /* The GFP flags allowed during early boot */
- #define GFP_BOOT_MASK (__GFP_BITS_MASK & ~(__GFP_RECLAIM|__GFP_IO|__GFP_FS))
---- a/mm/page_alloc.c~mm-discard-__gfp_atomic
-+++ a/mm/page_alloc.c
-@@ -4058,12 +4058,12 @@ static inline bool zone_watermark_fast(s
- 					free_pages))
- 		return true;
- 	/*
--	 * Ignore watermark boosting for GFP_ATOMIC order-0 allocations
-+	 * Ignore watermark boosting for GFP_HIGH order-0 allocations
- 	 * when checking the min watermark. The min watermark is the
- 	 * point where boosting is ignored so that kswapd is woken up
- 	 * when below the low watermark.
- 	 */
--	if (unlikely(!order && (gfp_mask & __GFP_ATOMIC) && z->watermark_boost
-+	if (unlikely(!order && (alloc_flags & ALLOC_HARDER) && z->watermark_boost
- 		&& ((alloc_flags & ALLOC_WMARK_MASK) == WMARK_MIN))) {
- 		mark = z->_watermark[WMARK_MIN];
- 		return __zone_watermark_ok(z, order, mark, highest_zoneidx,
-@@ -4822,12 +4822,12 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 	 * The caller may dip into page reserves a bit more if the caller
- 	 * cannot run direct reclaim, or if the caller has realtime scheduling
- 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
--	 * set both ALLOC_HARDER (__GFP_ATOMIC) and ALLOC_HIGH (__GFP_HIGH).
-+	 * set both ALLOC_HARDER (unless __GFP_NOMEMALLOC) and ALLOC_HIGH.
- 	 */
- 	alloc_flags |= (__force int)
- 		(gfp_mask & (__GFP_HIGH | __GFP_KSWAPD_RECLAIM));
- 
--	if (gfp_mask & __GFP_ATOMIC) {
-+	if (gfp_mask & __GFP_HIGH) {
- 		/*
- 		 * Not worth trying to allocate harder for __GFP_NOMEMALLOC even
- 		 * if it can't schedule.
-@@ -5021,14 +5021,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	unsigned int zonelist_iter_cookie;
- 	int reserve_flags;
- 
--	/*
--	 * We also sanity check to catch abuse of atomic reserves being used by
--	 * callers that are not in atomic context.
--	 */
--	if (WARN_ON_ONCE((gfp_mask & (__GFP_ATOMIC|__GFP_DIRECT_RECLAIM)) ==
--				(__GFP_ATOMIC|__GFP_DIRECT_RECLAIM)))
--		gfp_mask &= ~__GFP_ATOMIC;
--
- restart:
- 	compaction_retries = 0;
- 	no_progress_loops = 0;
---- a/tools/perf/builtin-kmem.c~mm-discard-__gfp_atomic
-+++ a/tools/perf/builtin-kmem.c
-@@ -640,7 +640,6 @@ static const struct {
- 	{ "__GFP_HIGHMEM",		"HM" },
- 	{ "GFP_DMA32",			"D32" },
- 	{ "__GFP_HIGH",			"H" },
--	{ "__GFP_ATOMIC",		"_A" },
- 	{ "__GFP_IO",			"I" },
- 	{ "__GFP_FS",			"F" },
- 	{ "__GFP_NOWARN",		"NWR" },
+ uint64_t pagemap_get_entry(int fd, char *start);
+ bool pagemap_is_softdirty(int fd, char *start);
++bool pagemap_is_swapped(int fd, char *start);
++bool pagemap_range_some_swapped(int fd, char *start, size_t len);
+ void clear_softdirty(void);
+ uint64_t read_pmd_pagesize(void);
+ uint64_t check_huge(void *addr);
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-mm-discard-__gfp_atomic.patch
 
