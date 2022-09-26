@@ -2,80 +2,286 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4049C07E9D
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 20:27:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63C26C07E9D
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 20:27:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229781AbiIZU1Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 16:27:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49002 "EHLO
+        id S230058AbiIZU1W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 16:27:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229659AbiIZU1Q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 16:27:16 -0400
-Received: from mail-qv1-xf30.google.com (mail-qv1-xf30.google.com [IPv6:2607:f8b0:4864:20::f30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A4A09D50F
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 13:27:14 -0700 (PDT)
-Received: by mail-qv1-xf30.google.com with SMTP id j8so5006301qvt.13
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 13:27:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date;
-        bh=Pv5o0TZDNeMSmawH17qKug3meL3WXlOBL4IBJGeG49U=;
-        b=UQlvvWuczzs8yMB6KJ+ZljBN9ggCx4G2t3ZTV/A4bUN9+n48zAXu+mOVF15HggPjnl
-         XGDMDrigHgz1teUmP0SgEtVbkqSvHMqzsfMib3MIt2CGPsqFyk7je5c3SrB5bF68x3c9
-         hOLme/WPVtibnauDZDMSIKwT+9Ao29kjUEm2M=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date;
-        bh=Pv5o0TZDNeMSmawH17qKug3meL3WXlOBL4IBJGeG49U=;
-        b=IisLVuYDF4r9AEKrKz7l0zImtZYS3VFLWqM/aNngo9IohhpoXRyw0hhZwY2gZ5EZhX
-         RKNlhOjgvF4LzA+yJuNSs51oxGQPc36AcPGGvY1Mr8RD5vyb8AyVrJQJTOlKTCh6Yy+w
-         /HPzsCSqWMZj+s06vGBIYzgISRATFc6kLC8UbNUErpskQAYi7P256niWxyu/hi9rrnUG
-         8aEa88vCr7KeMk4Mi8ZKo9ssvFs38n51RGpWfou5YeoIWkqVyZQgqFfc9iVUHOWpXtOL
-         gyFTDqBC1o+0kk5YZTjSceV55WUH1W7QorexyfVGM7CQ2GwjGdXOnuF8Tf36msAwgZ99
-         s4SQ==
-X-Gm-Message-State: ACrzQf2tmOzgyLwsj+nPotW0EZxFrwKTgOlc8mgvtvPMz7jkMNIc7gf7
-        9Y/M3IkFpq9+pkJDrcFf+ylj6+DLIR7Q+A==
-X-Google-Smtp-Source: AMsMyM6Q2SVYePJXMB26oOeMGpkonWjqAVDhfsSQVT1tse+3J510drKSGLXPtiohAsbExUloJOqgNg==
-X-Received: by 2002:ad4:596f:0:b0:4ad:79fc:9ae0 with SMTP id eq15-20020ad4596f000000b004ad79fc9ae0mr18807131qvb.53.1664224032947;
-        Mon, 26 Sep 2022 13:27:12 -0700 (PDT)
-Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com. [209.85.219.171])
-        by smtp.gmail.com with ESMTPSA id t15-20020a37aa0f000000b006cbc6e1478csm11754467qke.57.2022.09.26.13.27.11
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 26 Sep 2022 13:27:12 -0700 (PDT)
-Received: by mail-yb1-f171.google.com with SMTP id f189so9818477yba.12
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 13:27:11 -0700 (PDT)
-X-Received: by 2002:a05:6902:1352:b0:6bb:3f4b:9666 with SMTP id
- g18-20020a056902135200b006bb3f4b9666mr6940475ybu.101.1664224031612; Mon, 26
- Sep 2022 13:27:11 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220926123721.2a1edc734b4fc516a9a350b8@linux-foundation.org>
-In-Reply-To: <20220926123721.2a1edc734b4fc516a9a350b8@linux-foundation.org>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Mon, 26 Sep 2022 13:26:50 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wihk0cRP_ZPFPsewJQ2KOM05i87jYUxcdMpok8a+fduKw@mail.gmail.com>
-Message-ID: <CAHk-=wihk0cRP_ZPFPsewJQ2KOM05i87jYUxcdMpok8a+fduKw@mail.gmail.com>
-Subject: Re: [GIT PULL] hotfixes for 6.0[-rc8]
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        with ESMTP id S229734AbiIZU1T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 16:27:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD63BA2623
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 13:27:17 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 27FAFB80EF8
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 20:27:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3272C433D7;
+        Mon, 26 Sep 2022 20:27:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1664224034;
+        bh=Ix0+YuifhUIJggWRK9bknT1hUagRxadq8yEcylVwILk=;
+        h=Date:To:From:Subject:From;
+        b=Prl5mRVPm1+QwMeg/dVop7eP8ovnuU3OIWsyvpHeUP2RHHRs4kuFJEc8mZDD89Xtx
+         5g2KgjgNLbwdD+QLMpw0bTUn1qn4sXqyXZKZQx0m6wAmVKGFqSc/U3vQqe52xMcPWn
+         GK+Klk5i5ovgmuLuGiK5cf4uGsrs3AZaMcZSq+J0=
+Date:   Mon, 26 Sep 2022 13:27:14 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        thierry.reding@gmail.com, mhocko@suse.com,
+        mgorman@techsingularity.net, neilb@suse.de,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-discard-__gfp_atomic.patch removed from -mm tree
+Message-Id: <20220926202714.C3272C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, Sep 26, 2022 at 12:37 PM Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
-> 26 hotfixes.
 
-Ugh. It would have been very good to have gotten these (or at least
-the bulk of them) a day or two ago, so that they would have made it
-into -rc7.
+The quilt patch titled
+     Subject: mm: discard __GFP_ATOMIC
+has been removed from the -mm tree.  Its filename was
+     mm-discard-__gfp_atomic.patch
 
-Oh well. Pulled.
+This patch was dropped because an updated version will be merged
 
-               Linus
+------------------------------------------------------
+From: "NeilBrown" <neilb@suse.de>
+Subject: mm: discard __GFP_ATOMIC
+
+__GFP_ATOMIC serves little purpose.  Its main effect is to set
+ALLOC_HARDER which adds a few little boosts to increase the chance of an
+allocation succeeding, one of which is to lower the water-mark at which it
+will succeed.
+
+It is *always* paired with __GFP_HIGH which sets ALLOC_HIGH which also
+adjusts this watermark.  It is probable that other users of __GFP_HIGH
+should benefit from the other little bonuses that __GFP_ATOMIC gets.
+
+__GFP_ATOMIC also gives a warning if used with __GFP_DIRECT_RECLAIM. 
+There is little point to this.  We already get a might_sleep() warning if
+__GFP_DIRECT_RECLAIM is set.
+
+__GFP_ATOMIC allows the "watermark_boost" to be side-stepped.  It is
+probable that testing ALLOC_HARDER is a better fit here.
+
+__GFP_ATOMIC is used by tegra-smmu.c to check if the allocation might
+sleep.  This should test __GFP_DIRECT_RECLAIM instead.
+
+This patch:
+ - removes __GFP_ATOMIC
+ - causes __GFP_HIGH to set ALLOC_HARDER unless __GFP_NOMEMALLOC is set
+   (as well as ALLOC_HIGH).
+ - makes other adjustments as suggested by the above.
+
+The net result is not change to GFP_ATOMIC allocations.  Other
+allocations that use __GFP_HIGH will benefit from a few different extra
+privileges.  This affects:
+  xen, dm, md, ntfs3
+  the vermillion frame buffer
+  hibernation
+  ksm
+  swap
+all of which likely produce more benefit than cost if these selected
+allocation are more likely to succeed quickly.
+
+Link: https://lkml.kernel.org/r/163712397076.13692.4727608274002939094@noble.neil.brown.name
+Signed-off-by: NeilBrown <neilb@suse.de>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/mm/balance.rst   |    2 +-
+ drivers/iommu/tegra-smmu.c     |    4 ++--
+ include/linux/gfp_types.h      |   12 ++++--------
+ include/trace/events/mmflags.h |    1 -
+ lib/test_printf.c              |    8 ++++----
+ mm/internal.h                  |    2 +-
+ mm/page_alloc.c                |   16 ++++------------
+ tools/perf/builtin-kmem.c      |    1 -
+ 8 files changed, 16 insertions(+), 30 deletions(-)
+
+--- a/Documentation/mm/balance.rst~mm-discard-__gfp_atomic
++++ a/Documentation/mm/balance.rst
+@@ -6,7 +6,7 @@ Memory Balancing
+ 
+ Started Jan 2000 by Kanoj Sarcar <kanoj@sgi.com>
+ 
+-Memory balancing is needed for !__GFP_ATOMIC and !__GFP_KSWAPD_RECLAIM as
++Memory balancing is needed for !__GFP_HIGH and !__GFP_KSWAPD_RECLAIM as
+ well as for non __GFP_IO allocations.
+ 
+ The first reason why a caller may avoid reclaim is that the caller can not
+--- a/drivers/iommu/tegra-smmu.c~mm-discard-__gfp_atomic
++++ a/drivers/iommu/tegra-smmu.c
+@@ -671,12 +671,12 @@ static struct page *as_get_pde_page(stru
+ 	 * allocate page in a sleeping context if GFP flags permit. Hence
+ 	 * spinlock needs to be unlocked and re-locked after allocation.
+ 	 */
+-	if (!(gfp & __GFP_ATOMIC))
++	if (gfp & __GFP_DIRECT_RECLAIM)
+ 		spin_unlock_irqrestore(&as->lock, *flags);
+ 
+ 	page = alloc_page(gfp | __GFP_DMA | __GFP_ZERO);
+ 
+-	if (!(gfp & __GFP_ATOMIC))
++	if (gfp & __GFP_DIRECT_RECLAIM)
+ 		spin_lock_irqsave(&as->lock, *flags);
+ 
+ 	/*
+--- a/include/linux/gfp_types.h~mm-discard-__gfp_atomic
++++ a/include/linux/gfp_types.h
+@@ -31,7 +31,7 @@ typedef unsigned int __bitwise gfp_t;
+ #define ___GFP_IO		0x40u
+ #define ___GFP_FS		0x80u
+ #define ___GFP_ZERO		0x100u
+-#define ___GFP_ATOMIC		0x200u
++/* 0x200u unused */
+ #define ___GFP_DIRECT_RECLAIM	0x400u
+ #define ___GFP_KSWAPD_RECLAIM	0x800u
+ #define ___GFP_WRITE		0x1000u
+@@ -116,11 +116,8 @@ typedef unsigned int __bitwise gfp_t;
+  *
+  * %__GFP_HIGH indicates that the caller is high-priority and that granting
+  * the request is necessary before the system can make forward progress.
+- * For example, creating an IO context to clean pages.
+- *
+- * %__GFP_ATOMIC indicates that the caller cannot reclaim or sleep and is
+- * high priority. Users are typically interrupt handlers. This may be
+- * used in conjunction with %__GFP_HIGH
++ * For example creating an IO context to clean pages and requests
++ * from atomic context.
+  *
+  * %__GFP_MEMALLOC allows access to all memory. This should only be used when
+  * the caller guarantees the allocation will allow more memory to be freed
+@@ -135,7 +132,6 @@ typedef unsigned int __bitwise gfp_t;
+  * %__GFP_NOMEMALLOC is used to explicitly forbid access to emergency reserves.
+  * This takes precedence over the %__GFP_MEMALLOC flag if both are set.
+  */
+-#define __GFP_ATOMIC	((__force gfp_t)___GFP_ATOMIC)
+ #define __GFP_HIGH	((__force gfp_t)___GFP_HIGH)
+ #define __GFP_MEMALLOC	((__force gfp_t)___GFP_MEMALLOC)
+ #define __GFP_NOMEMALLOC ((__force gfp_t)___GFP_NOMEMALLOC)
+@@ -329,7 +325,7 @@ typedef unsigned int __bitwise gfp_t;
+  * version does not attempt reclaim/compaction at all and is by default used
+  * in page fault path, while the non-light is used by khugepaged.
+  */
+-#define GFP_ATOMIC	(__GFP_HIGH|__GFP_ATOMIC|__GFP_KSWAPD_RECLAIM)
++#define GFP_ATOMIC	(__GFP_HIGH|__GFP_KSWAPD_RECLAIM)
+ #define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
+ #define GFP_KERNEL_ACCOUNT (GFP_KERNEL | __GFP_ACCOUNT)
+ #define GFP_NOWAIT	(__GFP_KSWAPD_RECLAIM)
+--- a/include/trace/events/mmflags.h~mm-discard-__gfp_atomic
++++ a/include/trace/events/mmflags.h
+@@ -31,7 +31,6 @@
+ 	gfpflag_string(__GFP_HIGHMEM),		\
+ 	gfpflag_string(GFP_DMA32),		\
+ 	gfpflag_string(__GFP_HIGH),		\
+-	gfpflag_string(__GFP_ATOMIC),		\
+ 	gfpflag_string(__GFP_IO),		\
+ 	gfpflag_string(__GFP_FS),		\
+ 	gfpflag_string(__GFP_NOWARN),		\
+--- a/lib/test_printf.c~mm-discard-__gfp_atomic
++++ a/lib/test_printf.c
+@@ -686,17 +686,17 @@ flags(void)
+ 	gfp = GFP_ATOMIC|__GFP_DMA;
+ 	test("GFP_ATOMIC|GFP_DMA", "%pGg", &gfp);
+ 
+-	gfp = __GFP_ATOMIC;
+-	test("__GFP_ATOMIC", "%pGg", &gfp);
++	gfp = __GFP_HIGH;
++	test("__GFP_HIGH", "%pGg", &gfp);
+ 
+ 	/* Any flags not translated by the table should remain numeric */
+ 	gfp = ~__GFP_BITS_MASK;
+ 	snprintf(cmp_buffer, BUF_SIZE, "%#lx", (unsigned long) gfp);
+ 	test(cmp_buffer, "%pGg", &gfp);
+ 
+-	snprintf(cmp_buffer, BUF_SIZE, "__GFP_ATOMIC|%#lx",
++	snprintf(cmp_buffer, BUF_SIZE, "__GFP_HIGH|%#lx",
+ 							(unsigned long) gfp);
+-	gfp |= __GFP_ATOMIC;
++	gfp |= __GFP_HIGH;
+ 	test(cmp_buffer, "%pGg", &gfp);
+ 
+ 	kfree(cmp_buffer);
+--- a/mm/internal.h~mm-discard-__gfp_atomic
++++ a/mm/internal.h
+@@ -24,7 +24,7 @@ struct folio_batch;
+ #define GFP_RECLAIM_MASK (__GFP_RECLAIM|__GFP_HIGH|__GFP_IO|__GFP_FS|\
+ 			__GFP_NOWARN|__GFP_RETRY_MAYFAIL|__GFP_NOFAIL|\
+ 			__GFP_NORETRY|__GFP_MEMALLOC|__GFP_NOMEMALLOC|\
+-			__GFP_ATOMIC|__GFP_NOLOCKDEP)
++			__GFP_NOLOCKDEP)
+ 
+ /* The GFP flags allowed during early boot */
+ #define GFP_BOOT_MASK (__GFP_BITS_MASK & ~(__GFP_RECLAIM|__GFP_IO|__GFP_FS))
+--- a/mm/page_alloc.c~mm-discard-__gfp_atomic
++++ a/mm/page_alloc.c
+@@ -4058,12 +4058,12 @@ static inline bool zone_watermark_fast(s
+ 					free_pages))
+ 		return true;
+ 	/*
+-	 * Ignore watermark boosting for GFP_ATOMIC order-0 allocations
++	 * Ignore watermark boosting for GFP_HIGH order-0 allocations
+ 	 * when checking the min watermark. The min watermark is the
+ 	 * point where boosting is ignored so that kswapd is woken up
+ 	 * when below the low watermark.
+ 	 */
+-	if (unlikely(!order && (gfp_mask & __GFP_ATOMIC) && z->watermark_boost
++	if (unlikely(!order && (alloc_flags & ALLOC_HARDER) && z->watermark_boost
+ 		&& ((alloc_flags & ALLOC_WMARK_MASK) == WMARK_MIN))) {
+ 		mark = z->_watermark[WMARK_MIN];
+ 		return __zone_watermark_ok(z, order, mark, highest_zoneidx,
+@@ -4822,12 +4822,12 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	 * The caller may dip into page reserves a bit more if the caller
+ 	 * cannot run direct reclaim, or if the caller has realtime scheduling
+ 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
+-	 * set both ALLOC_HARDER (__GFP_ATOMIC) and ALLOC_HIGH (__GFP_HIGH).
++	 * set both ALLOC_HARDER (unless __GFP_NOMEMALLOC) and ALLOC_HIGH.
+ 	 */
+ 	alloc_flags |= (__force int)
+ 		(gfp_mask & (__GFP_HIGH | __GFP_KSWAPD_RECLAIM));
+ 
+-	if (gfp_mask & __GFP_ATOMIC) {
++	if (gfp_mask & __GFP_HIGH) {
+ 		/*
+ 		 * Not worth trying to allocate harder for __GFP_NOMEMALLOC even
+ 		 * if it can't schedule.
+@@ -5021,14 +5021,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	unsigned int zonelist_iter_cookie;
+ 	int reserve_flags;
+ 
+-	/*
+-	 * We also sanity check to catch abuse of atomic reserves being used by
+-	 * callers that are not in atomic context.
+-	 */
+-	if (WARN_ON_ONCE((gfp_mask & (__GFP_ATOMIC|__GFP_DIRECT_RECLAIM)) ==
+-				(__GFP_ATOMIC|__GFP_DIRECT_RECLAIM)))
+-		gfp_mask &= ~__GFP_ATOMIC;
+-
+ restart:
+ 	compaction_retries = 0;
+ 	no_progress_loops = 0;
+--- a/tools/perf/builtin-kmem.c~mm-discard-__gfp_atomic
++++ a/tools/perf/builtin-kmem.c
+@@ -640,7 +640,6 @@ static const struct {
+ 	{ "__GFP_HIGHMEM",		"HM" },
+ 	{ "GFP_DMA32",			"D32" },
+ 	{ "__GFP_HIGH",			"H" },
+-	{ "__GFP_ATOMIC",		"_A" },
+ 	{ "__GFP_IO",			"I" },
+ 	{ "__GFP_FS",			"F" },
+ 	{ "__GFP_NOWARN",		"NWR" },
+_
+
+Patches currently in -mm which might be from neilb@suse.de are
+
+
