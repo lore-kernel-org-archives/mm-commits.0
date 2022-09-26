@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6A05C32771
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 17:06:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 493AEC32771
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Sep 2022 17:14:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229988AbiIZRGb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 13:06:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59318 "EHLO
+        id S230318AbiIZROr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 13:14:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229996AbiIZRGM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 13:06:12 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D994E491DC
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 09:10:18 -0700 (PDT)
+        with ESMTP id S230322AbiIZROZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 13:14:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C6C84599A;
+        Mon, 26 Sep 2022 09:26:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5CBD5B80AE3
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 16:10:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1306C433D6;
-        Mon, 26 Sep 2022 16:10:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ACF6D60F93;
+        Mon, 26 Sep 2022 16:26:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0F45C433C1;
+        Mon, 26 Sep 2022 16:26:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664208616;
-        bh=quJC7BagLpcToqzJKrMzwdzUJjkYLhFgDc2RC34Q8hw=;
+        s=korg; t=1664209564;
+        bh=/pMO+HkTnGepokq+oqMOrGh3yo5nDjVI+hg23C63v6Y=;
         h=Date:To:From:Subject:From;
-        b=iDMkLzGtAtVkkK8FZ5yLBPV0+WkCeBTpE0QQZZyybddng5xXnmq3Avg5vURFBhXtM
-         z/MkiHAMxB8CypkJoukTnL+2e4D+IHtMFgdFKM0QVF52DQZJX7J3wx5Sckeev9W6+/
-         yhUm6rjO/uf4oJ0++4LsOwx71bQVqTxoJlyF7lNA=
-Date:   Mon, 26 Sep 2022 09:10:14 -0700
-To:     mm-commits@vger.kernel.org, vishal.l.verma@intel.com,
-        joao.m.martins@oracle.com, dave.jiang@intel.com,
-        dan.j.williams@intel.com, linyujun809@huawei.com,
-        akpm@linux-foundation.org
+        b=D3Gsqz9933T81jfJpRL/LA91Y13JcRBopK5Lr5Oey6K+x8zhxtL8OFww03IY14IKN
+         e257yDdHnndCORhjz5xRZ8lTBNdcQyhg6EoauEjYv3WAKiCUKruvRVXOfNmcS1EIzv
+         Mhb0SB7h2SSBX3AOTIV/pq4KqxVtTdBsnEPzdPg4=
+Date:   Mon, 26 Sep 2022 09:26:02 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
+        ppbuk5246@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + acpi-hmat-release-platform-device-in-case-of-platform_device_add_data-fails.patch added to mm-unstable branch
-Message-Id: <20220926161015.E1306C433D6@smtp.kernel.org>
+Subject: + damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220926162603.E0F45C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ACPI: HMAT: release platform device in case of platform_device_add_data() failure
-has been added to the -mm mm-unstable branch.  Its filename is
-     acpi-hmat-release-platform-device-in-case-of-platform_device_add_data-fails.patch
+     Subject: damon/sysfs: fix possible memleak on damon_sysfs_add_target
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/acpi-hmat-release-platform-device-in-case-of-platform_device_add_data-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,52 +64,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lin Yujun <linyujun809@huawei.com>
-Subject: ACPI: HMAT: release platform device in case of platform_device_add_data() failure
-Date: Wed, 14 Sep 2022 11:37:55 +0800
+From: Levi Yun <ppbuk5246@gmail.com>
+Subject: damon/sysfs: fix possible memleak on damon_sysfs_add_target
+Date: Mon, 26 Sep 2022 16:06:11 +0000
 
-The platform device is not released when platform_device_add_data() fails.
-And platform_device_put() performs one more pointer check than
-put_device() to check for errors in the 'pdev' pointer.
+When damon_sysfs_add_target couldn't find proper task, New allocated
+damon_target structure isn't registered yet, So, it's impossible to free
+new allocated one by damon_sysfs_destroy_targets.
 
-Use platform_device_put() to release platform device in
-platform_device_add()/platform_device_add_data()/
-platform_device_add_resources() error case.
+By calling daemon_add_target as soon as allocating new target, Fix this
+possible memory leak.
 
-Link: https://lkml.kernel.org/r/20220914033755.99924-1-linyujun809@huawei.com
-Fixes: c01044cc8191 ("ACPI: HMAT: refactor hmat_register_target_device to hmem_register_device")
-Signed-off-by: Lin Yujun <linyujun809@huawei.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+Link: https://lkml.kernel.org/r/20220926160611.48536-1-sj@kernel.org
+Fixes: a61ea561c871 ("mm/damon/sysfs: link DAMON for virtual address spaces monitoring")
+Signed-off-by: Levi Yun <ppbuk5246@gmail.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[5.17.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/drivers/dax/hmem/device.c~acpi-hmat-release-platform-device-in-case-of-platform_device_add_data-fails
-+++ a/drivers/dax/hmem/device.c
-@@ -47,7 +47,7 @@ void hmem_register_device(int target_nid
- 	rc = platform_device_add_data(pdev, &info, sizeof(info));
- 	if (rc < 0) {
- 		pr_err("hmem memregion_info allocation failure for %pr\n", &res);
--		goto out_pdev;
-+		goto out_resource;
+--- a/mm/damon/sysfs.c~damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target
++++ a/mm/damon/sysfs.c
+@@ -2182,12 +2182,12 @@ static int damon_sysfs_add_target(struct
+ 
+ 	if (!t)
+ 		return -ENOMEM;
++	damon_add_target(ctx, t);
+ 	if (damon_target_has_pid(ctx)) {
+ 		t->pid = find_get_pid(sys_target->pid);
+ 		if (!t->pid)
+ 			goto destroy_targets_out;
  	}
- 
- 	rc = platform_device_add_resources(pdev, &res, 1);
-@@ -65,7 +65,7 @@ void hmem_register_device(int target_nid
- 	return;
- 
- out_resource:
--	put_device(&pdev->dev);
-+	platform_device_put(pdev);
- out_pdev:
- 	memregion_free(id);
- }
+-	damon_add_target(ctx, t);
+ 	err = damon_sysfs_set_regions(t, sys_target->regions);
+ 	if (err)
+ 		goto destroy_targets_out;
 _
 
-Patches currently in -mm which might be from linyujun809@huawei.com are
+Patches currently in -mm which might be from ppbuk5246@gmail.com are
 
-acpi-hmat-release-platform-device-in-case-of-platform_device_add_data-fails.patch
+damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target.patch
 
