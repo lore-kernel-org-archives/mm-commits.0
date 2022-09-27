@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29B6DC07E9D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E79CC32771
 	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:47:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230159AbiI0Cra (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229935AbiI0Cra (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 26 Sep 2022 22:47:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57722 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229935AbiI0Cr0 (ORCPT
+        with ESMTP id S229943AbiI0Cr0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:47:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2162C61D46
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06AE161D40
         for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:47:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7533461557
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0A93DB81902
         for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:47:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0874C433C1;
-        Tue, 27 Sep 2022 02:47:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B64CFC433D6;
+        Tue, 27 Sep 2022 02:47:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246841;
-        bh=xKNleTsc7EdErbzPWmuAoi0ISTYKEIsWMlMHqqdAiGY=;
+        s=korg; t=1664246840;
+        bh=HgxLkYIrE5v1mqcqTTqkoSE6FSNwuAAl/ol57LQEUZ4=;
         h=Date:To:From:Subject:From;
-        b=QZGG5CEMYicLCrJqt3h+HUO0aC9FniuU7Z1PCU4//6LEn4stJNSva2DUCYECbIo53
-         Q5c/VSt+kRWmR1TNQHLVzkJ5XPa+87xLZa/gXLPD1PwAkyMXfF2RbQJqcQew3EK7W6
-         2VP2Xbri2opO9H2iC5j4XNnz6QfqANKjXSVNJuVM=
-Date:   Mon, 26 Sep 2022 19:47:21 -0700
+        b=BIcYtufEwa5v3iKyrSExx9vKLAuoJGmfyCg/etaW5L+G4oso02apAfd5cvIv/8ZVZ
+         cg5O5EyNpzftnZeWeMMQ4Q03av6tWV6gFX1dItU9Gd9C3SMUmZ5fycZlDNJYyMLOkS
+         L2j1BCVEmmqcd5Nukncbbwku4TOoChu9rWQhtEDo=
+Date:   Mon, 26 Sep 2022 19:47:19 -0700
 To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch removed from -mm tree
-Message-Id: <20220927024721.D0874C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages.patch removed from -mm tree
+Message-Id: <20220927024720.B64CFC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,68 +41,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, hwpoison: use num_poisoned_pages_sub() to decrease num_poisoned_pages
+     Subject: mm, hwpoison: use __PageMovable() to detect non-lru movable pages
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch
+     mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm, hwpoison: use num_poisoned_pages_sub() to decrease num_poisoned_pages
-Date: Tue, 30 Aug 2022 20:36:01 +0800
+Subject: mm, hwpoison: use __PageMovable() to detect non-lru movable pages
+Date: Tue, 30 Aug 2022 20:36:00 +0800
 
-Use num_poisoned_pages_sub() to combine multiple atomic ops into one. Also
-num_poisoned_pages_dec() can be killed as there's no caller now.
+It's more recommended to use __PageMovable() to detect non-lru movable
+pages. We can avoid bumping page refcnt via isolate_movable_page() for
+the isolated lru pages. Also if pages become PageLRU just after they're
+checked but before trying to isolate them, isolate_lru_page() will be
+called to do the right work.
 
-Link: https://lkml.kernel.org/r/20220830123604.25763-4-linmiaohe@huawei.com
+[linmiaohe@huawei.com: fixes per Naoya Horiguchi]
+  Link: https://lkml.kernel.org/r/1f7ee86e-7d28-0d8c-e0de-b7a5a94519e8@huawei.com
+Link: https://lkml.kernel.org/r/20220830123604.25763-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    5 -----
- mm/memory-failure.c     |    6 ++++--
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ mm/memory-failure.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/include/linux/swapops.h~mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages
-+++ a/include/linux/swapops.h
-@@ -485,11 +485,6 @@ static inline void num_poisoned_pages_in
- 	atomic_long_inc(&num_poisoned_pages);
- }
- 
--static inline void num_poisoned_pages_dec(void)
--{
--	atomic_long_dec(&num_poisoned_pages);
--}
--
- static inline void num_poisoned_pages_sub(long i)
- {
- 	atomic_long_sub(i, &num_poisoned_pages);
---- a/mm/memory-failure.c~mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages
+--- a/mm/memory-failure.c~mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages
 +++ a/mm/memory-failure.c
-@@ -2602,7 +2602,7 @@ retry:
- 
- void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
+@@ -2407,24 +2407,26 @@ EXPORT_SYMBOL(unpoison_memory);
+ static bool isolate_page(struct page *page, struct list_head *pagelist)
  {
--	int i;
-+	int i, total = 0;
+ 	bool isolated = false;
+-	bool lru = PageLRU(page);
  
- 	/*
- 	 * A further optimization is to have per section refcounted
-@@ -2615,8 +2615,10 @@ void clear_hwpoisoned_pages(struct page
+ 	if (PageHuge(page)) {
+ 		isolated = !isolate_hugetlb(page, pagelist);
+ 	} else {
++		bool lru = !__PageMovable(page);
++
+ 		if (lru)
+ 			isolated = !isolate_lru_page(page);
+ 		else
+-			isolated = !isolate_movable_page(page, ISOLATE_UNEVICTABLE);
++			isolated = !isolate_movable_page(page,
++							 ISOLATE_UNEVICTABLE);
  
- 	for (i = 0; i < nr_pages; i++) {
- 		if (PageHWPoison(&memmap[i])) {
--			num_poisoned_pages_dec();
-+			total++;
- 			ClearPageHWPoison(&memmap[i]);
- 		}
+-		if (isolated)
++		if (isolated) {
+ 			list_add(&page->lru, pagelist);
++			if (lru)
++				inc_node_page_state(page, NR_ISOLATED_ANON +
++						    page_is_file_lru(page));
++		}
  	}
-+	if (total)
-+		num_poisoned_pages_sub(total);
- }
+ 
+-	if (isolated && lru)
+-		inc_node_page_state(page, NR_ISOLATED_ANON +
+-				    page_is_file_lru(page));
+-
+ 	/*
+ 	 * If we succeed to isolate the page, we grabbed another refcount on
+ 	 * the page, so we can safely drop the one we got from get_any_pages().
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
