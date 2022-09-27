@@ -2,39 +2,50 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B81E0C07E9D
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:48:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DBDCC32771
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:49:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230391AbiI0Cs5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:48:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57918 "EHLO
+        id S230309AbiI0CtA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:49:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229739AbiI0Cr4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:47:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B59D26C113
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:47:50 -0700 (PDT)
+        with ESMTP id S230318AbiI0Cr7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:47:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D47C76D552
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:47:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 772C1B81902
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:47:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3352CC433D6;
-        Tue, 27 Sep 2022 02:47:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6E92661547
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:47:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1FF3C43470;
+        Tue, 27 Sep 2022 02:47:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246868;
-        bh=UKqAwRtqNSOJzH70khxFfoSQehJMUeknLzoLpm+laHk=;
+        s=korg; t=1664246871;
+        bh=ygwHMaW6zrxvQkXde07Hz64RiWYUKkbBZk27wekopUc=;
         h=Date:To:From:Subject:From;
-        b=QnNLt9yfWwBlPrrXdG9gJp/bBTtPBjKAdP8p3p+gAmvfvam+RGKG+w8HVtsVeKyHC
-         a03i0jxw0xjGq6pdPgb0AY+2CYaNTQDlbgv7YOd5yZrj2CXXcLCrJM5aCIcWv4Zm3C
-         ZChrp2ShXK4r4EhItimWEOyxE4Qz/q+iXcUYv/WQ=
-Date:   Mon, 26 Sep 2022 19:47:47 -0700
-To:     mm-commits@vger.kernel.org, wang.yong12@zte.com.cn,
-        ran.xiaokai@zte.com.cn, iamjoonsoo.kim@lge.com, cgel.zte@gmail.com,
-        yang.yang29@zte.com.cn, akpm@linux-foundation.org
+        b=0ToQbej1j4efuu7szYgVNMjh2IZLvkc8N0qbi8ngo5z3twDBYpTAnm6hHvPTIF4yX
+         QfNfiMh54lGgiD/Om8eaEYKlGzPVXUXzh3CfxJEyy5t0nr85s9c17SCD7tN3w1Ri3Q
+         PfRvOYkyagknzyHbrD7bvEApaqLXsTbMBRyzwM/g=
+Date:   Mon, 26 Sep 2022 19:47:51 -0700
+To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
+        willy@infradead.org, will@kernel.org, vbabka@suse.cz,
+        vaibhav@linux.ibm.com, torvalds@linux-foundation.org,
+        tj@kernel.org, szhai2@cs.rochester.edu, suleiman@google.com,
+        steven@liquorix.net, sofia.trinh@edi.works, rppt@linux.ibm.com,
+        rppt@kernel.org, peterz@infradead.org, oleksandr@natalenko.name,
+        Michael@MichaelLarabel.com, mhocko@kernel.org, mgorman@suse.de,
+        linmiaohe@huawei.com, holger@applied-asynchrony.com,
+        Hi-Angel@yandex.ru, heftig@archlinux.org, hdanton@sina.com,
+        hannes@cmpxchg.org, djbyrne@mtu.edu, d@chaos-reins.com,
+        dave.hansen@linux.intel.com, corbet@lwn.net,
+        catalin.marinas@arm.com, bgeffon@google.com, baohua@kernel.org,
+        axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
+        yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_io-count-submission-time-as-thrashing-delay-for-delayacct.patch removed from -mm tree
-Message-Id: <20220927024748.3352CC433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-x86-add-config_arch_has_nonleaf_pmd_young.patch removed from -mm tree
+Message-Id: <20220927024751.C1FF3C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,88 +53,166 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_io: count submission time as thrashing delay for delayacct
+     Subject: mm: x86: add CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG
 has been removed from the -mm tree.  Its filename was
-     mm-page_io-count-submission-time-as-thrashing-delay-for-delayacct.patch
+     mm-x86-add-config_arch_has_nonleaf_pmd_young.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Yang <yang.yang29@zte.com.cn>
-Subject: mm/page_io: count submission time as thrashing delay for delayacct
-Date: Mon, 15 Aug 2022 07:28:37 +0000
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: x86: add CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG
+Date: Sun, 18 Sep 2022 01:59:59 -0600
 
-Once upon a time, we only support accounting thrashing of page cache. 
-Then Joonsoo introduced workingset detection for anonymous pages and we
-gained the ability to account thrashing of them[1].
+Some architectures support the accessed bit in non-leaf PMD entries, e.g.,
+x86 sets the accessed bit in a non-leaf PMD entry when using it as part of
+linear address translation [1].  Page table walkers that clear the
+accessed bit may use this capability to reduce their search space.
 
-Likes PSI, we count submission time as thrashing delay because when the
-device is congested, or the submitting cgroup IO-throttled, submission can
-be a significant part of overall IO time.
+Note that:
+1. Although an inline function is preferable, this capability is added
+   as a configuration option for consistency with the existing macros.
+2. Due to the little interest in other varieties, this capability was
+   only tested on Intel and AMD CPUs.
 
-Without this patch, swap thrashing through frontswap or some block
-device supporting rw_page operation isn't measured correctly.
+Thanks to the following developers for their efforts [2][3].
+  Randy Dunlap <rdunlap@infradead.org>
+  Stephen Rothwell <sfr@canb.auug.org.au>
 
-This patch is based on "delayacct: support re-entrance detection of
-thrashing accounting".
+[1]: Intel 64 and IA-32 Architectures Software Developer's Manual
+     Volume 3 (June 2021), section 4.8
+[2] https://lore.kernel.org/r/bfdcc7c8-922f-61a9-aa15-7e7250f04af7@infradead.org/
+[3] https://lore.kernel.org/r/20220413151513.5a0d7a7e@canb.auug.org.au/
 
-[1] commit aae466b0052e ("mm/swap: implement workingset detection for anonymous LRU")
-
-Link: https://lkml.kernel.org/r/20220815072835.74876-1-yang.yang29@zte.com.cn
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Signed-off-by: CGEL ZTE <cgel.zte@gmail.com>
-Reviewed-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Reviewed-by: wangyong <wang.yong12@zte.com.cn>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20220918080010.2920238-3-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Brian Geffon <bgeffon@google.com>
+Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+Acked-by: Oleksandr Natalenko <oleksandr@natalenko.name>
+Acked-by: Steven Barrett <steven@liquorix.net>
+Acked-by: Suleiman Souhlal <suleiman@google.com>
+Tested-by: Daniel Byrne <djbyrne@mtu.edu>
+Tested-by: Donald Carr <d@chaos-reins.com>
+Tested-by: Holger Hoffstätte <holger@applied-asynchrony.com>
+Tested-by: Konstantin Kharlamov <Hi-Angel@yandex.ru>
+Tested-by: Shuang Zhai <szhai2@cs.rochester.edu>
+Tested-by: Sofia Trinh <sofia.trinh@edi.works>
+Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michael Larabel <Michael@MichaelLarabel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ arch/Kconfig                   |    8 ++++++++
+ arch/x86/Kconfig               |    1 +
+ arch/x86/include/asm/pgtable.h |    3 ++-
+ arch/x86/mm/pgtable.c          |    5 ++++-
+ include/linux/pgtable.h        |    4 ++--
+ 5 files changed, 17 insertions(+), 4 deletions(-)
 
---- a/mm/page_io.c~mm-page_io-count-submission-time-as-thrashing-delay-for-delayacct
-+++ a/mm/page_io.c
-@@ -452,18 +452,21 @@ int swap_readpage(struct page *page, boo
- 	struct swap_info_struct *sis = page_swap_info(page);
- 	bool workingset = PageWorkingset(page);
- 	unsigned long pflags;
-+	bool in_thrashing;
+--- a/arch/Kconfig~mm-x86-add-config_arch_has_nonleaf_pmd_young
++++ a/arch/Kconfig
+@@ -1415,6 +1415,14 @@ config DYNAMIC_SIGFRAME
+ config HAVE_ARCH_NODE_DEV_GROUP
+ 	bool
  
- 	VM_BUG_ON_PAGE(!PageSwapCache(page) && !synchronous, page);
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageUptodate(page), page);
++config ARCH_HAS_NONLEAF_PMD_YOUNG
++	bool
++	help
++	  Architectures that select this option are capable of setting the
++	  accessed bit in non-leaf PMD entries when using them as part of linear
++	  address translations. Page table walkers that clear the accessed bit
++	  may use this capability to reduce their search space.
++
+ source "kernel/gcov/Kconfig"
  
- 	/*
--	 * Count submission time as memory stall. When the device is congested,
--	 * or the submitting cgroup IO-throttled, submission can be a
--	 * significant part of overall IO time.
-+	 * Count submission time as memory stall and delay. When the device
-+	 * is congested, or the submitting cgroup IO-throttled, submission
-+	 * can be a significant part of overall IO time.
- 	 */
--	if (workingset)
-+	if (workingset) {
-+		delayacct_thrashing_start(&in_thrashing);
- 		psi_memstall_enter(&pflags);
-+	}
- 	delayacct_swapin_start();
+ source "scripts/gcc-plugins/Kconfig"
+--- a/arch/x86/include/asm/pgtable.h~mm-x86-add-config_arch_has_nonleaf_pmd_young
++++ a/arch/x86/include/asm/pgtable.h
+@@ -815,7 +815,8 @@ static inline unsigned long pmd_page_vad
  
- 	if (frontswap_load(page) == 0) {
-@@ -512,8 +515,10 @@ int swap_readpage(struct page *page, boo
- 	bio_put(bio);
+ static inline int pmd_bad(pmd_t pmd)
+ {
+-	return (pmd_flags(pmd) & ~_PAGE_USER) != _KERNPG_TABLE;
++	return (pmd_flags(pmd) & ~(_PAGE_USER | _PAGE_ACCESSED)) !=
++	       (_KERNPG_TABLE & ~_PAGE_ACCESSED);
+ }
  
- out:
--	if (workingset)
-+	if (workingset) {
-+		delayacct_thrashing_end(&in_thrashing);
- 		psi_memstall_leave(&pflags);
-+	}
- 	delayacct_swapin_end();
+ static inline unsigned long pages_to_mb(unsigned long npg)
+--- a/arch/x86/Kconfig~mm-x86-add-config_arch_has_nonleaf_pmd_young
++++ a/arch/x86/Kconfig
+@@ -85,6 +85,7 @@ config X86
+ 	select ARCH_HAS_PMEM_API		if X86_64
+ 	select ARCH_HAS_PTE_DEVMAP		if X86_64
+ 	select ARCH_HAS_PTE_SPECIAL
++	select ARCH_HAS_NONLEAF_PMD_YOUNG	if PGTABLE_LEVELS > 2
+ 	select ARCH_HAS_UACCESS_FLUSHCACHE	if X86_64
+ 	select ARCH_HAS_COPY_MC			if X86_64
+ 	select ARCH_HAS_SET_MEMORY
+--- a/arch/x86/mm/pgtable.c~mm-x86-add-config_arch_has_nonleaf_pmd_young
++++ a/arch/x86/mm/pgtable.c
+@@ -550,7 +550,7 @@ int ptep_test_and_clear_young(struct vm_
  	return ret;
  }
+ 
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
+ int pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ 			      unsigned long addr, pmd_t *pmdp)
+ {
+@@ -562,6 +562,9 @@ int pmdp_test_and_clear_young(struct vm_
+ 
+ 	return ret;
+ }
++#endif
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ int pudp_test_and_clear_young(struct vm_area_struct *vma,
+ 			      unsigned long addr, pud_t *pudp)
+ {
+--- a/include/linux/pgtable.h~mm-x86-add-config_arch_has_nonleaf_pmd_young
++++ a/include/linux/pgtable.h
+@@ -213,7 +213,7 @@ static inline int ptep_test_and_clear_yo
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
+ static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ 					    unsigned long address,
+ 					    pmd_t *pmdp)
+@@ -234,7 +234,7 @@ static inline int pmdp_test_and_clear_yo
+ 	BUILD_BUG();
+ 	return 0;
+ }
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG */
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
 _
 
-Patches currently in -mm which might be from yang.yang29@zte.com.cn are
+Patches currently in -mm which might be from yuzhao@google.com are
 
 
