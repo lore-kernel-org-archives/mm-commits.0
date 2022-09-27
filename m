@@ -2,50 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABA5AC32771
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:50:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DEF2C07E9D
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:50:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230317AbiI0Cu1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:50:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58092 "EHLO
+        id S230381AbiI0Cu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:50:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230384AbiI0Csp (ORCPT
+        with ESMTP id S230386AbiI0Csp (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:48:45 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F15BA9DB7A
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4784B9F767
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AEA3DB81903
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BBB2C433C1;
-        Tue, 27 Sep 2022 02:48:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E5DC4B81903
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90517C433C1;
+        Tue, 27 Sep 2022 02:48:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246892;
-        bh=SS27CVmGImigZuabqVH4DwEeSGDhE/T8h9ceFfpCUoA=;
+        s=korg; t=1664246896;
+        bh=qJrmIucfSbxIXR6cIZl4gsiO64Vz4IbT4H3bFKRoNkw=;
         h=Date:To:From:Subject:From;
-        b=C+Z+o+TSNZ9Hz1x599i5OkrYDhN4ax9cVqUNlkXdzzgjTdWoHk2dc6A0PxuoRivFq
-         2wZn/K19rM9ujueE3r7WeltG1fXShsg5jNCeVcXhlHot2J8qQfDbjkgEdGX+EeLszQ
-         JvShpODJq7TKiLuuGWJ78Tp1129+PLqJMTN5FH34=
-Date:   Mon, 26 Sep 2022 19:48:11 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        willy@infradead.org, will@kernel.org, vbabka@suse.cz,
-        vaibhav@linux.ibm.com, torvalds@linux-foundation.org,
-        tj@kernel.org, szhai2@cs.rochester.edu, suleiman@google.com,
-        steven@liquorix.net, sofia.trinh@edi.works, rppt@linux.ibm.com,
-        rppt@kernel.org, peterz@infradead.org, oleksandr@natalenko.name,
-        Michael@MichaelLarabel.com, mhocko@kernel.org, mgorman@suse.de,
-        linmiaohe@huawei.com, holger@applied-asynchrony.com,
-        Hi-Angel@yandex.ru, heftig@archlinux.org, hdanton@sina.com,
-        hannes@cmpxchg.org, djbyrne@mtu.edu, d@chaos-reins.com,
-        dave.hansen@linux.intel.com, corbet@lwn.net,
-        catalin.marinas@arm.com, bgeffon@google.com, baohua@kernel.org,
-        axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
-        yuzhao@google.com, akpm@linux-foundation.org
+        b=oxnkQ6zL3VrNH2Au67PBIKR4Ezvx9EheFvj0hEUimWzi0R86IlR9Hs1MutjJA25zp
+         1LXXuZu+VdDyl2TmqKs2cYR3X5jPHN2V5LtU9A1rEZrQgZvabtBgo52ZcTrgZhxtUi
+         DwEMpvLkqv4r1oOUMtIfMsKlnSSOXRXd1BkpBkQQ=
+Date:   Mon, 26 Sep 2022 19:48:15 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        weixugc@google.com, tim.c.chen@intel.com, sj@kernel.org,
+        shy828301@gmail.com, mhocko@kernel.org, jvgediya.oss@gmail.com,
+        Jonathan.Cameron@huawei.com, hesham.almatary@huawei.com,
+        hannes@cmpxchg.org, dave@stgolabs.net, dave.hansen@intel.com,
+        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-design-doc.patch removed from -mm tree
-Message-Id: <20220927024812.5BBB2C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined.patch removed from -mm tree
+Message-Id: <20220927024816.90517C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,237 +46,150 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: design doc
+     Subject: mm/demotion: add hotplug callbacks to handle new numa node onlined
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-design-doc.patch
+     mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: design doc
-Date: Sun, 18 Sep 2022 02:00:11 -0600
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/demotion: add hotplug callbacks to handle new numa node onlined
+Date: Thu, 18 Aug 2022 18:40:35 +0530
 
-Add a design doc.
+If the new NUMA node onlined doesn't have a abstract distance assigned,
+the kernel adds the NUMA node to default memory tier.
 
-Link: https://lkml.kernel.org/r/20220918080010.2920238-15-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Acked-by: Brian Geffon <bgeffon@google.com>
-Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
-Acked-by: Oleksandr Natalenko <oleksandr@natalenko.name>
-Acked-by: Steven Barrett <steven@liquorix.net>
-Acked-by: Suleiman Souhlal <suleiman@google.com>
-Tested-by: Daniel Byrne <djbyrne@mtu.edu>
-Tested-by: Donald Carr <d@chaos-reins.com>
-Tested-by: Holger Hoffstätte <holger@applied-asynchrony.com>
-Tested-by: Konstantin Kharlamov <Hi-Angel@yandex.ru>
-Tested-by: Shuang Zhai <szhai2@cs.rochester.edu>
-Tested-by: Sofia Trinh <sofia.trinh@edi.works>
-Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+[aneesh.kumar@linux.ibm.com: fix kernel error with memory hotplug]
+  Link: https://lkml.kernel.org/r/20220825092019.379069-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20220818131042.113280-4-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Wei Xu <weixugc@google.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hesham Almatary <hesham.almatary@huawei.com>
+Cc: Jagdish Gediya <jvgediya.oss@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michael Larabel <Michael@MichaelLarabel.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/index.rst        |    1 
- Documentation/mm/multigen_lru.rst |  159 ++++++++++++++++++++++++++++
- 2 files changed, 160 insertions(+)
+ include/linux/memory-tiers.h |    1 
+ mm/memory-tiers.c            |   68 +++++++++++++++++++++++++++++++++
+ 2 files changed, 69 insertions(+)
 
---- a/Documentation/mm/index.rst~mm-multi-gen-lru-design-doc
-+++ a/Documentation/mm/index.rst
-@@ -51,6 +51,7 @@ above structured documentation, or delet
-    ksm
-    memory-model
-    mmu_notifier
-+   multigen_lru
-    numa
-    overcommit-accounting
-    page_migration
---- /dev/null
-+++ a/Documentation/mm/multigen_lru.rst
-@@ -0,0 +1,159 @@
-+.. SPDX-License-Identifier: GPL-2.0
+--- a/include/linux/memory-tiers.h~mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined
++++ a/include/linux/memory-tiers.h
+@@ -14,6 +14,7 @@
+  * the same memory tier.
+  */
+ #define MEMTIER_ADISTANCE_DRAM	((4 * MEMTIER_CHUNK_SIZE) + (MEMTIER_CHUNK_SIZE >> 1))
++#define MEMTIER_HOTPLUG_PRIO	100
+ 
+ #ifdef CONFIG_NUMA
+ #include <linux/types.h>
+--- a/mm/memory-tiers.c~mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined
++++ a/mm/memory-tiers.c
+@@ -5,6 +5,7 @@
+ #include <linux/lockdep.h>
+ #include <linux/sysfs.h>
+ #include <linux/kobject.h>
++#include <linux/memory.h>
+ #include <linux/memory-tiers.h>
+ 
+ struct memory_tier {
+@@ -105,6 +106,72 @@ static struct memory_tier *set_node_memo
+ 	return memtier;
+ }
+ 
++static struct memory_tier *__node_get_memory_tier(int node)
++{
++	struct memory_dev_type *memtype;
 +
-+=============
-+Multi-Gen LRU
-+=============
-+The multi-gen LRU is an alternative LRU implementation that optimizes
-+page reclaim and improves performance under memory pressure. Page
-+reclaim decides the kernel's caching policy and ability to overcommit
-+memory. It directly impacts the kswapd CPU usage and RAM efficiency.
++	memtype = node_memory_types[node];
++	if (memtype && node_isset(node, memtype->nodes))
++		return memtype->memtier;
++	return NULL;
++}
 +
-+Design overview
-+===============
-+Objectives
-+----------
-+The design objectives are:
++static void destroy_memory_tier(struct memory_tier *memtier)
++{
++	list_del(&memtier->list);
++	kfree(memtier);
++}
 +
-+* Good representation of access recency
-+* Try to profit from spatial locality
-+* Fast paths to make obvious choices
-+* Simple self-correcting heuristics
++static bool clear_node_memory_tier(int node)
++{
++	bool cleared = false;
++	struct memory_tier *memtier;
 +
-+The representation of access recency is at the core of all LRU
-+implementations. In the multi-gen LRU, each generation represents a
-+group of pages with similar access recency. Generations establish a
-+(time-based) common frame of reference and therefore help make better
-+choices, e.g., between different memcgs on a computer or different
-+computers in a data center (for job scheduling).
++	memtier = __node_get_memory_tier(node);
++	if (memtier) {
++		struct memory_dev_type *memtype;
 +
-+Exploiting spatial locality improves efficiency when gathering the
-+accessed bit. A rmap walk targets a single page and does not try to
-+profit from discovering a young PTE. A page table walk can sweep all
-+the young PTEs in an address space, but the address space can be too
-+sparse to make a profit. The key is to optimize both methods and use
-+them in combination.
++		memtype = node_memory_types[node];
++		node_clear(node, memtype->nodes);
++		if (nodes_empty(memtype->nodes)) {
++			list_del_init(&memtype->tier_sibiling);
++			memtype->memtier = NULL;
++			if (list_empty(&memtier->memory_types))
++				destroy_memory_tier(memtier);
++		}
++		cleared = true;
++	}
++	return cleared;
++}
 +
-+Fast paths reduce code complexity and runtime overhead. Unmapped pages
-+do not require TLB flushes; clean pages do not require writeback.
-+These facts are only helpful when other conditions, e.g., access
-+recency, are similar. With generations as a common frame of reference,
-+additional factors stand out. But obvious choices might not be good
-+choices; thus self-correction is necessary.
++static int __meminit memtier_hotplug_callback(struct notifier_block *self,
++					      unsigned long action, void *_arg)
++{
++	struct memory_notify *arg = _arg;
 +
-+The benefits of simple self-correcting heuristics are self-evident.
-+Again, with generations as a common frame of reference, this becomes
-+attainable. Specifically, pages in the same generation can be
-+categorized based on additional factors, and a feedback loop can
-+statistically compare the refault percentages across those categories
-+and infer which of them are better choices.
++	/*
++	 * Only update the node migration order when a node is
++	 * changing status, like online->offline.
++	 */
++	if (arg->status_change_nid < 0)
++		return notifier_from_errno(0);
 +
-+Assumptions
-+-----------
-+The protection of hot pages and the selection of cold pages are based
-+on page access channels and patterns. There are two access channels:
++	switch (action) {
++	case MEM_OFFLINE:
++		mutex_lock(&memory_tier_lock);
++		clear_node_memory_tier(arg->status_change_nid);
++		mutex_unlock(&memory_tier_lock);
++		break;
++	case MEM_ONLINE:
++		mutex_lock(&memory_tier_lock);
++		set_node_memory_tier(arg->status_change_nid);
++		mutex_unlock(&memory_tier_lock);
++		break;
++	}
 +
-+* Accesses through page tables
-+* Accesses through file descriptors
++	return notifier_from_errno(0);
++}
 +
-+The protection of the former channel is by design stronger because:
-+
-+1. The uncertainty in determining the access patterns of the former
-+   channel is higher due to the approximation of the accessed bit.
-+2. The cost of evicting the former channel is higher due to the TLB
-+   flushes required and the likelihood of encountering the dirty bit.
-+3. The penalty of underprotecting the former channel is higher because
-+   applications usually do not prepare themselves for major page
-+   faults like they do for blocked I/O. E.g., GUI applications
-+   commonly use dedicated I/O threads to avoid blocking rendering
-+   threads.
-+
-+There are also two access patterns:
-+
-+* Accesses exhibiting temporal locality
-+* Accesses not exhibiting temporal locality
-+
-+For the reasons listed above, the former channel is assumed to follow
-+the former pattern unless ``VM_SEQ_READ`` or ``VM_RAND_READ`` is
-+present, and the latter channel is assumed to follow the latter
-+pattern unless outlying refaults have been observed.
-+
-+Workflow overview
-+=================
-+Evictable pages are divided into multiple generations for each
-+``lruvec``. The youngest generation number is stored in
-+``lrugen->max_seq`` for both anon and file types as they are aged on
-+an equal footing. The oldest generation numbers are stored in
-+``lrugen->min_seq[]`` separately for anon and file types as clean file
-+pages can be evicted regardless of swap constraints. These three
-+variables are monotonically increasing.
-+
-+Generation numbers are truncated into ``order_base_2(MAX_NR_GENS+1)``
-+bits in order to fit into the gen counter in ``folio->flags``. Each
-+truncated generation number is an index to ``lrugen->lists[]``. The
-+sliding window technique is used to track at least ``MIN_NR_GENS`` and
-+at most ``MAX_NR_GENS`` generations. The gen counter stores a value
-+within ``[1, MAX_NR_GENS]`` while a page is on one of
-+``lrugen->lists[]``; otherwise it stores zero.
-+
-+Each generation is divided into multiple tiers. A page accessed ``N``
-+times through file descriptors is in tier ``order_base_2(N)``. Unlike
-+generations, tiers do not have dedicated ``lrugen->lists[]``. In
-+contrast to moving across generations, which requires the LRU lock,
-+moving across tiers only involves atomic operations on
-+``folio->flags`` and therefore has a negligible cost. A feedback loop
-+modeled after the PID controller monitors refaults over all the tiers
-+from anon and file types and decides which tiers from which types to
-+evict or protect.
-+
-+There are two conceptually independent procedures: the aging and the
-+eviction. They form a closed-loop system, i.e., the page reclaim.
-+
-+Aging
-+-----
-+The aging produces young generations. Given an ``lruvec``, it
-+increments ``max_seq`` when ``max_seq-min_seq+1`` approaches
-+``MIN_NR_GENS``. The aging promotes hot pages to the youngest
-+generation when it finds them accessed through page tables; the
-+demotion of cold pages happens consequently when it increments
-+``max_seq``. The aging uses page table walks and rmap walks to find
-+young PTEs. For the former, it iterates ``lruvec_memcg()->mm_list``
-+and calls ``walk_page_range()`` with each ``mm_struct`` on this list
-+to scan PTEs, and after each iteration, it increments ``max_seq``. For
-+the latter, when the eviction walks the rmap and finds a young PTE,
-+the aging scans the adjacent PTEs. For both, on finding a young PTE,
-+the aging clears the accessed bit and updates the gen counter of the
-+page mapped by this PTE to ``(max_seq%MAX_NR_GENS)+1``.
-+
-+Eviction
-+--------
-+The eviction consumes old generations. Given an ``lruvec``, it
-+increments ``min_seq`` when ``lrugen->lists[]`` indexed by
-+``min_seq%MAX_NR_GENS`` becomes empty. To select a type and a tier to
-+evict from, it first compares ``min_seq[]`` to select the older type.
-+If both types are equally old, it selects the one whose first tier has
-+a lower refault percentage. The first tier contains single-use
-+unmapped clean pages, which are the best bet. The eviction sorts a
-+page according to its gen counter if the aging has found this page
-+accessed through page tables and updated its gen counter. It also
-+moves a page to the next generation, i.e., ``min_seq+1``, if this page
-+was accessed multiple times through file descriptors and the feedback
-+loop has detected outlying refaults from the tier this page is in. To
-+this end, the feedback loop uses the first tier as the baseline, for
-+the reason stated earlier.
-+
-+Summary
-+-------
-+The multi-gen LRU can be disassembled into the following parts:
-+
-+* Generations
-+* Rmap walks
-+* Page table walks
-+* Bloom filters
-+* PID controller
-+
-+The aging and the eviction form a producer-consumer model;
-+specifically, the latter drives the former by the sliding window over
-+generations. Within the aging, rmap walks drive page table walks by
-+inserting hot densely populated page tables to the Bloom filters.
-+Within the eviction, the PID controller uses refaults as the feedback
-+to select types to evict and tiers to protect.
+ static int __init memory_tier_init(void)
+ {
+ 	int node;
+@@ -126,6 +193,7 @@ static int __init memory_tier_init(void)
+ 	}
+ 	mutex_unlock(&memory_tier_lock);
+ 
++	hotplug_memory_notifier(memtier_hotplug_callback, MEMTIER_HOTPLUG_PRIO);
+ 	return 0;
+ }
+ subsys_initcall(memory_tier_init);
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
 
