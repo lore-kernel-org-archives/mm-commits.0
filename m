@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD061C6FA86
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:51:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57EA6C6FA82
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:51:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230302AbiI0Cvz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:51:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58466 "EHLO
+        id S230335AbiI0Cv5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:51:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230415AbiI0Ctl (ORCPT
+        with ESMTP id S230413AbiI0Ctl (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:49:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0094DB2765
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:52 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F6D9B0B13
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 50DE26157C
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC39EC433D6;
-        Tue, 27 Sep 2022 02:48:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 565F7B81903
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BCDAC433D6;
+        Tue, 27 Sep 2022 02:48:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246931;
-        bh=Gmi8T5veTw9F/nYuVJw08jjOk/8zAcozgj5Iix0KmRk=;
+        s=korg; t=1664246929;
+        bh=RjanuzFoF9TBhDMyEK1eiD0imgN558/xhkkW+Z1xSaw=;
         h=Date:To:From:Subject:From;
-        b=fWiRA079PjwO96a8/GHYOHFD1S4fjQngpf53TIHepFgWl7arFo8o9I6hWeUvsfoC2
-         TpC1KWPS7Ufmnso6/TKx3S84hJ2eKT+nN/dCz3BgjmtCLG9AyDSFPd4Zuj3QMCuf+e
-         XvLz3WoOZHGi4jUMVruOfRsi0uMSHzqmALfMNTsI=
-Date:   Mon, 26 Sep 2022 19:48:51 -0700
+        b=fBGzaPlwDBv7mt0eTgG0ISjI+zvOhYI+xZ0XTmgx+lp1JGByf7kWf1poETynJOPuY
+         gPP8zO6PXoGS2qbw/XvpTIvLaP8R0RVJMXQDeQ0Pq7NDF4nTu4NPDaLB2Y5fpE6zml
+         jUv+Op1colj5yfWaT1uk5ZiSJYoGIZzHlr68s7gw=
+Date:   Mon, 26 Sep 2022 19:48:48 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
         sj@kernel.org, dhowells@redhat.com, david@redhat.com,
         dave@stgolabs.net, catalin.marinas@arm.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] damon-convert-__damon_va_three_regions-to-use-the-vma-iterator.patch removed from -mm tree
-Message-Id: <20220927024851.AC39EC433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmap-use-maple-tree-for-unmapped_area_topdown.patch removed from -mm tree
+Message-Id: <20220927024849.0BCDAC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,192 +44,331 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: damon: convert __damon_va_three_regions to use the VMA iterator
+     Subject: mm/mmap: use maple tree for unmapped_area{_topdown}
 has been removed from the -mm tree.  Its filename was
-     damon-convert-__damon_va_three_regions-to-use-the-vma-iterator.patch
+     mm-mmap-use-maple-tree-for-unmapped_area_topdown.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: damon: convert __damon_va_three_regions to use the VMA iterator
-Date: Tue, 6 Sep 2022 19:48:48 +0000
+Subject: mm/mmap: use maple tree for unmapped_area{_topdown}
+Date: Tue, 6 Sep 2022 19:48:47 +0000
 
-This rather specialised walk can use the VMA iterator.  If this proves to
-be too slow, we can write a custom routine to find the two largest gaps,
-but it will be somewhat complicated, so let's see if we need it first.
+The maple tree code was added to find the unmapped area in a previous
+commit and was checked against what the rbtree returned, but the actual
+result was never used.  Start using the maple tree implementation and
+remove the rbtree code.
 
-Update the kunit test case to use the maple tree.  This also fixes an
-issue with the kunit testcase not adding the last VMA to the list.
+Add kernel documentation comment for these functions.
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-16-Liam.Howlett@oracle.com
-Fixes: 17ccae8bb5c9 (mm/damon: add kunit tests)
+Link: https://lkml.kernel.org/r/20220906194824.2110408-14-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr-test.h |   36 +++++++++-------------------
- mm/damon/vaddr.c      |   51 ++++++++++++++++++++--------------------
- 2 files changed, 38 insertions(+), 49 deletions(-)
+ mm/mmap.c |  257 +++++++---------------------------------------------
+ 1 file changed, 35 insertions(+), 222 deletions(-)
 
---- a/mm/damon/vaddr.c~damon-convert-__damon_va_three_regions-to-use-the-vma-iterator
-+++ a/mm/damon/vaddr.c
-@@ -113,37 +113,38 @@ static unsigned long sz_range(struct dam
-  *
-  * Returns 0 if success, or negative error code otherwise.
-  */
--static int __damon_va_three_regions(struct vm_area_struct *vma,
-+static int __damon_va_three_regions(struct mm_struct *mm,
- 				       struct damon_addr_range regions[3])
- {
--	struct damon_addr_range gap = {0}, first_gap = {0}, second_gap = {0};
--	struct vm_area_struct *last_vma = NULL;
--	unsigned long start = 0;
--	struct rb_root rbroot;
--
--	/* Find two biggest gaps so that first_gap > second_gap > others */
--	for (; vma; vma = vma->vm_next) {
--		if (!last_vma) {
--			start = vma->vm_start;
--			goto next;
--		}
-+	struct damon_addr_range first_gap = {0}, second_gap = {0};
-+	VMA_ITERATOR(vmi, mm, 0);
-+	struct vm_area_struct *vma, *prev = NULL;
-+	unsigned long start;
-+
-+	/*
-+	 * Find the two biggest gaps so that first_gap > second_gap > others.
-+	 * If this is too slow, it can be optimised to examine the maple
-+	 * tree gaps.
-+	 */
-+	for_each_vma(vmi, vma) {
-+		unsigned long gap;
- 
--		if (vma->rb_subtree_gap <= sz_range(&second_gap)) {
--			rbroot.rb_node = &vma->vm_rb;
--			vma = rb_entry(rb_last(&rbroot),
--					struct vm_area_struct, vm_rb);
-+		if (!prev) {
-+			start = vma->vm_start;
- 			goto next;
- 		}
-+		gap = vma->vm_start - prev->vm_end;
- 
--		gap.start = last_vma->vm_end;
--		gap.end = vma->vm_start;
--		if (sz_range(&gap) > sz_range(&second_gap)) {
--			swap(gap, second_gap);
--			if (sz_range(&second_gap) > sz_range(&first_gap))
--				swap(second_gap, first_gap);
-+		if (gap > sz_range(&first_gap)) {
-+			second_gap = first_gap;
-+			first_gap.start = prev->vm_end;
-+			first_gap.end = vma->vm_start;
-+		} else if (gap > sz_range(&second_gap)) {
-+			second_gap.start = prev->vm_end;
-+			second_gap.end = vma->vm_start;
- 		}
- next:
--		last_vma = vma;
-+		prev = vma;
- 	}
- 
- 	if (!sz_range(&second_gap) || !sz_range(&first_gap))
-@@ -159,7 +160,7 @@ next:
- 	regions[1].start = ALIGN(first_gap.end, DAMON_MIN_REGION);
- 	regions[1].end = ALIGN(second_gap.start, DAMON_MIN_REGION);
- 	regions[2].start = ALIGN(second_gap.end, DAMON_MIN_REGION);
--	regions[2].end = ALIGN(last_vma->vm_end, DAMON_MIN_REGION);
-+	regions[2].end = ALIGN(prev->vm_end, DAMON_MIN_REGION);
- 
- 	return 0;
+--- a/mm/mmap.c~mm-mmap-use-maple-tree-for-unmapped_area_topdown
++++ a/mm/mmap.c
+@@ -2013,250 +2013,63 @@ unacct_error:
+ 	return error;
  }
-@@ -180,7 +181,7 @@ static int damon_va_three_regions(struct
- 		return -EINVAL;
  
- 	mmap_read_lock(mm);
--	rc = __damon_va_three_regions(mm->mmap, regions);
-+	rc = __damon_va_three_regions(mm, regions);
- 	mmap_read_unlock(mm);
- 
- 	mmput(mm);
---- a/mm/damon/vaddr-test.h~damon-convert-__damon_va_three_regions-to-use-the-vma-iterator
-+++ a/mm/damon/vaddr-test.h
-@@ -14,33 +14,19 @@
- 
- #include <kunit/test.h>
- 
--static void __link_vmas(struct vm_area_struct *vmas, ssize_t nr_vmas)
-+static void __link_vmas(struct maple_tree *mt, struct vm_area_struct *vmas,
-+			ssize_t nr_vmas)
++/**
++ * unmapped_area() - Find an area between the low_limit and the high_limit with
++ * the correct alignment and offset, all from @info. Note: current->mm is used
++ * for the search.
++ *
++ * @info: The unmapped area information including the range (low_limit -
++ * hight_limit), the alignment offset and mask.
++ *
++ * Return: A memory address or -ENOMEM.
++ */
+ static unsigned long unmapped_area(struct vm_unmapped_area_info *info)
  {
--	int i, j;
--	unsigned long largest_gap, gap;
-+	int i;
-+	MA_STATE(mas, mt, 0, 0);
- 
- 	if (!nr_vmas)
- 		return;
- 
--	for (i = 0; i < nr_vmas - 1; i++) {
--		vmas[i].vm_next = &vmas[i + 1];
+-	/*
+-	 * We implement the search by looking for an rbtree node that
+-	 * immediately follows a suitable gap. That is,
+-	 * - gap_start = vma->vm_prev->vm_end <= info->high_limit - length;
+-	 * - gap_end   = vma->vm_start        >= info->low_limit  + length;
+-	 * - gap_end - gap_start >= length
+-	 */
 -
--		vmas[i].vm_rb.rb_left = NULL;
--		vmas[i].vm_rb.rb_right = &vmas[i + 1].vm_rb;
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+-	unsigned long length, low_limit, high_limit, gap_start, gap_end;
+-	unsigned long gap;
+-	MA_STATE(mas, &mm->mm_mt, 0, 0);
++	unsigned long length, gap;
++
++	MA_STATE(mas, &current->mm->mm_mt, 0, 0);
+ 
+ 	/* Adjust search length to account for worst case alignment overhead */
+ 	length = info->length + info->align_mask;
+ 	if (length < info->length)
+ 		return -ENOMEM;
+ 
+-	mas_empty_area(&mas, info->low_limit, info->high_limit - 1,
+-			   length);
+-	gap = mas.index;
+-	gap += (info->align_offset - gap) & info->align_mask;
 -
--		largest_gap = 0;
--		for (j = i; j < nr_vmas; j++) {
--			if (j == 0)
+-	/* Adjust search limits by the desired length */
+-	if (info->high_limit < length)
++	if (mas_empty_area(&mas, info->low_limit, info->high_limit - 1,
++				  length))
+ 		return -ENOMEM;
+-	high_limit = info->high_limit - length;
+ 
+-	if (info->low_limit > high_limit)
+-		return -ENOMEM;
+-	low_limit = info->low_limit + length;
+-
+-	/* Check if rbtree root looks promising */
+-	if (RB_EMPTY_ROOT(&mm->mm_rb))
+-		goto check_highest;
+-	vma = rb_entry(mm->mm_rb.rb_node, struct vm_area_struct, vm_rb);
+-	if (vma->rb_subtree_gap < length)
+-		goto check_highest;
+-
+-	while (true) {
+-		/* Visit left subtree if it looks promising */
+-		gap_end = vm_start_gap(vma);
+-		if (gap_end >= low_limit && vma->vm_rb.rb_left) {
+-			struct vm_area_struct *left =
+-				rb_entry(vma->vm_rb.rb_left,
+-					 struct vm_area_struct, vm_rb);
+-			if (left->rb_subtree_gap >= length) {
+-				vma = left;
 -				continue;
--			gap = vmas[j].vm_start - vmas[j - 1].vm_end;
--			if (gap > largest_gap)
--				largest_gap = gap;
+-			}
 -		}
--		vmas[i].rb_subtree_gap = largest_gap;
+-
+-		gap_start = vma->vm_prev ? vm_end_gap(vma->vm_prev) : 0;
+-check_current:
+-		/* Check if current node has a suitable gap */
+-		if (gap_start > high_limit)
+-			return -ENOMEM;
+-		if (gap_end >= low_limit &&
+-		    gap_end > gap_start && gap_end - gap_start >= length)
+-			goto found;
+-
+-		/* Visit right subtree if it looks promising */
+-		if (vma->vm_rb.rb_right) {
+-			struct vm_area_struct *right =
+-				rb_entry(vma->vm_rb.rb_right,
+-					 struct vm_area_struct, vm_rb);
+-			if (right->rb_subtree_gap >= length) {
+-				vma = right;
+-				continue;
+-			}
+-		}
+-
+-		/* Go back up the rbtree to find next candidate node */
+-		while (true) {
+-			struct rb_node *prev = &vma->vm_rb;
+-			if (!rb_parent(prev))
+-				goto check_highest;
+-			vma = rb_entry(rb_parent(prev),
+-				       struct vm_area_struct, vm_rb);
+-			if (prev == vma->vm_rb.rb_left) {
+-				gap_start = vm_end_gap(vma->vm_prev);
+-				gap_end = vm_start_gap(vma);
+-				goto check_current;
+-			}
+-		}
 -	}
--	vmas[i].vm_next = NULL;
--	vmas[i].vm_rb.rb_right = NULL;
--	vmas[i].rb_subtree_gap = 0;
-+	mas_lock(&mas);
-+	for (i = 0; i < nr_vmas; i++)
-+		vma_mas_store(&vmas[i], &mas);
-+	mas_unlock(&mas);
+-
+-check_highest:
+-	/* Check highest gap, which does not precede any rbtree node */
+-	gap_start = mm->highest_vm_end;
+-	gap_end = ULONG_MAX;  /* Only for VM_BUG_ON below */
+-	if (gap_start > high_limit)
+-		return -ENOMEM;
+-
+-found:
+-	/* We found a suitable gap. Clip it with the original low_limit. */
+-	if (gap_start < info->low_limit)
+-		gap_start = info->low_limit;
+-
+-	/* Adjust gap address to the desired alignment */
+-	gap_start += (info->align_offset - gap_start) & info->align_mask;
+-
+-	VM_BUG_ON(gap_start + info->length > info->high_limit);
+-	VM_BUG_ON(gap_start + info->length > gap_end);
+-
+-	VM_BUG_ON(gap != gap_start);
+-	return gap_start;
++	gap = mas.index;
++	gap += (info->align_offset - gap) & info->align_mask;
++	return gap;
+ }
+ 
++/**
++ * unmapped_area_topdown() - Find an area between the low_limit and the
++ * high_limit with * the correct alignment and offset at the highest available
++ * address, all from @info. Note: current->mm is used for the search.
++ *
++ * @info: The unmapped area information including the range (low_limit -
++ * hight_limit), the alignment offset and mask.
++ *
++ * Return: A memory address or -ENOMEM.
++ */
+ static unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
+ {
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma = NULL;
+-	unsigned long length, low_limit, high_limit, gap_start, gap_end;
+-	unsigned long gap;
+-
+-	MA_STATE(mas, &mm->mm_mt, 0, 0);
+-	validate_mm_mt(mm);
++	unsigned long length, gap;
+ 
++	MA_STATE(mas, &current->mm->mm_mt, 0, 0);
+ 	/* Adjust search length to account for worst case alignment overhead */
+ 	length = info->length + info->align_mask;
+ 	if (length < info->length)
+ 		return -ENOMEM;
+ 
+-	mas_empty_area_rev(&mas, info->low_limit, info->high_limit - 1,
+-		   length);
+-	gap = mas.last + 1 - info->length;
+-	gap -= (gap - info->align_offset) & info->align_mask;
+-
+-	/*
+-	 * Adjust search limits by the desired length.
+-	 * See implementation comment at top of unmapped_area().
+-	 */
+-	gap_end = info->high_limit;
+-	if (gap_end < length)
++	if (mas_empty_area_rev(&mas, info->low_limit, info->high_limit - 1,
++				length))
+ 		return -ENOMEM;
+-	high_limit = gap_end - length;
+-
+-	if (info->low_limit > high_limit)
+-		return -ENOMEM;
+-	low_limit = info->low_limit + length;
+-
+-	/* Check highest gap, which does not precede any rbtree node */
+-	gap_start = mm->highest_vm_end;
+-	if (gap_start <= high_limit)
+-		goto found_highest;
+ 
+-	/* Check if rbtree root looks promising */
+-	if (RB_EMPTY_ROOT(&mm->mm_rb))
+-		return -ENOMEM;
+-	vma = rb_entry(mm->mm_rb.rb_node, struct vm_area_struct, vm_rb);
+-	if (vma->rb_subtree_gap < length)
+-		return -ENOMEM;
+-
+-	while (true) {
+-		/* Visit right subtree if it looks promising */
+-		gap_start = vma->vm_prev ? vm_end_gap(vma->vm_prev) : 0;
+-		if (gap_start <= high_limit && vma->vm_rb.rb_right) {
+-			struct vm_area_struct *right =
+-				rb_entry(vma->vm_rb.rb_right,
+-					 struct vm_area_struct, vm_rb);
+-			if (right->rb_subtree_gap >= length) {
+-				vma = right;
+-				continue;
+-			}
+-		}
+-
+-check_current:
+-		/* Check if current node has a suitable gap */
+-		gap_end = vm_start_gap(vma);
+-		if (gap_end < low_limit)
+-			return -ENOMEM;
+-		if (gap_start <= high_limit &&
+-		    gap_end > gap_start && gap_end - gap_start >= length)
+-			goto found;
+-
+-		/* Visit left subtree if it looks promising */
+-		if (vma->vm_rb.rb_left) {
+-			struct vm_area_struct *left =
+-				rb_entry(vma->vm_rb.rb_left,
+-					 struct vm_area_struct, vm_rb);
+-			if (left->rb_subtree_gap >= length) {
+-				vma = left;
+-				continue;
+-			}
+-		}
+-
+-		/* Go back up the rbtree to find next candidate node */
+-		while (true) {
+-			struct rb_node *prev = &vma->vm_rb;
+-			if (!rb_parent(prev))
+-				return -ENOMEM;
+-			vma = rb_entry(rb_parent(prev),
+-				       struct vm_area_struct, vm_rb);
+-			if (prev == vma->vm_rb.rb_right) {
+-				gap_start = vma->vm_prev ?
+-					vm_end_gap(vma->vm_prev) : 0;
+-				goto check_current;
+-			}
+-		}
+-	}
+-
+-found:
+-	/* We found a suitable gap. Clip it with the original high_limit. */
+-	if (gap_end > info->high_limit)
+-		gap_end = info->high_limit;
+-
+-found_highest:
+-	/* Compute highest gap address at the desired alignment */
+-	gap_end -= info->length;
+-	gap_end -= (gap_end - info->align_offset) & info->align_mask;
+-
+-	VM_BUG_ON(gap_end < info->low_limit);
+-	VM_BUG_ON(gap_end < gap_start);
+-
+-	if (gap != gap_end) {
+-		pr_err("%s: %p Gap was found: mt %lu gap_end %lu\n", __func__,
+-		       mm, gap, gap_end);
+-		pr_err("window was %lu - %lu size %lu\n", info->high_limit,
+-		       info->low_limit, length);
+-		pr_err("mas.min %lu max %lu mas.last %lu\n", mas.min, mas.max,
+-		       mas.last);
+-		pr_err("mas.index %lu align mask %lu offset %lu\n", mas.index,
+-		       info->align_mask, info->align_offset);
+-		pr_err("rb_find_vma find on %lu => %p (%p)\n", mas.index,
+-		       find_vma(mm, mas.index), vma);
+-#if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
+-		mt_dump(&mm->mm_mt);
+-#endif
+-		{
+-			struct vm_area_struct *dv = mm->mmap;
+-
+-			while (dv) {
+-				pr_err("vma %p %lu-%lu\n", dv, dv->vm_start, dv->vm_end);
+-				dv = dv->vm_next;
+-			}
+-		}
+-		VM_BUG_ON(gap != gap_end);
+-	}
+-
+-	return gap_end;
++	gap = mas.last + 1 - info->length;
++	gap -= (gap - info->align_offset) & info->align_mask;
++	return gap;
  }
  
  /*
-@@ -72,6 +58,7 @@ static void __link_vmas(struct vm_area_s
-  */
- static void damon_test_three_regions_in_vmas(struct kunit *test)
- {
-+	static struct mm_struct mm;
- 	struct damon_addr_range regions[3] = {0,};
- 	/* 10-20-25, 200-210-220, 300-305, 307-330 */
- 	struct vm_area_struct vmas[] = {
-@@ -83,9 +70,10 @@ static void damon_test_three_regions_in_
- 		(struct vm_area_struct) {.vm_start = 307, .vm_end = 330},
- 	};
- 
--	__link_vmas(vmas, 6);
-+	mt_init_flags(&mm.mm_mt, MM_MT_FLAGS);
-+	__link_vmas(&mm.mm_mt, vmas, ARRAY_SIZE(vmas));
- 
--	__damon_va_three_regions(&vmas[0], regions);
-+	__damon_va_three_regions(&mm, regions);
- 
- 	KUNIT_EXPECT_EQ(test, 10ul, regions[0].start);
- 	KUNIT_EXPECT_EQ(test, 25ul, regions[0].end);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
