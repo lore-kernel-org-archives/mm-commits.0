@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A604C07E9D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D19FAC32771
 	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:48:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230321AbiI0Cr7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230232AbiI0Cr7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 26 Sep 2022 22:47:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57982 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230100AbiI0Cro (ORCPT
+        with ESMTP id S230141AbiI0Cro (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:47:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84B6162AB6
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:47:35 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3E4262A8D
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:47:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1C47561559
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:47:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 720DBC433D6;
-        Tue, 27 Sep 2022 02:47:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A19B61557
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:47:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF922C433C1;
+        Tue, 27 Sep 2022 02:47:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246854;
-        bh=VQyO6CrK6UOuTpHyEBlqkqKnOTGpHZif1YsF+CYnc64=;
+        s=korg; t=1664246851;
+        bh=HP5cJqK3zHmb5SJ0ZFzSGD2plEM4nSlAmOyRrj92hGs=;
         h=Date:To:From:Subject:From;
-        b=ZSJNfi7eQAvcHZpuvtxa4qNhqBdKlVEm/FxtC3lans2nOPEwAYZsu6ba1mUgxil7H
-         iZo9GUYXQModZnxt5b+dDDkVw8KtE2kGe3LEEGMybKLWSf9TqzJRT8nSdUpV/jdsfU
-         XJWZbHP1EZEsVefJXWwJ4wGz7pPHWX95AkDTWmfA=
-Date:   Mon, 26 Sep 2022 19:47:33 -0700
+        b=G2kc5Zw9n9C9XEVCJ9/y+poLqy/lX8vHGTU3URO4VR6Iv5BTKZ6Y6Y60rBUrLG7A7
+         o15xxOiuG4Ai1FrMdX7LSUa1Ev1VqymdLKdqPCYXQEW9AZe8DPUnUNzPKy2zaUmZAy
+         ktZTVFPD6C7uM1qds7tHNLWb8Y2FoMkmyT8qTpro=
+Date:   Mon, 26 Sep 2022 19:47:31 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
         nadav.amit@gmail.com, minchan@kernel.org, kirill@shutemov.name,
         hughd@google.com, david@redhat.com, dave.hansen@intel.com,
         apopple@nvidia.com, andi.kleen@intel.com, aarcange@redhat.com,
         peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-cache-swap-migration-a-d-bits-support.patch removed from -mm tree
-Message-Id: <20220927024734.720DBC433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remember-young-dirty-bit-for-page-migrations.patch removed from -mm tree
+Message-Id: <20220927024731.CF922C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,50 +44,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/swap: cache swap migration A/D bits support
+     Subject: mm: remember young/dirty bit for page migrations
 has been removed from the -mm tree.  Its filename was
-     mm-swap-cache-swap-migration-a-d-bits-support.patch
+     mm-remember-young-dirty-bit-for-page-migrations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/swap: cache swap migration A/D bits support
-Date: Thu, 11 Aug 2022 12:13:31 -0400
+Subject: mm: remember young/dirty bit for page migrations
+Date: Thu, 11 Aug 2022 12:13:29 -0400
 
-Introduce a variable swap_migration_ad_supported to cache whether the arch
-supports swap migration A/D bits.
+When page migration happens, we always ignore the young/dirty bit settings
+in the old pgtable, and marking the page as old in the new page table
+using either pte_mkold() or pmd_mkold(), and keeping the pte clean.
 
-Here one thing to mention is that SWP_MIG_TOTAL_BITS will internally
-reference the other macro MAX_PHYSMEM_BITS, which is a function call on
-x86 (constant on all the rest of archs).
+That's fine from functional-wise, but that's not friendly to page reclaim
+because the moving page can be actively accessed within the procedure. 
+Not to mention hardware setting the young bit can bring quite some
+overhead on some systems, e.g.  x86_64 needs a few hundreds nanoseconds to
+set the bit.  The same slowdown problem to dirty bits when the memory is
+first written after page migration happened.
 
-It's safe to reference it in swapfile_init() because when reaching here
-we're already during initcalls level 4 so we must have initialized 5-level
-pgtable for x86_64 (right after early_identify_cpu() finishes).
+Actually we can easily remember the A/D bit configuration and recover the
+information after the page is migrated.  To achieve it, define a new set
+of bits in the migration swap offset field to cache the A/D bits for old
+pte.  Then when removing/recovering the migration entry, we can recover
+the A/D bits even if the page changed.
 
-- start_kernel
-  - setup_arch
-    - early_cpu_init
-      - get_cpu_cap --> fetch from CPUID (including X86_FEATURE_LA57)
-      - early_identify_cpu --> clear X86_FEATURE_LA57 (if early lvl5 not enabled (USE_EARLY_PGTABLE_L5))
-  - arch_call_rest_init
-    - rest_init
-      - kernel_init
-        - kernel_init_freeable
-          - do_basic_setup
-            - do_initcalls --> calls swapfile_init() (initcall level 4)
+One thing to mention is that here we used max_swapfile_size() to detect
+how many swp offset bits we have, and we'll only enable this feature if we
+know the swp offset is big enough to store both the PFN value and the A/D
+bits.  Otherwise the A/D bits are dropped like before.
 
-This should slightly speed up the migration swap entry handlings.
-
-Link: https://lkml.kernel.org/r/20220811161331.37055-8-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220811161331.37055-6-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andi Kleen <andi.kleen@intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Huang Ying <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -97,62 +94,247 @@ Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapfile.h |    2 ++
- include/linux/swapops.h  |    7 +------
- mm/swapfile.c            |    8 ++++++++
- 3 files changed, 11 insertions(+), 6 deletions(-)
+ include/linux/swapops.h |   99 ++++++++++++++++++++++++++++++++++++++
+ mm/huge_memory.c        |   18 ++++++
+ mm/migrate.c            |    6 +-
+ mm/migrate_device.c     |    6 ++
+ mm/rmap.c               |    5 +
+ 5 files changed, 130 insertions(+), 4 deletions(-)
 
---- a/include/linux/swapfile.h~mm-swap-cache-swap-migration-a-d-bits-support
-+++ a/include/linux/swapfile.h
-@@ -12,5 +12,7 @@ unsigned long arch_max_swapfile_size(voi
- 
- /* Maximum swapfile size supported for the arch (not inclusive). */
- extern unsigned long swapfile_maximum_size;
-+/* Whether swap migration entry supports storing A/D bits for the arch */
-+extern bool swap_migration_ad_supported;
- 
- #endif /* _LINUX_SWAPFILE_H */
---- a/include/linux/swapops.h~mm-swap-cache-swap-migration-a-d-bits-support
+--- a/include/linux/swapops.h~mm-remember-young-dirty-bit-for-page-migrations
 +++ a/include/linux/swapops.h
-@@ -301,13 +301,8 @@ static inline swp_entry_t make_writable_
-  */
- static inline bool migration_entry_supports_ad(void)
- {
--	/*
--	 * max_swapfile_size() returns the max supported swp-offset plus 1.
--	 * We can support the migration A/D bits iff the pfn swap entry has
--	 * the offset large enough to cover all of them (PFN, A & D bits).
--	 */
- #ifdef CONFIG_SWAP
--	return swapfile_maximum_size >= (1UL << SWP_MIG_TOTAL_BITS);
-+	return swap_migration_ad_supported;
- #else  /* CONFIG_SWAP */
- 	return false;
- #endif	/* CONFIG_SWAP */
---- a/mm/swapfile.c~mm-swap-cache-swap-migration-a-d-bits-support
-+++ a/mm/swapfile.c
-@@ -64,6 +64,9 @@ EXPORT_SYMBOL_GPL(nr_swap_pages);
- long total_swap_pages;
- static int least_priority = -1;
- unsigned long swapfile_maximum_size;
-+#ifdef CONFIG_MIGRATION
-+bool swap_migration_ad_supported;
-+#endif	/* CONFIG_MIGRATION */
+@@ -8,6 +8,10 @@
  
- static const char Bad_file[] = "Bad swap file entry ";
- static const char Unused_file[] = "Unused swap file entry ";
-@@ -3680,6 +3683,11 @@ static int __init swapfile_init(void)
+ #ifdef CONFIG_MMU
  
- 	swapfile_maximum_size = arch_max_swapfile_size();
- 
-+#ifdef CONFIG_MIGRATION
-+	if (swapfile_maximum_size >= (1UL << SWP_MIG_TOTAL_BITS))
-+		swap_migration_ad_supported = true;
-+#endif	/* CONFIG_MIGRATION */
++#ifdef CONFIG_SWAP
++#include <linux/swapfile.h>
++#endif	/* CONFIG_SWAP */
 +
+ /*
+  * swapcache pages are stored in the swapper_space radix tree.  We want to
+  * get good packing density in that tree, so the index should be dense in
+@@ -35,6 +39,31 @@
+ #endif	/* MAX_PHYSMEM_BITS */
+ #define SWP_PFN_MASK			(BIT(SWP_PFN_BITS) - 1)
+ 
++/**
++ * Migration swap entry specific bitfield definitions.  Layout:
++ *
++ *   |----------+--------------------|
++ *   | swp_type | swp_offset         |
++ *   |----------+--------+-+-+-------|
++ *   |          | resv   |D|A|  PFN  |
++ *   |----------+--------+-+-+-------|
++ *
++ * @SWP_MIG_YOUNG_BIT: Whether the page used to have young bit set (bit A)
++ * @SWP_MIG_DIRTY_BIT: Whether the page used to have dirty bit set (bit D)
++ *
++ * Note: A/D bits will be stored in migration entries iff there're enough
++ * free bits in arch specific swp offset.  By default we'll ignore A/D bits
++ * when migrating a page.  Please refer to migration_entry_supports_ad()
++ * for more information.  If there're more bits besides PFN and A/D bits,
++ * they should be reserved and always be zeros.
++ */
++#define SWP_MIG_YOUNG_BIT		(SWP_PFN_BITS)
++#define SWP_MIG_DIRTY_BIT		(SWP_PFN_BITS + 1)
++#define SWP_MIG_TOTAL_BITS		(SWP_PFN_BITS + 2)
++
++#define SWP_MIG_YOUNG			BIT(SWP_MIG_YOUNG_BIT)
++#define SWP_MIG_DIRTY			BIT(SWP_MIG_DIRTY_BIT)
++
+ static inline bool is_pfn_swap_entry(swp_entry_t entry);
+ 
+ /* Clear all flags but only keep swp_entry_t related information */
+@@ -265,6 +294,57 @@ static inline swp_entry_t make_writable_
+ 	return swp_entry(SWP_MIGRATION_WRITE, offset);
+ }
+ 
++/*
++ * Returns whether the host has large enough swap offset field to support
++ * carrying over pgtable A/D bits for page migrations.  The result is
++ * pretty much arch specific.
++ */
++static inline bool migration_entry_supports_ad(void)
++{
++	/*
++	 * max_swapfile_size() returns the max supported swp-offset plus 1.
++	 * We can support the migration A/D bits iff the pfn swap entry has
++	 * the offset large enough to cover all of them (PFN, A & D bits).
++	 */
++#ifdef CONFIG_SWAP
++	return max_swapfile_size() >= (1UL << SWP_MIG_TOTAL_BITS);
++#else  /* CONFIG_SWAP */
++	return false;
++#endif	/* CONFIG_SWAP */
++}
++
++static inline swp_entry_t make_migration_entry_young(swp_entry_t entry)
++{
++	if (migration_entry_supports_ad())
++		return swp_entry(swp_type(entry),
++				 swp_offset(entry) | SWP_MIG_YOUNG);
++	return entry;
++}
++
++static inline bool is_migration_entry_young(swp_entry_t entry)
++{
++	if (migration_entry_supports_ad())
++		return swp_offset(entry) & SWP_MIG_YOUNG;
++	/* Keep the old behavior of aging page after migration */
++	return false;
++}
++
++static inline swp_entry_t make_migration_entry_dirty(swp_entry_t entry)
++{
++	if (migration_entry_supports_ad())
++		return swp_entry(swp_type(entry),
++				 swp_offset(entry) | SWP_MIG_DIRTY);
++	return entry;
++}
++
++static inline bool is_migration_entry_dirty(swp_entry_t entry)
++{
++	if (migration_entry_supports_ad())
++		return swp_offset(entry) & SWP_MIG_DIRTY;
++	/* Keep the old behavior of clean page after migration */
++	return false;
++}
++
+ extern void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
+ 					spinlock_t *ptl);
+ extern void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+@@ -311,6 +391,25 @@ static inline int is_readable_migration_
  	return 0;
  }
- subsys_initcall(swapfile_init);
+ 
++static inline swp_entry_t make_migration_entry_young(swp_entry_t entry)
++{
++	return entry;
++}
++
++static inline bool is_migration_entry_young(swp_entry_t entry)
++{
++	return false;
++}
++
++static inline swp_entry_t make_migration_entry_dirty(swp_entry_t entry)
++{
++	return entry;
++}
++
++static inline bool is_migration_entry_dirty(swp_entry_t entry)
++{
++	return false;
++}
+ #endif	/* CONFIG_MIGRATION */
+ 
+ typedef unsigned long pte_marker;
+--- a/mm/huge_memory.c~mm-remember-young-dirty-bit-for-page-migrations
++++ a/mm/huge_memory.c
+@@ -2121,7 +2121,8 @@ static void __split_huge_pmd_locked(stru
+ 		write = is_writable_migration_entry(entry);
+ 		if (PageAnon(page))
+ 			anon_exclusive = is_readable_exclusive_migration_entry(entry);
+-		young = false;
++		young = is_migration_entry_young(entry);
++		dirty = is_migration_entry_dirty(entry);
+ 		soft_dirty = pmd_swp_soft_dirty(old_pmd);
+ 		uffd_wp = pmd_swp_uffd_wp(old_pmd);
+ 	} else {
+@@ -2183,6 +2184,10 @@ static void __split_huge_pmd_locked(stru
+ 			else
+ 				swp_entry = make_readable_migration_entry(
+ 							page_to_pfn(page + i));
++			if (young)
++				swp_entry = make_migration_entry_young(swp_entry);
++			if (dirty)
++				swp_entry = make_migration_entry_dirty(swp_entry);
+ 			entry = swp_entry_to_pte(swp_entry);
+ 			if (soft_dirty)
+ 				entry = pte_swp_mksoft_dirty(entry);
+@@ -3201,6 +3206,10 @@ int set_pmd_migration_entry(struct page_
+ 		entry = make_readable_exclusive_migration_entry(page_to_pfn(page));
+ 	else
+ 		entry = make_readable_migration_entry(page_to_pfn(page));
++	if (pmd_young(pmdval))
++		entry = make_migration_entry_young(entry);
++	if (pmd_dirty(pmdval))
++		entry = make_migration_entry_dirty(entry);
+ 	pmdswp = swp_entry_to_pmd(entry);
+ 	if (pmd_soft_dirty(pmdval))
+ 		pmdswp = pmd_swp_mksoft_dirty(pmdswp);
+@@ -3226,13 +3235,18 @@ void remove_migration_pmd(struct page_vm
+ 
+ 	entry = pmd_to_swp_entry(*pvmw->pmd);
+ 	get_page(new);
+-	pmde = pmd_mkold(mk_huge_pmd(new, READ_ONCE(vma->vm_page_prot)));
++	pmde = mk_huge_pmd(new, READ_ONCE(vma->vm_page_prot));
+ 	if (pmd_swp_soft_dirty(*pvmw->pmd))
+ 		pmde = pmd_mksoft_dirty(pmde);
+ 	if (is_writable_migration_entry(entry))
+ 		pmde = maybe_pmd_mkwrite(pmde, vma);
+ 	if (pmd_swp_uffd_wp(*pvmw->pmd))
+ 		pmde = pmd_wrprotect(pmd_mkuffd_wp(pmde));
++	if (!is_migration_entry_young(entry))
++		pmde = pmd_mkold(pmde);
++	/* NOTE: this may contain setting soft-dirty on some archs */
++	if (PageDirty(new) && is_migration_entry_dirty(entry))
++		pmde = pmd_mkdirty(pmde);
+ 
+ 	if (PageAnon(new)) {
+ 		rmap_t rmap_flags = RMAP_COMPOUND;
+--- a/mm/migrate.c~mm-remember-young-dirty-bit-for-page-migrations
++++ a/mm/migrate.c
+@@ -198,7 +198,7 @@ static bool remove_migration_pte(struct
+ #endif
+ 
+ 		folio_get(folio);
+-		pte = pte_mkold(mk_pte(new, READ_ONCE(vma->vm_page_prot)));
++		pte = mk_pte(new, READ_ONCE(vma->vm_page_prot));
+ 		if (pte_swp_soft_dirty(*pvmw.pte))
+ 			pte = pte_mksoft_dirty(pte);
+ 
+@@ -206,6 +206,10 @@ static bool remove_migration_pte(struct
+ 		 * Recheck VMA as permissions can change since migration started
+ 		 */
+ 		entry = pte_to_swp_entry(*pvmw.pte);
++		if (!is_migration_entry_young(entry))
++			pte = pte_mkold(pte);
++		if (folio_test_dirty(folio) && is_migration_entry_dirty(entry))
++			pte = pte_mkdirty(pte);
+ 		if (is_writable_migration_entry(entry))
+ 			pte = maybe_mkwrite(pte, vma);
+ 		else if (pte_swp_uffd_wp(*pvmw.pte))
+--- a/mm/migrate_device.c~mm-remember-young-dirty-bit-for-page-migrations
++++ a/mm/migrate_device.c
+@@ -233,6 +233,12 @@ again:
+ 			else
+ 				entry = make_readable_migration_entry(
+ 							page_to_pfn(page));
++			if (pte_present(pte)) {
++				if (pte_young(pte))
++					entry = make_migration_entry_young(entry);
++				if (pte_dirty(pte))
++					entry = make_migration_entry_dirty(entry);
++			}
+ 			swp_pte = swp_entry_to_pte(entry);
+ 			if (pte_present(pte)) {
+ 				if (pte_soft_dirty(pte))
+--- a/mm/rmap.c~mm-remember-young-dirty-bit-for-page-migrations
++++ a/mm/rmap.c
+@@ -2066,7 +2066,10 @@ static bool try_to_migrate_one(struct fo
+ 			else
+ 				entry = make_readable_migration_entry(
+ 							page_to_pfn(subpage));
+-
++			if (pte_young(pteval))
++				entry = make_migration_entry_young(entry);
++			if (pte_dirty(pteval))
++				entry = make_migration_entry_dirty(entry);
+ 			swp_pte = swp_entry_to_pte(entry);
+ 			if (pte_soft_dirty(pteval))
+ 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
