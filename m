@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5717C6FA82
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:54:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26C5DC32771
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:54:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230398AbiI0CyF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:54:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58092 "EHLO
+        id S229453AbiI0CyG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:54:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229719AbiI0CwB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:52:01 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B189411A37
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:35 -0700 (PDT)
+        with ESMTP id S229734AbiI0CwD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:52:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21DFAE6
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 62E65B81986
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02C7CC433C1;
-        Tue, 27 Sep 2022 02:49:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 93859B81923
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 479B0C43470;
+        Tue, 27 Sep 2022 02:49:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246973;
-        bh=O7UC2KPZJ7DKzvwTHRghVhLS0aBBmg7/YSCzwp8Z7UM=;
+        s=korg; t=1664246974;
+        bh=V/j9MutvLP686gKkBsFLM/MPMDf+F35VSn0Mc1HiO2A=;
         h=Date:To:From:Subject:From;
-        b=BovTl+2adlOsTzBwTXi5decMQyCHgysNjvZFuCi/xIuRt+fkn5fSCm1buq3tB5gVN
-         n2kg5xumDilumDugq6joUHY/FNzRtLcUd8rN+0imyViMugN3tZJ/KkTMH8U5PAEWmm
-         LvXuN/avgbGdQbigUNtZaQCy+50cJq8N4DhM+/jo=
-Date:   Mon, 26 Sep 2022 19:49:32 -0700
+        b=Je0rYLB/R1rFgybqi5zxZqd73H6NpFHYNrzpkq1l3ScC/rlHROyeHTCU/NXPWmoVU
+         CMuVZ0IMbptgLfO4SbI7JxAuOvqw2htJBbiuMmLtpUHdVm0vz/v9QcvpTGNMMTFKnl
+         h1q9TPCr0kfWbKPP/h/4gKNvkj92NsmbQ9IXu5uU=
+Date:   Mon, 26 Sep 2022 19:49:33 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
         vbabka@suse.cz, svens@linux.ibm.com, sj@kernel.org,
         Liam.Howlett@Oracle.com, dhowells@redhat.com, david@redhat.com,
         dave@stgolabs.net, catalin.marinas@arm.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] acct-use-vma-iterator-instead-of-linked-list.patch removed from -mm tree
-Message-Id: <20220927024933.02C7CC433C1@smtp.kernel.org>
+Subject: [merged mm-stable] perf-use-vma-iterator.patch removed from -mm tree
+Message-Id: <20220927024934.479B0C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,21 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: acct: use VMA iterator instead of linked list
+     Subject: perf: use VMA iterator
 has been removed from the -mm tree.  Its filename was
-     acct-use-vma-iterator-instead-of-linked-list.patch
+     perf-use-vma-iterator.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: acct: use VMA iterator instead of linked list
+Subject: perf: use VMA iterator
 Date: Tue, 6 Sep 2022 19:48:58 +0000
 
-The VMA iterator is faster than the linked list.
+The VMA iterator is faster than the linked list and removing the linked
+list will shrink the vm_area_struct.
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-47-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220906194824.2110408-48-Liam.Howlett@oracle.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -73,32 +74,63 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ kernel/events/core.c    |    3 ++-
+ kernel/events/uprobes.c |    9 ++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
---- a/kernel/acct.c~acct-use-vma-iterator-instead-of-linked-list
-+++ a/kernel/acct.c
-@@ -555,15 +555,14 @@ void acct_collect(long exitcode, int gro
- 	unsigned long vsize = 0;
+--- a/kernel/events/core.c~perf-use-vma-iterator
++++ a/kernel/events/core.c
+@@ -10229,8 +10229,9 @@ static void perf_addr_filter_apply(struc
+ 				   struct perf_addr_filter_range *fr)
+ {
+ 	struct vm_area_struct *vma;
++	VMA_ITERATOR(vmi, mm, 0);
  
- 	if (group_dead && current->mm) {
-+		struct mm_struct *mm = current->mm;
-+		VMA_ITERATOR(vmi, mm, 0);
- 		struct vm_area_struct *vma;
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
++	for_each_vma(vmi, vma) {
+ 		if (!vma->vm_file)
+ 			continue;
  
--		mmap_read_lock(current->mm);
--		vma = current->mm->mmap;
--		while (vma) {
-+		mmap_read_lock(mm);
-+		for_each_vma(vmi, vma)
- 			vsize += vma->vm_end - vma->vm_start;
--			vma = vma->vm_next;
--		}
--		mmap_read_unlock(current->mm);
-+		mmap_read_unlock(mm);
- 	}
+--- a/kernel/events/uprobes.c~perf-use-vma-iterator
++++ a/kernel/events/uprobes.c
+@@ -349,9 +349,10 @@ static bool valid_ref_ctr_vma(struct upr
+ static struct vm_area_struct *
+ find_ref_ctr_vma(struct uprobe *uprobe, struct mm_struct *mm)
+ {
++	VMA_ITERATOR(vmi, mm, 0);
+ 	struct vm_area_struct *tmp;
  
- 	spin_lock_irq(&current->sighand->siglock);
+-	for (tmp = mm->mmap; tmp; tmp = tmp->vm_next)
++	for_each_vma(vmi, tmp)
+ 		if (valid_ref_ctr_vma(uprobe, tmp))
+ 			return tmp;
+ 
+@@ -1231,11 +1232,12 @@ int uprobe_apply(struct inode *inode, lo
+ 
+ static int unapply_uprobe(struct uprobe *uprobe, struct mm_struct *mm)
+ {
++	VMA_ITERATOR(vmi, mm, 0);
+ 	struct vm_area_struct *vma;
+ 	int err = 0;
+ 
+ 	mmap_read_lock(mm);
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
++	for_each_vma(vmi, vma) {
+ 		unsigned long vaddr;
+ 		loff_t offset;
+ 
+@@ -1983,9 +1985,10 @@ bool uprobe_deny_signal(void)
+ 
+ static void mmf_recalc_uprobes(struct mm_struct *mm)
+ {
++	VMA_ITERATOR(vmi, mm, 0);
+ 	struct vm_area_struct *vma;
+ 
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
++	for_each_vma(vmi, vma) {
+ 		if (!valid_vma(vma, false))
+ 			continue;
+ 		/*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
