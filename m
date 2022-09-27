@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41576C6FA86
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:49:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4709FC6FA92
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:49:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230427AbiI0Ctl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:49:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57996 "EHLO
+        id S230082AbiI0Ctn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:49:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230288AbiI0CsV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:48:21 -0400
+        with ESMTP id S230342AbiI0CsZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:48:25 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42F6C83076
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89C85925B2
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C2A186155B
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AA7BC43140;
-        Tue, 27 Sep 2022 02:48:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 23B586155B
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75789C43470;
+        Tue, 27 Sep 2022 02:48:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246884;
-        bh=/RqXoipC7uod/VHb26jI84fHbCyUdrIyf4F3GQFrKio=;
+        s=korg; t=1664246887;
+        bh=hXW/3OPndmu73dh8KZmg2DjtrCBdbM1yAY1RyKP9zlU=;
         h=Date:To:From:Subject:From;
-        b=iMLNEc5WUjWKfTnIK1JxXc/VWTEklGCBkqMDWnCLLpyprN9agADIk6IdGh+OmXl1J
-         ZqhTwyRLFrI1p7ax1GntgtBZ+fu4UMsc5dTVdG0gmzXmGghmSvpLyMg4XSLkoY8670
-         T56JCl/CbSIkf96JXuRHLbEZ+TJEQXKET2U4/2zc=
-Date:   Mon, 26 Sep 2022 19:48:03 -0700
+        b=Ny1hWN9M6rCve0eNdgWPUYeAufjbPb1tPcRNJO9ecv4aPs83JYIl+krZvsSj62eTQ
+         fP/Rl94l4N9eDG8x3axV06AAotJoUL91vga/Qfv345m/DA8114YxAyfiMOOPR7yTtq
+         9ZjHarMn/3jdt/ZmZMb1gSR+a+cQNi0jLBu3igzU=
+Date:   Mon, 26 Sep 2022 19:48:06 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, vbabka@suse.cz,
         vaibhav@linux.ibm.com, torvalds@linux-foundation.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
         yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-optimize-multiple-memcgs.patch removed from -mm tree
-Message-Id: <20220927024804.1AA7BC43140@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-thrashing-prevention.patch removed from -mm tree
+Message-Id: <20220927024807.75789C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,106 +53,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: optimize multiple memcgs
+     Subject: mm: multi-gen LRU: thrashing prevention
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-optimize-multiple-memcgs.patch
+     mm-multi-gen-lru-thrashing-prevention.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: optimize multiple memcgs
-Date: Sun, 18 Sep 2022 02:00:06 -0600
+Subject: mm: multi-gen LRU: thrashing prevention
+Date: Sun, 18 Sep 2022 02:00:08 -0600
 
-When multiple memcgs are available, it is possible to use generations as a
-frame of reference to make better choices and improve overall performance
-under global memory pressure.  This patch adds a basic optimization to
-select memcgs that can drop single-use unmapped clean pages first.  Doing
-so reduces the chance of going into the aging path or swapping, which can
-be costly.
+Add /sys/kernel/mm/lru_gen/min_ttl_ms for thrashing prevention, as
+requested by many desktop users [1].
 
-A typical example that benefits from this optimization is a server running
-mixed types of workloads, e.g., heavy anon workload in one memcg and heavy
-buffered I/O workload in the other.
+When set to value N, it prevents the working set of N milliseconds from
+getting evicted.  The OOM killer is triggered if this working set cannot
+be kept in memory.  Based on the average human detectable lag (~100ms),
+N=1000 usually eliminates intolerable lags due to thrashing.  Larger
+values like N=3000 make lags less noticeable at the risk of premature OOM
+kills.
 
-Though this optimization can be applied to both kswapd and direct reclaim,
-it is only added to kswapd to keep the patchset manageable.  Later
-improvements may cover the direct reclaim path.
+Compared with the size-based approach [2], this time-based approach
+has the following advantages:
 
-While ensuring certain fairness to all eligible memcgs, proportional scans
-of individual memcgs also require proper backoff to avoid overshooting
-their aggregate reclaim target by too much.  Otherwise it can cause high
-direct reclaim latency.  The conditions for backoff are:
+1. It is easier to configure because it is agnostic to applications
+   and memory sizes.
+2. It is more reliable because it is directly wired to the OOM killer.
 
-1. At low priorities, for direct reclaim, if aging fairness or direct
-   reclaim latency is at risk, i.e., aging one memcg multiple times or
-   swapping after the target is met.
-2. At high priorities, for global reclaim, if per-zone free pages are
-   above respective watermarks.
+[1] https://lore.kernel.org/r/Ydza%2FzXKY9ATRoh6@google.com/
+[2] https://lore.kernel.org/r/20101028191523.GA14972@google.com/
 
-Server benchmark results:
-  Mixed workloads:
-    fio (buffered I/O): +[19, 21]%
-                IOPS         BW
-      patch1-8: 1880k        7343MiB/s
-      patch1-9: 2252k        8796MiB/s
-
-    memcached (anon): +[119, 123]%
-                Ops/sec      KB/sec
-      patch1-8: 862768.65    33514.68
-      patch1-9: 1911022.12   74234.54
-
-  Mixed workloads:
-    fio (buffered I/O): +[75, 77]%
-                IOPS         BW
-      5.19-rc1: 1279k        4996MiB/s
-      patch1-9: 2252k        8796MiB/s
-
-    memcached (anon): +[13, 15]%
-                Ops/sec      KB/sec
-      5.19-rc1: 1673524.04   65008.87
-      patch1-9: 1911022.12   74234.54
-
-  Configurations:
-    (changes since patch 6)
-
-    cat mixed.sh
-    modprobe brd rd_nr=2 rd_size=56623104
-
-    swapoff -a
-    mkswap /dev/ram0
-    swapon /dev/ram0
-
-    mkfs.ext4 /dev/ram1
-    mount -t ext4 /dev/ram1 /mnt
-
-    memtier_benchmark -S /var/run/memcached/memcached.sock \
-      -P memcache_binary -n allkeys --key-minimum=1 \
-      --key-maximum=50000000 --key-pattern=P:P -c 1 -t 36 \
-      --ratio 1:0 --pipeline 8 -d 2000
-
-    fio -name=mglru --numjobs=36 --directory=/mnt --size=1408m \
-      --buffered=1 --ioengine=io_uring --iodepth=128 \
-      --iodepth_batch_submit=32 --iodepth_batch_complete=32 \
-      --rw=randread --random_distribution=random --norandommap \
-      --time_based --ramp_time=10m --runtime=90m --group_reporting &
-    pid=$!
-
-    sleep 200
-
-    memtier_benchmark -S /var/run/memcached/memcached.sock \
-      -P memcache_binary -n allkeys --key-minimum=1 \
-      --key-maximum=50000000 --key-pattern=R:R -c 1 -t 36 \
-      --ratio 0:1 --pipeline 8 --randomize --distinct-client-seed
-
-    kill -INT $pid
-    wait
-
-Client benchmark results:
-  no change (CONFIG_MEMCG=n)
-
-Link: https://lkml.kernel.org/r/20220918080010.2920238-10-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20220918080010.2920238-12-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Acked-by: Brian Geffon <bgeffon@google.com>
 Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
@@ -191,188 +124,166 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |  105 +++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 96 insertions(+), 9 deletions(-)
+ include/linux/mmzone.h |    2 +
+ mm/vmscan.c            |   74 +++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 73 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-multi-gen-lru-optimize-multiple-memcgs
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-thrashing-prevention
++++ a/include/linux/mmzone.h
+@@ -422,6 +422,8 @@ struct lru_gen_struct {
+ 	unsigned long max_seq;
+ 	/* the eviction increments the oldest generation numbers */
+ 	unsigned long min_seq[ANON_AND_FILE];
++	/* the birth time of each generation in jiffies */
++	unsigned long timestamps[MAX_NR_GENS];
+ 	/* the multi-gen LRU lists, lazily sorted on eviction */
+ 	struct list_head lists[MAX_NR_GENS][ANON_AND_FILE][MAX_NR_ZONES];
+ 	/* the multi-gen LRU sizes, eventually consistent */
+--- a/mm/vmscan.c~mm-multi-gen-lru-thrashing-prevention
 +++ a/mm/vmscan.c
-@@ -131,6 +131,12 @@ struct scan_control {
- 	/* Always discard instead of demoting to lower tier memory */
- 	unsigned int no_demotion:1;
+@@ -4293,6 +4293,7 @@ static void inc_max_seq(struct lruvec *l
+ 	for (type = 0; type < ANON_AND_FILE; type++)
+ 		reset_ctrl_pos(lruvec, type, false);
  
-+#ifdef CONFIG_LRU_GEN
-+	/* help kswapd make better choices among multiple memcgs */
-+	unsigned int memcgs_need_aging:1;
-+	unsigned long last_reclaimed;
-+#endif
++	WRITE_ONCE(lrugen->timestamps[next], jiffies);
+ 	/* make sure preceding modifications appear */
+ 	smp_store_release(&lrugen->max_seq, lrugen->max_seq + 1);
+ 
+@@ -4422,7 +4423,7 @@ static bool should_run_aging(struct lruv
+ 	return false;
+ }
+ 
+-static void age_lruvec(struct lruvec *lruvec, struct scan_control *sc)
++static bool age_lruvec(struct lruvec *lruvec, struct scan_control *sc, unsigned long min_ttl)
+ {
+ 	bool need_aging;
+ 	unsigned long nr_to_scan;
+@@ -4436,16 +4437,36 @@ static void age_lruvec(struct lruvec *lr
+ 	mem_cgroup_calculate_protection(NULL, memcg);
+ 
+ 	if (mem_cgroup_below_min(memcg))
+-		return;
++		return false;
+ 
+ 	need_aging = should_run_aging(lruvec, max_seq, min_seq, sc, swappiness, &nr_to_scan);
 +
- 	/* Allocation order */
- 	s8 order;
++	if (min_ttl) {
++		int gen = lru_gen_from_seq(min_seq[LRU_GEN_FILE]);
++		unsigned long birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
++
++		if (time_is_after_jiffies(birth + min_ttl))
++			return false;
++
++		/* the size is likely too small to be helpful */
++		if (!nr_to_scan && sc->priority != DEF_PRIORITY)
++			return false;
++	}
++
+ 	if (need_aging)
+ 		try_to_inc_max_seq(lruvec, max_seq, sc, swappiness);
++
++	return true;
+ }
  
-@@ -4431,6 +4437,19 @@ static void lru_gen_age_node(struct pgli
++/* to protect the working set of the last N jiffies */
++static unsigned long lru_gen_min_ttl __read_mostly;
++
+ static void lru_gen_age_node(struct pglist_data *pgdat, struct scan_control *sc)
+ {
+ 	struct mem_cgroup *memcg;
++	bool success = false;
++	unsigned long min_ttl = READ_ONCE(lru_gen_min_ttl);
  
  	VM_WARN_ON_ONCE(!current_is_kswapd());
  
-+	sc->last_reclaimed = sc->nr_reclaimed;
+@@ -4468,12 +4489,32 @@ static void lru_gen_age_node(struct pgli
+ 	do {
+ 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 
+-		age_lruvec(lruvec, sc);
++		if (age_lruvec(lruvec, sc, min_ttl))
++			success = true;
+ 
+ 		cond_resched();
+ 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
+ 
+ 	clear_mm_walk();
 +
-+	/*
-+	 * To reduce the chance of going into the aging path, which can be
-+	 * costly, optimistically skip it if the flag below was cleared in the
-+	 * eviction path. This improves the overall performance when multiple
-+	 * memcgs are available.
-+	 */
-+	if (!sc->memcgs_need_aging) {
-+		sc->memcgs_need_aging = true;
++	/* check the order to exclude compaction-induced reclaim */
++	if (success || !min_ttl || sc->order)
 +		return;
-+	}
-+
- 	set_mm_walk(pgdat);
- 
- 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
-@@ -4842,7 +4861,8 @@ static int isolate_folios(struct lruvec
- 	return scanned;
- }
- 
--static int evict_folios(struct lruvec *lruvec, struct scan_control *sc, int swappiness)
-+static int evict_folios(struct lruvec *lruvec, struct scan_control *sc, int swappiness,
-+			bool *need_swapping)
- {
- 	int type;
- 	int scanned;
-@@ -4905,6 +4925,9 @@ static int evict_folios(struct lruvec *l
- 
- 	sc->nr_reclaimed += reclaimed;
- 
-+	if (need_swapping && type == LRU_GEN_ANON)
-+		*need_swapping = true;
-+
- 	return scanned;
- }
- 
-@@ -4914,9 +4937,8 @@ static int evict_folios(struct lruvec *l
-  *    reclaim.
-  */
- static unsigned long get_nr_to_scan(struct lruvec *lruvec, struct scan_control *sc,
--				    bool can_swap)
-+				    bool can_swap, bool *need_aging)
- {
--	bool need_aging;
- 	unsigned long nr_to_scan;
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	DEFINE_MAX_SEQ(lruvec);
-@@ -4926,8 +4948,8 @@ static unsigned long get_nr_to_scan(stru
- 	    (mem_cgroup_below_low(memcg) && !sc->memcg_low_reclaim))
- 		return 0;
- 
--	need_aging = should_run_aging(lruvec, max_seq, min_seq, sc, can_swap, &nr_to_scan);
--	if (!need_aging)
-+	*need_aging = should_run_aging(lruvec, max_seq, min_seq, sc, can_swap, &nr_to_scan);
-+	if (!*need_aging)
- 		return nr_to_scan;
- 
- 	/* skip the aging path at the default priority */
-@@ -4944,10 +4966,68 @@ done:
- 	return min_seq[!can_swap] + MIN_NR_GENS <= max_seq ? nr_to_scan : 0;
- }
- 
-+static bool should_abort_scan(struct lruvec *lruvec, unsigned long seq,
-+			      struct scan_control *sc, bool need_swapping)
-+{
-+	int i;
-+	DEFINE_MAX_SEQ(lruvec);
-+
-+	if (!current_is_kswapd()) {
-+		/* age each memcg once to ensure fairness */
-+		if (max_seq - seq > 1)
-+			return true;
-+
-+		/* over-swapping can increase allocation latency */
-+		if (sc->nr_reclaimed >= sc->nr_to_reclaim && need_swapping)
-+			return true;
-+
-+		/* give this thread a chance to exit and free its memory */
-+		if (fatal_signal_pending(current)) {
-+			sc->nr_reclaimed += MIN_LRU_BATCH;
-+			return true;
-+		}
-+
-+		if (cgroup_reclaim(sc))
-+			return false;
-+	} else if (sc->nr_reclaimed - sc->last_reclaimed < sc->nr_to_reclaim)
-+		return false;
-+
-+	/* keep scanning at low priorities to ensure fairness */
-+	if (sc->priority > DEF_PRIORITY - 2)
-+		return false;
 +
 +	/*
-+	 * A minimum amount of work was done under global memory pressure. For
-+	 * kswapd, it may be overshooting. For direct reclaim, the target isn't
-+	 * met, and yet the allocation may still succeed, since kswapd may have
-+	 * caught up. In either case, it's better to stop now, and restart if
-+	 * necessary.
++	 * The main goal is to OOM kill if every generation from all memcgs is
++	 * younger than min_ttl. However, another possibility is all memcgs are
++	 * either below min or empty.
 +	 */
-+	for (i = 0; i <= sc->reclaim_idx; i++) {
-+		unsigned long wmark;
-+		struct zone *zone = lruvec_pgdat(lruvec)->node_zones + i;
++	if (mutex_trylock(&oom_lock)) {
++		struct oom_control oc = {
++			.gfp_mask = sc->gfp_mask,
++		};
 +
-+		if (!managed_zone(zone))
-+			continue;
++		out_of_memory(&oc);
 +
-+		wmark = current_is_kswapd() ? high_wmark_pages(zone) : low_wmark_pages(zone);
-+		if (wmark > zone_page_state(zone, NR_FREE_PAGES))
-+			return false;
++		mutex_unlock(&oom_lock);
 +	}
-+
-+	sc->nr_reclaimed += MIN_LRU_BATCH;
-+
-+	return true;
+ }
+ 
+ /*
+@@ -5231,6 +5272,28 @@ unlock:
+  *                          sysfs interface
+  ******************************************************************************/
+ 
++static ssize_t show_min_ttl(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%u\n", jiffies_to_msecs(READ_ONCE(lru_gen_min_ttl)));
 +}
 +
- static void lru_gen_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
- {
- 	struct blk_plug plug;
-+	bool need_aging = false;
-+	bool need_swapping = false;
- 	unsigned long scanned = 0;
-+	unsigned long reclaimed = sc->nr_reclaimed;
-+	DEFINE_MAX_SEQ(lruvec);
- 
- 	lru_add_drain();
- 
-@@ -4967,21 +5047,28 @@ static void lru_gen_shrink_lruvec(struct
- 		else
- 			swappiness = 0;
- 
--		nr_to_scan = get_nr_to_scan(lruvec, sc, swappiness);
-+		nr_to_scan = get_nr_to_scan(lruvec, sc, swappiness, &need_aging);
- 		if (!nr_to_scan)
--			break;
-+			goto done;
- 
--		delta = evict_folios(lruvec, sc, swappiness);
-+		delta = evict_folios(lruvec, sc, swappiness, &need_swapping);
- 		if (!delta)
--			break;
-+			goto done;
- 
- 		scanned += delta;
- 		if (scanned >= nr_to_scan)
- 			break;
- 
-+		if (should_abort_scan(lruvec, max_seq, sc, need_swapping))
-+			break;
++static ssize_t store_min_ttl(struct kobject *kobj, struct kobj_attribute *attr,
++			     const char *buf, size_t len)
++{
++	unsigned int msecs;
 +
- 		cond_resched();
- 	}
++	if (kstrtouint(buf, 0, &msecs))
++		return -EINVAL;
++
++	WRITE_ONCE(lru_gen_min_ttl, msecs_to_jiffies(msecs));
++
++	return len;
++}
++
++static struct kobj_attribute lru_gen_min_ttl_attr = __ATTR(
++	min_ttl_ms, 0644, show_min_ttl, store_min_ttl
++);
++
+ static ssize_t show_enabled(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+ {
+ 	unsigned int caps = 0;
+@@ -5279,6 +5342,7 @@ static struct kobj_attribute lru_gen_ena
+ );
  
-+	/* see the comment in lru_gen_age_node() */
-+	if (sc->nr_reclaimed - reclaimed >= MIN_LRU_BATCH && !need_aging)
-+		sc->memcgs_need_aging = false;
-+done:
- 	clear_mm_walk();
+ static struct attribute *lru_gen_attrs[] = {
++	&lru_gen_min_ttl_attr.attr,
+ 	&lru_gen_enabled_attr.attr,
+ 	NULL
+ };
+@@ -5294,12 +5358,16 @@ static struct attribute_group lru_gen_at
  
- 	blk_finish_plug(&plug);
+ void lru_gen_init_lruvec(struct lruvec *lruvec)
+ {
++	int i;
+ 	int gen, type, zone;
+ 	struct lru_gen_struct *lrugen = &lruvec->lrugen;
+ 
+ 	lrugen->max_seq = MIN_NR_GENS + 1;
+ 	lrugen->enabled = lru_gen_enabled();
+ 
++	for (i = 0; i <= MIN_NR_GENS + 1; i++)
++		lrugen->timestamps[i] = jiffies;
++
+ 	for_each_gen_type_zone(gen, type, zone)
+ 		INIT_LIST_HEAD(&lrugen->lists[gen][type][zone]);
+ 
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
