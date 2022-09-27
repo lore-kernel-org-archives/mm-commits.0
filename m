@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69C06C6FA86
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:55:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58608C6FA82
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:55:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229598AbiI0Czz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:55:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40444 "EHLO
+        id S229488AbiI0Cz4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:55:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230430AbiI0CzX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:55:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEBE23A4BB
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:50:15 -0700 (PDT)
+        with ESMTP id S230458AbiI0Cz0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:55:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0A2148EB1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:50:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 387C161552
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:50:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 917BEC433C1;
-        Tue, 27 Sep 2022 02:50:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B47361552
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:50:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2D41C433C1;
+        Tue, 27 Sep 2022 02:50:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664247014;
-        bh=FRnfQKnXL0y7ynYpvWzwybrWMwSmsBIhzQYBPtHzslM=;
+        s=korg; t=1664247017;
+        bh=O6onl5skH6x0Nz/Y/rVK7BZoAXTGUIEFYgsRgBIE2Yk=;
         h=Date:To:From:Subject:From;
-        b=SSyfBbNASy8NxUoIrQvkx7kgmTf+6LSN+kSEixbQ//rDXVJk7GhxCsxGwWHNqccdG
-         roHLjTpVeTQmZlg/n3z9H0AH8sz7bh93h8s8oMJPhgf2q4PxHtj9tNKAQraD6Aixgt
-         vTcal+ObcRiT5nJIZW2No808NwkvfeN31OqM/dFM=
-Date:   Mon, 26 Sep 2022 19:50:13 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, peterx@redhat.com,
-        mgorman@suse.de, jhubbard@nvidia.com, jgg@nvidia.com,
-        hughd@google.com, aarcange@redhat.com, david@redhat.com,
-        akpm@linux-foundation.org
+        b=p+vd8jEKV6jN1AKIbSl7h2RgWnc8+j/4JPQ/JkUIO+tprUTUKIa7tDtCbgcYpwQ1M
+         8KT0926E6l91IL0OjKZPmp4fQp2rRuaS9nD1U03llZyXhGwFah+vU5Ql2PFSRxb9hs
+         o0rwisAi/Wsty9jTn2UpEYfEMcRrV5++klZzIvKk=
+Date:   Mon, 26 Sep 2022 19:50:16 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mgorman@suse.de,
+        hch@infradead.org, hannes@cmpxchg.org, dan.carpenter@oracle.com,
+        mhocko@suse.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-use-gup_can_follow_protnone-also-in-gup-fast.patch removed from -mm tree
-Message-Id: <20220927025014.917BEC433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-reduce-noise-in-show_mem-for-lowmem-allocations.patch removed from -mm tree
+Message-Id: <20220927025016.E2D41C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,81 +42,186 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup: use gup_can_follow_protnone() also in GUP-fast
+     Subject: mm: reduce noise in show_mem for lowmem allocations
 has been removed from the -mm tree.  Its filename was
-     mm-gup-use-gup_can_follow_protnone-also-in-gup-fast.patch
+     mm-reduce-noise-in-show_mem-for-lowmem-allocations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/gup: use gup_can_follow_protnone() also in GUP-fast
-Date: Thu, 25 Aug 2022 18:46:58 +0200
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: reduce noise in show_mem for lowmem allocations
+Date: Tue, 23 Aug 2022 11:22:30 +0200
 
-There seems to be no reason why FOLL_FORCE during GUP-fast would have to
-fallback to the slow path when stumbling over a PROT_NONE mapped page.  We
-only have to trigger hinting faults in case FOLL_FORCE is not set, and any
-kind of fault handling naturally happens from the slow path -- where NUMA
-hinting accounting/handling would be performed.
+While discussing early DMA pool pre-allocation failure with Christoph [1]
+I have realized that the allocation failure warning is rather noisy for
+constrained allocations like GFP_DMA{32}.  Those zones are usually not
+populated on all nodes very often as their memory ranges are constrained.
 
-Note that the comment regarding THP migration is outdated: commit
-2b4847e73004 ("mm: numa: serialise parallel get_user_page against THP
-migration") described that this was required for THP due to lack of PMD
-migration entries.  Nowadays, we do have proper PMD migration entries in
-place -- see set_pmd_migration_entry(), which does a proper
-pmdp_invalidate() when placing the migration entry.
+This is an attempt to reduce the ballast that doesn't provide any relevant
+information for those allocation failures investigation.  Please note that
+I have only compile tested it (in my default config setup) and I am
+throwing it mostly to see what people think about it.
 
-So let's just reuse gup_can_follow_protnone() here to make it consistent
-and drop the somewhat outdated comments.
+[1] http://lkml.kernel.org/r/20220817060647.1032426-1-hch@lst.de
 
-Link: https://lkml.kernel.org/r/20220825164659.89824-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+[mhocko@suse.com: update]
+  Link: https://lkml.kernel.org/r/Yw29bmJTIkKogTiW@dhcp22.suse.cz
+[mhocko@suse.com: fix build]
+[akpm@linux-foundation.org: fix it for mapletree]
+[akpm@linux-foundation.org: update it for Michal's update]
+[mhocko@suse.com: fix arch/powerpc/xmon/xmon.c]
+  Link: https://lkml.kernel.org/r/Ywh3C4dKB9B93jIy@dhcp22.suse.cz
+[akpm@linux-foundation.org: fix arch/sparc/kernel/setup_32.c]
+Link: https://lkml.kernel.org/r/YwScVmVofIZkopkF@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ include/linux/mm.h |   13 +++++++++++--
+ lib/show_mem.c     |    4 ++--
+ mm/oom_kill.c      |    2 +-
+ mm/page_alloc.c    |   21 +++++++++++++++++++--
+ 4 files changed, 33 insertions(+), 7 deletions(-)
 
---- a/mm/gup.c~mm-gup-use-gup_can_follow_protnone-also-in-gup-fast
-+++ a/mm/gup.c
-@@ -2432,11 +2432,7 @@ static int gup_pte_range(pmd_t pmd, pmd_
- 		struct page *page;
- 		struct folio *folio;
+--- a/include/linux/mm.h~mm-reduce-noise-in-show_mem-for-lowmem-allocations
++++ a/include/linux/mm.h
+@@ -1838,7 +1838,11 @@ extern void pagefault_out_of_memory(void
+  */
+ #define SHOW_MEM_FILTER_NODES		(0x0001u)	/* disallowed nodes */
  
--		/*
--		 * Similar to the PMD case below, NUMA hinting must take slow
--		 * path using the pte_protnone check.
--		 */
--		if (pte_protnone(pte))
-+		if (pte_protnone(pte) && !gup_can_follow_protnone(flags))
- 			goto pte_unmap;
+-extern void show_free_areas(unsigned int flags, nodemask_t *nodemask);
++extern void __show_free_areas(unsigned int flags, nodemask_t *nodemask, int max_zone_idx);
++static void __maybe_unused show_free_areas(unsigned int flags, nodemask_t *nodemask)
++{
++	__show_free_areas(flags, nodemask, MAX_NR_ZONES - 1);
++}
  
- 		if (!pte_access_permitted(pte, flags & FOLL_WRITE))
-@@ -2820,12 +2816,8 @@ static int gup_pmd_range(pud_t *pudp, pu
+ #ifdef CONFIG_MMU
+ extern bool can_do_mlock(void);
+@@ -2578,7 +2582,12 @@ extern void calculate_min_free_kbytes(vo
+ extern int __meminit init_per_zone_wmark_min(void);
+ extern void mem_init(void);
+ extern void __init mmap_init(void);
+-extern void show_mem(unsigned int flags, nodemask_t *nodemask);
++
++extern void __show_mem(unsigned int flags, nodemask_t *nodemask, int max_zone_idx);
++static inline void show_mem(unsigned int flags, nodemask_t *nodemask)
++{
++	__show_mem(flags, nodemask, MAX_NR_ZONES - 1);
++}
+ extern long si_mem_available(void);
+ extern void si_meminfo(struct sysinfo * val);
+ extern void si_meminfo_node(struct sysinfo *val, int nid);
+--- a/lib/show_mem.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
++++ a/lib/show_mem.c
+@@ -8,13 +8,13 @@
+ #include <linux/mm.h>
+ #include <linux/cma.h>
  
- 		if (unlikely(pmd_trans_huge(pmd) || pmd_huge(pmd) ||
- 			     pmd_devmap(pmd))) {
--			/*
--			 * NUMA hinting faults need to be handled in the GUP
--			 * slowpath for accounting purposes and so that they
--			 * can be serialised against THP migration.
--			 */
--			if (pmd_protnone(pmd))
-+			if (pmd_protnone(pmd) &&
-+			    !gup_can_follow_protnone(flags))
- 				return 0;
+-void show_mem(unsigned int filter, nodemask_t *nodemask)
++void __show_mem(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
+ {
+ 	pg_data_t *pgdat;
+ 	unsigned long total = 0, reserved = 0, highmem = 0;
  
- 			if (!gup_huge_pmd(pmd, pmdp, addr, next, flags,
+ 	printk("Mem-Info:\n");
+-	show_free_areas(filter, nodemask);
++	__show_free_areas(filter, nodemask, max_zone_idx);
+ 
+ 	for_each_online_pgdat(pgdat) {
+ 		int zoneid;
+--- a/mm/oom_kill.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
++++ a/mm/oom_kill.c
+@@ -461,7 +461,7 @@ static void dump_header(struct oom_contr
+ 	if (is_memcg_oom(oc))
+ 		mem_cgroup_print_oom_meminfo(oc->memcg);
+ 	else {
+-		show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask);
++		__show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask, gfp_zone(oc->gfp_mask));
+ 		if (should_dump_unreclaim_slab())
+ 			dump_unreclaimable_slab();
+ 	}
+--- a/mm/page_alloc.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
++++ a/mm/page_alloc.c
+@@ -4322,7 +4322,7 @@ static void warn_alloc_show_mem(gfp_t gf
+ 	if (!in_task() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
+ 		filter &= ~SHOW_MEM_FILTER_NODES;
+ 
+-	show_mem(filter, nodemask);
++	__show_mem(filter, nodemask, gfp_zone(gfp_mask));
+ }
+ 
+ void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...)
+@@ -6050,6 +6050,15 @@ static void show_migration_types(unsigne
+ 	printk(KERN_CONT "(%s) ", tmp);
+ }
+ 
++static bool node_has_managed_zones(pg_data_t *pgdat, int max_zone_idx)
++{
++	int zone_idx;
++	for (zone_idx = 0; zone_idx <= max_zone_idx; zone_idx++)
++		if (zone_managed_pages(pgdat->node_zones + zone_idx))
++			return true;
++	return false;
++}
++
+ /*
+  * Show free area list (used inside shift_scroll-lock stuff)
+  * We also calculate the percentage fragmentation. We do this by counting the
+@@ -6059,7 +6068,7 @@ static void show_migration_types(unsigne
+  * SHOW_MEM_FILTER_NODES: suppress nodes that are not allowed by current's
+  *   cpuset.
+  */
+-void show_free_areas(unsigned int filter, nodemask_t *nodemask)
++void __show_free_areas(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
+ {
+ 	unsigned long free_pcp = 0;
+ 	int cpu, nid;
+@@ -6067,6 +6076,8 @@ void show_free_areas(unsigned int filter
+ 	pg_data_t *pgdat;
+ 
+ 	for_each_populated_zone(zone) {
++		if (zone_idx(zone) > max_zone_idx)
++			continue;
+ 		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
+ 			continue;
+ 
+@@ -6104,6 +6115,8 @@ void show_free_areas(unsigned int filter
+ 	for_each_online_pgdat(pgdat) {
+ 		if (show_mem_node_skip(filter, pgdat->node_id, nodemask))
+ 			continue;
++		if (!node_has_managed_zones(pgdat, max_zone_idx))
++			continue;
+ 
+ 		printk("Node %d"
+ 			" active_anon:%lukB"
+@@ -6160,6 +6173,8 @@ void show_free_areas(unsigned int filter
+ 	for_each_populated_zone(zone) {
+ 		int i;
+ 
++		if (zone_idx(zone) > max_zone_idx)
++			continue;
+ 		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
+ 			continue;
+ 
+@@ -6221,6 +6236,8 @@ void show_free_areas(unsigned int filter
+ 		unsigned long nr[MAX_ORDER], flags, total = 0;
+ 		unsigned char types[MAX_ORDER];
+ 
++		if (zone_idx(zone) > max_zone_idx)
++			continue;
+ 		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
+ 			continue;
+ 		show_node(zone);
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
 
