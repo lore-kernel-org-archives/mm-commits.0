@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD18DC6FA86
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:56:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11E72C07E9D
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:56:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229904AbiI0C4G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:56:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40458 "EHLO
+        id S229969AbiI0C4H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:56:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230466AbiI0Cz2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:55:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A55834B0EC
+        with ESMTP id S230469AbiI0Cz3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:55:29 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C305D4B0F4
         for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:50:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F3DB061554
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5B623B8190D
         for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:50:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A037C433C1;
-        Tue, 27 Sep 2022 02:50:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CAB0C433D6;
+        Tue, 27 Sep 2022 02:50:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664247019;
-        bh=UU1Iaaw0dbQOOSVjDdAGqZpj+zce/IrXPxUqKvbDAAM=;
+        s=korg; t=1664247018;
+        bh=jio57l0gB6jx9Rgip4fJ7Ph5C8tFfJB1UFlIwwibh2o=;
         h=Date:To:From:Subject:From;
-        b=VZeOXQOAzT4Ri1EfxpGoAlZhbsT0baKxQ9eKT7WEga1iUSoOWVePYDa2Eoquwsd/L
-         2w5lPpH2F5uOaBsFjVkagoRVHdukwVV8aAvL7MaWbkcMwCkttErWJRXAk2DdUpyjeJ
-         70qlzf3uma8RJiDaVG0kb4wa4i0ao3AWQsZEOha4=
-Date:   Mon, 26 Sep 2022 19:50:18 -0700
-To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
-        xu.xin16@zte.com.cn, willy@infradead.org, ran.xiaokai@zte.com.cn,
-        izik.eidus@ravellosystems.com, hughd@google.com,
-        bagasdotme@gmail.com, adobriyan@gmail.com, cgel.zte@gmail.com,
-        akpm@linux-foundation.org
+        b=LMEF9jCk3xV5nuEDKcW+9ev0q6/j/Q7rw53Qpw+O6ioaiKrfu9gfWXrrvYwF6OYug
+         33TYwzXMFoTHeLHU34LqfO+GdOkVUTwrHey5vPrOVtynKGIIE1GYTicJAnNRdLuKdp
+         s2uHQ6uHPZzvt8dgBRg6noSM6WJls4Ods62ea4/s=
+Date:   Mon, 26 Sep 2022 19:50:17 -0700
+To:     mm-commits@vger.kernel.org, mhocko@suse.com, feng.tang@intel.com,
+        shakeelb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ksm-count-allocated-ksm-rmap_items-for-each-process.patch removed from -mm tree
-Message-Id: <20220927025019.5A037C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-deduplicate-cacheline-padding-code.patch removed from -mm tree
+Message-Id: <20220927025018.0CAB0C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,165 +41,201 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ksm: count allocated ksm rmap_items for each process
+     Subject: mm: deduplicate cacheline padding code
 has been removed from the -mm tree.  Its filename was
-     ksm-count-allocated-ksm-rmap_items-for-each-process.patch
+     mm-deduplicate-cacheline-padding-code.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: xu xin <cgel.zte@gmail.com>
-Subject: ksm: count allocated ksm rmap_items for each process
-Date: Tue, 30 Aug 2022 14:38:38 +0000
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: deduplicate cacheline padding code
+Date: Fri, 26 Aug 2022 23:06:42 +0000
 
-Patch series "ksm: count allocated rmap_items and update documentation",
-v5.
+There are three users (mmzone.h, memcontrol.h, page_counter.h) using
+similar code for forcing cacheline padding between fields of different
+structures.  Dedup that code.
 
-KSM can save memory by merging identical pages, but also can consume
-additional memory, because it needs to generate rmap_items to save each
-scanned page's brief rmap information.
-
-To determine how beneficial the ksm-policy (like madvise), they are using
-brings, so we add a new interface /proc/<pid>/ksm_stat for each process
-The value "ksm_rmap_items" in it indicates the total allocated ksm
-rmap_items of this process.
-
-The detailed description can be seen in the following patches' commit
-message.
-
-
-This patch (of 2):
-
-KSM can save memory by merging identical pages, but also can consume
-additional memory, because it needs to generate rmap_items to save each
-scanned page's brief rmap information.  Some of these pages may be merged,
-but some may not be abled to be merged after being checked several times,
-which are unprofitable memory consumed.
-
-The information about whether KSM save memory or consume memory in
-system-wide range can be determined by the comprehensive calculation of
-pages_sharing, pages_shared, pages_unshared and pages_volatile.  A simple
-approximate calculation:
-
-	profit =~ pages_sharing * sizeof(page) - (all_rmap_items) *
-	         sizeof(rmap_item);
-
-where all_rmap_items equals to the sum of pages_sharing, pages_shared,
-pages_unshared and pages_volatile.
-
-But we cannot calculate this kind of ksm profit inner single-process wide
-because the information of ksm rmap_item's number of a process is lacked. 
-For user applications, if this kind of information could be obtained, it
-helps upper users know how beneficial the ksm-policy (like madvise) they
-are using brings, and then optimize their app code.  For example, one
-application madvise 1000 pages as MERGEABLE, while only a few pages are
-really merged, then it's not cost-efficient.
-
-So we add a new interface /proc/<pid>/ksm_stat for each process in which
-the value of ksm_rmap_itmes is only shown now and so more values can be
-added in future.
-
-So similarly, we can calculate the ksm profit approximately for a single
-process by:
-
-	profit =~ ksm_merging_pages * sizeof(page) - ksm_rmap_items *
-		 sizeof(rmap_item);
-
-where ksm_merging_pages is shown at /proc/<pid>/ksm_merging_pages, and
-ksm_rmap_items is shown in /proc/<pid>/ksm_stat.
-
-Link: https://lkml.kernel.org/r/20220830143731.299702-1-xu.xin16@zte.com.cn
-Link: https://lkml.kernel.org/r/20220830143838.299758-1-xu.xin16@zte.com.cn
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Reviewed-by: Xiaokai Ran <ran.xiaokai@zte.com.cn>
-Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
-Signed-off-by: CGEL ZTE <cgel.zte@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Izik Eidus <izik.eidus@ravellosystems.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20220826230642.566725-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Suggested-by: Feng Tang <feng.tang@intel.com>
+Reviewed-by: Feng Tang <feng.tang@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c           |   15 +++++++++++++++
- include/linux/mm_types.h |    5 +++++
- mm/ksm.c                 |    2 ++
- 3 files changed, 22 insertions(+)
+ include/linux/cache.h        |   13 +++++++++++++
+ include/linux/memcontrol.h   |   13 ++-----------
+ include/linux/mmzone.h       |   24 +++++-------------------
+ include/linux/page_counter.h |   13 ++-----------
+ 4 files changed, 22 insertions(+), 41 deletions(-)
 
---- a/fs/proc/base.c~ksm-count-allocated-ksm-rmap_items-for-each-process
-+++ a/fs/proc/base.c
-@@ -3199,6 +3199,19 @@ static int proc_pid_ksm_merging_pages(st
- 
- 	return 0;
- }
-+static int proc_pid_ksm_stat(struct seq_file *m, struct pid_namespace *ns,
-+				struct pid *pid, struct task_struct *task)
-+{
-+	struct mm_struct *mm;
-+
-+	mm = get_task_mm(task);
-+	if (mm) {
-+		seq_printf(m, "ksm_rmap_items %lu\n", mm->ksm_rmap_items);
-+		mmput(mm);
-+	}
-+
-+	return 0;
-+}
- #endif /* CONFIG_KSM */
- 
- #ifdef CONFIG_STACKLEAK_METRICS
-@@ -3334,6 +3347,7 @@ static const struct pid_entry tgid_base_
+--- a/include/linux/cache.h~mm-deduplicate-cacheline-padding-code
++++ a/include/linux/cache.h
+@@ -85,4 +85,17 @@
+ #define cache_line_size()	L1_CACHE_BYTES
  #endif
- #ifdef CONFIG_KSM
- 	ONE("ksm_merging_pages",  S_IRUSR, proc_pid_ksm_merging_pages),
-+	ONE("ksm_stat",  S_IRUSR, proc_pid_ksm_stat),
- #endif
+ 
++/*
++ * Helper to add padding within a struct to ensure data fall into separate
++ * cachelines.
++ */
++#if defined(CONFIG_SMP)
++struct cacheline_padding {
++	char x[0];
++} ____cacheline_internodealigned_in_smp;
++#define CACHELINE_PADDING(name)		struct cacheline_padding name
++#else
++#define CACHELINE_PADDING(name)
++#endif
++
+ #endif /* __LINUX_CACHE_H */
+--- a/include/linux/memcontrol.h~mm-deduplicate-cacheline-padding-code
++++ a/include/linux/memcontrol.h
+@@ -185,15 +185,6 @@ struct mem_cgroup_thresholds {
+ 	struct mem_cgroup_threshold_ary *spare;
  };
  
-@@ -3671,6 +3685,7 @@ static const struct pid_entry tid_base_s
- #endif
- #ifdef CONFIG_KSM
- 	ONE("ksm_merging_pages",  S_IRUSR, proc_pid_ksm_merging_pages),
-+	ONE("ksm_stat",  S_IRUSR, proc_pid_ksm_stat),
- #endif
- };
+-#if defined(CONFIG_SMP)
+-struct memcg_padding {
+-	char x[0];
+-} ____cacheline_internodealigned_in_smp;
+-#define MEMCG_PADDING(name)      struct memcg_padding name
+-#else
+-#define MEMCG_PADDING(name)
+-#endif
+-
+ /*
+  * Remember four most recent foreign writebacks with dirty pages in this
+  * cgroup.  Inode sharing is expected to be uncommon and, even if we miss
+@@ -304,7 +295,7 @@ struct mem_cgroup {
+ 	spinlock_t		move_lock;
+ 	unsigned long		move_lock_flags;
  
---- a/include/linux/mm_types.h~ksm-count-allocated-ksm-rmap_items-for-each-process
-+++ a/include/linux/mm_types.h
-@@ -654,6 +654,11 @@ struct mm_struct {
- 		 * merging.
- 		 */
- 		unsigned long ksm_merging_pages;
-+		/*
-+		 * Represent how many pages are checked for ksm merging
-+		 * including merged and not merged.
-+		 */
-+		unsigned long ksm_rmap_items;
+-	MEMCG_PADDING(_pad1_);
++	CACHELINE_PADDING(_pad1_);
+ 
+ 	/* memory.stat */
+ 	struct memcg_vmstats	vmstats;
+@@ -326,7 +317,7 @@ struct mem_cgroup {
+ 	struct list_head objcg_list;
  #endif
- #ifdef CONFIG_LRU_GEN
- 		struct {
---- a/mm/ksm.c~ksm-count-allocated-ksm-rmap_items-for-each-process
-+++ a/mm/ksm.c
-@@ -387,6 +387,7 @@ static inline struct rmap_item *alloc_rm
- static inline void free_rmap_item(struct rmap_item *rmap_item)
- {
- 	ksm_rmap_items--;
-+	rmap_item->mm->ksm_rmap_items--;
- 	rmap_item->mm = NULL;	/* debug safety */
- 	kmem_cache_free(rmap_item_cache, rmap_item);
- }
-@@ -2235,6 +2236,7 @@ static struct rmap_item *get_next_rmap_i
- 	if (rmap_item) {
- 		/* It has already been zeroed */
- 		rmap_item->mm = mm_slot->mm;
-+		rmap_item->mm->ksm_rmap_items++;
- 		rmap_item->address = addr;
- 		rmap_item->rmap_list = *rmap_list;
- 		*rmap_list = rmap_item;
+ 
+-	MEMCG_PADDING(_pad2_);
++	CACHELINE_PADDING(_pad2_);
+ 
+ 	/*
+ 	 * set > 0 if pages under this cgroup are moving to other cgroup.
+--- a/include/linux/mmzone.h~mm-deduplicate-cacheline-padding-code
++++ a/include/linux/mmzone.h
+@@ -121,20 +121,6 @@ static inline bool free_area_empty(struc
+ 
+ struct pglist_data;
+ 
+-/*
+- * Add a wild amount of padding here to ensure data fall into separate
+- * cachelines.  There are very few zone structures in the machine, so space
+- * consumption is not a concern here.
+- */
+-#if defined(CONFIG_SMP)
+-struct zone_padding {
+-	char x[0];
+-} ____cacheline_internodealigned_in_smp;
+-#define ZONE_PADDING(name)	struct zone_padding name;
+-#else
+-#define ZONE_PADDING(name)
+-#endif
+-
+ #ifdef CONFIG_NUMA
+ enum numa_stat_item {
+ 	NUMA_HIT,		/* allocated in intended node */
+@@ -837,7 +823,7 @@ struct zone {
+ 	int initialized;
+ 
+ 	/* Write-intensive fields used from the page allocator */
+-	ZONE_PADDING(_pad1_)
++	CACHELINE_PADDING(_pad1_);
+ 
+ 	/* free areas of different sizes */
+ 	struct free_area	free_area[MAX_ORDER];
+@@ -849,7 +835,7 @@ struct zone {
+ 	spinlock_t		lock;
+ 
+ 	/* Write-intensive fields used by compaction and vmstats. */
+-	ZONE_PADDING(_pad2_)
++	CACHELINE_PADDING(_pad2_);
+ 
+ 	/*
+ 	 * When free pages are below this point, additional steps are taken
+@@ -886,7 +872,7 @@ struct zone {
+ 
+ 	bool			contiguous;
+ 
+-	ZONE_PADDING(_pad3_)
++	CACHELINE_PADDING(_pad3_);
+ 	/* Zone statistics */
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+ 	atomic_long_t		vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
+@@ -1196,7 +1182,7 @@ typedef struct pglist_data {
+ #endif /* CONFIG_NUMA */
+ 
+ 	/* Write-intensive fields used by page reclaim */
+-	ZONE_PADDING(_pad1_)
++	CACHELINE_PADDING(_pad1_);
+ 
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ 	/*
+@@ -1241,7 +1227,7 @@ typedef struct pglist_data {
+ 	struct lru_gen_mm_walk	mm_walk;
+ #endif
+ 
+-	ZONE_PADDING(_pad2_)
++	CACHELINE_PADDING(_pad2_);
+ 
+ 	/* Per-node vmstats */
+ 	struct per_cpu_nodestat __percpu *per_cpu_nodestats;
+--- a/include/linux/page_counter.h~mm-deduplicate-cacheline-padding-code
++++ a/include/linux/page_counter.h
+@@ -7,22 +7,13 @@
+ #include <linux/kernel.h>
+ #include <asm/page.h>
+ 
+-#if defined(CONFIG_SMP)
+-struct pc_padding {
+-	char x[0];
+-} ____cacheline_internodealigned_in_smp;
+-#define PC_PADDING(name)	struct pc_padding name
+-#else
+-#define PC_PADDING(name)
+-#endif
+-
+ struct page_counter {
+ 	/*
+ 	 * Make sure 'usage' does not share cacheline with any other field. The
+ 	 * memcg->memory.usage is a hot member of struct mem_cgroup.
+ 	 */
+ 	atomic_long_t usage;
+-	PC_PADDING(_pad1_);
++	CACHELINE_PADDING(_pad1_);
+ 
+ 	/* effective memory.min and memory.min usage tracking */
+ 	unsigned long emin;
+@@ -38,7 +29,7 @@ struct page_counter {
+ 	unsigned long failcnt;
+ 
+ 	/* Keep all the read most fields in a separete cacheline. */
+-	PC_PADDING(_pad2_);
++	CACHELINE_PADDING(_pad2_);
+ 
+ 	unsigned long min;
+ 	unsigned long low;
 _
 
-Patches currently in -mm which might be from cgel.zte@gmail.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
+revert-net-set-proper-memcg-for-net_init-hooks-allocations.patch
+memcg-extract-memcg_vmstats-from-struct-mem_cgroup.patch
+memcg-rearrange-code.patch
+memcg-reduce-size-of-memcg-vmstats-structures.patch
 
