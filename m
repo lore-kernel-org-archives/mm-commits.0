@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22632C32771
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3286C6FA82
 	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:54:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230260AbiI0CyA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:54:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57998 "EHLO
+        id S230273AbiI0CyB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:54:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230454AbiI0Cvl (ORCPT
+        with ESMTP id S230455AbiI0Cvl (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:51:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84DE8FAD80
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:23 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68DD2FAD83
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CFCF5615B5
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E287C433D6;
-        Tue, 27 Sep 2022 02:49:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1803BB8190D
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02A9C433D6;
+        Tue, 27 Sep 2022 02:49:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246961;
-        bh=MFy07CeBbQP1LCkWzZx4RnqdjFC/Joafk7RIJTIUE7w=;
+        s=korg; t=1664246963;
+        bh=xlMJjh+FxA3uvCRNHER7yaVRzEjgDywLcxyYQVLBXtY=;
         h=Date:To:From:Subject:From;
-        b=01jbCZvbJG40NB4yntxseZOwmJ/n4R0lXJR+7/8aGAXvYckbmUC2zOhxsqdujBaw/
-         V25DUE2hLGBGCvRSXgiEedyXZbQYYzah2gdhMQJRMKwC59d7sofYUlw5RRmX4P8Kfo
-         lrm6cFcfpUnAk35iBB5C+TV2/vLny2t5SIyBM75I=
-Date:   Mon, 26 Sep 2022 19:49:20 -0700
+        b=d3Q/fyol7SIWd2uzDuxG7Y7txaoVc1baaKcOxPVkxFw+A3SsWBUBjZJlr46k5aunA
+         MTimX7FrdwWf1sRzI+mXYleizdpmucTFVCgXhNr/rwMiMJg3a9UzrnQcyu+cD05lWO
+         QqVTpMVC46wRZnAdj7lqhzTiE/kGc+/QDhfRGUbo=
+Date:   Mon, 26 Sep 2022 19:49:23 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
         vbabka@suse.cz, svens@linux.ibm.com, sj@kernel.org,
         Liam.Howlett@Oracle.com, dhowells@redhat.com, david@redhat.com,
         dave@stgolabs.net, catalin.marinas@arm.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] cxl-remove-vma-linked-list-walk.patch removed from -mm tree
-Message-Id: <20220927024921.2E287C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] um-remove-vma-linked-list-walk.patch removed from -mm tree
+Message-Id: <20220927024923.C02A9C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,125 +44,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: cxl: remove vma linked list walk
+     Subject: um: remove vma linked list walk
 has been removed from the -mm tree.  Its filename was
-     cxl-remove-vma-linked-list-walk.patch
+     um-remove-vma-linked-list-walk.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: cxl: remove vma linked list walk
-Date: Tue, 6 Sep 2022 19:48:55 +0000
+Subject: um: remove vma linked list walk
+Date: Tue, 6 Sep 2022 19:48:56 +0000
 
-Use the VMA iterator instead.  This requires a little restructuring of the
-surrounding code to hoist the mm to the caller.  That turns
-cxl_prefault_one() into a trivial function, so call cxl_fault_segment()
-directly.
+Use the VMA iterator instead.
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-38-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220906194824.2110408-40-Liam.Howlett@oracle.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/cxl/fault.c |   45 ++++++++++++-------------------------
- 1 file changed, 15 insertions(+), 30 deletions(-)
+ arch/um/kernel/tlb.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
---- a/drivers/misc/cxl/fault.c~cxl-remove-vma-linked-list-walk
-+++ a/drivers/misc/cxl/fault.c
-@@ -280,22 +280,6 @@ void cxl_handle_fault(struct work_struct
- 		mmput(mm);
- }
+--- a/arch/um/kernel/tlb.c~um-remove-vma-linked-list-walk
++++ a/arch/um/kernel/tlb.c
+@@ -584,21 +584,19 @@ void flush_tlb_mm_range(struct mm_struct
  
--static void cxl_prefault_one(struct cxl_context *ctx, u64 ea)
--{
--	struct mm_struct *mm;
--
--	mm = get_mem_context(ctx);
--	if (mm == NULL) {
--		pr_devel("cxl_prefault_one unable to get mm %i\n",
--			 pid_nr(ctx->pid));
--		return;
--	}
--
--	cxl_fault_segment(ctx, mm, ea);
--
--	mmput(mm);
--}
--
- static u64 next_segment(u64 ea, u64 vsid)
+ void flush_tlb_mm(struct mm_struct *mm)
  {
- 	if (vsid & SLB_VSID_B_1T)
-@@ -306,23 +290,16 @@ static u64 next_segment(u64 ea, u64 vsid
- 	return ea + 1;
- }
- 
--static void cxl_prefault_vma(struct cxl_context *ctx)
-+static void cxl_prefault_vma(struct cxl_context *ctx, struct mm_struct *mm)
- {
- 	u64 ea, last_esid = 0;
- 	struct copro_slb slb;
+-	struct vm_area_struct *vma = mm->mmap;
++	struct vm_area_struct *vma;
 +	VMA_ITERATOR(vmi, mm, 0);
- 	struct vm_area_struct *vma;
- 	int rc;
--	struct mm_struct *mm;
--
--	mm = get_mem_context(ctx);
--	if (mm == NULL) {
--		pr_devel("cxl_prefault_vm unable to get mm %i\n",
--			 pid_nr(ctx->pid));
--		return;
--	}
  
- 	mmap_read_lock(mm);
--	for (vma = mm->mmap; vma; vma = vma->vm_next) {
-+	for_each_vma(vmi, vma) {
- 		for (ea = vma->vm_start; ea < vma->vm_end;
- 				ea = next_segment(ea, slb.vsid)) {
- 			rc = copro_calculate_slb(mm, ea, &slb);
-@@ -337,20 +314,28 @@ static void cxl_prefault_vma(struct cxl_
- 		}
- 	}
- 	mmap_read_unlock(mm);
--
--	mmput(mm);
+-	while (vma != NULL) {
++	for_each_vma(vmi, vma)
+ 		fix_range(mm, vma->vm_start, vma->vm_end, 0);
+-		vma = vma->vm_next;
+-	}
  }
  
- void cxl_prefault(struct cxl_context *ctx, u64 wed)
+ void force_flush_all(void)
  {
-+	struct mm_struct *mm = get_mem_context(ctx);
-+
-+	if (mm == NULL) {
-+		pr_devel("cxl_prefault unable to get mm %i\n",
-+			 pid_nr(ctx->pid));
-+		return;
-+	}
-+
- 	switch (ctx->afu->prefault_mode) {
- 	case CXL_PREFAULT_WED:
--		cxl_prefault_one(ctx, wed);
-+		cxl_fault_segment(ctx, mm, wed);
- 		break;
- 	case CXL_PREFAULT_ALL:
--		cxl_prefault_vma(ctx);
-+		cxl_prefault_vma(ctx, mm);
- 		break;
- 	default:
- 		break;
- 	}
-+
-+	mmput(mm);
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma = mm->mmap;
++	struct vm_area_struct *vma;
++	VMA_ITERATOR(vmi, mm, 0);
+ 
+-	while (vma != NULL) {
++	for_each_vma(vmi, vma)
+ 		fix_range(mm, vma->vm_start, vma->vm_end, 1);
+-		vma = vma->vm_next;
+-	}
  }
 _
 
