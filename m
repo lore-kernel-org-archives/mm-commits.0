@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2142EC07E9D
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:52:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 054BBC07E9D
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:52:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229810AbiI0CwX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:52:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57918 "EHLO
+        id S230214AbiI0Cwk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:52:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229870AbiI0Cuu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:50:50 -0400
+        with ESMTP id S230307AbiI0Cu5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:50:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C2D4FA0DD
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 565ACFA0F4
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ACD4161595
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EA6AC433B5;
-        Tue, 27 Sep 2022 02:49:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 15456615A3
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67DA3C433D6;
+        Tue, 27 Sep 2022 02:49:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246945;
-        bh=FD9a3ybsMw86FlmxB3vYBj9La79dgOb6ohI7l5Q3CXY=;
+        s=korg; t=1664246946;
+        bh=7/qJttqGK4xGliZy09y4rjRYhGUFkK7dGzDRpWdJO9k=;
         h=Date:To:From:Subject:From;
-        b=w7WSFIJsLSUwK5MRL+UpMXUHbh1OVXSEA9lQiV4QCAGjuwXFUS76koDivEk0dqUnV
-         cNLTujobdkjvNs/mkWcVlGH052j2BWC63XLepLtQXnKLdjMnBSmGzVTygqCQ/H+zmp
-         z3DSjq3Kk/xohEAihp7N8XkAxcPh/nUSxlGsq5sU=
-Date:   Mon, 26 Sep 2022 19:49:04 -0700
+        b=XI/VnJV3xWxdc5tE0nUqrSGNyMMoNBENPADVgIcT0nNmAjPijNccPJ+BF7sWzBXii
+         FFleOECS9l4RsshoPTasAmTJE7rhuK70U/aob90M96k+Hy8ozAosRxRYMRukuV7zxF
+         WwdFboUhEBLrUvvE30b0zZtYPAjXyDefymTAoQMM=
+Date:   Mon, 26 Sep 2022 19:49:05 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
         sj@kernel.org, dhowells@redhat.com, david@redhat.com,
         dave@stgolabs.net, catalin.marinas@arm.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-vmacache.patch removed from -mm tree
-Message-Id: <20220927024905.0EA6AC433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-vma_lookup-to-use-mtree_load.patch removed from -mm tree
+Message-Id: <20220927024906.67DA3C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,589 +44,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove vmacache
+     Subject: mm: convert vma_lookup() to use mtree_load()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-vmacache.patch
+     mm-convert-vma_lookup-to-use-mtree_load.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: remove vmacache
+Subject: mm: convert vma_lookup() to use mtree_load()
 Date: Tue, 6 Sep 2022 19:48:51 +0000
 
-By using the maple tree and the maple tree state, the vmacache is no
-longer beneficial and is complicating the VMA code.  Remove the vmacache
-to reduce the work in keeping it up to date and code complexity.
+Unlike the rbtree, the Maple Tree will return a NULL if there's nothing at
+a particular address.
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-26-Liam.Howlett@oracle.com
+Since the previous commit dropped the vmacache, it is now possible to
+consult the tree directly.
+
+Link: https://lkml.kernel.org/r/20220906194824.2110408-27-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c                     |    3 
- fs/proc/task_mmu.c            |    1 
- include/linux/mm_types.h      |    1 
- include/linux/mm_types_task.h |   12 ---
- include/linux/sched.h         |    1 
- include/linux/vm_event_item.h |    4 -
- include/linux/vmacache.h      |   28 -------
- include/linux/vmstat.h        |    6 -
- kernel/debug/debug_core.c     |   12 ---
- kernel/fork.c                 |    5 -
- lib/Kconfig.debug             |    8 --
- mm/Makefile                   |    2 
- mm/debug.c                    |    4 -
- mm/mmap.c                     |   31 --------
- mm/nommu.c                    |   37 +---------
- mm/vmacache.c                 |  117 --------------------------------
- mm/vmstat.c                   |    4 -
- 17 files changed, 9 insertions(+), 267 deletions(-)
+ include/linux/mm.h |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/fs/exec.c~mm-remove-vmacache
-+++ a/fs/exec.c
-@@ -28,7 +28,6 @@
- #include <linux/file.h>
- #include <linux/fdtable.h>
- #include <linux/mm.h>
--#include <linux/vmacache.h>
- #include <linux/stat.h>
- #include <linux/fcntl.h>
- #include <linux/swap.h>
-@@ -1027,8 +1026,6 @@ static int exec_mmap(struct mm_struct *m
- 	activate_mm(active_mm, mm);
- 	if (IS_ENABLED(CONFIG_ARCH_WANT_IRQS_OFF_ACTIVATE_MM))
- 		local_irq_enable();
--	tsk->mm->vmacache_seqnum = 0;
--	vmacache_flush(tsk);
- 	task_unlock(tsk);
- 	lru_gen_use_mm(mm);
- 
---- a/fs/proc/task_mmu.c~mm-remove-vmacache
-+++ a/fs/proc/task_mmu.c
-@@ -1,6 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/pagewalk.h>
--#include <linux/vmacache.h>
- #include <linux/mm_inline.h>
- #include <linux/hugetlb.h>
- #include <linux/huge_mm.h>
---- a/include/linux/mm_types.h~mm-remove-vmacache
-+++ a/include/linux/mm_types.h
-@@ -475,7 +475,6 @@ struct mm_struct {
- 	struct {
- 		struct vm_area_struct *mmap;		/* list of VMAs */
- 		struct maple_tree mm_mt;
--		u64 vmacache_seqnum;                   /* per-thread vmacache */
- #ifdef CONFIG_MMU
- 		unsigned long (*get_unmapped_area) (struct file *filp,
- 				unsigned long addr, unsigned long len,
---- a/include/linux/mm_types_task.h~mm-remove-vmacache
-+++ a/include/linux/mm_types_task.h
-@@ -25,18 +25,6 @@
- #define ALLOC_SPLIT_PTLOCKS	(SPINLOCK_SIZE > BITS_PER_LONG/8)
- 
- /*
-- * The per task VMA cache array:
-- */
--#define VMACACHE_BITS 2
--#define VMACACHE_SIZE (1U << VMACACHE_BITS)
--#define VMACACHE_MASK (VMACACHE_SIZE - 1)
--
--struct vmacache {
--	u64 seqnum;
--	struct vm_area_struct *vmas[VMACACHE_SIZE];
--};
--
--/*
-  * When updating this, please also update struct resident_page_types[] in
-  * kernel/fork.c
-  */
---- a/include/linux/sched.h~mm-remove-vmacache
-+++ a/include/linux/sched.h
-@@ -861,7 +861,6 @@ struct task_struct {
- 	struct mm_struct		*active_mm;
- 
- 	/* Per-thread vma caching: */
--	struct vmacache			vmacache;
- 
- #ifdef SPLIT_RSS_COUNTING
- 	struct task_rss_stat		rss_stat;
---- a/include/linux/vmacache.h
-+++ /dev/null
-@@ -1,28 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __LINUX_VMACACHE_H
--#define __LINUX_VMACACHE_H
--
--#include <linux/sched.h>
--#include <linux/mm.h>
--
--static inline void vmacache_flush(struct task_struct *tsk)
--{
--	memset(tsk->vmacache.vmas, 0, sizeof(tsk->vmacache.vmas));
--}
--
--extern void vmacache_update(unsigned long addr, struct vm_area_struct *newvma);
--extern struct vm_area_struct *vmacache_find(struct mm_struct *mm,
--						    unsigned long addr);
--
--#ifndef CONFIG_MMU
--extern struct vm_area_struct *vmacache_find_exact(struct mm_struct *mm,
--						  unsigned long start,
--						  unsigned long end);
--#endif
--
--static inline void vmacache_invalidate(struct mm_struct *mm)
--{
--	mm->vmacache_seqnum++;
--}
--
--#endif /* __LINUX_VMACACHE_H */
---- a/include/linux/vm_event_item.h~mm-remove-vmacache
-+++ a/include/linux/vm_event_item.h
-@@ -129,10 +129,6 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		NR_TLB_LOCAL_FLUSH_ALL,
- 		NR_TLB_LOCAL_FLUSH_ONE,
- #endif /* CONFIG_DEBUG_TLBFLUSH */
--#ifdef CONFIG_DEBUG_VM_VMACACHE
--		VMACACHE_FIND_CALLS,
--		VMACACHE_FIND_HITS,
--#endif
- #ifdef CONFIG_SWAP
- 		SWAP_RA,
- 		SWAP_RA_HIT,
---- a/include/linux/vmstat.h~mm-remove-vmacache
-+++ a/include/linux/vmstat.h
-@@ -125,12 +125,6 @@ static inline void vm_events_fold_cpu(in
- #define count_vm_tlb_events(x, y) do { (void)(y); } while (0)
- #endif
- 
--#ifdef CONFIG_DEBUG_VM_VMACACHE
--#define count_vm_vmacache_event(x) count_vm_event(x)
--#else
--#define count_vm_vmacache_event(x) do {} while (0)
--#endif
--
- #define __count_zid_vm_events(item, zid, delta) \
- 	__count_vm_events(item##_NORMAL - ZONE_NORMAL + zid, delta)
- 
---- a/kernel/debug/debug_core.c~mm-remove-vmacache
-+++ a/kernel/debug/debug_core.c
-@@ -50,7 +50,6 @@
- #include <linux/pid.h>
- #include <linux/smp.h>
- #include <linux/mm.h>
--#include <linux/vmacache.h>
- #include <linux/rcupdate.h>
- #include <linux/irq.h>
- #include <linux/security.h>
-@@ -283,17 +282,6 @@ static void kgdb_flush_swbreak_addr(unsi
- 	if (!CACHE_FLUSH_IS_SAFE)
- 		return;
- 
--	if (current->mm) {
--		int i;
--
--		for (i = 0; i < VMACACHE_SIZE; i++) {
--			if (!current->vmacache.vmas[i])
--				continue;
--			flush_cache_range(current->vmacache.vmas[i],
--					  addr, addr + BREAK_INSTR_SIZE);
--		}
--	}
--
- 	/* Force flush instruction cache if it was outside the mm */
- 	flush_icache_range(addr, addr + BREAK_INSTR_SIZE);
- }
---- a/kernel/fork.c~mm-remove-vmacache
-+++ a/kernel/fork.c
-@@ -43,7 +43,6 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/mm_inline.h>
--#include <linux/vmacache.h>
- #include <linux/nsproxy.h>
- #include <linux/capability.h>
- #include <linux/cpu.h>
-@@ -1128,7 +1127,6 @@ static struct mm_struct *mm_init(struct
- 	mm->mmap = NULL;
- 	mt_init_flags(&mm->mm_mt, MM_MT_FLAGS);
- 	mt_set_external_lock(&mm->mm_mt, &mm->mmap_lock);
--	mm->vmacache_seqnum = 0;
- 	atomic_set(&mm->mm_users, 1);
- 	atomic_set(&mm->mm_count, 1);
- 	seqcount_init(&mm->write_protect_seq);
-@@ -1585,9 +1583,6 @@ static int copy_mm(unsigned long clone_f
- 	if (!oldmm)
- 		return 0;
- 
--	/* initialize the new vmacache entries */
--	vmacache_flush(tsk);
--
- 	if (clone_flags & CLONE_VM) {
- 		mmget(oldmm);
- 		mm = oldmm;
---- a/lib/Kconfig.debug~mm-remove-vmacache
-+++ a/lib/Kconfig.debug
-@@ -812,14 +812,6 @@ config DEBUG_VM
- 
- 	  If unsure, say N.
- 
--config DEBUG_VM_VMACACHE
--	bool "Debug VMA caching"
--	depends on DEBUG_VM
--	help
--	  Enable this to turn on VMA caching debug information. Doing so
--	  can cause significant overhead, so only enable it in non-production
--	  environments.
--
- config DEBUG_VM_MAPLE_TREE
- 	bool "Debug VM maple trees"
- 	depends on DEBUG_VM
---- a/mm/debug.c~mm-remove-vmacache
-+++ a/mm/debug.c
-@@ -155,7 +155,7 @@ EXPORT_SYMBOL(dump_vma);
- 
- void dump_mm(const struct mm_struct *mm)
+--- a/include/linux/mm.h~mm-convert-vma_lookup-to-use-mtree_load
++++ a/include/linux/mm.h
+@@ -2795,12 +2795,7 @@ struct vm_area_struct *find_vma_intersec
+ static inline
+ struct vm_area_struct *vma_lookup(struct mm_struct *mm, unsigned long addr)
  {
--	pr_emerg("mm %px mmap %px seqnum %llu task_size %lu\n"
-+	pr_emerg("mm %px mmap %px task_size %lu\n"
- #ifdef CONFIG_MMU
- 		"get_unmapped_area %px\n"
- #endif
-@@ -183,7 +183,7 @@ void dump_mm(const struct mm_struct *mm)
- 		"tlb_flush_pending %d\n"
- 		"def_flags: %#lx(%pGv)\n",
- 
--		mm, mm->mmap, (long long) mm->vmacache_seqnum, mm->task_size,
-+		mm, mm->mmap, mm->task_size,
- #ifdef CONFIG_MMU
- 		mm->get_unmapped_area,
- #endif
---- a/mm/Makefile~mm-remove-vmacache
-+++ a/mm/Makefile
-@@ -52,7 +52,7 @@ obj-y			:= filemap.o mempool.o oom_kill.
- 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
- 			   util.o mmzone.o vmstat.o backing-dev.o \
- 			   mm_init.o percpu.o slab_common.o \
--			   compaction.o vmacache.o \
-+			   compaction.o \
- 			   interval_tree.o list_lru.o workingset.o \
- 			   debug.o gup.o mmap_lock.o $(mmu-y)
- 
---- a/mm/mmap.c~mm-remove-vmacache
-+++ a/mm/mmap.c
-@@ -14,7 +14,6 @@
- #include <linux/backing-dev.h>
- #include <linux/mm.h>
- #include <linux/mm_inline.h>
--#include <linux/vmacache.h>
- #include <linux/shm.h>
- #include <linux/mman.h>
- #include <linux/pagemap.h>
-@@ -680,9 +679,6 @@ inline int vma_expand(struct ma_state *m
- 		/* Remove from mm linked list - also updates highest_vm_end */
- 		__vma_unlink_list(mm, next);
- 
--		/* Kill the cache */
--		vmacache_invalidate(mm);
+-	struct vm_area_struct *vma = find_vma(mm, addr);
 -
- 		if (file)
- 			__remove_shared_vm_struct(next, file, mapping);
- 
-@@ -923,8 +919,6 @@ int __vma_adjust(struct vm_area_struct *
- 		__vma_unlink_list(mm, next);
- 		if (remove_next == 2)
- 			__vma_unlink_list(mm, next_next);
--		/* Kill the cache */
--		vmacache_invalidate(mm);
- 
- 		if (file) {
- 			__remove_shared_vm_struct(next, file, mapping);
-@@ -2233,19 +2227,10 @@ struct vm_area_struct *find_vma_intersec
- 					     unsigned long start_addr,
- 					     unsigned long end_addr)
- {
--	struct vm_area_struct *vma;
- 	unsigned long index = start_addr;
- 
- 	mmap_assert_locked(mm);
--	/* Check the cache first. */
--	vma = vmacache_find(mm, start_addr);
--	if (likely(vma))
--		return vma;
--
--	vma = mt_find(&mm->mm_mt, &index, end_addr - 1);
--	if (vma)
--		vmacache_update(start_addr, vma);
--	return vma;
-+	return mt_find(&mm->mm_mt, &index, end_addr - 1);
- }
- EXPORT_SYMBOL(find_vma_intersection);
- 
-@@ -2259,19 +2244,10 @@ EXPORT_SYMBOL(find_vma_intersection);
-  */
- struct vm_area_struct *find_vma(struct mm_struct *mm, unsigned long addr)
- {
--	struct vm_area_struct *vma;
- 	unsigned long index = addr;
- 
- 	mmap_assert_locked(mm);
--	/* Check the cache first. */
--	vma = vmacache_find(mm, addr);
--	if (likely(vma))
--		return vma;
--
--	vma = mt_find(&mm->mm_mt, &index, ULONG_MAX);
--	if (vma)
--		vmacache_update(addr, vma);
--	return vma;
-+	return mt_find(&mm->mm_mt, &index, ULONG_MAX);
- }
- EXPORT_SYMBOL(find_vma);
- 
-@@ -2660,9 +2636,6 @@ detach_vmas_to_be_unmapped(struct mm_str
- 		mm->highest_vm_end = prev ? vm_end_gap(prev) : 0;
- 	tail_vma->vm_next = NULL;
- 
--	/* Kill the cache */
--	vmacache_invalidate(mm);
--
- 	/*
- 	 * Do not downgrade mmap_lock if we are next to VM_GROWSDOWN or
- 	 * VM_GROWSUP VMA. Such VMAs can change their size under
---- a/mm/nommu.c~mm-remove-vmacache
-+++ a/mm/nommu.c
-@@ -19,7 +19,6 @@
- #include <linux/export.h>
- #include <linux/mm.h>
- #include <linux/sched/mm.h>
--#include <linux/vmacache.h>
- #include <linux/mman.h>
- #include <linux/swap.h>
- #include <linux/file.h>
-@@ -598,23 +597,12 @@ static void add_vma_to_mm(struct mm_stru
-  */
- static void delete_vma_from_mm(struct vm_area_struct *vma)
- {
--	int i;
--	struct address_space *mapping;
--	struct mm_struct *mm = vma->vm_mm;
--	struct task_struct *curr = current;
- 	MA_STATE(mas, &vma->vm_mm->mm_mt, 0, 0);
- 
--	mm->map_count--;
--	for (i = 0; i < VMACACHE_SIZE; i++) {
--		/* if the vma is cached, invalidate the entire cache */
--		if (curr->vmacache.vmas[i] == vma) {
--			vmacache_invalidate(mm);
--			break;
--		}
--	}
--
-+	vma->vm_mm->map_count--;
- 	/* remove the VMA from the mapping */
- 	if (vma->vm_file) {
-+		struct address_space *mapping;
- 		mapping = vma->vm_file->f_mapping;
- 
- 		i_mmap_lock_write(mapping);
-@@ -626,7 +614,7 @@ static void delete_vma_from_mm(struct vm
- 
- 	/* remove from the MM's tree and list */
- 	vma_mas_remove(vma, &mas);
--	__vma_unlink_list(mm, vma);
-+	__vma_unlink_list(vma->vm_mm, vma);
- }
- 
- /*
-@@ -659,20 +647,9 @@ EXPORT_SYMBOL(find_vma_intersection);
-  */
- struct vm_area_struct *find_vma(struct mm_struct *mm, unsigned long addr)
- {
--	struct vm_area_struct *vma;
- 	MA_STATE(mas, &mm->mm_mt, addr, addr);
- 
--	/* check the cache first */
--	vma = vmacache_find(mm, addr);
--	if (likely(vma))
--		return vma;
--
--	vma = mas_walk(&mas);
--
--	if (vma)
--		vmacache_update(addr, vma);
+-	if (vma && addr < vma->vm_start)
+-		vma = NULL;
 -
 -	return vma;
-+	return mas_walk(&mas);
- }
- EXPORT_SYMBOL(find_vma);
- 
-@@ -706,11 +683,6 @@ static struct vm_area_struct *find_vma_e
- 	unsigned long end = addr + len;
- 	MA_STATE(mas, &mm->mm_mt, addr, addr);
- 
--	/* check the cache first */
--	vma = vmacache_find_exact(mm, addr, end);
--	if (vma)
--		return vma;
--
- 	vma = mas_walk(&mas);
- 	if (!vma)
- 		return NULL;
-@@ -719,7 +691,6 @@ static struct vm_area_struct *find_vma_e
- 	if (vma->vm_end != end)
- 		return NULL;
- 
--	vmacache_update(addr, vma);
- 	return vma;
++	return mtree_load(&mm->mm_mt, addr);
  }
  
---- a/mm/vmacache.c
-+++ /dev/null
-@@ -1,117 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * Copyright (C) 2014 Davidlohr Bueso.
-- */
--#include <linux/sched/signal.h>
--#include <linux/sched/task.h>
--#include <linux/mm.h>
--#include <linux/vmacache.h>
--
--/*
-- * Hash based on the pmd of addr if configured with MMU, which provides a good
-- * hit rate for workloads with spatial locality.  Otherwise, use pages.
-- */
--#ifdef CONFIG_MMU
--#define VMACACHE_SHIFT	PMD_SHIFT
--#else
--#define VMACACHE_SHIFT	PAGE_SHIFT
--#endif
--#define VMACACHE_HASH(addr) ((addr >> VMACACHE_SHIFT) & VMACACHE_MASK)
--
--/*
-- * This task may be accessing a foreign mm via (for example)
-- * get_user_pages()->find_vma().  The vmacache is task-local and this
-- * task's vmacache pertains to a different mm (ie, its own).  There is
-- * nothing we can do here.
-- *
-- * Also handle the case where a kernel thread has adopted this mm via
-- * kthread_use_mm(). That kernel thread's vmacache is not applicable to this mm.
-- */
--static inline bool vmacache_valid_mm(struct mm_struct *mm)
--{
--	return current->mm == mm && !(current->flags & PF_KTHREAD);
--}
--
--void vmacache_update(unsigned long addr, struct vm_area_struct *newvma)
--{
--	if (vmacache_valid_mm(newvma->vm_mm))
--		current->vmacache.vmas[VMACACHE_HASH(addr)] = newvma;
--}
--
--static bool vmacache_valid(struct mm_struct *mm)
--{
--	struct task_struct *curr;
--
--	if (!vmacache_valid_mm(mm))
--		return false;
--
--	curr = current;
--	if (mm->vmacache_seqnum != curr->vmacache.seqnum) {
--		/*
--		 * First attempt will always be invalid, initialize
--		 * the new cache for this task here.
--		 */
--		curr->vmacache.seqnum = mm->vmacache_seqnum;
--		vmacache_flush(curr);
--		return false;
--	}
--	return true;
--}
--
--struct vm_area_struct *vmacache_find(struct mm_struct *mm, unsigned long addr)
--{
--	int idx = VMACACHE_HASH(addr);
--	int i;
--
--	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
--
--	if (!vmacache_valid(mm))
--		return NULL;
--
--	for (i = 0; i < VMACACHE_SIZE; i++) {
--		struct vm_area_struct *vma = current->vmacache.vmas[idx];
--
--		if (vma) {
--#ifdef CONFIG_DEBUG_VM_VMACACHE
--			if (WARN_ON_ONCE(vma->vm_mm != mm))
--				break;
--#endif
--			if (vma->vm_start <= addr && vma->vm_end > addr) {
--				count_vm_vmacache_event(VMACACHE_FIND_HITS);
--				return vma;
--			}
--		}
--		if (++idx == VMACACHE_SIZE)
--			idx = 0;
--	}
--
--	return NULL;
--}
--
--#ifndef CONFIG_MMU
--struct vm_area_struct *vmacache_find_exact(struct mm_struct *mm,
--					   unsigned long start,
--					   unsigned long end)
--{
--	int idx = VMACACHE_HASH(start);
--	int i;
--
--	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
--
--	if (!vmacache_valid(mm))
--		return NULL;
--
--	for (i = 0; i < VMACACHE_SIZE; i++) {
--		struct vm_area_struct *vma = current->vmacache.vmas[idx];
--
--		if (vma && vma->vm_start == start && vma->vm_end == end) {
--			count_vm_vmacache_event(VMACACHE_FIND_HITS);
--			return vma;
--		}
--		if (++idx == VMACACHE_SIZE)
--			idx = 0;
--	}
--
--	return NULL;
--}
--#endif
---- a/mm/vmstat.c~mm-remove-vmacache
-+++ a/mm/vmstat.c
-@@ -1389,10 +1389,6 @@ const char * const vmstat_text[] = {
- 	"nr_tlb_local_flush_one",
- #endif /* CONFIG_DEBUG_TLBFLUSH */
- 
--#ifdef CONFIG_DEBUG_VM_VMACACHE
--	"vmacache_find_calls",
--	"vmacache_find_hits",
--#endif
- #ifdef CONFIG_SWAP
- 	"swap_ra",
- 	"swap_ra_hit",
+ static inline unsigned long vm_start_gap(struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
