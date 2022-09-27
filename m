@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3E16C6FA86
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:53:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C807C07E9D
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:53:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229462AbiI0CxT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:53:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57994 "EHLO
+        id S230081AbiI0Cxx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:53:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229598AbiI0CvP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:51:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFB35FAC76
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:15 -0700 (PDT)
+        with ESMTP id S229904AbiI0Cvg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:51:36 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 844B361B2E
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 360926153F
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B329C433D6;
-        Tue, 27 Sep 2022 02:49:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 25A58B81919
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D69ECC433D7;
+        Tue, 27 Sep 2022 02:49:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246954;
-        bh=YYWchn9YTQeTuTRLPC69CaWoxw+bFvE+HU9VKKoFZZM=;
+        s=korg; t=1664246955;
+        bh=7GOuSgHmMN66WQZ3RKNAaygpWW7R2QRjXPAXsHGFJb4=;
         h=Date:To:From:Subject:From;
-        b=JvFOZ1WVQEILkJhVdpmoZa2v63MZPl20Ir5hSggDptZYatqFiDojAtbMoBML6UIUt
-         Hajdoh0QWXZuXSAP+oX5Blh1JIGFxhAQQw56iBmLU6e9g4jzjp6ZyiSzoJzJF8Hvfk
-         fUVimzzi2Rm27jVpLb+bOQ4F/VpXMciEJKVOJkas=
-Date:   Mon, 26 Sep 2022 19:49:13 -0700
+        b=z0qqbpHCy6apL8faoDxSWzgMS862O0BE21RQq/emO91MAe0lepFT1Tgcml38qxCqI
+         USbC7b04NAQrUl2vSCaMwgFBxMLbbWVjc+gItaX+Txmc40T6HF391LCGQMsCvTw3Hq
+         rSv3fjKYnMzFQh5GabMqQk9hNBWInYZ0jMZppEAQ=
+Date:   Mon, 26 Sep 2022 19:49:15 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
         vbabka@suse.cz, svens@linux.ibm.com, sj@kernel.org,
         Liam.Howlett@Oracle.com, dhowells@redhat.com, david@redhat.com,
         dave@stgolabs.net, catalin.marinas@arm.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] parisc-remove-mmap-linked-list-from-cache-handling.patch removed from -mm tree
-Message-Id: <20220927024914.8B329C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] powerpc-remove-mmap-linked-list-walks.patch removed from -mm tree
+Message-Id: <20220927024915.D69ECC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,24 +44,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: parisc: remove mmap linked list from cache handling
+     Subject: powerpc: remove mmap linked list walks
 has been removed from the -mm tree.  Its filename was
-     parisc-remove-mmap-linked-list-from-cache-handling.patch
+     powerpc-remove-mmap-linked-list-walks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: parisc: remove mmap linked list from cache handling
+Subject: powerpc: remove mmap linked list walks
 Date: Tue, 6 Sep 2022 19:48:53 +0000
 
 Use the VMA iterator instead.
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-33-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220906194824.2110408-34-Liam.Howlett@oracle.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -73,42 +73,87 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/cache.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ arch/powerpc/kernel/vdso.c              |    6 +++---
+ arch/powerpc/mm/book3s32/tlb.c          |   11 ++++++-----
+ arch/powerpc/mm/book3s64/subpage_prot.c |   13 ++-----------
+ 3 files changed, 11 insertions(+), 19 deletions(-)
 
---- a/arch/parisc/kernel/cache.c~parisc-remove-mmap-linked-list-from-cache-handling
-+++ a/arch/parisc/kernel/cache.c
-@@ -657,15 +657,20 @@ static inline unsigned long mm_total_siz
+--- a/arch/powerpc/kernel/vdso.c~powerpc-remove-mmap-linked-list-walks
++++ a/arch/powerpc/kernel/vdso.c
+@@ -113,18 +113,18 @@ struct vdso_data *arch_get_vdso_data(voi
+ int vdso_join_timens(struct task_struct *task, struct time_namespace *ns)
  {
- 	struct vm_area_struct *vma;
- 	unsigned long usize = 0;
+ 	struct mm_struct *mm = task->mm;
 +	VMA_ITERATOR(vmi, mm, 0);
+ 	struct vm_area_struct *vma;
  
--	for (vma = mm->mmap; vma && usize < parisc_cache_flush_threshold; vma = vma->vm_next)
+ 	mmap_read_lock(mm);
+-
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
 +	for_each_vma(vmi, vma) {
-+		if (usize >= parisc_cache_flush_threshold)
-+			break;
- 		usize += vma->vm_end - vma->vm_start;
-+	}
- 	return usize;
+ 		unsigned long size = vma->vm_end - vma->vm_start;
+ 
+ 		if (vma_is_special_mapping(vma, &vvar_spec))
+ 			zap_page_range(vma, vma->vm_start, size);
+ 	}
+-
+ 	mmap_read_unlock(mm);
++
+ 	return 0;
  }
  
- void flush_cache_mm(struct mm_struct *mm)
+--- a/arch/powerpc/mm/book3s32/tlb.c~powerpc-remove-mmap-linked-list-walks
++++ a/arch/powerpc/mm/book3s32/tlb.c
+@@ -81,14 +81,15 @@ EXPORT_SYMBOL(hash__flush_range);
+ void hash__flush_tlb_mm(struct mm_struct *mm)
  {
- 	struct vm_area_struct *vma;
+ 	struct vm_area_struct *mp;
 +	VMA_ITERATOR(vmi, mm, 0);
  
  	/*
- 	 * Flushing the whole cache on each cpu takes forever on
-@@ -685,7 +690,7 @@ void flush_cache_mm(struct mm_struct *mm
- 	}
- 
- 	/* Flush mm */
--	for (vma = mm->mmap; vma; vma = vma->vm_next)
-+	for_each_vma(vmi, vma)
- 		flush_cache_pages(vma, vma->vm_start, vma->vm_end);
+-	 * It is safe to go down the mm's list of vmas when called
+-	 * from dup_mmap, holding mmap_lock.  It would also be safe from
+-	 * unmap_region or exit_mmap, but not from vmtruncate on SMP -
+-	 * but it seems dup_mmap is the only SMP case which gets here.
++	 * It is safe to iterate the vmas when called from dup_mmap,
++	 * holding mmap_lock.  It would also be safe from unmap_region
++	 * or exit_mmap, but not from vmtruncate on SMP - but it seems
++	 * dup_mmap is the only SMP case which gets here.
+ 	 */
+-	for (mp = mm->mmap; mp != NULL; mp = mp->vm_next)
++	for_each_vma(vmi, mp)
+ 		hash__flush_range(mp->vm_mm, mp->vm_start, mp->vm_end);
  }
+ EXPORT_SYMBOL(hash__flush_tlb_mm);
+--- a/arch/powerpc/mm/book3s64/subpage_prot.c~powerpc-remove-mmap-linked-list-walks
++++ a/arch/powerpc/mm/book3s64/subpage_prot.c
+@@ -149,24 +149,15 @@ static void subpage_mark_vma_nohuge(stru
+ 				    unsigned long len)
+ {
+ 	struct vm_area_struct *vma;
++	VMA_ITERATOR(vmi, mm, addr);
  
+ 	/*
+ 	 * We don't try too hard, we just mark all the vma in that range
+ 	 * VM_NOHUGEPAGE and split them.
+ 	 */
+-	vma = find_vma(mm, addr);
+-	/*
+-	 * If the range is in unmapped range, just return
+-	 */
+-	if (vma && ((addr + len) <= vma->vm_start))
+-		return;
+-
+-	while (vma) {
+-		if (vma->vm_start >= (addr + len))
+-			break;
++	for_each_vma_range(vmi, vma, addr + len) {
+ 		vma->vm_flags |= VM_NOHUGEPAGE;
+ 		walk_page_vma(vma, &subpage_walk_ops, NULL);
+-		vma = vma->vm_next;
+ 	}
+ }
+ #else
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
