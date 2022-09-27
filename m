@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C807C07E9D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3E1CC6FA82
 	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:53:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230081AbiI0Cxx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:53:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58462 "EHLO
+        id S229610AbiI0Cxy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:53:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229904AbiI0Cvg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:51:36 -0400
+        with ESMTP id S230457AbiI0Cvl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:51:41 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 844B361B2E
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB6F2FAD85
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 25A58B81919
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D69ECC433D7;
-        Tue, 27 Sep 2022 02:49:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7C4F3B8190E
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21A15C433C1;
+        Tue, 27 Sep 2022 02:49:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246955;
-        bh=7GOuSgHmMN66WQZ3RKNAaygpWW7R2QRjXPAXsHGFJb4=;
+        s=korg; t=1664246965;
+        bh=CkbKXcj85cuKmtsjoiEtuRpWZ9OwCSs+d+sZU6fGt/o=;
         h=Date:To:From:Subject:From;
-        b=z0qqbpHCy6apL8faoDxSWzgMS862O0BE21RQq/emO91MAe0lepFT1Tgcml38qxCqI
-         USbC7b04NAQrUl2vSCaMwgFBxMLbbWVjc+gItaX+Txmc40T6HF391LCGQMsCvTw3Hq
-         rSv3fjKYnMzFQh5GabMqQk9hNBWInYZ0jMZppEAQ=
-Date:   Mon, 26 Sep 2022 19:49:15 -0700
+        b=j3KOKHWqkEE6iQn+KnYO5XMxeJnu3dJ6P3evkaCIMmMJy35xS4WFvesdfLGPTeS1f
+         WX3k6MisIbHicfkWTPKV7KOriEhgzFFrlGBW/7K8T8bQT71m1SoDdpNE2pprOe65Zy
+         UZOs4oM4/r6Ao6FSl/7XscyS/AgxFlOi5lejuHEc=
+Date:   Mon, 26 Sep 2022 19:49:24 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
         vbabka@suse.cz, svens@linux.ibm.com, sj@kernel.org,
         Liam.Howlett@Oracle.com, dhowells@redhat.com, david@redhat.com,
         dave@stgolabs.net, catalin.marinas@arm.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-remove-mmap-linked-list-walks.patch removed from -mm tree
-Message-Id: <20220927024915.D69ECC433D7@smtp.kernel.org>
+Subject: [merged mm-stable] coredump-remove-vma-linked-list-walk.patch removed from -mm tree
+Message-Id: <20220927024925.21A15C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,116 +44,115 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: powerpc: remove mmap linked list walks
+     Subject: coredump: remove vma linked list walk
 has been removed from the -mm tree.  Its filename was
-     powerpc-remove-mmap-linked-list-walks.patch
+     coredump-remove-vma-linked-list-walk.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: powerpc: remove mmap linked list walks
-Date: Tue, 6 Sep 2022 19:48:53 +0000
+Subject: coredump: remove vma linked list walk
+Date: Tue, 6 Sep 2022 19:48:56 +0000
 
-Use the VMA iterator instead.
+Use the Maple Tree iterator instead.  This is too complicated for the VMA
+iterator to handle, so let's open-code it for now.  If this turns out to
+be a common pattern, we can migrate it to common code.
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-34-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220906194824.2110408-41-Liam.Howlett@oracle.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vdso.c              |    6 +++---
- arch/powerpc/mm/book3s32/tlb.c          |   11 ++++++-----
- arch/powerpc/mm/book3s64/subpage_prot.c |   13 ++-----------
- 3 files changed, 11 insertions(+), 19 deletions(-)
+ fs/coredump.c |   34 ++++++++++++----------------------
+ 1 file changed, 12 insertions(+), 22 deletions(-)
 
---- a/arch/powerpc/kernel/vdso.c~powerpc-remove-mmap-linked-list-walks
-+++ a/arch/powerpc/kernel/vdso.c
-@@ -113,18 +113,18 @@ struct vdso_data *arch_get_vdso_data(voi
- int vdso_join_timens(struct task_struct *task, struct time_namespace *ns)
+--- a/fs/coredump.c~coredump-remove-vma-linked-list-walk
++++ a/fs/coredump.c
+@@ -1072,30 +1072,20 @@ whole:
+ 	return vma->vm_end - vma->vm_start;
+ }
+ 
+-static struct vm_area_struct *first_vma(struct task_struct *tsk,
+-					struct vm_area_struct *gate_vma)
+-{
+-	struct vm_area_struct *ret = tsk->mm->mmap;
+-
+-	if (ret)
+-		return ret;
+-	return gate_vma;
+-}
+-
+ /*
+  * Helper function for iterating across a vma list.  It ensures that the caller
+  * will visit `gate_vma' prior to terminating the search.
+  */
+-static struct vm_area_struct *next_vma(struct vm_area_struct *this_vma,
++static struct vm_area_struct *coredump_next_vma(struct ma_state *mas,
++				       struct vm_area_struct *vma,
+ 				       struct vm_area_struct *gate_vma)
  {
- 	struct mm_struct *mm = task->mm;
-+	VMA_ITERATOR(vmi, mm, 0);
- 	struct vm_area_struct *vma;
- 
- 	mmap_read_lock(mm);
+-	struct vm_area_struct *ret;
 -
--	for (vma = mm->mmap; vma; vma = vma->vm_next) {
-+	for_each_vma(vmi, vma) {
- 		unsigned long size = vma->vm_end - vma->vm_start;
- 
- 		if (vma_is_special_mapping(vma, &vvar_spec))
- 			zap_page_range(vma, vma->vm_start, size);
- 	}
--
- 	mmap_read_unlock(mm);
+-	ret = this_vma->vm_next;
+-	if (ret)
+-		return ret;
+-	if (this_vma == gate_vma)
++	if (gate_vma && (vma == gate_vma))
+ 		return NULL;
 +
- 	return 0;
++	vma = mas_next(mas, ULONG_MAX);
++	if (vma)
++		return vma;
+ 	return gate_vma;
  }
  
---- a/arch/powerpc/mm/book3s32/tlb.c~powerpc-remove-mmap-linked-list-walks
-+++ a/arch/powerpc/mm/book3s32/tlb.c
-@@ -81,14 +81,15 @@ EXPORT_SYMBOL(hash__flush_range);
- void hash__flush_tlb_mm(struct mm_struct *mm)
+@@ -1119,9 +1109,10 @@ static void free_vma_snapshot(struct cor
+  */
+ static bool dump_vma_snapshot(struct coredump_params *cprm)
  {
- 	struct vm_area_struct *mp;
-+	VMA_ITERATOR(vmi, mm, 0);
+-	struct vm_area_struct *vma, *gate_vma;
++	struct vm_area_struct *gate_vma, *vma = NULL;
+ 	struct mm_struct *mm = current->mm;
+-	int i;
++	MA_STATE(mas, &mm->mm_mt, 0, 0);
++	int i = 0;
  
  	/*
--	 * It is safe to go down the mm's list of vmas when called
--	 * from dup_mmap, holding mmap_lock.  It would also be safe from
--	 * unmap_region or exit_mmap, but not from vmtruncate on SMP -
--	 * but it seems dup_mmap is the only SMP case which gets here.
-+	 * It is safe to iterate the vmas when called from dup_mmap,
-+	 * holding mmap_lock.  It would also be safe from unmap_region
-+	 * or exit_mmap, but not from vmtruncate on SMP - but it seems
-+	 * dup_mmap is the only SMP case which gets here.
- 	 */
--	for (mp = mm->mmap; mp != NULL; mp = mp->vm_next)
-+	for_each_vma(vmi, mp)
- 		hash__flush_range(mp->vm_mm, mp->vm_start, mp->vm_end);
- }
- EXPORT_SYMBOL(hash__flush_tlb_mm);
---- a/arch/powerpc/mm/book3s64/subpage_prot.c~powerpc-remove-mmap-linked-list-walks
-+++ a/arch/powerpc/mm/book3s64/subpage_prot.c
-@@ -149,24 +149,15 @@ static void subpage_mark_vma_nohuge(stru
- 				    unsigned long len)
- {
- 	struct vm_area_struct *vma;
-+	VMA_ITERATOR(vmi, mm, addr);
- 
- 	/*
- 	 * We don't try too hard, we just mark all the vma in that range
- 	 * VM_NOHUGEPAGE and split them.
- 	 */
--	vma = find_vma(mm, addr);
--	/*
--	 * If the range is in unmapped range, just return
--	 */
--	if (vma && ((addr + len) <= vma->vm_start))
--		return;
--
--	while (vma) {
--		if (vma->vm_start >= (addr + len))
--			break;
-+	for_each_vma_range(vmi, vma, addr + len) {
- 		vma->vm_flags |= VM_NOHUGEPAGE;
- 		walk_page_vma(vma, &subpage_walk_ops, NULL);
--		vma = vma->vm_next;
+ 	 * Once the stack expansion code is fixed to not change VMA bounds
+@@ -1141,8 +1132,7 @@ static bool dump_vma_snapshot(struct cor
+ 		return false;
  	}
- }
- #else
+ 
+-	for (i = 0, vma = first_vma(current, gate_vma); vma != NULL;
+-			vma = next_vma(vma, gate_vma), i++) {
++	while ((vma = coredump_next_vma(&mas, vma, gate_vma)) != NULL) {
+ 		struct core_vma_metadata *m = cprm->vma_meta + i;
+ 
+ 		m->start = vma->vm_start;
+@@ -1150,10 +1140,10 @@ static bool dump_vma_snapshot(struct cor
+ 		m->flags = vma->vm_flags;
+ 		m->dump_size = vma_dump_size(vma, cprm->mm_flags);
+ 		m->pgoff = vma->vm_pgoff;
+-
+ 		m->file = vma->vm_file;
+ 		if (m->file)
+ 			get_file(m->file);
++		i++;
+ 	}
+ 
+ 	mmap_write_unlock(mm);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
