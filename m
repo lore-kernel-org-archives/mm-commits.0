@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 396F8C07E9D
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:47:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15196C32771
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:47:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229815AbiI0CrW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:47:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57552 "EHLO
+        id S229832AbiI0CrX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:47:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229832AbiI0CrV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:47:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A511E4DB4C
+        with ESMTP id S229904AbiI0CrW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:47:22 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18F7C61138
         for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:47:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A2A661557
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:47:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 886D6C433D6;
-        Tue, 27 Sep 2022 02:47:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AF0F8B81901
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:47:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A324C433C1;
+        Tue, 27 Sep 2022 02:47:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246839;
-        bh=adSVwWpJPIu9MlMr9cuTUtW/92N8cQ9RLh7Rqo6O0dM=;
+        s=korg; t=1664246838;
+        bh=KkYPiEeAT0/AZGbd/8PWPeyFFsUjFwPVmNNkEvpYGmw=;
         h=Date:To:From:Subject:From;
-        b=fWfTwaOJyaVBNS+9uNT6bEPrVzVmW3UkPxPjBLN1CuvtdrCi3H2IohmuPrqJy2Dt5
-         UQqZUUB8h8iT/PpFe+htZw6zrujjhpRozGCHMFu/SQ8s8asrq+3TigJFGp84BQPWHF
-         PQtg/i9NkfLanUcwFM7E3ayb/gd8VPtJ55SYBk+Q=
-Date:   Mon, 26 Sep 2022 19:47:18 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=h+pslgOlJ5cE25djvB/GH/o4kfJrMGK3J04zbnoMqlmDyA68f2uurd+3hfTISdhIp
+         TlRZjIRJ5VN6j22TNXgIrxJTURamZS9rWeCaQXvvcaaYz8ohzj660FYmVcP/Ru0Z8k
+         sRrMlLghL5HFBTLtA53yfzGiTIPQNNavlQ32amGA=
+Date:   Mon, 26 Sep 2022 19:47:17 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com,
+        shy828301@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hwpoison-use-clearpagehwpoison-in-memory_failure.patch removed from -mm tree
-Message-Id: <20220927024719.886D6C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madv_collapse-refetch-vm_end-after-reacquiring-mmap_lock.patch removed from -mm tree
+Message-Id: <20220927024718.5A324C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,72 +41,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, hwpoison: use ClearPageHWPoison() in memory_failure()
+     Subject: mm: MADV_COLLAPSE: refetch vm_end after reacquiring mmap_lock
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-use-clearpagehwpoison-in-memory_failure.patch
+     mm-madv_collapse-refetch-vm_end-after-reacquiring-mmap_lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm, hwpoison: use ClearPageHWPoison() in memory_failure()
-Date: Tue, 30 Aug 2022 20:35:59 +0800
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: MADV_COLLAPSE: refetch vm_end after reacquiring mmap_lock
+Date: Wed, 14 Sep 2022 09:22:20 -0700
 
-Patch series "A few cleanup patches for memory-failure".
+The syzbot reported the below problem:
 
-his series contains a few cleanup patches to use __PageMovable() to detect
-non-lru movable pages, use num_poisoned_pages_sub() to reduce multiple
-atomic ops overheads and so on.  More details can be found in the
-respective changelogs.
+BUG: Bad page map in process syz-executor198  pte:8000000071c00227 pmd:74b30067
+addr:0000000020563000 vm_flags:08100077 anon_vma:ffff8880547d2200 mapping:0000000000000000 index:20563
+file:(null) fault:0x0 mmap:0x0 read_folio:0x0
+CPU: 1 PID: 3614 Comm: syz-executor198 Not tainted 6.0.0-rc3-next-20220901-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_bad_pte.cold+0x2a7/0x2d0 mm/memory.c:565
+ vm_normal_page+0x10c/0x2a0 mm/memory.c:636
+ hpage_collapse_scan_pmd+0x729/0x1da0 mm/khugepaged.c:1199
+ madvise_collapse+0x481/0x910 mm/khugepaged.c:2433
+ madvise_vma_behavior+0xd0a/0x1cc0 mm/madvise.c:1062
+ madvise_walk_vmas+0x1c7/0x2b0 mm/madvise.c:1236
+ do_madvise.part.0+0x24a/0x340 mm/madvise.c:1415
+ do_madvise mm/madvise.c:1428 [inline]
+ __do_sys_madvise mm/madvise.c:1428 [inline]
+ __se_sys_madvise mm/madvise.c:1426 [inline]
+ __x64_sys_madvise+0x113/0x150 mm/madvise.c:1426
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f770ba87929
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 11 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f770ba18308 EFLAGS: 00000246 ORIG_RAX: 000000000000001c
+RAX: ffffffffffffffda RBX: 00007f770bb0f3f8 RCX: 00007f770ba87929
+RDX: 0000000000000019 RSI: 0000000000600003 RDI: 0000000020000000
+RBP: 00007f770bb0f3f0 R08: 00007f770ba18700 R09: 0000000000000000
+R10: 00007f770ba18700 R11: 0000000000000246 R12: 00007f770bb0f3fc
+R13: 00007ffc2d8b62ef R14: 00007f770ba18400 R15: 0000000000022000
 
+Basically the test program does the below conceptually:
+1. mmap 0x2000000 - 0x21000000 as anonymous region
+2. mmap io_uring SQ stuff at 0x20563000 with MAP_FIXED, io_uring_mmap()
+   actually remaps the pages with special PTEs
+3. call MADV_COLLAPSE for 0x20000000 - 0x21000000
 
-This patch (of 6):
+It actually triggered the below race:
 
-Use ClearPageHWPoison() instead of TestClearPageHWPoison() to clear page
-hwpoison flags to avoid unneeded full memory barrier overhead.
+             CPU A                                          CPU B
+mmap 0x20000000 - 0x21000000 as anon
+                                           madvise_collapse is called on this area
+                                             Retrieve start and end address from the vma (NEVER updated later!)
+                                             Collapsed the first 2M area and dropped mmap_lock
+Acquire mmap_lock
+mmap io_uring file at 0x20563000
+Release mmap_lock
+                                             Reacquire mmap_lock
+                                             revalidate vma pass since 0x20200000 + 0x200000 > 0x20563000
+                                             scan the next 2M (0x20200000 - 0x20400000), but due to whatever reason it didn't release mmap_lock
+                                             scan the 3rd 2M area (start from 0x20400000)
+                                               get into the vma created by io_uring
 
-Link: https://lkml.kernel.org/r/20220830123604.25763-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220830123604.25763-2-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+The hend should be updated after MADV_COLLAPSE reacquire mmap_lock since
+the vma may be shrunk.  We don't have to worry about shink from the other
+direction since it could be caught by hugepage_vma_revalidate().  Either
+no valid vma is found or the vma doesn't fit anymore.
+
+Link: https://lkml.kernel.org/r/20220914162220.787703-1-shy828301@gmail.com
+Fixes: 7d8faaf155454f8 ("mm/madvise: introduce MADV_COLLAPSE sync hugepage collapse")
+Reported-by: syzbot+915f3e317adb0e85835f@syzkaller.appspotmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memory-failure.c~mm-hwpoison-use-clearpagehwpoison-in-memory_failure
-+++ a/mm/memory-failure.c
-@@ -2131,7 +2131,7 @@ try_again:
- 	page_flags = p->flags;
- 
- 	if (hwpoison_filter(p)) {
--		TestClearPageHWPoison(p);
-+		ClearPageHWPoison(p);
- 		unlock_page(p);
- 		put_page(p);
- 		res = -EOPNOTSUPP;
+--- a/mm/khugepaged.c~mm-madv_collapse-refetch-vm_end-after-reacquiring-mmap_lock
++++ a/mm/khugepaged.c
+@@ -2438,6 +2438,8 @@ int madvise_collapse(struct vm_area_stru
+ 				last_fail = result;
+ 				goto out_nolock;
+ 			}
++
++			hend = vma->vm_end & HPAGE_PMD_MASK;
+ 		}
+ 		mmap_assert_locked(mm);
+ 		memset(cc->node_load, 0, sizeof(cc->node_load));
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-writeback-remove-unused-macro-dirty_full_scope.patch
-mm-page_alloc-ensure-kswapd-doesnt-accidentally-go-to-sleep.patch
-mm-page_alloc-make-zone_pcp_update-static.patch
-mm-remove-obsolete-macro-nr_pcp_order_mask-and-nr_pcp_order_width.patch
-mm-page_alloc-remove-obsolete-comment-in-zone_statistics.patch
-mm-page_alloc-add-__init-annotations-to-init_mem_debugging_and_hardening.patch
-mm-page_alloc-fix-freeing-static-percpu-memory.patch
-mm-remove-obsolete-pgdat_is_empty.patch
-mm-page_alloc-add-missing-is_migrate_isolate-check-in-set_page_guard.patch
-mm-page_alloc-use-local-variable-zone_idx-directly.patch
-mm-memory_hotplug-remove-obsolete-generic_free_nodedata.patch
-mm-page_alloc-make-boot_nodestats-static.patch
-mm-page_alloc-use-helper-macro-sz_1km.patch
-mm-page_alloc-init-local-variable-buddy_pfn.patch
-mm-page_alloc-use-costly_order-in-warn_on_once_gfp.patch
-mm-page_alloc-remove-obsolete-gfpflags_normal_context.patch
-mm-page_alloc-remove-obsolete-gfpflags_normal_context-fix.patch
-mm-page_alloc-fix-obsolete-comment-in-deferred_pfn_valid.patch
 
