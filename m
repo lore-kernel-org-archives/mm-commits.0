@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93690C6FA86
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:54:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48C92C6FA90
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:54:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229597AbiI0CyH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:54:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58832 "EHLO
+        id S229501AbiI0CyI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:54:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229509AbiI0CwW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:52:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F55717E0C
+        with ESMTP id S229604AbiI0CwV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:52:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C2026564
         for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3471FB81984
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C397C615B5
         for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6FF0C433D6;
-        Tue, 27 Sep 2022 02:49:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DE00C433D7;
+        Tue, 27 Sep 2022 02:49:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246976;
-        bh=N7dLULQyfR+2xerdj++ptsXYbpaMv7aE0kss0TJ+sFM=;
+        s=korg; t=1664246978;
+        bh=T2wJLjxCVpRhO8v55Ox05F7k+Rk9QvDJYjBnhlsBY6s=;
         h=Date:To:From:Subject:From;
-        b=QgLn/tz4Fh8qTItnO8Wm/syH0w7JvEsBoWQ8ysoEWyCHqhXWW/+VhUmyb4JkgpGaG
-         K50xyLOvas6DmpVPcnOorzoBNO7U0iqjkU83fFlq22IeXozRA490yL63YEWEcYU+QQ
-         B67qczNBvY9iiJ2wl7noztdz2V3rkybcZXSCmoxI=
-Date:   Mon, 26 Sep 2022 19:49:36 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
-        vbabka@suse.cz, svens@linux.ibm.com, sj@kernel.org,
-        Liam.Howlett@Oracle.com, dhowells@redhat.com, david@redhat.com,
-        dave@stgolabs.net, catalin.marinas@arm.com, willy@infradead.org,
-        akpm@linux-foundation.org
+        b=taZ6sg503Jy1wSvwYGfT9ZouA9OEJqIlwKHpy9r+VFCRDwjTe+wbF/f+H0ZYJ4AIl
+         bBzm5Zaxc/LF7dD9MVSQYjuhYvlmIrxkGIjHnsdjNjQ1WY1kUnLXtON1mTXYiBQ/mi
+         CFe0WMZtUMgx/dyNEK1bYJUL8uYXvoaFx3eha3LA=
+Date:   Mon, 26 Sep 2022 19:49:37 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
+        sj@kernel.org, dhowells@redhat.com, david@redhat.com,
+        dave@stgolabs.net, catalin.marinas@arm.com,
+        Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fork-use-vma-iterator.patch removed from -mm tree
-Message-Id: <20220927024936.D6FF0C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] bpf-remove-vma-linked-list.patch removed from -mm tree
+Message-Id: <20220927024938.2DE00C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,119 +44,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fork: use VMA iterator
+     Subject: bpf: remove VMA linked list
 has been removed from the -mm tree.  Its filename was
-     fork-use-vma-iterator.patch
+     bpf-remove-vma-linked-list.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fork: use VMA iterator
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: bpf: remove VMA linked list
 Date: Tue, 6 Sep 2022 19:48:59 +0000
 
-The VMA iterator is faster than the linked list and removing the linked
-list will shrink the vm_area_struct.
+Use vma_next() and remove reference to the start of the linked list
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-50-Liam.Howlett@oracle.com
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20220906194824.2110408-51-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/bpf/task_iter.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/kernel/fork.c~fork-use-vma-iterator
-+++ a/kernel/fork.c
-@@ -1301,13 +1301,16 @@ int replace_mm_exe_file(struct mm_struct
- 	/* Forbid mm->exe_file change if old file still mapped. */
- 	old_exe_file = get_mm_exe_file(mm);
- 	if (old_exe_file) {
-+		VMA_ITERATOR(vmi, mm, 0);
- 		mmap_read_lock(mm);
--		for (vma = mm->mmap; vma && !ret; vma = vma->vm_next) {
-+		for_each_vma(vmi, vma) {
- 			if (!vma->vm_file)
- 				continue;
- 			if (path_equal(&vma->vm_file->f_path,
--				       &old_exe_file->f_path))
-+				       &old_exe_file->f_path)) {
- 				ret = -EBUSY;
-+				break;
-+			}
- 		}
- 		mmap_read_unlock(mm);
- 		fput(old_exe_file);
+--- a/kernel/bpf/task_iter.c~bpf-remove-vma-linked-list
++++ a/kernel/bpf/task_iter.c
+@@ -299,8 +299,8 @@ struct bpf_iter_seq_task_vma_info {
+ };
+ 
+ enum bpf_task_vma_iter_find_op {
+-	task_vma_iter_first_vma,   /* use mm->mmap */
+-	task_vma_iter_next_vma,    /* use curr_vma->vm_next */
++	task_vma_iter_first_vma,   /* use find_vma() with addr 0 */
++	task_vma_iter_next_vma,    /* use vma_next() with curr_vma */
+ 	task_vma_iter_find_vma,    /* use find_vma() to find next vma */
+ };
+ 
+@@ -400,10 +400,10 @@ again:
+ 
+ 	switch (op) {
+ 	case task_vma_iter_first_vma:
+-		curr_vma = curr_task->mm->mmap;
++		curr_vma = find_vma(curr_task->mm, 0);
+ 		break;
+ 	case task_vma_iter_next_vma:
+-		curr_vma = curr_vma->vm_next;
++		curr_vma = find_vma(curr_task->mm, curr_vma->vm_end);
+ 		break;
+ 	case task_vma_iter_find_vma:
+ 		/* We dropped mmap_lock so it is necessary to use find_vma
+@@ -417,7 +417,7 @@ again:
+ 		if (curr_vma &&
+ 		    curr_vma->vm_start == info->prev_vm_start &&
+ 		    curr_vma->vm_end == info->prev_vm_end)
+-			curr_vma = curr_vma->vm_next;
++			curr_vma = find_vma(curr_task->mm, curr_vma->vm_end);
+ 		break;
+ 	}
+ 	if (!curr_vma) {
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
-mm-vmscan-fix-a-lot-of-comments.patch
-mm-add-the-first-tail-page-to-struct-folio.patch
-mm-reimplement-folio_order-and-folio_nr_pages.patch
-mm-add-split_folio.patch
-mm-add-folio_add_lru_vma.patch
-shmem-convert-shmem_writepage-to-use-a-folio-throughout.patch
-shmem-convert-shmem_delete_from_page_cache-to-take-a-folio.patch
-shmem-convert-shmem_replace_page-to-use-folios-throughout.patch
-mm-swapfile-remove-page_swapcount.patch
-mm-swapfile-convert-try_to_free_swap-to-folio_free_swap.patch
-mm-swap-convert-__read_swap_cache_async-to-use-a-folio.patch
-mm-swap-convert-add_to_swap_cache-to-take-a-folio.patch
-mm-swap-convert-put_swap_page-to-put_swap_folio.patch
-mm-convert-do_swap_page-to-use-a-folio.patch
-mm-convert-do_swap_pages-swapcache-variable-to-a-folio.patch
-memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio.patch
-shmem-convert-shmem_mfill_atomic_pte-to-use-a-folio.patch
-shmem-convert-shmem_replace_page-to-shmem_replace_folio.patch
-swap-add-swap_cache_get_folio.patch
-shmem-eliminate-struct-page-from-shmem_swapin_folio.patch
-shmem-convert-shmem_getpage_gfp-to-shmem_get_folio_gfp.patch
-shmem-convert-shmem_fault-to-use-shmem_get_folio_gfp.patch
-shmem-convert-shmem_read_mapping_page_gfp-to-use-shmem_get_folio_gfp.patch
-shmem-add-shmem_get_folio.patch
-shmem-convert-shmem_get_partial_folio-to-use-shmem_get_folio.patch
-shmem-convert-shmem_write_begin-to-use-shmem_get_folio.patch
-shmem-convert-shmem_file_read_iter-to-use-shmem_get_folio.patch
-shmem-convert-shmem_fallocate-to-use-a-folio.patch
-shmem-convert-shmem_symlink-to-use-a-folio.patch
-shmem-convert-shmem_get_link-to-use-a-folio.patch
-khugepaged-call-shmem_get_folio.patch
-userfaultfd-convert-mcontinue_atomic_pte-to-use-a-folio.patch
-shmem-remove-shmem_getpage.patch
-swapfile-convert-try_to_unuse-to-use-a-folio.patch
-swapfile-convert-__try_to_reclaim_swap-to-use-a-folio.patch
-swapfile-convert-unuse_pte_range-to-use-a-folio.patch
-mm-convert-do_swap_page-to-use-swap_cache_get_folio.patch
-mm-remove-lookup_swap_cache.patch
-swap_state-convert-free_swap_cache-to-use-a-folio.patch
-swap-convert-swap_writepage-to-use-a-folio.patch
-mm-convert-do_wp_page-to-use-a-folio.patch
-huge_memory-convert-do_huge_pmd_wp_page-to-use-a-folio.patch
-madvise-convert-madvise_free_pte_range-to-use-a-folio.patch
-uprobes-use-folios-more-widely-in-__replace_page.patch
-ksm-use-a-folio-in-replace_page.patch
-mm-convert-do_swap_page-to-use-folio_free_swap.patch
-memcg-convert-mem_cgroup_swap_full-to-take-a-folio.patch
-mm-remove-try_to_free_swap.patch
-rmap-convert-page_move_anon_rmap-to-use-a-folio.patch
-migrate-convert-__unmap_and_move-to-use-folios.patch
-migrate-convert-unmap_and_move_huge_page-to-use-folios.patch
-huge_memory-convert-split_huge_page_to_list-to-use-a-folio.patch
-huge_memory-convert-unmap_page-to-unmap_folio.patch
-mm-convert-page_get_anon_vma-to-folio_get_anon_vma.patch
-rmap-remove-page_unlock_anon_vma_read.patch
-uprobes-use-new_folio-in-__replace_page.patch
-mm-convert-lock_page_or_retry-to-folio_lock_or_retry.patch
 
