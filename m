@@ -2,43 +2,50 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 599A1C32771
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:49:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABA5AC32771
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:50:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229563AbiI0Cty (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:49:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57916 "EHLO
+        id S230317AbiI0Cu1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:50:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230383AbiI0Csp (ORCPT
+        with ESMTP id S230384AbiI0Csp (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:48:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 503569E2F9
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:16 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F15BA9DB7A
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 990616155B
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE555C433C1;
-        Tue, 27 Sep 2022 02:48:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AEA3DB81903
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BBB2C433C1;
+        Tue, 27 Sep 2022 02:48:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246894;
-        bh=1/B1RO6ukWjqkN/tY/VNUI4pfQoP1L1ZOUo4e2n8Qas=;
+        s=korg; t=1664246892;
+        bh=SS27CVmGImigZuabqVH4DwEeSGDhE/T8h9ceFfpCUoA=;
         h=Date:To:From:Subject:From;
-        b=Q+drshTWY1TzcUjhovoeRo+KkugJ1vULJS5oKXX2VgKIgHfz0b8oSqV1gm+lxVV9P
-         DgfxVqGOrgJ1OUQ+vutU/k3rrMzRTWRaw2CSzwt6RvuUircAwY+x9UsS2OR4HD702U
-         JxPvZApDHo5SkJYCXwXB85vS/y92p5CfGlKf3i50=
-Date:   Mon, 26 Sep 2022 19:48:13 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        weixugc@google.com, tim.c.chen@intel.com, sj@kernel.org,
-        shy828301@gmail.com, mhocko@kernel.org, jvgediya.oss@gmail.com,
-        Jonathan.Cameron@huawei.com, hesham.almatary@huawei.com,
-        hannes@cmpxchg.org, dave@stgolabs.net, dave.hansen@intel.com,
-        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
-        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
+        b=C+Z+o+TSNZ9Hz1x599i5OkrYDhN4ax9cVqUNlkXdzzgjTdWoHk2dc6A0PxuoRivFq
+         2wZn/K19rM9ujueE3r7WeltG1fXShsg5jNCeVcXhlHot2J8qQfDbjkgEdGX+EeLszQ
+         JvShpODJq7TKiLuuGWJ78Tp1129+PLqJMTN5FH34=
+Date:   Mon, 26 Sep 2022 19:48:11 -0700
+To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
+        willy@infradead.org, will@kernel.org, vbabka@suse.cz,
+        vaibhav@linux.ibm.com, torvalds@linux-foundation.org,
+        tj@kernel.org, szhai2@cs.rochester.edu, suleiman@google.com,
+        steven@liquorix.net, sofia.trinh@edi.works, rppt@linux.ibm.com,
+        rppt@kernel.org, peterz@infradead.org, oleksandr@natalenko.name,
+        Michael@MichaelLarabel.com, mhocko@kernel.org, mgorman@suse.de,
+        linmiaohe@huawei.com, holger@applied-asynchrony.com,
+        Hi-Angel@yandex.ru, heftig@archlinux.org, hdanton@sina.com,
+        hannes@cmpxchg.org, djbyrne@mtu.edu, d@chaos-reins.com,
+        dave.hansen@linux.intel.com, corbet@lwn.net,
+        catalin.marinas@arm.com, bgeffon@google.com, baohua@kernel.org,
+        axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
+        yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-demotion-add-support-for-explicit-memory-tiers.patch removed from -mm tree
-Message-Id: <20220927024813.EE555C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-design-doc.patch removed from -mm tree
+Message-Id: <20220927024812.5BBB2C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,334 +53,237 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/demotion: add support for explicit memory tiers
+     Subject: mm: multi-gen LRU: design doc
 has been removed from the -mm tree.  Its filename was
-     mm-demotion-add-support-for-explicit-memory-tiers.patch
+     mm-multi-gen-lru-design-doc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/demotion: add support for explicit memory tiers
-Date: Thu, 18 Aug 2022 18:40:33 +0530
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: multi-gen LRU: design doc
+Date: Sun, 18 Sep 2022 02:00:11 -0600
 
-Patch series "mm/demotion: Memory tiers and demotion", v15.
+Add a design doc.
 
-The current kernel has the basic memory tiering support: Inactive pages on
-a higher tier NUMA node can be migrated (demoted) to a lower tier NUMA
-node to make room for new allocations on the higher tier NUMA node. 
-Frequently accessed pages on a lower tier NUMA node can be migrated
-(promoted) to a higher tier NUMA node to improve the performance.
-
-In the current kernel, memory tiers are defined implicitly via a demotion
-path relationship between NUMA nodes, which is created during the kernel
-initialization and updated when a NUMA node is hot-added or hot-removed. 
-The current implementation puts all nodes with CPU into the highest tier,
-and builds the tier hierarchy tier-by-tier by establishing the per-node
-demotion targets based on the distances between nodes.
-
-This current memory tier kernel implementation needs to be improved for
-several important use cases:
-
-* The current tier initialization code always initializes each
-  memory-only NUMA node into a lower tier.  But a memory-only NUMA node
-  may have a high performance memory device (e.g.  a DRAM-backed
-  memory-only node on a virtual machine) and that should be put into a
-  higher tier.
-
-* The current tier hierarchy always puts CPU nodes into the top tier. 
-  But on a system with HBM (e.g.  GPU memory) devices, these memory-only
-  HBM NUMA nodes should be in the top tier, and DRAM nodes with CPUs are
-  better to be placed into the next lower tier.
-
-* Also because the current tier hierarchy always puts CPU nodes into the
-  top tier, when a CPU is hot-added (or hot-removed) and triggers a memory
-  node from CPU-less into a CPU node (or vice versa), the memory tier
-  hierarchy gets changed, even though no memory node is added or removed. 
-  This can make the tier hierarchy unstable and make it difficult to
-  support tier-based memory accounting.
-
-* A higher tier node can only be demoted to nodes with shortest distance
-  on the next lower tier as defined by the demotion path, not any other
-  node from any lower tier.  This strict, demotion order does not work in
-  all use cases (e.g.  some use cases may want to allow cross-socket
-  demotion to another node in the same demotion tier as a fallback when
-  the preferred demotion node is out of space), and has resulted in the
-  feature request for an interface to override the system-wide, per-node
-  demotion order from the userspace.  This demotion order is also
-  inconsistent with the page allocation fallback order when all the nodes
-  in a higher tier are out of space: The page allocation can fall back to
-  any node from any lower tier, whereas the demotion order doesn't allow
-  that.
-
-This patch series make the creation of memory tiers explicit under the
-control of device driver.
-
-Memory Tier Initialization
-==========================
-
-Linux kernel presents memory devices as NUMA nodes and each memory device
-is of a specific type.  The memory type of a device is represented by its
-abstract distance.  A memory tier corresponds to a range of abstract
-distance.  This allows for classifying memory devices with a specific
-performance range into a memory tier.
-
-By default, all memory nodes are assigned to the default tier with
-abstract distance 512.
-
-A device driver can move its memory nodes from the default tier.  For
-example, PMEM can move its memory nodes below the default tier, whereas
-GPU can move its memory nodes above the default tier.
-
-The kernel initialization code makes the decision on which exact tier a
-memory node should be assigned to based on the requests from the device
-drivers as well as the memory device hardware information provided by the
-firmware.
-
-Hot-adding/removing CPUs doesn't affect memory tier hierarchy.
-
-
-This patch (of 10):
-
-In the current kernel, memory tiers are defined implicitly via a demotion
-path relationship between NUMA nodes, which is created during the kernel
-initialization and updated when a NUMA node is hot-added or hot-removed. 
-The current implementation puts all nodes with CPU into the highest tier,
-and builds the tier hierarchy by establishing the per-node demotion
-targets based on the distances between nodes.
-
-This current memory tier kernel implementation needs to be improved for
-several important use cases,
-
-The current tier initialization code always initializes each memory-only
-NUMA node into a lower tier.  But a memory-only NUMA node may have a high
-performance memory device (e.g.  a DRAM-backed memory-only node on a
-virtual machine) that should be put into a higher tier.
-
-The current tier hierarchy always puts CPU nodes into the top tier.  But
-on a system with HBM or GPU devices, the memory-only NUMA nodes mapping
-these devices should be in the top tier, and DRAM nodes with CPUs are
-better to be placed into the next lower tier.
-
-With current kernel higher tier node can only be demoted to nodes with
-shortest distance on the next lower tier as defined by the demotion path,
-not any other node from any lower tier.  This strict, demotion order does
-not work in all use cases (e.g.  some use cases may want to allow
-cross-socket demotion to another node in the same demotion tier as a
-fallback when the preferred demotion node is out of space), This demotion
-order is also inconsistent with the page allocation fallback order when
-all the nodes in a higher tier are out of space: The page allocation can
-fall back to any node from any lower tier, whereas the demotion order
-doesn't allow that.
-
-This patch series address the above by defining memory tiers explicitly.
-
-Linux kernel presents memory devices as NUMA nodes and each memory device
-is of a specific type.  The memory type of a device is represented by its
-abstract distance.  A memory tier corresponds to a range of abstract
-distance.  This allows for classifying memory devices with a specific
-performance range into a memory tier.
-
-This patch configures the range/chunk size to be 128.  The default DRAM
-abstract distance is 512.  We can have 4 memory tiers below the default
-DRAM with abstract distance range 0 - 127, 127 - 255, 256- 383, 384 - 511.
-Faster memory devices can be placed in these faster(higher) memory tiers.
-Slower memory devices like persistent memory will have abstract distance
-higher than the default DRAM level.
-
-[akpm@linux-foundation.org: fix comment, per Aneesh]
-Link: https://lkml.kernel.org/r/20220818131042.113280-1-aneesh.kumar@linux.ibm.com
-Link: https://lkml.kernel.org/r/20220818131042.113280-2-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Wei Xu <weixugc@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Hesham Almatary <hesham.almatary@huawei.com>
+Link: https://lkml.kernel.org/r/20220918080010.2920238-15-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Brian Geffon <bgeffon@google.com>
+Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+Acked-by: Oleksandr Natalenko <oleksandr@natalenko.name>
+Acked-by: Steven Barrett <steven@liquorix.net>
+Acked-by: Suleiman Souhlal <suleiman@google.com>
+Tested-by: Daniel Byrne <djbyrne@mtu.edu>
+Tested-by: Donald Carr <d@chaos-reins.com>
+Tested-by: Holger Hoffstätte <holger@applied-asynchrony.com>
+Tested-by: Konstantin Kharlamov <Hi-Angel@yandex.ru>
+Tested-by: Shuang Zhai <szhai2@cs.rochester.edu>
+Tested-by: Sofia Trinh <sofia.trinh@edi.works>
+Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michael Larabel <Michael@MichaelLarabel.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Tim Chen <tim.c.chen@intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Jagdish Gediya <jvgediya.oss@gmail.com>
-Cc: SeongJae Park <sj@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory-tiers.h |   18 ++++
- mm/Makefile                  |    1 
- mm/memory-tiers.c            |  129 +++++++++++++++++++++++++++++++++
- 3 files changed, 148 insertions(+)
+ Documentation/mm/index.rst        |    1 
+ Documentation/mm/multigen_lru.rst |  159 ++++++++++++++++++++++++++++
+ 2 files changed, 160 insertions(+)
 
+--- a/Documentation/mm/index.rst~mm-multi-gen-lru-design-doc
++++ a/Documentation/mm/index.rst
+@@ -51,6 +51,7 @@ above structured documentation, or delet
+    ksm
+    memory-model
+    mmu_notifier
++   multigen_lru
+    numa
+    overcommit-accounting
+    page_migration
 --- /dev/null
-+++ a/include/linux/memory-tiers.h
-@@ -0,0 +1,18 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_MEMORY_TIERS_H
-+#define _LINUX_MEMORY_TIERS_H
++++ a/Documentation/mm/multigen_lru.rst
+@@ -0,0 +1,159 @@
++.. SPDX-License-Identifier: GPL-2.0
 +
-+/*
-+ * Each tier cover a abstrace distance chunk size of 128
-+ */
-+#define MEMTIER_CHUNK_BITS	7
-+#define MEMTIER_CHUNK_SIZE	(1 << MEMTIER_CHUNK_BITS)
-+/*
-+ * Smaller abstract distance values imply faster (higher) memory tiers. Offset
-+ * the DRAM adistance so that we can accommodate devices with a slightly lower
-+ * adistance value (slightly faster) than default DRAM adistance to be part of
-+ * the same memory tier.
-+ */
-+#define MEMTIER_ADISTANCE_DRAM	((4 * MEMTIER_CHUNK_SIZE) + (MEMTIER_CHUNK_SIZE >> 1))
++=============
++Multi-Gen LRU
++=============
++The multi-gen LRU is an alternative LRU implementation that optimizes
++page reclaim and improves performance under memory pressure. Page
++reclaim decides the kernel's caching policy and ability to overcommit
++memory. It directly impacts the kswapd CPU usage and RAM efficiency.
 +
-+#endif  /* _LINUX_MEMORY_TIERS_H */
---- a/mm/Makefile~mm-demotion-add-support-for-explicit-memory-tiers
-+++ a/mm/Makefile
-@@ -92,6 +92,7 @@ obj-$(CONFIG_KFENCE) += kfence/
- obj-$(CONFIG_FAILSLAB) += failslab.o
- obj-$(CONFIG_MEMTEST)		+= memtest.o
- obj-$(CONFIG_MIGRATION) += migrate.o
-+obj-$(CONFIG_NUMA) += memory-tiers.o
- obj-$(CONFIG_DEVICE_MIGRATION) += migrate_device.o
- obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o khugepaged.o
- obj-$(CONFIG_PAGE_COUNTER) += page_counter.o
---- /dev/null
-+++ a/mm/memory-tiers.c
-@@ -0,0 +1,129 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <linux/types.h>
-+#include <linux/nodemask.h>
-+#include <linux/slab.h>
-+#include <linux/lockdep.h>
-+#include <linux/memory-tiers.h>
++Design overview
++===============
++Objectives
++----------
++The design objectives are:
 +
-+struct memory_tier {
-+	/* hierarchy of memory tiers */
-+	struct list_head list;
-+	/* list of all memory types part of this tier */
-+	struct list_head memory_types;
-+	/*
-+	 * start value of abstract distance. memory tier maps
-+	 * an abstract distance  range,
-+	 * adistance_start .. adistance_start + MEMTIER_CHUNK_SIZE
-+	 */
-+	int adistance_start;
-+};
++* Good representation of access recency
++* Try to profit from spatial locality
++* Fast paths to make obvious choices
++* Simple self-correcting heuristics
 +
-+struct memory_dev_type {
-+	/* list of memory types that are part of same tier as this type */
-+	struct list_head tier_sibiling;
-+	/* abstract distance for this specific memory type */
-+	int adistance;
-+	/* Nodes of same abstract distance */
-+	nodemask_t nodes;
-+	struct memory_tier *memtier;
-+};
++The representation of access recency is at the core of all LRU
++implementations. In the multi-gen LRU, each generation represents a
++group of pages with similar access recency. Generations establish a
++(time-based) common frame of reference and therefore help make better
++choices, e.g., between different memcgs on a computer or different
++computers in a data center (for job scheduling).
 +
-+static DEFINE_MUTEX(memory_tier_lock);
-+static LIST_HEAD(memory_tiers);
-+static struct memory_dev_type *node_memory_types[MAX_NUMNODES];
-+/*
-+ * For now we can have 4 faster memory tiers with smaller adistance
-+ * than default DRAM tier.
-+ */
-+static struct memory_dev_type default_dram_type  = {
-+	.adistance = MEMTIER_ADISTANCE_DRAM,
-+	.tier_sibiling = LIST_HEAD_INIT(default_dram_type.tier_sibiling),
-+};
++Exploiting spatial locality improves efficiency when gathering the
++accessed bit. A rmap walk targets a single page and does not try to
++profit from discovering a young PTE. A page table walk can sweep all
++the young PTEs in an address space, but the address space can be too
++sparse to make a profit. The key is to optimize both methods and use
++them in combination.
 +
-+static struct memory_tier *find_create_memory_tier(struct memory_dev_type *memtype)
-+{
-+	bool found_slot = false;
-+	struct memory_tier *memtier, *new_memtier;
-+	int adistance = memtype->adistance;
-+	unsigned int memtier_adistance_chunk_size = MEMTIER_CHUNK_SIZE;
++Fast paths reduce code complexity and runtime overhead. Unmapped pages
++do not require TLB flushes; clean pages do not require writeback.
++These facts are only helpful when other conditions, e.g., access
++recency, are similar. With generations as a common frame of reference,
++additional factors stand out. But obvious choices might not be good
++choices; thus self-correction is necessary.
 +
-+	lockdep_assert_held_once(&memory_tier_lock);
++The benefits of simple self-correcting heuristics are self-evident.
++Again, with generations as a common frame of reference, this becomes
++attainable. Specifically, pages in the same generation can be
++categorized based on additional factors, and a feedback loop can
++statistically compare the refault percentages across those categories
++and infer which of them are better choices.
 +
-+	/*
-+	 * If the memtype is already part of a memory tier,
-+	 * just return that.
-+	 */
-+	if (memtype->memtier)
-+		return memtype->memtier;
++Assumptions
++-----------
++The protection of hot pages and the selection of cold pages are based
++on page access channels and patterns. There are two access channels:
 +
-+	adistance = round_down(adistance, memtier_adistance_chunk_size);
-+	list_for_each_entry(memtier, &memory_tiers, list) {
-+		if (adistance == memtier->adistance_start) {
-+			memtype->memtier = memtier;
-+			list_add(&memtype->tier_sibiling, &memtier->memory_types);
-+			return memtier;
-+		} else if (adistance < memtier->adistance_start) {
-+			found_slot = true;
-+			break;
-+		}
-+	}
++* Accesses through page tables
++* Accesses through file descriptors
 +
-+	new_memtier = kmalloc(sizeof(struct memory_tier), GFP_KERNEL);
-+	if (!new_memtier)
-+		return ERR_PTR(-ENOMEM);
++The protection of the former channel is by design stronger because:
 +
-+	new_memtier->adistance_start = adistance;
-+	INIT_LIST_HEAD(&new_memtier->list);
-+	INIT_LIST_HEAD(&new_memtier->memory_types);
-+	if (found_slot)
-+		list_add_tail(&new_memtier->list, &memtier->list);
-+	else
-+		list_add_tail(&new_memtier->list, &memory_tiers);
-+	memtype->memtier = new_memtier;
-+	list_add(&memtype->tier_sibiling, &new_memtier->memory_types);
-+	return new_memtier;
-+}
++1. The uncertainty in determining the access patterns of the former
++   channel is higher due to the approximation of the accessed bit.
++2. The cost of evicting the former channel is higher due to the TLB
++   flushes required and the likelihood of encountering the dirty bit.
++3. The penalty of underprotecting the former channel is higher because
++   applications usually do not prepare themselves for major page
++   faults like they do for blocked I/O. E.g., GUI applications
++   commonly use dedicated I/O threads to avoid blocking rendering
++   threads.
 +
-+static struct memory_tier *set_node_memory_tier(int node)
-+{
-+	struct memory_tier *memtier;
-+	struct memory_dev_type *memtype;
++There are also two access patterns:
 +
-+	lockdep_assert_held_once(&memory_tier_lock);
++* Accesses exhibiting temporal locality
++* Accesses not exhibiting temporal locality
 +
-+	if (!node_state(node, N_MEMORY))
-+		return ERR_PTR(-EINVAL);
++For the reasons listed above, the former channel is assumed to follow
++the former pattern unless ``VM_SEQ_READ`` or ``VM_RAND_READ`` is
++present, and the latter channel is assumed to follow the latter
++pattern unless outlying refaults have been observed.
 +
-+	if (!node_memory_types[node])
-+		node_memory_types[node] = &default_dram_type;
++Workflow overview
++=================
++Evictable pages are divided into multiple generations for each
++``lruvec``. The youngest generation number is stored in
++``lrugen->max_seq`` for both anon and file types as they are aged on
++an equal footing. The oldest generation numbers are stored in
++``lrugen->min_seq[]`` separately for anon and file types as clean file
++pages can be evicted regardless of swap constraints. These three
++variables are monotonically increasing.
 +
-+	memtype = node_memory_types[node];
-+	node_set(node, memtype->nodes);
-+	memtier = find_create_memory_tier(memtype);
-+	return memtier;
-+}
++Generation numbers are truncated into ``order_base_2(MAX_NR_GENS+1)``
++bits in order to fit into the gen counter in ``folio->flags``. Each
++truncated generation number is an index to ``lrugen->lists[]``. The
++sliding window technique is used to track at least ``MIN_NR_GENS`` and
++at most ``MAX_NR_GENS`` generations. The gen counter stores a value
++within ``[1, MAX_NR_GENS]`` while a page is on one of
++``lrugen->lists[]``; otherwise it stores zero.
 +
-+static int __init memory_tier_init(void)
-+{
-+	int node;
-+	struct memory_tier *memtier;
++Each generation is divided into multiple tiers. A page accessed ``N``
++times through file descriptors is in tier ``order_base_2(N)``. Unlike
++generations, tiers do not have dedicated ``lrugen->lists[]``. In
++contrast to moving across generations, which requires the LRU lock,
++moving across tiers only involves atomic operations on
++``folio->flags`` and therefore has a negligible cost. A feedback loop
++modeled after the PID controller monitors refaults over all the tiers
++from anon and file types and decides which tiers from which types to
++evict or protect.
 +
-+	mutex_lock(&memory_tier_lock);
-+	/*
-+	 * Look at all the existing N_MEMORY nodes and add them to
-+	 * default memory tier or to a tier if we already have memory
-+	 * types assigned.
-+	 */
-+	for_each_node_state(node, N_MEMORY) {
-+		memtier = set_node_memory_tier(node);
-+		if (IS_ERR(memtier))
-+			/*
-+			 * Continue with memtiers we are able to setup
-+			 */
-+			break;
-+	}
-+	mutex_unlock(&memory_tier_lock);
++There are two conceptually independent procedures: the aging and the
++eviction. They form a closed-loop system, i.e., the page reclaim.
 +
-+	return 0;
-+}
-+subsys_initcall(memory_tier_init);
++Aging
++-----
++The aging produces young generations. Given an ``lruvec``, it
++increments ``max_seq`` when ``max_seq-min_seq+1`` approaches
++``MIN_NR_GENS``. The aging promotes hot pages to the youngest
++generation when it finds them accessed through page tables; the
++demotion of cold pages happens consequently when it increments
++``max_seq``. The aging uses page table walks and rmap walks to find
++young PTEs. For the former, it iterates ``lruvec_memcg()->mm_list``
++and calls ``walk_page_range()`` with each ``mm_struct`` on this list
++to scan PTEs, and after each iteration, it increments ``max_seq``. For
++the latter, when the eviction walks the rmap and finds a young PTE,
++the aging scans the adjacent PTEs. For both, on finding a young PTE,
++the aging clears the accessed bit and updates the gen counter of the
++page mapped by this PTE to ``(max_seq%MAX_NR_GENS)+1``.
++
++Eviction
++--------
++The eviction consumes old generations. Given an ``lruvec``, it
++increments ``min_seq`` when ``lrugen->lists[]`` indexed by
++``min_seq%MAX_NR_GENS`` becomes empty. To select a type and a tier to
++evict from, it first compares ``min_seq[]`` to select the older type.
++If both types are equally old, it selects the one whose first tier has
++a lower refault percentage. The first tier contains single-use
++unmapped clean pages, which are the best bet. The eviction sorts a
++page according to its gen counter if the aging has found this page
++accessed through page tables and updated its gen counter. It also
++moves a page to the next generation, i.e., ``min_seq+1``, if this page
++was accessed multiple times through file descriptors and the feedback
++loop has detected outlying refaults from the tier this page is in. To
++this end, the feedback loop uses the first tier as the baseline, for
++the reason stated earlier.
++
++Summary
++-------
++The multi-gen LRU can be disassembled into the following parts:
++
++* Generations
++* Rmap walks
++* Page table walks
++* Bloom filters
++* PID controller
++
++The aging and the eviction form a producer-consumer model;
++specifically, the latter drives the former by the sliding window over
++generations. Within the aging, rmap walks drive page table walks by
++inserting hot densely populated page tables to the Bloom filters.
++Within the eviction, the PID controller uses refaults as the feedback
++to select types to evict and tiers to protect.
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
 
