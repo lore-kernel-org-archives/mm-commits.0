@@ -2,43 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51FA3C32771
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:50:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A409C32771
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:51:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230163AbiI0Cuv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:50:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58834 "EHLO
+        id S230451AbiI0Cu6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:50:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230191AbiI0Cs4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:48:56 -0400
+        with ESMTP id S230376AbiI0Cs5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:48:57 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D828642DD
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD74F65261
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DCE31B81910
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83AB9C433D6;
-        Tue, 27 Sep 2022 02:48:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 713C3B81914
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2279BC433D6;
+        Tue, 27 Sep 2022 02:48:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246900;
-        bh=6+pDATDx/RTJ4Lmv1+6QTAw6G82pnyVho3CnZXdEZZY=;
+        s=korg; t=1664246903;
+        bh=OzpOYNOfzE9++bOtC3f8/JTtURJ/Ug08ZBYP/wcFfdI=;
         h=Date:To:From:Subject:From;
-        b=iQRBRo88VZHhtWjnLOclJHWnDIT184XyvU7jfZdIKc8GLnrGPRXX+KzWdAi9Seoak
-         EmBlq1YF01NrP0VGeCMGfPEjwSgEBq88MS9v/FgCuiFqYdqpBqrdUYbRU5JRLMZmAA
-         2Ml0HDw8XYxVY1katpXbJIxbBY7E7Tmr3Xnl+JAc=
-Date:   Mon, 26 Sep 2022 19:48:19 -0700
+        b=NGoNF9qj0Rh2/MAfeH30tmF7AkNTCD/Edx2k6EuwQ+4usOhDdt6s0uMuwXgI8hZhB
+         4e7kytOqF75fTYS5gZgSAttp68aXcJSPsVzUQZ1aAS13Enh/epozyh+eIEKqKmCdVC
+         TCJXFG9k1GdmNh+i7Clnqep7b3LhhaeJHV4/ewBw=
+Date:   Mon, 26 Sep 2022 19:48:22 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         weixugc@google.com, tim.c.chen@intel.com, sj@kernel.org,
-        shy828301@gmail.com, mhocko@kernel.org, jvgediya.oss@gmail.com,
+        shy828301@gmail.com, mhocko@kernel.org,
         Jonathan.Cameron@huawei.com, hesham.almatary@huawei.com,
         hannes@cmpxchg.org, dave@stgolabs.net, dave.hansen@intel.com,
         dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
-        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
+        aneesh.kumar@linux.ibm.com, jvgediya.oss@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details.patch removed from -mm tree
-Message-Id: <20220927024820.83AB9C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-demotion-demote-pages-according-to-allocation-fallback-order.patch removed from -mm tree
+Message-Id: <20220927024823.2279BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,24 +47,34 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/demotion: add pg_data_t member to track node memory tier details
+     Subject: mm/demotion: demote pages according to allocation fallback order
 has been removed from the -mm tree.  Its filename was
-     mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details.patch
+     mm-demotion-demote-pages-according-to-allocation-fallback-order.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/demotion: add pg_data_t member to track node memory tier details
-Date: Thu, 18 Aug 2022 18:40:38 +0530
+From: Jagdish Gediya <jvgediya.oss@gmail.com>
+Subject: mm/demotion: demote pages according to allocation fallback order
+Date: Thu, 18 Aug 2022 18:40:40 +0530
 
-Also update different helpes to use NODE_DATA()->memtier.  Since node
-specific memtier can change based on the reassignment of NUMA node to a
-different memory tiers, accessing NODE_DATA()->memtier needs to happen
-under an rcu read lock or memory_tier_lock.
+Currently, a higher tier node can only be demoted to selected nodes on the
+next lower tier as defined by the demotion path.  This strict demotion
+order does not work in all use cases (e.g.  some use cases may want to
+allow cross-socket demotion to another node in the same demotion tier as a
+fallback when the preferred demotion node is out of space).  This demotion
+order is also inconsistent with the page allocation fallback order when
+all the nodes in a higher tier are out of space: The page allocation can
+fall back to any node from any lower tier, whereas the demotion order
+doesn't allow that currently.
 
-Link: https://lkml.kernel.org/r/20220818131042.113280-7-aneesh.kumar@linux.ibm.com
+This patch adds support to get all the allowed demotion targets for a
+memory tier.  demote_page_list() function is now modified to utilize this
+allowed node mask as the fallback allocation mask.
+
+Link: https://lkml.kernel.org/r/20220818131042.113280-9-aneesh.kumar@linux.ibm.com
+Signed-off-by: Jagdish Gediya <jvgediya.oss@gmail.com>
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
 Acked-by: Wei Xu <weixugc@google.com>
@@ -73,7 +84,6 @@ Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Hesham Almatary <hesham.almatary@huawei.com>
-Cc: Jagdish Gediya <jvgediya.oss@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -83,113 +93,235 @@ Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 ++
- mm/memory-tiers.c      |   40 ++++++++++++++++++++++++++++++++++-----
- 2 files changed, 38 insertions(+), 5 deletions(-)
+ include/linux/memory-tiers.h |   12 ++++++
+ mm/memory-tiers.c            |   51 +++++++++++++++++++++++++++--
+ mm/vmscan.c                  |   58 ++++++++++++++++++++++++---------
+ 3 files changed, 103 insertions(+), 18 deletions(-)
 
---- a/include/linux/mmzone.h~mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details
-+++ a/include/linux/mmzone.h
-@@ -1246,6 +1246,9 @@ typedef struct pglist_data {
- 	/* Per-node vmstats */
- 	struct per_cpu_nodestat __percpu *per_cpu_nodestats;
- 	atomic_long_t		vm_stat[NR_VM_NODE_STAT_ITEMS];
-+#ifdef CONFIG_NUMA
-+	struct memory_tier __rcu *memtier;
-+#endif
- } pg_data_t;
+--- a/include/linux/memory-tiers.h~mm-demotion-demote-pages-according-to-allocation-fallback-order
++++ a/include/linux/memory-tiers.h
+@@ -5,6 +5,7 @@
+ #include <linux/types.h>
+ #include <linux/nodemask.h>
+ #include <linux/kref.h>
++#include <linux/mmzone.h>
+ /*
+  * Each tier cover a abstrace distance chunk size of 128
+  */
+@@ -38,11 +39,17 @@ void init_node_memory_type(int node, str
+ void clear_node_memory_type(int node, struct memory_dev_type *memtype);
+ #ifdef CONFIG_MIGRATION
+ int next_demotion_node(int node);
++void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
+ #else
+ static inline int next_demotion_node(int node)
+ {
+ 	return NUMA_NO_NODE;
+ }
++
++static inline void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets)
++{
++	*targets = NODE_MASK_NONE;
++}
+ #endif
  
- #define node_present_pages(nid)	(NODE_DATA(nid)->node_present_pages)
---- a/mm/memory-tiers.c~mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details
+ #else
+@@ -75,5 +82,10 @@ static inline int next_demotion_node(int
+ {
+ 	return NUMA_NO_NODE;
+ }
++
++static inline void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets)
++{
++	*targets = NODE_MASK_NONE;
++}
+ #endif	/* CONFIG_NUMA */
+ #endif  /* _LINUX_MEMORY_TIERS_H */
+--- a/mm/memory-tiers.c~mm-demotion-demote-pages-according-to-allocation-fallback-order
 +++ a/mm/memory-tiers.c
-@@ -4,6 +4,7 @@
+@@ -4,7 +4,6 @@
  #include <linux/sysfs.h>
  #include <linux/kobject.h>
  #include <linux/memory.h>
-+#include <linux/mmzone.h>
+-#include <linux/mmzone.h>
  #include <linux/memory-tiers.h>
  
  #include "internal.h"
-@@ -141,12 +142,18 @@ static struct memory_tier *find_create_m
+@@ -20,6 +19,8 @@ struct memory_tier {
+ 	 * adistance_start .. adistance_start + MEMTIER_CHUNK_SIZE
+ 	 */
+ 	int adistance_start;
++	/* All the nodes that are part of all the lower memory tiers. */
++	nodemask_t lower_tier_mask;
+ };
  
- static struct memory_tier *__node_get_memory_tier(int node)
- {
--	struct memory_dev_type *memtype;
-+	pg_data_t *pgdat;
- 
--	memtype = node_memory_types[node];
--	if (memtype && node_isset(node, memtype->nodes))
--		return memtype->memtier;
--	return NULL;
-+	pgdat = NODE_DATA(node);
-+	if (!pgdat)
-+		return NULL;
-+	/*
-+	 * Since we hold memory_tier_lock, we can avoid
-+	 * RCU read locks when accessing the details. No
-+	 * parallel updates are possible here.
-+	 */
-+	return rcu_dereference_check(pgdat->memtier,
-+				     lockdep_is_held(&memory_tier_lock));
+ struct demotion_nodes {
+@@ -161,6 +162,24 @@ static struct memory_tier *__node_get_me
  }
  
  #ifdef CONFIG_MIGRATION
-@@ -309,6 +316,8 @@ static struct memory_tier *set_node_memo
- {
- 	struct memory_tier *memtier;
- 	struct memory_dev_type *memtype;
-+	pg_data_t *pgdat = NODE_DATA(node);
++void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets)
++{
++	struct memory_tier *memtier;
 +
++	/*
++	 * pg_data_t.memtier updates includes a synchronize_rcu()
++	 * which ensures that we either find NULL or a valid memtier
++	 * in NODE_DATA. protect the access via rcu_read_lock();
++	 */
++	rcu_read_lock();
++	memtier = rcu_dereference(pgdat->memtier);
++	if (memtier)
++		*targets = memtier->lower_tier_mask;
++	else
++		*targets = NODE_MASK_NONE;
++	rcu_read_unlock();
++}
++
+ /**
+  * next_demotion_node() - Get the next node in the demotion path
+  * @node: The starting node to lookup the next node
+@@ -208,10 +227,19 @@ int next_demotion_node(int node)
+ 
+ static void disable_all_demotion_targets(void)
+ {
++	struct memory_tier *memtier;
+ 	int node;
+ 
+-	for_each_node_state(node, N_MEMORY)
++	for_each_node_state(node, N_MEMORY) {
+ 		node_demotion[node].preferred = NODE_MASK_NONE;
++		/*
++		 * We are holding memory_tier_lock, it is safe
++		 * to access pgda->memtier.
++		 */
++		memtier = __node_get_memory_tier(node);
++		if (memtier)
++			memtier->lower_tier_mask = NODE_MASK_NONE;
++	}
+ 	/*
+ 	 * Ensure that the "disable" is visible across the system.
+ 	 * Readers will see either a combination of before+disable
+@@ -243,7 +271,7 @@ static void establish_demotion_targets(v
+ 	struct demotion_nodes *nd;
+ 	int target = NUMA_NO_NODE, node;
+ 	int distance, best_distance;
+-	nodemask_t tier_nodes;
++	nodemask_t tier_nodes, lower_tier;
  
  	lockdep_assert_held_once(&memory_tier_lock);
  
-@@ -320,24 +329,45 @@ static struct memory_tier *set_node_memo
- 	memtype = node_memory_types[node].memtype;
- 	node_set(node, memtype->nodes);
- 	memtier = find_create_memory_tier(memtype);
-+	if (!IS_ERR(memtier))
-+		rcu_assign_pointer(pgdat->memtier, memtier);
- 	return memtier;
- }
- 
- static void destroy_memory_tier(struct memory_tier *memtier)
- {
- 	list_del(&memtier->list);
+@@ -291,6 +319,23 @@ static void establish_demotion_targets(v
+ 			}
+ 		} while (1);
+ 	}
 +	/*
-+	 * synchronize_rcu in clear_node_memory_tier makes sure
-+	 * we don't have rcu access to this memory tier.
++	 * Now build the lower_tier mask for each node collecting node mask from
++	 * all memory tier below it. This allows us to fallback demotion page
++	 * allocation to a set of nodes that is closer the above selected
++	 * perferred node.
 +	 */
- 	kfree(memtier);
++	lower_tier = node_states[N_MEMORY];
++	list_for_each_entry(memtier, &memory_tiers, list) {
++		/*
++		 * Keep removing current tier from lower_tier nodes,
++		 * This will remove all nodes in current and above
++		 * memory tier from the lower_tier mask.
++		 */
++		tier_nodes = get_memtier_nodemask(memtier);
++		nodes_andnot(lower_tier, lower_tier, tier_nodes);
++		memtier->lower_tier_mask = lower_tier;
++	}
  }
  
- static bool clear_node_memory_tier(int node)
- {
- 	bool cleared = false;
-+	pg_data_t *pgdat;
- 	struct memory_tier *memtier;
+ #else
+--- a/mm/vmscan.c~mm-demotion-demote-pages-according-to-allocation-fallback-order
++++ a/mm/vmscan.c
+@@ -1533,21 +1533,34 @@ static void folio_check_dirty_writeback(
+ 		mapping->a_ops->is_dirty_writeback(folio, dirty, writeback);
+ }
  
-+	pgdat = NODE_DATA(node);
-+	if (!pgdat)
-+		return false;
+-static struct page *alloc_demote_page(struct page *page, unsigned long node)
++static struct page *alloc_demote_page(struct page *page, unsigned long private)
+ {
+-	struct migration_target_control mtc = {
+-		/*
+-		 * Allocate from 'node', or fail quickly and quietly.
+-		 * When this happens, 'page' will likely just be discarded
+-		 * instead of migrated.
+-		 */
+-		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) |
+-			    __GFP_THISNODE  | __GFP_NOWARN |
+-			    __GFP_NOMEMALLOC | GFP_NOWAIT,
+-		.nid = node
+-	};
++	struct page *target_page;
++	nodemask_t *allowed_mask;
++	struct migration_target_control *mtc;
 +
++	mtc = (struct migration_target_control *)private;
++
++	allowed_mask = mtc->nmask;
 +	/*
-+	 * Make sure that anybody looking at NODE_DATA who finds
-+	 * a valid memtier finds memory_dev_types with nodes still
-+	 * linked to the memtier. We achieve this by waiting for
-+	 * rcu read section to finish using synchronize_rcu.
-+	 * This also enables us to free the destroyed memory tier
-+	 * with kfree instead of kfree_rcu
++	 * make sure we allocate from the target node first also trying to
++	 * demote or reclaim pages from the target node via kswapd if we are
++	 * low on free memory on target node. If we don't do this and if
++	 * we have free memory on the slower(lower) memtier, we would start
++	 * allocating pages from slower(lower) memory tiers without even forcing
++	 * a demotion of cold pages from the target memtier. This can result
++	 * in the kernel placing hot pages in slower(lower) memory tiers.
 +	 */
- 	memtier = __node_get_memory_tier(node);
- 	if (memtier) {
- 		struct memory_dev_type *memtype;
++	mtc->nmask = NULL;
++	mtc->gfp_mask |= __GFP_THISNODE;
++	target_page = alloc_migration_target(page, (unsigned long)mtc);
++	if (target_page)
++		return target_page;
  
-+		rcu_assign_pointer(pgdat->memtier, NULL);
-+		synchronize_rcu();
- 		memtype = node_memory_types[node].memtype;
- 		node_clear(node, memtype->nodes);
- 		if (nodes_empty(memtype->nodes)) {
+-	return alloc_migration_target(page, (unsigned long)&mtc);
++	mtc->gfp_mask &= ~__GFP_THISNODE;
++	mtc->nmask = allowed_mask;
++
++	return alloc_migration_target(page, (unsigned long)mtc);
+ }
+ 
+ /*
+@@ -1560,6 +1573,19 @@ static unsigned int demote_page_list(str
+ {
+ 	int target_nid = next_demotion_node(pgdat->node_id);
+ 	unsigned int nr_succeeded;
++	nodemask_t allowed_mask;
++
++	struct migration_target_control mtc = {
++		/*
++		 * Allocate from 'node', or fail quickly and quietly.
++		 * When this happens, 'page' will likely just be discarded
++		 * instead of migrated.
++		 */
++		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) | __GFP_NOWARN |
++			__GFP_NOMEMALLOC | GFP_NOWAIT,
++		.nid = target_nid,
++		.nmask = &allowed_mask
++	};
+ 
+ 	if (list_empty(demote_pages))
+ 		return 0;
+@@ -1567,10 +1593,12 @@ static unsigned int demote_page_list(str
+ 	if (target_nid == NUMA_NO_NODE)
+ 		return 0;
+ 
++	node_get_allowed_targets(pgdat, &allowed_mask);
++
+ 	/* Demotion ignores all cpuset and mempolicy settings */
+ 	migrate_pages(demote_pages, alloc_demote_page, NULL,
+-			    target_nid, MIGRATE_ASYNC, MR_DEMOTION,
+-			    &nr_succeeded);
++		      (unsigned long)&mtc, MIGRATE_ASYNC, MR_DEMOTION,
++		      &nr_succeeded);
+ 
+ 	if (current_is_kswapd())
+ 		__count_vm_events(PGDEMOTE_KSWAPD, nr_succeeded);
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from jvgediya.oss@gmail.com are
 
 
