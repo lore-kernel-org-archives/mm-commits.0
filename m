@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A30FC07E9D
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:54:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8021C32771
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:54:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229870AbiI0CyR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:54:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58190 "EHLO
+        id S230402AbiI0Cy0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:54:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230042AbiI0Cwj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:52:39 -0400
+        with ESMTP id S230249AbiI0Cwu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:52:50 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA18CCE0
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D4F82636
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 75803615B9
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CABEDC433B5;
-        Tue, 27 Sep 2022 02:49:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B98A3615AA
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F784C433C1;
+        Tue, 27 Sep 2022 02:49:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246980;
-        bh=+y0NplVUVzOko9pJslmCbav+4SHPRd4wDJveQ18MwkQ=;
+        s=korg; t=1664246982;
+        bh=iQGeviIY82V+szms27GgQFDyU7QliTTGkoWzvHMB9D4=;
         h=Date:To:From:Subject:From;
-        b=JsZtPoDyUmmN5wGcW/yTneeG4tiCsMJtM1lJiTECZckRAZ89bP4CksothqPx0NaUb
-         Ib3Nqcn+CuI71Yw6B7vlG5q0wra73uH4g5xr/L4tDmEOltJrdh8jdeONLN5HjsJBsB
-         OQ93edYGeeMWX2kqF6EhBhWLzX7kSSmcqgFdiX0o=
-Date:   Mon, 26 Sep 2022 19:49:40 -0700
+        b=hvtAlCYvkxbdCiiAkc42cj4Uc8eDp84FiDy9cHQ6kiGkD3RkrZtXvgsS7PlZ92FcN
+         2DPl7dGmI4bOa9hJ9CzEzKinsbBxd99AOfZB6+zSCenkWhOTen0pg4DLKcBVZQ5Lrr
+         Odw+ZA2gjFqp0cWah2HHfTIaGLCEAjGETB4WSJTE=
+Date:   Mon, 26 Sep 2022 19:49:41 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
         vbabka@suse.cz, svens@linux.ibm.com, sj@kernel.org,
-        Liam.Howlett@oracle.com, dhowells@redhat.com, david@redhat.com,
+        Liam.Howlett@Oracle.com, dhowells@redhat.com, david@redhat.com,
         dave@stgolabs.net, catalin.marinas@arm.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-stop-using-vma-linked-list.patch removed from -mm tree
-Message-Id: <20220927024940.CABEDC433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ksm-use-vma-iterators-instead-of-vma-linked-list.patch removed from -mm tree
+Message-Id: <20220927024942.1F784C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,23 +44,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: stop using vma linked list
+     Subject: mm/ksm: use vma iterators instead of vma linked list
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-stop-using-vma-linked-list.patch
+     mm-ksm-use-vma-iterators-instead-of-vma-linked-list.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/khugepaged: stop using vma linked list
-Date: Tue, 6 Sep 2022 19:49:00 +0000
+Subject: mm/ksm: use vma iterators instead of vma linked list
+Date: Tue, 6 Sep 2022 19:49:01 +0000
 
-Use vma iterator & find_vma() instead of vma linked list.
+Remove the use of the linked list for eventual removal.
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-53-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220906194824.2110408-54-Liam.Howlett@oracle.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -73,53 +73,62 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- mm/khugepaged.c  |    9 ++++++---
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ mm/ksm.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
---- a/mm/huge_memory.c~mm-khugepaged-stop-using-vma-linked-list
-+++ a/mm/huge_memory.c
-@@ -2341,11 +2341,11 @@ void vma_adjust_trans_huge(struct vm_are
- 	split_huge_pmd_if_needed(vma, end);
+--- a/mm/ksm.c~mm-ksm-use-vma-iterators-instead-of-vma-linked-list
++++ a/mm/ksm.c
+@@ -981,11 +981,13 @@ static int unmerge_and_remove_all_rmap_i
+ 						struct mm_slot, mm_list);
+ 	spin_unlock(&ksm_mmlist_lock);
  
- 	/*
--	 * If we're also updating the vma->vm_next->vm_start,
-+	 * If we're also updating the next vma vm_start,
- 	 * check if we need to split it.
- 	 */
- 	if (adjust_next > 0) {
--		struct vm_area_struct *next = vma->vm_next;
-+		struct vm_area_struct *next = find_vma(vma->vm_mm, vma->vm_end);
- 		unsigned long nstart = next->vm_start;
- 		nstart += adjust_next;
- 		split_huge_pmd_if_needed(next, nstart);
---- a/mm/khugepaged.c~mm-khugepaged-stop-using-vma-linked-list
-+++ a/mm/khugepaged.c
-@@ -2050,6 +2050,7 @@ static unsigned int khugepaged_scan_mm_s
- 	__releases(&khugepaged_mm_lock)
- 	__acquires(&khugepaged_mm_lock)
- {
-+	struct vma_iterator vmi;
- 	struct mm_slot *mm_slot;
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
-@@ -2078,11 +2079,13 @@ static unsigned int khugepaged_scan_mm_s
- 	vma = NULL;
- 	if (unlikely(!mmap_read_trylock(mm)))
- 		goto breakouterloop_mmap_lock;
--	if (likely(!hpage_collapse_test_exit(mm)))
--		vma = find_vma(mm, khugepaged_scan.address);
- 
- 	progress++;
--	for (; vma; vma = vma->vm_next) {
-+	if (unlikely(hpage_collapse_test_exit(mm)))
-+		goto breakouterloop;
+-	for (mm_slot = ksm_scan.mm_slot;
+-			mm_slot != &ksm_mm_head; mm_slot = ksm_scan.mm_slot) {
++	for (mm_slot = ksm_scan.mm_slot; mm_slot != &ksm_mm_head;
++	     mm_slot = ksm_scan.mm_slot) {
++		VMA_ITERATOR(vmi, mm_slot->mm, 0);
 +
-+	vma_iter_init(&vmi, mm, khugepaged_scan.address);
-+	for_each_vma(vmi, vma) {
- 		unsigned long hstart, hend;
+ 		mm = mm_slot->mm;
+ 		mmap_read_lock(mm);
+-		for (vma = mm->mmap; vma; vma = vma->vm_next) {
++		for_each_vma(vmi, vma) {
+ 			if (ksm_test_exit(mm))
+ 				break;
+ 			if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
+@@ -2243,6 +2245,7 @@ static struct rmap_item *scan_get_next_r
+ 	struct mm_slot *slot;
+ 	struct vm_area_struct *vma;
+ 	struct rmap_item *rmap_item;
++	struct vma_iterator vmi;
+ 	int nid;
  
- 		cond_resched();
+ 	if (list_empty(&ksm_mm_head.mm_list))
+@@ -2301,13 +2304,13 @@ next_mm:
+ 	}
+ 
+ 	mm = slot->mm;
++	vma_iter_init(&vmi, mm, ksm_scan.address);
++
+ 	mmap_read_lock(mm);
+ 	if (ksm_test_exit(mm))
+-		vma = NULL;
+-	else
+-		vma = find_vma(mm, ksm_scan.address);
++		goto no_vmas;
+ 
+-	for (; vma; vma = vma->vm_next) {
++	for_each_vma(vmi, vma) {
+ 		if (!(vma->vm_flags & VM_MERGEABLE))
+ 			continue;
+ 		if (ksm_scan.address < vma->vm_start)
+@@ -2345,6 +2348,7 @@ next_mm:
+ 	}
+ 
+ 	if (ksm_test_exit(mm)) {
++no_vmas:
+ 		ksm_scan.address = 0;
+ 		ksm_scan.rmap_list = &slot->rmap_list;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
