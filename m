@@ -2,43 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4D71C6FA82
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DC31C6FA86
 	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:51:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230376AbiI0CvA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230311AbiI0CvA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 26 Sep 2022 22:51:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58840 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230388AbiI0Cs5 (ORCPT
+        with ESMTP id S230389AbiI0Cs5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:48:57 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B5B9A98CD
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B27CA9276
         for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 16C97B81910
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B76FF61563
         for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C31F7C433C1;
-        Tue, 27 Sep 2022 02:48:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17C4EC433D6;
+        Tue, 27 Sep 2022 02:48:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246905;
-        bh=GGwuAowMb6ZfMFYL6lboGaV9uOvqs1oTj2H3MF9d+R4=;
+        s=korg; t=1664246907;
+        bh=opixbS/NL1ctgnK2hi70Ot2fjvvBaUiJP96utdZWA5g=;
         h=Date:To:From:Subject:From;
-        b=FaDwSqfCCkJlJRJrguoXBJTYbTnWTTPuxLEV/4NWM4vcF+Do/1MjBobB0H4tNsbXk
-         101e+IJ57s8KiZqxOP+GicsFuoWFRUXlHi50urIfXRs9NpsMx3r6SBNvbvvk5pwJrd
-         MfMmAkNlobOww1jAlyvNLkIq7xPBQOTzWcAw4bGU=
-Date:   Mon, 26 Sep 2022 19:48:25 -0700
+        b=vOv4ER5Fq6nuwivUPTh5+/PWFLJ3PKr33GddF34PGhrfbGMTc4zVbiH0Id2QkjBZ3
+         oJXcy1sWRNN3OtPADo2Tg+UtTlxQUAb1fYpvTxFqGeGTLg8yEmpUMHMjObwr0f0bnC
+         yho98XKRDFOkWMAivp3KItog5APzsFg19m8PDbR4=
+Date:   Mon, 26 Sep 2022 19:48:26 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        weixugc@google.com, tim.c.chen@intel.com, sj@kernel.org,
-        shy828301@gmail.com, mhocko@kernel.org, jvgediya.oss@gmail.com,
+        weixugc@google.com, tim.c.chen@intel.com, shy828301@gmail.com,
+        mhocko@kernel.org, jvgediya.oss@gmail.com,
         Jonathan.Cameron@huawei.com, hesham.almatary@huawei.com,
         hannes@cmpxchg.org, dave@stgolabs.net, dave.hansen@intel.com,
         dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
         aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-nodemask-optimize-node_random-for-nodemask-with-single-numa-node.patch removed from -mm tree
-Message-Id: <20220927024825.C31F7C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-demotion-expose-memory-tier-details-via-sysfs.patch removed from -mm tree
+Message-Id: <20220927024827.17C4EC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,82 +46,265 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib/nodemask: optimize node_random for nodemask with single NUMA node
+     Subject: mm/demotion: expose memory tier details via sysfs
 has been removed from the -mm tree.  Its filename was
-     lib-nodemask-optimize-node_random-for-nodemask-with-single-numa-node.patch
+     mm-demotion-expose-memory-tier-details-via-sysfs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: lib/nodemask: optimize node_random for nodemask with single NUMA node
-Date: Thu, 18 Aug 2022 18:40:42 +0530
+Subject: mm/demotion: expose memory tier details via sysfs
+Date: Tue, 30 Aug 2022 13:47:36 +0530
 
-The most common case for certain node_random usage (demotion nodemask) is
-with nodemask weight 1.  We can avoid calling get_random_init() in that
-case and always return the only node set in the nodemask.
+Add /sys/devices/virtual/memory_tiering/ where all memory tier related
+details can be found.  All allocated memory tiers will be listed there as
+/sys/devices/virtual/memory_tiering/memory_tierN/
 
-A simple test as below
-  before = rdtsc_ordered();
-  for (i= 0; i < 100; i++) {
-      rand = node_random(&nmask);
-  }
-  after = rdtsc_ordered();
+The nodes which are part of a specific memory tier can be listed via
+/sys/devices/virtual/memory_tiering/memory_tierN/nodes
 
-Without fix after - before : 16438
-With fix after - before : 816
+A directory hierarchy looks like
+:/sys/devices/virtual/memory_tiering$ tree memory_tier4/
+memory_tier4/
+├── nodes
+├── subsystem -> ../../../../bus/memory_tiering
+└── uevent
 
-Link: https://lkml.kernel.org/r/20220818131042.113280-11-aneesh.kumar@linux.ibm.com
+:/sys/devices/virtual/memory_tiering$ cat memory_tier4/nodes
+0,2
+
+[aneesh.kumar@linux.ibm.com: drop toptier_nodes from sysfs]
+  Link: https://lkml.kernel.org/r/20220922102201.62168-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20220830081736.119281-1-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Wei Xu <weixugc@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Bharata B Rao <bharata@amd.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Hesham Almatary <hesham.almatary@huawei.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Jagdish Gediya <jvgediya.oss@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Wei Xu <weixugc@google.com>
 Cc: Yang Shi <shy828301@gmail.com>
-Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-memory-tiers |   25 ++
+ mm/memory-tiers.c                                      |  109 +++++++---
+ 2 files changed, 112 insertions(+), 22 deletions(-)
 
---- a/include/linux/nodemask.h~lib-nodemask-optimize-node_random-for-nodemask-with-single-numa-node
-+++ a/include/linux/nodemask.h
-@@ -505,12 +505,21 @@ static inline int num_node_state(enum no
- static inline int node_random(const nodemask_t *maskp)
- {
- #if defined(CONFIG_NUMA) && (MAX_NUMNODES > 1)
--	int w, bit = NUMA_NO_NODE;
-+	int w, bit;
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-memory-tiers
+@@ -0,0 +1,25 @@
++What:		/sys/devices/virtual/memory_tiering/
++Date:		August 2022
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:	A collection of all the memory tiers allocated.
++
++		Individual memory tier details are contained in subdirectories
++		named by the abstract distance of the memory tier.
++
++		/sys/devices/virtual/memory_tiering/memory_tierN/
++
++
++What:		/sys/devices/virtual/memory_tiering/memory_tierN/
++		/sys/devices/virtual/memory_tiering/memory_tierN/nodes
++Date:		August 2022
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:	Directory with details of a specific memory tier
++
++		This is the directory containing information about a particular
++		memory tier, memtierN, where N is derived based on abstract distance.
++
++		A smaller value of N implies a higher (faster) memory tier in the
++		hierarchy.
++
++		nodes: NUMA nodes that are part of this memory tier.
++
+--- a/mm/memory-tiers.c~mm-demotion-expose-memory-tier-details-via-sysfs
++++ a/mm/memory-tiers.c
+@@ -19,6 +19,7 @@ struct memory_tier {
+ 	 * adistance_start .. adistance_start + MEMTIER_CHUNK_SIZE
+ 	 */
+ 	int adistance_start;
++	struct device dev;
+ 	/* All the nodes that are part of all the lower memory tiers. */
+ 	nodemask_t lower_tier_mask;
+ };
+@@ -36,6 +37,12 @@ static DEFINE_MUTEX(memory_tier_lock);
+ static LIST_HEAD(memory_tiers);
+ static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
+ static struct memory_dev_type *default_dram_type;
++
++static struct bus_type memory_tier_subsys = {
++	.name = "memory_tiering",
++	.dev_name = "memory_tier",
++};
++
+ #ifdef CONFIG_MIGRATION
+ static int top_tier_adistance;
+ /*
+@@ -98,8 +105,63 @@ static int top_tier_adistance;
+ static struct demotion_nodes *node_demotion __read_mostly;
+ #endif /* CONFIG_MIGRATION */
  
- 	w = nodes_weight(*maskp);
--	if (w)
-+	switch (w) {
-+	case 0:
-+		bit = NUMA_NO_NODE;
-+		break;
-+	case 1:
-+		bit = first_node(*maskp);
-+		break;
-+	default:
- 		bit = bitmap_ord_to_pos(maskp->bits,
--			get_random_int() % w, MAX_NUMNODES);
-+					get_random_int() % w, MAX_NUMNODES);
-+		break;
++static inline struct memory_tier *to_memory_tier(struct device *device)
++{
++	return container_of(device, struct memory_tier, dev);
++}
++
++static __always_inline nodemask_t get_memtier_nodemask(struct memory_tier *memtier)
++{
++	nodemask_t nodes = NODE_MASK_NONE;
++	struct memory_dev_type *memtype;
++
++	list_for_each_entry(memtype, &memtier->memory_types, tier_sibiling)
++		nodes_or(nodes, nodes, memtype->nodes);
++
++	return nodes;
++}
++
++static void memory_tier_device_release(struct device *dev)
++{
++	struct memory_tier *tier = to_memory_tier(dev);
++	/*
++	 * synchronize_rcu in clear_node_memory_tier makes sure
++	 * we don't have rcu access to this memory tier.
++	 */
++	kfree(tier);
++}
++
++static ssize_t nodes_show(struct device *dev,
++			  struct device_attribute *attr, char *buf)
++{
++	int ret;
++	nodemask_t nmask;
++
++	mutex_lock(&memory_tier_lock);
++	nmask = get_memtier_nodemask(to_memory_tier(dev));
++	ret = sysfs_emit(buf, "%*pbl\n", nodemask_pr_args(&nmask));
++	mutex_unlock(&memory_tier_lock);
++	return ret;
++}
++static DEVICE_ATTR_RO(nodes);
++
++static struct attribute *memtier_dev_attrs[] = {
++	&dev_attr_nodes.attr,
++	NULL
++};
++
++static const struct attribute_group memtier_dev_group = {
++	.attrs = memtier_dev_attrs,
++};
++
++static const struct attribute_group *memtier_dev_groups[] = {
++	&memtier_dev_group,
++	NULL
++};
++
+ static struct memory_tier *find_create_memory_tier(struct memory_dev_type *memtype)
+ {
++	int ret;
+ 	bool found_slot = false;
+ 	struct memory_tier *memtier, *new_memtier;
+ 	int adistance = memtype->adistance;
+@@ -123,15 +185,14 @@ static struct memory_tier *find_create_m
+ 
+ 	list_for_each_entry(memtier, &memory_tiers, list) {
+ 		if (adistance == memtier->adistance_start) {
+-			list_add(&memtype->tier_sibiling, &memtier->memory_types);
+-			return memtier;
++			goto link_memtype;
+ 		} else if (adistance < memtier->adistance_start) {
+ 			found_slot = true;
+ 			break;
+ 		}
+ 	}
+ 
+-	new_memtier = kmalloc(sizeof(struct memory_tier), GFP_KERNEL);
++	new_memtier = kzalloc(sizeof(struct memory_tier), GFP_KERNEL);
+ 	if (!new_memtier)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -142,8 +203,23 @@ static struct memory_tier *find_create_m
+ 		list_add_tail(&new_memtier->list, &memtier->list);
+ 	else
+ 		list_add_tail(&new_memtier->list, &memory_tiers);
+-	list_add(&memtype->tier_sibiling, &new_memtier->memory_types);
+-	return new_memtier;
++
++	new_memtier->dev.id = adistance >> MEMTIER_CHUNK_BITS;
++	new_memtier->dev.bus = &memory_tier_subsys;
++	new_memtier->dev.release = memory_tier_device_release;
++	new_memtier->dev.groups = memtier_dev_groups;
++
++	ret = device_register(&new_memtier->dev);
++	if (ret) {
++		list_del(&memtier->list);
++		put_device(&memtier->dev);
++		return ERR_PTR(ret);
 +	}
- 	return bit;
- #else
- 	return 0;
++	memtier = new_memtier;
++
++link_memtype:
++	list_add(&memtype->tier_sibiling, &memtier->memory_types);
++	return memtier;
+ }
+ 
+ static struct memory_tier *__node_get_memory_tier(int node)
+@@ -275,17 +351,6 @@ static void disable_all_demotion_targets
+ 	synchronize_rcu();
+ }
+ 
+-static __always_inline nodemask_t get_memtier_nodemask(struct memory_tier *memtier)
+-{
+-	nodemask_t nodes = NODE_MASK_NONE;
+-	struct memory_dev_type *memtype;
+-
+-	list_for_each_entry(memtype, &memtier->memory_types, tier_sibiling)
+-		nodes_or(nodes, nodes, memtype->nodes);
+-
+-	return nodes;
+-}
+-
+ /*
+  * Find an automatic demotion target for all memory
+  * nodes. Failing here is OK.  It might just indicate
+@@ -433,11 +498,7 @@ static struct memory_tier *set_node_memo
+ static void destroy_memory_tier(struct memory_tier *memtier)
+ {
+ 	list_del(&memtier->list);
+-	/*
+-	 * synchronize_rcu in clear_node_memory_tier makes sure
+-	 * we don't have rcu access to this memory tier.
+-	 */
+-	kfree(memtier);
++	device_unregister(&memtier->dev);
+ }
+ 
+ static bool clear_node_memory_tier(int node)
+@@ -566,9 +627,13 @@ static int __meminit memtier_hotplug_cal
+ 
+ static int __init memory_tier_init(void)
+ {
+-	int node;
++	int ret, node;
+ 	struct memory_tier *memtier;
+ 
++	ret = subsys_virtual_register(&memory_tier_subsys, NULL);
++	if (ret)
++		panic("%s() failed to register memory tier subsystem\n", __func__);
++
+ #ifdef CONFIG_MIGRATION
+ 	node_demotion = kcalloc(nr_node_ids, sizeof(struct demotion_nodes),
+ 				GFP_KERNEL);
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
