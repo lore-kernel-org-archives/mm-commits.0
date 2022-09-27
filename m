@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21515C07E9D
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:53:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C2D4C32771
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:53:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230160AbiI0Cxy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:53:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58500 "EHLO
+        id S230183AbiI0Cx4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:53:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57996 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230331AbiI0Cvm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:51:42 -0400
+        with ESMTP id S230328AbiI0Cvl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:51:41 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CB7EFAD8C
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DED16FAC5F
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B8026B8190B
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74CE8C433D6;
-        Tue, 27 Sep 2022 02:49:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 697B7B81904
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27D4BC433C1;
+        Tue, 27 Sep 2022 02:49:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246966;
-        bh=zEUBuGXUxd/WciBAKLBoecLLns/DIZuLTse2Y/psHzs=;
+        s=korg; t=1664246957;
+        bh=WFcvxfz8bJRphHwmxJsSMHzAtviaKooJy+dr7ltPNxM=;
         h=Date:To:From:Subject:From;
-        b=sTRodZ+sAKE4/NVBNHFtOezMr+VJhc/HkzdruDGuPZhfPW+woWoZhTAsICLTtZkk2
-         mGphII4tncUniqdnH8lCvqV+Kjn68NAhxjPG72fgoyKt/L7GpIzQZiA6nBAmQJ+ePX
-         3pRLC0FsvqsDoQOP5zn0NRaP8nXGMFZAgJD7LZMk=
-Date:   Mon, 26 Sep 2022 19:49:25 -0700
+        b=hpEf1g9ZgY54JgDG71TFuXrWBKARXJfFcHW4UW4ceAnV6ieiahMohvP+iTNne9Rza
+         C2U9xMlVoSPd8hCF2GHDDQjQJtrv10JC2ycADbi+P5U10hWHEBHgX4zIHf0O+PtPI2
+         eXfVINOjTUDdhTkiqPCTiSUNSTyF/dp4Ypu32fOs=
+Date:   Mon, 26 Sep 2022 19:49:16 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
         vbabka@suse.cz, svens@linux.ibm.com, sj@kernel.org,
         Liam.Howlett@Oracle.com, dhowells@redhat.com, david@redhat.com,
         dave@stgolabs.net, catalin.marinas@arm.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] exec-use-vma-iterator-instead-of-linked-list.patch removed from -mm tree
-Message-Id: <20220927024926.74CE8C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] s390-remove-vma-linked-list-walks.patch removed from -mm tree
+Message-Id: <20220927024917.27D4BC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,83 +44,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: exec: use VMA iterator instead of linked list
+     Subject: s390: remove vma linked list walks
 has been removed from the -mm tree.  Its filename was
-     exec-use-vma-iterator-instead-of-linked-list.patch
+     s390-remove-vma-linked-list-walks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: exec: use VMA iterator instead of linked list
-Date: Tue, 6 Sep 2022 19:48:56 +0000
+Subject: s390: remove vma linked list walks
+Date: Tue, 6 Sep 2022 19:48:54 +0000
 
-Remove a use of the vm_next list by doing the initial lookup with the VMA
-iterator and then using it to find the next entry.
+Use the VMA iterator instead.
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-42-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220906194824.2110408-35-Liam.Howlett@oracle.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/s390/kernel/vdso.c |    3 ++-
+ arch/s390/mm/gmap.c     |    6 ++++--
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
---- a/fs/exec.c~exec-use-vma-iterator-instead-of-linked-list
-+++ a/fs/exec.c
-@@ -683,6 +683,8 @@ static int shift_arg_pages(struct vm_are
- 	unsigned long length = old_end - old_start;
- 	unsigned long new_start = old_start - shift;
- 	unsigned long new_end = old_end - shift;
-+	VMA_ITERATOR(vmi, mm, new_start);
-+	struct vm_area_struct *next;
- 	struct mmu_gather tlb;
+--- a/arch/s390/kernel/vdso.c~s390-remove-vma-linked-list-walks
++++ a/arch/s390/kernel/vdso.c
+@@ -69,10 +69,11 @@ static struct page *find_timens_vvar_pag
+ int vdso_join_timens(struct task_struct *task, struct time_namespace *ns)
+ {
+ 	struct mm_struct *mm = task->mm;
++	VMA_ITERATOR(vmi, mm, 0);
+ 	struct vm_area_struct *vma;
  
- 	BUG_ON(new_start > new_end);
-@@ -691,7 +693,7 @@ static int shift_arg_pages(struct vm_are
- 	 * ensure there are no vmas between where we want to go
- 	 * and where we are
- 	 */
--	if (vma != find_vma(mm, new_start))
-+	if (vma != vma_next(&vmi))
- 		return -EFAULT;
+ 	mmap_read_lock(mm);
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
++	for_each_vma(vmi, vma) {
+ 		unsigned long size = vma->vm_end - vma->vm_start;
  
- 	/*
-@@ -710,12 +712,13 @@ static int shift_arg_pages(struct vm_are
+ 		if (!vma_is_special_mapping(vma, &vvar_mapping))
+--- a/arch/s390/mm/gmap.c~s390-remove-vma-linked-list-walks
++++ a/arch/s390/mm/gmap.c
+@@ -2515,8 +2515,9 @@ static const struct mm_walk_ops thp_spli
+ static inline void thp_split_mm(struct mm_struct *mm)
+ {
+ 	struct vm_area_struct *vma;
++	VMA_ITERATOR(vmi, mm, 0);
  
- 	lru_add_drain();
- 	tlb_gather_mmu(&tlb, mm);
-+	next = vma_next(&vmi);
- 	if (new_end > old_start) {
- 		/*
- 		 * when the old and new regions overlap clear from new_end.
- 		 */
- 		free_pgd_range(&tlb, new_end, old_end, new_end,
--			vma->vm_next ? vma->vm_next->vm_start : USER_PGTABLES_CEILING);
-+			next ? next->vm_start : USER_PGTABLES_CEILING);
- 	} else {
- 		/*
- 		 * otherwise, clean from old_start; this is done to not touch
-@@ -724,7 +727,7 @@ static int shift_arg_pages(struct vm_are
- 		 * for the others its just a little faster.
- 		 */
- 		free_pgd_range(&tlb, old_start, old_end, new_end,
--			vma->vm_next ? vma->vm_next->vm_start : USER_PGTABLES_CEILING);
-+			next ? next->vm_start : USER_PGTABLES_CEILING);
- 	}
- 	tlb_finish_mmu(&tlb);
+-	for (vma = mm->mmap; vma != NULL; vma = vma->vm_next) {
++	for_each_vma(vmi, vma) {
+ 		vma->vm_flags &= ~VM_HUGEPAGE;
+ 		vma->vm_flags |= VM_NOHUGEPAGE;
+ 		walk_page_vma(vma, &thp_split_walk_ops, NULL);
+@@ -2584,8 +2585,9 @@ int gmap_mark_unmergeable(void)
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+ 	int ret;
++	VMA_ITERATOR(vmi, mm, 0);
  
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
++	for_each_vma(vmi, vma) {
+ 		ret = ksm_madvise(vma, vma->vm_start, vma->vm_end,
+ 				  MADV_UNMERGEABLE, &vma->vm_flags);
+ 		if (ret)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
