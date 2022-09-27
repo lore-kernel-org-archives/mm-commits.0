@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4709FC6FA92
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:49:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD5B4C07E9D
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:49:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230082AbiI0Ctn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:49:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57998 "EHLO
+        id S230116AbiI0Cto (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:49:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230342AbiI0CsZ (ORCPT
+        with ESMTP id S230343AbiI0CsZ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:48:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89C85925B2
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AE669321A
         for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 23B586155B
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75789C43470;
-        Tue, 27 Sep 2022 02:48:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2C19BB8190D
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C94C4C433C1;
+        Tue, 27 Sep 2022 02:48:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246887;
-        bh=hXW/3OPndmu73dh8KZmg2DjtrCBdbM1yAY1RyKP9zlU=;
+        s=korg; t=1664246885;
+        bh=rRERomA2/51l2sAmtUbT0m5EEppIlZVXVIQHABNyToQ=;
         h=Date:To:From:Subject:From;
-        b=Ny1hWN9M6rCve0eNdgWPUYeAufjbPb1tPcRNJO9ecv4aPs83JYIl+krZvsSj62eTQ
-         fP/Rl94l4N9eDG8x3axV06AAotJoUL91vga/Qfv345m/DA8114YxAyfiMOOPR7yTtq
-         9ZjHarMn/3jdt/ZmZMb1gSR+a+cQNi0jLBu3igzU=
-Date:   Mon, 26 Sep 2022 19:48:06 -0700
+        b=N2PANGMTW4ZXt3MJX8EceF97cOxQ7x/GhiNbyRWk9CxZ0VfJgcOMsSSdyuJ0u+BJ6
+         I3Xg4DeGwsE9YuR4K7cFYvNOjVUNTJnaV2BWKZ36HBOB9GASVtU+2/31c8+FTpSj2a
+         UvbTjZShw+zMBfQc/w6CpUXD0ilUD+S91i6pAkA0=
+Date:   Mon, 26 Sep 2022 19:48:05 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, vbabka@suse.cz,
         vaibhav@linux.ibm.com, torvalds@linux-foundation.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
         yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-thrashing-prevention.patch removed from -mm tree
-Message-Id: <20220927024807.75789C43470@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-kill-switch.patch removed from -mm tree
+Message-Id: <20220927024805.C94C4C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,39 +53,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: thrashing prevention
+     Subject: mm: multi-gen LRU: kill switch
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-thrashing-prevention.patch
+     mm-multi-gen-lru-kill-switch.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: thrashing prevention
-Date: Sun, 18 Sep 2022 02:00:08 -0600
+Subject: mm: multi-gen LRU: kill switch
+Date: Sun, 18 Sep 2022 02:00:07 -0600
 
-Add /sys/kernel/mm/lru_gen/min_ttl_ms for thrashing prevention, as
-requested by many desktop users [1].
+Add /sys/kernel/mm/lru_gen/enabled as a kill switch. Components that
+can be disabled include:
+  0x0001: the multi-gen LRU core
+  0x0002: walking page table, when arch_has_hw_pte_young() returns
+          true
+  0x0004: clearing the accessed bit in non-leaf PMD entries, when
+          CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG=y
+  [yYnN]: apply to all the components above
+E.g.,
+  echo y >/sys/kernel/mm/lru_gen/enabled
+  cat /sys/kernel/mm/lru_gen/enabled
+  0x0007
+  echo 5 >/sys/kernel/mm/lru_gen/enabled
+  cat /sys/kernel/mm/lru_gen/enabled
+  0x0005
 
-When set to value N, it prevents the working set of N milliseconds from
-getting evicted.  The OOM killer is triggered if this working set cannot
-be kept in memory.  Based on the average human detectable lag (~100ms),
-N=1000 usually eliminates intolerable lags due to thrashing.  Larger
-values like N=3000 make lags less noticeable at the risk of premature OOM
-kills.
+NB: the page table walks happen on the scale of seconds under heavy memory
+pressure, in which case the mmap_lock contention is a lesser concern,
+compared with the LRU lock contention and the I/O congestion.  So far the
+only well-known case of the mmap_lock contention happens on Android, due
+to Scudo [1] which allocates several thousand VMAs for merely a few
+hundred MBs.  The SPF and the Maple Tree also have provided their own
+assessments [2][3].  However, if walking page tables does worsen the
+mmap_lock contention, the kill switch can be used to disable it.  In this
+case the multi-gen LRU will suffer a minor performance degradation, as
+shown previously.
 
-Compared with the size-based approach [2], this time-based approach
-has the following advantages:
+Clearing the accessed bit in non-leaf PMD entries can also be disabled,
+since this behavior was not tested on x86 varieties other than Intel and
+AMD.
 
-1. It is easier to configure because it is agnostic to applications
-   and memory sizes.
-2. It is more reliable because it is directly wired to the OOM killer.
+[1] https://source.android.com/devices/tech/debug/scudo
+[2] https://lore.kernel.org/r/20220128131006.67712-1-michel@lespinasse.org/
+[3] https://lore.kernel.org/r/20220426150616.3937571-1-Liam.Howlett@oracle.com/
 
-[1] https://lore.kernel.org/r/Ydza%2FzXKY9ATRoh6@google.com/
-[2] https://lore.kernel.org/r/20101028191523.GA14972@google.com/
-
-Link: https://lkml.kernel.org/r/20220918080010.2920238-12-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20220918080010.2920238-11-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Acked-by: Brian Geffon <bgeffon@google.com>
 Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
@@ -124,166 +139,423 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +
- mm/vmscan.c            |   74 +++++++++++++++++++++++++++++++++++++--
- 2 files changed, 73 insertions(+), 3 deletions(-)
+ include/linux/cgroup.h          |   15 +
+ include/linux/mm_inline.h       |   15 +
+ include/linux/mmzone.h          |    9 +
+ kernel/cgroup/cgroup-internal.h |    1 
+ mm/Kconfig                      |    6 
+ mm/vmscan.c                     |  228 +++++++++++++++++++++++++++++-
+ 6 files changed, 265 insertions(+), 9 deletions(-)
 
---- a/include/linux/mmzone.h~mm-multi-gen-lru-thrashing-prevention
-+++ a/include/linux/mmzone.h
-@@ -422,6 +422,8 @@ struct lru_gen_struct {
- 	unsigned long max_seq;
- 	/* the eviction increments the oldest generation numbers */
- 	unsigned long min_seq[ANON_AND_FILE];
-+	/* the birth time of each generation in jiffies */
-+	unsigned long timestamps[MAX_NR_GENS];
- 	/* the multi-gen LRU lists, lazily sorted on eviction */
- 	struct list_head lists[MAX_NR_GENS][ANON_AND_FILE][MAX_NR_ZONES];
- 	/* the multi-gen LRU sizes, eventually consistent */
---- a/mm/vmscan.c~mm-multi-gen-lru-thrashing-prevention
-+++ a/mm/vmscan.c
-@@ -4293,6 +4293,7 @@ static void inc_max_seq(struct lruvec *l
- 	for (type = 0; type < ANON_AND_FILE; type++)
- 		reset_ctrl_pos(lruvec, type, false);
- 
-+	WRITE_ONCE(lrugen->timestamps[next], jiffies);
- 	/* make sure preceding modifications appear */
- 	smp_store_release(&lrugen->max_seq, lrugen->max_seq + 1);
- 
-@@ -4422,7 +4423,7 @@ static bool should_run_aging(struct lruv
- 	return false;
+--- a/include/linux/cgroup.h~mm-multi-gen-lru-kill-switch
++++ a/include/linux/cgroup.h
+@@ -432,6 +432,18 @@ static inline void cgroup_put(struct cgr
+ 	css_put(&cgrp->self);
  }
  
--static void age_lruvec(struct lruvec *lruvec, struct scan_control *sc)
-+static bool age_lruvec(struct lruvec *lruvec, struct scan_control *sc, unsigned long min_ttl)
- {
- 	bool need_aging;
- 	unsigned long nr_to_scan;
-@@ -4436,16 +4437,36 @@ static void age_lruvec(struct lruvec *lr
- 	mem_cgroup_calculate_protection(NULL, memcg);
- 
- 	if (mem_cgroup_below_min(memcg))
--		return;
-+		return false;
- 
- 	need_aging = should_run_aging(lruvec, max_seq, min_seq, sc, swappiness, &nr_to_scan);
++extern struct mutex cgroup_mutex;
 +
-+	if (min_ttl) {
-+		int gen = lru_gen_from_seq(min_seq[LRU_GEN_FILE]);
-+		unsigned long birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
-+
-+		if (time_is_after_jiffies(birth + min_ttl))
-+			return false;
-+
-+		/* the size is likely too small to be helpful */
-+		if (!nr_to_scan && sc->priority != DEF_PRIORITY)
-+			return false;
-+	}
-+
- 	if (need_aging)
- 		try_to_inc_max_seq(lruvec, max_seq, sc, swappiness);
-+
-+	return true;
- }
- 
-+/* to protect the working set of the last N jiffies */
-+static unsigned long lru_gen_min_ttl __read_mostly;
-+
- static void lru_gen_age_node(struct pglist_data *pgdat, struct scan_control *sc)
- {
- 	struct mem_cgroup *memcg;
-+	bool success = false;
-+	unsigned long min_ttl = READ_ONCE(lru_gen_min_ttl);
- 
- 	VM_WARN_ON_ONCE(!current_is_kswapd());
- 
-@@ -4468,12 +4489,32 @@ static void lru_gen_age_node(struct pgli
- 	do {
- 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 
--		age_lruvec(lruvec, sc);
-+		if (age_lruvec(lruvec, sc, min_ttl))
-+			success = true;
- 
- 		cond_resched();
- 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
- 
- 	clear_mm_walk();
-+
-+	/* check the order to exclude compaction-induced reclaim */
-+	if (success || !min_ttl || sc->order)
-+		return;
-+
-+	/*
-+	 * The main goal is to OOM kill if every generation from all memcgs is
-+	 * younger than min_ttl. However, another possibility is all memcgs are
-+	 * either below min or empty.
-+	 */
-+	if (mutex_trylock(&oom_lock)) {
-+		struct oom_control oc = {
-+			.gfp_mask = sc->gfp_mask,
-+		};
-+
-+		out_of_memory(&oc);
-+
-+		mutex_unlock(&oom_lock);
-+	}
- }
- 
- /*
-@@ -5231,6 +5272,28 @@ unlock:
-  *                          sysfs interface
-  ******************************************************************************/
- 
-+static ssize_t show_min_ttl(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
++static inline void cgroup_lock(void)
 +{
-+	return sprintf(buf, "%u\n", jiffies_to_msecs(READ_ONCE(lru_gen_min_ttl)));
++	mutex_lock(&cgroup_mutex);
 +}
 +
-+static ssize_t store_min_ttl(struct kobject *kobj, struct kobj_attribute *attr,
++static inline void cgroup_unlock(void)
++{
++	mutex_unlock(&cgroup_mutex);
++}
++
+ /**
+  * task_css_set_check - obtain a task's css_set with extra access conditions
+  * @task: the task to obtain css_set for
+@@ -446,7 +458,6 @@ static inline void cgroup_put(struct cgr
+  * as locks used during the cgroup_subsys::attach() methods.
+  */
+ #ifdef CONFIG_PROVE_RCU
+-extern struct mutex cgroup_mutex;
+ extern spinlock_t css_set_lock;
+ #define task_css_set_check(task, __c)					\
+ 	rcu_dereference_check((task)->cgroups,				\
+@@ -708,6 +719,8 @@ struct cgroup;
+ static inline u64 cgroup_id(const struct cgroup *cgrp) { return 1; }
+ static inline void css_get(struct cgroup_subsys_state *css) {}
+ static inline void css_put(struct cgroup_subsys_state *css) {}
++static inline void cgroup_lock(void) {}
++static inline void cgroup_unlock(void) {}
+ static inline int cgroup_attach_task_all(struct task_struct *from,
+ 					 struct task_struct *t) { return 0; }
+ static inline int cgroupstats_build(struct cgroupstats *stats,
+--- a/include/linux/mm_inline.h~mm-multi-gen-lru-kill-switch
++++ a/include/linux/mm_inline.h
+@@ -106,10 +106,21 @@ static __always_inline enum lru_list fol
+ 
+ #ifdef CONFIG_LRU_GEN
+ 
++#ifdef CONFIG_LRU_GEN_ENABLED
+ static inline bool lru_gen_enabled(void)
+ {
+-	return true;
++	DECLARE_STATIC_KEY_TRUE(lru_gen_caps[NR_LRU_GEN_CAPS]);
++
++	return static_branch_likely(&lru_gen_caps[LRU_GEN_CORE]);
++}
++#else
++static inline bool lru_gen_enabled(void)
++{
++	DECLARE_STATIC_KEY_FALSE(lru_gen_caps[NR_LRU_GEN_CAPS]);
++
++	return static_branch_unlikely(&lru_gen_caps[LRU_GEN_CORE]);
+ }
++#endif
+ 
+ static inline bool lru_gen_in_fault(void)
+ {
+@@ -222,7 +233,7 @@ static inline bool lru_gen_add_folio(str
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(gen != -1, folio);
+ 
+-	if (folio_test_unevictable(folio))
++	if (folio_test_unevictable(folio) || !lrugen->enabled)
+ 		return false;
+ 	/*
+ 	 * There are three common cases for this page:
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-kill-switch
++++ a/include/linux/mmzone.h
+@@ -387,6 +387,13 @@ enum {
+ 	LRU_GEN_FILE,
+ };
+ 
++enum {
++	LRU_GEN_CORE,
++	LRU_GEN_MM_WALK,
++	LRU_GEN_NONLEAF_YOUNG,
++	NR_LRU_GEN_CAPS
++};
++
+ #define MIN_LRU_BATCH		BITS_PER_LONG
+ #define MAX_LRU_BATCH		(MIN_LRU_BATCH * 64)
+ 
+@@ -428,6 +435,8 @@ struct lru_gen_struct {
+ 	/* can be modified without holding the LRU lock */
+ 	atomic_long_t evicted[NR_HIST_GENS][ANON_AND_FILE][MAX_NR_TIERS];
+ 	atomic_long_t refaulted[NR_HIST_GENS][ANON_AND_FILE][MAX_NR_TIERS];
++	/* whether the multi-gen LRU is enabled */
++	bool enabled;
+ };
+ 
+ enum {
+--- a/kernel/cgroup/cgroup-internal.h~mm-multi-gen-lru-kill-switch
++++ a/kernel/cgroup/cgroup-internal.h
+@@ -164,7 +164,6 @@ struct cgroup_mgctx {
+ #define DEFINE_CGROUP_MGCTX(name)						\
+ 	struct cgroup_mgctx name = CGROUP_MGCTX_INIT(name)
+ 
+-extern struct mutex cgroup_mutex;
+ extern spinlock_t css_set_lock;
+ extern struct cgroup_subsys *cgroup_subsys[];
+ extern struct list_head cgroup_roots;
+--- a/mm/Kconfig~mm-multi-gen-lru-kill-switch
++++ a/mm/Kconfig
+@@ -1127,6 +1127,12 @@ config LRU_GEN
+ 	help
+ 	  A high performance LRU implementation to overcommit memory.
+ 
++config LRU_GEN_ENABLED
++	bool "Enable by default"
++	depends on LRU_GEN
++	help
++	  This option enables the multi-gen LRU by default.
++
+ config LRU_GEN_STATS
+ 	bool "Full stats for debugging"
+ 	depends on LRU_GEN
+--- a/mm/vmscan.c~mm-multi-gen-lru-kill-switch
++++ a/mm/vmscan.c
+@@ -51,6 +51,7 @@
+ #include <linux/psi.h>
+ #include <linux/pagewalk.h>
+ #include <linux/shmem_fs.h>
++#include <linux/ctype.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -3070,6 +3071,14 @@ static bool can_age_anon_pages(struct pg
+ 
+ #ifdef CONFIG_LRU_GEN
+ 
++#ifdef CONFIG_LRU_GEN_ENABLED
++DEFINE_STATIC_KEY_ARRAY_TRUE(lru_gen_caps, NR_LRU_GEN_CAPS);
++#define get_cap(cap)	static_branch_likely(&lru_gen_caps[cap])
++#else
++DEFINE_STATIC_KEY_ARRAY_FALSE(lru_gen_caps, NR_LRU_GEN_CAPS);
++#define get_cap(cap)	static_branch_unlikely(&lru_gen_caps[cap])
++#endif
++
+ /******************************************************************************
+  *                          shorthand helpers
+  ******************************************************************************/
+@@ -3946,7 +3955,8 @@ static void walk_pmd_range_locked(pud_t
+ 			goto next;
+ 
+ 		if (!pmd_trans_huge(pmd[i])) {
+-			if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG))
++			if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG) &&
++			    get_cap(LRU_GEN_NONLEAF_YOUNG))
+ 				pmdp_test_and_clear_young(vma, addr, pmd + i);
+ 			goto next;
+ 		}
+@@ -4044,10 +4054,12 @@ restart:
+ 		walk->mm_stats[MM_NONLEAF_TOTAL]++;
+ 
+ #ifdef CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG
+-		if (!pmd_young(val))
+-			continue;
++		if (get_cap(LRU_GEN_NONLEAF_YOUNG)) {
++			if (!pmd_young(val))
++				continue;
+ 
+-		walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
++			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
++		}
+ #endif
+ 		if (!walk->force_scan && !test_bloom_filter(walk->lruvec, walk->max_seq, pmd + i))
+ 			continue;
+@@ -4309,7 +4321,7 @@ static bool try_to_inc_max_seq(struct lr
+ 	 * handful of PTEs. Spreading the work out over a period of time usually
+ 	 * is less efficient, but it avoids bursty page faults.
+ 	 */
+-	if (!arch_has_hw_pte_young()) {
++	if (!(arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))) {
+ 		success = iterate_mm_list_nowalk(lruvec, max_seq);
+ 		goto done;
+ 	}
+@@ -5075,6 +5087,208 @@ done:
+ }
+ 
+ /******************************************************************************
++ *                          state change
++ ******************************************************************************/
++
++static bool __maybe_unused state_is_valid(struct lruvec *lruvec)
++{
++	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++
++	if (lrugen->enabled) {
++		enum lru_list lru;
++
++		for_each_evictable_lru(lru) {
++			if (!list_empty(&lruvec->lists[lru]))
++				return false;
++		}
++	} else {
++		int gen, type, zone;
++
++		for_each_gen_type_zone(gen, type, zone) {
++			if (!list_empty(&lrugen->lists[gen][type][zone]))
++				return false;
++		}
++	}
++
++	return true;
++}
++
++static bool fill_evictable(struct lruvec *lruvec)
++{
++	enum lru_list lru;
++	int remaining = MAX_LRU_BATCH;
++
++	for_each_evictable_lru(lru) {
++		int type = is_file_lru(lru);
++		bool active = is_active_lru(lru);
++		struct list_head *head = &lruvec->lists[lru];
++
++		while (!list_empty(head)) {
++			bool success;
++			struct folio *folio = lru_to_folio(head);
++
++			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio) != active, folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_lru_gen(folio) != -1, folio);
++
++			lruvec_del_folio(lruvec, folio);
++			success = lru_gen_add_folio(lruvec, folio, false);
++			VM_WARN_ON_ONCE(!success);
++
++			if (!--remaining)
++				return false;
++		}
++	}
++
++	return true;
++}
++
++static bool drain_evictable(struct lruvec *lruvec)
++{
++	int gen, type, zone;
++	int remaining = MAX_LRU_BATCH;
++
++	for_each_gen_type_zone(gen, type, zone) {
++		struct list_head *head = &lruvec->lrugen.lists[gen][type][zone];
++
++		while (!list_empty(head)) {
++			bool success;
++			struct folio *folio = lru_to_folio(head);
++
++			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio), folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
++
++			success = lru_gen_del_folio(lruvec, folio, false);
++			VM_WARN_ON_ONCE(!success);
++			lruvec_add_folio(lruvec, folio);
++
++			if (!--remaining)
++				return false;
++		}
++	}
++
++	return true;
++}
++
++static void lru_gen_change_state(bool enabled)
++{
++	static DEFINE_MUTEX(state_mutex);
++
++	struct mem_cgroup *memcg;
++
++	cgroup_lock();
++	cpus_read_lock();
++	get_online_mems();
++	mutex_lock(&state_mutex);
++
++	if (enabled == lru_gen_enabled())
++		goto unlock;
++
++	if (enabled)
++		static_branch_enable_cpuslocked(&lru_gen_caps[LRU_GEN_CORE]);
++	else
++		static_branch_disable_cpuslocked(&lru_gen_caps[LRU_GEN_CORE]);
++
++	memcg = mem_cgroup_iter(NULL, NULL, NULL);
++	do {
++		int nid;
++
++		for_each_node(nid) {
++			struct lruvec *lruvec = get_lruvec(memcg, nid);
++
++			if (!lruvec)
++				continue;
++
++			spin_lock_irq(&lruvec->lru_lock);
++
++			VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
++			VM_WARN_ON_ONCE(!state_is_valid(lruvec));
++
++			lruvec->lrugen.enabled = enabled;
++
++			while (!(enabled ? fill_evictable(lruvec) : drain_evictable(lruvec))) {
++				spin_unlock_irq(&lruvec->lru_lock);
++				cond_resched();
++				spin_lock_irq(&lruvec->lru_lock);
++			}
++
++			spin_unlock_irq(&lruvec->lru_lock);
++		}
++
++		cond_resched();
++	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
++unlock:
++	mutex_unlock(&state_mutex);
++	put_online_mems();
++	cpus_read_unlock();
++	cgroup_unlock();
++}
++
++/******************************************************************************
++ *                          sysfs interface
++ ******************************************************************************/
++
++static ssize_t show_enabled(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
++{
++	unsigned int caps = 0;
++
++	if (get_cap(LRU_GEN_CORE))
++		caps |= BIT(LRU_GEN_CORE);
++
++	if (arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))
++		caps |= BIT(LRU_GEN_MM_WALK);
++
++	if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG) && get_cap(LRU_GEN_NONLEAF_YOUNG))
++		caps |= BIT(LRU_GEN_NONLEAF_YOUNG);
++
++	return snprintf(buf, PAGE_SIZE, "0x%04x\n", caps);
++}
++
++static ssize_t store_enabled(struct kobject *kobj, struct kobj_attribute *attr,
 +			     const char *buf, size_t len)
 +{
-+	unsigned int msecs;
++	int i;
++	unsigned int caps;
 +
-+	if (kstrtouint(buf, 0, &msecs))
++	if (tolower(*buf) == 'n')
++		caps = 0;
++	else if (tolower(*buf) == 'y')
++		caps = -1;
++	else if (kstrtouint(buf, 0, &caps))
 +		return -EINVAL;
 +
-+	WRITE_ONCE(lru_gen_min_ttl, msecs_to_jiffies(msecs));
++	for (i = 0; i < NR_LRU_GEN_CAPS; i++) {
++		bool enabled = caps & BIT(i);
++
++		if (i == LRU_GEN_CORE)
++			lru_gen_change_state(enabled);
++		else if (enabled)
++			static_branch_enable(&lru_gen_caps[i]);
++		else
++			static_branch_disable(&lru_gen_caps[i]);
++	}
 +
 +	return len;
 +}
 +
-+static struct kobj_attribute lru_gen_min_ttl_attr = __ATTR(
-+	min_ttl_ms, 0644, show_min_ttl, store_min_ttl
++static struct kobj_attribute lru_gen_enabled_attr = __ATTR(
++	enabled, 0644, show_enabled, store_enabled
 +);
 +
- static ssize_t show_enabled(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
- {
- 	unsigned int caps = 0;
-@@ -5279,6 +5342,7 @@ static struct kobj_attribute lru_gen_ena
- );
++static struct attribute *lru_gen_attrs[] = {
++	&lru_gen_enabled_attr.attr,
++	NULL
++};
++
++static struct attribute_group lru_gen_attr_group = {
++	.name = "lru_gen",
++	.attrs = lru_gen_attrs,
++};
++
++/******************************************************************************
+  *                          initialization
+  ******************************************************************************/
  
- static struct attribute *lru_gen_attrs[] = {
-+	&lru_gen_min_ttl_attr.attr,
- 	&lru_gen_enabled_attr.attr,
- 	NULL
- };
-@@ -5294,12 +5358,16 @@ static struct attribute_group lru_gen_at
- 
- void lru_gen_init_lruvec(struct lruvec *lruvec)
- {
-+	int i;
- 	int gen, type, zone;
+@@ -5084,6 +5298,7 @@ void lru_gen_init_lruvec(struct lruvec *
  	struct lru_gen_struct *lrugen = &lruvec->lrugen;
  
  	lrugen->max_seq = MIN_NR_GENS + 1;
- 	lrugen->enabled = lru_gen_enabled();
++	lrugen->enabled = lru_gen_enabled();
  
-+	for (i = 0; i <= MIN_NR_GENS + 1; i++)
-+		lrugen->timestamps[i] = jiffies;
-+
  	for_each_gen_type_zone(gen, type, zone)
  		INIT_LIST_HEAD(&lrugen->lists[gen][type][zone]);
+@@ -5123,6 +5338,9 @@ static int __init init_lru_gen(void)
+ 	BUILD_BUG_ON(MIN_NR_GENS + 1 >= MAX_NR_GENS);
+ 	BUILD_BUG_ON(BIT(LRU_GEN_WIDTH) <= MAX_NR_GENS);
  
++	if (sysfs_create_group(mm_kobj, &lru_gen_attr_group))
++		pr_err("lru_gen: failed to create sysfs group\n");
++
+ 	return 0;
+ };
+ late_initcall(init_lru_gen);
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
