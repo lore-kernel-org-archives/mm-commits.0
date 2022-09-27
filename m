@@ -2,41 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EE51C6FA82
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:55:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9110C32771
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:55:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230487AbiI0Czb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:55:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40724 "EHLO
+        id S230444AbiI0Czv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:55:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229821AbiI0CyE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:54:04 -0400
+        with ESMTP id S230175AbiI0CzJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:55:09 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 174A114D2C
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CE9A1CFDF
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:50:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 45985615B9
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92733C433B5;
-        Tue, 27 Sep 2022 02:49:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9959B6153F
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:50:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFEF8C433D6;
+        Tue, 27 Sep 2022 02:50:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246992;
-        bh=VA0AlHFU4jQy5HYcMol+sdHThNzsMr2q1gubW+Lk9Pg=;
+        s=korg; t=1664247007;
+        bh=44E1tl0oVOp/wWADEya628feaRhDc6ASKD/zFwbPNFc=;
         h=Date:To:From:Subject:From;
-        b=hO8b3AkCzaPOxDPEY9NEPZwhZawoTMx+diuEubbCfNIi9MVbl87IjcPp7VOu8GzZt
-         Izs8rqj7WcEA39vHfYcV2jDcGIO+Mb0M9IV5SR5eVur9EvPsb4CAquY4Y0fI8+hyua
-         xogxZZQnURFihc8GbAfMjFj3Aoz7rcZt4njk2OOM=
-Date:   Mon, 26 Sep 2022 19:49:51 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
-        sj@kernel.org, dhowells@redhat.com, david@redhat.com,
-        dave@stgolabs.net, catalin.marinas@arm.com,
-        Liam.Howlett@Oracle.com, akpm@linux-foundation.org
+        b=LlHxqGICbEUBXtYe3GgT8sQAPBfTJi3nuVqvaMxxP5cFvvdvXev+b1UtBTKDelbhY
+         lpVNi3zHfIm5LztilEKnE7COSfS2vrqhjECFCdglwv1ycZwMz0mukX1cK4OEAaWx4e
+         C+g3Ax+HR27pFYpnIid4qTC7gsSpBMC4D3f7Rtu0=
+Date:   Mon, 26 Sep 2022 19:50:06 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, shuah@kernel.org,
+        shakeelb@google.com, rientjes@google.com, peterx@redhat.com,
+        oleg@redhat.com, minchan@kernel.org, mhocko@suse.com,
+        liam.howlett@oracle.com, kirill@shutemov.name, jhubbard@nvidia.com,
+        jannh@google.com, hch@infradead.org, hannes@cmpxchg.org,
+        guro@fb.com, david@redhat.com, brauner@kernel.org,
+        aarcange@redhat.com, surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-oom_kill-use-vma-iterators-instead-of-vma-linked-list.patch removed from -mm tree
-Message-Id: <20220927024952.92733C433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-drop-oom-code-from-exit_mmap.patch removed from -mm tree
+Message-Id: <20220927025006.EFEF8C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,59 +46,143 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/oom_kill: use vma iterators instead of vma linked list
+     Subject: mm: drop oom code from exit_mmap
 has been removed from the -mm tree.  Its filename was
-     mm-oom_kill-use-vma-iterators-instead-of-vma-linked-list.patch
+     mm-drop-oom-code-from-exit_mmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/oom_kill: use vma iterators instead of vma linked list
-Date: Tue, 6 Sep 2022 19:49:03 +0000
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: drop oom code from exit_mmap
+Date: Tue, 31 May 2022 15:30:59 -0700
 
-Use vma iterator in preparation of removing the linked list.
+The primary reason to invoke the oom reaper from the exit_mmap path used
+to be a prevention of an excessive oom killing if the oom victim exit
+races with the oom reaper (see [1] for more details).  The invocation has
+moved around since then because of the interaction with the munlock logic
+but the underlying reason has remained the same (see [2]).
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-62-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-Tested-by: Yu Zhao <yuzhao@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Munlock code is no longer a problem since [3] and there shouldn't be any
+blocking operation before the memory is unmapped by exit_mmap so the oom
+reaper invocation can be dropped.  The unmapping part can be done with the
+non-exclusive mmap_sem and the exclusive one is only required when page
+tables are freed.
+
+Remove the oom_reaper from exit_mmap which will make the code easier to
+read.  This is really unlikely to make any observable difference although
+some microbenchmarks could benefit from one less branch that needs to be
+evaluated even though it almost never is true.
+
+[1] 212925802454 ("mm: oom: let oom_reap_task and exit_mmap run concurrently")
+[2] 27ae357fa82b ("mm, oom: fix concurrent munlock and oom reaper unmap, v3")
+[3] a213e5cf71cb ("mm/munlock: delete munlock_vma_pages_all(), allow oomreap")
+
+[akpm@linux-foundation.org: restore Suren's mmap_read_lock() optimization]
+Link: https://lkml.kernel.org/r/20220531223100.510392-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/oom.h |    2 --
+ mm/mmap.c           |   30 +++++++++++-------------------
+ mm/oom_kill.c       |    2 +-
+ 3 files changed, 12 insertions(+), 22 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-use-vma-iterators-instead-of-vma-linked-list
+--- a/include/linux/oom.h~mm-drop-oom-code-from-exit_mmap
++++ a/include/linux/oom.h
+@@ -106,8 +106,6 @@ static inline vm_fault_t check_stable_ad
+ 	return 0;
+ }
+ 
+-bool __oom_reap_task_mm(struct mm_struct *mm);
+-
+ long oom_badness(struct task_struct *p,
+ 		unsigned long totalpages);
+ 
+--- a/mm/mmap.c~mm-drop-oom-code-from-exit_mmap
++++ a/mm/mmap.c
+@@ -3085,30 +3085,13 @@ void exit_mmap(struct mm_struct *mm)
+ 	/* mm's last user has gone, and its about to be pulled down */
+ 	mmu_notifier_release(mm);
+ 
+-	if (unlikely(mm_is_oom_victim(mm))) {
+-		/*
+-		 * Manually reap the mm to free as much memory as possible.
+-		 * Then, as the oom reaper does, set MMF_OOM_SKIP to disregard
+-		 * this mm from further consideration.  Taking mm->mmap_lock for
+-		 * write after setting MMF_OOM_SKIP will guarantee that the oom
+-		 * reaper will not run on this mm again after mmap_lock is
+-		 * dropped.
+-		 *
+-		 * Nothing can be holding mm->mmap_lock here and the above call
+-		 * to mmu_notifier_release(mm) ensures mmu notifier callbacks in
+-		 * __oom_reap_task_mm() will not block.
+-		 */
+-		(void)__oom_reap_task_mm(mm);
+-		set_bit(MMF_OOM_SKIP, &mm->flags);
+-	}
+-
+-	mmap_write_lock(mm);
++	mmap_read_lock(mm);
+ 	arch_exit_mmap(mm);
+ 
+ 	vma = mas_find(&mas, ULONG_MAX);
+ 	if (!vma) {
+ 		/* Can happen if dup_mmap() received an OOM */
+-		mmap_write_unlock(mm);
++		mmap_read_unlock(mm);
+ 		return;
+ 	}
+ 
+@@ -3118,6 +3101,15 @@ void exit_mmap(struct mm_struct *mm)
+ 	/* update_hiwater_rss(mm) here? but nobody should be looking */
+ 	/* Use ULONG_MAX here to ensure all VMAs in the mm are unmapped */
+ 	unmap_vmas(&tlb, &mm->mm_mt, vma, 0, ULONG_MAX);
++	mmap_read_unlock(mm);
++
++	/*
++	 * Set MMF_OOM_SKIP to hide this task from the oom killer/reaper
++	 * because the memory has been already freed. Do not bother checking
++	 * mm_is_oom_victim because setting a bit unconditionally is cheaper.
++	 */
++	set_bit(MMF_OOM_SKIP, &mm->flags);
++	mmap_write_lock(mm);
+ 	free_pgtables(&tlb, &mm->mm_mt, vma, FIRST_USER_ADDRESS,
+ 		      USER_PGTABLES_CEILING);
+ 	tlb_finish_mmu(&tlb);
+--- a/mm/oom_kill.c~mm-drop-oom-code-from-exit_mmap
 +++ a/mm/oom_kill.c
-@@ -513,6 +513,7 @@ bool __oom_reap_task_mm(struct mm_struct
+@@ -509,7 +509,7 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_reape
+ static struct task_struct *oom_reaper_list;
+ static DEFINE_SPINLOCK(oom_reaper_lock);
+ 
+-bool __oom_reap_task_mm(struct mm_struct *mm)
++static bool __oom_reap_task_mm(struct mm_struct *mm)
  {
  	struct vm_area_struct *vma;
  	bool ret = true;
-+	VMA_ITERATOR(vmi, mm, 0);
- 
- 	/*
- 	 * Tell all users of get_user/copy_from_user etc... that the content
-@@ -522,7 +523,7 @@ bool __oom_reap_task_mm(struct mm_struct
- 	 */
- 	set_bit(MMF_UNSTABLE, &mm->flags);
- 
--	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
-+	for_each_vma(vmi, vma) {
- 		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
- 			continue;
- 
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from surenb@google.com are
 
 
