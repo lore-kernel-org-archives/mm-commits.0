@@ -2,50 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29CDFC6FA82
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:49:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 599A1C32771
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:49:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230338AbiI0Ctr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:49:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58508 "EHLO
+        id S229563AbiI0Cty (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:49:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57916 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230302AbiI0Cs0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:48:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB7F499B48
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:11 -0700 (PDT)
+        with ESMTP id S230383AbiI0Csp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:48:45 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 503569E2F9
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:48:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6DD94B81911
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19FE6C433B5;
-        Tue, 27 Sep 2022 02:48:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 990616155B
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:48:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE555C433C1;
+        Tue, 27 Sep 2022 02:48:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246889;
-        bh=OiIWGDGGPxDjp4AfNp+jmjUndcAyz0XkMA3NTd9ylmk=;
+        s=korg; t=1664246894;
+        bh=1/B1RO6ukWjqkN/tY/VNUI4pfQoP1L1ZOUo4e2n8Qas=;
         h=Date:To:From:Subject:From;
-        b=uC+rEttx2U/K09QXvbpDZzshqnepID7bLPBbGr0jMXO0QR8U5b3BqWbGeU8o9vYda
-         xBwSckPvO7oTg46Ajfe1xJ3W5r/Beirr7EM7J6XSUcwPgw7kXwjx8KaoeDmXej7YnV
-         NBxGiGKz40m5/diYpfQ0fQ078M7V/vGiLOfnPEeM=
-Date:   Mon, 26 Sep 2022 19:48:08 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        willy@infradead.org, will@kernel.org, vbabka@suse.cz,
-        vaibhav@linux.ibm.com, torvalds@linux-foundation.org,
-        tj@kernel.org, szhai2@cs.rochester.edu, suleiman@google.com,
-        steven@liquorix.net, sofia.trinh@edi.works, rppt@linux.ibm.com,
-        rppt@kernel.org, peterz@infradead.org, oleksandr@natalenko.name,
-        Michael@MichaelLarabel.com, mhocko@kernel.org, mgorman@suse.de,
-        linmiaohe@huawei.com, holger@applied-asynchrony.com,
-        Hi-Angel@yandex.ru, heftig@archlinux.org, hdanton@sina.com,
-        hannes@cmpxchg.org, djbyrne@mtu.edu, d@chaos-reins.com,
-        dave.hansen@linux.intel.com, corbet@lwn.net,
-        catalin.marinas@arm.com, bgeffon@google.com, baohua@kernel.org,
-        axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
-        yuzhao@google.com, akpm@linux-foundation.org
+        b=Q+drshTWY1TzcUjhovoeRo+KkugJ1vULJS5oKXX2VgKIgHfz0b8oSqV1gm+lxVV9P
+         DgfxVqGOrgJ1OUQ+vutU/k3rrMzRTWRaw2CSzwt6RvuUircAwY+x9UsS2OR4HD702U
+         JxPvZApDHo5SkJYCXwXB85vS/y92p5CfGlKf3i50=
+Date:   Mon, 26 Sep 2022 19:48:13 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        weixugc@google.com, tim.c.chen@intel.com, sj@kernel.org,
+        shy828301@gmail.com, mhocko@kernel.org, jvgediya.oss@gmail.com,
+        Jonathan.Cameron@huawei.com, hesham.almatary@huawei.com,
+        hannes@cmpxchg.org, dave@stgolabs.net, dave.hansen@intel.com,
+        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-debugfs-interface.patch removed from -mm tree
-Message-Id: <20220927024809.19FE6C433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-demotion-add-support-for-explicit-memory-tiers.patch removed from -mm tree
+Message-Id: <20220927024813.EE555C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,592 +46,334 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: debugfs interface
+     Subject: mm/demotion: add support for explicit memory tiers
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-debugfs-interface.patch
+     mm-demotion-add-support-for-explicit-memory-tiers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: debugfs interface
-Date: Sun, 18 Sep 2022 02:00:09 -0600
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/demotion: add support for explicit memory tiers
+Date: Thu, 18 Aug 2022 18:40:33 +0530
 
-Add /sys/kernel/debug/lru_gen for working set estimation and proactive
-reclaim.  These techniques are commonly used to optimize job scheduling
-(bin packing) in data centers [1][2].
+Patch series "mm/demotion: Memory tiers and demotion", v15.
 
-Compared with the page table-based approach and the PFN-based
-approach, this lruvec-based approach has the following advantages:
-1. It offers better choices because it is aware of memcgs, NUMA nodes,
-   shared mappings and unmapped page cache.
-2. It is more scalable because it is O(nr_hot_pages), whereas the
-   PFN-based approach is O(nr_total_pages).
+The current kernel has the basic memory tiering support: Inactive pages on
+a higher tier NUMA node can be migrated (demoted) to a lower tier NUMA
+node to make room for new allocations on the higher tier NUMA node. 
+Frequently accessed pages on a lower tier NUMA node can be migrated
+(promoted) to a higher tier NUMA node to improve the performance.
 
-Add /sys/kernel/debug/lru_gen_full for debugging.
+In the current kernel, memory tiers are defined implicitly via a demotion
+path relationship between NUMA nodes, which is created during the kernel
+initialization and updated when a NUMA node is hot-added or hot-removed. 
+The current implementation puts all nodes with CPU into the highest tier,
+and builds the tier hierarchy tier-by-tier by establishing the per-node
+demotion targets based on the distances between nodes.
 
-[1] https://dl.acm.org/doi/10.1145/3297858.3304053
-[2] https://dl.acm.org/doi/10.1145/3503222.3507731
+This current memory tier kernel implementation needs to be improved for
+several important use cases:
 
-Link: https://lkml.kernel.org/r/20220918080010.2920238-13-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Brian Geffon <bgeffon@google.com>
-Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
-Acked-by: Oleksandr Natalenko <oleksandr@natalenko.name>
-Acked-by: Steven Barrett <steven@liquorix.net>
-Acked-by: Suleiman Souhlal <suleiman@google.com>
-Tested-by: Daniel Byrne <djbyrne@mtu.edu>
-Tested-by: Donald Carr <d@chaos-reins.com>
-Tested-by: Holger Hoffstätte <holger@applied-asynchrony.com>
-Tested-by: Konstantin Kharlamov <Hi-Angel@yandex.ru>
-Tested-by: Shuang Zhai <szhai2@cs.rochester.edu>
-Tested-by: Sofia Trinh <sofia.trinh@edi.works>
-Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+* The current tier initialization code always initializes each
+  memory-only NUMA node into a lower tier.  But a memory-only NUMA node
+  may have a high performance memory device (e.g.  a DRAM-backed
+  memory-only node on a virtual machine) and that should be put into a
+  higher tier.
+
+* The current tier hierarchy always puts CPU nodes into the top tier. 
+  But on a system with HBM (e.g.  GPU memory) devices, these memory-only
+  HBM NUMA nodes should be in the top tier, and DRAM nodes with CPUs are
+  better to be placed into the next lower tier.
+
+* Also because the current tier hierarchy always puts CPU nodes into the
+  top tier, when a CPU is hot-added (or hot-removed) and triggers a memory
+  node from CPU-less into a CPU node (or vice versa), the memory tier
+  hierarchy gets changed, even though no memory node is added or removed. 
+  This can make the tier hierarchy unstable and make it difficult to
+  support tier-based memory accounting.
+
+* A higher tier node can only be demoted to nodes with shortest distance
+  on the next lower tier as defined by the demotion path, not any other
+  node from any lower tier.  This strict, demotion order does not work in
+  all use cases (e.g.  some use cases may want to allow cross-socket
+  demotion to another node in the same demotion tier as a fallback when
+  the preferred demotion node is out of space), and has resulted in the
+  feature request for an interface to override the system-wide, per-node
+  demotion order from the userspace.  This demotion order is also
+  inconsistent with the page allocation fallback order when all the nodes
+  in a higher tier are out of space: The page allocation can fall back to
+  any node from any lower tier, whereas the demotion order doesn't allow
+  that.
+
+This patch series make the creation of memory tiers explicit under the
+control of device driver.
+
+Memory Tier Initialization
+==========================
+
+Linux kernel presents memory devices as NUMA nodes and each memory device
+is of a specific type.  The memory type of a device is represented by its
+abstract distance.  A memory tier corresponds to a range of abstract
+distance.  This allows for classifying memory devices with a specific
+performance range into a memory tier.
+
+By default, all memory nodes are assigned to the default tier with
+abstract distance 512.
+
+A device driver can move its memory nodes from the default tier.  For
+example, PMEM can move its memory nodes below the default tier, whereas
+GPU can move its memory nodes above the default tier.
+
+The kernel initialization code makes the decision on which exact tier a
+memory node should be assigned to based on the requests from the device
+drivers as well as the memory device hardware information provided by the
+firmware.
+
+Hot-adding/removing CPUs doesn't affect memory tier hierarchy.
+
+
+This patch (of 10):
+
+In the current kernel, memory tiers are defined implicitly via a demotion
+path relationship between NUMA nodes, which is created during the kernel
+initialization and updated when a NUMA node is hot-added or hot-removed. 
+The current implementation puts all nodes with CPU into the highest tier,
+and builds the tier hierarchy by establishing the per-node demotion
+targets based on the distances between nodes.
+
+This current memory tier kernel implementation needs to be improved for
+several important use cases,
+
+The current tier initialization code always initializes each memory-only
+NUMA node into a lower tier.  But a memory-only NUMA node may have a high
+performance memory device (e.g.  a DRAM-backed memory-only node on a
+virtual machine) that should be put into a higher tier.
+
+The current tier hierarchy always puts CPU nodes into the top tier.  But
+on a system with HBM or GPU devices, the memory-only NUMA nodes mapping
+these devices should be in the top tier, and DRAM nodes with CPUs are
+better to be placed into the next lower tier.
+
+With current kernel higher tier node can only be demoted to nodes with
+shortest distance on the next lower tier as defined by the demotion path,
+not any other node from any lower tier.  This strict, demotion order does
+not work in all use cases (e.g.  some use cases may want to allow
+cross-socket demotion to another node in the same demotion tier as a
+fallback when the preferred demotion node is out of space), This demotion
+order is also inconsistent with the page allocation fallback order when
+all the nodes in a higher tier are out of space: The page allocation can
+fall back to any node from any lower tier, whereas the demotion order
+doesn't allow that.
+
+This patch series address the above by defining memory tiers explicitly.
+
+Linux kernel presents memory devices as NUMA nodes and each memory device
+is of a specific type.  The memory type of a device is represented by its
+abstract distance.  A memory tier corresponds to a range of abstract
+distance.  This allows for classifying memory devices with a specific
+performance range into a memory tier.
+
+This patch configures the range/chunk size to be 128.  The default DRAM
+abstract distance is 512.  We can have 4 memory tiers below the default
+DRAM with abstract distance range 0 - 127, 127 - 255, 256- 383, 384 - 511.
+Faster memory devices can be placed in these faster(higher) memory tiers.
+Slower memory devices like persistent memory will have abstract distance
+higher than the default DRAM level.
+
+[akpm@linux-foundation.org: fix comment, per Aneesh]
+Link: https://lkml.kernel.org/r/20220818131042.113280-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20220818131042.113280-2-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Wei Xu <weixugc@google.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hesham Almatary <hesham.almatary@huawei.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michael Larabel <Michael@MichaelLarabel.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Jagdish Gediya <jvgediya.oss@gmail.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    1 
- mm/vmscan.c              |  411 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 402 insertions(+), 10 deletions(-)
+ include/linux/memory-tiers.h |   18 ++++
+ mm/Makefile                  |    1 
+ mm/memory-tiers.c            |  129 +++++++++++++++++++++++++++++++++
+ 3 files changed, 148 insertions(+)
 
---- a/include/linux/nodemask.h~mm-multi-gen-lru-debugfs-interface
-+++ a/include/linux/nodemask.h
-@@ -493,6 +493,7 @@ static inline int num_node_state(enum no
- #define first_online_node	0
- #define first_memory_node	0
- #define next_online_node(nid)	(MAX_NUMNODES)
-+#define next_memory_node(nid)	(MAX_NUMNODES)
- #define nr_node_ids		1U
- #define nr_online_nodes		1U
- 
---- a/mm/vmscan.c~mm-multi-gen-lru-debugfs-interface
-+++ a/mm/vmscan.c
-@@ -52,6 +52,7 @@
- #include <linux/pagewalk.h>
- #include <linux/shmem_fs.h>
- #include <linux/ctype.h>
-+#include <linux/debugfs.h>
- 
- #include <asm/tlbflush.h>
- #include <asm/div64.h>
-@@ -4197,12 +4198,40 @@ static void clear_mm_walk(void)
- 		kfree(walk);
- }
- 
--static void inc_min_seq(struct lruvec *lruvec, int type)
-+static bool inc_min_seq(struct lruvec *lruvec, int type, bool can_swap)
- {
-+	int zone;
-+	int remaining = MAX_LRU_BATCH;
- 	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
+--- /dev/null
++++ a/include/linux/memory-tiers.h
+@@ -0,0 +1,18 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_MEMORY_TIERS_H
++#define _LINUX_MEMORY_TIERS_H
 +
-+	if (type == LRU_GEN_ANON && !can_swap)
-+		goto done;
++/*
++ * Each tier cover a abstrace distance chunk size of 128
++ */
++#define MEMTIER_CHUNK_BITS	7
++#define MEMTIER_CHUNK_SIZE	(1 << MEMTIER_CHUNK_BITS)
++/*
++ * Smaller abstract distance values imply faster (higher) memory tiers. Offset
++ * the DRAM adistance so that we can accommodate devices with a slightly lower
++ * adistance value (slightly faster) than default DRAM adistance to be part of
++ * the same memory tier.
++ */
++#define MEMTIER_ADISTANCE_DRAM	((4 * MEMTIER_CHUNK_SIZE) + (MEMTIER_CHUNK_SIZE >> 1))
 +
-+	/* prevent cold/hot inversion if force_scan is true */
-+	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
-+		struct list_head *head = &lrugen->lists[old_gen][type][zone];
++#endif  /* _LINUX_MEMORY_TIERS_H */
+--- a/mm/Makefile~mm-demotion-add-support-for-explicit-memory-tiers
++++ a/mm/Makefile
+@@ -92,6 +92,7 @@ obj-$(CONFIG_KFENCE) += kfence/
+ obj-$(CONFIG_FAILSLAB) += failslab.o
+ obj-$(CONFIG_MEMTEST)		+= memtest.o
+ obj-$(CONFIG_MIGRATION) += migrate.o
++obj-$(CONFIG_NUMA) += memory-tiers.o
+ obj-$(CONFIG_DEVICE_MIGRATION) += migrate_device.o
+ obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o khugepaged.o
+ obj-$(CONFIG_PAGE_COUNTER) += page_counter.o
+--- /dev/null
++++ a/mm/memory-tiers.c
+@@ -0,0 +1,129 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/types.h>
++#include <linux/nodemask.h>
++#include <linux/slab.h>
++#include <linux/lockdep.h>
++#include <linux/memory-tiers.h>
 +
-+		while (!list_empty(head)) {
-+			struct folio *folio = lru_to_folio(head);
++struct memory_tier {
++	/* hierarchy of memory tiers */
++	struct list_head list;
++	/* list of all memory types part of this tier */
++	struct list_head memory_types;
++	/*
++	 * start value of abstract distance. memory tier maps
++	 * an abstract distance  range,
++	 * adistance_start .. adistance_start + MEMTIER_CHUNK_SIZE
++	 */
++	int adistance_start;
++};
 +
-+			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio), folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
- 
-+			new_gen = folio_inc_gen(lruvec, folio, false);
-+			list_move_tail(&folio->lru, &lrugen->lists[new_gen][type][zone]);
++struct memory_dev_type {
++	/* list of memory types that are part of same tier as this type */
++	struct list_head tier_sibiling;
++	/* abstract distance for this specific memory type */
++	int adistance;
++	/* Nodes of same abstract distance */
++	nodemask_t nodes;
++	struct memory_tier *memtier;
++};
 +
-+			if (!--remaining)
-+				return false;
++static DEFINE_MUTEX(memory_tier_lock);
++static LIST_HEAD(memory_tiers);
++static struct memory_dev_type *node_memory_types[MAX_NUMNODES];
++/*
++ * For now we can have 4 faster memory tiers with smaller adistance
++ * than default DRAM tier.
++ */
++static struct memory_dev_type default_dram_type  = {
++	.adistance = MEMTIER_ADISTANCE_DRAM,
++	.tier_sibiling = LIST_HEAD_INIT(default_dram_type.tier_sibiling),
++};
++
++static struct memory_tier *find_create_memory_tier(struct memory_dev_type *memtype)
++{
++	bool found_slot = false;
++	struct memory_tier *memtier, *new_memtier;
++	int adistance = memtype->adistance;
++	unsigned int memtier_adistance_chunk_size = MEMTIER_CHUNK_SIZE;
++
++	lockdep_assert_held_once(&memory_tier_lock);
++
++	/*
++	 * If the memtype is already part of a memory tier,
++	 * just return that.
++	 */
++	if (memtype->memtier)
++		return memtype->memtier;
++
++	adistance = round_down(adistance, memtier_adistance_chunk_size);
++	list_for_each_entry(memtier, &memory_tiers, list) {
++		if (adistance == memtier->adistance_start) {
++			memtype->memtier = memtier;
++			list_add(&memtype->tier_sibiling, &memtier->memory_types);
++			return memtier;
++		} else if (adistance < memtier->adistance_start) {
++			found_slot = true;
++			break;
 +		}
 +	}
-+done:
- 	reset_ctrl_pos(lruvec, type, true);
- 	WRITE_ONCE(lrugen->min_seq[type], lrugen->min_seq[type] + 1);
 +
-+	return true;
- }
- 
- static bool try_to_inc_min_seq(struct lruvec *lruvec, bool can_swap)
-@@ -4248,7 +4277,7 @@ next:
- 	return success;
- }
- 
--static void inc_max_seq(struct lruvec *lruvec, bool can_swap)
-+static void inc_max_seq(struct lruvec *lruvec, bool can_swap, bool force_scan)
- {
- 	int prev, next;
- 	int type, zone;
-@@ -4262,9 +4291,13 @@ static void inc_max_seq(struct lruvec *l
- 		if (get_nr_gens(lruvec, type) != MAX_NR_GENS)
- 			continue;
- 
--		VM_WARN_ON_ONCE(type == LRU_GEN_FILE || can_swap);
-+		VM_WARN_ON_ONCE(!force_scan && (type == LRU_GEN_FILE || can_swap));
- 
--		inc_min_seq(lruvec, type);
-+		while (!inc_min_seq(lruvec, type, can_swap)) {
-+			spin_unlock_irq(&lruvec->lru_lock);
-+			cond_resched();
-+			spin_lock_irq(&lruvec->lru_lock);
-+		}
- 	}
- 
- 	/*
-@@ -4301,7 +4334,7 @@ static void inc_max_seq(struct lruvec *l
- }
- 
- static bool try_to_inc_max_seq(struct lruvec *lruvec, unsigned long max_seq,
--			       struct scan_control *sc, bool can_swap)
-+			       struct scan_control *sc, bool can_swap, bool force_scan)
- {
- 	bool success;
- 	struct lru_gen_mm_walk *walk;
-@@ -4322,7 +4355,7 @@ static bool try_to_inc_max_seq(struct lr
- 	 * handful of PTEs. Spreading the work out over a period of time usually
- 	 * is less efficient, but it avoids bursty page faults.
- 	 */
--	if (!(arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))) {
-+	if (!force_scan && !(arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))) {
- 		success = iterate_mm_list_nowalk(lruvec, max_seq);
- 		goto done;
- 	}
-@@ -4336,7 +4369,7 @@ static bool try_to_inc_max_seq(struct lr
- 	walk->lruvec = lruvec;
- 	walk->max_seq = max_seq;
- 	walk->can_swap = can_swap;
--	walk->force_scan = false;
-+	walk->force_scan = force_scan;
- 
- 	do {
- 		success = iterate_mm_list(lruvec, walk, &mm);
-@@ -4356,7 +4389,7 @@ done:
- 
- 	VM_WARN_ON_ONCE(max_seq != READ_ONCE(lrugen->max_seq));
- 
--	inc_max_seq(lruvec, can_swap);
-+	inc_max_seq(lruvec, can_swap, force_scan);
- 	/* either this sees any waiters or they will see updated max_seq */
- 	if (wq_has_sleeper(&lruvec->mm_state.wait))
- 		wake_up_all(&lruvec->mm_state.wait);
-@@ -4454,7 +4487,7 @@ static bool age_lruvec(struct lruvec *lr
- 	}
- 
- 	if (need_aging)
--		try_to_inc_max_seq(lruvec, max_seq, sc, swappiness);
-+		try_to_inc_max_seq(lruvec, max_seq, sc, swappiness, false);
- 
- 	return true;
- }
-@@ -5013,7 +5046,7 @@ static unsigned long get_nr_to_scan(stru
- 	if (current_is_kswapd())
- 		return 0;
- 
--	if (try_to_inc_max_seq(lruvec, max_seq, sc, can_swap))
-+	if (try_to_inc_max_seq(lruvec, max_seq, sc, can_swap, false))
- 		return nr_to_scan;
- done:
- 	return min_seq[!can_swap] + MIN_NR_GENS <= max_seq ? nr_to_scan : 0;
-@@ -5353,6 +5386,361 @@ static struct attribute_group lru_gen_at
- };
- 
- /******************************************************************************
-+ *                          debugfs interface
-+ ******************************************************************************/
-+
-+static void *lru_gen_seq_start(struct seq_file *m, loff_t *pos)
-+{
-+	struct mem_cgroup *memcg;
-+	loff_t nr_to_skip = *pos;
-+
-+	m->private = kvmalloc(PATH_MAX, GFP_KERNEL);
-+	if (!m->private)
++	new_memtier = kmalloc(sizeof(struct memory_tier), GFP_KERNEL);
++	if (!new_memtier)
 +		return ERR_PTR(-ENOMEM);
 +
-+	memcg = mem_cgroup_iter(NULL, NULL, NULL);
-+	do {
-+		int nid;
-+
-+		for_each_node_state(nid, N_MEMORY) {
-+			if (!nr_to_skip--)
-+				return get_lruvec(memcg, nid);
-+		}
-+	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
-+
-+	return NULL;
-+}
-+
-+static void lru_gen_seq_stop(struct seq_file *m, void *v)
-+{
-+	if (!IS_ERR_OR_NULL(v))
-+		mem_cgroup_iter_break(NULL, lruvec_memcg(v));
-+
-+	kvfree(m->private);
-+	m->private = NULL;
-+}
-+
-+static void *lru_gen_seq_next(struct seq_file *m, void *v, loff_t *pos)
-+{
-+	int nid = lruvec_pgdat(v)->node_id;
-+	struct mem_cgroup *memcg = lruvec_memcg(v);
-+
-+	++*pos;
-+
-+	nid = next_memory_node(nid);
-+	if (nid == MAX_NUMNODES) {
-+		memcg = mem_cgroup_iter(NULL, memcg, NULL);
-+		if (!memcg)
-+			return NULL;
-+
-+		nid = first_memory_node;
-+	}
-+
-+	return get_lruvec(memcg, nid);
-+}
-+
-+static void lru_gen_seq_show_full(struct seq_file *m, struct lruvec *lruvec,
-+				  unsigned long max_seq, unsigned long *min_seq,
-+				  unsigned long seq)
-+{
-+	int i;
-+	int type, tier;
-+	int hist = lru_hist_from_seq(seq);
-+	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+
-+	for (tier = 0; tier < MAX_NR_TIERS; tier++) {
-+		seq_printf(m, "            %10d", tier);
-+		for (type = 0; type < ANON_AND_FILE; type++) {
-+			const char *s = "   ";
-+			unsigned long n[3] = {};
-+
-+			if (seq == max_seq) {
-+				s = "RT ";
-+				n[0] = READ_ONCE(lrugen->avg_refaulted[type][tier]);
-+				n[1] = READ_ONCE(lrugen->avg_total[type][tier]);
-+			} else if (seq == min_seq[type] || NR_HIST_GENS > 1) {
-+				s = "rep";
-+				n[0] = atomic_long_read(&lrugen->refaulted[hist][type][tier]);
-+				n[1] = atomic_long_read(&lrugen->evicted[hist][type][tier]);
-+				if (tier)
-+					n[2] = READ_ONCE(lrugen->protected[hist][type][tier - 1]);
-+			}
-+
-+			for (i = 0; i < 3; i++)
-+				seq_printf(m, " %10lu%c", n[i], s[i]);
-+		}
-+		seq_putc(m, '\n');
-+	}
-+
-+	seq_puts(m, "                      ");
-+	for (i = 0; i < NR_MM_STATS; i++) {
-+		const char *s = "      ";
-+		unsigned long n = 0;
-+
-+		if (seq == max_seq && NR_HIST_GENS == 1) {
-+			s = "LOYNFA";
-+			n = READ_ONCE(lruvec->mm_state.stats[hist][i]);
-+		} else if (seq != max_seq && NR_HIST_GENS > 1) {
-+			s = "loynfa";
-+			n = READ_ONCE(lruvec->mm_state.stats[hist][i]);
-+		}
-+
-+		seq_printf(m, " %10lu%c", n, s[i]);
-+	}
-+	seq_putc(m, '\n');
-+}
-+
-+static int lru_gen_seq_show(struct seq_file *m, void *v)
-+{
-+	unsigned long seq;
-+	bool full = !debugfs_real_fops(m->file)->write;
-+	struct lruvec *lruvec = v;
-+	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	int nid = lruvec_pgdat(lruvec)->node_id;
-+	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
-+	DEFINE_MAX_SEQ(lruvec);
-+	DEFINE_MIN_SEQ(lruvec);
-+
-+	if (nid == first_memory_node) {
-+		const char *path = memcg ? m->private : "";
-+
-+#ifdef CONFIG_MEMCG
-+		if (memcg)
-+			cgroup_path(memcg->css.cgroup, m->private, PATH_MAX);
-+#endif
-+		seq_printf(m, "memcg %5hu %s\n", mem_cgroup_id(memcg), path);
-+	}
-+
-+	seq_printf(m, " node %5d\n", nid);
-+
-+	if (!full)
-+		seq = min_seq[LRU_GEN_ANON];
-+	else if (max_seq >= MAX_NR_GENS)
-+		seq = max_seq - MAX_NR_GENS + 1;
++	new_memtier->adistance_start = adistance;
++	INIT_LIST_HEAD(&new_memtier->list);
++	INIT_LIST_HEAD(&new_memtier->memory_types);
++	if (found_slot)
++		list_add_tail(&new_memtier->list, &memtier->list);
 +	else
-+		seq = 0;
++		list_add_tail(&new_memtier->list, &memory_tiers);
++	memtype->memtier = new_memtier;
++	list_add(&memtype->tier_sibiling, &new_memtier->memory_types);
++	return new_memtier;
++}
 +
-+	for (; seq <= max_seq; seq++) {
-+		int type, zone;
-+		int gen = lru_gen_from_seq(seq);
-+		unsigned long birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
++static struct memory_tier *set_node_memory_tier(int node)
++{
++	struct memory_tier *memtier;
++	struct memory_dev_type *memtype;
 +
-+		seq_printf(m, " %10lu %10u", seq, jiffies_to_msecs(jiffies - birth));
++	lockdep_assert_held_once(&memory_tier_lock);
 +
-+		for (type = 0; type < ANON_AND_FILE; type++) {
-+			unsigned long size = 0;
-+			char mark = full && seq < min_seq[type] ? 'x' : ' ';
++	if (!node_state(node, N_MEMORY))
++		return ERR_PTR(-EINVAL);
 +
-+			for (zone = 0; zone < MAX_NR_ZONES; zone++)
-+				size += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
++	if (!node_memory_types[node])
++		node_memory_types[node] = &default_dram_type;
 +
-+			seq_printf(m, " %10lu%c", size, mark);
-+		}
++	memtype = node_memory_types[node];
++	node_set(node, memtype->nodes);
++	memtier = find_create_memory_tier(memtype);
++	return memtier;
++}
 +
-+		seq_putc(m, '\n');
++static int __init memory_tier_init(void)
++{
++	int node;
++	struct memory_tier *memtier;
 +
-+		if (full)
-+			lru_gen_seq_show_full(m, lruvec, max_seq, min_seq, seq);
++	mutex_lock(&memory_tier_lock);
++	/*
++	 * Look at all the existing N_MEMORY nodes and add them to
++	 * default memory tier or to a tier if we already have memory
++	 * types assigned.
++	 */
++	for_each_node_state(node, N_MEMORY) {
++		memtier = set_node_memory_tier(node);
++		if (IS_ERR(memtier))
++			/*
++			 * Continue with memtiers we are able to setup
++			 */
++			break;
 +	}
++	mutex_unlock(&memory_tier_lock);
 +
 +	return 0;
 +}
-+
-+static const struct seq_operations lru_gen_seq_ops = {
-+	.start = lru_gen_seq_start,
-+	.stop = lru_gen_seq_stop,
-+	.next = lru_gen_seq_next,
-+	.show = lru_gen_seq_show,
-+};
-+
-+static int run_aging(struct lruvec *lruvec, unsigned long seq, struct scan_control *sc,
-+		     bool can_swap, bool force_scan)
-+{
-+	DEFINE_MAX_SEQ(lruvec);
-+	DEFINE_MIN_SEQ(lruvec);
-+
-+	if (seq < max_seq)
-+		return 0;
-+
-+	if (seq > max_seq)
-+		return -EINVAL;
-+
-+	if (!force_scan && min_seq[!can_swap] + MAX_NR_GENS - 1 <= max_seq)
-+		return -ERANGE;
-+
-+	try_to_inc_max_seq(lruvec, max_seq, sc, can_swap, force_scan);
-+
-+	return 0;
-+}
-+
-+static int run_eviction(struct lruvec *lruvec, unsigned long seq, struct scan_control *sc,
-+			int swappiness, unsigned long nr_to_reclaim)
-+{
-+	DEFINE_MAX_SEQ(lruvec);
-+
-+	if (seq + MIN_NR_GENS > max_seq)
-+		return -EINVAL;
-+
-+	sc->nr_reclaimed = 0;
-+
-+	while (!signal_pending(current)) {
-+		DEFINE_MIN_SEQ(lruvec);
-+
-+		if (seq < min_seq[!swappiness])
-+			return 0;
-+
-+		if (sc->nr_reclaimed >= nr_to_reclaim)
-+			return 0;
-+
-+		if (!evict_folios(lruvec, sc, swappiness, NULL))
-+			return 0;
-+
-+		cond_resched();
-+	}
-+
-+	return -EINTR;
-+}
-+
-+static int run_cmd(char cmd, int memcg_id, int nid, unsigned long seq,
-+		   struct scan_control *sc, int swappiness, unsigned long opt)
-+{
-+	struct lruvec *lruvec;
-+	int err = -EINVAL;
-+	struct mem_cgroup *memcg = NULL;
-+
-+	if (nid < 0 || nid >= MAX_NUMNODES || !node_state(nid, N_MEMORY))
-+		return -EINVAL;
-+
-+	if (!mem_cgroup_disabled()) {
-+		rcu_read_lock();
-+		memcg = mem_cgroup_from_id(memcg_id);
-+#ifdef CONFIG_MEMCG
-+		if (memcg && !css_tryget(&memcg->css))
-+			memcg = NULL;
-+#endif
-+		rcu_read_unlock();
-+
-+		if (!memcg)
-+			return -EINVAL;
-+	}
-+
-+	if (memcg_id != mem_cgroup_id(memcg))
-+		goto done;
-+
-+	lruvec = get_lruvec(memcg, nid);
-+
-+	if (swappiness < 0)
-+		swappiness = get_swappiness(lruvec, sc);
-+	else if (swappiness > 200)
-+		goto done;
-+
-+	switch (cmd) {
-+	case '+':
-+		err = run_aging(lruvec, seq, sc, swappiness, opt);
-+		break;
-+	case '-':
-+		err = run_eviction(lruvec, seq, sc, swappiness, opt);
-+		break;
-+	}
-+done:
-+	mem_cgroup_put(memcg);
-+
-+	return err;
-+}
-+
-+static ssize_t lru_gen_seq_write(struct file *file, const char __user *src,
-+				 size_t len, loff_t *pos)
-+{
-+	void *buf;
-+	char *cur, *next;
-+	unsigned int flags;
-+	struct blk_plug plug;
-+	int err = -EINVAL;
-+	struct scan_control sc = {
-+		.may_writepage = true,
-+		.may_unmap = true,
-+		.may_swap = true,
-+		.reclaim_idx = MAX_NR_ZONES - 1,
-+		.gfp_mask = GFP_KERNEL,
-+	};
-+
-+	buf = kvmalloc(len + 1, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	if (copy_from_user(buf, src, len)) {
-+		kvfree(buf);
-+		return -EFAULT;
-+	}
-+
-+	set_task_reclaim_state(current, &sc.reclaim_state);
-+	flags = memalloc_noreclaim_save();
-+	blk_start_plug(&plug);
-+	if (!set_mm_walk(NULL)) {
-+		err = -ENOMEM;
-+		goto done;
-+	}
-+
-+	next = buf;
-+	next[len] = '\0';
-+
-+	while ((cur = strsep(&next, ",;\n"))) {
-+		int n;
-+		int end;
-+		char cmd;
-+		unsigned int memcg_id;
-+		unsigned int nid;
-+		unsigned long seq;
-+		unsigned int swappiness = -1;
-+		unsigned long opt = -1;
-+
-+		cur = skip_spaces(cur);
-+		if (!*cur)
-+			continue;
-+
-+		n = sscanf(cur, "%c %u %u %lu %n %u %n %lu %n", &cmd, &memcg_id, &nid,
-+			   &seq, &end, &swappiness, &end, &opt, &end);
-+		if (n < 4 || cur[end]) {
-+			err = -EINVAL;
-+			break;
-+		}
-+
-+		err = run_cmd(cmd, memcg_id, nid, seq, &sc, swappiness, opt);
-+		if (err)
-+			break;
-+	}
-+done:
-+	clear_mm_walk();
-+	blk_finish_plug(&plug);
-+	memalloc_noreclaim_restore(flags);
-+	set_task_reclaim_state(current, NULL);
-+
-+	kvfree(buf);
-+
-+	return err ? : len;
-+}
-+
-+static int lru_gen_seq_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &lru_gen_seq_ops);
-+}
-+
-+static const struct file_operations lru_gen_rw_fops = {
-+	.open = lru_gen_seq_open,
-+	.read = seq_read,
-+	.write = lru_gen_seq_write,
-+	.llseek = seq_lseek,
-+	.release = seq_release,
-+};
-+
-+static const struct file_operations lru_gen_ro_fops = {
-+	.open = lru_gen_seq_open,
-+	.read = seq_read,
-+	.llseek = seq_lseek,
-+	.release = seq_release,
-+};
-+
-+/******************************************************************************
-  *                          initialization
-  ******************************************************************************/
- 
-@@ -5409,6 +5797,9 @@ static int __init init_lru_gen(void)
- 	if (sysfs_create_group(mm_kobj, &lru_gen_attr_group))
- 		pr_err("lru_gen: failed to create sysfs group\n");
- 
-+	debugfs_create_file("lru_gen", 0644, NULL, NULL, &lru_gen_rw_fops);
-+	debugfs_create_file("lru_gen_full", 0444, NULL, NULL, &lru_gen_ro_fops);
-+
- 	return 0;
- };
- late_initcall(init_lru_gen);
++subsys_initcall(memory_tier_init);
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
 
