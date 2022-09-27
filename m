@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5FFFC07E9D
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:51:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67046C32771
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:52:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230367AbiI0Cv5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:51:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60370 "EHLO
+        id S230354AbiI0Cv6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:51:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60366 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230354AbiI0Ctq (ORCPT
+        with ESMTP id S230366AbiI0Ctq (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:49:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00DBCF6F7C
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:03 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 189E1F5977
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:49:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B12561593
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E321C43149;
-        Tue, 27 Sep 2022 02:49:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C1D0161590
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:49:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CB21C433C1;
+        Tue, 27 Sep 2022 02:49:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664246942;
-        bh=8QyqH90oRW5yoeNXk/jDo7lU0CfZdEENUWWL7qFM6Jc=;
+        s=korg; t=1664246941;
+        bh=MxeLJFuhJ2dBKlBVzMOLZ7p81ml2Nzg4nnMri7i+ebo=;
         h=Date:To:From:Subject:From;
-        b=pJUkFEVQukwd9mKzvsuZw6+4O5rdhj9gocv8vyOZ3lmUe0fL6Yi7fbHu4SR6CB9r8
-         xV91hk0mu9mfQBMGGm7GyPYxsj8f2u6G07NEYwzMQXoifNDcTSKUOiBlz3qRBKYKP6
-         DwmEbBORuIaWt1Qf1nHBEyqsppwFqHrEQ2ROd4P0=
-Date:   Mon, 26 Sep 2022 19:49:01 -0700
+        b=Xbo6cMRAgCwlTh4F4h5K3i9/1CDTwZh5logOOe2fqB3zCcr6VGXn/uzcVQ+iGvCvy
+         82wbZh3pCWy9Xn95EXx0p9SUJmNRfbIK4bsSAqwTcjlmhNxBPdsxAcjrvDdQq22P4j
+         FCGimIoNIc7Uor/DNH3Rh9sgBjYfyIPFfKhKGfZk=
+Date:   Mon, 26 Sep 2022 19:49:00 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
         sj@kernel.org, dhowells@redhat.com, david@redhat.com,
         dave@stgolabs.net, catalin.marinas@arm.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-use-maple-tree-operations-for-find_vma_intersection.patch removed from -mm tree
-Message-Id: <20220927024902.6E321C43149@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmap-change-do_brk_flags-to-expand-existing-vma-and-add-do_brk_munmap.patch removed from -mm tree
+Message-Id: <20220927024901.1CB21C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,27 +44,36 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: use maple tree operations for find_vma_intersection()
+     Subject: mm/mmap: change do_brk_flags() to expand existing VMA and add do_brk_munmap()
 has been removed from the -mm tree.  Its filename was
-     mm-use-maple-tree-operations-for-find_vma_intersection.patch
+     mm-mmap-change-do_brk_flags-to-expand-existing-vma-and-add-do_brk_munmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: use maple tree operations for find_vma_intersection()
+Subject: mm/mmap: change do_brk_flags() to expand existing VMA and add do_brk_munmap()
 Date: Tue, 6 Sep 2022 19:48:50 +0000
 
-Move find_vma_intersection() to mmap.c and change implementation to maple
-tree.
+Avoid allocating a new VMA when it a vma modification can occur.  When a
+brk() can expand or contract a VMA, then the single store operation will
+only modify one index of the maple tree instead of causing a node to split
+or coalesce.  This avoids unnecessary allocations/frees of maple tree
+nodes and VMAs.
 
-When searching for a vma within a range, it is easier to use the maple
-tree interface.
+Move some limit & flag verifications out of the do_brk_flags() function to
+use only relevant checks in the code path of bkr() and vm_brk_flags().
 
-Exported find_vma_intersection() for kvm module.
+Set the vma to check if it can expand in vm_brk_flags() if extra criteria
+are met.
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-24-Liam.Howlett@oracle.com
+Drop userfaultfd from do_brk_flags() path and only use it in
+vm_brk_flags() path since that is the only place a munmap will happen.
+
+Add a wraper for munmap for the brk case called do_brk_munmap().
+
+Link: https://lkml.kernel.org/r/20220906194824.2110408-23-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -79,102 +88,346 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   22 ++++------------------
- mm/mmap.c          |   29 +++++++++++++++++++++++++++++
- mm/nommu.c         |   11 +++++++++++
- 3 files changed, 44 insertions(+), 18 deletions(-)
+ mm/mmap.c |  239 ++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 178 insertions(+), 61 deletions(-)
 
---- a/include/linux/mm.h~mm-use-maple-tree-operations-for-find_vma_intersection
-+++ a/include/linux/mm.h
-@@ -2778,26 +2778,12 @@ extern struct vm_area_struct * find_vma(
- extern struct vm_area_struct * find_vma_prev(struct mm_struct * mm, unsigned long addr,
- 					     struct vm_area_struct **pprev);
- 
--/**
-- * find_vma_intersection() - Look up the first VMA which intersects the interval
-- * @mm: The process address space.
-- * @start_addr: The inclusive start user address.
-- * @end_addr: The exclusive end user address.
-- *
-- * Returns: The first VMA within the provided range, %NULL otherwise.  Assumes
-- * start_addr < end_addr.
-+/*
-+ * Look up the first VMA which intersects the interval [start_addr, end_addr)
-+ * NULL if none.  Assume start_addr < end_addr.
-  */
--static inline
- struct vm_area_struct *find_vma_intersection(struct mm_struct *mm,
--					     unsigned long start_addr,
--					     unsigned long end_addr)
--{
--	struct vm_area_struct *vma = find_vma(mm, start_addr);
--
--	if (vma && end_addr <= vma->vm_start)
--		vma = NULL;
--	return vma;
--}
-+			unsigned long start_addr, unsigned long end_addr);
- 
- /**
-  * vma_lookup() - Find a VMA at a specific address
---- a/mm/mmap.c~mm-use-maple-tree-operations-for-find_vma_intersection
+--- a/mm/mmap.c~mm-mmap-change-do_brk_flags-to-expand-existing-vma-and-add-do_brk_munmap
 +++ a/mm/mmap.c
-@@ -2062,6 +2062,35 @@ get_unmapped_area(struct file *file, uns
- EXPORT_SYMBOL(get_unmapped_area);
- 
- /**
-+ * find_vma_intersection() - Look up the first VMA which intersects the interval
-+ * @mm: The process address space.
-+ * @start_addr: The inclusive start user address.
-+ * @end_addr: The exclusive end user address.
-+ *
-+ * Returns: The first VMA within the provided range, %NULL otherwise.  Assumes
-+ * start_addr < end_addr.
-+ */
-+struct vm_area_struct *find_vma_intersection(struct mm_struct *mm,
-+					     unsigned long start_addr,
-+					     unsigned long end_addr)
-+{
-+	struct vm_area_struct *vma;
-+	unsigned long index = start_addr;
-+
-+	mmap_assert_locked(mm);
-+	/* Check the cache first. */
-+	vma = vmacache_find(mm, start_addr);
-+	if (likely(vma))
-+		return vma;
-+
-+	vma = mt_find(&mm->mm_mt, &index, end_addr - 1);
-+	if (vma)
-+		vmacache_update(start_addr, vma);
-+	return vma;
-+}
-+EXPORT_SYMBOL(find_vma_intersection);
-+
-+/**
-  * find_vma() - Find the VMA for a given address, or the next VMA.
-  * @mm: The mm_struct to check
-  * @addr: The address
---- a/mm/nommu.c~mm-use-maple-tree-operations-for-find_vma_intersection
-+++ a/mm/nommu.c
-@@ -642,6 +642,17 @@ static void delete_vma(struct mm_struct
- 	vm_area_free(vma);
+@@ -147,17 +147,40 @@ static struct vm_area_struct *remove_vma
+ 	return next;
  }
  
-+struct vm_area_struct *find_vma_intersection(struct mm_struct *mm,
-+					     unsigned long start_addr,
-+					     unsigned long end_addr)
+-static int do_brk_flags(unsigned long addr, unsigned long request, unsigned long flags,
+-		struct list_head *uf);
++/*
++ * check_brk_limits() - Use platform specific check of range & verify mlock
++ * limits.
++ * @addr: The address to check
++ * @len: The size of increase.
++ *
++ * Return: 0 on success.
++ */
++static int check_brk_limits(unsigned long addr, unsigned long len)
 +{
-+	unsigned long index = start_addr;
++	unsigned long mapped_addr;
 +
-+	mmap_assert_locked(mm);
-+	return mt_find(&mm->mm_mt, &index, end_addr - 1);
++	mapped_addr = get_unmapped_area(NULL, addr, len, 0, MAP_FIXED);
++	if (IS_ERR_VALUE(mapped_addr))
++		return mapped_addr;
++
++	return mlock_future_check(current->mm, current->mm->def_flags, len);
 +}
-+EXPORT_SYMBOL(find_vma_intersection);
++static int do_brk_munmap(struct ma_state *mas, struct vm_area_struct *vma,
++			 unsigned long newbrk, unsigned long oldbrk,
++			 struct list_head *uf);
++static int do_brk_flags(struct ma_state *mas, struct vm_area_struct *brkvma,
++			unsigned long addr, unsigned long request,
++			unsigned long flags);
+ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ {
+ 	unsigned long newbrk, oldbrk, origbrk;
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *next;
++	struct vm_area_struct *brkvma, *next = NULL;
+ 	unsigned long min_brk;
+ 	bool populate;
+ 	bool downgraded = false;
+ 	LIST_HEAD(uf);
++	MA_STATE(mas, &mm->mm_mt, 0, 0);
+ 
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
+@@ -199,35 +222,52 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 
+ 	/*
+ 	 * Always allow shrinking brk.
+-	 * __do_munmap() may downgrade mmap_lock to read.
++	 * do_brk_munmap() may downgrade mmap_lock to read.
+ 	 */
+ 	if (brk <= mm->brk) {
+ 		int ret;
+ 
++		/* Search one past newbrk */
++		mas_set(&mas, newbrk);
++		brkvma = mas_find(&mas, oldbrk);
++		BUG_ON(brkvma == NULL);
++		if (brkvma->vm_start >= oldbrk)
++			goto out; /* mapping intersects with an existing non-brk vma. */
+ 		/*
+-		 * mm->brk must to be protected by write mmap_lock so update it
+-		 * before downgrading mmap_lock. When __do_munmap() fails,
+-		 * mm->brk will be restored from origbrk.
++		 * mm->brk must be protected by write mmap_lock.
++		 * do_brk_munmap() may downgrade the lock,  so update it
++		 * before calling do_brk_munmap().
+ 		 */
+ 		mm->brk = brk;
+-		ret = __do_munmap(mm, newbrk, oldbrk-newbrk, &uf, true);
+-		if (ret < 0) {
+-			mm->brk = origbrk;
+-			goto out;
+-		} else if (ret == 1) {
++		mas.last = oldbrk - 1;
++		ret = do_brk_munmap(&mas, brkvma, newbrk, oldbrk, &uf);
++		if (ret == 1)  {
+ 			downgraded = true;
+-		}
+-		goto success;
++			goto success;
++		} else if (!ret)
++			goto success;
 +
++		mm->brk = origbrk;
++		goto out;
+ 	}
+ 
+-	/* Check against existing mmap mappings. */
+-	next = find_vma(mm, oldbrk);
++	if (check_brk_limits(oldbrk, newbrk - oldbrk))
++		goto out;
++
++	/*
++	 * Only check if the next VMA is within the stack_guard_gap of the
++	 * expansion area
++	 */
++	mas_set(&mas, oldbrk);
++	next = mas_find(&mas, newbrk - 1 + PAGE_SIZE + stack_guard_gap);
+ 	if (next && newbrk + PAGE_SIZE > vm_start_gap(next))
+ 		goto out;
+ 
++	brkvma = mas_prev(&mas, mm->start_brk);
+ 	/* Ok, looks good - let it rip. */
+-	if (do_brk_flags(oldbrk, newbrk-oldbrk, 0, &uf) < 0)
++	if (do_brk_flags(&mas, brkvma, oldbrk, newbrk - oldbrk, 0) < 0)
+ 		goto out;
++
+ 	mm->brk = brk;
+ 
+ success:
+@@ -2762,38 +2802,55 @@ out:
+ }
+ 
  /*
-  * look up the first VMA in which addr resides, NULL if none
-  * - should be called with mm->mmap_lock at least held readlocked
+- *  this is really a simplified "do_mmap".  it only handles
+- *  anonymous maps.  eventually we may be able to do some
+- *  brk-specific accounting here.
+- */
+-static int do_brk_flags(unsigned long addr, unsigned long len,
+-			unsigned long flags, struct list_head *uf)
++ * brk_munmap() - Unmap a parital vma.
++ * @mas: The maple tree state.
++ * @vma: The vma to be modified
++ * @newbrk: the start of the address to unmap
++ * @oldbrk: The end of the address to unmap
++ * @uf: The userfaultfd list_head
++ *
++ * Returns: 1 on success.
++ * unmaps a partial VMA mapping.  Does not handle alignment, downgrades lock if
++ * possible.
++ */
++static int do_brk_munmap(struct ma_state *mas, struct vm_area_struct *vma,
++			 unsigned long newbrk, unsigned long oldbrk,
++			 struct list_head *uf)
+ {
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma, *prev;
+-	pgoff_t pgoff = addr >> PAGE_SHIFT;
+-	int error;
+-	unsigned long mapped_addr;
+-	validate_mm_mt(mm);
+-
+-	/* Until we need other flags, refuse anything except VM_EXEC. */
+-	if ((flags & (~VM_EXEC)) != 0)
+-		return -EINVAL;
+-	flags |= VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
+-
+-	mapped_addr = get_unmapped_area(NULL, addr, len, 0, MAP_FIXED);
+-	if (IS_ERR_VALUE(mapped_addr))
+-		return mapped_addr;
++	struct mm_struct *mm = vma->vm_mm;
++	int ret;
+ 
+-	error = mlock_future_check(mm, mm->def_flags, len);
+-	if (error)
+-		return error;
++	arch_unmap(mm, newbrk, oldbrk);
++	ret = __do_munmap(mm, newbrk, oldbrk - newbrk, uf, true);
++	validate_mm_mt(mm);
++	return ret;
++}
+ 
+-	/* Clear old maps, set up prev and uf */
+-	if (munmap_vma_range(mm, addr, len, &prev, uf))
+-		return -ENOMEM;
++/*
++ * do_brk_flags() - Increase the brk vma if the flags match.
++ * @mas: The maple tree state.
++ * @addr: The start address
++ * @len: The length of the increase
++ * @vma: The vma,
++ * @flags: The VMA Flags
++ *
++ * Extend the brk VMA from addr to addr + len.  If the VMA is NULL or the flags
++ * do not match then create a new anonymous VMA.  Eventually we may be able to
++ * do some brk-specific accounting here.
++ */
++static int do_brk_flags(struct ma_state *mas, struct vm_area_struct *vma,
++			unsigned long addr, unsigned long len,
++			unsigned long flags)
++{
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *prev = NULL;
+ 
+-	/* Check against address space limits *after* clearing old maps... */
++	validate_mm_mt(mm);
++	/*
++	 * Check against address space limits by the changed size
++	 * Note: This happens *after* clearing old mappings in some code paths.
++	 */
++	flags |= VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
+ 	if (!may_expand_vm(mm, flags, len >> PAGE_SHIFT))
+ 		return -ENOMEM;
+ 
+@@ -2803,30 +2860,54 @@ static int do_brk_flags(unsigned long ad
+ 	if (security_vm_enough_memory_mm(mm, len >> PAGE_SHIFT))
+ 		return -ENOMEM;
+ 
+-	/* Can we just expand an old private anonymous mapping? */
+-	vma = vma_merge(mm, prev, addr, addr + len, flags,
+-			NULL, NULL, pgoff, NULL, NULL_VM_UFFD_CTX, NULL);
+-	if (vma)
+-		goto out;
+-
+ 	/*
+-	 * create a vma struct for an anonymous mapping
++	 * Expand the existing vma if possible; Note that singular lists do not
++	 * occur after forking, so the expand will only happen on new VMAs.
+ 	 */
+-	vma = vm_area_alloc(mm);
+-	if (!vma) {
+-		vm_unacct_memory(len >> PAGE_SHIFT);
+-		return -ENOMEM;
++	if (vma &&
++	    (!vma->anon_vma || list_is_singular(&vma->anon_vma_chain)) &&
++	    ((vma->vm_flags & ~VM_SOFTDIRTY) == flags)) {
++		mas->index = vma->vm_start;
++		mas->last = addr + len - 1;
++		vma_adjust_trans_huge(vma, addr, addr + len, 0);
++		if (vma->anon_vma) {
++			anon_vma_lock_write(vma->anon_vma);
++			anon_vma_interval_tree_pre_update_vma(vma);
++		}
++		vma->vm_end = addr + len;
++		vma->vm_flags |= VM_SOFTDIRTY;
++		if (mas_store_gfp(mas, vma, GFP_KERNEL))
++			goto mas_expand_failed;
++
++		if (vma->anon_vma) {
++			anon_vma_interval_tree_post_update_vma(vma);
++			anon_vma_unlock_write(vma->anon_vma);
++		}
++		khugepaged_enter_vma(vma, flags);
++		goto out;
+ 	}
++	prev = vma;
++
++	/* create a vma struct for an anonymous mapping */
++	vma = vm_area_alloc(mm);
++	if (!vma)
++		goto vma_alloc_fail;
+ 
+ 	vma_set_anonymous(vma);
+ 	vma->vm_start = addr;
+ 	vma->vm_end = addr + len;
+-	vma->vm_pgoff = pgoff;
++	vma->vm_pgoff = addr >> PAGE_SHIFT;
+ 	vma->vm_flags = flags;
+ 	vma->vm_page_prot = vm_get_page_prot(flags);
+-	if (vma_link(mm, vma, prev))
+-		goto no_vma_link;
++	mas_set_range(mas, vma->vm_start, addr + len - 1);
++	if (mas_store_gfp(mas, vma, GFP_KERNEL))
++		goto mas_store_fail;
++
++	if (!prev)
++		prev = mas_prev(mas, 0);
+ 
++	__vma_link_list(mm, vma, prev);
++	mm->map_count++;
+ out:
+ 	perf_event_mmap(vma);
+ 	mm->total_vm += len >> PAGE_SHIFT;
+@@ -2837,18 +2918,29 @@ out:
+ 	validate_mm_mt(mm);
+ 	return 0;
+ 
+-no_vma_link:
++mas_store_fail:
+ 	vm_area_free(vma);
++vma_alloc_fail:
++	vm_unacct_memory(len >> PAGE_SHIFT);
++	return -ENOMEM;
++
++mas_expand_failed:
++	if (vma->anon_vma) {
++		anon_vma_interval_tree_post_update_vma(vma);
++		anon_vma_unlock_write(vma->anon_vma);
++	}
+ 	return -ENOMEM;
+ }
+ 
+ int vm_brk_flags(unsigned long addr, unsigned long request, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma = NULL;
+ 	unsigned long len;
+ 	int ret;
+ 	bool populate;
+ 	LIST_HEAD(uf);
++	MA_STATE(mas, &mm->mm_mt, addr, addr);
+ 
+ 	len = PAGE_ALIGN(request);
+ 	if (len < request)
+@@ -2859,13 +2951,38 @@ int vm_brk_flags(unsigned long addr, uns
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
+ 
+-	ret = do_brk_flags(addr, len, flags, &uf);
++	/* Until we need other flags, refuse anything except VM_EXEC. */
++	if ((flags & (~VM_EXEC)) != 0)
++		return -EINVAL;
++
++	ret = check_brk_limits(addr, len);
++	if (ret)
++		goto limits_failed;
++
++	if (find_vma_intersection(mm, addr, addr + len))
++		ret = do_munmap(mm, addr, len, &uf);
++
++	if (ret)
++		goto munmap_failed;
++
++	vma = mas_prev(&mas, 0);
++	if (!vma || vma->vm_end != addr || vma_policy(vma) ||
++	    !can_vma_merge_after(vma, flags, NULL, NULL,
++				 addr >> PAGE_SHIFT, NULL_VM_UFFD_CTX, NULL))
++		vma = NULL;
++
++	ret = do_brk_flags(&mas, vma, addr, len, flags);
+ 	populate = ((mm->def_flags & VM_LOCKED) != 0);
+ 	mmap_write_unlock(mm);
+ 	userfaultfd_unmap_complete(mm, &uf);
+ 	if (populate && !ret)
+ 		mm_populate(addr, len);
+ 	return ret;
++
++munmap_failed:
++limits_failed:
++	mmap_write_unlock(mm);
++	return ret;
+ }
+ EXPORT_SYMBOL(vm_brk_flags);
+ 
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
