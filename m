@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED6F6C6FA82
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:56:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD18DC6FA86
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Sep 2022 02:56:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229875AbiI0C4E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:56:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40244 "EHLO
+        id S229904AbiI0C4G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Sep 2022 22:56:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229969AbiI0CzI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:55:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92421205C6
-        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:50:05 -0700 (PDT)
+        with ESMTP id S230466AbiI0Cz2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2022 22:55:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A55834B0EC
+        for <mm-commits@vger.kernel.org>; Mon, 26 Sep 2022 19:50:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1133161552
-        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:50:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68DBBC433B5;
-        Tue, 27 Sep 2022 02:50:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F3DB061554
+        for <mm-commits@vger.kernel.org>; Tue, 27 Sep 2022 02:50:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A037C433C1;
+        Tue, 27 Sep 2022 02:50:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664247004;
-        bh=MQD7zk8lUXiiny5U4wTIzjGX+rF64sDsLQyKbsFLkNA=;
+        s=korg; t=1664247019;
+        bh=UU1Iaaw0dbQOOSVjDdAGqZpj+zce/IrXPxUqKvbDAAM=;
         h=Date:To:From:Subject:From;
-        b=cFEzAQNYCC5yjmBAm3VQvYNgbaF6/6bhaFjgyG7k+WKoEmZO/n1UyBJm0bpdenjRX
-         zrtkGwBgZZF3o4LxQxJr1viNkOznyo3+i3HnHth7FuQfXBNr8DjEtC4BPKmETRTg3z
-         kRwOvXqlZyx7Jam3dNZOfTJHiaGd87BkDNV66iOw=
-Date:   Mon, 26 Sep 2022 19:50:03 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
-        sj@kernel.org, Liam.Howlett@oracle.com, dhowells@redhat.com,
-        david@redhat.com, dave@stgolabs.net, catalin.marinas@arm.com,
-        Liam.Howlett@Oracle.com, akpm@linux-foundation.org
+        b=VZeOXQOAzT4Ri1EfxpGoAlZhbsT0baKxQ9eKT7WEga1iUSoOWVePYDa2Eoquwsd/L
+         2w5lPpH2F5uOaBsFjVkagoRVHdukwVV8aAvL7MaWbkcMwCkttErWJRXAk2DdUpyjeJ
+         70qlzf3uma8RJiDaVG0kb4wa4i0ao3AWQsZEOha4=
+Date:   Mon, 26 Sep 2022 19:50:18 -0700
+To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
+        xu.xin16@zte.com.cn, willy@infradead.org, ran.xiaokai@zte.com.cn,
+        izik.eidus@ravellosystems.com, hughd@google.com,
+        bagasdotme@gmail.com, adobriyan@gmail.com, cgel.zte@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mmapc-pass-in-mapping-to-__vma_link_file.patch removed from -mm tree
-Message-Id: <20220927025004.68DBBC433B5@smtp.kernel.org>
+Subject: [merged mm-stable] ksm-count-allocated-ksm-rmap_items-for-each-process.patch removed from -mm tree
+Message-Id: <20220927025019.5A037C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,104 +44,165 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mmap.c: pass in mapping to __vma_link_file()
+     Subject: ksm: count allocated ksm rmap_items for each process
 has been removed from the -mm tree.  Its filename was
-     mm-mmapc-pass-in-mapping-to-__vma_link_file.patch
+     ksm-count-allocated-ksm-rmap_items-for-each-process.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mmap.c: pass in mapping to __vma_link_file()
-Date: Tue, 6 Sep 2022 19:49:06 +0000
+From: xu xin <cgel.zte@gmail.com>
+Subject: ksm: count allocated ksm rmap_items for each process
+Date: Tue, 30 Aug 2022 14:38:38 +0000
 
-__vma_link_file() resolves the mapping from the file, if there is one.
-Pass through the mapping and check the vm_file externally since most
-places already have the required information and check of vm_file.
+Patch series "ksm: count allocated rmap_items and update documentation",
+v5.
 
-Link: https://lkml.kernel.org/r/20220906194824.2110408-71-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Tested-by: Yu Zhao <yuzhao@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+KSM can save memory by merging identical pages, but also can consume
+additional memory, because it needs to generate rmap_items to save each
+scanned page's brief rmap information.
+
+To determine how beneficial the ksm-policy (like madvise), they are using
+brings, so we add a new interface /proc/<pid>/ksm_stat for each process
+The value "ksm_rmap_items" in it indicates the total allocated ksm
+rmap_items of this process.
+
+The detailed description can be seen in the following patches' commit
+message.
+
+
+This patch (of 2):
+
+KSM can save memory by merging identical pages, but also can consume
+additional memory, because it needs to generate rmap_items to save each
+scanned page's brief rmap information.  Some of these pages may be merged,
+but some may not be abled to be merged after being checked several times,
+which are unprofitable memory consumed.
+
+The information about whether KSM save memory or consume memory in
+system-wide range can be determined by the comprehensive calculation of
+pages_sharing, pages_shared, pages_unshared and pages_volatile.  A simple
+approximate calculation:
+
+	profit =~ pages_sharing * sizeof(page) - (all_rmap_items) *
+	         sizeof(rmap_item);
+
+where all_rmap_items equals to the sum of pages_sharing, pages_shared,
+pages_unshared and pages_volatile.
+
+But we cannot calculate this kind of ksm profit inner single-process wide
+because the information of ksm rmap_item's number of a process is lacked. 
+For user applications, if this kind of information could be obtained, it
+helps upper users know how beneficial the ksm-policy (like madvise) they
+are using brings, and then optimize their app code.  For example, one
+application madvise 1000 pages as MERGEABLE, while only a few pages are
+really merged, then it's not cost-efficient.
+
+So we add a new interface /proc/<pid>/ksm_stat for each process in which
+the value of ksm_rmap_itmes is only shown now and so more values can be
+added in future.
+
+So similarly, we can calculate the ksm profit approximately for a single
+process by:
+
+	profit =~ ksm_merging_pages * sizeof(page) - ksm_rmap_items *
+		 sizeof(rmap_item);
+
+where ksm_merging_pages is shown at /proc/<pid>/ksm_merging_pages, and
+ksm_rmap_items is shown in /proc/<pid>/ksm_stat.
+
+Link: https://lkml.kernel.org/r/20220830143731.299702-1-xu.xin16@zte.com.cn
+Link: https://lkml.kernel.org/r/20220830143838.299758-1-xu.xin16@zte.com.cn
+Signed-off-by: xu xin <xu.xin16@zte.com.cn>
+Reviewed-by: Xiaokai Ran <ran.xiaokai@zte.com.cn>
+Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
+Signed-off-by: CGEL ZTE <cgel.zte@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Izik Eidus <izik.eidus@ravellosystems.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   29 ++++++++++++-----------------
- 1 file changed, 12 insertions(+), 17 deletions(-)
+ fs/proc/base.c           |   15 +++++++++++++++
+ include/linux/mm_types.h |    5 +++++
+ mm/ksm.c                 |    2 ++
+ 3 files changed, 22 insertions(+)
 
---- a/mm/mmap.c~mm-mmapc-pass-in-mapping-to-__vma_link_file
-+++ a/mm/mmap.c
-@@ -407,21 +407,15 @@ static unsigned long count_vma_pages_ran
- 	return nr_pages;
+--- a/fs/proc/base.c~ksm-count-allocated-ksm-rmap_items-for-each-process
++++ a/fs/proc/base.c
+@@ -3199,6 +3199,19 @@ static int proc_pid_ksm_merging_pages(st
+ 
+ 	return 0;
  }
- 
--static void __vma_link_file(struct vm_area_struct *vma)
-+static void __vma_link_file(struct vm_area_struct *vma,
-+			    struct address_space *mapping)
- {
--	struct file *file;
-+	if (vma->vm_flags & VM_SHARED)
-+		mapping_allow_writable(mapping);
- 
--	file = vma->vm_file;
--	if (file) {
--		struct address_space *mapping = file->f_mapping;
--
--		if (vma->vm_flags & VM_SHARED)
--			mapping_allow_writable(mapping);
--
--		flush_dcache_mmap_lock(mapping);
--		vma_interval_tree_insert(vma, &mapping->i_mmap);
--		flush_dcache_mmap_unlock(mapping);
--	}
-+	flush_dcache_mmap_lock(mapping);
-+	vma_interval_tree_insert(vma, &mapping->i_mmap);
-+	flush_dcache_mmap_unlock(mapping);
- }
- 
- /*
-@@ -488,10 +482,11 @@ static int vma_link(struct mm_struct *mm
- 	}
- 
- 	vma_mas_store(vma, &mas);
--	__vma_link_file(vma);
- 
--	if (mapping)
-+	if (mapping) {
-+		__vma_link_file(vma, mapping);
- 		i_mmap_unlock_write(mapping);
++static int proc_pid_ksm_stat(struct seq_file *m, struct pid_namespace *ns,
++				struct pid *pid, struct task_struct *task)
++{
++	struct mm_struct *mm;
++
++	mm = get_task_mm(task);
++	if (mm) {
++		seq_printf(m, "ksm_rmap_items %lu\n", mm->ksm_rmap_items);
++		mmput(mm);
 +	}
++
++	return 0;
++}
+ #endif /* CONFIG_KSM */
  
- 	mm->map_count++;
- 	validate_mm(mm);
-@@ -730,14 +725,14 @@ int __vma_adjust(struct vm_area_struct *
- 			uprobe_munmap(next, next->vm_start, next->vm_end);
+ #ifdef CONFIG_STACKLEAK_METRICS
+@@ -3334,6 +3347,7 @@ static const struct pid_entry tgid_base_
+ #endif
+ #ifdef CONFIG_KSM
+ 	ONE("ksm_merging_pages",  S_IRUSR, proc_pid_ksm_merging_pages),
++	ONE("ksm_stat",  S_IRUSR, proc_pid_ksm_stat),
+ #endif
+ };
  
- 		i_mmap_lock_write(mapping);
--		if (insert) {
-+		if (insert && insert->vm_file) {
- 			/*
- 			 * Put into interval tree now, so instantiated pages
- 			 * are visible to arm/parisc __flush_dcache_page
- 			 * throughout; but we cannot insert into address
- 			 * space until vma start or end is updated.
- 			 */
--			__vma_link_file(insert);
-+			__vma_link_file(insert, insert->vm_file->f_mapping);
- 		}
- 	}
+@@ -3671,6 +3685,7 @@ static const struct pid_entry tid_base_s
+ #endif
+ #ifdef CONFIG_KSM
+ 	ONE("ksm_merging_pages",  S_IRUSR, proc_pid_ksm_merging_pages),
++	ONE("ksm_stat",  S_IRUSR, proc_pid_ksm_stat),
+ #endif
+ };
  
+--- a/include/linux/mm_types.h~ksm-count-allocated-ksm-rmap_items-for-each-process
++++ a/include/linux/mm_types.h
+@@ -654,6 +654,11 @@ struct mm_struct {
+ 		 * merging.
+ 		 */
+ 		unsigned long ksm_merging_pages;
++		/*
++		 * Represent how many pages are checked for ksm merging
++		 * including merged and not merged.
++		 */
++		unsigned long ksm_rmap_items;
+ #endif
+ #ifdef CONFIG_LRU_GEN
+ 		struct {
+--- a/mm/ksm.c~ksm-count-allocated-ksm-rmap_items-for-each-process
++++ a/mm/ksm.c
+@@ -387,6 +387,7 @@ static inline struct rmap_item *alloc_rm
+ static inline void free_rmap_item(struct rmap_item *rmap_item)
+ {
+ 	ksm_rmap_items--;
++	rmap_item->mm->ksm_rmap_items--;
+ 	rmap_item->mm = NULL;	/* debug safety */
+ 	kmem_cache_free(rmap_item_cache, rmap_item);
+ }
+@@ -2235,6 +2236,7 @@ static struct rmap_item *get_next_rmap_i
+ 	if (rmap_item) {
+ 		/* It has already been zeroed */
+ 		rmap_item->mm = mm_slot->mm;
++		rmap_item->mm->ksm_rmap_items++;
+ 		rmap_item->address = addr;
+ 		rmap_item->rmap_list = *rmap_list;
+ 		*rmap_list = rmap_item;
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from cgel.zte@gmail.com are
 
 
