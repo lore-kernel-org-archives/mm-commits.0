@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C601AC04A95
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Sep 2022 14:56:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6434C32771
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Sep 2022 14:56:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234084AbiI1O4U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Sep 2022 10:56:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60398 "EHLO
+        id S233850AbiI1O4W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Sep 2022 10:56:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233839AbiI1O4S (ORCPT
+        with ESMTP id S233942AbiI1O4S (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2022 10:56:18 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB6EA8E4C3
-        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 07:56:03 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E39E990825
+        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 07:56:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 16449B82034
-        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 14:56:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55FF4C433C1;
-        Wed, 28 Sep 2022 14:56:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 33C2E61EC5
+        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 14:56:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66C69C433D6;
+        Wed, 28 Sep 2022 14:56:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664376960;
-        bh=kvfqLrMG1GUBpejXUkPLgA6gnxxADQiRN5RjjUYiOIY=;
+        s=korg; t=1664376965;
+        bh=FACfqjpWleyq3h2v+2nOugOzfP2Xxz/5lfmhaOoLtgU=;
         h=Date:To:From:Subject:From;
-        b=nFr3ZTxbTpcVBs7xDY92LqmOZR398J7vWM24K7RESolKQxR03YoBPrIdW0NCxO2ns
-         tb3ihhhhkaufay7FWIQrXz5dBpdN9ALLk59meZoNAYeSb9UoIERVWOwYIy78p2hWg6
-         autEZbDgVb5Tvdab6Wm7yxKIXcBNxa2DsIgf+BXs=
-Date:   Wed, 28 Sep 2022 07:55:54 -0700
+        b=RZf4HIXJkcnCC0ap+ZtN5BxzY7Oc82r1uUUSaPWA7kvjbmzS5GyT0QCquaY9KR9H4
+         541Sc1OAPFTngapQrt7F+WFkWItBdzYGwjZcAK/CVuiLchyV/z7dZZZoXDS+UoI4S3
+         tRWur5ipy6gfyktVHBWAgeE270oa/I5j9WRzYyAY=
+Date:   Wed, 28 Sep 2022 07:56:01 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         trond.myklebust@hammerspace.com, miklos@szeredi.hu,
         logang@deltatee.com, jack@suse.cz, hch@infradead.org,
         djwong@kernel.org, david@redhat.com, axboe@kernel.dk,
         anna@kernel.org, jhubbard@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] block-bio-fs-convert-most-filesystems-to-pin_user_pages_fast.patch removed from -mm tree
-Message-Id: <20220928145600.55FF4C433C1@smtp.kernel.org>
+Subject: [to-be-updated] nfs-direct-io-convert-to-foll_pin-pages.patch removed from -mm tree
+Message-Id: <20220928145605.66C69C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,24 +44,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: block, bio, fs: convert most filesystems to pin_user_pages_fast()
+     Subject: NFS: direct-io: convert to FOLL_PIN pages
 has been removed from the -mm tree.  Its filename was
-     block-bio-fs-convert-most-filesystems-to-pin_user_pages_fast.patch
+     nfs-direct-io-convert-to-foll_pin-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: block, bio, fs: convert most filesystems to pin_user_pages_fast()
-Date: Tue, 30 Aug 2022 21:18:41 -0700
+Subject: NFS: direct-io: convert to FOLL_PIN pages
+Date: Tue, 30 Aug 2022 21:18:42 -0700
 
-Use dio_w_*() wrapper calls, in place of get_user_pages_fast(),
-get_page() and put_page().
+Convert the NFS Direct IO layer to use pin_user_pages_fast() and
+unpin_user_page(), instead of get_user_pages_fast() and put_page().
 
-This converts the Direct IO parts of most filesystems over to using
-FOLL_PIN (pin_user_page*()) page pinning.
+The user of pin_user_pages_fast() depends upon:
 
-Link: https://lkml.kernel.org/r/20220831041843.973026-6-jhubbard@nvidia.com
+1) CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO, and
+
+2) User-space-backed pages: user_backed_iter(i) == true
+
+Link: https://lkml.kernel.org/r/20220831041843.973026-7-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Anna Schumaker <anna@kernel.org>
@@ -76,301 +79,75 @@ Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bio.c          |   27 ++++++++++++++-------------
- block/blk-map.c      |    7 ++++---
- fs/direct-io.c       |   40 ++++++++++++++++++++--------------------
- fs/iomap/direct-io.c |    2 +-
- 4 files changed, 39 insertions(+), 37 deletions(-)
+ fs/nfs/direct.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
---- a/block/bio.c~block-bio-fs-convert-most-filesystems-to-pin_user_pages_fast
-+++ a/block/bio.c
-@@ -1125,7 +1125,7 @@ void __bio_release_pages(struct bio *bio
- 	bio_for_each_segment_all(bvec, bio, iter_all) {
- 		if (mark_dirty && !PageCompound(bvec->bv_page))
- 			set_page_dirty_lock(bvec->bv_page);
--		put_page(bvec->bv_page);
-+		dio_w_unpin_user_page(bvec->bv_page);
- 	}
- }
- EXPORT_SYMBOL_GPL(__bio_release_pages);
-@@ -1162,7 +1162,7 @@ static int bio_iov_add_page(struct bio *
- 	}
- 
- 	if (same_page)
--		put_page(page);
-+		dio_w_unpin_user_page(page);
+--- a/fs/nfs/direct.c~nfs-direct-io-convert-to-foll_pin-pages
++++ a/fs/nfs/direct.c
+@@ -142,11 +142,13 @@ int nfs_swap_rw(struct kiocb *iocb, stru
  	return 0;
  }
  
-@@ -1176,7 +1176,7 @@ static int bio_iov_add_zone_append_page(
- 			queue_max_zone_append_sectors(q), &same_page) != len)
- 		return -EINVAL;
- 	if (same_page)
--		put_page(page);
-+		dio_w_unpin_user_page(page);
- 	return 0;
- }
- 
-@@ -1187,10 +1187,10 @@ static int bio_iov_add_zone_append_page(
-  * @bio: bio to add pages to
-  * @iter: iov iterator describing the region to be mapped
-  *
-- * Pins pages from *iter and appends them to @bio's bvec array. The
-- * pages will have to be released using put_page() when done.
-- * For multi-segment *iter, this function only adds pages from the
-- * next non-empty segment of the iov iterator.
-+ * Pins pages from *iter and appends them to @bio's bvec array. The pages will
-+ * have to be released using dio_w_unpin_user_page when done. For multi-segment
-+ * *iter, this function only adds pages from the next non-empty segment of the
-+ * iov iterator.
-  */
- static int __bio_iov_iter_get_pages(struct bio *bio, struct iov_iter *iter)
+-static void nfs_direct_release_pages(struct page **pages, unsigned int npages)
++static void nfs_direct_release_pages(struct iov_iter *iter, struct page **pages,
++				     unsigned int npages)
  {
-@@ -1218,8 +1218,9 @@ static int __bio_iov_iter_get_pages(stru
- 	 * result to ensure the bio's total size is correct. The remainder of
- 	 * the iov data will be picked up in the next bio iteration.
- 	 */
--	size = iov_iter_get_pages2(iter, pages, UINT_MAX - bio->bi_iter.bi_size,
--				  nr_pages, &offset);
-+	size = dio_w_iov_iter_pin_pages(iter, pages,
-+					UINT_MAX - bio->bi_iter.bi_size,
-+					nr_pages, &offset);
- 	if (unlikely(size <= 0))
- 		return size ? size : -EFAULT;
- 
-@@ -1252,7 +1253,7 @@ static int __bio_iov_iter_get_pages(stru
- 	iov_iter_revert(iter, left);
- out:
- 	while (i < nr_pages)
--		put_page(pages[i++]);
-+		dio_w_unpin_user_page(pages[i++]);
- 
- 	return ret;
- }
-@@ -1444,9 +1445,9 @@ void bio_set_pages_dirty(struct bio *bio
-  * have been written out during the direct-IO read.  So we take another ref on
-  * the BIO and re-dirty the pages in process context.
-  *
-- * It is expected that bio_check_pages_dirty() will wholly own the BIO from
-- * here on.  It will run one put_page() against each page and will run one
-- * bio_put() against the BIO.
-+ * It is expected that bio_check_pages_dirty() will wholly own the BIO from here
-+ * on.  It will run one dio_w_unpin_user_page() against each page and will run
-+ * one bio_put() against the BIO.
-  */
- 
- static void bio_dirty_fn(struct work_struct *work);
---- a/block/blk-map.c~block-bio-fs-convert-most-filesystems-to-pin_user_pages_fast
-+++ a/block/blk-map.c
-@@ -254,7 +254,8 @@ static int bio_map_user_iov(struct reque
- 		size_t offs, added = 0;
- 		int npages;
- 
--		bytes = iov_iter_get_pages_alloc2(iter, &pages, LONG_MAX, &offs);
-+		bytes = dio_w_iov_iter_pin_pages_alloc(iter, &pages, LONG_MAX,
-+						       &offs);
- 		if (unlikely(bytes <= 0)) {
- 			ret = bytes ? bytes : -EFAULT;
- 			goto out_unmap;
-@@ -276,7 +277,7 @@ static int bio_map_user_iov(struct reque
- 				if (!bio_add_hw_page(rq->q, bio, page, n, offs,
- 						     max_sectors, &same_page)) {
- 					if (same_page)
--						put_page(page);
-+						dio_w_unpin_user_page(page);
- 					break;
- 				}
- 
-@@ -289,7 +290,7 @@ static int bio_map_user_iov(struct reque
- 		 * release the pages we didn't map into the bio, if any
- 		 */
- 		while (j < npages)
--			put_page(pages[j++]);
-+			dio_w_unpin_user_page(pages[j++]);
- 		kvfree(pages);
- 		/* couldn't stuff something into bio? */
- 		if (bytes) {
---- a/fs/direct-io.c~block-bio-fs-convert-most-filesystems-to-pin_user_pages_fast
-+++ a/fs/direct-io.c
-@@ -169,8 +169,8 @@ static inline int dio_refill_pages(struc
- 	const enum req_op dio_op = dio->opf & REQ_OP_MASK;
- 	ssize_t ret;
- 
--	ret = iov_iter_get_pages2(sdio->iter, dio->pages, LONG_MAX, DIO_PAGES,
--				&sdio->from);
-+	ret = dio_w_iov_iter_pin_pages(sdio->iter, dio->pages, LONG_MAX,
-+				       DIO_PAGES, &sdio->from);
- 
- 	if (ret < 0 && sdio->blocks_available && dio_op == REQ_OP_WRITE) {
- 		struct page *page = ZERO_PAGE(0);
-@@ -181,7 +181,7 @@ static inline int dio_refill_pages(struc
- 		 */
- 		if (dio->page_errors == 0)
- 			dio->page_errors = ret;
--		get_page(page);
-+		dio_w_pin_user_page(page);
- 		dio->pages[0] = page;
- 		sdio->head = 0;
- 		sdio->tail = 1;
-@@ -197,7 +197,7 @@ static inline int dio_refill_pages(struc
- 		sdio->to = ((ret - 1) & (PAGE_SIZE - 1)) + 1;
- 		return 0;
- 	}
--	return ret;	
-+	return ret;
+-	unsigned int i;
+-	for (i = 0; i < npages; i++)
+-		put_page(pages[i]);
++	if (user_backed_iter(iter) || iov_iter_is_bvec(iter))
++		dio_w_unpin_user_pages(pages, npages);
++	else
++		release_pages(pages, npages);
  }
  
- /*
-@@ -324,7 +324,7 @@ static void dio_aio_complete_work(struct
- static blk_status_t dio_bio_complete(struct dio *dio, struct bio *bio);
+ void nfs_init_cinfo_from_dreq(struct nfs_commit_info *cinfo,
+@@ -332,11 +334,11 @@ static ssize_t nfs_direct_read_schedule_
+ 		size_t pgbase;
+ 		unsigned npages, i;
  
- /*
-- * Asynchronous IO callback. 
-+ * Asynchronous IO callback.
-  */
- static void dio_bio_end_aio(struct bio *bio)
- {
-@@ -449,7 +449,7 @@ static inline void dio_bio_submit(struct
- static inline void dio_cleanup(struct dio *dio, struct dio_submit *sdio)
- {
- 	while (sdio->head < sdio->tail)
--		put_page(dio->pages[sdio->head++]);
-+		dio_w_unpin_user_page(dio->pages[sdio->head++]);
- }
- 
- /*
-@@ -716,7 +716,7 @@ static inline int dio_bio_add_page(struc
- 		 */
- 		if ((sdio->cur_page_len + sdio->cur_page_offset) == PAGE_SIZE)
- 			sdio->pages_in_io--;
--		get_page(sdio->cur_page);
-+		dio_w_pin_user_page(sdio->cur_page);
- 		sdio->final_block_in_bio = sdio->cur_page_block +
- 			(sdio->cur_page_len >> sdio->blkbits);
- 		ret = 0;
-@@ -725,7 +725,7 @@ static inline int dio_bio_add_page(struc
- 	}
- 	return ret;
- }
--		
+-		result = iov_iter_get_pages_alloc2(iter, &pagevec,
++		result = dio_w_iov_iter_pin_pages_alloc(iter, &pagevec,
+ 						  rsize, &pgbase);
+ 		if (result < 0)
+ 			break;
+-	
 +
- /*
-  * Put cur_page under IO.  The section of cur_page which is described by
-  * cur_page_offset,cur_page_len is put into a BIO.  The section of cur_page
-@@ -787,7 +787,7 @@ out:
-  * An autonomous function to put a chunk of a page under deferred IO.
-  *
-  * The caller doesn't actually know (or care) whether this piece of page is in
-- * a BIO, or is under IO or whatever.  We just take care of all possible 
-+ * a BIO, or is under IO or whatever.  We just take care of all possible
-  * situations here.  The separation between the logic of do_direct_IO() and
-  * that of submit_page_section() is important for clarity.  Please don't break.
-  *
-@@ -832,13 +832,13 @@ submit_page_section(struct dio *dio, str
- 	 */
- 	if (sdio->cur_page) {
- 		ret = dio_send_cur_page(dio, sdio, map_bh);
--		put_page(sdio->cur_page);
-+		dio_w_unpin_user_page(sdio->cur_page);
- 		sdio->cur_page = NULL;
- 		if (ret)
- 			return ret;
- 	}
- 
--	get_page(page);		/* It is in dio */
-+	dio_w_pin_user_page(page); /* It is in dio */
- 	sdio->cur_page = page;
- 	sdio->cur_page_offset = offset;
- 	sdio->cur_page_len = len;
-@@ -853,7 +853,7 @@ out:
- 		ret = dio_send_cur_page(dio, sdio, map_bh);
- 		if (sdio->bio)
- 			dio_bio_submit(dio, sdio);
--		put_page(sdio->cur_page);
-+		dio_w_unpin_user_page(sdio->cur_page);
- 		sdio->cur_page = NULL;
- 	}
- 	return ret;
-@@ -890,7 +890,7 @@ static inline void dio_zero_block(struct
- 	 * We need to zero out part of an fs block.  It is either at the
- 	 * beginning or the end of the fs block.
- 	 */
--	if (end) 
-+	if (end)
- 		this_chunk_blocks = dio_blocks_per_fs_block - this_chunk_blocks;
- 
- 	this_chunk_bytes = this_chunk_blocks << sdio->blkbits;
-@@ -954,7 +954,7 @@ static int do_direct_IO(struct dio *dio,
- 
- 				ret = get_more_blocks(dio, sdio, map_bh);
- 				if (ret) {
--					put_page(page);
-+					dio_w_unpin_user_page(page);
- 					goto out;
- 				}
- 				if (!buffer_mapped(map_bh))
-@@ -999,7 +999,7 @@ do_holes:
- 
- 				/* AKPM: eargh, -ENOTBLK is a hack */
- 				if (dio_op == REQ_OP_WRITE) {
--					put_page(page);
-+					dio_w_unpin_user_page(page);
- 					return -ENOTBLK;
- 				}
- 
-@@ -1012,7 +1012,7 @@ do_holes:
- 				if (sdio->block_in_file >=
- 						i_size_aligned >> blkbits) {
- 					/* We hit eof */
--					put_page(page);
-+					dio_w_unpin_user_page(page);
- 					goto out;
- 				}
- 				zero_user(page, from, 1 << blkbits);
-@@ -1052,7 +1052,7 @@ do_holes:
- 						  sdio->next_block_for_io,
- 						  map_bh);
- 			if (ret) {
--				put_page(page);
-+				dio_w_unpin_user_page(page);
- 				goto out;
- 			}
- 			sdio->next_block_for_io += this_chunk_blocks;
-@@ -1067,8 +1067,8 @@ next_block:
- 				break;
+ 		bytes = result;
+ 		npages = (result + pgbase + PAGE_SIZE - 1) / PAGE_SIZE;
+ 		for (i = 0; i < npages; i++) {
+@@ -362,7 +364,7 @@ static ssize_t nfs_direct_read_schedule_
+ 			pos += req_len;
+ 			dreq->bytes_left -= req_len;
  		}
+-		nfs_direct_release_pages(pagevec, npages);
++		nfs_direct_release_pages(iter, pagevec, npages);
+ 		kvfree(pagevec);
+ 		if (result < 0)
+ 			break;
+@@ -791,8 +793,8 @@ static ssize_t nfs_direct_write_schedule
+ 		size_t pgbase;
+ 		unsigned npages, i;
  
--		/* Drop the ref which was taken in get_user_pages() */
--		put_page(page);
-+		/* Drop the ref which was taken in [get|pin]_user_pages() */
-+		dio_w_unpin_user_page(page);
- 	}
- out:
- 	return ret;
-@@ -1288,7 +1288,7 @@ ssize_t __blockdev_direct_IO(struct kioc
- 		ret2 = dio_send_cur_page(dio, &sdio, &map_bh);
- 		if (retval == 0)
- 			retval = ret2;
--		put_page(sdio.cur_page);
-+		dio_w_unpin_user_page(sdio.cur_page);
- 		sdio.cur_page = NULL;
- 	}
- 	if (sdio.bio)
---- a/fs/iomap/direct-io.c~block-bio-fs-convert-most-filesystems-to-pin_user_pages_fast
-+++ a/fs/iomap/direct-io.c
-@@ -202,7 +202,7 @@ static void iomap_dio_zero(const struct
- 	bio->bi_private = dio;
- 	bio->bi_end_io = iomap_dio_bio_end_io;
+-		result = iov_iter_get_pages_alloc2(iter, &pagevec,
+-						  wsize, &pgbase);
++		result = dio_w_iov_iter_pin_pages_alloc(iter, &pagevec,
++							wsize, &pgbase);
+ 		if (result < 0)
+ 			break;
  
--	get_page(page);
-+	dio_w_pin_user_page(page);
- 	__bio_add_page(bio, page, len, 0);
- 	iomap_dio_submit_bio(iter, dio, bio, pos);
- }
+@@ -829,7 +831,7 @@ static ssize_t nfs_direct_write_schedule
+ 			pos += req_len;
+ 			dreq->bytes_left -= req_len;
+ 		}
+-		nfs_direct_release_pages(pagevec, npages);
++		nfs_direct_release_pages(iter, pagevec, npages);
+ 		kvfree(pagevec);
+ 		if (result < 0)
+ 			break;
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-nfs-direct-io-convert-to-foll_pin-pages.patch
 fuse-convert-direct-io-paths-to-use-foll_pin.patch
 
