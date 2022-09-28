@@ -2,182 +2,160 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A599CC32771
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Sep 2022 14:53:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1549DC04A95
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Sep 2022 14:55:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231301AbiI1Oxk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Sep 2022 10:53:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52170 "EHLO
+        id S229576AbiI1Ozf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Sep 2022 10:55:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233629AbiI1Oxa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2022 10:53:30 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93E0237FA8
-        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 07:53:28 -0700 (PDT)
+        with ESMTP id S232937AbiI1Oze (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2022 10:55:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEEEF48CA8
+        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 07:55:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id CA62CCE1E4B
-        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 14:53:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA848C433C1;
-        Wed, 28 Sep 2022 14:53:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 05D3E61EC5
+        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 14:55:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20507C433D6;
+        Wed, 28 Sep 2022 14:55:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664376805;
-        bh=vNIXum3Hn0abeWV27nhPsmHbEV+v8zZxmvBOrj/Qn4s=;
+        s=korg; t=1664376932;
+        bh=gIrSsfKXmPdONKrO62gx8LW/KT37TqqnRrXHejQlSDw=;
         h=Date:To:From:Subject:From;
-        b=cJNMgZjYRtyhSZI/lO5rxhPLXmHq9l0K/OfMYlxAZouxNlpwfE+LhJbtlF41ZL59b
-         6s5xJMe2Y4SwTTCEMpezZspa37/xajf0uJ/tZGflIpBQytE26EsdAKlite1zk/4A02
-         5pnkPk0vQzRtyJ8UOlHMxF9xMvaC1g4ncNVYj43o=
-Date:   Wed, 28 Sep 2022 07:53:17 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, xhao@linux.alibaba.com,
-        akpm@linux-foundation.org
+        b=GlTht7fVQz/oO24R//nprj3JwJFSitC5YOlGmNIl15BqnQoY8s3r3Db8iWoG2rktz
+         55K7Ay4unNYBC19ip/ZLK+EMGUfKLHiPR3JP3C2e96V+7k8129+bRCMPkUdhvc68fV
+         QtqAPnvehbxtJxVsFxVcv5uRd/BBjWGXO4Grhuyo=
+Date:   Wed, 28 Sep 2022 07:55:25 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        trond.myklebust@hammerspace.com, miklos@szeredi.hu,
+        logang@deltatee.com, jack@suse.cz, hch@infradead.org,
+        djwong@kernel.org, david@redhat.com, axboe@kernel.dk,
+        anna@kernel.org, jhubbard@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-use-damon_sz_region-in-appropriate-place.patch added to mm-unstable branch
-Message-Id: <20220928145324.EA848C433C1@smtp.kernel.org>
+Subject: [to-be-updated] mm-change-release_pages-to-use-unsigned-long-for-npages.patch removed from -mm tree
+Message-Id: <20220928145532.20507C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/damon: use damon_sz_region() in appropriate place
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-use-damon_sz_region-in-appropriate-place.patch
+The quilt patch titled
+     Subject: mm: change release_pages() to use unsigned long for npages
+has been removed from the -mm tree.  Its filename was
+     mm-change-release_pages-to-use-unsigned-long-for-npages.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-use-damon_sz_region-in-appropriate-place.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Xin Hao <xhao@linux.alibaba.com>
-Subject: mm/damon: use damon_sz_region() in appropriate place
-Date: Tue, 27 Sep 2022 08:19:46 +0800
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm: change release_pages() to use unsigned long for npages
+Date: Tue, 30 Aug 2022 21:18:37 -0700
 
-In many places we can use damon_sz_region() to instead of "r->ar.end -
-r->ar.start".
+Patch series "convert most filesystems to pin_user_pages_fast()", v2.
 
-Link: https://lkml.kernel.org/r/20220927001946.85375-2-xhao@linux.alibaba.com
-Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
-Suggested-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+This converts the iomap core and bio_release_pages() to
+pin_user_pages_fast(), also referred to as FOLL_PIN here.
+
+The conversion is temporarily guarded by
+CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO.  In the future (not part of this
+series), when we are certain that all filesystems have converted their
+Direct IO paths to FOLL_PIN, then we can do the final step, which is to
+get rid of CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO and search-and-replace
+the dio_w_*() functions with their final names (see bvec.h changes).
+
+I'd like to get this part committed at some point, because it seems to
+work well already.  And this will help get the remaining items, below,
+converted.
+
+Status: although many filesystems have been converted, some remain to be
+investigated.  These include (you can recreate this list by grepping for
+iov_iter_get_pages):
+
+	cephfs
+	cifs
+	9P
+	RDS
+	net/core: datagram.c, skmsg.c
+	net/tls
+	fs/splice.c
+
+
+This patch (of 7):
+
+The various callers of release_pages() are passing in either various types
+(signed or unsigned) and lengths (int or long) of integers, for the second
+argument (number of pages).  To make this conversion accurate and to avoid
+having to check for overflow (or deal with type conversion warnings),
+let's just change release_pages() to accept an unsigned long for the
+number of pages.
+
+Also change the name of the argument, from "nr" to "npages", for clarity,
+as long as that line is being changed anyway.
+
+Link: https://lkml.kernel.org/r/20220831041843.973026-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20220831041843.973026-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Anna Schumaker <anna@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ include/linux/mm.h |    2 +-
+ mm/swap.c          |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-use-damon_sz_region-in-appropriate-place
-+++ a/mm/damon/core.c
-@@ -490,7 +490,7 @@ static unsigned long damon_region_sz_lim
+--- a/include/linux/mm.h~mm-change-release_pages-to-use-unsigned-long-for-npages
++++ a/include/linux/mm.h
+@@ -1177,7 +1177,7 @@ static inline void folio_put_refs(struct
+ 		__folio_put(folio);
+ }
  
- 	damon_for_each_target(t, ctx) {
- 		damon_for_each_region(r, t)
--			sz += r->ar.end - r->ar.start;
-+			sz += damon_sz_region(r);
- 	}
+-void release_pages(struct page **pages, int nr);
++void release_pages(struct page **pages, unsigned long npages);
  
- 	if (ctx->attrs.min_nr_regions)
-@@ -673,7 +673,7 @@ static bool __damos_valid_target(struct
+ /**
+  * folios_put - Decrement the reference count on an array of folios.
+--- a/mm/swap.c~mm-change-release_pages-to-use-unsigned-long-for-npages
++++ a/mm/swap.c
+@@ -975,15 +975,15 @@ void lru_cache_disable(void)
+  * Decrement the reference count on all the pages in @pages.  If it
+  * fell to zero, remove the page from the LRU and free it.
+  */
+-void release_pages(struct page **pages, int nr)
++void release_pages(struct page **pages, unsigned long npages)
  {
- 	unsigned long sz;
+-	int i;
++	unsigned long i;
+ 	LIST_HEAD(pages_to_free);
+ 	struct lruvec *lruvec = NULL;
+ 	unsigned long flags = 0;
+ 	unsigned int lock_batch;
  
--	sz = r->ar.end - r->ar.start;
-+	sz = damon_sz_region(r);
- 	return s->pattern.min_sz_region <= sz &&
- 		sz <= s->pattern.max_sz_region &&
- 		s->pattern.min_nr_accesses <= r->nr_accesses &&
-@@ -701,7 +701,7 @@ static void damon_do_apply_schemes(struc
+-	for (i = 0; i < nr; i++) {
++	for (i = 0; i < npages; i++) {
+ 		struct folio *folio = page_folio(pages[i]);
  
- 	damon_for_each_scheme(s, c) {
- 		struct damos_quota *quota = &s->quota;
--		unsigned long sz = r->ar.end - r->ar.start;
-+		unsigned long sz = damon_sz_region(r);
- 		struct timespec64 begin, end;
- 		unsigned long sz_applied = 0;
- 
-@@ -730,14 +730,14 @@ static void damon_do_apply_schemes(struc
- 				sz = ALIGN_DOWN(quota->charge_addr_from -
- 						r->ar.start, DAMON_MIN_REGION);
- 				if (!sz) {
--					if (r->ar.end - r->ar.start <=
--							DAMON_MIN_REGION)
-+					if (damon_sz_region(r) <=
-+					    DAMON_MIN_REGION)
- 						continue;
- 					sz = DAMON_MIN_REGION;
- 				}
- 				damon_split_region_at(t, r, sz);
- 				r = damon_next_region(r);
--				sz = r->ar.end - r->ar.start;
-+				sz = damon_sz_region(r);
- 			}
- 			quota->charge_target_from = NULL;
- 			quota->charge_addr_from = 0;
-@@ -842,8 +842,7 @@ static void kdamond_apply_schemes(struct
- 					continue;
- 				score = c->ops.get_scheme_score(
- 						c, t, r, s);
--				quota->histogram[score] +=
--					r->ar.end - r->ar.start;
-+				quota->histogram[score] += damon_sz_region(r);
- 				if (score > max_score)
- 					max_score = score;
- 			}
-@@ -957,7 +956,7 @@ static void damon_split_regions_of(struc
- 	int i;
- 
- 	damon_for_each_region_safe(r, next, t) {
--		sz_region = r->ar.end - r->ar.start;
-+		sz_region = damon_sz_region(r);
- 
- 		for (i = 0; i < nr_subs - 1 &&
- 				sz_region > 2 * DAMON_MIN_REGION; i++) {
---- a/mm/damon/vaddr.c~mm-damon-use-damon_sz_region-in-appropriate-place
-+++ a/mm/damon/vaddr.c
-@@ -72,7 +72,7 @@ static int damon_va_evenly_split_region(
- 		return -EINVAL;
- 
- 	orig_end = r->ar.end;
--	sz_orig = r->ar.end - r->ar.start;
-+	sz_orig = damon_sz_region(r);
- 	sz_piece = ALIGN_DOWN(sz_orig / nr_pieces, DAMON_MIN_REGION);
- 
- 	if (!sz_piece)
-@@ -618,7 +618,7 @@ static unsigned long damos_madvise(struc
- {
- 	struct mm_struct *mm;
- 	unsigned long start = PAGE_ALIGN(r->ar.start);
--	unsigned long len = PAGE_ALIGN(r->ar.end - r->ar.start);
-+	unsigned long len = PAGE_ALIGN(damon_sz_region(r));
- 	unsigned long applied;
- 
- 	mm = damon_get_mm(target);
+ 		/*
 _
 
-Patches currently in -mm which might be from xhao@linux.alibaba.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-damon-simply-damon_ctx-check-in-damon_sysfs_before_terminate.patch
-mm-damon-remove-duplicate-get_monitoring_region-definitions.patch
-mm-damon-sysfs-change-few-functions-execute-order.patch
-mm-damon-simplify-scheme-create-in-damon_lru_sort_apply_parameters.patch
-mm-damon-sysfs-avoid-call-damon_target_has_pid-repeatedly.patch
-mm-damon-sysfs-avoid-call-damon_target_has_pid-repeatedly-fix.patch
-mm-damon-simplify-scheme-create-in-lru_sortc.patch
-mm-damon-sysfs-return-err-value-when-call-kstrtoul-failed.patch
-mm-hugetlb-add-available_huge_pages-func.patch
-mm-damon-move-sz_damon_region-to-damon_sz_region.patch
-mm-damon-use-damon_sz_region-in-appropriate-place.patch
+mm-gup-introduce-pin_user_page.patch
+block-add-dio_w_-wrappers-for-pin-unpin-user-pages.patch
+iov_iter-new-iov_iter_pin_pages-routines.patch
+block-bio-fs-convert-most-filesystems-to-pin_user_pages_fast.patch
+nfs-direct-io-convert-to-foll_pin-pages.patch
+fuse-convert-direct-io-paths-to-use-foll_pin.patch
 
