@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1E39C04A95
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Sep 2022 15:13:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67757C32771
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Sep 2022 15:13:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232439AbiI1PNj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233825AbiI1PNj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 28 Sep 2022 11:13:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45270 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234300AbiI1PNZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2022 11:13:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C368CAC252
-        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 08:13:23 -0700 (PDT)
+        with ESMTP id S234599AbiI1PNb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2022 11:13:31 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24417B2DB2
+        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 08:13:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0FE9E61EC5
-        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 15:13:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 499B5C433C1;
-        Wed, 28 Sep 2022 15:13:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A7384B820C5
+        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 15:13:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33D75C433D7;
+        Wed, 28 Sep 2022 15:13:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664378002;
-        bh=HO/Ril1KzhD3UYUrp4UmxX6U5TWlwNMBfVTAIh4eJ14=;
+        s=korg; t=1664378007;
+        bh=57qJMiUJnSK6djSZJ0t3/gnIaDW7E7lUbkY2AsL/hms=;
         h=Date:To:From:Subject:From;
-        b=c0KWcqRSGWPP3RchZlqb8Fveyya+aDhOn4SM+h/+Dt0kRH0BlByTDPUGqSHeHwDJV
-         uqsmmQMWoIrGSof+jsMNB+wb5MmqTrzOgfTqEwOUC0MJRiLrkBUbI0y91z010JzfYe
-         8mxe3fJgFZPfyfMS7WoVtgn4KpboUPNrm6rrWCnI=
-Date:   Wed, 28 Sep 2022 08:13:18 -0700
+        b=E6ctrb4g2WpB56fD+MCzCOFrSI7v/fT70mpE6ExPlOaotZxY6VrBFxnTA6x+EYO1G
+         otVzYYU9Xp7VFqeCqidoskjyTtvmNaElXNWqIzwG9ofrMUKkxD0p2HyfbKjJxm03o1
+         qlOXWm0v8/Poya2YzvGF3//5AOqebwBJhwfdik7s=
+Date:   Wed, 28 Sep 2022 08:13:23 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         willy@infradead.org, shy828301@gmail.com, rcampbell@nvidia.com,
         mpe@ellerman.id.au, lyude@redhat.com, jhubbard@nvidia.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         bskeggs@redhat.com, alex.sierra@amd.com, alexander.deucher@amd.com,
         apopple@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memremapc-take-a-pgmap-reference-on-page-allocation.patch added to mm-unstable branch
-Message-Id: <20220928151322.499B5C433C1@smtp.kernel.org>
+Subject: + mm-migrate_devicec-refactor-migrate_vma-and-migrate_deivce_coherent_page.patch added to mm-unstable branch
+Message-Id: <20220928151327.33D75C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memremap.c: take a pgmap reference on page allocation
+     Subject: mm/migrate_device.c: refactor migrate_vma and migrate_deivce_coherent_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memremapc-take-a-pgmap-reference-on-page-allocation.patch
+     mm-migrate_devicec-refactor-migrate_vma-and-migrate_deivce_coherent_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memremapc-take-a-pgmap-reference-on-page-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_devicec-refactor-migrate_vma-and-migrate_deivce_coherent_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,109 +70,361 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/memremap.c: take a pgmap reference on page allocation
-Date: Wed, 28 Sep 2022 22:01:17 +1000
+Subject: mm/migrate_device.c: refactor migrate_vma and migrate_deivce_coherent_page()
+Date: Wed, 28 Sep 2022 22:01:18 +1000
 
-ZONE_DEVICE pages have a struct dev_pagemap which is allocated by a
-driver.  When the struct page is first allocated by the kernel in
-memremap_pages() a reference is taken on the associated pagemap to ensure
-it is not freed prior to the pages being freed.
+migrate_device_coherent_page() reuses the existing migrate_vma family of
+functions to migrate a specific page without providing a valid mapping or
+vma.  This looks a bit odd because it means we are calling migrate_vma_*()
+without setting a valid vma, however it was considered acceptable at the
+time because the details were internal to migrate_device.c and there was
+only a single user.
 
-Prior to 27674ef6c73f ("mm: remove the extra ZONE_DEVICE struct page
-refcount") pages were considered free and returned to the driver when the
-reference count dropped to one.  However the pagemap reference was not
-dropped until the page reference count hit zero.  This would occur as part
-of the final put_page() in memunmap_pages() which would wait for all pages
-to be freed prior to returning.
+One of the reasons the details could be kept internal was that this was
+strictly for migrating device coherent memory.  Such memory can be copied
+directly by the CPU without intervention from a driver.  However this
+isn't true for device private memory, and a future change requires similar
+functionality for device private memory.  So refactor the code into
+something more sensible for migrating device memory without a vma.
 
-When the extra refcount was removed the pagemap reference was no longer
-being dropped in put_page().  Instead memunmap_pages() was changed to
-explicitly drop the pagemap references.  This means that memunmap_pages()
-can complete even though pages are still mapped by the kernel which can
-lead to kernel crashes, particularly if a driver frees the pagemap.
-
-To fix this drivers should take a pagemap reference when allocating the
-page.  This reference can then be returned when the page is freed.
-
-Link: https://lkml.kernel.org/r/12d155ec727935ebfbb4d639a03ab374917ea51b.1664366292.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/c7b2ff84e9b33d022cf4a40f87d051f281a16d8f.1664366292.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Fixes: 27674ef6c73f ("mm: remove the extra ZONE_DEVICE struct page refcount")
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Alex Sierra <alex.sierra@amd.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-
-Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Yang Shi <shy828301@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: Alex Sierra <alex.sierra@amd.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memremap.c~mm-memremapc-take-a-pgmap-reference-on-page-allocation
-+++ a/mm/memremap.c
-@@ -138,8 +138,11 @@ void memunmap_pages(struct dev_pagemap *
- 	int i;
- 
- 	percpu_ref_kill(&pgmap->ref);
--	for (i = 0; i < pgmap->nr_range; i++)
--		percpu_ref_put_many(&pgmap->ref, pfn_len(pgmap, i));
-+	if (pgmap->type != MEMORY_DEVICE_PRIVATE &&
-+	    pgmap->type != MEMORY_DEVICE_COHERENT)
-+		for (i = 0; i < pgmap->nr_range; i++)
-+			percpu_ref_put_many(&pgmap->ref, pfn_len(pgmap, i));
-+
- 	wait_for_completion(&pgmap->done);
- 
- 	for (i = 0; i < pgmap->nr_range; i++)
-@@ -264,7 +267,9 @@ static int pagemap_range(struct dev_page
- 	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
- 				PHYS_PFN(range->start),
- 				PHYS_PFN(range_len(range)), pgmap);
--	percpu_ref_get_many(&pgmap->ref, pfn_len(pgmap, range_id));
-+	if (pgmap->type != MEMORY_DEVICE_PRIVATE &&
-+	    pgmap->type != MEMORY_DEVICE_COHERENT)
-+		percpu_ref_get_many(&pgmap->ref, pfn_len(pgmap, range_id));
- 	return 0;
- 
- err_add_memory:
-@@ -502,16 +507,24 @@ void free_zone_device_page(struct page *
- 	page->mapping = NULL;
- 	page->pgmap->ops->page_free(page);
- 
--	/*
--	 * Reset the page count to 1 to prepare for handing out the page again.
--	 */
- 	if (page->pgmap->type != MEMORY_DEVICE_PRIVATE &&
- 	    page->pgmap->type != MEMORY_DEVICE_COHERENT)
-+		/*
-+		 * Reset the page count to 1 to prepare for handing out the page
-+		 * again.
-+		 */
- 		set_page_count(page, 1);
-+	else
-+		put_dev_pagemap(page->pgmap);
+--- a/mm/migrate_device.c~mm-migrate_devicec-refactor-migrate_vma-and-migrate_deivce_coherent_page
++++ a/mm/migrate_device.c
+@@ -357,26 +357,20 @@ static bool migrate_vma_check_page(struc
  }
  
- void zone_device_page_init(struct page *page)
+ /*
+- * migrate_vma_unmap() - replace page mapping with special migration pte entry
+- * @migrate: migrate struct containing all migration information
+- *
+- * Isolate pages from the LRU and replace mappings (CPU page table pte) with a
+- * special migration pte entry and check if it has been pinned. Pinned pages are
+- * restored because we cannot migrate them.
+- *
+- * This is the last step before we call the device driver callback to allocate
+- * destination memory and copy contents of original page over to new page.
++ * Unmaps pages for migration. Returns number of unmapped pages.
+  */
+-static void migrate_vma_unmap(struct migrate_vma *migrate)
++static unsigned long migrate_device_unmap(unsigned long *src_pfns,
++					  unsigned long npages,
++					  struct page *fault_page)
  {
-+	/*
-+	 * Drivers shouldn't be allocating pages after calling
-+	 * memunmap_pages().
-+	 */
-+	WARN_ON_ONCE(!percpu_ref_tryget_live(&page->pgmap->ref));
- 	set_page_count(page, 1);
- 	lock_page(page);
+-	const unsigned long npages = migrate->npages;
+ 	unsigned long i, restore = 0;
+ 	bool allow_drain = true;
++	unsigned long unmapped = 0;
+ 
+ 	lru_add_drain();
+ 
+ 	for (i = 0; i < npages; i++) {
+-		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++		struct page *page = migrate_pfn_to_page(src_pfns[i]);
+ 		struct folio *folio;
+ 
+ 		if (!page)
+@@ -391,8 +385,7 @@ static void migrate_vma_unmap(struct mig
+ 			}
+ 
+ 			if (isolate_lru_page(page)) {
+-				migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
+-				migrate->cpages--;
++				src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+ 				restore++;
+ 				continue;
+ 			}
+@@ -406,34 +399,54 @@ static void migrate_vma_unmap(struct mig
+ 			try_to_migrate(folio, 0);
+ 
+ 		if (page_mapped(page) ||
+-		    !migrate_vma_check_page(page, migrate->fault_page)) {
++		    !migrate_vma_check_page(page, fault_page)) {
+ 			if (!is_zone_device_page(page)) {
+ 				get_page(page);
+ 				putback_lru_page(page);
+ 			}
+ 
+-			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
+-			migrate->cpages--;
++			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+ 			restore++;
+ 			continue;
+ 		}
++
++		unmapped++;
+ 	}
+ 
+ 	for (i = 0; i < npages && restore; i++) {
+-		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++		struct page *page = migrate_pfn_to_page(src_pfns[i]);
+ 		struct folio *folio;
+ 
+-		if (!page || (migrate->src[i] & MIGRATE_PFN_MIGRATE))
++		if (!page || (src_pfns[i] & MIGRATE_PFN_MIGRATE))
+ 			continue;
+ 
+ 		folio = page_folio(page);
+ 		remove_migration_ptes(folio, folio, false);
+ 
+-		migrate->src[i] = 0;
++		src_pfns[i] = 0;
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 		restore--;
+ 	}
++
++	return unmapped;
++}
++
++/*
++ * migrate_vma_unmap() - replace page mapping with special migration pte entry
++ * @migrate: migrate struct containing all migration information
++ *
++ * Isolate pages from the LRU and replace mappings (CPU page table pte) with a
++ * special migration pte entry and check if it has been pinned. Pinned pages are
++ * restored because we cannot migrate them.
++ *
++ * This is the last step before we call the device driver callback to allocate
++ * destination memory and copy contents of original page over to new page.
++ */
++static void migrate_vma_unmap(struct migrate_vma *migrate)
++{
++	migrate->cpages = migrate_device_unmap(migrate->src, migrate->npages,
++					migrate->fault_page);
  }
+ 
+ /**
+@@ -680,41 +693,36 @@ abort:
+ 	*src &= ~MIGRATE_PFN_MIGRATE;
+ }
+ 
+-/**
+- * migrate_vma_pages() - migrate meta-data from src page to dst page
+- * @migrate: migrate struct containing all migration information
+- *
+- * This migrates struct page meta-data from source struct page to destination
+- * struct page. This effectively finishes the migration from source page to the
+- * destination page.
+- */
+-void migrate_vma_pages(struct migrate_vma *migrate)
++static void migrate_device_pages(unsigned long *src_pfns,
++				unsigned long *dst_pfns, unsigned long npages,
++				struct migrate_vma *migrate)
+ {
+-	const unsigned long npages = migrate->npages;
+-	const unsigned long start = migrate->start;
+ 	struct mmu_notifier_range range;
+-	unsigned long addr, i;
++	unsigned long i;
+ 	bool notified = false;
+ 
+-	for (i = 0, addr = start; i < npages; addr += PAGE_SIZE, i++) {
+-		struct page *newpage = migrate_pfn_to_page(migrate->dst[i]);
+-		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++	for (i = 0; i < npages; i++) {
++		struct page *newpage = migrate_pfn_to_page(dst_pfns[i]);
++		struct page *page = migrate_pfn_to_page(src_pfns[i]);
+ 		struct address_space *mapping;
+ 		int r;
+ 
+ 		if (!newpage) {
+-			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+ 			continue;
+ 		}
+ 
+ 		if (!page) {
++			unsigned long addr;
++
+ 			/*
+ 			 * The only time there is no vma is when called from
+ 			 * migrate_device_coherent_page(). However this isn't
+ 			 * called if the page could not be unmapped.
+ 			 */
+-			VM_BUG_ON(!migrate->vma);
+-			if (!(migrate->src[i] & MIGRATE_PFN_MIGRATE))
++			VM_BUG_ON(!migrate);
++			addr = migrate->start + i*PAGE_SIZE;
++			if (!(src_pfns[i] & MIGRATE_PFN_MIGRATE))
+ 				continue;
+ 			if (!notified) {
+ 				notified = true;
+@@ -726,7 +734,7 @@ void migrate_vma_pages(struct migrate_vm
+ 				mmu_notifier_invalidate_range_start(&range);
+ 			}
+ 			migrate_vma_insert_page(migrate, addr, newpage,
+-						&migrate->src[i]);
++						&src_pfns[i]);
+ 			continue;
+ 		}
+ 
+@@ -739,18 +747,18 @@ void migrate_vma_pages(struct migrate_vm
+ 			 * device private or coherent memory.
+ 			 */
+ 			if (mapping) {
+-				migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++				src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+ 				continue;
+ 			}
+ 		} else if (is_zone_device_page(newpage)) {
+ 			/*
+ 			 * Other types of ZONE_DEVICE page are not supported.
+ 			 */
+-			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+ 			continue;
+ 		}
+ 
+-		if (migrate->fault_page == page)
++		if (migrate && migrate->fault_page == page)
+ 			r = migrate_folio_extra(mapping, page_folio(newpage),
+ 						page_folio(page),
+ 						MIGRATE_SYNC_NO_COPY, 1);
+@@ -758,7 +766,7 @@ void migrate_vma_pages(struct migrate_vm
+ 			r = migrate_folio(mapping, page_folio(newpage),
+ 					page_folio(page), MIGRATE_SYNC_NO_COPY);
+ 		if (r != MIGRATEPAGE_SUCCESS)
+-			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+ 	}
+ 
+ 	/*
+@@ -769,28 +777,30 @@ void migrate_vma_pages(struct migrate_vm
+ 	if (notified)
+ 		mmu_notifier_invalidate_range_only_end(&range);
+ }
+-EXPORT_SYMBOL(migrate_vma_pages);
+ 
+ /**
+- * migrate_vma_finalize() - restore CPU page table entry
++ * migrate_vma_pages() - migrate meta-data from src page to dst page
+  * @migrate: migrate struct containing all migration information
+  *
+- * This replaces the special migration pte entry with either a mapping to the
+- * new page if migration was successful for that page, or to the original page
+- * otherwise.
+- *
+- * This also unlocks the pages and puts them back on the lru, or drops the extra
+- * refcount, for device pages.
++ * This migrates struct page meta-data from source struct page to destination
++ * struct page. This effectively finishes the migration from source page to the
++ * destination page.
+  */
+-void migrate_vma_finalize(struct migrate_vma *migrate)
++void migrate_vma_pages(struct migrate_vma *migrate)
++{
++	migrate_device_pages(migrate->src, migrate->dst, migrate->npages, migrate);
++}
++EXPORT_SYMBOL(migrate_vma_pages);
++
++static void migrate_device_finalize(unsigned long *src_pfns,
++				unsigned long *dst_pfns, unsigned long npages)
+ {
+-	const unsigned long npages = migrate->npages;
+ 	unsigned long i;
+ 
+ 	for (i = 0; i < npages; i++) {
+ 		struct folio *dst, *src;
+-		struct page *newpage = migrate_pfn_to_page(migrate->dst[i]);
+-		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++		struct page *newpage = migrate_pfn_to_page(dst_pfns[i]);
++		struct page *page = migrate_pfn_to_page(src_pfns[i]);
+ 
+ 		if (!page) {
+ 			if (newpage) {
+@@ -800,7 +810,7 @@ void migrate_vma_finalize(struct migrate
+ 			continue;
+ 		}
+ 
+-		if (!(migrate->src[i] & MIGRATE_PFN_MIGRATE) || !newpage) {
++		if (!(src_pfns[i] & MIGRATE_PFN_MIGRATE) || !newpage) {
+ 			if (newpage) {
+ 				unlock_page(newpage);
+ 				put_page(newpage);
+@@ -827,6 +837,22 @@ void migrate_vma_finalize(struct migrate
+ 		}
+ 	}
+ }
++
++/**
++ * migrate_vma_finalize() - restore CPU page table entry
++ * @migrate: migrate struct containing all migration information
++ *
++ * This replaces the special migration pte entry with either a mapping to the
++ * new page if migration was successful for that page, or to the original page
++ * otherwise.
++ *
++ * This also unlocks the pages and puts them back on the lru, or drops the extra
++ * refcount, for device pages.
++ */
++void migrate_vma_finalize(struct migrate_vma *migrate)
++{
++	migrate_device_finalize(migrate->src, migrate->dst, migrate->npages);
++}
+ EXPORT_SYMBOL(migrate_vma_finalize);
+ 
+ /*
+@@ -837,25 +863,19 @@ EXPORT_SYMBOL(migrate_vma_finalize);
+ int migrate_device_coherent_page(struct page *page)
+ {
+ 	unsigned long src_pfn, dst_pfn = 0;
+-	struct migrate_vma args;
+ 	struct page *dpage;
+ 
+ 	WARN_ON_ONCE(PageCompound(page));
+ 
+ 	lock_page(page);
+ 	src_pfn = migrate_pfn(page_to_pfn(page)) | MIGRATE_PFN_MIGRATE;
+-	args.src = &src_pfn;
+-	args.dst = &dst_pfn;
+-	args.cpages = 1;
+-	args.npages = 1;
+-	args.vma = NULL;
+ 
+ 	/*
+ 	 * We don't have a VMA and don't need to walk the page tables to find
+ 	 * the source page. So call migrate_vma_unmap() directly to unmap the
+ 	 * page as migrate_vma_setup() will fail if args.vma == NULL.
+ 	 */
+-	migrate_vma_unmap(&args);
++	migrate_device_unmap(&src_pfn, 1, NULL);
+ 	if (!(src_pfn & MIGRATE_PFN_MIGRATE))
+ 		return -EBUSY;
+ 
+@@ -865,10 +885,10 @@ int migrate_device_coherent_page(struct
+ 		dst_pfn = migrate_pfn(page_to_pfn(dpage));
+ 	}
+ 
+-	migrate_vma_pages(&args);
++	migrate_device_pages(&src_pfn, &dst_pfn, 1, NULL);
+ 	if (src_pfn & MIGRATE_PFN_MIGRATE)
+ 		copy_highpage(dpage, page);
+-	migrate_vma_finalize(&args);
++	migrate_device_finalize(&src_pfn, &dst_pfn, 1);
+ 
+ 	if (src_pfn & MIGRATE_PFN_MIGRATE)
+ 		return 0;
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
