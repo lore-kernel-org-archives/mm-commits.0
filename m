@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE1A7C32771
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Sep 2022 14:55:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68A14C04A95
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Sep 2022 14:55:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232654AbiI1Ozt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Sep 2022 10:55:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59572 "EHLO
+        id S232896AbiI1Ozv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Sep 2022 10:55:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233287AbiI1Ozq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2022 10:55:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1727FB4E
-        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 07:55:41 -0700 (PDT)
+        with ESMTP id S229951AbiI1Ozu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2022 10:55:50 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46D0FB4E
+        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 07:55:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 65E7961ED5
-        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 14:55:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 859DDC433D6;
-        Wed, 28 Sep 2022 14:55:39 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 007B0B820EE
+        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 14:55:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72D26C433D6;
+        Wed, 28 Sep 2022 14:55:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664376939;
-        bh=xEogSp+bfJ6UolybdI4oTv4DLoIzMIEcT7KBPAzFN4g=;
+        s=korg; t=1664376946;
+        bh=0oEwUIrjRdSsN4zyMa0Y7bOPEgCR9wP+VVHlvKojyUc=;
         h=Date:To:From:Subject:From;
-        b=jNpyfqYozvhzVJvwZ1kgb30d8cqf4PqchO+vS65w5Os7siJaGh7RlHDZxibjju1Y3
-         o9y77ne6yPUKRiREFzIYkT+eIZOA/TmA7lI90PsHzoAkHtTL6fnUf+ue26i7htQXTT
-         +YDy6+Lh1f24GIs7zSHgrHFKeEg7Rdh6y9WEqCtQ=
-Date:   Wed, 28 Sep 2022 07:55:33 -0700
+        b=baW+svJGTq7WpKCrT+pEfb+T/cpeJ20DavoG56y25DSdwMQC9pM2U6WvaS2CY+Cfe
+         4da7JDjj006U+1Yf39T2gb/NKU1B6WkWAi5MImlRgxsQxSSjGBwS84UXFqejhg9SE3
+         GzdTiYponM4Myj9GHki9wvYQaelOArt1VxFSxTrc=
+Date:   Wed, 28 Sep 2022 07:55:40 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         trond.myklebust@hammerspace.com, miklos@szeredi.hu,
         logang@deltatee.com, jack@suse.cz, hch@infradead.org,
         djwong@kernel.org, david@redhat.com, axboe@kernel.dk,
         anna@kernel.org, jhubbard@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-gup-introduce-pin_user_page.patch removed from -mm tree
-Message-Id: <20220928145539.859DDC433D6@smtp.kernel.org>
+Subject: [to-be-updated] block-add-dio_w_-wrappers-for-pin-unpin-user-pages.patch removed from -mm tree
+Message-Id: <20220928145546.72D26C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,26 +44,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup: introduce pin_user_page()
+     Subject: block: add dio_w_*() wrappers for pin, unpin user pages
 has been removed from the -mm tree.  Its filename was
-     mm-gup-introduce-pin_user_page.patch
+     block-add-dio_w_-wrappers-for-pin-unpin-user-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: introduce pin_user_page()
-Date: Tue, 30 Aug 2022 21:18:38 -0700
+Subject: block: add dio_w_*() wrappers for pin, unpin user pages
+Date: Tue, 30 Aug 2022 21:18:39 -0700
 
-pin_user_page() is an externally-usable version of try_grab_page(), but
-with semantics that match get_page(), so that it can act as a drop-in
-replacement for get_page(). Specifically, pin_user_page() has a void
-return type.
+Background: The Direct IO part of the block infrastructure is being
+changed to use pin_user_page*() and unpin_user_page*() calls, in place
+of a mix of get_user_pages_fast(), get_page(), and put_page(). These
+have to be changed over all at the same time, for block, bio, and all
+filesystems. However, most filesystems can be changed via iomap and core
+filesystem routines, so let's get that in place, and then continue on
+with converting the remaining filesystems (9P, CIFS) and anything else
+that feeds pages into bio that ultimately get released via
+bio_release_pages().
 
-pin_user_page() elevates a page's refcount using FOLL_PIN rules. This
-means that the caller must release the page via unpin_user_page().
+Add a new config parameter, CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO, and
+dio_w_*() wrapper functions. The dio_w_ prefix was chosen for
+uniqueness, so as to ease a subsequent kernel-wide rename via
+search-and-replace. Together, these allow the developer to choose
+between these sets of routines, for Direct IO code paths:
 
-Link: https://lkml.kernel.org/r/20220831041843.973026-3-jhubbard@nvidia.com
+a) pin_user_pages_fast()
+    pin_user_page()
+    unpin_user_page()
+
+b) get_user_pages_fast()
+    get_page()
+    put_page()
+
+CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO is a temporary setting, and may
+be deleted once the conversion is complete. In the meantime, developers
+can enable this in order to try out each filesystem.
+
+Please remember that these /proc/vmstat items (below) should normally
+contain the same values as each other, except during the middle of
+pin/unpin operations. As such, they can be helpful when monitoring test
+runs:
+
+    nr_foll_pin_acquired
+    nr_foll_pin_released
+
+Link: https://lkml.kernel.org/r/20220831041843.973026-4-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Anna Schumaker <anna@kernel.org>
@@ -78,84 +106,91 @@ Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 
- mm/gup.c           |   50 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 51 insertions(+)
+ block/Kconfig        |   24 ++++++++++++++++++++++++
+ include/linux/bvec.h |   37 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+)
 
---- a/include/linux/mm.h~mm-gup-introduce-pin_user_page
-+++ a/include/linux/mm.h
-@@ -1943,6 +1943,7 @@ long pin_user_pages_remote(struct mm_str
- long get_user_pages(unsigned long start, unsigned long nr_pages,
- 			    unsigned int gup_flags, struct page **pages,
- 			    struct vm_area_struct **vmas);
-+void pin_user_page(struct page *page);
- long pin_user_pages(unsigned long start, unsigned long nr_pages,
- 		    unsigned int gup_flags, struct page **pages,
- 		    struct vm_area_struct **vmas);
---- a/mm/gup.c~mm-gup-introduce-pin_user_page
-+++ a/mm/gup.c
-@@ -3281,6 +3281,56 @@ long pin_user_pages(unsigned long start,
- }
- EXPORT_SYMBOL(pin_user_pages);
+--- a/block/Kconfig~block-add-dio_w_-wrappers-for-pin-unpin-user-pages
++++ a/block/Kconfig
+@@ -48,6 +48,30 @@ config BLK_DEV_BSG_COMMON
+ config BLK_ICQ
+ 	bool
  
-+/**
-+ * pin_user_page() - apply a FOLL_PIN reference to a file-backed page that the
-+ * caller already owns.
-+ *
-+ * @page: the page to be pinned.
-+ *
-+ * pin_user_page() elevates a page's refcount using FOLL_PIN rules. This means
-+ * that the caller must release the page via unpin_user_page().
-+ *
-+ * pin_user_page() is intended as a drop-in replacement for get_page(). This
-+ * provides a way for callers to do a subsequent unpin_user_page() on the
-+ * affected page. However, it is only intended for use by callers (file systems,
-+ * block/bio) that have a file-backed page. Anonymous pages are not expected nor
-+ * supported, and will generate a warning.
-+ *
-+ * pin_user_page() may also be thought of as an externally-usable version of
-+ * try_grab_page(), but with semantics that match get_page(), so that it can act
-+ * as a drop-in replacement for get_page().
-+ *
-+ * IMPORTANT: The caller must release the page via unpin_user_page().
-+ *
-+ */
-+void pin_user_page(struct page *page)
++config BLK_USE_PIN_USER_PAGES_FOR_DIO
++	bool "DEVELOPERS ONLY: Enable pin_user_pages() for Direct IO" if EXPERT
++	default n
++
++	help
++	  For Direct IO code, retain the pages via calls to
++	  pin_user_pages_fast(), instead of via get_user_pages_fast().
++	  Likewise, use pin_user_page() instead of get_page(). And then
++	  release such pages via unpin_user_page(), instead of
++	  put_page().
++
++	  This is a temporary setting, which will be deleted once the
++	  conversion is completed, reviewed, and tested. In the meantime,
++	  developers can enable this in order to try out each filesystem.
++	  For that, it's best to monitor these /proc/vmstat items:
++
++		nr_foll_pin_acquired
++		nr_foll_pin_released
++
++	  ...to ensure that they remain equal, when "at rest".
++
++	  Say yes here ONLY if are actively developing or testing the
++	  block layer or filesystems with pin_user_pages_fast().
++
+ config BLK_DEV_BSGLIB
+ 	bool "Block layer SG support v4 helper lib"
+ 	select BLK_DEV_BSG_COMMON
+--- a/include/linux/bvec.h~block-add-dio_w_-wrappers-for-pin-unpin-user-pages
++++ a/include/linux/bvec.h
+@@ -241,4 +241,41 @@ static inline void *bvec_virt(struct bio
+ 	return page_address(bvec->bv_page) + bvec->bv_offset;
+ }
+ 
++#ifdef CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO
++#define dio_w_pin_user_pages_fast(s, n, p, f)	pin_user_pages_fast(s, n, p, f)
++#define dio_w_pin_user_page(p)			pin_user_page(p)
++#define dio_w_iov_iter_pin_pages(i, p, m, n, s) iov_iter_pin_pages(i, p, m, n, s)
++#define dio_w_iov_iter_pin_pages_alloc(i, p, m, s) iov_iter_pin_pages_alloc(i, p, m, s)
++#define dio_w_unpin_user_page(p)		unpin_user_page(p)
++#define dio_w_unpin_user_pages(p, n)		unpin_user_pages(p, n)
++#define dio_w_unpin_user_pages_dirty_lock(p, n, d) unpin_user_pages_dirty_lock(p, n, d)
++
++#else
++#define dio_w_pin_user_pages_fast(s, n, p, f)	get_user_pages_fast(s, n, p, f)
++#define dio_w_pin_user_page(p)			get_page(p)
++#define dio_w_iov_iter_pin_pages(i, p, m, n, s) iov_iter_get_pages2(i, p, m, n, s)
++#define dio_w_iov_iter_pin_pages_alloc(i, p, m, s) iov_iter_get_pages_alloc2(i, p, m, s)
++#define dio_w_unpin_user_page(p)		put_page(p)
++
++static inline void dio_w_unpin_user_pages(struct page **pages,
++					  unsigned long npages)
 +{
-+	struct folio *folio = page_folio(page);
-+
-+	WARN_ON_ONCE(folio_ref_count(folio) <= 0);
-+
-+	/*
-+	 * This function is only intended for file-backed callers, who already
-+	 * have a page reference.
-+	 */
-+	WARN_ON_ONCE(PageAnon(page));
-+
-+	/*
-+	 * Similar to try_grab_page(): be sure to *also*
-+	 * increment the normal page refcount field at least once,
-+	 * so that the page really is pinned.
-+	 */
-+	if (folio_test_large(folio)) {
-+		folio_ref_add(folio, 1);
-+		atomic_add(1, folio_pincount_ptr(folio));
-+	} else {
-+		folio_ref_add(folio, GUP_PIN_COUNTING_BIAS);
-+	}
-+
-+	node_stat_mod_folio(folio, NR_FOLL_PIN_ACQUIRED, 1);
++	release_pages(pages, npages);
 +}
-+EXPORT_SYMBOL(pin_user_page);
 +
- /*
-  * pin_user_pages_unlocked() is the FOLL_PIN variant of
-  * get_user_pages_unlocked(). Behavior is the same, except that this one sets
++static inline void dio_w_unpin_user_pages_dirty_lock(struct page **pages,
++						     unsigned long npages,
++						     bool make_dirty)
++{
++	unsigned long i;
++
++	for (i = 0; i < npages; i++) {
++		if (make_dirty)
++			set_page_dirty_lock(pages[i]);
++		put_page(pages[i]);
++	}
++}
++
++#endif
++
+ #endif /* __LINUX_BVEC_H */
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-block-add-dio_w_-wrappers-for-pin-unpin-user-pages.patch
 iov_iter-new-iov_iter_pin_pages-routines.patch
 block-bio-fs-convert-most-filesystems-to-pin_user_pages_fast.patch
 nfs-direct-io-convert-to-foll_pin-pages.patch
