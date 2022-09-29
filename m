@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF80EC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 29 Sep 2022 14:06:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CC4CC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 29 Sep 2022 14:06:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234931AbiI2OGk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 29 Sep 2022 10:06:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42386 "EHLO
+        id S235430AbiI2OGm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 29 Sep 2022 10:06:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232080AbiI2OGj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2022 10:06:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25E02160E51
-        for <mm-commits@vger.kernel.org>; Thu, 29 Sep 2022 07:06:37 -0700 (PDT)
+        with ESMTP id S232080AbiI2OGl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2022 10:06:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDC141616CA
+        for <mm-commits@vger.kernel.org>; Thu, 29 Sep 2022 07:06:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 88FEA614CB
-        for <mm-commits@vger.kernel.org>; Thu, 29 Sep 2022 14:06:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C37B6C433D6;
-        Thu, 29 Sep 2022 14:06:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C4296614D1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Sep 2022 14:06:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07770C433C1;
+        Thu, 29 Sep 2022 14:06:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664460396;
-        bh=y11YjNXQPuT499jUdPZNFO+dh2VPrVdu3MS2/8/zXT0=;
+        s=korg; t=1664460398;
+        bh=b/EZuimJ371gzOEJmEG/hMaMuailRmfU2TEFLyzTfjI=;
         h=Date:To:From:Subject:From;
-        b=PoBhv20iTOXRxWff7rtytX39XNE6E4zqnu/Qna5qRt7wj48D8XrcMHvc26wxICBmM
-         VEVRNBpShs52vOjaH1HZkDReb2b+qusXT5jBX9czliMkiXmo8yvUXLDg1ASOq77TKY
-         iIrctv+wi5Jq3fJR4S3H9TSvP9FRPWHxLcirJU3U=
-Date:   Thu, 29 Sep 2022 07:06:34 -0700
+        b=tWF32LqNdP52tYPaqKFx0D6kzB3YBqIL83WwD8uIgIynQn2r/QCozfZ65wroDRINr
+         1LCZEcibWEKCOfYhSmiQxd+sYO6X0SFUCWEyRtqQg/kX5oFzvHzjHNMVlxVOJkemJ+
+         MtEquxpFt7GhIm3DAsQ+T/TbJE/l8WD8RLQAH4SA=
+Date:   Thu, 29 Sep 2022 07:06:36 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         maobibo@loongson.cn, jcmvbkbc@gmail.com, david@redhat.com,
         chris@zankel.net, chenhuacai@loongson.cn,
         zhengqi.arch@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-update_mmu_tlb-on-the-second-thread.patch added to mm-unstable branch
-Message-Id: <20220929140635.C37B6C433D6@smtp.kernel.org>
+Subject: + loongarch-update-local-tlb-if-pte-entry-exists.patch added to mm-unstable branch
+Message-Id: <20220929140638.07770C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use update_mmu_tlb() on the second thread
+     Subject: LoongArch: update local TLB if PTE entry exists
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-update_mmu_tlb-on-the-second-thread.patch
+     loongarch-update-local-tlb-if-pte-entry-exists.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-update_mmu_tlb-on-the-second-thread.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-update-local-tlb-if-pte-entry-exists.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,37 +67,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: use update_mmu_tlb() on the second thread
-Date: Thu, 29 Sep 2022 19:23:17 +0800
+Subject: LoongArch: update local TLB if PTE entry exists
+Date: Thu, 29 Sep 2022 19:23:18 +0800
 
-As message in commit 7df676974359 ("mm/memory.c: Update local TLB if PTE
-entry exists") said, we should update local TLB only on the second thread.
-So in the do_anonymous_page() here, we should use update_mmu_tlb()
-instead of update_mmu_cache() on the second thread.
+Currently, the implementation of update_mmu_tlb() is empty if
+__HAVE_ARCH_UPDATE_MMU_TLB is not defined.  Then if two threads
+concurrently fault at the same page, the second thread that did not win
+the race will give up and do nothing.  In the LoongArch architecture, this
+second thread will trigger another fault, and only updates its local TLB.
 
-Link: https://lkml.kernel.org/r/20220929112318.32393-2-zhengqi.arch@bytedance.com
+Instead of triggering another fault, it's better to implement
+update_mmu_tlb() to directly update the local TLB of the second thread. 
+Just do it.
+
+Link: https://lkml.kernel.org/r/20220929112318.32393-3-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Bibo Mao <maobibo@loongson.cn>
+Suggested-by: Bibo Mao <maobibo@loongson.cn>
+Acked-by: Huacai Chen <chenhuacai@loongson.cn>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Huacai Chen <chenhuacai@loongson.cn>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memory.c~mm-use-update_mmu_tlb-on-the-second-thread
-+++ a/mm/memory.c
-@@ -4136,7 +4136,7 @@ static vm_fault_t do_anonymous_page(stru
- 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address,
- 			&vmf->ptl);
- 	if (!pte_none(*vmf->pte)) {
--		update_mmu_cache(vma, vmf->address, vmf->pte);
-+		update_mmu_tlb(vma, vmf->address, vmf->pte);
- 		goto release;
- 	}
+--- a/arch/loongarch/include/asm/pgtable.h~loongarch-update-local-tlb-if-pte-entry-exists
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -412,6 +412,9 @@ static inline void update_mmu_cache(stru
+ 	__update_tlb(vma, address, ptep);
+ }
  
++#define __HAVE_ARCH_UPDATE_MMU_TLB
++#define update_mmu_tlb	update_mmu_cache
++
+ static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
+ 			unsigned long address, pmd_t *pmdp)
+ {
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
