@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB0B3C07E9D
-	for <mm-commits@archiver.kernel.org>; Thu, 29 Sep 2022 04:02:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20022C07E9D
+	for <mm-commits@archiver.kernel.org>; Thu, 29 Sep 2022 04:03:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234665AbiI2ECi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 29 Sep 2022 00:02:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48400 "EHLO
+        id S229651AbiI2EDQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 29 Sep 2022 00:03:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234708AbiI2ECe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2022 00:02:34 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9168D127C99
-        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 21:02:30 -0700 (PDT)
+        with ESMTP id S230015AbiI2EDP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2022 00:03:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D8D7125DBF
+        for <mm-commits@vger.kernel.org>; Wed, 28 Sep 2022 21:03:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3982AB82339
-        for <mm-commits@vger.kernel.org>; Thu, 29 Sep 2022 04:02:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B616DC433D7;
-        Thu, 29 Sep 2022 04:02:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A0F516200D
+        for <mm-commits@vger.kernel.org>; Thu, 29 Sep 2022 04:03:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC4ADC433B5;
+        Thu, 29 Sep 2022 04:03:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664424147;
-        bh=DX1gj/tmfwgWMJUQ3HY9yZiYyngr7VzUccu8o1QfoVc=;
+        s=korg; t=1664424193;
+        bh=ajDrIRF62XNeEy6fSm6Rof33YMexTxjlJyY5Gq0t+/Y=;
         h=Date:To:From:Subject:From;
-        b=w11ULTDbpxWciSMif/OvEbuER+B70qGDP8OlNd2XHs96hewC2VN6OflsdeW11SXJW
-         4tAGkv/aBshLrf+RKDGxeWEfmIcYARWGD8wdeLNoxfYhJF5vdGtW5pLyNEFFct+QAK
-         lzpMwr4xfzGI+ySJFJ4VYPwICvhLtbOU2cBjqgLI=
-Date:   Wed, 28 Sep 2022 21:02:26 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, elver@google.com,
-        andreyknvl@google.com, akpm@linux-foundation.org
+        b=Xy2TPzTwnkLiSQ5ogGbZmnFo+VvaBhuHfbR78JLqpDXoU9lvWWGPsWxPsy/G/YYDE
+         +WJJjPfpOtR+RajqxA3i5ZlEtV5xs14qZOTg5fmyePoD1Sh1noawGnpxI3Me9Hh6tT
+         lECIcZubiYjzxVvMr6u9M8+ozvOBPxIhYY9U5nNU=
+Date:   Wed, 28 Sep 2022 21:03:11 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kasan-implement-stack-ring-for-tag-based-modes-fix.patch removed from -mm tree
-Message-Id: <20220929040227.B616DC433D7@smtp.kernel.org>
+Subject: [folded-merged] memcg-reduce-size-of-memcg-vmstats-structures-fix.patch removed from -mm tree
+Message-Id: <20220929040312.DC4ADC433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,82 +43,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: initialize read-write lock in stack ring
+     Subject: memcg-reduce-size-of-memcg-vmstats-structures-fix
 has been removed from the -mm tree.  Its filename was
-     kasan-implement-stack-ring-for-tag-based-modes-fix.patch
+     memcg-reduce-size-of-memcg-vmstats-structures-fix.patch
 
-This patch was dropped because it was folded into kasan-implement-stack-ring-for-tag-based-modes.patch
+This patch was dropped because it was folded into memcg-reduce-size-of-memcg-vmstats-structures.patch
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: initialize read-write lock in stack ring
-Date: Tue, 20 Sep 2022 20:58:07 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-reduce-size-of-memcg-vmstats-structures-fix
+Date: Thu Sep  8 03:35:53 PM PDT 2022
 
-Use __RW_LOCK_UNLOCKED to initialize stack_ring.lock.
+fix memcg_events_local() array index, per Shakeel
 
-Link: https://lkml.kernel.org/r/576182d194e27531e8090bad809e4136953895f4.1663700262.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reported-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Tested-by: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/CALvZod70Mvxr+Nzb6k0yiU2RFYjTD=0NFhKK-Eyp+5ejd1PSFw@mail.gmail.com
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/tags.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kasan/tags.c~kasan-implement-stack-ring-for-tag-based-modes-fix
-+++ a/mm/kasan/tags.c
-@@ -22,7 +22,9 @@
- /* Non-zero, as initial pointer values are 0. */
- #define STACK_RING_BUSY_PTR ((void *)1)
+--- a/mm/memcontrol.c~memcg-reduce-size-of-memcg-vmstats-structures-fix
++++ a/mm/memcontrol.c
+@@ -921,7 +921,7 @@ static unsigned long memcg_events_local(
+ 		return 0;
  
--struct kasan_stack_ring stack_ring;
-+struct kasan_stack_ring stack_ring = {
-+	.lock = __RW_LOCK_UNLOCKED(stack_ring.lock)
-+};
+ 	for_each_possible_cpu(cpu)
+-		x += per_cpu(memcg->vmstats_percpu->events[event], cpu);
++		x += per_cpu(memcg->vmstats_percpu->events[index], cpu);
+ 	return x;
+ }
  
- static void save_stack_info(struct kmem_cache *cache, void *object,
- 			gfp_t gfp_flags, bool is_free)
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kasan-check-kasan_no_free_meta-in-__kasan_metadata_size.patch
-kasan-rename-kasan_set__info-to-kasan_save__info.patch
-kasan-move-is_kmalloc-check-out-of-save_alloc_info.patch
-kasan-split-save_alloc_info-implementations.patch
-kasan-drop-config_kasan_tags_identify.patch
-kasan-introduce-kasan_print_aux_stacks.patch
-kasan-introduce-kasan_get_alloc_track.patch
-kasan-introduce-kasan_init_object_meta.patch
-kasan-clear-metadata-functions-for-tag-based-modes.patch
-kasan-move-kasan_get__meta-to-genericc.patch
-kasan-introduce-kasan_requires_meta.patch
-kasan-introduce-kasan_init_cache_meta.patch
-kasan-drop-config_kasan_generic-check-from-kasan_init_cache_meta.patch
-kasan-only-define-kasan_metadata_size-for-generic-mode.patch
-kasan-only-define-kasan_never_merge-for-generic-mode.patch
-kasan-only-define-metadata-offsets-for-generic-mode.patch
-kasan-only-define-metadata-structs-for-generic-mode.patch
-kasan-only-define-kasan_cache_create-for-generic-mode.patch
-kasan-pass-tagged-pointers-to-kasan_save_alloc-free_info.patch
-kasan-move-kasan_get_alloc-free_track-definitions.patch
-kasan-cosmetic-changes-in-reportc.patch
-kasan-use-virt_addr_valid-in-kasan_addr_to_page-slab.patch
-kasan-use-kasan_addr_to_slab-in-print_address_description.patch
-kasan-make-kasan_addr_to_page-static.patch
-kasan-simplify-print_report.patch
-kasan-introduce-complete_report_info.patch
-kasan-fill-in-cache-and-object-in-complete_report_info.patch
-kasan-rework-function-arguments-in-reportc.patch
-kasan-introduce-kasan_complete_mode_report_info.patch
-kasan-implement-stack-ring-for-tag-based-modes.patch
-kasan-support-kasanstacktrace-for-sw_tags.patch
-kasan-dynamically-allocate-stack-ring-entries.patch
-kasan-better-identify-bug-types-for-tag-based-modes.patch
-kasan-add-another-use-after-free-test.patch
-kasan-move-tests-to-mm-kasan.patch
-kasan-better-invalid-double-free-report-header.patch
-kasan-fix-array-bounds-warnings-in-tests.patch
+memcg-reduce-size-of-memcg-vmstats-structures.patch
+mm-damon-vaddr-add-a-comment-for-default-case-in-damon_va_apply_scheme-fix.patch
+mm-page_allocc-rename-check_free_page-to-free_page_is_bad.patch
+mm-page_allocc-rename-check_free_page-to-free_page_is_bad-fix.patch
+mm-page_allocc-document-bulkfree_pcp_prepare-return-value.patch
+fs-uninline-inode_maybe_inc_iversion.patch
+ipc-msg-mitigate-the-lock-contention-with-percpu-counter-checkpatch-fixes.patch
+ipc-msg-mitigate-the-lock-contention-with-percpu-counter-fix-fix.patch
 
