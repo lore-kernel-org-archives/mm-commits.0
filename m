@@ -2,100 +2,157 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E26ACC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Sep 2022 22:35:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65815C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Sep 2022 23:45:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231598AbiI3Wfa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Sep 2022 18:35:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46018 "EHLO
+        id S232229AbiI3XpK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Sep 2022 19:45:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231553AbiI3Wf3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2022 18:35:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5878A8334
-        for <mm-commits@vger.kernel.org>; Fri, 30 Sep 2022 15:35:27 -0700 (PDT)
+        with ESMTP id S232103AbiI3Xo6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2022 19:44:58 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8AB8252BE
+        for <mm-commits@vger.kernel.org>; Fri, 30 Sep 2022 16:44:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 61F266252B
-        for <mm-commits@vger.kernel.org>; Fri, 30 Sep 2022 22:35:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5868C433C1;
-        Fri, 30 Sep 2022 22:35:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F2EDAB82AC0
+        for <mm-commits@vger.kernel.org>; Fri, 30 Sep 2022 23:44:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87B86C433C1;
+        Fri, 30 Sep 2022 23:44:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664577326;
-        bh=vSCP3uDawzjgjIdWqzHt8w2EmyRkn1hUjCrHUWbxwcg=;
+        s=korg; t=1664581474;
+        bh=uvYpddO6MRenGX78zzZpTJyrDLbw97c/2eqNe4roZ9Q=;
         h=Date:To:From:Subject:From;
-        b=oZy9+berTM4+XKaQVK9gCoIOuGrsuXV3vgsE+wb7Mf9Lj6w7ug/ZB2Yk1nh1clSUU
-         /XSLFRvjhciL0/B+HGsKE8iSWp1zpf42dZnrzZP+PD6CEum/lGfVDIeKPOJzTpq5S5
-         KMlAlhv0uajdoWX1x+faznJGe2nASZZ3fsUGts+o=
-Date:   Fri, 30 Sep 2022 15:35:25 -0700
-To:     mm-commits@vger.kernel.org, zealci@zte.com.cn, xu.panda@zte.com.cn,
-        baihaowen@meizu.com, xu.xin16@zte.com.cn, akpm@linux-foundation.org
+        b=ht9NK3fvk6D40aQNnUNKq0Cvi9Dd/4jbzMlgxUUFsxKyNxdneuSuRzrefdWRMELm5
+         15S6jXiwf/QqWyFDNLxILYPC2jyXvYyUd7YIV3YyxTRaNJf6HwJaLct+BbrnpqYji1
+         RZ8hRl1G394kCuEynl7Jf0j/xhnDuXmcCiMx8IGs=
+Date:   Fri, 30 Sep 2022 16:44:33 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, peterz@infradead.org,
+        ndesaulniers@google.com, nathan@kernel.org,
+        michal.lkml@markovi.net, maskray@google.com, masahiroy@kernel.org,
+        linux@rasmusvillemoes.dk, keescook@chromium.org,
+        jpoimboe@kernel.org, isabbasso@riseup.net, edumazet@google.com,
+        dan.j.williams@intel.com, dmitrii.bundin.a@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ia64-mca-use-strscpy-is-more-robust-and-safer.patch added to mm-nonmm-unstable branch
-Message-Id: <20220930223526.B5868C433C1@smtp.kernel.org>
+Subject: [to-be-updated] kbuild-add-debug-level-and-macro-defs-options.patch removed from -mm tree
+Message-Id: <20220930234434.87B86C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: ia64: mca: use strscpy() is more robust and safer
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ia64-mca-use-strscpy-is-more-robust-and-safer.patch
+The quilt patch titled
+     Subject: kbuild: add debug level and macro defs options
+has been removed from the -mm tree.  Its filename was
+     kbuild-add-debug-level-and-macro-defs-options.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ia64-mca-use-strscpy-is-more-robust-and-safer.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: xu xin <xu.xin16@zte.com.cn>
-Subject: ia64: mca: use strscpy() is more robust and safer
-Date: Fri, 30 Sep 2022 06:19:50 +0000
+From: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
+Subject: kbuild: add debug level and macro defs options
+Date: Mon, 15 Aug 2022 04:33:17 +0300
 
-The implementation of strscpy() is more robust and safer.  That's now the
-recommended way to copy NUL terminated strings.
+Add config options to control debug info level and producing of macro
+definitions for GCC/Clang.
 
-Link: https://lkml.kernel.org/r/20220930061950.288290-1-xu.xin16@zte.com.cn
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Signed-off-by: Xu Panda <xu.panda@zte.com.cn>
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Cc: Haowen Bai <baihaowen@meizu.com>
+Option DEBUG_INFO_LEVEL is responsible for controlling debug info level. 
+Before GCC 11 and Clang 12 -gsplit-dwarf implicitly uses -g2.  To provide
+a way to override the setting with, e.g.  -g1, DEBUG_INFO_LEVEL is set
+independently from DEBUG_INFO_SPLIT.
+
+Option DEBUG_MACRO_DEFINITIONS is responsible for controlling inclusion of
+macro definitions.  Since Clang uses -fdebug-macro to control if macro
+definitions are produced which is different from GCC, provides a
+compiler-specific way of handling macro inclusion.  The option is handled
+after DEBUG_INFO_LEVEL since -g3 -g2 implies -g2, but -g2 -g3 implies -g3
+and GCC uses -g3 to produce macro definitions.
+
+Link: https://lkml.kernel.org/r/20220815013317.26121-1-dmitrii.bundin.a@gmail.com
+Signed-off-by: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Fangrui Song <maskray@google.com>
+Cc: Isabella Basso <isabbasso@riseup.net>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/mca.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Kconfig.debug      |   20 ++++++++++++++++++++
+ scripts/Makefile.debug |   12 ++++++++++--
+ 2 files changed, 30 insertions(+), 2 deletions(-)
 
---- a/arch/ia64/kernel/mca.c~ia64-mca-use-strscpy-is-more-robust-and-safer
-+++ a/arch/ia64/kernel/mca.c
-@@ -1793,7 +1793,7 @@ format_mca_init_stack(void *mca_data, un
- 	p->parent = p->real_parent = p->group_leader = p;
- 	INIT_LIST_HEAD(&p->children);
- 	INIT_LIST_HEAD(&p->sibling);
--	strncpy(p->comm, type, sizeof(p->comm)-1);
-+	strscpy(p->comm, type, sizeof(p->comm)-1);
- }
+--- a/lib/Kconfig.debug~kbuild-add-debug-level-and-macro-defs-options
++++ a/lib/Kconfig.debug
+@@ -304,6 +304,26 @@ config DEBUG_INFO_REDUCED
+ 	  DEBUG_INFO build and compile times are reduced too.
+ 	  Only works with newer gcc versions.
  
- /* Caller prevents this from being called after init */
++config DEBUG_INFO_LEVEL
++	int "Debug info level"
++	range 1 3
++	default "2"
++	help
++	  Sets the level of how much debug information to generate (-glevel).
++	  Level 1 produces minimal debug information without including information
++	  about local variables. Level 3 includes extra information like macro
++	  definitions. Setting up level 3 will require significantly more disk
++	  space and increase built time.
++
++config DEBUG_MACRO_DEFINITIONS
++	bool "Add macro definitions to debug info"
++	default n
++	help
++	  Generates macro definitions to provide a way to expand macros right
++	  in the debugging session. This information can be used with macro expand,
++	  info macro in gdb. This option is equivalent to setting -g3 in GCC and
++	  -fdebug-macro in Clang.
++
+ config DEBUG_INFO_COMPRESSED
+ 	bool "Compressed debugging information"
+ 	depends on $(cc-option,-gz=zlib)
+--- a/scripts/Makefile.debug~kbuild-add-debug-level-and-macro-defs-options
++++ a/scripts/Makefile.debug
+@@ -2,8 +2,6 @@ DEBUG_CFLAGS	:=
+ 
+ ifdef CONFIG_DEBUG_INFO_SPLIT
+ DEBUG_CFLAGS	+= -gsplit-dwarf
+-else
+-DEBUG_CFLAGS	+= -g
+ endif
+ 
+ ifndef CONFIG_AS_IS_LLVM
+@@ -16,6 +14,16 @@ dwarf-version-$(CONFIG_DEBUG_INFO_DWARF5
+ DEBUG_CFLAGS	+= -gdwarf-$(dwarf-version-y)
+ endif
+ 
++DEBUG_CFLAGS	+= -g$(CONFIG_DEBUG_INFO_LEVEL)
++ifdef CONFIG_DEBUG_MACRO_DEFINITIONS
++ifdef CONFIG_CC_IS_GCC
++DEBUG_CFLAGS	+= -g3
++endif
++ifdef CONFIG_CC_IS_CLANG
++DEBUG_CFLAGS	+= -fdebug-macro
++endif
++endif
++
+ ifdef CONFIG_DEBUG_INFO_REDUCED
+ DEBUG_CFLAGS	+= -fno-var-tracking
+ ifdef CONFIG_CC_IS_GCC
 _
 
-Patches currently in -mm which might be from xu.xin16@zte.com.cn are
+Patches currently in -mm which might be from dmitrii.bundin.a@gmail.com are
 
-ia64-mca-use-strscpy-is-more-robust-and-safer.patch
 
