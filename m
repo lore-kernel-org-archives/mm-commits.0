@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AA0BC433F5
-	for <mm-commits@archiver.kernel.org>; Sat,  1 Oct 2022 01:47:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DE64C433FE
+	for <mm-commits@archiver.kernel.org>; Sat,  1 Oct 2022 01:47:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230017AbiJABrX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Sep 2022 21:47:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46202 "EHLO
+        id S232097AbiJABr1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Sep 2022 21:47:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231758AbiJABrW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2022 21:47:22 -0400
+        with ESMTP id S230291AbiJABrY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2022 21:47:24 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E097154448
-        for <mm-commits@vger.kernel.org>; Fri, 30 Sep 2022 18:47:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E8B1153A79;
+        Fri, 30 Sep 2022 18:47:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 92F82612A8
-        for <mm-commits@vger.kernel.org>; Sat,  1 Oct 2022 01:47:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD015C433D6;
-        Sat,  1 Oct 2022 01:47:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D471862598;
+        Sat,  1 Oct 2022 01:47:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 327FDC433D7;
+        Sat,  1 Oct 2022 01:47:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664588839;
-        bh=apK8Gml1q6S6KKB5qpdRn2aThY35Cj8urcd2/8E1r60=;
+        s=korg; t=1664588841;
+        bh=5sOXLC0h1AGWuzO2XrIRch5SPLJ4F2CvSDYpKKfdnnI=;
         h=Date:To:From:Subject:From;
-        b=VXCLsFnMFl08wfGNccO3KW0D5sJA6wwL+NRSoi0Dl4n2BI7ohUgnJhGSlFy33piWA
-         gA3MrKnxDbwaMR6tNdIQQ6iJwXiRp5HddFsHC7EGH3z1LTMTrjuDQyHEsXFbJ+K46+
-         FZiJxCf08kWVUKg+VMRAtNGHa8P3F/wL7Es5biXI=
-Date:   Fri, 30 Sep 2022 18:47:18 -0700
-To:     mm-commits@vger.kernel.org, linux@armlinux.org.uk, arnd@arndb.de,
-        ardb@kernel.org, lukas.bulwahn@gmail.com, akpm@linux-foundation.org
+        b=Q5rfvKaQGkH1IfnfoTVrIqhUPddVMthn7ACqnPk+CyTGpU6ST3zEnxKXwrerrqguL
+         AVsG9806gEqTZhxN6SMu9K+jsD7wga/JI8Y10Zb+6YUv3EcjNgHBAf6+H0USm8wZn+
+         Lo2v6ZaX4c7X00uTkM/tDZLfx4YP/8U5Iz4OgsdE=
+Date:   Fri, 30 Sep 2022 18:47:20 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, urezki@gmail.com,
+        stable@vger.kernel.org, micron10@gmail.com, mhocko@suse.com,
+        fw@strlen.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-drop-entry-to-removed-file-in-arm-riscpc-architecture.patch removed from -mm tree
-Message-Id: <20221001014719.CD015C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-bug-splat-with-kvmalloc-gfp_atomic.patch removed from -mm tree
+Message-Id: <20221001014721.327FDC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,53 +42,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: drop entry to removed file in ARM/RISCPC ARCHITECTURE
+     Subject: mm: fix BUG splat with kvmalloc + GFP_ATOMIC
 has been removed from the -mm tree.  Its filename was
-     maintainers-drop-entry-to-removed-file-in-arm-riscpc-architecture.patch
+     mm-fix-bug-splat-with-kvmalloc-gfp_atomic.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: MAINTAINERS: drop entry to removed file in ARM/RISCPC ARCHITECTURE
-Date: Mon, 19 Sep 2022 09:52:55 +0200
+From: Florian Westphal <fw@strlen.de>
+Subject: mm: fix BUG splat with kvmalloc + GFP_ATOMIC
+Date: Mon, 26 Sep 2022 17:16:50 +0200
 
-Commit c1fe8d054c0a ("ARM: riscpc: use GENERIC_IRQ_MULTI_HANDLER") removes
-arch/arm/include/asm/hardware/entry-macro-iomd.S, but missed to adjust
-MAINTAINERS.
+Martin Zaharinov reports BUG with 5.19.10 kernel:
+ kernel BUG at mm/vmalloc.c:2437!
+ invalid opcode: 0000 [#1] SMP
+ CPU: 28 PID: 0 Comm: swapper/28 Tainted: G        W  O      5.19.9 #1
+ [..]
+ RIP: 0010:__get_vm_area_node+0x120/0x130
+  __vmalloc_node_range+0x96/0x1e0
+  kvmalloc_node+0x92/0xb0
+  bucket_table_alloc.isra.0+0x47/0x140
+  rhashtable_try_insert+0x3a4/0x440
+  rhashtable_insert_slow+0x1b/0x30
+ [..]
 
-Hence, ./scripts/get_maintainer.pl --self-test=patterns complains about a
-broken reference.
+bucket_table_alloc uses kvzalloc(GPF_ATOMIC).  If kmalloc fails, this now
+falls through to vmalloc and hits code paths that assume GFP_KERNEL.
 
-Drop the file entry to the removed file in ARM/RISCPC ARCHITECTURE.
-
-Link: https://lkml.kernel.org/r/20220919075255.386-1-lukas.bulwahn@gmail.com
-Fixes: c1fe8d054c0a ("ARM: riscpc: use GENERIC_IRQ_MULTI_HANDLER")
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King <linux@armlinux.org.uk>
+Link: https://lkml.kernel.org/r/20220926151650.15293-1-fw@strlen.de
+Fixes: a421ef303008 ("mm: allow !GFP_KERNEL allocations for kvmalloc")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Link: https://lore.kernel.org/linux-mm/Yy3MS2uhSgjF47dy@pc636/T/#t
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Martin Zaharinov <micron10@gmail.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ mm/util.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/MAINTAINERS~maintainers-drop-entry-to-removed-file-in-arm-riscpc-architecture
-+++ a/MAINTAINERS
-@@ -2670,7 +2670,6 @@ M:	Russell King <linux@armlinux.org.uk>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- W:	http://www.armlinux.org.uk/
--F:	arch/arm/include/asm/hardware/entry-macro-iomd.S
- F:	arch/arm/include/asm/hardware/ioc.h
- F:	arch/arm/include/asm/hardware/iomd.h
- F:	arch/arm/include/asm/hardware/memc.h
+--- a/mm/util.c~mm-fix-bug-splat-with-kvmalloc-gfp_atomic
++++ a/mm/util.c
+@@ -619,6 +619,10 @@ void *kvmalloc_node(size_t size, gfp_t f
+ 	if (ret || size <= PAGE_SIZE)
+ 		return ret;
+ 
++	/* non-sleeping allocations are not supported by vmalloc */
++	if (!gfpflags_allow_blocking(flags))
++		return NULL;
++
+ 	/* Don't even allow crazy sizes */
+ 	if (unlikely(size > INT_MAX)) {
+ 		WARN_ON_ONCE(!(flags & __GFP_NOWARN));
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from fw@strlen.de are
 
-proc-make-config-proc_children-depend-on-proc_fs.patch
-ia64-update-config-files.patch
 
