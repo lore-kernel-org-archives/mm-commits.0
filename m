@@ -2,78 +2,68 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B80EC433FE
-	for <mm-commits@archiver.kernel.org>; Sat,  1 Oct 2022 01:53:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0B6EC433F5
+	for <mm-commits@archiver.kernel.org>; Sat,  1 Oct 2022 16:52:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231258AbiJABxB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Sep 2022 21:53:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59768 "EHLO
+        id S229711AbiJAQwk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 1 Oct 2022 12:52:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232031AbiJABxA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2022 21:53:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3A2B163CD3;
-        Fri, 30 Sep 2022 18:52:59 -0700 (PDT)
+        with ESMTP id S229725AbiJAQw2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 1 Oct 2022 12:52:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED7DA2981D;
+        Sat,  1 Oct 2022 09:52:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 47D9A623C1;
-        Sat,  1 Oct 2022 01:52:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 805EFC433C1;
-        Sat,  1 Oct 2022 01:52:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664589178;
-        bh=jEWH0Jk4vnsPs5ftOVCLOYw9fboTZd0tYzu/sl5zb4g=;
-        h=Date:From:To:Cc:Subject:From;
-        b=HxS6kCAgLnNR0b4qz93wT86iKI6j2So6TgqtFSnr5IXLTSCXoIrwBP7LEBGvQWloC
-         ZJJuVPsGzmife29rWrDKd+KWcEi7777ea7PokwmcMRgoH1FJvlJSqAOau7VpYmazTH
-         43qbn1hMhAfkxCUGsrGWHBLcNKjEaQMfar8TqiMU=
-Date:   Fri, 30 Sep 2022 18:52:57 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.0
-Message-Id: <20220930185257.d02c928a322dfa727bed4cb3@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DD90260C63;
+        Sat,  1 Oct 2022 16:52:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id AE067C433C1;
+        Sat,  1 Oct 2022 16:52:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1664643141;
+        bh=lJc4t456VjYF77RGsqjsCI+nG94Gn8L6fwV4EMAwl7Y=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=F5gXyLE5igVIvrl2A2nkriLQOzwmm6Li/oNiZzIJr7R2DRvG1U0yDPJh00odFcz/I
+         C9ZvB0LrB1vU7/Eh/meNRtx8mLZuBHrI/qMKe60THhBHJXTvPdOOmhK5iztZtpgl2O
+         LRfyoSOsIj55myEhWioGxEB3S+D12LJFG9pRMXlnJz+Q+vWWmJxnAwaH9xk9b0zxON
+         AkfvdcgWc89CukZ8NuqVvoMAQuJHnKfgJ+lMnrqDf+UwDxovyiqdobBvS84RPoXlAj
+         NmhHsHaxsUsG27m0J+Rc0T0KI/beqGZBRWPepL66IvJu+gDNXnGCprxaedKCdXAt86
+         nOe2ShpBzKKug==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 9C026E21EC6;
+        Sat,  1 Oct 2022 16:52:21 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.0
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20220930185257.d02c928a322dfa727bed4cb3@linux-foundation.org>
+References: <20220930185257.d02c928a322dfa727bed4cb3@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20220930185257.d02c928a322dfa727bed4cb3@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-09-30
+X-PR-Tracked-Commit-Id: 1c8e2349f2d033f634d046063b704b2ca6c46972
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 2a4b6e13e170a5c0c201a1858a8f5a61f98eb11e
+Message-Id: <166464314162.22904.11483810474518228998.pr-tracker-bot@kernel.org>
+Date:   Sat, 01 Oct 2022 16:52:21 +0000
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+The pull request you sent on Fri, 30 Sep 2022 18:52:57 -0700:
 
-Linus, please merge these three hotfixes.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-09-30
 
-The following changes since commit 59298997df89e19aad426d4ae0a7e5037074da5a:
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/2a4b6e13e170a5c0c201a1858a8f5a61f98eb11e
 
-  x86/uaccess: avoid check_object_size() in copy_from_user_nmi() (2022-09-26 12:14:35 -0700)
+Thank you!
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-09-30
-
-for you to fetch changes up to 1c8e2349f2d033f634d046063b704b2ca6c46972:
-
-  damon/sysfs: fix possible memleak on damon_sysfs_add_target (2022-09-30 18:46:31 -0700)
-
-----------------------------------------------------------------
-One MAINTAINERS update, two MM fixes, both cc:stable
-
-----------------------------------------------------------------
-Florian Westphal (1):
-      mm: fix BUG splat with kvmalloc + GFP_ATOMIC
-
-Levi Yun (1):
-      damon/sysfs: fix possible memleak on damon_sysfs_add_target
-
-Lukas Bulwahn (1):
-      MAINTAINERS: drop entry to removed file in ARM/RISCPC ARCHITECTURE
-
- MAINTAINERS      | 1 -
- mm/damon/sysfs.c | 2 +-
- mm/util.c        | 4 ++++
- 3 files changed, 5 insertions(+), 2 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
