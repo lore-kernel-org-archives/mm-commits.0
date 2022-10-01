@@ -2,94 +2,78 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAF76C433FE
-	for <mm-commits@archiver.kernel.org>; Sat,  1 Oct 2022 01:47:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B80EC433FE
+	for <mm-commits@archiver.kernel.org>; Sat,  1 Oct 2022 01:53:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231758AbiJABr2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Sep 2022 21:47:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46242 "EHLO
+        id S231258AbiJABxB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Sep 2022 21:53:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232005AbiJABrZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2022 21:47:25 -0400
+        with ESMTP id S232031AbiJABxA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2022 21:53:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7403A154448;
-        Fri, 30 Sep 2022 18:47:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3A2B163CD3;
+        Fri, 30 Sep 2022 18:52:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B467612A8;
-        Sat,  1 Oct 2022 01:47:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FE2AC433D6;
-        Sat,  1 Oct 2022 01:47:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 47D9A623C1;
+        Sat,  1 Oct 2022 01:52:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 805EFC433C1;
+        Sat,  1 Oct 2022 01:52:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664588842;
-        bh=DeBLxbIpPtxVmsBxKFWKd+ojGmB4geCZ9LSXG/k8C1E=;
-        h=Date:To:From:Subject:From;
-        b=hJvjcco4xB4oZDVGRXxP8LIimb4u/9z5h+Shm73/cRbmazxWJGgwk9fuwc3qjYlpZ
-         kygowNe9Sjgt7oA41YW+7x6PKlkFQP4E5tP2j4hCKbDh+WLcGR0IEiIdX8RcTw5neb
-         AvGBbv1SkYkU/7XuPzukqo3xfePqM3sKLd1L+Flo=
-Date:   Fri, 30 Sep 2022 18:47:21 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
-        ppbuk5246@gmail.com, akpm@linux-foundation.org
+        s=korg; t=1664589178;
+        bh=jEWH0Jk4vnsPs5ftOVCLOYw9fboTZd0tYzu/sl5zb4g=;
+        h=Date:From:To:Cc:Subject:From;
+        b=HxS6kCAgLnNR0b4qz93wT86iKI6j2So6TgqtFSnr5IXLTSCXoIrwBP7LEBGvQWloC
+         ZJJuVPsGzmife29rWrDKd+KWcEi7777ea7PokwmcMRgoH1FJvlJSqAOau7VpYmazTH
+         43qbn1hMhAfkxCUGsrGWHBLcNKjEaQMfar8TqiMU=
+Date:   Fri, 30 Sep 2022 18:52:57 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target.patch removed from -mm tree
-Message-Id: <20221001014722.5FE2AC433D6@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.0
+Message-Id: <20220930185257.d02c928a322dfa727bed4cb3@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: damon/sysfs: fix possible memleak on damon_sysfs_add_target
-has been removed from the -mm tree.  Its filename was
-     damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target.patch
+Linus, please merge these three hotfixes.
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 59298997df89e19aad426d4ae0a7e5037074da5a:
 
-------------------------------------------------------
-From: Levi Yun <ppbuk5246@gmail.com>
-Subject: damon/sysfs: fix possible memleak on damon_sysfs_add_target
-Date: Mon, 26 Sep 2022 16:06:11 +0000
+  x86/uaccess: avoid check_object_size() in copy_from_user_nmi() (2022-09-26 12:14:35 -0700)
 
-When damon_sysfs_add_target couldn't find proper task, New allocated
-damon_target structure isn't registered yet, So, it's impossible to free
-new allocated one by damon_sysfs_destroy_targets.
+are available in the Git repository at:
 
-By calling damon_add_target as soon as allocating new target, Fix this
-possible memory leak.
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-09-30
 
-Link: https://lkml.kernel.org/r/20220926160611.48536-1-sj@kernel.org
-Fixes: a61ea561c871 ("mm/damon/sysfs: link DAMON for virtual address spaces monitoring")
-Signed-off-by: Levi Yun <ppbuk5246@gmail.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[5.17.x]
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+for you to fetch changes up to 1c8e2349f2d033f634d046063b704b2ca6c46972:
 
- mm/damon/sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+  damon/sysfs: fix possible memleak on damon_sysfs_add_target (2022-09-30 18:46:31 -0700)
 
---- a/mm/damon/sysfs.c~damon-sysfs-fix-possible-memleak-on-damon_sysfs_add_target
-+++ a/mm/damon/sysfs.c
-@@ -2182,12 +2182,12 @@ static int damon_sysfs_add_target(struct
- 
- 	if (!t)
- 		return -ENOMEM;
-+	damon_add_target(ctx, t);
- 	if (damon_target_has_pid(ctx)) {
- 		t->pid = find_get_pid(sys_target->pid);
- 		if (!t->pid)
- 			goto destroy_targets_out;
- 	}
--	damon_add_target(ctx, t);
- 	err = damon_sysfs_set_regions(t, sys_target->regions);
- 	if (err)
- 		goto destroy_targets_out;
-_
+----------------------------------------------------------------
+One MAINTAINERS update, two MM fixes, both cc:stable
 
-Patches currently in -mm which might be from ppbuk5246@gmail.com are
+----------------------------------------------------------------
+Florian Westphal (1):
+      mm: fix BUG splat with kvmalloc + GFP_ATOMIC
 
+Levi Yun (1):
+      damon/sysfs: fix possible memleak on damon_sysfs_add_target
+
+Lukas Bulwahn (1):
+      MAINTAINERS: drop entry to removed file in ARM/RISCPC ARCHITECTURE
+
+ MAINTAINERS      | 1 -
+ mm/damon/sysfs.c | 2 +-
+ mm/util.c        | 4 ++++
+ 3 files changed, 5 insertions(+), 2 deletions(-)
 
