@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 105DCC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68E6CC4332F
 	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:08:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229679AbiJCVIP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229436AbiJCVIP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 3 Oct 2022 17:08:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45492 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229436AbiJCVGV (ORCPT
+        with ESMTP id S229513AbiJCVGV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:06:21 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70D104D14E
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:05:38 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12E6E4D16B
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:05:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 171A9B81122
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:05:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC5C0C433D7;
-        Mon,  3 Oct 2022 21:05:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9E0BD610E7
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:05:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F230EC433D6;
+        Mon,  3 Oct 2022 21:05:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831135;
-        bh=qt7bfX/HC0OEztb+7CmjSk0bERfkCCkrS8+FEltH4hA=;
+        s=korg; t=1664831138;
+        bh=kkhgWGhyKzksgw2YDa4bLJVc4kIyoIFukMQZuW0MFfI=;
         h=Date:To:From:Subject:From;
-        b=nFPZorT3aCA1skN9nJUWUDR3T0kE+1cJ7DIjjUfQDysY+rOwSrM+YNXg1mM91cXAR
-         88HIC4IwYNxE9r22WCfOfvj8u9vrx2kxffPeKqnJT+PQdGBtskEgBrAtD+7ILk65LX
-         vYSQ3z+S2OhFWn6rTmgH9VsO5Fc9KYxP82JlJ1Lc=
-Date:   Mon, 03 Oct 2022 14:05:35 -0700
+        b=cN3fySWYk75RlteY/14W7arjK4KO1+dcxxmSHbK/u0bMRHM1dQhyJOWJihHG725j1
+         SqV3kfQWsb0pY1ZpIUiULkmPKqdilqbjcPWqcGWhBKGNoVRNHpQtxMUSw6ko2zZ2z+
+         0bKSS8y+UJO61RZUvoEKP890zYJ2e3lKs9cW03ns=
+Date:   Mon, 03 Oct 2022 14:05:37 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] huge_memory-convert-split_huge_page_to_list-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20221003210535.BC5C0C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-page_get_anon_vma-to-folio_get_anon_vma.patch removed from -mm tree
+Message-Id: <20221003210537.F230EC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,153 +41,135 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: huge_memory: convert split_huge_page_to_list() to use a folio
+     Subject: mm: convert page_get_anon_vma() to folio_get_anon_vma()
 has been removed from the -mm tree.  Its filename was
-     huge_memory-convert-split_huge_page_to_list-to-use-a-folio.patch
+     mm-convert-page_get_anon_vma-to-folio_get_anon_vma.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: huge_memory: convert split_huge_page_to_list() to use a folio
-Date: Fri, 2 Sep 2022 20:46:48 +0100
+Subject: mm: convert page_get_anon_vma() to folio_get_anon_vma()
+Date: Fri, 2 Sep 2022 20:46:50 +0100
 
-Saves many calls to compound_head().
+With all callers now passing in a folio, rename the function and convert
+all callers.  Removes a couple of calls to compound_head() and a reference
+to page->mapping.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-53-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-55-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   49 ++++++++++++++++++++++-----------------------
- 1 file changed, 24 insertions(+), 25 deletions(-)
+ include/linux/rmap.h |    2 +-
+ mm/huge_memory.c     |    2 +-
+ mm/migrate.c         |    6 +++---
+ mm/rmap.c            |   14 +++++++-------
+ 4 files changed, 12 insertions(+), 12 deletions(-)
 
---- a/mm/huge_memory.c~huge_memory-convert-split_huge_page_to_list-to-use-a-folio
+--- a/include/linux/rmap.h~mm-convert-page_get_anon_vma-to-folio_get_anon_vma
++++ a/include/linux/rmap.h
+@@ -163,7 +163,7 @@ static inline void anon_vma_merge(struct
+ 	unlink_anon_vmas(next);
+ }
+ 
+-struct anon_vma *page_get_anon_vma(struct page *page);
++struct anon_vma *folio_get_anon_vma(struct folio *folio);
+ 
+ /* RMAP flags, currently only relevant for some anon rmap operations. */
+ typedef int __bitwise rmap_t;
+--- a/mm/huge_memory.c~mm-convert-page_get_anon_vma-to-folio_get_anon_vma
 +++ a/mm/huge_memory.c
-@@ -2622,27 +2622,26 @@ bool can_split_folio(struct folio *folio
- int split_huge_page_to_list(struct page *page, struct list_head *list)
- {
- 	struct folio *folio = page_folio(page);
--	struct page *head = &folio->page;
--	struct deferred_split *ds_queue = get_deferred_split_queue(head);
--	XA_STATE(xas, &head->mapping->i_pages, head->index);
-+	struct deferred_split *ds_queue = get_deferred_split_queue(&folio->page);
-+	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
- 	int extra_pins, ret;
- 	pgoff_t end;
- 	bool is_hzp;
- 
--	VM_BUG_ON_PAGE(!PageLocked(head), head);
--	VM_BUG_ON_PAGE(!PageCompound(head), head);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-+	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
- 
--	is_hzp = is_huge_zero_page(head);
--	VM_WARN_ON_ONCE_PAGE(is_hzp, head);
-+	is_hzp = is_huge_zero_page(&folio->page);
-+	VM_WARN_ON_ONCE_FOLIO(is_hzp, folio);
- 	if (is_hzp)
- 		return -EBUSY;
- 
--	if (PageWriteback(head))
-+	if (folio_test_writeback(folio))
- 		return -EBUSY;
- 
--	if (PageAnon(head)) {
-+	if (folio_test_anon(folio)) {
- 		/*
- 		 * The caller does not necessarily hold an mmap_lock that would
- 		 * prevent the anon_vma disappearing so we first we take a
-@@ -2651,7 +2650,7 @@ int split_huge_page_to_list(struct page
+@@ -2649,7 +2649,7 @@ int split_huge_page_to_list(struct page
  		 * is taken to serialise against parallel split or collapse
  		 * operations.
  		 */
--		anon_vma = page_get_anon_vma(head);
-+		anon_vma = page_get_anon_vma(&folio->page);
+-		anon_vma = page_get_anon_vma(&folio->page);
++		anon_vma = folio_get_anon_vma(folio);
  		if (!anon_vma) {
  			ret = -EBUSY;
  			goto out;
-@@ -2662,7 +2661,7 @@ int split_huge_page_to_list(struct page
- 	} else {
- 		gfp_t gfp;
+--- a/mm/migrate.c~mm-convert-page_get_anon_vma-to-folio_get_anon_vma
++++ a/mm/migrate.c
+@@ -1052,14 +1052,14 @@ static int __unmap_and_move(struct folio
+ 	 * File Caches may use write_page() or lock_page() in migration, then,
+ 	 * just care Anon page here.
+ 	 *
+-	 * Only page_get_anon_vma() understands the subtleties of
++	 * Only folio_get_anon_vma() understands the subtleties of
+ 	 * getting a hold on an anon_vma from outside one of its mms.
+ 	 * But if we cannot get anon_vma, then we won't need it anyway,
+ 	 * because that implies that the anon page is no longer mapped
+ 	 * (and cannot be remapped so long as we hold the page lock).
+ 	 */
+ 	if (folio_test_anon(src) && !folio_test_ksm(src))
+-		anon_vma = page_get_anon_vma(&src->page);
++		anon_vma = folio_get_anon_vma(src);
  
--		mapping = head->mapping;
-+		mapping = folio->mapping;
- 
- 		/* Truncated ? */
- 		if (!mapping) {
-@@ -2679,7 +2678,7 @@ int split_huge_page_to_list(struct page
- 			goto out;
- 		}
- 
--		xas_split_alloc(&xas, head, compound_order(head), gfp);
-+		xas_split_alloc(&xas, folio, folio_order(folio), gfp);
- 		if (xas_error(&xas)) {
- 			ret = xas_error(&xas);
- 			goto out;
-@@ -2693,7 +2692,7 @@ int split_huge_page_to_list(struct page
- 		 * but on 32-bit, i_size_read() takes an irq-unsafe seqlock,
- 		 * which cannot be nested inside the page tree lock. So note
- 		 * end now: i_size itself may be changed at any moment, but
--		 * head page lock is good enough to serialize the trimming.
-+		 * folio lock is good enough to serialize the trimming.
- 		 */
- 		end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE);
- 		if (shmem_mapping(mapping))
-@@ -2709,38 +2708,38 @@ int split_huge_page_to_list(struct page
- 		goto out_unlock;
+ 	/*
+ 	 * Block others from accessing the new page when we get around to
+@@ -1298,7 +1298,7 @@ static int unmap_and_move_huge_page(new_
  	}
  
--	unmap_page(head);
-+	unmap_page(&folio->page);
+ 	if (folio_test_anon(src))
+-		anon_vma = page_get_anon_vma(&src->page);
++		anon_vma = folio_get_anon_vma(src);
  
- 	/* block interrupt reentry in xa_lock and spinlock */
- 	local_irq_disable();
- 	if (mapping) {
- 		/*
--		 * Check if the head page is present in page cache.
--		 * We assume all tail are present too, if head is there.
-+		 * Check if the folio is present in page cache.
-+		 * We assume all tail are present too, if folio is there.
- 		 */
- 		xas_lock(&xas);
- 		xas_reset(&xas);
--		if (xas_load(&xas) != head)
-+		if (xas_load(&xas) != folio)
- 			goto fail;
+ 	if (unlikely(!folio_trylock(dst)))
+ 		goto put_anon;
+--- a/mm/rmap.c~mm-convert-page_get_anon_vma-to-folio_get_anon_vma
++++ a/mm/rmap.c
+@@ -486,16 +486,16 @@ void __init anon_vma_init(void)
+  * if there is a mapcount, we can dereference the anon_vma after observing
+  * those.
+  */
+-struct anon_vma *page_get_anon_vma(struct page *page)
++struct anon_vma *folio_get_anon_vma(struct folio *folio)
+ {
+ 	struct anon_vma *anon_vma = NULL;
+ 	unsigned long anon_mapping;
+ 
+ 	rcu_read_lock();
+-	anon_mapping = (unsigned long)READ_ONCE(page->mapping);
++	anon_mapping = (unsigned long)READ_ONCE(folio->mapping);
+ 	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
+ 		goto out;
+-	if (!page_mapped(page))
++	if (!folio_mapped(folio))
+ 		goto out;
+ 
+ 	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
+@@ -505,13 +505,13 @@ struct anon_vma *page_get_anon_vma(struc
  	}
  
- 	/* Prevent deferred_split_scan() touching ->_refcount */
- 	spin_lock(&ds_queue->split_queue_lock);
--	if (page_ref_freeze(head, 1 + extra_pins)) {
--		if (!list_empty(page_deferred_list(head))) {
-+	if (folio_ref_freeze(folio, 1 + extra_pins)) {
-+		if (!list_empty(page_deferred_list(&folio->page))) {
- 			ds_queue->split_queue_len--;
--			list_del(page_deferred_list(head));
-+			list_del(page_deferred_list(&folio->page));
- 		}
- 		spin_unlock(&ds_queue->split_queue_lock);
- 		if (mapping) {
--			int nr = thp_nr_pages(head);
-+			int nr = folio_nr_pages(folio);
+ 	/*
+-	 * If this page is still mapped, then its anon_vma cannot have been
++	 * If this folio is still mapped, then its anon_vma cannot have been
+ 	 * freed.  But if it has been unmapped, we have no security against the
+ 	 * anon_vma structure being freed and reused (for another anon_vma:
+ 	 * SLAB_TYPESAFE_BY_RCU guarantees that - so the atomic_inc_not_zero()
+ 	 * above cannot corrupt).
+ 	 */
+-	if (!page_mapped(page)) {
++	if (!folio_mapped(folio)) {
+ 		rcu_read_unlock();
+ 		put_anon_vma(anon_vma);
+ 		return NULL;
+@@ -523,11 +523,11 @@ out:
+ }
  
--			xas_split(&xas, head, thp_order(head));
--			if (PageSwapBacked(head)) {
--				__mod_lruvec_page_state(head, NR_SHMEM_THPS,
-+			xas_split(&xas, folio, folio_order(folio));
-+			if (folio_test_swapbacked(folio)) {
-+				__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS,
- 							-nr);
- 			} else {
--				__mod_lruvec_page_state(head, NR_FILE_THPS,
-+				__lruvec_stat_mod_folio(folio, NR_FILE_THPS,
- 							-nr);
- 				filemap_nr_thps_dec(mapping);
- 			}
+ /*
+- * Similar to page_get_anon_vma() except it locks the anon_vma.
++ * Similar to folio_get_anon_vma() except it locks the anon_vma.
+  *
+  * Its a little more complex as it tries to keep the fast path to a single
+  * atomic op -- the trylock. If we fail the trylock, we fall back to getting a
+- * reference like with page_get_anon_vma() and then block on the mutex
++ * reference like with folio_get_anon_vma() and then block on the mutex
+  * on !rwc->try_lock case.
+  */
+ struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
