@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 669E1C433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:12:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39746C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:12:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229972AbiJCVMm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:12:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56164 "EHLO
+        id S229767AbiJCVMo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:12:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229767AbiJCVLX (ORCPT
+        with ESMTP id S229768AbiJCVLX (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:11:23 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41C4F51426
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D611851428
         for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:06:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DA251B81123
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:06:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71613C433D7;
-        Mon,  3 Oct 2022 21:06:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 70D73611EC
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:06:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5DB5C433D7;
+        Mon,  3 Oct 2022 21:06:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831216;
-        bh=RlLX3qBfl8Czqe5Q98lV51oM+wBhde9NXmwDo/RvFlg=;
+        s=korg; t=1664831218;
+        bh=sfasUloB4OZ2iCJl/SKuKApGXCYpAS6rx7DCQ+sxeJI=;
         h=Date:To:From:Subject:From;
-        b=A9YIirp4awTcbhq+SFUQnbGEP+1h8wK1NB3qsBLVVvIpavq5NSbQYWITIcmML9OOS
-         D3ZXv7SlfWByluQlicE+QVarm2OX+qhR8mutY1IMJvyK1261vu34mqiGaepyzYkGE1
-         AblQjEtL/vlaOWn9qnt7MRAB2aIBFIWixPsgvrMM=
-Date:   Mon, 03 Oct 2022 14:06:55 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, ppbuk5246@gmail.com,
-        corbet@lwn.net, brendanhiggins@google.com, sj@kernel.org,
+        b=00vQZH4WEEgFBfJUOINtZ1tydWNQA6xtfhVEoB2268vSTUDEvheFUqIyr/HEOUq1K
+         oFiqpaAY48ktntF+sNEgrNlhsDER+DelJJQV7AUTbHlLEb6d+TjjlQqlwB/u2M1zjf
+         +DG7yVtFy2fKBrdOiYuBGOLzbFguKpcs0oKknJ60=
+Date:   Mon, 03 Oct 2022 14:06:58 -0700
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        ngupta@vflare.org, minchan@kernel.org, avromanov@sberdevices.ru,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-note-damon-debugfs-interface-deprecation-plan.patch removed from -mm tree
-Message-Id: <20221003210656.71613C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] zsmalloc-use-correct-types-in-_first_obj_offset-functions.patch removed from -mm tree
+Message-Id: <20221003210658.C5DB5C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,53 +42,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: note DAMON debugfs interface deprecation plan
+     Subject: zsmalloc: use correct types in _first_obj_offset functions
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-note-damon-debugfs-interface-deprecation-plan.patch
+     zsmalloc-use-correct-types-in-_first_obj_offset-functions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: note DAMON debugfs interface deprecation plan
-Date: Fri, 9 Sep 2022 20:29:01 +0000
+From: Alexey Romanov <avromanov@sberdevices.ru>
+Subject: zsmalloc: use correct types in _first_obj_offset functions
+Date: Fri, 9 Sep 2022 11:37:22 +0300
 
-Commit b18402726bd1 ("Docs/admin-guide/mm/damon/usage: document DAMON
-sysfs interface") announced the DAMON debugfs interface deprecation plan,
-but it is not so aggressively announced.  As the deprecation time is
-coming, this commit makes the announce more easy to be found by adding the
-note at the beginning of the DAMON debugfs interface usage document.
+Since commit ffedd09fa9b0 ("zsmalloc: Stop using slab fields in struct
+page") we are using page->page_type (unsigned int) field instead of
+page->units (int) as first object offset in a subpage of zspage.  So
+get_first_obj_offset() and set_first_obj_offset() functions should work
+with unsigned int type.
 
-Link: https://lkml.kernel.org/r/20220909202901.57977-8-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Yun Levi <ppbuk5246@gmail.com>
+Link: https://lkml.kernel.org/r/20220909083722.85024-1-avromanov@sberdevices.ru
+Fixes: ffedd09fa9b0 ("zsmalloc: Stop using slab fields in struct page")
+Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Alexey Romanov <avromanov@sberdevices.ru>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/zsmalloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-note-damon-debugfs-interface-deprecation-plan
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -393,6 +393,11 @@ the files as above.  Above is only for a
- debugfs Interface
- =================
+--- a/mm/zsmalloc.c~zsmalloc-use-correct-types-in-_first_obj_offset-functions
++++ a/mm/zsmalloc.c
+@@ -472,12 +472,12 @@ static inline struct page *get_first_pag
+ 	return first_page;
+ }
  
-+.. note::
-+
-+  DAMON debugfs interface will be removed after next LTS kernel is released, so
-+  users should move to the :ref:`sysfs interface <sysfs_interface>`.
-+
- DAMON exports eight files, ``attrs``, ``target_ids``, ``init_regions``,
- ``schemes``, ``monitor_on``, ``kdamond_pid``, ``mk_contexts`` and
- ``rm_contexts`` under its debugfs directory, ``<debugfs>/damon/``.
+-static inline int get_first_obj_offset(struct page *page)
++static inline unsigned int get_first_obj_offset(struct page *page)
+ {
+ 	return page->page_type;
+ }
+ 
+-static inline void set_first_obj_offset(struct page *page, int offset)
++static inline void set_first_obj_offset(struct page *page, unsigned int offset)
+ {
+ 	page->page_type = offset;
+ }
+@@ -1592,7 +1592,7 @@ static void zs_object_copy(struct size_c
+ static unsigned long find_alloced_obj(struct size_class *class,
+ 					struct page *page, int *obj_idx)
+ {
+-	int offset = 0;
++	unsigned int offset;
+ 	int index = *obj_idx;
+ 	unsigned long handle = 0;
+ 	void *addr = kmap_atomic(page);
+@@ -1846,7 +1846,7 @@ static int zs_page_migrate(struct page *
+ 	struct zspage *zspage;
+ 	struct page *dummy;
+ 	void *s_addr, *d_addr, *addr;
+-	int offset;
++	unsigned int offset;
+ 	unsigned long handle;
+ 	unsigned long old_obj, new_obj;
+ 	unsigned int obj_idx;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from avromanov@sberdevices.ru are
 
-mm-damon-core-initialize-damon_target-list-in-damon_new_target.patch
 
