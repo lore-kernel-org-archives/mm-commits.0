@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF392C4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:10:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6107EC43219
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:10:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229696AbiJCVK2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:10:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49474 "EHLO
+        id S229715AbiJCVKb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:10:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229711AbiJCVI0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:08:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82C1C4F1BB
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:06:27 -0700 (PDT)
+        with ESMTP id S229967AbiJCVI3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:08:29 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5F594F645
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:06:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C71D7B81122
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:06:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63CB7C433D7;
-        Mon,  3 Oct 2022 21:06:24 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 32D2CCE0E7A
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:06:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EDF7C43470;
+        Mon,  3 Oct 2022 21:06:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831184;
-        bh=xXQJinIpGO8wMnQsSz5vMJP/0DkP2ovYVURTYsstDzA=;
+        s=korg; t=1664831189;
+        bh=EZLnZuBsZvgBTbiH9vRP6djX7b5q+1TJ+Kkfs16cYXY=;
         h=Date:To:From:Subject:From;
-        b=qRAC67Z6K3hN1IXoj8s+cHN7LynTCEdHgOqNchVU9AVrbpjiZCrXtX3Db3e/ncDYA
-         CbTzPTO3lPxlTQOVCkXdMG1o1BwfTgGvdQMdx94VfxIIdIoJM3HL2BZrB4MnOXcUTB
-         /asnKk5C7X2if4kfCTPc5gb0B7iwgJjx4yMiHQsk=
-Date:   Mon, 03 Oct 2022 14:06:23 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
-        glider@google.com, eugenis@google.com, elver@google.com,
-        dvyukov@google.com, andreyknvl@google.com,
-        akpm@linux-foundation.org
+        b=2AnP5r/ibe0/qhzd3uP2RBmAKZ7q6Gz7WCDuXbX62yOWN19peuAQu53YQrMSQnjap
+         L6oaC6VsUY53tqv9C4VrgDbDBliPeOjdQkctVrnQgkH10BUdagBecgcsqt1oaNTsRR
+         cKdk/iTuE9mz7uw/tB4plGzZm+qqFDYLmmr23L84=
+Date:   Mon, 03 Oct 2022 14:06:28 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-dynamically-allocate-stack-ring-entries.patch removed from -mm tree
-Message-Id: <20221003210624.63CB7C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-better-invalid-double-free-report-header.patch removed from -mm tree
+Message-Id: <20221003210629.7EDF7C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,156 +42,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: dynamically allocate stack ring entries
+     Subject: kasan: better invalid/double-free report header
 has been removed from the -mm tree.  Its filename was
-     kasan-dynamically-allocate-stack-ring-entries.patch
+     kasan-better-invalid-double-free-report-header.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: dynamically allocate stack ring entries
-Date: Mon, 5 Sep 2022 23:05:47 +0200
+Subject: kasan: better invalid/double-free report header
+Date: Sun, 11 Sep 2022 01:25:30 +0200
 
-Instead of using a large static array, allocate the stack ring dynamically
-via memblock_alloc().
+Update the report header for invalid- and double-free bugs to contain the
+address being freed:
 
-The size of the stack ring is controlled by a new kasan.stack_ring_size
-command-line parameter.  When kasan.stack_ring_size is not provided, the
-default value of 32 << 10 is used.
+BUG: KASAN: invalid-free in kfree+0x280/0x2a8
+Free of addr ffff00000beac001 by task kunit_try_catch/99
 
-When the stack trace collection is disabled via kasan.stacktrace=off, the
-stack ring is not allocated.
-
-Link: https://lkml.kernel.org/r/03b82ab60db53427e9818e0b0c1971baa10c3cbc.1662411800.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/fce40f8dbd160972fe01a1ff39d0c426c310e4b7.1662852281.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    4 +++-
- mm/kasan/kasan.h                  |    5 ++---
- mm/kasan/report_tags.c            |    4 ++--
- mm/kasan/tags.c                   |   25 ++++++++++++++++++++++++-
- 4 files changed, 31 insertions(+), 7 deletions(-)
+ mm/kasan/report.c         |   23 ++++++++++++++++-------
+ mm/kasan/report_generic.c |    3 ++-
+ mm/kasan/report_tags.c    |    2 +-
+ 3 files changed, 19 insertions(+), 9 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-dynamically-allocate-stack-ring-entries
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -112,10 +112,12 @@ parameter can be used to control panic a
-   if ``kasan_multi_shot`` is enabled.
+--- a/mm/kasan/report.c~kasan-better-invalid-double-free-report-header
++++ a/mm/kasan/report.c
+@@ -175,17 +175,14 @@ static void end_report(unsigned long *fl
  
- Software and Hardware Tag-Based KASAN modes (see the section about various
--modes below) support disabling stack trace collection:
-+modes below) support altering stack trace collection behavior:
- 
- - ``kasan.stacktrace=off`` or ``=on`` disables or enables alloc and free stack
-   traces collection (default: ``on``).
-+- ``kasan.stack_ring_size=<number of entries>`` specifies the number of entries
-+  in the stack ring (default: ``32768``).
- 
- Hardware Tag-Based KASAN mode is intended for use in production as a security
- mitigation. Therefore, it supports additional boot parameters that allow
---- a/mm/kasan/kasan.h~kasan-dynamically-allocate-stack-ring-entries
-+++ a/mm/kasan/kasan.h
-@@ -252,12 +252,11 @@ struct kasan_stack_ring_entry {
- 	bool is_free;
- };
- 
--#define KASAN_STACK_RING_SIZE (32 << 10)
--
- struct kasan_stack_ring {
- 	rwlock_t lock;
-+	size_t size;
- 	atomic64_t pos;
--	struct kasan_stack_ring_entry entries[KASAN_STACK_RING_SIZE];
-+	struct kasan_stack_ring_entry *entries;
- };
- 
- #endif /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
---- a/mm/kasan/report_tags.c~kasan-dynamically-allocate-stack-ring-entries
-+++ a/mm/kasan/report_tags.c
-@@ -56,11 +56,11 @@ void kasan_complete_mode_report_info(str
- 	 * entries relevant to the buggy object can be overwritten.
- 	 */
- 
--	for (u64 i = pos - 1; i != pos - 1 - KASAN_STACK_RING_SIZE; i--) {
-+	for (u64 i = pos - 1; i != pos - 1 - stack_ring.size; i--) {
- 		if (alloc_found && free_found)
- 			break;
- 
--		entry = &stack_ring.entries[i % KASAN_STACK_RING_SIZE];
-+		entry = &stack_ring.entries[i % stack_ring.size];
- 
- 		/* Paired with smp_store_release() in save_stack_info(). */
- 		ptr = (void *)smp_load_acquire(&entry->ptr);
---- a/mm/kasan/tags.c~kasan-dynamically-allocate-stack-ring-entries
-+++ a/mm/kasan/tags.c
-@@ -10,6 +10,7 @@
- #include <linux/init.h>
- #include <linux/kasan.h>
- #include <linux/kernel.h>
-+#include <linux/memblock.h>
- #include <linux/memory.h>
- #include <linux/mm.h>
- #include <linux/static_key.h>
-@@ -19,6 +20,8 @@
- #include "kasan.h"
- #include "../slab.h"
- 
-+#define KASAN_STACK_RING_SIZE_DEFAULT (32 << 10)
-+
- enum kasan_arg_stacktrace {
- 	KASAN_ARG_STACKTRACE_DEFAULT,
- 	KASAN_ARG_STACKTRACE_OFF,
-@@ -54,6 +57,16 @@ static int __init early_kasan_flag_stack
- }
- early_param("kasan.stacktrace", early_kasan_flag_stacktrace);
- 
-+/* kasan.stack_ring_size=<number of entries> */
-+static int __init early_kasan_flag_stack_ring_size(char *arg)
-+{
-+	if (!arg)
-+		return -EINVAL;
-+
-+	return kstrtoul(arg, 0, &stack_ring.size);
-+}
-+early_param("kasan.stack_ring_size", early_kasan_flag_stack_ring_size);
-+
- void __init kasan_init_tags(void)
+ static void print_error_description(struct kasan_report_info *info)
  {
- 	switch (kasan_arg_stacktrace) {
-@@ -67,6 +80,16 @@ void __init kasan_init_tags(void)
- 		static_branch_enable(&kasan_flag_stacktrace);
- 		break;
+-	if (info->type == KASAN_REPORT_INVALID_FREE) {
+-		pr_err("BUG: KASAN: invalid-free in %pS\n", (void *)info->ip);
+-		return;
+-	}
++	pr_err("BUG: KASAN: %s in %pS\n", info->bug_type, (void *)info->ip);
+ 
+-	if (info->type == KASAN_REPORT_DOUBLE_FREE) {
+-		pr_err("BUG: KASAN: double-free in %pS\n", (void *)info->ip);
++	if (info->type != KASAN_REPORT_ACCESS) {
++		pr_err("Free of addr %px by task %s/%d\n",
++			info->access_addr, current->comm, task_pid_nr(current));
+ 		return;
  	}
-+
-+	if (kasan_stack_collection_enabled()) {
-+		if (!stack_ring.size)
-+			stack_ring.size = KASAN_STACK_RING_SIZE_DEFAULT;
-+		stack_ring.entries = memblock_alloc(
-+			sizeof(stack_ring.entries[0]) * stack_ring.size,
-+			SMP_CACHE_BYTES);
-+		if (WARN_ON(!stack_ring.entries))
-+			static_branch_disable(&kasan_flag_stacktrace);
+ 
+-	pr_err("BUG: KASAN: %s in %pS\n", info->bug_type, (void *)info->ip);
+ 	if (info->access_size)
+ 		pr_err("%s of size %zu at addr %px by task %s/%d\n",
+ 			info->is_write ? "Write" : "Read", info->access_size,
+@@ -420,6 +417,18 @@ static void complete_report_info(struct
+ 	} else
+ 		info->cache = info->object = NULL;
+ 
++	switch (info->type) {
++	case KASAN_REPORT_INVALID_FREE:
++		info->bug_type = "invalid-free";
++		break;
++	case KASAN_REPORT_DOUBLE_FREE:
++		info->bug_type = "double-free";
++		break;
++	default:
++		/* bug_type filled in by kasan_complete_mode_report_info. */
++		break;
 +	}
++
+ 	/* Fill in mode-specific report info fields. */
+ 	kasan_complete_mode_report_info(info);
  }
+--- a/mm/kasan/report_generic.c~kasan-better-invalid-double-free-report-header
++++ a/mm/kasan/report_generic.c
+@@ -132,7 +132,8 @@ void kasan_complete_mode_report_info(str
+ 	struct kasan_alloc_meta *alloc_meta;
+ 	struct kasan_free_meta *free_meta;
  
- static void save_stack_info(struct kmem_cache *cache, void *object,
-@@ -88,7 +111,7 @@ static void save_stack_info(struct kmem_
+-	info->bug_type = get_bug_type(info);
++	if (!info->bug_type)
++		info->bug_type = get_bug_type(info);
  
- next:
- 	pos = atomic64_fetch_add(1, &stack_ring.pos);
--	entry = &stack_ring.entries[pos % KASAN_STACK_RING_SIZE];
-+	entry = &stack_ring.entries[pos % stack_ring.size];
+ 	if (!info->cache || !info->object)
+ 		return;
+--- a/mm/kasan/report_tags.c~kasan-better-invalid-double-free-report-header
++++ a/mm/kasan/report_tags.c
+@@ -37,7 +37,7 @@ void kasan_complete_mode_report_info(str
+ 	bool is_free;
+ 	bool alloc_found = false, free_found = false;
  
- 	/* Detect stack ring entry slots that are being written to. */
- 	old_ptr = READ_ONCE(entry->ptr);
+-	if (!info->cache || !info->object) {
++	if ((!info->cache || !info->object) && !info->bug_type) {
+ 		info->bug_type = get_common_bug_type(info);
+ 		return;
+ 	}
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
