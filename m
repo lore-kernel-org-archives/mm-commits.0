@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 356FAC433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:05:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42786C4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:05:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229726AbiJCVFn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229795AbiJCVFn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 3 Oct 2022 17:05:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44946 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229534AbiJCVFK (ORCPT
+        with ESMTP id S229522AbiJCVFK (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:05:10 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C425F5B4
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:04:51 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4ADEFF032
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:04:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id F36DBB811C4
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:04:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A461CC433B5;
-        Mon,  3 Oct 2022 21:04:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E2B90B811BF
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:04:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D47C433C1;
+        Mon,  3 Oct 2022 21:04:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831088;
-        bh=36BhSnFeCJ5kJL2MyWTzehYmqNAMMyotTlLa5PjRzE4=;
+        s=korg; t=1664831087;
+        bh=vXV6667BmFGXc4GYSRUXEtuI6iuA4RnhyekhPAtVBG4=;
         h=Date:To:From:Subject:From;
-        b=MSX+Q1fCvH/UvqPt1yjG8PTWL/3FsugjT3ln5Y5de4w5qFPVutR9BS/knuYPBnPBF
-         8RhNBFjalJo24ug5NeS8kQqGZl848B8wLxMYbBs50/TZ7Ihxe8KevRO1YJSHOZcD5R
-         OaaWgVotcuPUmTrOUT4p/FxMMfJJGBH9QTreO8Cw=
-Date:   Mon, 03 Oct 2022 14:04:47 -0700
+        b=sGWn0JMO+xeBi7+XZSM7psGnW8uxbhEqdjrU/yD5DyAqwOaWn8x7k+wHveTuMSls8
+         0oy4mCSE44GhQY2bhxHB4k7UQAGeCQEL3Xel2qutFT+tEjQ0bTKHc3KAJV9bHjEgGs
+         RJVWdX2agP/q9KYE2pIVgN6l83fVVVGo9L9rO81U=
+Date:   Mon, 03 Oct 2022 14:04:46 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-convert-__read_swap_cache_async-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20221003210448.A461CC433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swapfile-convert-try_to_free_swap-to-folio_free_swap.patch removed from -mm tree
+Message-Id: <20221003210447.84D47C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,117 +41,142 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/swap: convert __read_swap_cache_async() to use a folio
+     Subject: mm/swapfile: convert try_to_free_swap() to folio_free_swap()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-convert-__read_swap_cache_async-to-use-a-folio.patch
+     mm-swapfile-convert-try_to_free_swap-to-folio_free_swap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: convert __read_swap_cache_async() to use a folio
-Date: Fri, 2 Sep 2022 20:46:07 +0100
+Subject: mm/swapfile: convert try_to_free_swap() to folio_free_swap()
+Date: Fri, 2 Sep 2022 20:46:06 +0100
 
-Remove a few hidden (and one visible) calls to compound_head().
+Add kernel-doc for folio_free_swap() and make it return bool.  Add a
+try_to_free_swap() compatibility wrapper.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-12-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ include/linux/swap.h |    6 ++++++
+ mm/folio-compat.c    |    7 +++++++
+ mm/swapfile.c        |   32 ++++++++++++++++++--------------
+ mm/vmscan.c          |    2 +-
+ 4 files changed, 32 insertions(+), 15 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-convert-__read_swap_cache_async-to-use-a-folio
-+++ a/mm/swap_state.c
-@@ -411,7 +411,7 @@ struct page *__read_swap_cache_async(swp
- 			bool *new_page_allocated)
- {
- 	struct swap_info_struct *si;
--	struct page *page;
-+	struct folio *folio;
- 	void *shadow = NULL;
+--- a/include/linux/swap.h~mm-swapfile-convert-try_to_free_swap-to-folio_free_swap
++++ a/include/linux/swap.h
+@@ -490,6 +490,7 @@ static inline long get_nr_swap_pages(voi
  
- 	*new_page_allocated = false;
-@@ -426,11 +426,11 @@ struct page *__read_swap_cache_async(swp
- 		si = get_swap_device(entry);
- 		if (!si)
- 			return NULL;
--		page = find_get_page(swap_address_space(entry),
--				     swp_offset(entry));
-+		folio = filemap_get_folio(swap_address_space(entry),
-+						swp_offset(entry));
- 		put_swap_device(si);
--		if (page)
--			return page;
-+		if (folio)
-+			return folio_file_page(folio, swp_offset(entry));
- 
- 		/*
- 		 * Just skip read ahead for unused swap slot.
-@@ -448,8 +448,8 @@ struct page *__read_swap_cache_async(swp
- 		 * before marking swap_map SWAP_HAS_CACHE, when -EEXIST will
- 		 * cause any racers to loop around until we add it to cache.
- 		 */
--		page = alloc_page_vma(gfp_mask, vma, addr);
--		if (!page)
-+		folio = vma_alloc_folio(gfp_mask, 0, vma, addr, false);
-+		if (!folio)
- 			return NULL;
- 
- 		/*
-@@ -459,7 +459,7 @@ struct page *__read_swap_cache_async(swp
- 		if (!err)
- 			break;
- 
--		put_page(page);
-+		folio_put(folio);
- 		if (err != -EEXIST)
- 			return NULL;
- 
-@@ -477,30 +477,30 @@ struct page *__read_swap_cache_async(swp
- 	 * The swap entry is ours to swap in. Prepare the new page.
- 	 */
- 
--	__SetPageLocked(page);
--	__SetPageSwapBacked(page);
-+	__folio_set_locked(folio);
-+	__folio_set_swapbacked(folio);
- 
--	if (mem_cgroup_swapin_charge_page(page, NULL, gfp_mask, entry))
-+	if (mem_cgroup_swapin_charge_page(&folio->page, NULL, gfp_mask, entry))
- 		goto fail_unlock;
- 
- 	/* May fail (-ENOMEM) if XArray node allocation failed. */
--	if (add_to_swap_cache(page, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
-+	if (add_to_swap_cache(&folio->page, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
- 		goto fail_unlock;
- 
- 	mem_cgroup_swapin_uncharge_swap(entry);
- 
- 	if (shadow)
--		workingset_refault(page_folio(page), shadow);
-+		workingset_refault(folio, shadow);
- 
--	/* Caller will initiate read into locked page */
--	lru_cache_add(page);
-+	/* Caller will initiate read into locked folio */
-+	folio_add_lru(folio);
- 	*new_page_allocated = true;
--	return page;
-+	return &folio->page;
- 
- fail_unlock:
--	put_swap_page(page, entry);
--	unlock_page(page);
--	put_page(page);
-+	put_swap_page(&folio->page, entry);
-+	folio_unlock(folio);
-+	folio_put(folio);
- 	return NULL;
+ extern void si_swapinfo(struct sysinfo *);
+ swp_entry_t folio_alloc_swap(struct folio *folio);
++bool folio_free_swap(struct folio *folio);
+ extern void put_swap_page(struct page *page, swp_entry_t entry);
+ extern swp_entry_t get_swap_page_of_type(int);
+ extern int get_swap_pages(int n, swp_entry_t swp_entries[], int entry_size);
+@@ -606,6 +607,11 @@ static inline swp_entry_t folio_alloc_sw
+ 	return entry;
  }
  
++static inline bool folio_free_swap(struct folio *folio)
++{
++	return false;
++}
++
+ static inline int add_swap_extent(struct swap_info_struct *sis,
+ 				  unsigned long start_page,
+ 				  unsigned long nr_pages, sector_t start_block)
+--- a/mm/folio-compat.c~mm-swapfile-convert-try_to_free_swap-to-folio_free_swap
++++ a/mm/folio-compat.c
+@@ -146,3 +146,10 @@ void putback_lru_page(struct page *page)
+ {
+ 	folio_putback_lru(page_folio(page));
+ }
++
++#ifdef CONFIG_SWAP
++int try_to_free_swap(struct page *page)
++{
++	return folio_free_swap(page_folio(page));
++}
++#endif
+--- a/mm/swapfile.c~mm-swapfile-convert-try_to_free_swap-to-folio_free_swap
++++ a/mm/swapfile.c
+@@ -1567,43 +1567,47 @@ static bool folio_swapped(struct folio *
+ 	return swap_page_trans_huge_swapped(si, entry);
+ }
+ 
+-/*
+- * If swap is getting full, or if there are no more mappings of this page,
+- * then try_to_free_swap is called to free its swap space.
++/**
++ * folio_free_swap() - Free the swap space used for this folio.
++ * @folio: The folio to remove.
++ *
++ * If swap is getting full, or if there are no more mappings of this folio,
++ * then call folio_free_swap to free its swap space.
++ *
++ * Return: true if we were able to release the swap space.
+  */
+-int try_to_free_swap(struct page *page)
++bool folio_free_swap(struct folio *folio)
+ {
+-	struct folio *folio = page_folio(page);
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 
+ 	if (!folio_test_swapcache(folio))
+-		return 0;
++		return false;
+ 	if (folio_test_writeback(folio))
+-		return 0;
++		return false;
+ 	if (folio_swapped(folio))
+-		return 0;
++		return false;
+ 
+ 	/*
+ 	 * Once hibernation has begun to create its image of memory,
+-	 * there's a danger that one of the calls to try_to_free_swap()
++	 * there's a danger that one of the calls to folio_free_swap()
+ 	 * - most probably a call from __try_to_reclaim_swap() while
+ 	 * hibernation is allocating its own swap pages for the image,
+ 	 * but conceivably even a call from memory reclaim - will free
+-	 * the swap from a page which has already been recorded in the
+-	 * image as a clean swapcache page, and then reuse its swap for
++	 * the swap from a folio which has already been recorded in the
++	 * image as a clean swapcache folio, and then reuse its swap for
+ 	 * another page of the image.  On waking from hibernation, the
+-	 * original page might be freed under memory pressure, then
++	 * original folio might be freed under memory pressure, then
+ 	 * later read back in from swap, now with the wrong data.
+ 	 *
+ 	 * Hibernation suspends storage while it is writing the image
+ 	 * to disk so check that here.
+ 	 */
+ 	if (pm_suspended_storage())
+-		return 0;
++		return false;
+ 
+ 	delete_from_swap_cache(folio);
+ 	folio_set_dirty(folio);
+-	return 1;
++	return true;
+ }
+ 
+ /*
+--- a/mm/vmscan.c~mm-swapfile-convert-try_to_free_swap-to-folio_free_swap
++++ a/mm/vmscan.c
+@@ -2049,7 +2049,7 @@ activate_locked:
+ 		if (folio_test_swapcache(folio) &&
+ 		    (mem_cgroup_swap_full(&folio->page) ||
+ 		     folio_test_mlocked(folio)))
+-			try_to_free_swap(&folio->page);
++			folio_free_swap(folio);
+ 		VM_BUG_ON_FOLIO(folio_test_active(folio), folio);
+ 		if (!folio_test_mlocked(folio)) {
+ 			int type = folio_is_file_lru(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
