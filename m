@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F403EC433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:19:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E1E7C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:28:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229459AbiJCVSV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:18:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36604 "EHLO
+        id S229468AbiJCV2U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:28:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230045AbiJCVPr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:15:47 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28190558EF
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:10:23 -0700 (PDT)
+        with ESMTP id S229536AbiJCV1X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:27:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AC994F69F
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:18:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C3BB0B8160E
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:10:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8152BC433D6;
-        Mon,  3 Oct 2022 21:10:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AC580601D7
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:18:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05A62C433D6;
+        Mon,  3 Oct 2022 21:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831421;
-        bh=lMJHBDsRTfQcgq3QzG8Ji0PH3AKprPeA2LvIsYzz0yQ=;
+        s=korg; t=1664831911;
+        bh=kl/rAB7B+nh8ya0o52OPPu03TXCWhqSowlCdpgVlU78=;
         h=Date:To:From:Subject:From;
-        b=KZey28+AKN7J3td0HSWT+nSLouQPH+i1H2NOBYGrr66687nvqKPMc6czq2ryiyBA5
-         dM42s7YiCSc/OOM8g+y6rajZ7lsV0tI490c0GTvC3TyZmXBPCRd4UTCI6r3oUqt6bi
-         6HW10JIcLOJmYgqwRh991wEPVFnP0a7/NGk+1wMM=
-Date:   Mon, 03 Oct 2022 14:10:20 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@suse.com, hughd@google.com,
-        hannes@cmpxchg.org, akpm@linux-foundation.org
+        b=Em31SdzIAdCDHi11VCpwer0JB7YeIF+ncCnIfkgtMwShsHACEn5c9258VCS/EBUx5
+         SCHF+buucvkBJHc6pS9eWHK0dWN3SJQdMwBziJcnEnWzLiCcSqIrMgB5/pvP1ZM6HR
+         5xbOz20iMp8Tfke4uqWSfWlvCXjxnJSDYX8LRHc0=
+Date:   Mon, 03 Oct 2022 14:18:30 -0700
+To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tj@kernel.org,
+        tim.c.chen@linux.intel.com, shakeelb@google.com,
+        manfred@colorfullife.com, legion@kernel.org, jiebin.sun@intel.com,
+        ebiederm@xmission.com, dennis@kernel.org, dave@stgolabs.net,
+        cl@linux.com, alexander.mikhalitsyn@virtuozzo.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-drop-dead-config_memcg_swap-config-symbol.patch removed from -mm tree
-Message-Id: <20221003211021.8152BC433D6@smtp.kernel.org>
+Subject: [folded-merged] ipc-msg-mitigate-the-lock-contention-with-percpu-counter-checkpatch-fixes.patch removed from -mm tree
+Message-Id: <20221003211831.05A62C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,225 +45,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: drop dead CONFIG_MEMCG_SWAP config symbol
+     Subject: ipc-msg-mitigate-the-lock-contention-with-percpu-counter-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-drop-dead-config_memcg_swap-config-symbol.patch
+     ipc-msg-mitigate-the-lock-contention-with-percpu-counter-checkpatch-fixes.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into ipc-msg-mitigate-the-lock-contention-with-percpu-counter.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: drop dead CONFIG_MEMCG_SWAP config symbol
-Date: Mon, 26 Sep 2022 09:57:04 -0400
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-msg-mitigate-the-lock-contention-with-percpu-counter-checkpatch-fixes
+Date: Tue Sep 13 02:45:19 PM PDT 2022
 
-Since 2d1c498072de ("mm: memcontrol: make swap tracking an integral part
-of memory control"), CONFIG_MEMCG_SWAP hasn't been a user-visible config
-option anymore, it just means CONFIG_MEMCG && CONFIG_SWAP.
+WARNING: labels should not be indented
+#158: FILE: ipc/msg.c:1319:
++	fail_msg_hdrs:
 
-Update the sites accordingly and drop the symbol.
+WARNING: labels should not be indented
+#160: FILE: ipc/msg.c:1321:
++	fail_msg_bytes:
 
-[ While touching the docs, remove two references to CONFIG_MEMCG_KMEM,
-  which hasn't been a user-visible symbol for over half a decade. ]
+ERROR: space required after that ';' (ctx:VxV)
+#203: FILE: ipc/util.h:75:
++static inline int msg_init_ns(struct ipc_namespace *ns) { return 0;}
+                                                                   ^
 
-Link: https://lkml.kernel.org/r/20220926135704.400818-5-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+total: 1 errors, 2 warnings, 144 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/ipc-msg-mitigate-the-lock-contention-with-percpu-counter.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+Cc: Alexey Gladkov <legion@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: Jiebin Sun <jiebin.sun@intel.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Vasily Averin <vasily.averin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memory.rst |    4 +---
- arch/mips/configs/db1xxx_defconfig             |    1 -
- arch/mips/configs/generic_defconfig            |    1 -
- arch/powerpc/configs/powernv_defconfig         |    1 -
- arch/powerpc/configs/pseries_defconfig         |    1 -
- arch/sh/configs/sdk7786_defconfig              |    1 -
- arch/sh/configs/urquell_defconfig              |    1 -
- include/linux/swap.h                           |    2 +-
- include/linux/swap_cgroup.h                    |    4 ++--
- init/Kconfig                                   |    5 -----
- mm/Makefile                                    |    4 +++-
- mm/memcontrol.c                                |    6 +++---
- tools/testing/selftests/cgroup/config          |    1 -
- 13 files changed, 10 insertions(+), 22 deletions(-)
+ ipc/msg.c  |    8 ++++----
+ ipc/util.h |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/mips/configs/db1xxx_defconfig~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/arch/mips/configs/db1xxx_defconfig
-@@ -9,7 +9,6 @@ CONFIG_HIGH_RES_TIMERS=y
- CONFIG_LOG_BUF_SHIFT=16
- CONFIG_CGROUPS=y
- CONFIG_MEMCG=y
--CONFIG_MEMCG_SWAP=y
- CONFIG_BLK_CGROUP=y
- CONFIG_CGROUP_SCHED=y
- CONFIG_CFS_BANDWIDTH=y
---- a/arch/mips/configs/generic_defconfig~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/arch/mips/configs/generic_defconfig
-@@ -3,7 +3,6 @@ CONFIG_NO_HZ_IDLE=y
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_MEMCG=y
--CONFIG_MEMCG_SWAP=y
- CONFIG_BLK_CGROUP=y
- CONFIG_CFS_BANDWIDTH=y
- CONFIG_RT_GROUP_SCHED=y
---- a/arch/powerpc/configs/powernv_defconfig~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/arch/powerpc/configs/powernv_defconfig
-@@ -17,7 +17,6 @@ CONFIG_LOG_CPU_MAX_BUF_SHIFT=13
- CONFIG_NUMA_BALANCING=y
- CONFIG_CGROUPS=y
- CONFIG_MEMCG=y
--CONFIG_MEMCG_SWAP=y
- CONFIG_CGROUP_SCHED=y
- CONFIG_CGROUP_FREEZER=y
- CONFIG_CPUSETS=y
---- a/arch/powerpc/configs/pseries_defconfig~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/arch/powerpc/configs/pseries_defconfig
-@@ -16,7 +16,6 @@ CONFIG_LOG_CPU_MAX_BUF_SHIFT=13
- CONFIG_NUMA_BALANCING=y
- CONFIG_CGROUPS=y
- CONFIG_MEMCG=y
--CONFIG_MEMCG_SWAP=y
- CONFIG_CGROUP_SCHED=y
- CONFIG_CGROUP_FREEZER=y
- CONFIG_CPUSETS=y
---- a/arch/sh/configs/sdk7786_defconfig~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/arch/sh/configs/sdk7786_defconfig
-@@ -16,7 +16,6 @@ CONFIG_CPUSETS=y
- # CONFIG_PROC_PID_CPUSET is not set
- CONFIG_CGROUP_CPUACCT=y
- CONFIG_CGROUP_MEMCG=y
--CONFIG_CGROUP_MEMCG_SWAP=y
- CONFIG_CGROUP_SCHED=y
- CONFIG_RT_GROUP_SCHED=y
- CONFIG_BLK_CGROUP=y
---- a/arch/sh/configs/urquell_defconfig~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/arch/sh/configs/urquell_defconfig
-@@ -14,7 +14,6 @@ CONFIG_CPUSETS=y
- # CONFIG_PROC_PID_CPUSET is not set
- CONFIG_CGROUP_CPUACCT=y
- CONFIG_CGROUP_MEMCG=y
--CONFIG_CGROUP_MEMCG_SWAP=y
- CONFIG_CGROUP_SCHED=y
- CONFIG_RT_GROUP_SCHED=y
- CONFIG_BLK_DEV_INITRD=y
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -299,7 +299,7 @@ Per-node-per-memcgroup LRU (cgroup's pri
- lruvec->lru_lock; PG_lru bit of page->flags is cleared before
- isolating a page from its LRU under lruvec->lru_lock.
+--- a/ipc/msg.c~ipc-msg-mitigate-the-lock-contention-with-percpu-counter-checkpatch-fixes
++++ a/ipc/msg.c
+@@ -1316,10 +1316,10 @@ int msg_init_ns(struct ipc_namespace *ns
+ 	ipc_init_ids(&ns->ids[IPC_MSG_IDS]);
+ 	return 0;
  
--2.7 Kernel Memory Extension (CONFIG_MEMCG_KMEM)
-+2.7 Kernel Memory Extension
- -----------------------------------------------
- 
- With the Kernel memory extension, the Memory Controller is able to limit
-@@ -386,8 +386,6 @@ U != 0, K >= U:
- 
- a. Enable CONFIG_CGROUPS
- b. Enable CONFIG_MEMCG
--c. Enable CONFIG_MEMCG_SWAP (to use swap extension)
--d. Enable CONFIG_MEMCG_KMEM (to use kmem extension)
- 
- 3.1. Prepare the cgroups (see cgroups.txt, Why are cgroups needed?)
- -------------------------------------------------------------------
---- a/include/linux/swap_cgroup.h~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/include/linux/swap_cgroup.h
-@@ -4,7 +4,7 @@
- 
- #include <linux/swap.h>
- 
--#ifdef CONFIG_MEMCG_SWAP
-+#if defined(CONFIG_MEMCG) && defined(CONFIG_SWAP)
- 
- extern unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
- 					unsigned short old, unsigned short new);
-@@ -40,6 +40,6 @@ static inline void swap_cgroup_swapoff(i
- 	return;
+-	fail_msg_hdrs:
+-		percpu_counter_destroy(&ns->percpu_msg_bytes);
+-	fail_msg_bytes:
+-		return ret;
++fail_msg_hdrs:
++	percpu_counter_destroy(&ns->percpu_msg_bytes);
++fail_msg_bytes:
++	return ret;
  }
  
--#endif /* CONFIG_MEMCG_SWAP */
-+#endif
+ #ifdef CONFIG_IPC_NS
+--- a/ipc/util.h~ipc-msg-mitigate-the-lock-contention-with-percpu-counter-checkpatch-fixes
++++ a/ipc/util.h
+@@ -72,7 +72,7 @@ void msg_exit_ns(struct ipc_namespace *n
+ void shm_exit_ns(struct ipc_namespace *ns);
+ #else
+ static inline void sem_init_ns(struct ipc_namespace *ns) { }
+-static inline int msg_init_ns(struct ipc_namespace *ns) { return 0;}
++static inline int msg_init_ns(struct ipc_namespace *ns) { return 0; }
+ static inline void shm_init_ns(struct ipc_namespace *ns) { }
  
- #endif /* __LINUX_SWAP_CGROUP_H */
---- a/include/linux/swap.h~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/include/linux/swap.h
-@@ -666,7 +666,7 @@ static inline void folio_throttle_swapra
- 	cgroup_throttle_swaprate(&folio->page, gfp);
- }
- 
--#ifdef CONFIG_MEMCG_SWAP
-+#if defined(CONFIG_MEMCG) && defined(CONFIG_SWAP)
- void mem_cgroup_swapout(struct folio *folio, swp_entry_t entry);
- int __mem_cgroup_try_charge_swap(struct folio *folio, swp_entry_t entry);
- static inline int mem_cgroup_try_charge_swap(struct folio *folio,
---- a/init/Kconfig~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/init/Kconfig
-@@ -958,11 +958,6 @@ config MEMCG
- 	help
- 	  Provides control over the memory footprint of tasks in a cgroup.
- 
--config MEMCG_SWAP
--	bool
--	depends on MEMCG && SWAP
--	default y
--
- config MEMCG_KMEM
- 	bool
- 	depends on MEMCG && !SLOB
---- a/mm/Makefile~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/mm/Makefile
-@@ -98,7 +98,9 @@ obj-$(CONFIG_DEVICE_MIGRATION) += migrat
- obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o khugepaged.o
- obj-$(CONFIG_PAGE_COUNTER) += page_counter.o
- obj-$(CONFIG_MEMCG) += memcontrol.o vmpressure.o
--obj-$(CONFIG_MEMCG_SWAP) += swap_cgroup.o
-+ifdef CONFIG_SWAP
-+obj-$(CONFIG_MEMCG) += swap_cgroup.o
-+endif
- obj-$(CONFIG_CGROUP_HUGETLB) += hugetlb_cgroup.o
- obj-$(CONFIG_GUP_TEST) += gup_test.o
- obj-$(CONFIG_MEMORY_FAILURE) += memory-failure.o
---- a/mm/memcontrol.c~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/mm/memcontrol.c
-@@ -3423,7 +3423,7 @@ void split_page_memcg(struct page *head,
- 		css_get_many(&memcg->css, nr - 1);
- }
- 
--#ifdef CONFIG_MEMCG_SWAP
-+#ifdef CONFIG_SWAP
- /**
-  * mem_cgroup_move_swap_account - move swap charge and swap_cgroup's record.
-  * @entry: swap entry to be moved
-@@ -7296,7 +7296,7 @@ static int __init mem_cgroup_init(void)
- }
- subsys_initcall(mem_cgroup_init);
- 
--#ifdef CONFIG_MEMCG_SWAP
-+#ifdef CONFIG_SWAP
- static struct mem_cgroup *mem_cgroup_id_get_online(struct mem_cgroup *memcg)
- {
- 	while (!refcount_inc_not_zero(&memcg->id.ref)) {
-@@ -7788,4 +7788,4 @@ static int __init mem_cgroup_swap_init(v
- }
- subsys_initcall(mem_cgroup_swap_init);
- 
--#endif /* CONFIG_MEMCG_SWAP */
-+#endif /* CONFIG_SWAP */
---- a/tools/testing/selftests/cgroup/config~mm-memcontrol-drop-dead-config_memcg_swap-config-symbol
-+++ a/tools/testing/selftests/cgroup/config
-@@ -4,5 +4,4 @@ CONFIG_CGROUP_FREEZER=y
- CONFIG_CGROUP_SCHED=y
- CONFIG_MEMCG=y
- CONFIG_MEMCG_KMEM=y
--CONFIG_MEMCG_SWAP=y
- CONFIG_PAGE_COUNTER=y
+ static inline void sem_exit_ns(struct ipc_namespace *ns) { }
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
+fs-uninline-inode_maybe_inc_iversion.patch
+ipc-msg-mitigate-the-lock-contention-with-percpu-counter.patch
+ipc-msg-mitigate-the-lock-contention-with-percpu-counter-fix-fix.patch
 
