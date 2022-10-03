@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC6E1C433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:13:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8915DC433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:13:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230050AbiJCVND (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:13:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56238 "EHLO
+        id S230099AbiJCVNE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:13:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230053AbiJCVLi (ORCPT
+        with ESMTP id S230055AbiJCVLi (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:11:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02A2951A28
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:14 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1892451A29
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 93020611F9
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E75A1C433D6;
-        Mon,  3 Oct 2022 21:07:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AAEC1611EC
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F652C433C1;
+        Mon,  3 Oct 2022 21:07:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831233;
-        bh=GpCI729Fpu1fdUMSUVd1vh1u+z2COsGOj00KmBKQU8s=;
+        s=korg; t=1664831234;
+        bh=jn4SqDvbCXN/U15ZWju1B6Hu3AU8RO1lUs/MTDK7ycE=;
         h=Date:To:From:Subject:From;
-        b=PHNAu2wij8XzUIdP2s72nUcipZaWi8TiU16QrPhWEF8vTNxq7xDGQXUiKPFudlGZf
-         WOLGRknSoQN3l077U2wVkwk5Rh60x4LsvwWf4UxjXxtUyIY1fr6JIzNUSNmeUbJRcE
-         sacGUmu6xrrc9jL8UFzyUCw8Ju9GHkJIKcei6tus=
-Date:   Mon, 03 Oct 2022 14:07:12 -0700
+        b=FjR1chaoIGKIbYQrTjuswpNNIWZErvXb4fOWv8X1eci9A8ysdgkyOsrUo+fKlk5pL
+         BZpT8rHKwdFxIpyWX02Gpkj0esbLTiCJMwO7Hf+9CGzjUPpx7/Qcvn3oV/haIudqlP
+         4MOKaXFjIlJhBHnTX89/V+u2eJPbhfZ3q7gehh5Q=
+Date:   Mon, 03 Oct 2022 14:07:13 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-paddr-make-supported-damos-actions-of-paddr-clear.patch removed from -mm tree
-Message-Id: <20221003210712.E75A1C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-paddr-deduplicate-damon_pa_mark_accesseddeactivate_pages.patch removed from -mm tree
+Message-Id: <20221003210714.0F652C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,57 +41,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/paddr: make supported DAMOS actions of paddr clear
+     Subject: mm/damon/paddr: deduplicate damon_pa_{mark_accessed,deactivate_pages}()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-paddr-make-supported-damos-actions-of-paddr-clear.patch
+     mm-damon-paddr-deduplicate-damon_pa_mark_accesseddeactivate_pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: make supported DAMOS actions of paddr clear
-Date: Tue, 13 Sep 2022 17:44:28 +0000
+Subject: mm/damon/paddr: deduplicate damon_pa_{mark_accessed,deactivate_pages}()
+Date: Tue, 13 Sep 2022 17:44:29 +0000
 
-Patch series "mm/damon: cleanup code".
+The bodies of damon_pa_{mark_accessed,deactivate_pages}() contains
+duplicates.  This commit factors out the common part to a separate
+function and removes the duplicates.
 
-DAMON code was not so clean from the beginning, but it has been too much
-nowadays, especially due to the duplicates in DAMON_RECLAIM and
-DAMON_LRU_SORT.  This patchset cleans some of the mess.
-
-
-This patch (of 22):
-
-The 'switch-case' statement in 'damon_va_apply_scheme()' function provides
-a 'case' for every supported DAMOS action while all not-yet-supported
-DAMOS actions fall through the 'default' case, and comment it so that
-people can easily know which actions are supported.  Its counterpart in
-'paddr', 'damon_pa_apply_scheme()', however, doesn't.  This commit makes
-the 'paddr' side function follows the pattern of 'vaddr' for better
-readability and consistency.
-
-Link: https://lkml.kernel.org/r/20220913174449.50645-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20220913174449.50645-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220913174449.50645-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/damon/paddr.c |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-make-supported-damos-actions-of-paddr-clear
+--- a/mm/damon/paddr.c~mm-damon-paddr-deduplicate-damon_pa_mark_accesseddeactivate_pages
 +++ a/mm/damon/paddr.c
-@@ -275,7 +275,10 @@ static unsigned long damon_pa_apply_sche
- 		return damon_pa_mark_accessed(r);
- 	case DAMOS_LRU_DEPRIO:
- 		return damon_pa_deactivate_pages(r);
-+	case DAMOS_STAT:
-+		break;
- 	default:
-+		/* DAMOS actions that not yet supported by 'paddr'. */
- 		break;
+@@ -232,7 +232,8 @@ static unsigned long damon_pa_pageout(st
+ 	return applied * PAGE_SIZE;
+ }
+ 
+-static unsigned long damon_pa_mark_accessed(struct damon_region *r)
++static inline unsigned long damon_pa_mark_accessed_or_deactivate(
++		struct damon_region *r, bool mark_accessed)
+ {
+ 	unsigned long addr, applied = 0;
+ 
+@@ -241,27 +242,24 @@ static unsigned long damon_pa_mark_acces
+ 
+ 		if (!page)
+ 			continue;
+-		mark_page_accessed(page);
++		if (mark_accessed)
++			mark_page_accessed(page);
++		else
++			deactivate_page(page);
+ 		put_page(page);
+ 		applied++;
  	}
- 	return 0;
+ 	return applied * PAGE_SIZE;
+ }
+ 
+-static unsigned long damon_pa_deactivate_pages(struct damon_region *r)
++static unsigned long damon_pa_mark_accessed(struct damon_region *r)
+ {
+-	unsigned long addr, applied = 0;
+-
+-	for (addr = r->ar.start; addr < r->ar.end; addr += PAGE_SIZE) {
+-		struct page *page = damon_get_page(PHYS_PFN(addr));
++	return damon_pa_mark_accessed_or_deactivate(r, true);
++}
+ 
+-		if (!page)
+-			continue;
+-		deactivate_page(page);
+-		put_page(page);
+-		applied++;
+-	}
+-	return applied * PAGE_SIZE;
++static unsigned long damon_pa_deactivate_pages(struct damon_region *r)
++{
++	return damon_pa_mark_accessed_or_deactivate(r, false);
+ }
+ 
+ static unsigned long damon_pa_apply_scheme(struct damon_ctx *ctx,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
