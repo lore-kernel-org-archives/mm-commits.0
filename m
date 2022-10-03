@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C102C433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:07:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2284AC4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:08:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229844AbiJCVH6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:07:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47112 "EHLO
+        id S229842AbiJCVH7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:07:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45396 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229842AbiJCVFz (ORCPT
+        with ESMTP id S229828AbiJCVFz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:05:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95CA021E2D
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:05:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC5702B605
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:05:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3306E610E7
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:05:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8801AC433B5;
-        Mon,  3 Oct 2022 21:05:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 69BA8610A5
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:05:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF57DC433D7;
+        Mon,  3 Oct 2022 21:05:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831126;
-        bh=Mc/FsL16aRUa/gxfMuZaYyxkzaTUDt0J642J+vCn57Y=;
+        s=korg; t=1664831128;
+        bh=HNp9RVGKkfvYNGsMaq5HwF7bmYhLYBD87HosY62h+TU=;
         h=Date:To:From:Subject:From;
-        b=TEY69mlua/LlqJV1ubxcsyzhaUwKEZTCFUX4xLK7ybO5VK20undFDasl6EKld+l0Q
-         8UmYoq5O9X0R9HfPiqHK7K04CiMH82JohkdC98CnDcl5ce9h97rsvjP5XWEvdPhK/3
-         lEN+E87/L+GUv+2dV4n++bzvjjnHHNwsbHrF3Opo=
-Date:   Mon, 03 Oct 2022 14:05:25 -0700
+        b=F+58maSpx8AsfBi1Br58LVbm3Oq35c2+WKFuv2tk047XbsEi3kEUApannu/cvNnon
+         3E2dyFYyYwKSTUYfIgI2jobx4KHeDqCFzs8Oz+LPn8y8hBJV7Qz4KoFSTlIy1lah9U
+         bUhL1YJk8xiHGFd9vAsULyUXGudg54z7NnXxuZBw=
+Date:   Mon, 03 Oct 2022 14:05:28 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] uprobes-use-folios-more-widely-in-__replace_page.patch removed from -mm tree
-Message-Id: <20221003210526.8801AC433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-do_swap_page-to-use-folio_free_swap.patch removed from -mm tree
+Message-Id: <20221003210528.BF57DC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,90 +41,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: uprobes: use folios more widely in __replace_page()
+     Subject: mm: convert do_swap_page() to use folio_free_swap()
 has been removed from the -mm tree.  Its filename was
-     uprobes-use-folios-more-widely-in-__replace_page.patch
+     mm-convert-do_swap_page-to-use-folio_free_swap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: uprobes: use folios more widely in __replace_page()
-Date: Fri, 2 Sep 2022 20:46:40 +0100
+Subject: mm: convert do_swap_page() to use folio_free_swap()
+Date: Fri, 2 Sep 2022 20:46:42 +0100
 
-Remove a few hidden calls to compound_head().
+Also convert should_try_to_free_swap() to use a folio.  This removes a few
+calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-45-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-47-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ mm/memory.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/kernel/events/uprobes.c~uprobes-use-folios-more-widely-in-__replace_page
-+++ a/kernel/events/uprobes.c
-@@ -19,7 +19,7 @@
- #include <linux/export.h>
- #include <linux/rmap.h>		/* anon_vma_prepare */
- #include <linux/mmu_notifier.h>	/* set_pte_at_notify */
--#include <linux/swap.h>		/* try_to_free_swap */
-+#include <linux/swap.h>		/* folio_free_swap */
- #include <linux/ptrace.h>	/* user_enable_single_step */
- #include <linux/kdebug.h>	/* notifier mechanism */
- #include "../../mm/internal.h"	/* munlock_vma_page */
-@@ -154,8 +154,9 @@ static loff_t vaddr_to_offset(struct vm_
- static int __replace_page(struct vm_area_struct *vma, unsigned long addr,
- 				struct page *old_page, struct page *new_page)
- {
-+	struct folio *old_folio = page_folio(old_page);
- 	struct mm_struct *mm = vma->vm_mm;
--	DEFINE_FOLIO_VMA_WALK(pvmw, page_folio(old_page), vma, addr, 0);
-+	DEFINE_FOLIO_VMA_WALK(pvmw, old_folio, vma, addr, 0);
- 	int err;
- 	struct mmu_notifier_range range;
- 
-@@ -169,8 +170,8 @@ static int __replace_page(struct vm_area
- 			return err;
- 	}
- 
--	/* For try_to_free_swap() below */
--	lock_page(old_page);
-+	/* For folio_free_swap() below */
-+	folio_lock(old_folio);
- 
- 	mmu_notifier_invalidate_range_start(&range);
- 	err = -EAGAIN;
-@@ -186,7 +187,7 @@ static int __replace_page(struct vm_area
- 		/* no new page, just dec_mm_counter for old_page */
- 		dec_mm_counter(mm, MM_ANONPAGES);
- 
--	if (!PageAnon(old_page)) {
-+	if (!folio_test_anon(old_folio)) {
- 		dec_mm_counter(mm, mm_counter_file(old_page));
- 		inc_mm_counter(mm, MM_ANONPAGES);
- 	}
-@@ -198,15 +199,15 @@ static int __replace_page(struct vm_area
- 				  mk_pte(new_page, vma->vm_page_prot));
- 
- 	page_remove_rmap(old_page, vma, false);
--	if (!page_mapped(old_page))
--		try_to_free_swap(old_page);
-+	if (!folio_mapped(old_folio))
-+		folio_free_swap(old_folio);
- 	page_vma_mapped_walk_done(&pvmw);
--	put_page(old_page);
-+	folio_put(old_folio);
- 
- 	err = 0;
-  unlock:
- 	mmu_notifier_invalidate_range_end(&range);
--	unlock_page(old_page);
-+	folio_unlock(old_folio);
- 	return err;
+--- a/mm/memory.c~mm-convert-do_swap_page-to-use-folio_free_swap
++++ a/mm/memory.c
+@@ -3641,14 +3641,14 @@ static vm_fault_t remove_device_exclusiv
+ 	return 0;
  }
  
+-static inline bool should_try_to_free_swap(struct page *page,
++static inline bool should_try_to_free_swap(struct folio *folio,
+ 					   struct vm_area_struct *vma,
+ 					   unsigned int fault_flags)
+ {
+-	if (!PageSwapCache(page))
++	if (!folio_test_swapcache(folio))
+ 		return false;
+-	if (mem_cgroup_swap_full(page) || (vma->vm_flags & VM_LOCKED) ||
+-	    PageMlocked(page))
++	if (mem_cgroup_swap_full(&folio->page) || (vma->vm_flags & VM_LOCKED) ||
++	    folio_test_mlocked(folio))
+ 		return true;
+ 	/*
+ 	 * If we want to map a page that's in the swapcache writable, we
+@@ -3656,8 +3656,8 @@ static inline bool should_try_to_free_sw
+ 	 * user. Try freeing the swapcache to get rid of the swapcache
+ 	 * reference only in case it's likely that we'll be the exlusive user.
+ 	 */
+-	return (fault_flags & FAULT_FLAG_WRITE) && !PageKsm(page) &&
+-		page_count(page) == 2;
++	return (fault_flags & FAULT_FLAG_WRITE) && !folio_test_ksm(folio) &&
++		folio_ref_count(folio) == 2;
+ }
+ 
+ static vm_fault_t pte_marker_clear(struct vm_fault *vmf)
+@@ -3949,8 +3949,8 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	 * yet.
+ 	 */
+ 	swap_free(entry);
+-	if (should_try_to_free_swap(page, vma, vmf->flags))
+-		try_to_free_swap(page);
++	if (should_try_to_free_swap(folio, vma, vmf->flags))
++		folio_free_swap(folio);
+ 
+ 	inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
+ 	dec_mm_counter_fast(vma->vm_mm, MM_SWAPENTS);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
