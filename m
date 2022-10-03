@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 114DAC4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:16:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32CC1C433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:16:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229914AbiJCVQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229904AbiJCVQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 3 Oct 2022 17:16:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57018 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229904AbiJCVOg (ORCPT
+        with ESMTP id S229915AbiJCVOg (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:14:36 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B37AD1C40C
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:09:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 122351D31B
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:09:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 49415611E0
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:09:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1155C433D7;
-        Mon,  3 Oct 2022 21:09:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A7326118C
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:09:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7226C433D6;
+        Mon,  3 Oct 2022 21:09:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831387;
-        bh=juXrtMnY5L6MDdVuC84CrXRTGZb5X/dVZv4LpyHrz60=;
+        s=korg; t=1664831388;
+        bh=LP8IQqi8g8JNUQPLCcXZ8k1YuR5BUNG/ig/Q9sdEJfM=;
         h=Date:To:From:Subject:From;
-        b=DkrEWawFvhYuUKAHC6xJIcJNxhw4XW9A7Nq3xiXmaLmvaEmhReXKgxCwi9D7mxrQv
-         nVkuMTiBC/BejsKBCnTHae71aUYWxIpc9r5Dwr5sFQ5s0R3571qrxRyIYtCus2xpm1
-         cpfNW5vbm+EmJqTf/ZCsEj4x6rWeNlYBZ7JvftsU=
-Date:   Mon, 03 Oct 2022 14:09:46 -0700
-To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
-        ran.xiaokai@zte.com.cn, akpm@linux-foundation.org
+        b=Wm3vTabdDjueGbT1L+nZPvt9my3l5jDH6c3fiQC0sheU7bFOVW/A4dH9OI3JP8RLF
+         q81TF3WyEkTU34ZcouUgezT2YfLTXQ6/W4EFULjaEzbz0OL0xrTAsxSPFvnGvc4Mpe
+         pssgB8WTRh8I7fdU8bZzIQ0Qik2YI/Mj/lTTUS3k=
+Date:   Mon, 03 Oct 2022 14:09:48 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, xhao@linux.alibaba.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-update-comments-for-rmqueue.patch removed from -mm tree
-Message-Id: <20221003210947.A1155C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-return-err-value-when-call-kstrtoul-failed.patch removed from -mm tree
+Message-Id: <20221003210948.D7226C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,45 +41,184 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: update comments for rmqueue()
+     Subject: mm/damon/sysfs: return 'err' value when call kstrtoul() failed
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-update-comments-for-rmqueue.patch
+     mm-damon-sysfs-return-err-value-when-call-kstrtoul-failed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Subject: mm/page_alloc: update comments for rmqueue()
-Date: Sun, 18 Sep 2022 02:56:40 +0000
+From: Xin Hao <xhao@linux.alibaba.com>
+Subject: mm/damon/sysfs: return 'err' value when call kstrtoul() failed
+Date: Tue, 20 Sep 2022 16:35:30 +0000
 
-Since commit 44042b449872 ("mm/page_alloc: allow high-order pages to be
-stored on the per-cpu lists"), the per-cpu page allocators (PCP) is not
-only for order-0 pages.  Update the comments.
+We had better return the 'err' value when calling kstrtoul() failed, so
+the user will know why it really fails, there do little change, let it
+return the 'err' value when failed.
 
-Link: https://lkml.kernel.org/r/20220918025640.208586-1-ran.xiaokai@zte.com.cn
-Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/6329ebe0.050a0220.ec4bd.297cSMTPIN_ADDED_BROKEN@mx.google.com
+Suggested-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Xin Hao <xhao@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/damon/sysfs.c |   46 +++++++++++++--------------------------------
+ 1 file changed, 14 insertions(+), 32 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-update-comments-for-rmqueue
-+++ a/mm/page_alloc.c
-@@ -3810,7 +3810,8 @@ static struct page *rmqueue_pcplist(stru
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-return-err-value-when-call-kstrtoul-failed
++++ a/mm/damon/sysfs.c
+@@ -58,7 +58,7 @@ static ssize_t min_store(struct kobject
+ 
+ 	err = kstrtoul(buf, 0, &min);
+ 	if (err)
+-		return -EINVAL;
++		return err;
+ 
+ 	range->min = min;
+ 	return count;
+@@ -83,7 +83,7 @@ static ssize_t max_store(struct kobject
+ 
+ 	err = kstrtoul(buf, 0, &max);
+ 	if (err)
+-		return -EINVAL;
++		return err;
+ 
+ 	range->max = max;
+ 	return count;
+@@ -291,9 +291,7 @@ static ssize_t interval_us_store(struct
+ 			struct damon_sysfs_watermarks, kobj);
+ 	int err = kstrtoul(buf, 0, &watermarks->interval_us);
+ 
+-	if (err)
+-		return -EINVAL;
+-	return count;
++	return err ? err : count;
  }
  
- /*
-- * Allocate a page from the given zone. Use pcplists for order-0 allocations.
-+ * Allocate a page from the given zone.
-+ * Use pcplists for THP or "cheap" high-order allocations.
-  */
+ static ssize_t high_show(struct kobject *kobj,
+@@ -312,9 +310,7 @@ static ssize_t high_store(struct kobject
+ 			struct damon_sysfs_watermarks, kobj);
+ 	int err = kstrtoul(buf, 0, &watermarks->high);
  
- /*
+-	if (err)
+-		return -EINVAL;
+-	return count;
++	return err ? err : count;
+ }
+ 
+ static ssize_t mid_show(struct kobject *kobj,
+@@ -333,9 +329,7 @@ static ssize_t mid_store(struct kobject
+ 			struct damon_sysfs_watermarks, kobj);
+ 	int err = kstrtoul(buf, 0, &watermarks->mid);
+ 
+-	if (err)
+-		return -EINVAL;
+-	return count;
++	return err ? err : count;
+ }
+ 
+ static ssize_t low_show(struct kobject *kobj,
+@@ -354,9 +348,7 @@ static ssize_t low_store(struct kobject
+ 			struct damon_sysfs_watermarks, kobj);
+ 	int err = kstrtoul(buf, 0, &watermarks->low);
+ 
+-	if (err)
+-		return -EINVAL;
+-	return count;
++	return err ? err : count;
+ }
+ 
+ static void damon_sysfs_watermarks_release(struct kobject *kobj)
+@@ -437,9 +429,7 @@ static ssize_t sz_permil_store(struct ko
+ 			struct damon_sysfs_weights, kobj);
+ 	int err = kstrtouint(buf, 0, &weights->sz);
+ 
+-	if (err)
+-		return -EINVAL;
+-	return count;
++	return err ? err : count;
+ }
+ 
+ static ssize_t nr_accesses_permil_show(struct kobject *kobj,
+@@ -458,9 +448,7 @@ static ssize_t nr_accesses_permil_store(
+ 			struct damon_sysfs_weights, kobj);
+ 	int err = kstrtouint(buf, 0, &weights->nr_accesses);
+ 
+-	if (err)
+-		return -EINVAL;
+-	return count;
++	return err ? err : count;
+ }
+ 
+ static ssize_t age_permil_show(struct kobject *kobj,
+@@ -479,9 +467,7 @@ static ssize_t age_permil_store(struct k
+ 			struct damon_sysfs_weights, kobj);
+ 	int err = kstrtouint(buf, 0, &weights->age);
+ 
+-	if (err)
+-		return -EINVAL;
+-	return count;
++	return err ? err : count;
+ }
+ 
+ static void damon_sysfs_weights_release(struct kobject *kobj)
+@@ -1111,9 +1097,7 @@ static ssize_t start_store(struct kobjec
+ 			struct damon_sysfs_region, kobj);
+ 	int err = kstrtoul(buf, 0, &region->start);
+ 
+-	if (err)
+-		return -EINVAL;
+-	return count;
++	return err ? err : count;
+ }
+ 
+ static ssize_t end_show(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -1132,9 +1116,7 @@ static ssize_t end_store(struct kobject
+ 			struct damon_sysfs_region, kobj);
+ 	int err = kstrtoul(buf, 0, &region->end);
+ 
+-	if (err)
+-		return -EINVAL;
+-	return count;
++	return err ? err : count;
+ }
+ 
+ static void damon_sysfs_region_release(struct kobject *kobj)
+@@ -1528,7 +1510,7 @@ static ssize_t sample_us_store(struct ko
+ 	int err = kstrtoul(buf, 0, &us);
+ 
+ 	if (err)
+-		return -EINVAL;
++		return err;
+ 
+ 	intervals->sample_us = us;
+ 	return count;
+@@ -1552,7 +1534,7 @@ static ssize_t aggr_us_store(struct kobj
+ 	int err = kstrtoul(buf, 0, &us);
+ 
+ 	if (err)
+-		return -EINVAL;
++		return err;
+ 
+ 	intervals->aggr_us = us;
+ 	return count;
+@@ -1576,7 +1558,7 @@ static ssize_t update_us_store(struct ko
+ 	int err = kstrtoul(buf, 0, &us);
+ 
+ 	if (err)
+-		return -EINVAL;
++		return err;
+ 
+ 	intervals->update_us = us;
+ 	return count;
 _
 
-Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
+Patches currently in -mm which might be from xhao@linux.alibaba.com are
 
+mm-damon-move-sz_damon_region-to-damon_sz_region.patch
+mm-damon-use-damon_sz_region-in-appropriate-place.patch
 
