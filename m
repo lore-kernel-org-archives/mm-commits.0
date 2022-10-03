@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E49C433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:12:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67741C4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:12:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230005AbiJCVMs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:12:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52350 "EHLO
+        id S230009AbiJCVMv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:12:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229981AbiJCVLf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:11:35 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE9EA51A0F
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:08 -0700 (PDT)
+        with ESMTP id S230043AbiJCVLh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:11:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6721B51435
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6FFE2B815F2
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27C53C433C1;
-        Mon,  3 Oct 2022 21:07:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 036FD611F8
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E351C433C1;
+        Mon,  3 Oct 2022 21:07:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831226;
-        bh=lBRMklCfv6gTYhMD9tXkQMv+al/R++uZQzflgicDIew=;
+        s=korg; t=1664831222;
+        bh=B6fhKn9YN8m+XEPtJxODOCf8KDqrC53WCCaFoc8IfNM=;
         h=Date:To:From:Subject:From;
-        b=PD6T98cCzDPqJUi1+MI05LCCBTb1ri655aMPU9zp3/tCcEcaqjGarXEs8XyeuNSJV
-         vkQgkE06FoDffnb4DV8iN8R2oKKJy2YYcYcMR+ORqnXGE6kzm1S0JqgYs+OeGN2mqh
-         teIomuhsMbY8e+IjtirEbgbOSG6hkWA3wZK1Ev9c=
-Date:   Mon, 03 Oct 2022 14:07:05 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, xhao@linux.alibaba.com,
+        b=SSPJn2K/bec5Q2krd+L2/Ogj4AZchRLzYO4GSO2wH5Bjp7ChDNPqXxIk+PtYcWVhw
+         worjT0ixogm7/FaknDWtGf8pUmWS7QeLE/xyAxZ9kEW7nTaRncx+ov3mJyBb5ueivB
+         nh/O17FHqAt01Sa6XoX9ylT/8A4dUt2qaE3Lag8E=
+Date:   Mon, 03 Oct 2022 14:07:01 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        mike.kravetz@oracle.com, lic121@chinatelecom.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-change-few-functions-execute-order.patch removed from -mm tree
-Message-Id: <20221003210706.27C53C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-use-nth_page-instead-of-mem_map_offset-mem_map_next.patch removed from -mm tree
+Message-Id: <20221003210702.5E351C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,131 +42,222 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: change few functions execute order
+     Subject: mm: use nth_page instead of mem_map_offset mem_map_next
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-change-few-functions-execute-order.patch
+     mm-use-nth_page-instead-of-mem_map_offset-mem_map_next.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xin Hao <xhao@linux.alibaba.com>
-Subject: mm/damon/sysfs: change few functions execute order
-Date: Thu, 8 Sep 2022 16:19:32 +0800
+From: Cheng Li <lic121@chinatelecom.cn>
+Subject: mm: use nth_page instead of mem_map_offset mem_map_next
+Date: Fri, 9 Sep 2022 07:31:09 +0000
 
-There's no need to run container_of() as early as we do.
+To handle the discontiguous case, mem_map_next() has a parameter named
+`offset`.  As a function caller, one would be confused why "get next
+entry" needs a parameter named "offset".  The other drawback of
+mem_map_next() is that the callers must take care of the map between
+parameter "iter" and "offset", otherwise we may get an hole or duplication
+during iteration.  So we use nth_page instead of mem_map_next.
 
-The compiler figures this out, but the resulting code is more readable.
+And replace mem_map_offset with nth_page() per Matthew's comments.
 
-Link: https://lkml.kernel.org/r/20220908081932.77370-1-xhao@linux.alibaba.com
-Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/1662708669-9395-1-git-send-email-lic121@chinatelecom.cn
+Signed-off-by: Cheng Li <lic121@chinatelecom.cn>
+Fixes: 69d177c2fc70 ("hugetlbfs: handle pages higher order than MAX_ORDER")
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ mm/hugetlb.c  |   29 +++++++++++++++++------------
+ mm/internal.h |   28 ----------------------------
+ mm/memory.c   |   21 ++++++++++-----------
+ 3 files changed, 27 insertions(+), 51 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-change-few-functions-execute-order
-+++ a/mm/damon/sysfs.c
-@@ -1031,8 +1031,7 @@ static ssize_t nr_schemes_show(struct ko
- static ssize_t nr_schemes_store(struct kobject *kobj,
- 		struct kobj_attribute *attr, const char *buf, size_t count)
+--- a/mm/hugetlb.c~mm-use-nth_page-instead-of-mem_map_offset-mem_map_next
++++ a/mm/hugetlb.c
+@@ -1306,12 +1306,13 @@ static void __destroy_compound_gigantic_
  {
--	struct damon_sysfs_schemes *schemes = container_of(kobj,
--			struct damon_sysfs_schemes, kobj);
-+	struct damon_sysfs_schemes *schemes;
- 	int nr, err = kstrtoint(buf, 0, &nr);
+ 	int i;
+ 	int nr_pages = 1 << order;
+-	struct page *p = page + 1;
++	struct page *p;
  
- 	if (err)
-@@ -1040,6 +1039,8 @@ static ssize_t nr_schemes_store(struct k
- 	if (nr < 0)
- 		return -EINVAL;
+ 	atomic_set(compound_mapcount_ptr(page), 0);
+ 	atomic_set(compound_pincount_ptr(page), 0);
  
-+	schemes = container_of(kobj, struct damon_sysfs_schemes, kobj);
+-	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
++	for (i = 1; i < nr_pages; i++) {
++		p = nth_page(page, i);
+ 		p->mapping = NULL;
+ 		clear_compound_head(p);
+ 		if (!demote)
+@@ -1532,7 +1533,7 @@ static void add_hugetlb_page(struct hsta
+ static void __update_and_free_page(struct hstate *h, struct page *page)
+ {
+ 	int i;
+-	struct page *subpage = page;
++	struct page *subpage;
+ 
+ 	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+ 		return;
+@@ -1563,8 +1564,8 @@ static void __update_and_free_page(struc
+ 	if (unlikely(PageHWPoison(page)))
+ 		hugetlb_clear_page_hwpoison(page);
+ 
+-	for (i = 0; i < pages_per_huge_page(h);
+-	     i++, subpage = mem_map_next(subpage, page, i)) {
++	for (i = 0; i < pages_per_huge_page(h); i++) {
++		subpage = nth_page(page, i);
+ 		subpage->flags &= ~(1 << PG_locked | 1 << PG_error |
+ 				1 << PG_referenced | 1 << PG_dirty |
+ 				1 << PG_active | 1 << PG_private |
+@@ -1771,13 +1772,15 @@ static bool __prep_compound_gigantic_pag
+ {
+ 	int i, j;
+ 	int nr_pages = 1 << order;
+-	struct page *p = page + 1;
++	struct page *p;
+ 
+ 	/* we rely on prep_new_huge_page to set the destructor */
+ 	set_compound_order(page, order);
+ 	__ClearPageReserved(page);
+ 	__SetPageHead(page);
+-	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
++	for (i = 1; i < nr_pages; i++) {
++		p = nth_page(page, i);
 +
- 	if (!mutex_trylock(&damon_sysfs_lock))
- 		return -EBUSY;
- 	err = damon_sysfs_schemes_add_dirs(schemes, nr);
-@@ -1237,8 +1238,7 @@ static ssize_t nr_regions_show(struct ko
- static ssize_t nr_regions_store(struct kobject *kobj,
- 		struct kobj_attribute *attr, const char *buf, size_t count)
+ 		/*
+ 		 * For gigantic hugepages allocated through bootmem at
+ 		 * boot, it's safer to be consistent with the not-gigantic
+@@ -1824,14 +1827,16 @@ static bool __prep_compound_gigantic_pag
+ 
+ out_error:
+ 	/* undo tail page modifications made above */
+-	p = page + 1;
+-	for (j = 1; j < i; j++, p = mem_map_next(p, page, j)) {
++	for (j = 1; j < i; j++) {
++		p = nth_page(page, j);
+ 		clear_compound_head(p);
+ 		set_page_refcounted(p);
+ 	}
+ 	/* need to clear PG_reserved on remaining tail pages  */
+-	for (; j < nr_pages; j++, p = mem_map_next(p, page, j))
++	for (; j < nr_pages; j++) {
++		p = nth_page(page, j);
+ 		__ClearPageReserved(p);
++	}
+ 	set_compound_order(page, 0);
+ #ifdef CONFIG_64BIT
+ 	page[1].compound_nr = 0;
+@@ -6128,7 +6133,7 @@ static void record_subpages_vmas(struct
+ 
+ 	for (nr = 0; nr < refs; nr++) {
+ 		if (likely(pages))
+-			pages[nr] = mem_map_offset(page, nr);
++			pages[nr] = nth_page(page, nr);
+ 		if (vmas)
+ 			vmas[nr] = vma;
+ 	}
+@@ -6292,7 +6297,7 @@ long follow_hugetlb_page(struct mm_struc
+ 		    (vma->vm_end - ALIGN_DOWN(vaddr, PAGE_SIZE)) >> PAGE_SHIFT);
+ 
+ 		if (pages || vmas)
+-			record_subpages_vmas(mem_map_offset(page, pfn_offset),
++			record_subpages_vmas(nth_page(page, pfn_offset),
+ 					     vma, refs,
+ 					     likely(pages) ? pages + i : NULL,
+ 					     vmas ? vmas + i : NULL);
+--- a/mm/internal.h~mm-use-nth_page-instead-of-mem_map_offset-mem_map_next
++++ a/mm/internal.h
+@@ -638,34 +638,6 @@ static inline void vunmap_range_noflush(
+ }
+ #endif /* !CONFIG_MMU */
+ 
+-/*
+- * Return the mem_map entry representing the 'offset' subpage within
+- * the maximally aligned gigantic page 'base'.  Handle any discontiguity
+- * in the mem_map at MAX_ORDER_NR_PAGES boundaries.
+- */
+-static inline struct page *mem_map_offset(struct page *base, int offset)
+-{
+-	if (unlikely(offset >= MAX_ORDER_NR_PAGES))
+-		return nth_page(base, offset);
+-	return base + offset;
+-}
+-
+-/*
+- * Iterator over all subpages within the maximally aligned gigantic
+- * page 'base'.  Handle any discontiguity in the mem_map.
+- */
+-static inline struct page *mem_map_next(struct page *iter,
+-						struct page *base, int offset)
+-{
+-	if (unlikely((offset & (MAX_ORDER_NR_PAGES - 1)) == 0)) {
+-		unsigned long pfn = page_to_pfn(base) + offset;
+-		if (!pfn_valid(pfn))
+-			return NULL;
+-		return pfn_to_page(pfn);
+-	}
+-	return iter + 1;
+-}
+-
+ /* Memory initialisation debug and verification */
+ enum mminit_level {
+ 	MMINIT_WARNING,
+--- a/mm/memory.c~mm-use-nth_page-instead-of-mem_map_offset-mem_map_next
++++ a/mm/memory.c
+@@ -5690,11 +5690,11 @@ static void clear_gigantic_page(struct p
+ 				unsigned int pages_per_huge_page)
  {
--	struct damon_sysfs_regions *regions = container_of(kobj,
--			struct damon_sysfs_regions, kobj);
-+	struct damon_sysfs_regions *regions;
- 	int nr, err = kstrtoint(buf, 0, &nr);
+ 	int i;
+-	struct page *p = page;
++	struct page *p;
  
- 	if (err)
-@@ -1246,6 +1246,8 @@ static ssize_t nr_regions_store(struct k
- 	if (nr < 0)
- 		return -EINVAL;
+ 	might_sleep();
+-	for (i = 0; i < pages_per_huge_page;
+-	     i++, p = mem_map_next(p, page, i)) {
++	for (i = 0; i < pages_per_huge_page; i++) {
++		p = nth_page(page, i);
+ 		cond_resched();
+ 		clear_user_highpage(p, addr + i * PAGE_SIZE);
+ 	}
+@@ -5730,13 +5730,12 @@ static void copy_user_gigantic_page(stru
+ 	struct page *dst_base = dst;
+ 	struct page *src_base = src;
  
-+	regions = container_of(kobj, struct damon_sysfs_regions, kobj);
+-	for (i = 0; i < pages_per_huge_page; ) {
++	for (i = 0; i < pages_per_huge_page; i++) {
++		dst = nth_page(dst_base, i);
++		src = nth_page(src_base, i);
 +
- 	if (!mutex_trylock(&damon_sysfs_lock))
- 		return -EBUSY;
- 	err = damon_sysfs_regions_add_dirs(regions, nr);
-@@ -1440,8 +1442,7 @@ static ssize_t nr_targets_show(struct ko
- static ssize_t nr_targets_store(struct kobject *kobj,
- 		struct kobj_attribute *attr, const char *buf, size_t count)
- {
--	struct damon_sysfs_targets *targets = container_of(kobj,
--			struct damon_sysfs_targets, kobj);
-+	struct damon_sysfs_targets *targets;
- 	int nr, err = kstrtoint(buf, 0, &nr);
+ 		cond_resched();
+ 		copy_user_highpage(dst, src, addr + i*PAGE_SIZE, vma);
+-
+-		i++;
+-		dst = mem_map_next(dst, dst_base, i);
+-		src = mem_map_next(src, src_base, i);
+ 	}
+ }
  
- 	if (err)
-@@ -1449,6 +1450,8 @@ static ssize_t nr_targets_store(struct k
- 	if (nr < 0)
- 		return -EINVAL;
+@@ -5783,10 +5782,10 @@ long copy_huge_page_from_user(struct pag
+ 	void *page_kaddr;
+ 	unsigned long i, rc = 0;
+ 	unsigned long ret_val = pages_per_huge_page * PAGE_SIZE;
+-	struct page *subpage = dst_page;
++	struct page *subpage;
  
-+	targets = container_of(kobj, struct damon_sysfs_targets, kobj);
-+
- 	if (!mutex_trylock(&damon_sysfs_lock))
- 		return -EBUSY;
- 	err = damon_sysfs_targets_add_dirs(targets, nr);
-@@ -1962,8 +1965,7 @@ static ssize_t nr_contexts_show(struct k
- static ssize_t nr_contexts_store(struct kobject *kobj,
- 		struct kobj_attribute *attr, const char *buf, size_t count)
- {
--	struct damon_sysfs_contexts *contexts = container_of(kobj,
--			struct damon_sysfs_contexts, kobj);
-+	struct damon_sysfs_contexts *contexts;
- 	int nr, err;
- 
- 	err = kstrtoint(buf, 0, &nr);
-@@ -1973,6 +1975,7 @@ static ssize_t nr_contexts_store(struct
- 	if (nr < 0 || 1 < nr)
- 		return -EINVAL;
- 
-+	contexts = container_of(kobj, struct damon_sysfs_contexts, kobj);
- 	if (!mutex_trylock(&damon_sysfs_lock))
- 		return -EBUSY;
- 	err = damon_sysfs_contexts_add_dirs(contexts, nr);
-@@ -2737,8 +2740,7 @@ static ssize_t nr_kdamonds_show(struct k
- static ssize_t nr_kdamonds_store(struct kobject *kobj,
- 		struct kobj_attribute *attr, const char *buf, size_t count)
- {
--	struct damon_sysfs_kdamonds *kdamonds = container_of(kobj,
--			struct damon_sysfs_kdamonds, kobj);
-+	struct damon_sysfs_kdamonds *kdamonds;
- 	int nr, err;
- 
- 	err = kstrtoint(buf, 0, &nr);
-@@ -2747,6 +2749,8 @@ static ssize_t nr_kdamonds_store(struct
- 	if (nr < 0)
- 		return -EINVAL;
- 
-+	kdamonds = container_of(kobj, struct damon_sysfs_kdamonds, kobj);
-+
- 	if (!mutex_trylock(&damon_sysfs_lock))
- 		return -EBUSY;
- 	err = damon_sysfs_kdamonds_add_dirs(kdamonds, nr);
+-	for (i = 0; i < pages_per_huge_page;
+-	     i++, subpage = mem_map_next(subpage, dst_page, i)) {
++	for (i = 0; i < pages_per_huge_page; i++) {
++		subpage = nth_page(dst_page, i);
+ 		if (allow_pagefault)
+ 			page_kaddr = kmap(subpage);
+ 		else
 _
 
-Patches currently in -mm which might be from xhao@linux.alibaba.com are
+Patches currently in -mm which might be from lic121@chinatelecom.cn are
 
-mm-damon-move-sz_damon_region-to-damon_sz_region.patch
-mm-damon-use-damon_sz_region-in-appropriate-place.patch
 
