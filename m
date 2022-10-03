@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C109FC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF392C4332F
 	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:10:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230036AbiJCVK1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:10:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49456 "EHLO
+        id S229696AbiJCVK2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:10:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229958AbiJCVIY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:08:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BE7614D01
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:06:26 -0700 (PDT)
+        with ESMTP id S229711AbiJCVI0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:08:26 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82C1C4F1BB
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:06:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 392CA610A3
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:06:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94780C433C1;
-        Mon,  3 Oct 2022 21:06:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C71D7B81122
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:06:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63CB7C433D7;
+        Mon,  3 Oct 2022 21:06:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831185;
-        bh=7xKC9coFEtjZKEhWi2Z6bzpoKu064Q2KuxU6EYOnqhc=;
+        s=korg; t=1664831184;
+        bh=xXQJinIpGO8wMnQsSz5vMJP/0DkP2ovYVURTYsstDzA=;
         h=Date:To:From:Subject:From;
-        b=QWk3C0eUv40vYyl3iuEZS506KAiig0AvDVE3nR8YJ9e/HfVk/8eaUAbd4q3BnnO8I
-         ble4fs+0G9X4CcAjqRR1czqbDtTk7owZgOjBs+Jbq+TAqQesLfujGDLfMJRbmtzqo0
-         ZYcR3v3nonTGS62jiAace6qoEEsFNoe2vM2cc8Bo=
-Date:   Mon, 03 Oct 2022 14:06:24 -0700
+        b=qRAC67Z6K3hN1IXoj8s+cHN7LynTCEdHgOqNchVU9AVrbpjiZCrXtX3Db3e/ncDYA
+         CbTzPTO3lPxlTQOVCkXdMG1o1BwfTgGvdQMdx94VfxIIdIoJM3HL2BZrB4MnOXcUTB
+         /asnKk5C7X2if4kfCTPc5gb0B7iwgJjx4yMiHQsk=
+Date:   Mon, 03 Oct 2022 14:06:23 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-better-identify-bug-types-for-tag-based-modes.patch removed from -mm tree
-Message-Id: <20221003210625.94780C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-dynamically-allocate-stack-ring-entries.patch removed from -mm tree
+Message-Id: <20221003210624.63CB7C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,31 +43,31 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: better identify bug types for tag-based modes
+     Subject: kasan: dynamically allocate stack ring entries
 has been removed from the -mm tree.  Its filename was
-     kasan-better-identify-bug-types-for-tag-based-modes.patch
+     kasan-dynamically-allocate-stack-ring-entries.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: better identify bug types for tag-based modes
-Date: Mon, 5 Sep 2022 23:05:48 +0200
+Subject: kasan: dynamically allocate stack ring entries
+Date: Mon, 5 Sep 2022 23:05:47 +0200
 
-Identify the bug type for the tag-based modes based on the stack trace
-entries found in the stack ring.
+Instead of using a large static array, allocate the stack ring dynamically
+via memblock_alloc().
 
-If a free entry is found first (meaning that it was added last), mark the
-bug as use-after-free.  If an alloc entry is found first, mark the bug as
-slab-out-of-bounds.  Otherwise, assign the common bug type.
+The size of the stack ring is controlled by a new kasan.stack_ring_size
+command-line parameter.  When kasan.stack_ring_size is not provided, the
+default value of 32 << 10 is used.
 
-This change returns the functionalify of the previously dropped
-CONFIG_KASAN_TAGS_IDENTIFY.
+When the stack trace collection is disabled via kasan.stacktrace=off, the
+stack ring is not allocated.
 
-Link: https://lkml.kernel.org/r/13ce7fa07d9d995caedd1439dfae4d51401842f2.1662411800.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/03b82ab60db53427e9818e0b0c1971baa10c3cbc.1662411800.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -76,66 +76,123 @@ Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report_tags.c |   25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+ Documentation/dev-tools/kasan.rst |    4 +++-
+ mm/kasan/kasan.h                  |    5 ++---
+ mm/kasan/report_tags.c            |    4 ++--
+ mm/kasan/tags.c                   |   25 ++++++++++++++++++++++++-
+ 4 files changed, 31 insertions(+), 7 deletions(-)
 
---- a/mm/kasan/report_tags.c~kasan-better-identify-bug-types-for-tag-based-modes
-+++ a/mm/kasan/report_tags.c
-@@ -10,7 +10,7 @@
+--- a/Documentation/dev-tools/kasan.rst~kasan-dynamically-allocate-stack-ring-entries
++++ a/Documentation/dev-tools/kasan.rst
+@@ -112,10 +112,12 @@ parameter can be used to control panic a
+   if ``kasan_multi_shot`` is enabled.
  
- extern struct kasan_stack_ring stack_ring;
+ Software and Hardware Tag-Based KASAN modes (see the section about various
+-modes below) support disabling stack trace collection:
++modes below) support altering stack trace collection behavior:
  
--static const char *get_bug_type(struct kasan_report_info *info)
-+static const char *get_common_bug_type(struct kasan_report_info *info)
- {
- 	/*
- 	 * If access_size is a negative number, then it has reason to be
-@@ -37,9 +37,8 @@ void kasan_complete_mode_report_info(str
+ - ``kasan.stacktrace=off`` or ``=on`` disables or enables alloc and free stack
+   traces collection (default: ``on``).
++- ``kasan.stack_ring_size=<number of entries>`` specifies the number of entries
++  in the stack ring (default: ``32768``).
+ 
+ Hardware Tag-Based KASAN mode is intended for use in production as a security
+ mitigation. Therefore, it supports additional boot parameters that allow
+--- a/mm/kasan/kasan.h~kasan-dynamically-allocate-stack-ring-entries
++++ a/mm/kasan/kasan.h
+@@ -252,12 +252,11 @@ struct kasan_stack_ring_entry {
  	bool is_free;
- 	bool alloc_found = false, free_found = false;
+ };
  
--	info->bug_type = get_bug_type(info);
+-#define KASAN_STACK_RING_SIZE (32 << 10)
 -
--	if (!info->cache || !info->object)
-+	if (!info->cache || !info->object) {
-+		info->bug_type = get_common_bug_type(info);
- 		return;
- 	}
+ struct kasan_stack_ring {
+ 	rwlock_t lock;
++	size_t size;
+ 	atomic64_t pos;
+-	struct kasan_stack_ring_entry entries[KASAN_STACK_RING_SIZE];
++	struct kasan_stack_ring_entry *entries;
+ };
  
-@@ -84,6 +83,13 @@ void kasan_complete_mode_report_info(str
- 			info->free_track.pid = pid;
- 			info->free_track.stack = stack;
- 			free_found = true;
-+
-+			/*
-+			 * If a free entry is found first, the bug is likely
-+			 * a use-after-free.
-+			 */
-+			if (!info->bug_type)
-+				info->bug_type = "use-after-free";
- 		} else {
- 			/* Second alloc of the same object. Give up. */
- 			if (alloc_found)
-@@ -92,8 +98,19 @@ void kasan_complete_mode_report_info(str
- 			info->alloc_track.pid = pid;
- 			info->alloc_track.stack = stack;
- 			alloc_found = true;
-+
-+			/*
-+			 * If an alloc entry is found first, the bug is likely
-+			 * an out-of-bounds.
-+			 */
-+			if (!info->bug_type)
-+				info->bug_type = "slab-out-of-bounds";
- 		}
- 	}
+ #endif /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
+--- a/mm/kasan/report_tags.c~kasan-dynamically-allocate-stack-ring-entries
++++ a/mm/kasan/report_tags.c
+@@ -56,11 +56,11 @@ void kasan_complete_mode_report_info(str
+ 	 * entries relevant to the buggy object can be overwritten.
+ 	 */
  
- 	write_unlock_irqrestore(&stack_ring.lock, flags);
+-	for (u64 i = pos - 1; i != pos - 1 - KASAN_STACK_RING_SIZE; i--) {
++	for (u64 i = pos - 1; i != pos - 1 - stack_ring.size; i--) {
+ 		if (alloc_found && free_found)
+ 			break;
+ 
+-		entry = &stack_ring.entries[i % KASAN_STACK_RING_SIZE];
++		entry = &stack_ring.entries[i % stack_ring.size];
+ 
+ 		/* Paired with smp_store_release() in save_stack_info(). */
+ 		ptr = (void *)smp_load_acquire(&entry->ptr);
+--- a/mm/kasan/tags.c~kasan-dynamically-allocate-stack-ring-entries
++++ a/mm/kasan/tags.c
+@@ -10,6 +10,7 @@
+ #include <linux/init.h>
+ #include <linux/kasan.h>
+ #include <linux/kernel.h>
++#include <linux/memblock.h>
+ #include <linux/memory.h>
+ #include <linux/mm.h>
+ #include <linux/static_key.h>
+@@ -19,6 +20,8 @@
+ #include "kasan.h"
+ #include "../slab.h"
+ 
++#define KASAN_STACK_RING_SIZE_DEFAULT (32 << 10)
 +
-+	/* Assign the common bug type if no entries were found. */
-+	if (!info->bug_type)
-+		info->bug_type = get_common_bug_type(info);
+ enum kasan_arg_stacktrace {
+ 	KASAN_ARG_STACKTRACE_DEFAULT,
+ 	KASAN_ARG_STACKTRACE_OFF,
+@@ -54,6 +57,16 @@ static int __init early_kasan_flag_stack
  }
+ early_param("kasan.stacktrace", early_kasan_flag_stacktrace);
+ 
++/* kasan.stack_ring_size=<number of entries> */
++static int __init early_kasan_flag_stack_ring_size(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	return kstrtoul(arg, 0, &stack_ring.size);
++}
++early_param("kasan.stack_ring_size", early_kasan_flag_stack_ring_size);
++
+ void __init kasan_init_tags(void)
+ {
+ 	switch (kasan_arg_stacktrace) {
+@@ -67,6 +80,16 @@ void __init kasan_init_tags(void)
+ 		static_branch_enable(&kasan_flag_stacktrace);
+ 		break;
+ 	}
++
++	if (kasan_stack_collection_enabled()) {
++		if (!stack_ring.size)
++			stack_ring.size = KASAN_STACK_RING_SIZE_DEFAULT;
++		stack_ring.entries = memblock_alloc(
++			sizeof(stack_ring.entries[0]) * stack_ring.size,
++			SMP_CACHE_BYTES);
++		if (WARN_ON(!stack_ring.entries))
++			static_branch_disable(&kasan_flag_stacktrace);
++	}
+ }
+ 
+ static void save_stack_info(struct kmem_cache *cache, void *object,
+@@ -88,7 +111,7 @@ static void save_stack_info(struct kmem_
+ 
+ next:
+ 	pos = atomic64_fetch_add(1, &stack_ring.pos);
+-	entry = &stack_ring.entries[pos % KASAN_STACK_RING_SIZE];
++	entry = &stack_ring.entries[pos % stack_ring.size];
+ 
+ 	/* Detect stack ring entry slots that are being written to. */
+ 	old_ptr = READ_ONCE(entry->ptr);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
