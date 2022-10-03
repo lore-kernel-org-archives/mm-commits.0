@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D801FC433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:05:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92416C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:05:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229589AbiJCVFu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:05:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44814 "EHLO
+        id S229825AbiJCVFz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:05:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229687AbiJCVFN (ORCPT
+        with ESMTP id S229643AbiJCVFN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:05:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC63511A09
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:04:55 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC1F711C03
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:04:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2DE9B611D9
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:04:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8188FC433D6;
-        Mon,  3 Oct 2022 21:04:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7846F610D5
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:04:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D08DFC433C1;
+        Mon,  3 Oct 2022 21:04:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831094;
-        bh=HrxrOGtWvVxZK0qGwzM1tds9dQHXW4bCWzqHq3AHoPc=;
+        s=korg; t=1664831096;
+        bh=z+Uje0SYUQzXDw4UX64I+PtbeOA37mp09Zfc0ex6Tjg=;
         h=Date:To:From:Subject:From;
-        b=mamwC7DtaT4mIlNztcye0OdVO5V18eJar+qDG+rqOAgaDtQDG1mlpoNUOJmELM9t/
-         lBV3RNm9XeKzmMOMKPRne1h/TUL/Xx0+zAlCNA7sAuCwu9LgbrDV1DtrrJWtAmalIQ
-         SLbWEnC+dehZ1DxOiT3Mu3iHr0w3L9NYhQARjzd0=
-Date:   Mon, 03 Oct 2022 14:04:53 -0700
+        b=IwlA/lPgZyEszYSEbdGo+5eo+bshZh31Nvu1Ph3BzbQ/EEWKt2EbJdNxYjFjaQ1+r
+         UdbIvHSvApsaJjDOrv6Zwsjrwm8F14VoGN7v/J1M66BDVYu0aH2w9vb1wdZSbntmMp
+         QmV9rd2X93vlZ3e1QC5IQtSlMZmVXoJvJW7LxdkM=
+Date:   Mon, 03 Oct 2022 14:04:56 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio.patch removed from -mm tree
-Message-Id: <20221003210454.8188FC433D6@smtp.kernel.org>
+Subject: [merged mm-stable] shmem-convert-shmem_replace_page-to-shmem_replace_folio.patch removed from -mm tree
+Message-Id: <20221003210456.D08DFC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,104 +41,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memcg: convert mem_cgroup_swapin_charge_page() to mem_cgroup_swapin_charge_folio()
+     Subject: shmem: convert shmem_replace_page() to shmem_replace_folio()
 has been removed from the -mm tree.  Its filename was
-     memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio.patch
+     shmem-convert-shmem_replace_page-to-shmem_replace_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: memcg: convert mem_cgroup_swapin_charge_page() to mem_cgroup_swapin_charge_folio()
-Date: Fri, 2 Sep 2022 20:46:12 +0100
+Subject: shmem: convert shmem_replace_page() to shmem_replace_folio()
+Date: Fri, 2 Sep 2022 20:46:14 +0100
 
-All callers now have a folio, so pass it in here and remove an unnecessary
-call to page_folio().
+The caller has a folio, so convert the calling convention and rename the
+function.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-17-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-19-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- mm/memcontrol.c            |   13 ++++++-------
- mm/memory.c                |    2 +-
- mm/swap_state.c            |    2 +-
- 4 files changed, 10 insertions(+), 11 deletions(-)
+ mm/shmem.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio
-+++ a/include/linux/memcontrol.h
-@@ -688,7 +688,7 @@ static inline int mem_cgroup_charge(stru
- 	return __mem_cgroup_charge(folio, mm, gfp);
+--- a/mm/shmem.c~shmem-convert-shmem_replace_page-to-shmem_replace_folio
++++ a/mm/shmem.c
+@@ -1608,7 +1608,7 @@ static bool shmem_should_replace_folio(s
+ 	return folio_zonenum(folio) > gfp_zone(gfp);
  }
  
--int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
-+int mem_cgroup_swapin_charge_folio(struct folio *folio, struct mm_struct *mm,
- 				  gfp_t gfp, swp_entry_t entry);
- void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry);
- 
-@@ -1254,7 +1254,7 @@ static inline int mem_cgroup_charge(stru
- 	return 0;
- }
- 
--static inline int mem_cgroup_swapin_charge_page(struct page *page,
-+static inline int mem_cgroup_swapin_charge_folio(struct folio *folio,
- 			struct mm_struct *mm, gfp_t gfp, swp_entry_t entry)
+-static int shmem_replace_page(struct page **pagep, gfp_t gfp,
++static int shmem_replace_folio(struct folio **foliop, gfp_t gfp,
+ 				struct shmem_inode_info *info, pgoff_t index)
  {
- 	return 0;
---- a/mm/memcontrol.c~memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio
-+++ a/mm/memcontrol.c
-@@ -6844,21 +6844,20 @@ int __mem_cgroup_charge(struct folio *fo
- }
+ 	struct folio *old, *new;
+@@ -1617,7 +1617,7 @@ static int shmem_replace_page(struct pag
+ 	pgoff_t swap_index;
+ 	int error;
  
- /**
-- * mem_cgroup_swapin_charge_page - charge a newly allocated page for swapin
-- * @page: page to charge
-+ * mem_cgroup_swapin_charge_folio - Charge a newly allocated folio for swapin.
-+ * @folio: folio to charge.
-  * @mm: mm context of the victim
-  * @gfp: reclaim mode
-- * @entry: swap entry for which the page is allocated
-+ * @entry: swap entry for which the folio is allocated
-  *
-- * This function charges a page allocated for swapin. Please call this before
-- * adding the page to the swapcache.
-+ * This function charges a folio allocated for swapin. Please call this before
-+ * adding the folio to the swapcache.
-  *
-  * Returns 0 on success. Otherwise, an error code is returned.
-  */
--int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
-+int mem_cgroup_swapin_charge_folio(struct folio *folio, struct mm_struct *mm,
- 				  gfp_t gfp, swp_entry_t entry)
- {
--	struct folio *folio = page_folio(page);
- 	struct mem_cgroup *memcg;
- 	unsigned short id;
- 	int ret;
---- a/mm/memory.c~memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio
-+++ a/mm/memory.c
-@@ -3783,7 +3783,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 				__folio_set_locked(folio);
- 				__folio_set_swapbacked(folio);
+-	old = page_folio(*pagep);
++	old = *foliop;
+ 	entry = folio_swap_entry(old);
+ 	swap_index = swp_offset(entry);
+ 	swap_mapping = swap_address_space(entry);
+@@ -1666,7 +1666,7 @@ static int shmem_replace_page(struct pag
+ 		old = new;
+ 	} else {
+ 		folio_add_lru(new);
+-		*pagep = &new->page;
++		*foliop = new;
+ 	}
  
--				if (mem_cgroup_swapin_charge_page(page,
-+				if (mem_cgroup_swapin_charge_folio(folio,
- 							vma->vm_mm, GFP_KERNEL,
- 							entry)) {
- 					ret = VM_FAULT_OOM;
---- a/mm/swap_state.c~memcg-convert-mem_cgroup_swapin_charge_page-to-mem_cgroup_swapin_charge_folio
-+++ a/mm/swap_state.c
-@@ -480,7 +480,7 @@ struct page *__read_swap_cache_async(swp
- 	__folio_set_locked(folio);
- 	__folio_set_swapbacked(folio);
+ 	folio_clear_swapcache(old);
+@@ -1772,8 +1772,7 @@ static int shmem_swapin_folio(struct ino
+ 	arch_swap_restore(swap, folio);
  
--	if (mem_cgroup_swapin_charge_page(&folio->page, NULL, gfp_mask, entry))
-+	if (mem_cgroup_swapin_charge_folio(folio, NULL, gfp_mask, entry))
- 		goto fail_unlock;
- 
- 	/* May fail (-ENOMEM) if XArray node allocation failed. */
+ 	if (shmem_should_replace_folio(folio, gfp)) {
+-		error = shmem_replace_page(&page, gfp, info, index);
+-		folio = page_folio(page);
++		error = shmem_replace_folio(&folio, gfp, info, index);
+ 		if (error)
+ 			goto failed;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
