@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64E88C433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:17:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE751C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:17:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229739AbiJCVRY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:17:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56222 "EHLO
+        id S229775AbiJCVR0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:17:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229899AbiJCVPY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:15:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86A8C20BCB
+        with ESMTP id S229910AbiJCVPZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:15:25 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA7AC32A84
         for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:10:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2706C611D2
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:10:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CD30C433C1;
-        Mon,  3 Oct 2022 21:09:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 69C1DB815F8
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:09:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07BE1C433D7;
+        Mon,  3 Oct 2022 21:09:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831399;
-        bh=KW2lgHUDKvuG4RcZsSxJZY0CgPaudzPhgcT8cSCRjY0=;
+        s=korg; t=1664831398;
+        bh=EsHjsuOpQh9HsUTVbQpLS55pNaobfxmY1OjtD0JR2t4=;
         h=Date:To:From:Subject:From;
-        b=B41Z4YQPvvYcG5D1Bo1p/+VdXH+4hWzYLJnRvfeK9Cbx75JbzQ1+xYXq9/vTRlBM2
-         VJesaeRaXQbK5sAzoHx0SGmCqSBCa0VPSNpEGcNL3siBrluVVbKZ5bjbkt9xjQslYn
-         tnXgObKRvjGoNXhiZxZjqz/Qfokj2uMqkwLxzeVg=
-Date:   Mon, 03 Oct 2022 14:09:58 -0700
+        b=GcNS6HFriL2GLA5Kl510LC/0ZnB5blmLhf05/NbztvlLaO5GkkwcCDjqdSCyIKWpi
+         hbKTEcUEdaI/Jig6/8b0DYZH/BPY5TpYrLgoXF+FEyHLJwawR0U2Mwr795SvmxFLRq
+         rkmP8CY8HV6eudXaRfJEhjAPKMMiFrYyCoUWf2pU=
+Date:   Mon, 03 Oct 2022 14:09:57 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         songliubraving@fb.com, sj@kernel.org, shy828301@gmail.com,
         rongwei.wang@linux.alibaba.com, rientjes@google.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         ckennelly@google.com, axelrasmussen@google.com, zokeefe@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check.patch removed from -mm tree
-Message-Id: <20221003210959.7CD30C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-retry-on-eagain-for-madv_collapse-selftest.patch removed from -mm tree
+Message-Id: <20221003210958.07BE1C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,96 +47,31 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/shmem: add flag to enforce shmem THP in hugepage_vma_check()
+     Subject: selftests/vm: retry on EAGAIN for MADV_COLLAPSE selftest
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check.patch
+     selftests-vm-retry-on-eagain-for-madv_collapse-selftest.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/shmem: add flag to enforce shmem THP in hugepage_vma_check()
-Date: Thu, 22 Sep 2022 15:40:37 -0700
+Subject: selftests/vm: retry on EAGAIN for MADV_COLLAPSE selftest
+Date: Thu, 22 Sep 2022 11:46:51 -0700
 
-Patch series "mm: add file/shmem support to MADV_COLLAPSE", v4.
+MADV_COLLAPSE is a best-effort request that will set errno to an
+actionable value if the request cannot be performed.
 
-This series builds on top of the previous "mm: userspace hugepage
-collapse" series which introduced the MADV_COLLAPSE madvise mode and added
-support for private, anonymous mappings[2], by adding support for file and
-shmem backed memory to CONFIG_READ_ONLY_THP_FOR_FS=y kernels.
+For example, if pages are not found on the LRU, or if they are currently
+locked by something else, MADV_COLLAPSE will fail and set errno to EAGAIN
+to inform callers that they may try again.
 
-File and shmem support have been added with effort to align with existing
-MADV_COLLAPSE semantics and policy decisions[3].  Collapse of shmem-backed
-memory ignores kernel-guiding directives and heuristics including all
-sysfs settings (transparent_hugepage/shmem_enabled), and tmpfs huge= mount
-options (shmem always supports large folios).  Like anonymous mappings, on
-successful return of MADV_COLLAPSE on file/shmem memory, the contents of
-memory mapped by the addresses provided will be synchronously pmd-mapped
-THPs.
+Since the khugepaged selftest is the first public use of MADV_COLLAPSE,
+set a best practice of checking errno and retrying on EAGAIN.
 
-This functionality unlocks two important uses:
-
-(1)	Immediately back executable text by THPs.  Current support provided
-	by CONFIG_READ_ONLY_THP_FOR_FS may take a long time on a large
-	system which might impair services from serving at their full rated
-	load after (re)starting.  Tricks like mremap(2)'ing text onto
-	anonymous memory to immediately realize iTLB performance prevents
-	page sharing and demand paging, both of which increase steady state
-	memory footprint.  Now, we can have the best of both worlds: Peak
-	upfront performance and lower RAM footprints.
-
-(2)	userfaultfd-based live migration of virtual machines satisfy UFFD
-	faults by fetching native-sized pages over the network (to avoid
-	latency of transferring an entire hugepage).  However, after guest
-	memory has been fully copied to the new host, MADV_COLLAPSE can
-	be used to immediately increase guest performance.
-
-khugepaged has received a small improvement by association and can now
-detect and collapse pte-mapped THPs.  However, there is still work to be
-done along the file collapse path.  Compound pages of arbitrary order
-still needs to be supported and THP collapse needs to be converted to
-using folios in general.  Eventually, we'd like to move away from the
-read-only and executable-mapped constraints currently imposed on eligible
-files and support any inode claiming huge folio support.  That said, I
-think the series as-is covers enough to claim that MADV_COLLAPSE supports
-file/shmem memory.
-
-Patches 1-3	Implement the guts of the series.
-Patch 4 	Is a tracepoint for debugging.
-Patches 5-9 	Refactor existing khugepaged selftests to work with new
-		memory types + new collapse tests.
-Patch 10 	Adds a userfaultfd selftest mode to mimic a functional test
-		of UFFDIO_REGISTER_MODE_MINOR+MADV_COLLAPSE live migration.
-		(v4 note: "userfaultfd shmem" selftest is failing as of
-		Sep 22 mm-unstable)
-
-[1] https://lore.kernel.org/linux-mm/YyiK8YvVcrtZo0z3@google.com/
-[2] https://lore.kernel.org/linux-mm/20220706235936.2197195-1-zokeefe@google.com/
-[3] https://lore.kernel.org/linux-mm/YtBmhaiPHUTkJml8@google.com/
-[4] https://lore.kernel.org/linux-mm/20220922222731.1124481-1-zokeefe@google.com/
-[5] https://lore.kernel.org/linux-mm/20220922184651.1016461-1-zokeefe@google.com/
-
-
-This patch (of 10):
-
-Extend 'mm/thp: add flag to enforce sysfs THP in hugepage_vma_check()' to
-shmem, allowing callers to ignore
-/sys/kernel/transparent_hugepage/shmem_enabled and tmpfs huge= mount.
-
-This is intended to be used by MADV_COLLAPSE, and the rationale is
-analogous to the anon/file case: MADV_COLLAPSE is not coupled to
-directives that advise the kernel's decisions on when THPs should be
-considered eligible.  shmem/tmpfs always claims large folio support,
-regardless of sysfs or mount options.
-
-[shy828301@gmail.com: test shmem_huge_force explicitly]
-  Link: https://lore.kernel.org/linux-mm/CAHbLzko3A5-TpS0BgBeKkx5cuOkWgLvWXQH=TdgW-baO4rPtdg@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20220922224046.1143204-1-zokeefe@google.com
-Link: https://lkml.kernel.org/r/20220907144521.3115321-2-zokeefe@google.com
-Link: https://lkml.kernel.org/r/20220922224046.1143204-2-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220922184651.1016461-2-zokeefe@google.com
+Fixes: 9330694de59f ("selftests/vm: add MADV_COLLAPSE collapse context to selftests")
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Chris Kennelly <ckennelly@google.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -153,103 +88,57 @@ Cc: Rongwei Wang <rongwei.wang@linux.alibaba.com>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Song Liu <songliubraving@fb.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |   10 ++++++----
- mm/huge_memory.c         |    2 +-
- mm/shmem.c               |   18 ++++++++++--------
- 3 files changed, 17 insertions(+), 13 deletions(-)
+ tools/testing/selftests/vm/khugepaged.c |   23 +++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
---- a/include/linux/shmem_fs.h~mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check
-+++ a/include/linux/shmem_fs.h
-@@ -92,11 +92,13 @@ extern struct page *shmem_read_mapping_p
- extern void shmem_truncate_range(struct inode *inode, loff_t start, loff_t end);
- int shmem_unuse(unsigned int type);
- 
--extern bool shmem_is_huge(struct vm_area_struct *vma,
--			  struct inode *inode, pgoff_t index);
--static inline bool shmem_huge_enabled(struct vm_area_struct *vma)
-+extern bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
-+			  pgoff_t index, bool shmem_huge_force);
-+static inline bool shmem_huge_enabled(struct vm_area_struct *vma,
-+				      bool shmem_huge_force)
- {
--	return shmem_is_huge(vma, file_inode(vma->vm_file), vma->vm_pgoff);
-+	return shmem_is_huge(vma, file_inode(vma->vm_file), vma->vm_pgoff,
-+			     shmem_huge_force);
+--- a/tools/testing/selftests/vm/khugepaged.c~selftests-vm-retry-on-eagain-for-madv_collapse-selftest
++++ a/tools/testing/selftests/vm/khugepaged.c
+@@ -1,4 +1,5 @@
+ #define _GNU_SOURCE
++#include <errno.h>
+ #include <fcntl.h>
+ #include <limits.h>
+ #include <signal.h>
+@@ -478,6 +479,26 @@ static void fill_memory(int *p, unsigned
  }
- extern unsigned long shmem_swap_usage(struct vm_area_struct *vma);
- extern unsigned long shmem_partial_swap_usage(struct address_space *mapping,
---- a/mm/huge_memory.c~mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check
-+++ a/mm/huge_memory.c
-@@ -119,7 +119,7 @@ bool hugepage_vma_check(struct vm_area_s
- 	 * own flags.
- 	 */
- 	if (!in_pf && shmem_file(vma->vm_file))
--		return shmem_huge_enabled(vma);
-+		return shmem_huge_enabled(vma, !enforce_sysfs);
  
- 	/* Enforce sysfs THP requirements as necessary */
- 	if (enforce_sysfs &&
---- a/mm/shmem.c~mm-shmem-add-flag-to-enforce-shmem-thp-in-hugepage_vma_check
-+++ a/mm/shmem.c
-@@ -462,20 +462,22 @@ static bool shmem_confirm_swap(struct ad
+ /*
++ * MADV_COLLAPSE is a best-effort request and may fail if an internal
++ * resource is temporarily unavailable, in which case it will set errno to
++ * EAGAIN.  In such a case, immediately reattempt the operation one more
++ * time.
++ */
++static int madvise_collapse_retry(void *p, unsigned long size)
++{
++	bool retry = true;
++	int ret;
++
++retry:
++	ret = madvise(p, size, MADV_COLLAPSE);
++	if (ret && errno == EAGAIN && retry) {
++		retry = false;
++		goto retry;
++	}
++	return ret;
++}
++
++/*
+  * Returns pmd-mapped hugepage in VMA marked VM_HUGEPAGE, filled with
+  * validate_memory()'able contents.
+  */
+@@ -531,7 +552,7 @@ static void madvise_collapse(const char
  
- static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
- 
--bool shmem_is_huge(struct vm_area_struct *vma,
--		   struct inode *inode, pgoff_t index)
-+bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
-+		   pgoff_t index, bool shmem_huge_force)
- {
- 	loff_t i_size;
- 
- 	if (!S_ISREG(inode->i_mode))
- 		return false;
--	if (shmem_huge == SHMEM_HUGE_DENY)
--		return false;
- 	if (vma && ((vma->vm_flags & VM_NOHUGEPAGE) ||
- 	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags)))
- 		return false;
-+	if (shmem_huge_force)
-+		return true;
- 	if (shmem_huge == SHMEM_HUGE_FORCE)
- 		return true;
-+	if (shmem_huge == SHMEM_HUGE_DENY)
-+		return false;
- 
- 	switch (SHMEM_SB(inode->i_sb)->huge) {
- 	case SHMEM_HUGE_ALWAYS:
-@@ -670,8 +672,8 @@ static long shmem_unused_huge_count(stru
- 
- #define shmem_huge SHMEM_HUGE_DENY
- 
--bool shmem_is_huge(struct vm_area_struct *vma,
--		   struct inode *inode, pgoff_t index)
-+bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
-+		   pgoff_t index, bool shmem_huge_force)
- {
- 	return false;
- }
-@@ -1058,7 +1060,7 @@ static int shmem_getattr(struct user_nam
- 			STATX_ATTR_NODUMP);
- 	generic_fillattr(&init_user_ns, inode, stat);
- 
--	if (shmem_is_huge(NULL, inode, 0))
-+	if (shmem_is_huge(NULL, inode, 0, false))
- 		stat->blksize = HPAGE_PMD_SIZE;
- 
- 	if (request_mask & STATX_BTIME) {
-@@ -1900,7 +1902,7 @@ repeat:
- 		return 0;
- 	}
- 
--	if (!shmem_is_huge(vma, inode, index))
-+	if (!shmem_is_huge(vma, inode, index, false))
- 		goto alloc_nohuge;
- 
- 	huge_gfp = vma_thp_gfp_mask(vma);
+ 	/* Clear VM_NOHUGEPAGE */
+ 	madvise(p, nr_hpages * hpage_pmd_size, MADV_HUGEPAGE);
+-	ret = madvise(p, nr_hpages * hpage_pmd_size, MADV_COLLAPSE);
++	ret = madvise_collapse_retry(p, nr_hpages * hpage_pmd_size);
+ 	if (((bool)ret) == expect)
+ 		fail("Fail: Bad return value");
+ 	else if (check_huge(p, nr_hpages) != expect)
 _
 
 Patches currently in -mm which might be from zokeefe@google.com are
