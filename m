@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BB6FC433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:07:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ED8EC433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:07:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229734AbiJCVHk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:07:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48748 "EHLO
+        id S229815AbiJCVHv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:07:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47124 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229744AbiJCVFs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:05:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D4E71AD89
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:05:22 -0700 (PDT)
+        with ESMTP id S229831AbiJCVFz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:05:55 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3246422BFB
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:05:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DF8C3B811BF
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:05:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89164C433C1;
-        Mon,  3 Oct 2022 21:05:19 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 74F78CE0E6D
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:05:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A4A2C433D7;
+        Mon,  3 Oct 2022 21:05:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831119;
-        bh=N2R3dkX6AfwGxv2whPFJWHi8SFu0RNHtmRHKFmB38Pc=;
+        s=korg; t=1664831124;
+        bh=h31Ob1vQiN3cdVvoxPQAK3zphLm2Cf9i3uw90XbY6RQ=;
         h=Date:To:From:Subject:From;
-        b=YjU8BhsHnLH7CJs7hzgtTWtceCgki5hoTovOdKU9CLHzskGEmq7BffayS3I0VCpyQ
-         re22y1pogp/5dSiqqQUzYpCRy93p+kAoBWu4/GJDxpn96KfkWvRxuxgcWmsUmb9/rB
-         aPItUPCiakr/eXsbzBGp3JTb07UHkXhYC8sEGA58=
-Date:   Mon, 03 Oct 2022 14:05:18 -0700
+        b=y3MrzV44pRnJrsa5vREilJDbpyQTstMiXRPgOSxqKYrqwj9/zjUtis/XseTas0Qe2
+         3OK8OCl4zu27JpMe58JJW5xoqhLenN8AUsnYFLVruKNGoEGsEz0usCw1/EWK+su8hU
+         ZATYR+m8bSRBH79pTrM72UYllEB/nZf7DwWkgzqY=
+Date:   Mon, 03 Oct 2022 14:05:23 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-lookup_swap_cache.patch removed from -mm tree
-Message-Id: <20221003210519.89164C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] huge_memory-convert-do_huge_pmd_wp_page-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20221003210524.4A4A2C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,96 +41,112 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove lookup_swap_cache()
+     Subject: huge_memory: convert do_huge_pmd_wp_page() to use a folio
 has been removed from the -mm tree.  Its filename was
-     mm-remove-lookup_swap_cache.patch
+     huge_memory-convert-do_huge_pmd_wp_page-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove lookup_swap_cache()
-Date: Fri, 2 Sep 2022 20:46:34 +0100
+Subject: huge_memory: convert do_huge_pmd_wp_page() to use a folio
+Date: Fri, 2 Sep 2022 20:46:38 +0100
 
-All callers have now been converted to swap_cache_get_folio(), so we can
-remove this wrapper.
+Removes many calls to compound_head().  Does not remove the assumption
+that a folio may not be larger than a PMD.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-39-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-43-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- mm/swap.h       |   10 ----------
- mm/swap_state.c |   12 +-----------
- 3 files changed, 2 insertions(+), 22 deletions(-)
+ mm/huge_memory.c |   35 +++++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 16 deletions(-)
 
---- a/mm/memcontrol.c~mm-remove-lookup_swap_cache
-+++ a/mm/memcontrol.c
-@@ -5569,7 +5569,7 @@ static struct page *mc_handle_swap_pte(s
- 		return NULL;
+--- a/mm/huge_memory.c~huge_memory-convert-do_huge_pmd_wp_page-to-use-a-folio
++++ a/mm/huge_memory.c
+@@ -1305,6 +1305,7 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ {
+ 	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
+ 	struct vm_area_struct *vma = vmf->vma;
++	struct folio *folio;
+ 	struct page *page;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+ 	pmd_t orig_pmd = vmf->orig_pmd;
+@@ -1326,46 +1327,48 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ 	}
+ 
+ 	page = pmd_page(orig_pmd);
++	folio = page_folio(page);
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
+ 
+ 	/* Early check when only holding the PT lock. */
+ 	if (PageAnonExclusive(page))
+ 		goto reuse;
+ 
+-	if (!trylock_page(page)) {
+-		get_page(page);
++	if (!folio_trylock(folio)) {
++		folio_get(folio);
+ 		spin_unlock(vmf->ptl);
+-		lock_page(page);
++		folio_lock(folio);
+ 		spin_lock(vmf->ptl);
+ 		if (unlikely(!pmd_same(*vmf->pmd, orig_pmd))) {
+ 			spin_unlock(vmf->ptl);
+-			unlock_page(page);
+-			put_page(page);
++			folio_unlock(folio);
++			folio_put(folio);
+ 			return 0;
+ 		}
+-		put_page(page);
++		folio_put(folio);
+ 	}
+ 
+ 	/* Recheck after temporarily dropping the PT lock. */
+ 	if (PageAnonExclusive(page)) {
+-		unlock_page(page);
++		folio_unlock(folio);
+ 		goto reuse;
+ 	}
  
  	/*
--	 * Because lookup_swap_cache() updates some statistics counter,
-+	 * Because swap_cache_get_folio() updates some statistics counter,
- 	 * we call find_get_page() with swapper_space directly.
+-	 * See do_wp_page(): we can only reuse the page exclusively if there are
+-	 * no additional references. Note that we always drain the LRU
+-	 * pagevecs immediately after adding a THP.
++	 * See do_wp_page(): we can only reuse the folio exclusively if
++	 * there are no additional references. Note that we always drain
++	 * the LRU pagevecs immediately after adding a THP.
  	 */
- 	page = find_get_page(swap_address_space(ent), swp_offset(ent));
---- a/mm/swap.h~mm-remove-lookup_swap_cache
-+++ a/mm/swap.h
-@@ -41,9 +41,6 @@ void clear_shadow_from_swap_cache(int ty
- 				  unsigned long end);
- struct folio *swap_cache_get_folio(swp_entry_t entry,
- 		struct vm_area_struct *vma, unsigned long addr);
--struct page *lookup_swap_cache(swp_entry_t entry,
--			       struct vm_area_struct *vma,
--			       unsigned long addr);
- struct page *find_get_incore_page(struct address_space *mapping, pgoff_t index);
+-	if (page_count(page) > 1 + PageSwapCache(page) * thp_nr_pages(page))
++	if (folio_ref_count(folio) >
++			1 + folio_test_swapcache(folio) * folio_nr_pages(folio))
+ 		goto unlock_fallback;
+-	if (PageSwapCache(page))
+-		try_to_free_swap(page);
+-	if (page_count(page) == 1) {
++	if (folio_test_swapcache(folio))
++		folio_free_swap(folio);
++	if (folio_ref_count(folio) == 1) {
+ 		pmd_t entry;
  
- struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
-@@ -106,13 +103,6 @@ static inline struct folio *swap_cache_g
- {
- 	return NULL;
- }
--
--static inline struct page *lookup_swap_cache(swp_entry_t swp,
--					     struct vm_area_struct *vma,
--					     unsigned long addr)
--{
--	return NULL;
--}
+ 		page_move_anon_rmap(page, vma);
+-		unlock_page(page);
++		folio_unlock(folio);
+ reuse:
+ 		if (unlikely(unshare)) {
+ 			spin_unlock(vmf->ptl);
+@@ -1380,7 +1383,7 @@ reuse:
+ 	}
  
- static inline
- struct page *find_get_incore_page(struct address_space *mapping, pgoff_t index)
---- a/mm/swap_state.c~mm-remove-lookup_swap_cache
-+++ a/mm/swap_state.c
-@@ -369,16 +369,6 @@ struct folio *swap_cache_get_folio(swp_e
- 	return folio;
- }
- 
--struct page *lookup_swap_cache(swp_entry_t entry, struct vm_area_struct *vma,
--			       unsigned long addr)
--{
--	struct folio *folio = swap_cache_get_folio(entry, vma, addr);
--
--	if (!folio)
--		return NULL;
--	return folio_file_page(folio, swp_offset(entry));
--}
--
- /**
-  * find_get_incore_page - Find and get a page from the page or swap caches.
-  * @mapping: The address_space to search.
-@@ -430,7 +420,7 @@ struct page *__read_swap_cache_async(swp
- 		int err;
- 		/*
- 		 * First check the swap cache.  Since this is normally
--		 * called after lookup_swap_cache() failed, re-calling
-+		 * called after swap_cache_get_folio() failed, re-calling
- 		 * that would confuse statistics.
- 		 */
- 		si = get_swap_device(entry);
+ unlock_fallback:
+-	unlock_page(page);
++	folio_unlock(folio);
+ 	spin_unlock(vmf->ptl);
+ fallback:
+ 	__split_huge_pmd(vma, vmf->pmd, vmf->address, false, NULL);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
