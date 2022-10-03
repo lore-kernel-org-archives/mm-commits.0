@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DB40C4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:05:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 354AAC433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:06:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229849AbiJCVF4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:05:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47118 "EHLO
+        id S229757AbiJCVF5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:05:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229757AbiJCVFN (ORCPT
+        with ESMTP id S229730AbiJCVFN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:05:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0046111C25
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71B2EF5AE
         for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:04:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 911DF610A5
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:04:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6758C433D6;
-        Mon,  3 Oct 2022 21:04:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1C284B811BF
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:04:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2742C433D7;
+        Mon,  3 Oct 2022 21:04:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831098;
-        bh=fzh6vX4QwHfxXq245G5cOBy1qfT58DrUD8GGQ9BFqxo=;
+        s=korg; t=1664831095;
+        bh=rjF0ZHRwk0RRrHibJlp8ghSmUmPnK4lOIg11Cb/Bmzc=;
         h=Date:To:From:Subject:From;
-        b=O4c0pQ2dydylBAvU9ClnEbPUKNO8w/ZI1884PEHrQx94PAhbyXhRqPOiRsBp01rFO
-         smYAkSiYtTH84DaOoND3ZfqmLIkU8kWAAHSdWvEZmVoUOTMtbwdiL5pLpqCGgegXvw
-         8vfVEdjXYajOb1T+rRqtfHSO9b/t3U/1rOadTdR8=
-Date:   Mon, 03 Oct 2022 14:04:57 -0700
+        b=rZD72Tylhr6AAcjixJwFZrwQ5uUI/rgR3EJhj6Hgz3wT3s3Qk7VsL4kUYYfyldvB1
+         dcP4gtDPcZ/Dw3t7hMzVEPLm9pXADvhqJfDjUq/ARFrPP+MemIn0Hkk51HGp6x6Cvq
+         iJtAJIb597Dh6qbhzN9VIY5uNyFmbck1zTFquX4M=
+Date:   Mon, 03 Oct 2022 14:04:55 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] swap-add-swap_cache_get_folio.patch removed from -mm tree
-Message-Id: <20221003210457.E6758C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] shmem-convert-shmem_mfill_atomic_pte-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20221003210455.B2742C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,122 +41,140 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: swap: add swap_cache_get_folio()
+     Subject: shmem: convert shmem_mfill_atomic_pte() to use a folio
 has been removed from the -mm tree.  Its filename was
-     swap-add-swap_cache_get_folio.patch
+     shmem-convert-shmem_mfill_atomic_pte-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: swap: add swap_cache_get_folio()
-Date: Fri, 2 Sep 2022 20:46:15 +0100
+Subject: shmem: convert shmem_mfill_atomic_pte() to use a folio
+Date: Fri, 2 Sep 2022 20:46:13 +0100
 
-Convert lookup_swap_cache() into swap_cache_get_folio() and add a
-lookup_swap_cache() wrapper around it.
+Assert that this is a single-page folio as there are several assumptions
+in here that it's exactly PAGE_SIZE bytes large.  Saves several calls to
+compound_head() and removes the last caller of shmem_alloc_page().
 
-[akpm@linux-foundation.org: add CONFIG_SWAP=n stub for swap_cache_get_folio()]
-Link: https://lkml.kernel.org/r/20220902194653.1739778-20-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-18-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.h       |    8 ++++++++
- mm/swap_state.c |   32 +++++++++++++++++++++-----------
- 2 files changed, 29 insertions(+), 11 deletions(-)
+ mm/shmem.c |   45 +++++++++++++++++++--------------------------
+ 1 file changed, 19 insertions(+), 26 deletions(-)
 
---- a/mm/swap.h~swap-add-swap_cache_get_folio
-+++ a/mm/swap.h
-@@ -39,6 +39,8 @@ void __delete_from_swap_cache(struct fol
- void delete_from_swap_cache(struct folio *folio);
- void clear_shadow_from_swap_cache(int type, unsigned long begin,
- 				  unsigned long end);
-+struct folio *swap_cache_get_folio(swp_entry_t entry,
-+		struct vm_area_struct *vma, unsigned long addr);
- struct page *lookup_swap_cache(swp_entry_t entry,
- 			       struct vm_area_struct *vma,
- 			       unsigned long addr);
-@@ -99,6 +101,12 @@ static inline int swap_writepage(struct
- 	return 0;
+--- a/mm/shmem.c~shmem-convert-shmem_mfill_atomic_pte-to-use-a-folio
++++ a/mm/shmem.c
+@@ -2374,12 +2374,6 @@ static struct inode *shmem_get_inode(str
  }
  
-+static inline struct folio *swap_cache_get_folio(swp_entry_t entry,
-+		struct vm_area_struct *vma, unsigned long addr)
-+{
-+	return NULL;
-+}
-+
- static inline struct page *lookup_swap_cache(swp_entry_t swp,
- 					     struct vm_area_struct *vma,
- 					     unsigned long addr)
---- a/mm/swap_state.c~swap-add-swap_cache_get_folio
-+++ a/mm/swap_state.c
-@@ -317,24 +317,24 @@ static inline bool swap_use_vma_readahea
- }
- 
- /*
-- * Lookup a swap entry in the swap cache. A found page will be returned
-+ * Lookup a swap entry in the swap cache. A found folio will be returned
-  * unlocked and with its refcount incremented - we rely on the kernel
-- * lock getting page table operations atomic even if we drop the page
-+ * lock getting page table operations atomic even if we drop the folio
-  * lock before returning.
-  */
--struct page *lookup_swap_cache(swp_entry_t entry, struct vm_area_struct *vma,
--			       unsigned long addr)
-+struct folio *swap_cache_get_folio(swp_entry_t entry,
-+		struct vm_area_struct *vma, unsigned long addr)
- {
+ #ifdef CONFIG_USERFAULTFD
+-static struct page *shmem_alloc_page(gfp_t gfp,
+-			struct shmem_inode_info *info, pgoff_t index)
+-{
+-	return &shmem_alloc_folio(gfp, info, index)->page;
+-}
+-
+ int shmem_mfill_atomic_pte(struct mm_struct *dst_mm,
+ 			   pmd_t *dst_pmd,
+ 			   struct vm_area_struct *dst_vma,
+@@ -2395,7 +2389,6 @@ int shmem_mfill_atomic_pte(struct mm_str
+ 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
+ 	void *page_kaddr;
+ 	struct folio *folio;
 -	struct page *page;
-+	struct folio *folio;
- 	struct swap_info_struct *si;
+ 	int ret;
+ 	pgoff_t max_off;
  
- 	si = get_swap_device(entry);
- 	if (!si)
- 		return NULL;
--	page = find_get_page(swap_address_space(entry), swp_offset(entry));
-+	folio = filemap_get_folio(swap_address_space(entry), swp_offset(entry));
- 	put_swap_device(si);
+@@ -2414,53 +2407,53 @@ int shmem_mfill_atomic_pte(struct mm_str
  
--	if (page) {
-+	if (folio) {
- 		bool vma_ra = swap_use_vma_readahead();
- 		bool readahead;
+ 	if (!*pagep) {
+ 		ret = -ENOMEM;
+-		page = shmem_alloc_page(gfp, info, pgoff);
+-		if (!page)
++		folio = shmem_alloc_folio(gfp, info, pgoff);
++		if (!folio)
+ 			goto out_unacct_blocks;
  
-@@ -342,10 +342,10 @@ struct page *lookup_swap_cache(swp_entry
- 		 * At the moment, we don't support PG_readahead for anon THP
- 		 * so let's bail out rather than confusing the readahead stat.
- 		 */
--		if (unlikely(PageTransCompound(page)))
--			return page;
-+		if (unlikely(folio_test_large(folio)))
-+			return folio;
+ 		if (!zeropage) {	/* COPY */
+-			page_kaddr = kmap_atomic(page);
++			page_kaddr = kmap_local_folio(folio, 0);
+ 			ret = copy_from_user(page_kaddr,
+ 					     (const void __user *)src_addr,
+ 					     PAGE_SIZE);
+-			kunmap_atomic(page_kaddr);
++			kunmap_local(page_kaddr);
  
--		readahead = TestClearPageReadahead(page);
-+		readahead = folio_test_clear_readahead(folio);
- 		if (vma && vma_ra) {
- 			unsigned long ra_val;
- 			int win, hits;
-@@ -366,7 +366,17 @@ struct page *lookup_swap_cache(swp_entry
+ 			/* fallback to copy_from_user outside mmap_lock */
+ 			if (unlikely(ret)) {
+-				*pagep = page;
++				*pagep = &folio->page;
+ 				ret = -ENOENT;
+ 				/* don't free the page */
+ 				goto out_unacct_blocks;
+ 			}
+ 
+-			flush_dcache_page(page);
++			flush_dcache_folio(folio);
+ 		} else {		/* ZEROPAGE */
+-			clear_user_highpage(page, dst_addr);
++			clear_user_highpage(&folio->page, dst_addr);
  		}
+ 	} else {
+-		page = *pagep;
++		folio = page_folio(*pagep);
++		VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
+ 		*pagep = NULL;
  	}
  
--	return page;
-+	return folio;
-+}
-+
-+struct page *lookup_swap_cache(swp_entry_t entry, struct vm_area_struct *vma,
-+			       unsigned long addr)
-+{
-+	struct folio *folio = swap_cache_get_folio(entry, vma, addr);
-+
-+	if (!folio)
-+		return NULL;
-+	return folio_file_page(folio, swp_offset(entry));
- }
+-	VM_BUG_ON(PageLocked(page));
+-	VM_BUG_ON(PageSwapBacked(page));
+-	__SetPageLocked(page);
+-	__SetPageSwapBacked(page);
+-	__SetPageUptodate(page);
++	VM_BUG_ON(folio_test_locked(folio));
++	VM_BUG_ON(folio_test_swapbacked(folio));
++	__folio_set_locked(folio);
++	__folio_set_swapbacked(folio);
++	__folio_mark_uptodate(folio);
  
- /**
+ 	ret = -EFAULT;
+ 	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
+ 	if (unlikely(pgoff >= max_off))
+ 		goto out_release;
+ 
+-	folio = page_folio(page);
+ 	ret = shmem_add_to_page_cache(folio, mapping, pgoff, NULL,
+ 				      gfp & GFP_RECLAIM_MASK, dst_mm);
+ 	if (ret)
+ 		goto out_release;
+ 
+ 	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
+-				       page, true, wp_copy);
++				       &folio->page, true, wp_copy);
+ 	if (ret)
+ 		goto out_delete_from_cache;
+ 
+@@ -2470,13 +2463,13 @@ int shmem_mfill_atomic_pte(struct mm_str
+ 	shmem_recalc_inode(inode);
+ 	spin_unlock_irq(&info->lock);
+ 
+-	unlock_page(page);
++	folio_unlock(folio);
+ 	return 0;
+ out_delete_from_cache:
+-	delete_from_page_cache(page);
++	filemap_remove_folio(folio);
+ out_release:
+-	unlock_page(page);
+-	put_page(page);
++	folio_unlock(folio);
++	folio_put(folio);
+ out_unacct_blocks:
+ 	shmem_inode_unacct_blocks(inode, 1);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
