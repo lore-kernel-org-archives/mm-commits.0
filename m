@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEE2DC4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:13:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC6E1C433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:13:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230049AbiJCVNB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:13:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56228 "EHLO
+        id S230050AbiJCVND (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:13:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230054AbiJCVLi (ORCPT
+        with ESMTP id S230053AbiJCVLi (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:11:38 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E04EC51A18
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:09 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02A2951A28
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9BC65B811C4
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C599C433D6;
-        Mon,  3 Oct 2022 21:07:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 93020611F9
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E75A1C433D6;
+        Mon,  3 Oct 2022 21:07:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831227;
-        bh=EOPkbexnuw8ArK2djJ1eDjSFlIhXPrWb4FRlaDuyDTU=;
+        s=korg; t=1664831233;
+        bh=GpCI729Fpu1fdUMSUVd1vh1u+z2COsGOj00KmBKQU8s=;
         h=Date:To:From:Subject:From;
-        b=ZOwkBY8xZ+96pzkBmP9ux8Sr8IFXUm/ZEzNcuP03yqLmxrhmri0oBojTFZbki6+oy
-         IwNdBjodPkzrghUK2oJOx+o4yapxPi30HSa3t6bsXDxEtmgDXMkEf5OgqhgGaH0M+O
-         4rm5ZKskhA64uK2mTucy0xcjPpFXIKgpK14bV9L8=
-Date:   Mon, 03 Oct 2022 14:07:06 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        sj@kernel.org, kaixuxia@tencent.com, akpm@linux-foundation.org
+        b=PHNAu2wij8XzUIdP2s72nUcipZaWi8TiU16QrPhWEF8vTNxq7xDGQXUiKPFudlGZf
+         WOLGRknSoQN3l077U2wVkwk5Rh60x4LsvwWf4UxjXxtUyIY1fr6JIzNUSNmeUbJRcE
+         sacGUmu6xrrc9jL8UFzyUCw8Ju9GHkJIKcei6tus=
+Date:   Mon, 03 Oct 2022 14:07:12 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-use-the-wrapper-directly-to-check-if-the-kdamond-is-running.patch removed from -mm tree
-Message-Id: <20221003210707.4C599C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-paddr-make-supported-damos-actions-of-paddr-clear.patch removed from -mm tree
+Message-Id: <20221003210712.E75A1C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,45 +41,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: use the wrapper directly to check if the kdamond is running
+     Subject: mm/damon/paddr: make supported DAMOS actions of paddr clear
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-use-the-wrapper-directly-to-check-if-the-kdamond-is-running.patch
+     mm-damon-paddr-make-supported-damos-actions-of-paddr-clear.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kaixu Xia <kaixuxia@tencent.com>
-Subject: mm/damon/sysfs: use the wrapper directly to check if the kdamond is running
-Date: Mon, 12 Sep 2022 23:11:53 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/paddr: make supported DAMOS actions of paddr clear
+Date: Tue, 13 Sep 2022 17:44:28 +0000
 
-We can use the 'damon_sysfs_kdamond_running()' wrapper directly to check
-if the kdamond is running in 'damon_sysfs_turn_damon_on()'.
+Patch series "mm/damon: cleanup code".
 
-Link: https://lkml.kernel.org/r/1662995513-24489-1-git-send-email-kaixuxia@tencent.com
-Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+DAMON code was not so clean from the beginning, but it has been too much
+nowadays, especially due to the duplicates in DAMON_RECLAIM and
+DAMON_LRU_SORT.  This patchset cleans some of the mess.
+
+
+This patch (of 22):
+
+The 'switch-case' statement in 'damon_va_apply_scheme()' function provides
+a 'case' for every supported DAMOS action while all not-yet-supported
+DAMOS actions fall through the 'default' case, and comment it so that
+people can easily know which actions are supported.  Its counterpart in
+'paddr', 'damon_pa_apply_scheme()', however, doesn't.  This commit makes
+the 'paddr' side function follows the pattern of 'vaddr' for better
+readability and consistency.
+
+Link: https://lkml.kernel.org/r/20220913174449.50645-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220913174449.50645-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/damon/paddr.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-use-the-wrapper-directly-to-check-if-the-kdamond-is-running
-+++ a/mm/damon/sysfs.c
-@@ -2465,8 +2465,7 @@ static int damon_sysfs_turn_damon_on(str
- 	struct damon_ctx *ctx;
- 	int err;
- 
--	if (kdamond->damon_ctx &&
--			damon_sysfs_ctx_running(kdamond->damon_ctx))
-+	if (damon_sysfs_kdamond_running(kdamond))
- 		return -EBUSY;
- 	if (damon_sysfs_cmd_request.kdamond == kdamond)
- 		return -EBUSY;
+--- a/mm/damon/paddr.c~mm-damon-paddr-make-supported-damos-actions-of-paddr-clear
++++ a/mm/damon/paddr.c
+@@ -275,7 +275,10 @@ static unsigned long damon_pa_apply_sche
+ 		return damon_pa_mark_accessed(r);
+ 	case DAMOS_LRU_DEPRIO:
+ 		return damon_pa_deactivate_pages(r);
++	case DAMOS_STAT:
++		break;
+ 	default:
++		/* DAMOS actions that not yet supported by 'paddr'. */
+ 		break;
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from kaixuxia@tencent.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-core-initialize-damon_target-list-in-damon_new_target.patch
 
