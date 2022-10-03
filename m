@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D593C4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:14:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 360CBC433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:14:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229872AbiJCVOk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:14:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56274 "EHLO
+        id S229841AbiJCVOl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:14:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230119AbiJCVNb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:13:31 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E036F52E64
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:08:11 -0700 (PDT)
+        with ESMTP id S230124AbiJCVNd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:13:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 444D84D14E
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:08:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9B61FB811C4
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:08:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43C6BC433C1;
-        Mon,  3 Oct 2022 21:08:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D532861200
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:08:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A101C433B5;
+        Mon,  3 Oct 2022 21:08:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831289;
-        bh=ihiS+884ZKYX4E5WEPj6dDkSGEB9fvjjLG/7bXtwXMU=;
+        s=korg; t=1664831294;
+        bh=8o7LoaXOui2ZyzyF7pDFpzPz+XlTAUgQf8jCMQZCRGs=;
         h=Date:To:From:Subject:From;
-        b=CM8rc41nXN6lkVJS9bwPfDkO8KxQnX9cxgHi86AlE0IDDOgcVbU/D+II/fHQlr6Pk
-         XYTE+2rLnp4C96d7EuYpvQEG719AG4fiqWC4CQsy/GeNi22VK1vWZ9KReZ06Lpyxjp
-         fdZbFAnLHIJgb6FBHEuoOf4DqhpH/SqUHnEtiL00=
-Date:   Mon, 03 Oct 2022 14:08:08 -0700
+        b=yORLdihvwrqldAlSvbyOpb51gjfC4ltVnhzT4gp1ifta6le4IUmJQF7qtgHMN0EXZ
+         yb976X9VO8eh0bNP1Qvx3q+4HHjs4qsOduOZNA9ltfZzvBiKyVlvPkmuzaBAwvJ8dT
+         i/DBfUq7jtU+6Drn48BOzbsgupjFP5tdiRuw/Xew=
+Date:   Mon, 03 Oct 2022 14:08:13 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, sfr@canb.auug.org.au, rostedt@goodmis.org,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         ast@kernel.org, arnd@arndb.de, andreyknvl@google.com,
         andreyknvl@gmail.com, glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-asm-instrument-usercopy-in-get_user-and-put_user.patch removed from -mm tree
-Message-Id: <20221003210809.43C6BC433C1@smtp.kernel.org>
+Subject: [merged mm-stable] kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks.patch removed from -mm tree
+Message-Id: <20221003210814.2A101C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,23 +52,37 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: x86: asm: instrument usercopy in get_user() and put_user()
+     Subject: kmsan: introduce __no_sanitize_memory and __no_kmsan_checks
 has been removed from the -mm tree.  Its filename was
-     x86-asm-instrument-usercopy-in-get_user-and-put_user.patch
+     kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: asm: instrument usercopy in get_user() and put_user()
-Date: Thu, 15 Sep 2022 17:03:38 +0200
+Subject: kmsan: introduce __no_sanitize_memory and __no_kmsan_checks
+Date: Thu, 15 Sep 2022 17:03:41 +0200
 
-Use hooks from instrumented.h to notify bug detection tools about usercopy
-events in variations of get_user() and put_user().
+__no_sanitize_memory is a function attribute that instructs KMSAN to skip
+a function during instrumentation.  This is needed to e.g.  implement the
+noinstr functions.
 
-Link: https://lkml.kernel.org/r/20220915150417.722975-5-glider@google.com
+__no_kmsan_checks is a function attribute that makes KMSAN ignore the
+uninitialized values coming from the function's inputs, and initialize the
+function's outputs.
+
+Functions marked with this attribute can't be inlined into functions not
+marked with it, and vice versa.  This behavior is overridden by
+__always_inline.
+
+__SANITIZE_MEMORY__ is a macro that's defined iff the file is instrumented
+with KMSAN.  This is not the same as CONFIG_KMSAN, which is defined for
+every file.
+
+Link: https://lkml.kernel.org/r/20220915150417.722975-8-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -90,7 +104,6 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -106,124 +119,57 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uaccess.h |   22 +++++++++++++++-------
- include/linux/instrumented.h   |   28 ++++++++++++++++++++++++++++
- 2 files changed, 43 insertions(+), 7 deletions(-)
+ include/linux/compiler-clang.h |   23 +++++++++++++++++++++++
+ include/linux/compiler-gcc.h   |    6 ++++++
+ 2 files changed, 29 insertions(+)
 
---- a/arch/x86/include/asm/uaccess.h~x86-asm-instrument-usercopy-in-get_user-and-put_user
-+++ a/arch/x86/include/asm/uaccess.h
-@@ -5,6 +5,7 @@
-  * User space memory access functions
+--- a/include/linux/compiler-clang.h~kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks
++++ a/include/linux/compiler-clang.h
+@@ -51,6 +51,29 @@
+ #define __no_sanitize_undefined
+ #endif
+ 
++#if __has_feature(memory_sanitizer)
++#define __SANITIZE_MEMORY__
++/*
++ * Unlike other sanitizers, KMSAN still inserts code into functions marked with
++ * no_sanitize("kernel-memory"). Using disable_sanitizer_instrumentation
++ * provides the behavior consistent with other __no_sanitize_ attributes,
++ * guaranteeing that __no_sanitize_memory functions remain uninstrumented.
++ */
++#define __no_sanitize_memory __disable_sanitizer_instrumentation
++
++/*
++ * The __no_kmsan_checks attribute ensures that a function does not produce
++ * false positive reports by:
++ *  - initializing all local variables and memory stores in this function;
++ *  - skipping all shadow checks;
++ *  - passing initialized arguments to this function's callees.
++ */
++#define __no_kmsan_checks __attribute__((no_sanitize("kernel-memory")))
++#else
++#define __no_sanitize_memory
++#define __no_kmsan_checks
++#endif
++
+ /*
+  * Support for __has_feature(coverage_sanitizer) was added in Clang 13 together
+  * with no_sanitize("coverage"). Prior versions of Clang support coverage
+--- a/include/linux/compiler-gcc.h~kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks
++++ a/include/linux/compiler-gcc.h
+@@ -115,6 +115,12 @@
+ #endif
+ 
+ /*
++ * GCC does not support KMSAN.
++ */
++#define __no_sanitize_memory
++#define __no_kmsan_checks
++
++/*
+  * Turn individual warnings and errors on and off locally, depending
+  * on version.
   */
- #include <linux/compiler.h>
-+#include <linux/instrumented.h>
- #include <linux/kasan-checks.h>
- #include <linux/string.h>
- #include <asm/asm.h>
-@@ -103,6 +104,7 @@ extern int __get_user_bad(void);
- 		     : "=a" (__ret_gu), "=r" (__val_gu),		\
- 			ASM_CALL_CONSTRAINT				\
- 		     : "0" (ptr), "i" (sizeof(*(ptr))));		\
-+	instrument_get_user(__val_gu);					\
- 	(x) = (__force __typeof__(*(ptr))) __val_gu;			\
- 	__builtin_expect(__ret_gu, 0);					\
- })
-@@ -192,9 +194,11 @@ extern void __put_user_nocheck_8(void);
- 	int __ret_pu;							\
- 	void __user *__ptr_pu;						\
- 	register __typeof__(*(ptr)) __val_pu asm("%"_ASM_AX);		\
--	__chk_user_ptr(ptr);						\
--	__ptr_pu = (ptr);						\
--	__val_pu = (x);							\
-+	__typeof__(*(ptr)) __x = (x); /* eval x once */			\
-+	__typeof__(ptr) __ptr = (ptr); /* eval ptr once */		\
-+	__chk_user_ptr(__ptr);						\
-+	__ptr_pu = __ptr;						\
-+	__val_pu = __x;							\
- 	asm volatile("call __" #fn "_%P[size]"				\
- 		     : "=c" (__ret_pu),					\
- 			ASM_CALL_CONSTRAINT				\
-@@ -202,6 +206,7 @@ extern void __put_user_nocheck_8(void);
- 		       "r" (__val_pu),					\
- 		       [size] "i" (sizeof(*(ptr)))			\
- 		     :"ebx");						\
-+	instrument_put_user(__x, __ptr, sizeof(*(ptr)));		\
- 	__builtin_expect(__ret_pu, 0);					\
- })
- 
-@@ -248,23 +253,25 @@ extern void __put_user_nocheck_8(void);
- 
- #define __put_user_size(x, ptr, size, label)				\
- do {									\
-+	__typeof__(*(ptr)) __x = (x); /* eval x once */			\
- 	__chk_user_ptr(ptr);						\
- 	switch (size) {							\
- 	case 1:								\
--		__put_user_goto(x, ptr, "b", "iq", label);		\
-+		__put_user_goto(__x, ptr, "b", "iq", label);		\
- 		break;							\
- 	case 2:								\
--		__put_user_goto(x, ptr, "w", "ir", label);		\
-+		__put_user_goto(__x, ptr, "w", "ir", label);		\
- 		break;							\
- 	case 4:								\
--		__put_user_goto(x, ptr, "l", "ir", label);		\
-+		__put_user_goto(__x, ptr, "l", "ir", label);		\
- 		break;							\
- 	case 8:								\
--		__put_user_goto_u64(x, ptr, label);			\
-+		__put_user_goto_u64(__x, ptr, label);			\
- 		break;							\
- 	default:							\
- 		__put_user_bad();					\
- 	}								\
-+	instrument_put_user(__x, ptr, size);				\
- } while (0)
- 
- #ifdef CONFIG_CC_HAS_ASM_GOTO_OUTPUT
-@@ -305,6 +312,7 @@ do {									\
- 	default:							\
- 		(x) = __get_user_bad();					\
- 	}								\
-+	instrument_get_user(x);						\
- } while (0)
- 
- #define __get_user_asm(x, addr, itype, ltype, label)			\
---- a/include/linux/instrumented.h~x86-asm-instrument-usercopy-in-get_user-and-put_user
-+++ a/include/linux/instrumented.h
-@@ -153,4 +153,32 @@ instrument_copy_from_user_after(const vo
- {
- }
- 
-+/**
-+ * instrument_get_user() - add instrumentation to get_user()-like macros
-+ *
-+ * get_user() and friends are fragile, so it may depend on the implementation
-+ * whether the instrumentation happens before or after the data is copied from
-+ * the userspace.
-+ *
-+ * @to destination variable, may not be address-taken
-+ */
-+#define instrument_get_user(to)                         \
-+({                                                      \
-+})
-+
-+/**
-+ * instrument_put_user() - add instrumentation to put_user()-like macros
-+ *
-+ * put_user() and friends are fragile, so it may depend on the implementation
-+ * whether the instrumentation happens before or after the data is copied from
-+ * the userspace.
-+ *
-+ * @from source address
-+ * @ptr userspace pointer to copy to
-+ * @size number of bytes to copy
-+ */
-+#define instrument_put_user(from, ptr, size)                    \
-+({                                                              \
-+})
-+
- #endif /* _LINUX_INSTRUMENTED_H */
 _
 
 Patches currently in -mm which might be from glider@google.com are
