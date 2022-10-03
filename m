@@ -2,41 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBE73C433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:17:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3D41C4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:17:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230101AbiJCVRT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:17:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56176 "EHLO
+        id S229736AbiJCVRV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:17:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229736AbiJCVPT (ORCPT
+        with ESMTP id S229740AbiJCVPT (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:15:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD2E51F9FA;
-        Mon,  3 Oct 2022 14:09:56 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD3BF1F9FD
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:09:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1A616B81123;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DFDEA610D5
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:09:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45357C433D7;
         Mon,  3 Oct 2022 21:09:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF815C433D6;
-        Mon,  3 Oct 2022 21:09:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831393;
-        bh=vvsnzXf7Aogp7xfFS9H9C6/DsJJAGbsz3okrFxMwuZo=;
+        s=korg; t=1664831395;
+        bh=aLLmk3pTcp37CIhHo9L99TNnMNjz956EB/2Ab171w9k=;
         h=Date:To:From:Subject:From;
-        b=W+IZQvLBMY29xfOtYO0qjb/YoIm6MMtGnxZaT6Jj1D1jax2eo7jq4q3VwZTQwz0m5
-         7YBFYvsJ/f4luDQJCWpzZKL5K40SKNqewqlIUpb0/LCDZEdeo/6VhgHUs0utHxhU4E
-         6RZ2XusmaNlBnZ0yJMdilWt0l0QDA98Ar/NrkMk8=
-Date:   Mon, 03 Oct 2022 14:09:53 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        stable@vger.kernel.org, songmuchun@bytedance.com,
-        sidhartha.kumar@oracle.com, mike.kravetz@oracle.com,
-        liuzixian4@huawei.com, jhubbard@nvidia.com, david@redhat.com,
-        liushixin2@huawei.com, akpm@linux-foundation.org
+        b=LeeiZ2ahSonpEMDYrT5yiUDA9kOJ3/J2u/GNfKLl5rjdK0S2gwNJ9Z6pDzCJA4Tt5
+         4wkiISOhAAbA4EGxkO9SYgfSnxzcpair7QDwDrBPn88A1eExFCV24EKhg4Qh5LFkWo
+         PW2LnWrdO7pPYeTIg33csf90brCu9EIMo9j45uv8=
+Date:   Mon, 03 Oct 2022 14:09:54 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        songliubraving@fb.com, sj@kernel.org, shy828301@gmail.com,
+        rongwei.wang@linux.alibaba.com, rientjes@google.com,
+        peterx@redhat.com, pasha.tatashin@soleen.com, minchan@kernel.org,
+        linmiaohe@huawei.com, kirill.shutemov@linux.intel.com,
+        jthoughton@google.com, hughd@google.com, david@redhat.com,
+        ckennelly@google.com, axelrasmussen@google.com, zokeefe@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-fix-uaf-in-hugetlb_handle_userfault.patch removed from -mm tree
-Message-Id: <20221003210953.BF815C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-check-compound_order-in-collapse_pte_mapped_thp.patch removed from -mm tree
+Message-Id: <20221003210955.45357C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,166 +47,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: hugetlb: fix UAF in hugetlb_handle_userfault
+     Subject: mm/khugepaged: check compound_order() in collapse_pte_mapped_thp()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-uaf-in-hugetlb_handle_userfault.patch
+     mm-khugepaged-check-compound_order-in-collapse_pte_mapped_thp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm: hugetlb: fix UAF in hugetlb_handle_userfault
-Date: Fri, 23 Sep 2022 12:21:13 +0800
+From: "Zach O'Keefe" <zokeefe@google.com>
+Subject: mm/khugepaged: check compound_order() in collapse_pte_mapped_thp()
+Date: Thu, 22 Sep 2022 15:27:31 -0700
 
-The vma_lock and hugetlb_fault_mutex are dropped before handling userfault
-and reacquire them again after handle_userfault(), but reacquire the
-vma_lock could lead to UAF[1,2] due to the following race,
+By the time we lock a page in collapse_pte_mapped_thp(), the page mapped
+by the address pushed onto the slot's .pte_mapped_thp[] array might have
+changed arbitrarily since we last looked at it.  We revalidate that the
+page is still the head of a compound page, but we don't revalidate if the
+compound page is of order HPAGE_PMD_ORDER before applying rmap and page
+table updates.
 
-hugetlb_fault
-  hugetlb_no_page
-    /*unlock vma_lock */
-    hugetlb_handle_userfault
-      handle_userfault
-        /* unlock mm->mmap_lock*/
-                                           vm_mmap_pgoff
-                                             do_mmap
-                                               mmap_region
-                                                 munmap_vma_range
-                                                   /* clean old vma */
-        /* lock vma_lock again  <--- UAF */
-    /* unlock vma_lock */
+Since the kernel now supports large folios of arbitrary order, and since
+replacing page's pte mappings by a pmd mapping only makes sense for
+compound pages of order HPAGE_PMD_ORDER, revalidate that the compound
+order is indeed of order HPAGE_PMD_ORDER before proceeding.
 
-Since the vma_lock will unlock immediately after
-hugetlb_handle_userfault(), let's drop the unneeded lock and unlock in
-hugetlb_handle_userfault() to fix the issue.
-
-[1] https://lore.kernel.org/linux-mm/000000000000d5e00a05e834962e@google.com/
-[2] https://lore.kernel.org/linux-mm/20220921014457.1668-1-liuzixian4@huawei.com/
-Link: https://lkml.kernel.org/r/20220923042113.137273-1-liushixin2@huawei.com
-Fixes: 1a1aad8a9b7b ("userfaultfd: hugetlbfs: add userfaultfd hugetlb hook")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reported-by: syzbot+193f9cee8638750b23cf@syzkaller.appspotmail.com
-Reported-by: Liu Zixian <liuzixian4@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lore.kernel.org/linux-mm/CAHbLzkon+2ky8v9ywGcsTUgXM_B35jt5NThYqQKXW2YV_GUacw@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20220922222731.1124481-1-zokeefe@google.com
+Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+Suggested-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Chris Kennelly <ckennelly@google.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: <stable@vger.kernel.org>	[4.14+]
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rongwei Wang <rongwei.wang@linux.alibaba.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   37 +++++++++++++++++--------------------
- 1 file changed, 17 insertions(+), 20 deletions(-)
+ mm/khugepaged.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-uaf-in-hugetlb_handle_userfault
-+++ a/mm/hugetlb.c
-@@ -5489,7 +5489,6 @@ static inline vm_fault_t hugetlb_handle_
- 						  unsigned long addr,
- 						  unsigned long reason)
- {
--	vm_fault_t ret;
- 	u32 hash;
- 	struct vm_fault vmf = {
- 		.vma = vma,
-@@ -5507,18 +5506,14 @@ static inline vm_fault_t hugetlb_handle_
- 	};
+--- a/mm/khugepaged.c~mm-khugepaged-check-compound_order-in-collapse_pte_mapped_thp
++++ a/mm/khugepaged.c
+@@ -1399,6 +1399,9 @@ void collapse_pte_mapped_thp(struct mm_s
+ 	if (!PageHead(hpage))
+ 		goto drop_hpage;
  
- 	/*
--	 * vma_lock and hugetlb_fault_mutex must be
--	 * dropped before handling userfault.  Reacquire
--	 * after handling fault to make calling code simpler.
-+	 * vma_lock and hugetlb_fault_mutex must be dropped before handling
-+	 * userfault. Also mmap_lock could be dropped due to handling
-+	 * userfault, any vma operation should be careful from here.
- 	 */
- 	hugetlb_vma_unlock_read(vma);
- 	hash = hugetlb_fault_mutex_hash(mapping, idx);
- 	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
--	ret = handle_userfault(&vmf, reason);
--	mutex_lock(&hugetlb_fault_mutex_table[hash]);
--	hugetlb_vma_lock_read(vma);
--
--	return ret;
-+	return handle_userfault(&vmf, reason);
- }
- 
- static vm_fault_t hugetlb_no_page(struct mm_struct *mm,
-@@ -5536,6 +5531,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	spinlock_t *ptl;
- 	unsigned long haddr = address & huge_page_mask(h);
- 	bool new_page, new_pagecache_page = false;
-+	u32 hash = hugetlb_fault_mutex_hash(mapping, idx);
- 
- 	/*
- 	 * Currently, we are forced to kill the process in the event the
-@@ -5546,7 +5542,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	if (is_vma_resv_set(vma, HPAGE_RESV_UNMAPPED)) {
- 		pr_warn_ratelimited("PID %d killed due to inadequate hugepage pool\n",
- 			   current->pid);
--		return ret;
-+		goto out;
- 	}
- 
- 	/*
-@@ -5560,12 +5556,10 @@ static vm_fault_t hugetlb_no_page(struct
- 		if (idx >= size)
- 			goto out;
- 		/* Check for page in userfault range */
--		if (userfaultfd_missing(vma)) {
--			ret = hugetlb_handle_userfault(vma, mapping, idx,
-+		if (userfaultfd_missing(vma))
-+			return hugetlb_handle_userfault(vma, mapping, idx,
- 						       flags, haddr, address,
- 						       VM_UFFD_MISSING);
--			goto out;
--		}
- 
- 		page = alloc_huge_page(vma, haddr, 0);
- 		if (IS_ERR(page)) {
-@@ -5631,10 +5625,9 @@ static vm_fault_t hugetlb_no_page(struct
- 		if (userfaultfd_minor(vma)) {
- 			unlock_page(page);
- 			put_page(page);
--			ret = hugetlb_handle_userfault(vma, mapping, idx,
-+			return hugetlb_handle_userfault(vma, mapping, idx,
- 						       flags, haddr, address,
- 						       VM_UFFD_MINOR);
--			goto out;
- 		}
- 	}
- 
-@@ -5692,6 +5685,8 @@ static vm_fault_t hugetlb_no_page(struct
- 
- 	unlock_page(page);
- out:
-+	hugetlb_vma_unlock_read(vma);
-+	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 	return ret;
- 
- backout:
-@@ -5789,11 +5784,13 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 
- 	entry = huge_ptep_get(ptep);
- 	/* PTE markers should be handled the same way as none pte */
--	if (huge_pte_none_mostly(entry)) {
--		ret = hugetlb_no_page(mm, vma, mapping, idx, address, ptep,
-+	if (huge_pte_none_mostly(entry))
-+		/*
-+		 * hugetlb_no_page will drop vma lock and hugetlb fault
-+		 * mutex internally, which make us return immediately.
-+		 */
-+		return hugetlb_no_page(mm, vma, mapping, idx, address, ptep,
- 				      entry, flags);
--		goto out_mutex;
--	}
- 
- 	ret = 0;
++	if (compound_order(hpage) != HPAGE_PMD_ORDER)
++		goto drop_hpage;
++
+ 	if (find_pmd_or_thp_or_none(mm, haddr, &pmd) != SCAN_SUCCEED)
+ 		goto drop_hpage;
  
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from zokeefe@google.com are
 
 
