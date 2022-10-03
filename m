@@ -2,45 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABF67C4167E
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:18:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4574C433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:18:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229980AbiJCVRz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:17:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56238 "EHLO
+        id S229844AbiJCVSN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:18:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229998AbiJCVPj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:15:39 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BE904E877
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:10:08 -0700 (PDT)
+        with ESMTP id S230043AbiJCVPr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:15:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 490FA240A5
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:10:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0A657B811BF
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:10:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2E07C433C1;
-        Mon,  3 Oct 2022 21:10:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CDD0B6118C
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:10:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A542C433D6;
+        Mon,  3 Oct 2022 21:10:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831405;
-        bh=BLenee19WaoLwjUBUiTjIV0KTZ17XEIWii2zXvhXoYU=;
+        s=korg; t=1664831419;
+        bh=/HvERy/LQlIxFJoXMLKX6m1mFaHVD524cCNzbJRnxL0=;
         h=Date:To:From:Subject:From;
-        b=zPqy8mryTvl3yqcHjDC0FXv3mRmqrkVSjLysUxBtqCayHnW3PSKdxS/Z+YNT0jvGv
-         1uBQjgXfcuqA5Du9tUmrxRLsC4+V2wpcv6llLsMIPiUeuCU2f+S+iBU12A46+iAURA
-         JfO9M/69qubizmNAxnduRzVq/Uc3reW14F8wMphg=
-Date:   Mon, 03 Oct 2022 14:10:05 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
-        vbabka@suse.cz, songliubraving@fb.com, sj@kernel.org,
-        shy828301@gmail.com, rongwei.wang@linux.alibaba.com,
-        rientjes@google.com, peterx@redhat.com, pasha.tatashin@soleen.com,
-        minchan@kernel.org, linmiaohe@huawei.com,
-        kirill.shutemov@linux.intel.com, jthoughton@google.com,
-        hughd@google.com, david@redhat.com, ckennelly@google.com,
-        axelrasmussen@google.com, zokeefe@google.com,
-        akpm@linux-foundation.org
+        b=xdWRZod07Eve8XVrOzXcIELR/oN345xkgmw/yUU05hejP8jf+jAqXddeILVB5mozD
+         rTX4gwddlowuUQMksHnRzmK0QBsntvkvhSBJl+vzjxO+mev4q+ckBlbuEV8A6oVdve
+         J/UQDaa8cKqdTH4SBNmW8xm2F41sABGROqhnMkho=
+Date:   Mon, 03 Oct 2022 14:10:18 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hughd@google.com,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-dedup-thp-helpers.patch removed from -mm tree
-Message-Id: <20221003211005.B2E07C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-deprecate-swapaccounting=0-mode.patch removed from -mm tree
+Message-Id: <20221003211019.0A542C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,315 +42,196 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: dedup THP helpers
+     Subject: mm: memcontrol: deprecate swapaccounting=0 mode
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-dedup-thp-helpers.patch
+     mm-memcontrol-deprecate-swapaccounting=0-mode.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: selftests/vm: dedup THP helpers
-Date: Thu, 22 Sep 2022 15:40:41 -0700
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: deprecate swapaccounting=0 mode
+Date: Mon, 26 Sep 2022 09:57:02 -0400
 
-These files:
+The swapaccounting= commandline option already does very little today.  To
+close a trivial containment failure case, the swap ownership tracking part
+of the swap controller has recently become mandatory (see commit
+2d1c498072de ("mm: memcontrol: make swap tracking an integral part of
+memory control") for details), which makes up the majority of the work
+during swapout, swapin, and the swap slot map.
 
-tools/testing/selftests/vm/vm_util.c
-tools/testing/selftests/vm/khugepaged.c
+The only thing left under this flag is the page_counter operations and the
+visibility of the swap control files in the first place, which are rather
+meager savings.  There also aren't many scenarios, if any, where
+controlling the memory of a cgroup while allowing it unlimited access to a
+global swap space is a workable resource isolation strategy.
 
-Both contain logic to:
+On the other hand, there have been several bugs and confusion around the
+many possible swap controller states (cgroup1 vs cgroup2 behavior, memory
+accounting without swap accounting, memcg runtime disabled).
 
-1) Determine hugepage size on current system
-2) Read /proc/self/smaps to determine number of THPs at an address
+This puts the maintenance overhead of retaining the toggle above its
+practical benefits.  Deprecate it.
 
-Refactor selftests/vm/khugepaged.c to use the vm_util common helpers and
-add it as a build dependency.
-
-Since selftests/vm/khugepaged.c is the largest user of check_huge(),
-change the signature of check_huge() to match selftests/vm/khugepaged.c's
-useage: take an expected number of hugepages, and return a bool indicating
-if the correct number of hugepages were found.  Add a wrapper,
-check_huge_anon(), in anticipation of checking smaps for file and shmem
-hugepages.
-
-Update existing callsites to use the new pattern / function.
-
-Likewise, check_for_pattern() was duplicated, and it's a general enough
-helper to include in vm_util helpers as well.
-
-Link: https://lkml.kernel.org/r/20220907144521.3115321-6-zokeefe@google.com
-Link: https://lkml.kernel.org/r/20220922224046.1143204-6-zokeefe@google.com
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Chris Kennelly <ckennelly@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Link: https://lkml.kernel.org/r/20220926135704.400818-3-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rongwei Wang <rongwei.wang@linux.alibaba.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile               |    1 
- tools/testing/selftests/vm/khugepaged.c           |   64 +-----------
- tools/testing/selftests/vm/soft-dirty.c           |    2 
- tools/testing/selftests/vm/split_huge_page_test.c |   12 --
- tools/testing/selftests/vm/vm_util.c              |   26 +++-
- tools/testing/selftests/vm/vm_util.h              |    3 
- 6 files changed, 32 insertions(+), 76 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    6 -
+ mm/memcontrol.c                                 |   50 ++------------
+ 2 files changed, 10 insertions(+), 46 deletions(-)
 
---- a/tools/testing/selftests/vm/khugepaged.c~selftests-vm-dedup-thp-helpers
-+++ a/tools/testing/selftests/vm/khugepaged.c
-@@ -12,6 +12,8 @@
- #include <sys/mman.h>
- #include <sys/wait.h>
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-memcontrol-deprecate-swapaccounting=0-mode
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -6036,12 +6036,6 @@
+ 			This parameter controls use of the Protected
+ 			Execution Facility on pSeries.
  
-+#include "vm_util.h"
-+
- #ifndef MADV_PAGEOUT
- #define MADV_PAGEOUT 21
- #endif
-@@ -352,64 +354,12 @@ static void save_settings(void)
- 	signal(SIGQUIT, restore_settings);
- }
- 
--#define MAX_LINE_LENGTH 500
+-	swapaccount=	[KNL]
+-			Format: [0|1]
+-			Enable accounting of swap in memory resource
+-			controller if no parameter or 1 is given or disable
+-			it if 0 is given (See Documentation/admin-guide/cgroup-v1/memory.rst)
 -
--static bool check_for_pattern(FILE *fp, char *pattern, char *buf)
+ 	swiotlb=	[ARM,IA-64,PPC,MIPS,X86]
+ 			Format: { <int> [,<int>] | force | noforce }
+ 			<int> -- Number of I/O TLB slabs
+--- a/mm/memcontrol.c~mm-memcontrol-deprecate-swapaccounting=0-mode
++++ a/mm/memcontrol.c
+@@ -88,22 +88,6 @@ static bool cgroup_memory_nosocket __ro_
+ /* Kernel memory accounting disabled? */
+ static bool cgroup_memory_nokmem __ro_after_init;
+ 
+-/* Whether the swap controller is active */
+-#ifdef CONFIG_MEMCG_SWAP
+-static bool cgroup_memory_noswap __initdata;
+-
+-static DEFINE_STATIC_KEY_FALSE(memcg_swap_enabled_key);
+-static inline bool memcg_swap_enabled(void)
 -{
--	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
--		if (!strncmp(buf, pattern, strlen(pattern)))
--			return true;
--	}
+-	return static_branch_likely(&memcg_swap_enabled_key);
+-}
+-#else
+-static inline bool memcg_swap_enabled(void)
+-{
 -	return false;
 -}
+-#endif
 -
- static bool check_huge(void *addr, int nr_hpages)
+ #ifdef CONFIG_CGROUP_WRITEBACK
+ static DECLARE_WAIT_QUEUE_HEAD(memcg_cgwb_frn_waitq);
+ #endif
+@@ -111,7 +95,7 @@ static DECLARE_WAIT_QUEUE_HEAD(memcg_cgw
+ /* Whether legacy memory+swap accounting is active */
+ static bool do_memsw_account(void)
  {
--	bool thp = false;
--	int ret;
--	FILE *fp;
--	char buffer[MAX_LINE_LENGTH];
--	char addr_pattern[MAX_LINE_LENGTH];
--
--	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08lx-",
--		       (unsigned long) addr);
--	if (ret >= MAX_LINE_LENGTH) {
--		printf("%s: Pattern is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
--
--
--	fp = fopen(PID_SMAPS, "r");
--	if (!fp) {
--		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
--		exit(EXIT_FAILURE);
--	}
--	if (!check_for_pattern(fp, addr_pattern, buffer))
--		goto err_out;
--
--	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "AnonHugePages:%10ld kB",
--		       nr_hpages * (hpage_pmd_size >> 10));
--	if (ret >= MAX_LINE_LENGTH) {
--		printf("%s: Pattern is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
--	/*
--	 * Fetch the AnonHugePages: in the same block and check whether it got
--	 * the expected number of hugeepages next.
--	 */
--	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
--		goto err_out;
--
--	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
--		goto err_out;
--
--	thp = true;
--err_out:
--	fclose(fp);
--	return thp;
-+	return check_huge_anon(addr, nr_hpages, hpage_pmd_size);
+-	return !cgroup_subsys_on_dfl(memory_cgrp_subsys) && memcg_swap_enabled();
++	return !cgroup_subsys_on_dfl(memory_cgrp_subsys);
  }
  
+ #define THRESHOLDS_EVENTS_TARGET 128
+@@ -7379,7 +7363,7 @@ void mem_cgroup_swapout(struct folio *fo
+ 	if (!mem_cgroup_is_root(memcg))
+ 		page_counter_uncharge(&memcg->memory, nr_entries);
+ 
+-	if (memcg_swap_enabled() && memcg != swap_memcg) {
++	if (memcg != swap_memcg) {
+ 		if (!mem_cgroup_is_root(swap_memcg))
+ 			page_counter_charge(&swap_memcg->memsw, nr_entries);
+ 		page_counter_uncharge(&memcg->memsw, nr_entries);
+@@ -7431,7 +7415,7 @@ int __mem_cgroup_try_charge_swap(struct
+ 
+ 	memcg = mem_cgroup_id_get_online(memcg);
+ 
+-	if (memcg_swap_enabled() && !mem_cgroup_is_root(memcg) &&
++	if (!mem_cgroup_is_root(memcg) &&
+ 	    !page_counter_try_charge(&memcg->swap, nr_pages, &counter)) {
+ 		memcg_memory_event(memcg, MEMCG_SWAP_MAX);
+ 		memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
+@@ -7466,7 +7450,7 @@ void __mem_cgroup_uncharge_swap(swp_entr
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_id(id);
+ 	if (memcg) {
+-		if (memcg_swap_enabled() && !mem_cgroup_is_root(memcg)) {
++		if (!mem_cgroup_is_root(memcg)) {
+ 			if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 				page_counter_uncharge(&memcg->swap, nr_pages);
+ 			else
+@@ -7482,7 +7466,7 @@ long mem_cgroup_get_nr_swap_pages(struct
+ {
+ 	long nr_swap_pages = get_nr_swap_pages();
+ 
+-	if (!memcg_swap_enabled() || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	if (mem_cgroup_disabled() || do_memsw_account())
+ 		return nr_swap_pages;
+ 	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg))
+ 		nr_swap_pages = min_t(long, nr_swap_pages,
+@@ -7499,7 +7483,7 @@ bool mem_cgroup_swap_full(struct folio *
+ 
+ 	if (vm_swap_full())
+ 		return true;
+-	if (!memcg_swap_enabled() || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	if (do_memsw_account())
+ 		return false;
+ 
+ 	memcg = folio_memcg(folio);
+@@ -7519,10 +7503,9 @@ bool mem_cgroup_swap_full(struct folio *
+ 
+ static int __init setup_swap_account(char *s)
+ {
+-	bool res;
 -
-+#define MAX_LINE_LENGTH 500
- static bool check_swap(void *addr, unsigned long size)
- {
- 	bool swap = false;
-@@ -431,7 +381,7 @@ static bool check_swap(void *addr, unsig
- 		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
- 		exit(EXIT_FAILURE);
- 	}
--	if (!check_for_pattern(fp, addr_pattern, buffer))
-+	if (!check_for_pattern(fp, addr_pattern, buffer, sizeof(buffer)))
- 		goto err_out;
- 
- 	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "Swap:%19ld kB",
-@@ -444,7 +394,7 @@ static bool check_swap(void *addr, unsig
- 	 * Fetch the Swap: in the same block and check whether it got
- 	 * the expected number of hugeepages next.
- 	 */
--	if (!check_for_pattern(fp, "Swap:", buffer))
-+	if (!check_for_pattern(fp, "Swap:", buffer, sizeof(buffer)))
- 		goto err_out;
- 
- 	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
-@@ -1066,7 +1016,7 @@ int main(int argc, const char **argv)
- 	setbuf(stdout, NULL);
- 
- 	page_size = getpagesize();
--	hpage_pmd_size = read_num("hpage_pmd_size");
-+	hpage_pmd_size = read_pmd_pagesize();
- 	hpage_pmd_nr = hpage_pmd_size / page_size;
- 
- 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-dedup-thp-helpers
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -95,6 +95,7 @@ TEST_FILES += va_128TBswitch.sh
- 
- include ../lib.mk
- 
-+$(OUTPUT)/khugepaged: vm_util.c
- $(OUTPUT)/madv_populate: vm_util.c
- $(OUTPUT)/soft-dirty: vm_util.c
- $(OUTPUT)/split_huge_page_test: vm_util.c
---- a/tools/testing/selftests/vm/soft-dirty.c~selftests-vm-dedup-thp-helpers
-+++ a/tools/testing/selftests/vm/soft-dirty.c
-@@ -91,7 +91,7 @@ static void test_hugepage(int pagemap_fd
- 	for (i = 0; i < hpage_len; i++)
- 		map[i] = (char)i;
- 
--	if (check_huge(map)) {
-+	if (check_huge_anon(map, 1, hpage_len)) {
- 		ksft_test_result_pass("Test %s huge page allocation\n", __func__);
- 
- 		clear_softdirty();
---- a/tools/testing/selftests/vm/split_huge_page_test.c~selftests-vm-dedup-thp-helpers
-+++ a/tools/testing/selftests/vm/split_huge_page_test.c
-@@ -92,7 +92,6 @@ void split_pmd_thp(void)
- {
- 	char *one_page;
- 	size_t len = 4 * pmd_pagesize;
--	uint64_t thp_size;
- 	size_t i;
- 
- 	one_page = memalign(pmd_pagesize, len);
-@@ -107,8 +106,7 @@ void split_pmd_thp(void)
- 	for (i = 0; i < len; i++)
- 		one_page[i] = (char)i;
- 
--	thp_size = check_huge(one_page);
--	if (!thp_size) {
-+	if (!check_huge_anon(one_page, 1, pmd_pagesize)) {
- 		printf("No THP is allocated\n");
- 		exit(EXIT_FAILURE);
- 	}
-@@ -124,9 +122,8 @@ void split_pmd_thp(void)
- 		}
- 
- 
--	thp_size = check_huge(one_page);
--	if (thp_size) {
--		printf("Still %ld kB AnonHugePages not split\n", thp_size);
-+	if (check_huge_anon(one_page, 0, pmd_pagesize)) {
-+		printf("Still AnonHugePages not split\n");
- 		exit(EXIT_FAILURE);
- 	}
- 
-@@ -172,8 +169,7 @@ void split_pte_mapped_thp(void)
- 	for (i = 0; i < len; i++)
- 		one_page[i] = (char)i;
- 
--	thp_size = check_huge(one_page);
--	if (!thp_size) {
-+	if (!check_huge_anon(one_page, 1, pmd_pagesize)) {
- 		printf("No THP is allocated\n");
- 		exit(EXIT_FAILURE);
- 	}
---- a/tools/testing/selftests/vm/vm_util.c~selftests-vm-dedup-thp-helpers
-+++ a/tools/testing/selftests/vm/vm_util.c
-@@ -42,9 +42,9 @@ void clear_softdirty(void)
- 		ksft_exit_fail_msg("writing clear_refs failed\n");
+-	if (!kstrtobool(s, &res))
+-		cgroup_memory_noswap = !res;
++	pr_warn_once("The swapaccount= commandline option is deprecated. "
++		     "Please report your usecase to linux-mm@kvack.org if you "
++		     "depend on this functionality.\n");
+ 	return 1;
  }
+ __setup("swapaccount=", setup_swap_account);
+@@ -7791,24 +7774,11 @@ static struct cftype zswap_files[] = {
+ };
+ #endif /* CONFIG_MEMCG_KMEM && CONFIG_ZSWAP */
  
--static bool check_for_pattern(FILE *fp, const char *pattern, char *buf)
-+bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len)
+-/*
+- * If mem_cgroup_swap_init() is implemented as a subsys_initcall()
+- * instead of a core_initcall(), this could mean cgroup_memory_noswap still
+- * remains set to false even when memcg is disabled via "cgroup_disable=memory"
+- * boot parameter. This may result in premature OOPS inside
+- * mem_cgroup_get_nr_swap_pages() function in corner cases.
+- */
+ static int __init mem_cgroup_swap_init(void)
  {
--	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
-+	while (fgets(buf, len, fp)) {
- 		if (!strncmp(buf, pattern, strlen(pattern)))
- 			return true;
- 	}
-@@ -72,9 +72,10 @@ uint64_t read_pmd_pagesize(void)
- 	return strtoul(buf, NULL, 10);
+-	/* No memory control -> no swap control */
+ 	if (mem_cgroup_disabled())
+-		cgroup_memory_noswap = true;
+-
+-	if (cgroup_memory_noswap)
+ 		return 0;
+ 
+-	static_branch_enable(&memcg_swap_enabled_key);
+-
+ 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
+ 	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys, memsw_files));
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+@@ -7816,6 +7786,6 @@ static int __init mem_cgroup_swap_init(v
+ #endif
+ 	return 0;
  }
+-core_initcall(mem_cgroup_swap_init);
++subsys_initcall(mem_cgroup_swap_init);
  
--uint64_t check_huge(void *addr)
-+bool __check_huge(void *addr, char *pattern, int nr_hpages,
-+		  uint64_t hpage_size)
- {
--	uint64_t thp = 0;
-+	uint64_t thp = -1;
- 	int ret;
- 	FILE *fp;
- 	char buffer[MAX_LINE_LENGTH];
-@@ -89,20 +90,27 @@ uint64_t check_huge(void *addr)
- 	if (!fp)
- 		ksft_exit_fail_msg("%s: Failed to open file %s\n", __func__, SMAP_FILE_PATH);
- 
--	if (!check_for_pattern(fp, addr_pattern, buffer))
-+	if (!check_for_pattern(fp, addr_pattern, buffer, sizeof(buffer)))
- 		goto err_out;
- 
- 	/*
--	 * Fetch the AnonHugePages: in the same block and check the number of
-+	 * Fetch the pattern in the same block and check the number of
- 	 * hugepages.
- 	 */
--	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
-+	if (!check_for_pattern(fp, pattern, buffer, sizeof(buffer)))
- 		goto err_out;
- 
--	if (sscanf(buffer, "AnonHugePages:%10ld kB", &thp) != 1)
-+	snprintf(addr_pattern, MAX_LINE_LENGTH, "%s%%9ld kB", pattern);
-+
-+	if (sscanf(buffer, addr_pattern, &thp) != 1)
- 		ksft_exit_fail_msg("Reading smap error\n");
- 
- err_out:
- 	fclose(fp);
--	return thp;
-+	return thp == (nr_hpages * (hpage_size >> 10));
-+}
-+
-+bool check_huge_anon(void *addr, int nr_hpages, uint64_t hpage_size)
-+{
-+	return __check_huge(addr, "AnonHugePages: ", nr_hpages, hpage_size);
- }
---- a/tools/testing/selftests/vm/vm_util.h~selftests-vm-dedup-thp-helpers
-+++ a/tools/testing/selftests/vm/vm_util.h
-@@ -5,5 +5,6 @@
- uint64_t pagemap_get_entry(int fd, char *start);
- bool pagemap_is_softdirty(int fd, char *start);
- void clear_softdirty(void);
-+bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
- uint64_t read_pmd_pagesize(void);
--uint64_t check_huge(void *addr);
-+bool check_huge_anon(void *addr, int nr_hpages, uint64_t hpage_size);
+ #endif /* CONFIG_MEMCG_SWAP */
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
 
