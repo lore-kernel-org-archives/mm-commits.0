@@ -2,45 +2,49 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2EFEC4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:14:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0FB2C43219
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:14:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229823AbiJCVOh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:14:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55540 "EHLO
+        id S229924AbiJCVOj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:14:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230098AbiJCVNE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:13:04 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE0FC52DDE
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:08:03 -0700 (PDT)
+        with ESMTP id S230072AbiJCVNV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:13:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADBED52E5C
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:08:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 55BD8B811C4
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:08:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05C98C433C1;
-        Mon,  3 Oct 2022 21:08:00 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 64D57B811BF
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:08:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10364C433C1;
+        Mon,  3 Oct 2022 21:08:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831281;
-        bh=KnXmQdArItl16a91+mx+bJ1jEqkzFDaCTYknrfpPgZw=;
+        s=korg; t=1664831286;
+        bh=5DY0ve27uGT2hb0ubKnitk8TP1sC5IwfXIkBw/1svEo=;
         h=Date:To:From:Subject:From;
-        b=DyNk4LFcD/pFHHih9syZwVMlMThsSeONLbTQ8qSJCHQ/Qh+HRAAkXgFAO9p9VB0r0
-         r9SQq/0HnrtosZOeNWw47HnmtnO9e06hC3aG0uawBni6O9/ucR/n3DrEx9vtBgBmSy
-         fi0IO5qsMehFx1xxElVh/nKwHrMBfBimB9QzXVgc=
-Date:   Mon, 03 Oct 2022 14:08:00 -0700
-To:     mm-commits@vger.kernel.org, svens@linux.ibm.com,
-        songmuchun@bytedance.com, prakash.sangappa@oracle.com,
-        peterx@redhat.com, pasha.tatashin@soleen.com,
-        naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
-        kirill.shutemov@linux.intel.com, jthoughton@google.com,
-        david@redhat.com, dave@stgolabs.net, axelrasmussen@google.com,
-        aneesh.kumar@linux.vnet.ibm.com, almasrymina@google.com,
-        aarcange@redhat.com, mike.kravetz@oracle.com,
-        akpm@linux-foundation.org
+        b=012/rRnH1BFxrzUzTjmpIL2m0em88q4jexRGGXg+bT05lYbZBJYjxGLLwUJ4eO7pe
+         H75hQr0r8lPTAWSJOkLWk3aSAUaXWNZj00azrJZA46Yx89UG3RtpB09dX31OuzhDpi
+         QTSTLyDTjQdmffsCkN1u5OuWvud43uZDvLvw02uE=
+Date:   Mon, 03 Oct 2022 14:08:05 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
+        tglx@linutronix.de, sfr@canb.auug.org.au, rostedt@goodmis.org,
+        rientjes@google.com, pmladek@suse.com, peterz@infradead.org,
+        penberg@kernel.org, mst@redhat.com, mingo@redhat.com,
+        mark.rutland@arm.com, luto@kernel.org, keescook@chromium.org,
+        iii@linux.ibm.com, iamjoonsoo.kim@lge.com,
+        herbert@gondor.apana.org.au, hch@lst.de,
+        gregkh@linuxfoundation.org, gor@linux.ibm.com, elver@google.com,
+        edumazet@google.com, ebiggers@kernel.org, ebiggers@google.com,
+        dvyukov@google.com, cl@linux.com, bp@alien8.de, axboe@kernel.dk,
+        ast@kernel.org, arnd@arndb.de, andreyknvl@google.com,
+        andreyknvl@gmail.com, glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-use-new-vma_lock-for-pmd-sharing-synchronization.patch removed from -mm tree
-Message-Id: <20221003210801.05C98C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t.patch removed from -mm tree
+Message-Id: <20221003210806.10364C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,604 +52,207 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlb: use new vma_lock for pmd sharing synchronization
+     Subject: stackdepot: reserve 5 extra bits in depot_stack_handle_t
 has been removed from the -mm tree.  Its filename was
-     hugetlb-use-new-vma_lock-for-pmd-sharing-synchronization.patch
+     stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: use new vma_lock for pmd sharing synchronization
-Date: Wed, 14 Sep 2022 15:18:09 -0700
+From: Alexander Potapenko <glider@google.com>
+Subject: stackdepot: reserve 5 extra bits in depot_stack_handle_t
+Date: Thu, 15 Sep 2022 17:03:36 +0200
 
-The new hugetlb vma lock is used to address this race:
+Some users (currently only KMSAN) may want to use spare bits in
+depot_stack_handle_t.  Let them do so by adding @extra_bits to
+__stack_depot_save() to store arbitrary flags, and providing
+stack_depot_get_extra_bits() to retrieve those flags.
 
-Faulting thread                                 Unsharing thread
-...                                                  ...
-ptep = huge_pte_offset()
-      or
-ptep = huge_pte_alloc()
-...
-                                                i_mmap_lock_write
-                                                lock page table
-ptep invalid   <------------------------        huge_pmd_unshare()
-Could be in a previously                        unlock_page_table
-sharing process or worse                        i_mmap_unlock_write
-...
+Also adapt KASAN to the new prototype by passing extra_bits=0, as KASAN
+does not intend to store additional information in the stack handle.
 
-The vma_lock is used as follows:
-- During fault processing. The lock is acquired in read mode before
-  doing a page table lock and allocation (huge_pte_alloc).  The lock is
-  held until code is finished with the page table entry (ptep).
-- The lock must be held in write mode whenever huge_pmd_unshare is
-  called.
-
-Lock ordering issues come into play when unmapping a page from all
-vmas mapping the page.  The i_mmap_rwsem must be held to search for the
-vmas, and the vma lock must be held before calling unmap which will
-call huge_pmd_unshare.  This is done today in:
-- try_to_migrate_one and try_to_unmap_ for page migration and memory
-  error handling.  In these routines we 'try' to obtain the vma lock and
-  fail to unmap if unsuccessful.  Calling routines already deal with the
-  failure of unmapping.
-- hugetlb_vmdelete_list for truncation and hole punch.  This routine
-  also tries to acquire the vma lock.  If it fails, it skips the
-  unmapping.  However, we can not have file truncation or hole punch
-  fail because of contention.  After hugetlb_vmdelete_list, truncation
-  and hole punch call remove_inode_hugepages.  remove_inode_hugepages
-  checks for mapped pages and call hugetlb_unmap_file_page to unmap them.
-  hugetlb_unmap_file_page is designed to drop locks and reacquire in the
-  correct order to guarantee unmap success.
-
-Link: https://lkml.kernel.org/r/20220914221810.95771-9-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: James Houghton <jthoughton@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Prakash Sangappa <prakash.sangappa@oracle.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20220915150417.722975-3-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Eric Biggers <ebiggers@google.com>
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Ilya Leoshkevich <iii@linux.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   66 ++++++++++++++++++++++++++
- mm/hugetlb.c         |  102 +++++++++++++++++++++++++++++++++++++----
- mm/memory.c          |    2 
- mm/rmap.c            |   98 +++++++++++++++++++++++++--------------
- mm/userfaultfd.c     |    9 +++
- 5 files changed, 232 insertions(+), 45 deletions(-)
+ include/linux/stackdepot.h |    8 ++++++++
+ lib/stackdepot.c           |   29 ++++++++++++++++++++++++-----
+ mm/kasan/common.c          |    2 +-
+ 3 files changed, 33 insertions(+), 6 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlb-use-new-vma_lock-for-pmd-sharing-synchronization
-+++ a/fs/hugetlbfs/inode.c
-@@ -434,6 +434,7 @@ static void hugetlb_unmap_file_folio(str
- 					struct folio *folio, pgoff_t index)
- {
- 	struct rb_root_cached *root = &mapping->i_mmap;
-+	struct hugetlb_vma_lock *vma_lock;
- 	struct page *page = &folio->page;
- 	struct vm_area_struct *vma;
- 	unsigned long v_start;
-@@ -444,7 +445,8 @@ static void hugetlb_unmap_file_folio(str
- 	end = (index + 1) * pages_per_huge_page(h);
+--- a/include/linux/stackdepot.h~stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t
++++ a/include/linux/stackdepot.h
+@@ -14,9 +14,15 @@
+ #include <linux/gfp.h>
  
- 	i_mmap_lock_write(mapping);
--
-+retry:
-+	vma_lock = NULL;
- 	vma_interval_tree_foreach(vma, root, start, end - 1) {
- 		v_start = vma_offset_start(vma, start);
- 		v_end = vma_offset_end(vma, end);
-@@ -452,11 +454,63 @@ static void hugetlb_unmap_file_folio(str
- 		if (!hugetlb_vma_maps_page(vma, vma->vm_start + v_start, page))
- 			continue;
+ typedef u32 depot_stack_handle_t;
++/*
++ * Number of bits in the handle that stack depot doesn't use. Users may store
++ * information in them.
++ */
++#define STACK_DEPOT_EXTRA_BITS 5
  
-+		if (!hugetlb_vma_trylock_write(vma)) {
-+			vma_lock = vma->vm_private_data;
-+			/*
-+			 * If we can not get vma lock, we need to drop
-+			 * immap_sema and take locks in order.  First,
-+			 * take a ref on the vma_lock structure so that
-+			 * we can be guaranteed it will not go away when
-+			 * dropping immap_sema.
-+			 */
-+			kref_get(&vma_lock->refs);
-+			break;
-+		}
-+
- 		unmap_hugepage_range(vma, vma->vm_start + v_start, v_end,
- 				NULL, ZAP_FLAG_DROP_MARKER);
-+		hugetlb_vma_unlock_write(vma);
- 	}
+ depot_stack_handle_t __stack_depot_save(unsigned long *entries,
+ 					unsigned int nr_entries,
++					unsigned int extra_bits,
+ 					gfp_t gfp_flags, bool can_alloc);
  
- 	i_mmap_unlock_write(mapping);
-+
-+	if (vma_lock) {
-+		/*
-+		 * Wait on vma_lock.  We know it is still valid as we have
-+		 * a reference.  We must 'open code' vma locking as we do
-+		 * not know if vma_lock is still attached to vma.
-+		 */
-+		down_write(&vma_lock->rw_sema);
-+		i_mmap_lock_write(mapping);
-+
-+		vma = vma_lock->vma;
-+		if (!vma) {
-+			/*
-+			 * If lock is no longer attached to vma, then just
-+			 * unlock, drop our reference and retry looking for
-+			 * other vmas.
-+			 */
-+			up_write(&vma_lock->rw_sema);
-+			kref_put(&vma_lock->refs, hugetlb_vma_lock_release);
-+			goto retry;
-+		}
-+
-+		/*
-+		 * vma_lock is still attached to vma.  Check to see if vma
-+		 * still maps page and if so, unmap.
-+		 */
-+		v_start = vma_offset_start(vma, start);
-+		v_end = vma_offset_end(vma, end);
-+		if (hugetlb_vma_maps_page(vma, vma->vm_start + v_start, page))
-+			unmap_hugepage_range(vma, vma->vm_start + v_start,
-+						v_end, NULL,
-+						ZAP_FLAG_DROP_MARKER);
-+
-+		kref_put(&vma_lock->refs, hugetlb_vma_lock_release);
-+		hugetlb_vma_unlock_write(vma);
-+
-+		goto retry;
-+	}
- }
+ /*
+@@ -59,6 +65,8 @@ depot_stack_handle_t stack_depot_save(un
+ unsigned int stack_depot_fetch(depot_stack_handle_t handle,
+ 			       unsigned long **entries);
  
- static void
-@@ -474,11 +528,21 @@ hugetlb_vmdelete_list(struct rb_root_cac
- 		unsigned long v_start;
- 		unsigned long v_end;
- 
-+		if (!hugetlb_vma_trylock_write(vma))
-+			continue;
++unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle);
 +
- 		v_start = vma_offset_start(vma, start);
- 		v_end = vma_offset_end(vma, end);
+ int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
+ 		       int spaces);
  
- 		unmap_hugepage_range(vma, vma->vm_start + v_start, v_end,
- 				     NULL, zap_flags);
-+
-+		/*
-+		 * Note that vma lock only exists for shared/non-private
-+		 * vmas.  Therefore, lock is not held when calling
-+		 * unmap_hugepage_range for private vmas.
-+		 */
-+		hugetlb_vma_unlock_write(vma);
- 	}
- }
- 
---- a/mm/hugetlb.c~hugetlb-use-new-vma_lock-for-pmd-sharing-synchronization
-+++ a/mm/hugetlb.c
-@@ -4796,6 +4796,14 @@ int copy_hugetlb_page_range(struct mm_st
- 		mmu_notifier_invalidate_range_start(&range);
- 		mmap_assert_write_locked(src);
- 		raw_write_seqcount_begin(&src->write_protect_seq);
-+	} else {
-+		/*
-+		 * For shared mappings the vma lock must be held before
-+		 * calling huge_pte_offset in the src vma. Otherwise, the
-+		 * returned ptep could go away if part of a shared pmd and
-+		 * another thread calls huge_pmd_unshare.
-+		 */
-+		hugetlb_vma_lock_read(src_vma);
- 	}
- 
- 	last_addr_mask = hugetlb_mask_last_page(h);
-@@ -4942,6 +4950,8 @@ again:
- 	if (cow) {
- 		raw_write_seqcount_end(&src->write_protect_seq);
- 		mmu_notifier_invalidate_range_end(&range);
-+	} else {
-+		hugetlb_vma_unlock_read(src_vma);
- 	}
- 
- 	return ret;
-@@ -5000,6 +5010,7 @@ int move_hugetlb_page_tables(struct vm_a
- 	mmu_notifier_invalidate_range_start(&range);
- 	last_addr_mask = hugetlb_mask_last_page(h);
- 	/* Prevent race with file truncation */
-+	hugetlb_vma_lock_write(vma);
- 	i_mmap_lock_write(mapping);
- 	for (; old_addr < old_end; old_addr += sz, new_addr += sz) {
- 		src_pte = huge_pte_offset(mm, old_addr, sz);
-@@ -5031,6 +5042,7 @@ int move_hugetlb_page_tables(struct vm_a
- 		flush_tlb_range(vma, old_end - len, old_end);
- 	mmu_notifier_invalidate_range_end(&range);
- 	i_mmap_unlock_write(mapping);
-+	hugetlb_vma_unlock_write(vma);
- 
- 	return len + old_addr - old_end;
- }
-@@ -5350,8 +5362,29 @@ retry_avoidcopy:
- 		 * may get SIGKILLed if it later faults.
- 		 */
- 		if (outside_reserve) {
-+			struct address_space *mapping = vma->vm_file->f_mapping;
-+			pgoff_t idx;
-+			u32 hash;
-+
- 			put_page(old_page);
-+			/*
-+			 * Drop hugetlb_fault_mutex and vma_lock before
-+			 * unmapping.  unmapping needs to hold vma_lock
-+			 * in write mode.  Dropping vma_lock in read mode
-+			 * here is OK as COW mappings do not interact with
-+			 * PMD sharing.
-+			 *
-+			 * Reacquire both after unmap operation.
-+			 */
-+			idx = vma_hugecache_offset(h, vma, haddr);
-+			hash = hugetlb_fault_mutex_hash(mapping, idx);
-+			hugetlb_vma_unlock_read(vma);
-+			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-+
- 			unmap_ref_private(mm, vma, old_page, haddr);
-+
-+			mutex_lock(&hugetlb_fault_mutex_table[hash]);
-+			hugetlb_vma_lock_read(vma);
- 			spin_lock(ptl);
- 			ptep = huge_pte_offset(mm, haddr, huge_page_size(h));
- 			if (likely(ptep &&
-@@ -5500,14 +5533,16 @@ static inline vm_fault_t hugetlb_handle_
+--- a/lib/stackdepot.c~stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t
++++ a/lib/stackdepot.c
+@@ -43,7 +43,8 @@
+ #define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
+ 					STACK_ALLOC_ALIGN)
+ #define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
+-		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
++		STACK_ALLOC_NULL_PROTECTION_BITS - \
++		STACK_ALLOC_OFFSET_BITS - STACK_DEPOT_EXTRA_BITS)
+ #define STACK_ALLOC_SLABS_CAP 8192
+ #define STACK_ALLOC_MAX_SLABS \
+ 	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
+@@ -56,6 +57,7 @@ union handle_parts {
+ 		u32 slabindex : STACK_ALLOC_INDEX_BITS;
+ 		u32 offset : STACK_ALLOC_OFFSET_BITS;
+ 		u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
++		u32 extra : STACK_DEPOT_EXTRA_BITS;
  	};
+ };
  
- 	/*
--	 * hugetlb_fault_mutex and i_mmap_rwsem must be
-+	 * vma_lock and hugetlb_fault_mutex must be
- 	 * dropped before handling userfault.  Reacquire
- 	 * after handling fault to make calling code simpler.
- 	 */
-+	hugetlb_vma_unlock_read(vma);
- 	hash = hugetlb_fault_mutex_hash(mapping, idx);
- 	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 	ret = handle_userfault(&vmf, reason);
- 	mutex_lock(&hugetlb_fault_mutex_table[hash]);
-+	hugetlb_vma_lock_read(vma);
+@@ -77,6 +79,14 @@ static int next_slab_inited;
+ static size_t depot_offset;
+ static DEFINE_RAW_SPINLOCK(depot_lock);
  
- 	return ret;
- }
-@@ -5741,6 +5776,11 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 
- 	ptep = huge_pte_offset(mm, haddr, huge_page_size(h));
- 	if (ptep) {
-+		/*
-+		 * Since we hold no locks, ptep could be stale.  That is
-+		 * OK as we are only making decisions based on content and
-+		 * not actually modifying content here.
-+		 */
- 		entry = huge_ptep_get(ptep);
- 		if (unlikely(is_hugetlb_entry_migration(entry))) {
- 			migration_entry_wait_huge(vma, ptep);
-@@ -5748,23 +5788,35 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
- 			return VM_FAULT_HWPOISON_LARGE |
- 				VM_FAULT_SET_HINDEX(hstate_index(h));
--	} else {
--		ptep = huge_pte_alloc(mm, vma, haddr, huge_page_size(h));
--		if (!ptep)
--			return VM_FAULT_OOM;
- 	}
- 
--	mapping = vma->vm_file->f_mapping;
--	idx = vma_hugecache_offset(h, vma, haddr);
--
- 	/*
- 	 * Serialize hugepage allocation and instantiation, so that we don't
- 	 * get spurious allocation failures if two CPUs race to instantiate
- 	 * the same page in the page cache.
- 	 */
-+	mapping = vma->vm_file->f_mapping;
-+	idx = vma_hugecache_offset(h, vma, haddr);
- 	hash = hugetlb_fault_mutex_hash(mapping, idx);
- 	mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 
-+	/*
-+	 * Acquire vma lock before calling huge_pte_alloc and hold
-+	 * until finished with ptep.  This prevents huge_pmd_unshare from
-+	 * being called elsewhere and making the ptep no longer valid.
-+	 *
-+	 * ptep could have already be assigned via huge_pte_offset.  That
-+	 * is OK, as huge_pte_alloc will return the same value unless
-+	 * something has changed.
-+	 */
-+	hugetlb_vma_lock_read(vma);
-+	ptep = huge_pte_alloc(mm, vma, haddr, huge_page_size(h));
-+	if (!ptep) {
-+		hugetlb_vma_unlock_read(vma);
-+		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-+		return VM_FAULT_OOM;
-+	}
-+
- 	entry = huge_ptep_get(ptep);
- 	/* PTE markers should be handled the same way as none pte */
- 	if (huge_pte_none_mostly(entry)) {
-@@ -5825,6 +5877,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 			unlock_page(pagecache_page);
- 			put_page(pagecache_page);
- 		}
-+		hugetlb_vma_unlock_read(vma);
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 		return handle_userfault(&vmf, VM_UFFD_WP);
- 	}
-@@ -5868,6 +5921,7 @@ out_ptl:
- 		put_page(pagecache_page);
- 	}
- out_mutex:
-+	hugetlb_vma_unlock_read(vma);
- 	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 	/*
- 	 * Generally it's safe to hold refcount during waiting page lock. But
-@@ -6330,8 +6384,9 @@ unsigned long hugetlb_change_protection(
- 	flush_cache_range(vma, range.start, range.end);
- 
- 	mmu_notifier_invalidate_range_start(&range);
--	last_addr_mask = hugetlb_mask_last_page(h);
-+	hugetlb_vma_lock_write(vma);
- 	i_mmap_lock_write(vma->vm_file->f_mapping);
-+	last_addr_mask = hugetlb_mask_last_page(h);
- 	for (; address < end; address += psize) {
- 		spinlock_t *ptl;
- 		ptep = huge_pte_offset(mm, address, psize);
-@@ -6430,6 +6485,7 @@ unsigned long hugetlb_change_protection(
- 	 * See Documentation/mm/mmu_notifier.rst
- 	 */
- 	i_mmap_unlock_write(vma->vm_file->f_mapping);
-+	hugetlb_vma_unlock_write(vma);
- 	mmu_notifier_invalidate_range_end(&range);
- 
- 	return pages << h->order;
-@@ -6931,6 +6987,7 @@ int huge_pmd_unshare(struct mm_struct *m
- 	pud_t *pud = pud_offset(p4d, addr);
- 
- 	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
-+	hugetlb_vma_assert_locked(vma);
- 	BUG_ON(page_count(virt_to_page(ptep)) == 0);
- 	if (page_count(virt_to_page(ptep)) == 1)
- 		return 0;
-@@ -6943,6 +7000,31 @@ int huge_pmd_unshare(struct mm_struct *m
- 
- #else /* !CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
- 
-+void hugetlb_vma_lock_read(struct vm_area_struct *vma)
++unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle)
 +{
-+}
++	union handle_parts parts = { .handle = handle };
 +
-+void hugetlb_vma_unlock_read(struct vm_area_struct *vma)
-+{
++	return parts.extra;
 +}
++EXPORT_SYMBOL(stack_depot_get_extra_bits);
 +
-+void hugetlb_vma_lock_write(struct vm_area_struct *vma)
-+{
-+}
-+
-+void hugetlb_vma_unlock_write(struct vm_area_struct *vma)
-+{
-+}
-+
-+int hugetlb_vma_trylock_write(struct vm_area_struct *vma)
-+{
-+	return 1;
-+}
-+
-+void hugetlb_vma_assert_locked(struct vm_area_struct *vma)
-+{
-+}
-+
- void hugetlb_vma_lock_release(struct kref *kref)
+ static bool init_stack_slab(void **prealloc)
  {
- }
-@@ -7325,6 +7407,7 @@ void hugetlb_unshare_all_pmds(struct vm_
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm,
- 				start, end);
- 	mmu_notifier_invalidate_range_start(&range);
-+	hugetlb_vma_lock_write(vma);
- 	i_mmap_lock_write(vma->vm_file->f_mapping);
- 	for (address = start; address < end; address += PUD_SIZE) {
- 		ptep = huge_pte_offset(mm, address, sz);
-@@ -7336,6 +7419,7 @@ void hugetlb_unshare_all_pmds(struct vm_
+ 	if (!*prealloc)
+@@ -140,6 +150,7 @@ depot_alloc_stack(unsigned long *entries
+ 	stack->handle.slabindex = depot_index;
+ 	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
+ 	stack->handle.valid = 1;
++	stack->handle.extra = 0;
+ 	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
+ 	depot_offset += required_size;
+ 
+@@ -382,6 +393,7 @@ EXPORT_SYMBOL_GPL(stack_depot_fetch);
+  *
+  * @entries:		Pointer to storage array
+  * @nr_entries:		Size of the storage array
++ * @extra_bits:		Flags to store in unused bits of depot_stack_handle_t
+  * @alloc_flags:	Allocation gfp flags
+  * @can_alloc:		Allocate stack slabs (increased chance of failure if false)
+  *
+@@ -393,6 +405,10 @@ EXPORT_SYMBOL_GPL(stack_depot_fetch);
+  * If the stack trace in @entries is from an interrupt, only the portion up to
+  * interrupt entry is saved.
+  *
++ * Additional opaque flags can be passed in @extra_bits, stored in the unused
++ * bits of the stack handle, and retrieved using stack_depot_get_extra_bits()
++ * without calling stack_depot_fetch().
++ *
+  * Context: Any context, but setting @can_alloc to %false is required if
+  *          alloc_pages() cannot be used from the current context. Currently
+  *          this is the case from contexts where neither %GFP_ATOMIC nor
+@@ -402,10 +418,11 @@ EXPORT_SYMBOL_GPL(stack_depot_fetch);
+  */
+ depot_stack_handle_t __stack_depot_save(unsigned long *entries,
+ 					unsigned int nr_entries,
++					unsigned int extra_bits,
+ 					gfp_t alloc_flags, bool can_alloc)
+ {
+ 	struct stack_record *found = NULL, **bucket;
+-	depot_stack_handle_t retval = 0;
++	union handle_parts retval = { .handle = 0 };
+ 	struct page *page = NULL;
+ 	void *prealloc = NULL;
+ 	unsigned long flags;
+@@ -489,9 +506,11 @@ exit:
+ 		free_pages((unsigned long)prealloc, STACK_ALLOC_ORDER);
  	}
- 	flush_hugetlb_tlb_range(vma, start, end);
- 	i_mmap_unlock_write(vma->vm_file->f_mapping);
-+	hugetlb_vma_unlock_write(vma);
- 	/*
- 	 * No need to call mmu_notifier_invalidate_range(), see
- 	 * Documentation/mm/mmu_notifier.rst.
---- a/mm/memory.c~hugetlb-use-new-vma_lock-for-pmd-sharing-synchronization
-+++ a/mm/memory.c
-@@ -1684,10 +1684,12 @@ static void unmap_single_vma(struct mmu_
- 			if (vma->vm_file) {
- 				zap_flags_t zap_flags = details ?
- 				    details->zap_flags : 0;
-+				hugetlb_vma_lock_write(vma);
- 				i_mmap_lock_write(vma->vm_file->f_mapping);
- 				__unmap_hugepage_range_final(tlb, vma, start, end,
- 							     NULL, zap_flags);
- 				i_mmap_unlock_write(vma->vm_file->f_mapping);
-+				hugetlb_vma_unlock_write(vma);
- 			}
- 		} else
- 			unmap_page_range(tlb, vma, start, end, details);
---- a/mm/rmap.c~hugetlb-use-new-vma_lock-for-pmd-sharing-synchronization
-+++ a/mm/rmap.c
-@@ -1551,24 +1551,39 @@ static bool try_to_unmap_one(struct foli
- 			 * To call huge_pmd_unshare, i_mmap_rwsem must be
- 			 * held in write mode.  Caller needs to explicitly
- 			 * do this outside rmap routines.
-+			 *
-+			 * We also must hold hugetlb vma_lock in write mode.
-+			 * Lock order dictates acquiring vma_lock BEFORE
-+			 * i_mmap_rwsem.  We can only try lock here and fail
-+			 * if unsuccessful.
- 			 */
--			VM_BUG_ON(!anon && !(flags & TTU_RMAP_LOCKED));
--			if (!anon && huge_pmd_unshare(mm, vma, address, pvmw.pte)) {
--				flush_tlb_range(vma, range.start, range.end);
--				mmu_notifier_invalidate_range(mm, range.start,
--							      range.end);
--
--				/*
--				 * The ref count of the PMD page was dropped
--				 * which is part of the way map counting
--				 * is done for shared PMDs.  Return 'true'
--				 * here.  When there is no other sharing,
--				 * huge_pmd_unshare returns false and we will
--				 * unmap the actual page and drop map count
--				 * to zero.
--				 */
--				page_vma_mapped_walk_done(&pvmw);
--				break;
-+			if (!anon) {
-+				VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
-+				if (!hugetlb_vma_trylock_write(vma)) {
-+					page_vma_mapped_walk_done(&pvmw);
-+					ret = false;
-+					break;
-+				}
-+				if (huge_pmd_unshare(mm, vma, address, pvmw.pte)) {
-+					hugetlb_vma_unlock_write(vma);
-+					flush_tlb_range(vma,
-+						range.start, range.end);
-+					mmu_notifier_invalidate_range(mm,
-+						range.start, range.end);
-+					/*
-+					 * The ref count of the PMD page was
-+					 * dropped which is part of the way map
-+					 * counting is done for shared PMDs.
-+					 * Return 'true' here.  When there is
-+					 * no other sharing, huge_pmd_unshare
-+					 * returns false and we will unmap the
-+					 * actual page and drop map count
-+					 * to zero.
-+					 */
-+					page_vma_mapped_walk_done(&pvmw);
-+					break;
-+				}
-+				hugetlb_vma_unlock_write(vma);
- 			}
- 			pteval = huge_ptep_clear_flush(vma, address, pvmw.pte);
- 		} else {
-@@ -1926,26 +1941,41 @@ static bool try_to_migrate_one(struct fo
- 			 * To call huge_pmd_unshare, i_mmap_rwsem must be
- 			 * held in write mode.  Caller needs to explicitly
- 			 * do this outside rmap routines.
-+			 *
-+			 * We also must hold hugetlb vma_lock in write mode.
-+			 * Lock order dictates acquiring vma_lock BEFORE
-+			 * i_mmap_rwsem.  We can only try lock here and
-+			 * fail if unsuccessful.
- 			 */
--			VM_BUG_ON(!anon && !(flags & TTU_RMAP_LOCKED));
--			if (!anon && huge_pmd_unshare(mm, vma, address, pvmw.pte)) {
--				flush_tlb_range(vma, range.start, range.end);
--				mmu_notifier_invalidate_range(mm, range.start,
--							      range.end);
-+			if (!anon) {
-+				VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
-+				if (!hugetlb_vma_trylock_write(vma)) {
-+					page_vma_mapped_walk_done(&pvmw);
-+					ret = false;
-+					break;
-+				}
-+				if (huge_pmd_unshare(mm, vma, address, pvmw.pte)) {
-+					hugetlb_vma_unlock_write(vma);
-+					flush_tlb_range(vma,
-+						range.start, range.end);
-+					mmu_notifier_invalidate_range(mm,
-+						range.start, range.end);
+ 	if (found)
+-		retval = found->handle.handle;
++		retval.handle = found->handle.handle;
+ fast_exit:
+-	return retval;
++	retval.extra = extra_bits;
++
++	return retval.handle;
+ }
+ EXPORT_SYMBOL_GPL(__stack_depot_save);
  
--				/*
--				 * The ref count of the PMD page was dropped
--				 * which is part of the way map counting
--				 * is done for shared PMDs.  Return 'true'
--				 * here.  When there is no other sharing,
--				 * huge_pmd_unshare returns false and we will
--				 * unmap the actual page and drop map count
--				 * to zero.
--				 */
--				page_vma_mapped_walk_done(&pvmw);
--				break;
-+					/*
-+					 * The ref count of the PMD page was
-+					 * dropped which is part of the way map
-+					 * counting is done for shared PMDs.
-+					 * Return 'true' here.  When there is
-+					 * no other sharing, huge_pmd_unshare
-+					 * returns false and we will unmap the
-+					 * actual page and drop map count
-+					 * to zero.
-+					 */
-+					page_vma_mapped_walk_done(&pvmw);
-+					break;
-+				}
-+				hugetlb_vma_unlock_write(vma);
- 			}
--
- 			/* Nuke the hugetlb page table entry */
- 			pteval = huge_ptep_clear_flush(vma, address, pvmw.pte);
- 		} else {
---- a/mm/userfaultfd.c~hugetlb-use-new-vma_lock-for-pmd-sharing-synchronization
-+++ a/mm/userfaultfd.c
-@@ -379,16 +379,21 @@ retry:
- 		BUG_ON(dst_addr >= dst_start + len);
+@@ -511,6 +530,6 @@ depot_stack_handle_t stack_depot_save(un
+ 				      unsigned int nr_entries,
+ 				      gfp_t alloc_flags)
+ {
+-	return __stack_depot_save(entries, nr_entries, alloc_flags, true);
++	return __stack_depot_save(entries, nr_entries, 0, alloc_flags, true);
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_save);
+--- a/mm/kasan/common.c~stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t
++++ a/mm/kasan/common.c
+@@ -43,7 +43,7 @@ depot_stack_handle_t kasan_save_stack(gf
+ 	unsigned int nr_entries;
  
- 		/*
--		 * Serialize via hugetlb_fault_mutex.
-+		 * Serialize via vma_lock and hugetlb_fault_mutex.
-+		 * vma_lock ensures the dst_pte remains valid even
-+		 * in the case of shared pmds.  fault mutex prevents
-+		 * races with other faulting threads.
- 		 */
- 		idx = linear_page_index(dst_vma, dst_addr);
- 		mapping = dst_vma->vm_file->f_mapping;
- 		hash = hugetlb_fault_mutex_hash(mapping, idx);
- 		mutex_lock(&hugetlb_fault_mutex_table[hash]);
-+		hugetlb_vma_lock_read(dst_vma);
+ 	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 0);
+-	return __stack_depot_save(entries, nr_entries, flags, can_alloc);
++	return __stack_depot_save(entries, nr_entries, 0, flags, can_alloc);
+ }
  
- 		err = -ENOMEM;
- 		dst_pte = huge_pte_alloc(dst_mm, dst_vma, dst_addr, vma_hpagesize);
- 		if (!dst_pte) {
-+			hugetlb_vma_unlock_read(dst_vma);
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 			goto out_unlock;
- 		}
-@@ -396,6 +401,7 @@ retry:
- 		if (mode != MCOPY_ATOMIC_CONTINUE &&
- 		    !huge_pte_none_mostly(huge_ptep_get(dst_pte))) {
- 			err = -EEXIST;
-+			hugetlb_vma_unlock_read(dst_vma);
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 			goto out_unlock;
- 		}
-@@ -404,6 +410,7 @@ retry:
- 					       dst_addr, src_addr, mode, &page,
- 					       wp_copy);
- 
-+		hugetlb_vma_unlock_read(dst_vma);
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 
- 		cond_resched();
+ void kasan_set_track(struct kasan_track *track, gfp_t flags)
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from glider@google.com are
 
-hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
 
