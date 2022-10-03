@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98F5FC433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:16:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C38DC433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:17:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230098AbiJCVQn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:16:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56148 "EHLO
+        id S229656AbiJCVRI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:17:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229656AbiJCVOu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:14:50 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B11FD1E72E
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:09:52 -0700 (PDT)
+        with ESMTP id S229479AbiJCVPH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:15:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B190E1EC7F
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:09:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 62F86B815F2
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:09:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06435C43470;
-        Mon,  3 Oct 2022 21:09:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3556A611E0
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:09:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8649EC433D6;
+        Mon,  3 Oct 2022 21:09:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831390;
-        bh=aRJhaTI12e0fdUJulzQMkbZIIkDrlLVdGXziq9RrOIo=;
+        s=korg; t=1664831392;
+        bh=GzvQdJ0UylQtcVawS1OKwjNkWJ9tta1qUVJyfc+Falo=;
         h=Date:To:From:Subject:From;
-        b=QiTrLPDjYIlbuUnLar0TMWB8brF1YR6UbFHJVr0RPHSrx8ECTQeor8evyhMPEKl/Z
-         NBIzOfVzBEC6laWsx+/LJhnbvxcdbqApORrZtAbhJmz+r9TOGUs+MKryuoW+snmyop
-         n7UMaQw1lb39Wi10uKy0INeUjYTNnXMErVDbbCt0=
-Date:   Mon, 03 Oct 2022 14:09:49 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
-        akpm@linux-foundation.org
+        b=IUdAaXFcWGa3u0jz+ciqzjf/EGRqv1W/iHS3TWqiYytq2m8DUS0u7Hqf4pUiz3e4/
+         +Vlsu/YsfS2q9bv+LjxpFeM7F8lTTxvX0WmdvDi4++I4HUWHhADi3tKFwegkgdGMdW
+         5W1d4kOfMpBio4UyCL3b5QFdqJNUhv2iSpy1qcI4=
+Date:   Mon, 03 Oct 2022 14:09:51 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@suse.com,
+        hannes@cmpxchg.org, kasong@tencent.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters.patch removed from -mm tree
-Message-Id: <20221003210950.06435C43470@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-make-cgroup_memory_noswap-a-static-key.patch removed from -mm tree
+Message-Id: <20221003210952.8649EC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,159 +42,193 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon: deduplicate damon_{reclaim,lru_sort}_apply_parameters()
+     Subject: mm: memcontrol: make cgroup_memory_noswap a static key
 has been removed from the -mm tree.  Its filename was
-     mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters.patch
+     mm-memcontrol-make-cgroup_memory_noswap-a-static-key.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kaixu Xia <kaixuxia@tencent.com>
-Subject: mm/damon: deduplicate damon_{reclaim,lru_sort}_apply_parameters()
-Date: Tue, 20 Sep 2022 16:53:22 +0000
+From: Kairui Song <kasong@tencent.com>
+Subject: mm: memcontrol: make cgroup_memory_noswap a static key
+Date: Tue, 20 Sep 2022 02:06:34 +0800
 
-The bodies of damon_{reclaim,lru_sort}_apply_parameters() contain
-duplicates.  This commit adds a common function
-damon_set_region_biggest_system_ram_default() to remove the duplicates.
+cgroup_memory_noswap is used in many hot path, so make it a static key
+to lower the kernel overhead.
 
-Link: https://lkml.kernel.org/r/6329f00d.a70a0220.9bb29.3678SMTPIN_ADDED_BROKEN@mx.google.com
-Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
-Suggested-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Using 8G of ZRAM as SWAP, benchmark using `perf stat -d -d -d --repeat 100`
+with the following code snip in a non-root cgroup:
+
+   #include <stdio.h>
+   #include <string.h>
+   #include <linux/mman.h>
+   #include <sys/mman.h>
+   #define MB 1024UL * 1024UL
+   int main(int argc, char **argv){
+      void *p = mmap(NULL, 8000 * MB, PROT_READ | PROT_WRITE,
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+      memset(p, 0xff, 8000 * MB);
+      madvise(p, 8000 * MB, MADV_PAGEOUT);
+      memset(p, 0xff, 8000 * MB);
+      return 0;
+   }
+
+Before:
+          7,021.43 msec task-clock                #    0.967 CPUs utilized            ( +-  0.03% )
+             4,010      context-switches          #  573.853 /sec                     ( +-  0.01% )
+                 0      cpu-migrations            #    0.000 /sec
+         2,052,057      page-faults               #  293.661 K/sec                    ( +-  0.00% )
+    12,616,546,027      cycles                    #    1.805 GHz                      ( +-  0.06% )  (39.92%)
+       156,823,666      stalled-cycles-frontend   #    1.25% frontend cycles idle     ( +-  0.10% )  (40.25%)
+       310,130,812      stalled-cycles-backend    #    2.47% backend cycles idle      ( +-  4.39% )  (40.73%)
+    18,692,516,591      instructions              #    1.49  insn per cycle
+                                                  #    0.01  stalled cycles per insn  ( +-  0.04% )  (40.75%)
+     4,907,447,976      branches                  #  702.283 M/sec                    ( +-  0.05% )  (40.30%)
+        13,002,578      branch-misses             #    0.26% of all branches          ( +-  0.08% )  (40.48%)
+     7,069,786,296      L1-dcache-loads           #    1.012 G/sec                    ( +-  0.03% )  (40.32%)
+       649,385,847      L1-dcache-load-misses     #    9.13% of all L1-dcache accesses  ( +-  0.07% )  (40.10%)
+     1,485,448,688      L1-icache-loads           #  212.576 M/sec                    ( +-  0.15% )  (39.49%)
+        31,628,457      L1-icache-load-misses     #    2.13% of all L1-icache accesses  ( +-  0.40% )  (39.57%)
+         6,667,311      dTLB-loads                #  954.129 K/sec                    ( +-  0.21% )  (39.50%)
+         5,668,555      dTLB-load-misses          #   86.40% of all dTLB cache accesses  ( +-  0.12% )  (39.03%)
+               765      iTLB-loads                #  109.476 /sec                     ( +- 21.81% )  (39.44%)
+         4,370,351      iTLB-load-misses          # 214320.09% of all iTLB cache accesses  ( +-  1.44% )  (39.86%)
+       149,207,254      L1-dcache-prefetches      #   21.352 M/sec                    ( +-  0.13% )  (40.27%)
+
+           7.25869 +- 0.00203 seconds time elapsed  ( +-  0.03% )
+
+After:
+          6,576.16 msec task-clock                #    0.953 CPUs utilized            ( +-  0.10% )
+             4,020      context-switches          #  605.595 /sec                     ( +-  0.01% )
+                 0      cpu-migrations            #    0.000 /sec
+         2,052,056      page-faults               #  309.133 K/sec                    ( +-  0.00% )
+    11,967,619,180      cycles                    #    1.803 GHz                      ( +-  0.36% )  (38.76%)
+       161,259,240      stalled-cycles-frontend   #    1.38% frontend cycles idle     ( +-  0.27% )  (36.58%)
+       253,605,302      stalled-cycles-backend    #    2.16% backend cycles idle      ( +-  4.45% )  (34.78%)
+    19,328,171,892      instructions              #    1.65  insn per cycle
+                                                  #    0.01  stalled cycles per insn  ( +-  0.10% )  (31.46%)
+     5,213,967,902      branches                  #  785.461 M/sec                    ( +-  0.18% )  (30.68%)
+        12,385,170      branch-misses             #    0.24% of all branches          ( +-  0.26% )  (34.13%)
+     7,271,687,822      L1-dcache-loads           #    1.095 G/sec                    ( +-  0.12% )  (35.29%)
+       649,873,045      L1-dcache-load-misses     #    8.93% of all L1-dcache accesses  ( +-  0.11% )  (41.41%)
+     1,950,037,608      L1-icache-loads           #  293.764 M/sec                    ( +-  0.33% )  (43.11%)
+        31,365,566      L1-icache-load-misses     #    1.62% of all L1-icache accesses  ( +-  0.39% )  (45.89%)
+         6,767,809      dTLB-loads                #    1.020 M/sec                    ( +-  0.47% )  (48.42%)
+         6,339,590      dTLB-load-misses          #   95.43% of all dTLB cache accesses  ( +-  0.50% )  (46.60%)
+               736      iTLB-loads                #  110.875 /sec                     ( +-  1.79% )  (48.60%)
+         4,314,836      iTLB-load-misses          # 518653.73% of all iTLB cache accesses  ( +-  0.63% )  (42.91%)
+       144,950,156      L1-dcache-prefetches      #   21.836 M/sec                    ( +-  0.37% )  (41.39%)
+
+           6.89935 +- 0.00703 seconds time elapsed  ( +-  0.10% )
+
+The performance is clearly better. There is no significant hotspot
+improvement according to perf report, as there are quite a few
+callers of memcg_swap_enabled and do_memsw_account (which calls
+memcg_swap_enabled). Many pieces of minor optimizations resulted
+in lower overhead for the branch predictor, and bettter performance.
+
+Link: https://lkml.kernel.org/r/20220919180634.45958-3-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    3 ++-
- mm/damon/core.c       |   35 ++++++++++++++++++++++++++++++++++-
- mm/damon/lru_sort.c   |   13 +++----------
- mm/damon/reclaim.c    |   13 +++----------
- 4 files changed, 42 insertions(+), 22 deletions(-)
+ mm/memcontrol.c |   27 +++++++++++++++++++--------
+ 1 file changed, 19 insertions(+), 8 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters
-+++ a/include/linux/damon.h
-@@ -557,7 +557,8 @@ static inline bool damon_target_has_pid(
- int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
- int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
+--- a/mm/memcontrol.c~mm-memcontrol-make-cgroup_memory_noswap-a-static-key
++++ a/mm/memcontrol.c
+@@ -90,9 +90,18 @@ static bool cgroup_memory_nokmem __ro_af
  
--bool damon_find_biggest_system_ram(unsigned long *start, unsigned long *end);
-+int damon_set_region_biggest_system_ram_default(struct damon_target *t,
-+				unsigned long *start, unsigned long *end);
- 
- #endif	/* CONFIG_DAMON */
- 
---- a/mm/damon/core.c~mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters
-+++ a/mm/damon/core.c
-@@ -1245,7 +1245,8 @@ static int walk_system_ram(struct resour
-  * Find biggest 'System RAM' resource and store its start and end address in
-  * @start and @end, respectively.  If no System RAM is found, returns false.
-  */
--bool damon_find_biggest_system_ram(unsigned long *start, unsigned long *end)
-+static bool damon_find_biggest_system_ram(unsigned long *start,
-+						unsigned long *end)
- 
- {
- 	struct damon_system_ram_region arg = {};
-@@ -1259,6 +1260,38 @@ bool damon_find_biggest_system_ram(unsig
- 	return true;
- }
- 
-+/**
-+ * damon_set_region_biggest_system_ram_default() - Set the region of the given
-+ * monitoring target as requested, or biggest 'System RAM'.
-+ * @t:		The monitoring target to set the region.
-+ * @start:	The pointer to the start address of the region.
-+ * @end:	The pointer to the end address of the region.
-+ *
-+ * This function sets the region of @t as requested by @start and @end.  If the
-+ * values of @start and @end are zero, however, this function finds the biggest
-+ * 'System RAM' resource and sets the region to cover the resource.  In the
-+ * latter case, this function saves the start and end addresses of the resource
-+ * in @start and @end, respectively.
-+ *
-+ * Return: 0 on success, negative error code otherwise.
-+ */
-+int damon_set_region_biggest_system_ram_default(struct damon_target *t,
-+			unsigned long *start, unsigned long *end)
+ /* Whether the swap controller is active */
+ #ifdef CONFIG_MEMCG_SWAP
+-static bool cgroup_memory_noswap __ro_after_init;
++static bool cgroup_memory_noswap __initdata;
++
++static DEFINE_STATIC_KEY_FALSE(memcg_swap_enabled_key);
++static inline bool memcg_swap_enabled(void)
 +{
-+	struct damon_addr_range addr_range;
-+
-+	if (*start > *end)
-+		return -EINVAL;
-+
-+	if (!*start && !*end &&
-+		!damon_find_biggest_system_ram(start, end))
-+		return -EINVAL;
-+
-+	addr_range.start = *start;
-+	addr_range.end = *end;
-+	return damon_set_regions(t, &addr_range, 1);
++	return static_branch_likely(&memcg_swap_enabled_key);
 +}
+ #else
+-#define cgroup_memory_noswap		1
++static inline bool memcg_swap_enabled(void)
++{
++	return false;
++}
+ #endif
+ 
+ #ifdef CONFIG_CGROUP_WRITEBACK
+@@ -102,7 +111,7 @@ static DECLARE_WAIT_QUEUE_HEAD(memcg_cgw
+ /* Whether legacy memory+swap accounting is active */
+ static bool do_memsw_account(void)
+ {
+-	return !cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_noswap;
++	return !cgroup_subsys_on_dfl(memory_cgrp_subsys) && memcg_swap_enabled();
+ }
+ 
+ #define THRESHOLDS_EVENTS_TARGET 128
+@@ -7370,7 +7379,7 @@ void mem_cgroup_swapout(struct folio *fo
+ 	if (!mem_cgroup_is_root(memcg))
+ 		page_counter_uncharge(&memcg->memory, nr_entries);
+ 
+-	if (!cgroup_memory_noswap && memcg != swap_memcg) {
++	if (memcg_swap_enabled() && memcg != swap_memcg) {
+ 		if (!mem_cgroup_is_root(swap_memcg))
+ 			page_counter_charge(&swap_memcg->memsw, nr_entries);
+ 		page_counter_uncharge(&memcg->memsw, nr_entries);
+@@ -7422,7 +7431,7 @@ int __mem_cgroup_try_charge_swap(struct
+ 
+ 	memcg = mem_cgroup_id_get_online(memcg);
+ 
+-	if (!cgroup_memory_noswap && !mem_cgroup_is_root(memcg) &&
++	if (memcg_swap_enabled() && !mem_cgroup_is_root(memcg) &&
+ 	    !page_counter_try_charge(&memcg->swap, nr_pages, &counter)) {
+ 		memcg_memory_event(memcg, MEMCG_SWAP_MAX);
+ 		memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
+@@ -7454,7 +7463,7 @@ void __mem_cgroup_uncharge_swap(swp_entr
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_id(id);
+ 	if (memcg) {
+-		if (!cgroup_memory_noswap && !mem_cgroup_is_root(memcg)) {
++		if (memcg_swap_enabled() && !mem_cgroup_is_root(memcg)) {
+ 			if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 				page_counter_uncharge(&memcg->swap, nr_pages);
+ 			else
+@@ -7470,7 +7479,7 @@ long mem_cgroup_get_nr_swap_pages(struct
+ {
+ 	long nr_swap_pages = get_nr_swap_pages();
+ 
+-	if (cgroup_memory_noswap || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	if (!memcg_swap_enabled() || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 		return nr_swap_pages;
+ 	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg))
+ 		nr_swap_pages = min_t(long, nr_swap_pages,
+@@ -7487,7 +7496,7 @@ bool mem_cgroup_swap_full(struct folio *
+ 
+ 	if (vm_swap_full())
+ 		return true;
+-	if (cgroup_memory_noswap || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	if (!memcg_swap_enabled() || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 		return false;
+ 
+ 	memcg = folio_memcg(folio);
+@@ -7795,6 +7804,8 @@ static int __init mem_cgroup_swap_init(v
+ 	if (cgroup_memory_noswap)
+ 		return 0;
+ 
++	static_branch_enable(&memcg_swap_enabled_key);
 +
- static int __init damon_init(void)
- {
- 	damon_region_cache = KMEM_CACHE(damon_region, 0);
---- a/mm/damon/lru_sort.c~mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters
-+++ a/mm/damon/lru_sort.c
-@@ -188,7 +188,6 @@ static struct damos *damon_lru_sort_new_
- static int damon_lru_sort_apply_parameters(void)
- {
- 	struct damos *scheme;
--	struct damon_addr_range addr_range;
- 	unsigned int hot_thres, cold_thres;
- 	int err = 0;
- 
-@@ -211,15 +210,9 @@ static int damon_lru_sort_apply_paramete
- 		return -ENOMEM;
- 	damon_add_scheme(ctx, scheme);
- 
--	if (monitor_region_start > monitor_region_end)
--		return -EINVAL;
--	if (!monitor_region_start && !monitor_region_end &&
--	    !damon_find_biggest_system_ram(&monitor_region_start,
--					   &monitor_region_end))
--		return -EINVAL;
--	addr_range.start = monitor_region_start;
--	addr_range.end = monitor_region_end;
--	return damon_set_regions(target, &addr_range, 1);
-+	return damon_set_region_biggest_system_ram_default(target,
-+					&monitor_region_start,
-+					&monitor_region_end);
- }
- 
- static int damon_lru_sort_turn(bool on)
---- a/mm/damon/reclaim.c~mm-damon-deduplicate-damon_reclaimlru_sort_apply_parameters
-+++ a/mm/damon/reclaim.c
-@@ -144,7 +144,6 @@ static struct damos *damon_reclaim_new_s
- static int damon_reclaim_apply_parameters(void)
- {
- 	struct damos *scheme;
--	struct damon_addr_range addr_range;
- 	int err = 0;
- 
- 	err = damon_set_attrs(ctx, &damon_reclaim_mon_attrs);
-@@ -157,15 +156,9 @@ static int damon_reclaim_apply_parameter
- 		return -ENOMEM;
- 	damon_set_schemes(ctx, &scheme, 1);
- 
--	if (monitor_region_start > monitor_region_end)
--		return -EINVAL;
--	if (!monitor_region_start && !monitor_region_end &&
--	    !damon_find_biggest_system_ram(&monitor_region_start,
--					   &monitor_region_end))
--		return -EINVAL;
--	addr_range.start = monitor_region_start;
--	addr_range.end = monitor_region_end;
--	return damon_set_regions(target, &addr_range, 1);
-+	return damon_set_region_biggest_system_ram_default(target,
-+					&monitor_region_start,
-+					&monitor_region_end);
- }
- 
- static int damon_reclaim_turn(bool on)
+ 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
+ 	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys, memsw_files));
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
 _
 
-Patches currently in -mm which might be from kaixuxia@tencent.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
 
