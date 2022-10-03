@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D350C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E49C433FE
 	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:12:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229983AbiJCVMs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230005AbiJCVMs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 3 Oct 2022 17:12:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56176 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229871AbiJCVL1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:11:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37BBD5142F
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:02 -0700 (PDT)
+        with ESMTP id S229981AbiJCVLf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:11:35 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE9EA51A0F
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C8D7B611EC
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C14AC433D7;
-        Mon,  3 Oct 2022 21:07:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6FFE2B815F2
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27C53C433C1;
+        Mon,  3 Oct 2022 21:07:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831221;
-        bh=XV6TZ3MI3IeqMV+FohLKoTMCYVBwJGpz5C5ZEEysOZU=;
+        s=korg; t=1664831226;
+        bh=lBRMklCfv6gTYhMD9tXkQMv+al/R++uZQzflgicDIew=;
         h=Date:To:From:Subject:From;
-        b=J/7HBnSZIPYtwf1B4r4yNN6qDDXaEaUsZR9dYAzwAhRAmWKg0bTCEzFcW/TuMEPxm
-         f629NOxyV1ckPszbILKWaMBpG+OqEiY+6pq0o7yPrQ+UOWfOs2m4PuvYIoEKOxsSwo
-         CBP0iEwtyEXDejA4D+tvJv8nQgH0iLNd5LClhkxQ=
-Date:   Mon, 03 Oct 2022 14:07:00 -0700
+        b=PD6T98cCzDPqJUi1+MI05LCCBTb1ri655aMPU9zp3/tCcEcaqjGarXEs8XyeuNSJV
+         vkQgkE06FoDffnb4DV8iN8R2oKKJy2YYcYcMR+ORqnXGE6kzm1S0JqgYs+OeGN2mqh
+         teIomuhsMbY8e+IjtirEbgbOSG6hkWA3wZK1Ev9c=
+Date:   Mon, 03 Oct 2022 14:07:05 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org, xhao@linux.alibaba.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-remove-duplicate-get_monitoring_region-definitions.patch removed from -mm tree
-Message-Id: <20221003210701.2C14AC433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-change-few-functions-execute-order.patch removed from -mm tree
+Message-Id: <20221003210706.27C53C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,203 +41,127 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon: remove duplicate get_monitoring_region() definitions
+     Subject: mm/damon/sysfs: change few functions execute order
 has been removed from the -mm tree.  Its filename was
-     mm-damon-remove-duplicate-get_monitoring_region-definitions.patch
+     mm-damon-sysfs-change-few-functions-execute-order.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Xin Hao <xhao@linux.alibaba.com>
-Subject: mm/damon: remove duplicate get_monitoring_region() definitions
-Date: Fri, 9 Sep 2022 21:36:06 +0000
+Subject: mm/damon/sysfs: change few functions execute order
+Date: Thu, 8 Sep 2022 16:19:32 +0800
 
-In lru_sort.c and reclaim.c, they are all defining get_monitoring_region()
-function, there is no need to define it separately.
+There's no need to run container_of() as early as we do.
 
-As 'get_monitoring_region()' is not a 'static' function anymore, we try to
-use a prefix to distinguish with other functions, so there rename it to
-'damon_find_biggest_system_ram'.
+The compiler figures this out, but the resulting code is more readable.
 
-Link: https://lkml.kernel.org/r/20220909213606.136221-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220908081932.77370-1-xhao@linux.alibaba.com
 Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Suggested-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 ++
- mm/damon/core.c       |   40 ++++++++++++++++++++++++++++++++++++++++
- mm/damon/lru_sort.c   |   37 ++-----------------------------------
- mm/damon/reclaim.c    |   37 ++-----------------------------------
- 4 files changed, 46 insertions(+), 70 deletions(-)
+ mm/damon/sysfs.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-remove-duplicate-get_monitoring_region-definitions
-+++ a/include/linux/damon.h
-@@ -549,6 +549,8 @@ static inline bool damon_target_has_pid(
- int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
- int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
- 
-+bool damon_find_biggest_system_ram(unsigned long *start, unsigned long *end);
-+
- #endif	/* CONFIG_DAMON */
- 
- #endif	/* _DAMON_H */
---- a/mm/damon/core.c~mm-damon-remove-duplicate-get_monitoring_region-definitions
-+++ a/mm/damon/core.c
-@@ -1245,4 +1245,44 @@ static int kdamond_fn(void *data)
- 	return 0;
- }
- 
-+/*
-+ * struct damon_system_ram_region - System RAM resource address region of
-+ *				    [@start, @end).
-+ * @start:	Start address of the region (inclusive).
-+ * @end:	End address of the region (exclusive).
-+ */
-+struct damon_system_ram_region {
-+	unsigned long start;
-+	unsigned long end;
-+};
-+
-+static int walk_system_ram(struct resource *res, void *arg)
-+{
-+	struct damon_system_ram_region *a = arg;
-+
-+	if (a->end - a->start < resource_size(res)) {
-+		a->start = res->start;
-+		a->end = res->end;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * Find biggest 'System RAM' resource and store its start and end address in
-+ * @start and @end, respectively.  If no System RAM is found, returns false.
-+ */
-+bool damon_find_biggest_system_ram(unsigned long *start, unsigned long *end)
-+
-+{
-+	struct damon_system_ram_region arg = {};
-+
-+	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
-+	if (arg.end <= arg.start)
-+		return false;
-+
-+	*start = arg.start;
-+	*end = arg.end;
-+	return true;
-+}
-+
- #include "core-test.h"
---- a/mm/damon/lru_sort.c~mm-damon-remove-duplicate-get_monitoring_region-definitions
-+++ a/mm/damon/lru_sort.c
-@@ -257,39 +257,6 @@ module_param(nr_cold_quota_exceeds, ulon
- static struct damon_ctx *ctx;
- static struct damon_target *target;
- 
--struct damon_lru_sort_ram_walk_arg {
--	unsigned long start;
--	unsigned long end;
--};
--
--static int walk_system_ram(struct resource *res, void *arg)
--{
--	struct damon_lru_sort_ram_walk_arg *a = arg;
--
--	if (a->end - a->start < resource_size(res)) {
--		a->start = res->start;
--		a->end = res->end;
--	}
--	return 0;
--}
--
--/*
-- * Find biggest 'System RAM' resource and store its start and end address in
-- * @start and @end, respectively.  If no System RAM is found, returns false.
-- */
--static bool get_monitoring_region(unsigned long *start, unsigned long *end)
--{
--	struct damon_lru_sort_ram_walk_arg arg = {};
--
--	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
--	if (arg.end <= arg.start)
--		return false;
--
--	*start = arg.start;
--	*end = arg.end;
--	return true;
--}
--
- /* Create a DAMON-based operation scheme for hot memory regions */
- static struct damos *damon_lru_sort_new_hot_scheme(unsigned int hot_thres)
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-change-few-functions-execute-order
++++ a/mm/damon/sysfs.c
+@@ -1031,8 +1031,7 @@ static ssize_t nr_schemes_show(struct ko
+ static ssize_t nr_schemes_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
  {
-@@ -414,8 +381,8 @@ static int damon_lru_sort_apply_paramete
- 	if (monitor_region_start > monitor_region_end)
- 		return -EINVAL;
- 	if (!monitor_region_start && !monitor_region_end &&
--			!get_monitoring_region(&monitor_region_start,
--				&monitor_region_end))
-+	    !damon_find_biggest_system_ram(&monitor_region_start,
-+					   &monitor_region_end))
- 		return -EINVAL;
- 	addr_range.start = monitor_region_start;
- 	addr_range.end = monitor_region_end;
---- a/mm/damon/reclaim.c~mm-damon-remove-duplicate-get_monitoring_region-definitions
-+++ a/mm/damon/reclaim.c
-@@ -229,39 +229,6 @@ module_param(nr_quota_exceeds, ulong, 04
- static struct damon_ctx *ctx;
- static struct damon_target *target;
+-	struct damon_sysfs_schemes *schemes = container_of(kobj,
+-			struct damon_sysfs_schemes, kobj);
++	struct damon_sysfs_schemes *schemes;
+ 	int nr, err = kstrtoint(buf, 0, &nr);
  
--struct damon_reclaim_ram_walk_arg {
--	unsigned long start;
--	unsigned long end;
--};
--
--static int walk_system_ram(struct resource *res, void *arg)
--{
--	struct damon_reclaim_ram_walk_arg *a = arg;
--
--	if (a->end - a->start < resource_size(res)) {
--		a->start = res->start;
--		a->end = res->end;
--	}
--	return 0;
--}
--
--/*
-- * Find biggest 'System RAM' resource and store its start and end address in
-- * @start and @end, respectively.  If no System RAM is found, returns false.
-- */
--static bool get_monitoring_region(unsigned long *start, unsigned long *end)
--{
--	struct damon_reclaim_ram_walk_arg arg = {};
--
--	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
--	if (arg.end <= arg.start)
--		return false;
--
--	*start = arg.start;
--	*end = arg.end;
--	return true;
--}
--
- static struct damos *damon_reclaim_new_scheme(void)
+ 	if (err)
+@@ -1040,6 +1039,8 @@ static ssize_t nr_schemes_store(struct k
+ 	if (nr < 0)
+ 		return -EINVAL;
+ 
++	schemes = container_of(kobj, struct damon_sysfs_schemes, kobj);
++
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+ 	err = damon_sysfs_schemes_add_dirs(schemes, nr);
+@@ -1237,8 +1238,7 @@ static ssize_t nr_regions_show(struct ko
+ static ssize_t nr_regions_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
  {
- 	struct damos_access_pattern pattern = {
-@@ -328,8 +295,8 @@ static int damon_reclaim_apply_parameter
- 	if (monitor_region_start > monitor_region_end)
+-	struct damon_sysfs_regions *regions = container_of(kobj,
+-			struct damon_sysfs_regions, kobj);
++	struct damon_sysfs_regions *regions;
+ 	int nr, err = kstrtoint(buf, 0, &nr);
+ 
+ 	if (err)
+@@ -1246,6 +1246,8 @@ static ssize_t nr_regions_store(struct k
+ 	if (nr < 0)
  		return -EINVAL;
- 	if (!monitor_region_start && !monitor_region_end &&
--			!get_monitoring_region(&monitor_region_start,
--				&monitor_region_end))
-+	    !damon_find_biggest_system_ram(&monitor_region_start,
-+					   &monitor_region_end))
+ 
++	regions = container_of(kobj, struct damon_sysfs_regions, kobj);
++
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+ 	err = damon_sysfs_regions_add_dirs(regions, nr);
+@@ -1440,8 +1442,7 @@ static ssize_t nr_targets_show(struct ko
+ static ssize_t nr_targets_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+ {
+-	struct damon_sysfs_targets *targets = container_of(kobj,
+-			struct damon_sysfs_targets, kobj);
++	struct damon_sysfs_targets *targets;
+ 	int nr, err = kstrtoint(buf, 0, &nr);
+ 
+ 	if (err)
+@@ -1449,6 +1450,8 @@ static ssize_t nr_targets_store(struct k
+ 	if (nr < 0)
  		return -EINVAL;
- 	addr_range.start = monitor_region_start;
- 	addr_range.end = monitor_region_end;
+ 
++	targets = container_of(kobj, struct damon_sysfs_targets, kobj);
++
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+ 	err = damon_sysfs_targets_add_dirs(targets, nr);
+@@ -1962,8 +1965,7 @@ static ssize_t nr_contexts_show(struct k
+ static ssize_t nr_contexts_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+ {
+-	struct damon_sysfs_contexts *contexts = container_of(kobj,
+-			struct damon_sysfs_contexts, kobj);
++	struct damon_sysfs_contexts *contexts;
+ 	int nr, err;
+ 
+ 	err = kstrtoint(buf, 0, &nr);
+@@ -1973,6 +1975,7 @@ static ssize_t nr_contexts_store(struct
+ 	if (nr < 0 || 1 < nr)
+ 		return -EINVAL;
+ 
++	contexts = container_of(kobj, struct damon_sysfs_contexts, kobj);
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+ 	err = damon_sysfs_contexts_add_dirs(contexts, nr);
+@@ -2737,8 +2740,7 @@ static ssize_t nr_kdamonds_show(struct k
+ static ssize_t nr_kdamonds_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+ {
+-	struct damon_sysfs_kdamonds *kdamonds = container_of(kobj,
+-			struct damon_sysfs_kdamonds, kobj);
++	struct damon_sysfs_kdamonds *kdamonds;
+ 	int nr, err;
+ 
+ 	err = kstrtoint(buf, 0, &nr);
+@@ -2747,6 +2749,8 @@ static ssize_t nr_kdamonds_store(struct
+ 	if (nr < 0)
+ 		return -EINVAL;
+ 
++	kdamonds = container_of(kobj, struct damon_sysfs_kdamonds, kobj);
++
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+ 	err = damon_sysfs_kdamonds_add_dirs(kdamonds, nr);
 _
 
 Patches currently in -mm which might be from xhao@linux.alibaba.com are
