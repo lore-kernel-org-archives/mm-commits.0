@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67741C4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:12:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3FE9C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:12:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230009AbiJCVMv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:12:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56182 "EHLO
+        id S230034AbiJCVMw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:12:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230043AbiJCVLh (ORCPT
+        with ESMTP id S230045AbiJCVLh (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:11:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6721B51435
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:03 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD73951439
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 036FD611F8
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E351C433C1;
-        Mon,  3 Oct 2022 21:07:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 684FB611F0
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B81C9C433B5;
+        Mon,  3 Oct 2022 21:07:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831222;
-        bh=B6fhKn9YN8m+XEPtJxODOCf8KDqrC53WCCaFoc8IfNM=;
+        s=korg; t=1664831223;
+        bh=GBbILlAniMHKp21QMwo7NNnds8XJLpNyaWq7OIrxTbI=;
         h=Date:To:From:Subject:From;
-        b=SSPJn2K/bec5Q2krd+L2/Ogj4AZchRLzYO4GSO2wH5Bjp7ChDNPqXxIk+PtYcWVhw
-         worjT0ixogm7/FaknDWtGf8pUmWS7QeLE/xyAxZ9kEW7nTaRncx+ov3mJyBb5ueivB
-         nh/O17FHqAt01Sa6XoX9ylT/8A4dUt2qaE3Lag8E=
-Date:   Mon, 03 Oct 2022 14:07:01 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        mike.kravetz@oracle.com, lic121@chinatelecom.cn,
-        akpm@linux-foundation.org
+        b=mv6WCf5fokm1vhcDOpw64NiDx5YY4Jy43qTfmHJPgOxGJwxb17xjpLw0SJ/uuFWW6
+         cNF9qpAK8orAsuFpxn8lY4hec1XlZAGaecN2BYkvw/FAn6qOWPuBVn44BUIJJMBkE4
+         9BG5YxUxeyewx4WzIUFnZYamyxKnon53rfsXO7AQ=
+Date:   Mon, 03 Oct 2022 14:07:03 -0700
+To:     mm-commits@vger.kernel.org, zhanglianjie@uniontech.com,
+        willy@infradead.org, vbabka@suse.cz, neilb@suse.de, jack@suse.cz,
+        dhowells@redhat.com, bvanassche@acm.org, axboe@kernel.dk,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-use-nth_page-instead-of-mem_map_offset-mem_map_next.patch removed from -mm tree
-Message-Id: <20221003210702.5E351C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] writeback-remove-unused-macro-dirty_full_scope.patch removed from -mm tree
+Message-Id: <20221003210703.B81C9C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,222 +43,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: use nth_page instead of mem_map_offset mem_map_next
+     Subject: writeback: remove unused macro DIRTY_FULL_SCOPE
 has been removed from the -mm tree.  Its filename was
-     mm-use-nth_page-instead-of-mem_map_offset-mem_map_next.patch
+     writeback-remove-unused-macro-dirty_full_scope.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Cheng Li <lic121@chinatelecom.cn>
-Subject: mm: use nth_page instead of mem_map_offset mem_map_next
-Date: Fri, 9 Sep 2022 07:31:09 +0000
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: writeback: remove unused macro DIRTY_FULL_SCOPE
+Date: Fri, 9 Sep 2022 10:57:11 +0800
 
-To handle the discontiguous case, mem_map_next() has a parameter named
-`offset`.  As a function caller, one would be confused why "get next
-entry" needs a parameter named "offset".  The other drawback of
-mem_map_next() is that the callers must take care of the map between
-parameter "iter" and "offset", otherwise we may get an hole or duplication
-during iteration.  So we use nth_page instead of mem_map_next.
+It's introduced but never used. Remove it.
 
-And replace mem_map_offset with nth_page() per Matthew's comments.
-
-Link: https://lkml.kernel.org/r/1662708669-9395-1-git-send-email-lic121@chinatelecom.cn
-Signed-off-by: Cheng Li <lic121@chinatelecom.cn>
-Fixes: 69d177c2fc70 ("hugetlbfs: handle pages higher order than MAX_ORDER")
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20220909025711.32012-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Jens Axboe <axboe@kernel.dk>
+Cc: Bart Van Assche <bvanassche@acm.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: zhanglianjie <zhanglianjie@uniontech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c  |   29 +++++++++++++++++------------
- mm/internal.h |   28 ----------------------------
- mm/memory.c   |   21 ++++++++++-----------
- 3 files changed, 27 insertions(+), 51 deletions(-)
+ include/linux/writeback.h |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/mm/hugetlb.c~mm-use-nth_page-instead-of-mem_map_offset-mem_map_next
-+++ a/mm/hugetlb.c
-@@ -1306,12 +1306,13 @@ static void __destroy_compound_gigantic_
- {
- 	int i;
- 	int nr_pages = 1 << order;
--	struct page *p = page + 1;
-+	struct page *p;
+--- a/include/linux/writeback.h~writeback-remove-unused-macro-dirty_full_scope
++++ a/include/linux/writeback.h
+@@ -17,20 +17,12 @@ struct bio;
+ DECLARE_PER_CPU(int, dirty_throttle_leaks);
  
- 	atomic_set(compound_mapcount_ptr(page), 0);
- 	atomic_set(compound_pincount_ptr(page), 0);
+ /*
+- * The 1/4 region under the global dirty thresh is for smooth dirty throttling:
+- *
+- *	(thresh - thresh/DIRTY_FULL_SCOPE, thresh)
+- *
+- * Further beyond, all dirtier tasks will enter a loop waiting (possibly long
+- * time) for the dirty pages to drop, unless written enough pages.
+- *
+  * The global dirty threshold is normally equal to the global dirty limit,
+  * except when the system suddenly allocates a lot of anonymous memory and
+  * knocks down the global dirty threshold quickly, in which case the global
+  * dirty limit will follow down slowly to prevent livelocking all dirtier tasks.
+  */
+ #define DIRTY_SCOPE		8
+-#define DIRTY_FULL_SCOPE	(DIRTY_SCOPE / 2)
  
--	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
-+	for (i = 1; i < nr_pages; i++) {
-+		p = nth_page(page, i);
- 		p->mapping = NULL;
- 		clear_compound_head(p);
- 		if (!demote)
-@@ -1532,7 +1533,7 @@ static void add_hugetlb_page(struct hsta
- static void __update_and_free_page(struct hstate *h, struct page *page)
- {
- 	int i;
--	struct page *subpage = page;
-+	struct page *subpage;
+ struct backing_dev_info;
  
- 	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
- 		return;
-@@ -1563,8 +1564,8 @@ static void __update_and_free_page(struc
- 	if (unlikely(PageHWPoison(page)))
- 		hugetlb_clear_page_hwpoison(page);
- 
--	for (i = 0; i < pages_per_huge_page(h);
--	     i++, subpage = mem_map_next(subpage, page, i)) {
-+	for (i = 0; i < pages_per_huge_page(h); i++) {
-+		subpage = nth_page(page, i);
- 		subpage->flags &= ~(1 << PG_locked | 1 << PG_error |
- 				1 << PG_referenced | 1 << PG_dirty |
- 				1 << PG_active | 1 << PG_private |
-@@ -1771,13 +1772,15 @@ static bool __prep_compound_gigantic_pag
- {
- 	int i, j;
- 	int nr_pages = 1 << order;
--	struct page *p = page + 1;
-+	struct page *p;
- 
- 	/* we rely on prep_new_huge_page to set the destructor */
- 	set_compound_order(page, order);
- 	__ClearPageReserved(page);
- 	__SetPageHead(page);
--	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
-+	for (i = 1; i < nr_pages; i++) {
-+		p = nth_page(page, i);
-+
- 		/*
- 		 * For gigantic hugepages allocated through bootmem at
- 		 * boot, it's safer to be consistent with the not-gigantic
-@@ -1824,14 +1827,16 @@ static bool __prep_compound_gigantic_pag
- 
- out_error:
- 	/* undo tail page modifications made above */
--	p = page + 1;
--	for (j = 1; j < i; j++, p = mem_map_next(p, page, j)) {
-+	for (j = 1; j < i; j++) {
-+		p = nth_page(page, j);
- 		clear_compound_head(p);
- 		set_page_refcounted(p);
- 	}
- 	/* need to clear PG_reserved on remaining tail pages  */
--	for (; j < nr_pages; j++, p = mem_map_next(p, page, j))
-+	for (; j < nr_pages; j++) {
-+		p = nth_page(page, j);
- 		__ClearPageReserved(p);
-+	}
- 	set_compound_order(page, 0);
- #ifdef CONFIG_64BIT
- 	page[1].compound_nr = 0;
-@@ -6128,7 +6133,7 @@ static void record_subpages_vmas(struct
- 
- 	for (nr = 0; nr < refs; nr++) {
- 		if (likely(pages))
--			pages[nr] = mem_map_offset(page, nr);
-+			pages[nr] = nth_page(page, nr);
- 		if (vmas)
- 			vmas[nr] = vma;
- 	}
-@@ -6292,7 +6297,7 @@ long follow_hugetlb_page(struct mm_struc
- 		    (vma->vm_end - ALIGN_DOWN(vaddr, PAGE_SIZE)) >> PAGE_SHIFT);
- 
- 		if (pages || vmas)
--			record_subpages_vmas(mem_map_offset(page, pfn_offset),
-+			record_subpages_vmas(nth_page(page, pfn_offset),
- 					     vma, refs,
- 					     likely(pages) ? pages + i : NULL,
- 					     vmas ? vmas + i : NULL);
---- a/mm/internal.h~mm-use-nth_page-instead-of-mem_map_offset-mem_map_next
-+++ a/mm/internal.h
-@@ -638,34 +638,6 @@ static inline void vunmap_range_noflush(
- }
- #endif /* !CONFIG_MMU */
- 
--/*
-- * Return the mem_map entry representing the 'offset' subpage within
-- * the maximally aligned gigantic page 'base'.  Handle any discontiguity
-- * in the mem_map at MAX_ORDER_NR_PAGES boundaries.
-- */
--static inline struct page *mem_map_offset(struct page *base, int offset)
--{
--	if (unlikely(offset >= MAX_ORDER_NR_PAGES))
--		return nth_page(base, offset);
--	return base + offset;
--}
--
--/*
-- * Iterator over all subpages within the maximally aligned gigantic
-- * page 'base'.  Handle any discontiguity in the mem_map.
-- */
--static inline struct page *mem_map_next(struct page *iter,
--						struct page *base, int offset)
--{
--	if (unlikely((offset & (MAX_ORDER_NR_PAGES - 1)) == 0)) {
--		unsigned long pfn = page_to_pfn(base) + offset;
--		if (!pfn_valid(pfn))
--			return NULL;
--		return pfn_to_page(pfn);
--	}
--	return iter + 1;
--}
--
- /* Memory initialisation debug and verification */
- enum mminit_level {
- 	MMINIT_WARNING,
---- a/mm/memory.c~mm-use-nth_page-instead-of-mem_map_offset-mem_map_next
-+++ a/mm/memory.c
-@@ -5690,11 +5690,11 @@ static void clear_gigantic_page(struct p
- 				unsigned int pages_per_huge_page)
- {
- 	int i;
--	struct page *p = page;
-+	struct page *p;
- 
- 	might_sleep();
--	for (i = 0; i < pages_per_huge_page;
--	     i++, p = mem_map_next(p, page, i)) {
-+	for (i = 0; i < pages_per_huge_page; i++) {
-+		p = nth_page(page, i);
- 		cond_resched();
- 		clear_user_highpage(p, addr + i * PAGE_SIZE);
- 	}
-@@ -5730,13 +5730,12 @@ static void copy_user_gigantic_page(stru
- 	struct page *dst_base = dst;
- 	struct page *src_base = src;
- 
--	for (i = 0; i < pages_per_huge_page; ) {
-+	for (i = 0; i < pages_per_huge_page; i++) {
-+		dst = nth_page(dst_base, i);
-+		src = nth_page(src_base, i);
-+
- 		cond_resched();
- 		copy_user_highpage(dst, src, addr + i*PAGE_SIZE, vma);
--
--		i++;
--		dst = mem_map_next(dst, dst_base, i);
--		src = mem_map_next(src, src_base, i);
- 	}
- }
- 
-@@ -5783,10 +5782,10 @@ long copy_huge_page_from_user(struct pag
- 	void *page_kaddr;
- 	unsigned long i, rc = 0;
- 	unsigned long ret_val = pages_per_huge_page * PAGE_SIZE;
--	struct page *subpage = dst_page;
-+	struct page *subpage;
- 
--	for (i = 0; i < pages_per_huge_page;
--	     i++, subpage = mem_map_next(subpage, dst_page, i)) {
-+	for (i = 0; i < pages_per_huge_page; i++) {
-+		subpage = nth_page(dst_page, i);
- 		if (allow_pagefault)
- 			page_kaddr = kmap(subpage);
- 		else
 _
 
-Patches currently in -mm which might be from lic121@chinatelecom.cn are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
 
