@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24F5DC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C688CC43219
 	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:15:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229595AbiJCVPN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:15:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56302 "EHLO
+        id S229637AbiJCVPO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:15:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230254AbiJCVNw (ORCPT
+        with ESMTP id S230257AbiJCVNw (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:13:52 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75A155466A
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:08:59 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE8AD54646
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:09:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7A474B815E2
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:08:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A377C433C1;
-        Mon,  3 Oct 2022 21:08:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DA1E561208
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:09:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F89FC433D6;
+        Mon,  3 Oct 2022 21:09:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831336;
-        bh=1HipRIoSgCyjDw2F9yhfWKhQMEjP+fe8VgiDDdzSu/U=;
+        s=korg; t=1664831341;
+        bh=IAMorKNbtXGjTZ8CspjS2MtBa3CocMRbPnUF6OVApT0=;
         h=Date:To:From:Subject:From;
-        b=2YqxUm4ZxFc02A9XUhPbOAK9WtfW4hj1M/7V/ZHQ9nmknGtBYaS9bivrbtk3o19Ua
-         HMDDPiRRBLn4B7oq3jcySl/WE/ssYggQGZndn6LMHy4dmg8NsQ1ef7yEYZqJKoPboK
-         L2dLNtr52KGrk9EbMtQ7a09c/A0XxeQDl6Qu19Ac=
-Date:   Mon, 03 Oct 2022 14:08:55 -0700
+        b=R3HlvFSuCAX+X7MdY6fBWU5aCX1rUb+M4h7vG8Wfj4v261twNGB5SiSHMLOK6ONXR
+         XQGr6UXf8Poe7ozRjJaZESu8Kv4H71w/K0WX6VpzQwnrSnYN0drjvDyiAVSmGXCRY2
+         XgYTMg5235DEOLN0H5jyH2XzIjgdbTD/X9NA8j0E=
+Date:   Mon, 03 Oct 2022 14:09:00 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, sfr@canb.auug.org.au, rostedt@goodmis.org,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         ast@kernel.org, arnd@arndb.de, andreyknvl@google.com,
         andreyknvl@gmail.com, glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-kmsan-disable-instrumentation-of-unsupported-code.patch removed from -mm tree
-Message-Id: <20221003210856.1A377C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] x86-kmsan-use-__msan_-string-functions-where-possible.patch removed from -mm tree
+Message-Id: <20221003210901.2F89FC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,30 +52,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: x86: kmsan: disable instrumentation of unsupported code
+     Subject: x86: kmsan: use __msan_ string functions where possible.
 has been removed from the -mm tree.  Its filename was
-     x86-kmsan-disable-instrumentation-of-unsupported-code.patch
+     x86-kmsan-use-__msan_-string-functions-where-possible.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: kmsan: disable instrumentation of unsupported code
-Date: Thu, 15 Sep 2022 17:04:06 +0200
+Subject: x86: kmsan: use __msan_ string functions where possible.
+Date: Thu, 15 Sep 2022 17:04:09 +0200
 
-Instrumenting some files with KMSAN will result in kernel being unable to
-link, boot or crashing at runtime for various reasons (e.g.  infinite
-recursion caused by instrumentation hooks calling instrumented code
-again).
+Unless stated otherwise (by explicitly calling __memcpy(), __memset() or
+__memmove()) we want all string functions to call their __msan_ versions
+(e.g.  __msan_memcpy() instead of memcpy()), so that shadow and origin
+values are updated accordingly.
 
-Completely omit KMSAN instrumentation in the following places:
- - arch/x86/boot and arch/x86/realmode/rm, as KMSAN doesn't work for i386;
- - arch/x86/entry/vdso, which isn't linked with KMSAN runtime;
- - three files in arch/x86/kernel - boot problems;
- - arch/x86/mm/cpu_entry_area.c - recursion.
+Bootloader must still use the default string functions to avoid crashes.
 
-Link: https://lkml.kernel.org/r/20220915150417.722975-33-glider@google.com
+Link: https://lkml.kernel.org/r/20220915150417.722975-36-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -114,89 +110,83 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/Makefile            |    1 +
- arch/x86/boot/compressed/Makefile |    1 +
- arch/x86/entry/vdso/Makefile      |    3 +++
- arch/x86/kernel/Makefile          |    2 ++
- arch/x86/kernel/cpu/Makefile      |    1 +
- arch/x86/mm/Makefile              |    2 ++
- arch/x86/realmode/rm/Makefile     |    1 +
- 7 files changed, 11 insertions(+)
+ arch/x86/include/asm/string_64.h |   23 +++++++++++++++++++++--
+ include/linux/fortify-string.h   |    2 ++
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
---- a/arch/x86/boot/compressed/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/boot/compressed/Makefile
-@@ -20,6 +20,7 @@
- # Sanitizer runtimes are unavailable and cannot be linked for early boot code.
- KASAN_SANITIZE			:= n
- KCSAN_SANITIZE			:= n
-+KMSAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
+--- a/arch/x86/include/asm/string_64.h~x86-kmsan-use-__msan_-string-functions-where-possible
++++ a/arch/x86/include/asm/string_64.h
+@@ -11,11 +11,23 @@
+    function. */
  
- # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
---- a/arch/x86/boot/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/boot/Makefile
-@@ -12,6 +12,7 @@
- # Sanitizer runtimes are unavailable and cannot be linked for early boot code.
- KASAN_SANITIZE			:= n
- KCSAN_SANITIZE			:= n
-+KMSAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
+ #define __HAVE_ARCH_MEMCPY 1
++#if defined(__SANITIZE_MEMORY__)
++#undef memcpy
++void *__msan_memcpy(void *dst, const void *src, size_t size);
++#define memcpy __msan_memcpy
++#else
+ extern void *memcpy(void *to, const void *from, size_t len);
++#endif
+ extern void *__memcpy(void *to, const void *from, size_t len);
  
- # Kernel does not boot with kcov instrumentation here.
---- a/arch/x86/entry/vdso/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/entry/vdso/Makefile
-@@ -11,6 +11,9 @@ include $(srctree)/lib/vdso/Makefile
+ #define __HAVE_ARCH_MEMSET
++#if defined(__SANITIZE_MEMORY__)
++extern void *__msan_memset(void *s, int c, size_t n);
++#undef memset
++#define memset __msan_memset
++#else
+ void *memset(void *s, int c, size_t n);
++#endif
+ void *__memset(void *s, int c, size_t n);
  
- # Sanitizer runtimes are unavailable and cannot be linked here.
- KASAN_SANITIZE			:= n
-+KMSAN_SANITIZE_vclock_gettime.o := n
-+KMSAN_SANITIZE_vgetcpu.o	:= n
-+
- UBSAN_SANITIZE			:= n
- KCSAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
---- a/arch/x86/kernel/cpu/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/kernel/cpu/Makefile
-@@ -12,6 +12,7 @@ endif
- # If these files are instrumented, boot hangs during the first second.
- KCOV_INSTRUMENT_common.o := n
- KCOV_INSTRUMENT_perf_event.o := n
-+KMSAN_SANITIZE_common.o := n
+ #define __HAVE_ARCH_MEMSET16
+@@ -55,7 +67,13 @@ static inline void *memset64(uint64_t *s
+ }
  
- # As above, instrumenting secondary CPU boot code causes boot hangs.
- KCSAN_SANITIZE_common.o := n
---- a/arch/x86/kernel/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/kernel/Makefile
-@@ -33,6 +33,8 @@ KASAN_SANITIZE_sev.o					:= n
- # With some compiler versions the generated code results in boot hangs, caused
- # by several compilation units. To be safe, disable all instrumentation.
- KCSAN_SANITIZE := n
-+KMSAN_SANITIZE_head$(BITS).o				:= n
-+KMSAN_SANITIZE_nmi.o					:= n
+ #define __HAVE_ARCH_MEMMOVE
++#if defined(__SANITIZE_MEMORY__)
++#undef memmove
++void *__msan_memmove(void *dest, const void *src, size_t len);
++#define memmove __msan_memmove
++#else
+ void *memmove(void *dest, const void *src, size_t count);
++#endif
+ void *__memmove(void *dest, const void *src, size_t count);
  
- # If instrumentation of this dir is enabled, boot hangs during first second.
- # Probably could be more selective here, but note that files related to irqs,
---- a/arch/x86/mm/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/mm/Makefile
-@@ -14,6 +14,8 @@ KASAN_SANITIZE_pgprot.o		:= n
- # Disable KCSAN entirely, because otherwise we get warnings that some functions
- # reference __initdata sections.
- KCSAN_SANITIZE := n
-+# Avoid recursion by not calling KMSAN hooks for CEA code.
-+KMSAN_SANITIZE_cpu_entry_area.o := n
+ int memcmp(const void *cs, const void *ct, size_t count);
+@@ -64,8 +82,7 @@ char *strcpy(char *dest, const char *src
+ char *strcat(char *dest, const char *src);
+ int strcmp(const char *cs, const char *ct);
  
- ifdef CONFIG_FUNCTION_TRACER
- CFLAGS_REMOVE_mem_encrypt.o		= -pg
---- a/arch/x86/realmode/rm/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/realmode/rm/Makefile
-@@ -10,6 +10,7 @@
- # Sanitizer runtimes are unavailable and cannot be linked here.
- KASAN_SANITIZE			:= n
- KCSAN_SANITIZE			:= n
-+KMSAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
+-#if defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__)
+-
++#if (defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__))
+ /*
+  * For files that not instrumented (e.g. mm/slub.c) we
+  * should use not instrumented version of mem* functions.
+@@ -73,7 +90,9 @@ int strcmp(const char *cs, const char *c
  
- # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
+ #undef memcpy
+ #define memcpy(dst, src, len) __memcpy(dst, src, len)
++#undef memmove
+ #define memmove(dst, src, len) __memmove(dst, src, len)
++#undef memset
+ #define memset(s, c, n) __memset(s, c, n)
+ 
+ #ifndef __NO_FORTIFY
+--- a/include/linux/fortify-string.h~x86-kmsan-use-__msan_-string-functions-where-possible
++++ a/include/linux/fortify-string.h
+@@ -285,8 +285,10 @@ __FORTIFY_INLINE void fortify_memset_chk
+  * __builtin_object_size() must be captured here to avoid evaluating argument
+  * side-effects further into the macro layers.
+  */
++#ifndef CONFIG_KMSAN
+ #define memset(p, c, s) __fortify_memset_chk(p, c, s,			\
+ 		__builtin_object_size(p, 0), __builtin_object_size(p, 1))
++#endif
+ 
+ /*
+  * To make sure the compiler can enforce protection against buffer overflows,
 _
 
 Patches currently in -mm which might be from glider@google.com are
