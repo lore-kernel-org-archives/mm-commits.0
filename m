@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FCE9C433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:12:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D350C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:12:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229975AbiJCVMr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:12:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56174 "EHLO
+        id S229983AbiJCVMs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:12:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229866AbiJCVL1 (ORCPT
+        with ESMTP id S229871AbiJCVL1 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:11:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F95F5142E
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:01 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37BBD5142F
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A3DEF611F0
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2980C433C1;
-        Mon,  3 Oct 2022 21:06:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C8D7B611EC
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C14AC433D7;
+        Mon,  3 Oct 2022 21:07:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831220;
-        bh=8Wb2AgeNncnT8NoXg67BZnPPsgIC2LK003bQyZ4qoRw=;
+        s=korg; t=1664831221;
+        bh=XV6TZ3MI3IeqMV+FohLKoTMCYVBwJGpz5C5ZEEysOZU=;
         h=Date:To:From:Subject:From;
-        b=LvzPeZtNVDRa4Nr3hH48lNOQnbvQ+RxbFODdnmsDpxAtAMDHIEuc5810XVGdg1wW4
-         /SGYcirDsS/bxcnhf5iXj2kdPiuyfMcAtpE+nHukhfrge5S2+PlRUHmenBErMcEXVm
-         EvGj4UCnVkuF/WHaDFisn9qtpmjZyxVwVhcxkaC4=
-Date:   Mon, 03 Oct 2022 14:06:59 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        liushixin2@huawei.com, akpm@linux-foundation.org
+        b=J/7HBnSZIPYtwf1B4r4yNN6qDDXaEaUsZR9dYAzwAhRAmWKg0bTCEzFcW/TuMEPxm
+         f629NOxyV1ckPszbILKWaMBpG+OqEiY+6pq0o7yPrQ+UOWfOs2m4PuvYIoEKOxsSwo
+         CBP0iEwtyEXDejA4D+tvJv8nQgH0iLNd5LClhkxQ=
+Date:   Mon, 03 Oct 2022 14:07:00 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, xhao@linux.alibaba.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kfence-convert-to-define_seq_attribute.patch removed from -mm tree
-Message-Id: <20221003210659.F2980C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-remove-duplicate-get_monitoring_region-definitions.patch removed from -mm tree
+Message-Id: <20221003210701.2C14AC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,64 +41,207 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: kfence: convert to DEFINE_SEQ_ATTRIBUTE
+     Subject: mm/damon: remove duplicate get_monitoring_region() definitions
 has been removed from the -mm tree.  Its filename was
-     mm-kfence-convert-to-define_seq_attribute.patch
+     mm-damon-remove-duplicate-get_monitoring_region-definitions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm: kfence: convert to DEFINE_SEQ_ATTRIBUTE
-Date: Fri, 9 Sep 2022 16:31:40 +0800
+From: Xin Hao <xhao@linux.alibaba.com>
+Subject: mm/damon: remove duplicate get_monitoring_region() definitions
+Date: Fri, 9 Sep 2022 21:36:06 +0000
 
-Use DEFINE_SEQ_ATTRIBUTE helper macro to simplify the code.
+In lru_sort.c and reclaim.c, they are all defining get_monitoring_region()
+function, there is no need to define it separately.
 
-Link: https://lkml.kernel.org/r/20220909083140.3592919-1-liushixin2@huawei.com
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Tested-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+As 'get_monitoring_region()' is not a 'static' function anymore, we try to
+use a prefix to distinguish with other functions, so there rename it to
+'damon_find_biggest_system_ram'.
+
+Link: https://lkml.kernel.org/r/20220909213606.136221-1-sj@kernel.org
+Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Suggested-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ include/linux/damon.h |    2 ++
+ mm/damon/core.c       |   40 ++++++++++++++++++++++++++++++++++++++++
+ mm/damon/lru_sort.c   |   37 ++-----------------------------------
+ mm/damon/reclaim.c    |   37 ++-----------------------------------
+ 4 files changed, 46 insertions(+), 70 deletions(-)
 
---- a/mm/kfence/core.c~mm-kfence-convert-to-define_seq_attribute
-+++ a/mm/kfence/core.c
-@@ -719,24 +719,13 @@ static int show_object(struct seq_file *
+--- a/include/linux/damon.h~mm-damon-remove-duplicate-get_monitoring_region-definitions
++++ a/include/linux/damon.h
+@@ -549,6 +549,8 @@ static inline bool damon_target_has_pid(
+ int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
+ int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
+ 
++bool damon_find_biggest_system_ram(unsigned long *start, unsigned long *end);
++
+ #endif	/* CONFIG_DAMON */
+ 
+ #endif	/* _DAMON_H */
+--- a/mm/damon/core.c~mm-damon-remove-duplicate-get_monitoring_region-definitions
++++ a/mm/damon/core.c
+@@ -1245,4 +1245,44 @@ static int kdamond_fn(void *data)
  	return 0;
  }
  
--static const struct seq_operations object_seqops = {
-+static const struct seq_operations objects_sops = {
- 	.start = start_object,
- 	.next = next_object,
- 	.stop = stop_object,
- 	.show = show_object,
- };
++/*
++ * struct damon_system_ram_region - System RAM resource address region of
++ *				    [@start, @end).
++ * @start:	Start address of the region (inclusive).
++ * @end:	End address of the region (exclusive).
++ */
++struct damon_system_ram_region {
++	unsigned long start;
++	unsigned long end;
++};
++
++static int walk_system_ram(struct resource *res, void *arg)
++{
++	struct damon_system_ram_region *a = arg;
++
++	if (a->end - a->start < resource_size(res)) {
++		a->start = res->start;
++		a->end = res->end;
++	}
++	return 0;
++}
++
++/*
++ * Find biggest 'System RAM' resource and store its start and end address in
++ * @start and @end, respectively.  If no System RAM is found, returns false.
++ */
++bool damon_find_biggest_system_ram(unsigned long *start, unsigned long *end)
++
++{
++	struct damon_system_ram_region arg = {};
++
++	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
++	if (arg.end <= arg.start)
++		return false;
++
++	*start = arg.start;
++	*end = arg.end;
++	return true;
++}
++
+ #include "core-test.h"
+--- a/mm/damon/lru_sort.c~mm-damon-remove-duplicate-get_monitoring_region-definitions
++++ a/mm/damon/lru_sort.c
+@@ -257,39 +257,6 @@ module_param(nr_cold_quota_exceeds, ulon
+ static struct damon_ctx *ctx;
+ static struct damon_target *target;
+ 
+-struct damon_lru_sort_ram_walk_arg {
+-	unsigned long start;
+-	unsigned long end;
+-};
 -
--static int open_objects(struct inode *inode, struct file *file)
+-static int walk_system_ram(struct resource *res, void *arg)
 -{
--	return seq_open(file, &object_seqops);
+-	struct damon_lru_sort_ram_walk_arg *a = arg;
+-
+-	if (a->end - a->start < resource_size(res)) {
+-		a->start = res->start;
+-		a->end = res->end;
+-	}
+-	return 0;
 -}
 -
--static const struct file_operations objects_fops = {
--	.open = open_objects,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = seq_release,
--};
-+DEFINE_SEQ_ATTRIBUTE(objects);
- 
- static int __init kfence_debugfs_init(void)
+-/*
+- * Find biggest 'System RAM' resource and store its start and end address in
+- * @start and @end, respectively.  If no System RAM is found, returns false.
+- */
+-static bool get_monitoring_region(unsigned long *start, unsigned long *end)
+-{
+-	struct damon_lru_sort_ram_walk_arg arg = {};
+-
+-	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
+-	if (arg.end <= arg.start)
+-		return false;
+-
+-	*start = arg.start;
+-	*end = arg.end;
+-	return true;
+-}
+-
+ /* Create a DAMON-based operation scheme for hot memory regions */
+ static struct damos *damon_lru_sort_new_hot_scheme(unsigned int hot_thres)
  {
+@@ -414,8 +381,8 @@ static int damon_lru_sort_apply_paramete
+ 	if (monitor_region_start > monitor_region_end)
+ 		return -EINVAL;
+ 	if (!monitor_region_start && !monitor_region_end &&
+-			!get_monitoring_region(&monitor_region_start,
+-				&monitor_region_end))
++	    !damon_find_biggest_system_ram(&monitor_region_start,
++					   &monitor_region_end))
+ 		return -EINVAL;
+ 	addr_range.start = monitor_region_start;
+ 	addr_range.end = monitor_region_end;
+--- a/mm/damon/reclaim.c~mm-damon-remove-duplicate-get_monitoring_region-definitions
++++ a/mm/damon/reclaim.c
+@@ -229,39 +229,6 @@ module_param(nr_quota_exceeds, ulong, 04
+ static struct damon_ctx *ctx;
+ static struct damon_target *target;
+ 
+-struct damon_reclaim_ram_walk_arg {
+-	unsigned long start;
+-	unsigned long end;
+-};
+-
+-static int walk_system_ram(struct resource *res, void *arg)
+-{
+-	struct damon_reclaim_ram_walk_arg *a = arg;
+-
+-	if (a->end - a->start < resource_size(res)) {
+-		a->start = res->start;
+-		a->end = res->end;
+-	}
+-	return 0;
+-}
+-
+-/*
+- * Find biggest 'System RAM' resource and store its start and end address in
+- * @start and @end, respectively.  If no System RAM is found, returns false.
+- */
+-static bool get_monitoring_region(unsigned long *start, unsigned long *end)
+-{
+-	struct damon_reclaim_ram_walk_arg arg = {};
+-
+-	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
+-	if (arg.end <= arg.start)
+-		return false;
+-
+-	*start = arg.start;
+-	*end = arg.end;
+-	return true;
+-}
+-
+ static struct damos *damon_reclaim_new_scheme(void)
+ {
+ 	struct damos_access_pattern pattern = {
+@@ -328,8 +295,8 @@ static int damon_reclaim_apply_parameter
+ 	if (monitor_region_start > monitor_region_end)
+ 		return -EINVAL;
+ 	if (!monitor_region_start && !monitor_region_end &&
+-			!get_monitoring_region(&monitor_region_start,
+-				&monitor_region_end))
++	    !damon_find_biggest_system_ram(&monitor_region_start,
++					   &monitor_region_end))
+ 		return -EINVAL;
+ 	addr_range.start = monitor_region_start;
+ 	addr_range.end = monitor_region_end;
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from xhao@linux.alibaba.com are
 
+mm-damon-move-sz_damon_region-to-damon_sz_region.patch
+mm-damon-use-damon_sz_region-in-appropriate-place.patch
 
