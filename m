@@ -2,44 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEB99C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF51BC43219
 	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:18:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229946AbiJCVRv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:17:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56264 "EHLO
+        id S229935AbiJCVRu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:17:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230019AbiJCVPm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:15:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4133550BB
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:10:12 -0700 (PDT)
+        with ESMTP id S230036AbiJCVPr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:15:47 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34A0C558EB
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:10:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 50C4A611EC
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:10:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A89BEC433D7;
-        Mon,  3 Oct 2022 21:10:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DACCCB815F2
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:10:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 806F3C433B5;
+        Mon,  3 Oct 2022 21:10:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831411;
-        bh=AM0CYkttniML5h7fssnHsPxCvAtAA7S7cAbfBRYxeu0=;
+        s=korg; t=1664831415;
+        bh=jrp6CADZCx6OnAwSG/W2pJJuSQWfCuzWS2b1EgBhc5c=;
         h=Date:To:From:Subject:From;
-        b=YC74TWPBx5MrwjTidZBtvy56JD1HoejllmzJyvI/3lHE1zBtduegpPU0/aSPsayLd
-         WfWuhO5ATkzK5fobqKo7x54hWBwX5BsUwBCW3ysoEnYXvXTNdSSHgFe0IFMNkh057c
-         2L77vXFaEic2sYgyZ0/TUzWBaO6dOTjSrrNNNinA=
-Date:   Mon, 03 Oct 2022 14:10:11 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        songliubraving@fb.com, sj@kernel.org, shy828301@gmail.com,
-        rongwei.wang@linux.alibaba.com, rientjes@google.com,
-        peterx@redhat.com, pasha.tatashin@soleen.com, minchan@kernel.org,
-        linmiaohe@huawei.com, kirill.shutemov@linux.intel.com,
-        jthoughton@google.com, hughd@google.com, david@redhat.com,
-        ckennelly@google.com, axelrasmussen@google.com, zokeefe@google.com,
-        akpm@linux-foundation.org
+        b=CNCB3++CXblh61HQV2rdpYHabn94Eq73I7SG+6V80Nz2seDjB4p0QaPIlNFNcvFGL
+         4b1IiLYWn0Iv71Lh3tLId8n3qdNItOhjNg2mECEtx5DGYxnNUlF89dMtxhOwVWvdvF
+         MgwrC9lK74Ej3GV9c35pCN4fVG402mvIKFRZGg4A=
+Date:   Mon, 03 Oct 2022 14:10:14 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        osalvador@suse.de, mike.kravetz@oracle.com, david@redhat.com,
+        xhao@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-add-file-shmem-madv_collapse-selftest-for-cleared-pmd.patch removed from -mm tree
-Message-Id: <20221003211011.A89BEC433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-add-available_huge_pages-func.patch removed from -mm tree
+Message-Id: <20221003211015.806F3C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,101 +42,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: add file/shmem MADV_COLLAPSE selftest for cleared pmd
+     Subject: mm/hugetlb: add available_huge_pages() func
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-add-file-shmem-madv_collapse-selftest-for-cleared-pmd.patch
+     mm-hugetlb-add-available_huge_pages-func.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: selftests/vm: add file/shmem MADV_COLLAPSE selftest for cleared pmd
-Date: Thu, 22 Sep 2022 15:40:45 -0700
+From: Xin Hao <xhao@linux.alibaba.com>
+Subject: mm/hugetlb: add available_huge_pages() func
+Date: Thu, 22 Sep 2022 10:19:29 +0800
 
-This test tests that MADV_COLLAPSE acting on file/shmem memory for which
-(1) the file extent mapping by the memory is already a huge page in the
-page cache, and (2) the pmd mapping this memory in the target process is
-none.
+In hugetlb.c there are several places which compare the values of
+'h->free_huge_pages' and 'h->resv_huge_pages', it looks a bit messy, so
+add a new available_huge_pages() function to do these.
 
-In practice, (1)+(2) is the state left over after khugepaged has
-successfully collapsed file/shmem memory for a target VMA, but the memory
-has not yet been refaulted.  So, this test in-effect tests MADV_COLLAPSE
-racing with khugepaged to collapse the memory first.
-
-Link: https://lkml.kernel.org/r/20220907144521.3115321-10-zokeefe@google.com
-Link: https://lkml.kernel.org/r/20220922224046.1143204-10-zokeefe@google.com
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Chris Kennelly <ckennelly@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rongwei Wang <rongwei.wang@linux.alibaba.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
+Link: https://lkml.kernel.org/r/20220922021929.98961-1-xhao@linux.alibaba.com
+Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/khugepaged.c |   30 ++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ mm/hugetlb.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/vm/khugepaged.c~selftests-vm-add-file-shmem-madv_collapse-selftest-for-cleared-pmd
-+++ a/tools/testing/selftests/vm/khugepaged.c
-@@ -1353,6 +1353,33 @@ static void madvise_collapse_existing_th
- 	ops->cleanup_area(p, hpage_pmd_size);
+--- a/mm/hugetlb.c~mm-hugetlb-add-available_huge_pages-func
++++ a/mm/hugetlb.c
+@@ -1191,6 +1191,11 @@ retry_cpuset:
+ 	return NULL;
  }
  
-+/*
-+ * Test race with khugepaged where page tables have been retracted and
-+ * pmd cleared.
-+ */
-+static void madvise_retracted_page_tables(struct collapse_context *c,
-+					  struct mem_ops *ops)
++static unsigned long available_huge_pages(struct hstate *h)
 +{
-+	void *p;
-+	int nr_hpages = 1;
-+	unsigned long size = nr_hpages * hpage_pmd_size;
-+
-+	p = ops->setup_area(nr_hpages);
-+	ops->fault(p, 0, size);
-+
-+	/* Let khugepaged collapse and leave pmd cleared */
-+	if (wait_for_scan("Collapse and leave PMD cleared", p, nr_hpages,
-+			  ops)) {
-+		fail("Timeout");
-+		return;
-+	}
-+	success("OK");
-+	c->collapse("Install huge PMD from page cache", p, nr_hpages, ops,
-+		    true);
-+	validate_memory(p, 0, size);
-+	ops->cleanup_area(p, size);
++	return h->free_huge_pages - h->resv_huge_pages;
 +}
 +
- static void usage(void)
- {
- 	fprintf(stderr, "\nUsage: ./khugepaged <test type> [dir]\n\n");
-@@ -1524,5 +1551,8 @@ int main(int argc, const char **argv)
- 	TEST(madvise_collapse_existing_thps, madvise_context, file_ops);
- 	TEST(madvise_collapse_existing_thps, madvise_context, shmem_ops);
+ static struct page *dequeue_huge_page_vma(struct hstate *h,
+ 				struct vm_area_struct *vma,
+ 				unsigned long address, int avoid_reserve,
+@@ -1207,12 +1212,11 @@ static struct page *dequeue_huge_page_vm
+ 	 * have no page reserves. This check ensures that reservations are
+ 	 * not "stolen". The child may still get SIGKILLed
+ 	 */
+-	if (!vma_has_reserves(vma, chg) &&
+-			h->free_huge_pages - h->resv_huge_pages == 0)
++	if (!vma_has_reserves(vma, chg) && !available_huge_pages(h))
+ 		goto err;
  
-+	TEST(madvise_retracted_page_tables, madvise_context, file_ops);
-+	TEST(madvise_retracted_page_tables, madvise_context, shmem_ops);
-+
- 	restore_settings(0);
- }
+ 	/* If reserves cannot be used, ensure enough pages are in the pool */
+-	if (avoid_reserve && h->free_huge_pages - h->resv_huge_pages == 0)
++	if (avoid_reserve && !available_huge_pages(h))
+ 		goto err;
+ 
+ 	gfp_mask = htlb_alloc_mask(h);
+@@ -2124,7 +2128,7 @@ retry:
+ 	if (!page_count(page)) {
+ 		struct page *head = compound_head(page);
+ 		struct hstate *h = page_hstate(head);
+-		if (h->free_huge_pages - h->resv_huge_pages == 0)
++		if (!available_huge_pages(h))
+ 			goto out;
+ 
+ 		/*
+@@ -2311,7 +2315,7 @@ struct page *alloc_huge_page_nodemask(st
+ 		nodemask_t *nmask, gfp_t gfp_mask)
+ {
+ 	spin_lock_irq(&hugetlb_lock);
+-	if (h->free_huge_pages - h->resv_huge_pages > 0) {
++	if (available_huge_pages(h)) {
+ 		struct page *page;
+ 
+ 		page = dequeue_huge_page_nodemask(h, gfp_mask, preferred_nid, nmask);
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from xhao@linux.alibaba.com are
 
+mm-damon-move-sz_damon_region-to-damon_sz_region.patch
+mm-damon-use-damon_sz_region-in-appropriate-place.patch
 
