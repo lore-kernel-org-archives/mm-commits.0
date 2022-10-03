@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B13DC433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:14:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1620DC43219
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:14:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229779AbiJCVO2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:14:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56178 "EHLO
+        id S229840AbiJCVOb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Oct 2022 17:14:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229977AbiJCVMr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:12:47 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B69125281A
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:51 -0700 (PDT)
+        with ESMTP id S229994AbiJCVMs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:12:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93E2CC7B
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:07:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 53543610A3
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F99AC433D6;
-        Mon,  3 Oct 2022 21:07:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 30A0A611CB
+        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:07:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 854BAC433D7;
+        Mon,  3 Oct 2022 21:07:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664831270;
-        bh=b3AdGFU5T0MEY5Mm8cIwFyyZbnXeD9Z2EyeTUSFs/VM=;
+        s=korg; t=1664831276;
+        bh=9sCdbl35H0mGe6z16/mWs2bBRklHSSm1dEbx5DWGpZs=;
         h=Date:To:From:Subject:From;
-        b=amxYE1cMqZC352BmztYYzQBCEyfFn9AJY2eekexBwZ6UmVpQ5VSjXcw7i6vAovprT
-         qnhrXawAHrT8Mz2xOwDlnaWzfYxJJp1uPzQsss4QpIJM36JJp7M12QRwz7jfM/oCut
-         6KIHPVdNxg6r45QfUPPV2yjaOLgKubAFT7PJNRh8=
-Date:   Mon, 03 Oct 2022 14:07:49 -0700
+        b=LS1yXFGj314gN4JkgVOe6Or6140611wBl7l6Dc+nJxdmOAn3X5n6sonBHD+K5B7ml
+         6tkZstKiTPxt0tfbAzgCOnTYmI0CSQOIMxARFElvcBmUq4gHcuRNqH2qgPUS+7fGu/
+         ZpzzbqICCW6skJ4yZAvRyMAHpkKTCMalJVik6Fbg=
+Date:   Mon, 03 Oct 2022 14:07:55 -0700
 To:     mm-commits@vger.kernel.org, svens@linux.ibm.com,
         songmuchun@bytedance.com, prakash.sangappa@oracle.com,
         peterx@redhat.com, pasha.tatashin@soleen.com,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, svens@linux.ibm.com,
         aarcange@redhat.com, mike.kravetz@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlbfs-revert-use-i_mmap_rwsem-to-address-page-fault-truncate-race.patch removed from -mm tree
-Message-Id: <20221003210750.8F99AC433D6@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-rename-vma_shareable-and-refactor-code.patch removed from -mm tree
+Message-Id: <20221003210756.854BAC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,126 +48,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlbfs: revert use i_mmap_rwsem to address page fault/truncate race
+     Subject: hugetlb: rename vma_shareable() and refactor code
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-revert-use-i_mmap_rwsem-to-address-page-fault-truncate-race.patch
+     hugetlb-rename-vma_shareable-and-refactor-code.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlbfs: revert use i_mmap_rwsem to address page fault/truncate race
-Date: Wed, 14 Sep 2022 15:18:02 -0700
+Subject: hugetlb: rename vma_shareable() and refactor code
+Date: Wed, 14 Sep 2022 15:18:06 -0700
 
-Patch series "hugetlb: Use new vma lock for huge pmd sharing
-synchronization", v2.
+Rename the routine vma_shareable to vma_addr_pmd_shareable as it is
+checking a specific address within the vma.  Refactor code to check if an
+aligned range is shareable as this will be needed in a subsequent patch.
 
-hugetlb fault scalability regressions have recently been reported [1]. 
-This is not the first such report, as regressions were also noted when
-commit c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing
-synchronization") was added [2] in v5.7.  At that time, a proposal to
-address the regression was suggested [3] but went nowhere.
-
-The regression and benefit of this patch series is not evident when
-using the vm_scalability benchmark reported in [2] on a recent kernel.
-Results from running,
-"./usemem -n 48 --prealloc --prefault -O -U 3448054972"
-
-			48 sample Avg
-next-20220913		next-20220913			next-20220913
-unmodified	revert i_mmap_sema locking	vma sema locking, this series
------------------------------------------------------------------------------
-498150 KB/s		501934 KB/s			504793 KB/s
-
-The recent regression report [1] notes page fault and fork latency of
-shared hugetlb mappings.  To measure this, I created two simple programs:
-1) map a shared hugetlb area, write fault all pages, unmap area
-   Do this in a continuous loop to measure faults per second
-2) map a shared hugetlb area, write fault a few pages, fork and exit
-   Do this in a continuous loop to measure forks per second
-These programs were run on a 48 CPU VM with 320GB memory.  The shared
-mapping size was 250GB.  For comparison, a single instance of the program
-was run.  Then, multiple instances were run in parallel to introduce
-lock contention.  Changing the locking scheme results in a significant
-performance benefit.
-
-test		instances	unmodified	revert		vma
---------------------------------------------------------------------------
-faults per sec	1		393043		395680		389932
-faults per sec  24		 71405		 81191		 79048
-forks per sec   1		  2802		  2747		  2725
-forks per sec   24		   439		   536		   500
-Combined faults 24		  1621		 68070		 53662
-Combined forks  24		   358		    67		   142
-
-Combined test is when running both faulting program and forking program
-simultaneously.
-
-Patches 1 and 2 of this series revert c0d0381ade79 and 87bf91d39bb5 which
-depends on c0d0381ade79.  Acquisition of i_mmap_rwsem is still required in
-the fault path to establish pmd sharing, so this is moved back to
-huge_pmd_share.  With c0d0381ade79 reverted, this race is exposed:
-
-Faulting thread                                 Unsharing thread
-...                                                  ...
-ptep = huge_pte_offset()
-      or
-ptep = huge_pte_alloc()
-...
-                                                i_mmap_lock_write
-                                                lock page table
-ptep invalid   <------------------------        huge_pmd_unshare()
-Could be in a previously                        unlock_page_table
-sharing process or worse                        i_mmap_unlock_write
-...
-ptl = huge_pte_lock(ptep)
-get/update pte
-set_pte_at(pte, ptep)
-
-Reverting 87bf91d39bb5 exposes races in page fault/file truncation.  When
-the new vma lock is put to use in patch 8, this will handle the fault/file
-truncation races.  This is explained in patch 9 where code associated with
-these races is cleaned up.
-
-Patches 3 - 5 restructure existing code in preparation for using the new
-vma lock (rw semaphore) for pmd sharing synchronization.  The idea is that
-this semaphore will be held in read mode for the duration of fault
-processing, and held in write mode for unmap operations which may call
-huge_pmd_unshare.  Acquiring i_mmap_rwsem is also still required to
-synchronize huge pmd sharing.  However it is only required in the fault
-path when setting up sharing, and will be acquired in huge_pmd_share().
-
-Patch 6 adds the new vma lock and all supporting routines, but does not
-actually change code to use the new lock.
-
-Patch 7 refactors code in preparation for using the new lock.  And, patch
-8 finally adds code to make use of this new vma lock.  Unfortunately, the
-fault code and truncate/hole punch code would naturally take locks in the
-opposite order which could lead to deadlock.  Since the performance of
-page faults is more important, the truncation/hole punch code is modified
-to back out and take locks in the correct order if necessary.
-
-[1] https://lore.kernel.org/linux-mm/43faf292-245b-5db5-cce9-369d8fb6bd21@infradead.org/
-[2] https://lore.kernel.org/lkml/20200622005551.GK5535@shao2-debian/
-[3] https://lore.kernel.org/linux-mm/20200706202615.32111-1-mike.kravetz@oracle.com/
-
-
-This patch (of 9):
-
-Commit c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing
-synchronization") added code to take i_mmap_rwsem in read mode for the
-duration of fault processing.  The use of i_mmap_rwsem to prevent
-fault/truncate races depends on this.  However, this has been shown to
-cause performance/scaling issues.  As a result, that code will be
-reverted.  Since the use i_mmap_rwsem to address page fault/truncate races
-depends on this, it must also be reverted.
-
-In a subsequent patch, code will be added to detect the fault/truncate
-race and back out operations as required.
-
-Link: https://lkml.kernel.org/r/20220914221810.95771-1-mike.kravetz@oracle.com
-Link: https://lkml.kernel.org/r/20220914221810.95771-2-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20220914221810.95771-6-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -188,127 +85,51 @@ Cc: Sven Schnelle <svens@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   30 +++++++++---------------------
- mm/hugetlb.c         |   22 +++++++++++-----------
- 2 files changed, 20 insertions(+), 32 deletions(-)
+ mm/hugetlb.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-revert-use-i_mmap_rwsem-to-address-page-fault-truncate-race
-+++ a/fs/hugetlbfs/inode.c
-@@ -419,9 +419,10 @@ hugetlb_vmdelete_list(struct rb_root_cac
-  *	In this case, we first scan the range and release found pages.
-  *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserve
-  *	maps and global counts.  Page faults can not race with truncation
-- *	in this routine.  hugetlb_no_page() holds i_mmap_rwsem and prevents
-- *	page faults in the truncated range by checking i_size.  i_size is
-- *	modified while holding i_mmap_rwsem.
-+ *	in this routine.  hugetlb_no_page() prevents page faults in the
-+ *	truncated range.  It checks i_size before allocation, and again after
-+ *	with the page table lock for the page held.  The same lock must be
-+ *	acquired to unmap a page.
-  * hole punch is indicated if end is not LLONG_MAX
-  *	In the hole punch case we scan the range and release found pages.
-  *	Only when releasing a page is the associated region/reserve map
-@@ -451,16 +452,8 @@ static void remove_inode_hugepages(struc
- 			u32 hash = 0;
- 
- 			index = folio->index;
--			if (!truncate_op) {
--				/*
--				 * Only need to hold the fault mutex in the
--				 * hole punch case.  This prevents races with
--				 * page faults.  Races are not possible in the
--				 * case of truncation.
--				 */
--				hash = hugetlb_fault_mutex_hash(mapping, index);
--				mutex_lock(&hugetlb_fault_mutex_table[hash]);
--			}
-+			hash = hugetlb_fault_mutex_hash(mapping, index);
-+			mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 
- 			/*
- 			 * If folio is mapped, it was faulted in after being
-@@ -504,8 +497,7 @@ static void remove_inode_hugepages(struc
- 			}
- 
- 			folio_unlock(folio);
--			if (!truncate_op)
--				mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-+			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 		}
- 		folio_batch_release(&fbatch);
- 		cond_resched();
-@@ -543,8 +535,8 @@ static void hugetlb_vmtruncate(struct in
- 	BUG_ON(offset & ~huge_page_mask(h));
- 	pgoff = offset >> PAGE_SHIFT;
- 
--	i_mmap_lock_write(mapping);
- 	i_size_write(inode, offset);
-+	i_mmap_lock_write(mapping);
- 	if (!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root))
- 		hugetlb_vmdelete_list(&mapping->i_mmap, pgoff, 0,
- 				      ZAP_FLAG_DROP_MARKER);
-@@ -703,11 +695,7 @@ static long hugetlbfs_fallocate(struct f
- 		/* addr is the offset within the file (zero based) */
- 		addr = index * hpage_size;
- 
--		/*
--		 * fault mutex taken here, protects against fault path
--		 * and hole punch.  inode_lock previously taken protects
--		 * against truncation.
--		 */
-+		/* mutex taken here, fault path and hole punch */
- 		hash = hugetlb_fault_mutex_hash(mapping, index);
- 		mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 
---- a/mm/hugetlb.c~hugetlbfs-revert-use-i_mmap_rwsem-to-address-page-fault-truncate-race
+--- a/mm/hugetlb.c~hugetlb-rename-vma_shareable-and-refactor-code
 +++ a/mm/hugetlb.c
-@@ -5560,17 +5560,15 @@ static vm_fault_t hugetlb_no_page(struct
- 	}
+@@ -6640,26 +6640,33 @@ static unsigned long page_table_shareabl
+ 	return saddr;
+ }
  
- 	/*
--	 * We can not race with truncation due to holding i_mmap_rwsem.
--	 * i_size is modified when holding i_mmap_rwsem, so check here
--	 * once for faults beyond end of file.
-+	 * Use page lock to guard against racing truncation
-+	 * before we get page_table_lock.
- 	 */
--	size = i_size_read(mapping->host) >> huge_page_shift(h);
--	if (idx >= size)
--		goto out;
+-static bool vma_shareable(struct vm_area_struct *vma, unsigned long addr)
++static bool __vma_aligned_range_pmd_shareable(struct vm_area_struct *vma,
++				unsigned long start, unsigned long end)
+ {
+-	unsigned long base = addr & PUD_MASK;
+-	unsigned long end = base + PUD_SIZE;
 -
- 	new_page = false;
- 	page = find_lock_page(mapping, idx);
- 	if (!page) {
-+		size = i_size_read(mapping->host) >> huge_page_shift(h);
-+		if (idx >= size)
-+			goto out;
- 		/* Check for page in userfault range */
- 		if (userfaultfd_missing(vma)) {
- 			ret = hugetlb_handle_userfault(vma, mapping, idx,
-@@ -5666,6 +5664,10 @@ static vm_fault_t hugetlb_no_page(struct
- 	}
- 
- 	ptl = huge_pte_lock(h, mm, ptep);
-+	size = i_size_read(mapping->host) >> huge_page_shift(h);
-+	if (idx >= size)
-+		goto backout;
-+
- 	ret = 0;
- 	/* If pte changed from under us, retry */
- 	if (!pte_same(huge_ptep_get(ptep), old_pte))
-@@ -5774,10 +5776,8 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 
  	/*
- 	 * Acquire i_mmap_rwsem before calling huge_pte_alloc and hold
--	 * until finished with ptep.  This serves two purposes:
--	 * 1) It prevents huge_pmd_unshare from being called elsewhere
--	 *    and making the ptep no longer valid.
--	 * 2) It synchronizes us with i_size modifications during truncation.
-+	 * until finished with ptep.  This prevents huge_pmd_unshare from
-+	 * being called elsewhere and making the ptep no longer valid.
- 	 *
- 	 * ptep could have already be assigned via huge_pte_offset.  That
- 	 * is OK, as huge_pte_alloc will return the same value unless
+ 	 * check on proper vm_flags and page table alignment
+ 	 */
+-	if (vma->vm_flags & VM_MAYSHARE && range_in_vma(vma, base, end))
++	if (vma->vm_flags & VM_MAYSHARE && range_in_vma(vma, start, end))
+ 		return true;
+ 	return false;
+ }
+ 
++static bool vma_addr_pmd_shareable(struct vm_area_struct *vma,
++						unsigned long addr)
++{
++	unsigned long start = addr & PUD_MASK;
++	unsigned long end = start + PUD_SIZE;
++
++	return __vma_aligned_range_pmd_shareable(vma, start, end);
++}
++
+ bool want_pmd_share(struct vm_area_struct *vma, unsigned long addr)
+ {
+ #ifdef CONFIG_USERFAULTFD
+ 	if (uffd_disable_huge_pmd_share(vma))
+ 		return false;
+ #endif
+-	return vma_shareable(vma, addr);
++	return vma_addr_pmd_shareable(vma, addr);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
