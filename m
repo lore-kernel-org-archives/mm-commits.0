@@ -2,254 +2,109 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A077C433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Oct 2022 21:30:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71D21C4321E
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Oct 2022 18:30:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229715AbiJCVaa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:30:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53074 "EHLO
+        id S229436AbiJDSa3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 Oct 2022 14:30:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229594AbiJCV35 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2022 17:29:57 -0400
+        with ESMTP id S229446AbiJDSa3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Oct 2022 14:30:29 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E13751A18
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 14:22:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58C051B9FA
+        for <mm-commits@vger.kernel.org>; Tue,  4 Oct 2022 11:30:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 472C2B810A8
-        for <mm-commits@vger.kernel.org>; Mon,  3 Oct 2022 21:22:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E10BFC433D6;
-        Mon,  3 Oct 2022 21:22:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2FE87B81BB0
+        for <mm-commits@vger.kernel.org>; Tue,  4 Oct 2022 18:30:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D67EDC433C1;
+        Tue,  4 Oct 2022 18:30:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1664832168;
-        bh=f2ZUSx/q3zAcmSR5sCt6IJ1TMidHqLwAlh+FcteDco4=;
+        s=korg; t=1664908224;
+        bh=a8uSlbG5VRE4+5NU4QyevtOLVQeN0Zlb6zaeYUBum0Q=;
         h=Date:To:From:Subject:From;
-        b=f6J7oTgnNE4tKCuucrlMq/wq4CXY2DHEibvsjpsSkBmz3PO94Cw0BjdEJFKkxInWe
-         8l31VLmFZMqsxzL5TZtX6qIfU1bRih2lFfbuHwNsbrtDcQoFqDoeMUwCQho7bw0nQm
-         BUMTc837bhUJmEbgIa4SWorxwMkejz6K5sgDQJAw=
-Date:   Mon, 03 Oct 2022 14:22:47 -0700
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
+        b=hn8bCxcnWl1MAZGHePNp1LNOaS+nMCjyc3RVIruDvAWXBf189ikSf3qNMkHAr9frZ
+         2a1tAW1WmZ+WyVKKMerR6K3EvlHUoVKAvlOqH90SGAuRQ5/D/eR3/i7kaM2//SVFEq
+         W+CSF130wZFBfPEeT0X1WJCrEZZBe5K80kbsXkGk=
+Date:   Tue, 04 Oct 2022 11:30:24 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] proc-mark-more-files-as-permanent.patch removed from -mm tree
-Message-Id: <20221003212247.E10BFC433D6@smtp.kernel.org>
+Subject: + mglru-mm-vmscanc-fix-imprecise-comments.patch added to mm-unstable branch
+Message-Id: <20221004183024.D67EDC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: proc: mark more files as permanent
-has been removed from the -mm tree.  Its filename was
-     proc-mark-more-files-as-permanent.patch
+The patch titled
+     Subject: mglru: mm/vmscan.c: fix imprecise comments
+has been added to the -mm mm-unstable branch.  Its filename is
+     mglru-mm-vmscanc-fix-imprecise-comments.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mglru-mm-vmscanc-fix-imprecise-comments.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: mark more files as permanent
-Date: Tue, 20 Sep 2022 20:35:23 +0300
+From: Yu Zhao <yuzhao@google.com>
+Subject: mglru: mm/vmscan.c: fix imprecise comments
+Date: Wed, 28 Sep 2022 12:46:20 -0600
 
-Mark
-	/proc/devices
-	/proc/kpagecount
-	/proc/kpageflags
-	/proc/kpagecgroup
-	/proc/loadavg
-	/proc/meminfo
-	/proc/softirqs
-	/proc/uptime
-	/proc/version
-
-as permanent /proc entries, saving alloc/free and some list/spinlock ops
-per use.
-
-These files are never removed by the kernel so it is OK to mark them.
-
-Link: https://lkml.kernel.org/r/Yyn527DzDMa+r0Yj@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lkml.kernel.org/r/YzSWfFI+MOeb1ils@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/devices.c  |    6 +++++-
- fs/proc/internal.h |    5 +++++
- fs/proc/loadavg.c  |    6 +++++-
- fs/proc/meminfo.c  |    5 ++++-
- fs/proc/page.c     |    3 +++
- fs/proc/softirqs.c |    6 +++++-
- fs/proc/uptime.c   |    6 +++++-
- fs/proc/version.c  |    6 +++++-
- 8 files changed, 37 insertions(+), 6 deletions(-)
+ mm/vmscan.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/fs/proc/devices.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/devices.c
-@@ -4,6 +4,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/blkdev.h>
-+#include "internal.h"
+--- a/mm/vmscan.c~mglru-mm-vmscanc-fix-imprecise-comments
++++ a/mm/vmscan.c
+@@ -5076,7 +5076,7 @@ static bool should_abort_scan(struct lru
+ 	DEFINE_MAX_SEQ(lruvec);
  
- static int devinfo_show(struct seq_file *f, void *v)
- {
-@@ -54,7 +55,10 @@ static const struct seq_operations devin
+ 	if (!current_is_kswapd()) {
+-		/* age each memcg once to ensure fairness */
++		/* age each memcg at most once to ensure fairness */
+ 		if (max_seq - seq > 1)
+ 			return true;
  
- static int __init proc_devices_init(void)
- {
--	proc_create_seq("devices", 0, NULL, &devinfo_ops);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_seq("devices", 0, NULL, &devinfo_ops);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_devices_init);
---- a/fs/proc/internal.h~proc-mark-more-files-as-permanent
-+++ a/fs/proc/internal.h
-@@ -79,6 +79,11 @@ static inline bool pde_is_permanent(cons
- 	return pde->flags & PROC_ENTRY_PERMANENT;
- }
+@@ -5101,10 +5101,9 @@ static bool should_abort_scan(struct lru
  
-+static inline void pde_make_permanent(struct proc_dir_entry *pde)
-+{
-+	pde->flags |= PROC_ENTRY_PERMANENT;
-+}
-+
- extern struct kmem_cache *proc_dir_entry_cache;
- void pde_free(struct proc_dir_entry *pde);
- 
---- a/fs/proc/loadavg.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/loadavg.c
-@@ -9,6 +9,7 @@
- #include <linux/seq_file.h>
- #include <linux/seqlock.h>
- #include <linux/time.h>
-+#include "internal.h"
- 
- static int loadavg_proc_show(struct seq_file *m, void *v)
- {
-@@ -27,7 +28,10 @@ static int loadavg_proc_show(struct seq_
- 
- static int __init proc_loadavg_init(void)
- {
--	proc_create_single("loadavg", 0, NULL, loadavg_proc_show);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_single("loadavg", 0, NULL, loadavg_proc_show);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_loadavg_init);
---- a/fs/proc/meminfo.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/meminfo.c
-@@ -162,7 +162,10 @@ static int meminfo_proc_show(struct seq_
- 
- static int __init proc_meminfo_init(void)
- {
--	proc_create_single("meminfo", 0, NULL, meminfo_proc_show);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_single("meminfo", 0, NULL, meminfo_proc_show);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_meminfo_init);
---- a/fs/proc/page.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/page.c
-@@ -91,6 +91,7 @@ static ssize_t kpagecount_read(struct fi
- }
- 
- static const struct proc_ops kpagecount_proc_ops = {
-+	.proc_flags	= PROC_ENTRY_PERMANENT,
- 	.proc_lseek	= mem_lseek,
- 	.proc_read	= kpagecount_read,
- };
-@@ -268,6 +269,7 @@ static ssize_t kpageflags_read(struct fi
- }
- 
- static const struct proc_ops kpageflags_proc_ops = {
-+	.proc_flags	= PROC_ENTRY_PERMANENT,
- 	.proc_lseek	= mem_lseek,
- 	.proc_read	= kpageflags_read,
- };
-@@ -322,6 +324,7 @@ static ssize_t kpagecgroup_read(struct f
- }
- 
- static const struct proc_ops kpagecgroup_proc_ops = {
-+	.proc_flags	= PROC_ENTRY_PERMANENT,
- 	.proc_lseek	= mem_lseek,
- 	.proc_read	= kpagecgroup_read,
- };
---- a/fs/proc/softirqs.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/softirqs.c
-@@ -3,6 +3,7 @@
- #include <linux/kernel_stat.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-+#include "internal.h"
- 
- /*
-  * /proc/softirqs  ... display the number of softirqs
-@@ -27,7 +28,10 @@ static int show_softirqs(struct seq_file
- 
- static int __init proc_softirqs_init(void)
- {
--	proc_create_single("softirqs", 0, NULL, show_softirqs);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_single("softirqs", 0, NULL, show_softirqs);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_softirqs_init);
---- a/fs/proc/uptime.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/uptime.c
-@@ -7,6 +7,7 @@
- #include <linux/time.h>
- #include <linux/time_namespace.h>
- #include <linux/kernel_stat.h>
-+#include "internal.h"
- 
- static int uptime_proc_show(struct seq_file *m, void *v)
- {
-@@ -39,7 +40,10 @@ static int uptime_proc_show(struct seq_f
- 
- static int __init proc_uptime_init(void)
- {
--	proc_create_single("uptime", 0, NULL, uptime_proc_show);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_single("uptime", 0, NULL, uptime_proc_show);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_uptime_init);
---- a/fs/proc/version.c~proc-mark-more-files-as-permanent
-+++ a/fs/proc/version.c
-@@ -5,6 +5,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/utsname.h>
-+#include "internal.h"
- 
- static int version_proc_show(struct seq_file *m, void *v)
- {
-@@ -17,7 +18,10 @@ static int version_proc_show(struct seq_
- 
- static int __init proc_version_init(void)
- {
--	proc_create_single("version", 0, NULL, version_proc_show);
-+	struct proc_dir_entry *pde;
-+
-+	pde = proc_create_single("version", 0, NULL, version_proc_show);
-+	pde_make_permanent(pde);
- 	return 0;
- }
- fs_initcall(proc_version_init);
+ 	/*
+ 	 * A minimum amount of work was done under global memory pressure. For
+-	 * kswapd, it may be overshooting. For direct reclaim, the target isn't
+-	 * met, and yet the allocation may still succeed, since kswapd may have
+-	 * caught up. In either case, it's better to stop now, and restart if
+-	 * necessary.
++	 * kswapd, it may be overshooting. For direct reclaim, the allocation
++	 * may succeed if all suitable zones are somewhat safe. In either case,
++	 * it's better to stop now, and restart later if necessary.
+ 	 */
+ 	for (i = 0; i <= sc->reclaim_idx; i++) {
+ 		unsigned long wmark;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
+mm-mglru-dont-sync-disk-for-each-aging-cycle.patch
+mglru-mm-vmscanc-fix-imprecise-comments.patch
 
