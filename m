@@ -2,41 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10164C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Oct 2022 20:36:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32113C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Oct 2022 20:58:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231577AbiJFUgp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Oct 2022 16:36:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53380 "EHLO
+        id S230227AbiJFU6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Oct 2022 16:58:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230416AbiJFUgo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2022 16:36:44 -0400
+        with ESMTP id S230210AbiJFU6W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2022 16:58:22 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4D1EBEFB0
-        for <mm-commits@vger.kernel.org>; Thu,  6 Oct 2022 13:36:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C0BABBE3D
+        for <mm-commits@vger.kernel.org>; Thu,  6 Oct 2022 13:58:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 67A49B820D5
-        for <mm-commits@vger.kernel.org>; Thu,  6 Oct 2022 20:36:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01266C433D6;
-        Thu,  6 Oct 2022 20:36:39 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8945CB8218E
+        for <mm-commits@vger.kernel.org>; Thu,  6 Oct 2022 20:58:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E302C433C1;
+        Thu,  6 Oct 2022 20:58:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665088600;
-        bh=fUqaXw4oeU349grQY2h9BXIMiMDBD0O/P6J3vwoUwlw=;
+        s=korg; t=1665089897;
+        bh=l76KoT2jgfd767lzLI0/ATycejnj41Fb8STZ2nGeYJw=;
         h=Date:To:From:Subject:From;
-        b=W919utCGqnQSERxMlT/5K7ADdz1mJDMfDz1MYIESGsObdRiPD3PYipwjSduT8lYmz
-         7+ejzegrB54US+PU6cF33KzPzCiR0iw5vbsDKNEAHjE+gMSKbSE2c0C7LafGosoj+i
-         XpbXEjMHFXVMA0C5Av1bj8MDXt0ARXOdQqn+NHyM=
-Date:   Thu, 06 Oct 2022 13:36:39 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        ke.wang@unisoc.com, imran.f.khan@oracle.com,
-        huangzhaoyang@gmail.com, elver@google.com, dvyukov@google.com,
-        catalin.marinas@arm.com, zhaoyang.huang@unisoc.com,
+        b=sXWkqZ2ub1SY5nQihxb4UwDlnQa7f+kB/wQkW0D7gcUkNuPLH6+qOj48MaR4U0yeq
+         YXmpocQSqFWtUX1syACxt38NloiPrH/pBJZTYfYjQcAWBXYpHiF2zkWKO5SBLQQz1b
+         68jd3JhUxAEQ+7ch6oLpBKLpSNVCQWiqzECUGbtY=
+Date:   Thu, 06 Oct 2022 13:58:16 -0700
+To:     mm-commits@vger.kernel.org, svens@linux.ibm.com,
+        songmuchun@bytedance.com, prakash.sangappa@oracle.com,
+        peterx@redhat.com, pasha.tatashin@soleen.com,
+        naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
+        kirill.shutemov@linux.intel.com, jthoughton@google.com,
+        david@redhat.com, dave@stgolabs.net, axelrasmussen@google.com,
+        aneesh.kumar@linux.vnet.ibm.com, almasrymina@google.com,
+        aarcange@redhat.com, mike.kravetz@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-check-if-stack_table-valid-in-__stack_depot_save.patch added to mm-nonmm-unstable branch
-Message-Id: <20221006203640.01266C433D6@smtp.kernel.org>
+Subject: + hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer.patch added to mm-unstable branch
+Message-Id: <20221006205817.3E302C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot.c: check if stack_table valid in __stack_depot_save
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-check-if-stack_table-valid-in-__stack_depot_save.patch
+     Subject: hugetlb: take hugetlb vma_lock when clearing vma_lock->vma pointer
+has been added to the -mm mm-unstable branch.  Its filename is
+     hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-check-if-stack_table-valid-in-__stack_depot_save.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,134 +71,118 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Subject: lib/stackdepot.c: check if stack_table valid in __stack_depot_save
-Date: Thu, 6 Oct 2022 09:56:31 +0800
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: take hugetlb vma_lock when clearing vma_lock->vma pointer
+Date: Tue, 4 Oct 2022 18:17:06 -0700
 
-NULL pointer reported in below lkp test report which should caused by
-invalid stack_table in very early stage before stack_depot_early_init
-called.  I would like have kmemleak use stackdepot to track backtrace in
-this commit which lead to stack hash access before stackdepot is
-initialized.  Add stack_table as extra criteria in __stack_depot_save's
-entry check.
+hugetlb file truncation/hole punch code may need to back out and take
+locks in order in the routine hugetlb_unmap_file_folio().  This code could
+race with vma freeing as pointed out in [1] and result in accessing a
+stale vma pointer.  To address this, take the vma_lock when clearing the
+vma_lock->vma pointer.
 
-in testcase: boot
+[1] https://lore.kernel.org/linux-mm/01f10195-7088-4462-6def-909549c75ef4@huawei.com/
 
-on test machine: qemu-system-x86_64 -enable-kvm -cpu SandyBridge -smp 2 -m 16G
-
-caused below changes (please refer to attached dmesg/kmsg for entire log/backtrace):
-
-	[    0.191645][    T0] BUG: kernel NULL pointer dereference, address: 0000000000000000
-	[    0.192360][    T0] #PF: supervisor read access in kernel mode
-	[    0.192862][    T0] #PF: error_code(0x0000) - not-present page
-	[    0.193371][    T0] PGD 0 P4D 0
-	[    0.193672][    T0] Oops: 0000 [#1] SMP PTI
-	[    0.194051][    T0] CPU: 0 PID: 0 Comm: swapper Not tainted 6.0.0-rc3-00706-ga65edf711f97 #26
-	[    0.194755][    T0] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.0-debian-1.16.0-4 04/01/2014
-	[ 0.195583][ T0] RIP: 0010:__stack_depot_save (kbuild/src/x86_64-2/lib/stackdepot.c:452)
-	[ 0.196081][ T0] Code: 03 48 c7 c7 ec 17 b3 84 e8 f1 ea 85 ff 44 89 e0 23 05 d4 aa 01 03 48 8d 04 c3 48 89 c3 48 89 c7 48 89 44 24 28 e8 34 fc 85 ff <4c> 8b 33 4d 85 f6 0f 84 b6 00 00 00 8b 04 24 83 e8 01 48 8d 04 c5
-	All code
-	========
-	0:   03 48 c7                add    -0x39(%rax),%ecx
-	3:   c7                      (bad)
-	4:   ec                      in     (%dx),%al
-	5:   17                      (bad)
-	6:   b3 84                   mov    $0x84,%bl
-	8:   e8 f1 ea 85 ff          callq  0xffffffffff85eafe
-	d:   44 89 e0                mov    %r12d,%eax
-	10:   23 05 d4 aa 01 03       and    0x301aad4(%rip),%eax        # 0x301aaea
-	16:   48 8d 04 c3             lea    (%rbx,%rax,8),%rax
-	1a:   48 89 c3                mov    %rax,%rbx
-	1d:   48 89 c7                mov    %rax,%rdi
-	20:   48 89 44 24 28          mov    %rax,0x28(%rsp)
-	25:   e8 34 fc 85 ff          callq  0xffffffffff85fc5e
-	2a:*  4c 8b 33                mov    (%rbx),%r14              <-- trapping instruction
-	2d:   4d 85 f6                test   %r14,%r14
-	30:   0f 84 b6 00 00 00       je     0xec
-	36:   8b 04 24                mov    (%rsp),%eax
-	39:   83 e8 01                sub    $0x1,%eax
-	3c:   48                      rex.W
-	3d:   8d                      .byte 0x8d
-	3e:   04 c5                   add    $0xc5,%al
-
-	Code starting with the faulting instruction
-	===========================================
-	0:   4c 8b 33                mov    (%rbx),%r14
-	3:   4d 85 f6                test   %r14,%r14
-	6:   0f 84 b6 00 00 00       je     0xc2
-	c:   8b 04 24                mov    (%rsp),%eax
-	f:   83 e8 01                sub    $0x1,%eax
-	12:   48                      rex.W
-	13:   8d                      .byte 0x8d
-	14:   04 c5                   add    $0xc5,%al
-	[    0.197693][    T0] RSP: 0000:ffffffff83603ca8 EFLAGS: 00010046
-	[    0.198214][    T0] RAX: ffffffff83613cd8 RBX: 0000000000000000 RCX: ffffffff81b16d2c
-	[    0.198858][    T0] RDX: 0000000000000b1e RSI: 0000000000000000 RDI: 0000000000000000
-	[    0.199499][    T0] RBP: 00000000c5a6b597 R08: ffffffff8479d118 R09: 0000000000000000
-	[    0.200142][    T0] R10: 0000000000000004 R11: 0001ffffffffffff R12: 0000000027b2cd0a
-	[    0.200787][    T0] R13: 0000000000000003 R14: 000000004954f68c R15: ffffffff83603d54
-	[    0.201488][    T0] FS:  0000000000000000(0000) GS:ffffffff842c9000(0000) knlGS:0000000000000000
-	[    0.202247][    T0] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-	[    0.202807][    T0] CR2: 0000000000000000 CR3: 000000000360a000 CR4: 00000000000406b0
-	[    0.203470][    T0] Call Trace:
-	[    0.203748][    T0]  <TASK>
-	[ 0.203996][ T0] stack_depot_save (kbuild/src/x86_64-2/lib/stackdepot.c:534)
-	[ 0.204406][ T0] set_track_prepare (kbuild/src/x86_64-2/mm/slub.c:752)
-	[ 0.204816][ T0] ? memblock_alloc_range_nid (kbuild/src/x86_64-2/mm/memblock.c:1424)
-	[ 0.205311][ T0] ? memblock_alloc_internal (kbuild/src/x86_64-2/mm/memblock.c:1514)
-	[ 0.205781][ T0] ? memblock_alloc_try_nid (kbuild/src/x86_64-2/mm/memblock.c:1614 (discriminator 3))
-	[ 0.206238][ T0] ? setup_command_line (kbuild/src/x86_64-2/init/main.c:631)
-	[ 0.206670][ T0] ? start_kernel (kbuild/src/x86_64-2/init/main.c:965)
-	[ 0.207068][ T0] ? secondary_startup_64_no_verify (kbuild/src/x86_64-2/arch/x86/kernel/head_64.S:358)
-	[ 0.207612][ T0] ? __raw_callee_save___native_queued_spin_unlock (??:?)
-	[ 0.208251][ T0] ? write_comp_data (kbuild/src/x86_64-2/kernel/kcov.c:236)
-	[ 0.208678][ T0] ? strncpy (kbuild/src/x86_64-2/lib/string.c:115)
-	[ 0.209040][ T0] __create_object (kbuild/src/x86_64-2/mm/kmemleak.c:681)
-	[ 0.209447][ T0] kmemleak_alloc_phys (kbuild/src/x86_64-2/mm/kmemleak.c:1212)
-	[ 0.209867][ T0] memblock_alloc_range_nid (kbuild/src/x86_64-2/mm/memblock.c:1424)
-	[ 0.210344][ T0] memblock_alloc_internal (kbuild/src/x86_64-2/mm/memblock.c:1514)
-	[ 0.210806][ T0] memblock_alloc_try_nid (kbuild/src/x86_64-2/mm/memblock.c:1614 (discriminator 3))
-	[ 0.211255][ T0] setup_command_line (kbuild/src/x86_64-2/init/main.c:631)
-	[ 0.211678][ T0] start_kernel (kbuild/src/x86_64-2/init/main.c:965)
-	[ 0.212063][ T0] ? load_ucode_bsp (kbuild/src/x86_64-2/arch/x86/kernel/cpu/microcode/core.c:176)
-	[ 0.212483][ T0] secondary_startup_64_no_verify (kbuild/src/x86_64-2/arch/x86/kernel/head_64.S:358)
-	[    0.212996][    T0]  </TASK>
-	[    0.213247][    T0] Modules linked in:
-	[    0.213591][    T0] CR2: 0000000000000000
-	[    0.213955][    T0] ---[ end trace 0000000000000000 ]---
-	[ 0.214415][ T0] RIP: 0010:__stack_depot_save (kbuild/src/x86_64-2/lib/stackdepot.c:452)
-	[ 0.214933][ T0] Code: 03 48 c7 c7 ec 17 b3 84 e8 f1 ea 85 ff 44 89 e0 23 05 d4 aa 01 03 48 8d 04 c3 48 89 c3 48 89 c7 48 89 44 24 28 e8 34 fc 85 ff <4c> 8b 33 4d 85 f6 0f 84 b6 00 00 00 8b 04 24 83 e8 01 48 8d 04 c5
-
-Link: https://lkml.kernel.org/r/1665021391-1035-1-git-send-email-zhaoyang.huang@unisoc.com
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Imran Khan <imran.f.khan@oracle.com>
-Cc: ke.wang <ke.wang@unisoc.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhaoyang Huang <huangzhaoyang@gmail.com>
+Link: https://lkml.kernel.org/r/20221005011707.514612-3-mike.kravetz@oracle.com
+Fixes: "hugetlb: use new vma_lock for pmd sharing synchronization"
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: James Houghton <jthoughton@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Prakash Sangappa <prakash.sangappa@oracle.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   38 ++++++++++++++++++++++++++++----------
+ 1 file changed, 28 insertions(+), 10 deletions(-)
 
---- a/lib/stackdepot.c~lib-check-if-stack_table-valid-in-__stack_depot_save
-+++ a/lib/stackdepot.c
-@@ -438,7 +438,7 @@ depot_stack_handle_t __stack_depot_save(
+--- a/mm/hugetlb.c~hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer
++++ a/mm/hugetlb.c
+@@ -93,6 +93,7 @@ struct mutex *hugetlb_fault_mutex_table
+ static int hugetlb_acct_memory(struct hstate *h, long delta);
+ static void hugetlb_vma_lock_free(struct vm_area_struct *vma);
+ static void hugetlb_vma_lock_alloc(struct vm_area_struct *vma);
++static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma);
+ 
+ static inline bool subpool_is_free(struct hugepage_subpool *spool)
+ {
+@@ -5192,8 +5193,7 @@ void __unmap_hugepage_range_final(struct
+ 	 * be asynchrously deleted.  If the page tables are shared, there
+ 	 * will be issues when accessed by someone else.
  	 */
- 	nr_entries = filter_irq_stacks(entries, nr_entries);
+-	hugetlb_vma_unlock_write(vma);
+-	hugetlb_vma_lock_free(vma);
++	__hugetlb_vma_unlock_write_free(vma);
  
--	if (unlikely(nr_entries == 0) || stack_depot_disable)
-+	if (unlikely(nr_entries == 0) || stack_depot_disable || !stack_table)
- 		goto fast_exit;
+ 	i_mmap_unlock_write(vma->vm_file->f_mapping);
+ }
+@@ -6832,6 +6832,30 @@ void hugetlb_vma_lock_release(struct kre
+ 	kfree(vma_lock);
+ }
  
- 	hash = hash_stack(entries, nr_entries);
++void __hugetlb_vma_unlock_write_put(struct hugetlb_vma_lock *vma_lock)
++{
++	struct vm_area_struct *vma = vma_lock->vma;
++
++	/*
++	 * vma_lock structure may or not be released as a result of put,
++	 * it certainly will no longer be attached to vma so clear pointer.
++	 * Semaphore synchronizes access to vma_lock->vma field.
++	 */
++	vma_lock->vma = NULL;
++	vma->vm_private_data = NULL;
++	up_write(&vma_lock->rw_sema);
++	kref_put(&vma_lock->refs, hugetlb_vma_lock_release);
++}
++
++void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma)
++{
++	if (__vma_shareable_flags_pmd(vma)) {
++		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
++
++		__hugetlb_vma_unlock_write_put(vma_lock);
++	}
++}
++
+ static void hugetlb_vma_lock_free(struct vm_area_struct *vma)
+ {
+ 	/*
+@@ -6843,14 +6867,8 @@ static void hugetlb_vma_lock_free(struct
+ 	if (vma->vm_private_data) {
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+-		/*
+-		 * vma_lock structure may or not be released, but it
+-		 * certainly will no longer be attached to vma so clear
+-		 * pointer.
+-		 */
+-		vma_lock->vma = NULL;
+-		kref_put(&vma_lock->refs, hugetlb_vma_lock_release);
+-		vma->vm_private_data = NULL;
++		down_write(&vma_lock->rw_sema);
++		__hugetlb_vma_unlock_write_put(vma_lock);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-lib-check-if-stack_table-valid-in-__stack_depot_save.patch
+hugetlb-fix-vma-lock-handling-during-split-vma-and-range-unmapping.patch
+hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer.patch
+hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer-fix.patch
+hugetlb-allocate-vma-lock-for-all-sharable-vmas.patch
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
 
