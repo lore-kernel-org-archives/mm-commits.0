@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 129B7C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Oct 2022 00:52:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C26AC433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Oct 2022 20:27:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229496AbiJFAwP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Oct 2022 20:52:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59782 "EHLO
+        id S232223AbiJFU1i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Oct 2022 16:27:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229902AbiJFAvs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Oct 2022 20:51:48 -0400
+        with ESMTP id S232111AbiJFU12 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2022 16:27:28 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DACB43638
-        for <mm-commits@vger.kernel.org>; Wed,  5 Oct 2022 17:51:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29ADEBEAFA
+        for <mm-commits@vger.kernel.org>; Thu,  6 Oct 2022 13:27:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D0558617F3
-        for <mm-commits@vger.kernel.org>; Thu,  6 Oct 2022 00:51:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F75EC433C1;
-        Thu,  6 Oct 2022 00:51:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 104F261AE4
+        for <mm-commits@vger.kernel.org>; Thu,  6 Oct 2022 20:27:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E7F0C433C1;
+        Thu,  6 Oct 2022 20:27:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665017502;
-        bh=XT8WyOhOsKNGZpu6bmgRlzZy85DlzAQQ/+1HOXTroKY=;
+        s=korg; t=1665088039;
+        bh=7WiCIEodz8SZIN3k3nx5Vk8ULhD5mefxWAkRY4GEc78=;
         h=Date:To:From:Subject:From;
-        b=y+ALyZoSs1L85inAfbT7dAuQV+kO9PFoz+xNA1Kg52VpKD8GuxKsje9KfJ++aZIiC
-         wLpXuYvb8re+FwqbWoSzmyFxJIQc6absrVNkPOnsONoYjxGAWPrCwncnE5ZVAKFk7j
-         ea7Q5NV692RVlSVDfZZvGoxJ2Phn7jhuCy3oVIfs=
-Date:   Wed, 05 Oct 2022 17:51:41 -0700
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
+        b=iaXJ8lacxIMx/qOZs0TYJS1GU25lX5ZHYijF3CevEFzCeNesX+wH3Fshvx0T4gDam
+         CE3RBX0PWC8xRb47kuDVxNSSL4hpOOfFCiofVIMYLUQtfOkJCvNOIR8933GOGla9a/
+         i7CLcy8Zxd8DKgx+0GC/hzNAXjYjPhF80icm+gZg=
+Date:   Thu, 06 Oct 2022 13:27:18 -0700
+To:     mm-commits@vger.kernel.org, weiyongjun1@huawei.com,
+        akinobu.mita@gmail.com, wangyufen@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-test-how-it-holds-up-with-mappingless-process.patch added to mm-nonmm-unstable branch
-Message-Id: <20221006005142.2F75EC433C1@smtp.kernel.org>
+Subject: + fault-injection-make-some-stack-filter-attrs-more-readable-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20221006202719.5E7F0C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: test how it holds up with mapping'less process
+     Subject: fault-injection: use debugfs_create_xul() instead of debugfs_create_xl()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-test-how-it-holds-up-with-mappingless-process.patch
+     fault-injection-make-some-stack-filter-attrs-more-readable-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-test-how-it-holds-up-with-mappingless-process.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fault-injection-make-some-stack-filter-attrs-more-readable-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,466 +65,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: test how it holds up with mapping'less process
-Date: Wed, 5 Oct 2022 23:14:00 +0300
+From: Wang Yufen <wangyufen@huawei.com>
+Subject: fault-injection: use debugfs_create_xul() instead of debugfs_create_xl()
+Date: Wed, 28 Sep 2022 10:14:59 +0800
 
-Create process without mappings and check
+Use debugfs_create_xul() instead of debugfs_create_xl(), and del the local
+define debugfs_create_xl().
 
-	/proc/*/maps
-	/proc/*/numa_maps
-	/proc/*/smaps
-	/proc/*/smaps_rollup
-
-They must be empty (excluding vsyscall page) or full of zeroes.
-
-Retroactively this test should've caught embarassing /proc/*/smaps_rollup
-oops:
-
-[17752.703567] BUG: kernel NULL pointer dereference, address: 0000000000000000
-[17752.703580] #PF: supervisor read access in kernel mode
-[17752.703583] #PF: error_code(0x0000) - not-present page
-[17752.703587] PGD 0 P4D 0
-[17752.703593] Oops: 0000 [#1] PREEMPT SMP PTI
-[17752.703598] CPU: 0 PID: 60649 Comm: cat Tainted: G        W         5.19.9-100.fc35.x86_64 #1
-[17752.703603] Hardware name: To Be Filled By O.E.M. To Be Filled By O.E.M./X99 Extreme6/3.1, BIOS P3.30 08/05/2016
-[17752.703607] RIP: 0010:show_smaps_rollup+0x159/0x2e0
-
-Note 1:
-	ProtectionKey field in /proc/*/smaps is optional,
-	so check most of its contents, not everything.
-
-Note 2:
-	due to the nature of this test, child process hardly can signal
-	its readiness (after unmapping everything!) to parent.
-	I feel like "sleep(1)" is justified.
-	If you know how to do it without sleep please tell me.
-
-Note 3:
-	/proc/*/statm is not tested but can be.
-
-Link: https://lkml.kernel.org/r/Yz3liL6Dn+n2SD8Q@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lkml.kernel.org/r/1664331299-4976-1-git-send-email-wangyufen@huawei.com
+Signed-off-by: Wang Yufen <wangyufen@huawei.com>
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Suggested-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reviewed-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/.gitignore      |    1 
- tools/testing/selftests/proc/Makefile        |    1 
- tools/testing/selftests/proc/proc-empty-vm.c |  386 +++++++++++++++++
- 3 files changed, 388 insertions(+)
+ lib/fault-inject.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/proc/.gitignore~proc-test-how-it-holds-up-with-mappingless-process
-+++ a/tools/testing/selftests/proc/.gitignore
-@@ -5,6 +5,7 @@
- /proc-fsconfig-hidepid
- /proc-loadavg-001
- /proc-multiple-procfs
-+/proc-empty-vm
- /proc-pid-vm
- /proc-self-map-files-001
- /proc-self-map-files-002
---- a/tools/testing/selftests/proc/Makefile~proc-test-how-it-holds-up-with-mappingless-process
-+++ a/tools/testing/selftests/proc/Makefile
-@@ -8,6 +8,7 @@ TEST_GEN_PROGS += fd-001-lookup
- TEST_GEN_PROGS += fd-002-posix-eq
- TEST_GEN_PROGS += fd-003-kthread
- TEST_GEN_PROGS += proc-loadavg-001
-+TEST_GEN_PROGS += proc-empty-vm
- TEST_GEN_PROGS += proc-pid-vm
- TEST_GEN_PROGS += proc-self-map-files-001
- TEST_GEN_PROGS += proc-self-map-files-002
---- /dev/null
-+++ a/tools/testing/selftests/proc/proc-empty-vm.c
-@@ -0,0 +1,386 @@
-+/*
-+ * Copyright (c) 2022 Alexey Dobriyan <adobriyan@gmail.com>
-+ *
-+ * Permission to use, copy, modify, and distribute this software for any
-+ * purpose with or without fee is hereby granted, provided that the above
-+ * copyright notice and this permission notice appear in all copies.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-+ */
-+/*
-+ * Create a process without mappings by unmapping everything at once and
-+ * holding it with ptrace(2). See what happens to
-+ *
-+ *	/proc/${pid}/maps
-+ *	/proc/${pid}/numa_maps
-+ *	/proc/${pid}/smaps
-+ *	/proc/${pid}/smaps_rollup
-+ */
-+#undef NDEBUG
-+#include <assert.h>
-+#include <errno.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <fcntl.h>
-+#include <sys/mman.h>
-+#include <sys/ptrace.h>
-+#include <sys/resource.h>
-+#include <sys/types.h>
-+#include <sys/wait.h>
-+#include <unistd.h>
-+
-+/*
-+ * 0: vsyscall VMA doesn't exist	vsyscall=none
-+ * 1: vsyscall VMA is --xp		vsyscall=xonly
-+ * 2: vsyscall VMA is r-xp		vsyscall=emulate
-+ */
-+static int g_vsyscall;
-+static const char *g_proc_pid_maps_vsyscall;
-+static const char *g_proc_pid_smaps_vsyscall;
-+
-+static const char proc_pid_maps_vsyscall_0[] = "";
-+static const char proc_pid_maps_vsyscall_1[] =
-+"ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]\n";
-+static const char proc_pid_maps_vsyscall_2[] =
-+"ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]\n";
-+
-+static const char proc_pid_smaps_vsyscall_0[] = "";
-+
-+static const char proc_pid_smaps_vsyscall_1[] =
-+"ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]\n"
-+"Size:                  4 kB\n"
-+"KernelPageSize:        4 kB\n"
-+"MMUPageSize:           4 kB\n"
-+"Rss:                   0 kB\n"
-+"Pss:                   0 kB\n"
-+"Pss_Dirty:             0 kB\n"
-+"Shared_Clean:          0 kB\n"
-+"Shared_Dirty:          0 kB\n"
-+"Private_Clean:         0 kB\n"
-+"Private_Dirty:         0 kB\n"
-+"Referenced:            0 kB\n"
-+"Anonymous:             0 kB\n"
-+"LazyFree:              0 kB\n"
-+"AnonHugePages:         0 kB\n"
-+"ShmemPmdMapped:        0 kB\n"
-+"FilePmdMapped:         0 kB\n"
-+"Shared_Hugetlb:        0 kB\n"
-+"Private_Hugetlb:       0 kB\n"
-+"Swap:                  0 kB\n"
-+"SwapPss:               0 kB\n"
-+"Locked:                0 kB\n"
-+"THPeligible:    0\n"
-+/*
-+ * "ProtectionKey:" field is conditional. It is possible to check it as well,
-+ * but I don't have such machine.
-+ */
-+;
-+
-+static const char proc_pid_smaps_vsyscall_2[] =
-+"ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]\n"
-+"Size:                  4 kB\n"
-+"KernelPageSize:        4 kB\n"
-+"MMUPageSize:           4 kB\n"
-+"Rss:                   0 kB\n"
-+"Pss:                   0 kB\n"
-+"Pss_Dirty:             0 kB\n"
-+"Shared_Clean:          0 kB\n"
-+"Shared_Dirty:          0 kB\n"
-+"Private_Clean:         0 kB\n"
-+"Private_Dirty:         0 kB\n"
-+"Referenced:            0 kB\n"
-+"Anonymous:             0 kB\n"
-+"LazyFree:              0 kB\n"
-+"AnonHugePages:         0 kB\n"
-+"ShmemPmdMapped:        0 kB\n"
-+"FilePmdMapped:         0 kB\n"
-+"Shared_Hugetlb:        0 kB\n"
-+"Private_Hugetlb:       0 kB\n"
-+"Swap:                  0 kB\n"
-+"SwapPss:               0 kB\n"
-+"Locked:                0 kB\n"
-+"THPeligible:    0\n"
-+/*
-+ * "ProtectionKey:" field is conditional. It is possible to check it as well,
-+ * but I'm too tired.
-+ */
-+;
-+
-+static void sigaction_SIGSEGV(int _, siginfo_t *__, void *___)
-+{
-+	_exit(EXIT_FAILURE);
-+}
-+
-+static void sigaction_SIGSEGV_vsyscall(int _, siginfo_t *__, void *___)
-+{
-+	_exit(g_vsyscall);
-+}
-+
-+/*
-+ * vsyscall page can't be unmapped, probe it directly.
-+ */
-+static void vsyscall(void)
-+{
-+	pid_t pid;
-+	int wstatus;
-+
-+	pid = fork();
-+	if (pid < 0) {
-+		fprintf(stderr, "fork, errno %d\n", errno);
-+		exit(1);
-+	}
-+	if (pid == 0) {
-+		setrlimit(RLIMIT_CORE, &(struct rlimit){});
-+
-+		/* Hide "segfault at ffffffffff600000" messages. */
-+		struct sigaction act = {};
-+		act.sa_flags = SA_SIGINFO;
-+		act.sa_sigaction = sigaction_SIGSEGV_vsyscall;
-+		sigaction(SIGSEGV, &act, NULL);
-+
-+		g_vsyscall = 0;
-+		/* gettimeofday(NULL, NULL); */
-+		asm volatile (
-+			"call %P0"
-+			:
-+			: "i" (0xffffffffff600000), "D" (NULL), "S" (NULL)
-+			: "rax", "rcx", "r11"
-+		);
-+
-+		g_vsyscall = 1;
-+		*(volatile int *)0xffffffffff600000UL;
-+
-+		g_vsyscall = 2;
-+		exit(g_vsyscall);
-+	}
-+	waitpid(pid, &wstatus, 0);
-+	if (WIFEXITED(wstatus)) {
-+		g_vsyscall = WEXITSTATUS(wstatus);
-+	} else {
-+		fprintf(stderr, "error: vsyscall wstatus %08x\n", wstatus);
-+		exit(1);
-+	}
-+}
-+
-+static int test_proc_pid_maps(pid_t pid)
-+{
-+	char buf[4096];
-+	snprintf(buf, sizeof(buf), "/proc/%u/maps", pid);
-+	int fd = open(buf, O_RDONLY);
-+	if (fd == -1) {
-+		perror("open /proc/${pid}/maps");
-+		return EXIT_FAILURE;
-+	} else {
-+		ssize_t rv = read(fd, buf, sizeof(buf));
-+		close(fd);
-+		if (g_vsyscall == 0) {
-+			assert(rv == 0);
-+		} else {
-+			size_t len = strlen(g_proc_pid_maps_vsyscall);
-+			assert(rv == len);
-+			assert(memcmp(buf, g_proc_pid_maps_vsyscall, len) == 0);
-+		}
-+		return EXIT_SUCCESS;
-+	}
-+}
-+
-+static int test_proc_pid_numa_maps(pid_t pid)
-+{
-+	char buf[4096];
-+	snprintf(buf, sizeof(buf), "/proc/%u/numa_maps", pid);
-+	int fd = open(buf, O_RDONLY);
-+	if (fd == -1) {
-+		if (errno == ENOENT) {
-+			/*
-+			 * /proc/${pid}/numa_maps is under CONFIG_NUMA,
-+			 * it doesn't necessarily exist.
-+			 */
-+			return EXIT_SUCCESS;
-+		}
-+		perror("open /proc/${pid}/numa_maps");
-+		return EXIT_FAILURE;
-+	} else {
-+		ssize_t rv = read(fd, buf, sizeof(buf));
-+		close(fd);
-+		assert(rv == 0);
-+		return EXIT_SUCCESS;
-+	}
-+}
-+
-+static int test_proc_pid_smaps(pid_t pid)
-+{
-+	char buf[4096];
-+	snprintf(buf, sizeof(buf), "/proc/%u/smaps", pid);
-+	int fd = open(buf, O_RDONLY);
-+	if (fd == -1) {
-+		if (errno == ENOENT) {
-+			/*
-+			 * /proc/${pid}/smaps is under CONFIG_PROC_PAGE_MONITOR,
-+			 * it doesn't necessarily exist.
-+			 */
-+			return EXIT_SUCCESS;
-+		}
-+		perror("open /proc/${pid}/smaps");
-+		return EXIT_FAILURE;
-+	} else {
-+		ssize_t rv = read(fd, buf, sizeof(buf));
-+		close(fd);
-+		if (g_vsyscall == 0) {
-+			assert(rv == 0);
-+		} else {
-+			size_t len = strlen(g_proc_pid_maps_vsyscall);
-+			/* TODO "ProtectionKey:" */
-+			assert(rv > len);
-+			assert(memcmp(buf, g_proc_pid_maps_vsyscall, len) == 0);
-+		}
-+		return EXIT_SUCCESS;
-+	}
-+}
-+
-+static const char g_smaps_rollup[] =
-+"00000000-00000000 ---p 00000000 00:00 0                                  [rollup]\n"
-+"Rss:                   0 kB\n"
-+"Pss:                   0 kB\n"
-+"Pss_Dirty:             0 kB\n"
-+"Pss_Anon:              0 kB\n"
-+"Pss_File:              0 kB\n"
-+"Pss_Shmem:             0 kB\n"
-+"Shared_Clean:          0 kB\n"
-+"Shared_Dirty:          0 kB\n"
-+"Private_Clean:         0 kB\n"
-+"Private_Dirty:         0 kB\n"
-+"Referenced:            0 kB\n"
-+"Anonymous:             0 kB\n"
-+"LazyFree:              0 kB\n"
-+"AnonHugePages:         0 kB\n"
-+"ShmemPmdMapped:        0 kB\n"
-+"FilePmdMapped:         0 kB\n"
-+"Shared_Hugetlb:        0 kB\n"
-+"Private_Hugetlb:       0 kB\n"
-+"Swap:                  0 kB\n"
-+"SwapPss:               0 kB\n"
-+"Locked:                0 kB\n"
-+;
-+
-+static int test_proc_pid_smaps_rollup(pid_t pid)
-+{
-+	char buf[4096];
-+	snprintf(buf, sizeof(buf), "/proc/%u/smaps_rollup", pid);
-+	int fd = open(buf, O_RDONLY);
-+	if (fd == -1) {
-+		if (errno == ENOENT) {
-+			/*
-+			 * /proc/${pid}/smaps_rollup is under CONFIG_PROC_PAGE_MONITOR,
-+			 * it doesn't necessarily exist.
-+			 */
-+			return EXIT_SUCCESS;
-+		}
-+		perror("open /proc/${pid}/smaps_rollup");
-+		return EXIT_FAILURE;
-+	} else {
-+		ssize_t rv = read(fd, buf, sizeof(buf));
-+		close(fd);
-+		assert(rv == sizeof(g_smaps_rollup) - 1);
-+		assert(memcmp(buf, g_smaps_rollup, sizeof(g_smaps_rollup) - 1) == 0);
-+		return EXIT_SUCCESS;
-+	}
-+}
-+
-+int main(void)
-+{
-+	int rv = EXIT_SUCCESS;
-+
-+	vsyscall();
-+
-+	switch (g_vsyscall) {
-+	case 0:
-+		g_proc_pid_maps_vsyscall  = proc_pid_maps_vsyscall_0;
-+		g_proc_pid_smaps_vsyscall = proc_pid_smaps_vsyscall_0;
-+		break;
-+	case 1:
-+		g_proc_pid_maps_vsyscall  = proc_pid_maps_vsyscall_1;
-+		g_proc_pid_smaps_vsyscall = proc_pid_smaps_vsyscall_1;
-+		break;
-+	case 2:
-+		g_proc_pid_maps_vsyscall  = proc_pid_maps_vsyscall_2;
-+		g_proc_pid_smaps_vsyscall = proc_pid_smaps_vsyscall_2;
-+		break;
-+	default:
-+		abort();
-+	}
-+
-+	pid_t pid = fork();
-+	if (pid == -1) {
-+		perror("fork");
-+		return EXIT_FAILURE;
-+	} else if (pid == 0) {
-+		rv = ptrace(PTRACE_TRACEME, 0, NULL, NULL);
-+		if (rv != 0) {
-+			if (errno == EPERM) {
-+				fprintf(stderr,
-+"Did you know? ptrace(PTRACE_TRACEME) doesn't work under strace.\n"
-+				);
-+				kill(getppid(), SIGTERM);
-+				return EXIT_FAILURE;
-+			}
-+			perror("ptrace PTRACE_TRACEME");
-+			return EXIT_FAILURE;
-+		}
-+
-+		/*
-+		 * Hide "segfault at ..." messages. Signal handler won't run.
-+		 */
-+		struct sigaction act = {};
-+		act.sa_flags = SA_SIGINFO;
-+		act.sa_sigaction = sigaction_SIGSEGV;
-+		sigaction(SIGSEGV, &act, NULL);
-+
-+#ifdef __amd64__
-+		munmap(NULL, ((size_t)1 << 47) - 4096);
-+#else
-+#error "implement 'unmap everything'"
-+#endif
-+		return EXIT_FAILURE;
-+	} else {
-+		/*
-+		 * TODO find reliable way to signal parent that munmap(2) completed.
-+		 * Child can't do it directly because it effectively doesn't exist
-+		 * anymore. Looking at child's VM files isn't 100% reliable either:
-+		 * due to a bug they may not become empty or empty-like.
-+		 */
-+		sleep(1);
-+
-+		if (rv == EXIT_SUCCESS) {
-+			rv = test_proc_pid_maps(pid);
-+		}
-+		if (rv == EXIT_SUCCESS) {
-+			rv = test_proc_pid_numa_maps(pid);
-+		}
-+		if (rv == EXIT_SUCCESS) {
-+			rv = test_proc_pid_smaps(pid);
-+		}
-+		if (rv == EXIT_SUCCESS) {
-+			rv = test_proc_pid_smaps_rollup(pid);
-+		}
-+		/*
-+		 * TODO test /proc/${pid}/statm, task_statm()
-+		 * ->start_code, ->end_code aren't updated by munmap().
-+		 * Output can be "0 0 0 2 0 0 0\n" where "2" can be anything.
-+		 */
-+
-+		/* Cut the rope. */
-+		int wstatus;
-+		waitpid(pid, &wstatus, 0);
-+		assert(WIFSTOPPED(wstatus));
-+		assert(WSTOPSIG(wstatus) == SIGSEGV);
-+	}
-+
-+	return rv;
-+}
+--- a/lib/fault-inject.c~fault-injection-make-some-stack-filter-attrs-more-readable-fix
++++ a/lib/fault-inject.c
+@@ -179,14 +179,6 @@ static void debugfs_create_ul(const char
+ 
+ #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
+ 
+-DEFINE_SIMPLE_ATTRIBUTE(fops_xl, debugfs_ul_get, debugfs_ul_set, "0x%llx\n");
+-
+-static void debugfs_create_xl(const char *name, umode_t mode,
+-			      struct dentry *parent, unsigned long *value)
+-{
+-	debugfs_create_file(name, mode, parent, value, &fops_xl);
+-}
+-
+ static int debugfs_stacktrace_depth_set(void *data, u64 val)
+ {
+ 	*(unsigned long *)data =
+@@ -231,10 +223,10 @@ struct dentry *fault_create_debugfs_attr
+ #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
+ 	debugfs_create_stacktrace_depth("stacktrace-depth", mode, dir,
+ 					&attr->stacktrace_depth);
+-	debugfs_create_xl("require-start", mode, dir, &attr->require_start);
+-	debugfs_create_xl("require-end", mode, dir, &attr->require_end);
+-	debugfs_create_xl("reject-start", mode, dir, &attr->reject_start);
+-	debugfs_create_xl("reject-end", mode, dir, &attr->reject_end);
++	debugfs_create_xul("require-start", mode, dir, &attr->require_start);
++	debugfs_create_xul("require-end", mode, dir, &attr->require_end);
++	debugfs_create_xul("reject-start", mode, dir, &attr->reject_start);
++	debugfs_create_xul("reject-end", mode, dir, &attr->reject_end);
+ #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+ 
+ 	attr->dname = dget(dir);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from wangyufen@huawei.com are
 
-proc-test-how-it-holds-up-with-mappingless-process.patch
+fault-injection-make-some-stack-filter-attrs-more-readable-fix.patch
 
