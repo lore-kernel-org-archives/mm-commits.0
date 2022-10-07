@@ -2,140 +2,117 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B051C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Oct 2022 19:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D626C433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Oct 2022 21:27:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229946AbiJGT5h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Oct 2022 15:57:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43106 "EHLO
+        id S229493AbiJGV1L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Oct 2022 17:27:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229481AbiJGT5g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2022 15:57:36 -0400
+        with ESMTP id S229472AbiJGV1K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2022 17:27:10 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC05BB40EF;
-        Fri,  7 Oct 2022 12:57:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2C368F258
+        for <mm-commits@vger.kernel.org>; Fri,  7 Oct 2022 14:27:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8039B61747;
-        Fri,  7 Oct 2022 19:57:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3AFFC433C1;
-        Fri,  7 Oct 2022 19:57:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C5A0661B7F
+        for <mm-commits@vger.kernel.org>; Fri,  7 Oct 2022 21:27:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C396C433D7;
+        Fri,  7 Oct 2022 21:27:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665172654;
-        bh=3ioUGXOwIHSSgzA9Xb+oDLQYye2pqliCmNaClnJCjcQ=;
+        s=korg; t=1665178028;
+        bh=c4fGH4aB8SJi4+lSGLi4/DYBI0pfqCF7h6cTbaAlQ9Q=;
         h=Date:To:From:Subject:From;
-        b=P2zDwmoIqgaSbLiomwUGnP7CGTAJJMQqy8+FB/VEa22z2QglLDLjvrEzm2zjOAVfh
-         6ASQqIrk/Jin0gU3YaA4fDD9WPdKkHXhvCKXOPleHqcn+ypEX3mPGLYxZJo2ZzSyZZ
-         BTYIFpVL/IaRWOzKLXEra21x70NlXJaPwMjEO+CU=
-Date:   Fri, 07 Oct 2022 12:57:34 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=NiEM1KwQ0xBG/0Ey6kfVIKTa7YOkuTmYt4cl8RgDF9uHrMAPxzEEE1wmMl+2eIzpp
+         gaLDltp7os17dbP0LS7bN5TDTIEGSdeZHU7CSQe9hPN5owDSj895CBywnQRAZrif0e
+         Xh8L9OY6/sy96d1r5rcA2C23ccegdK8IrntAEfyY=
+Date:   Fri, 07 Oct 2022 14:27:07 -0700
+To:     mm-commits@vger.kernel.org, svens@linux.ibm.com,
+        songmuchun@bytedance.com, prakash.sangappa@oracle.com,
+        peterx@redhat.com, pasha.tatashin@soleen.com,
+        naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
+        kirill.shutemov@linux.intel.com, jthoughton@google.com,
+        david@redhat.com, dave@stgolabs.net, axelrasmussen@google.com,
+        aneesh.kumar@linux.vnet.ibm.com, almasrymina@google.com,
+        aarcange@redhat.com, mike.kravetz@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221007195734.D3AFFC433C1@smtp.kernel.org>
+Subject: [folded-merged] hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer-fix.patch removed from -mm tree
+Message-Id: <20221007212708.1C396C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: nilfs2: fix leak of nilfs_root in case of writer thread creation failure
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure.patch
+The quilt patch titled
+     Subject: hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer-fix
+has been removed from the -mm tree.  Its filename was
+     hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer.patch
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix leak of nilfs_root in case of writer thread creation failure
-Date: Fri, 7 Oct 2022 17:52:26 +0900
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer-fix
+Date: Wed, 5 Oct 2022 20:30:30 -0700
 
-If nilfs_attach_log_writer() failed to create a log writer thread, it
-frees a data structure of the log writer without any cleanup.  After
-commit e912a5b66837 ("nilfs2: use root object to get ifile"), this causes
-a leak of struct nilfs_root, which started to leak an ifile metadata inode
-and a kobject on that struct.
+address build issues
 
-In addition, if the kernel is booted with panic_on_warn, the above
-ifile metadata inode leak will cause the following panic when the
-nilfs2 kernel module is removed:
-
-  kmem_cache_destroy nilfs2_inode_cache: Slab cache still has objects when
-  called from nilfs_destroy_cachep+0x16/0x3a [nilfs2]
-  WARNING: CPU: 8 PID: 1464 at mm/slab_common.c:494 kmem_cache_destroy+0x138/0x140
-  ...
-  RIP: 0010:kmem_cache_destroy+0x138/0x140
-  Code: 00 20 00 00 e8 a9 55 d8 ff e9 76 ff ff ff 48 8b 53 60 48 c7 c6 20 70 65 86 48 c7 c7 d8 69 9c 86 48 8b 4c 24 28 e8 ef 71 c7 00 <0f> 0b e9 53 ff ff ff c3 48 81 ff ff 0f 00 00 77 03 31 c0 c3 53 48
-  ...
-  Call Trace:
-   <TASK>
-   ? nilfs_palloc_freev.cold.24+0x58/0x58 [nilfs2]
-   nilfs_destroy_cachep+0x16/0x3a [nilfs2]
-   exit_nilfs_fs+0xa/0x1b [nilfs2]
-    __x64_sys_delete_module+0x1d9/0x3a0
-   ? __sanitizer_cov_trace_pc+0x1a/0x50
-   ? syscall_trace_enter.isra.19+0x119/0x190
-   do_syscall_64+0x34/0x80
-   entry_SYSCALL_64_after_hwframe+0x63/0xcd
-   ...
-   </TASK>
-  Kernel panic - not syncing: panic_on_warn set ...
-
-This patch fixes these issues by calling nilfs_detach_log_writer() cleanup
-function if spawning the log writer thread fails.
-
-Link: https://lkml.kernel.org/r/20221007085226.57667-1-konishi.ryusuke@gmail.com
-Fixes: e912a5b66837 ("nilfs2: use root object to get ifile")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+7381dc4ad60658ca4c05@syzkaller.appspotmail.com
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/Yz5L1uxQYR1VqFtJ@monkey
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: James Houghton <jthoughton@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Prakash Sangappa <prakash.sangappa@oracle.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure
-+++ a/fs/nilfs2/segment.c
-@@ -2786,10 +2786,9 @@ int nilfs_attach_log_writer(struct super
- 	inode_attach_wb(nilfs->ns_bdev->bd_inode, NULL);
- 
- 	err = nilfs_segctor_start_thread(nilfs->ns_writer);
--	if (err) {
--		kfree(nilfs->ns_writer);
--		nilfs->ns_writer = NULL;
--	}
-+	if (unlikely(err))
-+		nilfs_detach_log_writer(sb);
-+
- 	return err;
+--- a/mm/hugetlb.c~hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer-fix
++++ a/mm/hugetlb.c
+@@ -6847,7 +6847,7 @@ void __hugetlb_vma_unlock_write_put(stru
+ 	kref_put(&vma_lock->refs, hugetlb_vma_lock_release);
  }
  
+-void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma)
++static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma)
+ {
+ 	if (__vma_shareable_flags_pmd(vma)) {
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+@@ -7019,6 +7019,10 @@ void hugetlb_vma_lock_release(struct kre
+ {
+ }
+ 
++static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma)
++{
++}
++
+ static void hugetlb_vma_lock_free(struct vm_area_struct *vma)
+ {
+ }
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-nilfs2-fix-use-after-free-bug-of-struct-nilfs_root.patch
-nilfs2-fix-null-pointer-dereference-at-nilfs_bmap_lookup_at_level.patch
-nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure.patch
-nilfs2-replace-warn_ons-by-nilfs_error-for-checkpoint-acquisition-failure.patch
+hugetlb-fix-vma-lock-handling-during-split-vma-and-range-unmapping.patch
+hugetlb-take-hugetlb-vma_lock-when-clearing-vma_lock-vma-pointer.patch
+hugetlb-allocate-vma-lock-for-all-sharable-vmas.patch
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
 
