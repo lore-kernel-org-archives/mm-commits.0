@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 043BDC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Oct 2022 18:59:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5750CC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Oct 2022 19:06:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229477AbiJKS7Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Oct 2022 14:59:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48272 "EHLO
+        id S229987AbiJKTGK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Oct 2022 15:06:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229480AbiJKS7W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 14:59:22 -0400
+        with ESMTP id S230072AbiJKTF5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 15:05:57 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B26BF87F90;
-        Tue, 11 Oct 2022 11:59:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61E97B85D;
+        Tue, 11 Oct 2022 12:05:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A9469B811DC;
-        Tue, 11 Oct 2022 18:59:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03FECC433D6;
-        Tue, 11 Oct 2022 18:59:08 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 17A49B8166B;
+        Tue, 11 Oct 2022 19:05:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8853AC433D6;
+        Tue, 11 Oct 2022 19:05:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665514749;
-        bh=Gkvc3jF/zL7iEIbkbjwzKsWG2kmu39r873TdMLwuCLE=;
+        s=k20201202; t=1665515150;
+        bh=ODHx9TW1R0DNxJe9ifRLST7AHBUBOdF+OZpirGF8FL0=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=nu+hI5SvjmsS9pEvu4gLOa/dluQAqzudZOSl1IMVCFtDjquRFMbutpCmtwtKn8J7I
-         xU37FZnBeXgtT7a3y0dOHfCOF6C9h3P/RJr7Qq6932wernuchOkOBrNTksbK5/epAs
-         s+0WO9xwWDzNqWL++wQsYINBlB5F7pD0WY1nOZ1z5RuYSSv+ChjhoNtmG9f5GXzZ7o
-         lSTniXJ2dC1eiymCvfwkdvrB47MU/pgt6tZdaxvzU1k03f3Tteo7I/b4DSz8i2Sdcf
-         /aba1ii5xRNPjmQMxfVIZU+Tkpy61GylHkm0/CD+9NmbDkVy0yU/N/RtYjgPIp4Vrr
-         aqo/pTwZg3miA==
-Date:   Tue, 11 Oct 2022 11:59:07 -0700
+        b=aMz05sO0s6UGqiZQacsgQpXGjClkqOx8sQLzSH3vIt49HhKC0i+B+Z+4fssQXq0b4
+         00S+4RQjeiJYsw2p688732UayPfQukF1wcY46jNLHsREM9avaAnXOxyaD8cUVUxrGR
+         pptN0uVjoEk1KWLe0gJtb8kqhJrus0Rg/OTAMbUBKvMryLX6ETM3ee+aFDnaZefZ+c
+         bcXRZ9NJIQxvaXjmH76ymH3ACT8kvTZqc5T+k5OpW1pw5M+wcfSg0XjgSAIOrivKnU
+         qbk51fk74ONUwne1ShIFKrTSYjA5P+N6AdE4HsyYmKxy4hk7vyMXTCYcoYAn3QGr3A
+         SDqYwfsIBnN5w==
+Date:   Tue, 11 Oct 2022 12:05:48 -0700
 From:   Josh Poimboeuf <jpoimboe@kernel.org>
 To:     Peter Zijlstra <peterz@infradead.org>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
@@ -40,57 +40,49 @@ Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         Andrey Konovalov <andreyknvl@google.com>,
         mm-commits@vger.kernel.org, linux-mm@kvack.org,
         linux-kernel@vger.kernel.org
-Subject: Re: [GIT PULL] MM updates for 6.1-rc1
-Message-ID: <20221011185907.s3kakdlrxcqr6boh@treble>
+Subject: [PATCH] kasan: disable stackleak plugin in report code
+Message-ID: <20221011190548.blixlqj6dripitaf@treble>
 References: <20221008132113.919b9b894426297de78ac00f@linux-foundation.org>
  <CAHk-=wigZoriP8ZB+V87Jf+EQV=ka6DQe_HCAQmh3Dmus2FFhw@mail.gmail.com>
  <Y0UoO2+NsJjbZtaf@hirez.programming.kicks-ass.net>
  <20221011184444.npthr2pmzqb32x6z@treble>
+ <20221011185907.s3kakdlrxcqr6boh@treble>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20221011184444.npthr2pmzqb32x6z@treble>
+In-Reply-To: <20221011185907.s3kakdlrxcqr6boh@treble>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, Oct 11, 2022 at 11:44:46AM -0700, Josh Poimboeuf wrote:
-> On Tue, Oct 11, 2022 at 10:24:27AM +0200, Peter Zijlstra wrote:
-> > On Mon, Oct 10, 2022 at 06:20:00PM -0700, Linus Torvalds wrote:
-> > > The other thing I notice from just doing a build is that I now get
-> > > 
-> > >    vmlinux.o: warning: objtool: kasan_report+0x12: call to
-> > > stackleak_track_stack() with UACCESS enabled
-> > 
-> > So kasan_report() is already marked as being special; and it does the
-> > mandatory user_access_save() / user_access_restore() things to fix it
-> > up.
-> > 
-> > But it looks like kasan code itself is now getting instrumented by the
-> > stackleak stuff and that inserts a call outside of the
-> > user_access_save()/restore() thing, and *that* is getting flagged.
-> > 
-> > Looking at mm/kasan/Makefile it disables a lot of the instrumentation,
-> > but perhaps not enough?
-> 
-> I can recreate, but weirdly the below doesn't seem to fix it.
+kasan_report() has a uaccess critical section which can't have any
+instrumentation calls in the middle.  Disable the stackleak plugin for
+the report code.
 
-Duh, because kmsan != stackleak, obviously...
+Fixes the following warning:
 
-> 
-> diff --git a/mm/kasan/Makefile b/mm/kasan/Makefile
-> index d4837bff3b60..a41cf1235032 100644
-> --- a/mm/kasan/Makefile
-> +++ b/mm/kasan/Makefile
-> @@ -1,5 +1,6 @@
->  # SPDX-License-Identifier: GPL-2.0
->  KASAN_SANITIZE := n
-> +KMSAN_SANITIZE := n
->  UBSAN_SANITIZE := n
->  KCOV_INSTRUMENT := n
->  
-> 
+  vmlinux.o: warning: objtool: kasan_report+0x12: call to stackleak_track_stack() with UACCESS enabled
 
+Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
+---
+ mm/kasan/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mm/kasan/Makefile b/mm/kasan/Makefile
+index d4837bff3b60..da2976365197 100644
+--- a/mm/kasan/Makefile
++++ b/mm/kasan/Makefile
+@@ -27,7 +27,7 @@ CFLAGS_common.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_init.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_quarantine.o := $(CC_FLAGS_KASAN_RUNTIME)
+-CFLAGS_report.o := $(CC_FLAGS_KASAN_RUNTIME)
++CFLAGS_report.o := $(CC_FLAGS_KASAN_RUNTIME) $(DISABLE_STACKLEAK_PLUGIN)
+ CFLAGS_report_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_report_hw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
+ CFLAGS_report_sw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
 -- 
-Josh
+2.37.3
+
