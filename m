@@ -2,99 +2,106 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13565C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Oct 2022 21:14:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 449A4C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Oct 2022 01:20:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229682AbiJJVOB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 Oct 2022 17:14:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49736 "EHLO
+        id S229547AbiJKBU2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 Oct 2022 21:20:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41938 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229675AbiJJVOA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2022 17:14:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 713656DFB7
-        for <mm-commits@vger.kernel.org>; Mon, 10 Oct 2022 14:13:59 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 21CA5B810D6
-        for <mm-commits@vger.kernel.org>; Mon, 10 Oct 2022 21:13:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4E31C433C1;
-        Mon, 10 Oct 2022 21:13:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665436436;
-        bh=vDRJ7VvnTuB/T+sdedDzWlZZ+POj+e3eFNZT80dOlpc=;
-        h=Date:To:From:Subject:From;
-        b=ZSQz4iFIb5u3dsjzGk1QU+16id4AjQIbvgZjRzluWdEt9Ka8sxTEbiu5lUNk5fk0R
-         bvEn44YLHg8x5gf4jVGhZ9uIJ9V84f0NbOiTL/XAgacGXcnmwBNmAPtZTOh9gy5Z8M
-         qm6yaCE9iABOYuUz1Xzr2bMQOLkExdl4dNI+y1zg=
-Date:   Mon, 10 Oct 2022 14:13:55 -0700
-To:     mm-commits@vger.kernel.org, keescook@chromium.org,
-        yangtiezhu@loongson.cn, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + entry-remove-has_signal-comment-of-arch_do_signal_or_restart-prototype.patch added to mm-nonmm-unstable branch
-Message-Id: <20221010211356.C4E31C433C1@smtp.kernel.org>
+        with ESMTP id S229461AbiJKBUY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2022 21:20:24 -0400
+Received: from mail-oo1-xc2e.google.com (mail-oo1-xc2e.google.com [IPv6:2607:f8b0:4864:20::c2e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9068C1F2EF
+        for <mm-commits@vger.kernel.org>; Mon, 10 Oct 2022 18:20:20 -0700 (PDT)
+Received: by mail-oo1-xc2e.google.com with SMTP id d22-20020a4a5216000000b0047f740d5847so9052245oob.13
+        for <mm-commits@vger.kernel.org>; Mon, 10 Oct 2022 18:20:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=OBsU0GNWyfIKR8QJhJdP9cW2g/Tm8RsQ4/KCjmFrIcA=;
+        b=ZYVC0As2dCkDlVVlxAaYR+Vf5j5NHKgM7FosPug9FKJ5N7poc0XVAWPatSsmLcJT2t
+         hLId+80pcemqXzCYeaeUbvev6Avt0/+4+V1qVg8GDdlY0oReQH/zZH/TRufdS0zf7JZB
+         /cReB6BKayZEApCnRjZzHWK4YpRpUlNMWvxIY=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=OBsU0GNWyfIKR8QJhJdP9cW2g/Tm8RsQ4/KCjmFrIcA=;
+        b=OWpOw9vtbc884Nppzrh1ukQnc8InzNDuKPfvyAZlxH70TvfjglJdoh/nIWWpJCmNcX
+         iLJd4jMdv51YCvoXuqAiI8Rl6ur3yeI1zJTZVfDsiFChj730pyKu0XVkxQpMdiJ0b/KY
+         ROLmqKx1OY5LdPrciPOagj9/NaOPjniUoLnY5l8rR4+x1gy/M6JKxSjCQ5mkOv3K1RgX
+         tymb89w5vN1brAV0zJwd6OJhGFrdZnzi72G3en0M6DyX6APwKJd01S1YvIMgHTobZcq4
+         4bYXijC6LePIw08wkphwvg+C8J9YVRCbSGApyDz3ThYCWheNt9OqydeUOi15OGs2gaqE
+         0tSg==
+X-Gm-Message-State: ACrzQf1gLDvX8pJOyjPwos7sWe41bT+huuoJfk5Tr0FKCvsFup/1rkQP
+        wgpNFhEAzxlo2xJjx5DjVmU/FUMd57T4LQ==
+X-Google-Smtp-Source: AMsMyM6q1zLBUWToQRgKb1rzwuQ20iw1c21bnN6r90Uob03jXTgnkw3Hj2eEZRcq2ViiY/0wVKoEKw==
+X-Received: by 2002:a4a:a78a:0:b0:472:a078:98d6 with SMTP id l10-20020a4aa78a000000b00472a07898d6mr8217179oom.97.1665451219443;
+        Mon, 10 Oct 2022 18:20:19 -0700 (PDT)
+Received: from mail-oi1-f177.google.com (mail-oi1-f177.google.com. [209.85.167.177])
+        by smtp.gmail.com with ESMTPSA id w12-20020a056830144c00b006618bbede10sm3969356otp.53.2022.10.10.18.20.16
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 10 Oct 2022 18:20:17 -0700 (PDT)
+Received: by mail-oi1-f177.google.com with SMTP id g130so14382763oia.13
+        for <mm-commits@vger.kernel.org>; Mon, 10 Oct 2022 18:20:16 -0700 (PDT)
+X-Received: by 2002:a54:4899:0:b0:354:add8:52ab with SMTP id
+ r25-20020a544899000000b00354add852abmr2158006oic.229.1665451216585; Mon, 10
+ Oct 2022 18:20:16 -0700 (PDT)
+MIME-Version: 1.0
+References: <20221008132113.919b9b894426297de78ac00f@linux-foundation.org>
+In-Reply-To: <20221008132113.919b9b894426297de78ac00f@linux-foundation.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Mon, 10 Oct 2022 18:20:00 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wigZoriP8ZB+V87Jf+EQV=ka6DQe_HCAQmh3Dmus2FFhw@mail.gmail.com>
+Message-ID: <CAHk-=wigZoriP8ZB+V87Jf+EQV=ka6DQe_HCAQmh3Dmus2FFhw@mail.gmail.com>
+Subject: Re: [GIT PULL] MM updates for 6.1-rc1
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Alexander Potapenko <glider@google.com>,
+        Andrey Konovalov <andreyknvl@google.com>,
+        Josh Poimboeuf <jpoimboe@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Sat, Oct 8, 2022 at 1:21 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> Alexander Potapenko (43):
+>       crypto: kmsan: disable accelerated configs under KMSAN
 
-The patch titled
-     Subject: include/linux/entry-common.h: remove has_signal comment of arch_do_signal_or_restart() prototype
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     entry-remove-has_signal-comment-of-arch_do_signal_or_restart-prototype.patch
+Ok, so this conflicted pretty badly with the crypto tree having
+re-organized their Kconfig files.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/entry-remove-has_signal-comment-of-arch_do_signal_or_restart-prototype.patch
+I channelled my inner Alexander the Great, and just cut the whole
+thing through by disabling all the architecture-accelerated crypto
+includes when KMSAN was enabled.
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+ But that's very different from your tree that disabled the options
+individually, so some KMSAN person should probably look around at it
+and decide whether some more subtle approach is called for.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+The other thing I notice from just doing a build is that I now get
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+   vmlinux.o: warning: objtool: kasan_report+0x12: call to
+stackleak_track_stack() with UACCESS enabled
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+which may just be a "need to teach objtool this is ok", but I'm not
+seeing why it's now starting to happen. Maybe just code generation
+changed for some reason, or maybe it's just that config options ended
+up changing enough to expose this on my allmodconfig builds.
 
-------------------------------------------------------
-From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: include/linux/entry-common.h: remove has_signal comment of arch_do_signal_or_restart() prototype
-Date: Fri, 2 Sep 2022 11:41:46 +0800
+Cc'ing people who may know better.
 
-The argument has_signal of arch_do_signal_or_restart() has been removed in
-commit 8ba62d37949e ("task_work: Call tracehook_notify_signal from
-get_signal on all architectures"), let us remove the related comment.
+This is just my reaction from doing the merge and test-build. There
+may or may not be more commentary once I've actually tried to boot
+into this thing.
 
-Link: https://lkml.kernel.org/r/1662090106-5545-1-git-send-email-yangtiezhu@loongson.cn
-Fixes: 8ba62d37949e ("task_work: Call tracehook_notify_signal from get_signal on all architectures")
-Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/entry-common.h |    1 -
- 1 file changed, 1 deletion(-)
-
---- a/include/linux/entry-common.h~entry-remove-has_signal-comment-of-arch_do_signal_or_restart-prototype
-+++ a/include/linux/entry-common.h
-@@ -253,7 +253,6 @@ static __always_inline void arch_exit_to
- /**
-  * arch_do_signal_or_restart -  Architecture specific signal delivery function
-  * @regs:	Pointer to currents pt_regs
-- * @has_signal:	actual signal to handle
-  *
-  * Invoked from exit_to_user_mode_loop().
-  */
-_
-
-Patches currently in -mm which might be from yangtiezhu@loongson.cn are
-
-entry-remove-has_signal-comment-of-arch_do_signal_or_restart-prototype.patch
-
+               Linus
