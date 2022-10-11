@@ -2,79 +2,96 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5750CC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Oct 2022 19:06:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65EF2C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Oct 2022 21:11:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229987AbiJKTGK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Oct 2022 15:06:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38792 "EHLO
+        id S229505AbiJKVLr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Oct 2022 17:11:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230072AbiJKTF5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 15:05:57 -0400
+        with ESMTP id S229501AbiJKVLq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 17:11:46 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61E97B85D;
-        Tue, 11 Oct 2022 12:05:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E11F694134
+        for <mm-commits@vger.kernel.org>; Tue, 11 Oct 2022 14:11:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 17A49B8166B;
-        Tue, 11 Oct 2022 19:05:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8853AC433D6;
-        Tue, 11 Oct 2022 19:05:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665515150;
-        bh=ODHx9TW1R0DNxJe9ifRLST7AHBUBOdF+OZpirGF8FL0=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=aMz05sO0s6UGqiZQacsgQpXGjClkqOx8sQLzSH3vIt49HhKC0i+B+Z+4fssQXq0b4
-         00S+4RQjeiJYsw2p688732UayPfQukF1wcY46jNLHsREM9avaAnXOxyaD8cUVUxrGR
-         pptN0uVjoEk1KWLe0gJtb8kqhJrus0Rg/OTAMbUBKvMryLX6ETM3ee+aFDnaZefZ+c
-         bcXRZ9NJIQxvaXjmH76ymH3ACT8kvTZqc5T+k5OpW1pw5M+wcfSg0XjgSAIOrivKnU
-         qbk51fk74ONUwne1ShIFKrTSYjA5P+N6AdE4HsyYmKxy4hk7vyMXTCYcoYAn3QGr3A
-         SDqYwfsIBnN5w==
-Date:   Tue, 11 Oct 2022 12:05:48 -0700
-From:   Josh Poimboeuf <jpoimboe@kernel.org>
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Alexander Potapenko <glider@google.com>,
-        Andrey Konovalov <andreyknvl@google.com>,
-        mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] kasan: disable stackleak plugin in report code
-Message-ID: <20221011190548.blixlqj6dripitaf@treble>
-References: <20221008132113.919b9b894426297de78ac00f@linux-foundation.org>
- <CAHk-=wigZoriP8ZB+V87Jf+EQV=ka6DQe_HCAQmh3Dmus2FFhw@mail.gmail.com>
- <Y0UoO2+NsJjbZtaf@hirez.programming.kicks-ass.net>
- <20221011184444.npthr2pmzqb32x6z@treble>
- <20221011185907.s3kakdlrxcqr6boh@treble>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20221011185907.s3kakdlrxcqr6boh@treble>
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8E5FCB80EBA
+        for <mm-commits@vger.kernel.org>; Tue, 11 Oct 2022 21:11:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35004C433C1;
+        Tue, 11 Oct 2022 21:11:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1665522703;
+        bh=E92beqt2aT7RU512thSFAx4PEOzggMelo+IVniH9DnQ=;
+        h=Date:To:From:Subject:From;
+        b=1Nd7Cn/GNkEdDRjEqMVAFK3ey4wD3hJrMYKz+hwSp+YvtiA2TiUhmySAjxwWEozOD
+         l11yu+BGSq8p4i4uC3RpV3M+vtve1yAuQu+si2S75pz1QwUSwJp6izdY5ZZd4FdBT4
+         vWjVbrju0tcS/PgZ9otRW6irLOQZ3Xb5rNf3wxgM=
+Date:   Tue, 11 Oct 2022 14:11:42 -0700
+To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        peterz@infradead.org, glider@google.com, andreyknvl@google.com,
+        jpoimboe@kernel.org, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + kasan-disable-stackleak-plugin-in-report-code.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221011211143.35004C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+
+The patch titled
+     Subject: kasan: disable stackleak plugin in report code
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kasan-disable-stackleak-plugin-in-report-code.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-disable-stackleak-plugin-in-report-code.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Josh Poimboeuf <jpoimboe@kernel.org>
+Subject: kasan: disable stackleak plugin in report code
+Date: Tue, 11 Oct 2022 12:05:48 -0700
+
 kasan_report() has a uaccess critical section which can't have any
-instrumentation calls in the middle.  Disable the stackleak plugin for
-the report code.
+instrumentation calls in the middle.  Disable the stackleak plugin for the
+report code.
 
 Fixes the following warning:
 
   vmlinux.o: warning: objtool: kasan_report+0x12: call to stackleak_track_stack() with UACCESS enabled
 
-Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+Link: https://lkml.kernel.org/r/20221011190548.blixlqj6dripitaf@treble
 Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
+Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- mm/kasan/Makefile | 2 +-
+
+ mm/kasan/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/mm/kasan/Makefile b/mm/kasan/Makefile
-index d4837bff3b60..da2976365197 100644
---- a/mm/kasan/Makefile
-+++ b/mm/kasan/Makefile
-@@ -27,7 +27,7 @@ CFLAGS_common.o := $(CC_FLAGS_KASAN_RUNTIME)
+--- a/mm/kasan/Makefile~kasan-disable-stackleak-plugin-in-report-code
++++ a/mm/kasan/Makefile
+@@ -27,7 +27,7 @@ CFLAGS_common.o := $(CC_FLAGS_KASAN_RUNT
  CFLAGS_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
  CFLAGS_init.o := $(CC_FLAGS_KASAN_RUNTIME)
  CFLAGS_quarantine.o := $(CC_FLAGS_KASAN_RUNTIME)
@@ -83,6 +100,9 @@ index d4837bff3b60..da2976365197 100644
  CFLAGS_report_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
  CFLAGS_report_hw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
  CFLAGS_report_sw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
--- 
-2.37.3
+_
+
+Patches currently in -mm which might be from jpoimboe@kernel.org are
+
+kasan-disable-stackleak-plugin-in-report-code.patch
 
