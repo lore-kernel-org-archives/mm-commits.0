@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0C04C4167E
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 02:06:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4BA8C43217
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 02:06:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229544AbiJLCGR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Oct 2022 22:06:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38814 "EHLO
+        id S229542AbiJLCGQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Oct 2022 22:06:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229480AbiJLCGO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 22:06:14 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C955A50F2
-        for <mm-commits@vger.kernel.org>; Tue, 11 Oct 2022 19:06:11 -0700 (PDT)
+        with ESMTP id S229501AbiJLCGM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 22:06:12 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74ACD7E82F;
+        Tue, 11 Oct 2022 19:06:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9BB8761351
-        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 02:06:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8431C433D6;
-        Wed, 12 Oct 2022 02:06:08 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BBD54B818CA;
+        Wed, 12 Oct 2022 02:06:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C422C433D7;
+        Wed, 12 Oct 2022 02:06:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665540369;
-        bh=Xez8xp5d7hgPU2WcPf+KpTTY7x/XR2WEiFFg4xveKPM=;
+        s=korg; t=1665540366;
+        bh=IqRavcZ9DuV0ATv07+MGKBOzKm/aPG2lim3GbVDuOKI=;
         h=Date:To:From:Subject:From;
-        b=HBGA0WIE40EZWZQdF3c6lmOoV+DyfEPqSUO1JuavqoeXm03ImmNLAky7WtLU3DP3B
-         QL/mCkU7LHgISeDuuxIYoy0rwhtszffBoAhRvg4EZSp0sM+YObWsWK2w+5CZUzxPq9
-         Vssi4ebUVlqlSxyv0Pbfg7Zx3VJmV/+0599twl/0=
-Date:   Tue, 11 Oct 2022 19:06:08 -0700
-To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        peterz@infradead.org, glider@google.com, andreyknvl@google.com,
-        jpoimboe@kernel.org, akpm@linux-foundation.org
+        b=pj8bu6KeBFfCJUiDrry2EyI2K4ZAkzcGyijKYqOiBPTvkjaCmbLF6UAdWq6ypZ9W3
+         br1NAij9KrN4R8/SNLq0u1x7DBAoo3jAoIxF+sKn72VJimr9t4Qe2+B7wq2Qhd8NHe
+         dfeHX+jIUAwjWZXWfeR6tICBWMOtA9B0FBg/ezS0=
+Date:   Tue, 11 Oct 2022 19:06:05 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        penguin-kernel@I-love.SAKURA.ne.jp, konishi.ryusuke@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kasan-disable-stackleak-plugin-in-report-code.patch removed from -mm tree
-Message-Id: <20221012020608.E8431C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-null-pointer-dereference-at-nilfs_bmap_lookup_at_level.patch removed from -mm tree
+Message-Id: <20221012020606.5C422C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,51 +42,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: disable stackleak plugin in report code
+     Subject: nilfs2: fix NULL pointer dereference at nilfs_bmap_lookup_at_level()
 has been removed from the -mm tree.  Its filename was
-     kasan-disable-stackleak-plugin-in-report-code.patch
+     nilfs2-fix-null-pointer-dereference-at-nilfs_bmap_lookup_at_level.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Josh Poimboeuf <jpoimboe@kernel.org>
-Subject: kasan: disable stackleak plugin in report code
-Date: Tue, 11 Oct 2022 12:05:48 -0700
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix NULL pointer dereference at nilfs_bmap_lookup_at_level()
+Date: Sun, 2 Oct 2022 12:08:04 +0900
 
-kasan_report() has a uaccess critical section which can't have any
-instrumentation calls in the middle.  Disable the stackleak plugin for the
-report code.
+If the i_mode field in inode of metadata files is corrupted on disk, it
+can cause the initialization of bmap structure, which should have been
+called from nilfs_read_inode_common(), not to be called.  This causes a
+lockdep warning followed by a NULL pointer dereference at
+nilfs_bmap_lookup_at_level().
 
-Fixes the following warning:
+This patch fixes these issues by adding a missing sanitiy check for the
+i_mode field of metadata file's inode.
 
-  vmlinux.o: warning: objtool: kasan_report+0x12: call to stackleak_track_stack() with UACCESS enabled
-
-Link: https://lkml.kernel.org/r/20221011190548.blixlqj6dripitaf@treble
-Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
-Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20221002030804.29978-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+2b32eb36c1a825b7a74c@syzkaller.appspotmail.com
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/kasan/Makefile~kasan-disable-stackleak-plugin-in-report-code
-+++ a/mm/kasan/Makefile
-@@ -27,7 +27,7 @@ CFLAGS_common.o := $(CC_FLAGS_KASAN_RUNT
- CFLAGS_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_init.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_quarantine.o := $(CC_FLAGS_KASAN_RUNTIME)
--CFLAGS_report.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_report.o := $(CC_FLAGS_KASAN_RUNTIME) $(DISABLE_STACKLEAK_PLUGIN)
- CFLAGS_report_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_report_hw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_report_sw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
+--- a/fs/nilfs2/inode.c~nilfs2-fix-null-pointer-dereference-at-nilfs_bmap_lookup_at_level
++++ a/fs/nilfs2/inode.c
+@@ -455,6 +455,8 @@ int nilfs_read_inode_common(struct inode
+ 	inode->i_atime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
+ 	inode->i_ctime.tv_nsec = le32_to_cpu(raw_inode->i_ctime_nsec);
+ 	inode->i_mtime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
++	if (nilfs_is_metadata_file_inode(inode) && !S_ISREG(inode->i_mode))
++		return -EIO; /* this inode is for metadata and corrupted */
+ 	if (inode->i_nlink == 0)
+ 		return -ESTALE; /* this inode is deleted */
+ 
 _
 
-Patches currently in -mm which might be from jpoimboe@kernel.org are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
+nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure.patch
 
