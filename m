@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA710C43217
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 22:58:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFF96C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 22:58:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229491AbiJLW62 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Oct 2022 18:58:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42998 "EHLO
+        id S229495AbiJLW6p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Oct 2022 18:58:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229685AbiJLW54 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2022 18:57:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CD9311C6FE
+        with ESMTP id S229696AbiJLW55 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2022 18:57:57 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E34FD120BCE
         for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 15:57:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 91E3F61668
-        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 22:57:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2991C433C1;
-        Wed, 12 Oct 2022 22:57:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DF2BDB81BE0
+        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 22:57:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 950E9C4314A;
+        Wed, 12 Oct 2022 22:57:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665615457;
-        bh=hCUX/ozR/EPxoOubKG1AdECnuHsNR5RAC3PcoHCBlNM=;
+        s=korg; t=1665615455;
+        bh=g3pnL8U4vDv2PPc+dDIn2RslWoM3cQfnAOtJPR5vSNU=;
         h=Date:To:From:Subject:From;
-        b=mkI7wmkJ4YWahPZoYRMY6cGXwDXKKb7tm27a01YDxZHLch0Ye1jYVmQidCgZbUhoS
-         l8YyBP5kG+UpoRvb3wxEYmsxHfKdhLPXYjMsbP5OhLrgy4tzsbK0aHLXYkwxBgDcV1
-         CulEsJsRhvx5K+fJAgK6AF8sMEq1KZ0xBzSWyeYo=
-Date:   Wed, 12 Oct 2022 15:57:36 -0700
+        b=x7oa8YMoOwjRhTanZTzSlKT/oADRTgzq9GM4/LGmrUr7By4jv1N6WqdxMwutZEmpb
+         LV01iSPXHZGs6ftf/KvrZpOClqFQT3k+vMKGvfbdjlyZ6RKuv5pnfyThtubi3XuK6l
+         qQ2MKJ9C7uzuHtNxlAhVENl7I1tP5PNL03Irb9Lw=
+Date:   Wed, 12 Oct 2022 15:57:34 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         willy@infradead.org, shy828301@gmail.com, rcampbell@nvidia.com,
         mpe@ellerman.id.au, lyude@redhat.com, jhubbard@nvidia.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         bskeggs@redhat.com, alex.sierra@amd.com, alexander.deucher@amd.com,
         apopple@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] nouveau-dmem-evict-device-private-memory-during-release.patch removed from -mm tree
-Message-Id: <20221012225736.E2991C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] nouveau-dmem-refactor-nouveau_dmem_fault_copy_one.patch removed from -mm tree
+Message-Id: <20221012225735.950E9C4314A@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,30 +46,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nouveau/dmem: evict device private memory during release
+     Subject: nouveau/dmem: refactor nouveau_dmem_fault_copy_one()
 has been removed from the -mm tree.  Its filename was
-     nouveau-dmem-evict-device-private-memory-during-release.patch
+     nouveau-dmem-refactor-nouveau_dmem_fault_copy_one.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: nouveau/dmem: evict device private memory during release
-Date: Wed, 28 Sep 2022 22:01:21 +1000
+Subject: nouveau/dmem: refactor nouveau_dmem_fault_copy_one()
+Date: Wed, 28 Sep 2022 22:01:20 +1000
 
-When the module is unloaded or a GPU is unbound from the module it is
-possible for device private pages to still be mapped in currently running
-processes.  This can lead to a hangs and RCU stall warnings when unbinding
-the device as memunmap_pages() will wait in an uninterruptible state until
-all device pages have been freed which may never happen.
+nouveau_dmem_fault_copy_one() is used during handling of CPU faults via
+the migrate_to_ram() callback and is used to copy data from GPU to CPU
+memory.  It is currently specific to fault handling, however a future
+patch implementing eviction of data during teardown needs similar
+functionality.
 
-Fix this by migrating device mappings back to normal CPU memory prior to
-freeing the GPU memory chunks and associated device private pages.
+Refactor out the core functionality so that it is not specific to fault
+handling.
 
-Link: https://lkml.kernel.org/r/66277601fb8fda9af408b33da9887192bf895bda.1664366292.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/20573d7b4e641a78fde9935f948e64e71c9e709e.1664366292.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Cc: Lyude Paul <lyude@redhat.com>
+Reviewed-by: Lyude Paul <lyude@redhat.com>
 Cc: Ben Skeggs <bskeggs@redhat.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
@@ -88,78 +88,108 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_dmem.c |   48 +++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ drivers/gpu/drm/nouveau/nouveau_dmem.c |   58 +++++++++++------------
+ 1 file changed, 28 insertions(+), 30 deletions(-)
 
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~nouveau-dmem-evict-device-private-memory-during-release
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~nouveau-dmem-refactor-nouveau_dmem_fault_copy_one
 +++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -367,6 +367,52 @@ nouveau_dmem_suspend(struct nouveau_drm
- 	mutex_unlock(&drm->dmem->mutex);
+@@ -139,44 +139,24 @@ static void nouveau_dmem_fence_done(stru
+ 	}
  }
  
-+/*
-+ * Evict all pages mapping a chunk.
-+ */
-+static void
-+nouveau_dmem_evict_chunk(struct nouveau_dmem_chunk *chunk)
-+{
-+	unsigned long i, npages = range_len(&chunk->pagemap.range) >> PAGE_SHIFT;
-+	unsigned long *src_pfns, *dst_pfns;
-+	dma_addr_t *dma_addrs;
-+	struct nouveau_fence *fence;
-+
-+	src_pfns = kcalloc(npages, sizeof(*src_pfns), GFP_KERNEL);
-+	dst_pfns = kcalloc(npages, sizeof(*dst_pfns), GFP_KERNEL);
-+	dma_addrs = kcalloc(npages, sizeof(*dma_addrs), GFP_KERNEL);
-+
-+	migrate_device_range(src_pfns, chunk->pagemap.range.start >> PAGE_SHIFT,
-+			npages);
-+
-+	for (i = 0; i < npages; i++) {
-+		if (src_pfns[i] & MIGRATE_PFN_MIGRATE) {
-+			struct page *dpage;
-+
-+			/*
-+			 * _GFP_NOFAIL because the GPU is going away and there
-+			 * is nothing sensible we can do if we can't copy the
-+			 * data back.
-+			 */
-+			dpage = alloc_page(GFP_HIGHUSER | __GFP_NOFAIL);
-+			dst_pfns[i] = migrate_pfn(page_to_pfn(dpage));
-+			nouveau_dmem_copy_one(chunk->drm,
-+					migrate_pfn_to_page(src_pfns[i]), dpage,
-+					&dma_addrs[i]);
-+		}
-+	}
-+
-+	nouveau_fence_new(chunk->drm->dmem->migrate.chan, false, &fence);
-+	migrate_device_pages(src_pfns, dst_pfns, npages);
-+	nouveau_dmem_fence_done(&fence);
-+	migrate_device_finalize(src_pfns, dst_pfns, npages);
-+	kfree(src_pfns);
-+	kfree(dst_pfns);
-+	for (i = 0; i < npages; i++)
-+		dma_unmap_page(chunk->drm->dev->dev, dma_addrs[i], PAGE_SIZE, DMA_BIDIRECTIONAL);
-+	kfree(dma_addrs);
-+}
-+
- void
- nouveau_dmem_fini(struct nouveau_drm *drm)
+-static vm_fault_t nouveau_dmem_fault_copy_one(struct nouveau_drm *drm,
+-		struct vm_fault *vmf, struct migrate_vma *args,
+-		dma_addr_t *dma_addr)
++static int nouveau_dmem_copy_one(struct nouveau_drm *drm, struct page *spage,
++				struct page *dpage, dma_addr_t *dma_addr)
  {
-@@ -378,8 +424,10 @@ nouveau_dmem_fini(struct nouveau_drm *dr
- 	mutex_lock(&drm->dmem->mutex);
+ 	struct device *dev = drm->dev->dev;
+-	struct page *dpage, *spage;
+-	struct nouveau_svmm *svmm;
+-
+-	spage = migrate_pfn_to_page(args->src[0]);
+-	if (!spage || !(args->src[0] & MIGRATE_PFN_MIGRATE))
+-		return 0;
  
- 	list_for_each_entry_safe(chunk, tmp, &drm->dmem->chunks, list) {
-+		nouveau_dmem_evict_chunk(chunk);
- 		nouveau_bo_unpin(chunk->bo);
- 		nouveau_bo_ref(NULL, &chunk->bo);
-+		WARN_ON(chunk->callocated);
- 		list_del(&chunk->list);
- 		memunmap_pages(&chunk->pagemap);
- 		release_mem_region(chunk->pagemap.range.start,
+-	dpage = alloc_page_vma(GFP_HIGHUSER, vmf->vma, vmf->address);
+-	if (!dpage)
+-		return VM_FAULT_SIGBUS;
+ 	lock_page(dpage);
+ 
+ 	*dma_addr = dma_map_page(dev, dpage, 0, PAGE_SIZE, DMA_BIDIRECTIONAL);
+ 	if (dma_mapping_error(dev, *dma_addr))
+-		goto error_free_page;
++		return -EIO;
+ 
+-	svmm = spage->zone_device_data;
+-	mutex_lock(&svmm->mutex);
+-	nouveau_svmm_invalidate(svmm, args->start, args->end);
+ 	if (drm->dmem->migrate.copy_func(drm, 1, NOUVEAU_APER_HOST, *dma_addr,
+-			NOUVEAU_APER_VRAM, nouveau_dmem_page_addr(spage)))
+-		goto error_dma_unmap;
+-	mutex_unlock(&svmm->mutex);
++					 NOUVEAU_APER_VRAM, nouveau_dmem_page_addr(spage))) {
++		dma_unmap_page(dev, *dma_addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
++		return -EIO;
++	}
+ 
+-	args->dst[0] = migrate_pfn(page_to_pfn(dpage));
+ 	return 0;
+-
+-error_dma_unmap:
+-	mutex_unlock(&svmm->mutex);
+-	dma_unmap_page(dev, *dma_addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
+-error_free_page:
+-	__free_page(dpage);
+-	return VM_FAULT_SIGBUS;
+ }
+ 
+ static vm_fault_t nouveau_dmem_migrate_to_ram(struct vm_fault *vmf)
+@@ -184,9 +164,11 @@ static vm_fault_t nouveau_dmem_migrate_t
+ 	struct nouveau_drm *drm = page_to_drm(vmf->page);
+ 	struct nouveau_dmem *dmem = drm->dmem;
+ 	struct nouveau_fence *fence;
++	struct nouveau_svmm *svmm;
++	struct page *spage, *dpage;
+ 	unsigned long src = 0, dst = 0;
+ 	dma_addr_t dma_addr = 0;
+-	vm_fault_t ret;
++	vm_fault_t ret = 0;
+ 	struct migrate_vma args = {
+ 		.vma		= vmf->vma,
+ 		.start		= vmf->address,
+@@ -207,9 +189,25 @@ static vm_fault_t nouveau_dmem_migrate_t
+ 	if (!args.cpages)
+ 		return 0;
+ 
+-	ret = nouveau_dmem_fault_copy_one(drm, vmf, &args, &dma_addr);
+-	if (ret || dst == 0)
++	spage = migrate_pfn_to_page(src);
++	if (!spage || !(src & MIGRATE_PFN_MIGRATE))
++		goto done;
++
++	dpage = alloc_page_vma(GFP_HIGHUSER, vmf->vma, vmf->address);
++	if (!dpage)
++		goto done;
++
++	dst = migrate_pfn(page_to_pfn(dpage));
++
++	svmm = spage->zone_device_data;
++	mutex_lock(&svmm->mutex);
++	nouveau_svmm_invalidate(svmm, args.start, args.end);
++	ret = nouveau_dmem_copy_one(drm, spage, dpage, &dma_addr);
++	mutex_unlock(&svmm->mutex);
++	if (ret) {
++		ret = VM_FAULT_SIGBUS;
+ 		goto done;
++	}
+ 
+ 	nouveau_fence_new(dmem->migrate.chan, false, &fence);
+ 	migrate_vma_pages(&args);
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
 
+nouveau-dmem-evict-device-private-memory-during-release.patch
 hmm-tests-add-test-for-migrate_device_range.patch
 
