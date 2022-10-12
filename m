@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D894EC4167B
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 22:58:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CB4DC43217
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 22:58:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229722AbiJLW64 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Oct 2022 18:58:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42994 "EHLO
+        id S229662AbiJLW6w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Oct 2022 18:58:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229729AbiJLW60 (ORCPT
+        with ESMTP id S229650AbiJLW60 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2022 18:58:26 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7075612792C
-        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 15:57:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0755712C89A
+        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 15:57:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2F437B819BB
-        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 22:57:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4791C433B5;
-        Wed, 12 Oct 2022 22:57:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8247BB81CAD
+        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 22:57:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29FE3C433D6;
+        Wed, 12 Oct 2022 22:57:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665615468;
-        bh=0R74aLvgzuSnfzIayWBuszafMzttISj/nRKP8lifEsE=;
+        s=korg; t=1665615464;
+        bh=35op6JIDgyKD+dJIyKjok1MRWSBKUfN3VP3kOQ3Mtlg=;
         h=Date:To:From:Subject:From;
-        b=Ap8VaOQ0e8ZiPCSA9KDL3lgLJbrob7SywxKMWhdQzT7Ym48lrgtyi1CcifKoYY/z7
-         fAblkj8kGX0CbHaqEI+Dz/1Cvsj9hru+PNfGp8+CmTI+1dJmtTzNVwFadQyDUI91hv
-         R1T8aprfn4lO2nS/CPM0ZCFysfYisdIMzrf3vRI0=
-Date:   Wed, 12 Oct 2022 15:57:48 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        tglx@linutronix.de, lkp@intel.com, hch@lst.de,
-        fmdefrancesco@gmail.com, ira.weiny@intel.com,
+        b=gmWKFJIAW8Z1PiIvGza31wigCw1P1E1Vc1dLj79Nbv5gfy5O7o/dh2qaU7bCGu2+h
+         e+DEZq4SIu5BPy0UJQMF6YhwRqFn9K7EuO6lcreXtkS8gZCOYM2CA1ofFBWzCPqXsR
+         xrlZFF2NQdJbE3ZAeZFS63LBv+ahl6w1GEJB+k4U=
+Date:   Wed, 12 Oct 2022 15:57:43 -0700
+To:     mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com,
+        nadav.amit@gmail.com, mike.kravetz@oracle.com, david@redhat.com,
+        axelrasmussen@google.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] highmem-fix-kmap_to_page-for-kmap_local_page-addresses.patch removed from -mm tree
-Message-Id: <20221012225748.C4791C433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-fix-race-condition-of-uffd-missing-minor-handling.patch removed from -mm tree
+Message-Id: <20221012225744.29FE3C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,124 +43,191 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: highmem: fix kmap_to_page() for kmap_local_page() addresses
+     Subject: mm/hugetlb: fix race condition of uffd missing/minor handling
 has been removed from the -mm tree.  Its filename was
-     highmem-fix-kmap_to_page-for-kmap_local_page-addresses.patch
+     mm-hugetlb-fix-race-condition-of-uffd-missing-minor-handling.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: highmem: fix kmap_to_page() for kmap_local_page() addresses
-Date: Wed, 5 Oct 2022 21:05:55 -0700
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/hugetlb: fix race condition of uffd missing/minor handling
+Date: Tue, 4 Oct 2022 15:33:58 -0400
 
-kmap_to_page() is used to get the page for a virtual address which may
-be kmap'ed.  Unfortunately, kmap_local_page() stores mappings in a
-thread local array separate from kmap().  These mappings were not
-checked by the call.
+Patch series "mm/hugetlb: Fix selftest failures with write check", v3.
 
-Check the kmap_local_page() mappings and return the page if found.
+Currently akpm mm-unstable fails with uffd hugetlb private mapping test
+randomly on a write check.
 
-Because it is intended to remove kmap_to_page() add a warn on once to
-the kmap checks to flag potential issues early.
+The initial bisection of that points to the recent pmd unshare series, but
+it turns out there's no direction relationship with the series but only
+some timing change caused the race to start trigger.
 
-NOTE Due to 32bit x86 use of kmap local in iomap atmoic, KMAP_LOCAL does
-not require HIGHMEM to be set.  Therefore the support calls required a
-new KMAP_LOCAL section to fix 0day build errors.
+The race should be fixed in patch 1.  Patch 2 is a trivial cleanup on the
+similar race with hugetlb migrations, patch 3 comment on the write check
+so when anyone read it again it'll be clear why it's there.
 
-[akpm@linux-foundation.org: fix warning]
-Link: https://lkml.kernel.org/r/20221006040555.1502679-1-ira.weiny@intel.com
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Reported-by: Al Viro <viro@zeniv.linux.org.uk>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Hellwig <hch@lst.de>
+
+This patch (of 3):
+
+After the recent rework patchset of hugetlb locking on pmd sharing,
+kselftest for userfaultfd sometimes fails on hugetlb private tests with
+unexpected write fault checks.
+
+It turns out there's nothing wrong within the locking series regarding
+this matter, but it could have changed the timing of threads so it can
+trigger an old bug.
+
+The real bug is when we call hugetlb_no_page() we're not with the pgtable
+lock.  It means we're reading the pte values lockless.  It's perfectly
+fine in most cases because before we do normal page allocations we'll take
+the lock and check pte_same() again.  However before that, there are
+actually two paths on userfaultfd missing/minor handling that may directly
+move on with the fault process without checking the pte values.
+
+It means for these two paths we may be generating an uffd message based on
+an unstable pte, while an unstable pte can legally be anything as long as
+the modifier holds the pgtable lock.
+
+One example, which is also what happened in the failing kselftest and
+caused the test failure, is that for private mappings wr-protection
+changes can happen on one page.  While hugetlb_change_protection()
+generally requires pte being cleared before being changed, then there can
+be a race condition like:
+
+        thread 1                              thread 2
+        --------                              --------
+
+      UFFDIO_WRITEPROTECT                     hugetlb_fault
+        hugetlb_change_protection
+          pgtable_lock()
+          huge_ptep_modify_prot_start
+                                              pte==NULL
+                                              hugetlb_no_page
+                                                generate uffd missing event
+                                                even if page existed!!
+          huge_ptep_modify_prot_commit
+          pgtable_unlock()
+
+Fix this by rechecking the pte after pgtable lock for both userfaultfd
+missing & minor fault paths.
+
+This bug should have been around starting from uffd hugetlb introduced, so
+attaching a Fixes to the commit.  Also attach another Fixes to the minor
+support commit for easier tracking.
+
+Note that userfaultfd is actually fine with false positives (e.g.  caused
+by pte changed), but not wrong logical events (e.g.  caused by reading a
+pte during changing).  The latter can confuse the userspace, so the
+strictness is very much preferred.  E.g., MISSING event should never
+happen on the page after UFFDIO_COPY has correctly installed the page and
+returned.
+
+Link: https://lkml.kernel.org/r/20221004193400.110155-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20221004193400.110155-2-peterx@redhat.com
+Fixes: 1a1aad8a9b7b ("userfaultfd: hugetlbfs: add userfaultfd hugetlb hook")
+Fixes: 7677f7fd8be7 ("userfaultfd: add minor fault registration mode")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Co-developed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |   43 +++++++++++++++++++++++++++++++------------
- 1 file changed, 31 insertions(+), 12 deletions(-)
+ mm/hugetlb.c |   59 +++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 52 insertions(+), 7 deletions(-)
 
---- a/mm/highmem.c~highmem-fix-kmap_to_page-for-kmap_local_page-addresses
-+++ a/mm/highmem.c
-@@ -30,6 +30,17 @@
- #include <asm/tlbflush.h>
- #include <linux/vmalloc.h>
- 
-+#ifdef CONFIG_KMAP_LOCAL
-+static inline int kmap_local_calc_idx(int idx)
-+{
-+	return idx + KM_MAX_IDX * smp_processor_id();
-+}
-+
-+#ifndef arch_kmap_local_map_idx
-+#define arch_kmap_local_map_idx(idx, pfn)	kmap_local_calc_idx(idx)
-+#endif
-+#endif /* CONFIG_KMAP_LOCAL */
-+
- /*
-  * Virtual_count is not a pure "count".
-  *  0 means that it is not mapped, and has not been mapped
-@@ -142,12 +153,29 @@ pte_t *pkmap_page_table;
- 
- struct page *__kmap_to_page(void *vaddr)
- {
-+	unsigned long base = (unsigned long) vaddr & PAGE_MASK;
-+	struct kmap_ctrl *kctrl = &current->kmap_ctrl;
- 	unsigned long addr = (unsigned long)vaddr;
-+	int i;
- 
--	if (addr >= PKMAP_ADDR(0) && addr < PKMAP_ADDR(LAST_PKMAP)) {
--		int i = PKMAP_NR(addr);
-+	/* kmap() mappings */
-+	if (WARN_ON_ONCE(addr >= PKMAP_ADDR(0) &&
-+			 addr < PKMAP_ADDR(LAST_PKMAP)))
-+		return pte_page(pkmap_page_table[PKMAP_NR(addr)]);
-+
-+	/* kmap_local_page() mappings */
-+	if (WARN_ON_ONCE(base >= __fix_to_virt(FIX_KMAP_END) &&
-+			 base < __fix_to_virt(FIX_KMAP_BEGIN))) {
-+		for (i = 0; i < kctrl->idx; i++) {
-+			unsigned long base_addr;
-+			int idx;
- 
--		return pte_page(pkmap_page_table[i]);
-+			idx = arch_kmap_local_map_idx(i, pte_pfn(pteval));
-+			base_addr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
-+
-+			if (base_addr == base)
-+				return pte_page(kctrl->pteval[i]);
-+		}
- 	}
- 
- 	return virt_to_page(vaddr);
-@@ -462,10 +490,6 @@ static inline void kmap_local_idx_pop(vo
- # define arch_kmap_local_post_unmap(vaddr)		do { } while (0)
- #endif
- 
--#ifndef arch_kmap_local_map_idx
--#define arch_kmap_local_map_idx(idx, pfn)	kmap_local_calc_idx(idx)
--#endif
--
- #ifndef arch_kmap_local_unmap_idx
- #define arch_kmap_local_unmap_idx(idx, vaddr)	kmap_local_calc_idx(idx)
- #endif
-@@ -494,11 +518,6 @@ static inline bool kmap_high_unmap_local
- 	return false;
+--- a/mm/hugetlb.c~mm-hugetlb-fix-race-condition-of-uffd-missing-minor-handling
++++ a/mm/hugetlb.c
+@@ -5535,6 +5535,23 @@ static inline vm_fault_t hugetlb_handle_
+ 	return handle_userfault(&vmf, reason);
  }
  
--static inline int kmap_local_calc_idx(int idx)
--{
--	return idx + KM_MAX_IDX * smp_processor_id();
--}
--
- static pte_t *__kmap_pte;
++/*
++ * Recheck pte with pgtable lock.  Returns true if pte didn't change, or
++ * false if pte changed or is changing.
++ */
++static bool hugetlb_pte_stable(struct hstate *h, struct mm_struct *mm,
++			       pte_t *ptep, pte_t old_pte)
++{
++	spinlock_t *ptl;
++	bool same;
++
++	ptl = huge_pte_lock(h, mm, ptep);
++	same = pte_same(huge_ptep_get(ptep), old_pte);
++	spin_unlock(ptl);
++
++	return same;
++}
++
+ static vm_fault_t hugetlb_no_page(struct mm_struct *mm,
+ 			struct vm_area_struct *vma,
+ 			struct address_space *mapping, pgoff_t idx,
+@@ -5575,10 +5592,33 @@ static vm_fault_t hugetlb_no_page(struct
+ 		if (idx >= size)
+ 			goto out;
+ 		/* Check for page in userfault range */
+-		if (userfaultfd_missing(vma))
+-			return hugetlb_handle_userfault(vma, mapping, idx,
+-						       flags, haddr, address,
+-						       VM_UFFD_MISSING);
++		if (userfaultfd_missing(vma)) {
++			/*
++			 * Since hugetlb_no_page() was examining pte
++			 * without pgtable lock, we need to re-test under
++			 * lock because the pte may not be stable and could
++			 * have changed from under us.  Try to detect
++			 * either changed or during-changing ptes and retry
++			 * properly when needed.
++			 *
++			 * Note that userfaultfd is actually fine with
++			 * false positives (e.g. caused by pte changed),
++			 * but not wrong logical events (e.g. caused by
++			 * reading a pte during changing).  The latter can
++			 * confuse the userspace, so the strictness is very
++			 * much preferred.  E.g., MISSING event should
++			 * never happen on the page after UFFDIO_COPY has
++			 * correctly installed the page and returned.
++			 */
++			if (!hugetlb_pte_stable(h, mm, ptep, old_pte)) {
++				ret = 0;
++				goto out;
++			}
++
++			return hugetlb_handle_userfault(vma, mapping, idx, flags,
++							haddr, address,
++							VM_UFFD_MISSING);
++		}
  
- static pte_t *kmap_get_pte(unsigned long vaddr, int idx)
+ 		page = alloc_huge_page(vma, haddr, 0);
+ 		if (IS_ERR(page)) {
+@@ -5644,9 +5684,14 @@ static vm_fault_t hugetlb_no_page(struct
+ 		if (userfaultfd_minor(vma)) {
+ 			unlock_page(page);
+ 			put_page(page);
+-			return hugetlb_handle_userfault(vma, mapping, idx,
+-						       flags, haddr, address,
+-						       VM_UFFD_MINOR);
++			/* See comment in userfaultfd_missing() block above */
++			if (!hugetlb_pte_stable(h, mm, ptep, old_pte)) {
++				ret = 0;
++				goto out;
++			}
++			return hugetlb_handle_userfault(vma, mapping, idx, flags,
++							haddr, address,
++							VM_UFFD_MINOR);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from ira.weiny@intel.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
+mm-hugetlb-use-hugetlb_pte_stable-in-migration-race-check.patch
+mm-selftest-uffd-explain-the-write-missing-fault-check.patch
 
