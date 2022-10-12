@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 913EAC4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 01:51:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C1B5C43217
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 01:51:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229577AbiJLBvr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Oct 2022 21:51:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46908 "EHLO
+        id S229560AbiJLBvs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Oct 2022 21:51:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46942 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229560AbiJLBvn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 21:51:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68D537549A
-        for <mm-commits@vger.kernel.org>; Tue, 11 Oct 2022 18:51:42 -0700 (PDT)
+        with ESMTP id S229436AbiJLBvp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 21:51:45 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 122D4A486B
+        for <mm-commits@vger.kernel.org>; Tue, 11 Oct 2022 18:51:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F04716133B
-        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 01:51:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 501DCC433C1;
-        Wed, 12 Oct 2022 01:51:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C7851B80BFC
+        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 01:51:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85A20C433D6;
+        Wed, 12 Oct 2022 01:51:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665539501;
-        bh=4S8qIBzEEI3c4d3u5S8XuWWXBNhma+EPpm0kNh4awA8=;
+        s=korg; t=1665539502;
+        bh=g4gcIGsLzgokYqB8BZ7CduEZyzxK3/g31z/ws82Fn3s=;
         h=Date:To:From:Subject:From;
-        b=yb3JFIwtHIp5deQvg9FzbfBZS6nAjfI752L6SEtRLccSybrIFk5VPP0klCiwbZk9a
-         BiyHQhZIQEv9T07v/F7SswlcUjBjeGZINH7RWcXleIeFKBBJhO6/biygwpcv+yDNBI
-         qbnSMyae+Z7t9U/ZCY9/k8GGeBuQOBaRVRxqPn/0=
-Date:   Tue, 11 Oct 2022 18:51:40 -0700
+        b=aTDnteRZlv0r2Jw8s/BVBVrP1UGnBRPEfY+IqQCl6jH5DkYhL1Vb6uUuskMhrrqGo
+         Hr7EOp6BGQJ2To5lN/UHY8ALT/4/k2BMKUX8Fv7k+5zRuATT/JO6jqARZEdNc8s0Jr
+         aHbcdcdKdcNi4uHCHUnGzH0PktaFgapSMnu+luTo=
+Date:   Tue, 11 Oct 2022 18:51:41 -0700
 To:     mm-commits@vger.kernel.org, lukas.bulwahn@gmail.com,
-        akpm@linux-foundation.org
+        renzhijie2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ia64-update-config-files.patch removed from -mm tree
-Message-Id: <20221012015141.501DCC433C1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] init-kconfig-fix-unmet-direct-dependencies.patch removed from -mm tree
+Message-Id: <20221012015142.85A20C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,127 +41,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ia64: update config files
+     Subject: init/Kconfig: fix unmet direct dependencies
 has been removed from the -mm tree.  Its filename was
-     ia64-update-config-files.patch
+     init-kconfig-fix-unmet-direct-dependencies.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: ia64: update config files
-Date: Thu, 29 Sep 2022 12:14:41 +0200
+From: Ren Zhijie <renzhijie2@huawei.com>
+Subject: init/Kconfig: fix unmet direct dependencies
+Date: Thu, 29 Sep 2022 07:00:57 +0000
 
-Clean up config files by:
-  - removing configs that were deleted in the past
-  - removing configs not in tree and without recently pending patches
-  - adding new configs that are replacements for old configs in the file
+Commit 3c07bfce92a5 ("proc: make config PROC_CHILDREN depend on PROC_FS")
+make config PROC_CHILDREN depend on PROC_FS.
 
-For some detailed information, see Link.
+When CONFIG_PROC_FS is not set and CONFIG_CHECKPOINT_RESTORE=y,
+make menuconfig screams like this:
 
-Link: https://lore.kernel.org/kernel-janitors/20220929090645.1389-1-lukas.bulwahn@gmail.com/
+WARNING: unmet direct dependencies detected for PROC_CHILDREN
+  Depends on [n]: PROC_FS [=n]
+  Selected by [y]:
+  - CHECKPOINT_RESTORE [=y]
 
-Link: https://lkml.kernel.org/r/20220929101441.32009-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+CHECKPOINT_RESTORE would select PROC_CHILDREN which depends on PROC_FS,
+so add depends on PROC_FS to CHECKPOINT_RESTORE to fix this.
+
+Link: https://lkml.kernel.org/r/20220929070057.59044-1-renzhijie2@huawei.com
+Fixes: 3c07bfce92a5 ("proc: make config PROC_CHILDREN depend on PROC_FS")
+Signed-off-by: Ren Zhijie <renzhijie2@huawei.com>
+Reviewed-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/configs/bigsur_defconfig    |    2 --
- arch/ia64/configs/generic_defconfig   |    2 --
- arch/ia64/configs/gensparse_defconfig |    3 ---
- arch/ia64/configs/tiger_defconfig     |    2 --
- arch/ia64/configs/zx1_defconfig       |    1 -
- 5 files changed, 10 deletions(-)
+ init/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/ia64/configs/bigsur_defconfig~ia64-update-config-files
-+++ a/arch/ia64/configs/bigsur_defconfig
-@@ -20,7 +20,6 @@ CONFIG_UNIX=y
- CONFIG_INET=y
- # CONFIG_IPV6 is not set
- CONFIG_BLK_DEV_LOOP=m
--CONFIG_BLK_DEV_CRYPTOLOOP=m
- CONFIG_BLK_DEV_NBD=m
- CONFIG_BLK_DEV_RAM=m
- CONFIG_ATA=m
-@@ -91,7 +90,6 @@ CONFIG_NFS_V4=m
- CONFIG_NFSD=m
- CONFIG_NFSD_V4=y
- CONFIG_CIFS=m
--CONFIG_CIFS_STATS=y
- CONFIG_CIFS_XATTR=y
- CONFIG_CIFS_POSIX=y
- CONFIG_NLS_CODEPAGE_437=y
---- a/arch/ia64/configs/generic_defconfig~ia64-update-config-files
-+++ a/arch/ia64/configs/generic_defconfig
-@@ -39,7 +39,6 @@ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug
- CONFIG_CONNECTOR=y
- # CONFIG_PNP_DEBUG_MESSAGES is not set
- CONFIG_BLK_DEV_LOOP=m
--CONFIG_BLK_DEV_CRYPTOLOOP=m
- CONFIG_BLK_DEV_NBD=m
- CONFIG_BLK_DEV_RAM=y
- CONFIG_SGI_XP=m
-@@ -91,7 +90,6 @@ CONFIG_SERIAL_8250_SHARE_IRQ=y
- # CONFIG_HW_RANDOM is not set
- CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_EFI=y
--CONFIG_RAW_DRIVER=m
- CONFIG_HPET=y
- CONFIG_AGP=m
- CONFIG_AGP_I460=m
---- a/arch/ia64/configs/gensparse_defconfig~ia64-update-config-files
-+++ a/arch/ia64/configs/gensparse_defconfig
-@@ -31,11 +31,9 @@ CONFIG_IP_MULTICAST=y
- CONFIG_SYN_COOKIES=y
- # CONFIG_IPV6 is not set
- CONFIG_BLK_DEV_LOOP=m
--CONFIG_BLK_DEV_CRYPTOLOOP=m
- CONFIG_BLK_DEV_NBD=m
- CONFIG_BLK_DEV_RAM=y
- CONFIG_ATA=y
--CONFIG_BLK_DEV_IDECD=y
- CONFIG_ATA_GENERIC=y
- CONFIG_PATA_CMD64X=y
- CONFIG_ATA_PIIX=y
-@@ -81,7 +79,6 @@ CONFIG_SERIAL_8250_SHARE_IRQ=y
- # CONFIG_HW_RANDOM is not set
- CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_EFI=y
--CONFIG_RAW_DRIVER=m
- CONFIG_HPET=y
- CONFIG_AGP=m
- CONFIG_AGP_I460=m
---- a/arch/ia64/configs/tiger_defconfig~ia64-update-config-files
-+++ a/arch/ia64/configs/tiger_defconfig
-@@ -36,7 +36,6 @@ CONFIG_IP_MULTICAST=y
- CONFIG_SYN_COOKIES=y
- # CONFIG_IPV6 is not set
- CONFIG_BLK_DEV_LOOP=m
--CONFIG_BLK_DEV_CRYPTOLOOP=m
- CONFIG_BLK_DEV_NBD=m
- CONFIG_BLK_DEV_RAM=y
- CONFIG_ATA=y
-@@ -85,7 +84,6 @@ CONFIG_SERIAL_8250_SHARE_IRQ=y
- # CONFIG_HW_RANDOM is not set
- CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_EFI=y
--CONFIG_RAW_DRIVER=m
- CONFIG_HPET=y
- CONFIG_AGP=m
- CONFIG_AGP_I460=m
---- a/arch/ia64/configs/zx1_defconfig~ia64-update-config-files
-+++ a/arch/ia64/configs/zx1_defconfig
-@@ -30,7 +30,6 @@ CONFIG_PATA_CMD64X=y
- CONFIG_SCSI=y
- CONFIG_BLK_DEV_SD=y
- CONFIG_CHR_DEV_ST=y
--CONFIG_CHR_DEV_OSST=y
- CONFIG_BLK_DEV_SR=y
- CONFIG_CHR_DEV_SG=y
- CONFIG_SCSI_CONSTANTS=y
+--- a/init/Kconfig~init-kconfig-fix-unmet-direct-dependencies
++++ a/init/Kconfig
+@@ -1261,6 +1261,7 @@ endif # NAMESPACES
+ 
+ config CHECKPOINT_RESTORE
+ 	bool "Checkpoint/restore support"
++	depends on PROC_FS
+ 	select PROC_CHILDREN
+ 	select KCMP
+ 	default n
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from renzhijie2@huawei.com are
 
 
