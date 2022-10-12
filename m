@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90F02C433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 19:40:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DDB6C4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 21:02:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229477AbiJLTkM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Oct 2022 15:40:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32828 "EHLO
+        id S229526AbiJLVC3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Oct 2022 17:02:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229573AbiJLTkJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2022 15:40:09 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0513D2FFC8
-        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 12:40:09 -0700 (PDT)
+        with ESMTP id S230027AbiJLVCJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2022 17:02:09 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 862894F6AB
+        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 14:01:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A79CFB81AD1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 19:40:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52E25C433D6;
-        Wed, 12 Oct 2022 19:40:06 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 49DD6CE1C97
+        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 21:01:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86F79C433C1;
+        Wed, 12 Oct 2022 21:01:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665603606;
-        bh=39O432H1Sov6eZ57/wugtR9+1YdZBhc9jO2xh4Jnzt8=;
+        s=korg; t=1665608499;
+        bh=Pwnz6dHksp14q34GZo5Hx1rlGrfBamUaEsoMAzveMFI=;
         h=Date:To:From:Subject:From;
-        b=lVfHeq6lX2EYaRRjB7q8Gtcf3S2h+g1hnYOq3PjcYygrR3LVqaD+Za96X3BMV4G5j
-         C5/2QKKhw1yD8e7cbT8Mz2HTu6m0LcN9yf6GB2w5OxEzDgCI1ftWi3goecreUhWgfs
-         xh0aXwlkhBnPmMGpSO5rSWUISfb9E50RQHCYfUpM=
-Date:   Wed, 12 Oct 2022 12:40:05 -0700
-To:     mm-commits@vger.kernel.org, nicememory@gmail.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=0rVTo5XsE9ngjM90R+GR3mcrhUt4J8gCQgVRMqYy64uzvjpKB05kGGonfNGC2aSUi
+         2uLPAwvek7Ykpo3Q+PUHypg8VDQ3SiQajEZ+4NQvvdTmcocBqqtXZLau9Y8KeEFliC
+         UifyXSVqfD7c4M9jFQwjOIGTn067mG9sfORE7jTk=
+Date:   Wed, 12 Oct 2022 14:01:38 -0700
+To:     mm-commits@vger.kernel.org, joe@perches.com,
+        dan.carpenter@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ext4f2fs-fix-readahead-of-verity-data.patch added to mm-unstable branch
-Message-Id: <20221012194006.52E25C433D6@smtp.kernel.org>
+Subject: + mailmap-update-dan-carpenters-email-address.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221012210139.86F79C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4,f2fs: fix readahead of verity data
-has been added to the -mm mm-unstable branch.  Its filename is
-     ext4f2fs-fix-readahead-of-verity-data.patch
+     Subject: mailmap: update Dan Carpenter's email address
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mailmap-update-dan-carpenters-email-address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ext4f2fs-fix-readahead-of-verity-data.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-dan-carpenters-email-address.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,65 +64,35 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ext4,f2fs: fix readahead of verity data
-Date: Wed, 12 Oct 2022 20:34:19 +0100
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: mailmap: update Dan Carpenter's email address
+Date: Wed, 12 Oct 2022 16:19:39 +0300
 
-The recent change of page_cache_ra_unbounded() arguments was buggy in the
-two callers, causing us to readahead the wrong pages.  Move the definition
-of ractl down to after the index is set correctly.  This affected
-performance on configurations that use fs-verity.
+My time at Oracle is ending at the end of the month.  Update my email
+address accordingly.
 
-Link: https://lkml.kernel.org/r/20221012193419.1453558-1-willy@infradead.org
-Fixes: 73bb49da50cd ("mm/readahead: make page_cache_ra_unbounded take a readahead_control")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Jintao Yin <nicememory@gmail.com>
+Link: https://lkml.kernel.org/r/Y0a+6+5SHMdvUnpg@kili
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/verity.c |    3 ++-
- fs/f2fs/verity.c |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/ext4/verity.c~ext4f2fs-fix-readahead-of-verity-data
-+++ a/fs/ext4/verity.c
-@@ -365,13 +365,14 @@ static struct page *ext4_read_merkle_tre
- 					       pgoff_t index,
- 					       unsigned long num_ra_pages)
- {
--	DEFINE_READAHEAD(ractl, NULL, NULL, inode->i_mapping, index);
- 	struct page *page;
- 
- 	index += ext4_verity_metadata_pos(inode) >> PAGE_SHIFT;
- 
- 	page = find_get_page_flags(inode->i_mapping, index, FGP_ACCESSED);
- 	if (!page || !PageUptodate(page)) {
-+		DEFINE_READAHEAD(ractl, NULL, NULL, inode->i_mapping, index);
-+
- 		if (page)
- 			put_page(page);
- 		else if (num_ra_pages > 1)
---- a/fs/f2fs/verity.c~ext4f2fs-fix-readahead-of-verity-data
-+++ a/fs/f2fs/verity.c
-@@ -262,13 +262,14 @@ static struct page *f2fs_read_merkle_tre
- 					       pgoff_t index,
- 					       unsigned long num_ra_pages)
- {
--	DEFINE_READAHEAD(ractl, NULL, NULL, inode->i_mapping, index);
- 	struct page *page;
- 
- 	index += f2fs_verity_metadata_pos(inode) >> PAGE_SHIFT;
- 
- 	page = find_get_page_flags(inode->i_mapping, index, FGP_ACCESSED);
- 	if (!page || !PageUptodate(page)) {
-+		DEFINE_READAHEAD(ractl, NULL, NULL, inode->i_mapping, index);
-+
- 		if (page)
- 			put_page(page);
- 		else if (num_ra_pages > 1)
+--- a/.mailmap~mailmap-update-dan-carpenters-email-address
++++ a/.mailmap
+@@ -101,6 +101,7 @@ Christoph Hellwig <hch@lst.de>
+ Colin Ian King <colin.i.king@gmail.com> <colin.king@canonical.com>
+ Corey Minyard <minyard@acm.org>
+ Damian Hobson-Garcia <dhobsong@igel.co.jp>
++Dan Carpenter <error27@gmail.com> <dan.carpenter@oracle.com>
+ Daniel Borkmann <daniel@iogearbox.net> <danborkmann@googlemail.com>
+ Daniel Borkmann <daniel@iogearbox.net> <danborkmann@iogearbox.net>
+ Daniel Borkmann <daniel@iogearbox.net> <daniel.borkmann@tik.ee.ethz.ch>
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-ext4f2fs-fix-readahead-of-verity-data.patch
+mailmap-update-dan-carpenters-email-address.patch
 
