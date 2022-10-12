@@ -2,93 +2,84 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4BA8C43217
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 02:06:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9F83C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 02:10:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229542AbiJLCGQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Oct 2022 22:06:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38762 "EHLO
+        id S229514AbiJLCKr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Oct 2022 22:10:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229501AbiJLCGM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 22:06:12 -0400
+        with ESMTP id S229529AbiJLCKq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 22:10:46 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74ACD7E82F;
-        Tue, 11 Oct 2022 19:06:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABB127C1A6;
+        Tue, 11 Oct 2022 19:10:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BBD54B818CA;
-        Wed, 12 Oct 2022 02:06:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C422C433D7;
-        Wed, 12 Oct 2022 02:06:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 61D94B818D2;
+        Wed, 12 Oct 2022 02:10:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09DABC433C1;
+        Wed, 12 Oct 2022 02:10:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665540366;
-        bh=IqRavcZ9DuV0ATv07+MGKBOzKm/aPG2lim3GbVDuOKI=;
-        h=Date:To:From:Subject:From;
-        b=pj8bu6KeBFfCJUiDrry2EyI2K4ZAkzcGyijKYqOiBPTvkjaCmbLF6UAdWq6ypZ9W3
-         br1NAij9KrN4R8/SNLq0u1x7DBAoo3jAoIxF+sKn72VJimr9t4Qe2+B7wq2Qhd8NHe
-         dfeHX+jIUAwjWZXWfeR6tICBWMOtA9B0FBg/ezS0=
-Date:   Tue, 11 Oct 2022 19:06:05 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        penguin-kernel@I-love.SAKURA.ne.jp, konishi.ryusuke@gmail.com,
-        akpm@linux-foundation.org
+        s=korg; t=1665540643;
+        bh=RJsPlD+R+lbcrAiq/JGCorFaBDIETxw6ZRCUMKK2D/g=;
+        h=Date:From:To:Cc:Subject:From;
+        b=RSQ4TKEhIIBdzsEySkvEKV8CbvvjhpXZAj/USs9eYnFPLwesnPwCq2GVbPY7ZJTxl
+         IxhyoHHufeFuVLwlxcmh4oDvmTqAOTsNh6K/PlWzi9gCbWEf5pf/PUu8tMYEPg+Bmk
+         kKb1y4K8fIZoE1XMcD7NxaGPmw6I8F91sGIA96Po=
+Date:   Tue, 11 Oct 2022 19:10:42 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-null-pointer-dereference-at-nilfs_bmap_lookup_at_level.patch removed from -mm tree
-Message-Id: <20221012020606.5C422C433D7@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.1-rc1
+Message-Id: <20221011191042.ff46a7531fb68d05da1d2530@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: nilfs2: fix NULL pointer dereference at nilfs_bmap_lookup_at_level()
-has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-null-pointer-dereference-at-nilfs_bmap_lookup_at_level.patch
+Linus, please merge this small series of fixups.
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 1c8e2349f2d033f634d046063b704b2ca6c46972:
 
-------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix NULL pointer dereference at nilfs_bmap_lookup_at_level()
-Date: Sun, 2 Oct 2022 12:08:04 +0900
+  damon/sysfs: fix possible memleak on damon_sysfs_add_target (2022-09-30 18:46:31 -0700)
 
-If the i_mode field in inode of metadata files is corrupted on disk, it
-can cause the initialization of bmap structure, which should have been
-called from nilfs_read_inode_common(), not to be called.  This causes a
-lockdep warning followed by a NULL pointer dereference at
-nilfs_bmap_lookup_at_level().
+are available in the Git repository at:
 
-This patch fixes these issues by adding a missing sanitiy check for the
-i_mode field of metadata file's inode.
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-10-11
 
-Link: https://lkml.kernel.org/r/20221002030804.29978-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+2b32eb36c1a825b7a74c@syzkaller.appspotmail.com
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+for you to fetch changes up to d0d51a97063db4704a5ef6bc978dddab1636a306:
 
- fs/nilfs2/inode.c |    2 ++
- 1 file changed, 2 insertions(+)
+  nilfs2: fix leak of nilfs_root in case of writer thread creation failure (2022-10-11 19:05:45 -0700)
 
---- a/fs/nilfs2/inode.c~nilfs2-fix-null-pointer-dereference-at-nilfs_bmap_lookup_at_level
-+++ a/fs/nilfs2/inode.c
-@@ -455,6 +455,8 @@ int nilfs_read_inode_common(struct inode
- 	inode->i_atime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
- 	inode->i_ctime.tv_nsec = le32_to_cpu(raw_inode->i_ctime_nsec);
- 	inode->i_mtime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
-+	if (nilfs_is_metadata_file_inode(inode) && !S_ISREG(inode->i_mode))
-+		return -EIO; /* this inode is for metadata and corrupted */
- 	if (inode->i_nlink == 0)
- 		return -ESTALE; /* this inode is deleted */
- 
-_
+----------------------------------------------------------------
+Five hotfixes - three for nilfs2, two for MM.  For are cc:stable, one is
+not.
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+----------------------------------------------------------------
+Baolin Wang (1):
+      mm/hugetlb: fix races when looking up a CONT-PTE/PMD size hugetlb page
 
-nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure.patch
+Ryusuke Konishi (3):
+      nilfs2: fix use-after-free bug of struct nilfs_root
+      nilfs2: fix NULL pointer dereference at nilfs_bmap_lookup_at_level()
+      nilfs2: fix leak of nilfs_root in case of writer thread creation failure
+
+SeongJae Park (1):
+      mm/damon/core: initialize damon_target->list in damon_new_target()
+
+ fs/nilfs2/inode.c       | 19 ++++++++++++++++++-
+ fs/nilfs2/segment.c     |  7 +++----
+ include/linux/hugetlb.h |  8 ++++----
+ mm/damon/core.c         |  1 +
+ mm/gup.c                | 14 +++++++++++++-
+ mm/hugetlb.c            | 27 +++++++++++++--------------
+ 6 files changed, 52 insertions(+), 24 deletions(-)
 
