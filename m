@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B38E9C4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 02:06:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7335C4321E
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 02:06:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229591AbiJLCGP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Oct 2022 22:06:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38754 "EHLO
+        id S229540AbiJLCGQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Oct 2022 22:06:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229520AbiJLCGM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 22:06:12 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 129335924B;
-        Tue, 11 Oct 2022 19:06:08 -0700 (PDT)
+        with ESMTP id S229572AbiJLCGO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2022 22:06:14 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADAD0A50DA;
+        Tue, 11 Oct 2022 19:06:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 13D4BCE1A95;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D7E86134C;
+        Wed, 12 Oct 2022 02:06:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD8C7C433D6;
         Wed, 12 Oct 2022 02:06:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 357D3C433D6;
-        Wed, 12 Oct 2022 02:06:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665540365;
-        bh=ustdc5Ka9P+PhJ5oP4t1U2yFR5imlrzZWKZYa0TFqEY=;
+        s=korg; t=1665540367;
+        bh=MBtsSsti3goRMhyBXZ8vCDizFi/uNYMRmIYkhxGUfDE=;
         h=Date:To:From:Subject:From;
-        b=IiFceTr+eyv7A4X90EaTCiX8rNbC7k3VyxicrWpE6HlU/mUt2VgDfIjyQ4KtgUofL
-         WS5Li3CxWz8dsoOAeSvolBD9mqQz1S0IHwWjYh27rqaBQWAFdPfU1DWPs6IZLrqYG5
-         qqrINLpe85q8be4Kj4jwnwHP+DTsR9jBgY7Wbj/o=
-Date:   Tue, 11 Oct 2022 19:06:04 -0700
+        b=vzCMJ/X7yc8b2TU7y6dv7XgJPQ7QoCWXDmWq7yyqF9VOZY776XdsQAexyUjueIU67
+         qJCkDyU4AEAt27v4mhWf3NOVI+UOjQ2BfaC1LX0fCMygI2DZI2HBS4Nml5ulAfBDK7
+         CqwZJREaQ16ZT9JmfZ1YQkAzSKsSk0dXYWM47ANs=
+Date:   Tue, 11 Oct 2022 19:06:07 -0700
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        khalid.masum.92@gmail.com, konishi.ryusuke@gmail.com,
-        akpm@linux-foundation.org
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-use-after-free-bug-of-struct-nilfs_root.patch removed from -mm tree
-Message-Id: <20221012020605.357D3C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure.patch removed from -mm tree
+Message-Id: <20221012020607.BD8C7C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,81 +41,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nilfs2: fix use-after-free bug of struct nilfs_root
+     Subject: nilfs2: fix leak of nilfs_root in case of writer thread creation failure
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-use-after-free-bug-of-struct-nilfs_root.patch
+     nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix use-after-free bug of struct nilfs_root
-Date: Tue, 4 Oct 2022 00:05:19 +0900
+Subject: nilfs2: fix leak of nilfs_root in case of writer thread creation failure
+Date: Fri, 7 Oct 2022 17:52:26 +0900
 
-If the beginning of the inode bitmap area is corrupted on disk, an inode
-with the same inode number as the root inode can be allocated and fail
-soon after.  In this case, the subsequent call to nilfs_clear_inode() on
-that bogus root inode will wrongly decrement the reference counter of
-struct nilfs_root, and this will erroneously free struct nilfs_root,
-causing kernel oopses.
+If nilfs_attach_log_writer() failed to create a log writer thread, it
+frees a data structure of the log writer without any cleanup.  After
+commit e912a5b66837 ("nilfs2: use root object to get ifile"), this causes
+a leak of struct nilfs_root, which started to leak an ifile metadata inode
+and a kobject on that struct.
 
-This fixes the problem by changing nilfs_new_inode() to skip reserved
-inode numbers while repairing the inode bitmap.
+In addition, if the kernel is booted with panic_on_warn, the above
+ifile metadata inode leak will cause the following panic when the
+nilfs2 kernel module is removed:
 
-Link: https://lkml.kernel.org/r/20221003150519.39789-1-konishi.ryusuke@gmail.com
+  kmem_cache_destroy nilfs2_inode_cache: Slab cache still has objects when
+  called from nilfs_destroy_cachep+0x16/0x3a [nilfs2]
+  WARNING: CPU: 8 PID: 1464 at mm/slab_common.c:494 kmem_cache_destroy+0x138/0x140
+  ...
+  RIP: 0010:kmem_cache_destroy+0x138/0x140
+  Code: 00 20 00 00 e8 a9 55 d8 ff e9 76 ff ff ff 48 8b 53 60 48 c7 c6 20 70 65 86 48 c7 c7 d8 69 9c 86 48 8b 4c 24 28 e8 ef 71 c7 00 <0f> 0b e9 53 ff ff ff c3 48 81 ff ff 0f 00 00 77 03 31 c0 c3 53 48
+  ...
+  Call Trace:
+   <TASK>
+   ? nilfs_palloc_freev.cold.24+0x58/0x58 [nilfs2]
+   nilfs_destroy_cachep+0x16/0x3a [nilfs2]
+   exit_nilfs_fs+0xa/0x1b [nilfs2]
+    __x64_sys_delete_module+0x1d9/0x3a0
+   ? __sanitizer_cov_trace_pc+0x1a/0x50
+   ? syscall_trace_enter.isra.19+0x119/0x190
+   do_syscall_64+0x34/0x80
+   entry_SYSCALL_64_after_hwframe+0x63/0xcd
+   ...
+   </TASK>
+  Kernel panic - not syncing: panic_on_warn set ...
+
+This patch fixes these issues by calling nilfs_detach_log_writer() cleanup
+function if spawning the log writer thread fails.
+
+Link: https://lkml.kernel.org/r/20221007085226.57667-1-konishi.ryusuke@gmail.com
+Fixes: e912a5b66837 ("nilfs2: use root object to get ifile")
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+b8c672b0e22615c80fe0@syzkaller.appspotmail.com
-Reported-by: Khalid Masum <khalid.masum.92@gmail.com>
+Reported-by: syzbot+7381dc4ad60658ca4c05@syzkaller.appspotmail.com
 Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ fs/nilfs2/segment.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/fs/nilfs2/inode.c~nilfs2-fix-use-after-free-bug-of-struct-nilfs_root
-+++ a/fs/nilfs2/inode.c
-@@ -328,6 +328,7 @@ struct inode *nilfs_new_inode(struct ino
- 	struct inode *inode;
- 	struct nilfs_inode_info *ii;
- 	struct nilfs_root *root;
-+	struct buffer_head *bh;
- 	int err = -ENOMEM;
- 	ino_t ino;
+--- a/fs/nilfs2/segment.c~nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure
++++ a/fs/nilfs2/segment.c
+@@ -2786,10 +2786,9 @@ int nilfs_attach_log_writer(struct super
+ 	inode_attach_wb(nilfs->ns_bdev->bd_inode, NULL);
  
-@@ -343,11 +344,25 @@ struct inode *nilfs_new_inode(struct ino
- 	ii->i_state = BIT(NILFS_I_NEW);
- 	ii->i_root = root;
- 
--	err = nilfs_ifile_create_inode(root->ifile, &ino, &ii->i_bh);
-+	err = nilfs_ifile_create_inode(root->ifile, &ino, &bh);
- 	if (unlikely(err))
- 		goto failed_ifile_create_inode;
- 	/* reference count of i_bh inherits from nilfs_mdt_read_block() */
- 
-+	if (unlikely(ino < NILFS_USER_INO)) {
-+		nilfs_warn(sb,
-+			   "inode bitmap is inconsistent for reserved inodes");
-+		do {
-+			brelse(bh);
-+			err = nilfs_ifile_create_inode(root->ifile, &ino, &bh);
-+			if (unlikely(err))
-+				goto failed_ifile_create_inode;
-+		} while (ino < NILFS_USER_INO);
+ 	err = nilfs_segctor_start_thread(nilfs->ns_writer);
+-	if (err) {
+-		kfree(nilfs->ns_writer);
+-		nilfs->ns_writer = NULL;
+-	}
++	if (unlikely(err))
++		nilfs_detach_log_writer(sb);
 +
-+		nilfs_info(sb, "repaired inode bitmap for reserved inodes");
-+	}
-+	ii->i_bh = bh;
-+
- 	atomic64_inc(&root->inodes_count);
- 	inode_init_owner(&init_user_ns, inode, dir, mode);
- 	inode->i_ino = ino;
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-nilfs2-fix-null-pointer-dereference-at-nilfs_bmap_lookup_at_level.patch
-nilfs2-fix-leak-of-nilfs_root-in-case-of-writer-thread-creation-failure.patch
 
