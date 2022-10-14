@@ -2,112 +2,171 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2506DC43219
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Oct 2022 22:58:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EB67C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Oct 2022 06:03:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229711AbiJLW6z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Oct 2022 18:58:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43210 "EHLO
+        id S229622AbiJNGD5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Oct 2022 02:03:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59018 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229724AbiJLW60 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2022 18:58:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5636312791A
-        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 15:57:49 -0700 (PDT)
+        with ESMTP id S229548AbiJNGDz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Oct 2022 02:03:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F27E19E92B;
+        Thu, 13 Oct 2022 23:03:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CDCAFB81CAB
-        for <mm-commits@vger.kernel.org>; Wed, 12 Oct 2022 22:57:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73481C433C1;
-        Wed, 12 Oct 2022 22:57:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8FC77B8216A;
+        Fri, 14 Oct 2022 06:03:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E751DC433D7;
+        Fri, 14 Oct 2022 06:03:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665615466;
-        bh=rdnhsS8X7+GDQ/6W6X8kfCvaBxWmeKXcIrwEGmzW18Y=;
-        h=Date:To:From:Subject:From;
-        b=N+vYwp/Iu2id1FYGNjVyDGAF/kha7XsMV+mJYXP5fcAPoH+VNeuJxWFtXYf03jKId
-         ihrY80Y1P7oxSTynvmCO2qhx39fDX/OLNvz0x3UchcSD2KrRY/gl75U4mg8Pa/k2yn
-         o/d38dX0M7YI/47kdObaMOmSnY/335AAq/M3V82w=
-Date:   Wed, 12 Oct 2022 15:57:45 -0700
-To:     mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com,
-        nadav.amit@gmail.com, mike.kravetz@oracle.com, david@redhat.com,
-        axelrasmussen@google.com, aarcange@redhat.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        s=korg; t=1665727383;
+        bh=Sj0ADGiNe3/XsOSpd7wJHdWZ6tdgK0sm1kkalZ7RaSY=;
+        h=Date:From:To:Cc:Subject:From;
+        b=P9BG0Ck8iDe81L0WJ+YcLn9CxMR9gFyyW+s6iLJGOf4sH0/ypMrFTbr4LfizLM5cd
+         mbmVSNSosjIZJIblJoy/A33gzMGbsllwIfhjD4hAFI5fwgHXXkdppbFL6fJnAvFufj
+         iEsb9lLIie/w99bBfxxxbBWi+cuzuoV+evmX4efU=
+Date:   Thu, 13 Oct 2022 23:03:02 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-selftest-uffd-explain-the-write-missing-fault-check.patch removed from -mm tree
-Message-Id: <20221012225746.73481C433C1@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] Final MM updates for 6.1-rc1
+Message-Id: <20221013230302.96f2869cd26026b36e8ecd40@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/selftest: uffd: explain the write missing fault check
-has been removed from the -mm tree.  Its filename was
-     mm-selftest-uffd-explain-the-write-missing-fault-check.patch
+Linus, please merge this smallish batch of features and fixes.
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+There's a conflict in drivers/gpu/drm/amd/amdkfd/kfd_migrate.c. 
+Stephen's resolution is at
+https://lkml.kernel.org/r/20221004210029.7412fcfd@canb.auug.org.au
 
-------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/selftest: uffd: explain the write missing fault check
-Date: Tue, 4 Oct 2022 15:34:00 -0400
+Thanks.
 
-It's not obvious why we had a write check for each of the missing
-messages, especially when it should be a locking op.  Add a rich comment
-for that, and also try to explain its good side and limitations, so that
-if someone hit it again for either a bug or a different glibc impl
-there'll be some clue to start with.
 
-Link: https://lkml.kernel.org/r/20221004193400.110155-4-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+The following changes since commit bbff39cc6cbcb86ccfacb2dcafc79912a9f9df69:
 
- tools/testing/selftests/vm/userfaultfd.c |   22 ++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+  hugetlb: allocate vma lock for all sharable vmas (2022-10-07 14:28:40 -0700)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~mm-selftest-uffd-explain-the-write-missing-fault-check
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -774,7 +774,27 @@ static void uffd_handle_page_fault(struc
- 		continue_range(uffd, msg->arg.pagefault.address, page_size);
- 		stats->minor_faults++;
- 	} else {
--		/* Missing page faults */
-+		/*
-+		 * Missing page faults.
-+		 *
-+		 * Here we force a write check for each of the missing mode
-+		 * faults.  It's guaranteed because the only threads that
-+		 * will trigger uffd faults are the locking threads, and
-+		 * their first instruction to touch the missing page will
-+		 * always be pthread_mutex_lock().
-+		 *
-+		 * Note that here we relied on an NPTL glibc impl detail to
-+		 * always read the lock type at the entry of the lock op
-+		 * (pthread_mutex_t.__data.__type, offset 0x10) before
-+		 * doing any locking operations to guarantee that.  It's
-+		 * actually not good to rely on this impl detail because
-+		 * logically a pthread-compatible lib can implement the
-+		 * locks without types and we can fail when linking with
-+		 * them.  However since we used to find bugs with this
-+		 * strict check we still keep it around.  Hopefully this
-+		 * could be a good hint when it fails again.  If one day
-+		 * it'll break on some other impl of glibc we'll revisit.
-+		 */
- 		if (msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
- 			err("unexpected write fault");
- 
-_
+are available in the Git repository at:
 
-Patches currently in -mm which might be from peterx@redhat.com are
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2022-10-13
 
+for you to fetch changes up to ef6e06b2ef87077104d1145a0fd452ff8dbbc4b7:
+
+  highmem: fix kmap_to_page() for kmap_local_page() addresses (2022-10-12 18:51:51 -0700)
+
+----------------------------------------------------------------
+- Alistair Popple has a series which addresses a race which causes page
+  refcounting errors in ZONE_DEVICE pages.
+
+- Peter Xu fixes some userfaultfd test harness instability.
+
+- Various other patches in MM, mainly fixes.
+
+----------------------------------------------------------------
+Alexander Potapenko (1):
+      kmsan: unpoison @tlb in arch_tlb_gather_mmu()
+
+Alexey Dobriyan (1):
+      mm: more vma cache removal
+
+Alistair Popple (8):
+      mm/memory.c: fix race when faulting a device private page
+      mm: free device private pages have zero refcount
+      mm/memremap.c: take a pgmap reference on page allocation
+      mm/migrate_device.c: refactor migrate_vma and migrate_deivce_coherent_page()
+      mm/migrate_device.c: add migrate_device_range()
+      nouveau/dmem: refactor nouveau_dmem_fault_copy_one()
+      nouveau/dmem: evict device private memory during release
+      hmm-tests: add test for migrate_device_range()
+
+Andrew Morton (1):
+      mm/hugetlb.c: make __hugetlb_vma_unlock_write_put() static
+
+Andrey Konovalov (1):
+      kasan: fix array-bounds warnings in tests
+
+Brian Geffon (1):
+      zram: always expose rw_page
+
+Carlos Llamas (1):
+      mm/mmap: undo ->mmap() when arch_validate_flags() fails
+
+Chuyi Zhou (1):
+      mm/compaction: fix set skip in fast_find_migrateblock
+
+Ira Weiny (1):
+      highmem: fix kmap_to_page() for kmap_local_page() addresses
+
+Liam Howlett (2):
+      mmap: fix copy_vma() failure path
+      mm/mmap: preallocate maple nodes for brk vma expansion
+
+Matthew Wilcox (Oracle) (1):
+      ext4,f2fs: fix readahead of verity data
+
+Peter Xu (4):
+      mm/uffd: fix warning without PTE_MARKER_UFFD_WP compiled in
+      mm/hugetlb: fix race condition of uffd missing/minor handling
+      mm/hugetlb: use hugetlb_pte_stable in migration race check
+      mm/selftest: uffd: explain the write missing fault check
+
+Qi Zheng (2):
+      mm: use update_mmu_tlb() on the second thread
+      LoongArch: update local TLB if PTE entry exists
+
+Xiaoke Wang (1):
+      lib/test_meminit: add checks for the allocation functions
+
+Xin Hao (2):
+      mm/damon: move sz_damon_region to damon_sz_region
+      mm/damon: use damon_sz_region() in appropriate place
+
+Yafang Shao (1):
+      mm/page_alloc: fix incorrect PGFREE and PGALLOC for high-order page
+
+ arch/loongarch/include/asm/pgtable.h     |   3 +
+ arch/powerpc/kvm/book3s_hv_uvmem.c       |  21 +--
+ drivers/block/zram/zram_drv.c            |  26 +---
+ drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |  19 +--
+ drivers/gpu/drm/amd/amdkfd/kfd_migrate.h |   2 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_svm.c     |  11 +-
+ drivers/gpu/drm/nouveau/nouveau_dmem.c   | 108 ++++++++++----
+ fs/ext4/verity.c                         |   3 +-
+ fs/f2fs/verity.c                         |   3 +-
+ include/linux/damon.h                    |   6 +
+ include/linux/memremap.h                 |   1 +
+ include/linux/migrate.h                  |  15 ++
+ include/linux/sched.h                    |   2 -
+ lib/test_hmm.c                           | 129 +++++++++++++----
+ lib/test_hmm_uapi.h                      |   1 +
+ lib/test_meminit.c                       |  21 +++
+ mm/compaction.c                          |   1 -
+ mm/damon/core.c                          |  26 ++--
+ mm/damon/vaddr.c                         |   4 +-
+ mm/highmem.c                             |  43 ++++--
+ mm/hugetlb.c                             |  72 ++++++++--
+ mm/kasan/kasan_test.c                    |   9 +-
+ mm/memory.c                              |  20 ++-
+ mm/memremap.c                            |  30 +++-
+ mm/migrate.c                             |  34 +++--
+ mm/migrate_device.c                      | 239 ++++++++++++++++++++++---------
+ mm/mmap.c                                |  28 ++--
+ mm/mmu_gather.c                          |  10 ++
+ mm/mprotect.c                            |   2 +
+ mm/page_alloc.c                          |  12 +-
+ tools/testing/selftests/vm/hmm-tests.c   |  49 +++++++
+ tools/testing/selftests/vm/userfaultfd.c |  22 ++-
+ 32 files changed, 719 insertions(+), 253 deletions(-)
 
