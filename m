@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F53DC4332F
-	for <mm-commits@archiver.kernel.org>; Sun, 16 Oct 2022 23:52:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBD6EC433FE
+	for <mm-commits@archiver.kernel.org>; Sun, 16 Oct 2022 23:57:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229784AbiJPXwH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Oct 2022 19:52:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47404 "EHLO
+        id S229751AbiJPX5y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 Oct 2022 19:57:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229669AbiJPXwG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 19:52:06 -0400
+        with ESMTP id S229669AbiJPX5x (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 19:57:53 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5999B13FBA
-        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 16:52:04 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E1B92CC80
+        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 16:57:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 11A80B80E25
-        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 23:52:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3C60C433C1;
-        Sun, 16 Oct 2022 23:52:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 53968B80CB9
+        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 23:57:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3136C433C1;
+        Sun, 16 Oct 2022 23:57:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665964321;
-        bh=ojwlwU+xh0YIP+V3d/NezTuPcwpUk/a3G59v/78QfAc=;
+        s=korg; t=1665964669;
+        bh=CLi5S71vh9Hf0oERVrsLWEogbZM/uo9blTUbote67oY=;
         h=Date:To:From:Subject:From;
-        b=bJCtsSPLDWFmOXNNHQfgnP0whA6qF1Cx3RdHbtk5FGXDKEKtn0GoKZNeAsZCtwRCg
-         09BdXA1pw0C1lAb5L0ND3eFlowXULGsIHMY1ubSgaFcyGDvKEu1I9ZSRyXJ+XZn4tF
-         avzXUR+MjwReWDdbKTT6eEp6kQHLYoMuyZDjQOUg=
-Date:   Sun, 16 Oct 2022 16:52:00 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        oliver.sang@intel.com, Liam.Howlett@oracle.com,
-        liam.howlett@oracle.com, akpm@linux-foundation.org
+        b=neKvpujxOTAHltBMUD7ClD8Vc0t1dalhmOUwmnNTihD6yuudj5dE/IhmwPpoSMaWR
+         BeJC6FgVetVqK3mmpam1iWsqIkGXxYMcrxCcW09nnld7GVMzi4am1EZr32/hd+sdDE
+         vQ8qkly2FQBq8+Vr9azJUxVzMYBsPVOc03fI04Rk=
+Date:   Sun, 16 Oct 2022 16:57:48 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, hughd@google.com,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-fix-mbind_range-arguments-to-vma_merge.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221016235201.B3C60C433C1@smtp.kernel.org>
+Subject: + filemap-find_lock_entries-now-updates-start-offset.patch added to mm-unstable branch
+Message-Id: <20221016235748.E3136C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: fix mbind_range() arguments to vma_merge()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mempolicy-fix-mbind_range-arguments-to-vma_merge.patch
+     Subject: filemap: find_lock_entries() now updates start offset
+has been added to the -mm mm-unstable branch.  Its filename is
+     filemap-find_lock_entries-now-updates-start-offset.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-mbind_range-arguments-to-vma_merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-find_lock_entries-now-updates-start-offset.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,64 +64,188 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm/mempolicy: fix mbind_range() arguments to vma_merge()
-Date: Sat, 15 Oct 2022 02:12:33 +0000
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: filemap: find_lock_entries() now updates start offset
+Date: Thu, 13 Oct 2022 15:57:07 -0700
 
-Fuzzing produced an invalid argument to vma_merge() which was caught
-by the newly added verification of the number of VMAs being removed on
-process exit.  Analyzing the failure eventually resulted in finding an
-issue with the search of a VMA that started at address 0, which caused
-an underflow and thus the loss of many VMAs being tracked in the tree.
-Fix the underflow by changing the search of the maple tree to use the
-start address directly.
+Patch series "Rework find_get_entries() and find_lock_entries()", v2.
 
-Link: https://lkml.kernel.org/r/20221015021135.2816178-1-Liam.Howlett@oracle.com
-Fixes: 66850be55e8e ("mm/mempolicy: use vma iterator & maple state instead of vma linked list")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-  Link: https://lore.kernel.org/r/202210052318.5ad10912-oliver.sang@intel.com
-Cc: Yu Zhao <yuzhao@google.com>
+Originally the callers of find_get_entries() and find_lock_entries() were
+keeping track of the start index themselves as they traverse the search
+range.
+
+This resulted in hacky code such as in shmem_undo_range():
+
+			index = folio->index + folio_nr_pages(folio) - 1;
+
+where the - 1 is only present to stay in the right spot after incrementing
+index later.  This sort of calculation was also being done on every folio
+despite not even using index later within that function.
+
+These patches change find_get_entries() and find_lock_entries() to
+calculate the new index instead of leaving it to the callers so we can
+avoid all these complications.
+
+
+This patch (of 2):
+			
+Initially, find_lock_entries() was being passed in the start offset as a
+value.  That left the calculation of the offset to the callers.  This led
+to complexity in the callers trying to keep track of the index.
+
+Now find_lock_entries() takes in a pointer to the start offset and updates
+the value to be directly after the last entry found.  If no entry is
+found, the offset is not changed.  This gets rid of multiple hacky
+calculations that kept track of the start offset.
+
+Link: https://lkml.kernel.org/r/20221013225708.1879-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20221013225708.1879-2-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ mm/filemap.c  |   17 +++++++++++++----
+ mm/internal.h |    2 +-
+ mm/shmem.c    |    8 ++------
+ mm/truncate.c |   11 +++--------
+ 4 files changed, 19 insertions(+), 19 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-mbind_range-arguments-to-vma_merge
-+++ a/mm/mempolicy.c
-@@ -787,17 +787,22 @@ static int vma_replace_policy(struct vm_
- static int mbind_range(struct mm_struct *mm, unsigned long start,
- 		       unsigned long end, struct mempolicy *new_pol)
+--- a/mm/filemap.c~filemap-find_lock_entries-now-updates-start-offset
++++ a/mm/filemap.c
+@@ -2085,16 +2085,16 @@ unsigned find_get_entries(struct address
+  *
+  * Return: The number of entries which were found.
+  */
+-unsigned find_lock_entries(struct address_space *mapping, pgoff_t start,
++unsigned find_lock_entries(struct address_space *mapping, pgoff_t *start,
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices)
  {
--	MA_STATE(mas, &mm->mm_mt, start - 1, start - 1);
-+	MA_STATE(mas, &mm->mm_mt, start, start);
- 	struct vm_area_struct *prev;
- 	struct vm_area_struct *vma;
- 	int err = 0;
- 	pgoff_t pgoff;
+-	XA_STATE(xas, &mapping->i_pages, start);
++	XA_STATE(xas, &mapping->i_pages, *start);
+ 	struct folio *folio;
  
--	prev = mas_find_rev(&mas, 0);
--	if (prev && (start < prev->vm_end))
--		vma = prev;
--	else
--		vma = mas_next(&mas, end - 1);
-+	prev = mas_prev(&mas, 0);
-+	if (unlikely(!prev))
-+		mas_set(&mas, start);
-+
-+	vma = mas_find(&mas, end - 1);
-+	if (WARN_ON(!vma))
-+		return 0;
-+
-+	if (start > vma->vm_start)
-+		prev = vma;
+ 	rcu_read_lock();
+ 	while ((folio = find_get_entry(&xas, end, XA_PRESENT))) {
+ 		if (!xa_is_value(folio)) {
+-			if (folio->index < start)
++			if (folio->index < *start)
+ 				goto put;
+ 			if (folio->index + folio_nr_pages(folio) - 1 > end)
+ 				goto put;
+@@ -2115,8 +2115,17 @@ unlock:
+ put:
+ 		folio_put(folio);
+ 	}
+-	rcu_read_unlock();
  
- 	for (; vma; vma = mas_next(&mas, end - 1)) {
- 		unsigned long vmstart = max(start, vma->vm_start);
++	if (folio_batch_count(fbatch)) {
++		unsigned long nr = 1;
++		int idx = folio_batch_count(fbatch) - 1;
++
++		folio = fbatch->folios[idx];
++		if (!xa_is_value(folio) && !folio_test_hugetlb(folio))
++			nr = folio_nr_pages(folio);
++		*start = indices[idx] + nr;
++	}
++	rcu_read_unlock();
+ 	return folio_batch_count(fbatch);
+ }
+ 
+--- a/mm/internal.h~filemap-find_lock_entries-now-updates-start-offset
++++ a/mm/internal.h
+@@ -106,7 +106,7 @@ static inline void force_page_cache_read
+ 	force_page_cache_ra(&ractl, nr_to_read);
+ }
+ 
+-unsigned find_lock_entries(struct address_space *mapping, pgoff_t start,
++unsigned find_lock_entries(struct address_space *mapping, pgoff_t *start,
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
+ unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
+--- a/mm/shmem.c~filemap-find_lock_entries-now-updates-start-offset
++++ a/mm/shmem.c
+@@ -922,21 +922,18 @@ static void shmem_undo_range(struct inod
+ 
+ 	folio_batch_init(&fbatch);
+ 	index = start;
+-	while (index < end && find_lock_entries(mapping, index, end - 1,
++	while (index < end && find_lock_entries(mapping, &index, end - 1,
+ 			&fbatch, indices)) {
+ 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
+ 			folio = fbatch.folios[i];
+ 
+-			index = indices[i];
+-
+ 			if (xa_is_value(folio)) {
+ 				if (unfalloc)
+ 					continue;
+ 				nr_swaps_freed += !shmem_free_swap(mapping,
+-								index, folio);
++							indices[i], folio);
+ 				continue;
+ 			}
+-			index += folio_nr_pages(folio) - 1;
+ 
+ 			if (!unfalloc || !folio_test_uptodate(folio))
+ 				truncate_inode_folio(mapping, folio);
+@@ -945,7 +942,6 @@ static void shmem_undo_range(struct inod
+ 		folio_batch_remove_exceptionals(&fbatch);
+ 		folio_batch_release(&fbatch);
+ 		cond_resched();
+-		index++;
+ 	}
+ 
+ 	same_folio = (lstart >> PAGE_SHIFT) == (lend >> PAGE_SHIFT);
+--- a/mm/truncate.c~filemap-find_lock_entries-now-updates-start-offset
++++ a/mm/truncate.c
+@@ -361,9 +361,8 @@ void truncate_inode_pages_range(struct a
+ 
+ 	folio_batch_init(&fbatch);
+ 	index = start;
+-	while (index < end && find_lock_entries(mapping, index, end - 1,
++	while (index < end && find_lock_entries(mapping, &index, end - 1,
+ 			&fbatch, indices)) {
+-		index = indices[folio_batch_count(&fbatch) - 1] + 1;
+ 		truncate_folio_batch_exceptionals(mapping, &fbatch, indices);
+ 		for (i = 0; i < folio_batch_count(&fbatch); i++)
+ 			truncate_cleanup_folio(fbatch.folios[i]);
+@@ -510,20 +509,17 @@ unsigned long invalidate_mapping_pagevec
+ 	int i;
+ 
+ 	folio_batch_init(&fbatch);
+-	while (find_lock_entries(mapping, index, end, &fbatch, indices)) {
++	while (find_lock_entries(mapping, &index, end, &fbatch, indices)) {
+ 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
+ 			struct folio *folio = fbatch.folios[i];
+ 
+ 			/* We rely upon deletion not changing folio->index */
+-			index = indices[i];
+ 
+ 			if (xa_is_value(folio)) {
+ 				count += invalidate_exceptional_entry(mapping,
+-								      index,
+-								      folio);
++							     indices[i], folio);
+ 				continue;
+ 			}
+-			index += folio_nr_pages(folio) - 1;
+ 
+ 			ret = mapping_evict_folio(mapping, folio);
+ 			folio_unlock(folio);
+@@ -542,7 +538,6 @@ unsigned long invalidate_mapping_pagevec
+ 		folio_batch_remove_exceptionals(&fbatch);
+ 		folio_batch_release(&fbatch);
+ 		cond_resched();
+-		index++;
+ 	}
+ 	return count;
+ }
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
-mm-mempolicy-fix-mbind_range-arguments-to-vma_merge.patch
+filemap-find_lock_entries-now-updates-start-offset.patch
+filemap-find_get_entries-now-updates-start-offset.patch
 
