@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0764AC433FE
-	for <mm-commits@archiver.kernel.org>; Sun, 16 Oct 2022 23:58:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59915C4332F
+	for <mm-commits@archiver.kernel.org>; Sun, 16 Oct 2022 23:59:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229780AbiJPX6C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Oct 2022 19:58:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56168 "EHLO
+        id S229691AbiJPX7A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 Oct 2022 19:59:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229646AbiJPX56 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 19:57:58 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D95272CC86
-        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 16:57:54 -0700 (PDT)
+        with ESMTP id S229646AbiJPX67 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 19:58:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B6E72CC98
+        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 16:58:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 29CC7B80D0B
-        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 23:57:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAA9FC433C1;
-        Sun, 16 Oct 2022 23:57:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 43D65B80CB9
+        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 23:58:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCC2EC433C1;
+        Sun, 16 Oct 2022 23:58:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665964671;
-        bh=NyqRTybYV7WMLUtekpTkUpbUhyL7UP8sFpN3XO0edNI=;
+        s=korg; t=1665964736;
+        bh=04fIdlLBYIhJ1KpBa7kEnQWEsFSuXJDY1eQm27tOO/s=;
         h=Date:To:From:Subject:From;
-        b=RIFT7I+PyXDcUdjBvwiNXs1h6sM+pezwyl7jVmOR0KHIGP+5rWEtigQ0Zp0jYgKm+
-         U8F/HwunSYOiDmwpiW3/E8I6jtDV7qULGT1qBUPNQZKT98NLqL5iGdI1bFfi0Mz3k5
-         xgw9GXHV7BuSQy02eYVLojA7GrT+1jhfk3OiQuFs=
-Date:   Sun, 16 Oct 2022 16:57:51 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, hughd@google.com,
-        vishal.moola@gmail.com, akpm@linux-foundation.org
+        b=zkeDr5WU8Mkwpqkod3ePZjTnVLMp4TtcreIUazZtBn116670Bn9NDgp+zIHxX9AGm
+         8B30un19ICu+fjLnOmvSEEvR5P3qXFopCNa8OClED3XCS534E2wcXdhTJKTjEED9Rr
+         aib1dgfmk1St+dORXOLEfjkkrMbHw2SXuCpF4fxk=
+Date:   Sun, 16 Oct 2022 16:58:55 -0700
+To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-find_get_entries-now-updates-start-offset.patch added to mm-unstable branch
-Message-Id: <20221016235751.DAA9FC433C1@smtp.kernel.org>
+Subject: + mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch added to mm-unstable branch
+Message-Id: <20221016235855.DCC2EC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: filemap: find_get_entries() now updates start offset
+     Subject: mm: vmscan: make rotations a secondary factor in balancing anon vs file
 has been added to the -mm mm-unstable branch.  Its filename is
-     filemap-find_get_entries-now-updates-start-offset.patch
+     mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-find_get_entries-now-updates-start-offset.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,207 +64,149 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: filemap: find_get_entries() now updates start offset
-Date: Thu, 13 Oct 2022 15:57:08 -0700
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: make rotations a secondary factor in balancing anon vs file
+Date: Thu, 13 Oct 2022 15:31:13 -0400
 
-Initially, find_get_entries() was being passed in the start offset as a
-value.  That left the calculation of the offset to the callers.  This led
-to complexity in the callers trying to keep track of the index.
+We noticed a 2% webserver throughput regression after upgrading from 5.6. 
+This could be tracked down to a shift in the anon/file reclaim balance
+(confirmed with swappiness) that resulted in worse reclaim efficiency and
+thus more kswapd activity for the same outcome.
 
-Now find_get_entires() takes in a pointer to the start offset and updates
-the value to be directly after the last entry found.  If no entry is
-found, the offset is not changed.  This gets rid of multiple hacky
-calculations that kept track of the start offset.
+The change that exposed the problem is aae466b0052e ("mm/swap: implement
+workingset detection for anonymous LRU").  By qualifying swapins based on
+their refault distance, it lowered the cost of anon reclaim in this
+workload, in turn causing (much) more anon scanning than before.  Scanning
+the anon list is more expensive due to the higher ratio of mmapped pages
+that may rotate during reclaim, and so the result was an increase in %sys
+time.
 
-Link: https://lkml.kernel.org/r/20221013225708.1879-3-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Right now, rotations aren't considered a cost when balancing scan pressure
+between LRUs.  We can end up with very few file refaults putting all the
+scan pressure on hot anon pages that are rotated en masse, don't get
+reclaimed, and never push back on the file LRU again.  We still only
+reclaim file cache in that case, but we burn a lot CPU rotating anon
+pages.  It's "fair" from an LRU age POV, but doesn't reflect the real cost
+it imposes on the system.
+
+Consider rotations as a secondary factor in balancing the LRUs.  This
+doesn't attempt to make a precise comparison between IO cost and CPU cost,
+it just says: if reloads are about comparable between the lists, or
+rotations are overwhelmingly different, adjust for CPU work.
+
+This fixed the regression on our webservers.  It has since been deployed
+to the entire Meta fleet and hasn't caused any problems.
+
+Link: https://lkml.kernel.org/r/20221013193113.726425-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c  |   15 ++++++++++++---
- mm/internal.h |    2 +-
- mm/shmem.c    |   11 ++++-------
- mm/truncate.c |   19 +++++++------------
- 4 files changed, 24 insertions(+), 23 deletions(-)
+ include/linux/swap.h |    5 +++--
+ mm/swap.c            |   22 +++++++++++++++++-----
+ mm/vmscan.c          |    4 +++-
+ mm/workingset.c      |    2 +-
+ 4 files changed, 24 insertions(+), 9 deletions(-)
 
---- a/mm/filemap.c~filemap-find_get_entries-now-updates-start-offset
-+++ a/mm/filemap.c
-@@ -2048,10 +2048,10 @@ reset:
-  *
-  * Return: The number of entries which were found.
-  */
--unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
-+unsigned find_get_entries(struct address_space *mapping, pgoff_t *start,
- 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices)
+--- a/include/linux/swap.h~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
++++ a/include/linux/swap.h
+@@ -384,8 +384,9 @@ extern unsigned long totalreserve_pages;
+ 
+ 
+ /* linux/mm/swap.c */
+-void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages);
+-void lru_note_cost_folio(struct folio *);
++void lru_note_cost(struct lruvec *lruvec, bool file,
++		   unsigned int nr_io, unsigned int nr_rotated);
++void lru_note_cost_refault(struct folio *);
+ void folio_add_lru(struct folio *);
+ void folio_add_lru_vma(struct folio *, struct vm_area_struct *);
+ void lru_cache_add(struct page *);
+--- a/mm/swap.c~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
++++ a/mm/swap.c
+@@ -295,8 +295,20 @@ void folio_rotate_reclaimable(struct fol
+ 	}
+ }
+ 
+-void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages)
++void lru_note_cost(struct lruvec *lruvec, bool file,
++		   unsigned int nr_io, unsigned int nr_rotated)
  {
--	XA_STATE(xas, &mapping->i_pages, start);
-+	XA_STATE(xas, &mapping->i_pages, *start);
- 	struct folio *folio;
- 
- 	rcu_read_lock();
-@@ -2060,8 +2060,17 @@ unsigned find_get_entries(struct address
- 		if (!folio_batch_add(fbatch, folio))
- 			break;
- 	}
--	rcu_read_unlock();
- 
-+	if (folio_batch_count(fbatch)) {
-+		unsigned long nr = 1;
-+		int idx = folio_batch_count(fbatch) - 1;
++	unsigned long cost;
 +
-+		folio = fbatch->folios[idx];
-+		if (!xa_is_value(folio) && !folio_test_hugetlb(folio))
-+			nr = folio_nr_pages(folio);
-+		*start = indices[idx] + nr;
-+	}
-+	rcu_read_unlock();
- 	return folio_batch_count(fbatch);
++	/*
++	 * Reflect the relative cost of incurring IO and spending CPU
++	 * time on rotations. This doesn't attempt to make a precise
++	 * comparison, it just says: if reloads are about comparable
++	 * between the LRU lists, or rotations are overwhelmingly
++	 * different between them, adjust scan balance for CPU work.
++	 */
++	cost = nr_io * SWAP_CLUSTER_MAX + nr_rotated;
++
+ 	do {
+ 		unsigned long lrusize;
+ 
+@@ -310,9 +322,9 @@ void lru_note_cost(struct lruvec *lruvec
+ 		spin_lock_irq(&lruvec->lru_lock);
+ 		/* Record cost event */
+ 		if (file)
+-			lruvec->file_cost += nr_pages;
++			lruvec->file_cost += cost;
+ 		else
+-			lruvec->anon_cost += nr_pages;
++			lruvec->anon_cost += cost;
+ 
+ 		/*
+ 		 * Decay previous events
+@@ -335,10 +347,10 @@ void lru_note_cost(struct lruvec *lruvec
+ 	} while ((lruvec = parent_lruvec(lruvec)));
  }
  
---- a/mm/internal.h~filemap-find_get_entries-now-updates-start-offset
-+++ a/mm/internal.h
-@@ -108,7 +108,7 @@ static inline void force_page_cache_read
- 
- unsigned find_lock_entries(struct address_space *mapping, pgoff_t *start,
- 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
--unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
-+unsigned find_get_entries(struct address_space *mapping, pgoff_t *start,
- 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
- void filemap_free_folio(struct address_space *mapping, struct folio *folio);
- int truncate_inode_folio(struct address_space *mapping, struct folio *folio);
---- a/mm/shmem.c~filemap-find_get_entries-now-updates-start-offset
-+++ a/mm/shmem.c
-@@ -973,7 +973,7 @@ static void shmem_undo_range(struct inod
- 	while (index < end) {
- 		cond_resched();
- 
--		if (!find_get_entries(mapping, index, end - 1, &fbatch,
-+		if (!find_get_entries(mapping, &index, end - 1, &fbatch,
- 				indices)) {
- 			/* If all gone or hole-punch or unfalloc, we're done */
- 			if (index == start || end != -1)
-@@ -985,13 +985,12 @@ static void shmem_undo_range(struct inod
- 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
- 			folio = fbatch.folios[i];
- 
--			index = indices[i];
- 			if (xa_is_value(folio)) {
- 				if (unfalloc)
- 					continue;
--				if (shmem_free_swap(mapping, index, folio)) {
-+				if (shmem_free_swap(mapping, indices[i], folio)) {
- 					/* Swap was replaced by page: retry */
--					index--;
-+					index = indices[i];
- 					break;
- 				}
- 				nr_swaps_freed++;
-@@ -1004,19 +1003,17 @@ static void shmem_undo_range(struct inod
- 				if (folio_mapping(folio) != mapping) {
- 					/* Page was replaced by swap: retry */
- 					folio_unlock(folio);
--					index--;
-+					index = indices[i];
- 					break;
- 				}
- 				VM_BUG_ON_FOLIO(folio_test_writeback(folio),
- 						folio);
- 				truncate_inode_folio(mapping, folio);
- 			}
--			index = folio->index + folio_nr_pages(folio) - 1;
- 			folio_unlock(folio);
- 		}
- 		folio_batch_remove_exceptionals(&fbatch);
- 		folio_batch_release(&fbatch);
--		index++;
- 	}
- 
- 	spin_lock_irq(&info->lock);
---- a/mm/truncate.c~filemap-find_get_entries-now-updates-start-offset
-+++ a/mm/truncate.c
-@@ -400,7 +400,7 @@ void truncate_inode_pages_range(struct a
- 	index = start;
- 	while (index < end) {
- 		cond_resched();
--		if (!find_get_entries(mapping, index, end - 1, &fbatch,
-+		if (!find_get_entries(mapping, &index, end - 1, &fbatch,
- 				indices)) {
- 			/* If all gone from start onwards, we're done */
- 			if (index == start)
-@@ -414,21 +414,18 @@ void truncate_inode_pages_range(struct a
- 			struct folio *folio = fbatch.folios[i];
- 
- 			/* We rely upon deletion not changing page->index */
--			index = indices[i];
- 
- 			if (xa_is_value(folio))
- 				continue;
- 
- 			folio_lock(folio);
--			VM_BUG_ON_FOLIO(!folio_contains(folio, index), folio);
-+			VM_BUG_ON_FOLIO(!folio_contains(folio, indices[i]), folio);
- 			folio_wait_writeback(folio);
- 			truncate_inode_folio(mapping, folio);
- 			folio_unlock(folio);
--			index = folio_index(folio) + folio_nr_pages(folio) - 1;
- 		}
- 		truncate_folio_batch_exceptionals(mapping, &fbatch, indices);
- 		folio_batch_release(&fbatch);
--		index++;
- 	}
+-void lru_note_cost_folio(struct folio *folio)
++void lru_note_cost_refault(struct folio *folio)
+ {
+ 	lru_note_cost(folio_lruvec(folio), folio_is_file_lru(folio),
+-			folio_nr_pages(folio));
++		      folio_nr_pages(folio), 0);
  }
- EXPORT_SYMBOL(truncate_inode_pages_range);
-@@ -636,16 +633,15 @@ int invalidate_inode_pages2_range(struct
  
- 	folio_batch_init(&fbatch);
- 	index = start;
--	while (find_get_entries(mapping, index, end, &fbatch, indices)) {
-+	while (find_get_entries(mapping, &index, end, &fbatch, indices)) {
- 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
- 			struct folio *folio = fbatch.folios[i];
+ static void folio_activate_fn(struct lruvec *lruvec, struct folio *folio)
+--- a/mm/vmscan.c~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
++++ a/mm/vmscan.c
+@@ -2499,7 +2499,7 @@ static unsigned long shrink_inactive_lis
+ 	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
+ 	spin_unlock_irq(&lruvec->lru_lock);
  
- 			/* We rely upon deletion not changing folio->index */
--			index = indices[i];
+-	lru_note_cost(lruvec, file, stat.nr_pageout);
++	lru_note_cost(lruvec, file, stat.nr_pageout, nr_scanned - nr_reclaimed);
+ 	mem_cgroup_uncharge_list(&folio_list);
+ 	free_unref_page_list(&folio_list);
  
- 			if (xa_is_value(folio)) {
- 				if (!invalidate_exceptional_entry2(mapping,
--						index, folio))
-+						indices[i], folio))
- 					ret = -EBUSY;
- 				continue;
- 			}
-@@ -655,13 +651,13 @@ int invalidate_inode_pages2_range(struct
- 				 * If folio is mapped, before taking its lock,
- 				 * zap the rest of the file in one hit.
- 				 */
--				unmap_mapping_pages(mapping, index,
--						(1 + end - index), false);
-+				unmap_mapping_pages(mapping, indices[i],
-+						(1 + end - indices[i]), false);
- 				did_range_unmap = 1;
- 			}
+@@ -2639,6 +2639,8 @@ static void shrink_active_list(unsigned
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+ 	spin_unlock_irq(&lruvec->lru_lock);
  
- 			folio_lock(folio);
--			VM_BUG_ON_FOLIO(!folio_contains(folio, index), folio);
-+			VM_BUG_ON_FOLIO(!folio_contains(folio, indices[i]), folio);
- 			if (folio->mapping != mapping) {
- 				folio_unlock(folio);
- 				continue;
-@@ -684,7 +680,6 @@ int invalidate_inode_pages2_range(struct
- 		folio_batch_remove_exceptionals(&fbatch);
- 		folio_batch_release(&fbatch);
- 		cond_resched();
--		index++;
++	if (nr_rotated)
++		lru_note_cost(lruvec, file, 0, nr_rotated);
+ 	mem_cgroup_uncharge_list(&l_active);
+ 	free_unref_page_list(&l_active);
+ 	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
+--- a/mm/workingset.c~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
++++ a/mm/workingset.c
+@@ -493,7 +493,7 @@ void workingset_refault(struct folio *fo
+ 	if (workingset) {
+ 		folio_set_workingset(folio);
+ 		/* XXX: Move to lru_cache_add() when it supports new vs putback */
+-		lru_note_cost_folio(folio);
++		lru_note_cost_refault(folio);
+ 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + file, nr);
  	}
- 	/*
- 	 * For DAX we invalidate page tables after invalidating page cache.  We
+ out:
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-filemap-find_lock_entries-now-updates-start-offset.patch
-filemap-find_get_entries-now-updates-start-offset.patch
+mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch
+mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
 
