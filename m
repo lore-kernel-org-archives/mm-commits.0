@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCCD5C4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:44:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CFF4C433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:44:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229988AbiJQAoI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Oct 2022 20:44:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43314 "EHLO
+        id S229947AbiJQAoK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 Oct 2022 20:44:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229947AbiJQAoF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:44:05 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF81536864
-        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:43:55 -0700 (PDT)
+        with ESMTP id S230006AbiJQAoG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:44:06 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F31036435
+        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:43:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C6EC9B80DAC
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:43:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 847DAC433D6;
-        Mon, 17 Oct 2022 00:43:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DC382B80D5B
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:43:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9059AC433D7;
+        Mon, 17 Oct 2022 00:43:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665967432;
-        bh=nNtyseC7R//N9T8eec0XIeGdvrw28QCLi3jjhL8gx3k=;
+        s=korg; t=1665967434;
+        bh=p+Ls6QrAjjfsQ88Xp+F8I0HiP6HBxPLvES/IWuLj0ao=;
         h=Date:To:From:Subject:From;
-        b=SKBm/TCO3xWxPlc4IFIPSQwy8WxeM0WLHA+JfYCPSGdsqS8In3ysdwkD0woHU2quo
-         g5Vq/XjpsQBLMdRFjduyDn4iS4Kp4xOSJ2oofOmcbV6kynW1c71rPcr7Gn8hBKWmPn
-         Oj0QmK3pRrW3H90lpbXzs5ETYPCCyLwPtdPL01Rs=
-Date:   Sun, 16 Oct 2022 17:43:51 -0700
+        b=N4tQtvaAOTWir/gM5yGDnfO2xD+pgUzpCeroE7ps8o/XrAWPzRW/8PU6IFjO5XQVI
+         myte1xyJ3BPGSXvXgwVrWGhi/hS/5KtfM9cvcD0N7ixeI/2v2NmTsi+Ng+cqrNtkxH
+         hw1UEI3G1LkTFLdpyBBsKWALVzc2vFhch6mbf8jw=
+Date:   Sun, 16 Oct 2022 17:43:53 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         songmuchun@bytedance.com, minhquangbui99@gmail.com,
         mike.kravetz@oracle.com, linmiaohe@huawei.com,
         aneesh.kumar@linux.ibm.com, almasrymina@google.com,
         sidhartha.kumar@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugeltb_cgroup-convert-hugetlb_cgroup_commit_charge-to-folios.patch added to mm-unstable branch
-Message-Id: <20221017004352.847DAC433D6@smtp.kernel.org>
+Subject: + mm-hugetlb-convert-move_hugetlb_state-to-folios.patch added to mm-unstable branch
+Message-Id: <20221017004354.9059AC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugeltb_cgroup: convert hugetlb_cgroup_commit_charge*() to folios
+     Subject: mm/hugetlb: convert move_hugetlb_state() to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugeltb_cgroup-convert-hugetlb_cgroup_commit_charge-to-folios.patch
+     mm-hugetlb-convert-move_hugetlb_state-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugeltb_cgroup-convert-hugetlb_cgroup_commit_charge-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-move_hugetlb_state-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,13 +68,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugeltb_cgroup: convert hugetlb_cgroup_commit_charge*() to folios
-Date: Thu, 13 Oct 2022 20:13:02 -0700
+Subject: mm/hugetlb: convert move_hugetlb_state() to folios
+Date: Thu, 13 Oct 2022 20:13:03 -0700
 
-Convert hugetlb_cgroup_commit_charge*() to internally use folios to clean
-up the code after __set_hugetlb_cgroup() was changed to take a folio.
+Clean up unmap_and_move_huge_page() by converting move_hugetlb_state() to
+take in folios.
 
-Link: https://lkml.kernel.org/r/20221014031303.231740-9-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20221014031303.231740-10-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Bui Quang Minh <minhquangbui99@gmail.com>
@@ -86,58 +86,87 @@ Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ include/linux/hugetlb.h |    6 +++---
+ mm/hugetlb.c            |   22 ++++++++++++----------
+ mm/migrate.c            |    2 +-
+ 3 files changed, 16 insertions(+), 14 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~mm-hugeltb_cgroup-convert-hugetlb_cgroup_commit_charge-to-folios
-+++ a/mm/hugetlb_cgroup.c
-@@ -310,21 +310,21 @@ int hugetlb_cgroup_charge_cgroup_rsvd(in
- /* Should be called with hugetlb_lock held */
- static void __hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
- 					   struct hugetlb_cgroup *h_cg,
--					   struct page *page, bool rsvd)
-+					   struct folio *folio, bool rsvd)
+--- a/include/linux/hugetlb.h~mm-hugetlb-convert-move_hugetlb_state-to-folios
++++ a/include/linux/hugetlb.h
+@@ -186,7 +186,7 @@ int isolate_hugetlb(struct page *page, s
+ int get_hwpoison_huge_page(struct page *page, bool *hugetlb);
+ int get_huge_page_for_hwpoison(unsigned long pfn, int flags);
+ void putback_active_hugepage(struct page *page);
+-void move_hugetlb_state(struct page *oldpage, struct page *newpage, int reason);
++void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason);
+ void free_huge_page(struct page *page);
+ void hugetlb_fix_reserve_counts(struct inode *inode);
+ extern struct mutex *hugetlb_fault_mutex_table;
+@@ -405,8 +405,8 @@ static inline void putback_active_hugepa
  {
- 	if (hugetlb_cgroup_disabled() || !h_cg)
- 		return;
+ }
  
--	__set_hugetlb_cgroup(page_folio(page), h_cg, rsvd);
-+	__set_hugetlb_cgroup(folio, h_cg, rsvd);
- 	if (!rsvd) {
- 		unsigned long usage =
--			h_cg->nodeinfo[page_to_nid(page)]->usage[idx];
-+			h_cg->nodeinfo[folio_nid(folio)]->usage[idx];
+-static inline void move_hugetlb_state(struct page *oldpage,
+-					struct page *newpage, int reason)
++static inline void move_hugetlb_state(struct folio *old_folio,
++					struct folio *new_folio, int reason)
+ {
+ }
+ 
+--- a/mm/hugetlb.c~mm-hugetlb-convert-move_hugetlb_state-to-folios
++++ a/mm/hugetlb.c
+@@ -7313,15 +7313,15 @@ void putback_active_hugepage(struct page
+ 	put_page(page);
+ }
+ 
+-void move_hugetlb_state(struct page *oldpage, struct page *newpage, int reason)
++void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason)
+ {
+-	struct hstate *h = page_hstate(oldpage);
++	struct hstate *h = folio_hstate(old_folio);
+ 
+-	hugetlb_cgroup_migrate(page_folio(oldpage), page_folio(newpage));
+-	set_page_owner_migrate_reason(newpage, reason);
++	hugetlb_cgroup_migrate(old_folio, new_folio);
++	set_page_owner_migrate_reason(&new_folio->page, reason);
+ 
+ 	/*
+-	 * transfer temporary state of the new huge page. This is
++	 * transfer temporary state of the new hugetlb folio. This is
+ 	 * reverse to other transitions because the newpage is going to
+ 	 * be final while the old one will be freed so it takes over
+ 	 * the temporary status.
+@@ -7330,12 +7330,14 @@ void move_hugetlb_state(struct page *old
+ 	 * here as well otherwise the global surplus count will not match
+ 	 * the per-node's.
+ 	 */
+-	if (HPageTemporary(newpage)) {
+-		int old_nid = page_to_nid(oldpage);
+-		int new_nid = page_to_nid(newpage);
++	if (folio_test_hugetlb_temporary(new_folio)) {
++		int old_nid = folio_nid(old_folio);
++		int new_nid = folio_nid(new_folio);
++
++
++		folio_set_hugetlb_temporary(old_folio);
++		folio_clear_hugetlb_temporary(new_folio);
+ 
+-		SetHPageTemporary(oldpage);
+-		ClearHPageTemporary(newpage);
+ 
  		/*
- 		 * This write is not atomic due to fetching usage and writing
- 		 * to it, but that's fine because we call this with
- 		 * hugetlb_lock held anyway.
- 		 */
--		WRITE_ONCE(h_cg->nodeinfo[page_to_nid(page)]->usage[idx],
-+		WRITE_ONCE(h_cg->nodeinfo[folio_nid(folio)]->usage[idx],
- 			   usage + nr_pages);
+ 		 * There is no need to transfer the per-node surplus state
+--- a/mm/migrate.c~mm-hugetlb-convert-move_hugetlb_state-to-folios
++++ a/mm/migrate.c
+@@ -1348,7 +1348,7 @@ put_anon:
+ 		put_anon_vma(anon_vma);
+ 
+ 	if (rc == MIGRATEPAGE_SUCCESS) {
+-		move_hugetlb_state(hpage, new_hpage, reason);
++		move_hugetlb_state(src, dst, reason);
+ 		put_new_page = NULL;
  	}
- }
-@@ -333,14 +333,18 @@ void hugetlb_cgroup_commit_charge(int id
- 				  struct hugetlb_cgroup *h_cg,
- 				  struct page *page)
- {
--	__hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, page, false);
-+	struct folio *folio = page_folio(page);
-+
-+	__hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, folio, false);
- }
  
- void hugetlb_cgroup_commit_charge_rsvd(int idx, unsigned long nr_pages,
- 				       struct hugetlb_cgroup *h_cg,
- 				       struct page *page)
- {
--	__hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, page, true);
-+	struct folio *folio = page_folio(page);
-+
-+	__hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, folio, true);
- }
- 
- /*
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
