@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C45FC43219
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:19:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94843C433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:20:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229742AbiJQATy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Oct 2022 20:19:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60840 "EHLO
+        id S229782AbiJQATz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 Oct 2022 20:19:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229943AbiJQATR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:19:17 -0400
+        with ESMTP id S229871AbiJQATQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:19:16 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 170CD31DD9
-        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:19:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31FFE31DD8
+        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:19:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6A1AEB80E28
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:19:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AC20C433C1;
-        Mon, 17 Oct 2022 00:19:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DF54CB80E28
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:19:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96259C433C1;
+        Mon, 17 Oct 2022 00:19:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665965953;
-        bh=zfU0E0f3HGYBP3+MeTaRdXcHo0PjZ6GXoXS/C+vyCl8=;
+        s=korg; t=1665965949;
+        bh=FMp+6dcVpe0W2HXol5pSI/6h6CeYqqVtjNGwiQ75ZnY=;
         h=Date:To:From:Subject:From;
-        b=y1gbXhxSjA/xL+aVFVoEWtqCBIvysYXU57hBDgG7jQ6MMk1Lb9y9aEIjsxlHlTptM
-         8UEc0vIVRfrtzPiAJQP3pMyqGTZ0B5UBEukcDyvny18e94ufYgCeH1ivu1suS9vB+S
-         Sw4ScR2aVyLPx73WH3lGcTN2t2Ai4nryDhnCmbUQ=
-Date:   Sun, 16 Oct 2022 17:19:12 -0700
+        b=MwN2mvYzIOzHImj08b2oiqj34Y+ndY6ueeLINg76g/o69TbLBUYmNzeRfrT2FOERN
+         ziOokX3KidY5CLyiXYT4Kdb3/s4nSrrHZcYwjQd5SjYEz0zQKSStx9Mgu9W+sfmFrP
+         Vcm5FdTXZwUmQFCScvWkLl0RvJjG/ZPKQadUpaGM=
+Date:   Sun, 16 Oct 2022 17:19:08 -0700
 To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
         willy@infradead.org, lyude@redhat.com, lkp@intel.com,
         kherbst@redhat.com, jhubbard@nvidia.com, jglisse@redhat.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
         alexander.deucher@amd.com, airlied@linux.ie,
         dan.j.williams@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios.patch added to mm-unstable branch
-Message-Id: <20221017001913.1AC20C433C1@smtp.kernel.org>
+Subject: + devdax-use-dax_insert_entry-dax_delete_mapping_entry.patch added to mm-unstable branch
+Message-Id: <20221017001909.96259C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memremap_pages: replace zone_device_page_init() with pgmap_request_folios()
+     Subject: devdax: use dax_insert_entry() + dax_delete_mapping_entry()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios.patch
+     devdax-use-dax_insert_entry-dax_delete_mapping_entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/devdax-use-dax_insert_entry-dax_delete_mapping_entry.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,133 +71,296 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm/memremap_pages: replace zone_device_page_init() with pgmap_request_folios()
-Date: Fri, 14 Oct 2022 16:59:06 -0700
+Subject: devdax: use dax_insert_entry() + dax_delete_mapping_entry()
+Date: Fri, 14 Oct 2022 16:59:00 -0700
 
-Switch to the common method, shared across all MEMORY_DEVICE_* types, for
-requesting access to a ZONE_DEVICE page.  The
-MEMORY_DEVICE_{PRIVATE,COHERENT} specific expectation that newly requested
-pages are locked is moved to the callers.
+Track entries and take pgmap references at mapping insertion time.  Revoke
+mappings (dax_zap_mappings()) and drop the associated pgmap references at
+device destruction or inode eviction time.  With this in place, and the
+fsdax equivalent already in place, the gup code no longer needs to
+consider PTE_DEVMAP as an indicator to get a pgmap reference before taking
+a page reference.
 
-Link: https://lkml.kernel.org/r/166579194621.2236710.8168919102434295671.stgit@dwillia2-xfh.jf.intel.com
+In other words, GUP takes additional references on mapped pages.  Until
+now, DAX in all its forms was failing to take references at mapping time. 
+With that fixed there is no longer a requirement for gup to manage @pgmap
+references.  However, that cleanup is saved for a follow-on patch.
+
+Link: https://lkml.kernel.org/r/166579194049.2236710.10922460534153863415.stgit@dwillia2-xfh.jf.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
 Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: "Christian König" <christian.koenig@amd.com>
-Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Karol Herbst <kherbst@redhat.com>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: "Jérôme Glisse" <jglisse@redhat.com>
+Cc: "Christian König" <christian.koenig@amd.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Karol Herbst <kherbst@redhat.com>
 Cc: kernel test robot <lkp@intel.com>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c       |    3 ++-
- drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |    3 ++-
- drivers/gpu/drm/nouveau/nouveau_dmem.c   |    3 ++-
- include/linux/memremap.h                 |    1 -
- lib/test_hmm.c                           |    3 ++-
- mm/memremap.c                            |   13 +------------
- 6 files changed, 9 insertions(+), 17 deletions(-)
+ drivers/dax/Kconfig   |    1 
+ drivers/dax/bus.c     |    9 ++++
+ drivers/dax/device.c  |   73 +++++++++++++++++++++++-----------------
+ drivers/dax/mapping.c |   19 +++++++---
+ include/linux/dax.h   |    3 +
+ 5 files changed, 68 insertions(+), 37 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios
-+++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -718,7 +718,8 @@ static struct page *kvmppc_uvmem_get_pag
+--- a/drivers/dax/bus.c~devdax-use-dax_insert_entry-dax_delete_mapping_entry
++++ a/drivers/dax/bus.c
+@@ -382,9 +382,16 @@ void kill_dev_dax(struct dev_dax *dev_da
+ {
+ 	struct dax_device *dax_dev = dev_dax->dax_dev;
+ 	struct inode *inode = dax_inode(dax_dev);
++	struct address_space *mapping = inode->i_mapping;
  
- 	dpage = pfn_to_page(uvmem_pfn);
- 	dpage->zone_device_data = pvt;
--	zone_device_page_init(dpage);
-+	pgmap_request_folios(dpage->pgmap, page_folio(dpage), 1);
-+	lock_page(dpage);
- 	return dpage;
- out_clear:
- 	spin_lock(&kvmppc_uvmem_bitmap_lock);
---- a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c~mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c
-@@ -223,7 +223,8 @@ svm_migrate_get_vram_page(struct svm_ran
- 	page = pfn_to_page(pfn);
- 	svm_range_bo_ref(prange->svm_bo);
- 	page->zone_device_data = prange->svm_bo;
--	zone_device_page_init(page);
-+	pgmap_request_folios(page->pgmap, page_folio(page), 1);
-+	lock_page(page);
+ 	kill_dax(dax_dev);
+-	unmap_mapping_range(inode->i_mapping, 0, 0, 1);
++
++	/*
++	 * The dax device inode can outlive the next reuse of the memory
++	 * fronted by this device, force it idle now.
++	 */
++	dax_break_layouts(mapping, 0, ULONG_MAX >> PAGE_SHIFT);
++	truncate_inode_pages(mapping, 0);
+ 
+ 	/*
+ 	 * Dynamic dax region have the pgmap allocated via dev_kzalloc()
+--- a/drivers/dax/device.c~devdax-use-dax_insert_entry-dax_delete_mapping_entry
++++ a/drivers/dax/device.c
+@@ -73,38 +73,15 @@ __weak phys_addr_t dax_pgoff_to_phys(str
+ 	return -1;
  }
  
- static void
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios
-+++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -324,7 +324,8 @@ nouveau_dmem_page_alloc_locked(struct no
- 			return NULL;
- 	}
- 
--	zone_device_page_init(page);
-+	pgmap_request_folios(page->pgmap, page_folio(page), 1);
-+	lock_page(page);
- 	return page;
- }
- 
---- a/include/linux/memremap.h~mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios
-+++ a/include/linux/memremap.h
-@@ -187,7 +187,6 @@ static inline bool folio_is_device_coher
- }
- 
- #ifdef CONFIG_ZONE_DEVICE
--void zone_device_page_init(struct page *page);
- void *memremap_pages(struct dev_pagemap *pgmap, int nid);
- void memunmap_pages(struct dev_pagemap *pgmap);
- void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
---- a/lib/test_hmm.c~mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios
-+++ a/lib/test_hmm.c
-@@ -632,7 +632,8 @@ static struct page *dmirror_devmem_alloc
- 			goto error;
- 	}
- 
--	zone_device_page_init(dpage);
-+	pgmap_request_folios(dpage->pgmap, page_folio(dpage), 1);
-+	lock_page(dpage);
- 	dpage->zone_device_data = rpage;
- 	return dpage;
- 
---- a/mm/memremap.c~mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios
-+++ a/mm/memremap.c
-@@ -518,18 +518,6 @@ void free_zone_device_page(struct page *
- 		put_dev_pagemap(page->pgmap);
- }
- 
--void zone_device_page_init(struct page *page)
+-static void dax_set_mapping(struct vm_fault *vmf, pfn_t pfn,
+-			      unsigned long fault_size)
 -{
--	/*
--	 * Drivers shouldn't be allocating pages after calling
--	 * memunmap_pages().
--	 */
--	WARN_ON_ONCE(!percpu_ref_tryget_live(&page->pgmap->ref));
--	set_page_count(page, 1);
--	lock_page(page);
--}
--EXPORT_SYMBOL_GPL(zone_device_page_init);
+-	unsigned long i, nr_pages = fault_size / PAGE_SIZE;
+-	struct file *filp = vmf->vma->vm_file;
+-	struct dev_dax *dev_dax = filp->private_data;
+-	pgoff_t pgoff;
 -
- static bool folio_span_valid(struct dev_pagemap *pgmap, struct folio *folio,
- 			     int nr_folios)
+-	/* mapping is only set on the head */
+-	if (dev_dax->pgmap->vmemmap_shift)
+-		nr_pages = 1;
+-
+-	pgoff = linear_page_index(vmf->vma,
+-			ALIGN(vmf->address, fault_size));
+-
+-	for (i = 0; i < nr_pages; i++) {
+-		struct page *page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
+-
+-		page = compound_head(page);
+-		if (page->mapping)
+-			continue;
+-
+-		page->mapping = filp->f_mapping;
+-		page->index = pgoff + i;
+-	}
+-}
+-
+ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+ 				struct vm_fault *vmf)
  {
-@@ -586,6 +574,7 @@ bool pgmap_request_folios(struct dev_pag
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
++	XA_STATE(xas, &mapping->i_pages, vmf->pgoff);
+ 	struct device *dev = &dev_dax->dev;
+ 	phys_addr_t phys;
++	vm_fault_t ret;
++	void *entry;
+ 	pfn_t pfn;
+ 	unsigned int fault_size = PAGE_SIZE;
  
- 	return true;
+@@ -128,7 +105,16 @@ static vm_fault_t __dev_dax_pte_fault(st
+ 
+ 	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 
+-	dax_set_mapping(vmf, pfn, fault_size);
++	entry = dax_grab_mapping_entry(&xas, mapping, 0);
++	if (is_dax_err(entry))
++		return dax_err_to_vmfault(entry);
++
++	ret = dax_insert_entry(&xas, vmf, &entry, pfn, 0);
++
++	dax_unlock_entry(&xas, entry);
++
++	if (ret)
++		return ret;
+ 
+ 	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
  }
-+EXPORT_SYMBOL_GPL(pgmap_request_folios);
- 
- void pgmap_release_folios(struct dev_pagemap *pgmap, struct folio *folio, int nr_folios)
+@@ -136,10 +122,14 @@ static vm_fault_t __dev_dax_pte_fault(st
+ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 				struct vm_fault *vmf)
  {
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
++	XA_STATE(xas, &mapping->i_pages, vmf->pgoff);
+ 	struct device *dev = &dev_dax->dev;
+ 	phys_addr_t phys;
++	vm_fault_t ret;
+ 	pgoff_t pgoff;
++	void *entry;
+ 	pfn_t pfn;
+ 	unsigned int fault_size = PMD_SIZE;
+ 
+@@ -171,7 +161,16 @@ static vm_fault_t __dev_dax_pmd_fault(st
+ 
+ 	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 
+-	dax_set_mapping(vmf, pfn, fault_size);
++	entry = dax_grab_mapping_entry(&xas, mapping, PMD_ORDER);
++	if (is_dax_err(entry))
++		return dax_err_to_vmfault(entry);
++
++	ret = dax_insert_entry(&xas, vmf, &entry, pfn, DAX_PMD);
++
++	dax_unlock_entry(&xas, entry);
++
++	if (ret)
++		return ret;
+ 
+ 	return vmf_insert_pfn_pmd(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
+ }
+@@ -180,10 +179,14 @@ static vm_fault_t __dev_dax_pmd_fault(st
+ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 				struct vm_fault *vmf)
+ {
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+ 	unsigned long pud_addr = vmf->address & PUD_MASK;
++	XA_STATE(xas, &mapping->i_pages, vmf->pgoff);
+ 	struct device *dev = &dev_dax->dev;
+ 	phys_addr_t phys;
++	vm_fault_t ret;
+ 	pgoff_t pgoff;
++	void *entry;
+ 	pfn_t pfn;
+ 	unsigned int fault_size = PUD_SIZE;
+ 
+@@ -216,7 +219,16 @@ static vm_fault_t __dev_dax_pud_fault(st
+ 
+ 	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 
+-	dax_set_mapping(vmf, pfn, fault_size);
++	entry = dax_grab_mapping_entry(&xas, mapping, PUD_ORDER);
++	if (xa_is_internal(entry))
++		return xa_to_internal(entry);
++
++	ret = dax_insert_entry(&xas, vmf, &entry, pfn, DAX_PUD);
++
++	dax_unlock_entry(&xas, entry);
++
++	if (ret)
++		return ret;
+ 
+ 	return vmf_insert_pfn_pud(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
+ }
+@@ -494,3 +506,4 @@ MODULE_LICENSE("GPL v2");
+ module_init(dax_init);
+ module_exit(dax_exit);
+ MODULE_ALIAS_DAX_DEVICE(0);
++MODULE_IMPORT_NS(DAX);
+--- a/drivers/dax/Kconfig~devdax-use-dax_insert_entry-dax_delete_mapping_entry
++++ a/drivers/dax/Kconfig
+@@ -9,6 +9,7 @@ if DAX
+ config DEV_DAX
+ 	tristate "Device DAX: direct access mapping device"
+ 	depends on TRANSPARENT_HUGEPAGE
++	depends on !FS_DAX_LIMITED
+ 	help
+ 	  Support raw access to differentiated (persistence, bandwidth,
+ 	  latency...) memory via an mmap(2) capable character
+--- a/drivers/dax/mapping.c~devdax-use-dax_insert_entry-dax_delete_mapping_entry
++++ a/drivers/dax/mapping.c
+@@ -266,6 +266,7 @@ void dax_unlock_entry(struct xa_state *x
+ 	WARN_ON(!dax_is_locked(old));
+ 	dax_wake_entry(xas, entry, WAKE_NEXT);
+ }
++EXPORT_SYMBOL_NS_GPL(dax_unlock_entry, DAX);
+ 
+ /*
+  * Return: The entry stored at this location before it was locked.
+@@ -663,6 +664,7 @@ fallback:
+ 	xas_unlock_irq(xas);
+ 	return vmfault_to_dax_err(VM_FAULT_FALLBACK);
+ }
++EXPORT_SYMBOL_NS_GPL(dax_grab_mapping_entry, DAX);
+ 
+ static void *dax_zap_entry(struct xa_state *xas, void *entry)
+ {
+@@ -814,15 +816,21 @@ out:
+  * wait indefinitely for all pins to drop, the alternative to waiting is
+  * a potential use-after-free scenario
+  */
+-static void dax_break_layout(struct address_space *mapping, pgoff_t index)
++void dax_break_layouts(struct address_space *mapping, pgoff_t index,
++		       pgoff_t end)
+ {
+-	/* To do this without locks, the inode needs to be unreferenced */
+-	WARN_ON(atomic_read(&mapping->host->i_count));
++	struct inode *inode = mapping->host;
++
++	/*
++	 * To do this without filesystem locks, the inode needs to be
++	 * unreferenced, or device-dax.
++	 */
++	WARN_ON(atomic_read(&inode->i_count) && !S_ISCHR(inode->i_mode));
+ 	do {
+ 		struct page *page;
+ 
+ 		page = dax_zap_mappings_range(mapping, index << PAGE_SHIFT,
+-					      (index + 1) << PAGE_SHIFT);
++					      end << PAGE_SHIFT);
+ 		if (!page)
+ 			return;
+ 		wait_var_event(page, dax_page_idle(page));
+@@ -838,7 +846,7 @@ int dax_delete_mapping_entry(struct addr
+ 	int ret;
+ 
+ 	if (mapping_exiting(mapping))
+-		dax_break_layout(mapping, index);
++		dax_break_layouts(mapping, index, index + 1);
+ 
+ 	ret = __dax_invalidate_entry(mapping, index, true);
+ 
+@@ -932,6 +940,7 @@ out:
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL_NS_GPL(dax_insert_entry, DAX);
+ 
+ int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
+ 		      struct address_space *mapping, void *entry) __must_hold(xas)
+--- a/include/linux/dax.h~devdax-use-dax_insert_entry-dax_delete_mapping_entry
++++ a/include/linux/dax.h
+@@ -181,7 +181,6 @@ dax_entry_t dax_lock_mapping_entry(struc
+ 		unsigned long index, struct page **page);
+ void dax_unlock_mapping_entry(struct address_space *mapping,
+ 		unsigned long index, dax_entry_t cookie);
+-void dax_break_layouts(struct inode *inode);
+ struct page *dax_zap_mappings(struct address_space *mapping);
+ struct page *dax_zap_mappings_range(struct address_space *mapping, loff_t start,
+ 				    loff_t end);
+@@ -286,6 +285,8 @@ void dax_unlock_entry(struct xa_state *x
+ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+ 				      pgoff_t index);
++void dax_break_layouts(struct address_space *mapping, pgoff_t index,
++		       pgoff_t end);
+ int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+ 				  struct inode *dest, loff_t destoff,
+ 				  loff_t len, bool *is_same,
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
