@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D13FDC433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:18:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A6FC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:18:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229832AbiJQASZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229696AbiJQASZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 16 Oct 2022 20:18:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60578 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229782AbiJQASS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:18:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 792FC2A439
-        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:18:17 -0700 (PDT)
+        with ESMTP id S229827AbiJQASY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:18:24 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5ABD62A252
+        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:18:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EC1B760EAE
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:18:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EAB7C433C1;
-        Mon, 17 Oct 2022 00:18:16 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 9B89CCE0F30
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:18:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE037C433D6;
+        Mon, 17 Oct 2022 00:18:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665965896;
-        bh=4cyZlJ222Slo+R8ikkfJuzlAuOsZrVMzbxguwbQuDhs=;
+        s=korg; t=1665965899;
+        bh=mRbfSM1He1GJauXKI2+JLbj9YTD254FPZRyzkYkCn6E=;
         h=Date:To:From:Subject:From;
-        b=acMlzew8Mfc2N+IsyUOkadwxktzRGvSWzrCVWFBAi+MB37Lk4hMZsegAjMuZo9NBM
-         ploqKCc88rLaYmUOdBRHhcidvcpVaZgTr3K7fpDPOGtPTDQyKy8MT39blBeMr7bPRk
-         xuLsayNVGOKy7D8fIe1sCTNNY+8X0UI6FGCXhlq4=
-Date:   Sun, 16 Oct 2022 17:18:15 -0700
+        b=I8g09PqwZjs7LzE4Z+++m/hgsdT3/tVGZ3JniWIZYN4//Oevnz5NRdtInk2p+49HM
+         dd1ntyy4FJRx++3QEIOm2PlBTXJhpaMb4muqYuOmBjCmd098BJJqflqdr8p8q4lEvh
+         Ja+OYN5d22no+jJDuFxkm64QjOOc1NaHo28oWcsM=
+Date:   Sun, 16 Oct 2022 17:18:18 -0700
 To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
         willy@infradead.org, lyude@redhat.com, lkp@intel.com,
         kherbst@redhat.com, jhubbard@nvidia.com, jglisse@redhat.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
         alexander.deucher@amd.com, airlied@linux.ie,
         dan.j.williams@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fsdax-use-dax_page_idle-to-document-dax-busy-page-checking.patch added to mm-unstable branch
-Message-Id: <20221017001816.3EAB7C433C1@smtp.kernel.org>
+Subject: + fsdax-include-unmapped-inodes-for-page-idle-detection.patch added to mm-unstable branch
+Message-Id: <20221017001819.AE037C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsdax: use dax_page_idle() to document DAX busy page checking
+     Subject: fsdax: include unmapped inodes for page-idle detection
 has been added to the -mm mm-unstable branch.  Its filename is
-     fsdax-use-dax_page_idle-to-document-dax-busy-page-checking.patch
+     fsdax-include-unmapped-inodes-for-page-idle-detection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fsdax-use-dax_page_idle-to-document-dax-busy-page-checking.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fsdax-include-unmapped-inodes-for-page-idle-detection.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,20 +71,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: fsdax: use dax_page_idle() to document DAX busy page checking
-Date: Fri, 14 Oct 2022 16:57:08 -0700
+Subject: fsdax: include unmapped inodes for page-idle detection
+Date: Fri, 14 Oct 2022 16:57:14 -0700
 
-In advance of converting DAX pages to be 0-based, use a new
-dax_page_idle() helper to both simplify that future conversion, but also
-document all the kernel locations that are watching for DAX page idle
-events.
+A page can remain pinned even after it has been unmapped from userspace /
+removed from the rmap.  In advance of requiring that all
+dax_insert_entry() events are followed up 'break layouts' before a
+truncate event, make sure that 'break layouts' can find unmapped entries.
 
-Link: https://lkml.kernel.org/r/166579182839.2236710.16461867548859813784.stgit@dwillia2-xfh.jf.intel.com
+Link: https://lkml.kernel.org/r/166579183407.2236710.2161472385123143060.stgit@dwillia2-xfh.jf.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Alex Deucher <alexander.deucher@amd.com>
@@ -103,91 +103,20 @@ Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c            |    4 ++--
- fs/ext4/inode.c     |    3 +--
- fs/fuse/dax.c       |    5 ++---
- fs/xfs/xfs_file.c   |    5 ++---
- include/linux/dax.h |    9 +++++++++
- 5 files changed, 16 insertions(+), 10 deletions(-)
+ fs/dax.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/dax.c~fsdax-use-dax_page_idle-to-document-dax-busy-page-checking
+--- a/fs/dax.c~fsdax-include-unmapped-inodes-for-page-idle-detection
 +++ a/fs/dax.c
-@@ -395,7 +395,7 @@ static void dax_disassociate_entry(void
- 	for_each_mapped_pfn(entry, pfn) {
- 		struct page *page = pfn_to_page(pfn);
+@@ -698,7 +698,7 @@ struct page *dax_layout_busy_page_range(
+ 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+ 		return NULL;
  
--		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
-+		WARN_ON_ONCE(trunc && !dax_page_idle(page));
- 		if (dax_mapping_is_cow(page->mapping)) {
- 			/* keep the CoW flag if this page is still shared */
- 			if (page->index-- > 0)
-@@ -414,7 +414,7 @@ static struct page *dax_busy_page(void *
- 	for_each_mapped_pfn(entry, pfn) {
- 		struct page *page = pfn_to_page(pfn);
+-	if (!dax_mapping(mapping) || !mapping_mapped(mapping))
++	if (!dax_mapping(mapping))
+ 		return NULL;
  
--		if (page_ref_count(page) > 1)
-+		if (!dax_page_idle(page))
- 			return page;
- 	}
- 	return NULL;
---- a/fs/ext4/inode.c~fsdax-use-dax_page_idle-to-document-dax-busy-page-checking
-+++ a/fs/ext4/inode.c
-@@ -3968,8 +3968,7 @@ int ext4_break_layouts(struct inode *ino
- 		if (!page)
- 			return 0;
- 
--		error = ___wait_var_event(page,
--					  atomic_read(&page->_refcount) == 1,
-+		error = ___wait_var_event(page, dax_page_idle(page),
- 					  TASK_INTERRUPTIBLE, 0, 0,
- 					  ext4_wait_dax_page(inode));
- 	} while (error == 0);
---- a/fs/fuse/dax.c~fsdax-use-dax_page_idle-to-document-dax-busy-page-checking
-+++ a/fs/fuse/dax.c
-@@ -676,9 +676,8 @@ static int __fuse_dax_break_layouts(stru
- 		return 0;
- 
- 	*retry = true;
--	return ___wait_var_event(page, atomic_read(&page->_refcount) == 1,
--				 TASK_INTERRUPTIBLE, 0, 0,
--				 fuse_wait_dax_page(inode));
-+	return ___wait_var_event(page, dax_page_idle(page), TASK_INTERRUPTIBLE,
-+				 0, 0, fuse_wait_dax_page(inode));
- }
- 
- /* dmap_end == 0 leads to unmapping of whole file */
---- a/fs/xfs/xfs_file.c~fsdax-use-dax_page_idle-to-document-dax-busy-page-checking
-+++ a/fs/xfs/xfs_file.c
-@@ -827,9 +827,8 @@ xfs_break_dax_layouts(
- 		return 0;
- 
- 	*retry = true;
--	return ___wait_var_event(page, atomic_read(&page->_refcount) == 1,
--				 TASK_INTERRUPTIBLE, 0, 0,
--				 xfs_wait_dax_page(inode));
-+	return ___wait_var_event(page, dax_page_idle(page), TASK_INTERRUPTIBLE,
-+				 0, 0, xfs_wait_dax_page(inode));
- }
- 
- int
---- a/include/linux/dax.h~fsdax-use-dax_page_idle-to-document-dax-busy-page-checking
-+++ a/include/linux/dax.h
-@@ -210,6 +210,15 @@ int dax_zero_range(struct inode *inode,
- int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
- 		const struct iomap_ops *ops);
- 
-+/*
-+ * Document all the code locations that want know when a dax page is
-+ * unreferenced.
-+ */
-+static inline bool dax_page_idle(struct page *page)
-+{
-+	return page_ref_count(page) == 1;
-+}
-+
- #if IS_ENABLED(CONFIG_DAX)
- int dax_read_lock(void);
- void dax_read_unlock(int id);
+ 	/* If end == LLONG_MAX, all pages from start to till end of file */
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
