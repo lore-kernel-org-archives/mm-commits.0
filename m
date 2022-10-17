@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CFF4C433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:44:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D961C433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:44:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229947AbiJQAoK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Oct 2022 20:44:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43564 "EHLO
+        id S229904AbiJQAod (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 Oct 2022 20:44:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230006AbiJQAoG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:44:06 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F31036435
-        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:43:57 -0700 (PDT)
+        with ESMTP id S230026AbiJQAo0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:44:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E450FF32
+        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:44:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DC382B80D5B
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:43:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9059AC433D7;
-        Mon, 17 Oct 2022 00:43:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 14F1460E8C
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:44:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6846BC433D6;
+        Mon, 17 Oct 2022 00:44:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665967434;
-        bh=p+Ls6QrAjjfsQ88Xp+F8I0HiP6HBxPLvES/IWuLj0ao=;
+        s=korg; t=1665967460;
+        bh=iyn+1JfKFr5NQ+ecNKxXi47JZcJYTzMNbt4Qywr+EEI=;
         h=Date:To:From:Subject:From;
-        b=N4tQtvaAOTWir/gM5yGDnfO2xD+pgUzpCeroE7ps8o/XrAWPzRW/8PU6IFjO5XQVI
-         myte1xyJ3BPGSXvXgwVrWGhi/hS/5KtfM9cvcD0N7ixeI/2v2NmTsi+Ng+cqrNtkxH
-         hw1UEI3G1LkTFLdpyBBsKWALVzc2vFhch6mbf8jw=
-Date:   Sun, 16 Oct 2022 17:43:53 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, minhquangbui99@gmail.com,
-        mike.kravetz@oracle.com, linmiaohe@huawei.com,
-        aneesh.kumar@linux.ibm.com, almasrymina@google.com,
-        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
+        b=gLG7jRPpK+fFBdR6bmeRjW3IiYJ0Ysei0SDnsPXWzqgvO6SRQ6UqFohSZK9cucj1Y
+         BdUbdhOOXH97S/kRdZtPY0/6l4n0Vq0e2Sa28OAdc6X5i9OSJFuKGsLQge1OIlE/7B
+         ihNrbdbulR/FfLpfM5QillCUFNOgEk3wovCPwkek=
+Date:   Sun, 16 Oct 2022 17:44:19 -0700
+To:     mm-commits@vger.kernel.org, mawupeng1@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-move_hugetlb_state-to-folios.patch added to mm-unstable branch
-Message-Id: <20221017004354.9059AC433D7@smtp.kernel.org>
+Subject: + mm-rmap-fix-comment-in-anon_vma_clone.patch added to mm-unstable branch
+Message-Id: <20221017004420.6846BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: convert move_hugetlb_state() to folios
+     Subject: mm/rmap: fix comment in anon_vma_clone()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-move_hugetlb_state-to-folios.patch
+     mm-rmap-fix-comment-in-anon_vma_clone.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-move_hugetlb_state-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-fix-comment-in-anon_vma_clone.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,117 +64,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: convert move_hugetlb_state() to folios
-Date: Thu, 13 Oct 2022 20:13:03 -0700
+From: Ma Wupeng <mawupeng1@huawei.com>
+Subject: mm/rmap: fix comment in anon_vma_clone()
+Date: Fri, 14 Oct 2022 09:39:31 +0800
 
-Clean up unmap_and_move_huge_page() by converting move_hugetlb_state() to
-take in folios.
+Commit 2555283eb40d ("mm/rmap: Fix anon_vma->degree ambiguity leading to
+double-reuse") use num_children and num_active_vmas to replace the origin
+degree to fix anon_vma UAF problem.  Update the comment in anon_vma_clone
+to fit this change.
 
-Link: https://lkml.kernel.org/r/20221014031303.231740-10-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Bui Quang Minh <minhquangbui99@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20221014013931.1565969-1-mawupeng1@huawei.com
+Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 +++---
- mm/hugetlb.c            |   22 ++++++++++++----------
- mm/migrate.c            |    2 +-
- 3 files changed, 16 insertions(+), 14 deletions(-)
+ mm/rmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-convert-move_hugetlb_state-to-folios
-+++ a/include/linux/hugetlb.h
-@@ -186,7 +186,7 @@ int isolate_hugetlb(struct page *page, s
- int get_hwpoison_huge_page(struct page *page, bool *hugetlb);
- int get_huge_page_for_hwpoison(unsigned long pfn, int flags);
- void putback_active_hugepage(struct page *page);
--void move_hugetlb_state(struct page *oldpage, struct page *newpage, int reason);
-+void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason);
- void free_huge_page(struct page *page);
- void hugetlb_fix_reserve_counts(struct inode *inode);
- extern struct mutex *hugetlb_fault_mutex_table;
-@@ -405,8 +405,8 @@ static inline void putback_active_hugepa
- {
- }
+--- a/mm/rmap.c~mm-rmap-fix-comment-in-anon_vma_clone
++++ a/mm/rmap.c
+@@ -315,8 +315,8 @@ int anon_vma_clone(struct vm_area_struct
  
--static inline void move_hugetlb_state(struct page *oldpage,
--					struct page *newpage, int reason)
-+static inline void move_hugetlb_state(struct folio *old_folio,
-+					struct folio *new_folio, int reason)
- {
- }
- 
---- a/mm/hugetlb.c~mm-hugetlb-convert-move_hugetlb_state-to-folios
-+++ a/mm/hugetlb.c
-@@ -7313,15 +7313,15 @@ void putback_active_hugepage(struct page
- 	put_page(page);
- }
- 
--void move_hugetlb_state(struct page *oldpage, struct page *newpage, int reason)
-+void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason)
- {
--	struct hstate *h = page_hstate(oldpage);
-+	struct hstate *h = folio_hstate(old_folio);
- 
--	hugetlb_cgroup_migrate(page_folio(oldpage), page_folio(newpage));
--	set_page_owner_migrate_reason(newpage, reason);
-+	hugetlb_cgroup_migrate(old_folio, new_folio);
-+	set_page_owner_migrate_reason(&new_folio->page, reason);
- 
+  enomem_failure:
  	/*
--	 * transfer temporary state of the new huge page. This is
-+	 * transfer temporary state of the new hugetlb folio. This is
- 	 * reverse to other transitions because the newpage is going to
- 	 * be final while the old one will be freed so it takes over
- 	 * the temporary status.
-@@ -7330,12 +7330,14 @@ void move_hugetlb_state(struct page *old
- 	 * here as well otherwise the global surplus count will not match
- 	 * the per-node's.
+-	 * dst->anon_vma is dropped here otherwise its degree can be incorrectly
+-	 * decremented in unlink_anon_vmas().
++	 * dst->anon_vma is dropped here otherwise its num_active_vmas can
++	 * be incorrectly decremented in unlink_anon_vmas().
+ 	 * We can safely do this because callers of anon_vma_clone() don't care
+ 	 * about dst->anon_vma if anon_vma_clone() failed.
  	 */
--	if (HPageTemporary(newpage)) {
--		int old_nid = page_to_nid(oldpage);
--		int new_nid = page_to_nid(newpage);
-+	if (folio_test_hugetlb_temporary(new_folio)) {
-+		int old_nid = folio_nid(old_folio);
-+		int new_nid = folio_nid(new_folio);
-+
-+
-+		folio_set_hugetlb_temporary(old_folio);
-+		folio_clear_hugetlb_temporary(new_folio);
- 
--		SetHPageTemporary(oldpage);
--		ClearHPageTemporary(newpage);
- 
- 		/*
- 		 * There is no need to transfer the per-node surplus state
---- a/mm/migrate.c~mm-hugetlb-convert-move_hugetlb_state-to-folios
-+++ a/mm/migrate.c
-@@ -1348,7 +1348,7 @@ put_anon:
- 		put_anon_vma(anon_vma);
- 
- 	if (rc == MIGRATEPAGE_SUCCESS) {
--		move_hugetlb_state(hpage, new_hpage, reason);
-+		move_hugetlb_state(src, dst, reason);
- 		put_new_page = NULL;
- 	}
- 
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from mawupeng1@huawei.com are
 
-mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch
-mm-hugetlb_cgroup-convert-hugetlb_cgroup_from_page-to-folios.patch
-mm-hugetlb_cgroup-convert-set_hugetlb_cgroup-to-folios.patch
-mm-hugetlb_cgroup-convert-hugetlb_cgroup_migrate-to-folios.patch
-mm-hugetlb-convert-isolate_or_dissolve_huge_page-to-folios.patch
-mm-hugetlb-convert-free_huge_page-to-folios.patch
-mm-hugetlb_cgroup-convert-hugetlb_cgroup_uncharge_page-to-folios.patch
-mm-hugeltb_cgroup-convert-hugetlb_cgroup_commit_charge-to-folios.patch
-mm-hugetlb-convert-move_hugetlb_state-to-folios.patch
+mm-rmap-fix-comment-in-anon_vma_clone.patch
 
