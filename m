@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE1ABC43219
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 20:40:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 742CDC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 20:40:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230476AbiJQUkG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Oct 2022 16:40:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33208 "EHLO
+        id S230004AbiJQUke (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Oct 2022 16:40:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231476AbiJQUjb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 16:39:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4104F4E862
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 13:36:58 -0700 (PDT)
+        with ESMTP id S231680AbiJQUkC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 16:40:02 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E30D278205
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 13:37:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 90EBD61284
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 20:36:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0C72C433D7;
-        Mon, 17 Oct 2022 20:36:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1B59EB818FD
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 20:37:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA86AC433D7;
+        Mon, 17 Oct 2022 20:37:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666039014;
-        bh=kTEA/u+0m9ptLgvxufhdJHs6/H/If87Q4uasFvFvWoQ=;
+        s=korg; t=1666039023;
+        bh=oOnLW/jB0RZ+VmluGsnKRSUqyvjfrRiPtlL9lHpu/FU=;
         h=Date:To:From:Subject:From;
-        b=rmuOhvg+w3tZygBAHG9HDNK/31AhnS+8deLKH5+OBQrmkgs8Ap802ab6145Mdw2dO
-         JftHMfukBMyvD0NNrKWaotRxNXV5AVN+KEpfZXN1WCw6G91WcrObQGdzMsPumaq81G
-         DN1lJun+V0g2ePfFE+UtSV3IFn4tcV5T4zm+SlnI=
-Date:   Mon, 17 Oct 2022 13:36:53 -0700
+        b=mtRv2HoMiBT8tZK9sbRTDl0Epwr5qJjNor9+lZrO3G5Xe9Oj1LVkclficy7eH2SHJ
+         3x7LYGs3SkVC+l7kRpG5JeJ04+5yHm4sUk99ypZS72IqeronIjaxQYIvQ8XXYO0yZ7
+         4k+9Ay7lkFUH1b4Uk+EgDKPved4BLevuvr1HRpvs=
+Date:   Mon, 17 Oct 2022 13:37:03 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         william.kucharski@oracle.com, vbabka@suse.cz,
         songmuchun@bytedance.com, peterx@redhat.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, sidhartha.kumar@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-private-field-of-first-tail-to-struct-page-and-struct-folio.patch added to mm-unstable branch
-Message-Id: <20221017203653.E0C72C433D7@smtp.kernel.org>
+Subject: + mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch added to mm-unstable branch
+Message-Id: <20221017203703.BA86AC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add private field of first tail to struct page and struct folio
+     Subject: mm/hugetlb_cgroup: convert __set_hugetlb_cgroup() to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-private-field-of-first-tail-to-struct-page-and-struct-folio.patch
+     mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-private-field-of-first-tail-to-struct-page-and-struct-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,84 +70,105 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm: add private field of first tail to struct page and struct folio
-Date: Thu, 22 Sep 2022 10:42:04 -0500
+Subject: mm/hugetlb_cgroup: convert __set_hugetlb_cgroup() to folios
+Date: Thu, 13 Oct 2022 20:12:55 -0700
 
-Allow struct folio to store hugetlb metadata that is contained in the
-private field of the first tail page.  On 32-bit, _private_1 aligns with
-page[1].private.
+Patch series "convert hugetlb_cgroup helper functions to folios".
 
-Link: https://lkml.kernel.org/r/20220922154207.1575343-3-sidhartha.kumar@oracle.com
+This patch series continues the conversion of hugetlb code from being
+managed in pages to folios by converting many of the hugetlb_cgroup helper
+functions to use folios.  This allows the core hugetlb functions to pass
+in a folio to these helper functions.
+
+
+This patch (of 9):
+
+Change __set_hugetlb_cgroup() to use folios so it is explicit that the
+function operates on a head page.
+
+Link: https://lkml.kernel.org/r/20221014031303.231740-1-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20221014031303.231740-2-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Colin Cross <ccross@google.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: "Eric W . Biederman" <ebiederm@xmission.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: kernel test robot <lkp@intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ include/linux/hugetlb_cgroup.h |   14 +++++++-------
+ mm/hugetlb_cgroup.c            |    4 ++--
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm_types.h~mm-add-private-field-of-first-tail-to-struct-page-and-struct-folio
-+++ a/include/linux/mm_types.h
-@@ -144,6 +144,7 @@ struct page {
- 			atomic_t compound_pincount;
- #ifdef CONFIG_64BIT
- 			unsigned int compound_nr; /* 1 << compound_order */
-+			unsigned long _private_1;
- #endif
- 		};
- 		struct {	/* Second tail page of compound page */
-@@ -264,6 +265,7 @@ struct page {
-  * @_total_mapcount: Do not use directly, call folio_entire_mapcount().
-  * @_pincount: Do not use directly, call folio_maybe_dma_pinned().
-  * @_folio_nr_pages: Do not use directly, call folio_nr_pages().
-+ * @_private_1: Do not use directly, call folio_get_private_1().
-  *
-  * A folio is a physically, virtually and logically contiguous set
-  * of bytes.  It is a power-of-two in size, and it is aligned to that
-@@ -311,6 +313,7 @@ struct folio {
- #ifdef CONFIG_64BIT
- 	unsigned int _folio_nr_pages;
- #endif
-+	unsigned long _private_1;
- };
- 
- #define FOLIO_MATCH(pg, fl)						\
-@@ -338,6 +341,7 @@ FOLIO_MATCH(compound_mapcount, _total_ma
- FOLIO_MATCH(compound_pincount, _pincount);
- #ifdef CONFIG_64BIT
- FOLIO_MATCH(compound_nr, _folio_nr_pages);
-+FOLIO_MATCH(_private_1, _private_1);
- #endif
- #undef FOLIO_MATCH
- 
-@@ -383,6 +387,16 @@ static inline void *folio_get_private(st
- 	return folio->private;
+--- a/include/linux/hugetlb_cgroup.h~mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios
++++ a/include/linux/hugetlb_cgroup.h
+@@ -90,31 +90,31 @@ hugetlb_cgroup_from_page_rsvd(struct pag
+ 	return __hugetlb_cgroup_from_page(page, true);
  }
  
-+static inline void folio_set_private_1(struct folio *folio, unsigned long private)
-+{
-+	folio->_private_1 = private;
-+}
-+
-+static inline unsigned long folio_get_private_1(struct folio *folio)
-+{
-+	return folio->_private_1;
-+}
-+
- struct page_frag_cache {
- 	void * va;
- #if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
+-static inline void __set_hugetlb_cgroup(struct page *page,
++static inline void __set_hugetlb_cgroup(struct folio *folio,
+ 				       struct hugetlb_cgroup *h_cg, bool rsvd)
+ {
+-	VM_BUG_ON_PAGE(!PageHuge(page), page);
++	VM_BUG_ON_FOLIO(!folio_test_hugetlb(folio), folio);
+ 
+-	if (compound_order(page) < HUGETLB_CGROUP_MIN_ORDER)
++	if (folio_order(folio) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return;
+ 	if (rsvd)
+-		set_page_private(page + SUBPAGE_INDEX_CGROUP_RSVD,
++		set_page_private(folio_page(folio, SUBPAGE_INDEX_CGROUP_RSVD),
+ 				 (unsigned long)h_cg);
+ 	else
+-		set_page_private(page + SUBPAGE_INDEX_CGROUP,
++		set_page_private(folio_page(folio, SUBPAGE_INDEX_CGROUP),
+ 				 (unsigned long)h_cg);
+ }
+ 
+ static inline void set_hugetlb_cgroup(struct page *page,
+ 				     struct hugetlb_cgroup *h_cg)
+ {
+-	__set_hugetlb_cgroup(page, h_cg, false);
++	__set_hugetlb_cgroup(page_folio(page), h_cg, false);
+ }
+ 
+ static inline void set_hugetlb_cgroup_rsvd(struct page *page,
+ 					  struct hugetlb_cgroup *h_cg)
+ {
+-	__set_hugetlb_cgroup(page, h_cg, true);
++	__set_hugetlb_cgroup(page_folio(page), h_cg, true);
+ }
+ 
+ static inline bool hugetlb_cgroup_disabled(void)
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios
++++ a/mm/hugetlb_cgroup.c
+@@ -314,7 +314,7 @@ static void __hugetlb_cgroup_commit_char
+ 	if (hugetlb_cgroup_disabled() || !h_cg)
+ 		return;
+ 
+-	__set_hugetlb_cgroup(page, h_cg, rsvd);
++	__set_hugetlb_cgroup(page_folio(page), h_cg, rsvd);
+ 	if (!rsvd) {
+ 		unsigned long usage =
+ 			h_cg->nodeinfo[page_to_nid(page)]->usage[idx];
+@@ -356,7 +356,7 @@ static void __hugetlb_cgroup_uncharge_pa
+ 	h_cg = __hugetlb_cgroup_from_page(page, rsvd);
+ 	if (unlikely(!h_cg))
+ 		return;
+-	__set_hugetlb_cgroup(page, NULL, rsvd);
++	__set_hugetlb_cgroup(page_folio(page), NULL, rsvd);
+ 
+ 	page_counter_uncharge(__hugetlb_cgroup_counter_from_cgroup(h_cg, idx,
+ 								   rsvd),
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
