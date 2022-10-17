@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8686DC43219
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:19:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1025C433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:19:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229960AbiJQATd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Oct 2022 20:19:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32882 "EHLO
+        id S229980AbiJQATw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 Oct 2022 20:19:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229894AbiJQATM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:19:12 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBC6430F7D
-        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:19:03 -0700 (PDT)
+        with ESMTP id S229927AbiJQATN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:19:13 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6FA631DD4
+        for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:19:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 95F33B80E2A
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:19:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FC98C433D6;
-        Mon, 17 Oct 2022 00:19:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 75665B80E2B
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:19:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E026C433D6;
+        Mon, 17 Oct 2022 00:19:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665965941;
-        bh=KgYAV/GzS+r2w+xvSe9wb6NZA71FmeVPketXibfuYoQ=;
+        s=korg; t=1665965944;
+        bh=P5F5yEwfSejg812kZ6VV4w9Dftf4+LLD8y6wlr/FcAo=;
         h=Date:To:From:Subject:From;
-        b=CFwCIyHOunYABxS/woWdqDfVp83ZBKPsbENuR4/M726tmWV/Ozr+Ei3ppuftPn1U5
-         Bm2RUzcwn1L/1m+Ekdwj4JABn2QoQexHxvxUWakwlzLdZ95dXBkgKPiVpYfvPJj/MN
-         42wnhIRQma3GhuXhvBKMy63+YV+U6sPfl4qzUA7o=
-Date:   Sun, 16 Oct 2022 17:19:00 -0700
+        b=xlUeo3rbgXKcFITr6Q0cK+i+Ja3OGbdp9KdEH/72tLUjuFE7gp4QH/s2kwPHxi/v1
+         TlIb597E0Oxs3QxXAZ+wlNTGYBVtaf4BwQfVcUYS6G8dMRl0d+eZuWOtWKpmhfb7Od
+         ZkmG1Pagddpy0G2SW5nFvC5e7PabEawup0Euzhfs=
+Date:   Sun, 16 Oct 2022 17:19:03 -0700
 To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
         willy@infradead.org, lyude@redhat.com, lkp@intel.com,
         kherbst@redhat.com, jhubbard@nvidia.com, jglisse@redhat.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
         alexander.deucher@amd.com, airlied@linux.ie,
         dan.j.williams@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + devdax-sparse-fixes-for-vmfault_t-dax-entry-conversions.patch added to mm-unstable branch
-Message-Id: <20221017001901.4FC98C433D6@smtp.kernel.org>
+Subject: + devdax-sparse-fixes-for-vm_fault_t-in-tracepoints.patch added to mm-unstable branch
+Message-Id: <20221017001904.1E026C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: devdax: sparse fixes for vmfault_t/dax-entry conversions
+     Subject: devdax: sparse fixes for vm_fault_t in tracepoints
 has been added to the -mm mm-unstable branch.  Its filename is
-     devdax-sparse-fixes-for-vmfault_t-dax-entry-conversions.patch
+     devdax-sparse-fixes-for-vm_fault_t-in-tracepoints.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/devdax-sparse-fixes-for-vmfault_t-dax-entry-conversions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/devdax-sparse-fixes-for-vm_fault_t-in-tracepoints.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,26 +71,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: devdax: sparse fixes for vmfault_t/dax-entry conversions
-Date: Fri, 14 Oct 2022 16:58:43 -0700
+Subject: devdax: sparse fixes for vm_fault_t in tracepoints
+Date: Fri, 14 Oct 2022 16:58:49 -0700
 
 Now that the dax-mapping-entry code has moved to a common location take
 the opportunity to fixup some long standing sparse warnings.  In this case
-conveying vm_fault_t codes through Xarray internal values was missing some
-forced casts.  Add some helpers, is_dax_err(), dax_err_to_vmfault(), and
-vmfault_to_dax_err() to handle the conversions.
+the tracepoints have long specified the wrong type for the traced return
+code.  Pass the correct type, but handle casting it back to 'unsigned int'
+inside the trace helpers as the helpers are not prepared to handle
+restricted types.
 
-Link: https://lkml.kernel.org/r/166579192360.2236710.14796211268184430654.stgit@dwillia2-xfh.jf.intel.com
+Link: https://lkml.kernel.org/r/166579192919.2236710.12464252412504907962.stgit@dwillia2-xfh.jf.intel.com
 Fixes:
-drivers/dax/mapping.c:637:39: sparse: warning: incorrect type in argument 1 (different base types)
-drivers/dax/mapping.c:637:39: sparse:    expected unsigned long v
-drivers/dax/mapping.c:637:39: sparse:    got restricted vm_fault_t
-drivers/dax/mapping.c:639:39: sparse: warning: incorrect type in argument 1 (different base types)
-drivers/dax/mapping.c:639:39: sparse:    expected unsigned long v
-drivers/dax/mapping.c:639:39: sparse:    got restricted vm_fault_t
-drivers/dax/mapping.c:643:31: sparse: warning: incorrect type in argument 1 (different base types)
-drivers/dax/mapping.c:643:31: sparse:    expected unsigned long v
-drivers/dax/mapping.c:643:31: sparse:    got restricted vm_fault_t
+drivers/dax/mapping.c:1031:55: sparse: warning: incorrect type in argument 3 (different base types)
+drivers/dax/mapping.c:1031:55: sparse:    expected int result
+drivers/dax/mapping.c:1031:55: sparse:    got restricted vm_fault_t
+drivers/dax/mapping.c:1046:58: sparse: warning: incorrect type in argument 3 (different base types)
+drivers/dax/mapping.c:1046:58: sparse:    expected int result
+drivers/dax/mapping.c:1046:58: sparse:    got restricted vm_fault_t [assigned] [usertype] ret
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Reported-by: kernel test robot <lkp@intel.com>
@@ -116,79 +114,119 @@ Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/mapping.c |    6 +++---
- fs/dax.c              |    8 ++++----
- include/linux/dax.h   |   16 ++++++++++++++++
- 3 files changed, 23 insertions(+), 7 deletions(-)
+ include/linux/mm_types.h      |   26 +++++++++++++-------------
+ include/trace/events/fs_dax.h |   16 ++++++++--------
+ 2 files changed, 21 insertions(+), 21 deletions(-)
 
---- a/drivers/dax/mapping.c~devdax-sparse-fixes-for-vmfault_t-dax-entry-conversions
-+++ a/drivers/dax/mapping.c
-@@ -634,13 +634,13 @@ out_unlock:
- 	if (xas_nomem(xas, mapping_gfp_mask(mapping) & ~__GFP_HIGHMEM))
- 		goto retry;
- 	if (xas->xa_node == XA_ERROR(-ENOMEM))
--		return xa_mk_internal(VM_FAULT_OOM);
-+		return vmfault_to_dax_err(VM_FAULT_OOM);
- 	if (xas_error(xas))
--		return xa_mk_internal(VM_FAULT_SIGBUS);
-+		return vmfault_to_dax_err(VM_FAULT_SIGBUS);
- 	return entry;
- fallback:
- 	xas_unlock_irq(xas);
--	return xa_mk_internal(VM_FAULT_FALLBACK);
-+	return vmfault_to_dax_err(VM_FAULT_FALLBACK);
- }
+--- a/include/linux/mm_types.h~devdax-sparse-fixes-for-vm_fault_t-in-tracepoints
++++ a/include/linux/mm_types.h
+@@ -891,19 +891,19 @@ enum vm_fault_reason {
+ 			VM_FAULT_HWPOISON_LARGE | VM_FAULT_FALLBACK)
  
- static void *dax_zap_entry(struct xa_state *xas, void *entry)
---- a/fs/dax.c~devdax-sparse-fixes-for-vmfault_t-dax-entry-conversions
-+++ a/fs/dax.c
-@@ -710,8 +710,8 @@ static vm_fault_t dax_iomap_pte_fault(st
- 		iter.flags |= IOMAP_WRITE;
+ #define VM_FAULT_RESULT_TRACE \
+-	{ VM_FAULT_OOM,                 "OOM" },	\
+-	{ VM_FAULT_SIGBUS,              "SIGBUS" },	\
+-	{ VM_FAULT_MAJOR,               "MAJOR" },	\
+-	{ VM_FAULT_WRITE,               "WRITE" },	\
+-	{ VM_FAULT_HWPOISON,            "HWPOISON" },	\
+-	{ VM_FAULT_HWPOISON_LARGE,      "HWPOISON_LARGE" },	\
+-	{ VM_FAULT_SIGSEGV,             "SIGSEGV" },	\
+-	{ VM_FAULT_NOPAGE,              "NOPAGE" },	\
+-	{ VM_FAULT_LOCKED,              "LOCKED" },	\
+-	{ VM_FAULT_RETRY,               "RETRY" },	\
+-	{ VM_FAULT_FALLBACK,            "FALLBACK" },	\
+-	{ VM_FAULT_DONE_COW,            "DONE_COW" },	\
+-	{ VM_FAULT_NEEDDSYNC,           "NEEDDSYNC" }
++	{ (__force unsigned int) VM_FAULT_OOM,                 "OOM" },	\
++	{ (__force unsigned int) VM_FAULT_SIGBUS,              "SIGBUS" },	\
++	{ (__force unsigned int) VM_FAULT_MAJOR,               "MAJOR" },	\
++	{ (__force unsigned int) VM_FAULT_WRITE,               "WRITE" },	\
++	{ (__force unsigned int) VM_FAULT_HWPOISON,            "HWPOISON" },	\
++	{ (__force unsigned int) VM_FAULT_HWPOISON_LARGE,      "HWPOISON_LARGE" },	\
++	{ (__force unsigned int) VM_FAULT_SIGSEGV,             "SIGSEGV" },	\
++	{ (__force unsigned int) VM_FAULT_NOPAGE,              "NOPAGE" },	\
++	{ (__force unsigned int) VM_FAULT_LOCKED,              "LOCKED" },	\
++	{ (__force unsigned int) VM_FAULT_RETRY,               "RETRY" },	\
++	{ (__force unsigned int) VM_FAULT_FALLBACK,            "FALLBACK" },	\
++	{ (__force unsigned int) VM_FAULT_DONE_COW,            "DONE_COW" },	\
++	{ (__force unsigned int) VM_FAULT_NEEDDSYNC,           "NEEDDSYNC" }
  
- 	entry = dax_grab_mapping_entry(&xas, mapping, 0);
--	if (xa_is_internal(entry)) {
--		ret = xa_to_internal(entry);
-+	if (is_dax_err(entry)) {
-+		ret = dax_err_to_vmfault(entry);
- 		goto out;
- 	}
+ struct vm_special_mapping {
+ 	const char *name;	/* The name, e.g. "[vdso]". */
+--- a/include/trace/events/fs_dax.h~devdax-sparse-fixes-for-vm_fault_t-in-tracepoints
++++ a/include/trace/events/fs_dax.h
+@@ -9,7 +9,7 @@
  
-@@ -832,8 +832,8 @@ static vm_fault_t dax_iomap_pmd_fault(st
- 	 * VM_FAULT_FALLBACK.
- 	 */
- 	entry = dax_grab_mapping_entry(&xas, mapping, PMD_ORDER);
--	if (xa_is_internal(entry)) {
--		ret = xa_to_internal(entry);
-+	if (is_dax_err(entry)) {
-+		ret = dax_err_to_vmfault(entry);
- 		goto fallback;
- 	}
+ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ 	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
+-		pgoff_t max_pgoff, int result),
++		pgoff_t max_pgoff, vm_fault_t result),
+ 	TP_ARGS(inode, vmf, max_pgoff, result),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+@@ -21,7 +21,7 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ 		__field(pgoff_t, max_pgoff)
+ 		__field(dev_t, dev)
+ 		__field(unsigned int, flags)
+-		__field(int, result)
++		__field(unsigned int, result)
+ 	),
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+@@ -33,7 +33,7 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ 		__entry->flags = vmf->flags;
+ 		__entry->pgoff = vmf->pgoff;
+ 		__entry->max_pgoff = max_pgoff;
+-		__entry->result = result;
++		__entry->result = (__force unsigned int) result;
+ 	),
+ 	TP_printk("dev %d:%d ino %#lx %s %s address %#lx vm_start "
+ 			"%#lx vm_end %#lx pgoff %#lx max_pgoff %#lx %s",
+@@ -54,7 +54,7 @@ DECLARE_EVENT_CLASS(dax_pmd_fault_class,
+ #define DEFINE_PMD_FAULT_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_fault_class, name, \
+ 	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
+-		pgoff_t max_pgoff, int result), \
++		pgoff_t max_pgoff, vm_fault_t result), \
+ 	TP_ARGS(inode, vmf, max_pgoff, result))
  
---- a/include/linux/dax.h~devdax-sparse-fixes-for-vmfault_t-dax-entry-conversions
-+++ a/include/linux/dax.h
-@@ -264,6 +264,22 @@ vm_fault_t dax_iomap_fault(struct vm_fau
- 		    pfn_t *pfnp, int *errp, const struct iomap_ops *ops);
- vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size, pfn_t pfn);
-+
-+static inline bool is_dax_err(void *entry)
-+{
-+	return xa_is_internal(entry);
-+}
-+
-+static inline vm_fault_t dax_err_to_vmfault(void *entry)
-+{
-+	return (vm_fault_t __force)(xa_to_internal(entry));
-+}
-+
-+static inline void *vmfault_to_dax_err(vm_fault_t error)
-+{
-+	return xa_mk_internal((unsigned long __force)error);
-+}
-+
- void *dax_grab_mapping_entry(struct xa_state *xas,
- 			     struct address_space *mapping, unsigned int order);
- void dax_unlock_entry(struct xa_state *xas, void *entry);
+ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
+@@ -151,7 +151,7 @@ DEFINE_EVENT(dax_pmd_insert_mapping_clas
+ DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
+ 
+ DECLARE_EVENT_CLASS(dax_pte_fault_class,
+-	TP_PROTO(struct inode *inode, struct vm_fault *vmf, int result),
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, vm_fault_t result),
+ 	TP_ARGS(inode, vmf, result),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+@@ -160,7 +160,7 @@ DECLARE_EVENT_CLASS(dax_pte_fault_class,
+ 		__field(pgoff_t, pgoff)
+ 		__field(dev_t, dev)
+ 		__field(unsigned int, flags)
+-		__field(int, result)
++		__field(unsigned int, result)
+ 	),
+ 	TP_fast_assign(
+ 		__entry->dev = inode->i_sb->s_dev;
+@@ -169,7 +169,7 @@ DECLARE_EVENT_CLASS(dax_pte_fault_class,
+ 		__entry->address = vmf->address;
+ 		__entry->flags = vmf->flags;
+ 		__entry->pgoff = vmf->pgoff;
+-		__entry->result = result;
++		__entry->result = (__force unsigned int) result;
+ 	),
+ 	TP_printk("dev %d:%d ino %#lx %s %s address %#lx pgoff %#lx %s",
+ 		MAJOR(__entry->dev),
+@@ -185,7 +185,7 @@ DECLARE_EVENT_CLASS(dax_pte_fault_class,
+ 
+ #define DEFINE_PTE_FAULT_EVENT(name) \
+ DEFINE_EVENT(dax_pte_fault_class, name, \
+-	TP_PROTO(struct inode *inode, struct vm_fault *vmf, int result), \
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, vm_fault_t result), \
+ 	TP_ARGS(inode, vmf, result))
+ 
+ DEFINE_PTE_FAULT_EVENT(dax_pte_fault);
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
