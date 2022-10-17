@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C1BDC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:25:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13AF9C433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 00:25:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229943AbiJQAZB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Oct 2022 20:25:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43588 "EHLO
+        id S229961AbiJQAZC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 Oct 2022 20:25:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229963AbiJQAYv (ORCPT
+        with ESMTP id S229968AbiJQAYv (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Oct 2022 20:24:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 014171263E
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01519140AC
         for <mm-commits@vger.kernel.org>; Sun, 16 Oct 2022 17:24:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5F935B80DAC
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:24:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EF1AC433D6;
-        Mon, 17 Oct 2022 00:24:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3389F60ED1
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 00:24:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8452FC433D6;
+        Mon, 17 Oct 2022 00:24:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1665966276;
-        bh=ctrQQqXGyLmieqvR7NfI0WwR4U0/NDfDlxcye2rn5QE=;
+        s=korg; t=1665966278;
+        bh=Sz37BOHqT2FqWapb/VH7bhZzuehvOMK9SoIgicWY2R4=;
         h=Date:To:From:Subject:From;
-        b=wCREUMhMhO4YY5/yv2qT2KrwY3Ni82PUA/w4WUY6Le0XpB4RvNi3JolE/g9S0PFz5
-         LV/4q59b3q1XmS8JlPUXggkFpC1aXF7EzYCiUaZh06LvpXTrmlVpePF3mduY45fobm
-         wEET7+7+sWVEX7jw7ma5tYqhcizK/xIF6+liOzEQ=
-Date:   Sun, 16 Oct 2022 17:24:35 -0700
+        b=MbUh1By0Fb9QS3f9PZZvtv1ROwh/87+yHGmM/8blKclfUzM4GYkHWsdFMoz6Zor2o
+         /4vgjizX8RwfW8fPY7NiYRcr/kdlSSDwZtiguNnEPmgFn05oLgQe+MK8MMcBsvHO/9
+         IiQryrEyB47B7gpNor+um8VNrbyeBWZoCkFuXTmI=
+Date:   Sun, 16 Oct 2022 17:24:37 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.osdn.me, will@kernel.org,
         tsbogend@alpha.franken.de, stefan.kristiansson@saunalahti.fi,
         shorne@gmail.com, oleg@redhat.com, npiggin@gmail.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.osdn.me, will@kernel.org,
         christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
         bcain@quicinc.com, s.shtylyov@omp.ru, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-ptrace-user_regset_copyin_ignore-always-returns-0.patch added to mm-nonmm-unstable branch
-Message-Id: <20221017002436.0EF1AC433D6@smtp.kernel.org>
+Subject: + sh-ptrace-user_regset_copyin_ignore-always-returns-0.patch added to mm-nonmm-unstable branch
+Message-Id: <20221017002438.8452FC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: ptrace: user_regset_copyin_ignore() always returns 0
+     Subject: sh: ptrace: user_regset_copyin_ignore() always returns 0
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     powerpc-ptrace-user_regset_copyin_ignore-always-returns-0.patch
+     sh-ptrace-user_regset_copyin_ignore-always-returns-0.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-ptrace-user_regset_copyin_ignore-always-returns-0.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-ptrace-user_regset_copyin_ignore-always-returns-0.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,13 +71,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Shtylyov <s.shtylyov@omp.ru>
-Subject: powerpc: ptrace: user_regset_copyin_ignore() always returns 0
-Date: Sat, 15 Oct 2022 00:22:32 +0300
+Subject: sh: ptrace: user_regset_copyin_ignore() always returns 0
+Date: Sat, 15 Oct 2022 00:22:33 +0300
 
 user_regset_copyin_ignore() always returns 0, so checking its result seems
 pointless -- don't do this anymore...
 
-Link: https://lkml.kernel.org/r/20221014212235.10770-11-s.shtylyov@omp.ru
+Link: https://lkml.kernel.org/r/20221014212235.10770-12-s.shtylyov@omp.ru
 Signed-off-by: Sergey Shtylyov <s.shtylyov@omp.ru>
 Cc: Brian Cain <bcain@quicinc.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -100,59 +100,30 @@ Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/ptrace/ptrace-tm.c   |   10 +++++-----
- arch/powerpc/kernel/ptrace/ptrace-view.c |   10 +++++-----
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ arch/sh/kernel/ptrace_32.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/powerpc/kernel/ptrace/ptrace-tm.c~powerpc-ptrace-user_regset_copyin_ignore-always-returns-0
-+++ a/arch/powerpc/kernel/ptrace/ptrace-tm.c
-@@ -170,9 +170,9 @@ int tm_cgpr_set(struct task_struct *targ
- 					 (PT_MAX_PUT_REG + 1) * sizeof(reg));
- 
- 	if (PT_MAX_PUT_REG + 1 < PT_TRAP && !ret)
--		ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
--						(PT_MAX_PUT_REG + 1) * sizeof(reg),
--						PT_TRAP * sizeof(reg));
-+		user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-+					  (PT_MAX_PUT_REG + 1) * sizeof(reg),
-+					  PT_TRAP * sizeof(reg));
- 
- 	if (!ret && count > 0) {
- 		ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &reg,
-@@ -183,8 +183,8 @@ int tm_cgpr_set(struct task_struct *targ
- 	}
- 
+--- a/arch/sh/kernel/ptrace_32.c~sh-ptrace-user_regset_copyin_ignore-always-returns-0
++++ a/arch/sh/kernel/ptrace_32.c
+@@ -157,8 +157,8 @@ static int genregs_set(struct task_struc
+ 					 offsetof(struct pt_regs, pc),
+ 					 sizeof(struct pt_regs));
  	if (!ret)
 -		ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
--						(PT_TRAP + 1) * sizeof(reg), -1);
+-						sizeof(struct pt_regs), -1);
 +		user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-+					  (PT_TRAP + 1) * sizeof(reg), -1);
++					  sizeof(struct pt_regs), -1);
  
  	return ret;
  }
---- a/arch/powerpc/kernel/ptrace/ptrace-view.c~powerpc-ptrace-user_regset_copyin_ignore-always-returns-0
-+++ a/arch/powerpc/kernel/ptrace/ptrace-view.c
-@@ -267,9 +267,9 @@ static int gpr_set(struct task_struct *t
- 					 (PT_MAX_PUT_REG + 1) * sizeof(reg));
- 
- 	if (PT_MAX_PUT_REG + 1 < PT_TRAP && !ret)
--		ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
--						(PT_MAX_PUT_REG + 1) * sizeof(reg),
--						PT_TRAP * sizeof(reg));
-+		user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-+					  (PT_MAX_PUT_REG + 1) * sizeof(reg),
-+					  PT_TRAP * sizeof(reg));
- 
- 	if (!ret && count > 0) {
- 		ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &reg,
-@@ -280,8 +280,8 @@ static int gpr_set(struct task_struct *t
- 	}
- 
+@@ -229,8 +229,8 @@ static int dspregs_set(struct task_struc
+ 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, regs,
+ 				 0, sizeof(struct pt_dspregs));
  	if (!ret)
 -		ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
--						(PT_TRAP + 1) * sizeof(reg), -1);
+-						sizeof(struct pt_dspregs), -1);
 +		user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-+					  (PT_TRAP + 1) * sizeof(reg), -1);
++					  sizeof(struct pt_dspregs), -1);
  
  	return ret;
  }
