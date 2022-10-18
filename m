@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF79EC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 00:46:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF3D4C43217
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 00:46:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229772AbiJRAq3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Oct 2022 20:46:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60242 "EHLO
+        id S229675AbiJRAqb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Oct 2022 20:46:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229848AbiJRAqY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 20:46:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DCAD10F9
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 17:46:23 -0700 (PDT)
+        with ESMTP id S229909AbiJRAqa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 20:46:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E4261E702
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 17:46:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DC7E461321
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 00:46:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F834C433D7;
-        Tue, 18 Oct 2022 00:46:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F2F0F612FA
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 00:46:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5015CC433D6;
+        Tue, 18 Oct 2022 00:46:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666053982;
-        bh=E1vQzDP+3YkebM9WSbTbD8HWQL6QpE579pHhjjN1xNQ=;
+        s=korg; t=1666053987;
+        bh=qAx4CvjL9cfuejCgZx9v9etM2lbL3Upuho/ewAa5i1I=;
         h=Date:To:From:Subject:From;
-        b=qA10Y3j2njbWzr5LFRgwe9077NAqzCe7Z8CjrRl5RpJf+ioMZ2ttQsbshklN0X8N3
-         sZJiQsQjMNaKd+t7zO1Bfi7Ryxr3LtzG2C+rboGCod7FrgH486iWJL46luolgH2qUI
-         5GHVNIhDECLVVjtjpEd86PFeWVSIE/LqdfTy7JnA=
-Date:   Mon, 17 Oct 2022 17:46:21 -0700
+        b=mGcyq1fKNur0R1kpE9KwIbBdJfFSWnIgEJKICpjYSlJR1SNvXOeniNTLC0t22u0zz
+         tvn11NZXUA40dTBb7e4prRI8ZZTMAvtVzR6GkDUjKvuZcT2EHBxEOLLqQkoW6ACizc
+         8DwnHihxE8Wzhz+aSXiKsVIapmX17SdDITdD6wU4=
+Date:   Mon, 17 Oct 2022 17:46:26 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         shuah@kernel.org, peterx@redhat.com, jhubbard@nvidia.com,
         jgg@nvidia.com, hughd@google.com, aarcange@redhat.com,
         david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-vm_fault_write.patch added to mm-unstable branch
-Message-Id: <20221018004622.3F834C433D7@smtp.kernel.org>
+Subject: + mm-pagewalk-add-walk_page_range_vma.patch added to mm-unstable branch
+Message-Id: <20221018004627.5015CC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove VM_FAULT_WRITE
+     Subject: mm/pagewalk: add walk_page_range_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-vm_fault_write.patch
+     mm-pagewalk-add-walk_page_range_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-vm_fault_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-add-walk_page_range_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,111 +67,79 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: remove VM_FAULT_WRITE
-Date: Fri, 30 Sep 2022 16:19:27 +0200
+Subject: mm/pagewalk: add walk_page_range_vma()
+Date: Fri, 30 Sep 2022 16:19:29 +0200
 
-All users -- GUP and KSM -- are gone, let's just remove it.
+Let's add walk_page_range_vma(), which is similar to walk_page_vma(),
+however, is only interested in a subset of the VMA range.
 
-Link: https://lkml.kernel.org/r/20220930141931.174362-4-david@redhat.com
+To be used in KSM code to stop using follow_page() next.
+
+Link: https://lkml.kernel.org/r/20220930141931.174362-6-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Peter Xu <peterx@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    3 ---
- mm/huge_memory.c         |    2 +-
- mm/memory.c              |    9 ++++-----
- 3 files changed, 5 insertions(+), 9 deletions(-)
+ include/linux/pagewalk.h |    3 +++
+ mm/pagewalk.c            |   27 +++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+)
 
---- a/include/linux/mm_types.h~mm-remove-vm_fault_write
-+++ a/include/linux/mm_types.h
-@@ -861,7 +861,6 @@ typedef __bitwise unsigned int vm_fault_
-  * @VM_FAULT_OOM:		Out Of Memory
-  * @VM_FAULT_SIGBUS:		Bad access
-  * @VM_FAULT_MAJOR:		Page read from storage
-- * @VM_FAULT_WRITE:		Special case for get_user_pages
-  * @VM_FAULT_HWPOISON:		Hit poisoned small page
-  * @VM_FAULT_HWPOISON_LARGE:	Hit poisoned large page. Index encoded
-  *				in upper bits
-@@ -882,7 +881,6 @@ enum vm_fault_reason {
- 	VM_FAULT_OOM            = (__force vm_fault_t)0x000001,
- 	VM_FAULT_SIGBUS         = (__force vm_fault_t)0x000002,
- 	VM_FAULT_MAJOR          = (__force vm_fault_t)0x000004,
--	VM_FAULT_WRITE          = (__force vm_fault_t)0x000008,
- 	VM_FAULT_HWPOISON       = (__force vm_fault_t)0x000010,
- 	VM_FAULT_HWPOISON_LARGE = (__force vm_fault_t)0x000020,
- 	VM_FAULT_SIGSEGV        = (__force vm_fault_t)0x000040,
-@@ -908,7 +906,6 @@ enum vm_fault_reason {
- 	{ (__force unsigned int) VM_FAULT_OOM,                 "OOM" },	\
- 	{ (__force unsigned int) VM_FAULT_SIGBUS,              "SIGBUS" },	\
- 	{ (__force unsigned int) VM_FAULT_MAJOR,               "MAJOR" },	\
--	{ (__force unsigned int) VM_FAULT_WRITE,               "WRITE" },	\
- 	{ (__force unsigned int) VM_FAULT_HWPOISON,            "HWPOISON" },	\
- 	{ (__force unsigned int) VM_FAULT_HWPOISON_LARGE,      "HWPOISON_LARGE" },	\
- 	{ (__force unsigned int) VM_FAULT_SIGSEGV,             "SIGSEGV" },	\
---- a/mm/huge_memory.c~mm-remove-vm_fault_write
-+++ a/mm/huge_memory.c
-@@ -1333,7 +1333,7 @@ reuse:
- 		if (pmdp_set_access_flags(vma, haddr, vmf->pmd, entry, 1))
- 			update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
- 		spin_unlock(vmf->ptl);
--		return VM_FAULT_WRITE;
-+		return 0;
- 	}
- 
- unlock_fallback:
---- a/mm/memory.c~mm-remove-vm_fault_write
-+++ a/mm/memory.c
-@@ -3242,7 +3242,7 @@ static vm_fault_t wp_page_copy(struct vm
- 	}
- 
- 	delayacct_wpcopy_end();
--	return (page_copied && !unshare) ? VM_FAULT_WRITE : 0;
-+	return 0;
- oom_free_new:
- 	put_page(new_page);
- oom:
-@@ -3306,14 +3306,14 @@ static vm_fault_t wp_pfn_shared(struct v
- 		return finish_mkwrite_fault(vmf);
- 	}
- 	wp_page_reuse(vmf);
--	return VM_FAULT_WRITE;
-+	return 0;
+--- a/include/linux/pagewalk.h~mm-pagewalk-add-walk_page_range_vma
++++ a/include/linux/pagewalk.h
+@@ -99,6 +99,9 @@ int walk_page_range_novma(struct mm_stru
+ 			  unsigned long end, const struct mm_walk_ops *ops,
+ 			  pgd_t *pgd,
+ 			  void *private);
++int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
++			unsigned long end, const struct mm_walk_ops *ops,
++			void *private);
+ int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
+ 		void *private);
+ int walk_page_mapping(struct address_space *mapping, pgoff_t first_index,
+--- a/mm/pagewalk.c~mm-pagewalk-add-walk_page_range_vma
++++ a/mm/pagewalk.c
+@@ -517,6 +517,33 @@ int walk_page_range_novma(struct mm_stru
+ 	return walk_pgd_range(start, end, &walk);
  }
  
- static vm_fault_t wp_page_shared(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	vm_fault_t ret = VM_FAULT_WRITE;
-+	vm_fault_t ret = 0;
- 
- 	get_page(vmf->page);
- 
-@@ -3464,7 +3464,7 @@ reuse:
- 			return 0;
- 		}
- 		wp_page_reuse(vmf);
--		return VM_FAULT_WRITE;
++int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
++			unsigned long end, const struct mm_walk_ops *ops,
++			void *private)
++{
++	struct mm_walk walk = {
++		.ops		= ops,
++		.mm		= vma->vm_mm,
++		.vma		= vma,
++		.private	= private,
++	};
++	int err;
++
++	if (start >= end || !walk.mm)
++		return -EINVAL;
++	if (start < vma->vm_start || end > vma->vm_end)
++		return -EINVAL;
++
++	mmap_assert_locked(walk.mm);
++
++	err = walk_page_test(start, end, &walk);
++	if (err > 0)
 +		return 0;
- 	} else if (unshare) {
- 		/* No anonymous page -> nothing to do. */
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
-@@ -3983,7 +3983,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 		if (vmf->flags & FAULT_FLAG_WRITE) {
- 			pte = maybe_mkwrite(pte_mkdirty(pte), vma);
- 			vmf->flags &= ~FAULT_FLAG_WRITE;
--			ret |= VM_FAULT_WRITE;
- 		}
- 		rmap_flags |= RMAP_EXCLUSIVE;
- 	}
++	if (err < 0)
++		return err;
++	return __walk_page_range(start, end, &walk);
++}
++
+ int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
+ 		void *private)
+ {
 _
 
 Patches currently in -mm which might be from david@redhat.com are
