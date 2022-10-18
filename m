@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86D07C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 23:21:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E5B4C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 23:22:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229766AbiJRXVY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Oct 2022 19:21:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60262 "EHLO
+        id S229544AbiJRXWm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Oct 2022 19:22:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229775AbiJRXVC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2022 19:21:02 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79176855B0
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 16:21:01 -0700 (PDT)
+        with ESMTP id S229649AbiJRXWm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2022 19:22:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41535844E2;
+        Tue, 18 Oct 2022 16:22:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 33D21B82190
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 23:21:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA039C433D7;
-        Tue, 18 Oct 2022 23:20:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C902E61722;
+        Tue, 18 Oct 2022 23:22:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24D00C433C1;
+        Tue, 18 Oct 2022 23:22:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666135258;
-        bh=5anidVOts0l09GgHTBAjARUJoe0ChfQNiua5IQTCkc0=;
+        s=korg; t=1666135360;
+        bh=53EgLV8THlQKFhucfc5gdASUZP2V34kTvC26+04/kFY=;
         h=Date:To:From:Subject:From;
-        b=yENpAgyX+BSDb57wLX3Tm3pOea+FowsroKeu8xHu0v6pWoGhDI2TizWlh4e8LwHe9
-         0GLY1a/CpW6ES6CBiaUaR1zxpI42PnZb48ektnJO4/3qa08RdRPzzHEan+UaecM+wB
-         q7kurSf52mAtQNzvwlU/Xz7y8BkB5VquTg8FPrps=
-Date:   Tue, 18 Oct 2022 16:20:58 -0700
-To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
-        akpm@linux-foundation.org, senozhatsky@chromium.org,
+        b=K7g2iyEaO4ApbtH4fCfZ3mL1xKF79smzVAZIh/+7CrlqLvgjbh/Ln+oror892oF05
+         0XHLwQsppeE6Dyhi70p5t2DJNy61aHo3d1QVzE4gGgM1B9dndiO9X8GhLORBC+qtkf
+         R3Ety31fJuvxlTsXsihyO73pDQNErDrv7CHKBZrc=
+Date:   Tue, 18 Oct 2022 16:22:39 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        songmuchun@bytedance.com, n-horiguchi@ah.jp.nec.com,
+        mike.kravetz@oracle.com, gkmccready@meta.com, riel@surriel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-use-is_err_value-to-check-for-zs_malloc-errors.patch added to mm-unstable branch
-Message-Id: <20221018232058.CA039C433D7@smtp.kernel.org>
+Subject: + mmhugetlb-take-hugetlb_lock-before-decrementing-h-resv_huge_pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221018232240.24D00C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: use IS_ERR_VALUE() to check for zs_malloc() errors
-has been added to the -mm mm-unstable branch.  Its filename is
-     zram-use-is_err_value-to-check-for-zs_malloc-errors.patch
+     Subject: mm,hugetlb: take hugetlb_lock before decrementing h->resv_huge_pages
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mmhugetlb-take-hugetlb_lock-before-decrementing-h-resv_huge_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-use-is_err_value-to-check-for-zs_malloc-errors.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhugetlb-take-hugetlb_lock-before-decrementing-h-resv_huge_pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,69 +66,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: use IS_ERR_VALUE() to check for zs_malloc() errors
-Date: Tue, 18 Oct 2022 13:55:33 +0900
+From: Rik van Riel <riel@surriel.com>
+Subject: mm,hugetlb: take hugetlb_lock before decrementing h->resv_huge_pages
+Date: Mon, 17 Oct 2022 20:25:05 -0400
 
-Avoid type casts that are needed for IS_ERR() and use IS_ERR_VALUE()
-instead.
+The h->*_huge_pages counters are protected by the hugetlb_lock, but
+alloc_huge_page has a corner case where it can decrement the counter
+outside of the lock.
 
-Link: https://lkml.kernel.org/r/20221018045533.2396670-10-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+This could lead to a corrupted value of h->resv_huge_pages, which we have
+observed on our systems.
+
+Take the hugetlb_lock before decrementing h->resv_huge_pages to avoid a
+potential race.
+
+Link: https://lkml.kernel.org/r/20221017202505.0e6a4fcd@imladris.surriel.com
+Fixes: a88c76954804 ("mm: hugetlb: fix hugepage memory leak caused by wrong reserve count")
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Glen McCready <gkmccready@meta.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-use-is_err_value-to-check-for-zs_malloc-errors
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1503,19 +1503,19 @@ compress_again:
- 	 * if we have a 'non-null' handle here then we are coming
- 	 * from the slow path and handle has already been allocated.
- 	 */
--	if (IS_ERR((void *)handle))
-+	if (IS_ERR_VALUE(handle))
- 		handle = zs_malloc(zram->mem_pool, comp_len,
- 				__GFP_KSWAPD_RECLAIM |
- 				__GFP_NOWARN |
- 				__GFP_HIGHMEM |
- 				__GFP_MOVABLE);
--	if (IS_ERR((void *)handle)) {
-+	if (IS_ERR_VALUE(handle)) {
- 		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_ZCOMP]);
- 		atomic64_inc(&zram->stats.writestall);
- 		handle = zs_malloc(zram->mem_pool, comp_len,
- 				GFP_NOIO | __GFP_HIGHMEM |
- 				__GFP_MOVABLE);
--		if (IS_ERR((void *)handle))
-+		if (IS_ERR_VALUE(handle))
- 			return PTR_ERR((void *)handle);
- 
- 		if (comp_len != PAGE_SIZE)
-@@ -1682,7 +1682,7 @@ static int zram_recompress(struct zram *
- 				__GFP_NOWARN |
- 				__GFP_HIGHMEM |
- 				__GFP_MOVABLE);
--	if (IS_ERR((void *)handle_next)) {
-+	if (IS_ERR_VALUE(handle_next)) {
- 		zcomp_stream_put(zram->comps[ZRAM_SECONDARY_ZCOMP]);
- 		return PTR_ERR((void *)handle_next);
- 	}
+--- a/mm/hugetlb.c~mmhugetlb-take-hugetlb_lock-before-decrementing-h-resv_huge_pages
++++ a/mm/hugetlb.c
+@@ -2924,11 +2924,11 @@ struct page *alloc_huge_page(struct vm_a
+ 		page = alloc_buddy_huge_page_with_mpol(h, vma, addr);
+ 		if (!page)
+ 			goto out_uncharge_cgroup;
++		spin_lock_irq(&hugetlb_lock);
+ 		if (!avoid_reserve && vma_has_reserves(vma, gbl_chg)) {
+ 			SetHPageRestoreReserve(page);
+ 			h->resv_huge_pages--;
+ 		}
+-		spin_lock_irq(&hugetlb_lock);
+ 		list_add(&page->lru, &h->hugepage_activelist);
+ 		set_page_refcounted(page);
+ 		/* Fall through */
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from riel@surriel.com are
 
-zram-preparation-for-multi-zcomp-support.patch
-zram-add-recompression-algorithm-sysfs-knob.patch
-zram-factor-out-wb-and-non-wb-zram-read-functions.patch
-zram-introduce-recompress-sysfs-knob.patch
-documentation-add-recompression-documentation.patch
-zram-add-recompression-algorithm-choice-to-kconfig.patch
-zram-add-recompress-flag-to-read_block_state.patch
-zram-clarify-writeback_store-comment.patch
-zram-use-is_err_value-to-check-for-zs_malloc-errors.patch
+mmhugetlb-take-hugetlb_lock-before-decrementing-h-resv_huge_pages.patch
 
