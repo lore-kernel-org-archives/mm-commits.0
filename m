@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B15D6C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C157FC4167D
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 01:09:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230447AbiJRBIw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Oct 2022 21:08:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59008 "EHLO
+        id S230507AbiJRBIx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Oct 2022 21:08:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231361AbiJRBIj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:08:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A93E7303E3
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:08:38 -0700 (PDT)
+        with ESMTP id S231315AbiJRBId (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:08:33 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 302B37D1CE
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:08:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 463D161326
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:08:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BEA9C433C1;
-        Tue, 18 Oct 2022 01:08:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E4A75B81BF3
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:08:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93E36C433C1;
+        Tue, 18 Oct 2022 01:08:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666055317;
-        bh=7aOsu6i0BQzchAA9JTNJIR2zPoZn8DRTFCj00g/7wHU=;
+        s=korg; t=1666055309;
+        bh=So3ciBP0ysHq81jBQO/+CEYVQoMMX3hZuEOAaUbMZrw=;
         h=Date:To:From:Subject:From;
-        b=JjXXKqYkLzH7Afb2d+B5yMpFCsvlkvSHRraPvX1BCgyGLum8EazFzcLF6+3ZkTeWz
-         X7m3cJ3MiDTzVb97kuHAQUI4scZXb5saTsO2qdbsmgRpZaWPOE5lDD57sZ6Zxt99dD
-         3pp2JnYNqkc+Iw/7stqF2vr/w2xRgVCygzAOcRzs=
-Date:   Mon, 17 Oct 2022 18:08:36 -0700
+        b=j59TrvmUhqGQpjcLGbRpOHzH33X4Q6JjiWZdyJf0M4umCAESBZG1+kbE6tTvvYrRR
+         mvDB7DpWg/E3qnrfN15MnPKfF3o01JVwwKryuD1Z8SveQvs0eN+kwSDY47vZl9i/FU
+         Cd4uXe7cC/jBZHpGd8qRE4BFvvI+pF2TBj1o3Wsk=
+Date:   Mon, 17 Oct 2022 18:08:28 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shuah@kernel.org,
         rppt@kernel.org, peterx@redhat.com, namit@vmware.com,
         jhubbard@nvidia.com, jgg@nvidia.com, ddutile@redhat.com,
         crecklin@redhat.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-anon_cow-add-r-o-longterm-tests-via-gup_test.patch added to mm-unstable branch
-Message-Id: <20221018010837.9BEA9C433C1@smtp.kernel.org>
+Subject: + selftests-vm-anon_cow-hugetlb-tests.patch added to mm-unstable branch
+Message-Id: <20221018010829.93E36C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: anon_cow: add R/O longterm tests via gup_test
+     Subject: selftests/vm: anon_cow: hugetlb tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-anon_cow-add-r-o-longterm-tests-via-gup_test.patch
+     selftests-vm-anon_cow-hugetlb-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-anon_cow-add-r-o-longterm-tests-via-gup_test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-anon_cow-hugetlb-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,19 +68,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/vm: anon_cow: add R/O longterm tests via gup_test
-Date: Tue, 27 Sep 2022 13:01:20 +0200
+Subject: selftests/vm: anon_cow: hugetlb tests
+Date: Tue, 27 Sep 2022 13:01:17 +0200
 
-Let's trigger a R/O longterm pin on three cases of R/O mapped anonymous
-pages:
-* exclusive (never shared)
-* shared (child still alive)
-* previously shared (child no longer alive)
+Let's run all existing test cases with all hugetlb sizes we're able to
+detect.
 
-... and make sure that the pin is reliable: whatever we write via the page
-tables has to be observable via the pin.
+Note that some tests cases still fail. This will, for example, be fixed
+once vmsplice properly uses FOLL_PIN instead of FOLL_GET for pinning.
+With 2 MiB and 1 GiB hugetlb on x86_64, the expected failures are:
 
-Link: https://lkml.kernel.org/r/20220927110120.106906-8-david@redhat.com
+ # [RUN] vmsplice() + unmap in child ... with hugetlb (2048 kB)
+ not ok 23 No leak from parent into child
+ # [RUN] vmsplice() + unmap in child ... with hugetlb (1048576 kB)
+ not ok 24 No leak from parent into child
+ # [RUN] vmsplice() before fork(), unmap in parent after fork() ... with hugetlb (2048 kB)
+ not ok 35 No leak from child into parent
+ # [RUN] vmsplice() before fork(), unmap in parent after fork() ... with hugetlb (1048576 kB)
+ not ok 36 No leak from child into parent
+ # [RUN] vmsplice() + unmap in parent after fork() ... with hugetlb (2048 kB)
+ not ok 47 No leak from child into parent
+ # [RUN] vmsplice() + unmap in parent after fork() ... with hugetlb (1048576 kB)
+ not ok 48 No leak from child into parent
+
+Link: https://lkml.kernel.org/r/20220927110120.106906-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph von Recklinghausen <crecklin@redhat.com>
@@ -95,263 +106,130 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/anon_cow.c |  210 ++++++++++++++++++++++++
- 1 file changed, 210 insertions(+)
+ tools/testing/selftests/vm/anon_cow.c |   70 +++++++++++++++++++++++-
+ 1 file changed, 69 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/anon_cow.c~selftests-vm-anon_cow-add-r-o-longterm-tests-via-gup_test
+--- a/tools/testing/selftests/vm/anon_cow.c~selftests-vm-anon_cow-hugetlb-tests
 +++ a/tools/testing/selftests/vm/anon_cow.c
-@@ -17,6 +17,7 @@
- #include <dirent.h>
- #include <assert.h>
- #include <sys/mman.h>
-+#include <sys/ioctl.h>
- #include <sys/wait.h>
- 
- #include "local_config.h"
-@@ -24,6 +25,7 @@
- #include <liburing.h>
- #endif /* LOCAL_CONFIG_HAVE_LIBURING */
- 
-+#include "../../../../mm/gup_test.h"
- #include "../kselftest.h"
- #include "vm_util.h"
- 
-@@ -32,6 +34,7 @@ static int pagemap_fd;
+@@ -25,6 +25,8 @@
+ static size_t pagesize;
+ static int pagemap_fd;
  static size_t thpsize;
- static int nr_hugetlbsizes;
- static size_t hugetlbsizes[10];
-+static int gup_fd;
++static int nr_hugetlbsizes;
++static size_t hugetlbsizes[10];
  
  static void detect_thpsize(void)
  {
-@@ -503,6 +506,170 @@ static void test_iouring_fork(char *mem,
+@@ -54,6 +56,31 @@ static void detect_thpsize(void)
+ 	close(fd);
+ }
  
- #endif /* LOCAL_CONFIG_HAVE_LIBURING */
- 
-+enum ro_pin_test {
-+	RO_PIN_TEST_SHARED,
-+	RO_PIN_TEST_PREVIOUSLY_SHARED,
-+	RO_PIN_TEST_RO_EXCLUSIVE,
-+};
-+
-+static void do_test_ro_pin(char *mem, size_t size, enum ro_pin_test test,
-+			   bool fast)
++static void detect_hugetlbsizes(void)
 +{
-+	struct pin_longterm_test args;
-+	struct comm_pipes comm_pipes;
-+	char *tmp, buf;
-+	__u64 tmp_val;
-+	int ret;
++	DIR *dir = opendir("/sys/kernel/mm/hugepages/");
 +
-+	if (gup_fd < 0) {
-+		ksft_test_result_skip("gup_test not available\n");
++	if (!dir)
++		return;
++
++	while (nr_hugetlbsizes < ARRAY_SIZE(hugetlbsizes)) {
++		struct dirent *entry = readdir(dir);
++		size_t kb;
++
++		if (!entry)
++			break;
++		if (entry->d_type != DT_DIR)
++			continue;
++		if (sscanf(entry->d_name, "hugepages-%zukB", &kb) != 1)
++			continue;
++		hugetlbsizes[nr_hugetlbsizes] = kb * 1024;
++		nr_hugetlbsizes++;
++		ksft_print_msg("[INFO] detected hugetlb size: %zu KiB\n",
++			       kb);
++	}
++	closedir(dir);
++}
++
+ static bool range_is_swapped(void *addr, size_t size)
+ {
+ 	for (; size; addr += pagesize, size -= pagesize)
+@@ -556,6 +583,41 @@ static void run_with_partial_shared_thp(
+ 	do_run_with_thp(fn, THP_RUN_PARTIAL_SHARED);
+ }
+ 
++static void run_with_hugetlb(test_fn fn, const char *desc, size_t hugetlbsize)
++{
++	int flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB;
++	char *mem, *dummy;
++
++	ksft_print_msg("[RUN] %s ... with hugetlb (%zu kB)\n", desc,
++		       hugetlbsize / 1024);
++
++	flags |= __builtin_ctzll(hugetlbsize) << MAP_HUGE_SHIFT;
++
++	mem = mmap(NULL, hugetlbsize, PROT_READ | PROT_WRITE, flags, -1, 0);
++	if (mem == MAP_FAILED) {
++		ksft_test_result_skip("need more free huge pages\n");
 +		return;
 +	}
 +
-+	tmp = malloc(size);
-+	if (!tmp) {
-+		ksft_test_result_fail("malloc() failed\n");
-+		return;
-+	}
-+
-+	ret = setup_comm_pipes(&comm_pipes);
-+	if (ret) {
-+		ksft_test_result_fail("pipe() failed\n");
-+		goto free_tmp;
-+	}
-+
-+	switch (test) {
-+	case RO_PIN_TEST_SHARED:
-+	case RO_PIN_TEST_PREVIOUSLY_SHARED:
-+		/*
-+		 * Share the pages with our child. As the pages are not pinned,
-+		 * this should just work.
-+		 */
-+		ret = fork();
-+		if (ret < 0) {
-+			ksft_test_result_fail("fork() failed\n");
-+			goto close_comm_pipes;
-+		} else if (!ret) {
-+			write(comm_pipes.child_ready[1], "0", 1);
-+			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
-+				;
-+			exit(0);
-+		}
-+
-+		/* Wait until our child is ready. */
-+		while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
-+			;
-+
-+		if (test == RO_PIN_TEST_PREVIOUSLY_SHARED) {
-+			/*
-+			 * Tell the child to quit now and wait until it quit.
-+			 * The pages should now be mapped R/O into our page
-+			 * tables, but they are no longer shared.
-+			 */
-+			write(comm_pipes.parent_ready[1], "0", 1);
-+			wait(&ret);
-+			if (!WIFEXITED(ret))
-+				ksft_print_msg("[INFO] wait() failed\n");
-+		}
-+		break;
-+	case RO_PIN_TEST_RO_EXCLUSIVE:
-+		/*
-+		 * Map the page R/O into the page table. Enable softdirty
-+		 * tracking to stop the page from getting mapped R/W immediately
-+		 * again by mprotect() optimizations. Note that we don't have an
-+		 * easy way to test if that worked (the pagemap does not export
-+		 * if the page is mapped R/O vs. R/W).
-+		 */
-+		ret = mprotect(mem, size, PROT_READ);
-+		clear_softdirty();
-+		ret |= mprotect(mem, size, PROT_READ | PROT_WRITE);
-+		if (ret) {
-+			ksft_test_result_fail("mprotect() failed\n");
-+			goto close_comm_pipes;
-+		}
-+		break;
-+	default:
-+		assert(false);
-+	}
-+
-+	/* Take a R/O pin. This should trigger unsharing. */
-+	args.addr = (__u64)mem;
-+	args.size = size;
-+	args.flags = fast ? PIN_LONGTERM_TEST_FLAG_USE_FAST : 0;
-+	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_START, &args);
-+	if (ret) {
-+		if (errno == EINVAL)
-+			ksft_test_result_skip("PIN_LONGTERM_TEST_START failed\n");
-+		else
-+			ksft_test_result_fail("PIN_LONGTERM_TEST_START failed\n");
-+		goto wait;
-+	}
-+
-+	/* Modify the page. */
-+	memset(mem, 0xff, size);
++	/* Populate an huge page. */
++	memset(mem, 0, hugetlbsize);
 +
 +	/*
-+	 * Read back the content via the pin to the temporary buffer and
-+	 * test if we observed the modification.
++	 * We need a total of two hugetlb pages to handle COW/unsharing
++	 * properly, otherwise we might get zapped by a SIGBUS.
 +	 */
-+	tmp_val = (__u64)tmp;
-+	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_READ, &tmp_val);
-+	if (ret)
-+		ksft_test_result_fail("PIN_LONGTERM_TEST_READ failed\n");
-+	else
-+		ksft_test_result(!memcmp(mem, tmp, size),
-+				 "Longterm R/O pin is reliable\n");
-+
-+	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_STOP);
-+	if (ret)
-+		ksft_print_msg("[INFO] PIN_LONGTERM_TEST_STOP failed\n");
-+wait:
-+	switch (test) {
-+	case RO_PIN_TEST_SHARED:
-+		write(comm_pipes.parent_ready[1], "0", 1);
-+		wait(&ret);
-+		if (!WIFEXITED(ret))
-+			ksft_print_msg("[INFO] wait() failed\n");
-+		break;
-+	default:
-+		break;
++	dummy = mmap(NULL, hugetlbsize, PROT_READ | PROT_WRITE, flags, -1, 0);
++	if (dummy == MAP_FAILED) {
++		ksft_test_result_skip("need more free huge pages\n");
++		goto munmap;
 +	}
-+close_comm_pipes:
-+	close_comm_pipes(&comm_pipes);
-+free_tmp:
-+	free(tmp);
++	munmap(dummy, hugetlbsize);
++
++	fn(mem, hugetlbsize);
++munmap:
++	munmap(mem, hugetlbsize);
 +}
 +
-+static void test_ro_pin_on_shared(char *mem, size_t size)
-+{
-+	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, false);
-+}
-+
-+static void test_ro_fast_pin_on_shared(char *mem, size_t size)
-+{
-+	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, true);
-+}
-+
-+static void test_ro_pin_on_ro_previously_shared(char *mem, size_t size)
-+{
-+	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, false);
-+}
-+
-+static void test_ro_fast_pin_on_ro_previously_shared(char *mem, size_t size)
-+{
-+	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, true);
-+}
-+
-+static void test_ro_pin_on_ro_exclusive(char *mem, size_t size)
-+{
-+	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, false);
-+}
-+
-+static void test_ro_fast_pin_on_ro_exclusive(char *mem, size_t size)
-+{
-+	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, true);
-+}
-+
- typedef void (*test_fn)(char *mem, size_t size);
- 
- static void do_run_with_base_page(test_fn fn, bool swapout)
-@@ -850,6 +1017,48 @@ static const struct test_case test_cases
- 	},
- 
- #endif /* LOCAL_CONFIG_HAVE_LIBURING */
-+	/*
-+	 * Take a R/O longterm pin on a R/O-mapped shared anonymous page.
-+	 * When modifying the page via the page table, the page content change
-+	 * must be visible via the pin.
-+	 */
-+	{
-+		"R/O GUP pin on R/O-mapped shared page",
-+		test_ro_pin_on_shared,
-+	},
-+	/* Same as above, but using GUP-fast. */
-+	{
-+		"R/O GUP-fast pin on R/O-mapped shared page",
-+		test_ro_fast_pin_on_shared,
-+	},
-+	/*
-+	 * Take a R/O longterm pin on a R/O-mapped exclusive anonymous page that
-+	 * was previously shared. When modifying the page via the page table,
-+	 * the page content change must be visible via the pin.
-+	 */
-+	{
-+		"R/O GUP pin on R/O-mapped previously-shared page",
-+		test_ro_pin_on_ro_previously_shared,
-+	},
-+	/* Same as above, but using GUP-fast. */
-+	{
-+		"R/O GUP-fast pin on R/O-mapped previously-shared page",
-+		test_ro_fast_pin_on_ro_previously_shared,
-+	},
-+	/*
-+	 * Take a R/O longterm pin on a R/O-mapped exclusive anonymous page.
-+	 * When modifying the page via the page table, the page content change
-+	 * must be visible via the pin.
-+	 */
-+	{
-+		"R/O GUP pin on R/O-mapped exclusive page",
-+		test_ro_pin_on_ro_exclusive,
-+	},
-+	/* Same as above, but using GUP-fast. */
-+	{
-+		"R/O GUP-fast pin on R/O-mapped exclusive page",
-+		test_ro_fast_pin_on_ro_exclusive,
-+	},
- };
+ struct test_case {
+ 	const char *desc;
+ 	test_fn fn;
+@@ -602,6 +664,8 @@ static const struct test_case test_cases
  
  static void run_test_case(struct test_case const *test_case)
-@@ -902,6 +1111,7 @@ int main(int argc, char **argv)
+ {
++	int i;
++
+ 	run_with_base_page(test_case->fn, test_case->desc);
+ 	run_with_base_page_swap(test_case->fn, test_case->desc);
+ 	if (thpsize) {
+@@ -614,6 +678,9 @@ static void run_test_case(struct test_ca
+ 		run_with_partial_mremap_thp(test_case->fn, test_case->desc);
+ 		run_with_partial_shared_thp(test_case->fn, test_case->desc);
+ 	}
++	for (i = 0; i < nr_hugetlbsizes; i++)
++		run_with_hugetlb(test_case->fn, test_case->desc,
++				 hugetlbsizes[i]);
+ }
+ 
+ static void run_test_cases(void)
+@@ -626,7 +693,7 @@ static void run_test_cases(void)
+ 
+ static int tests_per_test_case(void)
+ {
+-	int tests = 2;
++	int tests = 2 + nr_hugetlbsizes;
+ 
+ 	if (thpsize)
+ 		tests += 8;
+@@ -640,6 +707,7 @@ int main(int argc, char **argv)
+ 
+ 	pagesize = getpagesize();
+ 	detect_thpsize();
++	detect_hugetlbsizes();
+ 
  	ksft_print_header();
  	ksft_set_plan(nr_test_cases * tests_per_test_case());
- 
-+	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
- 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
- 	if (pagemap_fd < 0)
- 		ksft_exit_fail_msg("opening pagemap failed\n");
 _
 
 Patches currently in -mm which might be from david@redhat.com are
