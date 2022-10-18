@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0616CC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 21:04:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AA5CC433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 21:07:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230148AbiJRVEC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Oct 2022 17:04:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48428 "EHLO
+        id S230254AbiJRVHq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Oct 2022 17:07:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230000AbiJRVEB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2022 17:04:01 -0400
+        with ESMTP id S229574AbiJRVHn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2022 17:07:43 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF5D4193DC
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 14:04:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 852429AF88
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 14:07:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 64708B81F7F
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 21:03:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06ED0C433C1;
-        Tue, 18 Oct 2022 21:03:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2FDE6B82170
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 21:07:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9712C433D6;
+        Tue, 18 Oct 2022 21:07:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666127038;
-        bh=JZitrsTBK216QWcmL4np+CMxVaj5pyK33O48IH05WqU=;
+        s=korg; t=1666127258;
+        bh=RGmKGtVHA9Up29jdK7OX7C/c/vAkZwo/GcnKXaOBPHI=;
         h=Date:To:From:Subject:From;
-        b=dBBucGVVVb8veMVqzcuW+u0UXw1XoSyrMGD/tFT+H9c1YPvoqNoZgkX0JPiG3Gov3
-         NvCOQAiW8oXF4whVDh+hE4NZ7a+GzbygBila+7uWJcIahUXbrVMTkfv/Ok4zNfTG4t
-         2FB9WZURswlvwKv/faGUGTuIrAN6IBnFmtX3siuU=
-Date:   Tue, 18 Oct 2022 14:03:57 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com, Liam.Howlett@Oracle.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=uU2y5ByXVyorUucFsmnbLYP3UhofbhC6otM7jgQGW9UINJsrRxd8VbjZNN9yqA9vA
+         pDHP6x5Xq38+gyZxd60HfOt5kskBx0qlA+DhJblJV8opaKf8AxmBmKZq7ghM9yGE7f
+         1Q++Wc9MJNaPM4a5FMzuR8X852qhkmWfio2KFOtw=
+Date:   Tue, 18 Oct 2022 14:07:38 -0700
+To:     mm-commits@vger.kernel.org, stf_xl@wp.pl, kvalo@kernel.org,
+        helmut.schaa@googlemail.com, andriy.shevchenko@linux.intel.com,
+        Jason@zx2c4.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmapc-__vma_adjust-suppress-unintialized-var-warning.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221018210358.06ED0C433C1@smtp.kernel.org>
+Subject: + wifi-rt2x00-use-explicitly-signed-type-for-clamping.patch added to mm-nonmm-unstable branch
+Message-Id: <20221018210738.D9712C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: __vma_adjust(): suppress uninitialized var warning
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mmapc-__vma_adjust-suppress-unintialized-var-warning.patch
+     Subject: wifi: rt2x00: use explicitly signed type for clamping
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     wifi-rt2x00-use-explicitly-signed-type-for-clamping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmapc-__vma_adjust-suppress-unintialized-var-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/wifi-rt2x00-use-explicitly-signed-type-for-clamping.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,42 +65,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/mmap.c: __vma_adjust(): suppress uninitialized var warning
-Date: Tue Oct 18 01:57:37 PM PDT 2022
+From: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Subject: wifi: rt2x00: use explicitly signed type for clamping
+Date: Tue, 18 Oct 2022 14:27:34 -0600
 
-The code is OK, but it fools gcc.
+On some platforms, `char` is unsigned, which makes casting -7 to char
+overflow, which in turn makes the clamping operation bogus.  Instead, deal
+with an explicit `s8` type, so that the comparison is always signed, and
+return an s8 result from the function as well.  Note that this function's
+result is assigned to a `short`, which is always signed.
 
-mm/mmap.c:802 __vma_adjust() error: uninitialized symbol 'next_next'.
-
-Fixes: 524e00b36e8c5 ("mm: remove rb tree.")
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Link: https://lkml.kernel.org/r/20221018202734.140489-1-Jason@zx2c4.com
+Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Stanislaw Gruszka <stf_xl@wp.pl>
+Cc: Helmut Schaa <helmut.schaa@googlemail.com>
+Cc: Kalle Valo <kvalo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/wireless/ralink/rt2x00/rt2800lib.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/mmap.c~mm-mmapc-__vma_adjust-suppress-unintialized-var-warning
-+++ a/mm/mmap.c
-@@ -618,7 +618,8 @@ int __vma_adjust(struct vm_area_struct *
- 	struct vm_area_struct *expand)
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c~wifi-rt2x00-use-explicitly-signed-type-for-clamping
++++ a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+@@ -4035,23 +4035,23 @@ static void rt2800_iq_calibrate(struct r
+ 	rt2800_bbp_write(rt2x00dev, 159, cal != 0xff ? cal : 0);
+ }
+ 
+-static char rt2800_txpower_to_dev(struct rt2x00_dev *rt2x00dev,
++static s8 rt2800_txpower_to_dev(struct rt2x00_dev *rt2x00dev,
+ 				  unsigned int channel,
+-				  char txpower)
++				  s8 txpower)
  {
- 	struct mm_struct *mm = vma->vm_mm;
--	struct vm_area_struct *next_next, *next = find_vma(mm, vma->vm_end);
-+	struct vm_area_struct *next_next = NULL;	/* uninit var warning */
-+	struct vm_area_struct *next = find_vma(mm, vma->vm_end);
- 	struct vm_area_struct *orig_vma = vma;
- 	struct address_space *mapping = NULL;
- 	struct rb_root_cached *root = NULL;
+ 	if (rt2x00_rt(rt2x00dev, RT3593) ||
+ 	    rt2x00_rt(rt2x00dev, RT3883))
+ 		txpower = rt2x00_get_field8(txpower, EEPROM_TXPOWER_ALC);
+ 
+ 	if (channel <= 14)
+-		return clamp_t(char, txpower, MIN_G_TXPOWER, MAX_G_TXPOWER);
++		return clamp_t(s8, txpower, MIN_G_TXPOWER, MAX_G_TXPOWER);
+ 
+ 	if (rt2x00_rt(rt2x00dev, RT3593) ||
+ 	    rt2x00_rt(rt2x00dev, RT3883))
+-		return clamp_t(char, txpower, MIN_A_TXPOWER_3593,
++		return clamp_t(s8, txpower, MIN_A_TXPOWER_3593,
+ 			       MAX_A_TXPOWER_3593);
+ 	else
+-		return clamp_t(char, txpower, MIN_A_TXPOWER, MAX_A_TXPOWER);
++		return clamp_t(s8, txpower, MIN_A_TXPOWER, MAX_A_TXPOWER);
+ }
+ 
+ static void rt3883_bbp_adjust(struct rt2x00_dev *rt2x00dev,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Jason@zx2c4.com are
 
-mm-mmapc-__vma_adjust-suppress-unintialized-var-warning.patch
-mm-hugetlb-convert-free_huge_page-to-folios-fix.patch
-powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
+wifi-rt2x00-use-explicitly-signed-type-for-clamping.patch
+minmax-sanity-check-constant-bounds-when-clamping.patch
+minmax-clamp-more-efficiently-by-avoiding-extra-comparison.patch
 
