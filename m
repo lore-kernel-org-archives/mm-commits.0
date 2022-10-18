@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11717C43219
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Oct 2022 22:35:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0509C43217
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 00:13:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229990AbiJQWfq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Oct 2022 18:35:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46442 "EHLO
+        id S231342AbiJRANY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Oct 2022 20:13:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229968AbiJQWfq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 18:35:46 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 211857C1FD;
-        Mon, 17 Oct 2022 15:35:45 -0700 (PDT)
+        with ESMTP id S231547AbiJRAMh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 20:12:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 639C289913
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 17:09:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CAB63B812A7;
-        Mon, 17 Oct 2022 22:35:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CF08C433C1;
-        Mon, 17 Oct 2022 22:35:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 852F461321
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 00:09:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBC03C433D7;
+        Tue, 18 Oct 2022 00:09:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666046142;
-        bh=oeHCQ3uoyoQ8S+1KDWYCpGdJXoweyo1r66KHWiTYqGg=;
+        s=korg; t=1666051759;
+        bh=+0Z1suHk8e/TFr1nnF63IYqpOa8lGCZ2VO2I+K++z9g=;
         h=Date:To:From:Subject:From;
-        b=YWPEVz9Nr9YhDm0EfOebGchcadNWonNUtyWmRFnbeo4gZOsXqzK4DKvKF15fpzePy
-         LRS1S+vZLvLlt+HyWDO5uhOYm3tJPwcn8sKmRJm6AzNGq65hwpdIBMoCy+bjtUGht4
-         jAVOWLyvPOhib45ZjUe0oLFzDuG5Xo5j86ZbDCQs=
-Date:   Mon, 17 Oct 2022 15:35:41 -0700
-To:     mm-commits@vger.kernel.org, wangyan122@huawei.com,
-        stable@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        junxiao.bi@oracle.com, jlbec@evilplan.org, ghe@suse.com,
-        gechangwei@live.cn, joseph.qi@linux.alibaba.com,
-        akpm@linux-foundation.org
+        b=M3D1WphZ57K8C7bijKqpA6SXh+OcZxTmEQUZDBjVStGhx5xAndsde60k8KC06gt0c
+         Okln3j/XyD2/RryidUzmbGFX88gzUfQglm3KrJ3DAbB93LdEkOAH9cXcFR/igmzXoG
+         1xwq83tJWx39hNAbyqWoI2uiUthbKuzvMj4abGEo=
+Date:   Mon, 17 Oct 2022 17:09:18 -0700
+To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-clear-dinode-links-count-in-case-of-error.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221017223542.7CF08C433C1@smtp.kernel.org>
+Subject: + zram-factor-out-wb-and-non-wb-zram-read-functions.patch added to mm-unstable branch
+Message-Id: <20221018000918.DBC03C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clear dinode links count in case of error
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-clear-dinode-links-count-in-case-of-error.patch
+     Subject: zram: factor out WB and non-WB zram read functions
+has been added to the -mm mm-unstable branch.  Its filename is
+     zram-factor-out-wb-and-non-wb-zram-read-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-clear-dinode-links-count-in-case-of-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-factor-out-wb-and-non-wb-zram-read-functions.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,82 +64,143 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: clear dinode links count in case of error
-Date: Mon, 17 Oct 2022 21:02:27 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: factor out WB and non-WB zram read functions
+Date: Sun, 9 Oct 2022 18:07:15 +0900
 
-In ocfs2_mknod(), if error occurs after dinode successfully allocated,
-ocfs2 i_links_count will not be 0.
+We will use non-WB variant in ZRAM page recompression path.
 
-So even though we clear inode i_nlink before iput in error handling, it
-still won't wipe inode since we'll refresh inode from dinode during inode
-lock.  So just like clear inode i_nlink, we clear ocfs2 i_links_count as
-well.  Also do the same change for ocfs2_symlink().
-
-Link: https://lkml.kernel.org/r/20221017130227.234480-2-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reported-by: Yan Wang <wangyan122@huawei.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20221009090720.1040633-4-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |   73 +++++++++++++++++++++-----------
+ 1 file changed, 50 insertions(+), 23 deletions(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-clear-dinode-links-count-in-case-of-error
-+++ a/fs/ocfs2/namei.c
-@@ -232,6 +232,7 @@ static int ocfs2_mknod(struct user_names
- 	handle_t *handle = NULL;
- 	struct ocfs2_super *osb;
- 	struct ocfs2_dinode *dirfe;
-+	struct ocfs2_dinode *fe = NULL;
- 	struct buffer_head *new_fe_bh = NULL;
- 	struct inode *inode = NULL;
- 	struct ocfs2_alloc_context *inode_ac = NULL;
-@@ -382,6 +383,7 @@ static int ocfs2_mknod(struct user_names
- 		goto leave;
+--- a/drivers/block/zram/zram_drv.c~zram-factor-out-wb-and-non-wb-zram-read-functions
++++ a/drivers/block/zram/zram_drv.c
+@@ -1314,8 +1314,30 @@ out:
+ 		~(1UL << ZRAM_LOCK | 1UL << ZRAM_UNDER_WB));
+ }
+ 
+-static int __zram_bvec_read(struct zram *zram, struct page *page, u32 index,
+-				struct bio *bio, bool partial_io)
++/*
++ * Reads a page from the writeback devices. Corresponding ZRAM slot
++ * should be unlocked.
++ */
++static int zram_read_from_writeback(struct zram *zram, struct page *page,
++				    u32 index, struct bio *bio,
++				    bool partial_io)
++{
++	struct bio_vec bvec;
++
++	bvec.bv_page = page;
++	bvec.bv_len = PAGE_SIZE;
++	bvec.bv_offset = 0;
++	return read_from_bdev(zram, &bvec,
++			      zram_get_element(zram, index),
++			      bio, partial_io);
++}
++
++/*
++ * Reads (decompresses if needed) a page from zspool (zsmalloc).
++ * Corresponding ZRAM slot should be locked.
++ */
++static int zram_read_from_zspool(struct zram *zram, struct page *page,
++				 u32 index)
+ {
+ 	struct zcomp_strm *zstrm;
+ 	unsigned long handle;
+@@ -1323,23 +1345,6 @@ static int __zram_bvec_read(struct zram
+ 	void *src, *dst;
+ 	int ret;
+ 
+-	zram_slot_lock(zram, index);
+-	if (zram_test_flag(zram, index, ZRAM_WB)) {
+-		struct bio_vec bvec;
+-
+-		zram_slot_unlock(zram, index);
+-		/* A null bio means rw_page was used, we must fallback to bio */
+-		if (!bio)
+-			return -EOPNOTSUPP;
+-
+-		bvec.bv_page = page;
+-		bvec.bv_len = PAGE_SIZE;
+-		bvec.bv_offset = 0;
+-		return read_from_bdev(zram, &bvec,
+-				zram_get_element(zram, index),
+-				bio, partial_io);
+-	}
+-
+ 	handle = zram_get_handle(zram, index);
+ 	if (!handle || zram_test_flag(zram, index, ZRAM_SAME)) {
+ 		unsigned long value;
+@@ -1349,7 +1354,6 @@ static int __zram_bvec_read(struct zram
+ 		mem = kmap_atomic(page);
+ 		zram_fill_page(mem, PAGE_SIZE, value);
+ 		kunmap_atomic(mem);
+-		zram_slot_unlock(zram, index);
+ 		return 0;
  	}
  
-+	fe = (struct ocfs2_dinode *) new_fe_bh->b_data;
- 	if (S_ISDIR(mode)) {
- 		status = ocfs2_fill_new_dir(osb, handle, dir, inode,
- 					    new_fe_bh, data_ac, meta_ac);
-@@ -454,8 +456,11 @@ roll_back:
- leave:
- 	if (status < 0 && did_quota_inode)
- 		dquot_free_inode(inode);
--	if (handle)
-+	if (handle) {
-+		if (status < 0 && fe)
-+			ocfs2_set_links_count(fe, 0);
- 		ocfs2_commit_trans(osb, handle);
+@@ -1371,17 +1375,40 @@ static int __zram_bvec_read(struct zram
+ 		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_ZCOMP]);
+ 	}
+ 	zs_unmap_object(zram->mem_pool, handle);
+-	zram_slot_unlock(zram, index);
++	return ret;
++}
++
++static int __zram_bvec_read(struct zram *zram, struct page *page, u32 index,
++			    struct bio *bio, bool partial_io)
++{
++	int ret;
++
++	zram_slot_lock(zram, index);
++	if (!zram_test_flag(zram, index, ZRAM_WB)) {
++		/* Slot should be locked through out the function call */
++		ret = zram_read_from_zspool(zram, page, index);
++		zram_slot_unlock(zram, index);
++	} else {
++		/* Slot should be unlocked before the function call */
++		zram_slot_unlock(zram, index);
++
++		/* A null bio means rw_page was used, we must fallback to bio */
++		if (!bio)
++			return -EOPNOTSUPP;
++
++		ret = zram_read_from_writeback(zram, page, index, bio,
++					       partial_io);
 +	}
  
- 	ocfs2_inode_unlock(dir, 1);
- 	if (did_block_signals)
-@@ -2019,8 +2024,11 @@ bail:
- 					ocfs2_clusters_to_bytes(osb->sb, 1));
- 	if (status < 0 && did_quota_inode)
- 		dquot_free_inode(inode);
--	if (handle)
-+	if (handle) {
-+		if (status < 0 && fe)
-+			ocfs2_set_links_count(fe, 0);
- 		ocfs2_commit_trans(osb, handle);
-+	}
+ 	/* Should NEVER happen. Return bio error if it does. */
+-	if (WARN_ON(ret))
++	if (WARN_ON(ret < 0))
+ 		pr_err("Decompression failed! err=%d, page=%u\n", ret, index);
  
- 	ocfs2_inode_unlock(dir, 1);
- 	if (did_block_signals)
+ 	return ret;
+ }
+ 
+ static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
+-				u32 index, int offset, struct bio *bio)
++			  u32 index, int offset, struct bio *bio)
+ {
+ 	int ret;
+ 	struct page *page;
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-ocfs2-fix-bug-when-iput-after-ocfs2_mknod-fails.patch
-ocfs2-clear-dinode-links-count-in-case-of-error.patch
+zram-preparation-for-multi-zcomp-support.patch
+zram-add-recompression-algorithm-sysfs-knob.patch
+zram-factor-out-wb-and-non-wb-zram-read-functions.patch
+zram-introduce-recompress-sysfs-knob.patch
+documentation-add-recompression-documentation.patch
+zram-add-recompression-algorithm-choice-to-kconfig.patch
+zram-add-recompress-flag-to-read_block_state.patch
+zram-correct-typos.patch
 
