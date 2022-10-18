@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F9C1C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 01:18:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0522C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 01:40:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229753AbiJRBSF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Oct 2022 21:18:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55076 "EHLO
+        id S230026AbiJRBks (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Oct 2022 21:40:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229793AbiJRBSE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:18:04 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D699D78231
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:18:02 -0700 (PDT)
+        with ESMTP id S229909AbiJRBkr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:40:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8865A2AE0C
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:40:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8536AB819D6
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:18:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3857BC433C1;
-        Tue, 18 Oct 2022 01:18:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F60661323
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:40:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 858E1C433D6;
+        Tue, 18 Oct 2022 01:40:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666055880;
-        bh=5a1wo+zSLrD++1PTkHBNFy7cUqEm9l2KsbUEGnf+frk=;
+        s=korg; t=1666057232;
+        bh=PZRc6S4sVowgVmG9FSewcGyWM5VR5jo5MJWHDO+lU4I=;
         h=Date:To:From:Subject:From;
-        b=MNekoEnNgVtkDj0RVnbGBHCozhnaRLyCB/j8ni0N/o2SoeyUmqp6saRGso2m7VV4R
-         cf+TPBCtytkX+qo+gB0IdxgSFdzhDOPSFheb7wCqMOCnwDZ0He+2E6EGZ3usghPB99
-         /+Fccnx93ZAbDIN/bFwkuWzFsPAeAL/l/saw5eXU=
-Date:   Mon, 17 Oct 2022 18:17:59 -0700
-To:     mm-commits@vger.kernel.org, keescook@chromium.org, Jason@zx2c4.com,
-        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=y/VqEaBmP6pzvhtBrgxaeem4NJjmDgKR/KRSc8+b92SxRVyjFrhOv67FlnvXcjQs9
+         XNICpV3DE1Ws2JOAIPLScoqQxnwCBEDE5wVP29CrN87idi2OQOfwu4N9wGTSV8nHW+
+         1Hzg5g3kUv6doVydISmTkLrXPs7OenmfMBawSUgA=
+Date:   Mon, 17 Oct 2022 18:40:31 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        longman@redhat.com, lizefan.x@bytedance.com, david@redhat.com,
+        cl@linux.com, liushixin2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch added to mm-nonmm-unstable branch
-Message-Id: <20221018011800.3857BC433C1@smtp.kernel.org>
+Subject: + fs-proc-kcorec-use-hotplug_memory_notifier-directly.patch added to mm-unstable branch
+Message-Id: <20221018014032.858E1C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
+     Subject: fs/proc/kcore.c: use hotplug_memory_notifier() directly
+has been added to the -mm mm-unstable branch.  Its filename is
+     fs-proc-kcorec-use-hotplug_memory_notifier-directly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-kcorec-use-hotplug_memory_notifier-directly.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,106 +65,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes
-Date: Mon Oct 17 06:14:56 PM PDT 2022
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: fs/proc/kcore.c: use hotplug_memory_notifier() directly
+Date: Fri, 23 Sep 2022 11:33:41 +0800
 
-ERROR: code indent should use tabs where possible
-#36: FILE: include/linux/minmax.h:50:
-+        (BUILD_BUG_ON_ZERO(__builtin_choose_expr(^I^I^I^I\$
+Commit 76ae847497bc52 ("Documentation: raise minimum supported version of
+GCC to 5.1") updated the minimum gcc version to 5.1.  So the problem
+mentioned in f02c69680088 ("include/linux/memory.h: implement
+register_hotmemory_notifier()") no longer exist.  So we can now switch to
+use hotplug_memory_notifier() directly rather than
+register_hotmemory_notifier().
 
-WARNING: please, no spaces at the start of a line
-#36: FILE: include/linux/minmax.h:50:
-+        (BUILD_BUG_ON_ZERO(__builtin_choose_expr(^I^I^I^I\$
-
-ERROR: code indent should use tabs where possible
-#37: FILE: include/linux/minmax.h:51:
-+                __is_constexpr((lo) > (hi)), (lo) > (hi), false)))$
-
-WARNING: please, no spaces at the start of a line
-#37: FILE: include/linux/minmax.h:51:
-+                __is_constexpr((lo) > (hi)), (lo) > (hi), false)))$
-
-WARNING: please, no space before tabs
-#40: FILE: include/linux/minmax.h:54:
-+^I__clamp_input_check(lo, hi) + ^I^I^I^I^I^I\$
-
-WARNING: please, no space before tabs
-#42: FILE: include/linux/minmax.h:56:
-+^I^I^I      __typecheck(hi, lo) && __is_constexpr(val) && ^I\$
-
-total: 2 errors, 4 warnings, 44 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/minmax-sanity-check-constant-bounds-when-clamping.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc: Kees Cook <keescook@chromium.org>
+Link: https://lkml.kernel.org/r/20220923033347.3935160-3-liushixin2@huawei.com
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Waiman Long <longman@redhat.com>
+Cc: zefan li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/minmax.h |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ fs/proc/kcore.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/include/linux/minmax.h~minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes
-+++ a/include/linux/minmax.h
-@@ -37,26 +37,26 @@
- 		__cmp(x, y, op), \
- 		__cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op))
+--- a/fs/proc/kcore.c~fs-proc-kcorec-use-hotplug_memory_notifier-directly
++++ a/fs/proc/kcore.c
+@@ -18,7 +18,6 @@
+ #include <linux/capability.h>
+ #include <linux/elf.h>
+ #include <linux/elfcore.h>
+-#include <linux/notifier.h>
+ #include <linux/vmalloc.h>
+ #include <linux/highmem.h>
+ #include <linux/printk.h>
+@@ -638,10 +637,6 @@ static int __meminit kcore_callback(stru
+ 	return NOTIFY_OK;
+ }
  
--#define __clamp(val, lo, hi)							\
-+#define __clamp(val, lo, hi)	\
- 	__cmp(__cmp(val, lo, >), hi, <)
+-static struct notifier_block kcore_callback_nb __meminitdata = {
+-	.notifier_call = kcore_callback,
+-	.priority = 0,
+-};
  
--#define __clamp_once(val, lo, hi, unique_val, unique_lo, unique_hi) ({		\
--		typeof(val) unique_val = (val);					\
--		typeof(lo) unique_lo = (lo);					\
--		typeof(hi) unique_hi = (hi);					\
-+#define __clamp_once(val, lo, hi, unique_val, unique_lo, unique_hi) ({	\
-+		typeof(val) unique_val = (val);				\
-+		typeof(lo) unique_lo = (lo);				\
-+		typeof(hi) unique_hi = (hi);				\
- 		__clamp(unique_val, unique_lo, unique_hi); })
+ static struct kcore_list kcore_vmalloc;
  
--#define __clamp_input_check(lo, hi)						\
--        (BUILD_BUG_ON_ZERO(__builtin_choose_expr(				\
-+#define __clamp_input_check(lo, hi)					\
-+        (BUILD_BUG_ON_ZERO(__builtin_choose_expr(			\
-                 __is_constexpr((lo) > (hi)), (lo) > (hi), false)))
+@@ -694,7 +689,7 @@ static int __init proc_kcore_init(void)
+ 	add_modules_range();
+ 	/* Store direct-map area from physical memory map */
+ 	kcore_update_ram();
+-	register_hotmemory_notifier(&kcore_callback_nb);
++	hotplug_memory_notifier(kcore_callback, 0);
  
--#define __careful_clamp(val, lo, hi) ({						\
--	__clamp_input_check(lo, hi) + 						\
--	__builtin_choose_expr(__typecheck(val, lo) && __typecheck(val, hi) &&	\
--			      __typecheck(hi, lo) && __is_constexpr(val) && 	\
--			      __is_constexpr(lo) && __is_constexpr(hi),		\
--		__clamp(val, lo, hi),						\
--		__clamp_once(val, lo, hi, __UNIQUE_ID(__val),			\
-+#define __careful_clamp(val, lo, hi) ({					\
-+	__clamp_input_check(lo, hi) +					\
-+	__builtin_choose_expr(__typecheck(val, lo) && __typecheck(val, hi) &&\
-+			      __typecheck(hi, lo) && __is_constexpr(val) &&\
-+			      __is_constexpr(lo) && __is_constexpr(hi),	\
-+		__clamp(val, lo, hi),					\
-+		__clamp_once(val, lo, hi, __UNIQUE_ID(__val),		\
- 			     __UNIQUE_ID(__lo), __UNIQUE_ID(__hi))); })
- 
- /**
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-mm-hugetlb-convert-free_huge_page-to-folios-fix.patch
-powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
+cgroup-cpuset-use-hotplug_memory_notifier-directly.patch
+fs-proc-kcorec-use-hotplug_memory_notifier-directly.patch
+mm-slubc-use-hotplug_memory_notifier-directly.patch
+mm-mmap-use-hotplug_memory_notifier-directly.patch
+mm-mm_initc-use-hotplug_memory_notifier-directly.patch
+acpi-hmat-use-hotplug_memory_notifier-directly.patch
+memory-remove-unused-register_hotmemory_notifier.patch
+memory-move-hotplug-memory-notifier-priority-to-same-file-for-easy-sorting.patch
 
