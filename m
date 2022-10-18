@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54918C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A27B0C4321E
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 01:09:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230163AbiJRBIs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Oct 2022 21:08:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58972 "EHLO
+        id S230416AbiJRBIv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Oct 2022 21:08:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231329AbiJRBIe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:08:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E67047DF66
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:08:32 -0700 (PDT)
+        with ESMTP id S231347AbiJRBIh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:08:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2071A86809
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:08:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 837D361263
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:08:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7E20C433D6;
-        Tue, 18 Oct 2022 01:08:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AF8896132D
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:08:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04F95C433C1;
+        Tue, 18 Oct 2022 01:08:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666055311;
-        bh=7Tu1W4Mt1TlLgvtx5ueJowoxsGIfqHWH8TDv9F2S/rQ=;
+        s=korg; t=1666055315;
+        bh=/5Tt2PQ3Psg2dmAkolvpxbcR9n73mFocEVr+AeMHvXY=;
         h=Date:To:From:Subject:From;
-        b=dy29TqGyT+CMPbpRzHoQRAee5x/2c8LxGtiguXlvcAtEblyVgkIR2rrz68f3Tok4D
-         SXuZ3SYBsbWvWTLxyQEOO5FcGL00CvcTzS0of2CPIoMM0Sf1/+3sWDVzFduOFCUzYj
-         25qf4wjNzVEdRPL/YgiXoBeV8mzWo1F9miIONu6M=
-Date:   Mon, 17 Oct 2022 18:08:31 -0700
+        b=JE/yvuZzrOPR2doApXQam02dNQmSaW+Ms8VV01PnQBneT5zsp5eZ029lefvEzGtMR
+         0LRUyVhuni1rjBmUDJnxCYAu/k3u01gzUhCkwTjBiyPrzEKfaYYW5bqSndttvC9GIL
+         01jDn8GYSCOy9L7l8kDbvqd3P/mO/6QdVHNFj7sU=
+Date:   Mon, 17 Oct 2022 18:08:34 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shuah@kernel.org,
         rppt@kernel.org, peterx@redhat.com, namit@vmware.com,
         jhubbard@nvidia.com, jgg@nvidia.com, ddutile@redhat.com,
         crecklin@redhat.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-anon_cow-add-liburing-test-cases.patch added to mm-unstable branch
-Message-Id: <20221018010831.D7E20C433D6@smtp.kernel.org>
+Subject: + mm-gup_test-start-stop-read-functionality-for-pin-longterm-test.patch added to mm-unstable branch
+Message-Id: <20221018010835.04F95C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: anon_cow: add liburing test cases
+     Subject: mm/gup_test: start/stop/read functionality for PIN LONGTERM test
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-anon_cow-add-liburing-test-cases.patch
+     mm-gup_test-start-stop-read-functionality-for-pin-longterm-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-anon_cow-add-liburing-test-cases.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup_test-start-stop-read-functionality-for-pin-longterm-test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,20 +68,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/vm: anon_cow: add liburing test cases
-Date: Tue, 27 Sep 2022 13:01:18 +0200
+Subject: mm/gup_test: start/stop/read functionality for PIN LONGTERM test
+Date: Tue, 27 Sep 2022 13:01:19 +0200
 
-io_uring provides a simple mechanism to test long-term, R/W GUP pins
--- via fixed buffers -- and can be used to verify that GUP pins stay
-in sync with the pages in the page table even if a page would
-temporarily get mapped R/O or concurrent fork() could accidentially
-end up sharing pinned pages with the child.
+We want an easy way to take a R/O or R/W longterm pin on a range and be
+able to observe the content of the pinned pages, so we can properly test
+how longterm puns interact with our COW logic.
 
-Note that this essentially re-introduces local_config support that was
-removed recently in commit 6f83d6c74ea5 ("Kselftests: remove support of
-libhugetlbfs from kselftests").
-
-Link: https://lkml.kernel.org/r/20220927110120.106906-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20220927110120.106906-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph von Recklinghausen <crecklin@redhat.com>
@@ -96,297 +90,202 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile        |   21 ++
- tools/testing/selftests/vm/anon_cow.c      |  190 +++++++++++++++++++
- tools/testing/selftests/vm/check_config.sh |   31 +++
- 3 files changed, 241 insertions(+), 1 deletion(-)
+ mm/gup_test.c |  140 ++++++++++++++++++++++++++++++++++++++++++++++++
+ mm/gup_test.h |   12 ++++
+ 2 files changed, 152 insertions(+)
 
---- a/tools/testing/selftests/vm/anon_cow.c~selftests-vm-anon_cow-add-liburing-test-cases
-+++ a/tools/testing/selftests/vm/anon_cow.c
-@@ -19,6 +19,11 @@
- #include <sys/mman.h>
- #include <sys/wait.h>
- 
-+#include "local_config.h"
-+#ifdef LOCAL_CONFIG_HAVE_LIBURING
-+#include <liburing.h>
-+#endif /* LOCAL_CONFIG_HAVE_LIBURING */
-+
- #include "../kselftest.h"
- #include "vm_util.h"
- 
-@@ -334,6 +339,170 @@ static void test_vmsplice_after_fork(cha
- 	do_test_vmsplice_in_parent(mem, size, false);
+--- a/mm/gup_test.c~mm-gup_test-start-stop-read-functionality-for-pin-longterm-test
++++ a/mm/gup_test.c
+@@ -203,6 +203,134 @@ free_pages:
+ 	return ret;
  }
  
-+#ifdef LOCAL_CONFIG_HAVE_LIBURING
-+static void do_test_iouring(char *mem, size_t size, bool use_fork)
++static DEFINE_MUTEX(pin_longterm_test_mutex);
++static struct page **pin_longterm_test_pages;
++static unsigned long pin_longterm_test_nr_pages;
++
++static inline void pin_longterm_test_stop(void)
 +{
-+	struct comm_pipes comm_pipes;
-+	struct io_uring_cqe *cqe;
-+	struct io_uring_sqe *sqe;
-+	struct io_uring ring;
-+	size_t cur, total;
-+	struct iovec iov;
-+	char *buf, *tmp;
-+	int ret, fd;
-+	FILE *file;
-+
-+	ret = setup_comm_pipes(&comm_pipes);
-+	if (ret) {
-+		ksft_test_result_fail("pipe() failed\n");
-+		return;
++	if (pin_longterm_test_pages) {
++		if (pin_longterm_test_nr_pages)
++			unpin_user_pages(pin_longterm_test_pages,
++					 pin_longterm_test_nr_pages);
++		kfree(pin_longterm_test_pages);
++		pin_longterm_test_pages = NULL;
++		pin_longterm_test_nr_pages = 0;
 +	}
-+
-+	file = tmpfile();
-+	if (!file) {
-+		ksft_test_result_fail("tmpfile() failed\n");
-+		goto close_comm_pipes;
-+	}
-+	fd = fileno(file);
-+	assert(fd);
-+
-+	tmp = malloc(size);
-+	if (!tmp) {
-+		ksft_test_result_fail("malloc() failed\n");
-+		goto close_file;
-+	}
-+
-+	/* Skip on errors, as we might just lack kernel support. */
-+	ret = io_uring_queue_init(1, &ring, 0);
-+	if (ret < 0) {
-+		ksft_test_result_skip("io_uring_queue_init() failed\n");
-+		goto free_tmp;
-+	}
-+
-+	/*
-+	 * Register the range as a fixed buffer. This will FOLL_WRITE | FOLL_PIN
-+	 * | FOLL_LONGTERM the range.
-+	 *
-+	 * Skip on errors, as we might just lack kernel support or might not
-+	 * have sufficient MEMLOCK permissions.
-+	 */
-+	iov.iov_base = mem;
-+	iov.iov_len = size;
-+	ret = io_uring_register_buffers(&ring, &iov, 1);
-+	if (ret) {
-+		ksft_test_result_skip("io_uring_register_buffers() failed\n");
-+		goto queue_exit;
-+	}
-+
-+	if (use_fork) {
-+		/*
-+		 * fork() and keep the child alive until we're done. Note that
-+		 * we expect the pinned page to not get shared with the child.
-+		 */
-+		ret = fork();
-+		if (ret < 0) {
-+			ksft_test_result_fail("fork() failed\n");
-+			goto unregister_buffers;
-+		} else if (!ret) {
-+			write(comm_pipes.child_ready[1], "0", 1);
-+			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
-+				;
-+			exit(0);
-+		}
-+
-+		while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
-+			;
-+	} else {
-+		/*
-+		 * Map the page R/O into the page table. Enable softdirty
-+		 * tracking to stop the page from getting mapped R/W immediately
-+		 * again by mprotect() optimizations. Note that we don't have an
-+		 * easy way to test if that worked (the pagemap does not export
-+		 * if the page is mapped R/O vs. R/W).
-+		 */
-+		ret = mprotect(mem, size, PROT_READ);
-+		clear_softdirty();
-+		ret |= mprotect(mem, size, PROT_READ | PROT_WRITE);
-+		if (ret) {
-+			ksft_test_result_fail("mprotect() failed\n");
-+			goto unregister_buffers;
-+		}
-+	}
-+
-+	/*
-+	 * Modify the page and write page content as observed by the fixed
-+	 * buffer pin to the file so we can verify it.
-+	 */
-+	memset(mem, 0xff, size);
-+	sqe = io_uring_get_sqe(&ring);
-+	if (!sqe) {
-+		ksft_test_result_fail("io_uring_get_sqe() failed\n");
-+		goto quit_child;
-+	}
-+	io_uring_prep_write_fixed(sqe, fd, mem, size, 0, 0);
-+
-+	ret = io_uring_submit(&ring);
-+	if (ret < 0) {
-+		ksft_test_result_fail("io_uring_submit() failed\n");
-+		goto quit_child;
-+	}
-+
-+	ret = io_uring_wait_cqe(&ring, &cqe);
-+	if (ret < 0) {
-+		ksft_test_result_fail("io_uring_wait_cqe() failed\n");
-+		goto quit_child;
-+	}
-+
-+	if (cqe->res != size) {
-+		ksft_test_result_fail("write_fixed failed\n");
-+		goto quit_child;
-+	}
-+	io_uring_cqe_seen(&ring, cqe);
-+
-+	/* Read back the file content to the temporary buffer. */
-+	total = 0;
-+	while (total < size) {
-+		cur = pread(fd, tmp + total, size - total, total);
-+		if (cur < 0) {
-+			ksft_test_result_fail("pread() failed\n");
-+			goto quit_child;
-+		}
-+		total += cur;
-+	}
-+
-+	/* Finally, check if we read what we expected. */
-+	ksft_test_result(!memcmp(mem, tmp, size),
-+			 "Longterm R/W pin is reliable\n");
-+
-+quit_child:
-+	if (use_fork) {
-+		write(comm_pipes.parent_ready[1], "0", 1);
-+		wait(&ret);
-+	}
-+unregister_buffers:
-+	io_uring_unregister_buffers(&ring);
-+queue_exit:
-+	io_uring_queue_exit(&ring);
-+free_tmp:
-+	free(tmp);
-+close_file:
-+	fclose(file);
-+close_comm_pipes:
-+	close_comm_pipes(&comm_pipes);
 +}
 +
-+static void test_iouring_ro(char *mem, size_t size)
++static inline int pin_longterm_test_start(unsigned long arg)
 +{
-+	do_test_iouring(mem, size, false);
++	long nr_pages, cur_pages, addr, remaining_pages;
++	int gup_flags = FOLL_LONGTERM;
++	struct pin_longterm_test args;
++	struct page **pages;
++	int ret = 0;
++	bool fast;
++
++	if (pin_longterm_test_pages)
++		return -EINVAL;
++
++	if (copy_from_user(&args, (void __user *)arg, sizeof(args)))
++		return -EFAULT;
++
++	if (args.flags &
++	    ~(PIN_LONGTERM_TEST_FLAG_USE_WRITE|PIN_LONGTERM_TEST_FLAG_USE_FAST))
++		return -EINVAL;
++	if (!IS_ALIGNED(args.addr | args.size, PAGE_SIZE))
++		return -EINVAL;
++	if (args.size > LONG_MAX)
++		return -EINVAL;
++	nr_pages = args.size / PAGE_SIZE;
++	if (!nr_pages)
++		return -EINVAL;
++
++	pages = kvcalloc(nr_pages, sizeof(void *), GFP_KERNEL);
++	if (!pages)
++		return -ENOMEM;
++
++	if (args.flags & PIN_LONGTERM_TEST_FLAG_USE_WRITE)
++		gup_flags |= FOLL_WRITE;
++	fast = !!(args.flags & PIN_LONGTERM_TEST_FLAG_USE_FAST);
++
++	if (!fast && mmap_read_lock_killable(current->mm)) {
++		kfree(pages);
++		return -EINTR;
++	}
++
++	pin_longterm_test_pages = pages;
++	pin_longterm_test_nr_pages = 0;
++
++	while (nr_pages - pin_longterm_test_nr_pages) {
++		remaining_pages = nr_pages - pin_longterm_test_nr_pages;
++		addr = args.addr + pin_longterm_test_nr_pages * PAGE_SIZE;
++
++		if (fast)
++			cur_pages = pin_user_pages_fast(addr, remaining_pages,
++							gup_flags, pages);
++		else
++			cur_pages = pin_user_pages(addr, remaining_pages,
++						   gup_flags, pages, NULL);
++		if (cur_pages < 0) {
++			pin_longterm_test_stop();
++			ret = cur_pages;
++			break;
++		}
++		pin_longterm_test_nr_pages += cur_pages;
++		pages += cur_pages;
++	};
++
++	if (!fast)
++		mmap_read_unlock(current->mm);
++	return ret;
 +}
 +
-+static void test_iouring_fork(char *mem, size_t size)
++static inline int pin_longterm_test_read(unsigned long arg)
 +{
-+	do_test_iouring(mem, size, true);
++	__u64 user_addr;
++	unsigned long i;
++
++	if (!pin_longterm_test_pages)
++		return -EINVAL;
++
++	if (copy_from_user(&user_addr, (void __user *)arg, sizeof(user_addr)))
++		return -EFAULT;
++
++	for (i = 0; i < pin_longterm_test_nr_pages; i++) {
++		void *addr = page_to_virt(pin_longterm_test_pages[i]);
++
++		if (copy_to_user((void __user *)user_addr, addr, PAGE_SIZE))
++			return -EFAULT;
++		user_addr += PAGE_SIZE;
++	}
++	return 0;
 +}
 +
-+#endif /* LOCAL_CONFIG_HAVE_LIBURING */
++static long pin_longterm_test_ioctl(struct file *filep, unsigned int cmd,
++				    unsigned long arg)
++{
++	int ret = -EINVAL;
 +
- typedef void (*test_fn)(char *mem, size_t size);
++	if (mutex_lock_killable(&pin_longterm_test_mutex))
++		return -EINTR;
++
++	switch (cmd) {
++	case PIN_LONGTERM_TEST_START:
++		ret = pin_longterm_test_start(arg);
++		break;
++	case PIN_LONGTERM_TEST_STOP:
++		pin_longterm_test_stop();
++		ret = 0;
++		break;
++	case PIN_LONGTERM_TEST_READ:
++		ret = pin_longterm_test_read(arg);
++		break;
++	}
++
++	mutex_unlock(&pin_longterm_test_mutex);
++	return ret;
++}
++
+ static long gup_test_ioctl(struct file *filep, unsigned int cmd,
+ 		unsigned long arg)
+ {
+@@ -217,6 +345,10 @@ static long gup_test_ioctl(struct file *
+ 	case PIN_BASIC_TEST:
+ 	case DUMP_USER_PAGES_TEST:
+ 		break;
++	case PIN_LONGTERM_TEST_START:
++	case PIN_LONGTERM_TEST_STOP:
++	case PIN_LONGTERM_TEST_READ:
++		return pin_longterm_test_ioctl(filep, cmd, arg);
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -234,9 +366,17 @@ static long gup_test_ioctl(struct file *
+ 	return 0;
+ }
  
- static void do_run_with_base_page(test_fn fn, bool swapout)
-@@ -660,6 +829,27 @@ static const struct test_case test_cases
- 		"vmsplice() + unmap in parent after fork()",
- 		test_vmsplice_after_fork,
- 	},
-+#ifdef LOCAL_CONFIG_HAVE_LIBURING
-+	/*
-+	 * Take a R/W longterm pin and then map the page R/O into the page
-+	 * table to trigger a write fault on next access. When modifying the
-+	 * page, the page content must be visible via the pin.
-+	 */
-+	{
-+		"R/O-mapping a page registered as iouring fixed buffer",
-+		test_iouring_ro,
-+	},
-+	/*
-+	 * Take a R/W longterm pin and then fork() a child. When modifying the
-+	 * page, the page content must be visible via the pin. We expect the
-+	 * pinned page to not get shared with the child.
-+	 */
-+	{
-+		"fork() with an iouring fixed buffer",
-+		test_iouring_fork,
-+	},
++static int gup_test_release(struct inode *inode, struct file *file)
++{
++	pin_longterm_test_stop();
 +
-+#endif /* LOCAL_CONFIG_HAVE_LIBURING */
++	return 0;
++}
++
+ static const struct file_operations gup_test_fops = {
+ 	.open = nonseekable_open,
+ 	.unlocked_ioctl = gup_test_ioctl,
++	.release = gup_test_release,
  };
  
- static void run_test_case(struct test_case const *test_case)
---- /dev/null
-+++ a/tools/testing/selftests/vm/check_config.sh
-@@ -0,0 +1,31 @@
-+#!/bin/sh
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Probe for libraries and create header files to record the results. Both C
-+# header files and Makefile include fragments are created.
-+
-+OUTPUT_H_FILE=local_config.h
-+OUTPUT_MKFILE=local_config.mk
-+
-+tmpname=$(mktemp)
-+tmpfile_c=${tmpname}.c
-+tmpfile_o=${tmpname}.o
-+
-+# liburing
-+echo "#include <sys/types.h>"        > $tmpfile_c
-+echo "#include <liburing.h>"        >> $tmpfile_c
-+echo "int func(void) { return 0; }" >> $tmpfile_c
-+
-+CC=${1:?"Usage: $0 <compiler> # example compiler: gcc"}
-+$CC -c $tmpfile_c -o $tmpfile_o >/dev/null 2>&1
-+
-+if [ -f $tmpfile_o ]; then
-+    echo "#define LOCAL_CONFIG_HAVE_LIBURING 1"  > $OUTPUT_H_FILE
-+    echo "ANON_COW_EXTRA_LIBS = -luring"         > $OUTPUT_MKFILE
-+else
-+    echo "// No liburing support found"          > $OUTPUT_H_FILE
-+    echo "# No liburing support found, so:"      > $OUTPUT_MKFILE
-+    echo "ANON_COW_EXTRA_LIBS = "               >> $OUTPUT_MKFILE
-+fi
-+
-+rm ${tmpname}.*
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-anon_cow-add-liburing-test-cases
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -1,7 +1,9 @@
- # SPDX-License-Identifier: GPL-2.0
- # Makefile for vm selftests
+ static int __init gup_test_init(void)
+--- a/mm/gup_test.h~mm-gup_test-start-stop-read-functionality-for-pin-longterm-test
++++ a/mm/gup_test.h
+@@ -10,6 +10,9 @@
+ #define GUP_BASIC_TEST		_IOWR('g', 4, struct gup_test)
+ #define PIN_BASIC_TEST		_IOWR('g', 5, struct gup_test)
+ #define DUMP_USER_PAGES_TEST	_IOWR('g', 6, struct gup_test)
++#define PIN_LONGTERM_TEST_START	_IOW('g', 7, struct pin_longterm_test)
++#define PIN_LONGTERM_TEST_STOP	_IO('g', 8)
++#define PIN_LONGTERM_TEST_READ	_IOW('g', 9, __u64)
  
--LOCAL_HDRS += $(top_srcdir)/mm/gup_test.h
-+LOCAL_HDRS += $(selfdir)/vm/local_config.h $(top_srcdir)/mm/gup_test.h
-+
-+include local_config.mk
+ #define GUP_TEST_MAX_PAGES_TO_DUMP		8
  
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- MACHINE ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/ppc64/')
-@@ -152,8 +154,25 @@ warn_32bit_failure:
- endif
- endif
+@@ -30,4 +33,13 @@ struct gup_test {
+ 	__u32 which_pages[GUP_TEST_MAX_PAGES_TO_DUMP];
+ };
  
-+# ANON_COW_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
-+$(OUTPUT)/anon_cow: LDLIBS += $(ANON_COW_EXTRA_LIBS)
++#define PIN_LONGTERM_TEST_FLAG_USE_WRITE	1
++#define PIN_LONGTERM_TEST_FLAG_USE_FAST		2
 +
- $(OUTPUT)/mlock-random-test $(OUTPUT)/memfd_secret: LDLIBS += -lcap
- 
- $(OUTPUT)/ksm_tests: LDLIBS += -lnuma
- 
- $(OUTPUT)/migration: LDLIBS += -lnuma
++struct pin_longterm_test {
++	__u64 addr;
++	__u64 size;
++	__u32 flags;
++};
 +
-+local_config.mk local_config.h: check_config.sh
-+	/bin/sh ./check_config.sh $(CC)
-+
-+EXTRA_CLEAN += local_config.mk local_config.h
-+
-+ifeq ($(ANON_COW_EXTRA_LIBS),)
-+all: warn_missing_liburing
-+
-+warn_missing_liburing:
-+	@echo ; \
-+	echo "Warning: missing liburing support. Some COW tests will be skipped." ; \
-+	echo
-+endif
+ #endif	/* __GUP_TEST_H */
 _
 
 Patches currently in -mm which might be from david@redhat.com are
