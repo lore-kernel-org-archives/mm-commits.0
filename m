@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3064BC43217
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 01:40:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE99FC43219
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 01:40:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229959AbiJRBku (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229780AbiJRBku (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 17 Oct 2022 21:40:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53288 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53264 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229988AbiJRBks (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:40:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37EF52A94C
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:40:41 -0700 (PDT)
+        with ESMTP id S229959AbiJRBkr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:40:47 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 200781094
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:40:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E14EBB81C55
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:40:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B1DFC433D7;
-        Tue, 18 Oct 2022 01:40:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CB227B81BE1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:40:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80A24C433D7;
+        Tue, 18 Oct 2022 01:40:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666057238;
-        bh=mqphzRjjy1kBNrLTRmNcsg2N6KSiXdGD+mUo9uuCNi8=;
+        s=korg; t=1666057234;
+        bh=ccBT+J0i4FMonri6Wf0UE90UIihesZ0aQVNfh4ooMS8=;
         h=Date:To:From:Subject:From;
-        b=ehi4Vq42Vm1juuPs4sCJW9CBBvvOeNECjeNzRNvQd7AipywG4ZAsvsJXDLer3Wnti
-         BIjdQbRdvbdpUBRjRtJlBL99fFEWpcfQBibzAD6o5qsaYaD5aUDE/xtYBt5PfMp0M6
-         b1iS0TX0kuB77XmJtiQx9glu/GF8GVBOIoEwrfTQ=
-Date:   Mon, 17 Oct 2022 18:40:37 -0700
+        b=g4T8aOyN3jTiYd1dg/jsCrltzF/uX4EFRBKIvb/gSZnJ41t1xJHzp0UnA8AfPM23D
+         YF7UQ/cXDTnt0+h0nDEO1taYbVuxKVLMrDNIMuE8QRkhskQT6P0RccZlzodrVEDKhv
+         PUMJmu7H5/il1vFPzR9U1em3YKOsesd/BOpIhKp8=
+Date:   Mon, 17 Oct 2022 18:40:33 -0700
 To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
         longman@redhat.com, lizefan.x@bytedance.com, david@redhat.com,
         cl@linux.com, liushixin2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_initc-use-hotplug_memory_notifier-directly.patch added to mm-unstable branch
-Message-Id: <20221018014038.9B1DFC433D7@smtp.kernel.org>
+Subject: + mm-slubc-use-hotplug_memory_notifier-directly.patch added to mm-unstable branch
+Message-Id: <20221018014034.80A24C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mm_init.c: use hotplug_memory_notifier() directly
+     Subject: mm/slub.c: use hotplug_memory_notifier() directly
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mm_initc-use-hotplug_memory_notifier-directly.patch
+     mm-slubc-use-hotplug_memory_notifier-directly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-use-hotplug_memory_notifier-directly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slubc-use-hotplug_memory_notifier-directly.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,8 +66,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/mm_init.c: use hotplug_memory_notifier() directly
-Date: Fri, 23 Sep 2022 11:33:44 +0800
+Subject: mm/slub.c: use hotplug_memory_notifier() directly
+Date: Fri, 23 Sep 2022 11:33:42 +0800
 
 Commit 76ae847497bc52 ("Documentation: raise minimum supported version of
 GCC to 5.1") updated the minimum gcc version to 5.1.  So the problem
@@ -76,7 +76,7 @@ register_hotmemory_notifier()") no longer exist.  So we can now switch to
 use hotplug_memory_notifier() directly rather than
 register_hotmemory_notifier().
 
-Link: https://lkml.kernel.org/r/20220923033347.3935160-6-liushixin2@huawei.com
+Link: https://lkml.kernel.org/r/20220923033347.3935160-4-liushixin2@huawei.com
 Signed-off-by: Liu Shixin <liushixin2@huawei.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -86,29 +86,32 @@ Cc: zefan li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/slub.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_initc-use-hotplug_memory_notifier-directly
-+++ a/mm/mm_init.c
-@@ -178,16 +178,10 @@ static int __meminit mm_compute_batch_no
- 	return NOTIFY_OK;
+--- a/mm/slub.c~mm-slubc-use-hotplug_memory_notifier-directly
++++ a/mm/slub.c
+@@ -4771,11 +4771,6 @@ static int slab_memory_callback(struct n
+ 	return ret;
  }
  
--static struct notifier_block compute_batch_nb __meminitdata = {
--	.notifier_call = mm_compute_batch_notifier,
--	.priority = IPC_CALLBACK_PRI, /* use lowest priority */
+-static struct notifier_block slab_memory_callback_nb = {
+-	.notifier_call = slab_memory_callback,
+-	.priority = SLAB_CALLBACK_PRI,
 -};
 -
- static int __init mm_compute_batch_init(void)
- {
- 	mm_compute_batch(sysctl_overcommit_memory);
--	register_hotmemory_notifier(&compute_batch_nb);
--
-+	hotplug_memory_notifier(mm_compute_batch_notifier, IPC_CALLBACK_PRI);
- 	return 0;
- }
+ /********************************************************************
+  *			Basic setup of slabs
+  *******************************************************************/
+@@ -4841,7 +4836,7 @@ void __init kmem_cache_init(void)
+ 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
+ 		sizeof(struct kmem_cache_node), SLAB_HWCACHE_ALIGN, 0, 0);
  
+-	register_hotmemory_notifier(&slab_memory_callback_nb);
++	hotplug_memory_notifier(slab_memory_callback, SLAB_CALLBACK_PRI);
+ 
+ 	/* Able to allocate the per node structures */
+ 	slab_state = PARTIAL;
 _
 
 Patches currently in -mm which might be from liushixin2@huawei.com are
