@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15CFDC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2631C4332F
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 23:20:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229795AbiJRXUs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229506AbiJRXUs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 18 Oct 2022 19:20:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60134 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229766AbiJRXUq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2022 19:20:46 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD9DAD38D1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 16:20:43 -0700 (PDT)
+        with ESMTP id S229775AbiJRXUr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2022 19:20:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DDE78E0FC
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 16:20:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id E6E2ACE1FAF
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 23:20:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B770C433D6;
-        Tue, 18 Oct 2022 23:20:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D9AE46171E
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 23:20:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CB6DC433D6;
+        Tue, 18 Oct 2022 23:20:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666135240;
-        bh=N/ZsO9MMs+JpZ7KErNDKtmtTsC3EEbTfAFgbYR8nwNE=;
+        s=korg; t=1666135243;
+        bh=G3NRoQyiR16Oj1kbslnuKdqVrxWiELrxtE+HPreCD78=;
         h=Date:To:From:Subject:From;
-        b=sRfVDIlgo+D5ywoRGpfn7NOBw//Bz+ISh3BNOeZayjTxttyFs3RyBdpDgSEOjMz2T
-         nIFGVP4kxao/eXMmx4/D8IuluVAabXjo545vLUOXJuohua74avNj+xJXGEBLAdvNto
-         fXSPzY6mgfdNghKSoB8vnXfKDn06yiqfRLDhbnrc=
-Date:   Tue, 18 Oct 2022 16:20:39 -0700
+        b=vPl1GRea/6Om8/NDbmDV7F6BqrXT12QofqGvXZzIVU9zR1+MlKVgMdsHO/3k+i7Oz
+         S9MJyZq8GwCz9ExzJAqRQ7s+23b47i5AqKZzlh2VyiRxsfRqrelY0ur0aQjhzGlNwL
+         raIlrpmO0fi7nhxp6oV20wfxOy+Lz/35QRa/Xly4=
+Date:   Tue, 18 Oct 2022 16:20:42 -0700
 To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
         senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-preparation-for-multi-zcomp-support.patch added to mm-unstable branch
-Message-Id: <20221018232040.2B770C433D6@smtp.kernel.org>
+Subject: + zram-add-recompression-algorithm-sysfs-knob.patch added to mm-unstable branch
+Message-Id: <20221018232043.3CB6DC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: preparation for multi-zcomp support
+     Subject: zram: add recompression algorithm sysfs knob
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-preparation-for-multi-zcomp-support.patch
+     zram-add-recompression-algorithm-sysfs-knob.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-preparation-for-multi-zcomp-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-recompression-algorithm-sysfs-knob.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,354 +65,197 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: preparation for multi-zcomp support
-Date: Tue, 18 Oct 2022 13:55:25 +0900
+Subject: zram: add recompression algorithm sysfs knob
+Date: Tue, 18 Oct 2022 13:55:26 +0900
 
-Patch series "zram: Support multiple compression streams", v4.
+Introduce recomp_algorithm sysfs knob that controls secondary algorithm
+selection used for recompression.  This device attribute works in a
+similar way with comp_algorithm attribute.
 
-This series adds support for multiple (per-CPU) compression streams (at
-point only 2).  The main idea is that different compression algorithms
-have different characteristics and zram may benefit when it uses a
-combination of algorithms: a default algorithm that is faster but have
-lower compression rate and a secondary algorithm that can use higher
-compression rate at a price of slower compression/decompression.
-
-There are several use cases for this functionality:
-
-- huge pages recompression: zstd or deflate can successfully compress
-  huge pages (~50% of huge pages on my synthetic ChromeOS tests), IOW
-  pages that lzo was not able to compress.
-
-- idle pages recompression: idle/cold pages sit in the memory and we may
-  reduce zsmalloc memory usage if we recompress those idle pages.
-
-Userspace has a number of ways to control the behavior and impact of zram
-recompression: what type of pages should be recompressed, size watermarks,
-etc.  Please refer to documentation patch.
-
-
-This patch (of 9):
-
-Turn compression streams and compressor algorithm name struct zram members
-into arrays, so that we can have multiple compression streams support (in
-the next patches).
-
-The patch uses a rather explicit API for compressor selection:
-
-- Get primary (default) compression stream
-	zcomp_stream_get(zram->comps[ZRAM_PRIMARY_ZCOMP])
-- Get secondary compression stream
-	zcomp_stream_get(zram->comps[ZRAM_SECONDARY_ZCOMP])
-
-We use similar API for compression streams put().
-
-At this point we always have just one compression stream, since
-CONFIG_ZRAM_MULTI_COMP is not yet defined.
-
-Link: https://lkml.kernel.org/r/20221018045533.2396670-1-senozhatsky@chromium.org
-Link: https://lkml.kernel.org/r/20221018045533.2396670-2-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20221018045533.2396670-3-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c    |    6 +-
- drivers/block/zram/zcomp.h    |    2 
- drivers/block/zram/zram_drv.c |   87 ++++++++++++++++++++++----------
- drivers/block/zram/zram_drv.h |   14 ++++-
- 4 files changed, 77 insertions(+), 32 deletions(-)
+ drivers/block/zram/zram_drv.c |  111 +++++++++++++++++++++++++-------
+ 1 file changed, 90 insertions(+), 21 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zram-preparation-for-multi-zcomp-support
-+++ a/drivers/block/zram/zcomp.c
-@@ -206,7 +206,7 @@ void zcomp_destroy(struct zcomp *comp)
-  * case of allocation error, or any other error potentially
-  * returned by zcomp_init().
-  */
--struct zcomp *zcomp_create(const char *compress)
-+struct zcomp *zcomp_create(const char *alg)
- {
- 	struct zcomp *comp;
- 	int error;
-@@ -216,14 +216,14 @@ struct zcomp *zcomp_create(const char *c
- 	 * is not loaded yet. We must do it here, otherwise we are about to
- 	 * call /sbin/modprobe under CPU hot-plug lock.
- 	 */
--	if (!zcomp_available_algorithm(compress))
-+	if (!zcomp_available_algorithm(alg))
- 		return ERR_PTR(-EINVAL);
- 
- 	comp = kzalloc(sizeof(struct zcomp), GFP_KERNEL);
- 	if (!comp)
- 		return ERR_PTR(-ENOMEM);
- 
--	comp->name = compress;
-+	comp->name = alg;
- 	error = zcomp_init(comp);
- 	if (error) {
- 		kfree(comp);
---- a/drivers/block/zram/zcomp.h~zram-preparation-for-multi-zcomp-support
-+++ a/drivers/block/zram/zcomp.h
-@@ -27,7 +27,7 @@ int zcomp_cpu_dead(unsigned int cpu, str
- ssize_t zcomp_available_show(const char *comp, char *buf);
- bool zcomp_available_algorithm(const char *comp);
- 
--struct zcomp *zcomp_create(const char *comp);
-+struct zcomp *zcomp_create(const char *alg);
- void zcomp_destroy(struct zcomp *comp);
- 
- struct zcomp_strm *zcomp_stream_get(struct zcomp *comp);
---- a/drivers/block/zram/zram_drv.c~zram-preparation-for-multi-zcomp-support
+--- a/drivers/block/zram/zram_drv.c~zram-add-recompression-algorithm-sysfs-knob
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1004,36 +1004,53 @@ static ssize_t comp_algorithm_show(struc
- 	struct zram *zram = dev_to_zram(dev);
+@@ -41,7 +41,12 @@ static DEFINE_IDR(zram_index_idr);
+ static DEFINE_MUTEX(zram_index_mutex);
  
- 	down_read(&zram->init_lock);
--	sz = zcomp_available_show(zram->compressor, buf);
-+	sz = zcomp_available_show(zram->comp_algs[ZRAM_PRIMARY_ZCOMP], buf);
- 	up_read(&zram->init_lock);
+ static int zram_major;
+-static const char *default_compressor = CONFIG_ZRAM_DEF_COMP;
++static const char *default_comp_algs[ZRAM_MAX_ZCOMPS] = {
++	CONFIG_ZRAM_DEF_COMP,
++#ifdef CONFIG_ZRAM_MULTI_COMP
++	"zstd",
++#endif
++};
  
- 	return sz;
+ /* Module params (documentation at end) */
+ static unsigned int num_devices = 1;
+@@ -997,31 +1002,37 @@ static ssize_t max_comp_streams_store(st
+ 	return len;
  }
  
+-static ssize_t comp_algorithm_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
 +static void comp_algorithm_set(struct zram *zram, u32 idx, const char *alg)
-+{
-+	/* Do not kfree() algs that we didn't allocate, IOW the default ones */
-+	if (zram->comp_algs[idx] != default_compressor)
-+		kfree(zram->comp_algs[idx]);
-+	zram->comp_algs[idx] = alg;
-+}
-+
- static ssize_t comp_algorithm_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
  {
- 	struct zram *zram = dev_to_zram(dev);
--	char compressor[ARRAY_SIZE(zram->compressor)];
-+	char *compressor;
- 	size_t sz;
+-	size_t sz;
+-	struct zram *zram = dev_to_zram(dev);
++	bool default_alg = false;
++	int i;
  
--	strscpy(compressor, buf, sizeof(compressor));
-+	sz = strlen(buf);
-+	if (sz >= CRYPTO_MAX_ALG_NAME)
-+		return -E2BIG;
-+
-+	compressor = kstrdup(buf, GFP_KERNEL);
-+	if (!compressor)
-+		return -ENOMEM;
-+
- 	/* ignore trailing newline */
--	sz = strlen(compressor);
- 	if (sz > 0 && compressor[sz - 1] == '\n')
- 		compressor[sz - 1] = 0x00;
- 
--	if (!zcomp_available_algorithm(compressor))
-+	if (!zcomp_available_algorithm(compressor)) {
-+		kfree(compressor);
- 		return -EINVAL;
+-	down_read(&zram->init_lock);
+-	sz = zcomp_available_show(zram->comp_algs[ZRAM_PRIMARY_ZCOMP], buf);
+-	up_read(&zram->init_lock);
++	/* Do not kfree() algs that we didn't allocate, IOW the default ones */
++	for (i = 0; i < ZRAM_MAX_ZCOMPS; i++) {
++		if (zram->comp_algs[idx] == default_comp_algs[i]) {
++			default_alg = true;
++			break;
++		}
 +	}
  
- 	down_write(&zram->init_lock);
- 	if (init_done(zram)) {
- 		up_write(&zram->init_lock);
-+		kfree(compressor);
- 		pr_info("Can't change algorithm for initialized device\n");
+-	return sz;
++	if (!default_alg)
++		kfree(zram->comp_algs[idx]);
++	zram->comp_algs[idx] = alg;
+ }
+ 
+-static void comp_algorithm_set(struct zram *zram, u32 idx, const char *alg)
++static ssize_t __comp_algorithm_show(struct zram *zram, u32 idx, char *buf)
+ {
+-	/* Do not kfree() algs that we didn't allocate, IOW the default ones */
+-	if (zram->comp_algs[idx] != default_compressor)
+-		kfree(zram->comp_algs[idx]);
+-	zram->comp_algs[idx] = alg;
++	ssize_t sz;
++
++	down_read(&zram->init_lock);
++	sz = zcomp_available_show(zram->comp_algs[idx], buf);
++	up_read(&zram->init_lock);
++
++	return sz;
+ }
+ 
+-static ssize_t comp_algorithm_store(struct device *dev,
+-		struct device_attribute *attr, const char *buf, size_t len)
++static int __comp_algorithm_store(struct zram *zram, u32 idx, const char *buf)
+ {
+-	struct zram *zram = dev_to_zram(dev);
+ 	char *compressor;
+ 	size_t sz;
+ 
+@@ -1050,11 +1061,55 @@ static ssize_t comp_algorithm_store(stru
  		return -EBUSY;
  	}
  
--	strcpy(zram->compressor, compressor);
-+	comp_algorithm_set(zram, ZRAM_PRIMARY_ZCOMP, compressor);
+-	comp_algorithm_set(zram, ZRAM_PRIMARY_ZCOMP, compressor);
++	comp_algorithm_set(zram, idx, compressor);
  	up_write(&zram->init_lock);
- 	return len;
- }
-@@ -1281,7 +1298,7 @@ static int __zram_bvec_read(struct zram
- 	size = zram_get_obj_size(zram, index);
- 
- 	if (size != PAGE_SIZE)
--		zstrm = zcomp_stream_get(zram->comp);
-+		zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_ZCOMP]);
- 
- 	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
- 	if (size == PAGE_SIZE) {
-@@ -1293,7 +1310,7 @@ static int __zram_bvec_read(struct zram
- 		dst = kmap_atomic(page);
- 		ret = zcomp_decompress(zstrm, src, size, dst);
- 		kunmap_atomic(dst);
--		zcomp_stream_put(zram->comp);
-+		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_ZCOMP]);
- 	}
- 	zs_unmap_object(zram->mem_pool, handle);
- 	zram_slot_unlock(zram, index);
-@@ -1360,13 +1377,13 @@ static int __zram_bvec_write(struct zram
- 	kunmap_atomic(mem);
- 
- compress_again:
--	zstrm = zcomp_stream_get(zram->comp);
-+	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_ZCOMP]);
- 	src = kmap_atomic(page);
- 	ret = zcomp_compress(zstrm, src, &comp_len);
- 	kunmap_atomic(src);
- 
- 	if (unlikely(ret)) {
--		zcomp_stream_put(zram->comp);
-+		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_ZCOMP]);
- 		pr_err("Compression failed! err=%d\n", ret);
- 		zs_free(zram->mem_pool, handle);
- 		return ret;
-@@ -1394,7 +1411,7 @@ compress_again:
- 				__GFP_HIGHMEM |
- 				__GFP_MOVABLE);
- 	if (IS_ERR((void *)handle)) {
--		zcomp_stream_put(zram->comp);
-+		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_ZCOMP]);
- 		atomic64_inc(&zram->stats.writestall);
- 		handle = zs_malloc(zram->mem_pool, comp_len,
- 				GFP_NOIO | __GFP_HIGHMEM |
-@@ -1411,14 +1428,14 @@ compress_again:
- 		 * zstrm buffer back. It is necessary that the dereferencing
- 		 * of the zstrm variable below occurs correctly.
- 		 */
--		zstrm = zcomp_stream_get(zram->comp);
-+		zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_ZCOMP]);
- 	}
- 
- 	alloced_pages = zs_get_total_pages(zram->mem_pool);
- 	update_used_max(zram, alloced_pages);
- 
- 	if (zram->limit_pages && alloced_pages > zram->limit_pages) {
--		zcomp_stream_put(zram->comp);
-+		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_ZCOMP]);
- 		zs_free(zram->mem_pool, handle);
- 		return -ENOMEM;
- 	}
-@@ -1432,7 +1449,7 @@ compress_again:
- 	if (comp_len == PAGE_SIZE)
- 		kunmap_atomic(src);
- 
--	zcomp_stream_put(zram->comp);
-+	zcomp_stream_put(zram->comps[ZRAM_PRIMARY_ZCOMP]);
- 	zs_unmap_object(zram->mem_pool, handle);
- 	atomic64_add(comp_len, &zram->stats.compr_data_size);
- out:
-@@ -1707,6 +1724,20 @@ out:
- 	return ret;
- }
- 
-+static void zram_destroy_comps(struct zram *zram)
-+{
-+	u32 idx;
-+
-+	for (idx = 0; idx < ZRAM_MAX_ZCOMPS; idx++) {
-+		struct zcomp *comp = zram->comps[idx];
-+
-+		zram->comps[idx] = NULL;
-+		if (IS_ERR_OR_NULL(comp))
-+			continue;
-+		zcomp_destroy(comp);
-+	}
+-	return len;
++	return 0;
 +}
 +
- static void zram_reset_device(struct zram *zram)
++static ssize_t comp_algorithm_show(struct device *dev,
++				   struct device_attribute *attr,
++				   char *buf)
++{
++	struct zram *zram = dev_to_zram(dev);
++
++	return __comp_algorithm_show(zram, ZRAM_PRIMARY_ZCOMP, buf);
++}
++
++static ssize_t comp_algorithm_store(struct device *dev,
++				    struct device_attribute *attr,
++				    const char *buf,
++				    size_t len)
++{
++	struct zram *zram = dev_to_zram(dev);
++	int ret;
++
++	ret = __comp_algorithm_store(zram, ZRAM_PRIMARY_ZCOMP, buf);
++	return ret ? ret : len;
+ }
+ 
++#ifdef CONFIG_ZRAM_MULTI_COMP
++static ssize_t recomp_algorithm_show(struct device *dev,
++				     struct device_attribute *attr,
++				     char *buf)
++{
++	struct zram *zram = dev_to_zram(dev);
++
++	return __comp_algorithm_show(zram, ZRAM_SECONDARY_ZCOMP, buf);
++}
++
++static ssize_t recomp_algorithm_store(struct device *dev,
++				      struct device_attribute *attr,
++				      const char *buf,
++				      size_t len)
++{
++	struct zram *zram = dev_to_zram(dev);
++	int ret;
++
++	ret = __comp_algorithm_store(zram, ZRAM_SECONDARY_ZCOMP, buf);
++	return ret ? ret : len;
++}
++#endif
++
+ static ssize_t compact_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
  {
- 	down_write(&zram->init_lock);
-@@ -1724,11 +1755,11 @@ static void zram_reset_device(struct zra
- 	/* I/O operation under all of CPU are done so let's free */
- 	zram_meta_free(zram, zram->disksize);
- 	zram->disksize = 0;
-+	zram_destroy_comps(zram);
+@@ -1759,7 +1814,11 @@ static void zram_reset_device(struct zra
  	memset(&zram->stats, 0, sizeof(zram->stats));
--	zcomp_destroy(zram->comp);
--	zram->comp = NULL;
  	reset_bdev(zram);
  
-+	comp_algorithm_set(zram, ZRAM_PRIMARY_ZCOMP, default_compressor);
+-	comp_algorithm_set(zram, ZRAM_PRIMARY_ZCOMP, default_compressor);
++	comp_algorithm_set(zram, ZRAM_PRIMARY_ZCOMP,
++			   default_comp_algs[ZRAM_PRIMARY_ZCOMP]);
++	if (IS_ENABLED(CONFIG_ZRAM_MULTI_COMP))
++		comp_algorithm_set(zram, ZRAM_SECONDARY_ZCOMP,
++				   default_comp_algs[ZRAM_SECONDARY_ZCOMP]);
  	up_write(&zram->init_lock);
  }
  
-@@ -1739,6 +1770,7 @@ static ssize_t disksize_store(struct dev
- 	struct zcomp *comp;
- 	struct zram *zram = dev_to_zram(dev);
- 	int err;
-+	u32 idx;
+@@ -1892,6 +1951,9 @@ static DEVICE_ATTR_WO(writeback);
+ static DEVICE_ATTR_RW(writeback_limit);
+ static DEVICE_ATTR_RW(writeback_limit_enable);
+ #endif
++#ifdef CONFIG_ZRAM_MULTI_COMP
++static DEVICE_ATTR_RW(recomp_algorithm);
++#endif
  
- 	disksize = memparse(buf, NULL);
- 	if (!disksize)
-@@ -1757,22 +1789,25 @@ static ssize_t disksize_store(struct dev
- 		goto out_unlock;
- 	}
+ static struct attribute *zram_disk_attrs[] = {
+ 	&dev_attr_disksize.attr,
+@@ -1915,6 +1977,9 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_bd_stat.attr,
+ #endif
+ 	&dev_attr_debug_stat.attr,
++#ifdef CONFIG_ZRAM_MULTI_COMP
++	&dev_attr_recomp_algorithm.attr,
++#endif
+ 	NULL,
+ };
  
--	comp = zcomp_create(zram->compressor);
--	if (IS_ERR(comp)) {
--		pr_err("Cannot initialise %s compressing backend\n",
--				zram->compressor);
--		err = PTR_ERR(comp);
--		goto out_free_meta;
--	}
-+	for (idx = 0; idx < ZRAM_MAX_ZCOMPS; idx++) {
-+		comp = zcomp_create(zram->comp_algs[idx]);
-+		if (IS_ERR(comp)) {
-+			pr_err("Cannot initialise %s compressing backend\n",
-+			       zram->comp_algs[idx]);
-+			err = PTR_ERR(comp);
-+			goto out_free_comps;
-+		}
- 
--	zram->comp = comp;
-+		zram->comps[idx] = comp;
-+	}
- 	zram->disksize = disksize;
- 	set_capacity_and_notify(zram->disk, zram->disksize >> SECTOR_SHIFT);
- 	up_write(&zram->init_lock);
- 
- 	return len;
- 
--out_free_meta:
-+out_free_comps:
-+	zram_destroy_comps(zram);
- 	zram_meta_free(zram, disksize);
- out_unlock:
- 	up_write(&zram->init_lock);
-@@ -1959,7 +1994,7 @@ static int zram_add(void)
+@@ -1994,7 +2059,11 @@ static int zram_add(void)
  	if (ret)
  		goto out_cleanup_disk;
  
--	strscpy(zram->compressor, default_compressor, sizeof(zram->compressor));
-+	zram->comp_algs[ZRAM_PRIMARY_ZCOMP] = default_compressor;
+-	zram->comp_algs[ZRAM_PRIMARY_ZCOMP] = default_compressor;
++	zram->comp_algs[ZRAM_PRIMARY_ZCOMP] =
++		default_comp_algs[ZRAM_PRIMARY_ZCOMP];
++	if (IS_ENABLED(CONFIG_ZRAM_MULTI_COMP))
++		zram->comp_algs[ZRAM_SECONDARY_ZCOMP] =
++			default_comp_algs[ZRAM_SECONDARY_ZCOMP];
  
  	zram_debugfs_register(zram);
  	pr_info("Added device: %s\n", zram->disk->disk_name);
---- a/drivers/block/zram/zram_drv.h~zram-preparation-for-multi-zcomp-support
-+++ a/drivers/block/zram/zram_drv.h
-@@ -89,10 +89,20 @@ struct zram_stats {
- #endif
- };
- 
-+#ifdef CONFIG_ZRAM_MULTI_COMP
-+#define ZRAM_PRIMARY_ZCOMP	0
-+#define ZRAM_SECONDARY_ZCOMP	1
-+#define ZRAM_MAX_ZCOMPS	2
-+#else
-+#define ZRAM_PRIMARY_ZCOMP	0
-+#define ZRAM_SECONDARY_ZCOMP	0
-+#define ZRAM_MAX_ZCOMPS	1
-+#endif
-+
- struct zram {
- 	struct zram_table_entry *table;
- 	struct zs_pool *mem_pool;
--	struct zcomp *comp;
-+	struct zcomp *comps[ZRAM_MAX_ZCOMPS];
- 	struct gendisk *disk;
- 	/* Prevent concurrent execution of device init */
- 	struct rw_semaphore init_lock;
-@@ -107,7 +117,7 @@ struct zram {
- 	 * we can store in a disk.
- 	 */
- 	u64 disksize;	/* bytes */
--	char compressor[CRYPTO_MAX_ALG_NAME];
-+	const char *comp_algs[ZRAM_MAX_ZCOMPS];
- 	/*
- 	 * zram is claimed so open request will be failed
- 	 */
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
