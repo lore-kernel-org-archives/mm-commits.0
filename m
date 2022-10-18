@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBCA5C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 01:08:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7022CC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 01:09:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230148AbiJRBIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Oct 2022 21:08:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58932 "EHLO
+        id S230333AbiJRBIt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Oct 2022 21:08:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231300AbiJRBI3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:08:29 -0400
+        with ESMTP id S231280AbiJRBI1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:08:27 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 444648E7B9
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:08:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 063048E79D
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:08:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D286761321
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:08:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D52BC433D6;
-        Tue, 18 Oct 2022 01:08:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2A8EC61326
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:08:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 836D9C433C1;
+        Tue, 18 Oct 2022 01:08:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666055307;
-        bh=gaNP+kD5vamWFZLnrdT+jGOguLbXm0xV9raCWBZhgaE=;
+        s=korg; t=1666055304;
+        bh=zANh6oYbM0+Uj5nJ47TKW3ntY2yGWSeKslZBQQMugRk=;
         h=Date:To:From:Subject:From;
-        b=j//WUOSzy2QRebtsJbaJ93BoPadXXc11kaD6bPTIEtZLb98wMEuScuHhXbjBxb9P9
-         ocIwamhhXp2pOEPxVmnobOFZlS15bMfu+/aHOH+gTPlI7oWtQmlYyg0IQafcrn/Kna
-         UXm4M4oAZc21JLCotmtATxwC2rHgHaCe4fo0Creo=
-Date:   Mon, 17 Oct 2022 18:08:26 -0700
+        b=A2k8IK5ignytRf6zPz2fv1DrsMaegfazZ2UR+xuMAVb2ebfHaG88ia7FtJYdjbLbA
+         v7XGYZoJFeHQ7RLI5n6+rCOiMfPTwIDlzljhKt2lHIMycARV7/mWL0oxBw5/gRwCZS
+         f3znhnuy0nehbId937QH2V9jbJrjjWwH+TKoJWQs=
+Date:   Mon, 17 Oct 2022 18:08:23 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shuah@kernel.org,
         rppt@kernel.org, peterx@redhat.com, namit@vmware.com,
         jhubbard@nvidia.com, jgg@nvidia.com, ddutile@redhat.com,
         crecklin@redhat.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-anon_cow-thp-tests.patch added to mm-unstable branch
-Message-Id: <20221018010827.2D52BC433D6@smtp.kernel.org>
+Subject: + selftests-vm-factor-out-pagemap_is_populated-into-vm_util.patch added to mm-unstable branch
+Message-Id: <20221018010824.836D9C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: anon_cow: THP tests
+     Subject: selftests/vm: factor out pagemap_is_populated() into vm_util
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-anon_cow-thp-tests.patch
+     selftests-vm-factor-out-pagemap_is_populated-into-vm_util.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-anon_cow-thp-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-factor-out-pagemap_is_populated-into-vm_util.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,13 +68,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/vm: anon_cow: THP tests
-Date: Tue, 27 Sep 2022 13:01:16 +0200
+Subject: selftests/vm: factor out pagemap_is_populated() into vm_util
+Date: Tue, 27 Sep 2022 13:01:15 +0200
 
-Let's add various THP variants that we'll run with our existing test
-cases.
+We'll reuse it in the anon_cow test next.
 
-Link: https://lkml.kernel.org/r/20220927110120.106906-4-david@redhat.com
+Link: https://lkml.kernel.org/r/20220927110120.106906-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph von Recklinghausen <crecklin@redhat.com>
@@ -89,306 +88,55 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/anon_cow.c |  259 +++++++++++++++++++++++-
- 1 file changed, 258 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/madv_populate.c |    8 --------
+ tools/testing/selftests/vm/vm_util.c       |    8 ++++++++
+ tools/testing/selftests/vm/vm_util.h       |    1 +
+ 3 files changed, 9 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/vm/anon_cow.c~selftests-vm-anon_cow-thp-tests
-+++ a/tools/testing/selftests/vm/anon_cow.c
-@@ -24,6 +24,43 @@
+--- a/tools/testing/selftests/vm/madv_populate.c~selftests-vm-factor-out-pagemap_is_populated-into-vm_util
++++ a/tools/testing/selftests/vm/madv_populate.c
+@@ -27,14 +27,6 @@
  
  static size_t pagesize;
- static int pagemap_fd;
-+static size_t thpsize;
-+
-+static void detect_thpsize(void)
-+{
-+	int fd = open("/sys/kernel/mm/transparent_hugepage/hpage_pmd_size",
-+		      O_RDONLY);
-+	size_t size = 0;
-+	char buf[15];
-+	int ret;
-+
-+	if (fd < 0)
-+		return;
-+
-+	ret = pread(fd, buf, sizeof(buf), 0);
-+	if (ret > 0 && ret < sizeof(buf)) {
-+		buf[ret] = 0;
-+
-+		size = strtoul(buf, NULL, 10);
-+		if (size < pagesize)
-+			size = 0;
-+		if (size > 0) {
-+			thpsize = size;
-+			ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
-+				       thpsize / 1024);
-+		}
-+	}
-+
-+	close(fd);
-+}
-+
-+static bool range_is_swapped(void *addr, size_t size)
-+{
-+	for (; size; addr += pagesize, size -= pagesize)
-+		if (!pagemap_is_swapped(pagemap_fd, addr))
-+			return false;
-+	return true;
-+}
  
- struct comm_pipes {
- 	int child_ready[2];
-@@ -319,6 +356,206 @@ static void run_with_base_page_swap(test
- 	do_run_with_base_page(fn, true);
- }
- 
-+enum thp_run {
-+	THP_RUN_PMD,
-+	THP_RUN_PMD_SWAPOUT,
-+	THP_RUN_PTE,
-+	THP_RUN_PTE_SWAPOUT,
-+	THP_RUN_SINGLE_PTE,
-+	THP_RUN_SINGLE_PTE_SWAPOUT,
-+	THP_RUN_PARTIAL_MREMAP,
-+	THP_RUN_PARTIAL_SHARED,
-+};
-+
-+static void do_run_with_thp(test_fn fn, enum thp_run thp_run)
-+{
-+	char *mem, *mmap_mem, *tmp, *mremap_mem = MAP_FAILED;
-+	size_t size, mmap_size, mremap_size;
-+	int ret;
-+
-+	/* For alignment purposes, we need twice the thp size. */
-+	mmap_size = 2 * thpsize;
-+	mmap_mem = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
-+			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (mmap_mem == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		return;
-+	}
-+
-+	/* We need a THP-aligned memory area. */
-+	mem = (char *)(((uintptr_t)mmap_mem + thpsize) & ~(thpsize - 1));
-+
-+	ret = madvise(mem, thpsize, MADV_HUGEPAGE);
-+	if (ret) {
-+		ksft_test_result_fail("MADV_HUGEPAGE failed\n");
-+		goto munmap;
-+	}
-+
-+	/*
-+	 * Try to populate a THP. Touch the first sub-page and test if we get
-+	 * another sub-page populated automatically.
-+	 */
-+	mem[0] = 0;
-+	if (!pagemap_is_populated(pagemap_fd, mem + pagesize)) {
-+		ksft_test_result_skip("Did not get a THP populated\n");
-+		goto munmap;
-+	}
-+	memset(mem, 0, thpsize);
-+
-+	size = thpsize;
-+	switch (thp_run) {
-+	case THP_RUN_PMD:
-+	case THP_RUN_PMD_SWAPOUT:
-+		break;
-+	case THP_RUN_PTE:
-+	case THP_RUN_PTE_SWAPOUT:
-+		/*
-+		 * Trigger PTE-mapping the THP by temporarily mapping a single
-+		 * subpage R/O.
-+		 */
-+		ret = mprotect(mem + pagesize, pagesize, PROT_READ);
-+		if (ret) {
-+			ksft_test_result_fail("mprotect() failed\n");
-+			goto munmap;
-+		}
-+		ret = mprotect(mem + pagesize, pagesize, PROT_READ | PROT_WRITE);
-+		if (ret) {
-+			ksft_test_result_fail("mprotect() failed\n");
-+			goto munmap;
-+		}
-+		break;
-+	case THP_RUN_SINGLE_PTE:
-+	case THP_RUN_SINGLE_PTE_SWAPOUT:
-+		/*
-+		 * Discard all but a single subpage of that PTE-mapped THP. What
-+		 * remains is a single PTE mapping a single subpage.
-+		 */
-+		ret = madvise(mem + pagesize, thpsize - pagesize, MADV_DONTNEED);
-+		if (ret) {
-+			ksft_test_result_fail("MADV_DONTNEED failed\n");
-+			goto munmap;
-+		}
-+		size = pagesize;
-+		break;
-+	case THP_RUN_PARTIAL_MREMAP:
-+		/*
-+		 * Remap half of the THP. We need some new memory location
-+		 * for that.
-+		 */
-+		mremap_size = thpsize / 2;
-+		mremap_mem = mmap(NULL, mremap_size, PROT_NONE,
-+				  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+		if (mem == MAP_FAILED) {
-+			ksft_test_result_fail("mmap() failed\n");
-+			goto munmap;
-+		}
-+		tmp = mremap(mem + mremap_size, mremap_size, mremap_size,
-+			     MREMAP_MAYMOVE | MREMAP_FIXED, mremap_mem);
-+		if (tmp != mremap_mem) {
-+			ksft_test_result_fail("mremap() failed\n");
-+			goto munmap;
-+		}
-+		size = mremap_size;
-+		break;
-+	case THP_RUN_PARTIAL_SHARED:
-+		/*
-+		 * Share the first page of the THP with a child and quit the
-+		 * child. This will result in some parts of the THP never
-+		 * have been shared.
-+		 */
-+		ret = madvise(mem + pagesize, thpsize - pagesize, MADV_DONTFORK);
-+		if (ret) {
-+			ksft_test_result_fail("MADV_DONTFORK failed\n");
-+			goto munmap;
-+		}
-+		ret = fork();
-+		if (ret < 0) {
-+			ksft_test_result_fail("fork() failed\n");
-+			goto munmap;
-+		} else if (!ret) {
-+			exit(0);
-+		}
-+		wait(&ret);
-+		/* Allow for sharing all pages again. */
-+		ret = madvise(mem + pagesize, thpsize - pagesize, MADV_DOFORK);
-+		if (ret) {
-+			ksft_test_result_fail("MADV_DOFORK failed\n");
-+			goto munmap;
-+		}
-+		break;
-+	default:
-+		assert(false);
-+	}
-+
-+	switch (thp_run) {
-+	case THP_RUN_PMD_SWAPOUT:
-+	case THP_RUN_PTE_SWAPOUT:
-+	case THP_RUN_SINGLE_PTE_SWAPOUT:
-+		madvise(mem, size, MADV_PAGEOUT);
-+		if (!range_is_swapped(mem, size)) {
-+			ksft_test_result_skip("MADV_PAGEOUT did not work, is swap enabled?\n");
-+			goto munmap;
-+		}
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	fn(mem, size);
-+munmap:
-+	munmap(mmap_mem, mmap_size);
-+	if (mremap_mem != MAP_FAILED)
-+		munmap(mremap_mem, mremap_size);
-+}
-+
-+static void run_with_thp(test_fn fn, const char *desc)
-+{
-+	ksft_print_msg("[RUN] %s ... with THP\n", desc);
-+	do_run_with_thp(fn, THP_RUN_PMD);
-+}
-+
-+static void run_with_thp_swap(test_fn fn, const char *desc)
-+{
-+	ksft_print_msg("[RUN] %s ... with swapped-out THP\n", desc);
-+	do_run_with_thp(fn, THP_RUN_PMD_SWAPOUT);
-+}
-+
-+static void run_with_pte_mapped_thp(test_fn fn, const char *desc)
-+{
-+	ksft_print_msg("[RUN] %s ... with PTE-mapped THP\n", desc);
-+	do_run_with_thp(fn, THP_RUN_PTE);
-+}
-+
-+static void run_with_pte_mapped_thp_swap(test_fn fn, const char *desc)
-+{
-+	ksft_print_msg("[RUN] %s ... with swapped-out, PTE-mapped THP\n", desc);
-+	do_run_with_thp(fn, THP_RUN_PTE_SWAPOUT);
-+}
-+
-+static void run_with_single_pte_of_thp(test_fn fn, const char *desc)
-+{
-+	ksft_print_msg("[RUN] %s ... with single PTE of THP\n", desc);
-+	do_run_with_thp(fn, THP_RUN_SINGLE_PTE);
-+}
-+
-+static void run_with_single_pte_of_thp_swap(test_fn fn, const char *desc)
-+{
-+	ksft_print_msg("[RUN] %s ... with single PTE of swapped-out THP\n", desc);
-+	do_run_with_thp(fn, THP_RUN_SINGLE_PTE_SWAPOUT);
-+}
-+
-+static void run_with_partial_mremap_thp(test_fn fn, const char *desc)
-+{
-+	ksft_print_msg("[RUN] %s ... with partially mremap()'ed THP\n", desc);
-+	do_run_with_thp(fn, THP_RUN_PARTIAL_MREMAP);
-+}
-+
-+static void run_with_partial_shared_thp(test_fn fn, const char *desc)
-+{
-+	ksft_print_msg("[RUN] %s ... with partially shared THP\n", desc);
-+	do_run_with_thp(fn, THP_RUN_PARTIAL_SHARED);
-+}
-+
- struct test_case {
- 	const char *desc;
- 	test_fn fn;
-@@ -367,6 +604,16 @@ static void run_test_case(struct test_ca
+-static bool pagemap_is_populated(int fd, char *start)
+-{
+-	uint64_t entry = pagemap_get_entry(fd, start);
+-
+-	/* Present or swapped. */
+-	return entry & 0xc000000000000000ull;
+-}
+-
+ static void sense_support(void)
  {
- 	run_with_base_page(test_case->fn, test_case->desc);
- 	run_with_base_page_swap(test_case->fn, test_case->desc);
-+	if (thpsize) {
-+		run_with_thp(test_case->fn, test_case->desc);
-+		run_with_thp_swap(test_case->fn, test_case->desc);
-+		run_with_pte_mapped_thp(test_case->fn, test_case->desc);
-+		run_with_pte_mapped_thp_swap(test_case->fn, test_case->desc);
-+		run_with_single_pte_of_thp(test_case->fn, test_case->desc);
-+		run_with_single_pte_of_thp_swap(test_case->fn, test_case->desc);
-+		run_with_partial_mremap_thp(test_case->fn, test_case->desc);
-+		run_with_partial_shared_thp(test_case->fn, test_case->desc);
-+	}
+ 	char *addr;
+--- a/tools/testing/selftests/vm/vm_util.c~selftests-vm-factor-out-pagemap_is_populated-into-vm_util
++++ a/tools/testing/selftests/vm/vm_util.c
+@@ -35,6 +35,14 @@ bool pagemap_is_swapped(int fd, char *st
+ 	return entry & 0x4000000000000000ull;
  }
  
- static void run_test_cases(void)
-@@ -377,15 +624,25 @@ static void run_test_cases(void)
- 		run_test_case(&test_cases[i]);
- }
- 
-+static int tests_per_test_case(void)
++bool pagemap_is_populated(int fd, char *start)
 +{
-+	int tests = 2;
++	uint64_t entry = pagemap_get_entry(fd, start);
 +
-+	if (thpsize)
-+		tests += 8;
-+	return tests;
++	/* Present or swapped. */
++	return entry & 0xc000000000000000ull;
 +}
 +
- int main(int argc, char **argv)
+ void clear_softdirty(void)
  {
- 	int nr_test_cases = ARRAY_SIZE(test_cases);
- 	int err;
- 
- 	pagesize = getpagesize();
-+	detect_thpsize();
- 
- 	ksft_print_header();
--	ksft_set_plan(nr_test_cases * 2);
-+	ksft_set_plan(nr_test_cases * tests_per_test_case());
- 
- 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
- 	if (pagemap_fd < 0)
+ 	int ret;
+--- a/tools/testing/selftests/vm/vm_util.h~selftests-vm-factor-out-pagemap_is_populated-into-vm_util
++++ a/tools/testing/selftests/vm/vm_util.h
+@@ -5,6 +5,7 @@
+ uint64_t pagemap_get_entry(int fd, char *start);
+ bool pagemap_is_softdirty(int fd, char *start);
+ bool pagemap_is_swapped(int fd, char *start);
++bool pagemap_is_populated(int fd, char *start);
+ void clear_softdirty(void);
+ bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
+ uint64_t read_pmd_pagesize(void);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
