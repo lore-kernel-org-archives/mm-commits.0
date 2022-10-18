@@ -2,126 +2,114 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97896C4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 03:31:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEEBFC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 12:27:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230406AbiJRDbp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Oct 2022 23:31:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50334 "EHLO
+        id S230077AbiJRM1t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Oct 2022 08:27:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230318AbiJRDbF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 23:31:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 542679DD88
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 20:22:43 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 483E76140F
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 03:12:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F290C433D6;
-        Tue, 18 Oct 2022 03:12:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666062731;
-        bh=qgWIf7TdC/6oLYUU+85/Nfhc6gyNKmBm358XPNr3Qb0=;
-        h=Date:To:From:Subject:From;
-        b=OJ4m9agDTcKJzLhH62vcW7i+HMtq/C0PdZTbRjN71b6+CooeEtRlZvOVNl5Lf9P0T
-         u8WjaQ26T/LZY9uShyg+ZJuYyIT4LxhNcHFAg6s6Zesco6eEfIdtBRWMVZVwUZhzIM
-         wKoZDlIvVE8O9XU5uGRrvllcvKhTmUXtM1jCFbXM=
-Date:   Mon, 17 Oct 2022 20:12:10 -0700
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-introduce-recompress-sysfs-knob-fix.patch added to mm-unstable branch
-Message-Id: <20221018031211.9F290C433D6@smtp.kernel.org>
+        with ESMTP id S229698AbiJRM1s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2022 08:27:48 -0400
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1C51B7F48
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 05:27:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1666096067; x=1697632067;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=++PczzFxVdnu/rt6Q8e6I8tzTORra3OTwB00bewnRuw=;
+  b=QMXmjHPGaPWWV7EMLQmoCZYth6E1NFn+/iH1DROJLa7uwKh1mrFdbw3m
+   xPNBFGPxUp/X5OOUfCZllRsEp25YJ8HonATzGd2Lut+VnO0RPjcuWHlpT
+   S+x9B+iM7ylusS1Zi4+GdY7E5FRazNOkuBEc5gMTwmbGMAYy0Bb427J+K
+   LcCVlW3QLQ0OsC13PV4JywaKPCj/87oAIK/vBTJQURGi+Q2ATb39i+z69
+   n5Vq9djxaNPQaoVipui9tHDURMwD5x7dq0RDgJ6+dt+c4jsFzXxfTdxsv
+   3bku2lP8WiRuuKUcryetx+trm3+08yHOr1FfvLOFqYlIoH4ttwxGXaD4K
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10503"; a="370286730"
+X-IronPort-AV: E=Sophos;i="5.95,193,1661842800"; 
+   d="scan'208";a="370286730"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2022 05:27:47 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10503"; a="873871702"
+X-IronPort-AV: E=Sophos;i="5.95,193,1661842800"; 
+   d="scan'208";a="873871702"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga006.fm.intel.com with ESMTP; 18 Oct 2022 05:27:45 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1oklh9-009M3P-38;
+        Tue, 18 Oct 2022 15:27:43 +0300
+Date:   Tue, 18 Oct 2022 15:27:43 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, keescook@chromium.org, Jason@zx2c4.com
+Subject: Re: +
+ minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
+ added to mm-nonmm-unstable branch
+Message-ID: <Y06bv9ZKBUXkI35x@smile.fi.intel.com>
+References: <20221018011800.3857BC433C1@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221018011800.3857BC433C1@smtp.kernel.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Mon, Oct 17, 2022 at 06:17:59PM -0700, Andrew Morton wrote:
 
-The patch titled
-     Subject: Re: zram: Introduce recompress sysfs knob
-has been added to the -mm mm-unstable branch.  Its filename is
-     zram-introduce-recompress-sysfs-knob-fix.patch
+...
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-introduce-recompress-sysfs-knob-fix.patch
+> -#define __clamp(val, lo, hi)							\
+> +#define __clamp(val, lo, hi)	\
+>  	__cmp(__cmp(val, lo, >), hi, <)
+>  
+> -#define __clamp_once(val, lo, hi, unique_val, unique_lo, unique_hi) ({		\
+> -		typeof(val) unique_val = (val);					\
+> -		typeof(lo) unique_lo = (lo);					\
+> -		typeof(hi) unique_hi = (hi);					\
+> +#define __clamp_once(val, lo, hi, unique_val, unique_lo, unique_hi) ({	\
+> +		typeof(val) unique_val = (val);				\
+> +		typeof(lo) unique_lo = (lo);				\
+> +		typeof(hi) unique_hi = (hi);				\
+>  		__clamp(unique_val, unique_lo, unique_hi); })
+>  
+> -#define __clamp_input_check(lo, hi)						\
+> -        (BUILD_BUG_ON_ZERO(__builtin_choose_expr(				\
+> +#define __clamp_input_check(lo, hi)					\
+> +        (BUILD_BUG_ON_ZERO(__builtin_choose_expr(			\
+>                  __is_constexpr((lo) > (hi)), (lo) > (hi), false)))
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+These are good...
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+> -#define __careful_clamp(val, lo, hi) ({						\
+> -	__clamp_input_check(lo, hi) + 						\
+> -	__builtin_choose_expr(__typecheck(val, lo) && __typecheck(val, hi) &&	\
+> -			      __typecheck(hi, lo) && __is_constexpr(val) && 	\
+> -			      __is_constexpr(lo) && __is_constexpr(hi),		\
+> -		__clamp(val, lo, hi),						\
+> -		__clamp_once(val, lo, hi, __UNIQUE_ID(__val),			\
+> +#define __careful_clamp(val, lo, hi) ({					\
+> +	__clamp_input_check(lo, hi) +					\
+> +	__builtin_choose_expr(__typecheck(val, lo) && __typecheck(val, hi) &&\
+> +			      __typecheck(hi, lo) && __is_constexpr(val) &&\
+> +			      __is_constexpr(lo) && __is_constexpr(hi),	\
+> +		__clamp(val, lo, hi),					\
+> +		__clamp_once(val, lo, hi, __UNIQUE_ID(__val),		\
+>  			     __UNIQUE_ID(__lo), __UNIQUE_ID(__hi))); })
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+...but this one becomes less readable. I think checkpatch is always a
+recommendation than requirement. I would leave at least the last as is, but
+formally I think the entire patch is a churn to satisfy controversial
+recommendation.
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+-- 
+With Best Regards,
+Andy Shevchenko
 
-------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: Re: zram: Introduce recompress sysfs knob
-Date: Tue, 18 Oct 2022 11:42:39 +0900
-
-A fixup patch: update Kconfig description and tweak coding styles.
-
-Link: https://lkml.kernel.org/r/Y04Sn50kt5qLxpbK@google.com
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/block/zram/Kconfig    |    3 +++
- drivers/block/zram/zram_drv.c |    7 ++-----
- 2 files changed, 5 insertions(+), 5 deletions(-)
-
---- a/drivers/block/zram/Kconfig~zram-introduce-recompress-sysfs-knob-fix
-+++ a/drivers/block/zram/Kconfig
-@@ -90,3 +90,6 @@ config ZRAM_MULTI_COMP
- 
-           echo TIMEOUT > /sys/block/zramX/idle
-           echo SIZE > /sys/block/zramX/recompress
-+
-+	SIZE (in bytes) parameter sets the object size watermark: idle
-+	objects that are of a smaller size will not get recompressed.
---- a/drivers/block/zram/zram_drv.c~zram-introduce-recompress-sysfs-knob-fix
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1623,9 +1623,7 @@ out:
-  *
-  * Corresponding ZRAM slot should be locked.
-  */
--static int zram_recompress(struct zram *zram,
--			   u32 index,
--			   struct page *page,
-+static int zram_recompress(struct zram *zram, u32 index, struct page *page,
- 			   int size_watermark)
- {
- 	unsigned long handle_prev;
-@@ -1708,8 +1706,7 @@ static int zram_recompress(struct zram *
- 
- static ssize_t recompress_store(struct device *dev,
- 				struct device_attribute *attr,
--				const char *buf,
--				size_t len)
-+				const char *buf, size_t len)
- {
- 	struct zram *zram = dev_to_zram(dev);
- 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
-_
-
-Patches currently in -mm which might be from senozhatsky@chromium.org are
-
-zram-preparation-for-multi-zcomp-support.patch
-zram-add-recompression-algorithm-sysfs-knob.patch
-zram-factor-out-wb-and-non-wb-zram-read-functions.patch
-zram-introduce-recompress-sysfs-knob.patch
-zram-introduce-recompress-sysfs-knob-fix.patch
-documentation-add-recompression-documentation.patch
-zram-add-recompression-algorithm-choice-to-kconfig.patch
-zram-add-recompress-flag-to-read_block_state.patch
-zram-correct-typos.patch
 
