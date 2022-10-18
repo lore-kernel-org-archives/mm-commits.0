@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A2B1C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 00:52:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95ADDC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 01:03:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230175AbiJRAwb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Oct 2022 20:52:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45502 "EHLO
+        id S230295AbiJRBDP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Oct 2022 21:03:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230499AbiJRAwB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 20:52:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C15982633
-        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 17:52:00 -0700 (PDT)
+        with ESMTP id S229683AbiJRBDO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2022 21:03:14 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF8CC79694
+        for <mm-commits@vger.kernel.org>; Mon, 17 Oct 2022 18:03:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B406061326
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 00:51:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1543DC433C1;
-        Tue, 18 Oct 2022 00:51:59 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id F37DECE180B
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 01:03:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EE7EC43470;
+        Tue, 18 Oct 2022 01:03:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666054319;
-        bh=PV31Z0Rr+kQslUExwVDK2Z9o/S/jTOEmsENYWp2E1R4=;
+        s=korg; t=1666054990;
+        bh=cAws4Rrfpr6xp/cYKKLVk1JqJKzg9F4OQI0/+kCQmX8=;
         h=Date:To:From:Subject:From;
-        b=EaGd+szeFpxNmDq81gzup4S8B0QLZ57yX3/WW6tv+MtskgxPMD8uOQ4WBW/7rFuR9
-         Bq4HjaWBloYNFhQvqlD03Z3gtwqgJUKyNW+K8JX9l8rDx0AiKmk1PjC7PNOS7fBTTn
-         YWFcYnJcJ7NMmOOQ9GaYE33ciF9i+nVOrsnCt8MI=
-Date:   Mon, 17 Oct 2022 17:51:58 -0700
-To:     mm-commits@vger.kernel.org, zealci@zte.com.cn,
-        ye.xingchen@zte.com.cn, pmladek@suse.com, paulus@samba.org,
-        niejianglei2021@163.com, mpe@ellerman.id.au, linux@armlinux.org.uk,
-        lchen@ambarella.com, ebiederm@xmission.com, bhe@redhat.com,
-        benh@kernel.crashing.org, chenlifu@huawei.com,
-        akpm@linux-foundation.org
+        b=GVzlFAgdp7UsFEj9vnYyeAfkq2mftcHymtHC5FpPz6iNle6x25L1IF+meDCrcE3Ia
+         FvNENrfkvKe1tfjkDhTlhZOOfwSPIOZOWilhUzp5PxZIp+bJPIaitR7s547jFJxA8v
+         vBC7cQ/Kr7/oN06qj8t/r9EZCJwkD4UnZskN1PLY=
+Date:   Mon, 17 Oct 2022 18:03:09 -0700
+To:     mm-commits@vger.kernel.org, hughd@google.com,
+        thomas.weissschuh@amadeus.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm-kexec-make-machine_crash_nonpanic_core-static.patch added to mm-nonmm-unstable branch
-Message-Id: <20221018005159.1543DC433C1@smtp.kernel.org>
+Subject: + tmpfs-ensure-o_largefile-with-generic_file_open.patch added to mm-unstable branch
+Message-Id: <20221018010310.1EE7EC43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: kexec: make machine_crash_nonpanic_core() static
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     arm-kexec-make-machine_crash_nonpanic_core-static.patch
+     Subject: tmpfs: ensure O_LARGEFILE with generic_file_open()
+has been added to the -mm mm-unstable branch.  Its filename is
+     tmpfs-ensure-o_largefile-with-generic_file_open.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-kexec-make-machine_crash_nonpanic_core-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tmpfs-ensure-o_largefile-with-generic_file_open.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,50 +64,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chen Lifu <chenlifu@huawei.com>
-Subject: ARM: kexec: make machine_crash_nonpanic_core() static
-Date: Thu, 29 Sep 2022 12:29:36 +0800
+From: Thomas Weißschuh <thomas.weissschuh@amadeus.com>
+Subject: tmpfs: ensure O_LARGEFILE with generic_file_open()
+Date: Wed, 28 Sep 2022 12:45:35 +0200
 
-This symbol is not used outside of the file, so mark it static.
+Without this check open() will open large files on tmpfs although
+O_LARGEFILE was not specified.  This is inconsistent with other
+filesystems.  Also it will later result in EOVERFLOW on stat() or EFBIG on
+write().
 
-Fixes the following warning:
-
-arch/arm/kernel/machine_kexec.c:76:6: warning: symbol 'machine_crash_nonpanic_core' was not declared. Should it be static?
-
-Link: https://lkml.kernel.org/r/20220929042936.22012-5-bhe@redhat.com
-Signed-off-by: Chen Lifu <chenlifu@huawei.com>
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jianglei Nie <niejianglei2021@163.com>
-Cc: Li Chen <lchen@ambarella.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: ye xingchen <ye.xingchen@zte.com.cn>
-Cc: Zeal Robot <zealci@zte.com.cn>
+Link: https://lore.kernel.org/lkml/76bedae6-22ea-4abc-8c06-b424ceb39217@t-8ch.de/
+Link: https://lkml.kernel.org/r/20220928104535.61186-1-linux@weissschuh.net
+Signed-off-by: Thomas Weißschuh <thomas.weissschuh@amadeus.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/machine_kexec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/arm/kernel/machine_kexec.c~arm-kexec-make-machine_crash_nonpanic_core-static
-+++ a/arch/arm/kernel/machine_kexec.c
-@@ -73,7 +73,7 @@ void machine_kexec_cleanup(struct kimage
- {
- }
+--- a/mm/shmem.c~tmpfs-ensure-o_largefile-with-generic_file_open
++++ a/mm/shmem.c
+@@ -3885,6 +3885,7 @@ EXPORT_SYMBOL(shmem_aops);
  
--void machine_crash_nonpanic_core(void *unused)
-+static void machine_crash_nonpanic_core(void *unused)
- {
- 	struct pt_regs regs;
- 
+ static const struct file_operations shmem_file_operations = {
+ 	.mmap		= shmem_mmap,
++	.open		= generic_file_open,
+ 	.get_unmapped_area = shmem_get_unmapped_area,
+ #ifdef CONFIG_TMPFS
+ 	.llseek		= shmem_file_llseek,
 _
 
-Patches currently in -mm which might be from chenlifu@huawei.com are
+Patches currently in -mm which might be from thomas.weissschuh@amadeus.com are
 
-arm-kexec-make-machine_crash_nonpanic_core-static.patch
+tmpfs-ensure-o_largefile-with-generic_file_open.patch
 
