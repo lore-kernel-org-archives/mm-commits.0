@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3A00C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 22:17:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AC54C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Oct 2022 22:17:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229868AbiJRWRM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Oct 2022 18:17:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49730 "EHLO
+        id S229924AbiJRWRf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Oct 2022 18:17:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229490AbiJRWRC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2022 18:17:02 -0400
+        with ESMTP id S229705AbiJRWRJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2022 18:17:09 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA6FD102F
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 15:17:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C50F289955
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 15:17:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7D6FAB82173
-        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 22:17:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31C10C433C1;
-        Tue, 18 Oct 2022 22:16:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7FF6CB82111
+        for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2022 22:17:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35A53C433C1;
+        Tue, 18 Oct 2022 22:17:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666131419;
-        bh=cjW25ku+rro0ebBy3rmjl54WCNSrv0Rs8llOufegkRQ=;
+        s=korg; t=1666131425;
+        bh=QOpneOeffAACyUCAplnBGnyp4B3XVA19pBjjCGGysiM=;
         h=Date:To:From:Subject:From;
-        b=is7/wmJIN9s8X5uGrci0EN+WiiNIrYm2l5WjEdfeMzpDUmUu+X/TWB+gC/yPf0cDW
-         WE66Tdgq+6J0JvdWcyLJ3vxeAADQVGfHWEUM+GZSwY3e2CVhs4RRYcwMUYizB2Lus8
-         87YRVRTBwjyM2QrNiWa17mUIeDvLSV5WCAJhL+T8=
-Date:   Tue, 18 Oct 2022 15:16:58 -0700
+        b=z0foB7w/1AO1q1mOYNBSjhOI8lMVAuHhAEpbkmQTwkDYOQ5kAj0ki76/eXEgsIrPA
+         V8Po+SRnWaApabqZM0lm6g5p8EnPWMOrX5CkfA9jSkaUg08naEHsTKYYRNumx/Q6XL
+         cwMJeZdsm1l1efMD7gX2XNQDTlFrL3ApoRHok63U=
+Date:   Tue, 18 Oct 2022 15:17:04 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rostedt@goodmis.org, oleksiy.avramchenko@sony.com,
         npiggin@gmail.com, hch@infradead.org, urezki@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-use-trace_alloc_vmap_area-event.patch added to mm-unstable branch
-Message-Id: <20221018221659.31C10C433C1@smtp.kernel.org>
+Subject: + vmalloc-add-reviewers-for-vmalloc-code.patch added to mm-unstable branch
+Message-Id: <20221018221705.35A53C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: use trace_alloc_vmap_area event
+     Subject: vmalloc: add reviewers for vmalloc code
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-use-trace_alloc_vmap_area-event.patch
+     vmalloc-add-reviewers-for-vmalloc-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-trace_alloc_vmap_area-event.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmalloc-add-reviewers-for-vmalloc-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,19 +67,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: use trace_alloc_vmap_area event
-Date: Tue, 18 Oct 2022 20:10:50 +0200
+Subject: vmalloc: add reviewers for vmalloc code
+Date: Tue, 18 Oct 2022 20:10:53 +0200
 
-This is for debug purpose and is called when an allocation attempt occurs.
-This event gives some information about:
+Add myself and Christoph Hellwig as reviewers for vmalloc.
 
-- start address of allocated area;
-- size that is requested;
-- alignment that is required;
-- vstart/vend restriction;
-- if an allocation fails.
-
-Link: https://lkml.kernel.org/r/20221018181053.434508-5-urezki@gmail.com
+Link: https://lkml.kernel.org/r/20221018181053.434508-8-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -89,30 +82,33 @@ Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ MAINTAINERS |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-trace_alloc_vmap_area-event
-+++ a/mm/vmalloc.c
-@@ -43,6 +43,9 @@
- #include <asm/tlbflush.h>
- #include <asm/shmparam.h>
+--- a/MAINTAINERS~vmalloc-add-reviewers-for-vmalloc-code
++++ a/MAINTAINERS
+@@ -13285,10 +13285,20 @@ F:	include/linux/memory_hotplug.h
+ F:	include/linux/mm.h
+ F:	include/linux/mmzone.h
+ F:	include/linux/pagewalk.h
+-F:	include/linux/vmalloc.h
+ F:	mm/
+ F:	tools/testing/selftests/vm/
  
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/vmalloc.h>
++VMALLOC
++M:	Andrew Morton <akpm@linux-foundation.org>
++R:	Uladzislau Rezki <urezki@gmail.com>
++R:	Christoph Hellwig <hch@infradead.org>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	mm/vmalloc.c
++F:	include/linux/vmalloc.h
 +
- #include "internal.h"
- #include "pgalloc-track.h"
- 
-@@ -1620,6 +1623,8 @@ retry:
- 		size, align, vstart, vend);
- 	spin_unlock(&free_vmap_area_lock);
- 
-+	trace_alloc_vmap_area(addr, size, align, vstart, vend, addr == vend);
-+
- 	/*
- 	 * If an allocation fails, the "vend" address is
- 	 * returned. Therefore trigger the overflow path.
+ MEMORY HOT(UN)PLUG
+ M:	David Hildenbrand <david@redhat.com>
+ M:	Oscar Salvador <osalvador@suse.de>
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
