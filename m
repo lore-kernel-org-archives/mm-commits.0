@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71A57C4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Oct 2022 23:25:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5529EC4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Oct 2022 23:32:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229978AbiJSXZM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Oct 2022 19:25:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36676 "EHLO
+        id S231814AbiJSXce (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Oct 2022 19:32:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229958AbiJSXZL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2022 19:25:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FE66F70BA
-        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 16:25:10 -0700 (PDT)
+        with ESMTP id S231812AbiJSXc1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2022 19:32:27 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66D091AC1F9
+        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 16:32:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A846960EBF
-        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 23:25:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08477C433D7;
-        Wed, 19 Oct 2022 23:25:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C51A2B824C3
+        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 23:32:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66B24C433D6;
+        Wed, 19 Oct 2022 23:32:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666221909;
-        bh=UyAvvPCAWUSVNLWE4o9ksddjYjZrJFxXAuuYO6a+Ew4=;
+        s=korg; t=1666222327;
+        bh=ZMpFeqB1puJ4K9raPslrwks03PLOh+HO18YsafzdLII=;
         h=Date:To:From:Subject:From;
-        b=00ZUf7ynMSMUdi2LE7Ja73jG0nNq1QZzzDiQ9JxVewOfe7UfmkNS4JH9+VIoW3WhY
-         Uo4yaJRSYorRhy8/iFdxpkLGBXfxevv+YbqEUZlEmaTBWUMAaO4366Bsi3QLg5pYX9
-         eyJYQhpnYTKa/MB5BPtMik/IWimvDFTZDYhgOtJE=
-Date:   Wed, 19 Oct 2022 16:25:08 -0700
-To:     mm-commits@vger.kernel.org, rcampbell@nvidia.com, lyude@redhat.com,
-        jhubbard@nvidia.com, bskeggs@redhat.com, apopple@nvidia.com,
+        b=wtd9F0z1gxo79zYwFbEJqnIjpBY6Qv4HhB4TGo91obc8vjijbXvxHsBszi8YsZuwx
+         2+9pZmgpJz7lj6L4MZVFRuUHCthsdyjAfigr+i5J/4ybNHbQhWRumFDbI8MV8pybr5
+         JFstqKVbZ8/nvNuf+83uwTBD2og4WacLmeR8z8ok=
+Date:   Wed, 19 Oct 2022 16:32:06 -0700
+To:     mm-commits@vger.kernel.org, lkp@intel.com,
+        dan.j.williams@intel.com, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nouveau-fix-migrate_to_ram-for-faulting-page.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221019232509.08477C433D7@smtp.kernel.org>
+Subject: + mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch added to mm-unstable branch
+Message-Id: <20221019233207.66B24C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nouveau: fix migrate_to_ram() for faulting page
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nouveau-fix-migrate_to_ram-for-faulting-page.patch
+     Subject: mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nouveau-fix-migrate_to_ram-for-faulting-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,43 +65,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: nouveau: fix migrate_to_ram() for faulting page
-Date: Wed, 19 Oct 2022 23:29:34 +1100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix
+Date: Wed Oct 19 04:28:52 PM PDT 2022
 
-Commit 16ce101db85d ("mm/memory.c: fix race when faulting a device private
-page") changed the migrate_to_ram() callback to take a reference on the
-device page to ensure it can't be freed while handling the fault. 
-Unfortunately the corresponding update to Nouveau to accommodate this
-change was inadvertently dropped from that patch causing GPU to CPU
-migration to fail so add it here.
+restore removal of zone_device_page_init
 
-Link: https://lkml.kernel.org/r/20221019122934.866205-1-apopple@nvidia.com
-Fixes: 16ce101db85d ("mm/memory.c: fix race when faulting a device private page")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_dmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memremap.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~nouveau-fix-migrate_to_ram-for-faulting-page
-+++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -176,6 +176,7 @@ static vm_fault_t nouveau_dmem_migrate_t
- 		.src		= &src,
- 		.dst		= &dst,
- 		.pgmap_owner	= drm->dev,
-+		.fault_page	= vmf->page,
- 		.flags		= MIGRATE_VMA_SELECT_DEVICE_PRIVATE,
- 	};
+--- a/mm/memremap.c~mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix
++++ a/mm/memremap.c
+@@ -518,18 +518,6 @@ void free_zone_device_page(struct page *
+ 		put_dev_pagemap(page->pgmap);
+ }
  
+-void zone_device_page_init(struct page *page)
+-{
+-	/*
+-	 * Drivers shouldn't be allocating pages after calling
+-	 * memunmap_pages().
+-	 */
+-	WARN_ON_ONCE(!percpu_ref_tryget_live(&page->pgmap->ref));
+-	set_page_count(page, 1);
+-	lock_page(page);
+-}
+-EXPORT_SYMBOL_GPL(zone_device_page_init);
+-
+ static __maybe_unused bool folio_span_valid(struct dev_pagemap *pgmap,
+ 					    struct folio *folio,
+ 					    int nr_folios)
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-nouveau-fix-migrate_to_ram-for-faulting-page.patch
+mm-mmapc-__vma_adjust-suppress-unintialized-var-warning.patch
+mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+mm-hugetlb-convert-free_huge_page-to-folios-fix.patch
+vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch
+powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
+minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
+minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
+proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3-fix.patch
 
