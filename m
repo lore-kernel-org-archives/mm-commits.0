@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5529EC4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Oct 2022 23:32:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6137AC4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Oct 2022 23:35:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231814AbiJSXce (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Oct 2022 19:32:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51256 "EHLO
+        id S231515AbiJSXfy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Oct 2022 19:35:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33058 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231812AbiJSXc1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2022 19:32:27 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66D091AC1F9
-        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 16:32:11 -0700 (PDT)
+        with ESMTP id S229520AbiJSXfx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2022 19:35:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFB191C5A60
+        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 16:35:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C51A2B824C3
-        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 23:32:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66B24C433D6;
-        Wed, 19 Oct 2022 23:32:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6DD47611FC
+        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 23:35:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7838C433C1;
+        Wed, 19 Oct 2022 23:35:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666222327;
-        bh=ZMpFeqB1puJ4K9raPslrwks03PLOh+HO18YsafzdLII=;
+        s=korg; t=1666222551;
+        bh=RJPqwylWpdaxYOmIMHc1MtVQna36jINXsV+1bj/Z66c=;
         h=Date:To:From:Subject:From;
-        b=wtd9F0z1gxo79zYwFbEJqnIjpBY6Qv4HhB4TGo91obc8vjijbXvxHsBszi8YsZuwx
-         2+9pZmgpJz7lj6L4MZVFRuUHCthsdyjAfigr+i5J/4ybNHbQhWRumFDbI8MV8pybr5
-         JFstqKVbZ8/nvNuf+83uwTBD2og4WacLmeR8z8ok=
-Date:   Wed, 19 Oct 2022 16:32:06 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com,
-        dan.j.williams@intel.com, akpm@linux-foundation.org,
+        b=Dh6P/sI60omZlwlbL0nq8z6nbNpaYt0jihrFkH/rlP9XV75FEN1f7WqwsmVCnogEQ
+         K0qCkevFju1/9lRHLzf++ijPYZmJW4TWOac+UKvTL1zy1x65wajm02H10F46i6GSRu
+         mw4DL/4QehGhC3YMrnxEOLos8Twu7lZY8Nnyd7Mc=
+Date:   Wed, 19 Oct 2022 16:35:51 -0700
+To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com, jarkko@kernel.org,
+        dinguyen@kernel.org, dave.hansen@linux.intel.com, daniel@ffwll.ch,
+        christian.koenig@amd.com, alexander.deucher@amd.com,
+        airlied@gmail.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch added to mm-unstable branch
-Message-Id: <20221019233207.66B24C433D6@smtp.kernel.org>
+Subject: + x86-sgx-use-vm_access_flags.patch added to mm-unstable branch
+Message-Id: <20221019233551.C7838C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix
+     Subject: x86/sgx: use VM_ACCESS_FLAGS
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+     x86-sgx-use-vm_access_flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-sgx-use-vm_access_flags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,51 +67,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix
-Date: Wed Oct 19 04:28:52 PM PDT 2022
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: x86/sgx: use VM_ACCESS_FLAGS
+Date: Wed, 19 Oct 2022 11:49:42 +0800
 
-restore removal of zone_device_page_init
+Simplify VM_READ|VM_WRITE|VM_EXEC with VM_ACCESS_FLAGS.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: https://lkml.kernel.org/r/20221019034945.93081-3-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: "Christian König" <christian.koenig@amd.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memremap.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ arch/x86/kernel/cpu/sgx/encl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memremap.c~mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix
-+++ a/mm/memremap.c
-@@ -518,18 +518,6 @@ void free_zone_device_page(struct page *
- 		put_dev_pagemap(page->pgmap);
- }
+--- a/arch/x86/kernel/cpu/sgx/encl.c~x86-sgx-use-vm_access_flags
++++ a/arch/x86/kernel/cpu/sgx/encl.c
+@@ -268,7 +268,7 @@ static struct sgx_encl_page *sgx_encl_lo
+ 						       unsigned long addr,
+ 						       unsigned long vm_flags)
+ {
+-	unsigned long vm_prot_bits = vm_flags & (VM_READ | VM_WRITE | VM_EXEC);
++	unsigned long vm_prot_bits = vm_flags & VM_ACCESS_FLAGS;
+ 	struct sgx_encl_page *entry;
  
--void zone_device_page_init(struct page *page)
--{
--	/*
--	 * Drivers shouldn't be allocating pages after calling
--	 * memunmap_pages().
--	 */
--	WARN_ON_ONCE(!percpu_ref_tryget_live(&page->pgmap->ref));
--	set_page_count(page, 1);
--	lock_page(page);
--}
--EXPORT_SYMBOL_GPL(zone_device_page_init);
--
- static __maybe_unused bool folio_span_valid(struct dev_pagemap *pgmap,
- 					    struct folio *folio,
- 					    int nr_folios)
+ 	entry = xa_load(&encl->page_array, PFN_DOWN(addr));
+@@ -502,7 +502,7 @@ static void sgx_vma_open(struct vm_area_
+ int sgx_encl_may_map(struct sgx_encl *encl, unsigned long start,
+ 		     unsigned long end, unsigned long vm_flags)
+ {
+-	unsigned long vm_prot_bits = vm_flags & (VM_READ | VM_WRITE | VM_EXEC);
++	unsigned long vm_prot_bits = vm_flags & VM_ACCESS_FLAGS;
+ 	struct sgx_encl_page *page;
+ 	unsigned long count = 0;
+ 	int ret = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-mmapc-__vma_adjust-suppress-unintialized-var-warning.patch
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-hugetlb-convert-free_huge_page-to-folios-fix.patch
-vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch
-powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
-proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3-fix.patch
+mm-rmap-rename-page_not_mapped-to-folio_not_mapped.patch
+mm-remove-kern_addr_valid-completely.patch
+nios2-remove-unused-init_mmap.patch
+x86-sgx-use-vm_access_flags.patch
+mm-mprotect-use-vm_access_flags.patch
+mm-debug_vm_pgtable-use-vm_access_flags.patch
+amdgpu-use-vm_access_flags.patch
 
