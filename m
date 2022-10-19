@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6386FC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F747C43217
 	for <mm-commits@archiver.kernel.org>; Wed, 19 Oct 2022 23:36:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231792AbiJSXgC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231734AbiJSXgC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 19 Oct 2022 19:36:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33118 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231734AbiJSXf5 (ORCPT
+        with ESMTP id S231777AbiJSXf5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2022 19:35:57 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 848C51C6BCA
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3FFA1C7118
         for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 16:35:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0AED2B81E85
-        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 23:35:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDF58C433C1;
-        Wed, 19 Oct 2022 23:35:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6B163611FC
+        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 23:35:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC686C433B5;
+        Wed, 19 Oct 2022 23:35:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666222553;
-        bh=X5H7iyoCENAMz8SgmVhjkFhj/uCQWKQ7UVtPI+Bqrbk=;
+        s=korg; t=1666222555;
+        bh=511J1qvS2By94rRMerg/bn/LVvA3sNibDMmbF6bXpZA=;
         h=Date:To:From:Subject:From;
-        b=l6cbW5U7uI8GckcN0WrpfN4eDCWBWMysZNnxphvwk+5rKT35ROcbJ0RtQa8ta1RDV
-         cBqILROh5vq6EheIAoGIu8ZaBpvFEFKEwn+NbF7vPrOIFW00GTI8/tnxvxVlCoq6nx
-         Eez7ySJJOn5Q4uQwtNZ1TiQejfBYSKGjlmZTgcUg=
-Date:   Wed, 19 Oct 2022 16:35:53 -0700
+        b=gr9323XetRv43EiW+w/h0riY5ZQTeKG3WQLB0hvD5v8zyIPt3jaxqG6fbvXKWk9mk
+         8t4CH2LWvYC8pVTdKgI/fmyDNU10WAyH7hzjaKp3KB3t4ekFsq4w1+9vb5A57FJmkL
+         BNgFuTnVgDb/6H7mtbK3papdJmRHs1srwL0+uvNY=
+Date:   Wed, 19 Oct 2022 16:35:55 -0700
 To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com, jarkko@kernel.org,
         dinguyen@kernel.org, dave.hansen@linux.intel.com, daniel@ffwll.ch,
         christian.koenig@amd.com, alexander.deucher@amd.com,
         airlied@gmail.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mprotect-use-vm_access_flags.patch added to mm-unstable branch
-Message-Id: <20221019233553.BDF58C433C1@smtp.kernel.org>
+Subject: + mm-debug_vm_pgtable-use-vm_access_flags.patch added to mm-unstable branch
+Message-Id: <20221019233555.BC686C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mprotect: use VM_ACCESS_FLAGS
+     Subject: mm: debug_vm_pgtable: use VM_ACCESS_FLAGS
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mprotect-use-vm_access_flags.patch
+     mm-debug_vm_pgtable-use-vm_access_flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-use-vm_access_flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug_vm_pgtable-use-vm_access_flags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,12 +68,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: mprotect: use VM_ACCESS_FLAGS
-Date: Wed, 19 Oct 2022 11:49:43 +0800
+Subject: mm: debug_vm_pgtable: use VM_ACCESS_FLAGS
+Date: Wed, 19 Oct 2022 11:49:44 +0800
 
-Simplify VM_READ|VM_WRITE|VM_EXEC with VM_ACCESS_FLAGS.
+Directly use VM_ACCESS_FLAGS instead VMFLAGS.
 
-Link: https://lkml.kernel.org/r/20221019034945.93081-4-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20221019034945.93081-5-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: "Christian König" <christian.koenig@amd.com>
@@ -86,21 +86,33 @@ Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/debug_vm_pgtable.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/mprotect.c~mm-mprotect-use-vm_access_flags
-+++ a/mm/mprotect.c
-@@ -756,8 +756,7 @@ static int do_mprotect_pkey(unsigned lon
- 		 * If a permission is not passed to mprotect(), it must be
- 		 * cleared from the VMA.
- 		 */
--		mask_off_old_flags = VM_READ | VM_WRITE | VM_EXEC |
--					VM_FLAGS_CLEAR;
-+		mask_off_old_flags = VM_ACCESS_FLAGS | VM_FLAGS_CLEAR;
- 
- 		new_vma_pkey = arch_override_mprotect_pkey(vma, prot, pkey);
- 		newflags = calc_vm_prot_bits(prot, new_vma_pkey);
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-vm_access_flags
++++ a/mm/debug_vm_pgtable.c
+@@ -38,11 +38,7 @@
+  * Please refer Documentation/mm/arch_pgtable_helpers.rst for the semantics
+  * expectations that are being validated here. All future changes in here
+  * or the documentation need to be in sync.
+- */
+-
+-#define VMFLAGS	(VM_READ|VM_WRITE|VM_EXEC)
+-
+-/*
++ *
+  * On s390 platform, the lower 4 bits are used to identify given page table
+  * entry type. But these bits might affect the ability to clear entries with
+  * pxx_clear() because of how dynamic page table folding works on s390. So
+@@ -1125,7 +1121,7 @@ static int __init init_args(struct pgtab
+ 	 */
+ 	memset(args, 0, sizeof(*args));
+ 	args->vaddr              = get_random_vaddr();
+-	args->page_prot          = vm_get_page_prot(VMFLAGS);
++	args->page_prot          = vm_get_page_prot(VM_ACCESS_FLAGS);
+ 	args->page_prot_none     = vm_get_page_prot(VM_NONE);
+ 	args->is_contiguous_page = false;
+ 	args->pud_pfn            = ULONG_MAX;
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
