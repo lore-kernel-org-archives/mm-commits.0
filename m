@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2160C433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Oct 2022 23:36:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00865C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Oct 2022 23:36:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229747AbiJSXgD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Oct 2022 19:36:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33252 "EHLO
+        id S231765AbiJSXgz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Oct 2022 19:36:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231783AbiJSXgB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2022 19:36:01 -0400
+        with ESMTP id S231226AbiJSXgy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2022 19:36:54 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6C0118B769
-        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 16:35:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DF961C813B
+        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 16:36:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 745816106E
-        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 23:35:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3D96C433C1;
-        Wed, 19 Oct 2022 23:35:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B63EB6125A
+        for <mm-commits@vger.kernel.org>; Wed, 19 Oct 2022 23:36:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16D98C433D7;
+        Wed, 19 Oct 2022 23:36:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666222557;
-        bh=A72FBMw5xTX7nf6jgSL9RNBRmDuew6E0bcBDAhQtFC0=;
+        s=korg; t=1666222612;
+        bh=/EBKXyXukMGNP4fweS2PSWeLF6rzAqKQqtFv47P2C6Y=;
         h=Date:To:From:Subject:From;
-        b=il5Gj6OO6m5ho8WlkI2AD02VHmeMhX0+tKqhVuDakMhUtoMI2/jsPI9Sh16YRZ9R0
-         TEYgmVUDGu1aGlGUPAFitKYZQuA4L5jSJqWCJq+qiQwenWbHMUmdNtkkDpEgH+yDJv
-         G/hHRaRi+HfPydkHZB2hGbKd6jtcH6X5dwOx2CJ4=
-Date:   Wed, 19 Oct 2022 16:35:57 -0700
-To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com, jarkko@kernel.org,
-        dinguyen@kernel.org, dave.hansen@linux.intel.com, daniel@ffwll.ch,
-        christian.koenig@amd.com, alexander.deucher@amd.com,
-        airlied@gmail.com, wangkefeng.wang@huawei.com,
+        b=dnE8oPK2SsSpRdAwneq0StGdVxZ/hzJmAificBi+2ydUd156xEdclxaBgjCSfYs8e
+         YvcbgkYN4kuXhcp6pH5M0V6qk5SeSYuabclCPCccg1Hr/c9kfpsHEd289lX9tAOjld
+         2MiFgHx22BIVOixyu0Exv95W3ICLd7JKiBvV/ijM=
+Date:   Wed, 19 Oct 2022 16:36:51 -0700
+To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + amdgpu-use-vm_access_flags.patch added to mm-unstable branch
-Message-Id: <20221019233557.C3D96C433C1@smtp.kernel.org>
+Subject: + proc-give-proc-cmdline-size.patch added to mm-nonmm-unstable branch
+Message-Id: <20221019233652.16D98C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: amdgpu: use VM_ACCESS_FLAGS
-has been added to the -mm mm-unstable branch.  Its filename is
-     amdgpu-use-vm_access_flags.patch
+     Subject: proc: give /proc/cmdline size
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     proc-give-proc-cmdline-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/amdgpu-use-vm_access_flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-give-proc-cmdline-size.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,48 +64,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: amdgpu: use VM_ACCESS_FLAGS
-Date: Wed, 19 Oct 2022 11:49:45 +0800
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: give /proc/cmdline size
+Date: Thu, 8 Sep 2022 21:21:54 +0300
 
-Simplify VM_READ|VM_WRITE|VM_EXEC with VM_ACCESS_FLAGS.
+Most /proc files don't have length (in fstat sense).  This leads to
+inefficiencies when reading such files with APIs commonly found in modern
+programming languages.  They open file, then fstat descriptor, get st_size
+== 0 and either assume file is empty or start reading without knowing
+target size.
 
-Link: https://lkml.kernel.org/r/20221019034945.93081-6-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: "Christian König" <christian.koenig@amd.com>
-Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
+cat(1) does OK because it uses large enough buffer by default.  But naive
+programs copy-pasted from SO aren't:
+
+	let mut f = std::fs::File::open("/proc/cmdline").unwrap();
+	let mut buf: Vec<u8> = Vec::new();
+	f.read_to_end(&mut buf).unwrap();
+
+will result in
+
+	openat(AT_FDCWD, "/proc/cmdline", O_RDONLY|O_CLOEXEC) = 3
+	statx(0, NULL, AT_STATX_SYNC_AS_STAT, STATX_ALL, NULL) = -1 EFAULT (Bad address)
+	statx(3, "", AT_STATX_SYNC_AS_STAT|AT_EMPTY_PATH, STATX_ALL, {stx_mask=STATX_BASIC_STATS|STATX_MNT_ID, stx_attributes=0, stx_mode=S_IFREG|0444, stx_size=0, ...}) = 0
+	lseek(3, 0, SEEK_CUR)                   = 0
+	read(3, "BOOT_IMAGE=(hd3,gpt2)/vmlinuz-5.", 32) = 32
+	read(3, "19.6-100.fc35.x86_64 root=/dev/m", 32) = 32
+	read(3, "apper/fedora_localhost--live-roo"..., 64) = 64
+	read(3, "ocalhost--live-swap rd.lvm.lv=fe"..., 128) = 116
+	read(3, "", 12)
+
+open/stat is OK, lseek looks silly but there are 3 unnecessary reads
+because Rust starts with 32 bytes per Vec<u8> and grows from there.
+
+In case of /proc/cmdline, the length is known precisely.
+
+Make variables readonly while I'm at it.
+
+P.S.: I tried to scp /proc/cpuinfo today and got empty file
+	but this is separate story.
+
+Link: https://lkml.kernel.org/r/YxoywlbM73JJN3r+@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/cmdline.c    |    6 +++++-
+ include/linux/init.h |    1 +
+ init/main.c          |    7 +++++--
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c~amdgpu-use-vm_access_flags
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
-@@ -255,7 +255,7 @@ static int amdgpu_gem_object_mmap(struct
- 	 * becoming writable and makes is_cow_mapping(vm_flags) false.
- 	 */
- 	if (is_cow_mapping(vma->vm_flags) &&
--	    !(vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)))
-+	    !(vma->vm_flags & VM_ACCESS_FLAGS))
- 		vma->vm_flags &= ~VM_MAYWRITE;
+--- a/fs/proc/cmdline.c~proc-give-proc-cmdline-size
++++ a/fs/proc/cmdline.c
+@@ -3,6 +3,7 @@
+ #include <linux/init.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
++#include "internal.h"
  
- 	return drm_gem_ttm_mmap(obj, vma);
+ static int cmdline_proc_show(struct seq_file *m, void *v)
+ {
+@@ -13,7 +14,10 @@ static int cmdline_proc_show(struct seq_
+ 
+ static int __init proc_cmdline_init(void)
+ {
+-	proc_create_single("cmdline", 0, NULL, cmdline_proc_show);
++	struct proc_dir_entry *pde;
++
++	pde = proc_create_single("cmdline", 0, NULL, cmdline_proc_show);
++	pde->size = saved_command_line_len + 1;
+ 	return 0;
+ }
+ fs_initcall(proc_cmdline_init);
+--- a/include/linux/init.h~proc-give-proc-cmdline-size
++++ a/include/linux/init.h
+@@ -143,6 +143,7 @@ struct file_system_type;
+ extern int do_one_initcall(initcall_t fn);
+ extern char __initdata boot_command_line[];
+ extern char *saved_command_line;
++extern unsigned int saved_command_line_len;
+ extern unsigned int reset_devices;
+ 
+ /* used by init/main.c */
+--- a/init/main.c~proc-give-proc-cmdline-size
++++ a/init/main.c
+@@ -145,7 +145,8 @@ void (*__initdata late_time_init)(void);
+ /* Untouched command line saved by arch-specific code. */
+ char __initdata boot_command_line[COMMAND_LINE_SIZE];
+ /* Untouched saved command line (eg. for /proc) */
+-char *saved_command_line;
++char *saved_command_line __ro_after_init;
++unsigned int saved_command_line_len __ro_after_init;
+ /* Command line for parameter parsing */
+ static char *static_command_line;
+ /* Untouched extra command line */
+@@ -667,6 +668,8 @@ static void __init setup_command_line(ch
+ 			strcpy(saved_command_line + len, extra_init_args);
+ 		}
+ 	}
++
++	saved_command_line_len = strlen(saved_command_line);
+ }
+ 
+ /*
+@@ -1379,7 +1382,7 @@ static void __init do_initcall_level(int
+ static void __init do_initcalls(void)
+ {
+ 	int level;
+-	size_t len = strlen(saved_command_line) + 1;
++	size_t len = saved_command_line_len + 1;
+ 	char *command_line;
+ 
+ 	command_line = kzalloc(len, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-rmap-rename-page_not_mapped-to-folio_not_mapped.patch
-mm-remove-kern_addr_valid-completely.patch
-nios2-remove-unused-init_mmap.patch
-x86-sgx-use-vm_access_flags.patch
-mm-mprotect-use-vm_access_flags.patch
-mm-debug_vm_pgtable-use-vm_access_flags.patch
-amdgpu-use-vm_access_flags.patch
+proc-give-proc-cmdline-size.patch
 
