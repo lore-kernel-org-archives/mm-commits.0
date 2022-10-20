@@ -2,62 +2,62 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD73BC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Oct 2022 09:43:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9C0EC433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Oct 2022 09:50:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229556AbiJTJnz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Oct 2022 05:43:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59736 "EHLO
+        id S229489AbiJTJt7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Oct 2022 05:49:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229491AbiJTJnw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 05:43:52 -0400
-Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A70A31C8438;
-        Thu, 20 Oct 2022 02:43:45 -0700 (PDT)
-Received: by mail-wr1-x42f.google.com with SMTP id i9so267583wrv.5;
-        Thu, 20 Oct 2022 02:43:44 -0700 (PDT)
+        with ESMTP id S229670AbiJTJtv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 05:49:51 -0400
+Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6835E3CBF8;
+        Thu, 20 Oct 2022 02:49:49 -0700 (PDT)
+Received: by mail-wm1-x335.google.com with SMTP id c3-20020a1c3503000000b003bd21e3dd7aso1910739wma.1;
+        Thu, 20 Oct 2022 02:49:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=GFIXaRhb6LOT5Wmi8fHaBqhBfVYEurDojN9SfCe/f/Y=;
-        b=MWExOnsgo6sj81A1gvqr8yDsFmVUT7ooWxiX4W6SNRvmavL2o/47qS46UGkEE51LqW
-         Lyip5i64S98CQvyZeiiJUTsZb4Va3SqqLf3eYodXkpI99Kj608kV7pS65G13iwvnwOqi
-         LN4EAtWj65D+HLsld/ompUmUB97Wf/ciqJ5HX+DVBi4Yh8mYNMV4mMsfdQaneTDkhMX2
-         uMRe5RmhUmP3dumNnL+sJbivCVxGgXDJlbquZbj67qqpsh9CyvytrYr9D6aMrCZJCGnc
-         wDf7hUS32I5nY/Np1mdPAggEjGlwQOj7cwW7zxnOj21FNKtPWNZGQW8RXIyADKEeq+Bs
-         EOzw==
+        bh=CsbgLwtXWAZeUoPBDuirRh8cmWsDoeYMrYLPa9qkP64=;
+        b=m2QbMSEZSz2NvNgQoSppIW5IjE0GNFw7ivno2OsayVLigqErIbVT7EP9JtEER/Rbw8
+         T9fU6zIKtD0aFOx76KZyRUMbBtnrP6GZ2wXg5ju1XI97od8DKKqiXiXja6iAVyqp0ruu
+         lL/PzZdlbWPLox8TPyra/WPOJu8SjQIr7/9NLZVy8MhSRIAWTEBMYxM2ElU4Z4espQ7/
+         DRA9wPBe1wuVmnlTrKX0l2bZvYfhA9oSO++xcfKkHFFMvxMMxeIgn7vYTKzL9v83QOvY
+         GqzJEqjHBH7NHmd4nSOtqMzyOthQsiPdgaU1856lGjHVIVIggYbsHSePicLcxrHfS0EM
+         xDKA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=GFIXaRhb6LOT5Wmi8fHaBqhBfVYEurDojN9SfCe/f/Y=;
-        b=NRuNbp7pDkdJTYjNcUfVq7r8k3szgnzDmymcFRl22WF4dUyOpMgq0x9ljZdE8MCDq7
-         DqE/xk+3O1kOUU2dmrM3P6tPAEWFTqeAbErIfx5jcN5uHicX7LBiSC6MtZ3vs/jLfgic
-         dBceELmn1KPz4My5QxwpIukhm5Wag6+a8T8aXIQDUOqfFIBvgaloAcjywQcPk7alp5a4
-         oDgWk2WdCNsqWADzRvZr9qfltOVZfU9IYZzsxvm9A8Fk5urkMa4Cntkr7OItHUDg0hh+
-         dpcF06TkWkKqBF4i+QL6QTgJrz5NBwdMhWWVrNXYODXJjhsJNjy/Bka5VaeY+PS8idsb
-         hMIQ==
-X-Gm-Message-State: ACrzQf0C5YXqlBLbUsQ2i7Wq4R350irogh1QyVzkbS0ypRw/924JkKNk
-        i8mlZf1bUTUb/Fo0Klb7LLVmvYjcwQ==
-X-Google-Smtp-Source: AMsMyM6F8nQvnCNmaTI47EGs3maXjm+TtLKs/lCB8tUVEpSgyVl1vwh7/wKTLKkYOAgsEHa3ziQYuA==
-X-Received: by 2002:a5d:668e:0:b0:22f:d914:80ed with SMTP id l14-20020a5d668e000000b0022fd91480edmr7919798wru.45.1666259022559;
-        Thu, 20 Oct 2022 02:43:42 -0700 (PDT)
+        bh=CsbgLwtXWAZeUoPBDuirRh8cmWsDoeYMrYLPa9qkP64=;
+        b=RO8EZVuzKMMiEEaPD+cNmMLE4k2CoAExpPepgUIojqUuu3vwWZxoKfBVZ4WF8AEgDC
+         KvB3E7INGYFfyh1USCMEsGW5P3qiKdXJcwqXs9+WYq1WkbU4dVDfYrLzUVPZYoAccTkR
+         mdiAprNAXs2U9PlJjR1P/xqi0SxrMB25ZggPa3d0FhevisuPaxS2RLRhLQONjzU71v2c
+         YSaHM1kcSPvx4AYwl3pI3J2C/0QjTXMbkvF4fVqO9nunPRJX3kV+8FNgfYntsN1bQAiw
+         OO8XfJRHCGb5UOYVZDwcNopJHnSIoGZaBDbtbl935cVA0+HCb/d5i2+FxYsK0H4QE3Zi
+         gMWg==
+X-Gm-Message-State: ACrzQf2qhkepbDD1O7DVx1HKoJHXIpn4NEW5Z2E13GrD8FCh/+dEtEoL
+        NvewgMWDIwEtsRFCXeskwgeyM3Bweg==
+X-Google-Smtp-Source: AMsMyM5PnEwHsYtVW6F+MfMxslZN5E9p99Xey7UPtA8ZlGXhkZk06DpopANU3VdWyETee4Fl3zt91g==
+X-Received: by 2002:a05:600c:5398:b0:3c3:dccf:2362 with SMTP id hg24-20020a05600c539800b003c3dccf2362mr8927478wmb.89.1666259387545;
+        Thu, 20 Oct 2022 02:49:47 -0700 (PDT)
 Received: from localhost.localdomain ([46.53.254.126])
-        by smtp.gmail.com with ESMTPSA id q1-20020adfdfc1000000b0022e049586c5sm15810098wrn.28.2022.10.20.02.43.41
+        by smtp.gmail.com with ESMTPSA id c26-20020a7bc85a000000b003b3307fb98fsm2314939wml.24.2022.10.20.02.49.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Oct 2022 02:43:41 -0700 (PDT)
-Date:   Thu, 20 Oct 2022 12:43:39 +0300
+        Thu, 20 Oct 2022 02:49:47 -0700 (PDT)
+Date:   Thu, 20 Oct 2022 12:49:45 +0300
 From:   Alexey Dobriyan <adobriyan@gmail.com>
-To:     linux-kernel@vger.kernel.org
+To:     akpm@linux-foundation.org, linux-kernel@vger.kernel.org
 Cc:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         masahiroy@kernel.org, keescook@chromium.org,
         gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com,
         Jason@zx2c4.com, akpm@linux-foundation.org
-Subject: Re: + kbuild-treat-char-as-always-unsigned.patch added to
- mm-nonmm-unstable branch
-Message-ID: <Y1EYS/DRjvQd/8t+@localhost.localdomain>
+Subject: [PATCH -mm] -funsigned-char, x86: make struct p4_event_bind::cntr
+ signed array
+Message-ID: <Y1EZuQcO8UoN91cX@localhost.localdomain>
 References: <20221020000356.177CDC433C1@smtp.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -68,27 +68,33 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Oct 19, 2022 at 05:03:55PM -0700, Andrew Morton wrote:
-> This will break things in some places and fix things in others, so this
-> will likely cause a bit of churn while reconciling the type misuse.
+struct p4_event_bind::cntr[][] should be signed because of
+the following code:
 
-> --- a/Makefile~kbuild-treat-char-as-always-unsigned
-> +++ a/Makefile
-> @@ -562,7 +562,7 @@ KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-P
->  KBUILD_CFLAGS   := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
->  		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
->  		   -Werror=implicit-function-declaration -Werror=implicit-int \
-> -		   -Werror=return-type -Wno-format-security \
-> +		   -Werror=return-type -Wno-format-security -funsigned-char \
->  		   -std=gnu11
->  KBUILD_CPPFLAGS := -D__KERNEL__
->  KBUILD_RUSTFLAGS := $(rust_common_flags) \
+	int i, j;
+        for (i = 0; i < P4_CNTR_LIMIT; i++) {
+          ===>  j = bind->cntr[thread][i];
+                if (j != -1 && !test_bit(j, used_mask))
+                        return j;
+        }
 
-ACK
+Making this member unsigned will make "j" 255 and fail "j != -1"
+comparison.
 
-Another reason is that characters were always some small non-negative
-integers which mapped to pictures so making them signed was silly from
-the beginning.
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-People should use "const char *" for C strings and "u8[]" for raw buffers.
-Unfortunately, C can't give developer more.
+ arch/x86/events/intel/p4.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/x86/events/intel/p4.c
++++ b/arch/x86/events/intel/p4.c
+@@ -24,7 +24,7 @@ struct p4_event_bind {
+ 	unsigned int escr_msr[2];		/* ESCR MSR for this event */
+ 	unsigned int escr_emask;		/* valid ESCR EventMask bits */
+ 	unsigned int shared;			/* event is shared across threads */
+-	char cntr[2][P4_CNTR_LIMIT];		/* counter index (offset), -1 on absence */
++	signed char cntr[2][P4_CNTR_LIMIT];	/* counter index (offset), -1 on absence */
+ };
+ 
+ struct p4_pebs_bind {
