@@ -2,86 +2,124 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C5F2C4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Oct 2022 17:42:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D95FC433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Oct 2022 18:57:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229870AbiJTRmp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Oct 2022 13:42:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42160 "EHLO
+        id S229956AbiJTS5R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Oct 2022 14:57:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45124 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229824AbiJTRmo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 13:42:44 -0400
-Received: from mail-qv1-xf35.google.com (mail-qv1-xf35.google.com [IPv6:2607:f8b0:4864:20::f35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1A831E3ED8
-        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 10:42:43 -0700 (PDT)
-Received: by mail-qv1-xf35.google.com with SMTP id f14so169445qvo.3
-        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 10:42:43 -0700 (PDT)
+        with ESMTP id S229667AbiJTS5Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 14:57:16 -0400
+Received: from mail-pg1-x52a.google.com (mail-pg1-x52a.google.com [IPv6:2607:f8b0:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08FDB17D285
+        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 11:57:15 -0700 (PDT)
+Received: by mail-pg1-x52a.google.com with SMTP id u71so390267pgd.2
+        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 11:57:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=aC0xfu1B6fNyRi+1a2HnBL+x9wtUXIlU+HXHRKa4l7k=;
-        b=Tm1MXKnUw1VmVXhBYAslQYVYO9XkI9B0equhCEe2+4qqf2dyeJSPfCIFoOg/W5W2k5
-         M8asFhc9A90rqAqHhu3BLnAWM9VJXmxyoyc+6UuJ3g5GOwiHxozmDuVLu6Ap38EQ59Yi
-         R3qGIE/ZwrslbiK7DUV5hDTbmAWFjUEOzgDGA=
+        d=chromium.org; s=google;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=ZFG8oe8zjIP3HtrEYf8FZ1cCVncWHGDhPegdRUm6pSk=;
+        b=JH10v71f9cO/zrGHhWXMzQx4+lZEXvmFPiD6f82j66NBiYRArMO6WA87v5WRzOFdmJ
+         vFAhDRdieYSaEwIMaX4NLT7dRZsmxrRodnE3B2inGJhsPNES+Wrq+P3EMm9m7qfLm7+X
+         VDQRrM3G4guBVWiBNXcjYnt5uMWuXxdXqgHv8=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=aC0xfu1B6fNyRi+1a2HnBL+x9wtUXIlU+HXHRKa4l7k=;
-        b=Q6Y4KpjwXl+v9TD/RG6hJNjUwoOlVu/JVX3b9CjYkdAErmuAj4KrMDhLB7vy6hI15H
-         VGd10HNcxcNjkyq/xqfpl105DJou+UaifCaI+UWHUMoONZgkZtO4C1GLF1FmuTjmtueb
-         OPP/BoiNXcmJ37CuO/EjdjlUmJYGINa/uYtMh4UxeKYxAjDT1p0/ncLJWFD4CzsViqaO
-         wWCEeE/C53TVStv91hU9HiD0zBdnBWC/kbhrt0g6tpxDlT1gq6no1QP24QpXiBWMpxQQ
-         CqNeNJF1m4QNCV6DveLkWGP3FueJxKUglVMT/HvFS15rCw4QG8eU7/+snQspVO8rjCwg
-         7qsg==
-X-Gm-Message-State: ACrzQf3uk8rsU7uADksYyi8l1y9gc9VOC9JboYU5Fut30MhyG7JmC5Wu
-        0g23jgWDI0dxP8+VlZSCg80qp4JiCV8ofQ==
-X-Google-Smtp-Source: AMsMyM7R+KRz7xcVyetYEBPnWDTIT0MsYnf2i3JeEeUrDnNVmI9O9+h6wz6UYd4hrKZY3s2m12OZgQ==
-X-Received: by 2002:ad4:5dc8:0:b0:4b3:cf2b:b169 with SMTP id m8-20020ad45dc8000000b004b3cf2bb169mr12403334qvh.114.1666287762939;
-        Thu, 20 Oct 2022 10:42:42 -0700 (PDT)
-Received: from mail-yw1-f177.google.com (mail-yw1-f177.google.com. [209.85.128.177])
-        by smtp.gmail.com with ESMTPSA id r17-20020ac87951000000b0039cb9ef50b5sm6396752qtt.26.2022.10.20.10.42.41
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 20 Oct 2022 10:42:41 -0700 (PDT)
-Received: by mail-yw1-f177.google.com with SMTP id 00721157ae682-360871745b0so699657b3.3
-        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 10:42:41 -0700 (PDT)
-X-Received: by 2002:a81:11d0:0:b0:35b:dd9f:5358 with SMTP id
- 199-20020a8111d0000000b0035bdd9f5358mr12443561ywr.401.1666287761185; Thu, 20
- Oct 2022 10:42:41 -0700 (PDT)
-MIME-Version: 1.0
-References: <20221020000356.177CDC433C1@smtp.kernel.org> <Y1EZuQcO8UoN91cX@localhost.localdomain>
- <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com>
- <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com> <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
-In-Reply-To: <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Thu, 20 Oct 2022 10:42:25 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
-Message-ID: <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
-Subject: Re: [PATCH -mm] -funsigned-char, x86: make struct p4_event_bind::cntr
- signed array
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc:     Alexey Dobriyan <adobriyan@gmail.com>, akpm@linux-foundation.org,
-        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
-        masahiroy@kernel.org, keescook@chromium.org,
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ZFG8oe8zjIP3HtrEYf8FZ1cCVncWHGDhPegdRUm6pSk=;
+        b=mCQs/iNvwnVM60ZUXbPFKodoFYWj4szmtTV5HCAxQuT70GIDKdsSS8bTSDeLFj9SZ7
+         6xnVgdvdHbDH7LZ3oQN6EHLOeyn+GCXjA/BxndA1goMxPWsHKKkcZ4Ci9EmRRCrXZ5X4
+         JEjCw1cy2aWX4EZBktHgGLUPfOo2EGhaZvNmsyHc2DIdftRD1dat1AE2koNmN52Q6PU1
+         JNriu8f5X7+2yXeksyks6Zd+T9Oh2TWgVyqZYa20/Uj7Ro9aUiBFr7pAWOyJ9BxNgVSr
+         fabZisux2lxGlSUXxCqQmB+gmz8OOvjJXtJqvaNc5cRNA487KiI2KLl1fh1qVHkeN4wg
+         MXpQ==
+X-Gm-Message-State: ACrzQf1OBI33bzP2Ux929TAO8+ngIh9NqIrtCJxSEOs+scu221NJWxH5
+        FTdUsYjVEVEhKjSzAyNfOV2BTQ==
+X-Google-Smtp-Source: AMsMyM5LsHsFEMX8I6dkcpYhAJP8fLYRo6gtf8HpJpwWxcUentkixVPXvC3hRVRGYAOeDT0aPDAVFw==
+X-Received: by 2002:a05:6a00:1707:b0:563:235:769b with SMTP id h7-20020a056a00170700b005630235769bmr15374927pfc.19.1666292234509;
+        Thu, 20 Oct 2022 11:57:14 -0700 (PDT)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id c28-20020aa7953c000000b0053725e331a1sm13669135pfp.82.2022.10.20.11.57.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 20 Oct 2022 11:57:13 -0700 (PDT)
+Date:   Thu, 20 Oct 2022 11:57:12 -0700
+From:   Kees Cook <keescook@chromium.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
+        mm-commits@vger.kernel.org, masahiroy@kernel.org,
         gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com,
         Stephen Rothwell <sfr@canb.auug.org.au>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH -mm] -funsigned-char, x86: make struct
+ p4_event_bind::cntr signed array
+Message-ID: <202210201151.ECC19BC97A@keescook>
+References: <20221020000356.177CDC433C1@smtp.kernel.org>
+ <Y1EZuQcO8UoN91cX@localhost.localdomain>
+ <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com>
+ <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
+ <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
+ <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Oct 20, 2022 at 10:33 AM Jason A. Donenfeld <Jason@zx2c4.com> wrote:
->
-> Or sometimes with objdump, I've had more success by keeping debug
-> symbols, and then trimming offsets from jmps.
+On Thu, Oct 20, 2022 at 10:42:25AM -0700, Linus Torvalds wrote:
+> On Thu, Oct 20, 2022 at 10:33 AM Jason A. Donenfeld <Jason@zx2c4.com> wrote:
+> >
+> > Or sometimes with objdump, I've had more success by keeping debug
+> > symbols, and then trimming offsets from jmps.
+> 
+> objdump is what I'm using, and it actually seems ok on individual object files.
+> 
+> Now I just need to script the "do all the object files" and see how
+> massive the end result is.
 
-objdump is what I'm using, and it actually seems ok on individual object files.
+For the a/b build, I start with all*config, then:
 
-Now I just need to script the "do all the object files" and see how
-massive the end result is.
+# Stop painful noise
+CONFIG_KCOV=n
+CONFIG_GCOV_KERNEL=n
+CONFIG_GCC_PLUGINS=n
+CONFIG_IKHEADERS=n
+CONFIG_KASAN=n
+CONFIG_UBSAN=n
+CONFIG_KCSAN=n
+CONFIG_KMSAN=n
+# Get us source/line details
+CONFIG_DEBUG_KERNEL=y
+CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+CONFIG_DEBUG_INFO_REDUCED=n CONFIG_DEBUG_INFO_COMPRESSED=n
+CONFIG_DEBUG_INFO_SPLIT=n
 
-                Linus
+And to keep other build-time junk stabilized[1], I build with these make
+options:
+
+KBUILD_BUILD_TIMESTAMP=1970-01-01
+KBUILD_BUILD_USER=user
+KBUILD_BUILD_HOST=host
+KBUILD_BUILD_VERSION=1
+
+For the code diff, I use:
+
+objdump --disassemble --demangle --no-show-raw-insn --no-addresses
+
+and when doing the manual examination:
+
+objdump --disassemble --demangle --reloc --source -l --no-show-raw-insn
+
+
+My not-great way to filter out the movsbl/movzbl, I added this to diff:
+	-I '\bmov[sz]bl\b'
+
+
+-- 
+Kees Cook
