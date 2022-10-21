@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B466FC43217
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 01:00:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C81D6C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 01:02:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229925AbiJUBAo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Oct 2022 21:00:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35900 "EHLO
+        id S229944AbiJUBCb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Oct 2022 21:02:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39910 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229958AbiJUBAl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 21:00:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 571AF1A16EA;
-        Thu, 20 Oct 2022 18:00:38 -0700 (PDT)
+        with ESMTP id S229911AbiJUBCa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 21:02:30 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A347F228CF5
+        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 18:02:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CF29961CD6;
-        Fri, 21 Oct 2022 01:00:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DC17C433C1;
-        Fri, 21 Oct 2022 01:00:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E8E90B82A0A
+        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 01:02:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A4DEC433D6;
+        Fri, 21 Oct 2022 01:02:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666314037;
-        bh=QKv7u7FFh3NHuyXZr0svjgGctqWW3NrzvhhN4zDTahs=;
+        s=korg; t=1666314146;
+        bh=CoYjp5fJM90jHnotT+Zy54A6pMLJcCYErlTlQsBRKAs=;
         h=Date:To:From:Subject:From;
-        b=Yvut6zjag36+ekJgA1r21fzTCEFus2UeB4PsIM3cvwORp62vYiL2yZZbiKuMBqdd8
-         bRUEYTd4twCuSUdJf5ggbmQVH4KzAtAreRWEtSP1jMID+XxlhJRw6KooU5FaYULOHp
-         zBgqxtFV8dJbSDVbB3XVqugJQIP//lsKR40PwA2s=
-Date:   Thu, 20 Oct 2022 18:00:36 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        stable@vger.kernel.org, jlayton@kernel.org, jack@suse.cz,
-        deepa.kernel@gmail.com, arnd@arndb.de, scdbackup@gmx.net,
-        akpm@linux-foundation.org
+        b=PEu4RJ4Jc+5n0QlFEzFyQf6+T//O4JfQC53zqF/zNgP8UluhJqwr3Kb00LK8Ne/Zx
+         xW+vuspvfhE3DarSgSWTzcZEAtc+mzSHw1+rFrsYQyJUL5YaV2KellZdqzZOWjWrPo
+         4sTTVW9RtjiByCy1S9PbLt0A+TmKVG/pdZjviuGQ=
+Date:   Thu, 20 Oct 2022 18:02:25 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        oleksiy.avramchenko@sony.com, npiggin@gmail.com, hch@infradead.org,
+        urezki@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + isofs-prevent-file-time-rollover-after-year-2038.patch added to mm-nonmm-unstable branch
-Message-Id: <20221021010037.2DC17C433C1@smtp.kernel.org>
+Subject: + mm-vmalloc-simplify-return-boolean-expression.patch added to mm-unstable branch
+Message-Id: <20221021010226.8A4DEC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: isofs: prevent file time rollover after year 2038
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     isofs-prevent-file-time-rollover-after-year-2038.patch
+     Subject: mm: vmalloc: simplify return boolean expression
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmalloc-simplify-return-boolean-expression.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/isofs-prevent-file-time-rollover-after-year-2038.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-simplify-return-boolean-expression.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,64 +65,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thomas Schmitt <scdbackup@gmx.net>
-Subject: isofs: prevent file time rollover after year 2038
-Date: Thu, 20 Oct 2022 18:00:29 +0200
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm: vmalloc: simplify return boolean expression
+Date: Thu, 20 Oct 2022 14:52:47 +0200
 
-Change the return type of function iso_date() from int to time64_t, to
-avoid truncating to the 1902..2038 date range.
+A return expression of the __purge_vmap_area_lazy() function can be
+simplified.  Basically a boolean expression anyway is converted to boolean
+values either to true or false.
 
-After this patch, the reported timestamps should fall into the range
-reported in the s_time_min/s_time_max fields.
-
-[arnd@arndb.de: expand changelog text slightly]
-Link: https://lkml.kernel.org/r/20221020160037.4002270-1-arnd@kernel.org
-Link: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=800627
-Fixes: 34be4dbf87fc ("isofs: fix timestamps beyond 2027")
-Fixes: 5ad32b3acded ("isofs: Initialize filesystem timestamp ranges")
-Signed-off-by: Thomas Schmitt <scdbackup@gmx.net>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20221020125247.5053-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/isofs.h |    2 +-
- fs/isofs/util.c  |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/isofs/isofs.h~isofs-prevent-file-time-rollover-after-year-2038
-+++ a/fs/isofs/isofs.h
-@@ -106,7 +106,7 @@ static inline unsigned int isonum_733(u8
- 	/* Ignore bigendian datum due to broken mastering programs */
- 	return get_unaligned_le32(p);
+--- a/mm/vmalloc.c~mm-vmalloc-simplify-return-boolean-expression
++++ a/mm/vmalloc.c
+@@ -1786,7 +1786,7 @@ static bool __purge_vmap_area_lazy(unsig
+ 
+ out:
+ 	trace_purge_vmap_area_lazy(start, end, num_purged_areas);
+-	return num_purged_areas > 0 ? true:false;
++	return num_purged_areas > 0;
  }
--extern int iso_date(u8 *, int);
-+extern time64_t iso_date(u8 *, int);
  
- struct inode;		/* To make gcc happy */
- 
---- a/fs/isofs/util.c~isofs-prevent-file-time-rollover-after-year-2038
-+++ a/fs/isofs/util.c
-@@ -16,10 +16,10 @@
-  * to GMT.  Thus  we should always be correct.
-  */
- 
--int iso_date(u8 *p, int flag)
-+time64_t iso_date(u8 *p, int flag)
- {
- 	int year, month, day, hour, minute, second, tz;
--	int crtime;
-+	time64_t crtime;
- 
- 	year = p[0];
- 	month = p[1];
+ /*
 _
 
-Patches currently in -mm which might be from scdbackup@gmx.net are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-isofs-prevent-file-time-rollover-after-year-2038.patch
+mm-vmalloc-add-alloc_vmap_area-trace-event.patch
+mm-vmalloc-add-purge_vmap_area_lazy-trace-event.patch
+mm-vmalloc-add-free_vmap_area_noflush-trace-event.patch
+mm-vmalloc-use-trace_alloc_vmap_area-event.patch
+mm-vmalloc-use-trace_purge_vmap_area_lazy-event.patch
+mm-vmalloc-use-trace_free_vmap_area_noflush-event.patch
+vmalloc-add-reviewers-for-vmalloc-code.patch
+mm-vmalloc-simplify-return-boolean-expression.patch
 
