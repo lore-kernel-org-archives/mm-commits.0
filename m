@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AFD3C3A59D
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 20:02:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE11DC38A2D
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 20:05:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229515AbiJUUCl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Oct 2022 16:02:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48082 "EHLO
+        id S229727AbiJUUFT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Oct 2022 16:05:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230305AbiJUUCE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 16:02:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA83F263083
-        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 13:01:56 -0700 (PDT)
+        with ESMTP id S229691AbiJUUFR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 16:05:17 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF284EE897
+        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 13:05:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AA4BE61F7A
-        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 20:01:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A18EC433D6;
-        Fri, 21 Oct 2022 20:01:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CE17EB82CF8
+        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 20:05:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 776BDC433C1;
+        Fri, 21 Oct 2022 20:05:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666382515;
-        bh=HrOn5oxlYr+1UtnGtkLg00rRuPP6LYcuMUmj20X2lvQ=;
+        s=korg; t=1666382712;
+        bh=H4pOlTKc+5yqf2ER8RMfGH4SI/jq0tYZ7LxUlx3dihU=;
         h=Date:To:From:Subject:From;
-        b=wXre/3q7BoUopw5mKWiFa4rNVMkz80W0gKscGLwzUg+0YO8EeTt+tOzLe5Yjlmkii
-         lh+16d7Arfo2RpujFDS+d1646xNDCHEGDHfy9PGGMER8kpf8DndDSaaJwx8eJHCP17
-         /HO7R/1MJShhVTwroyY+TNbLaWMbmSrz31+P0XdU=
-Date:   Fri, 21 Oct 2022 13:01:54 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        shuah@kernel.org, peterx@redhat.com, jhubbard@nvidia.com,
-        jgg@nvidia.com, hughd@google.com, aarcange@redhat.com,
-        david@redhat.com, akpm@linux-foundation.org
+        b=HMzDl2PwBTIQWDGHPGQFTx0o5RT1rzeFCpDMehUWPmz6p2Y6I2tFK/s+Newlr7Jgd
+         cs8TpjCp0UgxUU2OOO5v2GG/HLXgZJPg7XIcoHRXevuH3LhEMAQWdKZpsm+ExkkYy3
+         uzsSMt64QsO2XHbR9+aZhreEo1SpRheIJqIxO2OU=
+Date:   Fri, 21 Oct 2022 13:05:11 -0700
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, wangkefeng.wang@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-convert-break_ksm-to-use-walk_page_range_vma.patch added to mm-unstable branch
-Message-Id: <20221021200155.0A18EC433D6@smtp.kernel.org>
+Subject: + mm-memory-failure-make-put_ref_page-more-useful.patch added to mm-unstable branch
+Message-Id: <20221021200512.776BDC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ksm: convert break_ksm() to use walk_page_range_vma()
+     Subject: mm: memory-failure: make put_ref_page() more useful
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-convert-break_ksm-to-use-walk_page_range_vma.patch
+     mm-memory-failure-make-put_ref_page-more-useful.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-convert-break_ksm-to-use-walk_page_range_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-make-put_ref_page-more-useful.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,144 +65,113 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/ksm: convert break_ksm() to use walk_page_range_vma()
-Date: Fri, 21 Oct 2022 12:11:40 +0200
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: memory-failure: make put_ref_page() more useful
+Date: Fri, 21 Oct 2022 16:46:09 +0800
 
-FOLL_MIGRATION exists only for the purpose of break_ksm(), and actually,
-there is not even the need to wait for the migration to finish, we only
-want to know if we're dealing with a KSM page.
+Pass pfn/flags to put_ref_page(), then check MF_COUNT_INCREASED and drop
+refcount to make the code look cleaner.
 
-Using follow_page() just to identify a KSM page overcomplicates GUP code. 
-Let's use walk_page_range_vma() instead, because we don't actually care
-about the page itself, we only need to know a single property -- no need
-to even grab a reference.
-
-So, get rid of follow_page() usage such that we can get rid of
-FOLL_MIGRATION now and eventually be able to get rid of follow_page() in
-the future.
-
-In my setup (AMD Ryzen 9 3900X), running the KSM selftest to test unmerge
-performance on 2 GiB (taskset 0x8 ./ksm_tests -D -s 2048), this results in
-a performance degradation of ~2% (old: ~5010 MiB/s, new: ~4900 MiB/s).  I
-don't think we particularly care for now.
-
-Interestingly, the benchmark reduction is due to the single callback. 
-Adding a second callback (e.g., pud_entry()) reduces the benchmark by
-another 100-200 MiB/s.
-
-Link: https://lkml.kernel.org/r/20221021101141.84170-9-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20221021084611.53765-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   49 +++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 39 insertions(+), 10 deletions(-)
+ mm/memory-failure.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-convert-break_ksm-to-use-walk_page_range_vma
-+++ a/mm/ksm.c
-@@ -39,6 +39,7 @@
- #include <linux/freezer.h>
- #include <linux/oom.h>
- #include <linux/numa.h>
-+#include <linux/pagewalk.h>
- 
- #include <asm/tlbflush.h>
- #include "internal.h"
-@@ -419,6 +420,39 @@ static inline bool ksm_test_exit(struct
- 	return atomic_read(&mm->mm_users) == 0;
+--- a/mm/memory-failure.c~mm-memory-failure-make-put_ref_page-more-useful
++++ a/mm/memory-failure.c
+@@ -1913,17 +1913,25 @@ static inline unsigned long free_raw_hwp
  }
+ #endif	/* CONFIG_HUGETLB_PAGE */
  
-+static int break_ksm_pmd_entry(pmd_t *pmd, unsigned long addr, unsigned long next,
-+			struct mm_walk *walk)
++/* Drop the extra refcount in case we come from madvise() */
++static void put_ref_page(unsigned long pfn, int flags)
 +{
-+	struct page *page = NULL;
-+	spinlock_t *ptl;
-+	pte_t *pte;
-+	int ret;
++	struct page *page;
 +
-+	if (pmd_leaf(*pmd) || !pmd_present(*pmd))
-+		return 0;
++	if (!(flags & MF_COUNT_INCREASED))
++		return;
 +
-+	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (pte_present(*pte)) {
-+		page = vm_normal_page(walk->vma, addr, *pte);
-+	} else if (!pte_none(*pte)) {
-+		swp_entry_t entry = pte_to_swp_entry(*pte);
-+
-+		/*
-+		 * As KSM pages remain KSM pages until freed, no need to wait
-+		 * here for migration to end.
-+		 */
-+		if (is_migration_entry(entry))
-+			page = pfn_swap_entry_to_page(entry);
-+	}
-+	ret = page && PageKsm(page);
-+	pte_unmap_unlock(pte, ptl);
-+	return ret;
++	page = pfn_to_page(pfn);
++	if (page)
++		put_page(page);
 +}
 +
-+static const struct mm_walk_ops break_ksm_ops = {
-+	.pmd_entry = break_ksm_pmd_entry,
-+};
-+
- /*
-  * We use break_ksm to break COW on a ksm page by triggering unsharing,
-  * such that the ksm page will get replaced by an exclusive anonymous page.
-@@ -434,21 +468,16 @@ static inline bool ksm_test_exit(struct
-  */
- static int break_ksm(struct vm_area_struct *vma, unsigned long addr)
+ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		struct dev_pagemap *pgmap)
  {
--	struct page *page;
- 	vm_fault_t ret = 0;
+-	struct page *page = pfn_to_page(pfn);
+ 	int rc = -ENXIO;
  
- 	do {
--		bool ksm_page = false;
-+		int ksm_page;
- 
- 		cond_resched();
--		page = follow_page(vma, addr,
--				FOLL_GET | FOLL_MIGRATION | FOLL_REMOTE);
--		if (IS_ERR_OR_NULL(page))
--			break;
--		if (PageKsm(page))
--			ksm_page = true;
+-	if (flags & MF_COUNT_INCREASED)
+-		/*
+-		 * Drop the extra refcount in case we come from madvise().
+-		 */
 -		put_page(page);
++	put_ref_page(pfn, flags);
+ 
+ 	/* device metadata space is not recoverable */
+ 	if (!pgmap_pfn_valid(pgmap, pfn))
+@@ -2516,12 +2524,6 @@ static int soft_offline_in_use_page(stru
+ 	return ret;
+ }
+ 
+-static void put_ref_page(struct page *page)
+-{
+-	if (page)
+-		put_page(page);
+-}
 -
-+		ksm_page = walk_page_range_vma(vma, addr, addr + 1,
-+					       &break_ksm_ops, NULL);
-+		if (WARN_ON_ONCE(ksm_page < 0))
-+			return ksm_page;
- 		if (!ksm_page)
- 			return 0;
- 		ret = handle_mm_fault(vma, addr,
+ /**
+  * soft_offline_page - Soft offline a page.
+  * @pfn: pfn to soft-offline
+@@ -2550,19 +2552,17 @@ int soft_offline_page(unsigned long pfn,
+ {
+ 	int ret;
+ 	bool try_again = true;
+-	struct page *page, *ref_page = NULL;
++	struct page *page;
+ 
+ 	WARN_ON_ONCE(!pfn_valid(pfn) && (flags & MF_COUNT_INCREASED));
+ 
+ 	if (!pfn_valid(pfn))
+ 		return -ENXIO;
+-	if (flags & MF_COUNT_INCREASED)
+-		ref_page = pfn_to_page(pfn);
+ 
+ 	/* Only online pages can be soft-offlined (esp., not ZONE_DEVICE). */
+ 	page = pfn_to_online_page(pfn);
+ 	if (!page) {
+-		put_ref_page(ref_page);
++		put_ref_page(pfn, flags);
+ 		return -EIO;
+ 	}
+ 
+@@ -2570,7 +2570,7 @@ int soft_offline_page(unsigned long pfn,
+ 
+ 	if (PageHWPoison(page)) {
+ 		pr_info("%s: %#lx page already poisoned\n", __func__, pfn);
+-		put_ref_page(ref_page);
++		put_ref_page(pfn, flags);
+ 		mutex_unlock(&mf_mutex);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-selftests-vm-anon_cow-test-cow-handling-of-anonymous-memory.patch
-selftests-vm-factor-out-pagemap_is_populated-into-vm_util.patch
-selftests-vm-anon_cow-thp-tests.patch
-selftests-vm-anon_cow-hugetlb-tests.patch
-selftests-vm-anon_cow-add-liburing-test-cases.patch
-mm-gup_test-start-stop-read-functionality-for-pin-longterm-test.patch
-mm-gup_test-start-stop-read-functionality-for-pin-longterm-test-fix.patch
-selftests-vm-anon_cow-add-r-o-longterm-tests-via-gup_test.patch
-selftests-vm-add-ksm-unmerge-tests.patch
-mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma.patch
-selftests-vm-add-test-to-measure-madv_unmergeable-performance.patch
-mm-ksm-simplify-break_ksm-to-not-rely-on-vm_fault_write.patch
-mm-remove-vm_fault_write.patch
-mm-ksm-fix-ksm-cow-breaking-with-userfaultfd-wp-via-fault_flag_unshare.patch
-mm-pagewalk-add-walk_page_range_vma.patch
-mm-ksm-convert-break_ksm-to-use-walk_page_range_vma.patch
-mm-gup-remove-foll_migration.patch
+mm-rmap-rename-page_not_mapped-to-folio_not_mapped.patch
+mm-remove-kern_addr_valid-completely.patch
+nios2-remove-unused-init_mmap.patch
+x86-sgx-use-vm_access_flags.patch
+mm-mprotect-use-vm_access_flags.patch
+mm-debug_vm_pgtable-use-vm_access_flags.patch
+amdgpu-use-vm_access_flags.patch
+mm-memory-failure-make-put_ref_page-more-useful.patch
+mm-memory-failure-avoid-pfn_valid-twice-in-soft_offline_page.patch
+mm-memory-failure-make-action_result-return-int.patch
 
