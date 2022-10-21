@@ -2,100 +2,106 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAD11C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 07:36:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F676C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 15:11:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229460AbiJUHgs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Oct 2022 03:36:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49320 "EHLO
+        id S229448AbiJUPLU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Oct 2022 11:11:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229568AbiJUHgr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 03:36:47 -0400
+        with ESMTP id S230390AbiJUPKh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 11:10:37 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55623239201;
-        Fri, 21 Oct 2022 00:36:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 757C5167F74
+        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 08:10:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EA88061DDD;
-        Fri, 21 Oct 2022 07:36:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB284C433D7;
-        Fri, 21 Oct 2022 07:36:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1666337805;
-        bh=qcoFQ3Y1t/OCn1xo7MF0G3Jg4ODkh6FFpJxwxnaf5dQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=vZI/il1cIufXd8K1qI1xAjT1PC3P6iuEQ0DkEJHKU/tPFqixNUIMswm8t01ZxtRIh
-         9mXPw1m0VK334fDfV108iafCJka7qzFFr1NUy6kVQc++k6xCFvkvvxNXnLxa5OJXjJ
-         sHwpnVggKa0wSW7dMqiEg66Qm481cjX2xe9L43mc=
-Date:   Fri, 21 Oct 2022 09:36:42 +0200
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org, masahiroy@kernel.org,
-        andriy.shevchenko@linux.intel.com,
-        Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [PATCH -mm] -funsigned-char, x86: make struct
- p4_event_bind::cntr signed array
-Message-ID: <Y1JMCqv5QucIfNCS@kroah.com>
-References: <Y1EZuQcO8UoN91cX@localhost.localdomain>
- <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com>
- <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
- <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
- <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
- <202210201151.ECC19BC97A@keescook>
- <CAHk-=wgdXRZy0-3v+vLZdDfRFKFXZLehgmR2QUKSemBA99sfmg@mail.gmail.com>
- <CAHk-=wjvp=ys2adnWwc1PNt3OrZ_0EkFaUcvjiVuOoVNjX_+AA@mail.gmail.com>
- <Y1JA0S7jvlA2573n@kroah.com>
- <CAHmME9ouSriPmMCQ3kfF01k4-D4hc7g22GE8m79gT5snqr7MSg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHmME9ouSriPmMCQ3kfF01k4-D4hc7g22GE8m79gT5snqr7MSg@mail.gmail.com>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DE0D561EEF
+        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 15:10:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 395D2C433D7;
+        Fri, 21 Oct 2022 15:10:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1666365035;
+        bh=ocYlenCjEtIhthVih5cD8z34KUCSAS2SQq1xE2LAq5g=;
+        h=Date:To:From:Subject:From;
+        b=uNWO1e3mmhSYzOXKrTseXFadid77MvMdkmJJrSvL2LsMRh0T1yzwSuZW+uT+2YLiS
+         HMITjvmvfgSW+DshGKiuPXYMGvjTH7HZ3O7kFiCdcm1Sa88ZxVwW43Qpz84xHW5S7f
+         v3HBNo944MujyyCx+VPWnAtzWgSXHteY1WeV+9FU=
+Date:   Fri, 21 Oct 2022 08:10:34 -0700
+To:     mm-commits@vger.kernel.org, tytso@mit.edu, lkp@intel.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + fs-ext4-superc-remove-unused-deprecated_msg.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221021151035.395D2C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Oct 21, 2022 at 03:24:27AM -0400, Jason A. Donenfeld wrote:
-> Hi Greg,
-> 
-> On Fri, Oct 21, 2022 at 2:48 AM Greg KH <gregkh@linuxfoundation.org> wrote:
-> >
-> > On Thu, Oct 20, 2022 at 01:17:33PM -0700, Linus Torvalds wrote:
-> > > And in other cases, there's no actual difference at all, just
-> > > different register usage, so the diff looks fairly big, but doesn't
-> > > seem to be real.  In one case I looked at, it started with a 'movzbl',
-> > > but it was that in both cases, because the type was actually 'unsigned
-> > > char' to begin with. But for some reason it just used different
-> > > registers. Example:
-> > >
-> > >  - handle_control_request() in drivers/usb/gadget/udc/dummy_hcd.c
-> > >
-> > >    The reason here *seems* to be that
-> > >
-> > >                         char *buf;
-> > >                         buf = (char *)urb->transfer_buffer;
-> > >
-> > >    where it really probably should be 'u8 *buf', since it actually
-> > > does a cast to 'u8' in one place, but there isn't even any read of
-> > > that 'buf' pointer. So the difference seems to be entirely just some
-> > > "different type in assignment" cast internal to gcc that then
-> > > incidentally generated a random other choice in register allocation.
-> >
-> > I've send a patch for this now:
-> >         https://lore.kernel.org/r/20221021064453.3341050-1-gregkh@linuxfoundation.org
-> > and will take it through the USB tree, unless Jason wants to grab it
-> > through his tree.
-> 
-> This doesn't appear to have any actual effect, but just changes gcc's
-> register allocation unexpectedly. So feel free to take it, as it
-> doesn't seem like it's "one of those bad cases" that I'm keeping track
-> of.
 
-Great, will take it through my tree, thanks!
+The patch titled
+     Subject: fs/ext4/super.c: remove unused `deprecated_msg'
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fs-ext4-superc-remove-unused-deprecated_msg.patch
 
-greg k-h
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-ext4-superc-remove-unused-deprecated_msg.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/ext4/super.c: remove unused `deprecated_msg'
+Date: Fri Oct 21 08:05:49 AM PDT 2022
+
+fs/ext4/super.c:1744:19: warning: 'deprecated_msg' defined but not used [-Wunused-const-variable=]
+
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/ext4/super.c |    4 ----
+ 1 file changed, 4 deletions(-)
+
+--- a/fs/ext4/super.c~fs-ext4-superc-remove-unused-deprecated_msg
++++ a/fs/ext4/super.c
+@@ -1741,10 +1741,6 @@ static const struct fs_parameter_spec ex
+ 
+ #define DEFAULT_JOURNAL_IOPRIO (IOPRIO_PRIO_VALUE(IOPRIO_CLASS_BE, 3))
+ 
+-static const char deprecated_msg[] =
+-	"Mount option \"%s\" will be removed by %s\n"
+-	"Contact linux-ext4@vger.kernel.org if you think we should keep it.\n";
+-
+ #define MOPT_SET	0x0001
+ #define MOPT_CLEAR	0x0002
+ #define MOPT_NOSUPPORT	0x0004
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+ipc-msgc-fix-percpu_counter-use-after-free.patch
+fs-ext4-superc-remove-unused-deprecated_msg.patch
+mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+mm-hugetlb-convert-free_huge_page-to-folios-fix.patch
+vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch
+powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
+minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
+minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
+proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3-fix.patch
+
