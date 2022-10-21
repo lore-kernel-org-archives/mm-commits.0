@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CD8EC38A2D
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 20:02:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D5B8C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 20:02:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230272AbiJUUCB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Oct 2022 16:02:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47666 "EHLO
+        id S230343AbiJUUCC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Oct 2022 16:02:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47704 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230229AbiJUUBu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 16:01:50 -0400
+        with ESMTP id S229961AbiJUUBv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 16:01:51 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E5AB261ACF
-        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 13:01:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7A23262054
+        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 13:01:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4659361F6F
-        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 20:01:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97E3AC433D6;
-        Fri, 21 Oct 2022 20:01:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 210C061F78
+        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 20:01:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77C94C433D6;
+        Fri, 21 Oct 2022 20:01:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666382499;
-        bh=j7cAJZbHiDT82HF9i6drPtlN8gUUZJxVFfSEymqEJjE=;
+        s=korg; t=1666382502;
+        bh=F4kDIsAzxazz7q84/Qxbge2Ym45wfC4NDBlX9CuXh8g=;
         h=Date:To:From:Subject:From;
-        b=kFI9C4N+umZu8YNYTcWxiXSVzsDNgn3ZtrsgC0vkwrWHHtSeds/feNTKC1LptraHA
-         h8lMGDma73zfncNTrCxfOcrzrIs3HgYckDv288wG8K0sjrXE69fgApF6nJjS0svx8Z
-         akpzVqzU9SshXYL9dbJtQWfdE4RinFvIr5AEFzh0=
-Date:   Fri, 21 Oct 2022 13:01:39 -0700
+        b=Kf8lBvVOacV7g9Zq8HnZ5CpEH+xOuJoqAB7iDmkMvwM2nWD5546Ru7xtHvoYl4EAU
+         875J7GqHaoR+LUGVgZGlJQWMxtuJvf1GMs3k89QW6oemr+xwlNK5TKDXlZl5PIQzZ2
+         DF8SL++UzVn8bmFBq0uIFwfg+YDtc+uZfT7oe3eo=
+Date:   Fri, 21 Oct 2022 13:01:41 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         shuah@kernel.org, peterx@redhat.com, jhubbard@nvidia.com,
         jgg@nvidia.com, hughd@google.com, aarcange@redhat.com,
         david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-add-ksm-unmerge-tests.patch added to mm-unstable branch
-Message-Id: <20221021200139.97E3AC433D6@smtp.kernel.org>
+Subject: + mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma.patch added to mm-unstable branch
+Message-Id: <20221021200142.77C94C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: add KSM unmerge tests
+     Subject: mm/pagewalk: don't trigger test_walk() in walk_page_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-add-ksm-unmerge-tests.patch
+     mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-add-ksm-unmerge-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,46 +67,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/vm: add KSM unmerge tests
-Date: Fri, 21 Oct 2022 12:11:36 +0200
+Subject: mm/pagewalk: don't trigger test_walk() in walk_page_vma()
+Date: Fri, 21 Oct 2022 12:11:38 +0200
 
-Patch series "mm/ksm: break_ksm() cleanups and fixes", v2.
+As Peter points out, the caller passes a single VMA and can just do that
+check itself.
 
-This series cleans up and fixes break_ksm().  In summary, we no longer use
-fake write faults to break COW but instead FAULT_FLAG_UNSHARE.  Further,
-we move away from using follow_page() --- that we can hopefully remove
-completely at one point --- and use new walk_page_range_vma() instead.
+And in fact, no existing users rely on test_walk() getting called.  So
+let's just remove it and make the implementation slightly more efficient.
 
-Fortunately, we can get rid of VM_FAULT_WRITE and FOLL_MIGRATION in common
-code now.
-
-Extend the existing ksm tests by an unmerge benchmark, and a some new
-unmerge tests.
-
-Also, add a selftest to measure MADV_UNMERGEABLE performance.  In my setup
-(AMD Ryzen 9 3900X), running the KSM selftest to test unmerge performance
-on 2 GiB (taskset 0x8 ./ksm_tests -D -s 2048), this results in a
-performance degradation of ~6% -- 7% (old: ~5250 MiB/s, new: ~4900 MiB/s).
-I don't think we particularly care for now, but it's good to be aware of
-the implication.
-
-
-This patch (of 9):
-
-Let's add three unmerge tests (MADV_UNMERGEABLE unmerging all pages in the
-range).
-
-test_unmerge(): basic unmerge tests
-test_unmerge_discarded(): have some pte_none() entries in the range
-test_unmerge_uffd_wp(): protect the merged pages using uffd-wp
-
-ksm_tests.c currently contains a mixture of benchmarks and tests, whereby
-each test is carried out by executing the ksm_tests binary with specific
-parameters.  Let's add new ksm_functional_tests.c that performs multiple,
-smaller functional tests all at once.
-
-Link: https://lkml.kernel.org/r/20221021101141.84170-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20221021101141.84170-5-david@redhat.com
+Link: https://lkml.kernel.org/r/20221021101141.84170-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -119,353 +89,42 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile               |    2 
- tools/testing/selftests/vm/ksm_functional_tests.c |  279 ++++++++++++
- tools/testing/selftests/vm/run_vmtests.sh         |    2 
- tools/testing/selftests/vm/vm_util.c              |   10 
- tools/testing/selftests/vm/vm_util.h              |    1 
- 5 files changed, 294 insertions(+)
+ include/linux/pagewalk.h |    2 ++
+ mm/pagewalk.c            |    7 -------
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
---- /dev/null
-+++ a/tools/testing/selftests/vm/ksm_functional_tests.c
-@@ -0,0 +1,279 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * KSM functional tests
-+ *
-+ * Copyright 2022, Red Hat, Inc.
-+ *
-+ * Author(s): David Hildenbrand <david@redhat.com>
-+ */
-+#define _GNU_SOURCE
-+#include <stdlib.h>
-+#include <string.h>
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <sys/mman.h>
-+#include <sys/syscall.h>
-+#include <sys/ioctl.h>
-+#include <linux/userfaultfd.h>
-+
-+#include "../kselftest.h"
-+#include "vm_util.h"
-+
-+#define KiB 1024u
-+#define MiB (1024 * KiB)
-+
-+static int ksm_fd;
-+static int ksm_full_scans_fd;
-+static int pagemap_fd;
-+static size_t pagesize;
-+
-+static bool range_maps_duplicates(char *addr, unsigned long size)
-+{
-+	unsigned long offs_a, offs_b, pfn_a, pfn_b;
-+
-+	/*
-+	 * There is no easy way to check if there are KSM pages mapped into
-+	 * this range. We only check that the range does not map the same PFN
-+	 * twice by comaring each pair of mapped pages.
-+	 */
-+	for (offs_a = 0; offs_a < size; offs_a += pagesize) {
-+		pfn_a = pagemap_get_pfn(pagemap_fd, addr + offs_a);
-+		/* Page not present or PFN not exposed by the kernel. */
-+		if (pfn_a == -1ull || !pfn_a)
-+			continue;
-+
-+		for (offs_b = offs_a + pagesize; offs_b < size;
-+		     offs_b += pagesize) {
-+			pfn_b = pagemap_get_pfn(pagemap_fd, addr + offs_b);
-+			if (pfn_b == -1ull || !pfn_b)
-+				continue;
-+			if (pfn_a == pfn_b)
-+				return true;
-+		}
-+	}
-+	return false;
-+}
-+
-+static long ksm_get_full_scans(void)
-+{
-+	char buf[10];
-+	ssize_t ret;
-+
-+	ret = pread(ksm_full_scans_fd, buf, sizeof(buf) - 1, 0);
-+	if (ret <= 0)
-+		return -errno;
-+	buf[ret] = 0;
-+
-+	return strtol(buf, NULL, 10);
-+}
-+
-+static int ksm_merge(void)
-+{
-+	long start_scans, end_scans;
-+
-+	/* Wait for two full scans such that any possible merging happened. */
-+	start_scans = ksm_get_full_scans();
-+	if (start_scans < 0)
-+		return start_scans;
-+	if (write(ksm_fd, "1", 1) != 1)
-+		return -errno;
-+	do {
-+		end_scans = ksm_get_full_scans();
-+		if (end_scans < 0)
-+			return end_scans;
-+	} while (end_scans < start_scans + 2);
-+
-+	return 0;
-+}
-+
-+static char *mmap_and_merge_range(char val, unsigned long size)
-+{
-+	char *map;
-+
-+	map = mmap(NULL, size, PROT_READ|PROT_WRITE,
-+		   MAP_PRIVATE|MAP_ANON, -1, 0);
-+	if (map == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		return MAP_FAILED;
-+	}
-+
-+	/* Don't use THP. Ignore if THP are not around on a kernel. */
-+	if (madvise(map, size, MADV_NOHUGEPAGE) && errno != EINVAL) {
-+		ksft_test_result_fail("MADV_NOHUGEPAGE failed\n");
-+		goto unmap;
-+	}
-+
-+	/* Make sure each page contains the same values to merge them. */
-+	memset(map, val, size);
-+	if (madvise(map, size, MADV_MERGEABLE)) {
-+		ksft_test_result_fail("MADV_MERGEABLE failed\n");
-+		goto unmap;
-+	}
-+
-+	/* Run KSM to trigger merging and wait. */
-+	if (ksm_merge()) {
-+		ksft_test_result_fail("Running KSM failed\n");
-+		goto unmap;
-+	}
-+	return map;
-+unmap:
-+	munmap(map, size);
-+	return MAP_FAILED;
-+}
-+
-+static void test_unmerge(void)
-+{
-+	const unsigned int size = 2 * MiB;
-+	char *map;
-+
-+	ksft_print_msg("[RUN] %s\n", __func__);
-+
-+	map = mmap_and_merge_range(0xcf, size);
-+	if (map == MAP_FAILED)
-+		return;
-+
-+	if (madvise(map, size, MADV_UNMERGEABLE)) {
-+		ksft_test_result_fail("MADV_UNMERGEABLE failed\n");
-+		goto unmap;
-+	}
-+
-+	ksft_test_result(!range_maps_duplicates(map, size),
-+			 "Pages were unmerged\n");
-+unmap:
-+	munmap(map, size);
-+}
-+
-+static void test_unmerge_discarded(void)
-+{
-+	const unsigned int size = 2 * MiB;
-+	char *map;
-+
-+	ksft_print_msg("[RUN] %s\n", __func__);
-+
-+	map = mmap_and_merge_range(0xcf, size);
-+	if (map == MAP_FAILED)
-+		return;
-+
-+	/* Discard half of all mapped pages so we have pte_none() entries. */
-+	if (madvise(map, size / 2, MADV_DONTNEED)) {
-+		ksft_test_result_fail("MADV_DONTNEED failed\n");
-+		goto unmap;
-+	}
-+
-+	if (madvise(map, size, MADV_UNMERGEABLE)) {
-+		ksft_test_result_fail("MADV_UNMERGEABLE failed\n");
-+		goto unmap;
-+	}
-+
-+	ksft_test_result(!range_maps_duplicates(map, size),
-+			 "Pages were unmerged\n");
-+unmap:
-+	munmap(map, size);
-+}
-+
-+#ifdef __NR_userfaultfd
-+static void test_unmerge_uffd_wp(void)
-+{
-+	struct uffdio_writeprotect uffd_writeprotect;
-+	struct uffdio_register uffdio_register;
-+	const unsigned int size = 2 * MiB;
-+	struct uffdio_api uffdio_api;
-+	char *map;
-+	int uffd;
-+
-+	ksft_print_msg("[RUN] %s\n", __func__);
-+
-+	map = mmap_and_merge_range(0xcf, size);
-+	if (map == MAP_FAILED)
-+		return;
-+
-+	/* See if UFFD is around. */
-+	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
-+	if (uffd < 0) {
-+		ksft_test_result_skip("__NR_userfaultfd failed\n");
-+		goto unmap;
-+	}
-+
-+	/* See if UFFD-WP is around. */
-+	uffdio_api.api = UFFD_API;
-+	uffdio_api.features = UFFD_FEATURE_PAGEFAULT_FLAG_WP;
-+	if (ioctl(uffd, UFFDIO_API, &uffdio_api) < 0) {
-+		ksft_test_result_fail("UFFDIO_API failed\n");
-+		goto close_uffd;
-+	}
-+	if (!(uffdio_api.features & UFFD_FEATURE_PAGEFAULT_FLAG_WP)) {
-+		ksft_test_result_skip("UFFD_FEATURE_PAGEFAULT_FLAG_WP not available\n");
-+		goto close_uffd;
-+	}
-+
-+	/* Register UFFD-WP, no need for an actual handler. */
-+	uffdio_register.range.start = (unsigned long) map;
-+	uffdio_register.range.len = size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) < 0) {
-+		ksft_test_result_fail("UFFDIO_REGISTER_MODE_WP failed\n");
-+		goto close_uffd;
-+	}
-+
-+	/* Write-protect the range using UFFD-WP. */
-+	uffd_writeprotect.range.start = (unsigned long) map;
-+	uffd_writeprotect.range.len = size;
-+	uffd_writeprotect.mode = UFFDIO_WRITEPROTECT_MODE_WP;
-+	if (ioctl(uffd, UFFDIO_WRITEPROTECT, &uffd_writeprotect)) {
-+		ksft_test_result_fail("UFFDIO_WRITEPROTECT failed\n");
-+		goto close_uffd;
-+	}
-+
-+	if (madvise(map, size, MADV_UNMERGEABLE)) {
-+		ksft_test_result_fail("MADV_UNMERGEABLE failed\n");
-+		goto close_uffd;
-+	}
-+
-+	ksft_test_result(!range_maps_duplicates(map, size),
-+			 "Pages were unmerged\n");
-+close_uffd:
-+	close(uffd);
-+unmap:
-+	munmap(map, size);
-+}
-+#endif
-+
-+int main(int argc, char **argv)
-+{
-+	unsigned int tests = 2;
-+	int err;
-+
-+#ifdef __NR_userfaultfd
-+	tests++;
-+#endif
-+
-+	ksft_print_header();
-+	ksft_set_plan(tests);
-+
-+	pagesize = getpagesize();
-+
-+	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
-+	if (ksm_fd < 0)
-+		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/run\") failed\n");
-+	ksm_full_scans_fd = open("/sys/kernel/mm/ksm/full_scans", O_RDONLY);
-+	if (ksm_full_scans_fd < 0)
-+		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/full_scans\") failed\n");
-+	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (pagemap_fd < 0)
-+		ksft_exit_skip("open(\"/proc/self/pagemap\") failed\n");
-+
-+	test_unmerge();
-+	test_unmerge_discarded();
-+#ifdef __NR_userfaultfd
-+	test_unmerge_uffd_wp();
-+#endif
-+
-+	err = ksft_get_fail_cnt();
-+	if (err)
-+		ksft_exit_fail_msg("%d out of %d tests failed\n",
-+				   err, ksft_test_num());
-+	return ksft_exit_pass();
-+}
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-ksm-unmerge-tests
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -55,6 +55,7 @@ TEST_GEN_FILES += userfaultfd
- TEST_GEN_PROGS += soft-dirty
- TEST_GEN_PROGS += split_huge_page_test
- TEST_GEN_FILES += ksm_tests
-+TEST_GEN_PROGS += ksm_functional_tests
+--- a/include/linux/pagewalk.h~mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma
++++ a/include/linux/pagewalk.h
+@@ -27,6 +27,8 @@ struct mm_walk;
+  *			"do page table walk over the current vma", returning
+  *			a negative value means "abort current page table walk
+  *			right now" and returning 1 means "skip the current vma"
++ *			Note that this callback is not called when the caller
++ *			passes in a single VMA as for walk_page_vma().
+  * @pre_vma:            if set, called before starting walk on a non-null vma.
+  * @post_vma:           if set, called after a walk on a non-null vma, provided
+  *                      that @pre_vma and the vma walk succeeded.
+--- a/mm/pagewalk.c~mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma
++++ a/mm/pagewalk.c
+@@ -526,18 +526,11 @@ int walk_page_vma(struct vm_area_struct
+ 		.vma		= vma,
+ 		.private	= private,
+ 	};
+-	int err;
  
- ifeq ($(MACHINE),x86_64)
- CAN_BUILD_I386 := $(shell ./../x86/check_cc.sh "$(CC)" ../x86/trivial_32bit_program.c -m32)
-@@ -100,6 +101,7 @@ include ../lib.mk
+ 	if (!walk.mm)
+ 		return -EINVAL;
  
- $(OUTPUT)/anon_cow: vm_util.c
- $(OUTPUT)/khugepaged: vm_util.c
-+$(OUTPUT)/ksm_functional_tests: vm_util.c
- $(OUTPUT)/madv_populate: vm_util.c
- $(OUTPUT)/soft-dirty: vm_util.c
- $(OUTPUT)/split_huge_page_test: vm_util.c
---- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-ksm-unmerge-tests
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -252,6 +252,8 @@ CATEGORY="ksm_numa" run_test ./ksm_tests
- # KSM test with 2 NUMA nodes and merge_across_nodes = 0
- CATEGORY="ksm_numa" run_test ./ksm_tests -N -m 0
- 
-+run_test ./ksm_functional_tests
-+
- # protection_keys tests
- if [ -x ./protection_keys_32 ]
- then
---- a/tools/testing/selftests/vm/vm_util.c~selftests-vm-add-ksm-unmerge-tests
-+++ a/tools/testing/selftests/vm/vm_util.c
-@@ -43,6 +43,16 @@ bool pagemap_is_populated(int fd, char *
- 	return entry & 0xc000000000000000ull;
+ 	mmap_assert_locked(walk.mm);
+-
+-	err = walk_page_test(vma->vm_start, vma->vm_end, &walk);
+-	if (err > 0)
+-		return 0;
+-	if (err < 0)
+-		return err;
+ 	return __walk_page_range(vma->vm_start, vma->vm_end, &walk);
  }
  
-+unsigned long pagemap_get_pfn(int fd, char *start)
-+{
-+	uint64_t entry = pagemap_get_entry(fd, start);
-+
-+	/* If present (63th bit), PFN is at bit 0 -- 54. */
-+	if (entry & 0x8000000000000000ull)
-+		return entry & 0x007fffffffffffffull;
-+	return -1ull;
-+}
-+
- void clear_softdirty(void)
- {
- 	int ret;
---- a/tools/testing/selftests/vm/vm_util.h~selftests-vm-add-ksm-unmerge-tests
-+++ a/tools/testing/selftests/vm/vm_util.h
-@@ -6,6 +6,7 @@ uint64_t pagemap_get_entry(int fd, char
- bool pagemap_is_softdirty(int fd, char *start);
- bool pagemap_is_swapped(int fd, char *start);
- bool pagemap_is_populated(int fd, char *start);
-+unsigned long pagemap_get_pfn(int fd, char *start);
- void clear_softdirty(void);
- bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
- uint64_t read_pmd_pagesize(void);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
