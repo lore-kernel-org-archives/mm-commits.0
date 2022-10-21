@@ -2,127 +2,89 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0462C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 05:59:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEAC2C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 06:49:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229456AbiJUF7t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Oct 2022 01:59:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45860 "EHLO
+        id S230125AbiJUGtU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Oct 2022 02:49:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229648AbiJUF7s (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 01:59:48 -0400
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 855EB4E40F;
-        Thu, 20 Oct 2022 22:59:43 -0700 (PDT)
-Received: by mail-ej1-x629.google.com with SMTP id w18so4554824ejq.11;
-        Thu, 20 Oct 2022 22:59:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=YEiLrINto3OfhATRDo7il8OOpbEVODXHzBub1SpWzxo=;
-        b=dU82oX6EYusd5s+JqKnuaoZGuHlZ8VZ7kNohRINYDKTsWw3YUFTKBOFn2Vp/t+57L8
-         zcN1xjdnldwKfhfkmbhyYf3df/fT6TtzZv6nbws89fcoBJt7AzYD8yB7G9rkdBVtagZN
-         IjaUQ1PIgxiyeBK2xO2+wxR7aX0+M4lCQ9R2wQEJ8vjKj8fuxYWs7FqdxybKHpE7TOJZ
-         eq9xLxKjv4dwiEC9b9vrkJobNZVfXDNCgoWKvfJdt9Hb988Q8IuaUwcHMs8odK3ZtySZ
-         QRzzjyHUkosgZnnnUytA2IzT+lbacPpELiCJwcDAyUpY7IjPaZD2cY7WeEYe3QqBSP/s
-         rsnw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=YEiLrINto3OfhATRDo7il8OOpbEVODXHzBub1SpWzxo=;
-        b=3Lwk7HGafpGM+7rfVpiYrDYWe+a/sXpSYHzlz2wMmMeduGp9Qsu5fXnegoVBRPvjD7
-         NCDdWEwTG9MAqOUUvfZxNVcnxgUoRYPioJ0NNbfMnDJv1jyrQkuFSlR3xQFwJQKQ3mra
-         EpJ/s6XFAAS8lTFJk0/1OWrAE4AA8C5spZqeE87VabdRhxgjagE+I+uNYS/xLbu99hRm
-         lX5isPcyvCZubx5B10G1Pg6ohUQtFsmCPH7NuCot8FTwcjeZjqV9JLzcMcwSVz7M3D8P
-         XRl1hrEwpPKE+WKNIm1ndWUjzcrkz6qxbCt/Gzb2IRuqjOuKgWgRVGysTyTx1ucAFUvN
-         fl6A==
-X-Gm-Message-State: ACrzQf3mBQf0X+gzXQuunVooj8LPB7B66Ic6YVPpc+eZuafkW5Ex7DKX
-        HDQXE70j6n0p76K7BJCL5g==
-X-Google-Smtp-Source: AMsMyM60XkWKQKT3Ac3NZ9xwlVh1NouJ5Daas52aFUJobFpgWBoFA5TT4vK59YS8i+aHzzcGddreDA==
-X-Received: by 2002:a17:907:16a7:b0:78d:f586:e446 with SMTP id hc39-20020a17090716a700b0078df586e446mr14040167ejc.252.1666331981460;
-        Thu, 20 Oct 2022 22:59:41 -0700 (PDT)
-Received: from localhost.localdomain ([46.53.249.171])
-        by smtp.gmail.com with ESMTPSA id c22-20020a170906155600b007081282cbd8sm11140994ejd.76.2022.10.20.22.59.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Oct 2022 22:59:41 -0700 (PDT)
-Date:   Fri, 21 Oct 2022 08:59:39 +0300
-From:   Alexey Dobriyan <adobriyan@gmail.com>
+        with ESMTP id S230331AbiJUGtM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 02:49:12 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11253244191;
+        Thu, 20 Oct 2022 23:48:53 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B56B61B39;
+        Fri, 21 Oct 2022 06:48:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2EEAC433B5;
+        Fri, 21 Oct 2022 06:48:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1666334932;
+        bh=GkJW0rhkNtgNET6DTbBjkqNJSetsUPif97QcFj6cITM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=AFpVfJBkCtT8rtyEZ8VWmgJPv4V9sZOIwi1hyEhZzwRic/j8fBDyJSWoWhx0u6Ykn
+         ftTsmDSLbGNgRHMEhJsra6zAkEs0wA0WlYOUkx+KMMeUfWrnqg+FcTDsa2LD9z/AFb
+         c7kwtvv5igsR0AgKdoNA1p4dcMAgWU1PeBJpP3Wk=
+Date:   Fri, 21 Oct 2022 08:48:49 +0200
+From:   Greg KH <gregkh@linuxfoundation.org>
 To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>, akpm@linux-foundation.org,
-        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
-        masahiroy@kernel.org, keescook@chromium.org,
-        gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com
+Cc:     Kees Cook <keescook@chromium.org>,
+        "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
+        mm-commits@vger.kernel.org, masahiroy@kernel.org,
+        andriy.shevchenko@linux.intel.com,
+        Stephen Rothwell <sfr@canb.auug.org.au>
 Subject: Re: [PATCH -mm] -funsigned-char, x86: make struct
  p4_event_bind::cntr signed array
-Message-ID: <Y1I1S86zbBmeJ+jq@localhost.localdomain>
+Message-ID: <Y1JA0S7jvlA2573n@kroah.com>
 References: <20221020000356.177CDC433C1@smtp.kernel.org>
  <Y1EZuQcO8UoN91cX@localhost.localdomain>
  <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com>
  <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
+ <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
+ <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
+ <202210201151.ECC19BC97A@keescook>
+ <CAHk-=wgdXRZy0-3v+vLZdDfRFKFXZLehgmR2QUKSemBA99sfmg@mail.gmail.com>
+ <CAHk-=wjvp=ys2adnWwc1PNt3OrZ_0EkFaUcvjiVuOoVNjX_+AA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
+In-Reply-To: <CAHk-=wjvp=ys2adnWwc1PNt3OrZ_0EkFaUcvjiVuOoVNjX_+AA@mail.gmail.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Oct 20, 2022 at 10:14:54AM -0700, Linus Torvalds wrote:
-> On Thu, Oct 20, 2022 at 9:28 AM Jason A. Donenfeld <Jason@zx2c4.com> wrote:
-> >
-> > Nice catch.
-> >
-> > Reviewed-by: Jason A. Donenfeld <Jason@zx2c4.com>
+On Thu, Oct 20, 2022 at 01:17:33PM -0700, Linus Torvalds wrote:
+> And in other cases, there's no actual difference at all, just
+> different register usage, so the diff looks fairly big, but doesn't
+> seem to be real.  In one case I looked at, it started with a 'movzbl',
+> but it was that in both cases, because the type was actually 'unsigned
+> char' to begin with. But for some reason it just used different
+> registers. Example:
 > 
-> Can we please try to collect these all in one place?
+>  - handle_control_request() in drivers/usb/gadget/udc/dummy_hcd.c
 > 
-> I see that Andrew picked up the original one for -mm, but I think it
-> would be better if we had one specific place for all of this (one
-> branch) to collect it all.
+>    The reason here *seems* to be that
 > 
-> I'm actually trying to do a "make allyesconfig" build on x86-64 with
-> both signed and unsigned char, and trying to see if I can script
-> something sane to show differences.
+>                         char *buf;
+>                         buf = (char *)urb->transfer_buffer;
+> 
+>    where it really probably should be 'u8 *buf', since it actually
+> does a cast to 'u8' in one place, but there isn't even any read of
+> that 'buf' pointer. So the difference seems to be entirely just some
+> "different type in assignment" cast internal to gcc that then
+> incidentally generated a random other choice in register allocation.
 
-It is very entertaining, i've given up and started patching sparse
-but it needs more because char constants are ints:
+I've send a patch for this now:
+	https://lore.kernel.org/r/20221021064453.3341050-1-gregkh@linuxfoundation.org
+and will take it through the USB tree, unless Jason wants to grab it
+through his tree.
 
+thanks,
 
-diff --git a/evaluate.c b/evaluate.c
-index 61f59ee3..ab607581 100644
---- a/evaluate.c
-+++ b/evaluate.c
-@@ -321,6 +321,10 @@ static struct expression * cast_to(struct expression *old, struct symbol *type)
- 	if (old->ctype != &null_ctype && is_same_type(old, type))
- 		return old;
- 
-+	if (is_char_type(old->ctype)) {
-+		sparse_error(old->pos, "XXX char");
-+	}
-+
- 	expr = alloc_expression(old->pos, EXPR_IMPLIED_CAST);
- 	expr->ctype = type;
- 	expr->cast_type = type;
-diff --git a/symbol.h b/symbol.h
-index 5270fcd7..8e62aca2 100644
---- a/symbol.h
-+++ b/symbol.h
-@@ -455,6 +455,14 @@ static inline int is_byte_type(struct symbol *type)
- 	return type->bit_size == bits_in_char && type->type != SYM_BITFIELD;
- }
- 
-+static inline int is_char_type(const struct symbol *type)
-+{
-+	if (type->type == SYM_NODE) {
-+		type = type->ctype.base_type;
-+	}
-+	return type == &char_ctype;
-+}
-+
- static inline int is_wchar_type(struct symbol *type)
- {
- 	if (type->type == SYM_NODE)
+greg k-h
