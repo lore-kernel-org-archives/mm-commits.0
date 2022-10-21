@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D73FBC43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5575CC43217
 	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 04:36:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229954AbiJUEgA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Oct 2022 00:36:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37618 "EHLO
+        id S229707AbiJUEf7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Oct 2022 00:35:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229716AbiJUEfP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 00:35:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 580B94B4A0
-        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 21:35:01 -0700 (PDT)
+        with ESMTP id S229760AbiJUEfK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 00:35:10 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E22EC24F11;
+        Thu, 20 Oct 2022 21:34:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2EE55616E3
-        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 04:35:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A9EBC433C1;
-        Fri, 21 Oct 2022 04:34:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 42D70B82989;
+        Fri, 21 Oct 2022 04:34:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBD71C433D6;
+        Fri, 21 Oct 2022 04:34:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666326899;
-        bh=W4OsB8DoG5WZNcpHIYDzaLdHRo4UmhvXBuUEMG0MQP0=;
+        s=korg; t=1666326893;
+        bh=TUl/gJDCfAae1deRvSSY2yuu0Bmz0WExYdDqNgx7S+E=;
         h=Date:To:From:Subject:From;
-        b=SetOUJ5dL+Jkn8SImkC9XCU5XB+sI0ICINHgNTrlPeAekU+RATep+pRgdswfUY6Fn
-         DuHJKAWgZQ5dG+brSq2UOZZG7bckHt2BkHpqqwgro1hpq7p5N9c9Vw2gx3l852C3A6
-         FntFM8Qnmu4vflpCmYt42guZjKEnWqfSgJgLD9pA=
-Date:   Thu, 20 Oct 2022 21:34:58 -0700
-To:     mm-commits@vger.kernel.org, rcampbell@nvidia.com, lyude@redhat.com,
-        jhubbard@nvidia.com, bskeggs@redhat.com, apopple@nvidia.com,
+        b=oz2VtFzg5UiHl9r+LaKHyBH/N2mpdZjKoF8+efm+zaxuuyrubouigHNpo5e1UHCBV
+         buK3p7LDSF7L1ThSDbl1zjGTXgi7/jGEfXUCVQJUvaH6QsjlY9PjzdL4nQbtKiWEKa
+         /Q8ydS1SmAaNq8VMyftWZ6rcnMi/QjNXEz/2wyys=
+Date:   Thu, 20 Oct 2022 21:34:52 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        songmuchun@bytedance.com, n-horiguchi@ah.jp.nec.com,
+        mike.kravetz@oracle.com, gkmccready@meta.com, riel@surriel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nouveau-fix-migrate_to_ram-for-faulting-page.patch removed from -mm tree
-Message-Id: <20221021043459.8A9EBC433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mmhugetlb-take-hugetlb_lock-before-decrementing-h-resv_huge_pages.patch removed from -mm tree
+Message-Id: <20221021043452.DBD71C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,50 +43,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nouveau: fix migrate_to_ram() for faulting page
+     Subject: mm,hugetlb: take hugetlb_lock before decrementing h->resv_huge_pages
 has been removed from the -mm tree.  Its filename was
-     nouveau-fix-migrate_to_ram-for-faulting-page.patch
+     mmhugetlb-take-hugetlb_lock-before-decrementing-h-resv_huge_pages.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: nouveau: fix migrate_to_ram() for faulting page
-Date: Wed, 19 Oct 2022 23:29:34 +1100
+From: Rik van Riel <riel@surriel.com>
+Subject: mm,hugetlb: take hugetlb_lock before decrementing h->resv_huge_pages
+Date: Mon, 17 Oct 2022 20:25:05 -0400
 
-Commit 16ce101db85d ("mm/memory.c: fix race when faulting a device private
-page") changed the migrate_to_ram() callback to take a reference on the
-device page to ensure it can't be freed while handling the fault. 
-Unfortunately the corresponding update to Nouveau to accommodate this
-change was inadvertently dropped from that patch causing GPU to CPU
-migration to fail so add it here.
+The h->*_huge_pages counters are protected by the hugetlb_lock, but
+alloc_huge_page has a corner case where it can decrement the counter
+outside of the lock.
 
-Link: https://lkml.kernel.org/r/20221019122934.866205-1-apopple@nvidia.com
-Fixes: 16ce101db85d ("mm/memory.c: fix race when faulting a device private page")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
+This could lead to a corrupted value of h->resv_huge_pages, which we have
+observed on our systems.
+
+Take the hugetlb_lock before decrementing h->resv_huge_pages to avoid a
+potential race.
+
+Link: https://lkml.kernel.org/r/20221017202505.0e6a4fcd@imladris.surriel.com
+Fixes: a88c76954804 ("mm: hugetlb: fix hugepage memory leak caused by wrong reserve count")
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Glen McCready <gkmccready@meta.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_dmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~nouveau-fix-migrate_to_ram-for-faulting-page
-+++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -176,6 +176,7 @@ static vm_fault_t nouveau_dmem_migrate_t
- 		.src		= &src,
- 		.dst		= &dst,
- 		.pgmap_owner	= drm->dev,
-+		.fault_page	= vmf->page,
- 		.flags		= MIGRATE_VMA_SELECT_DEVICE_PRIVATE,
- 	};
- 
+--- a/mm/hugetlb.c~mmhugetlb-take-hugetlb_lock-before-decrementing-h-resv_huge_pages
++++ a/mm/hugetlb.c
+@@ -2924,11 +2924,11 @@ struct page *alloc_huge_page(struct vm_a
+ 		page = alloc_buddy_huge_page_with_mpol(h, vma, addr);
+ 		if (!page)
+ 			goto out_uncharge_cgroup;
++		spin_lock_irq(&hugetlb_lock);
+ 		if (!avoid_reserve && vma_has_reserves(vma, gbl_chg)) {
+ 			SetHPageRestoreReserve(page);
+ 			h->resv_huge_pages--;
+ 		}
+-		spin_lock_irq(&hugetlb_lock);
+ 		list_add(&page->lru, &h->hugepage_activelist);
+ 		set_page_refcounted(page);
+ 		/* Fall through */
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from riel@surriel.com are
 
 
