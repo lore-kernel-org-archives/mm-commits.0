@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5965FC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 18:45:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F0BCC433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 18:51:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229757AbiJUSpd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Oct 2022 14:45:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58836 "EHLO
+        id S229596AbiJUSvo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Oct 2022 14:51:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229744AbiJUSpb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 14:45:31 -0400
+        with ESMTP id S229587AbiJUSvn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 14:51:43 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C69DE19A237
-        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 11:45:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17EED261AC0
+        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 11:51:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6047D61F48
-        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 18:45:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCE00C433C1;
-        Fri, 21 Oct 2022 18:45:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A5E4261E92
+        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 18:51:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08928C433D6;
+        Fri, 21 Oct 2022 18:51:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666377929;
-        bh=d8IX7cZpVK+TTn67HT3brFMl6lZ+xbwJvX/bPCSsMxw=;
+        s=korg; t=1666378302;
+        bh=5WeSzy+Y/5w1/I+JkC7SY8kLPahV2Ok3UEVZHcvH6SM=;
         h=Date:To:From:Subject:From;
-        b=IfwexCETpxDdpgoJfgoYQRjpvY2sohIQRCKgRszGREefdHdoCMWr/sAsOmJzn3T3i
-         YdCpUEBZvBHJl9MDo4ItlKl26pL67y3ClXnL5ApdO8bLZRT3FwSqgfL4qGUsaF/kab
-         D7WJu7rPkUc64ou0oluwzwy0i0Fl3g+N63J5MK00=
-Date:   Fri, 21 Oct 2022 11:45:29 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
-        shy828301@gmail.com, david@redhat.com, apopple@nvidia.com,
-        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
+        b=hUIAJnCNRtpIu2zwYO5yokDCrQptLN3go8zbjugQO8SoIKQx/Km+wPGRTgzWifetU
+         Vzc3BqyZeia4sEqNJkWRA3UMerFS4i7jjUV519PqPit7+7zGmEsyToNij/Jj7Wx9e+
+         sWxF0kvLScrr/wVryICW5gnWK46KwjrRhqDsipOQ=
+Date:   Fri, 21 Oct 2022 11:51:41 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@linux.intel.com,
+        opendmb@gmail.com, mike.kravetz@oracle.com, david@redhat.com,
+        quic_aiquny@quicinc.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-try-again-if-thp-split-is-failed-due-to-page-refcnt.patch added to mm-unstable branch
-Message-Id: <20221021184529.BCE00C433C1@smtp.kernel.org>
+Subject: + mm-page_isolation-fix-clang-deadcode-warning.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221021185142.08928C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: try again if THP split is failed due to page refcnt
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-try-again-if-thp-split-is-failed-due-to-page-refcnt.patch
+     Subject: mm/page_isolation: fix clang deadcode warning
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_isolation-fix-clang-deadcode-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-try-again-if-thp-split-is-failed-due-to-page-refcnt.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-fix-clang-deadcode-warning.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,116 +65,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: migrate: try again if THP split is failed due to page refcnt
-Date: Fri, 21 Oct 2022 18:16:24 +0800
+From: Maria Yu <quic_aiquny@quicinc.com>
+Subject: mm/page_isolation: fix clang deadcode warning
+Date: Fri, 21 Oct 2022 18:15:55 +0800
 
-When creating a virtual machine, we will use memfd_create() to get a file
-descriptor which can be used to create shared memory mappings using
-mmap().  The mmap() will set the MAP_POPULATE flag to allocate physical
-pages for the virtual machine.
+When !CONFIG_VM_BUG_ON, there is warning of
+clang-analyzer-deadcode.DeadStores:
+Value stored to 'mt' during its initialization is never read.
 
-When allocating physical pages for the guest, the host can fall back to
-allocate some CMA pages for the guest when over half of the zone's free
-memory is in the CMA area.
-
-In guest os, when the application wants to do some data transaction with
-DMA, our QEMU will call VFIO_IOMMU_MAP_DMA ioctl to do longterm-pin and
-create IOMMU mappings for the DMA pages.  However, when calling
-VFIO_IOMMU_MAP_DMA ioctl to pin the physical pages, we found it will fail
-to longterm-pin sometimes.
-
-After some invetigation, we found the pages used to do DMA mapping can
-contain some CMA pages, and these CMA pages will cause a possible failure
-of the longterm-pin, due to failure to migrate the CMA pages.  The reason
-for migration failure may be a temporary reference count or memory
-allocation failure.  So that will cause the VFIO_IOMMU_MAP_DMA ioctl to
-return an error, which makes the application fail to start.
-
-I observed one migration failure case (which is not easy to reproduce) is
-that, the 'thp_migration_fail' count is 1 and the 'thp_split_page_failed'
-count is also 1.
-
-That means when migrating a THP which is in a CMA area, but cannot
-allocate a new THP due to memory fragmentation, it will split the THP. 
-However THP split also fails, probably the reason is a temporary reference
-count of this THP.  And the temporary reference count can be caused by
-dropping page caches (I observed the drop caches operation in the system),
-but we cannot drop the shmem page caches because they are already dirty at
-that time.
-
-Especially for THP split failure, which is caused by temporary reference
-count, we can try again to mitigate the failure of migration in this case
-according to previous discussion [1].
-
-[1] https://lore.kernel.org/all/470dc638-a300-f261-94b4-e27250e42f96@redhat.com/
-
-Link: https://lkml.kernel.org/r/88831f1764c8fbd5b5fdad27cd5ae3d2ca796e44.1666335603.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Link: https://lkml.kernel.org/r/20221021101555.7992-2-quic_aiquny@quicinc.com
+Signed-off-by: Maria Yu <quic_aiquny@quicinc.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Doug Berger <opendmb@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- mm/migrate.c     |   19 ++++++++++++++++---
- 2 files changed, 18 insertions(+), 5 deletions(-)
+ mm/page_isolation.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-migrate-try-again-if-thp-split-is-failed-due-to-page-refcnt
-+++ a/mm/huge_memory.c
-@@ -2666,7 +2666,7 @@ int split_huge_page_to_list(struct page
- 	 * split PMDs
- 	 */
- 	if (!can_split_folio(folio, &extra_pins)) {
--		ret = -EBUSY;
-+		ret = -EAGAIN;
- 		goto out_unlock;
- 	}
+--- a/mm/page_isolation.c~mm-page_isolation-fix-clang-deadcode-warning
++++ a/mm/page_isolation.c
+@@ -330,7 +330,7 @@ static int isolate_single_pageblock(unsi
+ 				      zone->zone_start_pfn);
  
-@@ -2716,7 +2716,7 @@ fail:
- 			xas_unlock(&xas);
- 		local_irq_enable();
- 		remap_page(folio, folio_nr_pages(folio));
--		ret = -EBUSY;
-+		ret = -EAGAIN;
- 	}
+ 	if (skip_isolation) {
+-		int mt = get_pageblock_migratetype(pfn_to_page(isolate_pageblock));
++		int mt __maybe_unused = get_pageblock_migratetype(pfn_to_page(isolate_pageblock));
  
- out_unlock:
---- a/mm/migrate.c~mm-migrate-try-again-if-thp-split-is-failed-due-to-page-refcnt
-+++ a/mm/migrate.c
-@@ -1506,9 +1506,22 @@ thp_subpage_migration:
- 				if (is_thp) {
- 					nr_thp_failed++;
- 					/* THP NUMA faulting doesn't split THP to retry. */
--					if (!nosplit && !try_split_thp(page, &thp_split_pages)) {
--						nr_thp_split++;
--						break;
-+					if (!nosplit) {
-+						int ret = try_split_thp(page, &thp_split_pages);
-+
-+						if (!ret) {
-+							nr_thp_split++;
-+							break;
-+						} else if (reason == MR_LONGTERM_PIN &&
-+							   ret == -EAGAIN) {
-+							/*
-+							 * Try again to split THP to mitigate
-+							 * the failure of longterm pinning.
-+							 */
-+							thp_retry++;
-+							nr_retry_pages += nr_subpages;
-+							break;
-+						}
- 					}
- 				} else if (!no_subpage_counting) {
- 					nr_failed++;
+ 		VM_BUG_ON(!is_migrate_isolate(mt));
+ 	} else {
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from quic_aiquny@quicinc.com are
 
-mm-migrate-fix-return-value-if-all-subpages-of-thps-are-migrated-successfully.patch
-mm-migrate-try-again-if-thp-split-is-failed-due-to-page-refcnt.patch
+mm-page_isolation-fix-clang-deadcode-warning.patch
 
