@@ -2,110 +2,108 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C498C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 01:24:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E44FC433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 01:27:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229752AbiJUBYp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Oct 2022 21:24:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39048 "EHLO
+        id S229755AbiJUB1i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Oct 2022 21:27:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44402 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229932AbiJUBYo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 21:24:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CA2249B77
-        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 18:24:42 -0700 (PDT)
+        with ESMTP id S229542AbiJUB1h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 21:27:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A08C229E7D
+        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 18:27:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AC1DD61D78
-        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 01:24:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C56BC433D6;
-        Fri, 21 Oct 2022 01:24:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CD66D61D85
+        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 01:27:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 208CCC433C1;
+        Fri, 21 Oct 2022 01:27:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666315481;
-        bh=skcZB7qorulX47XQG87AlJmNenIvE6lqiy9hqAlQ/Ho=;
+        s=korg; t=1666315655;
+        bh=tZRTm4j7ie3BwOmcOQyAKJvWr8ZrKTUI496kj/fFXO8=;
         h=Date:To:From:Subject:From;
-        b=DkOhf48CzBXRpaSVyFb60oI6zOjRd9Jr/JZwiCOL3ZUykWN51rxsF7ovl7Sazcb/5
-         DJg/G0jRcJfVUGSvljD+NesRWTru2jj27M0/xvrSAa9UKTzkbY4KNIUv/yS8jcGiO3
-         ngwkBJFuZIwlHQub/ABFbfYvoh6dUDk+XWR8pLUE=
-Date:   Thu, 20 Oct 2022 18:24:40 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        oleksiy.avramchenko@sony.com, npiggin@gmail.com, hch@infradead.org,
-        urezki@gmail.com, akpm@linux-foundation.org
+        b=HNZ4e6zAyUqT56GI4LUzOHGXy2U/URYIlEWzT7C0GtJzMCjhFbd3l+P/WinpuAuu5
+         JuWmVJJzBBBvNIanOCEjwhoKGL/8M/k+n9oM3GTnEKzBGW0jPyP4ikryLtqsJqxxWY
+         eN3XasC+jMwKOEQ2C4GF0XMZs8IBGZv3GeNoJx/8=
+Date:   Thu, 20 Oct 2022 18:27:34 -0700
+To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        masahiroy@kernel.org, keescook@chromium.org,
+        gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com,
+        Jason@zx2c4.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-use-trace_purge_vmap_area_lazy-event-fix.patch added to mm-unstable branch
-Message-Id: <20221021012441.0C56BC433D6@smtp.kernel.org>
+Subject: [merged] kbuild-treat-char-as-always-unsigned.patch removed from -mm tree
+Message-Id: <20221021012735.208CCC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: vmalloc: simplify return boolean expression
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-use-trace_purge_vmap_area_lazy-event-fix.patch
+The quilt patch titled
+     Subject: kbuild: treat char as always unsigned
+has been removed from the -mm tree.  Its filename was
+     kbuild-treat-char-as-always-unsigned.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-trace_purge_vmap_area_lazy-event-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: simplify return boolean expression
-Date: Thu, 20 Oct 2022 14:52:47 +0200
+From: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Subject: kbuild: treat char as always unsigned
+Date: Wed, 19 Oct 2022 14:30:34 -0600
 
-A return expression of the __purge_vmap_area_lazy() function can be
-simplified.  Basically a boolean expression anyway is converted to boolean
-values either to true or false.
+Recently, some compile-time checking I added to the clamp_t family of
+functions triggered a build error when a poorly written driver was
+compiled on ARM, because the driver assumed that the naked `char` type is
+signed, but ARM treats it as unsigned, and the C standard says it's
+architecture-dependent.
 
-Link: https://lkml.kernel.org/r/20221020125247.5053-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
+I doubt this particular driver is the only instance in which unsuspecting
+authors make assumptions about `char` with no `signed` or `unsigned`
+specifier.  We were lucky enough this time that that driver used
+`clamp_t(char, negative_value, positive_value)`, so the new checking code
+found it, and I've sent a patch to fix it, but there are likely other
+places lurking that won't be so easily unearthed.
+
+So let's just eliminate this particular variety of heisensign bugs
+entirely.  Set `-funsigned-char` globally, so that gcc makes the type
+unsigned on all architectures.
+
+This will break things in some places and fix things in others, so this
+will likely cause a bit of churn while reconciling the type misuse.
+
+Link: https://lkml.kernel.org/r/20221019203034.3795710-1-Jason@zx2c4.com
+Link: https://lore.kernel.org/lkml/202210190108.ESC3pc3D-lkp@intel.com/
+Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
+ Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-trace_purge_vmap_area_lazy-event-fix
-+++ a/mm/vmalloc.c
-@@ -1786,7 +1786,7 @@ static bool __purge_vmap_area_lazy(unsig
- 
- out:
- 	trace_purge_vmap_area_lazy(start, end, num_purged_areas);
--	return num_purged_areas > 0 ? true:false;
-+	return num_purged_areas > 0;
- }
- 
- /*
+--- a/Makefile~kbuild-treat-char-as-always-unsigned
++++ a/Makefile
+@@ -562,7 +562,7 @@ KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-P
+ KBUILD_CFLAGS   := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
+ 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
+ 		   -Werror=implicit-function-declaration -Werror=implicit-int \
+-		   -Werror=return-type -Wno-format-security \
++		   -Werror=return-type -Wno-format-security -funsigned-char \
+ 		   -std=gnu11
+ KBUILD_CPPFLAGS := -D__KERNEL__
+ KBUILD_RUSTFLAGS := $(rust_common_flags) \
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from Jason@zx2c4.com are
 
-mm-vmalloc-add-alloc_vmap_area-trace-event.patch
-mm-vmalloc-add-purge_vmap_area_lazy-trace-event.patch
-mm-vmalloc-add-free_vmap_area_noflush-trace-event.patch
-mm-vmalloc-use-trace_alloc_vmap_area-event.patch
-mm-vmalloc-use-trace_purge_vmap_area_lazy-event.patch
-mm-vmalloc-use-trace_purge_vmap_area_lazy-event-fix.patch
-mm-vmalloc-use-trace_free_vmap_area_noflush-event.patch
-vmalloc-add-reviewers-for-vmalloc-code.patch
+wifi-rt2x00-use-explicitly-signed-type-for-clamping.patch
+minmax-sanity-check-constant-bounds-when-clamping.patch
+minmax-clamp-more-efficiently-by-avoiding-extra-comparison.patch
 
