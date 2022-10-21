@@ -2,88 +2,135 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4F75C43219
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Oct 2022 22:46:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9920C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 00:41:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230143AbiJTWql (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Oct 2022 18:46:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44170 "EHLO
+        id S229891AbiJUAlN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Oct 2022 20:41:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229894AbiJTWqb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 18:46:31 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E52D9164BD6;
-        Thu, 20 Oct 2022 15:46:29 -0700 (PDT)
+        with ESMTP id S229784AbiJUAlK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 20:41:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 704494361E;
+        Thu, 20 Oct 2022 17:40:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2162EB821C7;
-        Thu, 20 Oct 2022 22:46:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD6EFC433D6;
-        Thu, 20 Oct 2022 22:46:25 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="AILrQt0B"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1666305983;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=bW21QW3lsybJpbLWWG+fLJUAamVkFsJreOYqtoP32IU=;
-        b=AILrQt0BuZWta+vQbL0pfBAe4R0Mx11zmVNFwJidURlA7Qjy7lTlGKnhTu0F+c1LZm8IjW
-        uk5f707N0Suk2CBYUfqr/k0pMr9QMaP9ifp2d1BEuatOgZu2UbkMopY2wqxzGkbqgvG6tD
-        sojNkk+Iz84EGWdD60DtXMeEcBKPevE=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id ca4689d4 (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-        Thu, 20 Oct 2022 22:46:21 +0000 (UTC)
-Date:   Thu, 20 Oct 2022 16:46:01 -0600
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org, masahiroy@kernel.org,
-        gregkh@linuxfoundation.org, Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [PATCH -mm] -funsigned-char, x86: make struct
- p4_event_bind::cntr signed array
-Message-ID: <Y1HPqdBbv83VqCvp@zx2c4.com>
-References: <20221020000356.177CDC433C1@smtp.kernel.org>
- <Y1EZuQcO8UoN91cX@localhost.localdomain>
- <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com>
- <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
- <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
- <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
- <202210201151.ECC19BC97A@keescook>
- <CAHk-=wgdXRZy0-3v+vLZdDfRFKFXZLehgmR2QUKSemBA99sfmg@mail.gmail.com>
- <CAHk-=wjvp=ys2adnWwc1PNt3OrZ_0EkFaUcvjiVuOoVNjX_+AA@mail.gmail.com>
- <Y1G+7e7l5dpHhCyP@smile.fi.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <Y1G+7e7l5dpHhCyP@smile.fi.intel.com>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DF4CD608C1;
+        Fri, 21 Oct 2022 00:40:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43196C433D6;
+        Fri, 21 Oct 2022 00:40:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1666312841;
+        bh=GBeN1oBD5bc+Msx8UlG3FBeBC85zLmPYoHe+HNkJRAs=;
+        h=Date:To:From:Subject:From;
+        b=aqYCT5PKj1CLfvfscPcrCH0E0J64Vcu8NNLDfC/4aqr/P9HyOWsYGhuyfEvyzwuc1
+         H8s9mpCGomr26D1O0mtdANnxgRHI6WHhy70/RILlqydGBhxaNSjUG87/JCAgS+rP0/
+         Wzhlciy6tos5NAx8rXpVPFnc3FnfJdPmh7eEN2a8=
+Date:   Thu, 20 Oct 2022 17:40:40 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        srw@sladewatkins.net, regressions@leemhuis.info,
+        mirsad.todorovac@alu.unizg.hr, hsinyi@chromium.org,
+        dimitri.ledkov@canonical.com, bagasdotme@gmail.com,
+        phillip@squashfs.org.uk, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + squashfs-fix-extending-readahead-beyond-end-of-file.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221021004041.43196C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Oct 21, 2022 at 12:34:37AM +0300, Andy Shevchenko wrote:
-> On Thu, Oct 20, 2022 at 01:17:33PM -0700, Linus Torvalds wrote:
-> > On Thu, Oct 20, 2022 at 12:39 PM Linus Torvalds
-> > <torvalds@linux-foundation.org> wrote:
-> 
-> ...
-> 
-> > And in some cases the differences are enormous:
-> > 
-> >  - drivers/net/wireless/ralink/rt2x00/rt2800lib.c generates a 220kB diff
-> > 
-> > which seems to be due to entirely different inlining decisions or
-> > something, and the differences are so enormous that I didn't even
-> > start looking at the cause.
-> 
-> This one is what we start the epopee from. I think Jason handled it in his last
-> patch against this certain driver.
 
-Right, and Kale is taking it for 6.1, because it fixes existing breakage
-on ARM. But it's not broken on x86 with -funsigned-char.
+The patch titled
+     Subject: squashfs: fix extending readahead beyond end of file
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     squashfs-fix-extending-readahead-beyond-end-of-file.patch
 
-Jason
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-extending-readahead-beyond-end-of-file.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: fix extending readahead beyond end of file
+Date: Thu, 20 Oct 2022 23:36:15 +0100
+
+The readahead code will try to extend readahead to the entire size of the
+Squashfs data block.
+
+But, it didn't take into account that the last block at the end of the
+file may not be a whole block.  In this case, the code would extend
+readahead to beyond the end of the file, leaving trailing pages.
+
+Fix this by only requesting the expected number of pages.
+
+Link: https://lkml.kernel.org/r/20221020223616.7571-3-phillip@squashfs.org.uk
+Fixes: 8fc78b6fe24c ("squashfs: implement readahead")
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: <stable@vger.kernel.org>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Dimitri John Ledkov <dimitri.ledkov@canonical.com>
+Cc: Hsin-Yi Wang <hsinyi@chromium.org>
+Cc: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
+Cc: Slade Watkins <srw@sladewatkins.net>
+Cc: Thorsten Leemhuis <regressions@leemhuis.info>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/squashfs/file.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+--- a/fs/squashfs/file.c~squashfs-fix-extending-readahead-beyond-end-of-file
++++ a/fs/squashfs/file.c
+@@ -559,6 +559,12 @@ static void squashfs_readahead(struct re
+ 		unsigned int expected;
+ 		struct page *last_page;
+ 
++		expected = start >> msblk->block_log == file_end ?
++			   (i_size_read(inode) & (msblk->block_size - 1)) :
++			    msblk->block_size;
++
++		max_pages = (expected + PAGE_SIZE - 1) >> PAGE_SHIFT;
++
+ 		nr_pages = __readahead_batch(ractl, pages, max_pages);
+ 		if (!nr_pages)
+ 			break;
+@@ -567,13 +573,10 @@ static void squashfs_readahead(struct re
+ 			goto skip_pages;
+ 
+ 		index = pages[0]->index >> shift;
++
+ 		if ((pages[nr_pages - 1]->index >> shift) != index)
+ 			goto skip_pages;
+ 
+-		expected = index == file_end ?
+-			   (i_size_read(inode) & (msblk->block_size - 1)) :
+-			    msblk->block_size;
+-
+ 		if (index == file_end && squashfs_i(inode)->fragment_block !=
+ 						SQUASHFS_INVALID_BLK) {
+ 			res = squashfs_readahead_fragment(pages, nr_pages,
+_
+
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
+
+squashfs-fix-read-regression-introduced-in-readahead-code.patch
+squashfs-fix-extending-readahead-beyond-end-of-file.patch
+squashfs-fix-buffer-release-race-condition-in-readahead-code.patch
+
