@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E419DC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 00:42:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEB23C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 00:59:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229948AbiJUAmJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Oct 2022 20:42:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43076 "EHLO
+        id S229497AbiJUA7K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Oct 2022 20:59:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229994AbiJUAl4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 20:41:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 659121DE3CA
-        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 17:41:52 -0700 (PDT)
+        with ESMTP id S229454AbiJUA7J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2022 20:59:09 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AFE21A16C4;
+        Thu, 20 Oct 2022 17:59:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AED32B82A05
-        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 00:41:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DB0FC433C1;
-        Fri, 21 Oct 2022 00:41:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A43F161D3B;
+        Fri, 21 Oct 2022 00:59:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0506CC433D7;
+        Fri, 21 Oct 2022 00:59:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666312909;
-        bh=4g3DckWRB+f6qkpz3qmTLlEgv58fSzH2sxLYhNXTDFk=;
+        s=korg; t=1666313948;
+        bh=GFKsXoH/72kHQuGJs4wHnLPIv8dR5pye1WNdA9+itok=;
         h=Date:To:From:Subject:From;
-        b=HYq+WsCGqc6gFrQF5Y69V6O876D+9aV5DKG0vXH5dNDwGkZaT6n684gO1ZqaBaESY
-         oxFjjzP+m1tvZw/P2UNoNEI97yWnP4uPjwEM85nYxO1tf0w90iet2LxfaLjyUp1yff
-         yjfBcjQiA6U4vGBOSsIZiw7dgqnVHd5rQRSI0olQ=
-Date:   Thu, 20 Oct 2022 17:41:48 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=czayl6gWFN2nPlOBl3rvo+6JahmiN+9YU3Sb0K2CkCndPNzDZBjRgXiuLrA1e3eqC
+         xs3cgQNWdiUygWRCcsU0wBqg3RmYXesr4hPexZMKYCm65aD3tCv/MJv2RWYMlux34i
+         4VnN/icyxsBzCMYHtpU1sYbe0glevil1lgs6gnoU=
+Date:   Thu, 20 Oct 2022 17:59:07 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        songmuchun@bytedance.com, catalin.marinas@arm.com,
+        longman@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages.patch added to mm-unstable branch
-Message-Id: <20221021004149.4DB0FC433C1@smtp.kernel.org>
+Subject: + mm-kmemleak-prevent-soft-lockup-in-kmemleak_scans-object-iteration-loops.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221021005908.0506CC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: unify clearing of RestoreReserve for private pages
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages.patch
+     Subject: mm/kmemleak: prevent soft lockup in kmemleak_scan()'s object iteration loops
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-kmemleak-prevent-soft-lockup-in-kmemleak_scans-object-iteration-loops.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-prevent-soft-lockup-in-kmemleak_scans-object-iteration-loops.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,91 +65,142 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: unify clearing of RestoreReserve for private pages
-Date: Thu, 20 Oct 2022 15:38:32 -0400
+From: Waiman Long <longman@redhat.com>
+Subject: mm/kmemleak: prevent soft lockup in kmemleak_scan()'s object iteration loops
+Date: Thu, 20 Oct 2022 13:56:19 -0400
 
-A trivial cleanup to move clearing of RestoreReserve into adding anon rmap
-of private hugetlb mappings.  It matches with the shared mappings where we
-only clear the bit when adding into page cache, rather than spreading it
-around the code paths.
+Commit 6edda04ccc7c ("mm/kmemleak: prevent soft lockup in first object
+iteration loop of kmemleak_scan()") adds cond_resched() in the first
+object iteration loop of kmemleak_scan().  However, it turns that the 2nd
+objection iteration loop can still cause soft lockup to happen in some
+cases.  So add a cond_resched() call in the 2nd and 3rd loops as well to
+prevent that and for completeness.
 
-Link: https://lkml.kernel.org/r/20221020193832.776173-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20221020175619.366317-1-longman@redhat.com
+Fixes: 6edda04ccc7c ("mm/kmemleak: prevent soft lockup in first object iteration loop of kmemleak_scan()")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 ++++----------
- mm/rmap.c    |    2 +-
- 2 files changed, 5 insertions(+), 11 deletions(-)
+ mm/kmemleak.c |   61 +++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 42 insertions(+), 19 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages
-+++ a/mm/hugetlb.c
-@@ -4784,7 +4784,6 @@ hugetlb_install_page(struct vm_area_stru
- 	hugepage_add_new_anon_rmap(new_page, vma, addr);
- 	set_huge_pte_at(vma->vm_mm, addr, ptep, make_huge_pte(vma, new_page, 1));
- 	hugetlb_count_add(pages_per_huge_page(hstate_vma(vma)), vma->vm_mm);
--	ClearHPageRestoreReserve(new_page);
- 	SetHPageMigratable(new_page);
+--- a/mm/kmemleak.c~mm-kmemleak-prevent-soft-lockup-in-kmemleak_scans-object-iteration-loops
++++ a/mm/kmemleak.c
+@@ -1461,6 +1461,27 @@ static void scan_gray_list(void)
  }
  
-@@ -5447,8 +5446,6 @@ retry_avoidcopy:
- 	spin_lock(ptl);
- 	ptep = huge_pte_offset(mm, haddr, huge_page_size(h));
- 	if (likely(ptep && pte_same(huge_ptep_get(ptep), pte))) {
--		ClearHPageRestoreReserve(new_page);
+ /*
++ * Conditionally call resched() in a object iteration loop while making sure
++ * that the given object won't go away without RCU read lock by performing a
++ * get_object() if !pinned.
++ *
++ * Return: false if can't do a cond_resched() due to get_object() failure
++ *	   true otherwise
++ */
++static bool kmemleak_cond_resched(struct kmemleak_object *object, bool pinned)
++{
++	if (!pinned && !get_object(object))
++		return false;
++
++	rcu_read_unlock();
++	cond_resched();
++	rcu_read_lock();
++	if (!pinned)
++		put_object(object);
++	return true;
++}
++
++/*
+  * Scan data sections and all the referenced memory blocks allocated via the
+  * kernel's standard allocators. This function must be called with the
+  * scan_mutex held.
+@@ -1471,7 +1492,7 @@ static void kmemleak_scan(void)
+ 	struct zone *zone;
+ 	int __maybe_unused i;
+ 	int new_leaks = 0;
+-	int loop1_cnt = 0;
++	int loop_cnt = 0;
+ 
+ 	jiffies_last_scan = jiffies;
+ 
+@@ -1480,7 +1501,6 @@ static void kmemleak_scan(void)
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
+ 		bool obj_pinned = false;
+ 
+-		loop1_cnt++;
+ 		raw_spin_lock_irq(&object->lock);
+ #ifdef DEBUG
+ 		/*
+@@ -1514,24 +1534,11 @@ static void kmemleak_scan(void)
+ 		raw_spin_unlock_irq(&object->lock);
+ 
+ 		/*
+-		 * Do a cond_resched() to avoid soft lockup every 64k objects.
+-		 * Make sure a reference has been taken so that the object
+-		 * won't go away without RCU read lock.
++		 * Do a cond_resched() every 64k objects to avoid soft lockup.
+ 		 */
+-		if (!(loop1_cnt & 0xffff)) {
+-			if (!obj_pinned && !get_object(object)) {
+-				/* Try the next object instead */
+-				loop1_cnt--;
+-				continue;
+-			}
 -
- 		/* Break COW or unshare */
- 		huge_ptep_clear_flush(vma, haddr, ptep);
- 		mmu_notifier_invalidate_range(mm, range.start, range.end);
-@@ -5743,10 +5740,9 @@ static vm_fault_t hugetlb_no_page(struct
- 	if (!pte_same(huge_ptep_get(ptep), old_pte))
- 		goto backout;
- 
--	if (anon_rmap) {
--		ClearHPageRestoreReserve(page);
-+	if (anon_rmap)
- 		hugepage_add_new_anon_rmap(page, vma, haddr);
--	} else
-+	else
- 		page_dup_file_rmap(page, true);
- 	new_pte = make_huge_pte(vma, page, ((vma->vm_flags & VM_WRITE)
- 				&& (vma->vm_flags & VM_SHARED)));
-@@ -6133,12 +6129,10 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	if (!huge_pte_none_mostly(huge_ptep_get(dst_pte)))
- 		goto out_release_unlock;
- 
--	if (page_in_pagecache) {
-+	if (page_in_pagecache)
- 		page_dup_file_rmap(page, true);
--	} else {
--		ClearHPageRestoreReserve(page);
-+	else
- 		hugepage_add_new_anon_rmap(page, dst_vma, dst_addr);
--	}
- 
- 	/*
- 	 * For either: (1) CONTINUE on a non-shared VMA, or (2) UFFDIO_COPY
---- a/mm/rmap.c~mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages
-+++ a/mm/rmap.c
-@@ -2571,7 +2571,7 @@ void hugepage_add_new_anon_rmap(struct p
- 	BUG_ON(address < vma->vm_start || address >= vma->vm_end);
- 	atomic_set(compound_mapcount_ptr(page), 0);
- 	atomic_set(compound_pincount_ptr(page), 0);
+-			rcu_read_unlock();
+-			cond_resched();
+-			rcu_read_lock();
 -
-+	ClearHPageRestoreReserve(page);
- 	__page_set_anon_rmap(page, vma, address, 1);
- }
- #endif /* CONFIG_HUGETLB_PAGE */
+-			if (!obj_pinned)
+-				put_object(object);
+-		}
++		if (!(++loop_cnt & 0xffff) &&
++		    !kmemleak_cond_resched(object, obj_pinned))
++			loop_cnt--; /* Try again on next object */
+ 	}
+ 	rcu_read_unlock();
+ 
+@@ -1598,8 +1605,16 @@ static void kmemleak_scan(void)
+ 	 * scan and color them gray until the next scan.
+ 	 */
+ 	rcu_read_lock();
++	loop_cnt = 0;
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
+ 		/*
++		 * Do a cond_resched() every 64k objects to avoid soft lockup.
++		 */
++		if (!(++loop_cnt & 0xffff) &&
++		    !kmemleak_cond_resched(object, false))
++			loop_cnt--;	/* Try again on next object */
++
++		/*
+ 		 * This is racy but we can save the overhead of lock/unlock
+ 		 * calls. The missed objects, if any, should be caught in
+ 		 * the next scan.
+@@ -1632,8 +1647,16 @@ static void kmemleak_scan(void)
+ 	 * Scanning result reporting.
+ 	 */
+ 	rcu_read_lock();
++	loop_cnt = 0;
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
+ 		/*
++		 * Do a cond_resched() every 64k objects to avoid soft lockup.
++		 */
++		if (!(++loop_cnt & 0xffff) &&
++		    !kmemleak_cond_resched(object, false))
++			loop_cnt--;	/* Try again on next object */
++
++		/*
+ 		 * This is racy but we can save the overhead of lock/unlock
+ 		 * calls. The missed objects, if any, should be caught in
+ 		 * the next scan.
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-selftests-vm-use-memfd-for-uffd-hugetlb-tests.patch
-selftests-vm-use-memfd-for-hugetlb-madvise-test.patch
-selftests-vm-use-memfd-for-hugepage-mremap-test.patch
-selftests-vm-drop-mnt-point-for-hugetlb-in-run_vmtestssh.patch
-mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages.patch
+mm-kmemleak-prevent-soft-lockup-in-kmemleak_scans-object-iteration-loops.patch
 
