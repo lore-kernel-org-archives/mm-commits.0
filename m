@@ -2,111 +2,126 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C164EC4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 04:23:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBBD5C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Oct 2022 04:33:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229652AbiJUEXl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Oct 2022 00:23:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39490 "EHLO
+        id S229834AbiJUEdb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Oct 2022 00:33:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33310 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229456AbiJUEXk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 00:23:40 -0400
+        with ESMTP id S229740AbiJUEda (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2022 00:33:30 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0065115DB3E
-        for <mm-commits@vger.kernel.org>; Thu, 20 Oct 2022 21:23:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4ECB61DE3CB;
+        Thu, 20 Oct 2022 21:33:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9108761D7E
-        for <mm-commits@vger.kernel.org>; Fri, 21 Oct 2022 04:23:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6EBAC433D6;
-        Fri, 21 Oct 2022 04:23:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DF05E61D7E;
+        Fri, 21 Oct 2022 04:33:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EC4CC433B5;
+        Fri, 21 Oct 2022 04:33:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666326212;
-        bh=tTgOaeeAFxV83fAb5RlC0xYEl+gALa3m01bCL3GtUBI=;
-        h=Date:To:From:Subject:From;
-        b=g71D0URg8ugFCAAkvNZpOuOBB/vPLyKRIcT8voet90+Tj59CRdUW63i2r5Ug4iVPO
-         aNtAtLSRe8J61leSIc9b02wwCpfiLavVGKw//yZdSzBHh6H26FWP6lpi0XceYL5+FH
-         N9yq6e0KeNuExKrk6vXDPWkxMiYuTmpNZ46grt6Y=
-Date:   Thu, 20 Oct 2022 21:23:30 -0700
-To:     mm-commits@vger.kernel.org, jiebin.sun@intel.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        s=korg; t=1666326808;
+        bh=Td7AO4EDjyUFfeBl6K7bjH5WSGUekWP88tr/29ohcj8=;
+        h=Date:From:To:Cc:Subject:From;
+        b=CXXwnXMpDuMrfD8wNttALqf4i2hXGdQ95Kd7vsL8TO6kX1YfHQushLwQdLhi8EyK4
+         /g02r9Y6zvVasUS7XX0hBAvbnlailrF94ZpERKJG8Mno6+B3D0OsLJHVk26TpKbxuF
+         ZYK21CCXCfmaH1zCa+fx1vQG/9N2pPpFyyOvyTl8=
+Date:   Thu, 20 Oct 2022 21:33:27 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-msgc-fix-percpu_counter-use-after-free.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221021042331.E6EBAC433D6@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.1-rc2
+Message-Id: <20221020213327.2c284af5925b6a8ed915fe9e@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: ipc/msg.c: fix percpu_counter use after free
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ipc-msgc-fix-percpu_counter-use-after-free.patch
+Linus, please merge this batch of hotfixes.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-msgc-fix-percpu_counter-use-after-free.patch
+The following changes since commit 9abf2313adc1ca1b6180c508c25f22f9395cc780:
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+  Linux 6.1-rc1 (2022-10-16 15:36:24 -0700)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+are available in the Git repository at:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-10-20
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+for you to fetch changes up to 97061d441110528dc02972818f2f1dad485107f9:
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc/msg.c: fix percpu_counter use after free
-Date: Thu Oct 20 09:19:22 PM PDT 2022
+  nouveau: fix migrate_to_ram() for faulting page (2022-10-20 21:27:24 -0700)
 
-These percpu counters are referenced in free_ipcs->freeque, so destroy
-them later.
+----------------------------------------------------------------
+17 hotfixes, mainly for MM.  5 are cc:stable and the remainder address
+post-6.0 issues.
 
-Fixes: 72d1e611082e ("ipc/msg: mitigate the lock contention with percpu counter")
-Reported-by: syzbot+96e659d35b9d6b541152@syzkaller.appspotmail.com
-Cc: Jiebin Sun <jiebin.sun@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+Alexey Romanov (1):
+      zsmalloc: zs_destroy_pool: add size_class NULL check
 
- ipc/msg.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Alistair Popple (1):
+      nouveau: fix migrate_to_ram() for faulting page
 
---- a/ipc/msg.c~ipc-msgc-fix-percpu_counter-use-after-free
-+++ a/ipc/msg.c
-@@ -1329,11 +1329,11 @@ fail_msg_bytes:
- #ifdef CONFIG_IPC_NS
- void msg_exit_ns(struct ipc_namespace *ns)
- {
--	percpu_counter_destroy(&ns->percpu_msg_bytes);
--	percpu_counter_destroy(&ns->percpu_msg_hdrs);
- 	free_ipcs(ns, &msg_ids(ns), freeque);
- 	idr_destroy(&ns->ids[IPC_MSG_IDS].ipcs_idr);
- 	rhashtable_destroy(&ns->ids[IPC_MSG_IDS].key_ht);
-+	percpu_counter_destroy(&ns->percpu_msg_bytes);
-+	percpu_counter_destroy(&ns->percpu_msg_hdrs);
- }
- #endif
- 
-_
+Andrew Morton (3):
+      Merge branch 'master' into mm-hotfixes-stable
+      Merge branch 'master' into mm-hotfixes-stable
+      mm/mmap.c: __vma_adjust(): suppress uninitialized var warning
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Colin Ian King (1):
+      init: Kconfig: fix spelling mistake "satify" -> "satisfy"
 
-mm-mmapc-__vma_adjust-suppress-unintialized-var-warning.patch
-ipc-msgc-fix-percpu_counter-use-after-free.patch
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-hugetlb-convert-free_huge_page-to-folios-fix.patch
-vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch
-powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
-proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3-fix.patch
+Dan Carpenter (1):
+      mailmap: update Dan Carpenter's email address
+
+Hugh Dickins (1):
+      mm: /proc/pid/smaps_rollup: fix maple tree search
+
+Joseph Qi (2):
+      ocfs2: fix BUG when iput after ocfs2_mknod fails
+      ocfs2: clear dinode links count in case of error
+
+Liam Howlett (2):
+      mm/mempolicy: fix mbind_range() arguments to vma_merge()
+      mm/mmap: fix MAP_FIXED address return on VMA merge
+
+Liam R. Howlett (1):
+      mm/page_alloc: reduce potential fragmentation in make_alloc_exact()
+
+Martin Liska (1):
+      gcov: support GCC 12.1 and newer compilers
+
+Mel Gorman (1):
+      mm/huge_memory: do not clobber swp_entry_t during THP split
+
+Mike Kravetz (2):
+      mm/mmap: undo ->mmap() when mas_preallocate() fails
+      hugetlb: fix memory leak associated with vma_lock structure
+
+Qais Yousef (1):
+      mailmap: update email for Qais Yousef
+
+Rik van Riel (1):
+      mm,hugetlb: take hugetlb_lock before decrementing h->resv_huge_pages
+
+ .mailmap                               |  4 +++-
+ drivers/gpu/drm/nouveau/nouveau_dmem.c |  1 +
+ fs/ocfs2/namei.c                       | 23 ++++++++++-----------
+ fs/proc/task_mmu.c                     |  2 +-
+ init/Kconfig                           |  2 +-
+ kernel/gcov/gcc_4_7.c                  | 18 +++++++++++++++--
+ mm/huge_memory.c                       | 11 +++++++++-
+ mm/hugetlb.c                           | 37 +++++++++++++++++++++++++---------
+ mm/mempolicy.c                         | 17 ++++++++++------
+ mm/mmap.c                              | 20 +++++++++---------
+ mm/page_alloc.c                        | 20 ++++++++++--------
+ mm/zsmalloc.c                          |  3 +++
+ 12 files changed, 107 insertions(+), 51 deletions(-)
 
