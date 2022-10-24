@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37456C67871
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Oct 2022 00:17:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE3C1C38A2D
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Oct 2022 00:25:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230494AbiJYARN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Oct 2022 20:17:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45596 "EHLO
+        id S231282AbiJYAZG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Oct 2022 20:25:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231150AbiJYAQh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 20:16:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A6BFDF44
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 15:36:09 -0700 (PDT)
+        with ESMTP id S231253AbiJYAYr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 20:24:47 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E24DDBBCB
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 15:48:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 52ACE615F0
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 22:36:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BFD6C433D6;
-        Mon, 24 Oct 2022 22:36:08 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 656E2B810B2
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 22:48:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 039DBC433D6;
+        Mon, 24 Oct 2022 22:48:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666650968;
-        bh=lgJLmm+VM6KO+FPkqX01tf7k2KP2XZpe3Rwzo2oyu9k=;
+        s=korg; t=1666651682;
+        bh=luY9V0B3NpvBMusOVlslZQlh8CDnUztfvKkoa9rQ7Lw=;
         h=Date:To:From:Subject:From;
-        b=I939okRxnpQbih3oKjZzUAK5SSjl3PUrwXrklIkZ3sYvF6EtllXda5KZ9jVFx4wBs
-         taF6mCrtBn2x1S3aK9s6NPOEXH3/jGjyf6CAWsj2AKql2s8RibjoAZFk6l0MNH3oU+
-         Dajja+6GT/4U15T2dHHNi9wWNDEgd6sAiXcA8/sY=
-Date:   Mon, 24 Oct 2022 15:36:07 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, wangkefeng.wang@huawei.com,
+        b=KoSMVIDP9kpigoTUSr8ewdAx8eD7ha7HdLNfHUKfGdUlbm+4SzJxS2GJ0Ojtn2B4Z
+         vTWbVvILz+bkhRJ3aP3YblZJA05E2kUTopU1NeQz3CUMTzsgqMZOCWrB7gJj7kW+Vq
+         3sO8Fzb22raTwh8AroExL69gxucOYu55LT9Gxgqk=
+Date:   Mon, 24 Oct 2022 15:48:01 -0700
+To:     mm-commits@vger.kernel.org, kasong@tencent.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-make-action_result-return-int-v2.patch added to mm-unstable branch
-Message-Id: <20221024223608.9BFD6C433D6@smtp.kernel.org>
+Subject: + swap-add-a-limit-for-readahead-page-cluster-value.patch added to mm-unstable branch
+Message-Id: <20221024224802.039DBC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory-failure-make-action_result-return-int-v2
+     Subject: swap: add a limit for readahead page-cluster value
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-make-action_result-return-int-v2.patch
+     swap-add-a-limit-for-readahead-page-cluster-value.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-make-action_result-return-int-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap-add-a-limit-for-readahead-page-cluster-value.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,77 +64,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm-memory-failure-make-action_result-return-int-v2
-Date: Mon, 24 Oct 2022 11:51:38 +0800
+From: Kairui Song <kasong@tencent.com>
+Subject: swap: add a limit for readahead page-cluster value
+Date: Mon, 24 Oct 2022 00:25:33 +0800
 
-- MF_DELAYED is considered as success, suggested by HORIGUCHI
+Currenty there is no upper limit for /proc/sys/vm/page-cluster, and it's a
+bit shift value, so it could result in overflow of the 32-bit integer. 
+Add a reasonable upper limit for it, read-in at most 2**31 pages, which is
+a large enough value for readahead.
 
-- adjust order between unlock_page(head) and action_result()
-  after !hwpoison_user_mappings() to clean code more in
-  try_memory_failure_hugetlb()
-
-Link: https://lkml.kernel.org/r/20221024035138.99119-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20221023162533.81561-1-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ include/linux/mm.h |    1 +
+ kernel/sysctl.c    |    1 +
+ mm/swap.c          |    3 ++-
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-make-action_result-return-int-v2
-+++ a/mm/memory-failure.c
-@@ -1191,7 +1191,7 @@ static int action_result(unsigned long p
- 	pr_err("%#lx: recovery action for %s: %s\n",
- 		pfn, action_page_types[type], action_name[result]);
+--- a/include/linux/mm.h~swap-add-a-limit-for-readahead-page-cluster-value
++++ a/include/linux/mm.h
+@@ -74,6 +74,7 @@ static inline void totalram_pages_add(lo
  
--	return result == MF_RECOVERED ? 0 : -EBUSY;
-+	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
- }
+ extern void * high_memory;
+ extern int page_cluster;
++extern const int page_cluster_max;
  
- static int page_action(struct page_state *ps, struct page *p,
-@@ -1202,14 +1202,12 @@ static int page_action(struct page_state
- 	/* page p should be unlocked after returning from ps->action().  */
- 	result = ps->action(ps, p);
+ #ifdef CONFIG_SYSCTL
+ extern int sysctl_legacy_va_layout;
+--- a/kernel/sysctl.c~swap-add-a-limit-for-readahead-page-cluster-value
++++ a/kernel/sysctl.c
+@@ -2125,6 +2125,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= SYSCTL_ZERO,
++		.extra2		= (void *)&page_cluster_max,
+ 	},
+ 	{
+ 		.procname	= "dirtytime_expire_seconds",
+--- a/mm/swap.c~swap-add-a-limit-for-readahead-page-cluster-value
++++ a/mm/swap.c
+@@ -43,8 +43,9 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/pagemap.h>
  
--	action_result(pfn, ps->type, result);
--
- 	/* Could do more checks here if page looks ok */
- 	/*
- 	 * Could adjust zone counters here to correct for the missing page.
- 	 */
+-/* How many pages do we try to swap or page in/out together? */
++/* How many pages do we try to swap or page in/out together? As a power of 2 */
+ int page_cluster;
++const int page_cluster_max = 31;
  
--	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
-+	return action_result(pfn, ps->type, result);
- }
- 
- static inline bool PageHWPoisonTakenOff(struct page *page)
-@@ -1890,9 +1888,8 @@ retry:
- 	page_flags = head->flags;
- 
- 	if (!hwpoison_user_mappings(p, pfn, flags, head)) {
--		res = action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		unlock_page(head);
--		return res;
-+		return action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 	}
- 
- 	return identify_page_state(pfn, p, page_flags);
+ /* Protecting only lru_rotate.fbatch which requires disabling interrupts */
+ struct lru_rotate {
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-rmap-rename-page_not_mapped-to-folio_not_mapped.patch
-mm-remove-kern_addr_valid-completely.patch
-nios2-remove-unused-init_mmap.patch
-x86-sgx-use-vm_access_flags.patch
-mm-mprotect-use-vm_access_flags.patch
-mm-debug_vm_pgtable-use-vm_access_flags.patch
-amdgpu-use-vm_access_flags.patch
-mm-memory-failure-make-put_ref_page-more-useful.patch
-mm-memory-failure-avoid-pfn_valid-twice-in-soft_offline_page.patch
-mm-memory-failure-make-action_result-return-int.patch
-mm-memory-failure-make-action_result-return-int-v2.patch
+swap-add-a-limit-for-readahead-page-cluster-value.patch
 
