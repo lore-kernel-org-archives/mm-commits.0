@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE3C1C38A2D
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Oct 2022 00:25:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D8BCC67871
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Oct 2022 00:28:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231282AbiJYAZG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Oct 2022 20:25:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54312 "EHLO
+        id S229629AbiJYA14 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Oct 2022 20:27:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231253AbiJYAYr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 20:24:47 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E24DDBBCB
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 15:48:10 -0700 (PDT)
+        with ESMTP id S230081AbiJYA1Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 20:27:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 020992FACE9;
+        Mon, 24 Oct 2022 15:50:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 656E2B810B2
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 22:48:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 039DBC433D6;
-        Mon, 24 Oct 2022 22:48:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 486C6615C5;
+        Mon, 24 Oct 2022 22:50:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 984E1C433C1;
+        Mon, 24 Oct 2022 22:50:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666651682;
-        bh=luY9V0B3NpvBMusOVlslZQlh8CDnUztfvKkoa9rQ7Lw=;
+        s=korg; t=1666651838;
+        bh=kBpMU9jnXAoVzKusj74FBB6tfC1ISE3oAwtR7HQijpI=;
         h=Date:To:From:Subject:From;
-        b=KoSMVIDP9kpigoTUSr8ewdAx8eD7ha7HdLNfHUKfGdUlbm+4SzJxS2GJ0Ojtn2B4Z
-         vTWbVvILz+bkhRJ3aP3YblZJA05E2kUTopU1NeQz3CUMTzsgqMZOCWrB7gJj7kW+Vq
-         3sO8Fzb22raTwh8AroExL69gxucOYu55LT9Gxgqk=
-Date:   Mon, 24 Oct 2022 15:48:01 -0700
-To:     mm-commits@vger.kernel.org, kasong@tencent.com,
-        akpm@linux-foundation.org
+        b=mdyTf6ioES5GVgtqtvyWuOUv2o8XU1Y+pq5+x9I2I0a5V5FS6wynkoF3MSyyVgqnK
+         NDWFtYXhh7N103srxulmLyDoV4w8inYmteMML+mPFhFz7mHG9YCzHAGZJ2Bbk+DfsA
+         GWmGG+2I6MeMlWA7xRXFfQ5S8jX8bDyfA2PVCtoo=
+Date:   Mon, 24 Oct 2022 15:50:37 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        stable@vger.kernel.org, riel@surriel.com, peterx@redhat.com,
+        naoya.horiguchi@linux.dev, harperchen1110@gmail.com,
+        david@redhat.com, axelrasmussen@google.com, almasrymina@google.com,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + swap-add-a-limit-for-readahead-page-cluster-value.patch added to mm-unstable branch
-Message-Id: <20221024224802.039DBC433D6@smtp.kernel.org>
+Subject: + hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221024225038.984E1C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap: add a limit for readahead page-cluster value
-has been added to the -mm mm-unstable branch.  Its filename is
-     swap-add-a-limit-for-readahead-page-cluster-value.patch
+     Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap-add-a-limit-for-readahead-page-cluster-value.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,61 +67,177 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: swap: add a limit for readahead page-cluster value
-Date: Mon, 24 Oct 2022 00:25:33 +0800
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
+Date: Sat, 22 Oct 2022 19:50:47 -0700
 
-Currenty there is no upper limit for /proc/sys/vm/page-cluster, and it's a
-bit shift value, so it could result in overflow of the 32-bit integer. 
-Add a reasonable upper limit for it, read-in at most 2**31 pages, which is
-a large enough value for readahead.
+madvise(MADV_DONTNEED) ends up calling zap_page_range() to clear the page
+tables associated with the address range.  For hugetlb vmas,
+zap_page_range will call __unmap_hugepage_range_final.  However,
+__unmap_hugepage_range_final assumes the passed vma is about to be removed
+and deletes the vma_lock to prevent pmd sharing as the vma is on the way
+out.  In the case of madvise(MADV_DONTNEED) the vma remains, but the
+missing vma_lock prevents pmd sharing and could potentially lead to issues
+with truncation/fault races.
 
-Link: https://lkml.kernel.org/r/20221023162533.81561-1-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
+This issue was originally reported here [1] as a BUG triggered in
+page_try_dup_anon_rmap.  Prior to the introduction of the hugetlb
+vma_lock, __unmap_hugepage_range_final cleared the VM_MAYSHARE flag to
+prevent pmd sharing.  Subsequent faults on this vma were confused as
+VM_MAYSHARE indicates a sharable vma, but was not set so page_mapping was
+not set in new pages added to the page table.  This resulted in pages that
+appeared anonymous in a VM_SHARED vma and triggered the BUG.
+
+Create a new routine clear_hugetlb_page_range() that can be called from
+madvise(MADV_DONTNEED) for hugetlb vmas.  It has the same setup as
+zap_page_range, but does not delete the vma_lock.
+
+[1] https://lore.kernel.org/lkml/CAO4mrfdLMXsao9RF4fUE8-Wfde8xmjsKrTNMNC9wjUb6JudD0g@mail.gmail.com/
+
+Link: https://lkml.kernel.org/r/20221023025047.470646-1-mike.kravetz@oracle.com
+Fixes: 90e7e7f5ef3f ("mm: enable MADV_DONTNEED for hugetlb mappings")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Wei Chen <harperchen1110@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- kernel/sysctl.c    |    1 +
- mm/swap.c          |    3 ++-
- 3 files changed, 4 insertions(+), 1 deletion(-)
+ include/linux/hugetlb.h |    7 ++++
+ mm/hugetlb.c            |   62 ++++++++++++++++++++++++++++++--------
+ mm/madvise.c            |    5 ++-
+ 3 files changed, 61 insertions(+), 13 deletions(-)
 
---- a/include/linux/mm.h~swap-add-a-limit-for-readahead-page-cluster-value
-+++ a/include/linux/mm.h
-@@ -74,6 +74,7 @@ static inline void totalram_pages_add(lo
+--- a/include/linux/hugetlb.h~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/include/linux/hugetlb.h
+@@ -156,6 +156,8 @@ long follow_hugetlb_page(struct mm_struc
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *,
+ 			  zap_flags_t);
++void clear_hugetlb_page_range(struct vm_area_struct *vma,
++			unsigned long start, unsigned long end);
+ void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+ 			  struct vm_area_struct *vma,
+ 			  unsigned long start, unsigned long end,
+@@ -460,6 +462,11 @@ static inline void __unmap_hugepage_rang
+ 	BUG();
+ }
  
- extern void * high_memory;
- extern int page_cluster;
-+extern const int page_cluster_max;
++static void __maybe_unused clear_hugetlb_page_range(struct vm_area_struct *vma,
++			unsigned long start, unsigned long end)
++{
++}
++
+ static inline vm_fault_t hugetlb_fault(struct mm_struct *mm,
+ 			struct vm_area_struct *vma, unsigned long address,
+ 			unsigned int flags)
+--- a/mm/hugetlb.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/mm/hugetlb.c
+@@ -5194,28 +5194,66 @@ static void __unmap_hugepage_range(struc
+ 		tlb_flush_mmu_tlbonly(tlb);
+ }
  
- #ifdef CONFIG_SYSCTL
- extern int sysctl_legacy_va_layout;
---- a/kernel/sysctl.c~swap-add-a-limit-for-readahead-page-cluster-value
-+++ a/kernel/sysctl.c
-@@ -2125,6 +2125,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
-+		.extra2		= (void *)&page_cluster_max,
- 	},
- 	{
- 		.procname	= "dirtytime_expire_seconds",
---- a/mm/swap.c~swap-add-a-limit-for-readahead-page-cluster-value
-+++ a/mm/swap.c
-@@ -43,8 +43,9 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/pagemap.h>
+-void __unmap_hugepage_range_final(struct mmu_gather *tlb,
++static void __unmap_hugepage_range_locking(struct mmu_gather *tlb,
+ 			  struct vm_area_struct *vma, unsigned long start,
+ 			  unsigned long end, struct page *ref_page,
+-			  zap_flags_t zap_flags)
++			  zap_flags_t zap_flags, bool final)
+ {
+ 	hugetlb_vma_lock_write(vma);
+ 	i_mmap_lock_write(vma->vm_file->f_mapping);
  
--/* How many pages do we try to swap or page in/out together? */
-+/* How many pages do we try to swap or page in/out together? As a power of 2 */
- int page_cluster;
-+const int page_cluster_max = 31;
+ 	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
  
- /* Protecting only lru_rotate.fbatch which requires disabling interrupts */
- struct lru_rotate {
+-	/*
+-	 * Unlock and free the vma lock before releasing i_mmap_rwsem.  When
+-	 * the vma_lock is freed, this makes the vma ineligible for pmd
+-	 * sharing.  And, i_mmap_rwsem is required to set up pmd sharing.
+-	 * This is important as page tables for this unmapped range will
+-	 * be asynchrously deleted.  If the page tables are shared, there
+-	 * will be issues when accessed by someone else.
+-	 */
+-	__hugetlb_vma_unlock_write_free(vma);
++	if (final) {
++		/*
++		 * Unlock and free the vma lock before releasing i_mmap_rwsem.
++		 * When the vma_lock is freed, this makes the vma ineligible
++		 * for pmd sharing.  And, i_mmap_rwsem is required to set up
++		 * pmd sharing.  This is important as page tables for this
++		 * unmapped range will be asynchrously deleted.  If the page
++		 * tables are shared, there will be issues when accessed by
++		 * someone else.
++		 */
++		__hugetlb_vma_unlock_write_free(vma);
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
++	} else {
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
++		hugetlb_vma_unlock_write(vma);
++	}
++}
++
++void __unmap_hugepage_range_final(struct mmu_gather *tlb,
++			  struct vm_area_struct *vma, unsigned long start,
++			  unsigned long end, struct page *ref_page,
++			  zap_flags_t zap_flags)
++{
++	__unmap_hugepage_range_locking(tlb, vma, start, end, ref_page,
++					zap_flags, true);
++}
++
++#ifdef CONFIG_ADVISE_SYSCALLS
++/*
++ * Similar setup as in zap_page_range().  madvise(MADV_DONTNEED) can not call
++ * zap_page_range for hugetlb vmas as __unmap_hugepage_range_final will delete
++ * the associated vma_lock.
++ */
++void clear_hugetlb_page_range(struct vm_area_struct *vma, unsigned long start,
++				unsigned long end)
++{
++	struct mmu_notifier_range range;
++	struct mmu_gather tlb;
++
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
++				start, end);
++	tlb_gather_mmu(&tlb, vma->vm_mm);
++	update_hiwater_rss(vma->vm_mm);
++
++	__unmap_hugepage_range_locking(&tlb, vma, start, end, NULL, 0, false);
+ 
+-	i_mmap_unlock_write(vma->vm_file->f_mapping);
++	mmu_notifier_invalidate_range_end(&range);
++	tlb_finish_mmu(&tlb);
+ }
++#endif
+ 
+ void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
+ 			  unsigned long end, struct page *ref_page,
+--- a/mm/madvise.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/mm/madvise.c
+@@ -790,7 +790,10 @@ static int madvise_free_single_vma(struc
+ static long madvise_dontneed_single_vma(struct vm_area_struct *vma,
+ 					unsigned long start, unsigned long end)
+ {
+-	zap_page_range(vma, start, end - start);
++	if (!is_vm_hugetlb_page(vma))
++		zap_page_range(vma, start, end - start);
++	else
++		clear_hugetlb_page_range(vma, start, end);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-swap-add-a-limit-for-readahead-page-cluster-value.patch
+hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
 
