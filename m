@@ -2,127 +2,90 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 717BEC04A95
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Oct 2022 23:38:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A48B2FA373F
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 20:39:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229849AbiJVXiD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Oct 2022 19:38:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45004 "EHLO
+        id S234449AbiJXUjY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Oct 2022 16:39:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229568AbiJVXiC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Oct 2022 19:38:02 -0400
+        with ESMTP id S234670AbiJXUi4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 16:38:56 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 830517E827;
-        Sat, 22 Oct 2022 16:38:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B9012CE07;
+        Mon, 24 Oct 2022 11:49:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 45471B80BED;
-        Sat, 22 Oct 2022 23:38:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD45DC433D7;
-        Sat, 22 Oct 2022 23:37:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666481879;
-        bh=SfoVmO3YQp1qSH5jER8lLAVps1YZsFc1IW+5A0cFOKk=;
-        h=Date:To:From:Subject:From;
-        b=ql//SrqgHBjUA1nV45dsmqjJRTAUyQHy2qKzed3nUS9yGg8M55L5WOPi1VrZJqZ2L
-         0IOryFJAZgMZBol2vVDsvG/DLMD1dc6lPwj4h9bIZQbXg0LPTLYHrS3PbxxItiM7GQ
-         44st0tuJV+VjlW9ri2M9QuktdiAFyrRQ0xwG6jL8=
-Date:   Sat, 22 Oct 2022 16:37:58 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, mgorman@techsingularity.net,
-        hughd@google.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-prep_compound_tail-clear-page-private.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221022233758.DD45DC433D7@smtp.kernel.org>
+        by ams.source.kernel.org (Postfix) with ESMTPS id C82D6B81217;
+        Mon, 24 Oct 2022 15:44:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32611C433B5;
+        Mon, 24 Oct 2022 15:44:17 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="lyQUYKNL"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1666626254;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=fWvLZVRYvZmjhg91idBo+8bsezBsd/7oKi65yYsjjjI=;
+        b=lyQUYKNLZmfHXqbLgJhp2zs5CgYl/THxLkwKN8y76FZMui/YKgF3Fu9tmZ9SD2R0nxC2LG
+        cJVcvEkJGelF/HxUtoAlXbtkWLJ5LCHlYmpvFjE9qMsrBoxze15kcO0xo+aaHDWHsvXIVh
+        4Xp5IcJoSad4gf1xt8ZHW55faDVCWKw=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 659a5d2e (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
+        Mon, 24 Oct 2022 15:44:14 +0000 (UTC)
+Date:   Mon, 24 Oct 2022 17:44:09 +0200
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Alexey Dobriyan <adobriyan@gmail.com>, akpm@linux-foundation.org,
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
+        masahiroy@kernel.org, keescook@chromium.org,
+        gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com,
+        Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCH -mm] -funsigned-char, x86: make struct
+ p4_event_bind::cntr signed array
+Message-ID: <Y1ayyS/7b5qnySi3@zx2c4.com>
+References: <20221020000356.177CDC433C1@smtp.kernel.org>
+ <Y1EZuQcO8UoN91cX@localhost.localdomain>
+ <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com>
+ <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
+ <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Thu, Oct 20, 2022 at 11:33:39AM -0600, Jason A. Donenfeld wrote:
+> Hi Linus,
+> 
+> On Thu, Oct 20, 2022 at 11:15 AM Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+> > Can we please try to collect these all in one place?
+> >
+> > I see that Andrew picked up the original one for -mm, but I think it
+> > would be better if we had one specific place for all of this (one
+> > branch) to collect it all.
+> 
+> Sure. Andrew can drop it from -mm, and I'll collect everything in:
+> 
+> https://git.kernel.org/pub/scm/linux/kernel/git/zx2c4/linux.git/log/?h=unsigned-char&r
+> 
+> And I'll ask Stephen to add that branch to -next.
 
-The patch titled
-     Subject: mm: prep_compound_tail() clear page->private
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-prep_compound_tail-clear-page-private.patch
+So, as discussed, I'm doing this, and it's in -next now. And as a
+result, we're getting warnings and such that I am fixing one by one.
+Progress, good.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-prep_compound_tail-clear-page-private.patch
+But it occurs to me that most of these bugs are not in
+architecture-specific code like the x86 p4_event_bind one from last
+week. That means I'll be submitting these as *fixes* during 6.1, since
+they're broken on some architecture already, rather than waiting to
+submit them to you via my unsigned-char tree in 6.2.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Just FYI.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: prep_compound_tail() clear page->private
-Date: Sat, 22 Oct 2022 00:51:06 -0700 (PDT)
-
-Although page allocation always clears page->private in the first page or
-head page of an allocation, it has never made a point of clearing
-page->private in the tails (though 0 is often what is already there).
-
-But now commit 71e2d666ef85 ("mm/huge_memory: do not clobber swp_entry_t
-during THP split") issues a warning when page_tail->private is found to be
-non-0 (unless it's swapcache).
-
-Change that warning to dump page_tail (which also dumps head), instead of
-just the head: so far we have seen dead000000000122, dead000000000003,
-dead000000000001 or 0000000000000002 in the raw output for tail private.
-
-We could just delete the warning, but today's consensus appears to want
-page->private to be 0, unless there's a good reason for it to be set: so
-now clear it in prep_compound_tail() (more general than just for THP; but
-not for high order allocation, which makes no pass down the tails).
-
-Link: https://lkml.kernel.org/r/1c4233bb-4e4d-5969-fbd4-96604268a285@google.com
-Fixes: 71e2d666ef85 ("mm/huge_memory: do not clobber swp_entry_t during THP split")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/huge_memory.c |    2 +-
- mm/page_alloc.c  |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
-
---- a/mm/huge_memory.c~mm-prep_compound_tail-clear-page-private
-+++ a/mm/huge_memory.c
-@@ -2462,7 +2462,7 @@ static void __split_huge_page_tail(struc
- 	 * Fix up and warn once if private is unexpectedly set.
- 	 */
- 	if (!folio_test_swapcache(page_folio(head))) {
--		VM_WARN_ON_ONCE_PAGE(page_tail->private != 0, head);
-+		VM_WARN_ON_ONCE_PAGE(page_tail->private != 0, page_tail);
- 		page_tail->private = 0;
- 	}
- 
---- a/mm/page_alloc.c~mm-prep_compound_tail-clear-page-private
-+++ a/mm/page_alloc.c
-@@ -807,6 +807,7 @@ static void prep_compound_tail(struct pa
- 
- 	p->mapping = TAIL_MAPPING;
- 	set_compound_head(p, head);
-+	set_page_private(p, 0);
- }
- 
- void prep_compound_page(struct page *page, unsigned int order)
-_
-
-Patches currently in -mm which might be from hughd@google.com are
-
-mm-prep_compound_tail-clear-page-private.patch
-
+Jason
