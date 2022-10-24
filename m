@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E15FDC38A2D
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Oct 2022 00:06:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36C43C38A2D
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Oct 2022 00:07:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229974AbiJYAGF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Oct 2022 20:06:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48528 "EHLO
+        id S229604AbiJYAHf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Oct 2022 20:07:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230199AbiJYAFW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 20:05:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D04F880F53
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 15:22:10 -0700 (PDT)
+        with ESMTP id S230314AbiJYAHV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 20:07:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 762DADFF7
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 15:25:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 571F1B80EE4
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 22:22:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB0EAC433C1;
-        Mon, 24 Oct 2022 22:22:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1187261286
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 22:25:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DE73C433C1;
+        Mon, 24 Oct 2022 22:25:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666650128;
-        bh=uT79i2diVwMA3l4RGIv2vat7BsflQqzjYh8LiqFttJU=;
+        s=korg; t=1666650334;
+        bh=6eD4aUxdiyAsynqbmrqsPnKr5PXIWolUN7weZTWI6KA=;
         h=Date:To:From:Subject:From;
-        b=SRNehKuzBmrZ/kyKF/7yFmzj8ytC4ytO96YaNKCgtREj8PYIXvqWmhRJm8X1c0hWC
-         4tRBdLnSlAm+y08yv2ZH3YwyPyJ3F0q06tcdNlvV+3CApBb+s5ecVHQkyhSgwgroWM
-         O+dwPTRuRwkNJxDAIxOwyKltAVoKLLXchoqFPbn0=
-Date:   Mon, 24 Oct 2022 15:22:07 -0700
-To:     mm-commits@vger.kernel.org, tamas.lengyel@zentific.com,
-        ndesaulniers@google.com, nathan@kernel.org, keescook@chromium.org,
-        glider@google.com, akpm@linux-foundation.org
+        b=N+V/6K5V0PAiX7mkS0Nk+3kf7yBHgscUqx2P6YSSaZBAaHZ8XTCI+0B0UUgsxecTi
+         e0TtNxFf4Fs6go4AGIesoKWksv7oTUOnJ/Hp2ZUFs9btwybHurFkBh8GYWDsy3sIpR
+         ZbHlErgDW07kSMyzv1BGL8w5AG2CyxHIXDlczqMg=
+Date:   Mon, 24 Oct 2022 15:25:33 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-fortify-kmsan-fix-kmsan-fortify-builds.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221024222207.EB0EAC433C1@smtp.kernel.org>
+Subject: + mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch added to mm-unstable branch
+Message-Id: <20221024222534.5DE73C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: fortify: kmsan: fix KMSAN fortify builds
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     x86-fortify-kmsan-fix-kmsan-fortify-builds.patch
+     Subject: mm/damon/core: split out DAMOS-charged region skip logic into a new function
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-fortify-kmsan-fix-kmsan-fortify-builds.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,137 +64,177 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: x86: fortify: kmsan: fix KMSAN fortify builds
-Date: Mon, 24 Oct 2022 23:21:44 +0200
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: split out DAMOS-charged region skip logic into a new function
+Date: Mon, 24 Oct 2022 20:49:09 +0000
 
-Ensure that KMSAN builds replace memset/memcpy/memmove calls with the
-respective __msan_XXX functions, and that none of the macros are redefined
-twice.  This should allow building kernel with both CONFIG_KMSAN and
-CONFIG_FORTIFY_SOURCE.
+Patch series "damon: cleanup and refactoring code".
 
-Link: https://lkml.kernel.org/r/20221024212144.2852069-5-glider@google.com
-Link: https://github.com/google/kmsan/issues/89
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reported-by: Tamas K Lengyel <tamas.lengyel@zentific.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Kees Cook <keescook@chromium.org>
+This patchset cleans up and refactors a range of DAMON code including the
+core, DAMON sysfs interface, and DAMON modules, for better readability and
+convenient future feature implementations.
+
+In detail, this patchset splits unnecessarily long and complex functions
+in core into smaller functions (patches 1-4).  Then, it cleans up the
+DAMON sysfs interface by using more type-safe code (patch 5) and removing
+unnecessary function parameters (patch 6).  Further, it refactor the code
+by distributing the code into multiple files (patches 7-9).  Last two
+patches (patches 10 and 11) deduplicates and remove unnecessary header
+inclusion in DAMON modules (reclaim and lru_sort).
+
+
+This patch (of 11):
+
+The DAMOS action applying function, 'damon_do_apply_schemes()', is quite
+long and not so simple.  Split out the already quota-charged region skip
+code, which is not a small amount of simple code, into a new function with
+some comments for better readability.
+
+Link: https://lkml.kernel.org/r/20221024204919.18524-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/string_64.h |   11 +++++++----
- include/linux/fortify-string.h   |   17 +++++++++++++++--
- include/linux/kmsan_string.h     |   21 +++++++++++++++++++++
- mm/kmsan/instrumentation.c       |    1 +
- 4 files changed, 44 insertions(+), 6 deletions(-)
+ mm/damon/core.c |   96 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 65 insertions(+), 31 deletions(-)
 
---- a/arch/x86/include/asm/string_64.h~x86-fortify-kmsan-fix-kmsan-fortify-builds
-+++ a/arch/x86/include/asm/string_64.h
-@@ -10,10 +10,13 @@
- /* Even with __builtin_ the compiler may decide to use the out of line
-    function. */
- 
-+#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
-+#include <linux/kmsan_string.h>
-+#endif
-+
- #define __HAVE_ARCH_MEMCPY 1
--#if defined(__SANITIZE_MEMORY__)
-+#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
- #undef memcpy
--void *__msan_memcpy(void *dst, const void *src, size_t size);
- #define memcpy __msan_memcpy
- #else
- extern void *memcpy(void *to, const void *from, size_t len);
-@@ -21,7 +24,7 @@ extern void *memcpy(void *to, const void
- extern void *__memcpy(void *to, const void *from, size_t len);
- 
- #define __HAVE_ARCH_MEMSET
--#if defined(__SANITIZE_MEMORY__)
-+#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
- extern void *__msan_memset(void *s, int c, size_t n);
- #undef memset
- #define memset __msan_memset
-@@ -67,7 +70,7 @@ static inline void *memset64(uint64_t *s
+--- a/mm/damon/core.c~mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function
++++ a/mm/damon/core.c
+@@ -694,6 +694,67 @@ static bool damos_valid_target(struct da
+ 	return c->ops.get_scheme_score(c, t, r, s) >= s->quota.min_score;
  }
  
- #define __HAVE_ARCH_MEMMOVE
--#if defined(__SANITIZE_MEMORY__)
-+#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
- #undef memmove
- void *__msan_memmove(void *dest, const void *src, size_t len);
- #define memmove __msan_memmove
---- a/include/linux/fortify-string.h~x86-fortify-kmsan-fix-kmsan-fortify-builds
-+++ a/include/linux/fortify-string.h
-@@ -43,11 +43,24 @@ extern __kernel_size_t __underlying_strl
- extern char *__underlying_strncat(char *p, const char *q, __kernel_size_t count) __RENAME(strncat);
- extern char *__underlying_strncpy(char *p, const char *q, __kernel_size_t size) __RENAME(strncpy);
- #else
--#define __underlying_memchr	__builtin_memchr
--#define __underlying_memcmp	__builtin_memcmp
-+
-+#if defined(__SANITIZE_MEMORY__)
 +/*
-+ * For KMSAN builds all memcpy/memset/memmove calls should be replaced by the
-+ * corresponding __msan_XXX functions.
-+ */
-+#include <linux/kmsan_string.h>
-+#define __underlying_memcpy	__msan_memcpy
-+#define __underlying_memmove	__msan_memmove
-+#define __underlying_memset	__msan_memset
-+#else
- #define __underlying_memcpy	__builtin_memcpy
- #define __underlying_memmove	__builtin_memmove
- #define __underlying_memset	__builtin_memset
-+#endif
-+
-+#define __underlying_memchr	__builtin_memchr
-+#define __underlying_memcmp	__builtin_memcmp
- #define __underlying_strcat	__builtin_strcat
- #define __underlying_strcpy	__builtin_strcpy
- #define __underlying_strlen	__builtin_strlen
---- /dev/null
-+++ a/include/linux/kmsan_string.h
-@@ -0,0 +1,21 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * KMSAN string functions API used in other headers.
++ * damos_skip_charged_region() - Check if the given region or starting part of
++ * it is already charged for the DAMOS quota.
++ * @t:	The target of the region.
++ * @rp:	The pointer to the region.
++ * @s:	The scheme to be applied.
 + *
-+ * Copyright (C) 2022 Google LLC
-+ * Author: Alexander Potapenko <glider@google.com>
++ * If a quota of a scheme has exceeded in a quota charge window, the scheme's
++ * action would applied to only a part of the target access pattern fulfilling
++ * regions.  To avoid applying the scheme action to only already applied
++ * regions, DAMON skips applying the scheme action to the regions that charged
++ * in the previous charge window.
 + *
++ * This function checks if a given region should be skipped or not for the
++ * reason.  If only the starting part of the region has previously charged,
++ * this function splits the region into two so that the second one covers the
++ * area that not charged in the previous charge widnow and saves the second
++ * region in *rp and returns false, so that the caller can apply DAMON action
++ * to the second one.
++ *
++ * Return: true if the region should be entirely skipped, false otherwise.
 + */
-+#ifndef _LINUX_KMSAN_STRING_H
-+#define _LINUX_KMSAN_STRING_H
++static bool damos_skip_charged_region(struct damon_target *t,
++		struct damon_region **rp, struct damos *s)
++{
++	struct damon_region *r = *rp;
++	struct damos_quota *quota = &s->quota;
++	unsigned long sz_to_skip;
 +
-+/*
-+ * KMSAN overrides the default memcpy/memset/memmove implementations in the
-+ * kernel, which requires having __msan_XXX function prototypes in several other
-+ * headers. Keep them in one place instead of open-coding.
-+ */
-+void *__msan_memcpy(void *dst, const void *src, size_t size);
-+void *__msan_memset(void *s, int c, size_t n);
-+void *__msan_memmove(void *dest, const void *src, size_t len);
++	/* Skip previously charged regions */
++	if (quota->charge_target_from) {
++		if (t != quota->charge_target_from)
++			return true;
++		if (r == damon_last_region(t)) {
++			quota->charge_target_from = NULL;
++			quota->charge_addr_from = 0;
++			return true;
++		}
++		if (quota->charge_addr_from &&
++				r->ar.end <= quota->charge_addr_from)
++			return true;
 +
-+#endif /* _LINUX_KMSAN_STRING_H */
---- a/mm/kmsan/instrumentation.c~x86-fortify-kmsan-fix-kmsan-fortify-builds
-+++ a/mm/kmsan/instrumentation.c
-@@ -14,6 +14,7 @@
++		if (quota->charge_addr_from && r->ar.start <
++				quota->charge_addr_from) {
++			sz_to_skip = ALIGN_DOWN(quota->charge_addr_from -
++					r->ar.start, DAMON_MIN_REGION);
++			if (!sz_to_skip) {
++				if (damon_sz_region(r) <= DAMON_MIN_REGION)
++					return true;
++				sz_to_skip = DAMON_MIN_REGION;
++			}
++			damon_split_region_at(t, r, sz_to_skip);
++			r = damon_next_region(r);
++			*rp = r;
++		}
++		quota->charge_target_from = NULL;
++		quota->charge_addr_from = 0;
++	}
++	return false;
++}
++
+ static void damon_do_apply_schemes(struct damon_ctx *c,
+ 				   struct damon_target *t,
+ 				   struct damon_region *r)
+@@ -702,7 +763,7 @@ static void damon_do_apply_schemes(struc
  
- #include "kmsan.h"
- #include <linux/gfp.h>
-+#include <linux/kmsan_string.h>
- #include <linux/mm.h>
- #include <linux/uaccess.h>
+ 	damon_for_each_scheme(s, c) {
+ 		struct damos_quota *quota = &s->quota;
+-		unsigned long sz = damon_sz_region(r);
++		unsigned long sz;
+ 		struct timespec64 begin, end;
+ 		unsigned long sz_applied = 0;
  
+@@ -713,41 +774,14 @@ static void damon_do_apply_schemes(struc
+ 		if (quota->esz && quota->charged_sz >= quota->esz)
+ 			continue;
+ 
+-		/* Skip previously charged regions */
+-		if (quota->charge_target_from) {
+-			if (t != quota->charge_target_from)
+-				continue;
+-			if (r == damon_last_region(t)) {
+-				quota->charge_target_from = NULL;
+-				quota->charge_addr_from = 0;
+-				continue;
+-			}
+-			if (quota->charge_addr_from &&
+-					r->ar.end <= quota->charge_addr_from)
+-				continue;
+-
+-			if (quota->charge_addr_from && r->ar.start <
+-					quota->charge_addr_from) {
+-				sz = ALIGN_DOWN(quota->charge_addr_from -
+-						r->ar.start, DAMON_MIN_REGION);
+-				if (!sz) {
+-					if (damon_sz_region(r) <=
+-					    DAMON_MIN_REGION)
+-						continue;
+-					sz = DAMON_MIN_REGION;
+-				}
+-				damon_split_region_at(t, r, sz);
+-				r = damon_next_region(r);
+-				sz = damon_sz_region(r);
+-			}
+-			quota->charge_target_from = NULL;
+-			quota->charge_addr_from = 0;
+-		}
++		if (damos_skip_charged_region(t, &r, s))
++			continue;
+ 
+ 		if (!damos_valid_target(c, t, r, s))
+ 			continue;
+ 
+ 		/* Apply the scheme */
++		sz = damon_sz_region(r);
+ 		if (c->ops.apply_scheme) {
+ 			if (quota->esz &&
+ 					quota->charged_sz + sz > quota->esz) {
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-kmsan-export-kmsan_copy_page_meta.patch
-x86-purgatory-disable-kmsan-instrumentation.patch
-kconfigdebug-disable-config_frame_warn-for-kmsan-by-default.patch
-x86-asm-make-sure-__put_user_size-evaluates-pointer-once.patch
-x86-fortify-kmsan-fix-kmsan-fortify-builds.patch
+mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch
+mm-damon-core-split-damos-application-logic-into-a-new-function.patch
+mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function.patch
+mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function.patch
+mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values.patch
+mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch
+mm-damon-sysfs-move-sysfs_lock-to-common-module.patch
+mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module.patch
+mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function.patch
+mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch
+mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch
 
