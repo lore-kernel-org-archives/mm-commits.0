@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F038C38A2D
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 22:46:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2389C38A2D
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 22:53:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229983AbiJXWqp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Oct 2022 18:46:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42192 "EHLO
+        id S232153AbiJXWxJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Oct 2022 18:53:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50428 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231217AbiJXWq2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 18:46:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA1661A5253
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 14:08:55 -0700 (PDT)
+        with ESMTP id S232158AbiJXWwn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 18:52:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94B6025C57;
+        Mon, 24 Oct 2022 14:14:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E09D760B3F
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 21:00:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40FB0C433C1;
-        Mon, 24 Oct 2022 21:00:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 44B5B615B8;
+        Mon, 24 Oct 2022 21:13:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 918EFC433D6;
+        Mon, 24 Oct 2022 21:13:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666645206;
-        bh=1WJ7MGsvqWOlgixsdBCg4SCZThb8rbwObeZCktJVkmU=;
+        s=korg; t=1666646023;
+        bh=OhEoXwuGCqDCOVYZzRgnB5p5PlO8SCM4mT745q/Id2E=;
         h=Date:To:From:Subject:From;
-        b=S5RVUA5/gGoJp4SmRwR+UiiIqjbTHL++W8PpxSyIWsXiMADWRMDLLhF9G9K0Z0CM9
-         akIJIYk5Jx3VPC3k3cK+KsQX0DCN99W+B5qWu3bEIk+rvKfAmVBKAn4rdS+y83snZW
-         /MXizvxyMYPOaHidnTE/fseNUZeaglGQ+CjDuFYo=
-Date:   Mon, 24 Oct 2022 14:00:05 -0700
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        ngupta@vflare.org, minchan@kernel.org, avromanov@sberdevices.ru,
+        b=ZgNGAtLsPEwk3Etq5OpIr1LsUj81JuNeRznD1lBNQ+KgShj2AZENNRpZtYD9vmVBO
+         xAZCsEypivvYTnZh2RJ7MHN6Yiafglbmzj7GbogwkrNnstU5RVUPmhLyKjIJ5eDxb1
+         LwGWbcvrnz7zVJYdsaRqupl9spJ/GjeGLx+rEwVg=
+Date:   Mon, 24 Oct 2022 14:13:42 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
+        stable@vger.kernel.org, shy828301@gmail.com, david@redhat.com,
+        apopple@nvidia.com, baolin.wang@linux.alibaba.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-size-class-equals-check-into-recompression.patch added to mm-unstable branch
-Message-Id: <20221024210006.40FB0C433C1@smtp.kernel.org>
+Subject: + mm-migrate-fix-return-value-if-all-subpages-of-thps-are-migrated-successfully.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221024211343.918EFC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: add size class equals check into recompression
-has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-size-class-equals-check-into-recompression.patch
+     Subject: mm: migrate: fix return value if all subpages of THPs are migrated successfully
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-migrate-fix-return-value-if-all-subpages-of-thps-are-migrated-successfully.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-size-class-equals-check-into-recompression.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-fix-return-value-if-all-subpages-of-thps-are-migrated-successfully.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,97 +66,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Romanov <avromanov@sberdevices.ru>
-Subject: zram: add size class equals check into recompression
-Date: Mon, 24 Oct 2022 15:09:42 +0300
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: migrate: fix return value if all subpages of THPs are migrated successfully
+Date: Mon, 24 Oct 2022 16:34:21 +0800
 
-It makes no sense for us to recompress the object if it will be in the
-same size class.  We don't get any memory gain anyway.  But at the same
-time, we get a CPU time overhead when inserting this object into zspage
-and decompressing it afterwards.
+During THP migration, if THPs are not migrated but they are split and all
+subpages are migrated successfully, migrate_pages() will still return the
+number of THP pages that were not migrated.  This will confuse the callers
+of migrate_pages().  For example, the longterm pinning will failed though
+all pages are migrated successfully.
 
-Link: https://lkml.kernel.org/r/20221024120942.13885-1-avromanov@sberdevices.ru
-Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Thus we should return 0 to indicate that all pages are migrated in this
+case
+
+Link: https://lkml.kernel.org/r/de386aa864be9158d2f3b344091419ea7c38b2f7.1666599848.git.baolin.wang@linux.alibaba.com
+Fixes: b5bade978e9b ("mm: migrate: fix the return value of migrate_pages()")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    5 +++++
- include/linux/zsmalloc.h      |    2 ++
- mm/zsmalloc.c                 |   20 ++++++++++++++++++++
- 3 files changed, 27 insertions(+)
+ mm/migrate.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-add-size-class-equals-check-into-recompression
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1671,6 +1671,8 @@ static int zram_recompress(struct zram *
- 	unsigned long handle_next;
- 	unsigned int comp_len_next;
- 	unsigned int comp_len_prev;
-+	unsigned int class_size_next;
-+	unsigned int class_size_prev;
- 	struct zcomp_strm *zstrm;
- 	void *src, *dst;
- 	int ret;
-@@ -1695,6 +1697,8 @@ static int zram_recompress(struct zram *
- 	ret = zcomp_compress(zstrm, src, &comp_len_next);
- 	kunmap_atomic(src);
- 
-+	class_size_prev = zs_get_class_size(zram->mem_pool, comp_len_prev);
-+	class_size_next = zs_get_class_size(zram->mem_pool, comp_len_next);
- 	/*
- 	 * Either a compression error or we failed to compressed the object
- 	 * in a way that will save us memory. Mark the object so that we
-@@ -1702,6 +1706,7 @@ static int zram_recompress(struct zram *
+--- a/mm/migrate.c~mm-migrate-fix-return-value-if-all-subpages-of-thps-are-migrated-successfully
++++ a/mm/migrate.c
+@@ -1582,6 +1582,13 @@ out:
  	 */
- 	if (comp_len_next >= huge_class_size ||
- 	    comp_len_next >= comp_len_prev ||
-+	    class_size_next == class_size_prev ||
- 	    ret) {
- 		zram_set_flag(zram, index, ZRAM_RECOMP_SKIP);
- 		zram_clear_flag(zram, index, ZRAM_IDLE);
---- a/include/linux/zsmalloc.h~zram-add-size-class-equals-check-into-recompression
-+++ a/include/linux/zsmalloc.h
-@@ -69,4 +69,6 @@ unsigned long zs_get_total_pages(struct
- unsigned long zs_compact(struct zs_pool *pool);
+ 	list_splice(&ret_pages, from);
  
- void zs_pool_stats(struct zs_pool *pool, struct zs_pool_stats *stats);
++	/*
++	 * Return 0 in case all subpages of fail-to-migrate THPs are
++	 * migrated successfully.
++	 */
++	if (list_empty(from))
++		rc = 0;
 +
-+unsigned int zs_get_class_size(struct zs_pool *pool, unsigned int size);
- #endif
---- a/mm/zsmalloc.c~zram-add-size-class-equals-check-into-recompression
-+++ a/mm/zsmalloc.c
-@@ -1209,6 +1209,26 @@ static bool zspage_full(struct size_clas
- 	return get_zspage_inuse(zspage) == class->objs_per_zspage;
- }
- 
-+/**
-+ * zs_get_class_size() - Returns the size (in bytes) of the
-+ * zsmalloc &size_class into which the object with specified
-+ * size will be inserted or already inserted.
-+ *
-+ * @pool: zsmalloc pool to use
-+ *
-+ * Context: Any context.
-+ *
-+ * Return: the size (in bytes) of the zsmalloc &size_class into which
-+ * the object with specified size will be inserted.
-+ */
-+unsigned int zs_get_class_size(struct zs_pool *pool, unsigned int size)
-+{
-+	struct size_class *class = pool->size_class[get_size_class_index(size)];
-+
-+	return class->size;
-+}
-+EXPORT_SYMBOL_GPL(zs_get_class_size);
-+
- unsigned long zs_get_total_pages(struct zs_pool *pool)
- {
- 	return atomic_long_read(&pool->pages_allocated);
+ 	count_vm_events(PGMIGRATE_SUCCESS, nr_succeeded);
+ 	count_vm_events(PGMIGRATE_FAIL, nr_failed_pages);
+ 	count_vm_events(THP_MIGRATION_SUCCESS, nr_thp_succeeded);
 _
 
-Patches currently in -mm which might be from avromanov@sberdevices.ru are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-zram-add-size-class-equals-check-into-recompression.patch
+mm-migrate-fix-return-value-if-all-subpages-of-thps-are-migrated-successfully.patch
+mm-migrate-try-again-if-thp-split-is-failed-due-to-page-refcnt.patch
 
