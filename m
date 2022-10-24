@@ -2,90 +2,110 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A48B2FA373F
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 20:39:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE1BCC67871
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 21:58:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234449AbiJXUjY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Oct 2022 16:39:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48044 "EHLO
+        id S229865AbiJXV61 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Oct 2022 17:58:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234670AbiJXUi4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 16:38:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B9012CE07;
-        Mon, 24 Oct 2022 11:49:50 -0700 (PDT)
+        with ESMTP id S230460AbiJXV6K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 17:58:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 136762F5875
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 13:11:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C82D6B81217;
-        Mon, 24 Oct 2022 15:44:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32611C433B5;
-        Mon, 24 Oct 2022 15:44:17 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="lyQUYKNL"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1666626254;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=fWvLZVRYvZmjhg91idBo+8bsezBsd/7oKi65yYsjjjI=;
-        b=lyQUYKNLZmfHXqbLgJhp2zs5CgYl/THxLkwKN8y76FZMui/YKgF3Fu9tmZ9SD2R0nxC2LG
-        cJVcvEkJGelF/HxUtoAlXbtkWLJ5LCHlYmpvFjE9qMsrBoxze15kcO0xo+aaHDWHsvXIVh
-        4Xp5IcJoSad4gf1xt8ZHW55faDVCWKw=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 659a5d2e (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-        Mon, 24 Oct 2022 15:44:14 +0000 (UTC)
-Date:   Mon, 24 Oct 2022 17:44:09 +0200
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Alexey Dobriyan <adobriyan@gmail.com>, akpm@linux-foundation.org,
-        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
-        masahiroy@kernel.org, keescook@chromium.org,
-        gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com,
-        Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [PATCH -mm] -funsigned-char, x86: make struct
- p4_event_bind::cntr signed array
-Message-ID: <Y1ayyS/7b5qnySi3@zx2c4.com>
-References: <20221020000356.177CDC433C1@smtp.kernel.org>
- <Y1EZuQcO8UoN91cX@localhost.localdomain>
- <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com>
- <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
- <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 39AD2615C4
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 20:09:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90DFDC43147;
+        Mon, 24 Oct 2022 20:09:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1666642196;
+        bh=SkXZZ4LyyFDqzteAu9bkQS6SJhjmL1Mji44IiHEun3M=;
+        h=Date:To:From:Subject:From;
+        b=SEPFz54QGVQpmS/EOQifLCwAYRU/UUidREqGp0dsSqUCnhhhtmDJyQYeZW7vRT2JG
+         azGXwolnpvOar3GxdRKuWkf1y8rToO8SdtyPozpLq7lqhflCFcV4rPkD9qgDUkqiLz
+         PqNxKoHwQZ7pIVASRpZfDZuPoFfkHdbc4FyiL6Ac=
+Date:   Mon, 24 Oct 2022 13:09:55 -0700
+To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + proc-fixup-uptime-test.patch added to mm-nonmm-unstable branch
+Message-Id: <20221024200956.90DFDC43147@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Oct 20, 2022 at 11:33:39AM -0600, Jason A. Donenfeld wrote:
-> Hi Linus,
-> 
-> On Thu, Oct 20, 2022 at 11:15 AM Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> > Can we please try to collect these all in one place?
-> >
-> > I see that Andrew picked up the original one for -mm, but I think it
-> > would be better if we had one specific place for all of this (one
-> > branch) to collect it all.
-> 
-> Sure. Andrew can drop it from -mm, and I'll collect everything in:
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/zx2c4/linux.git/log/?h=unsigned-char&r
-> 
-> And I'll ask Stephen to add that branch to -next.
 
-So, as discussed, I'm doing this, and it's in -next now. And as a
-result, we're getting warnings and such that I am fixing one by one.
-Progress, good.
+The patch titled
+     Subject: proc: fixup uptime selftest
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     proc-fixup-uptime-test.patch
 
-But it occurs to me that most of these bugs are not in
-architecture-specific code like the x86 p4_event_bind one from last
-week. That means I'll be submitting these as *fixes* during 6.1, since
-they're broken on some architecture already, rather than waiting to
-submit them to you via my unsigned-char tree in 6.2.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-fixup-uptime-test.patch
 
-Just FYI.
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Jason
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: fixup uptime selftest
+Date: Mon, 24 Oct 2022 21:08:09 +0300
+
+syscall(3) returns -1 and sets errno on error, unlike "syscall"
+instruction.
+
+Systems which have <= 32/64 CPUs are unaffected. Test won't bounce
+to all CPUs before completing if there are more of them.
+
+Link: https://lkml.kernel.org/r/Y1bUiT7VRXlXPQa1@p183
+Fixes: 1f5bd0547654 ("proc: selftests: test /proc/uptime")
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/proc/proc-uptime-002.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/tools/testing/selftests/proc/proc-uptime-002.c~proc-fixup-uptime-test
++++ a/tools/testing/selftests/proc/proc-uptime-002.c
+@@ -17,6 +17,7 @@
+ // while shifting across CPUs.
+ #undef NDEBUG
+ #include <assert.h>
++#include <errno.h>
+ #include <unistd.h>
+ #include <sys/syscall.h>
+ #include <stdlib.h>
+@@ -54,7 +55,7 @@ int main(void)
+ 		len += sizeof(unsigned long);
+ 		free(m);
+ 		m = malloc(len);
+-	} while (sys_sched_getaffinity(0, len, m) == -EINVAL);
++	} while (sys_sched_getaffinity(0, len, m) == -1 && errno == EINVAL);
+ 
+ 	fd = open("/proc/uptime", O_RDONLY);
+ 	assert(fd >= 0);
+_
+
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+proc-give-proc-cmdline-size.patch
+proc-fixup-uptime-test.patch
+
