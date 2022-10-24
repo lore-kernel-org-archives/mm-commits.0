@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDE97C38A2D
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Oct 2022 00:08:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95243C67871
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Oct 2022 00:14:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231132AbiJYAIc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Oct 2022 20:08:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35316 "EHLO
+        id S230245AbiJYAOO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Oct 2022 20:14:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231139AbiJYAHe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 20:07:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5963A105CD7
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 15:25:59 -0700 (PDT)
+        with ESMTP id S230303AbiJYANr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 20:13:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F1C91A0C2E
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 15:32:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A5F17615D9
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 22:25:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02E71C433D6;
-        Mon, 24 Oct 2022 22:25:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E69F0614AF
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 22:32:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31323C433C1;
+        Mon, 24 Oct 2022 22:32:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666650358;
-        bh=f5+++rGEMgpOUlzX8+RO4xeSczv3eFXvID+5q89cuB8=;
+        s=korg; t=1666650730;
+        bh=7Y9V18fGeuIhA1WjSUGxXHUuBjLLztr8X41RAmt42uM=;
         h=Date:To:From:Subject:From;
-        b=De96N31uH5cATxk+DenLlYAfyQyt0n8oOA64bdQlSAUW0E3t/vrFLzJ6yziHlr2eV
-         nVKqeOyjNe3BL+TlENPlMGmFd4O6Chpiai7z0WBs1JBtqRQgViwZaG52H4FJ6t5zfD
-         2kCIODgyz6y42QAi7hqdou5MlBAeHesmf5Ix02cU=
-Date:   Mon, 24 Oct 2022 15:25:57 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
-        akpm@linux-foundation.org
+        b=QGexwiHlVYYxBjae0LUsQcONmC8qmfiA8Ht9eo5fJQNPiu76SWcLagTypkPGSY6N3
+         5oDZNv1vnVxE6zhRckFc0kp5zYMfYW69lFGAl814hySRYen1Tnj8mRax9Iq+i7h8hu
+         3okB016jPoSylXeMhAywyiIuMx0wdloUd024xV28=
+Date:   Mon, 24 Oct 2022 15:32:09 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, peterx@redhat.com,
+        axelrasmussen@google.com, akpm@linux-foundation.org,
+        aarcange@redhat.com, ira.weiny@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch added to mm-unstable branch
-Message-Id: <20221024222558.02E71C433D6@smtp.kernel.org>
+Subject: + mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page.patch added to mm-unstable branch
+Message-Id: <20221024223210.31323C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/{reclaim,lru_sort}: remove unnecessarily included headers
+     Subject: mm/userfaultfd: replace kmap/kmap_atomic() with kmap_local_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch
+     mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,60 +65,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/{reclaim,lru_sort}: remove unnecessarily included headers
-Date: Mon, 24 Oct 2022 20:49:19 +0000
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: mm/userfaultfd: replace kmap/kmap_atomic() with kmap_local_page()
+Date: Sun, 23 Oct 2022 21:34:52 -0700
 
-Some headers that 'reclaim.c' and 'lru_sort.c' are including are
-unnecessary now owing to previous cleanups and refactorings.  Remove
-those.
+kmap() and kmap_atomic() are being deprecated in favor of
+kmap_local_page() which is appropriate for any thread local context.[1]
 
-Link: https://lkml.kernel.org/r/20221024204919.18524-12-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+A recent locking bug report with userfaultfd showed that the conversion of
+these kmap_atomic()'s required care with regard to the prevention of
+deadlock.[2]
+
+Complete kmap conversion in userfaultfd by replacing the kmap() and
+kmap_atomic() calls with kmap_local_page().  When replacing the
+kmap_atomic() call ensure page faults continue to be disabled to support
+the correct fall back behavior and add a comment to inform future souls of
+the requirement.
+
+[1] https://lore.kernel.org/all/20220813220034.806698-1-ira.weiny@intel.com/
+[2] https://lore.kernel.org/all/Y1Mh2S7fUGQ%2FiKFR@iweiny-desk3/
+
+Link: https://lkml.kernel.org/r/20221024043452.1491677-1-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    2 --
- mm/damon/reclaim.c  |    2 --
- 2 files changed, 4 deletions(-)
+ mm/userfaultfd.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers
-+++ a/mm/damon/lru_sort.c
-@@ -8,9 +8,7 @@
- #define pr_fmt(fmt) "damon-lru-sort: " fmt
+--- a/mm/userfaultfd.c~mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page
++++ a/mm/userfaultfd.c
+@@ -157,11 +157,18 @@ static int mcopy_atomic_pte(struct mm_st
+ 		if (!page)
+ 			goto out;
  
- #include <linux/damon.h>
--#include <linux/ioport.h>
- #include <linux/module.h>
--#include <linux/sched.h>
- #include <linux/workqueue.h>
+-		page_kaddr = kmap_atomic(page);
++		page_kaddr = kmap_local_page(page);
++		/*
++		 * The mmap_lock is held here.  Disable page faults to
++		 * prevent deadlock should copy_from_user() fault.  The
++		 * copy will be retried outside the mmap_lock.
++		 */
++		pagefault_disable();
+ 		ret = copy_from_user(page_kaddr,
+ 				     (const void __user *) src_addr,
+ 				     PAGE_SIZE);
+-		kunmap_atomic(page_kaddr);
++		pagefault_enable();
++		kunmap_local(page_kaddr);
  
- #include "modules-common.h"
---- a/mm/damon/reclaim.c~mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers
-+++ a/mm/damon/reclaim.c
-@@ -8,9 +8,7 @@
- #define pr_fmt(fmt) "damon-reclaim: " fmt
+ 		/* fallback to copy_from_user outside mmap_lock */
+ 		if (unlikely(ret)) {
+@@ -646,11 +653,11 @@ retry:
+ 			mmap_read_unlock(dst_mm);
+ 			BUG_ON(!page);
  
- #include <linux/damon.h>
--#include <linux/ioport.h>
- #include <linux/module.h>
--#include <linux/sched.h>
- #include <linux/workqueue.h>
- 
- #include "modules-common.h"
+-			page_kaddr = kmap(page);
++			page_kaddr = kmap_local_page(page);
+ 			err = copy_from_user(page_kaddr,
+ 					     (const void __user *) src_addr,
+ 					     PAGE_SIZE);
+-			kunmap(page);
++			kunmap_local(page_kaddr);
+ 			if (unlikely(err)) {
+ 				err = -EFAULT;
+ 				goto out;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from ira.weiny@intel.com are
 
-mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch
-mm-damon-core-split-damos-application-logic-into-a-new-function.patch
-mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function.patch
-mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function.patch
-mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values.patch
-mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch
-mm-damon-sysfs-move-sysfs_lock-to-common-module.patch
-mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module.patch
-mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function.patch
-mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch
-mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch
+mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page.patch
 
