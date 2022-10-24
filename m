@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E88FC67871
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 22:20:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0201C67871
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 22:20:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231194AbiJXWUS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Oct 2022 18:20:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50434 "EHLO
+        id S230043AbiJXWUg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Oct 2022 18:20:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48220 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231207AbiJXWTt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 18:19:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93A2B16A4EB
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 13:37:23 -0700 (PDT)
+        with ESMTP id S230149AbiJXWUL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 18:20:11 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 294BC310115
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 13:37:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D5C2A6158B
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 20:35:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BBBCC433C1;
-        Mon, 24 Oct 2022 20:35:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C96AFB811FB
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 20:35:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BC33C433C1;
+        Mon, 24 Oct 2022 20:35:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666643745;
-        bh=GSlAQPTsKUwZ/UQo7K1x1PriPC/cwU0XHwG9jwZID/4=;
+        s=korg; t=1666643736;
+        bh=cbEZ8Y8ix0HwQ+e/Is0ESYMmuTrDWltuYSTkD0FPS4A=;
         h=Date:To:From:Subject:From;
-        b=TqFAekHCaQwqRwSE8fFxAiw6N3SuuFKx/gT8tCBKbx5psxJoik4C3CLoDneqmAIm7
-         FqlCtOzfh3gYPHLpiwywMYy9yKz9Rb4grN1Z+WxGGkrJco6gbGmXxAagUrFz7vE4y+
-         pE2x1LcM0SRB5VphHA6dSVkKcvEumdV9rA34D3oA=
-Date:   Mon, 24 Oct 2022 13:35:44 -0700
+        b=W3eyvQzJQrXzaA0gL5ylNwE278cuWnWtbBVPoOFetrFNkl0VoQE5gohD2FtPvgd1P
+         V+B/N4QoMddnpRtyNMkAapsd0XXngNREElXh3bvEIp/rHdoUqWZjqgpk2AO3zDCac9
+         CS1Gopn2wrrMos12QRYPiDsodAredxhrk4iWXsA8=
+Date:   Mon, 24 Oct 2022 13:35:35 -0700
 To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
         senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-make-sure-we-select-best-zspage-size.patch added to mm-unstable branch
-Message-Id: <20221024203545.3BBBCC433C1@smtp.kernel.org>
+Subject: + zsmalloc-zram-pass-zspage-order-to-zs_create_pool.patch added to mm-unstable branch
+Message-Id: <20221024203536.6BC33C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: make sure we select best zspage size
+     Subject: zsmalloc/zram: pass zspage order to zs_create_pool()
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-make-sure-we-select-best-zspage-size.patch
+     zsmalloc-zram-pass-zspage-order-to-zs_create_pool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-make-sure-we-select-best-zspage-size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-zram-pass-zspage-order-to-zs_create_pool.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,74 +65,90 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: make sure we select best zspage size
-Date: Tue, 25 Oct 2022 01:12:13 +0900
+Subject: zsmalloc/zram: pass zspage order to zs_create_pool()
+Date: Tue, 25 Oct 2022 01:12:09 +0900
 
-We currently decide the best zspage size by looking at used percentage
-value.  This is not exactly enough as zspage usage percentage calculation
-is not accurate.
+Allow zsmalloc pool owner to specify max zspage (during pool creation), so
+that different pools can have different characteristics.
 
-For example, let's look at size class 208
-
-pages per zspage       wasted bytes         used%
-       1                   144               96
-       2                    80               99
-       3                    16               99
-       4                   160               99
-
-We will select 2 page per zspage configuration, as it is the first one to
-reach 99%.  However, 3 pages per zspage wastes less memory.  Hence we need
-to also consider wasted space metrics when device zspage size.
-
-Additionally, rename max_usedpc_order because it does not hold zspage
-order, it holds maximum pages per-zspage value.
-
-Link: https://lkml.kernel.org/r/20221024161213.3221725-7-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20221024161213.3221725-3-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 ++-
+ include/linux/zsmalloc.h      |    2 +-
+ mm/zsmalloc.c                 |   11 ++++++++---
+ 3 files changed, 11 insertions(+), 5 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-make-sure-we-select-best-zspage-size
+--- a/drivers/block/zram/zram_drv.c~zsmalloc-zram-pass-zspage-order-to-zs_create_pool
++++ a/drivers/block/zram/zram_drv.c
+@@ -1253,7 +1253,8 @@ static bool zram_meta_alloc(struct zram
+ 	if (!zram->table)
+ 		return false;
+ 
+-	zram->mem_pool = zs_create_pool(zram->disk->disk_name);
++	zram->mem_pool = zs_create_pool(zram->disk->disk_name,
++					ZS_DEFAULT_PAGE_ORDER);
+ 	if (!zram->mem_pool) {
+ 		vfree(zram->table);
+ 		return false;
+--- a/include/linux/zsmalloc.h~zsmalloc-zram-pass-zspage-order-to-zs_create_pool
++++ a/include/linux/zsmalloc.h
+@@ -53,7 +53,7 @@ struct zs_pool_stats {
+ 
+ struct zs_pool;
+ 
+-struct zs_pool *zs_create_pool(const char *name);
++struct zs_pool *zs_create_pool(const char *name, u32 zspage_order);
+ void zs_destroy_pool(struct zs_pool *pool);
+ 
+ unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t flags);
+--- a/mm/zsmalloc.c~zsmalloc-zram-pass-zspage-order-to-zs_create_pool
 +++ a/mm/zsmalloc.c
-@@ -775,8 +775,9 @@ out:
- static int get_pages_per_zspage(struct zs_pool *pool, int class_size)
- {
- 	int i, max_usedpc = 0;
--	/* zspage order which gives maximum used size per KB */
--	int max_usedpc_order = 1;
-+	/* zspage size which gives maximum used size per KB */
-+	int pages_per_zspage = 1;
-+	int min_waste = INT_MAX;
- 
- 	for (i = 1; i <= pool->max_pages_per_zspage; i++) {
- 		int zspage_size;
-@@ -788,14 +789,19 @@ static int get_pages_per_zspage(struct z
- 
- 		if (usedpc > max_usedpc) {
- 			max_usedpc = usedpc;
--			max_usedpc_order = i;
-+			pages_per_zspage = i;
- 		}
- 
- 		if (usedpc == 100)
- 			break;
-+
-+		if (waste < min_waste) {
-+			min_waste = waste;
-+			pages_per_zspage = i;
-+		}
- 	}
- 
--	return max_usedpc_order;
-+	return pages_per_zspage;
+@@ -369,7 +369,7 @@ static void *zs_zpool_create(const char
+ 	 * different contexts and its caller must provide a valid
+ 	 * gfp mask.
+ 	 */
+-	return zs_create_pool(name);
++	return zs_create_pool(name, ZS_DEFAULT_PAGE_ORDER);
  }
  
- static struct zspage *get_zspage(struct page *page)
+ static void zs_zpool_destroy(void *pool)
+@@ -2177,6 +2177,7 @@ static int zs_register_shrinker(struct z
+ /**
+  * zs_create_pool - Creates an allocation pool to work from.
+  * @name: pool name to be created
++ * @zspage_order: maximum order of zspage
+  *
+  * This function must be called before anything when using
+  * the zsmalloc allocator.
+@@ -2184,17 +2185,21 @@ static int zs_register_shrinker(struct z
+  * On success, a pointer to the newly created pool is returned,
+  * otherwise NULL.
+  */
+-struct zs_pool *zs_create_pool(const char *name)
++struct zs_pool *zs_create_pool(const char *name, u32 zspage_order)
+ {
+ 	int i;
+ 	struct zs_pool *pool;
+ 	struct size_class *prev_class = NULL;
+ 
++	if (WARN_ON(zspage_order < ZS_MIN_PAGE_ORDER ||
++		    zspage_order > ZS_MAX_PAGE_ORDER))
++		return NULL;
++
+ 	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
+ 	if (!pool)
+ 		return NULL;
+ 
+-	pool->max_pages_per_zspage = 1U << ZS_MIN_PAGE_ORDER;
++	pool->max_pages_per_zspage = 1U << zspage_order;
+ 	/* min_alloc_size must be multiple of ZS_ALIGN */
+ 	pool->min_alloc_size = (pool->max_pages_per_zspage << PAGE_SHIFT) >>
+ 		OBJ_INDEX_BITS;
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
