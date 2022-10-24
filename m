@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2F0BC67871
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 22:11:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB144C38A2D
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 22:19:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232040AbiJXWLu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Oct 2022 18:11:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38178 "EHLO
+        id S231277AbiJXWTv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Oct 2022 18:19:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230273AbiJXWLU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 18:11:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AB2D3037B4
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 13:26:38 -0700 (PDT)
+        with ESMTP id S232173AbiJXWT0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 18:19:26 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FEA42D6E26
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 13:36:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1BE156158B
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 20:24:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63B42C43470;
-        Mon, 24 Oct 2022 20:24:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B7AB5B81250
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 20:35:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DC00C433C1;
+        Mon, 24 Oct 2022 20:35:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666643046;
-        bh=CIAAfQ9MhkAVbZ6EDX3Xxuf6OGq/ueEDN1tZOukCgxY=;
+        s=korg; t=1666643741;
+        bh=iaBPJVnxeHtvtUtIZ2XZ2fuZzmHrFAjskK8wGYqu8ik=;
         h=Date:To:From:Subject:From;
-        b=RriGKdmxpcmMm2Z0PpK95P8hsqW0x2tZQiyiyEd9TpDlYarJA9UFrSi1tu+ju7vIe
-         OftrEqXjB8jGPOOnsf52/GQmO2YR/ct72RwjMfXQ3cgUD+ZQpc+fwowwNvZPS0Xizl
-         4W2z0CUQNi2SetWGo2UmOoVpvzYdvn7Sz7kGm75s=
-Date:   Mon, 24 Oct 2022 13:24:05 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu,
-        rppt@kernel.org, paul.gortmaker@windriver.com,
-        mail@christoph.anton.mitterer.name, kaleshsingh@google.com,
-        hannes@cmpxchg.org, david@redhat.com, David.Laight@ACULAB.COM,
-        corbet@lwn.net, adobriyan@gmail.com, ivan@cloudflare.com,
-        akpm@linux-foundation.org
+        b=YKFDwbDwT7QXkTTBM+Gy268XQaHSRsXJr91zhVeKY5lSQVFRZmYnpc+sMbHJ6AMzR
+         R4p3qFH7w7oJH6uokLuJlfjSmZ7UlWa70mO+luUFJEsQWq55WURU0xPeGkzbEBZM3M
+         IW52ozPvOXpXRSeqnd6er/aBLW9bhknluHIO/sTo=
+Date:   Mon, 24 Oct 2022 13:35:40 -0700
+To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v4.patch added to mm-nonmm-unstable branch
-Message-Id: <20221024202406.63B42C43470@smtp.kernel.org>
+Subject: + documentation-document-zram-pool_page_order-attribute.patch added to mm-unstable branch
+Message-Id: <20221024203541.5DC00C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v4
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v4.patch
+     Subject: Documentation: document zram pool_page_order attribute
+has been added to the -mm mm-unstable branch.  Its filename is
+     documentation-document-zram-pool_page_order-attribute.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v4.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-document-zram-pool_page_order-attribute.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,91 +64,121 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ivan Babrou <ivan@cloudflare.com>
-Subject: proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v4
-Date: Mon, 24 Oct 2022 10:31:40 -0700
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: Documentation: document zram pool_page_order attribute
+Date: Tue, 25 Oct 2022 01:12:11 +0900
 
-return errno from proc_fd_getattr() instead of setting negative size
+Provide a simple documentation for zram pool_page_order device attribute.
 
-Link: https://lkml.kernel.org/r/20221024173140.30673-1-ivan@cloudflare.com
-Signed-off-by: Ivan Babrou <ivan@cloudflare.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Link: https://lkml.kernel.org/r/20221024161213.3221725-5-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/fd.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ Documentation/admin-guide/blockdev/zram.rst |   31 +++++++++++++-----
+ 1 file changed, 24 insertions(+), 7 deletions(-)
 
---- a/fs/proc/fd.c~proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v4
-+++ a/fs/proc/fd.c
-@@ -280,11 +280,10 @@ out:
- 	return 0;
- }
+--- a/Documentation/admin-guide/blockdev/zram.rst~documentation-document-zram-pool_page_order-attribute
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -112,7 +112,24 @@ to list all of them using, for instance,
+ method. This, however, has an advantage of permitting the usage of
+ custom crypto compression modules (implementing S/W or H/W compression).
  
--static int proc_readfd_count(struct inode *inode)
-+static int proc_readfd_count(struct inode *inode, loff_t *count)
- {
- 	struct task_struct *p = get_proc_task(inode);
- 	struct fdtable *fdt;
--	unsigned int open_fds = 0;
+-4) Set Disksize
++4) Set maximum pool page order
++==============================
++
++zsmalloc pages can consist of up to 2^N physical pages. The exact size
++is calculated per each zsmalloc size class during zsmalloc pool creation.
++ZRAM provides pool_page_order device attribute to see or change N.
++
++Examples::
++
++	#show current maximum zsmalloc page order
++	cat /sys/block/zramX/pool_page_order
++	2
++
++	#set maximum zsmalloc page order
++	echo 3 > /sys/block/zramX/pool_page_order
++
++
++5) Set Disksize
+ ===============
  
- 	if (!p)
- 		return -ENOENT;
-@@ -294,7 +293,7 @@ static int proc_readfd_count(struct inod
- 		rcu_read_lock();
+ Set disk size by writing the value to sysfs node 'disksize'.
+@@ -132,7 +149,7 @@ There is little point creating a zram of
+ since we expect a 2:1 compression ratio. Note that zram uses about 0.1% of the
+ size of the disk when not in use so a huge zram is wasteful.
  
- 		fdt = files_fdtable(p->files);
--		open_fds = bitmap_weight(fdt->open_fds, fdt->max_fds);
-+		*count = bitmap_weight(fdt->open_fds, fdt->max_fds);
+-5) Set memory limit: Optional
++6) Set memory limit: Optional
+ =============================
  
- 		rcu_read_unlock();
- 	}
-@@ -302,7 +301,7 @@ static int proc_readfd_count(struct inod
+ Set memory limit by writing the value to sysfs node 'mem_limit'.
+@@ -151,7 +168,7 @@ Examples::
+ 	# To disable memory limit
+ 	echo 0 > /sys/block/zram0/mem_limit
  
- 	put_task_struct(p);
+-6) Activate
++7) Activate
+ ===========
  
--	return open_fds;
-+	return 0;
- }
+ ::
+@@ -162,7 +179,7 @@ Examples::
+ 	mkfs.ext4 /dev/zram1
+ 	mount /dev/zram1 /tmp
  
- static int proc_readfd(struct file *file, struct dir_context *ctx)
-@@ -350,14 +349,18 @@ static int proc_fd_getattr(struct user_n
- 			u32 request_mask, unsigned int query_flags)
- {
- 	struct inode *inode = d_inode(path->dentry);
-+	int rv = 0;
+-7) Add/remove zram devices
++8) Add/remove zram devices
+ ==========================
  
- 	generic_fillattr(&init_user_ns, inode, stat);
+ zram provides a control interface, which enables dynamic (on-demand) device
+@@ -182,7 +199,7 @@ execute::
  
- 	/* If it's a directory, put the number of open fds there */
--	if (S_ISDIR(inode->i_mode))
--		stat->size = proc_readfd_count(inode);
-+	if (S_ISDIR(inode->i_mode)) {
-+		rv = proc_readfd_count(inode, &stat->size);
-+		if (rv < 0)
-+			return rv;
-+	}
+ 	echo X > /sys/class/zram-control/hot_remove
  
--	return 0;
-+	return rv;
- }
+-8) Stats
++9) Stats
+ ========
  
- const struct inode_operations proc_fd_inode_operations = {
+ Per-device statistics are exported as various nodes under /sys/block/zram<id>/
+@@ -283,7 +300,7 @@ a single line of text and contains the f
+ 		Unit: 4K bytes
+  ============== =============================================================
+ 
+-9) Deactivate
++10) Deactivate
+ =============
+ 
+ ::
+@@ -291,7 +308,7 @@ a single line of text and contains the f
+ 	swapoff /dev/zram0
+ 	umount /dev/zram1
+ 
+-10) Reset
++11) Reset
+ =========
+ 
+ 	Write any positive value to 'reset' sysfs node::
 _
 
-Patches currently in -mm which might be from ivan@cloudflare.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-proc-report-open-files-as-size-in-stat-for-proc-pid-fd.patch
-proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3.patch
-proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v4.patch
+zram-preparation-for-multi-zcomp-support.patch
+zram-add-recompression-algorithm-sysfs-knob.patch
+zram-factor-out-wb-and-non-wb-zram-read-functions.patch
+zram-introduce-recompress-sysfs-knob.patch
+documentation-add-recompression-documentation.patch
+zram-add-recompression-algorithm-choice-to-kconfig.patch
+zram-add-recompress-flag-to-read_block_state.patch
+zram-clarify-writeback_store-comment.patch
+zram-use-is_err_value-to-check-for-zs_malloc-errors.patch
+zsmalloc-turn-zspage-order-into-runtime-variable.patch
+zsmalloc-zram-pass-zspage-order-to-zs_create_pool.patch
+zram-add-pool_page_order-device-attribute.patch
+documentation-document-zram-pool_page_order-attribute.patch
+zsmalloc-break-out-of-loop-when-found-perfect-zspage-order.patch
+zsmalloc-make-sure-we-select-best-zspage-size.patch
 
