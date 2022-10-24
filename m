@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13CB4C38A2D
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Oct 2022 00:05:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCEDDFA373D
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Oct 2022 00:05:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230447AbiJYAFm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230458AbiJYAFm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 24 Oct 2022 20:05:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45020 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230471AbiJYAFP (ORCPT
+        with ESMTP id S230472AbiJYAFP (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 20:05:15 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FACC5FAF0
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCFA663C0
         for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 15:22:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 31A63B816B7
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 22:22:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D22D6C433C1;
-        Mon, 24 Oct 2022 22:22:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 73073615D9
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 22:22:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC014C433D6;
+        Mon, 24 Oct 2022 22:22:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666650123;
-        bh=H40Jblj9heuMNhTxazGE7miwPdRUs8qBpVMC6iNhxFw=;
+        s=korg; t=1666650125;
+        bh=rPCNKo0zxaFIx1suInvA+vIhQyYo0IGCI/a/GAnDdkY=;
         h=Date:To:From:Subject:From;
-        b=M5T9P5Dk2uJJFnM0Dzcz1crsqt0606YZXLAoTFCnon7qmwlqvo99sQ7VreB9ufcy8
-         s0zaqz3WUK54XApR6FcvuC6zsCxLJB8a28sulESY9GrVJNm5R5piJ4LaVGvw0lxwQE
-         yBWMLXNe30gFm/SqUWtHS8xPUd4996oksHzbEaxs=
-Date:   Mon, 24 Oct 2022 15:22:03 -0700
-To:     mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        masahiroy@kernel.org, keescook@chromium.org, glider@google.com,
-        akpm@linux-foundation.org
+        b=FBmnrUCMhEGGOoDGDCc9gv/IuD4JixklElsgyCBqfIOxq4OTPzNUk0bAg/zISRceT
+         tmQpZ+h1gE3wsEuG9M81rKpVAedNsXLDWnKfr/rwYwlNFV4aFrEw2czdCqXw/4GbHI
+         v0gZmFIt4wJL6GdgXdLej0DkZaODBifJojbclRPM=
+Date:   Mon, 24 Oct 2022 15:22:05 -0700
+To:     mm-commits@vger.kernel.org, youling257@gmail.com,
+        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
+        glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kconfigdebug-disable-config_frame_warn-for-kmsan-by-default.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221024222203.D22D6C433C1@smtp.kernel.org>
+Subject: + x86-asm-make-sure-__put_user_size-evaluates-pointer-once.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221024222205.CC014C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Kconfig.debug: disable CONFIG_FRAME_WARN for KMSAN by default
+     Subject: x86: asm: make sure __put_user_size() evaluates pointer once
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kconfigdebug-disable-config_frame_warn-for-kmsan-by-default.patch
+     x86-asm-make-sure-__put_user_size-evaluates-pointer-once.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kconfigdebug-disable-config_frame_warn-for-kmsan-by-default.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-asm-make-sure-__put_user_size-evaluates-pointer-once.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,39 +66,65 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: Kconfig.debug: disable CONFIG_FRAME_WARN for KMSAN by default
-Date: Mon, 24 Oct 2022 23:21:42 +0200
+Subject: x86: asm: make sure __put_user_size() evaluates pointer once
+Date: Mon, 24 Oct 2022 23:21:43 +0200
 
-KMSAN adds a lot of instrumentation to the code, which results in
-increased stack usage (up to 2048 bytes and more in some cases).  It's
-hard to predict how big the stack frames can be, so we disable the
-warnings for KMSAN instead.
+User access macros must ensure their arguments are evaluated only once if
+they are used more than once in the macro body.  Adding
+instrument_put_user() to __put_user_size() resulted in double evaluation
+of the `ptr` argument, which led to correctness issues when performing
+e.g.  unsafe_put_user(..., p++, ...).
 
-Link: https://lkml.kernel.org/r/20221024212144.2852069-3-glider@google.com
-Link: https://github.com/google/kmsan/issues/89
+To fix those issues, evaluate the `ptr` argument of __put_user_size() at
+the beginning of the macro.
+
+Link: https://lkml.kernel.org/r/20221024212144.2852069-4-glider@google.com
+Fixes: 888f84a6da4d ("x86: asm: instrument usercopy in get_user() and put_user()")
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
+Reported-by: youling257 <youling257@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/uaccess.h |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/lib/Kconfig.debug~kconfigdebug-disable-config_frame_warn-for-kmsan-by-default
-+++ a/lib/Kconfig.debug
-@@ -400,8 +400,9 @@ config FRAME_WARN
- 	default 1536 if (!64BIT && XTENSA)
- 	default 1024 if !64BIT
- 	default 2048 if 64BIT
-+	default 0 if KMSAN
- 	help
--	  Tell gcc to warn at build time for stack frames larger than this.
-+	  Tell the compiler to warn at build time for stack frames larger than this.
- 	  Setting this too low will cause a lot of warnings.
- 	  Setting it to 0 disables the warning.
+--- a/arch/x86/include/asm/uaccess.h~x86-asm-make-sure-__put_user_size-evaluates-pointer-once
++++ a/arch/x86/include/asm/uaccess.h
+@@ -254,24 +254,25 @@ extern void __put_user_nocheck_8(void);
+ #define __put_user_size(x, ptr, size, label)				\
+ do {									\
+ 	__typeof__(*(ptr)) __x = (x); /* eval x once */			\
+-	__chk_user_ptr(ptr);						\
++	__typeof__(ptr) __ptr = (ptr); /* eval ptr once */		\
++	__chk_user_ptr(__ptr);						\
+ 	switch (size) {							\
+ 	case 1:								\
+-		__put_user_goto(__x, ptr, "b", "iq", label);		\
++		__put_user_goto(__x, __ptr, "b", "iq", label);		\
+ 		break;							\
+ 	case 2:								\
+-		__put_user_goto(__x, ptr, "w", "ir", label);		\
++		__put_user_goto(__x, __ptr, "w", "ir", label);		\
+ 		break;							\
+ 	case 4:								\
+-		__put_user_goto(__x, ptr, "l", "ir", label);		\
++		__put_user_goto(__x, __ptr, "l", "ir", label);		\
+ 		break;							\
+ 	case 8:								\
+-		__put_user_goto_u64(__x, ptr, label);			\
++		__put_user_goto_u64(__x, __ptr, label);			\
+ 		break;							\
+ 	default:							\
+ 		__put_user_bad();					\
+ 	}								\
+-	instrument_put_user(__x, ptr, size);				\
++	instrument_put_user(__x, __ptr, size);				\
+ } while (0)
  
+ #ifdef CONFIG_CC_HAS_ASM_GOTO_OUTPUT
 _
 
 Patches currently in -mm which might be from glider@google.com are
