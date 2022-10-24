@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F2A6C67871
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 22:20:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54524C38A2D
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Oct 2022 22:20:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230502AbiJXWUo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Oct 2022 18:20:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50434 "EHLO
+        id S231491AbiJXWUx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Oct 2022 18:20:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231168AbiJXWUR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 18:20:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B74419C20
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 13:37:14 -0700 (PDT)
+        with ESMTP id S229947AbiJXWUf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2022 18:20:35 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A83E7310134
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 13:37:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DEC0E61589
-        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 20:35:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C7CBC433D6;
-        Mon, 24 Oct 2022 20:35:43 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 683C2B81212
+        for <mm-commits@vger.kernel.org>; Mon, 24 Oct 2022 20:35:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 151D8C433D6;
+        Mon, 24 Oct 2022 20:35:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666643743;
-        bh=0+ujYuZy9FUyLDFu0seuKAMiCcA26WEPIG+l+9VQgT4=;
+        s=korg; t=1666643739;
+        bh=23DHMVazJmBg/mRTUEXnY0EEDGwcwjsl/VuKy++fwZA=;
         h=Date:To:From:Subject:From;
-        b=xTS3hAnKwK8NbuBDAd790Q1f/2l6kVwac1VHxzQQ6z412bOuWlGaAg9ojwfzbTrYW
-         JAB7ogZaV2+S86EU9vrAMAGdotawPqh8KxKElNnpxodh94DuUJUldTR0HoDIJKvRf3
-         5IyYy143cilZCYcV0RBl3fPyouboPoZiKBtE/wA8=
-Date:   Mon, 24 Oct 2022 13:35:42 -0700
+        b=1FT3t+59xcF7mSv8NUUAtP3QhTdds1U0Zx0MldZMQO0XtD2S1Aro8eCtDKnJRavzI
+         PpRrwJFuXmwgOLQPvOwEIi968Hi4h+cgdjiMhWnxpa4DXl/O6BVrtX1OuW7BdVy33Y
+         kXaFlpWkv6G6m8Ood86fn5VF7lHXqEecQm7JEOfk=
+Date:   Mon, 24 Oct 2022 13:35:38 -0700
 To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
         senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-break-out-of-loop-when-found-perfect-zspage-order.patch added to mm-unstable branch
-Message-Id: <20221024203543.3C7CBC433D6@smtp.kernel.org>
+Subject: + zram-add-pool_page_order-device-attribute.patch added to mm-unstable branch
+Message-Id: <20221024203539.151D8C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: break out of loop when found perfect zspage order
+     Subject: zram: add pool_page_order device attribute
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-break-out-of-loop-when-found-perfect-zspage-order.patch
+     zram-add-pool_page_order-device-attribute.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-break-out-of-loop-when-found-perfect-zspage-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-pool_page_order-device-attribute.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,35 +65,114 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: break out of loop when found perfect zspage order
-Date: Tue, 25 Oct 2022 01:12:12 +0900
+Subject: zram: add pool_page_order device attribute
+Date: Tue, 25 Oct 2022 01:12:10 +0900
 
-If we found zspage configuration that gives us perfect 100% used
-percentage (zero wasted space) then there is no point it trying any other
-configuration
+Add a new sysfs knob that allows user-space to set zsmalloc page order
+value on per-device basis.
 
-Link: https://lkml.kernel.org/r/20221024161213.3221725-6-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20221024161213.3221725-4-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/block/zram/zram_drv.c |   43 +++++++++++++++++++++++++++++++-
+ drivers/block/zram/zram_drv.h |    2 +
+ 2 files changed, 44 insertions(+), 1 deletion(-)
 
---- a/mm/zsmalloc.c~zsmalloc-break-out-of-loop-when-found-perfect-zspage-order
-+++ a/mm/zsmalloc.c
-@@ -790,6 +790,9 @@ static int get_pages_per_zspage(struct z
- 			max_usedpc = usedpc;
- 			max_usedpc_order = i;
- 		}
+--- a/drivers/block/zram/zram_drv.c~zram-add-pool_page_order-device-attribute
++++ a/drivers/block/zram/zram_drv.c
+@@ -1186,6 +1186,44 @@ static ssize_t mm_stat_show(struct devic
+ 	return ret;
+ }
+ 
++static ssize_t pool_page_order_show(struct device *dev,
++				    struct device_attribute *attr, char *buf)
++{
++	u32 val;
++	struct zram *zram = dev_to_zram(dev);
 +
-+		if (usedpc == 100)
-+			break;
++	down_read(&zram->init_lock);
++	val = zram->pool_page_order;
++	up_read(&zram->init_lock);
++
++	return scnprintf(buf, PAGE_SIZE, "%d\n", val);
++}
++
++static ssize_t pool_page_order_store(struct device *dev,
++				     struct device_attribute *attr,
++				     const char *buf, size_t len)
++{
++	struct zram *zram = dev_to_zram(dev);
++	u32 val;
++
++	if (kstrtou32(buf, 10, &val))
++		return -EINVAL;
++
++	if (val < ZS_MIN_PAGE_ORDER || val > ZS_MAX_PAGE_ORDER)
++		return -EINVAL;
++
++	down_read(&zram->init_lock);
++	if (init_done(zram)) {
++		up_read(&zram->init_lock);
++		return -EINVAL;
++	}
++
++	zram->pool_page_order = val;
++	up_read(&zram->init_lock);
++
++	return len;
++}
++
+ #ifdef CONFIG_ZRAM_WRITEBACK
+ #define FOUR_K(x) ((x) * (1 << (PAGE_SHIFT - 12)))
+ static ssize_t bd_stat_show(struct device *dev,
+@@ -1254,7 +1292,7 @@ static bool zram_meta_alloc(struct zram
+ 		return false;
+ 
+ 	zram->mem_pool = zs_create_pool(zram->disk->disk_name,
+-					ZS_DEFAULT_PAGE_ORDER);
++					zram->pool_page_order);
+ 	if (!zram->mem_pool) {
+ 		vfree(zram->table);
+ 		return false;
+@@ -2176,6 +2214,7 @@ static DEVICE_ATTR_RW(writeback_limit_en
+ static DEVICE_ATTR_RW(recomp_algorithm);
+ static DEVICE_ATTR_WO(recompress);
+ #endif
++static DEVICE_ATTR_RW(pool_page_order);
+ 
+ static struct attribute *zram_disk_attrs[] = {
+ 	&dev_attr_disksize.attr,
+@@ -2203,6 +2242,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_recomp_algorithm.attr,
+ 	&dev_attr_recompress.attr,
+ #endif
++	&dev_attr_pool_page_order.attr,
+ 	NULL,
+ };
+ 
+@@ -2240,6 +2280,7 @@ static int zram_add(void)
+ 		goto out_free_idr;
  	}
  
- 	return max_usedpc_order;
++	zram->pool_page_order = ZS_DEFAULT_PAGE_ORDER;
+ 	zram->disk->major = zram_major;
+ 	zram->disk->first_minor = device_id;
+ 	zram->disk->minors = 1;
+--- a/drivers/block/zram/zram_drv.h~zram-add-pool_page_order-device-attribute
++++ a/drivers/block/zram/zram_drv.h
+@@ -120,6 +120,8 @@ struct zram {
+ 	 */
+ 	u64 disksize;	/* bytes */
+ 	const char *comp_algs[ZRAM_MAX_ZCOMPS];
++
++	u32 pool_page_order;
+ 	/*
+ 	 * zram is claimed so open request will be failed
+ 	 */
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
