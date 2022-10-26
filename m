@@ -2,86 +2,109 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7216DC433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Oct 2022 10:31:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A38AFC38A2D
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Oct 2022 12:58:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233230AbiJZKb2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Oct 2022 06:31:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35260 "EHLO
+        id S233949AbiJZM6n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Oct 2022 08:58:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231628AbiJZKb1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Oct 2022 06:31:27 -0400
-Received: from mail-pl1-x631.google.com (mail-pl1-x631.google.com [IPv6:2607:f8b0:4864:20::631])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F9F489CF7
-        for <mm-commits@vger.kernel.org>; Wed, 26 Oct 2022 03:31:26 -0700 (PDT)
-Received: by mail-pl1-x631.google.com with SMTP id g24so8604619plq.3
-        for <mm-commits@vger.kernel.org>; Wed, 26 Oct 2022 03:31:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=o3WIGqmDVFhlGjUFlqXNdRIfQzvN1HtZiVx+H8leinM=;
-        b=VfEtiLQslMh/3TkpwXoKybHiJzUCKs0GYdPqrpc9rfAYVuZeBBoEx8dj1i4f7rd5pj
-         XCad0fbIQNZ4IO6B+NIzHRfZhMwSuNTV02S/LZynCEsdZJU0MvfL4ZOH+Qtvh+wfwaGP
-         GS1rgiNS7dz+elSz3dKJYslAM4+q8Dcs3B2lk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=o3WIGqmDVFhlGjUFlqXNdRIfQzvN1HtZiVx+H8leinM=;
-        b=li92nKwqS6PNp7Y7qqm58Owazt8pzsVPnlV3uVxuc214FhU7eColRoATLBNikHvWaV
-         mTBqsB0489vSEr5owrl3hdDnhZCWQuVphFcRsq7qmNNppoDmPyAZuLFCcsB8czJxlOcH
-         QGAHUaSWchfVfuaPKvlbW5K7WPL6DItUDnIJoZI+D4PKoK+/v0aoIJ6GJTkDAvvtyDk0
-         borPtpIoQQPfWxNJGI9MO1e8qw2GvfJHyzUxHh7h2BPc0KiyE+J5GGZ/dFO2MWGFpkZ8
-         q8tzubpqjqrfMaj+3OTef3J6wnlArgATAMlnhMe74A/gLNl77Tv2ApoQeSEqp2AVcD8v
-         kYNQ==
-X-Gm-Message-State: ACrzQf2loJ1aOBuPhBhnLycihsIwrAWNDMjXewrr4BiowiOh1RbWjc5k
-        wUHBi213S2jLToUuBdd/K4NmJw==
-X-Google-Smtp-Source: AMsMyM5cWloPs/ejDnpQuQqlrBqj3Pmyy7NLWKvLszO7kuTyCdAGjLO4p9oITmGdV++NxSSwGoc1nA==
-X-Received: by 2002:a17:902:c24d:b0:186:a2d6:9f7f with SMTP id 13-20020a170902c24d00b00186a2d69f7fmr16324990plg.131.1666780286094;
-        Wed, 26 Oct 2022 03:31:26 -0700 (PDT)
-Received: from google.com ([240f:75:7537:3187:faf6:e503:6cac:3b53])
-        by smtp.gmail.com with ESMTPSA id j7-20020a17090276c700b0017f73caf588sm2584663plt.218.2022.10.26.03.31.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Oct 2022 03:31:25 -0700 (PDT)
-Date:   Wed, 26 Oct 2022 19:31:21 +0900
-From:   Sergey Senozhatsky <senozhatsky@chromium.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        ngupta@vflare.org, minchan@kernel.org, ubizjak@gmail.com
-Subject: Re: + zram-use-try_cmpxchg-in-update_used_max.patch added to
- mm-unstable branch
-Message-ID: <Y1kMeRsIX8kIKzpH@google.com>
-References: <20221018205005.52F6CC433C1@smtp.kernel.org>
+        with ESMTP id S233512AbiJZM6m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Oct 2022 08:58:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB4D1F63C2;
+        Wed, 26 Oct 2022 05:58:41 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4AD4F61EBB;
+        Wed, 26 Oct 2022 12:58:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9CFFC433C1;
+        Wed, 26 Oct 2022 12:58:39 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="Gkw7X8XF"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1666789117;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=nCEjyF4eeUdu2SGiHo/u6gxWDuuFvR0oywxSo4xTaE4=;
+        b=Gkw7X8XFs5wZwIyVAA/OlHPNfvcvma8qpkZTuOrtLdOtLXEREYRyEbP7TT4Oe8qi1TT5s1
+        DyaTa94c8ILXgCb40n4ePKMo5zfm+BoHmDM7CbTubM/SBhoFGTI+8uUQ40dJ6DDtUSxUpV
+        /MU/yosRl5pfdP0cTO20yH1XVE9BOTE=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 6ebb8279 (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
+        Wed, 26 Oct 2022 12:58:37 +0000 (UTC)
+Date:   Wed, 26 Oct 2022 14:58:34 +0200
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+To:     Kees Cook <keescook@chromium.org>, cocci@inria.fr
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
+        mm-commits@vger.kernel.org, masahiroy@kernel.org,
+        gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com,
+        Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCH -mm] -funsigned-char, x86: make struct
+ p4_event_bind::cntr signed array
+Message-ID: <Y1ku+jfRAyezq6Nz@zx2c4.com>
+References: <20221020000356.177CDC433C1@smtp.kernel.org>
+ <Y1EZuQcO8UoN91cX@localhost.localdomain>
+ <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com>
+ <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
+ <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
+ <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
+ <202210201151.ECC19BC97A@keescook>
+ <Y1iSYddi3BpP8gvf@zx2c4.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20221018205005.52F6CC433C1@smtp.kernel.org>
+In-Reply-To: <Y1iSYddi3BpP8gvf@zx2c4.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On (22/10/18 13:50), Andrew Morton wrote:
-> Use try_cmpxchg instead of cmpxchg (*ptr, old, new) == old in
-> update_used_max.  x86 CMPXCHG instruction returns success in ZF flag, so
-> this change saves a compare after cmpxchg (and related move instruction in
-> front of cmpxchg).
-> 
-> Also, reorder code a bit to remove additional compare and conditional jump
-> from the assembly code.  Together, hese two changes save 15 bytes from the
-> function when compiled for x86_64.
-> 
-> No functional change intended.
-> 
-> Link: https://lkml.kernel.org/r/20221018145154.3699-1-ubizjak@gmail.com
-> Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-> Cc: Minchan Kim <minchan@kernel.org>
-> Cc: Nitin Gupta <ngupta@vflare.org>
-> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+On Wed, Oct 26, 2022 at 03:50:25AM +0200, Jason A. Donenfeld wrote:
+> The traditional objdump comparison does work, though. It produces a good
 
-I totally missed that patch.
+Another thing that appears to work well is just using Coccinelle
+scripts. I've had some success just scrolling through the results of:
 
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+    @@
+    char c;
+    expression E;
+    @@
+    (
+    * E > c
+    |
+    * E >= c
+    |
+    * E < c
+    |
+    * E <= c
+    )
+
+That also triggers on explicitly signed chars, and examining those
+reveals that quite a bit of code in the tree already does do the right
+thing, which is good.
+
+From looking at this and objdump output, it looks like most naked-char
+usage that isn't for strings is actually already assuming it's unsigned,
+using it as a byte. I'll continue to churn, and I'm sure I'll miss a few
+things here and there, but all and all, I don't think this is looking as
+terrible as I initially feared.
+
+I'm CC'ing the Coccinelle people to see if they have any nice ideas on
+improvements. Specifically, the thing we're trying to identify is:
+
+  - Usage of vanilla `char`, without a `signed` or `unsigned` qualifier,
+    where:
+  - It's not being used for characters; and
+  - It's doing something that assumes it is signed, such as various
+    types of comparisons or decrements.
+
+LWN wrote a summary of the general problem, in case that helps describe
+what would be useful: https://lwn.net/SubscriberLink/911914/f90c2ed1af23cbc4/
+
+Any nice Cocci tricks for this?
+
+Jason
