@@ -2,138 +2,94 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D120C38A2D
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Oct 2022 01:44:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF8F1C38A02
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Oct 2022 01:49:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232619AbiJZBoD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Oct 2022 21:44:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47906 "EHLO
+        id S232672AbiJZBtn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Oct 2022 21:49:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232489AbiJZBoA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2022 21:44:00 -0400
+        with ESMTP id S232640AbiJZBtl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2022 21:49:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5E05DFB42
-        for <mm-commits@vger.kernel.org>; Tue, 25 Oct 2022 18:43:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9BC5272B
+        for <mm-commits@vger.kernel.org>; Tue, 25 Oct 2022 18:49:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 38B8D61C44
-        for <mm-commits@vger.kernel.org>; Wed, 26 Oct 2022 01:43:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DBD7C433B5;
-        Wed, 26 Oct 2022 01:43:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 46E4561C33
+        for <mm-commits@vger.kernel.org>; Wed, 26 Oct 2022 01:49:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B44FC433C1;
+        Wed, 26 Oct 2022 01:49:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666748638;
-        bh=OoFYNNISGR8FD9bDXQQNbwUSbPwgcNFWzVUZ9IWI4xs=;
+        s=korg; t=1666748977;
+        bh=RCBbB7B5zYVGyVo17woA4oR8j+ekWf2ESsi3MAyATW4=;
         h=Date:To:From:Subject:From;
-        b=b7ZIS0vaYt9+QnMbExLZdT+xWzNKyK0QdIxAfzFlaRE+Z+3zbTshw1JT1hzNCdAD6
-         NFOd11VrPC7hg54HtmU/BSXe/FdVgQG9kQcOT+0PE+uQCBMkNEaNX/IroDZ9m3auLE
-         YirgJ2OpkXJ+qZQtIwX0hK+whOTe3kfZlhaYZEU8=
-Date:   Tue, 25 Oct 2022 18:43:57 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com, vbabka@suse.cz,
-        shy828301@gmail.com, rostedt@goodmis.org, mhiramat@kernel.org,
-        kirill.shutemov@linux.intel.com, david@redhat.com,
-        gautammenghani201@gmail.com, akpm@linux-foundation.org
+        b=eosEOz3wLqNsQcwPXSArMHWdOvMz5mjG473e9pG3Sok3KjFcEvkDSWcM7comG1Vm1
+         InJYmaxrRfcUDpmVmaovvag7/Zc0RE89P6zU9EsjYKYSmIS2cOskavR0JSLAc3T5zD
+         vRmY4ae2PUTei2rxrWFNyDFHnc8EY6dXBM32D0jc=
+Date:   Tue, 25 Oct 2022 18:49:36 -0700
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-khugepaged-add-tracepoint-to-collapse_file.patch removed from -mm tree
-Message-Id: <20221026014358.6DBD7C433B5@smtp.kernel.org>
+Subject: + maple_tree-fix-mas_find_rev-comment.patch added to mm-unstable branch
+Message-Id: <20221026014937.8B44FC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/khugepaged: add tracepoint to collapse_file()
-has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-add-tracepoint-to-collapse_file.patch
+The patch titled
+     Subject: maple_tree: fix mas_find_rev() comment
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple_tree-fix-mas_find_rev-comment.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-mas_find_rev-comment.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gautam Menghani <gautammenghani201@gmail.com>
-Subject: mm/khugepaged: add tracepoint to collapse_file()
-Date: Mon, 24 Oct 2022 23:05:58 +0530
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: maple_tree: fix mas_find_rev() comment
+Date: Tue, 25 Oct 2022 17:38:14 +0000
 
-In mm/khugepaged.c, a TODO in the function collapse_file() asks to add
-tracepoints.  Add the tracepoint named "mm_khugepaged_collapse_file".
+mas_find_rev() uses mas_prev_entry(), not mas_next_entry(), correct comment.
 
-Link: https://lkml.kernel.org/r/20221024173559.332324-1-gautammenghani201@gmail.com
-Signed-off-by: Gautam Menghani <gautammenghani201@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Link: https://lkml.kernel.org/r/20221025173756.2719616-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   38 +++++++++++++++++++++++++++
- mm/khugepaged.c                    |    4 ++
- 2 files changed, 41 insertions(+), 1 deletion(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-add-tracepoint-to-collapse_file
-+++ a/include/trace/events/huge_memory.h
-@@ -203,5 +203,43 @@ TRACE_EVENT(mm_khugepaged_scan_file,
- 		__print_symbolic(__entry->result, SCAN_STATUS))
- );
+--- a/lib/maple_tree.c~maple_tree-fix-mas_find_rev-comment
++++ a/lib/maple_tree.c
+@@ -6056,7 +6056,7 @@ void *mas_find_rev(struct ma_state *mas,
+ 	if (mas->index < min)
+ 		return NULL;
  
-+TRACE_EVENT(mm_khugepaged_collapse_file,
-+	TP_PROTO(struct mm_struct *mm, struct page *hpage, pgoff_t index,
-+			bool is_shmem, unsigned long addr, struct file *file,
-+			int nr, int result),
-+	TP_ARGS(mm, hpage, index, is_shmem, addr, file, nr, result),
-+	TP_STRUCT__entry(
-+		__field(struct mm_struct *, mm)
-+		__field(unsigned long, hpfn)
-+		__field(pgoff_t, index)
-+		__field(bool, is_shmem)
-+		__field(unsigned long, addr)
-+		__string(filename, file->f_path.dentry->d_iname)
-+		__field(int, nr)
-+		__field(int, result)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->mm = mm;
-+		__entry->hpfn = hpage ? page_to_pfn(hpage) : -1;
-+		__entry->index = index;
-+		__entry->is_shmem = is_shmem;
-+		__entry->addr = addr;
-+		__assign_str(filename, file->f_path.dentry->d_iname);
-+		__entry->nr = nr;
-+		__entry->result = result;
-+	),
-+
-+	TP_printk("mm=%p, hpage_pfn=0x%lx, index=%ld, is_shmem=%d, addr=%ld, filename=%s, nr=%d, result=%s",
-+		__entry->mm,
-+		__entry->hpfn,
-+		__entry->index,
-+		__entry->is_shmem,
-+		__entry->addr,
-+		__get_str(filename),
-+		__entry->nr,
-+		__print_symbolic(__entry->result, SCAN_STATUS))
-+);
-+
- #endif /* __HUGE_MEMORY_H */
- #include <trace/define_trace.h>
---- a/mm/khugepaged.c~mm-khugepaged-add-tracepoint-to-collapse_file
-+++ a/mm/khugepaged.c
-@@ -2059,7 +2059,9 @@ out:
- 		mem_cgroup_uncharge(page_folio(hpage));
- 		put_page(hpage);
- 	}
--	/* TODO: tracepoints */
-+
-+	trace_mm_khugepaged_collapse_file(mm, hpage, index, is_shmem,
-+		addr, file, nr, result);
- 	return result;
+-	/* Retries on dead nodes handled by mas_next_entry */
++	/* Retries on dead nodes handled by mas_prev_entry */
+ 	return mas_prev_entry(mas, min);
  }
- 
+ EXPORT_SYMBOL_GPL(mas_find);
 _
 
-Patches currently in -mm which might be from gautammenghani201@gmail.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
+maple_tree-fix-mas_find_rev-comment.patch
 
