@@ -2,94 +2,153 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF8F1C38A02
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Oct 2022 01:49:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B67F0C38A2D
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Oct 2022 01:50:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232672AbiJZBtn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Oct 2022 21:49:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33962 "EHLO
+        id S232641AbiJZBui (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Oct 2022 21:50:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232640AbiJZBtl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2022 21:49:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9BC5272B
-        for <mm-commits@vger.kernel.org>; Tue, 25 Oct 2022 18:49:38 -0700 (PDT)
+        with ESMTP id S232671AbiJZBuh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2022 21:50:37 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FFAA647CB;
+        Tue, 25 Oct 2022 18:50:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 46E4561C33
-        for <mm-commits@vger.kernel.org>; Wed, 26 Oct 2022 01:49:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B44FC433C1;
-        Wed, 26 Oct 2022 01:49:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666748977;
-        bh=RCBbB7B5zYVGyVo17woA4oR8j+ekWf2ESsi3MAyATW4=;
-        h=Date:To:From:Subject:From;
-        b=eosEOz3wLqNsQcwPXSArMHWdOvMz5mjG473e9pG3Sok3KjFcEvkDSWcM7comG1Vm1
-         InJYmaxrRfcUDpmVmaovvag7/Zc0RE89P6zU9EsjYKYSmIS2cOskavR0JSLAc3T5zD
-         vRmY4ae2PUTei2rxrWFNyDFHnc8EY6dXBM32D0jc=
-Date:   Tue, 25 Oct 2022 18:49:36 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        liam.howlett@oracle.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-fix-mas_find_rev-comment.patch added to mm-unstable branch
-Message-Id: <20221026014937.8B44FC433C1@smtp.kernel.org>
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0FEE4B81FE5;
+        Wed, 26 Oct 2022 01:50:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F465C433C1;
+        Wed, 26 Oct 2022 01:50:31 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="ihTYGQYE"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1666749029;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=RppiKIM3FlruZlipAagRosffDnLqFThdR78mCXaAuuk=;
+        b=ihTYGQYESOguenYCyeNj3/jeBkWl4DXB1wU1gMdSPBvNQGvC0XVaeZ0jAjocW5yi0vpeAp
+        y3b7ho6BC6QjK9p2KfdNHSMjDkcsYRC5UpwZpxGTq6RZoLtFk+nbKR9WyGIx2XObL+MC7e
+        ztuqb8tEpsSxO6dtmLeb4V8DJRLXjRU=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id f69bcd4b (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
+        Wed, 26 Oct 2022 01:50:29 +0000 (UTC)
+Date:   Wed, 26 Oct 2022 03:50:25 +0200
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+To:     Kees Cook <keescook@chromium.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
+        mm-commits@vger.kernel.org, masahiroy@kernel.org,
+        gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com,
+        Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCH -mm] -funsigned-char, x86: make struct
+ p4_event_bind::cntr signed array
+Message-ID: <Y1iSYddi3BpP8gvf@zx2c4.com>
+References: <20221020000356.177CDC433C1@smtp.kernel.org>
+ <Y1EZuQcO8UoN91cX@localhost.localdomain>
+ <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com>
+ <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
+ <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
+ <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
+ <202210201151.ECC19BC97A@keescook>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <202210201151.ECC19BC97A@keescook>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Thu, Oct 20, 2022 at 11:57:12AM -0700, Kees Cook wrote:
+> On Thu, Oct 20, 2022 at 10:42:25AM -0700, Linus Torvalds wrote:
+> > On Thu, Oct 20, 2022 at 10:33 AM Jason A. Donenfeld <Jason@zx2c4.com> wrote:
+> > >
+> > > Or sometimes with objdump, I've had more success by keeping debug
+> > > symbols, and then trimming offsets from jmps.
+> > 
+> > objdump is what I'm using, and it actually seems ok on individual object files.
+> > 
+> > Now I just need to script the "do all the object files" and see how
+> > massive the end result is.
+> 
+> For the a/b build, I start with all*config, then:
+> 
+> # Stop painful noise
+> CONFIG_KCOV=n
+> CONFIG_GCOV_KERNEL=n
+> CONFIG_GCC_PLUGINS=n
+> CONFIG_IKHEADERS=n
+> CONFIG_KASAN=n
+> CONFIG_UBSAN=n
+> CONFIG_KCSAN=n
+> CONFIG_KMSAN=n
+> # Get us source/line details
+> CONFIG_DEBUG_KERNEL=y
+> CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+> CONFIG_DEBUG_INFO_REDUCED=n CONFIG_DEBUG_INFO_COMPRESSED=n
+> CONFIG_DEBUG_INFO_SPLIT=n
+> 
+> And to keep other build-time junk stabilized[1], I build with these make
+> options:
+> 
+> KBUILD_BUILD_TIMESTAMP=1970-01-01
+> KBUILD_BUILD_USER=user
+> KBUILD_BUILD_HOST=host
+> KBUILD_BUILD_VERSION=1
 
-The patch titled
-     Subject: maple_tree: fix mas_find_rev() comment
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-fix-mas_find_rev-comment.patch
+The LLVM `.ll` file thing I tried turned out to be a disaster. Too much
+noise, as this is too early of a stage.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-mas_find_rev-comment.patch
+The traditional objdump comparison does work, though. It produces a good
+amount of noise, but still yields a manageable amount of diffs -- 882 --
+which can then be paired down more with heuristics.
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+I've been using this script below to compare `linux-schar/` with
+`linux-uchar/`, which creates a directory `linux-schar-uchar/` filled
+with color diffs that I can then flip through using
+`less -R linux-schar-uchar/*.diff`. Seems to work okay, so I'll post it
+here in case others are curious about looking through these.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Jason
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+------8<--------------------------------
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+#!/bin/bash
 
-------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: maple_tree: fix mas_find_rev() comment
-Date: Tue, 25 Oct 2022 17:38:14 +0000
+asm_diff() {
+	objdump \
+		--disassemble \
+		--demangle \
+		--no-show-raw-insn \
+		--no-addresses \
+		--section=.text \
+		--disassembler-options=intel \
+	"$1" | \
+	sed \
+		-e 's/[0-9a-f]\+ \(<[a-zA-Z0-9_+-]\+>\)/?? \1/g' \
+		-e 's/<\([a-zA-Z0-9_-]\+\)+0x[a-f0-9]\+>/<\1>/g' \
+		-e '/\/[a-zA-Z0-9._-]\+\.o:/d'
+}
 
-mas_find_rev() uses mas_prev_entry(), not mas_next_entry(), correct comment.
+A=linux-schar
+B=linux-uchar
+C=linux-schar-uchar
 
-Link: https://lkml.kernel.org/r/20221025173756.2719616-1-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+rm -rf "$C"
+mkdir -p "$C"
 
+while read -r obj_a; do
+	obj_b="$B/${obj_a#$A/}"
+	diff_c="${obj_a#$A/}"
+	diff_c="$C/${diff_c//\//--}.diff"
+	[[ -f $obj_b ]] || { echo "ERROR: $obj_b is missing" >&2; exit 1; }
 
---- a/lib/maple_tree.c~maple_tree-fix-mas_find_rev-comment
-+++ a/lib/maple_tree.c
-@@ -6056,7 +6056,7 @@ void *mas_find_rev(struct ma_state *mas,
- 	if (mas->index < min)
- 		return NULL;
- 
--	/* Retries on dead nodes handled by mas_next_entry */
-+	/* Retries on dead nodes handled by mas_prev_entry */
- 	return mas_prev_entry(mas, min);
- }
- EXPORT_SYMBOL_GPL(mas_find);
-_
+	echo "${obj_a#$A/}" >&2
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
-
-maple_tree-fix-mas_find_rev-comment.patch
-
+	diff --color=always --text --unified=10 \
+		<(asm_diff "$obj_a") <(asm_diff "$obj_b") > "$diff_c" && \
+	rm -f "$diff_c"
+done < <(exec find "$A" -name '*.o')
