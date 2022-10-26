@@ -2,153 +2,117 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B67F0C38A2D
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Oct 2022 01:50:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53A60C38A02
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Oct 2022 02:03:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232641AbiJZBui (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Oct 2022 21:50:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39842 "EHLO
+        id S231164AbiJZCDr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Oct 2022 22:03:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232671AbiJZBuh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2022 21:50:37 -0400
+        with ESMTP id S229995AbiJZCDp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2022 22:03:45 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FFAA647CB;
-        Tue, 25 Oct 2022 18:50:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D271833E2A
+        for <mm-commits@vger.kernel.org>; Tue, 25 Oct 2022 19:03:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0FEE4B81FE5;
-        Wed, 26 Oct 2022 01:50:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F465C433C1;
-        Wed, 26 Oct 2022 01:50:31 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="ihTYGQYE"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1666749029;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=RppiKIM3FlruZlipAagRosffDnLqFThdR78mCXaAuuk=;
-        b=ihTYGQYESOguenYCyeNj3/jeBkWl4DXB1wU1gMdSPBvNQGvC0XVaeZ0jAjocW5yi0vpeAp
-        y3b7ho6BC6QjK9p2KfdNHSMjDkcsYRC5UpwZpxGTq6RZoLtFk+nbKR9WyGIx2XObL+MC7e
-        ztuqb8tEpsSxO6dtmLeb4V8DJRLXjRU=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id f69bcd4b (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-        Wed, 26 Oct 2022 01:50:29 +0000 (UTC)
-Date:   Wed, 26 Oct 2022 03:50:25 +0200
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     Kees Cook <keescook@chromium.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org, masahiroy@kernel.org,
-        gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com,
-        Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [PATCH -mm] -funsigned-char, x86: make struct
- p4_event_bind::cntr signed array
-Message-ID: <Y1iSYddi3BpP8gvf@zx2c4.com>
-References: <20221020000356.177CDC433C1@smtp.kernel.org>
- <Y1EZuQcO8UoN91cX@localhost.localdomain>
- <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com>
- <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
- <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
- <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
- <202210201151.ECC19BC97A@keescook>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <202210201151.ECC19BC97A@keescook>
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8AD1FB81FDF
+        for <mm-commits@vger.kernel.org>; Wed, 26 Oct 2022 02:03:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18FF2C433D6;
+        Wed, 26 Oct 2022 02:03:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1666749822;
+        bh=pptR85L0lYdLNV6IA0whrHErejm2dpCZHkStQ4ynRjE=;
+        h=Date:To:From:Subject:From;
+        b=xohL6P5+fGwFFcfA8oLtLhsu8WusJjj6UqJW08TN/tSbT4x6LP79walG/7lASGSPm
+         sozS7IZ/X4TB81qszNmWMez+jYpv2PWlRaFt3jhXSmS/XbHguxwuBX/IfFWtJ2hBeb
+         ji9cenVal2fekbpSXv5iU5DxdVvmIb8NTob/uMMU=
+Date:   Tue, 25 Oct 2022 19:03:40 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, peterx@redhat.com,
+        akpm@linux-foundation.org, aarcange@redhat.com,
+        ira.weiny@intel.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page-v2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221026020342.18FF2C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Oct 20, 2022 at 11:57:12AM -0700, Kees Cook wrote:
-> On Thu, Oct 20, 2022 at 10:42:25AM -0700, Linus Torvalds wrote:
-> > On Thu, Oct 20, 2022 at 10:33 AM Jason A. Donenfeld <Jason@zx2c4.com> wrote:
-> > >
-> > > Or sometimes with objdump, I've had more success by keeping debug
-> > > symbols, and then trimming offsets from jmps.
-> > 
-> > objdump is what I'm using, and it actually seems ok on individual object files.
-> > 
-> > Now I just need to script the "do all the object files" and see how
-> > massive the end result is.
-> 
-> For the a/b build, I start with all*config, then:
-> 
-> # Stop painful noise
-> CONFIG_KCOV=n
-> CONFIG_GCOV_KERNEL=n
-> CONFIG_GCC_PLUGINS=n
-> CONFIG_IKHEADERS=n
-> CONFIG_KASAN=n
-> CONFIG_UBSAN=n
-> CONFIG_KCSAN=n
-> CONFIG_KMSAN=n
-> # Get us source/line details
-> CONFIG_DEBUG_KERNEL=y
-> CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
-> CONFIG_DEBUG_INFO_REDUCED=n CONFIG_DEBUG_INFO_COMPRESSED=n
-> CONFIG_DEBUG_INFO_SPLIT=n
-> 
-> And to keep other build-time junk stabilized[1], I build with these make
-> options:
-> 
-> KBUILD_BUILD_TIMESTAMP=1970-01-01
-> KBUILD_BUILD_USER=user
-> KBUILD_BUILD_HOST=host
-> KBUILD_BUILD_VERSION=1
 
-The LLVM `.ll` file thing I tried turned out to be a disaster. Too much
-noise, as this is too early of a stage.
+The patch titled
+     Subject: mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page-v2
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page-v2.patch
 
-The traditional objdump comparison does work, though. It produces a good
-amount of noise, but still yields a manageable amount of diffs -- 882 --
-which can then be paired down more with heuristics.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page-v2.patch
 
-I've been using this script below to compare `linux-schar/` with
-`linux-uchar/`, which creates a directory `linux-schar-uchar/` filled
-with color diffs that I can then flip through using
-`less -R linux-schar-uchar/*.diff`. Seems to work okay, so I'll post it
-here in case others are curious about looking through these.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Jason
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-------8<--------------------------------
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-#!/bin/bash
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-asm_diff() {
-	objdump \
-		--disassemble \
-		--demangle \
-		--no-show-raw-insn \
-		--no-addresses \
-		--section=.text \
-		--disassembler-options=intel \
-	"$1" | \
-	sed \
-		-e 's/[0-9a-f]\+ \(<[a-zA-Z0-9_+-]\+>\)/?? \1/g' \
-		-e 's/<\([a-zA-Z0-9_-]\+\)+0x[a-f0-9]\+>/<\1>/g' \
-		-e '/\/[a-zA-Z0-9._-]\+\.o:/d'
-}
+------------------------------------------------------
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page-v2
+Date: Tue, 25 Oct 2022 15:01:36 -0700
 
-A=linux-schar
-B=linux-uchar
-C=linux-schar-uchar
+Update the commit message and comment based on additional discussion
 
-rm -rf "$C"
-mkdir -p "$C"
+Thanks to Matt for pointing out the deadlock potential despite recursive
+reads.  
 
-while read -r obj_a; do
-	obj_b="$B/${obj_a#$A/}"
-	diff_c="${obj_a#$A/}"
-	diff_c="$C/${diff_c//\//--}.diff"
-	[[ -f $obj_b ]] || { echo "ERROR: $obj_b is missing" >&2; exit 1; }
+Link: https://lkml.kernel.org/r/20221025220136.2366143-1-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-	echo "${obj_a#$A/}" >&2
 
-	diff --color=always --text --unified=10 \
-		<(asm_diff "$obj_a") <(asm_diff "$obj_b") > "$diff_c" && \
-	rm -f "$diff_c"
-done < <(exec find "$A" -name '*.o')
+--- a/mm/userfaultfd.c~mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page-v2
++++ a/mm/userfaultfd.c
+@@ -159,9 +159,19 @@ static int mcopy_atomic_pte(struct mm_st
+ 
+ 		page_kaddr = kmap_local_page(page);
+ 		/*
+-		 * The mmap_lock is held here.  Disable page faults to
+-		 * prevent deadlock should copy_from_user() fault.  The
+-		 * copy will be retried outside the mmap_lock.
++		 * The read mmap_lock is held here.  Despite the
++		 * mmap_lock being read recursive a deadlock is still
++		 * possible if a writer has taken a lock.  For example:
++		 *
++		 * process A thread 1 takes read lock on own mmap_lock
++		 * process A thread 2 calls mmap, blocks taking write lock
++		 * process B thread 1 takes page fault, read lock on own mmap lock
++		 * process B thread 2 calls mmap, blocks taking write lock
++		 * process A thread 1 blocks taking read lock on process B
++		 * process B thread 1 blocks taking read lock on process A
++		 *
++		 * Disable page faults to prevent potential deadlock
++		 * and retry the copy outside the mmap_lock.
+ 		 */
+ 		pagefault_disable();
+ 		ret = copy_from_user(page_kaddr,
+_
+
+Patches currently in -mm which might be from ira.weiny@intel.com are
+
+mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page.patch
+mm-userfaultfd-replace-kmap-kmap_atomic-with-kmap_local_page-v2.patch
+
