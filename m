@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B837C38A02
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Oct 2022 03:31:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6264BC38A2D
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Oct 2022 03:31:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232200AbiJZDbX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Oct 2022 23:31:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40212 "EHLO
+        id S229753AbiJZDbY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Oct 2022 23:31:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232963AbiJZDbM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2022 23:31:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5322960E3
-        for <mm-commits@vger.kernel.org>; Tue, 25 Oct 2022 20:31:11 -0700 (PDT)
+        with ESMTP id S232992AbiJZDbN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2022 23:31:13 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49152B51
+        for <mm-commits@vger.kernel.org>; Tue, 25 Oct 2022 20:31:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DEA0E61CAF
+        by sin.source.kernel.org (Postfix) with ESMTPS id 86E3FCE200B
         for <mm-commits@vger.kernel.org>; Wed, 26 Oct 2022 03:31:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 224A9C433D6;
-        Wed, 26 Oct 2022 03:31:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AF58C433C1;
+        Wed, 26 Oct 2022 03:31:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666755070;
-        bh=gP/U/pc9WJcs5lBJChZFRELM84i+fBali3M9c7rhTP4=;
+        s=korg; t=1666755068;
+        bh=eZfsRUsVHBBV5NWEz4uOCzqLpTtAlP7MHe/clnv4gp0=;
         h=Date:To:From:Subject:From;
-        b=bBYnFwe6Lf4ZMdFSxN+SAIUUaBEZPFNLy4GE0TIKKo2NEqYwnfXyN3Sqv8jdnNfg6
-         v/0eQSgtL/J2nWak7mbgahfX6F+/w/m7+0UqZM4gNruKcYdjVf0tD6g1YDpQVxAi4P
-         NfccFdQ/snbzktdQ2/xMH4SHOZ838+uSZoFNtvEk=
-Date:   Tue, 25 Oct 2022 20:31:09 -0700
+        b=i3ludmntV6wKvx2sMOImkiyxrvZVM01UJNdnGW3fpIQXT0jMeqM2zC+J2y3WBqwgl
+         zRekMsp3EdTw/kfMu4wcr8zd4i55//YxH8/Mn/gulXcP0s+BfIwasSKapiUrfilFex
+         nevrHnPdTtsSQICD2cuZZHFx/WqgwqLqH1pljNFw=
+Date:   Tue, 25 Oct 2022 20:31:07 -0700
 To:     mm-commits@vger.kernel.org, xueshuai@linux.alibaba.com,
         willy@infradead.org, npiggin@gmail.com, naoya.horiguchi@nec.com,
         mpe@ellerman.id.au, linmiaohe@huawei.com, dan.j.williams@intel.com,
         christophe.leroy@csgroup.eu, tony.luck@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-when-copy-on-write-hits-poison-take-page-offline.patch added to mm-unstable branch
-Message-Id: <20221026033110.224A9C433D6@smtp.kernel.org>
+Subject: + mm-hwpoison-try-to-recover-from-copy-on-write-faults.patch added to mm-unstable branch
+Message-Id: <20221026033108.5AF58C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hwpoison: when copy-on-write hits poison, take page offline
+     Subject: mm, hwpoison: try to recover from copy-on write faults
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-when-copy-on-write-hits-poison-take-page-offline.patch
+     mm-hwpoison-try-to-recover-from-copy-on-write-faults.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-when-copy-on-write-hits-poison-take-page-offline.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-try-to-recover-from-copy-on-write-faults.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,75 +68,204 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Tony Luck <tony.luck@intel.com>
-Subject: mm, hwpoison: when copy-on-write hits poison, take page offline
-Date: Fri, 21 Oct 2022 13:01:20 -0700
+Subject: mm, hwpoison: try to recover from copy-on write faults
+Date: Fri, 21 Oct 2022 13:01:19 -0700
 
-Cannot call memory_failure() directly from the fault handler because
-mmap_lock (and others) are held.
+Patch series "Copy-on-write poison recovery", v3.
 
-It is important, but not urgent, to mark the source page as h/w poisoned
-and unmap it from other tasks.
+Part 1 deals with the process that triggered the copy on write fault with
+a store to a shared read-only page.  That process is send a SIGBUS with
+the usual machine check decoration to specify the virtual address of the
+lost page, together with the scope.
 
-Use memory_failure_queue() to request a call to memory_failure() for the
-page with the error.
+Part 2 sets up to asynchronously take the page with the uncorrected error
+offline to prevent additional machine check faults.  H/t to Miaohe Lin
+<linmiaohe@huawei.com> and Shuai Xue <xueshuai@linux.alibaba.com> for
+pointing me to the existing function to queue a call to memory_failure().
 
-Also provide a stub version for CONFIG_MEMORY_FAILURE=n
+On x86 there is some duplicate reporting (because the error is also
+signalled by the memory controller as well as by the core that triggered
+the machine check).  Console logs look like this:
 
-Link: https://lkml.kernel.org/r/20221021200120.175753-3-tony.luck@intel.com
+
+This patch (of 2):
+
+If the kernel is copying a page as the result of a copy-on-write fault and
+runs into an uncorrectable error, Linux will crash because it does not
+have recovery code for this case where poison is consumed by the kernel.
+
+It is easy to set up a test case.  Just inject an error into a private
+page, fork(2), and have the child process write to the page.
+
+I wrapped that neatly into a test at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/aegl/ras-tools.git
+
+just enable ACPI error injection and run:
+
+  # ./einj_mem-uc -f copy-on-write
+
+Add a new copy_user_highpage_mc() function that uses copy_mc_to_kernel()
+on architectures where that is available (currently x86 and powerpc). 
+When an error is detected during the page copy, return VM_FAULT_HWPOISON
+to caller of wp_page_copy().  This propagates up the call stack.  Both x86
+and powerpc have code in their fault handler to deal with this code by
+sending a SIGBUS to the application.
+
+Note that this patch avoids a system crash and signals the process that
+triggered the copy-on-write action.  It does not take any action for the
+memory error that is still in the shared page.  To handle that a call to
+memory_failure() is needed.  But this cannot be done from wp_page_copy()
+because it holds mmap_lock().  Perhaps the architecture fault handlers can
+deal with this loose end in a subsequent patch?
+
+On Intel/x86 this loose end will often be handled automatically because
+the memory controller provides an additional notification of the h/w
+poison in memory, the handler for this will call memory_failure().  This
+isn't a 100% solution.  If there are multiple errors, not all may be
+logged in this way.
+
+Link: https://lkml.kernel.org/r/20221021200120.175753-1-tony.luck@intel.com
+Link: https://lkml.kernel.org/r/20221021200120.175753-2-tony.luck@intel.com
 Signed-off-by: Tony Luck <tony.luck@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Shuai Xue <xueshuai@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm.h~mm-hwpoison-when-copy-on-write-hits-poison-take-page-offline
-+++ a/include/linux/mm.h
-@@ -3228,7 +3228,6 @@ enum mf_flags {
- int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
- 		      unsigned long count, int mf_flags);
- extern int memory_failure(unsigned long pfn, int flags);
--extern void memory_failure_queue(unsigned long pfn, int flags);
- extern void memory_failure_queue_kick(int cpu);
- extern int unpoison_memory(unsigned long pfn);
- extern int sysctl_memory_failure_early_kill;
-@@ -3237,11 +3236,16 @@ extern void shake_page(struct page *p);
- extern atomic_long_t num_poisoned_pages __read_mostly;
- extern int soft_offline_page(unsigned long pfn, int flags);
- #ifdef CONFIG_MEMORY_FAILURE
-+extern void memory_failure_queue(unsigned long pfn, int flags);
- extern int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
- 					bool *migratable_cleared);
- void num_poisoned_pages_inc(unsigned long pfn);
- void num_poisoned_pages_sub(unsigned long pfn, long i);
- #else
-+static inline void memory_failure_queue(unsigned long pfn, int flags)
+--- a/include/linux/highmem.h~mm-hwpoison-try-to-recover-from-copy-on-write-faults
++++ a/include/linux/highmem.h
+@@ -319,6 +319,30 @@ static inline void copy_user_highpage(st
+ 
+ #endif
+ 
++#ifdef copy_mc_to_kernel
++static inline int copy_mc_user_highpage(struct page *to, struct page *from,
++					unsigned long vaddr, struct vm_area_struct *vma)
 +{
-+}
++	unsigned long ret;
++	char *vfrom, *vto;
 +
- static inline int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
- 					bool *migratable_cleared)
- {
---- a/mm/memory.c~mm-hwpoison-when-copy-on-write-hits-poison-take-page-offline
++	vfrom = kmap_local_page(from);
++	vto = kmap_local_page(to);
++	ret = copy_mc_to_kernel(vto, vfrom, PAGE_SIZE);
++	kunmap_local(vto);
++	kunmap_local(vfrom);
++
++	return ret;
++}
++#else
++static inline int copy_mc_user_highpage(struct page *to, struct page *from,
++					unsigned long vaddr, struct vm_area_struct *vma)
++{
++	copy_user_highpage(to, from, vaddr, vma);
++	return 0;
++}
++#endif
++
+ #ifndef __HAVE_ARCH_COPY_HIGHPAGE
+ 
+ static inline void copy_highpage(struct page *to, struct page *from)
+--- a/mm/memory.c~mm-hwpoison-try-to-recover-from-copy-on-write-faults
 +++ a/mm/memory.c
-@@ -2817,8 +2817,10 @@ static inline int __wp_page_copy_user(st
+@@ -2799,10 +2799,16 @@ static inline int pte_unmap_same(struct
+ 	return same;
+ }
+ 
+-static inline bool __wp_page_copy_user(struct page *dst, struct page *src,
+-				       struct vm_fault *vmf)
++/*
++ * Return:
++ *	0:		copied succeeded
++ *	-EHWPOISON:	copy failed due to hwpoison in source page
++ *	-EAGAIN:	copied failed (some other reason)
++ */
++static inline int __wp_page_copy_user(struct page *dst, struct page *src,
++				      struct vm_fault *vmf)
+ {
+-	bool ret;
++	int ret;
+ 	void *kaddr;
+ 	void __user *uaddr;
+ 	bool locked = false;
+@@ -2811,8 +2817,9 @@ static inline bool __wp_page_copy_user(s
  	unsigned long addr = vmf->address;
  
  	if (likely(src)) {
--		if (copy_mc_user_highpage(dst, src, addr, vma))
-+		if (copy_mc_user_highpage(dst, src, addr, vma)) {
-+			memory_failure_queue(page_to_pfn(src), 0);
- 			return -EHWPOISON;
-+		}
- 		return 0;
+-		copy_user_highpage(dst, src, addr, vma);
+-		return true;
++		if (copy_mc_user_highpage(dst, src, addr, vma))
++			return -EHWPOISON;
++		return 0;
  	}
  
+ 	/*
+@@ -2839,7 +2846,7 @@ static inline bool __wp_page_copy_user(s
+ 			 * and update local tlb only
+ 			 */
+ 			update_mmu_tlb(vma, addr, vmf->pte);
+-			ret = false;
++			ret = -EAGAIN;
+ 			goto pte_unlock;
+ 		}
+ 
+@@ -2864,7 +2871,7 @@ static inline bool __wp_page_copy_user(s
+ 		if (!likely(pte_same(*vmf->pte, vmf->orig_pte))) {
+ 			/* The PTE changed under us, update local tlb */
+ 			update_mmu_tlb(vma, addr, vmf->pte);
+-			ret = false;
++			ret = -EAGAIN;
+ 			goto pte_unlock;
+ 		}
+ 
+@@ -2883,7 +2890,7 @@ warn:
+ 		}
+ 	}
+ 
+-	ret = true;
++	ret = 0;
+ 
+ pte_unlock:
+ 	if (locked)
+@@ -3055,6 +3062,7 @@ static vm_fault_t wp_page_copy(struct vm
+ 	pte_t entry;
+ 	int page_copied = 0;
+ 	struct mmu_notifier_range range;
++	int ret;
+ 
+ 	delayacct_wpcopy_start();
+ 
+@@ -3072,19 +3080,21 @@ static vm_fault_t wp_page_copy(struct vm
+ 		if (!new_page)
+ 			goto oom;
+ 
+-		if (!__wp_page_copy_user(new_page, old_page, vmf)) {
++		ret = __wp_page_copy_user(new_page, old_page, vmf);
++		if (ret) {
+ 			/*
+ 			 * COW failed, if the fault was solved by other,
+ 			 * it's fine. If not, userspace would re-fault on
+ 			 * the same address and we will handle the fault
+ 			 * from the second attempt.
++			 * The -EHWPOISON case will not be retried.
+ 			 */
+ 			put_page(new_page);
+ 			if (old_page)
+ 				put_page(old_page);
+ 
+ 			delayacct_wpcopy_end();
+-			return 0;
++			return ret == -EHWPOISON ? VM_FAULT_HWPOISON : 0;
+ 		}
+ 		kmsan_copy_page_meta(new_page, old_page);
+ 	}
 _
 
 Patches currently in -mm which might be from tony.luck@intel.com are
