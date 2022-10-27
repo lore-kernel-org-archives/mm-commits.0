@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B470FA3743
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:04:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37F5BFA3740
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:04:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236844AbiJ0UER (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236857AbiJ0UER (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 27 Oct 2022 16:04:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45394 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237002AbiJ0UEE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:04:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D06556C74F
+        with ESMTP id S237009AbiJ0UEF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:04:05 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B741E68CD0
         for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:04:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5C84F624D1
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:04:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0C13C433D7;
-        Thu, 27 Oct 2022 20:04:00 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 68265B82615
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:04:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE86CC433C1;
+        Thu, 27 Oct 2022 20:03:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666901040;
-        bh=igXXWiTAbpLe3H1KSeZN/L4l1nRBA8FUkQipW2/xjZ8=;
+        s=korg; t=1666901039;
+        bh=xaoS6Rn5VvLVTk0zCyZKbiYZ2ZBNrJJxmk9wXMLJeuc=;
         h=Date:To:From:Subject:From;
-        b=axTmVnrPLa11D09+9AgEEUFK9KQaKRtAcZzOYeHaqg64kC85SIQtVZJqnUTjD9bQS
-         HF/5FRybOWyHaNPAAl+0hL0eurEDkmQEIr4Nn2hNrmMW77CSRka1GdAWLNed9Rv9NF
-         ARn3y6KmqNkj3bx8t27yS962geG6N0BVmjtZYloI=
-Date:   Thu, 27 Oct 2022 13:03:59 -0700
+        b=tjE/RO5cLajH51wTn2oq9hu0tuBk2Rnrq3vzUbVosWzSN/vCH6qPiOJmOIkwiNIEX
+         Hsg5EmTWfEiNEiz6j+pcTR49T6S4ao2e3cCh8ydDPAedTlcW4MaUOs+B4wHy6hXM+L
+         5iKVT9zqd4FwPeHmNUARtS/y94ogXa2xTa+CyfUw=
+Date:   Thu, 27 Oct 2022 13:03:58 -0700
 To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
         avromanov@sberdevices.ru, senozhatsky@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-document-zram-pages_per_pool_page-attribute.patch added to mm-unstable branch
-Message-Id: <20221027200400.A0C13C433D7@smtp.kernel.org>
+Subject: + zram-add-pages_per_pool_page-device-attribute.patch added to mm-unstable branch
+Message-Id: <20221027200358.EE86CC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: document zram pages_per_pool_page attribute
+     Subject: zram: add pages_per_pool_page device attribute
 has been added to the -mm mm-unstable branch.  Its filename is
-     documentation-document-zram-pages_per_pool_page-attribute.patch
+     zram-add-pages_per_pool_page-device-attribute.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-document-zram-pages_per_pool_page-attribute.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-pages_per_pool_page-device-attribute.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,13 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: Documentation: document zram pages_per_pool_page attribute
-Date: Thu, 27 Oct 2022 13:26:50 +0900
+Subject: zram: add pages_per_pool_page device attribute
+Date: Thu, 27 Oct 2022 13:26:49 +0900
 
-Provide a simple documentation for pages_per_pool_page ZRAM device
-attribute.
+Add a new sysfs knob that allows user-space to set zsmalloc pages
+per-zspage limit value on per-device basis.
 
-Link: https://lkml.kernel.org/r/20221027042651.234524-9-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20221027042651.234524-8-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Alexey Romanov <avromanov@sberdevices.ru>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -81,94 +81,98 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/admin-guide/blockdev/zram.rst~documentation-document-zram-pages_per_pool_page-attribute
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -112,7 +112,29 @@ to list all of them using, for instance,
- method. This, however, has an advantage of permitting the usage of
- custom crypto compression modules (implementing S/W or H/W compression).
+--- a/drivers/block/zram/zram_drv.c~zram-add-pages_per_pool_page-device-attribute
++++ a/drivers/block/zram/zram_drv.c
+@@ -1180,6 +1180,45 @@ static ssize_t mm_stat_show(struct devic
+ 	return ret;
+ }
  
--4) Set Disksize
-+4) Set pages per-pool page limit: Optional
-+==========================================
++static ssize_t pages_per_pool_page_show(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	u32 val;
++	struct zram *zram = dev_to_zram(dev);
 +
-+zsmalloc pages can consist of up to ZS_DEFAULT_PAGES_PER_ZSPAGE (single)
-+physical pages. The exact number is calculated for each zsmalloc size
-+class during zsmalloc pool creation. ZRAM provides pages_per_pool_page
-+device attribute that lets one adjust that limit (maximum possible value
-+is ZS_MAX_PAGES_PER_ZSPAGE). The default limit is considered to be good
-+enough, so tweak this value only when the changes in zsmalloc size classes
-+characteristics are beneficial for your data patterns. The limit on the
-+pages per zspages (currently) should be in [1,16] range; default value
-+is 4.
++	down_read(&zram->init_lock);
++	val = zram->pages_per_pool_page;
++	up_read(&zram->init_lock);
 +
-+Examples::
++	return scnprintf(buf, PAGE_SIZE, "%d\n", val);
++}
 +
-+	#show current zsmalloc pages per-pool page limit
-+	cat /sys/block/zramX/pages_per_pool_page
-+	4
++static ssize_t pages_per_pool_page_store(struct device *dev,
++					 struct device_attribute *attr,
++					 const char *buf, size_t len)
++{
++	struct zram *zram = dev_to_zram(dev);
++	u32 val;
 +
-+	#set zsmalloc pages per-pool page limit
-+	echo 8 > /sys/block/zramX/pages_per_pool_page
++	if (kstrtou32(buf, 10, &val))
++		return -EINVAL;
 +
-+5) Set Disksize
- ===============
++	if (val < ZS_MIN_PAGES_PER_ZSPAGE || val > ZS_MAX_PAGES_PER_ZSPAGE)
++		return -EINVAL;
++
++	down_read(&zram->init_lock);
++	if (init_done(zram)) {
++		up_read(&zram->init_lock);
++		return -EINVAL;
++	}
++
++	zram->pages_per_pool_page = val;
++	up_read(&zram->init_lock);
++
++	return len;
++}
++
+ #ifdef CONFIG_ZRAM_WRITEBACK
+ #define FOUR_K(x) ((x) * (1 << (PAGE_SHIFT - 12)))
+ static ssize_t bd_stat_show(struct device *dev,
+@@ -1248,7 +1287,7 @@ static bool zram_meta_alloc(struct zram
+ 		return false;
  
- Set disk size by writing the value to sysfs node 'disksize'.
-@@ -132,7 +154,7 @@ There is little point creating a zram of
- since we expect a 2:1 compression ratio. Note that zram uses about 0.1% of the
- size of the disk when not in use so a huge zram is wasteful.
+ 	zram->mem_pool = zs_create_pool(zram->disk->disk_name,
+-					ZS_DEFAULT_PAGES_PER_ZSPAGE);
++					zram->pages_per_pool_page);
+ 	if (!zram->mem_pool) {
+ 		vfree(zram->table);
+ 		return false;
+@@ -2174,6 +2213,7 @@ static DEVICE_ATTR_RW(writeback_limit_en
+ static DEVICE_ATTR_RW(recomp_algorithm);
+ static DEVICE_ATTR_WO(recompress);
+ #endif
++static DEVICE_ATTR_RW(pages_per_pool_page);
  
--5) Set memory limit: Optional
-+6) Set memory limit: Optional
- =============================
+ static struct attribute *zram_disk_attrs[] = {
+ 	&dev_attr_disksize.attr,
+@@ -2201,6 +2241,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_recomp_algorithm.attr,
+ 	&dev_attr_recompress.attr,
+ #endif
++	&dev_attr_pages_per_pool_page.attr,
+ 	NULL,
+ };
  
- Set memory limit by writing the value to sysfs node 'mem_limit'.
-@@ -151,7 +173,7 @@ Examples::
- 	# To disable memory limit
- 	echo 0 > /sys/block/zram0/mem_limit
+@@ -2238,6 +2279,7 @@ static int zram_add(void)
+ 		goto out_free_idr;
+ 	}
  
--6) Activate
-+7) Activate
- ===========
- 
- ::
-@@ -162,7 +184,7 @@ Examples::
- 	mkfs.ext4 /dev/zram1
- 	mount /dev/zram1 /tmp
- 
--7) Add/remove zram devices
-+8) Add/remove zram devices
- ==========================
- 
- zram provides a control interface, which enables dynamic (on-demand) device
-@@ -182,7 +204,7 @@ execute::
- 
- 	echo X > /sys/class/zram-control/hot_remove
- 
--8) Stats
-+9) Stats
- ========
- 
- Per-device statistics are exported as various nodes under /sys/block/zram<id>/
-@@ -283,15 +305,15 @@ a single line of text and contains the f
- 		Unit: 4K bytes
-  ============== =============================================================
- 
--9) Deactivate
--=============
-+10) Deactivate
-+==============
- 
- ::
- 
- 	swapoff /dev/zram0
- 	umount /dev/zram1
- 
--10) Reset
-+11) Reset
- =========
- 
- 	Write any positive value to 'reset' sysfs node::
++	zram->pages_per_pool_page = ZS_DEFAULT_PAGES_PER_ZSPAGE;
+ 	zram->disk->major = zram_major;
+ 	zram->disk->first_minor = device_id;
+ 	zram->disk->minors = 1;
+--- a/drivers/block/zram/zram_drv.h~zram-add-pages_per_pool_page-device-attribute
++++ a/drivers/block/zram/zram_drv.h
+@@ -120,6 +120,8 @@ struct zram {
+ 	 */
+ 	u64 disksize;	/* bytes */
+ 	const char *comp_algs[ZRAM_MAX_ZCOMPS];
++
++	u32 pages_per_pool_page;
+ 	/*
+ 	 * Pages that compress to sizes equal or greater than this are stored
+ 	 * uncompressed in memory.
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
