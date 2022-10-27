@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B655ECAAA1
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 19:45:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A494FA3740
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 19:45:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236685AbiJ0Tps (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Oct 2022 15:45:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35280 "EHLO
+        id S236168AbiJ0Tpt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Oct 2022 15:45:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236656AbiJ0Tpp (ORCPT
+        with ESMTP id S236673AbiJ0Tpp (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 15:45:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7160080BC7
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7168B80BCA
         for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 12:45:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 00513624CC
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 19:45:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 474CAC433C1;
-        Thu, 27 Oct 2022 19:45:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 030CFB82743
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 19:45:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BFDAC433D6;
+        Thu, 27 Oct 2022 19:45:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666899941;
-        bh=Jm0pLgHXxN0X8P6cdWL1+DjETRbNQc2E1POGDB7f9q8=;
+        s=korg; t=1666899939;
+        bh=SA2rwwH8mmbFknrrRhNqyarhimVCPxTraj8A0lfizTo=;
         h=Date:To:From:Subject:From;
-        b=e43PPatwJ+idODd91kGxqoSnF6lkUTH8W7hq9V5EH3rbK4Y3l7mGgIiG/XAXqj5Xh
-         PFo9VNF+tzQUhyYRRONU8GiI472WRSwIKelQAGkQhmy+rarue3g5VbmGc4ymOwcSNf
-         /dUhp07Z7ulquS1zDw5tn6te50gfjQITqU/ZU5Ck=
-Date:   Thu, 27 Oct 2022 12:45:40 -0700
+        b=Be+XV+G0f8jDI7dUHR6PpcP/KsUyEbOjPaMfGK593KSA7pen9SNZdBojZ0X+ulQCW
+         WFmTIkRUqEyrVgMqB+V10WlKo9ylo7ONpDFl20BvyO0v/R2p4+tqRK8nGRBmGRkeHj
+         hmzILdEPJjAsH5704w17OCEJdJ/gch4gu+Qzxw3Y=
+Date:   Thu, 27 Oct 2022 12:45:38 -0700
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-shift-out-of-bounds-due-to-too-large-exponent-of-block-size.patch added to mm-nonmm-unstable branch
-Message-Id: <20221027194541.474CAC433C1@smtp.kernel.org>
+Subject: + nilfs2-fix-shift-out-of-bounds-overflow-in-nilfs_sb2_bad_offset.patch added to mm-nonmm-unstable branch
+Message-Id: <20221027194539.8BFDAC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix shift-out-of-bounds due to too large exponent of block size
+     Subject: nilfs2: fix shift-out-of-bounds/overflow in nilfs_sb2_bad_offset()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-fix-shift-out-of-bounds-due-to-too-large-exponent-of-block-size.patch
+     nilfs2-fix-shift-out-of-bounds-overflow-in-nilfs_sb2_bad_offset.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-shift-out-of-bounds-due-to-too-large-exponent-of-block-size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-shift-out-of-bounds-overflow-in-nilfs_sb2_bad_offset.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,102 +65,108 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix shift-out-of-bounds due to too large exponent of block size
-Date: Thu, 27 Oct 2022 13:43:06 +0900
+Subject: nilfs2: fix shift-out-of-bounds/overflow in nilfs_sb2_bad_offset()
+Date: Thu, 27 Oct 2022 13:43:05 +0900
 
-If field s_log_block_size of superblock data is corrupted and too large,
-init_nilfs() and load_nilfs() still can trigger a shift-out-of-bounds
-warning followed by a kernel panic (if panic_on_warn is set):
+Patch series "nilfs2: fix UBSAN shift-out-of-bounds warnings on mount
+time".
 
- shift exponent 38973 is too large for 32-bit type 'int'
+The first patch fixes a bug reported by syzbot, and the second one fixes
+the remaining bug of the same kind.  Although they are triggered by the
+same super block data anomaly, I divided it into the above two because the
+details of the issues and how to fix it are different.
+
+Both are required to eliminate the shift-out-of-bounds issues at mount
+time.
+
+
+This patch (of 2):
+
+If the block size exponent information written in an on-disk superblock is
+corrupted, nilfs_sb2_bad_offset helper function can trigger
+shift-out-of-bounds warning followed by a kernel panic (if panic_on_warn
+is set):
+
+ shift exponent 38983 is too large for 64-bit type 'unsigned long long'
  Call Trace:
   <TASK>
-  dump_stack_lvl+0xcd/0x134
-  ubsan_epilogue+0xb/0x50
-  __ubsan_handle_shift_out_of_bounds.cold.12+0x17b/0x1f5
-  init_nilfs.cold.11+0x18/0x1d [nilfs2]
-  nilfs_mount+0x9b5/0x12b0 [nilfs2]
+  __dump_stack lib/dump_stack.c:88 [inline]
+  dump_stack_lvl+0x1b1/0x28e lib/dump_stack.c:106
+  ubsan_epilogue lib/ubsan.c:151 [inline]
+  __ubsan_handle_shift_out_of_bounds+0x33d/0x3b0 lib/ubsan.c:322
+  nilfs_sb2_bad_offset fs/nilfs2/the_nilfs.c:449 [inline]
+  nilfs_load_super_block+0xdf5/0xe00 fs/nilfs2/the_nilfs.c:523
+  init_nilfs+0xb7/0x7d0 fs/nilfs2/the_nilfs.c:577
+  nilfs_fill_super+0xb1/0x5d0 fs/nilfs2/super.c:1047
+  nilfs_mount+0x613/0x9b0 fs/nilfs2/super.c:1317
   ...
 
-This fixes the issue by adding and using a new helper function for getting
-block size with sanity check.
+In addition, since nilfs_sb2_bad_offset() performs multiplication without
+considering the upper bound, the computation may overflow if the disk
+layout parameters are not normal.
 
-Link: https://lkml.kernel.org/r/20221027044306.42774-3-konishi.ryusuke@gmail.com
+This fixes these issues by inserting preliminary sanity checks for those
+parameters and by converting the comparison from one involving
+multiplication and left bit-shifting to one using division and right
+bit-shifting.
+
+Link: https://lkml.kernel.org/r/20221027044306.42774-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20221027044306.42774-2-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+e91619dd4c11c4960706@syzkaller.appspotmail.com
 Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-shift-out-of-bounds-due-to-too-large-exponent-of-block-size
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-shift-out-of-bounds-overflow-in-nilfs_sb2_bad_offset
 +++ a/fs/nilfs2/the_nilfs.c
-@@ -194,6 +194,34 @@ static int nilfs_store_log_cursor(struct
+@@ -13,6 +13,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/backing-dev.h>
+ #include <linux/random.h>
++#include <linux/log2.h>
+ #include <linux/crc32.h>
+ #include "nilfs.h"
+ #include "segment.h"
+@@ -443,11 +444,33 @@ static int nilfs_valid_sb(struct nilfs_s
+ 	return crc == le32_to_cpu(sbp->s_sum);
  }
  
- /**
-+ * nilfs_get_blocksize - get block size from raw superblock data
-+ * @sb: super block instance
-+ * @sbp: superblock raw data buffer
-+ * @blocksize: place to store block size
-+ *
-+ * nilfs_get_blocksize() calculates the block size from the block size
-+ * exponent information written in @sbp and stores it in @blocksize,
-+ * or aborts with an error message if it's too large.
-+ *
-+ * Return Value: On success, 0 is returned. If the block size is too
-+ * large, -EINVAL is returned.
-+ */
-+static int nilfs_get_blocksize(struct super_block *sb,
-+			       struct nilfs_super_block *sbp, int *blocksize)
-+{
-+	unsigned int shift_bits = le32_to_cpu(sbp->s_log_block_size);
-+
-+	if (unlikely(shift_bits >
-+		     ilog2(NILFS_MAX_BLOCK_SIZE) - BLOCK_SIZE_BITS)) {
-+		nilfs_err(sb, "too large filesystem blocksize: 2 ^ %u KiB",
-+			  shift_bits);
-+		return -EINVAL;
-+	}
-+	*blocksize = BLOCK_SIZE << shift_bits;
-+	return 0;
-+}
-+
+-static int nilfs_sb2_bad_offset(struct nilfs_super_block *sbp, u64 offset)
 +/**
-  * load_nilfs - load and recover the nilfs
-  * @nilfs: the_nilfs structure to be released
-  * @sb: super block instance used to recover past segment
-@@ -246,11 +274,15 @@ int load_nilfs(struct the_nilfs *nilfs,
- 		nilfs->ns_sbwtime = le64_to_cpu(sbp[0]->s_wtime);
- 
- 		/* verify consistency between two super blocks */
--		blocksize = BLOCK_SIZE << le32_to_cpu(sbp[0]->s_log_block_size);
-+		err = nilfs_get_blocksize(sb, sbp[0], &blocksize);
-+		if (err)
-+			goto scan_error;
++ * nilfs_sb2_bad_offset - check the location of the second superblock
++ * @sbp: superblock raw data buffer
++ * @offset: byte offset of second superblock calculated from device size
++ *
++ * nilfs_sb2_bad_offset() checks if the position on the second
++ * superblock is valid or not based on the filesystem parameters
++ * stored in @sbp.  If @offset points to a location within the segment
++ * area, or if the parameters themselves are not normal, it is
++ * determined to be invalid.
++ *
++ * Return Value: true if invalid, false if valid.
++ */
++static bool nilfs_sb2_bad_offset(struct nilfs_super_block *sbp, u64 offset)
+ {
+-	return offset < ((le64_to_cpu(sbp->s_nsegments) *
+-			  le32_to_cpu(sbp->s_blocks_per_segment)) <<
+-			 (le32_to_cpu(sbp->s_log_block_size) + 10));
++	unsigned int shift_bits = le32_to_cpu(sbp->s_log_block_size);
++	u32 blocks_per_segment = le32_to_cpu(sbp->s_blocks_per_segment);
++	u64 nsegments = le64_to_cpu(sbp->s_nsegments);
++	u64 index;
 +
- 		if (blocksize != nilfs->ns_blocksize) {
- 			nilfs_warn(sb,
- 				   "blocksize differs between two super blocks (%d != %d)",
- 				   blocksize, nilfs->ns_blocksize);
-+			err = -EINVAL;
- 			goto scan_error;
- 		}
- 
-@@ -609,9 +641,11 @@ int init_nilfs(struct the_nilfs *nilfs,
- 	if (err)
- 		goto failed_sbh;
- 
--	blocksize = BLOCK_SIZE << le32_to_cpu(sbp->s_log_block_size);
--	if (blocksize < NILFS_MIN_BLOCK_SIZE ||
--	    blocksize > NILFS_MAX_BLOCK_SIZE) {
-+	err = nilfs_get_blocksize(sb, sbp, &blocksize);
-+	if (err)
-+		goto failed_sbh;
++	if (blocks_per_segment < NILFS_SEG_MIN_BLOCKS ||
++	    shift_bits > ilog2(NILFS_MAX_BLOCK_SIZE) - BLOCK_SIZE_BITS)
++		return true;
 +
-+	if (blocksize < NILFS_MIN_BLOCK_SIZE) {
- 		nilfs_err(sb,
- 			  "couldn't mount because of unsupported filesystem blocksize %d",
- 			  blocksize);
++	index = offset >> (shift_bits + BLOCK_SIZE_BITS);
++	do_div(index, blocks_per_segment);
++	return index < nsegments;
+ }
+ 
+ static void nilfs_release_super_block(struct the_nilfs *nilfs)
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
