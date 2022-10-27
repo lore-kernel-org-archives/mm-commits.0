@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A9F8FA3740
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:12:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C959FA3742
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:12:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234875AbiJ0UMH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236019AbiJ0UMH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 27 Oct 2022 16:12:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37566 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236216AbiJ0ULl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:11:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E13F758B4D
+        with ESMTP id S236754AbiJ0ULm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:11:42 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDB9959E80
         for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:11:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7ECF5624CC
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:11:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9110C433C1;
-        Thu, 27 Oct 2022 20:11:39 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A2ABEB824DD
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:11:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E000C433D6;
+        Thu, 27 Oct 2022 20:11:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666901499;
-        bh=zCDYsMvkpBhNsYO1Sp3mCa8x65KmIXUC2LVHzPKQeVs=;
+        s=korg; t=1666901498;
+        bh=5L9mqgZalyssDlqvuxSSYM3dUqwHFdCoE/q+DhbUL1s=;
         h=Date:To:From:Subject:From;
-        b=OBkU4Qf1q+UhB/fXkIV0Hz+i+HSijuoWvvoTb+vG66FEQJKoh7Z9dnLhMiDCo6fva
-         1jWzvNWP1hA1TY+bGPCVWxTWiQzW98eiCF3ikoLtu9EkSR1qbi5Lo0B7FIQrAOueEB
-         1DcD9m5Cd76yy/KoQc2s9VDjJ1DyuOmL7vPDxvRA=
-Date:   Thu, 27 Oct 2022 13:11:38 -0700
+        b=0Bvu5sf9H5EtLvopY3G8Us1vJzdnYi9kCpCpUr+1qszYHd3lR/CP9vYqykmqxDWh3
+         K+lQNzRHxsDliaFHxtKLWUzqkgWL68GVWUYzceSy9NedBtpKr2DaY9B6fc1F7a1b1i
+         7Ja2CV355Em7nAG3VjSNZ1vfh1Al4hdLTpZTR84w=
+Date:   Thu, 27 Oct 2022 13:11:37 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-move-sysfs_lock-to-common-module.patch added to mm-unstable branch
-Message-Id: <20221027201139.C9110C433C1@smtp.kernel.org>
+Subject: + mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch added to mm-unstable branch
+Message-Id: <20221027201138.2E000C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs: move sysfs_lock to common module
+     Subject: mm/damon/sysfs: remove parameters of damon_sysfs_region_alloc()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-move-sysfs_lock-to-common-module.patch
+     mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-move-sysfs_lock-to-common-module.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,79 +65,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: move sysfs_lock to common module
-Date: Wed, 26 Oct 2022 22:59:38 +0000
+Subject: mm/damon/sysfs: remove parameters of damon_sysfs_region_alloc()
+Date: Wed, 26 Oct 2022 22:59:37 +0000
 
-DAMON sysfs interface is implemented in a single file, sysfs.c, which has
-about 2,800 lines of code.  As the interface is hierarchical and some of
-the code can be reused by different hierarchies, it would make more sense
-to split out the implementation into common parts and different parts in
-multiple files.  As the beginning of the work, create files for common
-code and move the global mutex for directories modifications protection
-into the new file.
+'damon_sysfs_region_alloc()' is always called with zero-filled 'struct
+damon_addr_range', because the start and end addresses should set by
+users.  Remove unnecessary parameters of the function and simplify the
+body by using 'kzalloc()'.
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221026225943.100429-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/damon/Makefile~mm-damon-sysfs-move-sysfs_lock-to-common-module
-+++ a/mm/damon/Makefile
-@@ -3,7 +3,7 @@
- obj-y				:= core.o
- obj-$(CONFIG_DAMON_VADDR)	+= ops-common.o vaddr.o
- obj-$(CONFIG_DAMON_PADDR)	+= ops-common.o paddr.o
--obj-$(CONFIG_DAMON_SYSFS)	+= sysfs.o
-+obj-$(CONFIG_DAMON_SYSFS)	+= sysfs-common.o sysfs.o
- obj-$(CONFIG_DAMON_DBGFS)	+= dbgfs.o
- obj-$(CONFIG_DAMON_RECLAIM)	+= reclaim.o
- obj-$(CONFIG_DAMON_LRU_SORT)	+= lru_sort.o
---- a/mm/damon/sysfs.c~mm-damon-sysfs-move-sysfs_lock-to-common-module
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc
 +++ a/mm/damon/sysfs.c
-@@ -5,13 +5,11 @@
-  * Copyright (c) 2022 SeongJae Park <sj@kernel.org>
-  */
+@@ -1065,17 +1065,9 @@ struct damon_sysfs_region {
+ 	struct damon_addr_range ar;
+ };
  
--#include <linux/damon.h>
--#include <linux/kobject.h>
- #include <linux/pid.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
+-static struct damon_sysfs_region *damon_sysfs_region_alloc(
+-		struct damon_addr_range ar)
++static struct damon_sysfs_region *damon_sysfs_region_alloc(void)
+ {
+-	struct damon_sysfs_region *region = kmalloc(sizeof(*region),
+-			GFP_KERNEL);
+-
+-	if (!region)
+-		return NULL;
+-	region->kobj = (struct kobject){};
+-	region->ar = ar;
+-	return region;
++	return kzalloc(sizeof(struct damon_sysfs_region), GFP_KERNEL);
+ }
  
--static DEFINE_MUTEX(damon_sysfs_lock);
-+#include "sysfs-common.h"
+ static ssize_t start_show(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -1184,7 +1176,7 @@ static int damon_sysfs_regions_add_dirs(
+ 	regions->regions_arr = regions_arr;
  
- /*
-  * unsigned long range directory
---- /dev/null
-+++ a/mm/damon/sysfs-common.c
-@@ -0,0 +1,11 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Common Primitives for DAMON Sysfs Interface
-+ *
-+ * Author: SeongJae Park <sj@kernel.org>
-+ */
-+
-+#include "sysfs-common.h"
-+
-+DEFINE_MUTEX(damon_sysfs_lock);
-+
---- /dev/null
-+++ a/mm/damon/sysfs-common.h
-@@ -0,0 +1,11 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Common Primitives for DAMON Sysfs Interface
-+ *
-+ * Author: SeongJae Park <sj@kernel.org>
-+ */
-+
-+#include <linux/damon.h>
-+#include <linux/kobject.h>
-+
-+extern struct mutex damon_sysfs_lock;
+ 	for (i = 0; i < nr_regions; i++) {
+-		region = damon_sysfs_region_alloc((struct damon_addr_range){});
++		region = damon_sysfs_region_alloc();
+ 		if (!region) {
+ 			damon_sysfs_regions_rm_dirs(regions);
+ 			return -ENOMEM;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
