@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 408C2FA3740
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:53:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B72B6FA3744
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:54:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236266AbiJ0UxN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Oct 2022 16:53:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57636 "EHLO
+        id S236933AbiJ0Uyt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Oct 2022 16:54:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236158AbiJ0UwK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:52:10 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B697E92F61
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:45:25 -0700 (PDT)
+        with ESMTP id S237327AbiJ0UyM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:54:12 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E57D98C96
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:46:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CF137B827D9
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:45:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51416C433D6;
-        Thu, 27 Oct 2022 20:44:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F29EBB82638
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:45:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C437C433D6;
+        Thu, 27 Oct 2022 20:45:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666903499;
-        bh=wJBi/8B7Iwww3GkW2vMipiddxwbVfvYuORtMUT2rh7M=;
+        s=korg; t=1666903557;
+        bh=Yr1ZQ92Sam4WzfyAXrarISnK8VhfY7BD+EpQxJ1EvGI=;
         h=Date:To:From:Subject:From;
-        b=qeddwp8Pc8BWu/YQ2HeXq7fU1htPN717LD0vjyO2fT9iy3H42zfLjkfjTsdrf5KQ4
-         KHsp2FHzmLklxn1RpIhNURdVublfzS17ihGGQe+ftzs1yOA2N3N6bgMifKnNso1ddD
-         zu9fdu27Lv6BziIwdMsiPvkDVALDPxeQEaLvuM1A=
-Date:   Thu, 27 Oct 2022 13:44:58 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
-        glider@google.com, eugenis@google.com, dvyukov@google.com,
-        andreyknvl@google.com, akpm@linux-foundation.org
+        b=ic+XLtgWtfxjjh5bK8Zeq2Oizpt+2WEFp9MggZXJB1Hpb7jX+8c266fvOHObQ07BQ
+         /9MirRB7BJNln29oA/zzs3ZBBo4ATqJn4+pJDnAJ8tnFJVILvuhvipQTfuV1kCckIO
+         zOsneF2ktT3cv4ovzkduRS0Ab7dYaC5HugX47Nqc=
+Date:   Thu, 27 Oct 2022 13:45:56 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        ke.wang@unisoc.com, huangzhaoyang@gmail.com,
+        catalin.marinas@arm.com, zhaoyang.huang@unisoc.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch added to mm-unstable branch
-Message-Id: <20221027204459.51416C433D6@smtp.kernel.org>
+Subject: + mm-use-stack_depot-for-recording-kmemleaks-backtrace.patch added to mm-unstable branch
+Message-Id: <20221027204557.7C437C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: allow sampling page_alloc allocations for HW_TAGS
+     Subject: mm: use stack_depot for recording kmemleak's backtrace
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
+     mm-use-stack_depot-for-recording-kmemleaks-backtrace.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-stack_depot-for-recording-kmemleaks-backtrace.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,257 +66,146 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: allow sampling page_alloc allocations for HW_TAGS
-Date: Thu, 27 Oct 2022 22:10:09 +0200
+From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Subject: mm: use stack_depot for recording kmemleak's backtrace
+Date: Thu, 27 Oct 2022 17:50:24 +0800
 
-Add a new boot parameter called kasan.page_alloc.sample, which makes
-Hardware Tag-Based KASAN tag only every Nth page_alloc allocation.
+Using stack_depot to record kmemleak's backtrace which has been
+implemented on slub for reducing redundant information.
 
-As Hardware Tag-Based KASAN is intended to be used in production, its
-performance impact is crucial.  As page_alloc allocations tend to be big,
-tagging and checking all such allocations introduces a significant
-slowdown in some testing scenarios.  The new flag allows to alleviate that
-slowdown.
-
-Enabling page_alloc sampling has a downside: KASAN will miss bad accesses
-to a page_alloc allocation that has not been tagged.
-
-Link: https://lkml.kernel.org/r/c124467c401e9d44dd35a36fdae1c48e4e505e9e.1666901317.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
+Link: https://lkml.kernel.org/r/1666864224-27541-1-git-send-email-zhaoyang.huang@unisoc.com
+Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: ke.wang <ke.wang@unisoc.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zhaoyang Huang <huangzhaoyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/dev-tools/kasan.rst~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -140,6 +140,10 @@ disabling KASAN altogether or controllin
- - ``kasan.vmalloc=off`` or ``=on`` disables or enables tagging of vmalloc
-   allocations (default: ``on``).
- 
-+- ``kasan.page_alloc.sample=<sampling frequency>`` makes KASAN tag only
-+  every Nth page_alloc allocation, where N is the value of the parameter
-+  (default: ``1``).
-+
- Error reports
- ~~~~~~~~~~~~~
- 
---- a/include/linux/kasan.h~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/include/linux/kasan.h
-@@ -120,12 +120,13 @@ static __always_inline void kasan_poison
- 		__kasan_poison_pages(page, order, init);
- }
- 
--void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init);
--static __always_inline void kasan_unpoison_pages(struct page *page,
-+bool __kasan_unpoison_pages(struct page *page, unsigned int order, bool init);
-+static __always_inline bool kasan_unpoison_pages(struct page *page,
- 						 unsigned int order, bool init)
+--- a/mm/kmemleak.c~mm-use-stack_depot-for-recording-kmemleaks-backtrace
++++ a/mm/kmemleak.c
+@@ -79,6 +79,7 @@
+ #include <linux/mutex.h>
+ #include <linux/rcupdate.h>
+ #include <linux/stacktrace.h>
++#include <linux/stackdepot.h>
+ #include <linux/cache.h>
+ #include <linux/percpu.h>
+ #include <linux/memblock.h>
+@@ -159,8 +160,7 @@ struct kmemleak_object {
+ 	u32 checksum;
+ 	/* memory ranges to be scanned inside an object (empty for all) */
+ 	struct hlist_head area_list;
+-	unsigned long trace[MAX_TRACE];
+-	unsigned int trace_len;
++	depot_stack_handle_t trace_handle;
+ 	unsigned long jiffies;		/* creation timestamp */
+ 	pid_t pid;			/* pid of the current task */
+ 	char comm[TASK_COMM_LEN];	/* executable name */
+@@ -346,8 +346,11 @@ static void print_unreferenced(struct se
+ 			       struct kmemleak_object *object)
  {
- 	if (kasan_enabled())
--		__kasan_unpoison_pages(page, order, init);
-+		return __kasan_unpoison_pages(page, order, init);
-+	return false;
+ 	int i;
++	unsigned long *entries;
++	unsigned int nr_entries;
+ 	unsigned int msecs_age = jiffies_to_msecs(jiffies - object->jiffies);
+ 
++	nr_entries = stack_depot_fetch(object->trace_handle, &entries);
+ 	warn_or_seq_printf(seq, "unreferenced object 0x%08lx (size %zu):\n",
+ 		   object->pointer, object->size);
+ 	warn_or_seq_printf(seq, "  comm \"%s\", pid %d, jiffies %lu (age %d.%03ds)\n",
+@@ -356,10 +359,10 @@ static void print_unreferenced(struct se
+ 	hex_dump_object(seq, object);
+ 	warn_or_seq_printf(seq, "  backtrace:\n");
+ 
+-	for (i = 0; i < object->trace_len; i++) {
+-		void *ptr = (void *)object->trace[i];
+-		warn_or_seq_printf(seq, "    [<%p>] %pS\n", ptr, ptr);
+-	}
++       for (i = 0; i < nr_entries; i++) {
++               void *ptr = (void *)entries[i];
++               warn_or_seq_printf(seq, "    [<%p>] %pS\n", ptr, ptr);
++       }
  }
  
- void __kasan_cache_create_kmalloc(struct kmem_cache *cache);
---- a/mm/kasan/common.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/kasan/common.c
-@@ -95,19 +95,24 @@ asmlinkage void kasan_unpoison_task_stac
- }
- #endif /* CONFIG_KASAN_STACK */
- 
--void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init)
-+bool __kasan_unpoison_pages(struct page *page, unsigned int order, bool init)
- {
- 	u8 tag;
- 	unsigned long i;
- 
- 	if (unlikely(PageHighMem(page)))
--		return;
-+		return false;
-+
-+	if (!kasan_sample_page_alloc())
-+		return false;
- 
- 	tag = kasan_random_tag();
- 	kasan_unpoison(set_tag(page_address(page), tag),
- 		       PAGE_SIZE << order, init);
- 	for (i = 0; i < (1 << order); i++)
- 		page_kasan_tag_set(page + i, tag);
-+
-+	return true;
+ /*
+@@ -378,7 +381,8 @@ static void dump_object_info(struct kmem
+ 	pr_notice("  flags = 0x%x\n", object->flags);
+ 	pr_notice("  checksum = %u\n", object->checksum);
+ 	pr_notice("  backtrace:\n");
+-	stack_trace_print(object->trace, object->trace_len, 4);
++	if(object->trace_handle)
++		stack_depot_print(object->trace_handle);
  }
  
- void __kasan_poison_pages(struct page *page, unsigned int order, bool init)
---- a/mm/kasan/hw_tags.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/kasan/hw_tags.c
-@@ -59,6 +59,11 @@ EXPORT_SYMBOL_GPL(kasan_mode);
- /* Whether to enable vmalloc tagging. */
- DEFINE_STATIC_KEY_TRUE(kasan_flag_vmalloc);
- 
-+/* Frequency of page_alloc allocation poisoning. */
-+unsigned long kasan_page_alloc_sample = 1;
-+
-+DEFINE_PER_CPU(unsigned long, kasan_page_alloc_count);
-+
- /* kasan=off/on */
- static int __init early_kasan_flag(char *arg)
- {
-@@ -122,6 +127,27 @@ static inline const char *kasan_mode_inf
- 		return "sync";
+ /*
+@@ -591,6 +595,27 @@ static struct kmemleak_object *find_and_
+ 	return object;
  }
  
-+/* kasan.page_alloc.sample=<sampling frequency> */
-+static int __init early_kasan_flag_page_alloc_sample(char *arg)
++#ifdef CONFIG_STACKDEPOT
++static noinline depot_stack_handle_t set_track_prepare(void)
 +{
-+	int rv;
++	depot_stack_handle_t trace_handle;
++	unsigned long entries[MAX_TRACE];
++	unsigned int nr_entries;
 +
-+	if (!arg)
-+		return -EINVAL;
++	if (!kmemleak_initialized)
++		return 0;
++	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 3);
++	trace_handle = stack_depot_save(entries, nr_entries, GFP_NOWAIT);
 +
-+	rv = kstrtoul(arg, 0, &kasan_page_alloc_sample);
-+	if (rv)
-+		return rv;
-+
-+	if (!kasan_page_alloc_sample) {
-+		kasan_page_alloc_sample = 1;
-+		return -EINVAL;
-+	}
-+
++	return trace_handle;
++}
++#else
++static inline depot_stack_handle_t set_track_prepare(void)
++{
 +	return 0;
 +}
-+early_param("kasan.page_alloc.sample", early_kasan_flag_page_alloc_sample);
++#endif
 +
  /*
-  * kasan_init_hw_tags_cpu() is called for each CPU.
-  * Not marked as __init as a CPU can be hot-plugged after boot.
---- a/mm/kasan/kasan.h~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/kasan/kasan.h
-@@ -42,6 +42,9 @@ enum kasan_mode {
- 
- extern enum kasan_mode kasan_mode __ro_after_init;
- 
-+extern unsigned long kasan_page_alloc_sample;
-+DECLARE_PER_CPU(unsigned long, kasan_page_alloc_count);
-+
- static inline bool kasan_vmalloc_enabled(void)
- {
- 	return static_branch_likely(&kasan_flag_vmalloc);
-@@ -57,6 +60,13 @@ static inline bool kasan_sync_fault_poss
- 	return kasan_mode == KASAN_MODE_SYNC || kasan_mode == KASAN_MODE_ASYMM;
- }
- 
-+static inline bool kasan_sample_page_alloc(void)
-+{
-+	unsigned long *count = this_cpu_ptr(&kasan_page_alloc_count);
-+
-+	return (*count)++ % kasan_page_alloc_sample == 0;
-+}
-+
- #else /* CONFIG_KASAN_HW_TAGS */
- 
- static inline bool kasan_async_fault_possible(void)
-@@ -68,6 +78,11 @@ static inline bool kasan_sync_fault_poss
- {
- 	return true;
- }
-+
-+static inline bool kasan_sample_page_alloc(void)
-+{
-+	return true;
-+}
- 
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
---- a/mm/page_alloc.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/page_alloc.c
-@@ -1367,6 +1367,8 @@ out:
-  *    see the comment next to it.
-  * 3. Skipping poisoning is requested via __GFP_SKIP_KASAN_POISON,
-  *    see the comment next to it.
-+ * 4. The allocation is excluded from being checked due to sampling,
-+ *    see the call to kasan_unpoison_pages.
-  *
-  * Poisoning pages during deferred memory init will greatly lengthen the
-  * process and cause problem in large memory systems as the deferred pages
-@@ -2476,7 +2478,8 @@ inline void post_alloc_hook(struct page
- {
- 	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags) &&
- 			!should_skip_init(gfp_flags);
--	bool init_tags = init && (gfp_flags & __GFP_ZEROTAGS);
-+	bool zero_tags = init && (gfp_flags & __GFP_ZEROTAGS);
-+	bool reset_tags = !zero_tags;
- 	int i;
- 
- 	set_page_private(page, 0);
-@@ -2499,30 +2502,42 @@ inline void post_alloc_hook(struct page
- 	 */
- 
- 	/*
--	 * If memory tags should be zeroed (which happens only when memory
--	 * should be initialized as well).
-+	 * If memory tags should be zeroed
-+	 * (which happens only when memory should be initialized as well).
- 	 */
--	if (init_tags) {
-+	if (zero_tags) {
- 		/* Initialize both memory and tags. */
- 		for (i = 0; i != 1 << order; ++i)
- 			tag_clear_highpage(page + i);
- 
--		/* Note that memory is already initialized by the loop above. */
-+		/* Take note that memory was initialized by the loop above. */
- 		init = false;
+  * Save stack trace to the given array of MAX_TRACE size.
+  */
+@@ -653,7 +678,7 @@ static void __create_object(unsigned lon
  	}
- 	if (!should_skip_kasan_unpoison(gfp_flags)) {
--		/* Unpoison shadow memory or set memory tags. */
--		kasan_unpoison_pages(page, order, init);
+ 
+ 	/* kernel backtrace */
+-	object->trace_len = __save_stack_trace(object->trace);
++	object->trace_handle = set_track_prepare();
+ 
+ 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
+ 
+@@ -692,7 +717,6 @@ static void __create_object(unsigned lon
+ 	rb_link_node(&object->rb_node, rb_parent, link);
+ 	rb_insert_color(&object->rb_node, is_phys ? &object_phys_tree_root :
+ 					  &object_tree_root);
 -
--		/* Note that memory is already initialized by KASAN. */
--		if (kasan_has_integrated_init())
--			init = false;
--	} else {
--		/* Ensure page_address() dereferencing does not fault. */
-+		/* Try unpoisoning (or setting tags) and initializing memory. */
-+		if (kasan_unpoison_pages(page, order, init)) {
-+			/* Take note that memory was initialized by KASAN. */
-+			if (kasan_has_integrated_init())
-+				init = false;
-+			/* Take note that memory tags were set by KASAN. */
-+			reset_tags = false;
-+		} else {
-+			/*
-+			 * KASAN decided to exclude this allocation from being
-+			 * poisoned due to sampling. Skip poisoning as well.
-+			 */
-+			SetPageSkipKASanPoison(page);
-+		}
-+	}
-+	/*
-+	 * If memory tags have not been set, reset the page tags to ensure
-+	 * page_address() dereferencing does not fault.
-+	 */
-+	if (reset_tags) {
- 		for (i = 0; i != 1 << order; ++i)
- 			page_kasan_tag_reset(page + i);
+ 	list_add_tail_rcu(&object->object_list, &object_list);
+ out:
+ 	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
+@@ -1091,7 +1115,7 @@ void __ref kmemleak_update_trace(const v
  	}
--	/* If memory is still not initialized, do it now. */
-+	/* If memory is still not initialized, initialize it now. */
- 	if (init)
- 		kernel_init_pages(page, 1 << order);
- 	/* Propagate __GFP_SKIP_KASAN_POISON to page flags. */
+ 
+ 	raw_spin_lock_irqsave(&object->lock, flags);
+-	object->trace_len = __save_stack_trace(object->trace);
++	object->trace_handle = set_track_prepare();
+ 	raw_spin_unlock_irqrestore(&object->lock, flags);
+ 
+ 	put_object(object);
+@@ -2084,6 +2108,7 @@ void __init kmemleak_init(void)
+ 	if (kmemleak_error)
+ 		return;
+ 
++	stack_depot_init();
+ 	jiffies_min_age = msecs_to_jiffies(MSECS_MIN_AGE);
+ 	jiffies_scan_wait = msecs_to_jiffies(SECS_SCAN_WAIT * 1000);
+ 
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
 
-kasan-switch-kunit-tests-to-console-tracepoints.patch
-kasan-migrate-kasan_rcu_uaf-test-to-kunit.patch
-kasan-migrate-workqueue_uaf-test-to-kunit.patch
-kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
+mm-use-stack_depot-for-recording-kmemleaks-backtrace.patch
 
