@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B2A5ECAAA1
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:04:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00706ECAAA1
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:06:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236862AbiJ0UES (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Oct 2022 16:04:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45752 "EHLO
+        id S236419AbiJ0UGq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Oct 2022 16:06:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237015AbiJ0UEG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:04:06 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFCAF8769F
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:04:04 -0700 (PDT)
+        with ESMTP id S235578AbiJ0UGq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:06:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6F4336DEC
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:06:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A3366B82638
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:04:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4016EC433C1;
-        Thu, 27 Oct 2022 20:04:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 42F95624C9
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:06:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66340C433C1;
+        Thu, 27 Oct 2022 20:06:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666901042;
-        bh=sReLN21pLcN6LVh3UmyUhcPnWyAJiPeQyXVjwYxGBP4=;
+        s=korg; t=1666901204;
+        bh=FUElC1auLd/4vwMrCyqQvAmvtlQh2J0EgQvWPsUfWbg=;
         h=Date:To:From:Subject:From;
-        b=vDlg74w6DTHYCdcnA6aYH1Aj7mfROmrsU2B8m+mbTIKGOoEP7STpGIb1GOHuuYEYS
-         K/qR3rhEfvsCbD1RSOBMqmvGdIBand0509Gyd7Pq4O+aQTxtI7KpIQ1h2lYTGyc8E+
-         4V9lGMfHlDtPH7h3THrLEWGgIzTUtANsMkDto3vo=
-Date:   Thu, 27 Oct 2022 13:04:01 -0700
-To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
-        avromanov@sberdevices.ru, senozhatsky@chromium.org,
-        akpm@linux-foundation.org
+        b=IuppISr6v3+E2CLxvCRQ5BbMF3WTXxMRq5Z6J9kP72jcqirTOQ+0Hx3Djn8R+jn6a
+         Mb5uqGWWGhI7ZC7hKMnTJT+tqqF22fyMmJxWNXc17g2OxP61o7mBy1l56y3REnr2x7
+         uLQ4dOWbnuCB8U4LU7sKsRm87TILtl0tl7CWyEj8=
+Date:   Thu, 27 Oct 2022 13:06:43 -0700
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        songmuchun@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-break-out-of-loop-when-found-perfect-zspage-order.patch added to mm-unstable branch
-Message-Id: <20221027200402.4016EC433C1@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-remove-redundant-list_del.patch added to mm-unstable branch
+Message-Id: <20221027200644.66340C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: break out of loop when found perfect zspage order
+     Subject: mm: hugetlb_vmemmap: remove redundant list_del()
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-break-out-of-loop-when-found-perfect-zspage-order.patch
+     mm-hugetlb_vmemmap-remove-redundant-list_del.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-break-out-of-loop-when-found-perfect-zspage-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-remove-redundant-list_del.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,54 +64,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: break out of loop when found perfect zspage order
-Date: Thu, 27 Oct 2022 13:26:51 +0900
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: hugetlb_vmemmap: remove redundant list_del()
+Date: Thu, 27 Oct 2022 11:36:41 +0800
 
-If we found zspage configuration that gives us perfect 100% used
-percentage (zero wasted space) then there is no point it trying any other
-configuration
+The ->lru field will be assigned to a new value in __free_page().  So it
+is unnecessary to delete it from the @list.  Just remove it to simplify
+the code.
 
-Link: https://lkml.kernel.org/r/20221027042651.234524-10-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Alexey Romanov <avromanov@sberdevices.ru>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+Link: https://lkml.kernel.org/r/20221027033641.66709-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/zsmalloc.c~zsmalloc-break-out-of-loop-when-found-perfect-zspage-order
-+++ a/mm/zsmalloc.c
-@@ -787,6 +787,9 @@ static int get_pages_per_zspage(u32 clas
- 			max_usedpc = usedpc;
- 			max_usedpc_order = i;
- 		}
-+
-+		if (usedpc == 100)
-+			break;
- 	}
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-remove-redundant-list_del
++++ a/mm/hugetlb_vmemmap.c
+@@ -231,10 +231,8 @@ static void free_vmemmap_page_list(struc
+ {
+ 	struct page *page, *next;
  
- 	return max_usedpc_order;
+-	list_for_each_entry_safe(page, next, list, lru) {
+-		list_del(&page->lru);
++	list_for_each_entry_safe(page, next, list, lru)
+ 		free_vmemmap_page(page);
+-	}
+ }
+ 
+ static void vmemmap_remap_pte(pte_t *pte, unsigned long addr,
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-zram-preparation-for-multi-zcomp-support.patch
-zram-add-recompression-algorithm-sysfs-knob.patch
-zram-factor-out-wb-and-non-wb-zram-read-functions.patch
-zram-introduce-recompress-sysfs-knob.patch
-documentation-add-recompression-documentation.patch
-zram-add-recompression-algorithm-choice-to-kconfig.patch
-zram-add-recompress-flag-to-read_block_state.patch
-zram-clarify-writeback_store-comment.patch
-zram-use-is_err_value-to-check-for-zs_malloc-errors.patch
-zsmalloc-turn-zspage-order-into-runtime-variable.patch
-zsmalloc-move-away-from-page-order-defines.patch
-zsmalloc-make-huge-class-watermark-zs_pool-member.patch
-zram-huge-size-watermark-cannot-be-global.patch
-zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool.patch
-zram-add-pages_per_pool_page-device-attribute.patch
-documentation-document-zram-pages_per_pool_page-attribute.patch
-zsmalloc-break-out-of-loop-when-found-perfect-zspage-order.patch
+mm-hugetlb_vmemmap-remove-redundant-list_del.patch
 
