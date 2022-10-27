@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0C49FA3740
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:36:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 408C2FA3740
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:53:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235637AbiJ0UgA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Oct 2022 16:36:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47360 "EHLO
+        id S236266AbiJ0UxN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Oct 2022 16:53:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57636 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235682AbiJ0Uf7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:35:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F029253A7C
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:35:54 -0700 (PDT)
+        with ESMTP id S236158AbiJ0UwK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:52:10 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B697E92F61
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:45:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7D746624EB
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:35:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD8FCC433D6;
-        Thu, 27 Oct 2022 20:35:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CF137B827D9
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:45:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51416C433D6;
+        Thu, 27 Oct 2022 20:44:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666902953;
-        bh=ixjw/IeXcqyfu1Eq5vrMYDxQaKtmOyQ2+dlyO+0HRfI=;
+        s=korg; t=1666903499;
+        bh=wJBi/8B7Iwww3GkW2vMipiddxwbVfvYuORtMUT2rh7M=;
         h=Date:To:From:Subject:From;
-        b=WFozm8P2NJHfQvzCSl5QH/IrqmhF8imUfcxdR9SpAA7GqF4feJp/7DXDywN7tSRFG
-         hV/5F7M/3W9VbD+TteA6VTi0/7wxhlv8padLqlSnXZISg1nS9mRKBk/vT8gJ7BJjJM
-         eYgQshw57s2sO3zuM7KdPw0OKyZJlkgZrScVyOyw=
-Date:   Thu, 27 Oct 2022 13:35:52 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com,
-        shy828301@gmail.com, rostedt@goodmis.org, mhiramat@kernel.org,
-        david@redhat.com, gautammenghani201@gmail.com,
-        akpm@linux-foundation.org
+        b=qeddwp8Pc8BWu/YQ2HeXq7fU1htPN717LD0vjyO2fT9iy3H42zfLjkfjTsdrf5KQ4
+         KHsp2FHzmLklxn1RpIhNURdVublfzS17ihGGQe+ftzs1yOA2N3N6bgMifKnNso1ddD
+         zu9fdu27Lv6BziIwdMsiPvkDVALDPxeQEaLvuM1A=
+Date:   Thu, 27 Oct 2022 13:44:58 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
+        glider@google.com, eugenis@google.com, dvyukov@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call.patch added to mm-unstable branch
-Message-Id: <20221027203553.AD8FCC433D6@smtp.kernel.org>
+Subject: + kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch added to mm-unstable branch
+Message-Id: <20221027204459.51416C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: refactor mm_khugepaged_scan_file tracepoint to remove filename from function call
+     Subject: kasan: allow sampling page_alloc allocations for HW_TAGS
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call.patch
+     kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,73 +65,257 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gautam Menghani <gautammenghani201@gmail.com>
-Subject: mm/khugepaged: refactor mm_khugepaged_scan_file tracepoint to remove filename from function call
-Date: Wed, 26 Oct 2022 10:15:24 +0530
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: allow sampling page_alloc allocations for HW_TAGS
+Date: Thu, 27 Oct 2022 22:10:09 +0200
 
-Refactor the mm_khugepaged_scan_file tracepoint to move filename
-dereference to the tracepoint definition, for maintaing consistency with
-other tracepoints[1].
+Add a new boot parameter called kasan.page_alloc.sample, which makes
+Hardware Tag-Based KASAN tag only every Nth page_alloc allocation.
 
-[1]:lore.kernel.org/lkml/20221024111621.3ba17e2c@gandalf.local.home/
+As Hardware Tag-Based KASAN is intended to be used in production, its
+performance impact is crucial.  As page_alloc allocations tend to be big,
+tagging and checking all such allocations introduces a significant
+slowdown in some testing scenarios.  The new flag allows to alleviate that
+slowdown.
 
-Link: https://lkml.kernel.org/r/20221026044524.54793-1-gautammenghani201@gmail.com
-Signed-off-by: Gautam Menghani <gautammenghani201@gmail.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zach O'Keefe <zokeefe@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Enabling page_alloc sampling has a downside: KASAN will miss bad accesses
+to a page_alloc allocation that has not been tagged.
+
+Link: https://lkml.kernel.org/r/c124467c401e9d44dd35a36fdae1c48e4e505e9e.1666901317.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call
-+++ a/include/trace/events/huge_memory.h
-@@ -171,15 +171,15 @@ TRACE_EVENT(mm_collapse_huge_page_swapin
+--- a/Documentation/dev-tools/kasan.rst~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
++++ a/Documentation/dev-tools/kasan.rst
+@@ -140,6 +140,10 @@ disabling KASAN altogether or controllin
+ - ``kasan.vmalloc=off`` or ``=on`` disables or enables tagging of vmalloc
+   allocations (default: ``on``).
  
- TRACE_EVENT(mm_khugepaged_scan_file,
++- ``kasan.page_alloc.sample=<sampling frequency>`` makes KASAN tag only
++  every Nth page_alloc allocation, where N is the value of the parameter
++  (default: ``1``).
++
+ Error reports
+ ~~~~~~~~~~~~~
  
--	TP_PROTO(struct mm_struct *mm, struct page *page, const char *filename,
-+	TP_PROTO(struct mm_struct *mm, struct page *page, struct file *file,
- 		 int present, int swap, int result),
- 
--	TP_ARGS(mm, page, filename, present, swap, result),
-+	TP_ARGS(mm, page, file, present, swap, result),
- 
- 	TP_STRUCT__entry(
- 		__field(struct mm_struct *, mm)
- 		__field(unsigned long, pfn)
--		__string(filename, filename)
-+		__string(filename, file->f_path.dentry->d_iname)
- 		__field(int, present)
- 		__field(int, swap)
- 		__field(int, result)
-@@ -188,7 +188,7 @@ TRACE_EVENT(mm_khugepaged_scan_file,
- 	TP_fast_assign(
- 		__entry->mm = mm;
- 		__entry->pfn = page ? page_to_pfn(page) : -1;
--		__assign_str(filename, filename);
-+		__assign_str(filename, file->f_path.dentry->d_iname);
- 		__entry->present = present;
- 		__entry->swap = swap;
- 		__entry->result = result;
---- a/mm/khugepaged.c~mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call
-+++ a/mm/khugepaged.c
-@@ -2158,8 +2158,7 @@ static int hpage_collapse_scan_file(stru
- 		}
- 	}
- 
--	trace_mm_khugepaged_scan_file(mm, page, file->f_path.dentry->d_iname,
--				      present, swap, result);
-+	trace_mm_khugepaged_scan_file(mm, page, file, present, swap, result);
- 	return result;
+--- a/include/linux/kasan.h~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
++++ a/include/linux/kasan.h
+@@ -120,12 +120,13 @@ static __always_inline void kasan_poison
+ 		__kasan_poison_pages(page, order, init);
  }
- #else
+ 
+-void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init);
+-static __always_inline void kasan_unpoison_pages(struct page *page,
++bool __kasan_unpoison_pages(struct page *page, unsigned int order, bool init);
++static __always_inline bool kasan_unpoison_pages(struct page *page,
+ 						 unsigned int order, bool init)
+ {
+ 	if (kasan_enabled())
+-		__kasan_unpoison_pages(page, order, init);
++		return __kasan_unpoison_pages(page, order, init);
++	return false;
+ }
+ 
+ void __kasan_cache_create_kmalloc(struct kmem_cache *cache);
+--- a/mm/kasan/common.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
++++ a/mm/kasan/common.c
+@@ -95,19 +95,24 @@ asmlinkage void kasan_unpoison_task_stac
+ }
+ #endif /* CONFIG_KASAN_STACK */
+ 
+-void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init)
++bool __kasan_unpoison_pages(struct page *page, unsigned int order, bool init)
+ {
+ 	u8 tag;
+ 	unsigned long i;
+ 
+ 	if (unlikely(PageHighMem(page)))
+-		return;
++		return false;
++
++	if (!kasan_sample_page_alloc())
++		return false;
+ 
+ 	tag = kasan_random_tag();
+ 	kasan_unpoison(set_tag(page_address(page), tag),
+ 		       PAGE_SIZE << order, init);
+ 	for (i = 0; i < (1 << order); i++)
+ 		page_kasan_tag_set(page + i, tag);
++
++	return true;
+ }
+ 
+ void __kasan_poison_pages(struct page *page, unsigned int order, bool init)
+--- a/mm/kasan/hw_tags.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
++++ a/mm/kasan/hw_tags.c
+@@ -59,6 +59,11 @@ EXPORT_SYMBOL_GPL(kasan_mode);
+ /* Whether to enable vmalloc tagging. */
+ DEFINE_STATIC_KEY_TRUE(kasan_flag_vmalloc);
+ 
++/* Frequency of page_alloc allocation poisoning. */
++unsigned long kasan_page_alloc_sample = 1;
++
++DEFINE_PER_CPU(unsigned long, kasan_page_alloc_count);
++
+ /* kasan=off/on */
+ static int __init early_kasan_flag(char *arg)
+ {
+@@ -122,6 +127,27 @@ static inline const char *kasan_mode_inf
+ 		return "sync";
+ }
+ 
++/* kasan.page_alloc.sample=<sampling frequency> */
++static int __init early_kasan_flag_page_alloc_sample(char *arg)
++{
++	int rv;
++
++	if (!arg)
++		return -EINVAL;
++
++	rv = kstrtoul(arg, 0, &kasan_page_alloc_sample);
++	if (rv)
++		return rv;
++
++	if (!kasan_page_alloc_sample) {
++		kasan_page_alloc_sample = 1;
++		return -EINVAL;
++	}
++
++	return 0;
++}
++early_param("kasan.page_alloc.sample", early_kasan_flag_page_alloc_sample);
++
+ /*
+  * kasan_init_hw_tags_cpu() is called for each CPU.
+  * Not marked as __init as a CPU can be hot-plugged after boot.
+--- a/mm/kasan/kasan.h~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
++++ a/mm/kasan/kasan.h
+@@ -42,6 +42,9 @@ enum kasan_mode {
+ 
+ extern enum kasan_mode kasan_mode __ro_after_init;
+ 
++extern unsigned long kasan_page_alloc_sample;
++DECLARE_PER_CPU(unsigned long, kasan_page_alloc_count);
++
+ static inline bool kasan_vmalloc_enabled(void)
+ {
+ 	return static_branch_likely(&kasan_flag_vmalloc);
+@@ -57,6 +60,13 @@ static inline bool kasan_sync_fault_poss
+ 	return kasan_mode == KASAN_MODE_SYNC || kasan_mode == KASAN_MODE_ASYMM;
+ }
+ 
++static inline bool kasan_sample_page_alloc(void)
++{
++	unsigned long *count = this_cpu_ptr(&kasan_page_alloc_count);
++
++	return (*count)++ % kasan_page_alloc_sample == 0;
++}
++
+ #else /* CONFIG_KASAN_HW_TAGS */
+ 
+ static inline bool kasan_async_fault_possible(void)
+@@ -68,6 +78,11 @@ static inline bool kasan_sync_fault_poss
+ {
+ 	return true;
+ }
++
++static inline bool kasan_sample_page_alloc(void)
++{
++	return true;
++}
+ 
+ #endif /* CONFIG_KASAN_HW_TAGS */
+ 
+--- a/mm/page_alloc.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
++++ a/mm/page_alloc.c
+@@ -1367,6 +1367,8 @@ out:
+  *    see the comment next to it.
+  * 3. Skipping poisoning is requested via __GFP_SKIP_KASAN_POISON,
+  *    see the comment next to it.
++ * 4. The allocation is excluded from being checked due to sampling,
++ *    see the call to kasan_unpoison_pages.
+  *
+  * Poisoning pages during deferred memory init will greatly lengthen the
+  * process and cause problem in large memory systems as the deferred pages
+@@ -2476,7 +2478,8 @@ inline void post_alloc_hook(struct page
+ {
+ 	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags) &&
+ 			!should_skip_init(gfp_flags);
+-	bool init_tags = init && (gfp_flags & __GFP_ZEROTAGS);
++	bool zero_tags = init && (gfp_flags & __GFP_ZEROTAGS);
++	bool reset_tags = !zero_tags;
+ 	int i;
+ 
+ 	set_page_private(page, 0);
+@@ -2499,30 +2502,42 @@ inline void post_alloc_hook(struct page
+ 	 */
+ 
+ 	/*
+-	 * If memory tags should be zeroed (which happens only when memory
+-	 * should be initialized as well).
++	 * If memory tags should be zeroed
++	 * (which happens only when memory should be initialized as well).
+ 	 */
+-	if (init_tags) {
++	if (zero_tags) {
+ 		/* Initialize both memory and tags. */
+ 		for (i = 0; i != 1 << order; ++i)
+ 			tag_clear_highpage(page + i);
+ 
+-		/* Note that memory is already initialized by the loop above. */
++		/* Take note that memory was initialized by the loop above. */
+ 		init = false;
+ 	}
+ 	if (!should_skip_kasan_unpoison(gfp_flags)) {
+-		/* Unpoison shadow memory or set memory tags. */
+-		kasan_unpoison_pages(page, order, init);
+-
+-		/* Note that memory is already initialized by KASAN. */
+-		if (kasan_has_integrated_init())
+-			init = false;
+-	} else {
+-		/* Ensure page_address() dereferencing does not fault. */
++		/* Try unpoisoning (or setting tags) and initializing memory. */
++		if (kasan_unpoison_pages(page, order, init)) {
++			/* Take note that memory was initialized by KASAN. */
++			if (kasan_has_integrated_init())
++				init = false;
++			/* Take note that memory tags were set by KASAN. */
++			reset_tags = false;
++		} else {
++			/*
++			 * KASAN decided to exclude this allocation from being
++			 * poisoned due to sampling. Skip poisoning as well.
++			 */
++			SetPageSkipKASanPoison(page);
++		}
++	}
++	/*
++	 * If memory tags have not been set, reset the page tags to ensure
++	 * page_address() dereferencing does not fault.
++	 */
++	if (reset_tags) {
+ 		for (i = 0; i != 1 << order; ++i)
+ 			page_kasan_tag_reset(page + i);
+ 	}
+-	/* If memory is still not initialized, do it now. */
++	/* If memory is still not initialized, initialize it now. */
+ 	if (init)
+ 		kernel_init_pages(page, 1 << order);
+ 	/* Propagate __GFP_SKIP_KASAN_POISON to page flags. */
 _
 
-Patches currently in -mm which might be from gautammenghani201@gmail.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-khugepaged-add-tracepoint-to-collapse_file.patch
-mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call.patch
+kasan-switch-kunit-tests-to-console-tracepoints.patch
+kasan-migrate-kasan_rcu_uaf-test-to-kunit.patch
+kasan-migrate-workqueue_uaf-test-to-kunit.patch
+kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
 
