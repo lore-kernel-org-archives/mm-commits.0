@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12328ECAAA1
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:11:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05313ECAAA1
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:12:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236933AbiJ0UL4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Oct 2022 16:11:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38908 "EHLO
+        id S235682AbiJ0UME (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Oct 2022 16:12:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236909AbiJ0ULh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:11:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D489B625D7
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:11:35 -0700 (PDT)
+        with ESMTP id S236081AbiJ0ULk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:11:40 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 254EC5A3D0
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:11:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 62EFB624DA
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:11:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2529C433C1;
-        Thu, 27 Oct 2022 20:11:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C624BB82615
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:11:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E00BC433D6;
+        Thu, 27 Oct 2022 20:11:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666901494;
-        bh=s9Sx0vyc2vmmOfFafU7me7b8ZRmsNY0Y7azZFAIWl4U=;
+        s=korg; t=1666901496;
+        bh=8QT9/ie2XzkfRqRWAi1bV54ilW9fboN5kPgGWq3pYlc=;
         h=Date:To:From:Subject:From;
-        b=DeGb5FqpdaMTDpGWUaH5ZoO3rJvN8axtR51uwJS10a15aW2VM+BfsAC3B4aZTzJsM
-         zu0ZZJzW0dgDhs7dCyvZhCbafFQkI/fFOb5Q8OwJe7qxk9NTDKpbFplWY3RZsTmL1V
-         VfKsCRG5ynxz3rJLiZ0BT1SgKgCjz+9PmSGfNvt8=
-Date:   Thu, 27 Oct 2022 13:11:33 -0700
+        b=vDFV7X4NQlGzjpFQuQLW8+Uz6C76KatZL26L5l1Py+dgM1HI353TfgzDHa2YINCTz
+         Tavo60lh1UF7cBNuOH1AUyZheePpkvKydEjdkd2MEH8qDYcCtOVyBI8oOfjwqDKT9a
+         vsM+ilutGbn4FEgKOSxFT7BA9qMPjXgqW9PbcQ3Y=
+Date:   Thu, 27 Oct 2022 13:11:35 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function.patch added to mm-unstable branch
-Message-Id: <20221027201134.A2529C433C1@smtp.kernel.org>
+Subject: + mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values.patch added to mm-unstable branch
+Message-Id: <20221027201136.5E00BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: split out scheme quota adjustment logic into a new function
+     Subject: mm/damon/sysfs: use damon_addr_range for region's start and end values
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function.patch
+     mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,129 +65,107 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: split out scheme quota adjustment logic into a new function
-Date: Wed, 26 Oct 2022 22:59:35 +0000
+Subject: mm/damon/sysfs: use damon_addr_range for region's start and end values
+Date: Wed, 26 Oct 2022 22:59:36 +0000
 
-DAMOS quota adjustment logic in 'kdamond_apply_schemes()', has some amount
-of code, and the logic is not so straightforward.  Split it out to a new
-function for better readability.
+DAMON has a struct for each address range but DAMON sysfs interface is
+using the low type (unsigned long) for storing the start and end addresses
+of regions.  Use the dedicated struct for better type safety.
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221026225943.100429-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/damon/core.c~mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function
-+++ a/mm/damon/core.c
-@@ -848,6 +848,53 @@ static void damos_set_effective_quota(st
- 	quota->esz = esz;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values
++++ a/mm/damon/sysfs.c
+@@ -1062,13 +1062,11 @@ static struct kobj_type damon_sysfs_sche
+ 
+ struct damon_sysfs_region {
+ 	struct kobject kobj;
+-	unsigned long start;
+-	unsigned long end;
++	struct damon_addr_range ar;
+ };
+ 
+ static struct damon_sysfs_region *damon_sysfs_region_alloc(
+-		unsigned long start,
+-		unsigned long end)
++		struct damon_addr_range ar)
+ {
+ 	struct damon_sysfs_region *region = kmalloc(sizeof(*region),
+ 			GFP_KERNEL);
+@@ -1076,8 +1074,7 @@ static struct damon_sysfs_region *damon_
+ 	if (!region)
+ 		return NULL;
+ 	region->kobj = (struct kobject){};
+-	region->start = start;
+-	region->end = end;
++	region->ar = ar;
+ 	return region;
  }
  
-+static void damos_adjust_quota(struct damon_ctx *c, struct damos *s)
-+{
-+	struct damos_quota *quota = &s->quota;
-+	struct damon_target *t;
-+	struct damon_region *r;
-+	unsigned long cumulated_sz;
-+	unsigned int score, max_score = 0;
-+
-+	if (!quota->ms && !quota->sz)
-+		return;
-+
-+	/* New charge window starts */
-+	if (time_after_eq(jiffies, quota->charged_from +
-+				msecs_to_jiffies(quota->reset_interval))) {
-+		if (quota->esz && quota->charged_sz >= quota->esz)
-+			s->stat.qt_exceeds++;
-+		quota->total_charged_sz += quota->charged_sz;
-+		quota->charged_from = jiffies;
-+		quota->charged_sz = 0;
-+		damos_set_effective_quota(quota);
-+	}
-+
-+	if (!c->ops.get_scheme_score)
-+		return;
-+
-+	/* Fill up the score histogram */
-+	memset(quota->histogram, 0, sizeof(quota->histogram));
-+	damon_for_each_target(t, c) {
-+		damon_for_each_region(r, t) {
-+			if (!__damos_valid_target(r, s))
-+				continue;
-+			score = c->ops.get_scheme_score(c, t, r, s);
-+			quota->histogram[score] += damon_sz_region(r);
-+			if (score > max_score)
-+				max_score = score;
-+		}
-+	}
-+
-+	/* Set the min score limit */
-+	for (cumulated_sz = 0, score = max_score; ; score--) {
-+		cumulated_sz += quota->histogram[score];
-+		if (cumulated_sz >= quota->esz || !score)
-+			break;
-+	}
-+	quota->min_score = score;
-+}
-+
- static void kdamond_apply_schemes(struct damon_ctx *c)
+@@ -1087,7 +1084,7 @@ static ssize_t start_show(struct kobject
+ 	struct damon_sysfs_region *region = container_of(kobj,
+ 			struct damon_sysfs_region, kobj);
+ 
+-	return sysfs_emit(buf, "%lu\n", region->start);
++	return sysfs_emit(buf, "%lu\n", region->ar.start);
+ }
+ 
+ static ssize_t start_store(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -1095,7 +1092,7 @@ static ssize_t start_store(struct kobjec
  {
- 	struct damon_target *t;
-@@ -855,52 +902,10 @@ static void kdamond_apply_schemes(struct
- 	struct damos *s;
+ 	struct damon_sysfs_region *region = container_of(kobj,
+ 			struct damon_sysfs_region, kobj);
+-	int err = kstrtoul(buf, 0, &region->start);
++	int err = kstrtoul(buf, 0, &region->ar.start);
  
- 	damon_for_each_scheme(s, c) {
--		struct damos_quota *quota = &s->quota;
--		unsigned long cumulated_sz;
--		unsigned int score, max_score = 0;
--
- 		if (!s->wmarks.activated)
+ 	return err ? err : count;
+ }
+@@ -1106,7 +1103,7 @@ static ssize_t end_show(struct kobject *
+ 	struct damon_sysfs_region *region = container_of(kobj,
+ 			struct damon_sysfs_region, kobj);
+ 
+-	return sysfs_emit(buf, "%lu\n", region->end);
++	return sysfs_emit(buf, "%lu\n", region->ar.end);
+ }
+ 
+ static ssize_t end_store(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -1114,7 +1111,7 @@ static ssize_t end_store(struct kobject
+ {
+ 	struct damon_sysfs_region *region = container_of(kobj,
+ 			struct damon_sysfs_region, kobj);
+-	int err = kstrtoul(buf, 0, &region->end);
++	int err = kstrtoul(buf, 0, &region->ar.end);
+ 
+ 	return err ? err : count;
+ }
+@@ -1187,7 +1184,7 @@ static int damon_sysfs_regions_add_dirs(
+ 	regions->regions_arr = regions_arr;
+ 
+ 	for (i = 0; i < nr_regions; i++) {
+-		region = damon_sysfs_region_alloc(0, 0);
++		region = damon_sysfs_region_alloc((struct damon_addr_range){});
+ 		if (!region) {
+ 			damon_sysfs_regions_rm_dirs(regions);
+ 			return -ENOMEM;
+@@ -2147,11 +2144,11 @@ static int damon_sysfs_set_regions(struc
+ 		struct damon_sysfs_region *sys_region =
+ 			sysfs_regions->regions_arr[i];
+ 
+-		if (sys_region->start > sys_region->end)
++		if (sys_region->ar.start > sys_region->ar.end)
+ 			goto out;
+ 
+-		ranges[i].start = sys_region->start;
+-		ranges[i].end = sys_region->end;
++		ranges[i].start = sys_region->ar.start;
++		ranges[i].end = sys_region->ar.end;
+ 		if (i == 0)
  			continue;
- 
--		if (!quota->ms && !quota->sz)
--			continue;
--
--		/* New charge window starts */
--		if (time_after_eq(jiffies, quota->charged_from +
--					msecs_to_jiffies(
--						quota->reset_interval))) {
--			if (quota->esz && quota->charged_sz >= quota->esz)
--				s->stat.qt_exceeds++;
--			quota->total_charged_sz += quota->charged_sz;
--			quota->charged_from = jiffies;
--			quota->charged_sz = 0;
--			damos_set_effective_quota(quota);
--		}
--
--		if (!c->ops.get_scheme_score)
--			continue;
--
--		/* Fill up the score histogram */
--		memset(quota->histogram, 0, sizeof(quota->histogram));
--		damon_for_each_target(t, c) {
--			damon_for_each_region(r, t) {
--				if (!__damos_valid_target(r, s))
--					continue;
--				score = c->ops.get_scheme_score(
--						c, t, r, s);
--				quota->histogram[score] += damon_sz_region(r);
--				if (score > max_score)
--					max_score = score;
--			}
--		}
--
--		/* Set the min score limit */
--		for (cumulated_sz = 0, score = max_score; ; score--) {
--			cumulated_sz += quota->histogram[score];
--			if (cumulated_sz >= quota->esz || !score)
--				break;
--		}
--		quota->min_score = score;
-+		damos_adjust_quota(c, s);
- 	}
- 
- 	damon_for_each_target(t, c) {
+ 		if (ranges[i - 1].end > ranges[i].start)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
