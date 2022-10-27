@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CC18FA3742
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90B77ECAAA1
 	for <mm-commits@archiver.kernel.org>; Thu, 27 Oct 2022 20:04:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236832AbiJ0UEP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Oct 2022 16:04:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45770 "EHLO
+        id S234719AbiJ0UEQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Oct 2022 16:04:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45752 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236971AbiJ0UD6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:03:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1159D8996D
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:03:55 -0700 (PDT)
+        with ESMTP id S236949AbiJ0UD4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2022 16:03:56 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CC3357200
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 13:03:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9AB2F624D1
-        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:03:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB866C433D6;
-        Thu, 27 Oct 2022 20:03:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9D989B824DD
+        for <mm-commits@vger.kernel.org>; Thu, 27 Oct 2022 20:03:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BC0FC433C1;
+        Thu, 27 Oct 2022 20:03:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666901034;
-        bh=k2+R+Pn0AevjpQIwAy1IqA+Nnxc0sxojtNxdQvyEYgk=;
+        s=korg; t=1666901028;
+        bh=aoXupyDFi3X3Iy2iAi3GpOkp3b+Df1oRTuN/MMzGj0M=;
         h=Date:To:From:Subject:From;
-        b=FXy0lXYnVh1DtHwlEJy6BPqNMp/fhH0NEp6ydxNEY8Mg73lAS9oBE4SQJrNvIwvo6
-         UdNOFLaoDQlq+EU/gIw34vtvqOYx/E+jJebCTygZHJl1WLhQwYTibZ9GjboW51Bh2e
-         LfWniqb5Ff3+W1VJNAKzYmNwbWyXqa7XwY3bxwq0=
-Date:   Thu, 27 Oct 2022 13:03:52 -0700
+        b=MA5a+73mIFT5cOK8dB+DAroX7uFcAFdzSNWJ8VtUwk7eLQxQ4Q9PiSUyswyrZH4zC
+         bn/tBszf6zta8qGaoKyuMdKWGWYFsB9rq60/XIG2nmAliQLqI7t1rbVxvBkBpTjYCe
+         GgII4hiuZT7dWwuVApoYk0ozoWxfggbTmfzBRE2Q=
+Date:   Thu, 27 Oct 2022 13:03:47 -0700
 To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
-        avromanov@sberdevices.ru, senozhatsky@chromium.org,
-        akpm@linux-foundation.org
+        avromanov@sberdevices.ru, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-make-huge-class-watermark-zs_pool-member.patch added to mm-unstable branch
-Message-Id: <20221027200353.DB866C433D6@smtp.kernel.org>
+Subject: + zram-add-size-class-equals-check-into-recompression.patch added to mm-unstable branch
+Message-Id: <20221027200348.1BC0FC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: make huge class watermark zs_pool member
+     Subject: zram: add size class equals check into recompression
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-make-huge-class-watermark-zs_pool-member.patch
+     zram-add-size-class-equals-check-into-recompression.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-make-huge-class-watermark-zs_pool-member.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-size-class-equals-check-into-recompression.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,89 +64,97 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: make huge class watermark zs_pool member
-Date: Thu, 27 Oct 2022 13:26:46 +0900
+From: Alexey Romanov <avromanov@sberdevices.ru>
+Subject: zram: add size class equals check into recompression
+Date: Thu, 27 Oct 2022 13:26:43 +0900
 
-We will permit per-pool configuration of pages per-zspage value, which
-changes characteristics of the classes and moves around huge class size
-watermark.  Thus huge class size needs to be a per-pool variable.
+Patch series "zsmalloc/zram: configurable zspage size", v3.
 
-Link: https://lkml.kernel.org/r/20221027042651.234524-5-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Alexey Romanov <avromanov@sberdevices.ru>
+It makes no sense for us to recompress the object if it will be in the
+same size class.  We anyway don't get any memory gain.  But, at the same
+time, we get a CPU time overhead when inserting this object into zspage
+and decompressing it afterwards.
+
+Link: https://lkml.kernel.org/r/20221027042651.234524-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20221027042651.234524-2-senozhatsky@chromium.org
+Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/zsmalloc.c~zsmalloc-make-huge-class-watermark-zs_pool-member
+--- a/drivers/block/zram/zram_drv.c~zram-add-size-class-equals-check-into-recompression
++++ a/drivers/block/zram/zram_drv.c
+@@ -1632,6 +1632,8 @@ static int zram_recompress(struct zram *
+ 	unsigned long handle_next;
+ 	unsigned int comp_len_next;
+ 	unsigned int comp_len_prev;
++	unsigned int class_index_prev;
++	unsigned int class_index_next;
+ 	struct zcomp_strm *zstrm;
+ 	void *src, *dst;
+ 	int ret;
+@@ -1656,6 +1658,8 @@ static int zram_recompress(struct zram *
+ 	ret = zcomp_compress(zstrm, src, &comp_len_next);
+ 	kunmap_atomic(src);
+ 
++	class_index_prev = zs_lookup_class_index(zram->mem_pool, comp_len_prev);
++	class_index_next = zs_lookup_class_index(zram->mem_pool, comp_len_next);
+ 	/*
+ 	 * Either a compression error or we failed to compressed the object
+ 	 * in a way that will save us memory. Mark the object so that we
+@@ -1663,6 +1667,7 @@ static int zram_recompress(struct zram *
+ 	 */
+ 	if (comp_len_next >= huge_class_size ||
+ 	    comp_len_next >= comp_len_prev ||
++	    class_index_next >= class_index_prev ||
+ 	    ret) {
+ 		zram_set_flag(zram, index, ZRAM_RECOMP_SKIP);
+ 		zram_clear_flag(zram, index, ZRAM_IDLE);
+--- a/include/linux/zsmalloc.h~zram-add-size-class-equals-check-into-recompression
++++ a/include/linux/zsmalloc.h
+@@ -55,5 +55,7 @@ void zs_unmap_object(struct zs_pool *poo
+ unsigned long zs_get_total_pages(struct zs_pool *pool);
+ unsigned long zs_compact(struct zs_pool *pool);
+ 
++unsigned int zs_lookup_class_index(struct zs_pool *pool, unsigned int size);
++
+ void zs_pool_stats(struct zs_pool *pool, struct zs_pool_stats *stats);
+ #endif
+--- a/mm/zsmalloc.c~zram-add-size-class-equals-check-into-recompression
 +++ a/mm/zsmalloc.c
-@@ -178,7 +178,6 @@ static struct dentry *zs_stat_root;
-  * (see: fix_fullness_group())
-  */
- static const int fullness_threshold_frac = 4;
--static size_t huge_class_size;
- 
- struct size_class {
- 	spinlock_t lock;
-@@ -227,6 +226,7 @@ struct zs_pool {
- 
- 	u32 num_size_classes;
- 	u32 min_alloc_size;
-+	size_t huge_class_size;
- 
- 	struct zs_pool_stats stats;
- 
-@@ -1350,7 +1350,7 @@ EXPORT_SYMBOL_GPL(zs_unmap_object);
-  */
- size_t zs_huge_class_size(struct zs_pool *pool)
- {
--	return huge_class_size;
-+	return pool->huge_class_size;
+@@ -1205,6 +1205,27 @@ static bool zspage_full(struct size_clas
+ 	return get_zspage_inuse(zspage) == class->objs_per_zspage;
  }
- EXPORT_SYMBOL_GPL(zs_huge_class_size);
  
-@@ -2264,8 +2264,8 @@ struct zs_pool *zs_create_pool(const cha
- 		 * endup in the huge class.
- 		 */
- 		if (pages_per_zspage != 1 && objs_per_zspage != 1 &&
--				!huge_class_size) {
--			huge_class_size = size;
-+				!pool->huge_class_size) {
-+			pool->huge_class_size = size;
- 			/*
- 			 * The object uses ZS_HANDLE_SIZE bytes to store the
- 			 * handle. We need to subtract it, because zs_malloc()
-@@ -2275,7 +2275,7 @@ struct zs_pool *zs_create_pool(const cha
- 			 * class because it grows by ZS_HANDLE_SIZE extra bytes
- 			 * right before class lookup.
- 			 */
--			huge_class_size -= (ZS_HANDLE_SIZE - 1);
-+			pool->huge_class_size -= (ZS_HANDLE_SIZE - 1);
- 		}
- 
- 		/*
++/**
++ * zs_lookup_class_index() - Returns index of the zsmalloc &size_class
++ * that hold objects of the provided size.
++ * @pool: zsmalloc pool to use
++ * @size: object size
++ *
++ * Context: Any context.
++ *
++ * Return: the index of the zsmalloc &size_class that hold objects of the
++ * provided size.
++ */
++unsigned int zs_lookup_class_index(struct zs_pool *pool, unsigned int size)
++{
++	struct size_class *class;
++
++	class = pool->size_class[get_size_class_index(size)];
++
++	return class->index;
++}
++EXPORT_SYMBOL_GPL(zs_lookup_class_index);
++
+ unsigned long zs_get_total_pages(struct zs_pool *pool)
+ {
+ 	return atomic_long_read(&pool->pages_allocated);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from avromanov@sberdevices.ru are
 
-zram-preparation-for-multi-zcomp-support.patch
-zram-add-recompression-algorithm-sysfs-knob.patch
-zram-factor-out-wb-and-non-wb-zram-read-functions.patch
-zram-introduce-recompress-sysfs-knob.patch
-documentation-add-recompression-documentation.patch
-zram-add-recompression-algorithm-choice-to-kconfig.patch
-zram-add-recompress-flag-to-read_block_state.patch
-zram-clarify-writeback_store-comment.patch
-zram-use-is_err_value-to-check-for-zs_malloc-errors.patch
-zsmalloc-turn-zspage-order-into-runtime-variable.patch
-zsmalloc-move-away-from-page-order-defines.patch
-zsmalloc-make-huge-class-watermark-zs_pool-member.patch
-zram-huge-size-watermark-cannot-be-global.patch
-zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool.patch
-zram-add-pages_per_pool_page-device-attribute.patch
-documentation-document-zram-pages_per_pool_page-attribute.patch
-zsmalloc-break-out-of-loop-when-found-perfect-zspage-order.patch
+zram-add-size-class-equals-check-into-recompression.patch
 
