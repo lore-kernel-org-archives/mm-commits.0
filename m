@@ -2,125 +2,82 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6F8DC38A02
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:29:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3718ECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:30:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229729AbiJ1V3k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:29:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41462 "EHLO
+        id S229865AbiJ1VaR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:30:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44362 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229777AbiJ1V3k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:29:40 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA00BDFA0
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:29:37 -0700 (PDT)
+        with ESMTP id S229777AbiJ1VaQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:30:16 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75031719B0
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:30:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 8A22BCE2B55
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:29:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81012C433D6;
-        Fri, 28 Oct 2022 21:29:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B5333B82BE2
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:30:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49C87C433D6;
+        Fri, 28 Oct 2022 21:30:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666992573;
-        bh=odM7a6CDlGg5OoWcuKil+iN1CmmmFpQelorcsUojpso=;
+        s=korg; t=1666992612;
+        bh=5+0RGYu6Skn6C+KAZtCWgwVwA0/8t9AZ7QtW+sxBJvE=;
         h=Date:To:From:Subject:From;
-        b=Jibyz8uBogC2xjmS5kuOPYdWt93TI4zeQH0kJgUO8dLcUQOVJhPaZmElv6Vd6eq3i
-         MhNn69s85psUoO1yO/LlcN7Bq236HB/Qd5/H9R/K0es1ybkETLVm/6utx5V/OFnoVN
-         bPQFp6v0cdfnCr/IypT5mLWK8CbTzvlVuXAi7/Ok=
-Date:   Fri, 28 Oct 2022 14:29:32 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        naoya.horiguchi@linux.dev, mpe@ellerman.id.au, david@redhat.com,
-        christophe.leroy@csgroup.eu, baolin.wang@linux.alibaba.com,
-        aneesh.kumar@linux.ibm.com, mike.kravetz@oracle.com,
+        b=mcdAHi4CRCsXWUIgAsO3VEpXYHOkUG/3H6r3Oog7iWmBIToXF5u5KbXnFCRVYXhHy
+         0hZ9rTwvtgfi3A/1yxKx3yiaNQQRYVpPhU4fWOy6tZIcKSI5G7lTzYRLVJYJZcx6Ma
+         n0L8ZPKLjCs+wG/S7p6IMpYlMGLeP0x/Yyrk+GV8=
+Date:   Fri, 28 Oct 2022 14:30:11 -0700
+To:     mm-commits@vger.kernel.org, keescook@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch added to mm-unstable branch
-Message-Id: <20221028212933.81012C433D6@smtp.kernel.org>
+Subject: [alternative-merged] mempool-use-kmalloc_size_roundup-to-match-ksize-usage.patch removed from -mm tree
+Message-Id: <20221028213012.49C87C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch
+The quilt patch titled
+     Subject: mempool: use kmalloc_size_roundup() to match ksize() usage
+has been removed from the -mm tree.  Its filename was
+     mempool-use-kmalloc_size_roundup-to-match-ksize-usage.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4
-Date: Fri, 28 Oct 2022 11:11:08 -0700
+From: Kees Cook <keescook@chromium.org>
+Subject: mempool: use kmalloc_size_roundup() to match ksize() usage
+Date: Tue, 18 Oct 2022 02:03:29 -0700
 
-remove vma (pmd sharing) locking as this can be called with FOLL_NOWAIT,
-per Peter
+Round up allocations with kmalloc_size_roundup() so that mempool's use of
+ksize() is always accurate and no special handling of the memory is needed
+by KASAN, UBSAN_BOUNDS, nor FORTIFY_SOURCE.
 
-Link: https://lkml.kernel.org/r/20221028181108.119432-1-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Link: https://lkml.kernel.org/r/20221018090323.never.897-kees@kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/mempool.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4
-+++ a/mm/hugetlb.c
-@@ -6265,17 +6265,9 @@ struct page *hugetlb_follow_page_mask(st
- 		return NULL;
- 
- retry:
--	/*
--	 * vma lock prevents racing with another thread doing a pmd unshare.
--	 * This keeps pte as returned by huge_pte_offset valid.
--	 */
--	hugetlb_vma_lock_read(vma);
--
- 	pte = huge_pte_offset(mm, haddr, huge_page_size(h));
--	if (!pte) {
--		hugetlb_vma_unlock_read(vma);
-+	if (!pte)
- 		return NULL;
--	}
- 
- 	ptl = huge_pte_lock(h, mm, pte);
- 	entry = huge_ptep_get(pte);
-@@ -6309,7 +6301,6 @@ retry:
- 	}
- out:
- 	spin_unlock(ptl);
--	hugetlb_vma_unlock_read(vma);
- 	return page;
+--- a/mm/mempool.c~mempool-use-kmalloc_size_roundup-to-match-ksize-usage
++++ a/mm/mempool.c
+@@ -526,7 +526,7 @@ EXPORT_SYMBOL(mempool_free_slab);
+  */
+ void *mempool_kmalloc(gfp_t gfp_mask, void *pool_data)
+ {
+-	size_t size = (size_t)pool_data;
++	size_t size = kmalloc_size_roundup((size_t)pool_data);
+ 	return kmalloc(size, gfp_mask);
  }
- 
+ EXPORT_SYMBOL(mempool_kmalloc);
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
-hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
-hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch
+mempool-do-not-use-ksize-for-poisoning.patch
 
