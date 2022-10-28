@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88923ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:41:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45964ECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:48:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230048AbiJ1VlC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:41:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36644 "EHLO
+        id S229936AbiJ1VsL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:48:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230005AbiJ1Vks (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:40:48 -0400
+        with ESMTP id S229515AbiJ1VsK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:48:10 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 562811C97D5
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:40:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A813024C10F
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:48:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 11D7FB82CD8
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:40:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0AC0C433C1;
-        Fri, 28 Oct 2022 21:40:35 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6AAC5B82C12
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:48:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0599C433D6;
+        Fri, 28 Oct 2022 21:48:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666993235;
-        bh=l9wPq8rWrobGbcbVJyrZDFbOHrZMHWR30B9QsFKz47g=;
+        s=korg; t=1666993687;
+        bh=mjcku2JAtUHZk4zwCGBkL2CSh6asOM5KZe0TuRifUTg=;
         h=Date:To:From:Subject:From;
-        b=wTfqVEEzZil1ZT7hZRrFS6/3BW6+fWJSayC3bxL5EfEINzxO/mbPnGOcbH5Dx9Taa
-         UfyKXdDK/Dv+YW0cGymWl64enQQh5GdS4pGvKDLBo5rpEzkezqU8KMoXak9Mwd+80f
-         0iRVW8C5v9P3AF7PvPWIUkQCYTb1+XMKnLwtMD2s=
-Date:   Fri, 28 Oct 2022 14:40:34 -0700
-To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        sjenning@redhat.com, senozhatsky@chromium.org, ngupta@vflare.org,
-        minchan@kernel.org, hannes@cmpxchg.org, ddstreet@ieee.org,
-        nphamcs@gmail.com, akpm@linux-foundation.org
+        b=HCIaOhxBNkgDMGTm5VBI9gpZU8dax/E2yQIbOoDkQrNSQ3OpAbW/Vdf3i4V2pwUW2
+         AKlYeSRMldAytoczyGXbGZKPpq+5fzamJemBLg9IUhWJRDITjRK63jfva+U/QX+9HD
+         ASDSAKOiDD6F5DBb2fMqbS5QiLTaNHEFwCERiMhE=
+Date:   Fri, 28 Oct 2022 14:48:05 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, npache@redhat.com,
+        jsavitz@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-implement-writeback-mechanism-for-zsmalloc.patch added to mm-unstable branch
-Message-Id: <20221028214035.A0AC0C433C1@smtp.kernel.org>
+Subject: + selftests-vm-enable-running-select-groups-of-tests-fix.patch added to mm-unstable branch
+Message-Id: <20221028214806.E0599C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: implement writeback mechanism for zsmalloc
+     Subject: selftests/vm: calculate variables in correct order
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-implement-writeback-mechanism-for-zsmalloc.patch
+     selftests-vm-enable-running-select-groups-of-tests-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-implement-writeback-mechanism-for-zsmalloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-enable-running-select-groups-of-tests-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,347 +64,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: zsmalloc: implement writeback mechanism for zsmalloc
-Date: Thu, 27 Oct 2022 11:27:36 -0700
+From: Joel Savitz <jsavitz@redhat.com>
+Subject: selftests/vm: calculate variables in correct order
+Date: Fri, 28 Oct 2022 09:26:40 -0400
 
-This commit adds the writeback mechanism for zsmalloc, analogous to the
-zbud allocator.  Zsmalloc will attempt to determine the coldest zspage
-(i.e least recently used) in the pool, and attempt to write back all the
-stored compressed objects via the pool's evict handler.
+commit ("selftests/vm: enable running select groups of tests")
+unintentionally reversed the ordering of some of the lines of
+run_vmtests.sh that calculate values based on system configuration. 
+Importantly, $hpgsize_MB is determined from $hpgsize_KB, but this later
+value is not read from /proc/meminfo until later, causing userfaultfd
+tests to incorrectly fail since $half_ufd_size_MB will always be 0.
 
-Link: https://lkml.kernel.org/r/20221027182736.513530-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Switch these statements around into proper order to fix the invocation of
+the userfaultfd tests that use $half_ufd_size_MB.
+
+Link: https://lkml.kernel.org/r/20221028132640.2791026-1-jsavitz@redhat.com
+Signed-off-by: Joel Savitz <jsavitz@redhat.com>
+Suggested-by: Nico Pache <npache@redhat.com>
+Cc: Joel Savitz <jsavitz@redhat.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/zsmalloc.c~zsmalloc-implement-writeback-mechanism-for-zsmalloc
-+++ a/mm/zsmalloc.c
-@@ -271,10 +271,13 @@ struct zspage {
- 	/* links the zspage to the lru list in the pool */
- 	struct list_head lru;
- 
-+	bool under_reclaim;
-+
-+	/* list of unfreed handles whose objects have been reclaimed */
-+	unsigned long *deferred_handles;
-+
- 	struct zs_pool *pool;
--#ifdef CONFIG_COMPACTION
- 	rwlock_t lock;
--#endif
- };
- 
- struct mapping_area {
-@@ -295,10 +298,11 @@ static bool ZsHugePage(struct zspage *zs
- 	return zspage->huge;
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-enable-running-select-groups-of-tests-fix
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -82,16 +82,6 @@ test_selected() {
+ 	fi
  }
  
--#ifdef CONFIG_COMPACTION
- static void migrate_lock_init(struct zspage *zspage);
- static void migrate_read_lock(struct zspage *zspage);
- static void migrate_read_unlock(struct zspage *zspage);
-+
-+#ifdef CONFIG_COMPACTION
- static void migrate_write_lock(struct zspage *zspage);
- static void migrate_write_lock_nested(struct zspage *zspage);
- static void migrate_write_unlock(struct zspage *zspage);
-@@ -306,9 +310,6 @@ static void kick_deferred_free(struct zs
- static void init_deferred_free(struct zs_pool *pool);
- static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage);
- #else
--static void migrate_lock_init(struct zspage *zspage) {}
--static void migrate_read_lock(struct zspage *zspage) {}
--static void migrate_read_unlock(struct zspage *zspage) {}
- static void migrate_write_lock(struct zspage *zspage) {}
- static void migrate_write_lock_nested(struct zspage *zspage) {}
- static void migrate_write_unlock(struct zspage *zspage) {}
-@@ -437,6 +438,27 @@ static void zs_zpool_free(void *pool, un
- 	zs_free(pool, handle);
- }
+-# Simple hugetlbfs tests have a hardcoded minimum requirement of
+-# huge pages totaling 256MB (262144KB) in size.  The userfaultfd
+-# hugetlb test requires a minimum of 2 * nr_cpus huge pages.  Take
+-# both of these requirements into account and attempt to increase
+-# number of huge pages available.
+-nr_cpus=$(nproc)
+-hpgsize_MB=$((hpgsize_KB / 1024))
+-half_ufd_size_MB=$((((nr_cpus * hpgsize_MB + 127) / 128) * 128))
+-needmem_KB=$((half_ufd_size_MB * 2 * 1024))
+-
+ # get huge pagesize and freepages from /proc/meminfo
+ while read -r name size unit; do
+ 	if [ "$name" = "HugePages_Free:" ]; then
+@@ -102,6 +92,16 @@ while read -r name size unit; do
+ 	fi
+ done < /proc/meminfo
  
-+static int zs_reclaim_page(struct zs_pool *pool, unsigned int retries);
++# Simple hugetlbfs tests have a hardcoded minimum requirement of
++# huge pages totaling 256MB (262144KB) in size.  The userfaultfd
++# hugetlb test requires a minimum of 2 * nr_cpus huge pages.  Take
++# both of these requirements into account and attempt to increase
++# number of huge pages available.
++nr_cpus=$(nproc)
++hpgsize_MB=$((hpgsize_KB / 1024))
++half_ufd_size_MB=$((((nr_cpus * hpgsize_MB + 127) / 128) * 128))
++needmem_KB=$((half_ufd_size_MB * 2 * 1024))
 +
-+static int zs_zpool_shrink(void *pool, unsigned int pages,
-+			unsigned int *reclaimed)
-+{
-+	unsigned int total = 0;
-+	int ret = -EINVAL;
-+
-+	while (total < pages) {
-+		ret = zs_reclaim_page(pool, 8);
-+		if (ret < 0)
-+			break;
-+		total++;
-+	}
-+
-+	if (reclaimed)
-+		*reclaimed = total;
-+
-+	return ret;
-+}
-+
- static void *zs_zpool_map(void *pool, unsigned long handle,
- 			enum zpool_mapmode mm)
- {
-@@ -475,6 +497,7 @@ static struct zpool_driver zs_zpool_driv
- 	.malloc_support_movable = true,
- 	.malloc =		  zs_zpool_malloc,
- 	.free =			  zs_zpool_free,
-+	.shrink =     zs_zpool_shrink,
- 	.map =			  zs_zpool_map,
- 	.unmap =		  zs_zpool_unmap,
- 	.total_size =		  zs_zpool_total_size,
-@@ -951,6 +974,21 @@ unlock:
- 	return 0;
- }
- 
-+/*
-+ * Free all the deferred handles whose objects are freed in zs_free.
-+ */
-+static void free_handles(struct zs_pool *pool, struct zspage *zspage)
-+{
-+	unsigned long handle = (unsigned long) zspage->deferred_handles;
-+
-+	while (handle) {
-+		unsigned long nxt_handle = handle_to_obj(handle);
-+
-+		cache_free_handle(pool, handle);
-+		handle = nxt_handle;
-+	}
-+}
-+
- static void __free_zspage(struct zs_pool *pool, struct size_class *class,
- 				struct zspage *zspage)
- {
-@@ -965,6 +1003,9 @@ static void __free_zspage(struct zs_pool
- 	VM_BUG_ON(get_zspage_inuse(zspage));
- 	VM_BUG_ON(fg != ZS_EMPTY);
- 
-+	/* Free all deferred handles from zs_free */
-+	free_handles(pool, zspage);
-+
- 	next = page = get_first_page(zspage);
- 	do {
- 		VM_BUG_ON_PAGE(!PageLocked(page), page);
-@@ -1047,6 +1088,8 @@ static void init_zspage(struct size_clas
- 	}
- 
- 	INIT_LIST_HEAD(&zspage->lru);
-+	zspage->under_reclaim = false;
-+	zspage->deferred_handles = NULL;
- 
- 	set_freeobj(zspage, 0);
- }
-@@ -1489,11 +1532,8 @@ unsigned long zs_malloc(struct zs_pool *
- 		fix_fullness_group(class, zspage);
- 		record_obj(handle, obj);
- 		class_stat_inc(class, OBJ_USED, 1);
--		/* Move the zspage to front of pool's LRU */
--		move_to_front(pool, zspage);
--		spin_unlock(&pool->lock);
- 
--		return handle;
-+		goto out;
- 	}
- 
- 	spin_unlock(&pool->lock);
-@@ -1517,6 +1557,8 @@ unsigned long zs_malloc(struct zs_pool *
- 
- 	/* We completely set up zspage so mark them as movable */
- 	SetZsPageMovable(pool, zspage);
-+
-+out:
- 	/* Move the zspage to front of pool's LRU */
- 	move_to_front(pool, zspage);
- 	spin_unlock(&pool->lock);
-@@ -1574,12 +1616,24 @@ void zs_free(struct zs_pool *pool, unsig
- 
- 	obj_free(class->size, obj);
- 	class_stat_dec(class, OBJ_USED, 1);
-+
-+	if (zspage->under_reclaim) {
-+		/*
-+		 * Reclaim needs the handles during writeback. It'll free
-+		 * them along with the zspage when it's done with them.
-+		 *
-+		 * Record current deferred handle at the memory location
-+		 * whose address is given by handle.
-+		 */
-+		record_obj(handle, (unsigned long) zspage->deferred_handles);
-+		zspage->deferred_handles = (unsigned long *) handle;
-+		spin_unlock(&pool->lock);
-+		return;
-+	}
- 	fullness = fix_fullness_group(class, zspage);
--	if (fullness != ZS_EMPTY)
--		goto out;
-+	if (fullness == ZS_EMPTY)
-+		free_zspage(pool, class, zspage);
- 
--	free_zspage(pool, class, zspage);
--out:
- 	spin_unlock(&pool->lock);
- 	cache_free_handle(pool, handle);
- }
-@@ -1779,7 +1833,7 @@ static enum fullness_group putback_zspag
- 	return fullness;
- }
- 
--#ifdef CONFIG_COMPACTION
-+#if defined(CONFIG_ZPOOL) || defined(CONFIG_COMPACTION)
- /*
-  * To prevent zspage destroy during migration, zspage freeing should
-  * hold locks of all pages in the zspage.
-@@ -1821,6 +1875,24 @@ static void lock_zspage(struct zspage *z
- 	}
- 	migrate_read_unlock(zspage);
- }
-+#endif /* defined(CONFIG_ZPOOL) || defined(CONFIG_COMPACTION) */
-+
-+#ifdef CONFIG_ZPOOL
-+/*
-+ * Unlocks all the pages of the zspage.
-+ *
-+ * pool->lock must be held before this function is called
-+ * to prevent the underlying pages from migrating.
-+ */
-+static void unlock_zspage(struct zspage *zspage)
-+{
-+	struct page *page = get_first_page(zspage);
-+
-+	do {
-+		unlock_page(page);
-+	} while ((page = get_next_page(page)) != NULL);
-+}
-+#endif /* CONFIG_ZPOOL */
- 
- static void migrate_lock_init(struct zspage *zspage)
- {
-@@ -1837,6 +1909,7 @@ static void migrate_read_unlock(struct z
- 	read_unlock(&zspage->lock);
- }
- 
-+#ifdef CONFIG_COMPACTION
- static void migrate_write_lock(struct zspage *zspage)
- {
- 	write_lock(&zspage->lock);
-@@ -2419,6 +2492,101 @@ void zs_destroy_pool(struct zs_pool *poo
- }
- EXPORT_SYMBOL_GPL(zs_destroy_pool);
- 
-+#ifdef CONFIG_ZPOOL
-+static int zs_reclaim_page(struct zs_pool *pool, unsigned int retries)
-+{
-+	int i, obj_idx, ret = 0;
-+	unsigned long handle;
-+	struct zspage *zspage;
-+	struct page *page;
-+	enum fullness_group fullness;
-+
-+	/* Lock LRU and fullness list */
-+	spin_lock(&pool->lock);
-+	if (!pool->ops || !pool->ops->evict || list_empty(&pool->lru) ||
-+			retries == 0) {
-+		spin_unlock(&pool->lock);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < retries; i++) {
-+		struct size_class *class;
-+
-+		zspage = list_last_entry(&pool->lru, struct zspage, lru);
-+		list_del(&zspage->lru);
-+
-+		/* zs_free may free objects, but not the zspage and handles */
-+		zspage->under_reclaim = true;
-+
-+		/* Lock backing pages into place */
-+		lock_zspage(zspage);
-+
-+		class = zspage_class(pool, zspage);
-+		fullness = get_fullness_group(class, zspage);
-+
-+		/* Lock out object allocations and object compaction */
-+		remove_zspage(class, zspage, fullness);
-+
-+		spin_unlock(&pool->lock);
-+
-+		obj_idx = 0;
-+		page = zspage->first_page;
-+		while (1) {
-+			handle = find_alloced_obj(class, page, &obj_idx);
-+			if (!handle) {
-+				page = get_next_page(page);
-+				if (!page)
-+					break;
-+				obj_idx = 0;
-+				continue;
-+			}
-+
-+			/*
-+			 * This will write the object and call
-+			 * zs_free.
-+			 *
-+			 * zs_free will free the object, but the
-+			 * under_reclaim flag prevents it from freeing
-+			 * the zspage altogether. This is necessary so
-+			 * that we can continue working with the
-+			 * zspage potentially after the last object
-+			 * has been freed.
-+			 */
-+			ret = pool->ops->evict(pool, handle);
-+			if (ret)
-+				goto next;
-+
-+			obj_idx++;
-+		}
-+
-+next:
-+		/* For freeing the zspage, or putting it back in the pool and LRU list. */
-+		spin_lock(&pool->lock);
-+		zspage->under_reclaim = false;
-+
-+		if (!get_zspage_inuse(zspage)) {
-+			/*
-+			 * Fullness went stale as zs_free() won't touch it
-+			 * while the page is removed from the pool. Fix it
-+			 * up for the check in __free_zspage().
-+			 */
-+			zspage->fullness = ZS_EMPTY;
-+
-+			__free_zspage(pool, class, zspage);
-+			spin_unlock(&pool->lock);
-+			return 0;
-+		}
-+
-+		putback_zspage(class, zspage);
-+		list_add(&zspage->lru, &pool->lru);
-+		unlock_zspage(zspage);
-+	}
-+
-+	spin_unlock(&pool->lock);
-+	return -EAGAIN;
-+}
-+#endif /* CONFIG_ZPOOL */
-+
- static int __init zs_init(void)
- {
- 	int ret;
+ # set proper nr_hugepages
+ if [ -n "$freepgs" ] && [ -n "$hpgsize_KB" ]; then
+ 	nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from jsavitz@redhat.com are
 
-zsmalloc-consolidate-zs_pools-migrate_lock-and-size_classs-locks.patch
-zsmalloc-add-a-lru-to-zs_pool-to-keep-track-of-zspages-in-lru-order.patch
-zsmalloc-add-ops-fields-to-zs_pool-to-store-evict-handlers.patch
-zsmalloc-implement-writeback-mechanism-for-zsmalloc.patch
+selftests-vm-enable-running-select-groups-of-tests.patch
+selftests-vm-enable-running-select-groups-of-tests-fix.patch
+selftests-vm-add-ksm-unmerge-tests-fix.patch
 
