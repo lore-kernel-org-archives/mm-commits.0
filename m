@@ -2,152 +2,187 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D762C38A02
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:06:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC0A6ECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:07:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229458AbiJ1VGT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:06:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51158 "EHLO
+        id S229785AbiJ1VHE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:07:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229619AbiJ1VGQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:06:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFF705D892;
-        Fri, 28 Oct 2022 14:06:14 -0700 (PDT)
+        with ESMTP id S229608AbiJ1VHD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4012F1DC4F7;
+        Fri, 28 Oct 2022 14:07:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3FF4262A67;
-        Fri, 28 Oct 2022 21:06:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F02CC433C1;
-        Fri, 28 Oct 2022 21:06:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CF3AE62A55;
+        Fri, 28 Oct 2022 21:07:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F966C433D6;
+        Fri, 28 Oct 2022 21:07:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666991173;
-        bh=6PP+KPOEl7R7Ogg6LhX8yLWmvxarnjy4i69rfPE0HFI=;
-        h=Date:From:To:Cc:Subject:From;
-        b=DKQqbJNhC6k7qHZ6Voy7DruOaf2tcAunarS0lHMnK93+Sgbn8lM5qgaGV3YwJWSqP
-         6BLtId1jH+lOIvYdpwZVqq+r4XwzR6w9gJGrvVSNr43/NjDUq85wOKRNYEASpfbx43
-         n3UYNx/Qa4XWRpEIsajf/0VcQKJzgXy7Bp552wLc=
-Date:   Fri, 28 Oct 2022 14:06:12 -0700
+        s=korg; t=1666991221;
+        bh=Tf7M/fmHnzoZf0YNHtuxazpM6620XMQwId5ct4AUiCg=;
+        h=Date:To:From:Subject:From;
+        b=VHz1hpzb/kJoL+TCTIr5N60e1JiwJJIrni0B1mhUKRT/IHwuszijSzi/fUmrz53er
+         A4ucVkSq/ZAIbBGtZhBRDpMJ7/qwubQxz5iUIt0oZS7pNhoRdCApSJzf1fPiehAreJ
+         2GqIj2Ik5hCIUzuZ0ZZYj/kgbOQcgoWU5WW6PxIM=
+Date:   Fri, 28 Oct 2022 14:07:00 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        srw@sladewatkins.net, regressions@leemhuis.info,
+        mirsad.todorovac@alu.unizg.hr, marcmiltenberger@gmail.com,
+        hsinyi@chromium.org, dimitri.ledkov@canonical.com,
+        bagasdotme@gmail.com, phillip@squashfs.org.uk,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.1-rc3
-Message-Id: <20221028140612.43605c62db2ecc73f1bcf929@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: [merged mm-hotfixes-stable] squashfs-fix-read-regression-introduced-in-readahead-code.patch removed from -mm tree
+Message-Id: <20221028210701.1F966C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-Linus, please merge this batch of hotfixes.
+The quilt patch titled
+     Subject: squashfs: fix read regression introduced in readahead code
+has been removed from the -mm tree.  Its filename was
+     squashfs-fix-read-regression-introduced-in-readahead-code.patch
 
-The following changes since commit 97061d441110528dc02972818f2f1dad485107f9:
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  nouveau: fix migrate_to_ram() for faulting page (2022-10-20 21:27:24 -0700)
+------------------------------------------------------
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: fix read regression introduced in readahead code
+Date: Thu, 20 Oct 2022 23:36:14 +0100
 
-are available in the Git repository at:
+Patch series "squashfs: fix some regressions introduced in the readahead
+code".
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-10-28
+This patchset fixes 3 regressions introduced by the recent readahead code
+changes.  The first regression is causing "snaps" to randomly fail after a
+couple of hours or days, which how the regression came to light.
 
-for you to fetch changes up to dda1c41a07b4a4c3f99b5b28c1e8c485205fe860:
 
-  mm: multi-gen LRU: move lru_gen_add_mm() out of IRQ-off region (2022-10-28 13:37:23 -0700)
+This patch (of 3):
 
-----------------------------------------------------------------
-23 hotfixes.
+If a file isn't a whole multiple of the page size, the last page will have
+trailing bytes unfilled.
 
-Eight fix pre-6.0 bugs and the remainder address issues which were
-introduced in the 6.1-rc merge cycle, or address issues which aren't
-considered sufficiently serious to warrant a -stable backport.
+There was a mistake in the readahead code which did this.  In particular
+it incorrectly assumed that the last page in the readahead page array
+(page[nr_pages - 1]) will always contain the last page in the block, which
+if we're at file end, will be the page that needs to be zero filled.
 
-----------------------------------------------------------------
-Alexander Potapenko (5):
-      mm: kmsan: export kmsan_copy_page_meta()
-      x86/purgatory: disable KMSAN instrumentation
-      Kconfig.debug: disable CONFIG_FRAME_WARN for KMSAN by default
-      x86: asm: make sure __put_user_size() evaluates pointer once
-      x86: fortify: kmsan: fix KMSAN fortify builds
+But the readahead code may not return the last page in the block, which
+means it is unmapped and will be skipped by the decompressors (a temporary
+buffer used).
 
-Andrew Morton (2):
-      ipc/msg.c: fix percpu_counter use after free
-      fs/ext4/super.c: remove unused `deprecated_msg'
+In this case the zero filling code will zero out the wrong page, leading
+to data corruption.
 
-Baolin Wang (1):
-      mm: migrate: fix return value if all subpages of THPs are migrated successfully
+Fix this by by extending the "page actor" to return the last page if
+present, or NULL if a temporary buffer was used.
 
-Huang Ying (1):
-      memory tier, sysfs: rename attribute "nodes" to "nodelist"
+Link: https://lkml.kernel.org/r/20221020223616.7571-1-phillip@squashfs.org.uk
+Link: https://lkml.kernel.org/r/20221020223616.7571-2-phillip@squashfs.org.uk
+Fixes: 8fc78b6fe24c ("squashfs: implement readahead")
+Link: https://lore.kernel.org/lkml/b0c258c3-6dcf-aade-efc4-d62a8b3a1ce2@alu.unizg.hr/
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
+Tested-by: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
+Tested-by: Slade Watkins <srw@sladewatkins.net>
+Tested-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Reported-by: Marc Miltenberger <marcmiltenberger@gmail.com>
+Cc: Dimitri John Ledkov <dimitri.ledkov@canonical.com>
+Cc: Hsin-Yi Wang <hsinyi@chromium.org>
+Cc: Thorsten Leemhuis <regressions@leemhuis.info>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Hugh Dickins (1):
-      mm: prep_compound_tail() clear page->private
 
-Ira Weiny (2):
-      mm/userfaultfd: replace kmap/kmap_atomic() with kmap_local_page()
-      mm/shmem: ensure proper fallback if page faults
+--- a/fs/squashfs/file.c~squashfs-fix-read-regression-introduced-in-readahead-code
++++ a/fs/squashfs/file.c
+@@ -557,6 +557,7 @@ static void squashfs_readahead(struct re
+ 		int res, bsize;
+ 		u64 block = 0;
+ 		unsigned int expected;
++		struct page *last_page;
+ 
+ 		nr_pages = __readahead_batch(ractl, pages, max_pages);
+ 		if (!nr_pages)
+@@ -593,15 +594,15 @@ static void squashfs_readahead(struct re
+ 
+ 		res = squashfs_read_data(inode->i_sb, block, bsize, NULL, actor);
+ 
+-		squashfs_page_actor_free(actor);
++		last_page = squashfs_page_actor_free(actor);
+ 
+ 		if (res == expected) {
+ 			int bytes;
+ 
+ 			/* Last page (if present) may have trailing bytes not filled */
+ 			bytes = res % PAGE_SIZE;
+-			if (pages[nr_pages - 1]->index == file_end && bytes)
+-				memzero_page(pages[nr_pages - 1], bytes,
++			if (index == file_end && bytes && last_page)
++				memzero_page(last_page, bytes,
+ 					     PAGE_SIZE - bytes);
+ 
+ 			for (i = 0; i < nr_pages; i++) {
+--- a/fs/squashfs/page_actor.c~squashfs-fix-read-regression-introduced-in-readahead-code
++++ a/fs/squashfs/page_actor.c
+@@ -71,11 +71,13 @@ static void *handle_next_page(struct squ
+ 			(actor->next_index != actor->page[actor->next_page]->index)) {
+ 		actor->next_index++;
+ 		actor->returned_pages++;
++		actor->last_page = NULL;
+ 		return actor->alloc_buffer ? actor->tmp_buffer : ERR_PTR(-ENOMEM);
+ 	}
+ 
+ 	actor->next_index++;
+ 	actor->returned_pages++;
++	actor->last_page = actor->page[actor->next_page];
+ 	return actor->pageaddr = kmap_local_page(actor->page[actor->next_page++]);
+ }
+ 
+@@ -125,6 +127,7 @@ struct squashfs_page_actor *squashfs_pag
+ 	actor->returned_pages = 0;
+ 	actor->next_index = page[0]->index & ~((1 << (msblk->block_log - PAGE_SHIFT)) - 1);
+ 	actor->pageaddr = NULL;
++	actor->last_page = NULL;
+ 	actor->alloc_buffer = msblk->decompressor->alloc_buffer;
+ 	actor->squashfs_first_page = direct_first_page;
+ 	actor->squashfs_next_page = direct_next_page;
+--- a/fs/squashfs/page_actor.h~squashfs-fix-read-regression-introduced-in-readahead-code
++++ a/fs/squashfs/page_actor.h
+@@ -16,6 +16,7 @@ struct squashfs_page_actor {
+ 	void    *(*squashfs_first_page)(struct squashfs_page_actor *);
+ 	void    *(*squashfs_next_page)(struct squashfs_page_actor *);
+ 	void    (*squashfs_finish_page)(struct squashfs_page_actor *);
++	struct page *last_page;
+ 	int	pages;
+ 	int	length;
+ 	int	next_page;
+@@ -29,10 +30,13 @@ extern struct squashfs_page_actor *squas
+ extern struct squashfs_page_actor *squashfs_page_actor_init_special(
+ 				struct squashfs_sb_info *msblk,
+ 				struct page **page, int pages, int length);
+-static inline void squashfs_page_actor_free(struct squashfs_page_actor *actor)
++static inline struct page *squashfs_page_actor_free(struct squashfs_page_actor *actor)
+ {
++	struct page *last_page = actor->last_page;
++
+ 	kfree(actor->tmp_buffer);
+ 	kfree(actor);
++	return last_page;
+ }
+ static inline void *squashfs_first_page(struct squashfs_page_actor *actor)
+ {
+_
 
-Liam Howlett (1):
-      mmap: fix remap_file_pages() regression
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-Lukas Bulwahn (1):
-      lib: maple_tree: remove unneeded initialization in mtree_range_walk()
-
-Maria Yu (1):
-      mm/page_isolation: fix clang deadcode warning
-
-Palmer Dabbelt (1):
-      MAINTAINERS: git://github.com -> https://github.com for nilfs2
-
-Peter Xu (1):
-      mm/uffd: fix vma check on userfault for wp
-
-Phillip Lougher (3):
-      squashfs: fix read regression introduced in readahead code
-      squashfs: fix extending readahead beyond end of file
-      squashfs: fix buffer release race condition in readahead code
-
-Rik van Riel (1):
-      mm,madvise,hugetlb: fix unexpected data loss with MADV_DONTNEED on hugetlbfs
-
-Sebastian Andrzej Siewior (1):
-      mm: multi-gen LRU: move lru_gen_add_mm() out of IRQ-off region
-
-Waiman Long (1):
-      mm/kmemleak: prevent soft lockup in kmemleak_scan()'s object iteration loops
-
- .../ABI/testing/sysfs-kernel-mm-memory-tiers       |  4 +-
- MAINTAINERS                                        |  2 +-
- arch/x86/include/asm/string_64.h                   | 11 ++--
- arch/x86/include/asm/uaccess.h                     | 13 ++---
- arch/x86/purgatory/Makefile                        |  1 +
- fs/exec.c                                          |  2 +-
- fs/ext4/super.c                                    |  4 --
- fs/squashfs/file.c                                 | 23 ++++----
- fs/squashfs/page_actor.c                           |  3 ++
- fs/squashfs/page_actor.h                           |  6 ++-
- include/linux/fortify-string.h                     | 17 +++++-
- include/linux/kmsan_string.h                       | 21 ++++++++
- include/linux/userfaultfd_k.h                      |  6 +--
- ipc/msg.c                                          |  4 +-
- lib/Kconfig.debug                                  |  3 +-
- lib/maple_tree.c                                   |  4 +-
- mm/huge_memory.c                                   |  2 +-
- mm/kmemleak.c                                      | 61 +++++++++++++++-------
- mm/kmsan/instrumentation.c                         |  1 +
- mm/kmsan/shadow.c                                  |  1 +
- mm/madvise.c                                       | 12 ++++-
- mm/memory-tiers.c                                  |  8 +--
- mm/migrate.c                                       |  7 +++
- mm/mmap.c                                          |  3 ++
- mm/page_alloc.c                                    |  1 +
- mm/page_isolation.c                                |  2 +-
- mm/shmem.c                                         | 17 ++++++
- mm/userfaultfd.c                                   | 25 +++++++--
- 28 files changed, 196 insertions(+), 68 deletions(-)
- create mode 100644 include/linux/kmsan_string.h
 
