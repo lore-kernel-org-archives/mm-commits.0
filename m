@@ -2,226 +2,214 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04A09ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:34:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6657BC38A02
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:40:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229799AbiJ1VeD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:34:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50440 "EHLO
+        id S229956AbiJ1Vkf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:40:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229792AbiJ1VeC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:34:02 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EADD207511;
-        Fri, 28 Oct 2022 14:34:01 -0700 (PDT)
+        with ESMTP id S229552AbiJ1Vke (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:40:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C9351B4C51
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:40:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1FAEEB82AAC;
-        Fri, 28 Oct 2022 21:34:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A312CC433D6;
-        Fri, 28 Oct 2022 21:33:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7401062A96
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:40:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E916C433D6;
+        Fri, 28 Oct 2022 21:40:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666992838;
-        bh=JN9ImaYcf6TZYOXQQyiXsxGJWdf6ovCHKdzKAKv+DRc=;
+        s=korg; t=1666993228;
+        bh=QqFHilgHfCDGAQiCHUT6uvnkwtkgKIk9BgT4l8Z6/gA=;
         h=Date:To:From:Subject:From;
-        b=b3/fQlf5D77tCBY3n5gazEvqZxpm5bqR8gkTc4un4AQ+ons1mzlezDGNG4SbYhJsH
-         Yu2SY1f8wvYm0xo1cbcDK6OVG0hWKCJOGfL1C+1mlmTRhzvs5yweKmXub1SZBXkhUH
-         9Aq7t3XYXwuvJUxd+z6McYeu5s/bx58LfTAW3JDk=
-Date:   Fri, 28 Oct 2022 14:33:57 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        stable@vger.kernel.org, riel@surriel.com, peterx@redhat.com,
-        naoya.horiguchi@linux.dev, harperchen1110@gmail.com,
-        david@redhat.com, axelrasmussen@google.com, almasrymina@google.com,
-        mike.kravetz@oracle.com, akpm@linux-foundation.org
+        b=Gz06s8i++QTKq7JHPkywEeCeQsy4aKF0SilOWutPu37zSW+0oaQ2mGVElANoB+zcP
+         wrO99tetL2O60h7M9Wm9bLpsaJ7fZAZ8RbQalRbeQlfwXJFXnFpRMOzAdzNWlLYzfF
+         lbiyKxrxvqk/EZxjgxXgnTjEQaXeHoRd4WIp7LSI=
+Date:   Fri, 28 Oct 2022 14:40:27 -0700
+To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
+        sjenning@redhat.com, senozhatsky@chromium.org, nphamcs@gmail.com,
+        ngupta@vflare.org, minchan@kernel.org, ddstreet@ieee.org,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch removed from -mm tree
-Message-Id: <20221028213358.A312CC433D6@smtp.kernel.org>
+Subject: + zswap-fix-writeback-lock-ordering-for-zsmalloc.patch added to mm-unstable branch
+Message-Id: <20221028214028.9E916C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
-has been removed from the -mm tree.  Its filename was
-     hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
+The patch titled
+     Subject: zswap: fix writeback lock ordering for zsmalloc
+has been added to the -mm mm-unstable branch.  Its filename is
+     zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
-Date: Sat, 22 Oct 2022 19:50:47 -0700
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: zswap: fix writeback lock ordering for zsmalloc
+Date: Wed, 26 Oct 2022 13:06:09 -0700
 
-madvise(MADV_DONTNEED) ends up calling zap_page_range() to clear the page
-tables associated with the address range.  For hugetlb vmas,
-zap_page_range will call __unmap_hugepage_range_final.  However,
-__unmap_hugepage_range_final assumes the passed vma is about to be removed
-and deletes the vma_lock to prevent pmd sharing as the vma is on the way
-out.  In the case of madvise(MADV_DONTNEED) the vma remains, but the
-missing vma_lock prevents pmd sharing and could potentially lead to issues
-with truncation/fault races.
+Patch series "Implement writeback for zsmalloc".
 
-This issue was originally reported here [1] as a BUG triggered in
-page_try_dup_anon_rmap.  Prior to the introduction of the hugetlb
-vma_lock, __unmap_hugepage_range_final cleared the VM_MAYSHARE flag to
-prevent pmd sharing.  Subsequent faults on this vma were confused as
-VM_MAYSHARE indicates a sharable vma, but was not set so page_mapping was
-not set in new pages added to the page table.  This resulted in pages that
-appeared anonymous in a VM_SHARED vma and triggered the BUG.
+Unlike other zswaps allocators such as zbud or z3fold, zsmalloc currently
+lacks the writeback mechanism.  This means that when the zswap pool is
+full, it will simply reject further allocations, and the pages will be
+written directly to swap.
 
-Create a new routine clear_hugetlb_page_range() that can be called from
-madvise(MADV_DONTNEED) for hugetlb vmas.  It has the same setup as
-zap_page_range, but does not delete the vma_lock.
+This series of patches implements writeback for zsmalloc.  When the zswap
+pool becomes full, zsmalloc will attempt to evict all the compressed
+objects in the least-recently used zspages.
 
-[1] https://lore.kernel.org/lkml/CAO4mrfdLMXsao9RF4fUE8-Wfde8xmjsKrTNMNC9wjUb6JudD0g@mail.gmail.com/
 
-Link: https://lkml.kernel.org/r/20221023025047.470646-1-mike.kravetz@oracle.com
-Fixes: 90e7e7f5ef3f ("mm: enable MADV_DONTNEED for hugetlb mappings")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: Wei Chen <harperchen1110@gmail.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+This patch (of 5):
+
+zswap's customary lock order is tree->lock before pool->lock, because the
+tree->lock protects the entries' refcount, and the free callbacks in the
+backends acquire their respective pool locks to dispatch the backing
+object.  zsmalloc's map callback takes the pool lock, so zswap must not
+grab the tree->lock while a handle is mapped.  This currently only happens
+during writeback, which isn't implemented for zsmalloc.  In preparation
+for it, move the tree->lock section out of the mapped entry section
+
+Link: https://lkml.kernel.org/r/20221026200613.1031261-1-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20221026200613.1031261-2-nphamcs@gmail.com
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    7 ++++
- mm/hugetlb.c            |   62 ++++++++++++++++++++++++++++++--------
- mm/madvise.c            |    5 ++-
- 3 files changed, 61 insertions(+), 13 deletions(-)
 
---- a/include/linux/hugetlb.h~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
-+++ a/include/linux/hugetlb.h
-@@ -156,6 +156,8 @@ long follow_hugetlb_page(struct mm_struc
- void unmap_hugepage_range(struct vm_area_struct *,
- 			  unsigned long, unsigned long, struct page *,
- 			  zap_flags_t);
-+void clear_hugetlb_page_range(struct vm_area_struct *vma,
-+			unsigned long start, unsigned long end);
- void __unmap_hugepage_range_final(struct mmu_gather *tlb,
- 			  struct vm_area_struct *vma,
- 			  unsigned long start, unsigned long end,
-@@ -460,6 +462,11 @@ static inline void __unmap_hugepage_rang
- 	BUG();
- }
+--- a/mm/zswap.c~zswap-fix-writeback-lock-ordering-for-zsmalloc
++++ a/mm/zswap.c
+@@ -958,7 +958,7 @@ static int zswap_writeback_entry(struct
+ 	};
  
-+static void __maybe_unused clear_hugetlb_page_range(struct vm_area_struct *vma,
-+			unsigned long start, unsigned long end)
-+{
-+}
+ 	if (!zpool_can_sleep_mapped(pool)) {
+-		tmp = kmalloc(PAGE_SIZE, GFP_ATOMIC);
++		tmp = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ 		if (!tmp)
+ 			return -ENOMEM;
+ 	}
+@@ -968,6 +968,7 @@ static int zswap_writeback_entry(struct
+ 	swpentry = zhdr->swpentry; /* here */
+ 	tree = zswap_trees[swp_type(swpentry)];
+ 	offset = swp_offset(swpentry);
++	zpool_unmap_handle(pool, handle);
+ 
+ 	/* find and ref zswap entry */
+ 	spin_lock(&tree->lock);
+@@ -975,20 +976,12 @@ static int zswap_writeback_entry(struct
+ 	if (!entry) {
+ 		/* entry was invalidated */
+ 		spin_unlock(&tree->lock);
+-		zpool_unmap_handle(pool, handle);
+ 		kfree(tmp);
+ 		return 0;
+ 	}
+ 	spin_unlock(&tree->lock);
+ 	BUG_ON(offset != entry->offset);
+ 
+-	src = (u8 *)zhdr + sizeof(struct zswap_header);
+-	if (!zpool_can_sleep_mapped(pool)) {
+-		memcpy(tmp, src, entry->length);
+-		src = tmp;
+-		zpool_unmap_handle(pool, handle);
+-	}
+-
+ 	/* try to allocate swap cache page */
+ 	switch (zswap_get_swap_cache_page(swpentry, &page)) {
+ 	case ZSWAP_SWAPCACHE_FAIL: /* no memory or invalidate happened */
+@@ -1006,6 +999,14 @@ static int zswap_writeback_entry(struct
+ 		acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+ 		dlen = PAGE_SIZE;
+ 
++		zhdr = zpool_map_handle(pool, handle, ZPOOL_MM_RO);
++		src = (u8 *)zhdr + sizeof(struct zswap_header);
++		if (!zpool_can_sleep_mapped(pool)) {
++			memcpy(tmp, src, entry->length);
++			src = tmp;
++			zpool_unmap_handle(pool, handle);
++		}
 +
- static inline vm_fault_t hugetlb_fault(struct mm_struct *mm,
- 			struct vm_area_struct *vma, unsigned long address,
- 			unsigned int flags)
---- a/mm/hugetlb.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
-+++ a/mm/hugetlb.c
-@@ -5194,28 +5194,66 @@ static void __unmap_hugepage_range(struc
- 		tlb_flush_mmu_tlbonly(tlb);
- }
+ 		mutex_lock(acomp_ctx->mutex);
+ 		sg_init_one(&input, src, entry->length);
+ 		sg_init_table(&output, 1);
+@@ -1015,6 +1016,11 @@ static int zswap_writeback_entry(struct
+ 		dlen = acomp_ctx->req->dlen;
+ 		mutex_unlock(acomp_ctx->mutex);
  
--void __unmap_hugepage_range_final(struct mmu_gather *tlb,
-+static void __unmap_hugepage_range_locking(struct mmu_gather *tlb,
- 			  struct vm_area_struct *vma, unsigned long start,
- 			  unsigned long end, struct page *ref_page,
--			  zap_flags_t zap_flags)
-+			  zap_flags_t zap_flags, bool final)
- {
- 	hugetlb_vma_lock_write(vma);
- 	i_mmap_lock_write(vma->vm_file->f_mapping);
- 
- 	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
- 
--	/*
--	 * Unlock and free the vma lock before releasing i_mmap_rwsem.  When
--	 * the vma_lock is freed, this makes the vma ineligible for pmd
--	 * sharing.  And, i_mmap_rwsem is required to set up pmd sharing.
--	 * This is important as page tables for this unmapped range will
--	 * be asynchrously deleted.  If the page tables are shared, there
--	 * will be issues when accessed by someone else.
--	 */
--	__hugetlb_vma_unlock_write_free(vma);
-+	if (final) {
-+		/*
-+		 * Unlock and free the vma lock before releasing i_mmap_rwsem.
-+		 * When the vma_lock is freed, this makes the vma ineligible
-+		 * for pmd sharing.  And, i_mmap_rwsem is required to set up
-+		 * pmd sharing.  This is important as page tables for this
-+		 * unmapped range will be asynchrously deleted.  If the page
-+		 * tables are shared, there will be issues when accessed by
-+		 * someone else.
-+		 */
-+		__hugetlb_vma_unlock_write_free(vma);
-+		i_mmap_unlock_write(vma->vm_file->f_mapping);
-+	} else {
-+		i_mmap_unlock_write(vma->vm_file->f_mapping);
-+		hugetlb_vma_unlock_write(vma);
-+	}
-+}
++		if (!zpool_can_sleep_mapped(pool))
++			kfree(tmp);
++		else
++			zpool_unmap_handle(pool, handle);
 +
-+void __unmap_hugepage_range_final(struct mmu_gather *tlb,
-+			  struct vm_area_struct *vma, unsigned long start,
-+			  unsigned long end, struct page *ref_page,
-+			  zap_flags_t zap_flags)
-+{
-+	__unmap_hugepage_range_locking(tlb, vma, start, end, ref_page,
-+					zap_flags, true);
-+}
-+
-+#ifdef CONFIG_ADVISE_SYSCALLS
-+/*
-+ * Similar setup as in zap_page_range().  madvise(MADV_DONTNEED) can not call
-+ * zap_page_range for hugetlb vmas as __unmap_hugepage_range_final will delete
-+ * the associated vma_lock.
-+ */
-+void clear_hugetlb_page_range(struct vm_area_struct *vma, unsigned long start,
-+				unsigned long end)
-+{
-+	struct mmu_notifier_range range;
-+	struct mmu_gather tlb;
-+
-+	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
-+				start, end);
-+	tlb_gather_mmu(&tlb, vma->vm_mm);
-+	update_hiwater_rss(vma->vm_mm);
-+
-+	__unmap_hugepage_range_locking(&tlb, vma, start, end, NULL, 0, false);
+ 		BUG_ON(ret);
+ 		BUG_ON(dlen != PAGE_SIZE);
  
--	i_mmap_unlock_write(vma->vm_file->f_mapping);
-+	mmu_notifier_invalidate_range_end(&range);
-+	tlb_finish_mmu(&tlb);
- }
-+#endif
+@@ -1045,7 +1051,11 @@ static int zswap_writeback_entry(struct
+ 		zswap_entry_put(tree, entry);
+ 	spin_unlock(&tree->lock);
  
- void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
- 			  unsigned long end, struct page *ref_page,
---- a/mm/madvise.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
-+++ a/mm/madvise.c
-@@ -790,7 +790,10 @@ static int madvise_free_single_vma(struc
- static long madvise_dontneed_single_vma(struct vm_area_struct *vma,
- 					unsigned long start, unsigned long end)
- {
--	zap_page_range(vma, start, end - start);
-+	if (!is_vm_hugetlb_page(vma))
-+		zap_page_range(vma, start, end - start);
-+	else
-+		clear_hugetlb_page_range(vma, start, end);
- 	return 0;
+-	goto end;
++	return ret;
++
++fail:
++	if (!zpool_can_sleep_mapped(pool))
++		kfree(tmp);
+ 
+ 	/*
+ 	* if we get here due to ZSWAP_SWAPCACHE_EXIST
+@@ -1054,17 +1064,10 @@ static int zswap_writeback_entry(struct
+ 	* if we free the entry in the following put
+ 	* it is also okay to return !0
+ 	*/
+-fail:
+ 	spin_lock(&tree->lock);
+ 	zswap_entry_put(tree, entry);
+ 	spin_unlock(&tree->lock);
+ 
+-end:
+-	if (zpool_can_sleep_mapped(pool))
+-		zpool_unmap_handle(pool, handle);
+-	else
+-		kfree(tmp);
+-
+ 	return ret;
  }
  
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
-hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch
+mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch
+mm-vmscan-split-khugepaged-stats-from-direct-reclaim-stats.patch
+zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
+mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
 
