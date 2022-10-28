@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F5DEC38A02
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:49:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FD27ECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:59:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230070AbiJ1Vtx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:49:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57636 "EHLO
+        id S229597AbiJ1V7D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:59:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230108AbiJ1Vtu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:49:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34C4A1B9D5
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:49:48 -0700 (PDT)
+        with ESMTP id S229716AbiJ1V7D (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:59:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A1E624CC8B
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:59:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C793B62A7E
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:49:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 106FBC433D7;
-        Fri, 28 Oct 2022 21:49:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 04F9CB82CF2
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:59:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 942D8C433C1;
+        Fri, 28 Oct 2022 21:58:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666993787;
-        bh=tiTJib5GzF1bYW6ixck1fCyGdVofeXNZmYoOSVbV2qA=;
+        s=korg; t=1666994339;
+        bh=dyE3MLoVK+0rPRirXnGqcO0Elyt/S6pIH5bjAS21f6I=;
         h=Date:To:From:Subject:From;
-        b=x/amWJVSSIQHhWEPlF2PGUt84Df6Q6HSj57Jmr7NPeUalmMx1w1LkcH5LNqf8zdHv
-         XvYwsU9YD4PabhHvvJCPnkHTngvrkNWB01JX3dO2KxcJWWKY4ylH1uqy9z+eok/jSN
-         z/4ljsuyYVd1LzoKhmfntO9kDZdew1EMSjJzme9U=
-Date:   Fri, 28 Oct 2022 14:49:46 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        lizetao1@huawei.com, akpm@linux-foundation.org
+        b=Oa+1OEIfqhnYq2yb7Sgi/dg+rG6mssvmLoXWovZEotzRQXqfmP5KWCsIfeNwE5Aes
+         0NfM+Gsnn3SsMQGWpodmzFUNAtxmie98VfGwhxOYmJ6mdHQnQBTFhxiMZ5sGrUSqxr
+         l30MbSt/JLMqOj8ixFE1Pi8bCaGsLI20XlndWMek=
+Date:   Fri, 28 Oct 2022 14:58:58 -0700
+To:     mm-commits@vger.kernel.org, liam.howlett@oracle.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-fix-memory-leak-in-mmap_region.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221028214947.106FBC433D7@smtp.kernel.org>
+Subject: + maple_tree-reorganize-testing-to-restore-module-testing-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221028215859.942D8C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: fix memory leak in mmap_region()
+     Subject: maple_tree-reorganize-testing-to-restore-module-testing-fix
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mmap-fix-memory-leak-in-mmap_region.patch
+     maple_tree-reorganize-testing-to-restore-module-testing-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-fix-memory-leak-in-mmap_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-reorganize-testing-to-restore-module-testing-fix.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,81 +64,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Li Zetao <lizetao1@huawei.com>
-Subject: mm/mmap: fix memory leak in mmap_region()
-Date: Fri, 28 Oct 2022 15:37:17 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: maple_tree-reorganize-testing-to-restore-module-testing-fix
+Date: Fri Oct 28 02:54:27 PM PDT 2022
 
-There is a memory leak reported by kmemleak:
+fix module export
 
-  unreferenced object 0xffff88817231ce40 (size 224):
-    comm "mount.cifs", pid 19308, jiffies 4295917571 (age 405.880s)
-    hex dump (first 32 bytes):
-      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-      60 c0 b2 00 81 88 ff ff 98 83 01 42 81 88 ff ff  `..........B....
-    backtrace:
-      [<ffffffff81936171>] __alloc_file+0x21/0x250
-      [<ffffffff81937051>] alloc_empty_file+0x41/0xf0
-      [<ffffffff81937159>] alloc_file+0x59/0x710
-      [<ffffffff81937964>] alloc_file_pseudo+0x154/0x210
-      [<ffffffff81741dbf>] __shmem_file_setup+0xff/0x2a0
-      [<ffffffff817502cd>] shmem_zero_setup+0x8d/0x160
-      [<ffffffff817cc1d5>] mmap_region+0x1075/0x19d0
-      [<ffffffff817cd257>] do_mmap+0x727/0x1110
-      [<ffffffff817518b2>] vm_mmap_pgoff+0x112/0x1e0
-      [<ffffffff83adf955>] do_syscall_64+0x35/0x80
-      [<ffffffff83c0006a>] entry_SYSCALL_64_after_hwframe+0x46/0xb0
+ERROR: modpost: "mas_find_rev" [lib/test_maple_tree.ko] undefined!
 
-The root cause was traced to an error handing path in mmap_region() when
-arch_validate_flags() or mas_preallocate() fails.  In the shared anonymous
-mapping sence, vma will be setuped and mapped with a new shared anonymous
-file via shmem_zero_setup().  So in this case, the file resource needs to
-be released.
-
-Fix it by calling fput(vma->vm_file) and unmap_region() when
-arch_validate_flags() or mas_preallocate() returns an error in the shared
-anonymous mapping sence.
-
-Link: https://lkml.kernel.org/r/20221028073717.1179380-1-lizetao1@huawei.com
-Fixes: d4af56c5c7c6 ("mm: start tracking VMAs with maple tree")
-Fixes: c462ac288f2c ("mm: Introduce arch_validate_flags()")
-Signed-off-by: Li Zetao <lizetao1@huawei.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mm-mmap-fix-memory-leak-in-mmap_region
-+++ a/mm/mmap.c
-@@ -2674,6 +2674,8 @@ cannot_expand:
- 		error = -EINVAL;
- 		if (file)
- 			goto close_and_free_vma;
-+		else if (vma->vm_file)
-+			goto unmap_and_free_vma;
- 		else
- 			goto free_vma;
- 	}
-@@ -2682,6 +2684,8 @@ cannot_expand:
- 		error = -ENOMEM;
- 		if (file)
- 			goto close_and_free_vma;
-+		else if (vma->vm_file)
-+			goto unmap_and_free_vma;
- 		else
- 			goto free_vma;
- 	}
-@@ -2751,7 +2755,7 @@ unmap_and_free_vma:
+--- a/lib/maple_tree.c~maple_tree-reorganize-testing-to-restore-module-testing-fix
++++ a/lib/maple_tree.c
+@@ -6059,7 +6059,7 @@ void *mas_find_rev(struct ma_state *mas,
+ 	/* Retries on dead nodes handled by mas_next_entry */
+ 	return mas_prev_entry(mas, min);
+ }
+-EXPORT_SYMBOL_GPL(mas_find);
++EXPORT_SYMBOL_GPL(mas_find_rev);
  
- 	/* Undo any partial mapping done by a device driver. */
- 	unmap_region(mm, mas.tree, vma, prev, next, vma->vm_start, vma->vm_end);
--	if (vm_flags & VM_SHARED)
-+	if (file && (vm_flags & VM_SHARED))
- 		mapping_unmap_writable(file->f_mapping);
- free_vma:
- 	vm_area_free(vma);
+ /**
+  * mas_erase() - Find the range in which index resides and erase the entire
 _
 
-Patches currently in -mm which might be from lizetao1@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmap-fix-memory-leak-in-mmap_region.patch
+maple_tree-reorganize-testing-to-restore-module-testing-fix.patch
+mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+mm-hugetlb-convert-free_huge_page-to-folios-fix.patch
+vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
+mm-gup-remove-foll_migration-fix.patch
+mm-use-stack_depot-for-recording-kmemleaks-backtrace-checkpatch-fixes.patch
+mm-use-stack_depot-for-recording-kmemleaks-backtrace-fix.patch
+kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
+powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
+minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
+minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
+proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3-fix.patch
 
