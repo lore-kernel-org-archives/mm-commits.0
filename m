@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C59F0ECAAA1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC50BFA3743
 	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:08:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229489AbiJ1VIH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:08:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53066 "EHLO
+        id S229717AbiJ1VIJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:08:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229948AbiJ1VHc (ORCPT
+        with ESMTP id S229944AbiJ1VHc (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:32 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD36224A570
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:07:29 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16CDD248C9E
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:07:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9C72EB82CC1
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:07:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37775C433D6;
-        Fri, 28 Oct 2022 21:07:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B50E1B82C97
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:07:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A50AC433C1;
+        Fri, 28 Oct 2022 21:07:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666991247;
-        bh=qTzdfHkfEVbC1q0Sqk1xVgSO/59GYUFBqQm65egpSSk=;
+        s=korg; t=1666991244;
+        bh=3oA65MerYmNJyYid3kVHvLJsrxvCPnW0pxkivL4LDJk=;
         h=Date:To:From:Subject:From;
-        b=qdteft+D3igfhWYC49FxOR43hA5HvdN8JCqdbNrORUvnzbRohj8g5wnWRmyxB1GIU
-         zcbWPFt7r2LjzIYmH6siOmFsrts/C4WaWosTL3AYp3sMLOljfynVgZT/25KWKOlszA
-         O3A+4KuvYgGLB11wNkegEzoUkl3iCIKYLG8FfrFA=
-Date:   Fri, 28 Oct 2022 14:07:26 -0700
-To:     mm-commits@vger.kernel.org, tamas.lengyel@zentific.com,
-        ndesaulniers@google.com, nathan@kernel.org, keescook@chromium.org,
-        glider@google.com, akpm@linux-foundation.org
+        b=drINVbMV0FGn75zRZDe6LqhD+IGEpifHRni/IfCEtR4tah6vgcnZsre+6zRzE6QaO
+         4dSHL80TlVejlqN7Z+4/RCKio7rGQzQp5uGvROiBWxh0/u44XcYH8qReA1CQGXGKbF
+         SQLqL2rEvnmUdCyd6CySc8Y2Zb8qy1bqNiHY8vBs=
+Date:   Fri, 28 Oct 2022 14:07:23 -0700
+To:     mm-commits@vger.kernel.org, ndesaulniers@google.com,
+        masahiroy@kernel.org, keescook@chromium.org, glider@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] x86-fortify-kmsan-fix-kmsan-fortify-builds.patch removed from -mm tree
-Message-Id: <20221028210727.37775C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kconfigdebug-disable-config_frame_warn-for-kmsan-by-default.patch removed from -mm tree
+Message-Id: <20221028210724.3A50AC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,132 +42,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: x86: fortify: kmsan: fix KMSAN fortify builds
+     Subject: Kconfig.debug: disable CONFIG_FRAME_WARN for KMSAN by default
 has been removed from the -mm tree.  Its filename was
-     x86-fortify-kmsan-fix-kmsan-fortify-builds.patch
+     kconfigdebug-disable-config_frame_warn-for-kmsan-by-default.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: fortify: kmsan: fix KMSAN fortify builds
-Date: Mon, 24 Oct 2022 23:21:44 +0200
+Subject: Kconfig.debug: disable CONFIG_FRAME_WARN for KMSAN by default
+Date: Mon, 24 Oct 2022 23:21:42 +0200
 
-Ensure that KMSAN builds replace memset/memcpy/memmove calls with the
-respective __msan_XXX functions, and that none of the macros are redefined
-twice.  This should allow building kernel with both CONFIG_KMSAN and
-CONFIG_FORTIFY_SOURCE.
+KMSAN adds a lot of instrumentation to the code, which results in
+increased stack usage (up to 2048 bytes and more in some cases).  It's
+hard to predict how big the stack frames can be, so we disable the
+warnings for KMSAN instead.
 
-Link: https://lkml.kernel.org/r/20221024212144.2852069-5-glider@google.com
+Link: https://lkml.kernel.org/r/20221024212144.2852069-3-glider@google.com
 Link: https://github.com/google/kmsan/issues/89
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Reported-by: Tamas K Lengyel <tamas.lengyel@zentific.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/x86/include/asm/string_64.h~x86-fortify-kmsan-fix-kmsan-fortify-builds
-+++ a/arch/x86/include/asm/string_64.h
-@@ -10,10 +10,13 @@
- /* Even with __builtin_ the compiler may decide to use the out of line
-    function. */
- 
-+#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
-+#include <linux/kmsan_string.h>
-+#endif
-+
- #define __HAVE_ARCH_MEMCPY 1
--#if defined(__SANITIZE_MEMORY__)
-+#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
- #undef memcpy
--void *__msan_memcpy(void *dst, const void *src, size_t size);
- #define memcpy __msan_memcpy
- #else
- extern void *memcpy(void *to, const void *from, size_t len);
-@@ -21,7 +24,7 @@ extern void *memcpy(void *to, const void
- extern void *__memcpy(void *to, const void *from, size_t len);
- 
- #define __HAVE_ARCH_MEMSET
--#if defined(__SANITIZE_MEMORY__)
-+#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
- extern void *__msan_memset(void *s, int c, size_t n);
- #undef memset
- #define memset __msan_memset
-@@ -67,7 +70,7 @@ static inline void *memset64(uint64_t *s
- }
- 
- #define __HAVE_ARCH_MEMMOVE
--#if defined(__SANITIZE_MEMORY__)
-+#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
- #undef memmove
- void *__msan_memmove(void *dest, const void *src, size_t len);
- #define memmove __msan_memmove
---- a/include/linux/fortify-string.h~x86-fortify-kmsan-fix-kmsan-fortify-builds
-+++ a/include/linux/fortify-string.h
-@@ -43,11 +43,24 @@ extern __kernel_size_t __underlying_strl
- extern char *__underlying_strncat(char *p, const char *q, __kernel_size_t count) __RENAME(strncat);
- extern char *__underlying_strncpy(char *p, const char *q, __kernel_size_t size) __RENAME(strncpy);
- #else
--#define __underlying_memchr	__builtin_memchr
--#define __underlying_memcmp	__builtin_memcmp
-+
-+#if defined(__SANITIZE_MEMORY__)
-+/*
-+ * For KMSAN builds all memcpy/memset/memmove calls should be replaced by the
-+ * corresponding __msan_XXX functions.
-+ */
-+#include <linux/kmsan_string.h>
-+#define __underlying_memcpy	__msan_memcpy
-+#define __underlying_memmove	__msan_memmove
-+#define __underlying_memset	__msan_memset
-+#else
- #define __underlying_memcpy	__builtin_memcpy
- #define __underlying_memmove	__builtin_memmove
- #define __underlying_memset	__builtin_memset
-+#endif
-+
-+#define __underlying_memchr	__builtin_memchr
-+#define __underlying_memcmp	__builtin_memcmp
- #define __underlying_strcat	__builtin_strcat
- #define __underlying_strcpy	__builtin_strcpy
- #define __underlying_strlen	__builtin_strlen
---- /dev/null
-+++ a/include/linux/kmsan_string.h
-@@ -0,0 +1,21 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * KMSAN string functions API used in other headers.
-+ *
-+ * Copyright (C) 2022 Google LLC
-+ * Author: Alexander Potapenko <glider@google.com>
-+ *
-+ */
-+#ifndef _LINUX_KMSAN_STRING_H
-+#define _LINUX_KMSAN_STRING_H
-+
-+/*
-+ * KMSAN overrides the default memcpy/memset/memmove implementations in the
-+ * kernel, which requires having __msan_XXX function prototypes in several other
-+ * headers. Keep them in one place instead of open-coding.
-+ */
-+void *__msan_memcpy(void *dst, const void *src, size_t size);
-+void *__msan_memset(void *s, int c, size_t n);
-+void *__msan_memmove(void *dest, const void *src, size_t len);
-+
-+#endif /* _LINUX_KMSAN_STRING_H */
---- a/mm/kmsan/instrumentation.c~x86-fortify-kmsan-fix-kmsan-fortify-builds
-+++ a/mm/kmsan/instrumentation.c
-@@ -14,6 +14,7 @@
- 
- #include "kmsan.h"
- #include <linux/gfp.h>
-+#include <linux/kmsan_string.h>
- #include <linux/mm.h>
- #include <linux/uaccess.h>
+--- a/lib/Kconfig.debug~kconfigdebug-disable-config_frame_warn-for-kmsan-by-default
++++ a/lib/Kconfig.debug
+@@ -400,8 +400,9 @@ config FRAME_WARN
+ 	default 1536 if (!64BIT && XTENSA)
+ 	default 1024 if !64BIT
+ 	default 2048 if 64BIT
++	default 0 if KMSAN
+ 	help
+-	  Tell gcc to warn at build time for stack frames larger than this.
++	  Tell the compiler to warn at build time for stack frames larger than this.
+ 	  Setting this too low will cause a lot of warnings.
+ 	  Setting it to 0 disables the warning.
  
 _
 
