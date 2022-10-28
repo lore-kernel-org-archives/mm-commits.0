@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFA18FA3749
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA1E0FA3747
 	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:08:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229936AbiJ1VHl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:07:41 -0400
+        id S229919AbiJ1VHi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:07:38 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229949AbiJ1VHc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A75A249894
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:07:31 -0700 (PDT)
+        with ESMTP id S229887AbiJ1VHU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:20 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7B0424A54F;
+        Fri, 28 Oct 2022 14:07:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0748E629FD
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:07:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B8F4C433C1;
-        Fri, 28 Oct 2022 21:07:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8C402B82CC0;
+        Fri, 28 Oct 2022 21:07:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 152BCC433C1;
+        Fri, 28 Oct 2022 21:07:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666991250;
-        bh=g5IDYOTDc9Ijy6CivP9Ys2vukJQam30ihXRFJi1Ijfk=;
+        s=korg; t=1666991236;
+        bh=sY70FcN0eCqMVQT80tlvLTJqH7xW9uNa7mImbILhJhU=;
         h=Date:To:From:Subject:From;
-        b=bWNpofHdjl46gnKytIkyUWm21aIFxmR1upfAhEccYHLdYNADrKKqTidd1bO+fHixE
-         +vN6nGUBF5z3p/1JkNM11R7YhIoMwjWmjHaEKsDANmQXyNPnLBeOkhL/FNYxuqie7w
-         ib6MeckwdvTUSjWnLFBHVy8ICkMFkHEK1UETE+5Q=
-Date:   Fri, 28 Oct 2022 14:07:29 -0700
-To:     mm-commits@vger.kernel.org, yujie.liu@intel.com,
-        willy@infradead.org, rdunlap@infradead.org, peterx@redhat.com,
-        aarcange@redhat.com, ira.weiny@intel.com, akpm@linux-foundation.org
+        b=R2dmzl+jfED8NCFYFJ5bm00rUAFEmNWuZvs8h1tAljn/S69lYT0wJ12+puo7Nlpw1
+         O771+SxoDW/N5Q4mdPHzKSCypn5iLFADpoZI1PHHtnCfWbunykEIRPvVOdLWm430ql
+         3FzZYOh83FqUrHvhDIecPTEkSlwpGmz+MXB6XYZE=
+Date:   Fri, 28 Oct 2022 14:07:15 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, mgorman@techsingularity.net,
+        hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-shmem-ensure-proper-fallback-if-page-faults.patch removed from -mm tree
-Message-Id: <20221028210730.4B8F4C433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-prep_compound_tail-clear-page-private.patch removed from -mm tree
+Message-Id: <20221028210716.152BCC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,108 +42,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/shmem: ensure proper fallback if page faults
+     Subject: mm: prep_compound_tail() clear page->private
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-ensure-proper-fallback-if-page-faults.patch
+     mm-prep_compound_tail-clear-page-private.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: mm/shmem: ensure proper fallback if page faults
-Date: Tue, 25 Oct 2022 15:01:08 -0700
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: prep_compound_tail() clear page->private
+Date: Sat, 22 Oct 2022 00:51:06 -0700 (PDT)
 
-The kernel test robot flagged a recursive lock as a result of a conversion
-from kmap_atomic() to kmap_local_folio()[Link]
+Although page allocation always clears page->private in the first page or
+head page of an allocation, it has never made a point of clearing
+page->private in the tails (though 0 is often what is already there).
 
-The cause was due to the code depending on the kmap_atomic() side effect
-of disabling page faults.  In that case the code expects the fault to fail
-and take the fallback case.
+But now commit 71e2d666ef85 ("mm/huge_memory: do not clobber swp_entry_t
+during THP split") issues a warning when page_tail->private is found to be
+non-0 (unless it's swapcache).
 
-git archaeology implied that the recursion may not be an actual bug.[1]
-However, depending on the implementation of the mmap_lock and the
-condition of the call there may still be a deadlock.[2] So this is not
-purely a lockdep issue.  Considering a single threaded call stack there
-are 3 options.
+Change that warning to dump page_tail (which also dumps head), instead of
+just the head: so far we have seen dead000000000122, dead000000000003,
+dead000000000001 or 0000000000000002 in the raw output for tail private.
 
-	1) Different mm's are in play (no issue)
-	2) Readlock implementation is recursive and same mm is in play
-	   (no issue)
-	3) Readlock implementation is _not_ recursive (issue)
+We could just delete the warning, but today's consensus appears to want
+page->private to be 0, unless there's a good reason for it to be set: so
+now clear it in prep_compound_tail() (more general than just for THP; but
+not for high order allocation, which makes no pass down the tails).
 
-The mmap_lock is recursive so with a single thread there is no issue.
-
-However, Matthew pointed out a deadlock scenario when you consider
-additional process' and threads thusly.
-
-"The readlock implementation is only recursive if nobody else has taken a
-write lock.  If you have a multithreaded process, one of the other threads
-can call mmap() and that will prevent recursion (due to fairness).  Even
-if it's a different process that you're trying to acquire the mmap read
-lock on, you can still get into a deadly embrace.  eg:
-
-process A thread 1 takes read lock on own mmap_lock
-process A thread 2 calls mmap, blocks taking write lock
-process B thread 1 takes page fault, read lock on own mmap lock
-process B thread 2 calls mmap, blocks taking write lock
-process A thread 1 blocks taking read lock on process B
-process B thread 1 blocks taking read lock on process A
-
-Now all four threads are blocked waiting for each other."
-
-Regardless using pagefault_disable() ensures that no matter what locking
-implementation is used a deadlock will not occur.  Add an explicit
-pagefault_disable() and a big comment to explain this for future souls
-looking at this code.
-
-[1] https://lore.kernel.org/all/Y1MymJ%2FINb45AdaY@iweiny-desk3/
-[2] https://lore.kernel.org/lkml/Y1bXBtGTCym77%2FoD@casper.infradead.org/
-
-Link: https://lkml.kernel.org/r/20221025220108.2366043-1-ira.weiny@intel.com
-Link: https://lore.kernel.org/r/202210211215.9dc6efb5-yujie.liu@intel.com
-Fixes: 7a7256d5f512 ("shmem: convert shmem_mfill_atomic_pte() to use a folio")
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Reported-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: kernel test robot <yujie.liu@intel.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Link: https://lkml.kernel.org/r/1c4233bb-4e4d-5969-fbd4-96604268a285@google.com
+Fixes: 71e2d666ef85 ("mm/huge_memory: do not clobber swp_entry_t during THP split")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/shmem.c~mm-shmem-ensure-proper-fallback-if-page-faults
-+++ a/mm/shmem.c
-@@ -2424,9 +2424,26 @@ int shmem_mfill_atomic_pte(struct mm_str
+--- a/mm/huge_memory.c~mm-prep_compound_tail-clear-page-private
++++ a/mm/huge_memory.c
+@@ -2462,7 +2462,7 @@ static void __split_huge_page_tail(struc
+ 	 * Fix up and warn once if private is unexpectedly set.
+ 	 */
+ 	if (!folio_test_swapcache(page_folio(head))) {
+-		VM_WARN_ON_ONCE_PAGE(page_tail->private != 0, head);
++		VM_WARN_ON_ONCE_PAGE(page_tail->private != 0, page_tail);
+ 		page_tail->private = 0;
+ 	}
  
- 		if (!zeropage) {	/* COPY */
- 			page_kaddr = kmap_local_folio(folio, 0);
-+			/*
-+			 * The read mmap_lock is held here.  Despite the
-+			 * mmap_lock being read recursive a deadlock is still
-+			 * possible if a writer has taken a lock.  For example:
-+			 *
-+			 * process A thread 1 takes read lock on own mmap_lock
-+			 * process A thread 2 calls mmap, blocks taking write lock
-+			 * process B thread 1 takes page fault, read lock on own mmap lock
-+			 * process B thread 2 calls mmap, blocks taking write lock
-+			 * process A thread 1 blocks taking read lock on process B
-+			 * process B thread 1 blocks taking read lock on process A
-+			 *
-+			 * Disable page faults to prevent potential deadlock
-+			 * and retry the copy outside the mmap_lock.
-+			 */
-+			pagefault_disable();
- 			ret = copy_from_user(page_kaddr,
- 					     (const void __user *)src_addr,
- 					     PAGE_SIZE);
-+			pagefault_enable();
- 			kunmap_local(page_kaddr);
+--- a/mm/page_alloc.c~mm-prep_compound_tail-clear-page-private
++++ a/mm/page_alloc.c
+@@ -807,6 +807,7 @@ static void prep_compound_tail(struct pa
  
- 			/* fallback to copy_from_user outside mmap_lock */
+ 	p->mapping = TAIL_MAPPING;
+ 	set_compound_head(p, head);
++	set_page_private(p, 0);
+ }
+ 
+ void prep_compound_page(struct page *page, unsigned int order)
 _
 
-Patches currently in -mm which might be from ira.weiny@intel.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 
