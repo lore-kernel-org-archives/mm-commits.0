@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15B2FFA3743
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:07:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4042FA3745
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:07:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229788AbiJ1VHJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:07:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52708 "EHLO
+        id S229798AbiJ1VHI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:07:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229828AbiJ1VHH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:07 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C734C1DD88C;
-        Fri, 28 Oct 2022 14:07:06 -0700 (PDT)
+        with ESMTP id S229788AbiJ1VHG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:06 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 489011DE3D3;
+        Fri, 28 Oct 2022 14:07:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 636AF629FD;
-        Fri, 28 Oct 2022 21:07:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9DF0C433C1;
-        Fri, 28 Oct 2022 21:07:05 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EFD5DB82CA3;
+        Fri, 28 Oct 2022 21:07:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 849C1C433C1;
+        Fri, 28 Oct 2022 21:07:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666991225;
-        bh=OdHZqnmGvOWMhBMsP6mONPB7VY+f5C4giJd2cIR04vE=;
+        s=korg; t=1666991222;
+        bh=M5943/C/0CCuo2646kfYMqniMl1r5KhlhuWdYL91h0g=;
         h=Date:To:From:Subject:From;
-        b=VlyqDzaiJjTbCBhsnwiq1dhffqSALLY0FynxWjQjQKhFtEu825JJvbv6YL+vI1TYt
-         71u3mKMHmaVgx1AyIIFp8Bi0zJoYIZcNkA9aR0PiVvghQn0FHe+4r8mdLQs4ODd68C
-         qKhI9bqrdbpdTmKKTQQx2yYoEmPzqbYxhVgIGG+Q=
-Date:   Fri, 28 Oct 2022 14:07:04 -0700
+        b=QZS9QE41lHCd68o6XhXhJN6+eNN9TMJjOZ0cpm/p7QFcslyq8CvOqzjbSdMjtAulX
+         UDgXlgUrclkSm6mq957vfPowGmHSwD1Y++ooB8lGCWh5fuivq1Z/Md1z0LvZFV/uTV
+         hMVxwQJMBCqmLcCnYONsN/B4K4X8WUib5roPZ5tM=
+Date:   Fri, 28 Oct 2022 14:07:01 -0700
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        songmuchun@bytedance.com, catalin.marinas@arm.com,
-        longman@redhat.com, akpm@linux-foundation.org
+        srw@sladewatkins.net, regressions@leemhuis.info,
+        mirsad.todorovac@alu.unizg.hr, marcmiltenberger@gmail.com,
+        hsinyi@chromium.org, dimitri.ledkov@canonical.com,
+        bagasdotme@gmail.com, phillip@squashfs.org.uk,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-kmemleak-prevent-soft-lockup-in-kmemleak_scans-object-iteration-loops.patch removed from -mm tree
-Message-Id: <20221028210705.A9DF0C433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] squashfs-fix-extending-readahead-beyond-end-of-file.patch removed from -mm tree
+Message-Id: <20221028210702.849C1C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,147 +45,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/kmemleak: prevent soft lockup in kmemleak_scan()'s object iteration loops
+     Subject: squashfs: fix extending readahead beyond end of file
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-prevent-soft-lockup-in-kmemleak_scans-object-iteration-loops.patch
+     squashfs-fix-extending-readahead-beyond-end-of-file.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/kmemleak: prevent soft lockup in kmemleak_scan()'s object iteration loops
-Date: Thu, 20 Oct 2022 13:56:19 -0400
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: fix extending readahead beyond end of file
+Date: Thu, 20 Oct 2022 23:36:15 +0100
 
-Commit 6edda04ccc7c ("mm/kmemleak: prevent soft lockup in first object
-iteration loop of kmemleak_scan()") adds cond_resched() in the first
-object iteration loop of kmemleak_scan().  However, it turns that the 2nd
-objection iteration loop can still cause soft lockup to happen in some
-cases.  So add a cond_resched() call in the 2nd and 3rd loops as well to
-prevent that and for completeness.
+The readahead code will try to extend readahead to the entire size of the
+Squashfs data block.
 
-Link: https://lkml.kernel.org/r/20221020175619.366317-1-longman@redhat.com
-Fixes: 6edda04ccc7c ("mm/kmemleak: prevent soft lockup in first object iteration loop of kmemleak_scan()")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+But, it didn't take into account that the last block at the end of the
+file may not be a whole block.  In this case, the code would extend
+readahead to beyond the end of the file, leaving trailing pages.
+
+Fix this by only requesting the expected number of pages.
+
+Link: https://lkml.kernel.org/r/20221020223616.7571-3-phillip@squashfs.org.uk
+Fixes: 8fc78b6fe24c ("squashfs: implement readahead")
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Tested-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Reported-by: Marc Miltenberger <marcmiltenberger@gmail.com>
+Cc: Dimitri John Ledkov <dimitri.ledkov@canonical.com>
+Cc: Hsin-Yi Wang <hsinyi@chromium.org>
+Cc: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
+Cc: Slade Watkins <srw@sladewatkins.net>
+Cc: Thorsten Leemhuis <regressions@leemhuis.info>
 Cc: <stable@vger.kernel.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/kmemleak.c~mm-kmemleak-prevent-soft-lockup-in-kmemleak_scans-object-iteration-loops
-+++ a/mm/kmemleak.c
-@@ -1461,6 +1461,27 @@ static void scan_gray_list(void)
- }
+--- a/fs/squashfs/file.c~squashfs-fix-extending-readahead-beyond-end-of-file
++++ a/fs/squashfs/file.c
+@@ -559,6 +559,12 @@ static void squashfs_readahead(struct re
+ 		unsigned int expected;
+ 		struct page *last_page;
  
- /*
-+ * Conditionally call resched() in a object iteration loop while making sure
-+ * that the given object won't go away without RCU read lock by performing a
-+ * get_object() if !pinned.
-+ *
-+ * Return: false if can't do a cond_resched() due to get_object() failure
-+ *	   true otherwise
-+ */
-+static bool kmemleak_cond_resched(struct kmemleak_object *object, bool pinned)
-+{
-+	if (!pinned && !get_object(object))
-+		return false;
++		expected = start >> msblk->block_log == file_end ?
++			   (i_size_read(inode) & (msblk->block_size - 1)) :
++			    msblk->block_size;
 +
-+	rcu_read_unlock();
-+	cond_resched();
-+	rcu_read_lock();
-+	if (!pinned)
-+		put_object(object);
-+	return true;
-+}
++		max_pages = (expected + PAGE_SIZE - 1) >> PAGE_SHIFT;
 +
-+/*
-  * Scan data sections and all the referenced memory blocks allocated via the
-  * kernel's standard allocators. This function must be called with the
-  * scan_mutex held.
-@@ -1471,7 +1492,7 @@ static void kmemleak_scan(void)
- 	struct zone *zone;
- 	int __maybe_unused i;
- 	int new_leaks = 0;
--	int loop1_cnt = 0;
-+	int loop_cnt = 0;
+ 		nr_pages = __readahead_batch(ractl, pages, max_pages);
+ 		if (!nr_pages)
+ 			break;
+@@ -567,13 +573,10 @@ static void squashfs_readahead(struct re
+ 			goto skip_pages;
  
- 	jiffies_last_scan = jiffies;
+ 		index = pages[0]->index >> shift;
++
+ 		if ((pages[nr_pages - 1]->index >> shift) != index)
+ 			goto skip_pages;
  
-@@ -1480,7 +1501,6 @@ static void kmemleak_scan(void)
- 	list_for_each_entry_rcu(object, &object_list, object_list) {
- 		bool obj_pinned = false;
- 
--		loop1_cnt++;
- 		raw_spin_lock_irq(&object->lock);
- #ifdef DEBUG
- 		/*
-@@ -1514,24 +1534,11 @@ static void kmemleak_scan(void)
- 		raw_spin_unlock_irq(&object->lock);
- 
- 		/*
--		 * Do a cond_resched() to avoid soft lockup every 64k objects.
--		 * Make sure a reference has been taken so that the object
--		 * won't go away without RCU read lock.
-+		 * Do a cond_resched() every 64k objects to avoid soft lockup.
- 		 */
--		if (!(loop1_cnt & 0xffff)) {
--			if (!obj_pinned && !get_object(object)) {
--				/* Try the next object instead */
--				loop1_cnt--;
--				continue;
--			}
+-		expected = index == file_end ?
+-			   (i_size_read(inode) & (msblk->block_size - 1)) :
+-			    msblk->block_size;
 -
--			rcu_read_unlock();
--			cond_resched();
--			rcu_read_lock();
--
--			if (!obj_pinned)
--				put_object(object);
--		}
-+		if (!(++loop_cnt & 0xffff) &&
-+		    !kmemleak_cond_resched(object, obj_pinned))
-+			loop_cnt--; /* Try again on next object */
- 	}
- 	rcu_read_unlock();
- 
-@@ -1598,8 +1605,16 @@ static void kmemleak_scan(void)
- 	 * scan and color them gray until the next scan.
- 	 */
- 	rcu_read_lock();
-+	loop_cnt = 0;
- 	list_for_each_entry_rcu(object, &object_list, object_list) {
- 		/*
-+		 * Do a cond_resched() every 64k objects to avoid soft lockup.
-+		 */
-+		if (!(++loop_cnt & 0xffff) &&
-+		    !kmemleak_cond_resched(object, false))
-+			loop_cnt--;	/* Try again on next object */
-+
-+		/*
- 		 * This is racy but we can save the overhead of lock/unlock
- 		 * calls. The missed objects, if any, should be caught in
- 		 * the next scan.
-@@ -1632,8 +1647,16 @@ static void kmemleak_scan(void)
- 	 * Scanning result reporting.
- 	 */
- 	rcu_read_lock();
-+	loop_cnt = 0;
- 	list_for_each_entry_rcu(object, &object_list, object_list) {
- 		/*
-+		 * Do a cond_resched() every 64k objects to avoid soft lockup.
-+		 */
-+		if (!(++loop_cnt & 0xffff) &&
-+		    !kmemleak_cond_resched(object, false))
-+			loop_cnt--;	/* Try again on next object */
-+
-+		/*
- 		 * This is racy but we can save the overhead of lock/unlock
- 		 * calls. The missed objects, if any, should be caught in
- 		 * the next scan.
+ 		if (index == file_end && squashfs_i(inode)->fragment_block !=
+ 						SQUASHFS_INVALID_BLK) {
+ 			res = squashfs_readahead_fragment(pages, nr_pages,
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
 
