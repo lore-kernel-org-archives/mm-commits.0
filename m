@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C14ABC38A02
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:07:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3566C38A02
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:07:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229746AbiJ1VHS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:07:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52838 "EHLO
+        id S229572AbiJ1VHe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:07:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229894AbiJ1VHP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A40021EF063
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:07:12 -0700 (PDT)
+        with ESMTP id S229752AbiJ1VHS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:18 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48DA9249892;
+        Fri, 28 Oct 2022 14:07:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4087262A67
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:07:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8804FC433D6;
-        Fri, 28 Oct 2022 21:07:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 007ECB82B08;
+        Fri, 28 Oct 2022 21:07:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8396EC433D7;
+        Fri, 28 Oct 2022 21:07:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666991231;
-        bh=ReJ9sR00q+m1KeKsq8swaWB7C9rO4Wd26MYWGB9MWrc=;
+        s=korg; t=1666991234;
+        bh=p1eDuQy8pEao9PsMpaBCq/3XI4cVhT1exy0JnVG5Q+M=;
         h=Date:To:From:Subject:From;
-        b=uYGLdg2c3lFxWR3aW5Sze7RoONxelPEzEM00SKBmkG7WkCRHfnRnxgsCpkldIcLlG
-         4V87XVlhinMEtF6PrHu2L5CwAFw+9PaR/Fyn1qk2XTkMBpiu5TXlxJtC6eJ/ok0s06
-         FYgoSax5SaYKsx70VMP4351psSk9fvUjgtiRmfSo=
-Date:   Fri, 28 Oct 2022 14:07:10 -0700
-To:     mm-commits@vger.kernel.org, tytso@mit.edu, lkp@intel.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=ap/gjQ4SGa2gUJV17keSx7VNn4Qkb1dUSf4AOjvr89cdRRlXpqVlHyg4uAtVwAKTm
+         HrAn5qDFpD/swKzQ/9RvBjLzBpIsi4S1iNF/TM9wS2x8LdToF8Mp/n2h9AZ2W5kJR5
+         FPQp/VeOuRhrBQ1b6pQqQzBh0TN/Z1xbc9FnCIU0=
+Date:   Fri, 28 Oct 2022 14:07:13 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        mike.kravetz@oracle.com, david@redhat.com, riel@surriel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fs-ext4-superc-remove-unused-deprecated_msg.patch removed from -mm tree
-Message-Id: <20221028210711.8804FC433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mmmadvisehugetlb-fix-unexpected-data-loss-with-madv_dontneed-on-hugetlbfs.patch removed from -mm tree
+Message-Id: <20221028210714.8396EC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,54 +42,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fs/ext4/super.c: remove unused `deprecated_msg'
+     Subject: mm,madvise,hugetlb: fix unexpected data loss with MADV_DONTNEED on hugetlbfs
 has been removed from the -mm tree.  Its filename was
-     fs-ext4-superc-remove-unused-deprecated_msg.patch
+     mmmadvisehugetlb-fix-unexpected-data-loss-with-madv_dontneed-on-hugetlbfs.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/ext4/super.c: remove unused `deprecated_msg'
-Date: Fri Oct 21 08:05:49 AM PDT 2022
+From: Rik van Riel <riel@surriel.com>
+Subject: mm,madvise,hugetlb: fix unexpected data loss with MADV_DONTNEED on hugetlbfs
+Date: Fri, 21 Oct 2022 19:28:05 -0400
 
-fs/ext4/super.c:1744:19: warning: 'deprecated_msg' defined but not used [-Wunused-const-variable=]
+A common use case for hugetlbfs is for the application to create
+memory pools backed by huge pages, which then get handed over to
+some malloc library (eg. jemalloc) for further management.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+That malloc library may be doing MADV_DONTNEED calls on memory
+that is no longer needed, expecting those calls to happen on
+PAGE_SIZE boundaries.
+
+However, currently the MADV_DONTNEED code rounds up any such
+requests to HPAGE_PMD_SIZE boundaries. This leads to undesired
+outcomes when jemalloc expects a 4kB MADV_DONTNEED, but 2MB of
+memory get zeroed out, instead.
+
+Use of pre-built shared libraries means that user code does not
+always know the page size of every memory arena in use.
+
+Avoid unexpected data loss with MADV_DONTNEED by rounding up
+only to PAGE_SIZE (in do_madvise), and rounding down to huge
+page granularity.
+
+That way programs will only get as much memory zeroed out as
+they requested.
+
+Link: https://lkml.kernel.org/r/20221021192805.366ad573@imladris.surriel.com
+Fixes: 90e7e7f5ef3f ("mm: enable MADV_DONTNEED for hugetlb mappings")
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/ext4/super.c~fs-ext4-superc-remove-unused-deprecated_msg
-+++ a/fs/ext4/super.c
-@@ -1741,10 +1741,6 @@ static const struct fs_parameter_spec ex
+--- a/mm/madvise.c~mmmadvisehugetlb-fix-unexpected-data-loss-with-madv_dontneed-on-hugetlbfs
++++ a/mm/madvise.c
+@@ -813,7 +813,14 @@ static bool madvise_dontneed_free_valid_
+ 	if (start & ~huge_page_mask(hstate_vma(vma)))
+ 		return false;
  
- #define DEFAULT_JOURNAL_IOPRIO (IOPRIO_PRIO_VALUE(IOPRIO_CLASS_BE, 3))
+-	*end = ALIGN(*end, huge_page_size(hstate_vma(vma)));
++	/*
++	 * Madvise callers expect the length to be rounded up to PAGE_SIZE
++	 * boundaries, and may be unaware that this VMA uses huge pages.
++	 * Avoid unexpected data loss by rounding down the number of
++	 * huge pages freed.
++	 */
++	*end = ALIGN_DOWN(*end, huge_page_size(hstate_vma(vma)));
++
+ 	return true;
+ }
  
--static const char deprecated_msg[] =
--	"Mount option \"%s\" will be removed by %s\n"
--	"Contact linux-ext4@vger.kernel.org if you think we should keep it.\n";
--
- #define MOPT_SET	0x0001
- #define MOPT_CLEAR	0x0002
- #define MOPT_NOSUPPORT	0x0004
+@@ -828,6 +835,9 @@ static long madvise_dontneed_free(struct
+ 	if (!madvise_dontneed_free_valid_vma(vma, start, &end, behavior))
+ 		return -EINVAL;
+ 
++	if (start == end)
++		return 0;
++
+ 	if (!userfaultfd_remove(vma, start, end)) {
+ 		*prev = NULL; /* mmap_lock has been dropped, prev is stale */
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from riel@surriel.com are
 
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-hugetlb-convert-free_huge_page-to-folios-fix.patch
-vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
-mm-gup-remove-foll_migration-fix.patch
-mm-use-stack_depot-for-recording-kmemleaks-backtrace-checkpatch-fixes.patch
-mm-use-stack_depot-for-recording-kmemleaks-backtrace-fix.patch
-kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
-powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
-proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3-fix.patch
 
