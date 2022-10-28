@@ -2,93 +2,125 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73077FA3747
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:08:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6F8DC38A02
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:29:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229742AbiJ1VIK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:08:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52964 "EHLO
+        id S229729AbiJ1V3k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:29:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229961AbiJ1VHd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB15424A549
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:07:32 -0700 (PDT)
+        with ESMTP id S229777AbiJ1V3k (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:29:40 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA00BDFA0
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:29:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 76BA762A57
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:07:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8524C433D6;
-        Fri, 28 Oct 2022 21:07:31 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 8A22BCE2B55
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:29:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81012C433D6;
+        Fri, 28 Oct 2022 21:29:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666991251;
-        bh=6ylVWnITHMChyUMKl7y7Ky+4dt5ep8uWTYRiWgkwQR0=;
+        s=korg; t=1666992573;
+        bh=odM7a6CDlGg5OoWcuKil+iN1CmmmFpQelorcsUojpso=;
         h=Date:To:From:Subject:From;
-        b=KR8YFjj46CDITfMrpLEU9gIu1miLNzdmVWRCDzRFzINzqMzJFuSJPqFQS+Sg29P8L
-         +/17s0z6Xj8Bba1nIlPR++rXfhC+XrsRrO9dws9J5SK7fYfVoW45TFDLlaI1m+CjAI
-         w1PfsHSa3mP9DVTyIHTgTQov+dreWx97NuUYFK+0=
-Date:   Fri, 28 Oct 2022 14:07:30 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        hooanon05g@gmail.com, liam.howlett@oracle.com,
+        b=Jibyz8uBogC2xjmS5kuOPYdWt93TI4zeQH0kJgUO8dLcUQOVJhPaZmElv6Vd6eq3i
+         MhNn69s85psUoO1yO/LlcN7Bq236HB/Qd5/H9R/K0es1ybkETLVm/6utx5V/OFnoVN
+         bPQFp6v0cdfnCr/IypT5mLWK8CbTzvlVuXAi7/Ok=
+Date:   Fri, 28 Oct 2022 14:29:32 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        naoya.horiguchi@linux.dev, mpe@ellerman.id.au, david@redhat.com,
+        christophe.leroy@csgroup.eu, baolin.wang@linux.alibaba.com,
+        aneesh.kumar@linux.ibm.com, mike.kravetz@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mmap-fix-remap_file_pages-regression.patch removed from -mm tree
-Message-Id: <20221028210731.B8524C433D6@smtp.kernel.org>
+Subject: + hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch added to mm-unstable branch
+Message-Id: <20221028212933.81012C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mmap: fix remap_file_pages() regression
-has been removed from the -mm tree.  Its filename was
-     mmap-fix-remap_file_pages-regression.patch
+The patch titled
+     Subject: hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4
+has been added to the -mm mm-unstable branch.  Its filename is
+     hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mmap: fix remap_file_pages() regression
-Date: Tue, 25 Oct 2022 16:12:49 +0000
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4
+Date: Fri, 28 Oct 2022 11:11:08 -0700
 
-When using the VMA iterator, the final execution will set the variable
-'next' to NULL which causes the function to fail out.  Restore the break
-in the loop to exit the VMA iterator early without clearing NULL fixes the
-issue.
+remove vma (pmd sharing) locking as this can be called with FOLL_NOWAIT,
+per Peter
 
-Link: https://lore.kernel.org/lkml/29344.1666681759@jrobl/
-Link: https://lkml.kernel.org/r/20221025161222.2634030-1-Liam.Howlett@oracle.com
-Fixes: 763ecb035029 (mm: remove the vma linked list)
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: "J. R. Okajima" <hooanon05g@gmail.com>
-Tested-by: "J. R. Okajima" <hooanon05g@gmail.com>
+Link: https://lkml.kernel.org/r/20221028181108.119432-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mmap-fix-remap_file_pages-regression
-+++ a/mm/mmap.c
-@@ -2852,6 +2852,9 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 			if (next->vm_flags != vma->vm_flags)
- 				goto out;
+--- a/mm/hugetlb.c~hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4
++++ a/mm/hugetlb.c
+@@ -6265,17 +6265,9 @@ struct page *hugetlb_follow_page_mask(st
+ 		return NULL;
  
-+			if (start + size <= next->vm_end)
-+				break;
-+
- 			prev = next;
- 		}
+ retry:
+-	/*
+-	 * vma lock prevents racing with another thread doing a pmd unshare.
+-	 * This keeps pte as returned by huge_pte_offset valid.
+-	 */
+-	hugetlb_vma_lock_read(vma);
+-
+ 	pte = huge_pte_offset(mm, haddr, huge_page_size(h));
+-	if (!pte) {
+-		hugetlb_vma_unlock_read(vma);
++	if (!pte)
+ 		return NULL;
+-	}
+ 
+ 	ptl = huge_pte_lock(h, mm, pte);
+ 	entry = huge_ptep_get(pte);
+@@ -6309,7 +6301,6 @@ retry:
+ 	}
+ out:
+ 	spin_unlock(ptl);
+-	hugetlb_vma_unlock_read(vma);
+ 	return page;
+ }
  
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-maple_tree-remove-pointer-to-pointer-use-in-mas_alloc_nodes.patch
-maple_tree-mas_anode_descend-clang-analyzer-clean-up.patch
-maple_tree-reorganize-testing-to-restore-module-testing.patch
-maple_tree-fix-mas_find_rev-comment.patch
-maple_tree-update-copyright-dates-for-test-code.patch
-maple_tree-mte_set_full-and-mte_clear_full-clang-analyzer-clean-up.patch
+hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch
 
