@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75322FA3743
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 993B7FA3748
 	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:08:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229379AbiJ1VHh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:07:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53012 "EHLO
+        id S229915AbiJ1VHi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:07:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229915AbiJ1VH0 (ORCPT
+        with ESMTP id S229919AbiJ1VH0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 239E8249D37;
-        Fri, 28 Oct 2022 14:07:22 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5728249D3E
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:07:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D4884B82CC0;
-        Fri, 28 Oct 2022 21:07:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E1BCC433C1;
-        Fri, 28 Oct 2022 21:07:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7090662A79
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:07:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B44B2C433D7;
+        Fri, 28 Oct 2022 21:07:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666991239;
-        bh=LxBt0XZI/2TIxFritiR7o6Peu+bQkpS2Ct500WBR+0k=;
+        s=korg; t=1666991242;
+        bh=9KPcYTtW3xjZzkFpx9y2G9zmXue9PGf7ew1uUqmfFYM=;
         h=Date:To:From:Subject:From;
-        b=tyU05Tvi07JnwvO1e1dZBUV2iKolHXFmR8Z/6exsb54E1TG7Ulux5VT6t1DrG8AZM
-         kqkNouMQL9ETrLF64SRzHJ6b1LQmZKOBUEe9oz/B6+Vi9mmYBKeSo1V8BRE1w0EkQs
-         m78vYxnO/0+MX7sfjjhs74xtK7sFufv9cVqj8teI=
-Date:   Fri, 28 Oct 2022 14:07:18 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
-        stable@vger.kernel.org, shy828301@gmail.com, david@redhat.com,
-        apopple@nvidia.com, baolin.wang@linux.alibaba.com,
+        b=yfO9S6QpTRDULB62bDXmTEJJ4y87SXDn9anYh7TYMFcAWtMkJ23+ydHXpUZCXnYJA
+         1uLo5+UqH2b1xxemMXCVrvtVIB5iHThYocp6s87M7vmh0xVYAt/eA9Q3x+SROKLf6A
+         G4Ifi5bkpL/dtvNdhs+EDiRGL0/wld6DPPJFVJoI=
+Date:   Fri, 28 Oct 2022 14:07:21 -0700
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        akpm@linux-foundation.org, glider@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-migrate-fix-return-value-if-all-subpages-of-thps-are-migrated-successfully.patch removed from -mm tree
-Message-Id: <20221028210719.5E1BCC433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] x86-purgatory-disable-kmsan-instrumentation.patch removed from -mm tree
+Message-Id: <20221028210722.B44B2C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,59 +42,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: migrate: fix return value if all subpages of THPs are migrated successfully
+     Subject: x86/purgatory: disable KMSAN instrumentation
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-fix-return-value-if-all-subpages-of-thps-are-migrated-successfully.patch
+     x86-purgatory-disable-kmsan-instrumentation.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: migrate: fix return value if all subpages of THPs are migrated successfully
-Date: Mon, 24 Oct 2022 16:34:21 +0800
+From: Alexander Potapenko <glider@google.com>
+Subject: x86/purgatory: disable KMSAN instrumentation
+Date: Mon, 24 Oct 2022 23:21:41 +0200
 
-During THP migration, if THPs are not migrated but they are split and all
-subpages are migrated successfully, migrate_pages() will still return the
-number of THP pages that were not migrated.  This will confuse the callers
-of migrate_pages().  For example, the longterm pinning will failed though
-all pages are migrated successfully.
+The stand-alone purgatory.ro does not contain the KMSAN runtime, therefore
+it can't be built with KMSAN compiler instrumentation.
 
-Thus we should return 0 to indicate that all pages are migrated in this
-case
-
-Link: https://lkml.kernel.org/r/de386aa864be9158d2f3b344091419ea7c38b2f7.1666599848.git.baolin.wang@linux.alibaba.com
-Fixes: b5bade978e9b ("mm: migrate: fix the return value of migrate_pages()")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20221024212144.2852069-2-glider@google.com
+Link: https://github.com/google/kmsan/issues/89
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/migrate.c~mm-migrate-fix-return-value-if-all-subpages-of-thps-are-migrated-successfully
-+++ a/mm/migrate.c
-@@ -1582,6 +1582,13 @@ out:
- 	 */
- 	list_splice(&ret_pages, from);
+--- a/arch/x86/purgatory/Makefile~x86-purgatory-disable-kmsan-instrumentation
++++ a/arch/x86/purgatory/Makefile
+@@ -26,6 +26,7 @@ GCOV_PROFILE	:= n
+ KASAN_SANITIZE	:= n
+ UBSAN_SANITIZE	:= n
+ KCSAN_SANITIZE	:= n
++KMSAN_SANITIZE	:= n
+ KCOV_INSTRUMENT := n
  
-+	/*
-+	 * Return 0 in case all subpages of fail-to-migrate THPs are
-+	 * migrated successfully.
-+	 */
-+	if (list_empty(from))
-+		rc = 0;
-+
- 	count_vm_events(PGMIGRATE_SUCCESS, nr_succeeded);
- 	count_vm_events(PGMIGRATE_FAIL, nr_failed_pages);
- 	count_vm_events(THP_MIGRATION_SUCCESS, nr_thp_succeeded);
+ # These are adjustments to the compiler flags used for objects that
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from glider@google.com are
 
-mm-migrate-try-again-if-thp-split-is-failed-due-to-page-refcnt.patch
 
