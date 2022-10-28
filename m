@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CCAAC38A02
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 22:09:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A85E9ECAAA1
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 22:56:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230089AbiJ1WIk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 18:08:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36198 "EHLO
+        id S229930AbiJ1W4J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 18:56:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41394 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230185AbiJ1WIa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 18:08:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CAE024CC8B
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 15:08:27 -0700 (PDT)
+        with ESMTP id S230242AbiJ1Wz5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 18:55:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E740521344B
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 15:55:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2E02BB82CF2
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 22:08:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9A7BC433C1;
-        Fri, 28 Oct 2022 22:08:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F0FE62AB0
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 22:55:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66A01C433C1;
+        Fri, 28 Oct 2022 22:55:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666994904;
-        bh=EZov635xzAUvsMrMIryijvzTcak/ybTv0CiFx/nOFIQ=;
+        s=korg; t=1666997751;
+        bh=Lb14YMuWkMA0BcANO9CMdkvsvmpkl330E2eEUnDgt9s=;
         h=Date:To:From:Subject:From;
-        b=l9O67RJzsEFgZwxziz2FHTGo1a1QsbzPSLGuAhI6Jmab4ivh1Tw0GAYtKkMibqEr1
-         Hrk1m6Xer58+F4yxMETRbeRoxl5onTUlo3Oi3LiZh5LBnpvdBU2TUpQOCIPGF0Bg7e
-         /Jq217PAMYZfjmQzz0YxLoAOOSt5O7py5uJ8yx/8=
-Date:   Fri, 28 Oct 2022 15:08:23 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
-        glider@google.com, eugenis@google.com, elver@google.com,
-        dvyukov@google.com, andreyknvl@google.com,
-        akpm@linux-foundation.org
+        b=dJmpEKSIXKc+QHihDPWTkvHE1XBiheivM0IwPlziNj1irk6gb5sOfDyxMsw5K0bHn
+         mdnX3SHbhGI233S1sm2SQtdIAWDNDXQqCxjVs8SReZk9QU/8EWkx0AKRNmToYsj5Zl
+         xlJc5fE1pN9ma5roS1rh9GBL8r6PRnBwyM/1BPy4=
+Date:   Fri, 28 Oct 2022 15:55:50 -0700
+To:     mm-commits@vger.kernel.org, liam.howlett@oracle.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch added to mm-unstable branch
-Message-Id: <20221028220824.A9A7BC433C1@smtp.kernel.org>
+Subject: + maple_tree-reorganize-testing-to-restore-module-testing-fix-2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221028225551.66A01C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: allow sampling page_alloc allocations for HW_TAGS
-has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
+     Subject: maple_tree-reorganize-testing-to-restore-module-testing-fix-2
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maple_tree-reorganize-testing-to-restore-module-testing-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-reorganize-testing-to-restore-module-testing-fix-2.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,258 +64,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: allow sampling page_alloc allocations for HW_TAGS
-Date: Thu, 27 Oct 2022 22:10:09 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: maple_tree-reorganize-testing-to-restore-module-testing-fix-2
+Date: Fri Oct 28 03:42:53 PM PDT 2022
 
-Add a new boot parameter called kasan.page_alloc.sample, which makes
-Hardware Tag-Based KASAN tag only every Nth page_alloc allocation.
+fix it some more
 
-As Hardware Tag-Based KASAN is intended to be used in production, its
-performance impact is crucial.  As page_alloc allocations tend to be big,
-tagging and checking all such allocations introduces a significant
-slowdown in some testing scenarios.  The new flag allows to alleviate that
-slowdown.
-
-Enabling page_alloc sampling has a downside: KASAN will miss bad accesses
-to a page_alloc allocation that has not been tagged.
-
-Link: https://lkml.kernel.org/r/c124467c401e9d44dd35a36fdae1c48e4e505e9e.1666901317.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ lib/maple_tree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -140,6 +140,10 @@ disabling KASAN altogether or controllin
- - ``kasan.vmalloc=off`` or ``=on`` disables or enables tagging of vmalloc
-   allocations (default: ``on``).
- 
-+- ``kasan.page_alloc.sample=<sampling frequency>`` makes KASAN tag only
-+  every Nth page_alloc allocation, where N is the value of the parameter
-+  (default: ``1``).
-+
- Error reports
- ~~~~~~~~~~~~~
- 
---- a/include/linux/kasan.h~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/include/linux/kasan.h
-@@ -120,12 +120,13 @@ static __always_inline void kasan_poison
- 		__kasan_poison_pages(page, order, init);
+--- a/lib/maple_tree.c~maple_tree-reorganize-testing-to-restore-module-testing-fix-2
++++ a/lib/maple_tree.c
+@@ -6013,6 +6013,7 @@ void *mas_find(struct ma_state *mas, uns
+ 	/* Retries on dead nodes handled by mas_next_entry */
+ 	return mas_next_entry(mas, max);
  }
++EXPORT_SYMBOL_GPL(mas_find);
  
--void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init);
--static __always_inline void kasan_unpoison_pages(struct page *page,
-+bool __kasan_unpoison_pages(struct page *page, unsigned int order, bool init);
-+static __always_inline bool kasan_unpoison_pages(struct page *page,
- 						 unsigned int order, bool init)
- {
- 	if (kasan_enabled())
--		__kasan_unpoison_pages(page, order, init);
-+		return __kasan_unpoison_pages(page, order, init);
-+	return false;
- }
- 
- void __kasan_cache_create_kmalloc(struct kmem_cache *cache);
---- a/mm/kasan/common.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/kasan/common.c
-@@ -95,19 +95,24 @@ asmlinkage void kasan_unpoison_task_stac
- }
- #endif /* CONFIG_KASAN_STACK */
- 
--void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init)
-+bool __kasan_unpoison_pages(struct page *page, unsigned int order, bool init)
- {
- 	u8 tag;
- 	unsigned long i;
- 
- 	if (unlikely(PageHighMem(page)))
--		return;
-+		return false;
-+
-+	if (!kasan_sample_page_alloc())
-+		return false;
- 
- 	tag = kasan_random_tag();
- 	kasan_unpoison(set_tag(page_address(page), tag),
- 		       PAGE_SIZE << order, init);
- 	for (i = 0; i < (1 << order); i++)
- 		page_kasan_tag_set(page + i, tag);
-+
-+	return true;
- }
- 
- void __kasan_poison_pages(struct page *page, unsigned int order, bool init)
---- a/mm/kasan/hw_tags.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/kasan/hw_tags.c
-@@ -59,6 +59,11 @@ EXPORT_SYMBOL_GPL(kasan_mode);
- /* Whether to enable vmalloc tagging. */
- DEFINE_STATIC_KEY_TRUE(kasan_flag_vmalloc);
- 
-+/* Frequency of page_alloc allocation poisoning. */
-+unsigned long kasan_page_alloc_sample = 1;
-+
-+DEFINE_PER_CPU(unsigned long, kasan_page_alloc_count);
-+
- /* kasan=off/on */
- static int __init early_kasan_flag(char *arg)
- {
-@@ -122,6 +127,27 @@ static inline const char *kasan_mode_inf
- 		return "sync";
- }
- 
-+/* kasan.page_alloc.sample=<sampling frequency> */
-+static int __init early_kasan_flag_page_alloc_sample(char *arg)
-+{
-+	int rv;
-+
-+	if (!arg)
-+		return -EINVAL;
-+
-+	rv = kstrtoul(arg, 0, &kasan_page_alloc_sample);
-+	if (rv)
-+		return rv;
-+
-+	if (!kasan_page_alloc_sample) {
-+		kasan_page_alloc_sample = 1;
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+early_param("kasan.page_alloc.sample", early_kasan_flag_page_alloc_sample);
-+
- /*
-  * kasan_init_hw_tags_cpu() is called for each CPU.
-  * Not marked as __init as a CPU can be hot-plugged after boot.
---- a/mm/kasan/kasan.h~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/kasan/kasan.h
-@@ -42,6 +42,9 @@ enum kasan_mode {
- 
- extern enum kasan_mode kasan_mode __ro_after_init;
- 
-+extern unsigned long kasan_page_alloc_sample;
-+DECLARE_PER_CPU(unsigned long, kasan_page_alloc_count);
-+
- static inline bool kasan_vmalloc_enabled(void)
- {
- 	return static_branch_likely(&kasan_flag_vmalloc);
-@@ -57,6 +60,13 @@ static inline bool kasan_sync_fault_poss
- 	return kasan_mode == KASAN_MODE_SYNC || kasan_mode == KASAN_MODE_ASYMM;
- }
- 
-+static inline bool kasan_sample_page_alloc(void)
-+{
-+	unsigned long *count = this_cpu_ptr(&kasan_page_alloc_count);
-+
-+	return (*count)++ % kasan_page_alloc_sample == 0;
-+}
-+
- #else /* CONFIG_KASAN_HW_TAGS */
- 
- static inline bool kasan_async_fault_possible(void)
-@@ -68,6 +78,11 @@ static inline bool kasan_sync_fault_poss
- {
- 	return true;
- }
-+
-+static inline bool kasan_sample_page_alloc(void)
-+{
-+	return true;
-+}
- 
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
---- a/mm/page_alloc.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/page_alloc.c
-@@ -1367,6 +1367,8 @@ out:
-  *    see the comment next to it.
-  * 3. Skipping poisoning is requested via __GFP_SKIP_KASAN_POISON,
-  *    see the comment next to it.
-+ * 4. The allocation is excluded from being checked due to sampling,
-+ *    see the call to kasan_unpoison_pages.
-  *
-  * Poisoning pages during deferred memory init will greatly lengthen the
-  * process and cause problem in large memory systems as the deferred pages
-@@ -2476,7 +2478,8 @@ inline void post_alloc_hook(struct page
- {
- 	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags) &&
- 			!should_skip_init(gfp_flags);
--	bool init_tags = init && (gfp_flags & __GFP_ZEROTAGS);
-+	bool zero_tags = init && (gfp_flags & __GFP_ZEROTAGS);
-+	bool reset_tags = !zero_tags;
- 	int i;
- 
- 	set_page_private(page, 0);
-@@ -2499,30 +2502,42 @@ inline void post_alloc_hook(struct page
- 	 */
- 
- 	/*
--	 * If memory tags should be zeroed (which happens only when memory
--	 * should be initialized as well).
-+	 * If memory tags should be zeroed
-+	 * (which happens only when memory should be initialized as well).
- 	 */
--	if (init_tags) {
-+	if (zero_tags) {
- 		/* Initialize both memory and tags. */
- 		for (i = 0; i != 1 << order; ++i)
- 			tag_clear_highpage(page + i);
- 
--		/* Note that memory is already initialized by the loop above. */
-+		/* Take note that memory was initialized by the loop above. */
- 		init = false;
- 	}
- 	if (!should_skip_kasan_unpoison(gfp_flags)) {
--		/* Unpoison shadow memory or set memory tags. */
--		kasan_unpoison_pages(page, order, init);
--
--		/* Note that memory is already initialized by KASAN. */
--		if (kasan_has_integrated_init())
--			init = false;
--	} else {
--		/* Ensure page_address() dereferencing does not fault. */
-+		/* Try unpoisoning (or setting tags) and initializing memory. */
-+		if (kasan_unpoison_pages(page, order, init)) {
-+			/* Take note that memory was initialized by KASAN. */
-+			if (kasan_has_integrated_init())
-+				init = false;
-+			/* Take note that memory tags were set by KASAN. */
-+			reset_tags = false;
-+		} else {
-+			/*
-+			 * KASAN decided to exclude this allocation from being
-+			 * poisoned due to sampling. Skip poisoning as well.
-+			 */
-+			SetPageSkipKASanPoison(page);
-+		}
-+	}
-+	/*
-+	 * If memory tags have not been set, reset the page tags to ensure
-+	 * page_address() dereferencing does not fault.
-+	 */
-+	if (reset_tags) {
- 		for (i = 0; i != 1 << order; ++i)
- 			page_kasan_tag_reset(page + i);
- 	}
--	/* If memory is still not initialized, do it now. */
-+	/* If memory is still not initialized, initialize it now. */
- 	if (init)
- 		kernel_init_pages(page, 1 << order);
- 	/* Propagate __GFP_SKIP_KASAN_POISON to page flags. */
+ /**
+  * mas_find_rev: On the first call, find the first non-null entry at or below
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kasan-switch-kunit-tests-to-console-tracepoints.patch
-kasan-migrate-kasan_rcu_uaf-test-to-kunit.patch
-kasan-migrate-workqueue_uaf-test-to-kunit.patch
-kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
+maple_tree-reorganize-testing-to-restore-module-testing-fix.patch
+maple_tree-reorganize-testing-to-restore-module-testing-fix-2.patch
+mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+mm-hugetlb-convert-free_huge_page-to-folios-fix.patch
+vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
+mm-gup-remove-foll_migration-fix.patch
+mm-use-stack_depot-for-recording-kmemleaks-backtrace-checkpatch-fixes.patch
+mm-use-stack_depot-for-recording-kmemleaks-backtrace-fix.patch
+kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
+powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
+minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
+minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
+proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3-fix.patch
 
