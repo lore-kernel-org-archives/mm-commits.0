@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA1E0FA3747
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:08:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26FE9FA374C
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 21:08:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229919AbiJ1VHi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 17:07:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52940 "EHLO
+        id S229923AbiJ1VHl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Oct 2022 17:07:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229887AbiJ1VHU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:20 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7B0424A54F;
-        Fri, 28 Oct 2022 14:07:18 -0700 (PDT)
+        with ESMTP id S229936AbiJ1VHc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 17:07:32 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C196C24A56F
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 14:07:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8C402B82CC0;
-        Fri, 28 Oct 2022 21:07:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 152BCC433C1;
-        Fri, 28 Oct 2022 21:07:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 60F7362A57
+        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 21:07:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2033C433D6;
+        Fri, 28 Oct 2022 21:07:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666991236;
-        bh=sY70FcN0eCqMVQT80tlvLTJqH7xW9uNa7mImbILhJhU=;
+        s=korg; t=1666991245;
+        bh=zJ1cJDWptb8Dwhm8Wc5kHgUITay/9KgVB991rfa9l5M=;
         h=Date:To:From:Subject:From;
-        b=R2dmzl+jfED8NCFYFJ5bm00rUAFEmNWuZvs8h1tAljn/S69lYT0wJ12+puo7Nlpw1
-         O771+SxoDW/N5Q4mdPHzKSCypn5iLFADpoZI1PHHtnCfWbunykEIRPvVOdLWm430ql
-         3FzZYOh83FqUrHvhDIecPTEkSlwpGmz+MXB6XYZE=
-Date:   Fri, 28 Oct 2022 14:07:15 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, mgorman@techsingularity.net,
-        hughd@google.com, akpm@linux-foundation.org
+        b=sFA42ptGkFrMQsNtub4SQso94XzT8i2aLd8XX/M/iq3JEsENoNuqbEG0FvDiDaXx1
+         b+36HbINmBNAfekPxIjRiCD1ZXKcevx9lElUirtPaPEslJT+kaGHkdbTmkDDLOjJNU
+         Wk3cXKPuglLgHso0TH8C95oHdHwCmz2pcBCucmcU=
+Date:   Fri, 28 Oct 2022 14:07:24 -0700
+To:     mm-commits@vger.kernel.org, youling257@gmail.com,
+        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
+        glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-prep_compound_tail-clear-page-private.patch removed from -mm tree
-Message-Id: <20221028210716.152BCC433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] x86-asm-make-sure-__put_user_size-evaluates-pointer-once.patch removed from -mm tree
+Message-Id: <20221028210725.A2033C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,68 +42,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: prep_compound_tail() clear page->private
+     Subject: x86: asm: make sure __put_user_size() evaluates pointer once
 has been removed from the -mm tree.  Its filename was
-     mm-prep_compound_tail-clear-page-private.patch
+     x86-asm-make-sure-__put_user_size-evaluates-pointer-once.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: prep_compound_tail() clear page->private
-Date: Sat, 22 Oct 2022 00:51:06 -0700 (PDT)
+From: Alexander Potapenko <glider@google.com>
+Subject: x86: asm: make sure __put_user_size() evaluates pointer once
+Date: Mon, 24 Oct 2022 23:21:43 +0200
 
-Although page allocation always clears page->private in the first page or
-head page of an allocation, it has never made a point of clearing
-page->private in the tails (though 0 is often what is already there).
+User access macros must ensure their arguments are evaluated only once if
+they are used more than once in the macro body.  Adding
+instrument_put_user() to __put_user_size() resulted in double evaluation
+of the `ptr` argument, which led to correctness issues when performing
+e.g.  unsafe_put_user(..., p++, ...).
 
-But now commit 71e2d666ef85 ("mm/huge_memory: do not clobber swp_entry_t
-during THP split") issues a warning when page_tail->private is found to be
-non-0 (unless it's swapcache).
+To fix those issues, evaluate the `ptr` argument of __put_user_size() at
+the beginning of the macro.
 
-Change that warning to dump page_tail (which also dumps head), instead of
-just the head: so far we have seen dead000000000122, dead000000000003,
-dead000000000001 or 0000000000000002 in the raw output for tail private.
-
-We could just delete the warning, but today's consensus appears to want
-page->private to be 0, unless there's a good reason for it to be set: so
-now clear it in prep_compound_tail() (more general than just for THP; but
-not for high order allocation, which makes no pass down the tails).
-
-Link: https://lkml.kernel.org/r/1c4233bb-4e4d-5969-fbd4-96604268a285@google.com
-Fixes: 71e2d666ef85 ("mm/huge_memory: do not clobber swp_entry_t during THP split")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20221024212144.2852069-4-glider@google.com
+Fixes: 888f84a6da4d ("x86: asm: instrument usercopy in get_user() and put_user()")
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reported-by: youling257 <youling257@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/huge_memory.c~mm-prep_compound_tail-clear-page-private
-+++ a/mm/huge_memory.c
-@@ -2462,7 +2462,7 @@ static void __split_huge_page_tail(struc
- 	 * Fix up and warn once if private is unexpectedly set.
- 	 */
- 	if (!folio_test_swapcache(page_folio(head))) {
--		VM_WARN_ON_ONCE_PAGE(page_tail->private != 0, head);
-+		VM_WARN_ON_ONCE_PAGE(page_tail->private != 0, page_tail);
- 		page_tail->private = 0;
- 	}
+--- a/arch/x86/include/asm/uaccess.h~x86-asm-make-sure-__put_user_size-evaluates-pointer-once
++++ a/arch/x86/include/asm/uaccess.h
+@@ -254,24 +254,25 @@ extern void __put_user_nocheck_8(void);
+ #define __put_user_size(x, ptr, size, label)				\
+ do {									\
+ 	__typeof__(*(ptr)) __x = (x); /* eval x once */			\
+-	__chk_user_ptr(ptr);						\
++	__typeof__(ptr) __ptr = (ptr); /* eval ptr once */		\
++	__chk_user_ptr(__ptr);						\
+ 	switch (size) {							\
+ 	case 1:								\
+-		__put_user_goto(__x, ptr, "b", "iq", label);		\
++		__put_user_goto(__x, __ptr, "b", "iq", label);		\
+ 		break;							\
+ 	case 2:								\
+-		__put_user_goto(__x, ptr, "w", "ir", label);		\
++		__put_user_goto(__x, __ptr, "w", "ir", label);		\
+ 		break;							\
+ 	case 4:								\
+-		__put_user_goto(__x, ptr, "l", "ir", label);		\
++		__put_user_goto(__x, __ptr, "l", "ir", label);		\
+ 		break;							\
+ 	case 8:								\
+-		__put_user_goto_u64(__x, ptr, label);			\
++		__put_user_goto_u64(__x, __ptr, label);			\
+ 		break;							\
+ 	default:							\
+ 		__put_user_bad();					\
+ 	}								\
+-	instrument_put_user(__x, ptr, size);				\
++	instrument_put_user(__x, __ptr, size);				\
+ } while (0)
  
---- a/mm/page_alloc.c~mm-prep_compound_tail-clear-page-private
-+++ a/mm/page_alloc.c
-@@ -807,6 +807,7 @@ static void prep_compound_tail(struct pa
- 
- 	p->mapping = TAIL_MAPPING;
- 	set_compound_head(p, head);
-+	set_page_private(p, 0);
- }
- 
- void prep_compound_page(struct page *page, unsigned int order)
+ #ifdef CONFIG_CC_HAS_ASM_GOTO_OUTPUT
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from glider@google.com are
 
 
