@@ -2,108 +2,182 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A85E9ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Oct 2022 22:56:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10C57ECAAA1
+	for <mm-commits@archiver.kernel.org>; Sat, 29 Oct 2022 11:33:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229930AbiJ1W4J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Oct 2022 18:56:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41394 "EHLO
+        id S229696AbiJ2Ldy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 29 Oct 2022 07:33:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230242AbiJ1Wz5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2022 18:55:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E740521344B
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 15:55:52 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F0FE62AB0
-        for <mm-commits@vger.kernel.org>; Fri, 28 Oct 2022 22:55:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66A01C433C1;
-        Fri, 28 Oct 2022 22:55:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1666997751;
-        bh=Lb14YMuWkMA0BcANO9CMdkvsvmpkl330E2eEUnDgt9s=;
-        h=Date:To:From:Subject:From;
-        b=dJmpEKSIXKc+QHihDPWTkvHE1XBiheivM0IwPlziNj1irk6gb5sOfDyxMsw5K0bHn
-         mdnX3SHbhGI233S1sm2SQtdIAWDNDXQqCxjVs8SReZk9QU/8EWkx0AKRNmToYsj5Zl
-         xlJc5fE1pN9ma5roS1rh9GBL8r6PRnBwyM/1BPy4=
-Date:   Fri, 28 Oct 2022 15:55:50 -0700
-To:     mm-commits@vger.kernel.org, liam.howlett@oracle.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-reorganize-testing-to-restore-module-testing-fix-2.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221028225551.66A01C433C1@smtp.kernel.org>
+        with ESMTP id S229515AbiJ2Ldx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 29 Oct 2022 07:33:53 -0400
+Received: from domac.alu.hr (domac.alu.hr [161.53.235.3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96FE76AE91;
+        Sat, 29 Oct 2022 04:33:51 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by domac.alu.hr (Postfix) with ESMTP id 0DC82604F0;
+        Sat, 29 Oct 2022 13:33:49 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=alu.unizg.hr; s=mail;
+        t=1667043229; bh=5b8ZceQye+XJZlRK33PMTcEM2oXhPTuSpv6wrVcuSWM=;
+        h=Date:From:Subject:To:References:In-Reply-To:From;
+        b=2KCHx/CHGn5WHyTme2T7LYkhGPDj2Buiymd5yATPYxRhKjeYELmKeuOdCfaHTC+Rm
+         QL4FL9aGZBttjIXVVKQmTHtUCspzfu0icsHPw+37NNWP/6ggMNnC57dyxQgysix4pr
+         kMyyaC4EM4wAClOVkQ4Ld0e8WB6+scZOAyyQt0Dx3mix8u2DauskkIdVhjJCCx+ypH
+         YjZkC/hEo9WsfnCLrQYoQXlvThyQSTO5Ic1a9BPfyKQCSJ4bjnVhbKNS8fPBb97F7s
+         0mno6WMvBtxw2SEVe3J9jdXPX2QyBoR06JsjSDtTP+zt+bPSckCw51jeTasIdb7hku
+         X4QEgCb71OQKg==
+X-Virus-Scanned: Debian amavisd-new at domac.alu.hr
+Received: from domac.alu.hr ([127.0.0.1])
+        by localhost (domac.alu.hr [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id PRELwbB7cwwK; Sat, 29 Oct 2022 13:33:46 +0200 (CEST)
+Received: from [192.168.0.12] (unknown [188.252.198.201])
+        by domac.alu.hr (Postfix) with ESMTPSA id 2BBEF604EC;
+        Sat, 29 Oct 2022 13:33:45 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=alu.unizg.hr; s=mail;
+        t=1667043226; bh=5b8ZceQye+XJZlRK33PMTcEM2oXhPTuSpv6wrVcuSWM=;
+        h=Date:From:Subject:To:References:In-Reply-To:From;
+        b=W3sw+0p6L4w2Y6ZdjXBTf4+qbl/zPu91Rh8P4OBgOC86JJwJ1UppkCHh1kRNYL0rd
+         5AB8mrTLzRhuRDyh43boJ9EQfnSfjKFalosC5WHMhgKoXvNip8A42PeyvPsKFwmqTI
+         OzGj/ZgGc4Hywqb1pGDu7xGH3la9kkgjzZkc2RKWvGkQSpsT9nw2uGGrUCHouvCSPj
+         4fYxR+IZ1ibmqqYpvbgkY4oI9+rUbP3KVj6OnYw1agBRltBhmlZgt6KgUrvgZcLHfF
+         bfaV0OtycKQoCtzY1U1BJBZ0GvCBHMSi60ABucCp9Dze0lzmkoeRCpnelCI8g2PbfK
+         T5vYYJL0Gu1dg==
+Message-ID: <5422d190-db17-b6ea-ec13-ed157861c939@alu.unizg.hr>
+Date:   Sat, 29 Oct 2022 13:33:43 +0200
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.2.2
+From:   Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
+Subject: Re: [merged mm-hotfixes-stable]
+ squashfs-fix-buffer-release-race-condition-in-readahead-code.patch removed
+ from -mm tree
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        srw@sladewatkins.net, regressions@leemhuis.info,
+        marcmiltenberger@gmail.com, hsinyi@chromium.org,
+        dimitri.ledkov@canonical.com, bagasdotme@gmail.com,
+        phillip@squashfs.org.uk
+References: <20221028210704.43CFAC433C1@smtp.kernel.org>
+Content-Language: en-US
+In-Reply-To: <20221028210704.43CFAC433C1@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On 28. 10. 2022. 23:07, Andrew Morton wrote:
+> The quilt patch titled
+>       Subject: squashfs: fix buffer release race condition in readahead code
+> has been removed from the -mm tree.  Its filename was
+>       squashfs-fix-buffer-release-race-condition-in-readahead-code.patch
+>
+> This patch was dropped because it was merged into the mm-hotfixes-stable branch
+> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> ------------------------------------------------------
+> From: Phillip Lougher <phillip@squashfs.org.uk>
+> Subject: squashfs: fix buffer release race condition in readahead code
+> Date: Thu, 20 Oct 2022 23:36:16 +0100
+>
+> Fix a buffer release race condition, where the error value was used after
+> release.
+>
+> Link: https://lkml.kernel.org/r/20221020223616.7571-4-phillip@squashfs.org.uk
+> Fixes: b09a7a036d20 ("squashfs: support reading fragments in readahead call")
+> Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+> Tested-by: Bagas Sanjaya <bagasdotme@gmail.com>
+> Reported-by: Marc Miltenberger <marcmiltenberger@gmail.com>
+> Cc: Dimitri John Ledkov <dimitri.ledkov@canonical.com>
+> Cc: Hsin-Yi Wang <hsinyi@chromium.org>
+> Cc: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
+> Cc: Slade Watkins <srw@sladewatkins.net>
+> Cc: Thorsten Leemhuis <regressions@leemhuis.info>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
 
-The patch titled
-     Subject: maple_tree-reorganize-testing-to-restore-module-testing-fix-2
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maple_tree-reorganize-testing-to-restore-module-testing-fix-2.patch
+Dear Mr. Andrew Morton,
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-reorganize-testing-to-restore-module-testing-fix-2.patch
+For correctness sake, as you can witness yourself from the archive, it 
+is Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>, who was the 
+initial reporter of the bug.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Reference: 
+https://lore.kernel.org/all/2f0ddb46-d197-558d-4be7-d40506e0a64f@alu.unizg.hr/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Mr. Miltenberger's credit is also important, for he was the first person 
+to reproduce the bug.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+Actually, the LKML archives already represent the correct state, however 
+someone might want to reproduce additional hypothetical errors in this 
+segment of code, and probably correct the person(s) who helped bisect
+the bug.
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+I am looking forward to your reply.
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maple_tree-reorganize-testing-to-restore-module-testing-fix-2
-Date: Fri Oct 28 03:42:53 PM PDT 2022
+The first patch in the series has correct references:
 
-fix it some more
+From: Phillip Lougher<phillip@squashfs.org.uk>
+Subject: squashfs: fix read regression introduced in readahead code
+Date: Thu, 20 Oct 2022 23:36:14 +0100
 
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+[...]
 
- lib/maple_tree.c |    1 +
- 1 file changed, 1 insertion(+)
+Link:https://lkml.kernel.org/r/20221020223616.7571-1-phillip@squashfs.org.uk
+Link:https://lkml.kernel.org/r/20221020223616.7571-2-phillip@squashfs.org.uk
+Fixes: 8fc78b6fe24c ("squashfs: implement readahead")
+Link:https://lore.kernel.org/lkml/b0c258c3-6dcf-aade-efc4-d62a8b3a1ce2@alu.unizg.hr/
+Signed-off-by: Phillip Lougher<phillip@squashfs.org.uk>
+Reported-by: Mirsad Goran Todorovac<mirsad.todorovac@alu.unizg.hr>
+Tested-by: Mirsad Goran Todorovac<mirsad.todorovac@alu.unizg.hr>
+Tested-by: Slade Watkins<srw@sladewatkins.net>
+Tested-by: Bagas Sanjaya<bagasdotme@gmail.com>
+Reported-by: Marc Miltenberger<marcmiltenberger@gmail.com>
+Cc: Dimitri John Ledkov<dimitri.ledkov@canonical.com>
+Cc: Hsin-Yi Wang<hsinyi@chromium.org>
+Cc: Thorsten Leemhuis<regressions@leemhuis.info>
+Cc:<stable@vger.kernel.org>
+Signed-off-by: Andrew Morton<akpm@linux-foundation.org>
 
---- a/lib/maple_tree.c~maple_tree-reorganize-testing-to-restore-module-testing-fix-2
-+++ a/lib/maple_tree.c
-@@ -6013,6 +6013,7 @@ void *mas_find(struct ma_state *mas, uns
- 	/* Retries on dead nodes handled by mas_next_entry */
- 	return mas_next_entry(mas, max);
- }
-+EXPORT_SYMBOL_GPL(mas_find);
- 
- /**
-  * mas_find_rev: On the first call, find the first non-null entry at or below
-_
+Thank you very much.
+Mirsad
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-maple_tree-reorganize-testing-to-restore-module-testing-fix.patch
-maple_tree-reorganize-testing-to-restore-module-testing-fix-2.patch
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-hugetlb-convert-free_huge_page-to-folios-fix.patch
-vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
-mm-gup-remove-foll_migration-fix.patch
-mm-use-stack_depot-for-recording-kmemleaks-backtrace-checkpatch-fixes.patch
-mm-use-stack_depot-for-recording-kmemleaks-backtrace-fix.patch
-kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
-powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
-proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3-fix.patch
+> --- a/fs/squashfs/file.c~squashfs-fix-buffer-release-race-condition-in-readahead-code
+> +++ a/fs/squashfs/file.c
+> @@ -506,8 +506,9 @@ static int squashfs_readahead_fragment(s
+>   		squashfs_i(inode)->fragment_size);
+>   	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+>   	unsigned int n, mask = (1 << (msblk->block_log - PAGE_SHIFT)) - 1;
+> +	int error = buffer->error;
+>   
+> -	if (buffer->error)
+> +	if (error)
+>   		goto out;
+>   
+>   	expected += squashfs_i(inode)->fragment_offset;
+> @@ -529,7 +530,7 @@ static int squashfs_readahead_fragment(s
+>   
+>   out:
+>   	squashfs_cache_put(buffer);
+> -	return buffer->error;
+> +	return error;
+>   }
+>   
+>   static void squashfs_readahead(struct readahead_control *ractl)
+> _
+>
+> Patches currently in -mm which might be from phillip@squashfs.org.uk are
+>
+--
+Mirsad Goran Todorovac
+Sistem inženjer
+Grafički fakultet | Akademija likovnih umjetnosti
+Sveučilište u Zagrebu
+-- 
+System engineer
+Faculty of Graphic Arts | Academy of Fine Arts
+University of Zagreb, Republic of Croatia
+The European Union
 
