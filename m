@@ -2,182 +2,68 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10C57ECAAA1
-	for <mm-commits@archiver.kernel.org>; Sat, 29 Oct 2022 11:33:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7CCBC38A02
+	for <mm-commits@archiver.kernel.org>; Sun, 30 Oct 2022 01:29:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229696AbiJ2Ldy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 29 Oct 2022 07:33:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48506 "EHLO
+        id S229743AbiJ3B3w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 29 Oct 2022 21:29:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229515AbiJ2Ldx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 29 Oct 2022 07:33:53 -0400
-Received: from domac.alu.hr (domac.alu.hr [161.53.235.3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96FE76AE91;
-        Sat, 29 Oct 2022 04:33:51 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by domac.alu.hr (Postfix) with ESMTP id 0DC82604F0;
-        Sat, 29 Oct 2022 13:33:49 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=alu.unizg.hr; s=mail;
-        t=1667043229; bh=5b8ZceQye+XJZlRK33PMTcEM2oXhPTuSpv6wrVcuSWM=;
-        h=Date:From:Subject:To:References:In-Reply-To:From;
-        b=2KCHx/CHGn5WHyTme2T7LYkhGPDj2Buiymd5yATPYxRhKjeYELmKeuOdCfaHTC+Rm
-         QL4FL9aGZBttjIXVVKQmTHtUCspzfu0icsHPw+37NNWP/6ggMNnC57dyxQgysix4pr
-         kMyyaC4EM4wAClOVkQ4Ld0e8WB6+scZOAyyQt0Dx3mix8u2DauskkIdVhjJCCx+ypH
-         YjZkC/hEo9WsfnCLrQYoQXlvThyQSTO5Ic1a9BPfyKQCSJ4bjnVhbKNS8fPBb97F7s
-         0mno6WMvBtxw2SEVe3J9jdXPX2QyBoR06JsjSDtTP+zt+bPSckCw51jeTasIdb7hku
-         X4QEgCb71OQKg==
-X-Virus-Scanned: Debian amavisd-new at domac.alu.hr
-Received: from domac.alu.hr ([127.0.0.1])
-        by localhost (domac.alu.hr [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id PRELwbB7cwwK; Sat, 29 Oct 2022 13:33:46 +0200 (CEST)
-Received: from [192.168.0.12] (unknown [188.252.198.201])
-        by domac.alu.hr (Postfix) with ESMTPSA id 2BBEF604EC;
-        Sat, 29 Oct 2022 13:33:45 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=alu.unizg.hr; s=mail;
-        t=1667043226; bh=5b8ZceQye+XJZlRK33PMTcEM2oXhPTuSpv6wrVcuSWM=;
-        h=Date:From:Subject:To:References:In-Reply-To:From;
-        b=W3sw+0p6L4w2Y6ZdjXBTf4+qbl/zPu91Rh8P4OBgOC86JJwJ1UppkCHh1kRNYL0rd
-         5AB8mrTLzRhuRDyh43boJ9EQfnSfjKFalosC5WHMhgKoXvNip8A42PeyvPsKFwmqTI
-         OzGj/ZgGc4Hywqb1pGDu7xGH3la9kkgjzZkc2RKWvGkQSpsT9nw2uGGrUCHouvCSPj
-         4fYxR+IZ1ibmqqYpvbgkY4oI9+rUbP3KVj6OnYw1agBRltBhmlZgt6KgUrvgZcLHfF
-         bfaV0OtycKQoCtzY1U1BJBZ0GvCBHMSi60ABucCp9Dze0lzmkoeRCpnelCI8g2PbfK
-         T5vYYJL0Gu1dg==
-Message-ID: <5422d190-db17-b6ea-ec13-ed157861c939@alu.unizg.hr>
-Date:   Sat, 29 Oct 2022 13:33:43 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.2.2
-From:   Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
-Subject: Re: [merged mm-hotfixes-stable]
- squashfs-fix-buffer-release-race-condition-in-readahead-code.patch removed
- from -mm tree
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        srw@sladewatkins.net, regressions@leemhuis.info,
-        marcmiltenberger@gmail.com, hsinyi@chromium.org,
-        dimitri.ledkov@canonical.com, bagasdotme@gmail.com,
-        phillip@squashfs.org.uk
-References: <20221028210704.43CFAC433C1@smtp.kernel.org>
-Content-Language: en-US
-In-Reply-To: <20221028210704.43CFAC433C1@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S229739AbiJ3B3p (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 29 Oct 2022 21:29:45 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A4BE6170;
+        Sat, 29 Oct 2022 18:29:43 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E0C4AB80D7F;
+        Sun, 30 Oct 2022 01:29:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 8DE48C433C1;
+        Sun, 30 Oct 2022 01:29:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1667093381;
+        bh=r6fdiz/ZVgYVFeArTTP+V+XBR2ojwMymNdtXDvODNhU=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=qeeg1vHyLf36GTjPbUKuRVXPT8w/cQrDeQTDdOncV9D3lSK2FZyhpNZgLSdwuDS/H
+         vgVORfm0qhjZvFHGvWNipJLtT1/WVNjefzlMlRq3ukJPFgUoVfeP2Zj4yqW1ow8n7o
+         u4aljrETk+qJaz6Hi22q+lHIl6vayfz0rgL9WObc4FxhNImoxr51tizjo65Y+4nZ/M
+         NUeuR69EUDKzSi5Htw+1WaNWEzvugtGd5IsCpbJweeYSY+DBUeSSIwGtDrCEB6phir
+         6AvIflEWULBmL2Yvd4l+4JVXuJDOIXHMTCxIuQ4j0+JqDgvTAAyPlnet8IGbA5aPxK
+         uvbqB0BG2bk1w==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 7B70FC41672;
+        Sun, 30 Oct 2022 01:29:41 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.1-rc3
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20221028140612.43605c62db2ecc73f1bcf929@linux-foundation.org>
+References: <20221028140612.43605c62db2ecc73f1bcf929@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20221028140612.43605c62db2ecc73f1bcf929@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-10-28
+X-PR-Tracked-Commit-Id: dda1c41a07b4a4c3f99b5b28c1e8c485205fe860
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 3c339dbd139e14c612c521083023eabfcadfd8a5
+Message-Id: <166709338149.23656.8778297671135625640.pr-tracker-bot@kernel.org>
+Date:   Sun, 30 Oct 2022 01:29:41 +0000
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 28. 10. 2022. 23:07, Andrew Morton wrote:
-> The quilt patch titled
->       Subject: squashfs: fix buffer release race condition in readahead code
-> has been removed from the -mm tree.  Its filename was
->       squashfs-fix-buffer-release-race-condition-in-readahead-code.patch
->
-> This patch was dropped because it was merged into the mm-hotfixes-stable branch
-> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> ------------------------------------------------------
-> From: Phillip Lougher <phillip@squashfs.org.uk>
-> Subject: squashfs: fix buffer release race condition in readahead code
-> Date: Thu, 20 Oct 2022 23:36:16 +0100
->
-> Fix a buffer release race condition, where the error value was used after
-> release.
->
-> Link: https://lkml.kernel.org/r/20221020223616.7571-4-phillip@squashfs.org.uk
-> Fixes: b09a7a036d20 ("squashfs: support reading fragments in readahead call")
-> Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-> Tested-by: Bagas Sanjaya <bagasdotme@gmail.com>
-> Reported-by: Marc Miltenberger <marcmiltenberger@gmail.com>
-> Cc: Dimitri John Ledkov <dimitri.ledkov@canonical.com>
-> Cc: Hsin-Yi Wang <hsinyi@chromium.org>
-> Cc: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
-> Cc: Slade Watkins <srw@sladewatkins.net>
-> Cc: Thorsten Leemhuis <regressions@leemhuis.info>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
+The pull request you sent on Fri, 28 Oct 2022 14:06:12 -0700:
 
-Dear Mr. Andrew Morton,
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-10-28
 
-For correctness sake, as you can witness yourself from the archive, it 
-is Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>, who was the 
-initial reporter of the bug.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/3c339dbd139e14c612c521083023eabfcadfd8a5
 
-Reference: 
-https://lore.kernel.org/all/2f0ddb46-d197-558d-4be7-d40506e0a64f@alu.unizg.hr/
+Thank you!
 
-Mr. Miltenberger's credit is also important, for he was the first person 
-to reproduce the bug.
-
-Actually, the LKML archives already represent the correct state, however 
-someone might want to reproduce additional hypothetical errors in this 
-segment of code, and probably correct the person(s) who helped bisect
-the bug.
-
-I am looking forward to your reply.
-
-The first patch in the series has correct references:
-
-From: Phillip Lougher<phillip@squashfs.org.uk>
-Subject: squashfs: fix read regression introduced in readahead code
-Date: Thu, 20 Oct 2022 23:36:14 +0100
-
-[...]
-
-Link:https://lkml.kernel.org/r/20221020223616.7571-1-phillip@squashfs.org.uk
-Link:https://lkml.kernel.org/r/20221020223616.7571-2-phillip@squashfs.org.uk
-Fixes: 8fc78b6fe24c ("squashfs: implement readahead")
-Link:https://lore.kernel.org/lkml/b0c258c3-6dcf-aade-efc4-d62a8b3a1ce2@alu.unizg.hr/
-Signed-off-by: Phillip Lougher<phillip@squashfs.org.uk>
-Reported-by: Mirsad Goran Todorovac<mirsad.todorovac@alu.unizg.hr>
-Tested-by: Mirsad Goran Todorovac<mirsad.todorovac@alu.unizg.hr>
-Tested-by: Slade Watkins<srw@sladewatkins.net>
-Tested-by: Bagas Sanjaya<bagasdotme@gmail.com>
-Reported-by: Marc Miltenberger<marcmiltenberger@gmail.com>
-Cc: Dimitri John Ledkov<dimitri.ledkov@canonical.com>
-Cc: Hsin-Yi Wang<hsinyi@chromium.org>
-Cc: Thorsten Leemhuis<regressions@leemhuis.info>
-Cc:<stable@vger.kernel.org>
-Signed-off-by: Andrew Morton<akpm@linux-foundation.org>
-
-Thank you very much.
-Mirsad
-
-> --- a/fs/squashfs/file.c~squashfs-fix-buffer-release-race-condition-in-readahead-code
-> +++ a/fs/squashfs/file.c
-> @@ -506,8 +506,9 @@ static int squashfs_readahead_fragment(s
->   		squashfs_i(inode)->fragment_size);
->   	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
->   	unsigned int n, mask = (1 << (msblk->block_log - PAGE_SHIFT)) - 1;
-> +	int error = buffer->error;
->   
-> -	if (buffer->error)
-> +	if (error)
->   		goto out;
->   
->   	expected += squashfs_i(inode)->fragment_offset;
-> @@ -529,7 +530,7 @@ static int squashfs_readahead_fragment(s
->   
->   out:
->   	squashfs_cache_put(buffer);
-> -	return buffer->error;
-> +	return error;
->   }
->   
->   static void squashfs_readahead(struct readahead_control *ractl)
-> _
->
-> Patches currently in -mm which might be from phillip@squashfs.org.uk are
->
---
-Mirsad Goran Todorovac
-Sistem inženjer
-Grafički fakultet | Akademija likovnih umjetnosti
-Sveučilište u Zagrebu
 -- 
-System engineer
-Faculty of Graphic Arts | Academy of Fine Arts
-University of Zagreb, Republic of Croatia
-The European Union
-
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
