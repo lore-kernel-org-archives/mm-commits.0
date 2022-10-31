@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8862ECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Oct 2022 21:21:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5C61FA3744
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Oct 2022 22:02:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229720AbiJaVVL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Oct 2022 17:21:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36650 "EHLO
+        id S229887AbiJaWCW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Oct 2022 18:02:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229824AbiJaVVK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 17:21:10 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7F251163;
-        Mon, 31 Oct 2022 14:21:08 -0700 (PDT)
+        with ESMTP id S229475AbiJaWCV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 18:02:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B7DF140F7
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 15:02:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 385B9B8189E;
-        Mon, 31 Oct 2022 21:21:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C33CDC433C1;
-        Mon, 31 Oct 2022 21:21:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 16E2D614C4
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 22:02:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A59FC43470;
+        Mon, 31 Oct 2022 22:02:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667251265;
-        bh=LPyW+lIpU/EcmWAL5nb/IPzxd7VrO2YKfHOmVhJGl84=;
+        s=korg; t=1667253737;
+        bh=76qpCjD1H52Vm8XhCn7VBNuABKJfuSyMnY08Sh0jPi8=;
         h=Date:To:From:Subject:From;
-        b=kz6zKjgLfsMnh00qpdeMro3EIBHW6HUOfiqv6Cr2JH02FeKY+HNFj+JPi6uVVH6+/
-         1VvvIlmiJZnvG+6Swnmdvi0uEydTR8EkxMopwoK8LmTbwTLkzjEuQh00CqL/1qbFFw
-         IGuLqAU/LNCwQngUoMAowH6VcL8FIGkYm7eYR3IE=
-Date:   Mon, 31 Oct 2022 14:21:05 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com,
-        stable@vger.kernel.org, mhocko@suse.com, shy828301@gmail.com,
+        b=sEIa1npOQGg65hV6Ank8FBXYHuFsK1CM9XNsIs5wB389a8CB8PY3nv4CVo5dDA52E
+         gj9BaTto+U2CYp4z9cYtbT21TZCya0Ao3DfYeC8baqDsYaJrlU515QSBIFTe6p6dwM
+         Z3Tpmo32r+UC31BSjnZ0wtotIjo7Z5dhgOB3Yr5k=
+Date:   Mon, 31 Oct 2022 15:02:16 -0700
+To:     mm-commits@vger.kernel.org, cuigaosheng1@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-dont-warn-if-the-node-is-offlined.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221031212105.C33CDC433C1@smtp.kernel.org>
+Subject: + lib-fonts-fix-undefined-behavior-in-bit-shift-for-get_default_font.patch added to mm-nonmm-unstable branch
+Message-Id: <20221031220217.6A59FC43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't warn if the node is offlined
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-dont-warn-if-the-node-is-offlined.patch
+     Subject: lib/fonts: fix undefined behavior in bit shift for get_default_font
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-fonts-fix-undefined-behavior-in-bit-shift-for-get_default_font.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-warn-if-the-node-is-offlined.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-fonts-fix-undefined-behavior-in-bit-shift-for-get_default_font.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,161 +64,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: don't warn if the node is offlined
-Date: Mon, 31 Oct 2022 11:31:22 -0700
+From: Gaosheng Cui <cuigaosheng1@huawei.com>
+Subject: lib/fonts: fix undefined behavior in bit shift for get_default_font
+Date: Mon, 31 Oct 2022 19:38:29 +0800
 
-Syzbot reported the below splat:
+Shifting signed 32-bit value by 31 bits is undefined, so changing
+significant bit to unsigned.  The UBSAN warning calltrace like below:
 
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221 __alloc_pages_node include/linux/gfp.h:221 [inline]
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221 hpage_collapse_alloc_page mm/khugepaged.c:807 [inline]
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221 alloc_charge_hpage+0x802/0xaa0 mm/khugepaged.c:963
-Modules linked in:
-CPU: 1 PID: 3646 Comm: syz-executor210 Not tainted 6.1.0-rc1-syzkaller-00454-ga70385240892 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/11/2022
-RIP: 0010:__alloc_pages_node include/linux/gfp.h:221 [inline]
-RIP: 0010:hpage_collapse_alloc_page mm/khugepaged.c:807 [inline]
-RIP: 0010:alloc_charge_hpage+0x802/0xaa0 mm/khugepaged.c:963
-Code: e5 01 4c 89 ee e8 6e f9 ae ff 4d 85 ed 0f 84 28 fc ff ff e8 70 fc ae ff 48 8d 6b ff 4c 8d 63 07 e9 16 fc ff ff e8 5e fc ae ff <0f> 0b e9 96 fa ff ff 41 bc 1a 00 00 00 e9 86 fd ff ff e8 47 fc ae
-RSP: 0018:ffffc90003fdf7d8 EFLAGS: 00010293
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: ffff888077f457c0 RSI: ffffffff81cd8f42 RDI: 0000000000000001
-RBP: ffff888079388c0c R08: 0000000000000001 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-R13: dffffc0000000000 R14: 0000000000000000 R15: 0000000000000000
-FS:  00007f6b48ccf700(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f6b48a819f0 CR3: 00000000171e7000 CR4: 00000000003506e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
+UBSAN: shift-out-of-bounds in lib/fonts/fonts.c:139:20
+left shift of 1 by 31 places cannot be represented in type 'int'
  <TASK>
- collapse_file+0x1ca/0x5780 mm/khugepaged.c:1715
- hpage_collapse_scan_file+0xd6c/0x17a0 mm/khugepaged.c:2156
- madvise_collapse+0x53a/0xb40 mm/khugepaged.c:2611
- madvise_vma_behavior+0xd0a/0x1cc0 mm/madvise.c:1066
- madvise_walk_vmas+0x1c7/0x2b0 mm/madvise.c:1240
- do_madvise.part.0+0x24a/0x340 mm/madvise.c:1419
- do_madvise mm/madvise.c:1432 [inline]
- __do_sys_madvise mm/madvise.c:1432 [inline]
- __se_sys_madvise mm/madvise.c:1430 [inline]
- __x64_sys_madvise+0x113/0x150 mm/madvise.c:1430
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ dump_stack_lvl+0x7d/0xa5
+ dump_stack+0x15/0x1b
+ ubsan_epilogue+0xe/0x4e
+ __ubsan_handle_shift_out_of_bounds+0x1e7/0x20c
+ get_default_font+0x1c7/0x1f0
+ fbcon_startup+0x347/0x3a0
+ do_take_over_console+0xce/0x270
+ do_fbcon_takeover+0xa1/0x170
+ do_fb_registered+0x2a8/0x340
+ fbcon_fb_registered+0x47/0xe0
+ register_framebuffer+0x294/0x4a0
+ __drm_fb_helper_initial_config_and_unlock+0x43c/0x880 [drm_kms_helper]
+ drm_fb_helper_initial_config+0x52/0x80 [drm_kms_helper]
+ drm_fbdev_client_hotplug+0x156/0x1b0 [drm_kms_helper]
+ drm_fbdev_generic_setup+0xfc/0x290 [drm_kms_helper]
+ bochs_pci_probe+0x6ca/0x772 [bochs]
+ local_pci_probe+0x4d/0xb0
+ pci_device_probe+0x119/0x320
+ really_probe+0x181/0x550
+ __driver_probe_device+0xc6/0x220
+ driver_probe_device+0x32/0x100
+ __driver_attach+0x195/0x200
+ bus_for_each_dev+0xbb/0x120
+ driver_attach+0x27/0x30
+ bus_add_driver+0x22e/0x2f0
+ driver_register+0xa9/0x190
+ __pci_register_driver+0x90/0xa0
+ bochs_pci_driver_init+0x52/0x1000 [bochs]
+ do_one_initcall+0x76/0x430
+ do_init_module+0x61/0x28a
+ load_module+0x1f82/0x2e50
+ __do_sys_finit_module+0xf8/0x190
+ __x64_sys_finit_module+0x23/0x30
+ do_syscall_64+0x58/0x80
  entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7f6b48a4eef9
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 b1 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f6b48ccf318 EFLAGS: 00000246 ORIG_RAX: 000000000000001c
-RAX: ffffffffffffffda RBX: 00007f6b48af0048 RCX: 00007f6b48a4eef9
-RDX: 0000000000000019 RSI: 0000000000600003 RDI: 0000000020000000
-RBP: 00007f6b48af0040 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00007f6b48aa53a4
-R13: 00007f6b48bffcbf R14: 00007f6b48ccf400 R15: 0000000000022000
  </TASK>
 
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221 __alloc_pages_node
-include/linux/gfp.h:221 [inline]
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221
-hpage_collapse_alloc_page mm/khugepaged.c:807 [inline]
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221
-alloc_charge_hpage+0x802/0xaa0 mm/khugepaged.c:963
-Modules linked in:
-CPU: 1 PID: 3646 Comm: syz-executor210 Not tainted
-6.1.0-rc1-syzkaller-00454-ga70385240892 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
-Google 10/11/2022
-RIP: 0010:__alloc_pages_node include/linux/gfp.h:221 [inline]
-RIP: 0010:hpage_collapse_alloc_page mm/khugepaged.c:807 [inline]
-RIP: 0010:alloc_charge_hpage+0x802/0xaa0 mm/khugepaged.c:963
-Code: e5 01 4c 89 ee e8 6e f9 ae ff 4d 85 ed 0f 84 28 fc ff ff e8 70 fc
-ae ff 48 8d 6b ff 4c 8d 63 07 e9 16 fc ff ff e8 5e fc ae ff <0f> 0b e9
-96 fa ff ff 41 bc 1a 00 00 00 e9 86 fd ff ff e8 47 fc ae
-RSP: 0018:ffffc90003fdf7d8 EFLAGS: 00010293
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: ffff888077f457c0 RSI: ffffffff81cd8f42 RDI: 0000000000000001
-RBP: ffff888079388c0c R08: 0000000000000001 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-R13: dffffc0000000000 R14: 0000000000000000 R15: 0000000000000000
-FS:  00007f6b48ccf700(0000) GS:ffff8880b9b00000(0000)
-knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f6b48a819f0 CR3: 00000000171e7000 CR4: 00000000003506e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- collapse_file+0x1ca/0x5780 mm/khugepaged.c:1715
- hpage_collapse_scan_file+0xd6c/0x17a0 mm/khugepaged.c:2156
- madvise_collapse+0x53a/0xb40 mm/khugepaged.c:2611
- madvise_vma_behavior+0xd0a/0x1cc0 mm/madvise.c:1066
- madvise_walk_vmas+0x1c7/0x2b0 mm/madvise.c:1240
- do_madvise.part.0+0x24a/0x340 mm/madvise.c:1419
- do_madvise mm/madvise.c:1432 [inline]
- __do_sys_madvise mm/madvise.c:1432 [inline]
- __se_sys_madvise mm/madvise.c:1430 [inline]
- __x64_sys_madvise+0x113/0x150 mm/madvise.c:1430
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7f6b48a4eef9
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 b1 15 00 00 90 48 89 f8 48 89
-f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01
-f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f6b48ccf318 EFLAGS: 00000246 ORIG_RAX: 000000000000001c
-RAX: ffffffffffffffda RBX: 00007f6b48af0048 RCX: 00007f6b48a4eef9
-RDX: 0000000000000019 RSI: 0000000000600003 RDI: 0000000020000000
-RBP: 00007f6b48af0040 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00007f6b48aa53a4
-R13: 00007f6b48bffcbf R14: 00007f6b48ccf400 R15: 0000000000022000
- </TASK>
-
-It is because khugepaged allocates pages with __GFP_THISNODE, but the
-preferred node is offlined.  The warning was even stronger before commit
-8addc2d00fe17 ("mm: do not warn on offline nodes unless the specific node
-is explicitly requested").  The commit softened the warning for
-__GFP_THISNODE.
-
-But this warning seems not quite useful because:
-  * There is no guarantee the node is online for __GFP_THISNODE context
-    for all the callsites.
-  * Kernel just fails the allocation regardless the warning, and it looks
-    all callsites handle the allocation failure gracefully.
-
-So, removing the warning seems like the good move.
-
-Link: https://lkml.kernel.org/r/20221031183122.470962-1-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reported-by: syzbot+0044b22d177870ee974f@syzkaller.appspotmail.com
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20221031113829.4183153-1-cuigaosheng1@huawei.com
+Fixes: c81f717cb9e0 ("fbcon: Fix typo and bogus logic in get_default_font")
+Signed-off-by: Gaosheng Cui <cuigaosheng1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 --
- 1 file changed, 2 deletions(-)
+ lib/fonts/fonts.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/gfp.h~mm-dont-warn-if-the-node-is-offlined
-+++ a/include/linux/gfp.h
-@@ -218,7 +218,6 @@ static inline struct page *
- __alloc_pages_node(int nid, gfp_t gfp_mask, unsigned int order)
- {
- 	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
--	VM_WARN_ON((gfp_mask & __GFP_THISNODE) && !node_online(nid));
+--- a/lib/fonts/fonts.c~lib-fonts-fix-undefined-behavior-in-bit-shift-for-get_default_font
++++ a/lib/fonts/fonts.c
+@@ -135,8 +135,8 @@ const struct font_desc *get_default_font
+ 		if (res > 20)
+ 			c += 20 - res;
  
- 	return __alloc_pages(gfp_mask, order, nid, NULL);
- }
-@@ -227,7 +226,6 @@ static inline
- struct folio *__folio_alloc_node(gfp_t gfp, unsigned int order, int nid)
- {
- 	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
--	VM_WARN_ON((gfp & __GFP_THISNODE) && !node_online(nid));
+-		if ((font_w & (1 << (f->width - 1))) &&
+-		    (font_h & (1 << (f->height - 1))))
++		if ((font_w & (1U << (f->width - 1))) &&
++		    (font_h & (1U << (f->height - 1))))
+ 			c += 1000;
  
- 	return __folio_alloc(gfp, order, nid, NULL);
- }
+ 		if (c > cc) {
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from cuigaosheng1@huawei.com are
 
-mm-dont-warn-if-the-node-is-offlined.patch
+ia64-kprobes-remove-orphan-declarations-from-arch-ia64-include-asm-kprobesh.patch
+lib-fonts-fix-undefined-behavior-in-bit-shift-for-get_default_font.patch
 
