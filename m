@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5C61FA3744
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Oct 2022 22:02:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2C36ECAAA1
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Oct 2022 22:04:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229887AbiJaWCW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Oct 2022 18:02:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54758 "EHLO
+        id S229668AbiJaWE1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Oct 2022 18:04:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229475AbiJaWCV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 18:02:21 -0400
+        with ESMTP id S229475AbiJaWE1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 18:04:27 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B7DF140F7
-        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 15:02:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60A1B12625
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 15:04:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 16E2D614C4
-        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 22:02:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A59FC43470;
-        Mon, 31 Oct 2022 22:02:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C9653614B0
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 22:04:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 290C2C433D6;
+        Mon, 31 Oct 2022 22:04:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667253737;
-        bh=76qpCjD1H52Vm8XhCn7VBNuABKJfuSyMnY08Sh0jPi8=;
+        s=korg; t=1667253865;
+        bh=bnulJObMbQcXfjKfHS6k062x90u9ubTpgoIy07g9uVY=;
         h=Date:To:From:Subject:From;
-        b=sEIa1npOQGg65hV6Ank8FBXYHuFsK1CM9XNsIs5wB389a8CB8PY3nv4CVo5dDA52E
-         gj9BaTto+U2CYp4z9cYtbT21TZCya0Ao3DfYeC8baqDsYaJrlU515QSBIFTe6p6dwM
-         Z3Tpmo32r+UC31BSjnZ0wtotIjo7Z5dhgOB3Yr5k=
-Date:   Mon, 31 Oct 2022 15:02:16 -0700
-To:     mm-commits@vger.kernel.org, cuigaosheng1@huawei.com,
-        akpm@linux-foundation.org
+        b=nGaiESTp2lqVVhwSy7FlFt5ei/ngA9Om5ELi7rnz8wAW/YQQ7fEtic84RI+8sSwOB
+         mtDmhEDTgYtoLK3LERXEsrBr/ipwdWpcfbysphuSGUlRZ6+y1FMcK9nUtgWRFE2wb8
+         G2i2bmFPE0gmhFK9/phLbh72iDal7s7PqwqwA45U=
+Date:   Mon, 31 Oct 2022 15:04:24 -0700
+To:     mm-commits@vger.kernel.org, mporter@kernel.crashing.org,
+        christophe.jaillet@wanadoo.fr, arnd@arndb.de, alex.bou9@gmail.com,
+        penguin-kernel@I-love.SAKURA.ne.jp, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-fonts-fix-undefined-behavior-in-bit-shift-for-get_default_font.patch added to mm-nonmm-unstable branch
-Message-Id: <20221031220217.6A59FC43470@smtp.kernel.org>
+Subject: + rapidio-tsi721-replace-flush_scheduled_work-with-flush_work.patch added to mm-nonmm-unstable branch
+Message-Id: <20221031220425.290C2C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/fonts: fix undefined behavior in bit shift for get_default_font
+     Subject: rapidio/tsi721: replace flush_scheduled_work() with flush_work()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-fonts-fix-undefined-behavior-in-bit-shift-for-get_default_font.patch
+     rapidio-tsi721-replace-flush_scheduled_work-with-flush_work.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-fonts-fix-undefined-behavior-in-bit-shift-for-get_default_font.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-tsi721-replace-flush_scheduled_work-with-flush_work.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,79 +65,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gaosheng Cui <cuigaosheng1@huawei.com>
-Subject: lib/fonts: fix undefined behavior in bit shift for get_default_font
-Date: Mon, 31 Oct 2022 19:38:29 +0800
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: rapidio/tsi721: replace flush_scheduled_work() with flush_work()
+Date: Sat, 24 Sep 2022 14:11:25 +0900
 
-Shifting signed 32-bit value by 31 bits is undefined, so changing
-significant bit to unsigned.  The UBSAN warning calltrace like below:
+Like commit c4f135d643823a86 ("workqueue: Wrap flush_workqueue() using a
+macro") says, flush_scheduled_work() is dangerous and will be forbidden. 
+We are on the way for removing all flush_scheduled_work() callers from the
+kernel, and this patch is for removing flush_scheduled_work() call from
+tsi721 driver.
 
-UBSAN: shift-out-of-bounds in lib/fonts/fonts.c:139:20
-left shift of 1 by 31 places cannot be represented in type 'int'
- <TASK>
- dump_stack_lvl+0x7d/0xa5
- dump_stack+0x15/0x1b
- ubsan_epilogue+0xe/0x4e
- __ubsan_handle_shift_out_of_bounds+0x1e7/0x20c
- get_default_font+0x1c7/0x1f0
- fbcon_startup+0x347/0x3a0
- do_take_over_console+0xce/0x270
- do_fbcon_takeover+0xa1/0x170
- do_fb_registered+0x2a8/0x340
- fbcon_fb_registered+0x47/0xe0
- register_framebuffer+0x294/0x4a0
- __drm_fb_helper_initial_config_and_unlock+0x43c/0x880 [drm_kms_helper]
- drm_fb_helper_initial_config+0x52/0x80 [drm_kms_helper]
- drm_fbdev_client_hotplug+0x156/0x1b0 [drm_kms_helper]
- drm_fbdev_generic_setup+0xfc/0x290 [drm_kms_helper]
- bochs_pci_probe+0x6ca/0x772 [bochs]
- local_pci_probe+0x4d/0xb0
- pci_device_probe+0x119/0x320
- really_probe+0x181/0x550
- __driver_probe_device+0xc6/0x220
- driver_probe_device+0x32/0x100
- __driver_attach+0x195/0x200
- bus_for_each_dev+0xbb/0x120
- driver_attach+0x27/0x30
- bus_add_driver+0x22e/0x2f0
- driver_register+0xa9/0x190
- __pci_register_driver+0x90/0xa0
- bochs_pci_driver_init+0x52/0x1000 [bochs]
- do_one_initcall+0x76/0x430
- do_init_module+0x61/0x28a
- load_module+0x1f82/0x2e50
- __do_sys_finit_module+0xf8/0x190
- __x64_sys_finit_module+0x23/0x30
- do_syscall_64+0x58/0x80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
- </TASK>
+Since "struct tsi721_device" is per a device struct, I assume that
+tsi721_remove() needs to wait for only two works associated with that
+device.  Therefore, wait for only these works using flush_work().
 
-Link: https://lkml.kernel.org/r/20221031113829.4183153-1-cuigaosheng1@huawei.com
-Fixes: c81f717cb9e0 ("fbcon: Fix typo and bogus logic in get_default_font")
-Signed-off-by: Gaosheng Cui <cuigaosheng1@huawei.com>
+Link: https://lkml.kernel.org/r/0e8a2023-7526-f03a-f520-efafbb0ef45c@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/fonts/fonts.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rapidio/devices/tsi721.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/fonts/fonts.c~lib-fonts-fix-undefined-behavior-in-bit-shift-for-get_default_font
-+++ a/lib/fonts/fonts.c
-@@ -135,8 +135,8 @@ const struct font_desc *get_default_font
- 		if (res > 20)
- 			c += 20 - res;
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-replace-flush_scheduled_work-with-flush_work
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -2941,7 +2941,8 @@ static void tsi721_remove(struct pci_dev
  
--		if ((font_w & (1 << (f->width - 1))) &&
--		    (font_h & (1 << (f->height - 1))))
-+		if ((font_w & (1U << (f->width - 1))) &&
-+		    (font_h & (1U << (f->height - 1))))
- 			c += 1000;
+ 	tsi721_disable_ints(priv);
+ 	tsi721_free_irq(priv);
+-	flush_scheduled_work();
++	flush_work(&priv->idb_work);
++	flush_work(&priv->pw_work);
+ 	rio_unregister_mport(&priv->mport);
  
- 		if (c > cc) {
+ 	tsi721_unregister_dma(priv);
 _
 
-Patches currently in -mm which might be from cuigaosheng1@huawei.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-ia64-kprobes-remove-orphan-declarations-from-arch-ia64-include-asm-kprobesh.patch
-lib-fonts-fix-undefined-behavior-in-bit-shift-for-get_default_font.patch
+rapidio-tsi721-replace-flush_scheduled_work-with-flush_work.patch
 
