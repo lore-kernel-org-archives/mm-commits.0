@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73618FA3741
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Oct 2022 22:29:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E43B6FA3741
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Oct 2022 22:29:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229902AbiJaW3K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Oct 2022 18:29:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40968 "EHLO
+        id S230088AbiJaW3U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Oct 2022 18:29:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230030AbiJaW24 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 18:28:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4A9D25EC
-        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 15:28:50 -0700 (PDT)
+        with ESMTP id S229981AbiJaW27 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 18:28:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5395926C0
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 15:28:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E87EE614D4
-        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 22:28:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 457A6C433C1;
-        Mon, 31 Oct 2022 22:28:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F0F82B818CE
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 22:28:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 892F2C433D6;
+        Mon, 31 Oct 2022 22:28:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667255329;
-        bh=6L+oS4f042ktsRqpT8m5akgDIMqyayL8CjWM4bJDAQw=;
+        s=korg; t=1667255331;
+        bh=LZ7SwBh0B0SZpNhSTYHmiA3pNoYLmENDLn6KWtUSuJE=;
         h=Date:To:From:Subject:From;
-        b=yNlj3PPFmfPkN7dPISze45kl1bMtCNg/RLPHqud+n7VhoBaqW5ZmbbedmQ1UVZd8i
-         Mwanwi8apLamuwBphGtkhjS7HHnMbXwWktjKuss/AiRx+Qd6y4cqw/45PCeqKyW3eK
-         bpP2nk+XGwXV0KbuIiVY4g5bwjAMF8g8aB4FSjHc=
-Date:   Mon, 31 Oct 2022 15:28:48 -0700
+        b=KH9sfUmvx+tNrbPgjkagMlv91y2xpwhAT3LdeHlXsMRe0HGGtbk20XA6xNOuQPkxi
+         GN2Z/futWH8/vb4uVVxNsxW6iDNPa036kuglCRjackDNRchlXWYWnWbC8e1EXQdq6I
+         d4Ct2+9v2dkB5bNGzxRPhTBULHuAYYIz/H8PmPB8=
+Date:   Mon, 31 Oct 2022 15:28:50 -0700
 To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
         avromanov@sberdevices.ru, senozhatsky@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-move-away-from-page-order-defines.patch added to mm-unstable branch
-Message-Id: <20221031222849.457A6C433C1@smtp.kernel.org>
+Subject: + zsmalloc-make-huge-class-watermark-zs_pool-member.patch added to mm-unstable branch
+Message-Id: <20221031222851.892F2C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: move away from page order defines
+     Subject: zsmalloc: make huge class watermark zs_pool member
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-move-away-from-page-order-defines.patch
+     zsmalloc-make-huge-class-watermark-zs_pool-member.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-move-away-from-page-order-defines.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-make-huge-class-watermark-zs_pool-member.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,14 +66,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: move away from page order defines
-Date: Mon, 31 Oct 2022 14:41:02 +0900
+Subject: zsmalloc: make huge class watermark zs_pool member
+Date: Mon, 31 Oct 2022 14:41:03 +0900
 
-There is no reason for us to require pages per-zspage to be a power of
-two.  Rename macros and use plain limit numbers there instead of 2 ^ N
-values.  This will let us to have more tunable limits.
+We will permit per-pool configuration of pages per-zspage value, which
+changes characteristics of the classes and moves around huge class size
+watermark.  Thus huge class size needs to be a per-pool variable.
 
-Link: https://lkml.kernel.org/r/20221031054108.541190-4-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20221031054108.541190-5-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Alexey Romanov <avromanov@sberdevices.ru>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -81,57 +81,56 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zsmalloc.h |   16 +++++++---------
- mm/zsmalloc.c            |    4 +---
- 2 files changed, 8 insertions(+), 12 deletions(-)
+ mm/zsmalloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/zsmalloc.h~zsmalloc-move-away-from-page-order-defines
-+++ a/include/linux/zsmalloc.h
-@@ -33,17 +33,15 @@ enum zs_mapmode {
- 	 */
- };
- 
--#define ZS_PAGE_ORDER_2		2
--#define ZS_PAGE_ORDER_4		4
--
- /*
-- * A single 'zspage' is composed of up to 2^N discontiguous 0-order (single)
-- * pages. ZS_MAX_PAGE_ORDER defines upper limit on N, ZS_MIN_PAGE_ORDER
-- * defines lower limit on N. ZS_DEFAULT_PAGE_ORDER is recommended value.
-+ * A single 'zspage' is composed of up to N discontiguous 0-order
-+ * (single) pages. ZS_MAX_PAGES_PER_ZSPAGE defines upper limit on N,
-+ * ZS_MIN_PAGES_PER_ZSPAGE defines lower limit on N.
-+ * ZS_DEFAULT_PAGES_PER_ZSPAGE is a recommended value.
-  */
--#define ZS_MIN_PAGE_ORDER	ZS_PAGE_ORDER_2
--#define ZS_MAX_PAGE_ORDER	ZS_PAGE_ORDER_4
--#define ZS_DEFAULT_PAGE_ORDER	ZS_PAGE_ORDER_2
-+#define ZS_MIN_PAGES_PER_ZSPAGE	1
-+#define ZS_MAX_PAGES_PER_ZSPAGE	16
-+#define ZS_DEFAULT_PAGES_PER_ZSPAGE	4
- 
- struct zs_pool_stats {
- 	/* How many pages were migrated (freed) */
---- a/mm/zsmalloc.c~zsmalloc-move-away-from-page-order-defines
+--- a/mm/zsmalloc.c~zsmalloc-make-huge-class-watermark-zs_pool-member
 +++ a/mm/zsmalloc.c
-@@ -73,8 +73,6 @@
+@@ -177,7 +177,6 @@ static struct dentry *zs_stat_root;
+  * (see: fix_fullness_group())
   */
- #define ZS_ALIGN		8
+ static const int fullness_threshold_frac = 4;
+-static size_t huge_class_size;
  
--#define ZS_MAX_PAGES_PER_ZSPAGE	(_AC(1, UL) << ZS_MAX_PAGE_ORDER)
--
- #define ZS_HANDLE_SIZE (sizeof(unsigned long))
+ struct size_class {
+ 	struct list_head fullness_list[NR_ZS_FULLNESS];
+@@ -231,6 +230,7 @@ struct zs_pool {
  
- /*
-@@ -2336,7 +2334,7 @@ struct zs_pool *zs_create_pool(const cha
- 	if (!pool)
- 		return NULL;
+ 	u32 num_size_classes;
+ 	u32 min_alloc_size;
++	size_t huge_class_size;
  
--	num_pages = 1UL << ZS_DEFAULT_PAGE_ORDER;
-+	num_pages = ZS_DEFAULT_PAGES_PER_ZSPAGE;
- 	/* min_alloc_size must be multiple of ZS_ALIGN */
- 	pool->min_alloc_size = num_pages << PAGE_SHIFT >> OBJ_INDEX_BITS;
- 	pool->min_alloc_size = max(pool->min_alloc_size, ZS_MIN_ALLOC_SIZE);
+ 	struct zs_pool_stats stats;
+ 
+@@ -1445,7 +1445,7 @@ EXPORT_SYMBOL_GPL(zs_unmap_object);
+  */
+ size_t zs_huge_class_size(struct zs_pool *pool)
+ {
+-	return huge_class_size;
++	return pool->huge_class_size;
+ }
+ EXPORT_SYMBOL_GPL(zs_huge_class_size);
+ 
+@@ -2383,8 +2383,8 @@ struct zs_pool *zs_create_pool(const cha
+ 		 * endup in the huge class.
+ 		 */
+ 		if (pages_per_zspage != 1 && objs_per_zspage != 1 &&
+-				!huge_class_size) {
+-			huge_class_size = size;
++				!pool->huge_class_size) {
++			pool->huge_class_size = size;
+ 			/*
+ 			 * The object uses ZS_HANDLE_SIZE bytes to store the
+ 			 * handle. We need to subtract it, because zs_malloc()
+@@ -2394,7 +2394,7 @@ struct zs_pool *zs_create_pool(const cha
+ 			 * class because it grows by ZS_HANDLE_SIZE extra bytes
+ 			 * right before class lookup.
+ 			 */
+-			huge_class_size -= (ZS_HANDLE_SIZE - 1);
++			pool->huge_class_size -= (ZS_HANDLE_SIZE - 1);
+ 		}
+ 
+ 		/*
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
