@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEF09FA3746
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Oct 2022 22:29:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5063DECAAA1
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Oct 2022 22:29:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229890AbiJaW3Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Oct 2022 18:29:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41904 "EHLO
+        id S230075AbiJaW3f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Oct 2022 18:29:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230054AbiJaW3T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 18:29:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8467925EA
-        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 15:28:58 -0700 (PDT)
+        with ESMTP id S230077AbiJaW3U (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 18:29:20 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A264D265F
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 15:28:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3A0B0B819AC
-        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 22:28:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC8A8C433C1;
-        Mon, 31 Oct 2022 22:28:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3E9F1614D3
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 22:28:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 909EBC433D6;
+        Mon, 31 Oct 2022 22:28:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667255335;
-        bh=RHlUcilbX+zKZj0XlcGHB2Rypn294pdFFpJXC2PQrwM=;
+        s=korg; t=1667255338;
+        bh=fOXQA4ZiPvgKUbIHKD1xCRhK/rmf/q+wSiE+DpEQHQY=;
         h=Date:To:From:Subject:From;
-        b=bPps1jzs+ZlqgDinWPZiNLZhB2P7Gzght86CYDE50EnNvUanDEPjum83dDLfE/Vn9
-         XWVX2l2u/ai3VVgsvyBR0sqV8OIdWEYNx2Pk5ffgMXFm+OhNKJycUQM9QJ9rCSGQis
-         hYsCsulX8ZwM21eIiFRCIT4A7QXUCCPeyLLsCKWk=
-Date:   Mon, 31 Oct 2022 15:28:55 -0700
+        b=fguiUGAG2sn69ZkPTTBeBiBPsumj0eF+4sw+UTRY01VSV5VnOF49gPv6CiySUPU5G
+         22TFvzfvvHY+/Pmt483Zq+yQVjC+IMDSzAszy8q678cfvrY2WWfCEyrtZQAdI4gRHC
+         Vm3+lgNICh6Q6VEeJh9dHhpVdfbSELDCAyyxPhq8=
+Date:   Mon, 31 Oct 2022 15:28:57 -0700
 To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
         avromanov@sberdevices.ru, senozhatsky@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool.patch added to mm-unstable branch
-Message-Id: <20221031222855.CC8A8C433C1@smtp.kernel.org>
+Subject: + zram-add-pages_per_pool_page-device-attribute.patch added to mm-unstable branch
+Message-Id: <20221031222858.909EBC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: pass limit on pages per-zspage to zs_create_pool()
+     Subject: zram: add pages_per_pool_page device attribute
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool.patch
+     zram-add-pages_per_pool_page-device-attribute.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-pages_per_pool_page-device-attribute.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,17 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: pass limit on pages per-zspage to zs_create_pool()
-Date: Mon, 31 Oct 2022 14:41:05 +0900
+Subject: zram: add pages_per_pool_page device attribute
+Date: Mon, 31 Oct 2022 14:41:06 +0900
 
-Allow zsmalloc pool owner to specify max number of pages per-zspage
-(during pool creation), so that different pools can have different
-characteristics.
+Add a new sysfs knob that allows user-space to set zsmalloc pages
+per-zspage limit value on per-device basis.
 
-By default we pass ZS_DEFAULT_PAGES_PER_ZSPAGE which is 4 (matches the
-current order 2 zspages limit).
-
-Link: https://lkml.kernel.org/r/20221031054108.541190-7-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20221031054108.541190-8-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Alexey Romanov <avromanov@sberdevices.ru>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -84,77 +80,102 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    3 ++-
- include/linux/zsmalloc.h      |    2 +-
- mm/zsmalloc.c                 |   11 +++++++----
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |   44 +++++++++++++++++++++++++++++++-
+ drivers/block/zram/zram_drv.h |    2 +
+ 2 files changed, 45 insertions(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool
+--- a/drivers/block/zram/zram_drv.c~zram-add-pages_per_pool_page-device-attribute
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1247,7 +1247,8 @@ static bool zram_meta_alloc(struct zram
- 	if (!zram->table)
+@@ -1180,6 +1180,45 @@ static ssize_t mm_stat_show(struct devic
+ 	return ret;
+ }
+ 
++static ssize_t pages_per_pool_page_show(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	u32 val;
++	struct zram *zram = dev_to_zram(dev);
++
++	down_read(&zram->init_lock);
++	val = zram->pages_per_pool_page;
++	up_read(&zram->init_lock);
++
++	return scnprintf(buf, PAGE_SIZE, "%d\n", val);
++}
++
++static ssize_t pages_per_pool_page_store(struct device *dev,
++					 struct device_attribute *attr,
++					 const char *buf, size_t len)
++{
++	struct zram *zram = dev_to_zram(dev);
++	u32 val;
++
++	if (kstrtou32(buf, 10, &val))
++		return -EINVAL;
++
++	if (val < ZS_MIN_PAGES_PER_ZSPAGE || val > ZS_MAX_PAGES_PER_ZSPAGE)
++		return -EINVAL;
++
++	down_read(&zram->init_lock);
++	if (init_done(zram)) {
++		up_read(&zram->init_lock);
++		return -EINVAL;
++	}
++
++	zram->pages_per_pool_page = val;
++	up_read(&zram->init_lock);
++
++	return len;
++}
++
+ #ifdef CONFIG_ZRAM_WRITEBACK
+ #define FOUR_K(x) ((x) * (1 << (PAGE_SHIFT - 12)))
+ static ssize_t bd_stat_show(struct device *dev,
+@@ -1248,7 +1287,7 @@ static bool zram_meta_alloc(struct zram
  		return false;
  
--	zram->mem_pool = zs_create_pool(zram->disk->disk_name);
-+	zram->mem_pool = zs_create_pool(zram->disk->disk_name,
-+					ZS_DEFAULT_PAGES_PER_ZSPAGE);
+ 	zram->mem_pool = zs_create_pool(zram->disk->disk_name,
+-					ZS_DEFAULT_PAGES_PER_ZSPAGE);
++					zram->pages_per_pool_page);
  	if (!zram->mem_pool) {
  		vfree(zram->table);
  		return false;
---- a/include/linux/zsmalloc.h~zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool
-+++ a/include/linux/zsmalloc.h
-@@ -50,7 +50,7 @@ struct zs_pool_stats {
+@@ -2174,6 +2213,7 @@ static DEVICE_ATTR_RW(writeback_limit_en
+ static DEVICE_ATTR_RW(recomp_algorithm);
+ static DEVICE_ATTR_WO(recompress);
+ #endif
++static DEVICE_ATTR_RW(pages_per_pool_page);
  
- struct zs_pool;
+ static struct attribute *zram_disk_attrs[] = {
+ 	&dev_attr_disksize.attr,
+@@ -2201,6 +2241,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_recomp_algorithm.attr,
+ 	&dev_attr_recompress.attr,
+ #endif
++	&dev_attr_pages_per_pool_page.attr,
+ 	NULL,
+ };
  
--struct zs_pool *zs_create_pool(const char *name);
-+struct zs_pool *zs_create_pool(const char *name, unsigned long num_pages);
- void zs_destroy_pool(struct zs_pool *pool);
+@@ -2238,6 +2279,7 @@ static int zram_add(void)
+ 		goto out_free_idr;
+ 	}
  
- unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t flags);
---- a/mm/zsmalloc.c~zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool
-+++ a/mm/zsmalloc.c
-@@ -407,7 +407,7 @@ static void *zs_zpool_create(const char
++	zram->pages_per_pool_page = ZS_DEFAULT_PAGES_PER_ZSPAGE;
+ 	zram->disk->major = zram_major;
+ 	zram->disk->first_minor = device_id;
+ 	zram->disk->minors = 1;
+--- a/drivers/block/zram/zram_drv.h~zram-add-pages_per_pool_page-device-attribute
++++ a/drivers/block/zram/zram_drv.h
+@@ -120,6 +120,8 @@ struct zram {
  	 */
- 	struct zs_pool *pool;
- 
--	pool = zs_create_pool(name);
-+	pool = zs_create_pool(name, ZS_DEFAULT_PAGES_PER_ZSPAGE);
- 	if (pool) {
- 		pool->zpool = zpool;
- 		pool->zpool_ops = zpool_ops;
-@@ -2316,6 +2316,7 @@ static int zs_register_shrinker(struct z
- /**
-  * zs_create_pool - Creates an allocation pool to work from.
-  * @name: pool name to be created
-+ * @num_pages: maximum number of pages per-zspage
-  *
-  * This function must be called before anything when using
-  * the zsmalloc allocator.
-@@ -2323,18 +2324,20 @@ static int zs_register_shrinker(struct z
-  * On success, a pointer to the newly created pool is returned,
-  * otherwise NULL.
-  */
--struct zs_pool *zs_create_pool(const char *name)
-+struct zs_pool *zs_create_pool(const char *name, unsigned long num_pages)
- {
- 	int i;
- 	struct zs_pool *pool;
- 	struct size_class *prev_class = NULL;
--	unsigned long num_pages;
+ 	u64 disksize;	/* bytes */
+ 	const char *comp_algs[ZRAM_MAX_ZCOMPS];
 +
-+	if (WARN_ON(num_pages < ZS_MIN_PAGES_PER_ZSPAGE ||
-+		    num_pages > ZS_MAX_PAGES_PER_ZSPAGE))
-+		return NULL;
- 
- 	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
- 	if (!pool)
- 		return NULL;
- 
--	num_pages = ZS_DEFAULT_PAGES_PER_ZSPAGE;
- 	/* min_alloc_size must be multiple of ZS_ALIGN */
- 	pool->min_alloc_size = num_pages << PAGE_SHIFT >> OBJ_INDEX_BITS;
- 	pool->min_alloc_size = max(pool->min_alloc_size, ZS_MIN_ALLOC_SIZE);
++	u32 pages_per_pool_page;
+ 	/*
+ 	 * Pages that compress to sizes equal or greater than this are stored
+ 	 * uncompressed in memory.
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
