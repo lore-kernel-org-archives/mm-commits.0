@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 236FDECAAA1
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Oct 2022 22:29:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEF09FA3746
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Oct 2022 22:29:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230035AbiJaW3W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Oct 2022 18:29:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40918 "EHLO
+        id S229890AbiJaW3Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Oct 2022 18:29:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230046AbiJaW3S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 18:29:18 -0400
+        with ESMTP id S230054AbiJaW3T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 18:29:19 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39DEA26D6
-        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 15:28:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8467925EA
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 15:28:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E072FB81AD7
-        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 22:28:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89586C433D6;
-        Mon, 31 Oct 2022 22:28:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3A0B0B819AC
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 22:28:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC8A8C433C1;
+        Mon, 31 Oct 2022 22:28:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667255333;
-        bh=YVoerWS1AohM1W9MshdbCZNtuL7YnE2ga3ng7XcoGgE=;
+        s=korg; t=1667255335;
+        bh=RHlUcilbX+zKZj0XlcGHB2Rypn294pdFFpJXC2PQrwM=;
         h=Date:To:From:Subject:From;
-        b=uc91qiFEM+JeHvc8T1HPN9IrAAWENEFX0YNaLoRR5rg3mD4sf3KoM6KWUfv0GWcfx
-         XQVXJfsTzKFSIxymFYuA30sbdMfOteT7BBwFcdX5fgn4NSOSZgN+4RI1i0avAVF4Pk
-         rUZ3osVL5Md5MIcXmKfx+QGVWQl1UpvzkdI0vwiM=
-Date:   Mon, 31 Oct 2022 15:28:52 -0700
+        b=bPps1jzs+ZlqgDinWPZiNLZhB2P7Gzght86CYDE50EnNvUanDEPjum83dDLfE/Vn9
+         XWVX2l2u/ai3VVgsvyBR0sqV8OIdWEYNx2Pk5ffgMXFm+OhNKJycUQM9QJ9rCSGQis
+         hYsCsulX8ZwM21eIiFRCIT4A7QXUCCPeyLLsCKWk=
+Date:   Mon, 31 Oct 2022 15:28:55 -0700
 To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
         avromanov@sberdevices.ru, senozhatsky@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-huge-size-watermark-cannot-be-global.patch added to mm-unstable branch
-Message-Id: <20221031222853.89586C433D6@smtp.kernel.org>
+Subject: + zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool.patch added to mm-unstable branch
+Message-Id: <20221031222855.CC8A8C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: huge size watermark cannot be global
+     Subject: zsmalloc: pass limit on pages per-zspage to zs_create_pool()
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-huge-size-watermark-cannot-be-global.patch
+     zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-huge-size-watermark-cannot-be-global.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,15 +66,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: huge size watermark cannot be global
-Date: Mon, 31 Oct 2022 14:41:04 +0900
+Subject: zsmalloc: pass limit on pages per-zspage to zs_create_pool()
+Date: Mon, 31 Oct 2022 14:41:05 +0900
 
-ZRAM will pass pool specific limit on number of pages per-zspages which
-will affect pool's characteristics.  Namely huge size class watermark
-value.  Move huge_class_size to struct zram, because this value now can be
-unique to the pool (zram device).
+Allow zsmalloc pool owner to specify max number of pages per-zspage
+(during pool creation), so that different pools can have different
+characteristics.
 
-Link: https://lkml.kernel.org/r/20221031054108.541190-6-senozhatsky@chromium.org
+By default we pass ZS_DEFAULT_PAGES_PER_ZSPAGE which is 4 (matches the
+current order 2 zspages limit).
+
+Link: https://lkml.kernel.org/r/20221031054108.541190-7-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Alexey Romanov <avromanov@sberdevices.ru>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -82,67 +84,77 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   13 +++----------
- drivers/block/zram/zram_drv.h |    5 +++++
- 2 files changed, 8 insertions(+), 10 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 ++-
+ include/linux/zsmalloc.h      |    2 +-
+ mm/zsmalloc.c                 |   11 +++++++----
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-huge-size-watermark-cannot-be-global
+--- a/drivers/block/zram/zram_drv.c~zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool
 +++ a/drivers/block/zram/zram_drv.c
-@@ -50,12 +50,6 @@ static const char *default_comp_algs[ZRA
- 
- /* Module params (documentation at end) */
- static unsigned int num_devices = 1;
--/*
-- * Pages that compress to sizes equals or greater than this are stored
-- * uncompressed in memory.
-- */
--static size_t huge_class_size;
--
- static const struct block_device_operations zram_devops;
- 
- static void zram_free_page(struct zram *zram, size_t index);
-@@ -1259,8 +1253,7 @@ static bool zram_meta_alloc(struct zram
+@@ -1247,7 +1247,8 @@ static bool zram_meta_alloc(struct zram
+ 	if (!zram->table)
  		return false;
- 	}
  
--	if (!huge_class_size)
--		huge_class_size = zs_huge_class_size(zram->mem_pool);
-+	zram->huge_class_size = zs_huge_class_size(zram->mem_pool);
- 	return true;
- }
+-	zram->mem_pool = zs_create_pool(zram->disk->disk_name);
++	zram->mem_pool = zs_create_pool(zram->disk->disk_name,
++					ZS_DEFAULT_PAGES_PER_ZSPAGE);
+ 	if (!zram->mem_pool) {
+ 		vfree(zram->table);
+ 		return false;
+--- a/include/linux/zsmalloc.h~zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool
++++ a/include/linux/zsmalloc.h
+@@ -50,7 +50,7 @@ struct zs_pool_stats {
  
-@@ -1488,7 +1481,7 @@ compress_again:
- 		return ret;
- 	}
+ struct zs_pool;
  
--	if (comp_len >= huge_class_size)
-+	if (comp_len >= zram->huge_class_size)
- 		comp_len = PAGE_SIZE;
- 	/*
- 	 * handle allocation has 2 paths:
-@@ -1665,7 +1658,7 @@ static int zram_recompress(struct zram *
- 	 * in a way that will save us memory. Mark the object so that we
- 	 * don't attempt to re-compress it again (RECOMP_SKIP).
+-struct zs_pool *zs_create_pool(const char *name);
++struct zs_pool *zs_create_pool(const char *name, unsigned long num_pages);
+ void zs_destroy_pool(struct zs_pool *pool);
+ 
+ unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t flags);
+--- a/mm/zsmalloc.c~zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool
++++ a/mm/zsmalloc.c
+@@ -407,7 +407,7 @@ static void *zs_zpool_create(const char
  	 */
--	if (comp_len_next >= huge_class_size ||
-+	if (comp_len_next >= zram->huge_class_size ||
- 	    comp_len_next >= comp_len_prev ||
- 	    class_index_next >= class_index_prev ||
- 	    ret) {
---- a/drivers/block/zram/zram_drv.h~zram-huge-size-watermark-cannot-be-global
-+++ a/drivers/block/zram/zram_drv.h
-@@ -121,6 +121,11 @@ struct zram {
- 	u64 disksize;	/* bytes */
- 	const char *comp_algs[ZRAM_MAX_ZCOMPS];
- 	/*
-+	 * Pages that compress to sizes equal or greater than this are stored
-+	 * uncompressed in memory.
-+	 */
-+	size_t huge_class_size;
-+	/*
- 	 * zram is claimed so open request will be failed
- 	 */
- 	bool claim; /* Protected by disk->open_mutex */
+ 	struct zs_pool *pool;
+ 
+-	pool = zs_create_pool(name);
++	pool = zs_create_pool(name, ZS_DEFAULT_PAGES_PER_ZSPAGE);
+ 	if (pool) {
+ 		pool->zpool = zpool;
+ 		pool->zpool_ops = zpool_ops;
+@@ -2316,6 +2316,7 @@ static int zs_register_shrinker(struct z
+ /**
+  * zs_create_pool - Creates an allocation pool to work from.
+  * @name: pool name to be created
++ * @num_pages: maximum number of pages per-zspage
+  *
+  * This function must be called before anything when using
+  * the zsmalloc allocator.
+@@ -2323,18 +2324,20 @@ static int zs_register_shrinker(struct z
+  * On success, a pointer to the newly created pool is returned,
+  * otherwise NULL.
+  */
+-struct zs_pool *zs_create_pool(const char *name)
++struct zs_pool *zs_create_pool(const char *name, unsigned long num_pages)
+ {
+ 	int i;
+ 	struct zs_pool *pool;
+ 	struct size_class *prev_class = NULL;
+-	unsigned long num_pages;
++
++	if (WARN_ON(num_pages < ZS_MIN_PAGES_PER_ZSPAGE ||
++		    num_pages > ZS_MAX_PAGES_PER_ZSPAGE))
++		return NULL;
+ 
+ 	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
+ 	if (!pool)
+ 		return NULL;
+ 
+-	num_pages = ZS_DEFAULT_PAGES_PER_ZSPAGE;
+ 	/* min_alloc_size must be multiple of ZS_ALIGN */
+ 	pool->min_alloc_size = num_pages << PAGE_SHIFT >> OBJ_INDEX_BITS;
+ 	pool->min_alloc_size = max(pool->min_alloc_size, ZS_MIN_ALLOC_SIZE);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
