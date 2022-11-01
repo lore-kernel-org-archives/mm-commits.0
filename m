@@ -2,157 +2,316 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85D5AFA3740
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Nov 2022 02:44:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71F70C43219
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Nov 2022 19:16:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229517AbiKACoJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Oct 2022 22:44:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41924 "EHLO
+        id S230372AbiKATQe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Nov 2022 15:16:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229819AbiKACoI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 22:44:08 -0400
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8273017591;
-        Mon, 31 Oct 2022 19:44:07 -0700 (PDT)
-Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
-        by mx0b-00069f02.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 2A12EIA2004915;
-        Tue, 1 Nov 2022 02:41:51 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : content-type : in-reply-to :
- mime-version; s=corp-2022-7-12;
- bh=2/9ccQ+M0IZO1oa6SVxKEB9fPTZf44CjgIw7wQQZ7oA=;
- b=cEYxRgQJvlYjJRQFTis3J7d0btvMdAS9tYgQBaYr97WcxJnTsswKTpGnoKVBEW/M7UiY
- T5hxio0u2Dv01uHnFpBDi+s+gRRGWwaWtH58uDQDOTcT1jLpSQBQ2Y+yIJfbvGOVxJK9
- wPYCAL1BteLjWYIWuUi8f/9Ybo4pez6ErN1Wn4iYdy1QUfZ1lnWiV/Lr8K7bPI9r59G9
- KDfsLEQZkigpo6blZWrM/lhAzYibYuTgZA7w9TlQA1o3Y0BCA7b/SYzvloHenZiX7dGL
- GTusF8yXz+vGLuU6Esx5fetEQ3DlawH0/W7qIpKJD/D97uj0RAWxRU3OBReHmaMNxBQQ Ng== 
-Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
-        by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3kgty2whjw-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 01 Nov 2022 02:41:51 +0000
-Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-        by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.17.1.5/8.17.1.5) with ESMTP id 29VNClDU037268;
-        Tue, 1 Nov 2022 02:41:50 GMT
-Received: from nam10-bn7-obe.outbound.protection.outlook.com (mail-bn7nam10lp2100.outbound.protection.outlook.com [104.47.70.100])
-        by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 3kgtm3x2ax-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 01 Nov 2022 02:41:50 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=kbFiRE3MnyI7PSwVsT4LRDkQUkHmGquOyWd7htRDsXxJ2ZnvVFvalWSjfhatALSW07B5LIuPS1TkOlBMYZSQnRlm1qgQU88aqJSRGarfmzMFmQ/OBF16GDCFD1Nw5+SPkBV0dnKaPI88gkMCyzU37dnfbk96b5ek3i13aYkg6x4ok65dMJLfRm0QmdCk0SlMcbXbQnRbfBgD9ZqUxAYZLh4v5jlUW2Juudxwj9GOb4jaZATq1or7/K1irmK7FkdP81RP414DRwZQ4NdDxrYdXC9yJ1NAsaKcNsRT7wk8oOfkdZwIkWSGUW/0k92fR15FcsInyERYGi/vR3co195QNw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=2/9ccQ+M0IZO1oa6SVxKEB9fPTZf44CjgIw7wQQZ7oA=;
- b=l159Ey/NKuSr8VNpBxBQ4Y1oEb5bVe+jSvfNIkHra5hAEu9NJkcI8gVjaBOis+oKTzSJo1BkdysQ01uT6aRMJlLXmeO86pshe9Lw9IthK5+B1NcMYs1aGJbo6jLezT24CgfYr8kRMJUbWE3MErEHKKpvPxE1lRcukwQhLyzpoUgOG/XyFl10g2TcnAKwCp8AZ/NIRfOedcj7ZcIJ5Djhknw0M8sYQbEio4m+vdBxaXZqD3+mAzeSsg+3hhsnT5cFf0xv6gpv0LiAwLFwlS53ifw1RdrQcNRGt7ZDGSBjNij5ne84l6KDRRsx6gh4hKP2TfRP63WMUyRYC+JIRcSKRA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=2/9ccQ+M0IZO1oa6SVxKEB9fPTZf44CjgIw7wQQZ7oA=;
- b=szpQV3b9cjnYVeNLd2j/nJqV58Vc0j75mXHySNjA+VLf+PEd6IhC7EXCnWrA3/c3MyrdvaZMvu4tYHDXI2jINtg7yEXTMTDGAddLclF98N10lvRSKp+q+ZjPz6pLUJlPzILvFBxRZEW+6Jgx4b/rBxCQW7COiR+VL4v7pXxeA/E=
-Received: from BY5PR10MB4196.namprd10.prod.outlook.com (2603:10b6:a03:20d::23)
- by PH7PR10MB6105.namprd10.prod.outlook.com (2603:10b6:510:1fb::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5769.19; Tue, 1 Nov
- 2022 02:41:47 +0000
-Received: from BY5PR10MB4196.namprd10.prod.outlook.com
- ([fe80::58e9:95ba:d31e:ddd3]) by BY5PR10MB4196.namprd10.prod.outlook.com
- ([fe80::58e9:95ba:d31e:ddd3%6]) with mapi id 15.20.5769.021; Tue, 1 Nov 2022
- 02:41:47 +0000
-Date:   Mon, 31 Oct 2022 19:41:41 -0700
-From:   Mike Kravetz <mike.kravetz@oracle.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        with ESMTP id S230389AbiKATQc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2022 15:16:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4ECB213CFD;
+        Tue,  1 Nov 2022 12:16:31 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F3963B81F43;
+        Tue,  1 Nov 2022 19:16:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90E75C433D6;
+        Tue,  1 Nov 2022 19:16:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1667330188;
+        bh=NLVGWAt9nNzjfUfMgL/utIUpqDOnioir+qN7auMeHf4=;
+        h=Date:To:From:Subject:From;
+        b=2JfQZOJoPbqiesuLvZKPSG19XvbxOxR+3qzKOytnR/g/i98twQWpE80wSy5cUnTE+
+         NSviWUcfnWx3pL4gV02jb646Z4YU2vWdyuUSeLyBkvT5HkzdCfoB4c5IhcQHZsaG1A
+         4AMZLpu0fXyQwjQDXuY88RQWLsw2K3n4UFfB8ejw=
+Date:   Tue, 01 Nov 2022 12:16:27 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         stable@vger.kernel.org, riel@surriel.com, peterx@redhat.com,
         naoya.horiguchi@linux.dev, nadav.amit@gmail.com,
         harperchen1110@gmail.com, david@redhat.com,
-        axelrasmussen@google.com, almasrymina@google.com
-Subject: Re: +
- hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch added
- to mm-hotfixes-unstable branch
-Message-ID: <Y2CHZfg639UCoNFl@monkey>
-References: <20221031224833.0023BC433D6@smtp.kernel.org>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221031224833.0023BC433D6@smtp.kernel.org>
-X-ClientProxiedBy: MW2PR16CA0025.namprd16.prod.outlook.com (2603:10b6:907::38)
- To BY5PR10MB4196.namprd10.prod.outlook.com (2603:10b6:a03:20d::23)
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BY5PR10MB4196:EE_|PH7PR10MB6105:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9acae879-77d1-43e6-a75a-08dabbb29ee9
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: plr4gHNU3yyhwFJL4+b9mC+12RlM6h+m7NjADDWSPTwAN2cg4oj0/WfPQjxMuHekQBpJ3kdtYFnd+YKPsPuD62b9OOvjd2IZ1Zrap8niQZIxN5XQIXa3yRootE2Jsyn2lQdp02jAIGcISrLWqDFja6tCZvVI8yBpeIsy87tKyjF+3blHvESfzoA9OMnYRrMMV+QLumHLGnUhemScMFE9W1HGoWySBvlUQjqXasQFOZ1eMBAPE6Dsp/5gT1vsauFJ4Alkm23uITwSHL/86f4VCBu9v7PQtqkAe3Jiwk5fX1L0Q9Yd0ioXeFjWJHTvIXT5zpv7zb979q3ORsnSUOKR9P1S54stg/zofy2cUiXVExglEAI+hV51w865t5fCBkUxTXGOC7WyrBF/lxF+7cD26gLQC3HNvRjGpsi/rdYHZVU0qEwKWeYMJcMCXjVjXgOg1B2+Xyb+ZVuuoqCA1jedW3VjEb1HHG+6KkGQfQjM1jsl5wnpilZIHWGpEuQlXjHDG6gzWzsDMnEI9PejnBmiAmmE3NRIpgphOV0DALuey/HI7ms0hdNywuXIXTBqf24heK8XSktwyaGKehcztAiOqUuqLjCz+/6mwew7ssi5SE1azPq+BR52DEeO2ANlWhZtP02nMLaepSN9BFaCTTrSthsMMCflu03cC4EZJZkQ1a+bPbnmcIsQCUEDHuBB1045jK63iAcG241N2Q2sW9JEVL9Gs2rLrgbV2GFFJNgxM5xPYuP68+1kJee64l3BGJAY
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR10MB4196.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(7916004)(396003)(39860400002)(346002)(376002)(366004)(136003)(451199015)(38100700002)(186003)(6666004)(6506007)(478600001)(53546011)(6512007)(26005)(9686003)(83380400001)(5660300002)(4744005)(7416002)(41300700001)(8936002)(8676002)(2906002)(44832011)(6486002)(86362001)(6916009)(4326008)(33716001)(66946007)(316002)(66556008)(66476007)(192303002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?Zqc4qNqwnsb/i0AAQMKuFdiQFIlob6xSl65ZlngCzYmXgAZkz6+29ng15guj?=
- =?us-ascii?Q?hkVvKSrqSXMiYcH4RaJ+KA1swHGt+5zngNLmLgXjlKMb8zyEIKPLgXLt+V/J?=
- =?us-ascii?Q?IVo4m0WMLb0F++BsU7aGOlZB9IitS09V8PH4xeq3/3ChJrZKF9IZSS3x90sW?=
- =?us-ascii?Q?O+prjkmIbCgVJchwI3pXO+uHjS+BpXQRB8k26SavqNheNClYpOLRabRnNP3q?=
- =?us-ascii?Q?YXI9klAsn/YlpSfXu6yP3CosrR3sNgpDGrOMk7vEWCCsv0kAWuo0i+C72Xjm?=
- =?us-ascii?Q?q9G6/9H8OtWiuiC2r/M+4QKSEkkeR2KopMKVaaIMbyYDBy04UkNUDkFPeVNG?=
- =?us-ascii?Q?/en4aXkvv516K5jAFd1CrnwqTaT1Kdibnn9H0/Ucqoqs5Usa4vPK99ewdXha?=
- =?us-ascii?Q?z15n/x/mWrw97zvGbM1IEvNigVxsFP1k/eChZ3c3uK8l+u3scPWcQVCIySrn?=
- =?us-ascii?Q?zIG5YyeUidhJOjEnPIZajc0qdkrfNH0PcZSnF00X/1kkjqPtr2OA40NxEF6H?=
- =?us-ascii?Q?y9MzM0Iu5useoSaCo+l9WblDJzk+x2/qQWJVtOESqJldsDR9m6xJYSh91lGg?=
- =?us-ascii?Q?WxheKkCqTDwLmGJmH9ZpR86NkB1iM+tsZ/JZGD5lpVpHHTfY6vbHOFHvWJPA?=
- =?us-ascii?Q?JL9hBLtcUaheYFfKQ9x/kxsosEZ02sKtGSWt1l2CtTrZhMrfWlR3WHZWbqt3?=
- =?us-ascii?Q?Avymq+qY/N+RV7QPDrwTB2fyJcFvTKsvfeCul7Q4Ch5mtBnSaMkjgCI7ZcYt?=
- =?us-ascii?Q?b3MqbTUBnWEf6jIsCma41XQgYfRr0rT5EuZQwqmcx1pdm2MdfO4XMiQMtuGz?=
- =?us-ascii?Q?+4z/iotD5XIRRBoAMhalcXjqsADXy5bdQrpSQJ3rBX1IejUvxyBXzlO9F9MU?=
- =?us-ascii?Q?Indt21x32mBL7EowMSiNhnpyHiFAOG/ThoQNGhuWtUEQbKqOUGFrNH8lqL73?=
- =?us-ascii?Q?CxLboAnzN8KTYcI7ptyUds22VhbrCIgH9NQKROkBElQcEXtvGP+THIWTsFZF?=
- =?us-ascii?Q?HeD2/heQs8jZn9pRpwq1huzV0GdueEuPJuWCOItxgg6XlwLMsh74obOVE8aq?=
- =?us-ascii?Q?LE3cWfJidXYylfH+g5LH2060BMnk7ddFW5PLjHKWs3w419HDnaQRSzw22IiV?=
- =?us-ascii?Q?SMD+rSbCDkKns3ACTCRL+gFU7Y3rP4iQ7US5IP64/ih8hHNT96z0EaiLI8/3?=
- =?us-ascii?Q?mpYuFJMkTC2hO6Pxd+HxyoLR5kJvFtmD8YCeBZLxoMS+Oibe7tkjXH8S80wh?=
- =?us-ascii?Q?1qxlBHbC0BirORZkF5DcM501qp5UIh6jY+gCkLbctViZ/svpldUwyxpUU5Xf?=
- =?us-ascii?Q?qXAYJIYzWQGYTtxsYrj6kM6HZ+E6kt3bzStqq5UrCqNnzYVOctvZgnuynvQO?=
- =?us-ascii?Q?0IOcLUMktj+IyOwNyla3X0Cjd0c6++kTEq5krrIr9AaFIpgRhab3kqn46ZbZ?=
- =?us-ascii?Q?hTGiKP2J/kTJMSaUbsAuKHDkxH1CQdhFDMX7Uu/HuP5T4W3LHSLi/TIMkeDt?=
- =?us-ascii?Q?hTxMe00en5AxPT/BBiZkbbu7n97K6ee9zQakKQpMBPu5Qu+X3uHILgvX77Gw?=
- =?us-ascii?Q?lEzlXiWxZyrpFBCmjWg0b4Pa20fF9H9okPY2+ndNNdLeu1aIciBHREGUYtJI?=
- =?us-ascii?Q?Fg=3D=3D?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9acae879-77d1-43e6-a75a-08dabbb29ee9
-X-MS-Exchange-CrossTenant-AuthSource: BY5PR10MB4196.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Nov 2022 02:41:47.3219
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: erG2PpR3s1vio3pm0O1ozwQsNrXO9IWr49+CWWFTrf6XJl5eEQOGvfu0ULWcN7bCRHkLuT8w2qTPL2JoucxYxg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR10MB6105
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.895,Hydra:6.0.545,FMLib:17.11.122.1
- definitions=2022-10-31_22,2022-10-31_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 bulkscore=0 suspectscore=0
- mlxlogscore=970 mlxscore=0 adultscore=0 phishscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2210170000
- definitions=main-2211010018
-X-Proofpoint-ORIG-GUID: dEbAh-4WlpRyo3p5Wp_qPVEl09mv7LMN
-X-Proofpoint-GUID: dEbAh-4WlpRyo3p5Wp_qPVEl09mv7LMN
+        axelrasmussen@google.com, almasrymina@google.com,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch removed from -mm tree
+Message-Id: <20221101191628.90E75C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 10/31/22 15:48, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
-> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
->      hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
 
-Andrew, if possible please drop this from mm-hotfixes-unstable.  It
-contain left over/unused code and obsolete comments in the commit
-message.
+The quilt patch titled
+     Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
+has been removed from the -mm tree.  Its filename was
+     hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
 
-It should not cause any issues, but will certainly need to be updated.
--- 
-Mike Kravetz
+This patch was dropped because an updated version will be merged
+
+------------------------------------------------------
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
+Date: Mon, 31 Oct 2022 15:34:40 -0700
+
+madvise(MADV_DONTNEED) ends up calling zap_page_range() to clear the page
+tables associated with the address range.  For hugetlb vmas,
+zap_page_range will call __unmap_hugepage_range_final.  However,
+__unmap_hugepage_range_final assumes the passed vma is about to be removed
+and deletes the vma_lock to prevent pmd sharing as the vma is on the way
+out.  In the case of madvise(MADV_DONTNEED) the vma remains, but the
+missing vma_lock prevents pmd sharing and could potentially lead to issues
+with truncation/fault races.
+
+This issue was originally reported here [1] as a BUG triggered in
+page_try_dup_anon_rmap.  Prior to the introduction of the hugetlb
+vma_lock, __unmap_hugepage_range_final cleared the VM_MAYSHARE flag to
+prevent pmd sharing.  Subsequent faults on this vma were confused as
+VM_MAYSHARE indicates a sharable vma, but was not set so page_mapping was
+not set in new pages added to the page table.  This resulted in pages that
+appeared anonymous in a VM_SHARED vma and triggered the BUG.
+
+Create a new routine clear_hugetlb_page_range() that can be called from
+madvise(MADV_DONTNEED) for hugetlb vmas.  It has the same setup as
+zap_page_range, but does not delete the vma_lock.  Also, add a new zap
+flag ZAP_FLAG_UNMAP to indicate an unmap call from unmap_vmas().  This is
+used to indicate the 'final' unmapping of a vma.  The routine
+__unmap_hugepage_range to take a notification_needed argument.  This is
+used to prevent duplicate notifications.
+
+[1] https://lore.kernel.org/lkml/CAO4mrfdLMXsao9RF4fUE8-Wfde8xmjsKrTNMNC9wjUb6JudD0g@mail.gmail.com/
+
+Link: https://lkml.kernel.org/r/20221031223440.285187-1-mike.kravetz@oracle.com
+Fixes: 90e7e7f5ef3f ("mm: enable MADV_DONTNEED for hugetlb mappings")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Wei Chen <harperchen1110@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/hugetlb.h |    7 +++
+ include/linux/mm.h      |    3 +
+ mm/hugetlb.c            |   80 ++++++++++++++++++++++++++++----------
+ mm/memory.c             |   18 +++++---
+ 4 files changed, 82 insertions(+), 26 deletions(-)
+
+--- a/include/linux/hugetlb.h~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/include/linux/hugetlb.h
+@@ -156,6 +156,8 @@ long follow_hugetlb_page(struct mm_struc
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *,
+ 			  zap_flags_t);
++void clear_hugetlb_page_range(struct vm_area_struct *vma,
++			unsigned long start, unsigned long end);
+ void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+ 			  struct vm_area_struct *vma,
+ 			  unsigned long start, unsigned long end,
+@@ -460,6 +462,11 @@ static inline void __unmap_hugepage_rang
+ 	BUG();
+ }
+ 
++static void __maybe_unused clear_hugetlb_page_range(struct vm_area_struct *vma,
++			unsigned long start, unsigned long end)
++{
++}
++
+ static inline vm_fault_t hugetlb_fault(struct mm_struct *mm,
+ 			struct vm_area_struct *vma, unsigned long address,
+ 			unsigned int flags)
+--- a/include/linux/mm.h~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/include/linux/mm.h
+@@ -3475,4 +3475,7 @@ madvise_set_anon_name(struct mm_struct *
+  */
+ #define  ZAP_FLAG_DROP_MARKER        ((__force zap_flags_t) BIT(0))
+ 
++/* Set in unmap_vmas() to indicate an unmap call.  Only used by hugetlb */
++#define  ZAP_FLAG_UNMAP              ((__force zap_flags_t) BIT(1))
++
+ #endif /* _LINUX_MM_H */
+--- a/mm/hugetlb.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/mm/hugetlb.c
+@@ -5064,7 +5064,6 @@ static void __unmap_hugepage_range(struc
+ 	struct page *page;
+ 	struct hstate *h = hstate_vma(vma);
+ 	unsigned long sz = huge_page_size(h);
+-	struct mmu_notifier_range range;
+ 	unsigned long last_addr_mask;
+ 	bool force_flush = false;
+ 
+@@ -5079,13 +5078,6 @@ static void __unmap_hugepage_range(struc
+ 	tlb_change_page_size(tlb, sz);
+ 	tlb_start_vma(tlb, vma);
+ 
+-	/*
+-	 * If sharing possible, alert mmu notifiers of worst case.
+-	 */
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, mm, start,
+-				end);
+-	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
+-	mmu_notifier_invalidate_range_start(&range);
+ 	last_addr_mask = hugetlb_mask_last_page(h);
+ 	address = start;
+ 	for (; address < end; address += sz) {
+@@ -5174,7 +5166,6 @@ static void __unmap_hugepage_range(struc
+ 		if (ref_page)
+ 			break;
+ 	}
+-	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_end_vma(tlb, vma);
+ 
+ 	/*
+@@ -5194,37 +5185,86 @@ static void __unmap_hugepage_range(struc
+ 		tlb_flush_mmu_tlbonly(tlb);
+ }
+ 
+-void __unmap_hugepage_range_final(struct mmu_gather *tlb,
++static void __unmap_hugepage_range_locking(struct mmu_gather *tlb,
+ 			  struct vm_area_struct *vma, unsigned long start,
+ 			  unsigned long end, struct page *ref_page,
+ 			  zap_flags_t zap_flags)
+ {
++	bool final = zap_flags & ZAP_FLAG_UNMAP;
++
+ 	hugetlb_vma_lock_write(vma);
+ 	i_mmap_lock_write(vma->vm_file->f_mapping);
+ 
+ 	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
+ 
+-	/*
+-	 * Unlock and free the vma lock before releasing i_mmap_rwsem.  When
+-	 * the vma_lock is freed, this makes the vma ineligible for pmd
+-	 * sharing.  And, i_mmap_rwsem is required to set up pmd sharing.
+-	 * This is important as page tables for this unmapped range will
+-	 * be asynchrously deleted.  If the page tables are shared, there
+-	 * will be issues when accessed by someone else.
+-	 */
+-	__hugetlb_vma_unlock_write_free(vma);
++	if (final) {
++		/*
++		 * Unlock and free the vma lock before releasing i_mmap_rwsem.
++		 * When the vma_lock is freed, this makes the vma ineligible
++		 * for pmd sharing.  And, i_mmap_rwsem is required to set up
++		 * pmd sharing.  This is important as page tables for this
++		 * unmapped range will be asynchrously deleted.  If the page
++		 * tables are shared, there will be issues when accessed by
++		 * someone else.
++		 */
++		__hugetlb_vma_unlock_write_free(vma);
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
++	} else {
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
++		hugetlb_vma_unlock_write(vma);
++	}
++}
++
++void __unmap_hugepage_range_final(struct mmu_gather *tlb,
++			  struct vm_area_struct *vma, unsigned long start,
++			  unsigned long end, struct page *ref_page,
++			  zap_flags_t zap_flags)
++{
++	__unmap_hugepage_range_locking(tlb, vma, start, end, ref_page,
++					zap_flags);
++}
++
++#ifdef CONFIG_ADVISE_SYSCALLS
++/*
++ * Similar setup as in zap_page_range().  madvise(MADV_DONTNEED) can not call
++ * zap_page_range for hugetlb vmas as __unmap_hugepage_range_final will delete
++ * the associated vma_lock.
++ */
++void clear_hugetlb_page_range(struct vm_area_struct *vma, unsigned long start,
++				unsigned long end)
++{
++	struct mmu_notifier_range range;
++	struct mmu_gather tlb;
++
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
++				start, end);
++	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
++	tlb_gather_mmu(&tlb, vma->vm_mm);
++	update_hiwater_rss(vma->vm_mm);
++	mmu_notifier_invalidate_range_start(&range);
+ 
+-	i_mmap_unlock_write(vma->vm_file->f_mapping);
++	__unmap_hugepage_range_locking(&tlb, vma, start, end, NULL, 0);
++
++	mmu_notifier_invalidate_range_end(&range);
++	tlb_finish_mmu(&tlb);
+ }
++#endif
+ 
+ void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
+ 			  unsigned long end, struct page *ref_page,
+ 			  zap_flags_t zap_flags)
+ {
++	struct mmu_notifier_range range;
+ 	struct mmu_gather tlb;
+ 
++	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, vma->vm_mm,
++				start, end);
++	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
+ 	tlb_gather_mmu(&tlb, vma->vm_mm);
++
+ 	__unmap_hugepage_range(&tlb, vma, start, end, ref_page, zap_flags);
++
++	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_finish_mmu(&tlb);
+ }
+ 
+--- a/mm/memory.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/mm/memory.c
+@@ -1720,7 +1720,7 @@ void unmap_vmas(struct mmu_gather *tlb,
+ {
+ 	struct mmu_notifier_range range;
+ 	struct zap_details details = {
+-		.zap_flags = ZAP_FLAG_DROP_MARKER,
++		.zap_flags = ZAP_FLAG_DROP_MARKER | ZAP_FLAG_UNMAP,
+ 		/* Careful - we need to zap private pages too! */
+ 		.even_cows = true,
+ 	};
+@@ -1753,15 +1753,21 @@ void zap_page_range(struct vm_area_struc
+ 	MA_STATE(mas, mt, vma->vm_end, vma->vm_end);
+ 
+ 	lru_add_drain();
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+-				start, start + size);
+ 	tlb_gather_mmu(&tlb, vma->vm_mm);
+ 	update_hiwater_rss(vma->vm_mm);
+-	mmu_notifier_invalidate_range_start(&range);
+ 	do {
+-		unmap_single_vma(&tlb, vma, start, range.end, NULL);
++		mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma,
++				vma->vm_mm,
++				max(start, vma->vm_start),
++				min(start + size, vma->vm_end));
++		if (is_vm_hugetlb_page(vma))
++			adjust_range_if_pmd_sharing_possible(vma,
++				&range.start,
++				&range.end);
++		mmu_notifier_invalidate_range_start(&range);
++		unmap_single_vma(&tlb, vma, start, start + size, NULL);
++		mmu_notifier_invalidate_range_end(&range);
+ 	} while ((vma = mas_find(&mas, end - 1)) != NULL);
+-	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_finish_mmu(&tlb);
+ }
+ 
+_
+
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
+
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v5.patch
+
