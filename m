@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FCB7C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E44F7C433FE
 	for <mm-commits@archiver.kernel.org>; Tue,  1 Nov 2022 22:58:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230365AbiKAW6h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Nov 2022 18:58:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56706 "EHLO
+        id S230288AbiKAW6i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Nov 2022 18:58:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56704 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230214AbiKAW6f (ORCPT
+        with ESMTP id S230153AbiKAW6f (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2022 18:58:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A17FFE0
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 466042C2
         for <mm-commits@vger.kernel.org>; Tue,  1 Nov 2022 15:58:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 27E6761772
-        for <mm-commits@vger.kernel.org>; Tue,  1 Nov 2022 22:58:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81D3CC433D7;
-        Tue,  1 Nov 2022 22:58:31 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0E47CB81FFA
+        for <mm-commits@vger.kernel.org>; Tue,  1 Nov 2022 22:58:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD0A8C433C1;
+        Tue,  1 Nov 2022 22:58:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667343511;
-        bh=doArZJzWc2nr2tegIBh5hO7lR43+JWTzGIMYQwaKqFk=;
+        s=korg; t=1667343509;
+        bh=kYqoTCiMX7UIFcAuQmp4Gt0R6McLct9OCl2U9EhjsL8=;
         h=Date:To:From:Subject:From;
-        b=t5M9Y7IDNkCkN1O+1sbdoT4fXGymZOfxUcJGKJGwBWRCg+qbDH3tRRHfUENtdmQ8j
-         TPG5pea58Bkso6Lu5u2gXQot6sk1o5r38Qfy22ONmcBVZjmSn++cCYPEW45ApF956W
-         VNRn+Sebf9qHeHGrMUH8P7CDmITfIzi5lD4gNtYM=
-Date:   Tue, 01 Nov 2022 15:58:31 -0700
+        b=ZL3FIpLD/iyuQXsDC+mxwxEfGK8nOkeUE8mzX6HunK7Wi7uzh1t8h4ZgwMJ8NSOm/
+         GEXtHPe1stCFaQyONUmivk4S2HFASwOxp7yte+vFA4nNUBOrpS6W5UExNBl8S32deI
+         GWioBG098CNACPha1d3Yd8dnlH5Qx7YgmqeDaMsU=
+Date:   Tue, 01 Nov 2022 15:58:29 -0700
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
         sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-implement-scheme-region-directory.patch added to mm-unstable branch
-Message-Id: <20221101225831.81D3CC433D7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch added to mm-unstable branch
+Message-Id: <20221101225829.AD0A8C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: implement scheme region directory
+     Subject: mm/damon/sysfs-schemes: implement schemes/tried_regions directory
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-implement-scheme-region-directory.patch
+     mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-scheme-region-directory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,175 +65,129 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: implement scheme region directory
-Date: Tue, 1 Nov 2022 22:03:23 +0000
+Subject: mm/damon/sysfs-schemes: implement schemes/tried_regions directory
+Date: Tue, 1 Nov 2022 22:03:22 +0000
 
-Implement region directories under 'tried_regions' directory of each
-scheme DAMON sysfs directory.  This directory will provide the address
-range, the monitored access frequency ('nr_accesses'), and the age of each
-DAMON region that corresponding DAMON-based operation scheme has tried to
-be applied.  Note that this commit doesn't implement the code for filling
-the data but only the sysfs directory.
+For efficient and simple query-like DAMON monitoring results readings and
+deep level investigations of DAMOS, DAMON kernel API
+(include/linux/damon.h) users can use 'before_damos_apply' DAMON callback.
+However, DAMON sysfs interface users don't have such option.
 
-Link: https://lkml.kernel.org/r/20221101220328.95765-4-sj@kernel.org
+Add a directory, namely 'tried_regions', under each scheme directory to
+use it as the interface for the purpose.  Note that this commit is
+implementing only the directory but the data filling.
+
+After the data filling change is made, users will be able to signal DAMON
+to fill the directory with the regions that corresponding scheme has tried
+to be applied.  By setting the access pattern of the scheme, users could
+do the efficient query-like monitoring.
+
+Link: https://lkml.kernel.org/r/20221101220328.95765-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |  123 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 122 insertions(+), 1 deletion(-)
+ mm/damon/sysfs-schemes.c |   57 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-scheme-region-directory
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory
 +++ a/mm/damon/sysfs-schemes.c
-@@ -10,17 +10,137 @@
+@@ -10,6 +10,36 @@
  #include "sysfs-common.h"
  
  /*
-+ * scheme region directory
++ * scheme regions directory
 + */
 +
-+struct damon_sysfs_scheme_region {
++struct damon_sysfs_scheme_regions {
 +	struct kobject kobj;
-+	struct damon_addr_range ar;
-+	unsigned int nr_accesses;
-+	unsigned int age;
-+	struct list_head list;
 +};
 +
-+static struct damon_sysfs_scheme_region *damon_sysfs_scheme_region_alloc(
-+		struct damon_region *region)
++static struct damon_sysfs_scheme_regions *
++damon_sysfs_scheme_regions_alloc(void)
 +{
-+	struct damon_sysfs_scheme_region *sysfs_region = kmalloc(
-+			sizeof(*sysfs_region), GFP_KERNEL);
-+
-+	if (!sysfs_region)
-+		return NULL;
-+	sysfs_region->kobj = (struct kobject){};
-+	sysfs_region->ar = region->ar;
-+	sysfs_region->nr_accesses = region->nr_accesses;
-+	sysfs_region->age = region->age;
-+	INIT_LIST_HEAD(&sysfs_region->list);
-+	return sysfs_region;
++	return kzalloc(sizeof(struct damon_sysfs_scheme_regions), GFP_KERNEL);
 +}
 +
-+static ssize_t start_show(struct kobject *kobj, struct kobj_attribute *attr,
-+		char *buf)
++static void damon_sysfs_scheme_regions_release(struct kobject *kobj)
 +{
-+	struct damon_sysfs_scheme_region *region = container_of(kobj,
-+			struct damon_sysfs_scheme_region, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", region->ar.start);
++	kfree(container_of(kobj, struct damon_sysfs_scheme_regions, kobj));
 +}
 +
-+static ssize_t end_show(struct kobject *kobj, struct kobj_attribute *attr,
-+		char *buf)
-+{
-+	struct damon_sysfs_scheme_region *region = container_of(kobj,
-+			struct damon_sysfs_scheme_region, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", region->ar.end);
-+}
-+
-+static ssize_t nr_accesses_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_scheme_region *region = container_of(kobj,
-+			struct damon_sysfs_scheme_region, kobj);
-+
-+	return sysfs_emit(buf, "%u\n", region->nr_accesses);
-+}
-+
-+static ssize_t age_show(struct kobject *kobj, struct kobj_attribute *attr,
-+		char *buf)
-+{
-+	struct damon_sysfs_scheme_region *region = container_of(kobj,
-+			struct damon_sysfs_scheme_region, kobj);
-+
-+	return sysfs_emit(buf, "%u\n", region->age);
-+}
-+
-+static void damon_sysfs_scheme_region_release(struct kobject *kobj)
-+{
-+	struct damon_sysfs_scheme_region *region = container_of(kobj,
-+			struct damon_sysfs_scheme_region, kobj);
-+
-+	list_del(&region->list);
-+	kfree(region);
-+}
-+
-+static struct kobj_attribute damon_sysfs_scheme_region_start_attr =
-+		__ATTR_RO_MODE(start, 0400);
-+
-+static struct kobj_attribute damon_sysfs_scheme_region_end_attr =
-+		__ATTR_RO_MODE(end, 0400);
-+
-+static struct kobj_attribute damon_sysfs_scheme_region_nr_accesses_attr =
-+		__ATTR_RO_MODE(nr_accesses, 0400);
-+
-+static struct kobj_attribute damon_sysfs_scheme_region_age_attr =
-+		__ATTR_RO_MODE(age, 0400);
-+
-+static struct attribute *damon_sysfs_scheme_region_attrs[] = {
-+	&damon_sysfs_scheme_region_start_attr.attr,
-+	&damon_sysfs_scheme_region_end_attr.attr,
-+	&damon_sysfs_scheme_region_nr_accesses_attr.attr,
-+	&damon_sysfs_scheme_region_age_attr.attr,
++static struct attribute *damon_sysfs_scheme_regions_attrs[] = {
 +	NULL,
 +};
-+ATTRIBUTE_GROUPS(damon_sysfs_scheme_region);
++ATTRIBUTE_GROUPS(damon_sysfs_scheme_regions);
 +
-+static struct kobj_type damon_sysfs_scheme_region_ktype = {
-+	.release = damon_sysfs_scheme_region_release,
++static struct kobj_type damon_sysfs_scheme_regions_ktype = {
++	.release = damon_sysfs_scheme_regions_release,
 +	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_groups = damon_sysfs_scheme_region_groups,
++	.default_groups = damon_sysfs_scheme_regions_groups,
 +};
 +
 +/*
-  * scheme regions directory
+  * schemes/stats directory
   */
  
- struct damon_sysfs_scheme_regions {
- 	struct kobject kobj;
-+	struct list_head regions_list;
-+	int nr_regions;
+@@ -635,6 +665,7 @@ struct damon_sysfs_scheme {
+ 	struct damon_sysfs_quotas *quotas;
+ 	struct damon_sysfs_watermarks *watermarks;
+ 	struct damon_sysfs_stats *stats;
++	struct damon_sysfs_scheme_regions *tried_regions;
  };
  
- static struct damon_sysfs_scheme_regions *
- damon_sysfs_scheme_regions_alloc(void)
- {
--	return kzalloc(sizeof(struct damon_sysfs_scheme_regions), GFP_KERNEL);
-+	struct damon_sysfs_scheme_regions *regions = kmalloc(sizeof(*regions),
-+			GFP_KERNEL);
-+
-+	regions->kobj = (struct kobject){};
-+	INIT_LIST_HEAD(&regions->regions_list);
-+	regions->nr_regions = 0;
-+	return regions;
-+}
-+
-+static void damon_sysfs_scheme_regions_rm_dirs(
-+		struct damon_sysfs_scheme_regions *regions)
-+{
-+	struct damon_sysfs_scheme_region *r, *next;
-+
-+	list_for_each_entry_safe(r, next, &regions->regions_list, list) {
-+		/* release function deletes it from the list */
-+		kobject_put(&r->kobj);
-+		regions->nr_regions--;
-+	}
+ /* This should match with enum damos_action */
+@@ -743,6 +774,25 @@ static int damon_sysfs_scheme_set_stats(
+ 	return err;
  }
  
- static void damon_sysfs_scheme_regions_release(struct kobject *kobj)
-@@ -837,6 +957,7 @@ static void damon_sysfs_scheme_rm_dirs(s
++static int damon_sysfs_scheme_set_tried_regions(
++		struct damon_sysfs_scheme *scheme)
++{
++	struct damon_sysfs_scheme_regions *tried_regions =
++		damon_sysfs_scheme_regions_alloc();
++	int err;
++
++	if (!tried_regions)
++		return -ENOMEM;
++	err = kobject_init_and_add(&tried_regions->kobj,
++			&damon_sysfs_scheme_regions_ktype, &scheme->kobj,
++			"tried_regions");
++	if (err)
++		kobject_put(&tried_regions->kobj);
++	else
++		scheme->tried_regions = tried_regions;
++	return err;
++}
++
+ static int damon_sysfs_scheme_add_dirs(struct damon_sysfs_scheme *scheme)
+ {
+ 	int err;
+@@ -759,8 +809,14 @@ static int damon_sysfs_scheme_add_dirs(s
+ 	err = damon_sysfs_scheme_set_stats(scheme);
+ 	if (err)
+ 		goto put_watermarks_quotas_access_pattern_out;
++	err = damon_sysfs_scheme_set_tried_regions(scheme);
++	if (err)
++		goto put_tried_regions_out;
+ 	return 0;
+ 
++put_tried_regions_out:
++	kobject_put(&scheme->tried_regions->kobj);
++	scheme->tried_regions = NULL;
+ put_watermarks_quotas_access_pattern_out:
+ 	kobject_put(&scheme->watermarks->kobj);
+ 	scheme->watermarks = NULL;
+@@ -781,6 +837,7 @@ static void damon_sysfs_scheme_rm_dirs(s
  	kobject_put(&scheme->quotas->kobj);
  	kobject_put(&scheme->watermarks->kobj);
  	kobject_put(&scheme->stats->kobj);
-+	damon_sysfs_scheme_regions_rm_dirs(scheme->tried_regions);
- 	kobject_put(&scheme->tried_regions->kobj);
++	kobject_put(&scheme->tried_regions->kobj);
  }
  
+ static ssize_t action_show(struct kobject *kobj, struct kobj_attribute *attr,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
