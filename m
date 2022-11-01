@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76948ECAAA1
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Nov 2022 00:11:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D66FDECAAA1
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Nov 2022 00:13:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229476AbiKAALm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Oct 2022 20:11:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50372 "EHLO
+        id S229457AbiKAANa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Oct 2022 20:13:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229886AbiKAALl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 20:11:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63CC715A38;
-        Mon, 31 Oct 2022 17:11:38 -0700 (PDT)
+        with ESMTP id S229779AbiKAAN3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2022 20:13:29 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 222AD12620
+        for <mm-commits@vger.kernel.org>; Mon, 31 Oct 2022 17:13:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D4800614FA;
-        Tue,  1 Nov 2022 00:11:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AB0AC433C1;
-        Tue,  1 Nov 2022 00:11:37 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 00B9FCE1898
+        for <mm-commits@vger.kernel.org>; Tue,  1 Nov 2022 00:13:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 005CDC433D6;
+        Tue,  1 Nov 2022 00:13:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667261497;
-        bh=FqB5HswNyzokFpWJzKWIrptfNMOGT5HBsgJrTF1eHmQ=;
+        s=korg; t=1667261602;
+        bh=Sbq85KcDt7srxZarh8xf/ITikC71ivDWovECjy7AGp8=;
         h=Date:To:From:Subject:From;
-        b=0DbZ9/+ACCAiTXPBKFINIYtmIS0K19MKtTc+yvxdJTRxLkNbQXdr3sLKRzflS8jy+
-         L4ohV0wtPyK1kXJ3iUJ5jTdBM2lQSW3CF4fFxybCuJKAClLlEXwNqUEfa/6Q018Br4
-         5sDoFoUeQmn14ZJYCOxnWVN6EVzS1UnGIfi33VLw=
-Date:   Mon, 31 Oct 2022 17:11:36 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=XkBLFkhLSJKoKoPCmx9OkENn3/xhxo1OnM4gticE0FD8UXc448ACTG1P/Cd8PZP57
+         fD72JepXYgeuIqtqIdqc9lPHKejjaLP8yWdw1wtThpDRDDxexD5FcFG0HjLp4PKsUR
+         V3R95nJaFimecOmAmINwyZ5x0x4dYJqxQJvLEk94=
+Date:   Mon, 31 Oct 2022 17:13:21 -0700
+To:     mm-commits@vger.kernel.org, Chao.Xu9@zeekrlife.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-deadlock-in-nilfs_count_free_blocks.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221101001137.2AB0AC433C1@smtp.kernel.org>
+Subject: + mm-vmstat-correct-some-wrong-comments-based-on-fls.patch added to mm-unstable branch
+Message-Id: <20221101001322.005CDC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix deadlock in nilfs_count_free_blocks()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-fix-deadlock-in-nilfs_count_free_blocks.patch
+     Subject: mm/vmstat: correct some wrong comments based-on fls()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmstat-correct-some-wrong-comments-based-on-fls.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-deadlock-in-nilfs_count_free_blocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-correct-some-wrong-comments-based-on-fls.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,87 +64,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix deadlock in nilfs_count_free_blocks()
-Date: Sat, 29 Oct 2022 13:49:12 +0900
+From: Chao Xu <Chao.Xu9@zeekrlife.com>
+Subject: mm/vmstat: correct some wrong comments based-on fls()
+Date: Sat, 29 Oct 2022 12:44:36 +0800
 
-A semaphore deadlock can occur if nilfs_get_block() detects metadata
-corruption while locating data blocks and a superblock writeback occurs at
-the same time:
+The threshold should grow logarithmically, using fls() as an easy
+approximation.  But there are some errors in fls(mem) and fls(Processors).
+It is misleading so let's correct it.
 
-task 1                               task 2
-------                               ------
-* A file operation *
-nilfs_truncate()
-  nilfs_get_block()
-    down_read(rwsem A) <--
-    nilfs_bmap_lookup_contig()
-      ...                            generic_shutdown_super()
-                                       nilfs_put_super()
-                                         * Prepare to write superblock *
-                                         down_write(rwsem B) <--
-                                         nilfs_cleanup_super()
-      * Detect b-tree corruption *         nilfs_set_log_cursor()
-      nilfs_bmap_convert_error()             nilfs_count_free_blocks()
-        __nilfs_error()                        down_read(rwsem A) <--
-          nilfs_set_error()
-            down_write(rwsem B) <--
-
-                           *** DEADLOCK ***
-
-Here, nilfs_get_block() readlocks rwsem A (= NILFS_MDT(dat_inode)->mi_sem)
-and then calls nilfs_bmap_lookup_contig(), but if it fails due to metadata
-corruption, __nilfs_error() is called from nilfs_bmap_convert_error()
-inside the lock section.
-
-Since __nilfs_error() calls nilfs_set_error() unless the filesystem is
-read-only and nilfs_set_error() attempts to writelock rwsem B (=
-nilfs->ns_sem) to write back superblock exclusively, hierarchical lock
-acquisition occurs in the order rwsem A -> rwsem B.
-
-Now, if another task starts updating the superblock, it may writelock
-rwsem B during the lock sequence above, and can deadlock trying to
-readlock rwsem A in nilfs_count_free_blocks().
-
-However, there is actually no need to take rwsem A in
-nilfs_count_free_blocks() because it, within the lock section, only reads
-a single integer data on a shared struct with
-nilfs_sufile_get_ncleansegs().  This has been the case after commit
-aa474a220180 ("nilfs2: add local variable to cache the number of clean
-segments"), that is, even before this bug was introduced.
-
-So, this resolves the deadlock problem by just not taking the semaphore in
-nilfs_count_free_blocks().
-
-Link: https://lkml.kernel.org/r/20221029044912.9139-1-konishi.ryusuke@gmail.com
-Fixes: e828949e5b42 ("nilfs2: call nilfs_error inside bmap routines")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+45d6ce7b7ad7ef455d03@syzkaller.appspotmail.com
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>	[2.6.38+
+Link: https://lkml.kernel.org/r/20221029044436.198169-1-xuchao066@163.com
+Signed-off-by: Chao Xu <Chao.Xu9@zeekrlife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/the_nilfs.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/vmstat.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-deadlock-in-nilfs_count_free_blocks
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -690,9 +690,7 @@ int nilfs_count_free_blocks(struct the_n
- {
- 	unsigned long ncleansegs;
+--- a/mm/vmstat.c~mm-vmstat-correct-some-wrong-comments-based-on-fls
++++ a/mm/vmstat.c
+@@ -241,17 +241,17 @@ int calculate_normal_threshold(struct zo
+ 	 * 28		2		2	4-8 GB		7
+ 	 * 32		2		2	8-16 GB		8
+ 	 * 4		2		2	<128M		1
+-	 * 30		4		3	2-4 GB		5
++	 * 30		4		3	2-4 GB		6
+ 	 * 48		4		3	8-16 GB		8
+-	 * 32		8		4	1-2 GB		4
++	 * 32		8		4	1-2 GB		5
+ 	 * 32		8		4	0.9-1GB		4
+ 	 * 10		16		5	<128M		1
+ 	 * 40		16		5	900M		4
+-	 * 70		64		7	2-4 GB		5
+-	 * 84		64		7	4-8 GB		6
+-	 * 108		512		9	4-8 GB		6
+-	 * 125		1024		10	8-16 GB		8
+-	 * 125		1024		10	16-32 GB	9
++	 * 70		64		7	2-4 GB		6
++	 * 84		64		7	4-8 GB		7
++	 * 108		512		10	4-8 GB		7
++	 * 125		1024		11	8-16 GB		8
++	 * 125		1024		11	16-32 GB	9
+ 	 */
  
--	down_read(&NILFS_MDT(nilfs->ns_dat)->mi_sem);
- 	ncleansegs = nilfs_sufile_get_ncleansegs(nilfs->ns_sufile);
--	up_read(&NILFS_MDT(nilfs->ns_dat)->mi_sem);
- 	*nblocks = (sector_t)ncleansegs * nilfs->ns_blocks_per_segment;
- 	return 0;
- }
+ 	mem = zone_managed_pages(zone) >> (27 - PAGE_SHIFT);
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from Chao.Xu9@zeekrlife.com are
 
-nilfs2-fix-deadlock-in-nilfs_count_free_blocks.patch
-nilfs2-fix-shift-out-of-bounds-overflow-in-nilfs_sb2_bad_offset.patch
-nilfs2-fix-shift-out-of-bounds-due-to-too-large-exponent-of-block-size.patch
+mm-vmstat-correct-some-wrong-comments-based-on-fls.patch
 
