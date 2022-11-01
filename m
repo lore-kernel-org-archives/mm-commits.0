@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72443C433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Nov 2022 21:08:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0065C433FE
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Nov 2022 22:40:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229471AbiKAVIU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Nov 2022 17:08:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57746 "EHLO
+        id S230000AbiKAWks (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Nov 2022 18:40:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229926AbiKAVIT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2022 17:08:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 238EB1DA78
-        for <mm-commits@vger.kernel.org>; Tue,  1 Nov 2022 14:08:18 -0700 (PDT)
+        with ESMTP id S229741AbiKAWkr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2022 18:40:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5538B630E
+        for <mm-commits@vger.kernel.org>; Tue,  1 Nov 2022 15:40:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B123C61724
-        for <mm-commits@vger.kernel.org>; Tue,  1 Nov 2022 21:08:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A81CC433D6;
-        Tue,  1 Nov 2022 21:08:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D347161742
+        for <mm-commits@vger.kernel.org>; Tue,  1 Nov 2022 22:40:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36CEEC433D6;
+        Tue,  1 Nov 2022 22:40:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667336897;
-        bh=lLbTez84s/EmtoDwie6uFbSxvdR07Ji34CQDjJVe6Hk=;
+        s=korg; t=1667342445;
+        bh=gAZnvS1xJh055IwAz/f4YrNdRQKrwfRGS6FSgFMR2B4=;
         h=Date:To:From:Subject:From;
-        b=vUwhjDTY+PI+PcA1YG+NMtXEuc1mYsSAwqcznHy+DUVHrssIVNnW8XOxqBWtAskai
-         aTUZGzpCveEevSlPkgwMeRGHiyUgqav5hBZGbYuknr3QB+FQrVgjfaVvpXOJdoxsBh
-         HKWAU97Kih1qhj3vh1Qf7nSJKge5jz1oXDtHdIdg=
-Date:   Tue, 01 Nov 2022 14:08:16 -0700
-To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
-        yajun.deng@linux.dev, akpm@linux-foundation.org
+        b=uWsTiKoR0P1RCLO5zI9EyAZY6TN09neWxVkefwgsaYGmo++dHjzTWD3+K6LA+F7qZ
+         Ib5qFkeLlTaGv5+g7kQJycE51zqOecxcQ6FluKbA0Y5h8rFXjMHCOP7mkky7iqOWHW
+         V2JhYzT2dC9Lte9ZosO+myYKadkNDGtSqnTcA2cg=
+Date:   Tue, 01 Nov 2022 15:40:44 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        songmuchun@bytedance.com, minhquangbui99@gmail.com,
+        mike.kravetz@oracle.com, linmiaohe@huawei.com,
+        aneesh.kumar@linux.ibm.com, almasrymina@google.com,
+        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-simplify-page_zone-and-get_deferred_split_queue-with-page_pgdat.patch added to mm-unstable branch
-Message-Id: <20221101210817.0A81CC433D6@smtp.kernel.org>
+Subject: + mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch added to mm-unstable branch
+Message-Id: <20221101224045.36CEEC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: simplify page_zone() and get_deferred_split_queue() with page_pgdat()
+     Subject: mm/hugetlb_cgroup: convert __set_hugetlb_cgroup() to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-simplify-page_zone-and-get_deferred_split_queue-with-page_pgdat.patch
+     mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-simplify-page_zone-and-get_deferred_split_queue-with-page_pgdat.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,73 +67,117 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yajun Deng <yajun.deng@linux.dev>
-Subject: mm: simplify page_zone() and get_deferred_split_queue() with page_pgdat()
-Date: Tue, 1 Nov 2022 10:32:19 +0800
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm/hugetlb_cgroup: convert __set_hugetlb_cgroup() to folios
+Date: Tue, 1 Nov 2022 15:30:51 -0700
 
-page_zone() is too long, we can shorten it by page_pgdat().
+Patch series "convert hugetlb_cgroup helper functions to folios", v2.
 
-There is no need define pgdat variable if memcg isn't NULL, so use
-page_pgdat() to simplify get_deferred_split_queue().
+This patch series continues the conversion of hugetlb code from being
+managed in pages to folios by converting many of the hugetlb_cgroup helper
+functions to use folios.  This allows the core hugetlb functions to pass
+in a folio to these helper functions.
 
-Link: https://lkml.kernel.org/r/20221101023219.752365-1-yajun.deng@linux.dev
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+
+This patch (of 9);
+
+Change __set_hugetlb_cgroup() to use folios so it is explicit that the
+function operates on a head page.
+
+Link: https://lkml.kernel.org/r/20221101223059.460937-1-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20221101223059.460937-2-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Bui Quang Minh <minhquangbui99@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    8 ++++----
- mm/huge_memory.c   |    7 ++-----
- 2 files changed, 6 insertions(+), 9 deletions(-)
+ include/linux/hugetlb_cgroup.h |   14 +++++++-------
+ mm/hugetlb_cgroup.c            |    4 ++--
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm.h~mm-simplify-page_zone-and-get_deferred_split_queue-with-page_pgdat
-+++ a/include/linux/mm.h
-@@ -1448,14 +1448,14 @@ static inline void page_kasan_tag_reset(
- 
- #endif /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
- 
--static inline struct zone *page_zone(const struct page *page)
-+static inline pg_data_t *page_pgdat(const struct page *page)
- {
--	return &NODE_DATA(page_to_nid(page))->node_zones[page_zonenum(page)];
-+	return NODE_DATA(page_to_nid(page));
+--- a/include/linux/hugetlb_cgroup.h~mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios
++++ a/include/linux/hugetlb_cgroup.h
+@@ -90,31 +90,31 @@ hugetlb_cgroup_from_page_rsvd(struct pag
+ 	return __hugetlb_cgroup_from_page(page, true);
  }
  
--static inline pg_data_t *page_pgdat(const struct page *page)
-+static inline struct zone *page_zone(const struct page *page)
+-static inline void __set_hugetlb_cgroup(struct page *page,
++static inline void __set_hugetlb_cgroup(struct folio *folio,
+ 				       struct hugetlb_cgroup *h_cg, bool rsvd)
  {
--	return NODE_DATA(page_to_nid(page));
-+	return &page_pgdat(page)->node_zones[page_zonenum(page)];
- }
+-	VM_BUG_ON_PAGE(!PageHuge(page), page);
++	VM_BUG_ON_FOLIO(!folio_test_hugetlb(folio), folio);
  
- static inline struct zone *folio_zone(const struct folio *folio)
---- a/mm/huge_memory.c~mm-simplify-page_zone-and-get_deferred_split_queue-with-page_pgdat
-+++ a/mm/huge_memory.c
-@@ -562,19 +562,16 @@ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struc
- static inline struct deferred_split *get_deferred_split_queue(struct page *page)
- {
- 	struct mem_cgroup *memcg = page_memcg(compound_head(page));
--	struct pglist_data *pgdat = NODE_DATA(page_to_nid(page));
- 
- 	if (memcg)
- 		return &memcg->deferred_split_queue;
+-	if (compound_order(page) < HUGETLB_CGROUP_MIN_ORDER)
++	if (folio_order(folio) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return;
+ 	if (rsvd)
+-		set_page_private(page + SUBPAGE_INDEX_CGROUP_RSVD,
++		set_page_private(folio_page(folio, SUBPAGE_INDEX_CGROUP_RSVD),
+ 				 (unsigned long)h_cg);
  	else
--		return &pgdat->deferred_split_queue;
-+		return &page_pgdat(page)->deferred_split_queue;
+-		set_page_private(page + SUBPAGE_INDEX_CGROUP,
++		set_page_private(folio_page(folio, SUBPAGE_INDEX_CGROUP),
+ 				 (unsigned long)h_cg);
  }
- #else
- static inline struct deferred_split *get_deferred_split_queue(struct page *page)
- {
--	struct pglist_data *pgdat = NODE_DATA(page_to_nid(page));
--
--	return &pgdat->deferred_split_queue;
-+	return &page_pgdat(page)->deferred_split_queue;
- }
- #endif
  
+ static inline void set_hugetlb_cgroup(struct page *page,
+ 				     struct hugetlb_cgroup *h_cg)
+ {
+-	__set_hugetlb_cgroup(page, h_cg, false);
++	__set_hugetlb_cgroup(page_folio(page), h_cg, false);
+ }
+ 
+ static inline void set_hugetlb_cgroup_rsvd(struct page *page,
+ 					  struct hugetlb_cgroup *h_cg)
+ {
+-	__set_hugetlb_cgroup(page, h_cg, true);
++	__set_hugetlb_cgroup(page_folio(page), h_cg, true);
+ }
+ 
+ static inline bool hugetlb_cgroup_disabled(void)
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios
++++ a/mm/hugetlb_cgroup.c
+@@ -314,7 +314,7 @@ static void __hugetlb_cgroup_commit_char
+ 	if (hugetlb_cgroup_disabled() || !h_cg)
+ 		return;
+ 
+-	__set_hugetlb_cgroup(page, h_cg, rsvd);
++	__set_hugetlb_cgroup(page_folio(page), h_cg, rsvd);
+ 	if (!rsvd) {
+ 		unsigned long usage =
+ 			h_cg->nodeinfo[page_to_nid(page)]->usage[idx];
+@@ -356,7 +356,7 @@ static void __hugetlb_cgroup_uncharge_pa
+ 	h_cg = __hugetlb_cgroup_from_page(page, rsvd);
+ 	if (unlikely(!h_cg))
+ 		return;
+-	__set_hugetlb_cgroup(page, NULL, rsvd);
++	__set_hugetlb_cgroup(page_folio(page), NULL, rsvd);
+ 
+ 	page_counter_uncharge(__hugetlb_cgroup_counter_from_cgroup(h_cg, idx,
+ 								   rsvd),
 _
 
-Patches currently in -mm which might be from yajun.deng@linux.dev are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-mm-simplify-page_zone-and-get_deferred_split_queue-with-page_pgdat.patch
+mm-hugetlb-add-folio-support-to-hugetlb-specific-flag-macros.patch
+mm-add-private-field-of-first-tail-to-struct-page-and-struct-folio.patch
+mm-hugetlb-add-hugetlb_folio_subpool-helpers.patch
+hugetlbfs-convert-hugetlb_delete_from_page_cache-to-use-folios.patch
+mm-hugetlb-add-folio_hstate.patch
+mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch
+mm-hugetlb_cgroup-convert-hugetlb_cgroup_from_page-to-folios.patch
+mm-hugetlb_cgroup-convert-set_hugetlb_cgroup-to-folios.patch
+mm-hugetlb_cgroup-convert-hugetlb_cgroup_migrate-to-folios.patch
+mm-hugetlb-convert-isolate_or_dissolve_huge_page-to-folios.patch
+mm-hugetlb-convert-free_huge_page-to-folios.patch
+mm-hugetlb_cgroup-convert-hugetlb_cgroup_uncharge_page-to-folios.patch
+mm-hugeltb_cgroup-convert-hugetlb_cgroup_commit_charge-to-folios.patch
+mm-hugetlb-convert-move_hugetlb_state-to-folios.patch
 
