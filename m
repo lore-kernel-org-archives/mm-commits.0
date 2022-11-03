@@ -2,101 +2,113 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3B1FC4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Nov 2022 14:07:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36758C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Nov 2022 19:15:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231278AbiKCOHy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Nov 2022 10:07:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59760 "EHLO
+        id S231360AbiKCTPp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Nov 2022 15:15:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229553AbiKCOHt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Nov 2022 10:07:49 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE40F300;
-        Thu,  3 Nov 2022 07:07:48 -0700 (PDT)
+        with ESMTP id S231391AbiKCTPg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Nov 2022 15:15:36 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71E661F9F5
+        for <mm-commits@vger.kernel.org>; Thu,  3 Nov 2022 12:15:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6F869B826F3;
-        Thu,  3 Nov 2022 14:07:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0F92C433D6;
-        Thu,  3 Nov 2022 14:07:44 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="plmrmS6m"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1667484461;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=rFg3TXoQvAE5JZJs4RqceEdy9J4w29ijlQhEeAO7+1I=;
-        b=plmrmS6mFbWQiE0NyZ0HMok373WIZ3CruzIEfIh8gO0QP3wz/TJCbtjGaQjCrdkraYmURU
-        Ra5LTXGZHAKhKST9PeC4htWjqPDOdR+PQNaJw5pYeCZXrFzA/Q4yny4W2ks8HUR4Lul/nO
-        650VepRnSG5fgGZOE1H/cNEEw1L6Aok=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 7db6b5a8 (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-        Thu, 3 Nov 2022 14:07:40 +0000 (UTC)
-Date:   Thu, 3 Nov 2022 15:07:37 +0100
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     Julia Lawall <julia.lawall@inria.fr>
-Cc:     Kees Cook <keescook@chromium.org>, cocci@inria.fr,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org, masahiroy@kernel.org,
-        gregkh@linuxfoundation.org, andriy.shevchenko@linux.intel.com,
-        Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [cocci] [PATCH -mm] -funsigned-char, x86: make struct
- p4_event_bind::cntr signed array
-Message-ID: <Y2PLKc1yeUTV4YFL@zx2c4.com>
-References: <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com>
- <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com>
- <202210201151.ECC19BC97A@keescook>
- <Y1iSYddi3BpP8gvf@zx2c4.com>
- <Y1ku+jfRAyezq6Nz@zx2c4.com>
- <b72d866d-1dce-7260-7f1e-54be9fd25e97@inria.fr>
- <Y2MGlTwh9aB+4z4l@zx2c4.com>
- <d930b8af-7cb-c652-c3a4-cf8e9bdd610@inria.fr>
- <CAHmME9o3BDe+s2QaT4X8jg+9cc9A-3iHWnL0WnFyqKcGuhahXQ@mail.gmail.com>
- <8e7bcf3-2d39-a9f2-f818-ec627e5d5c4e@inria.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <8e7bcf3-2d39-a9f2-f818-ec627e5d5c4e@inria.fr>
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1E0F4B829A8
+        for <mm-commits@vger.kernel.org>; Thu,  3 Nov 2022 19:15:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABD7BC433D6;
+        Thu,  3 Nov 2022 19:15:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1667502932;
+        bh=gHgxm8GjUGGu96phhgAi6EAEnJNa4I9qVBmcjzlSrA8=;
+        h=Date:To:From:Subject:From;
+        b=jlmHlkEu5JBEZM604ZudUG5pyzQeTkIjzAoADmunFwJ7vElsurFrEEjc4xSw6+YGN
+         x5X6EHMjFUc2+pcRes0IAqUM/9++Q7yfYr/d5ha1Gofo0QvLJnAPBfHgq/26tSrdY3
+         ab0FpGysQlT8aPTDKoaeghiZRFbH1xVRMcxtxOgA=
+Date:   Thu, 03 Nov 2022 12:15:31 -0700
+To:     mm-commits@vger.kernel.org, wuqiang.matt@bytedance.com,
+        sfr@canb.auug.org.au, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + kprobeslib-kretprobe-scalability-improvement-fix-2.patch added to mm-nonmm-unstable branch
+Message-Id: <20221103191532.ABD7BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Nov 03, 2022 at 01:57:26PM +0100, Julia Lawall wrote:
-> 
-> 
-> On Thu, 3 Nov 2022, Jason A. Donenfeld wrote:
-> 
-> > Hi Julia,
-> >
-> > On Thu, Nov 3, 2022 at 1:45 PM Julia Lawall <julia.lawall@inria.fr> wrote:
-> > > It should work now.
-> >
-> > Thanks!
-> >
-> > > However, without disable optional_qualifier, char is
-> > > still matching signed char.  If you think that should be changed, I can do
-> > > that.
-> >
-> > Does `optional_qualifier` disable other things that might be
-> > interesting to have? If so, maybe this is less than ideal? If not,
-> > maybe it doesn't matter?
-> 
-> Optional qualifier only allows a metavariable declared to have a certain
-> type to match an expression that has the same type with signed, const, or
-> verbatim in front of it.  Disabling it forces you to write our signed,
-> const etc explicitly when you want them.  So rules may becomes more
-> verbose.
 
-Oh, huh. Maybe best to treat it as a different type then so that's not
-required? I was also thinking that it doesn't totally make sense the way
-it is now, in that `char` is *NOT* signed on many platforms, such as
-arm. In 6.2, it'll be unsigned everywhere, for kernel code. So in the
-general case, for coccinelle, it's a bit of a heisentype and so maybe
-should be treated as distinct from `signed char` or `unsigned char`.
+The patch titled
+     Subject: kprobeslib-kretprobe-scalability-improvement-fix-2
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kprobeslib-kretprobe-scalability-improvement-fix-2.patch
 
-Jason
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kprobeslib-kretprobe-scalability-improvement-fix-2.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kprobeslib-kretprobe-scalability-improvement-fix-2
+Date: Thu Nov  3 12:13:26 PM PDT 2022
+
+include prefetch.h
+
+Cc: wuqiang <wuqiang.matt@bytedance.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/objpool.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/lib/objpool.c~kprobeslib-kretprobe-scalability-improvement-fix-2
++++ a/lib/objpool.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ 
+ #include <linux/objpool.h>
++#include <linux/prefetch.h>
+ 
+ /*
+  * objpool: ring-array based lockless MPMC/FIFO queues
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+maple_tree-reorganize-testing-to-restore-module-testing-fix.patch
+maple_tree-reorganize-testing-to-restore-module-testing-fix-2.patch
+mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
+mm-gup-remove-foll_migration-fix.patch
+mm-use-stack_depot-for-recording-kmemleaks-backtrace-checkpatch-fixes.patch
+mm-use-stack_depot-for-recording-kmemleaks-backtrace-fix.patch
+mm-use-stack_depot-for-recording-kmemleaks-backtrace-v3-fix.patch
+kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
+mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch
+powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
+minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
+minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
+proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3-fix.patch
+kprobeslib-kretprobe-scalability-improvement-fix.patch
+kprobeslib-kretprobe-scalability-improvement-fix-2.patch
+
