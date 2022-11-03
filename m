@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88BE6C4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Nov 2022 06:31:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5DE0C4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Nov 2022 12:45:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229531AbiKCGbx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Nov 2022 02:31:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54950 "EHLO
+        id S231663AbiKCMpn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Nov 2022 08:45:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229436AbiKCGbx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Nov 2022 02:31:53 -0400
-Received: from mail3-relais-sop.national.inria.fr (mail3-relais-sop.national.inria.fr [192.134.164.104])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FDF51A396;
-        Wed,  2 Nov 2022 23:31:51 -0700 (PDT)
+        with ESMTP id S231749AbiKCMpd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Nov 2022 08:45:33 -0400
+Received: from mail2-relais-roc.national.inria.fr (mail2-relais-roc.national.inria.fr [192.134.164.83])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A716B1114A;
+        Thu,  3 Nov 2022 05:45:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=inria.fr; s=dc;
   h=date:from:to:cc:subject:in-reply-to:message-id:
    references:mime-version;
-  bh=8l0CQTM9ypXNWiw0zCbDPA1te+kKB1KXHppBD2iO0Sw=;
-  b=K90GIjx5EFgDXEMSv5IMsuP3RcoiGN24rxzUEBGw1ap0xF2ts9jq5mob
-   bHsykEiLyZLvCkLiQjw747PTIralmTLN3wiaPTTl4a337XdLjSwHG0yNN
-   lSy0AC9O4+Pbk/WbOV9P4Xk+SnIDR0BrooRTaV4dhf1E09U2lsTElX2Ch
-   U=;
-Authentication-Results: mail3-relais-sop.national.inria.fr; dkim=none (message not signed) header.i=none; spf=SoftFail smtp.mailfrom=julia.lawall@inria.fr; dmarc=fail (p=none dis=none) d=inria.fr
+  bh=YA1Q7r2MD2IDprLLiJlNJRSpMTj1ZdOkA9I4ysjBm4o=;
+  b=nQIwSyIbY7GfPLLJPcWNeguxKKGKJ0mQeNgYaaYWNjWcZ4kpsL2bIiiy
+   ii3EteQl0lnVJquerUCpp8fsoXzkTCFoMsELQUR8YLaOBTRr/OGQHSOAf
+   SSJ03+Ee2A5VYPtuVdpSQE9w6SOL6UCKQnWu2twkepJV/JoyuDoERGKIq
+   k=;
+Authentication-Results: mail2-relais-roc.national.inria.fr; dkim=none (message not signed) header.i=none; spf=SoftFail smtp.mailfrom=julia.lawall@inria.fr; dmarc=fail (p=none dis=none) d=inria.fr
 X-IronPort-AV: E=Sophos;i="5.95,235,1661810400"; 
-   d="scan'208";a="36318700"
-Received: from 51.123.68.85.rev.sfr.net (HELO hadrien) ([85.68.123.51])
-  by mail3-relais-sop.national.inria.fr with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2022 07:31:48 +0100
-Date:   Thu, 3 Nov 2022 07:31:47 +0100 (CET)
+   d="scan'208";a="72820556"
+Received: from dt-lawall.paris.inria.fr ([128.93.67.65])
+  by mail2-relais-roc.national.inria.fr with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2022 13:45:28 +0100
+Date:   Thu, 3 Nov 2022 13:45:28 +0100 (CET)
 From:   Julia Lawall <julia.lawall@inria.fr>
-X-X-Sender: jll@hadrien
 To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
-cc:     Kees Cook <keescook@chromium.org>, cocci@inria.fr,
+cc:     Julia Lawall <julia.lawall@inria.fr>,
+        Kees Cook <keescook@chromium.org>, cocci@inria.fr,
         Linus Torvalds <torvalds@linux-foundation.org>,
         Alexey Dobriyan <adobriyan@gmail.com>,
         akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
@@ -42,11 +42,10 @@ cc:     Kees Cook <keescook@chromium.org>, cocci@inria.fr,
 Subject: Re: [cocci] [PATCH -mm] -funsigned-char, x86: make struct
  p4_event_bind::cntr signed array
 In-Reply-To: <Y2MGlTwh9aB+4z4l@zx2c4.com>
-Message-ID: <alpine.DEB.2.22.394.2211030726351.2877@hadrien>
+Message-ID: <d930b8af-7cb-c652-c3a4-cf8e9bdd610@inria.fr>
 References: <20221020000356.177CDC433C1@smtp.kernel.org> <Y1EZuQcO8UoN91cX@localhost.localdomain> <CAHmME9prEhkHqQmtDGCSFunNnxiKdE_8FHKiksyqebUN63U81Q@mail.gmail.com> <CAHk-=whFow9Wd6C8htoRUt5wXbwf1i_qbuArBbhXOPqYsTFvtw@mail.gmail.com>
  <CAHmME9qBZqTd0D_gr8nE+DUzCrC0fxZNZK=7u+21jbgtFgAJBg@mail.gmail.com> <CAHk-=wjZDC9o8iwF+bU91Hx40HjGOpMui+VoFCDJkaGCu=rG4A@mail.gmail.com> <202210201151.ECC19BC97A@keescook> <Y1iSYddi3BpP8gvf@zx2c4.com> <Y1ku+jfRAyezq6Nz@zx2c4.com> <b72d866d-1dce-7260-7f1e-54be9fd25e97@inria.fr>
  <Y2MGlTwh9aB+4z4l@zx2c4.com>
-User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
@@ -107,6 +106,14 @@ On Thu, 3 Nov 2022, Jason A. Donenfeld wrote:
 > > unsigned.
 >
 > Hmm, this doesn't quite work. Here are my rules:
+
+It should work now.  However, without disable optional_qualifier, char is
+still matching signed char.  If you think that should be changed, I can do
+that.
+
+julia
+
+
 >
 >     @disable optional_qualifier@
 >     char c;
@@ -153,17 +160,6 @@ On Thu, 3 Nov 2022, Jason A. Donenfeld wrote:
 > So this would be one of those cases that I had hoped `disable
 > optional_qualifier` would exclude. (I think internally coccinelle might
 > be assuming `char` is signed, by the way.)
-
-OK, I see the problem.  Coccinelle isn't taking the "disable
-optional_qualifier" into account when it checks types on expressions.  It
-would work if you put, eg:
-
-char x;
-... when any
-* x < 0
-
-But that would be much slower and less general.  I will fix it.
-
 >
 > > >   - It's not being used for characters; and
 > > >   - It's doing something that assumes it is signed, such as various
@@ -181,33 +177,6 @@ But that would be much slower and less general.  I will fix it.
 > unsigned. Most things involving actual characters are fine. But most
 > things involving signed arithmetic or comparisons with numbers isn't
 > find.
-
-This seems to do what you want:
-
-@disable optional_qualifier@
-constant char cc;
-expression e;
-char c;
-@@
-
-(
-  c < cc
-|
-* c < e
-)
-
-It highlights only the two return lines in:
-
-int main () {
-        char x;
-        if (x < 'd')
-                return x < 0;
-        else return x < y;
-}
-
-
-julia
-
 >
 > Jason
 >
