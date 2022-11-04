@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBE6EC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Nov 2022 21:05:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89344C433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Nov 2022 22:02:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229759AbiKDVFu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Nov 2022 17:05:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54352 "EHLO
+        id S230133AbiKDWCe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Nov 2022 18:02:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229745AbiKDVFs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2022 17:05:48 -0400
+        with ESMTP id S230134AbiKDWCd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2022 18:02:33 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3500343871
-        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 14:05:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26E2D4877D
+        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 15:02:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EA03AB82F9E
-        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 21:05:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89287C433C1;
-        Fri,  4 Nov 2022 21:05:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D7FCBB82FE8
+        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 22:02:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D71DC433D6;
+        Fri,  4 Nov 2022 22:02:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667595944;
-        bh=Q8eUJTTpIROAnVHbWPYwqfX6F+/Z0Vh/XHNs71u4zM8=;
+        s=korg; t=1667599348;
+        bh=XY3lc+2UO6rApso7MbwyfclF85mfQxDVD94Y/JAgQKQ=;
         h=Date:To:From:Subject:From;
-        b=2F1gY55l5H8A+MBrcOBX+UxshanZJQTBBs/mUOpAZ/lM+sIp+XLcG03S3OPM6m7gv
-         E2O0TLtbcP7RG9AgYtS7HkopHoUo1rICT7RPZqYJz4lG7MZa+VGk0GVWlTnqNI14mm
-         fSTdsMExM+pjm+zlUwm+O6HKPKrg0zdiZxiDleTo=
-Date:   Fri, 04 Nov 2022 14:05:43 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, vbabka@suse.cz,
-        nsaenzju@redhat.com, mtosatti@redhat.com, m.szyprowski@samsung.com,
-        mhocko@kernel.org, hughd@google.com, mgorman@techsingularity.net,
-        akpm@linux-foundation.org
+        b=PnS11s/S4rJOadAiNtIZXqjsoO+sjpIWKFPrmGKallEhefekLDz9qWef4GQ9bcmvm
+         MR8jwiqk73VOLKwB5kdEs7fg+jLZ2gocXQ7paSsODKmftH5IEB8nSUuBJnhRkzVdK0
+         wXAQF+Tia/f5trdjyYDHbc6DrvWBcDIjXjisj+J8=
+Date:   Fri, 04 Nov 2022 15:02:27 -0700
+To:     mm-commits@vger.kernel.org, pbonzini@redhat.com,
+        lukas.bulwahn@gmail.com, joe@perches.com, dwaipayanray1@gmail.com,
+        christophe.jaillet@wanadoo.fr, bagasdotme@gmail.com,
+        apw@canonical.com, liaochang1@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch added to mm-unstable branch
-Message-Id: <20221104210544.89287C433C1@smtp.kernel.org>
+Subject: + checkpatch-add-check-for-array-allocator-family-argument-order.patch added to mm-nonmm-unstable branch
+Message-Id: <20221104220228.6D71DC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch
+     Subject: checkpatch: add check for array allocator family argument order
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     checkpatch-add-check-for-array-allocator-family-argument-order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-check-for-array-allocator-family-argument-order.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,341 +66,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations
-Date: Fri, 4 Nov 2022 14:22:59 +0000
+From: Liao Chang <liaochang1@huawei.com>
+Subject: checkpatch: add check for array allocator family argument order
+Date: Fri, 4 Nov 2022 15:05:23 +0800
 
-The pcp_spin_lock_irqsave protecting the PCP lists is IRQ-safe as a task
-allocating from the PCP must not re-enter the allocator from IRQ context. 
-In each instance where IRQ-reentrancy is possible, the lock is acquired
-using pcp_spin_trylock_irqsave() even though IRQs are disabled and
-re-entrancy is impossible.
+These array allocator family are sometimes misused with the first and
+second arguments switched.
 
-Demote the lock to pcp_spin_lock avoids an IRQ disable/enable in the
-common case at the cost of some IRQ allocations taking a slower path.  If
-the PCP lists need to be refilled, the zone lock still needs to disable
-IRQs but that will only happen on PCP refill and drain.  If an IRQ is
-raised when a PCP allocation is in progress, the trylock will fail and
-fallback to using the buddy lists directly.  Note that this may not be a
-universal win if an interrupt-intensive workload also allocates heavily
-from interrupt context and contends heavily on the zone->lock as a result.
+Same issue with calloc, kvcalloc, kvmalloc_array etc.
 
-[yuzhao@google.com: Reported lockdep issue on IO completion from softirq]
-Link: https://lkml.kernel.org/r/20221104142259.5hohev5hzvwanbi2@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nicolas Saenz Julienne <nsaenzju@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Bleat if sizeof is the first argument.
+
+Link: https://lore.kernel.org/lkml/5374345c-7973-6a3c-d559-73bf4ac15079@redhat.com/
+Link: https://lkml.kernel.org/r/20221104070523.60296-1-liaochang1@huawei.com
+Signed-off-by: Liao Chang <liaochang1@huawei.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  122 +++++++++++++++++++---------------------------
- 1 file changed, 53 insertions(+), 69 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations
-+++ a/mm/page_alloc.c
-@@ -170,21 +170,12 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
- 	_ret;								\
- })
- 
--#define pcpu_spin_lock_irqsave(type, member, ptr, flags)		\
-+#define pcpu_spin_trylock(type, member, ptr)				\
- ({									\
- 	type *_ret;							\
- 	pcpu_task_pin();						\
- 	_ret = this_cpu_ptr(ptr);					\
--	spin_lock_irqsave(&_ret->member, flags);			\
--	_ret;								\
--})
--
--#define pcpu_spin_trylock_irqsave(type, member, ptr, flags)		\
--({									\
--	type *_ret;							\
--	pcpu_task_pin();						\
--	_ret = this_cpu_ptr(ptr);					\
--	if (!spin_trylock_irqsave(&_ret->member, flags)) {		\
-+	if (!spin_trylock(&_ret->member)) {				\
- 		pcpu_task_unpin();					\
- 		_ret = NULL;						\
- 	}								\
-@@ -197,27 +188,16 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
- 	pcpu_task_unpin();						\
- })
- 
--#define pcpu_spin_unlock_irqrestore(member, ptr, flags)			\
--({									\
--	spin_unlock_irqrestore(&ptr->member, flags);			\
--	pcpu_task_unpin();						\
--})
--
- /* struct per_cpu_pages specific helpers. */
- #define pcp_spin_lock(ptr)						\
- 	pcpu_spin_lock(struct per_cpu_pages, lock, ptr)
- 
--#define pcp_spin_lock_irqsave(ptr, flags)				\
--	pcpu_spin_lock_irqsave(struct per_cpu_pages, lock, ptr, flags)
--
--#define pcp_spin_trylock_irqsave(ptr, flags)				\
--	pcpu_spin_trylock_irqsave(struct per_cpu_pages, lock, ptr, flags)
-+#define pcp_spin_trylock(ptr)						\
-+	pcpu_spin_trylock(struct per_cpu_pages, lock, ptr)
- 
- #define pcp_spin_unlock(ptr)						\
- 	pcpu_spin_unlock(lock, ptr)
- 
--#define pcp_spin_unlock_irqrestore(ptr, flags)				\
--	pcpu_spin_unlock_irqrestore(lock, ptr, flags)
- #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
- DEFINE_PER_CPU(int, numa_node);
- EXPORT_PER_CPU_SYMBOL(numa_node);
-@@ -1549,6 +1529,7 @@ static void free_pcppages_bulk(struct zo
- 					struct per_cpu_pages *pcp,
- 					int pindex)
- {
-+	unsigned long flags;
- 	int min_pindex = 0;
- 	int max_pindex = NR_PCP_LISTS - 1;
- 	unsigned int order;
-@@ -1564,8 +1545,7 @@ static void free_pcppages_bulk(struct zo
- 	/* Ensure requested pindex is drained first. */
- 	pindex = pindex - 1;
- 
--	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
--	spin_lock(&zone->lock);
-+	spin_lock_irqsave(&zone->lock, flags);
- 	isolated_pageblocks = has_isolate_pageblock(zone);
- 
- 	while (count > 0) {
-@@ -1613,7 +1593,7 @@ static void free_pcppages_bulk(struct zo
- 		} while (count > 0 && !list_empty(list));
- 	}
- 
--	spin_unlock(&zone->lock);
-+	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
- static void free_one_page(struct zone *zone,
-@@ -3140,10 +3120,10 @@ static int rmqueue_bulk(struct zone *zon
- 			unsigned long count, struct list_head *list,
- 			int migratetype, unsigned int alloc_flags)
- {
-+	unsigned long flags;
- 	int i, allocated = 0;
- 
--	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
--	spin_lock(&zone->lock);
-+	spin_lock_irqsave(&zone->lock, flags);
- 	for (i = 0; i < count; ++i) {
- 		struct page *page = __rmqueue(zone, order, migratetype,
- 								alloc_flags);
-@@ -3177,7 +3157,7 @@ static int rmqueue_bulk(struct zone *zon
- 	 * pages added to the pcp list.
- 	 */
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
--	spin_unlock(&zone->lock);
-+	spin_unlock_irqrestore(&zone->lock, flags);
- 	return allocated;
- }
- 
-@@ -3194,16 +3174,9 @@ void drain_zone_pages(struct zone *zone,
- 	batch = READ_ONCE(pcp->batch);
- 	to_drain = min(pcp->count, batch);
- 	if (to_drain > 0) {
--		unsigned long flags;
--
--		/*
--		 * free_pcppages_bulk expects IRQs disabled for zone->lock
--		 * so even though pcp->lock is not intended to be IRQ-safe,
--		 * it's needed in this context.
--		 */
--		spin_lock_irqsave(&pcp->lock, flags);
-+		spin_lock(&pcp->lock);
- 		free_pcppages_bulk(zone, to_drain, pcp, 0);
--		spin_unlock_irqrestore(&pcp->lock, flags);
-+		spin_unlock(&pcp->lock);
- 	}
- }
- #endif
-@@ -3217,12 +3190,9 @@ static void drain_pages_zone(unsigned in
- 
- 	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
- 	if (pcp->count) {
--		unsigned long flags;
--
--		/* See drain_zone_pages on why this is disabling IRQs */
--		spin_lock_irqsave(&pcp->lock, flags);
-+		spin_lock(&pcp->lock);
- 		free_pcppages_bulk(zone, pcp->count, pcp, 0);
--		spin_unlock_irqrestore(&pcp->lock, flags);
-+		spin_unlock(&pcp->lock);
- 	}
- }
- 
-@@ -3488,7 +3458,6 @@ static void free_unref_page_commit(struc
-  */
- void free_unref_page(struct page *page, unsigned int order)
- {
--	unsigned long flags;
- 	unsigned long __maybe_unused UP_flags;
- 	struct per_cpu_pages *pcp;
- 	struct zone *zone;
-@@ -3516,10 +3485,10 @@ void free_unref_page(struct page *page,
- 
- 	zone = page_zone(page);
- 	pcp_trylock_prepare(UP_flags);
--	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (pcp) {
- 		free_unref_page_commit(zone, pcp, page, migratetype, order);
--		pcp_spin_unlock_irqrestore(pcp, flags);
-+		pcp_spin_unlock(pcp);
- 	} else {
- 		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
- 	}
-@@ -3531,10 +3500,10 @@ void free_unref_page(struct page *page,
-  */
- void free_unref_page_list(struct list_head *list)
- {
-+	unsigned long __maybe_unused UP_flags;
- 	struct page *page, *next;
- 	struct per_cpu_pages *pcp = NULL;
- 	struct zone *locked_zone = NULL;
--	unsigned long flags;
- 	int batch_count = 0;
- 	int migratetype;
- 
-@@ -3563,11 +3532,26 @@ void free_unref_page_list(struct list_he
- 
- 		/* Different zone, different pcp lock. */
- 		if (zone != locked_zone) {
--			if (pcp)
--				pcp_spin_unlock_irqrestore(pcp, flags);
-+			if (pcp) {
-+				pcp_spin_unlock(pcp);
-+				pcp_trylock_finish(UP_flags);
-+			}
- 
-+			/*
-+			 * trylock is necessary as pages may be getting freed
-+			 * from IRQ or SoftIRQ context after an IO completion.
-+			 */
-+			pcp_trylock_prepare(UP_flags);
-+			pcp = pcp_spin_trylock(zone->per_cpu_pageset);
-+			if (!pcp) {
-+				pcp_trylock_finish(UP_flags);
-+				list_del(&page->lru);
-+				free_one_page(page_zone(page), page,
-+					      page_to_pfn(page), 0, migratetype,
-+					      FPI_NONE);
-+				continue;
-+			}
- 			locked_zone = zone;
--			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
+--- a/scripts/checkpatch.pl~checkpatch-add-check-for-array-allocator-family-argument-order
++++ a/scripts/checkpatch.pl
+@@ -7146,7 +7146,7 @@ sub process {
  		}
  
- 		/*
-@@ -3582,18 +3566,23 @@ void free_unref_page_list(struct list_he
- 		free_unref_page_commit(zone, pcp, page, migratetype, 0);
- 
- 		/*
--		 * Guard against excessive IRQ disabled times when we get
--		 * a large list of pages to free.
-+		 * Guard against excessive IRQ disabled times when freeing
-+		 * a large list of pages. Lock will be reacquired if
-+		 * necessary on the next iteration.
- 		 */
- 		if (++batch_count == SWAP_CLUSTER_MAX) {
--			pcp_spin_unlock_irqrestore(pcp, flags);
-+			pcp_spin_unlock(pcp);
-+			pcp_trylock_finish(UP_flags);
- 			batch_count = 0;
--			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
-+			pcp = NULL;
-+			locked_zone = NULL;
+ # check for alloc argument mismatch
+-		if ($line =~ /\b((?:devm_)?(?:kcalloc|kmalloc_array))\s*\(\s*sizeof\b/) {
++		if ($line =~ /\b((?:devm_)?((?:k|kv)?(calloc|malloc_array)(?:_node)?))\s*\(\s*sizeof\b/) {
+ 			WARN("ALLOC_ARRAY_ARGS",
+ 			     "$1 uses number as first arg, sizeof is generally wrong\n" . $herecurr);
  		}
- 	}
- 
--	if (pcp)
--		pcp_spin_unlock_irqrestore(pcp, flags);
-+	if (pcp) {
-+		pcp_spin_unlock(pcp);
-+		pcp_trylock_finish(UP_flags);
-+	}
- }
- 
- /*
-@@ -3794,15 +3783,11 @@ static struct page *rmqueue_pcplist(stru
- 	struct per_cpu_pages *pcp;
- 	struct list_head *list;
- 	struct page *page;
--	unsigned long flags;
- 	unsigned long __maybe_unused UP_flags;
- 
--	/*
--	 * spin_trylock may fail due to a parallel drain. In the future, the
--	 * trylock will also protect against IRQ reentrancy.
--	 */
-+	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
- 	pcp_trylock_prepare(UP_flags);
--	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (!pcp) {
- 		pcp_trylock_finish(UP_flags);
- 		return NULL;
-@@ -3816,7 +3801,7 @@ static struct page *rmqueue_pcplist(stru
- 	pcp->free_factor >>= 1;
- 	list = &pcp->lists[order_to_pindex(migratetype, order)];
- 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
--	pcp_spin_unlock_irqrestore(pcp, flags);
-+	pcp_spin_unlock(pcp);
- 	pcp_trylock_finish(UP_flags);
- 	if (page) {
- 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
-@@ -5384,7 +5369,6 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 			struct page **page_array)
- {
- 	struct page *page;
--	unsigned long flags;
- 	unsigned long __maybe_unused UP_flags;
- 	struct zone *zone;
- 	struct zoneref *z;
-@@ -5466,9 +5450,9 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	if (unlikely(!zone))
- 		goto failed;
- 
--	/* Is a parallel drain in progress? */
-+	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
- 	pcp_trylock_prepare(UP_flags);
--	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (!pcp)
- 		goto failed_irq;
- 
-@@ -5487,7 +5471,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		if (unlikely(!page)) {
- 			/* Try and allocate at least one page */
- 			if (!nr_account) {
--				pcp_spin_unlock_irqrestore(pcp, flags);
-+				pcp_spin_unlock(pcp);
- 				goto failed_irq;
- 			}
- 			break;
-@@ -5502,7 +5486,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		nr_populated++;
- 	}
- 
--	pcp_spin_unlock_irqrestore(pcp, flags);
-+	pcp_spin_unlock(pcp);
- 	pcp_trylock_finish(UP_flags);
- 
- 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from liaochang1@huawei.com are
 
-mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch
+checkpatch-add-check-for-array-allocator-family-argument-order.patch
 
