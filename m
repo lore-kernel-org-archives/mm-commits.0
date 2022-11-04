@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4792CC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Nov 2022 22:05:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 304CDC4332F
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Nov 2022 22:46:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229588AbiKDWFv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Nov 2022 18:05:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34448 "EHLO
+        id S230469AbiKDWqy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Nov 2022 18:46:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbiKDWFu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2022 18:05:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FF4D6555
-        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 15:05:49 -0700 (PDT)
+        with ESMTP id S230297AbiKDWqW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2022 18:46:22 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF289121245
+        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 15:41:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AD3226233F
-        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 22:05:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01C97C433D6;
-        Fri,  4 Nov 2022 22:05:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2D866B83016
+        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 22:41:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C18C4C433C1;
+        Fri,  4 Nov 2022 22:41:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667599548;
-        bh=Txi/sgL+Rsbj8hGUl4n0fdhL9/f0GhAE4Y7esdAs2UQ=;
+        s=korg; t=1667601664;
+        bh=rneBAy3Saa3bJXZ+5BdBu+beRxQxfufV42CQHxfj03E=;
         h=Date:To:From:Subject:From;
-        b=Y0EPJSsVeKK4+36dRFjZNa9/wHr5p1LlPMKdrV5hO3VIbDM1t4XvKI218kcSsrjM7
-         vQPyWXQTsAz071MWSypGxjwrv2+Ola/ECyhkc3sr0zf58IRq3HDQYp5i5LZyYkz4/c
-         rXdMi/aYMxE1BJa2p1KPXnyr28i8L+cOjrwq4i1s=
-Date:   Fri, 04 Nov 2022 15:05:47 -0700
-To:     mm-commits@vger.kernel.org, wangdeming@inspur.com,
+        b=PqWKGxzccQ1AEaaIN8WYBJFB7fkSR5sPOr+4Jz/Y7nRnNqMQE3cYGzWoYkgCrAsHH
+         ycBfYiyvLp4w8v2tPzNIV8LeT5PjuZqUkdu8k/A7WJw0t8dmJrWKPT9CqDgOLv8FSu
+         NZ2MloNLpwQKfiEWuFp8IPkbBCvRGR3XFanpg2EM=
+Date:   Fri, 04 Nov 2022 15:41:03 -0700
+To:     mm-commits@vger.kernel.org, riel@surriel.com,
+        oliver.sang@intel.com, david@redhat.com, mike.kravetz@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-replace-is_err-with-is_err_value.patch added to mm-unstable branch
-Message-Id: <20221104220548.01C97C433D6@smtp.kernel.org>
+Subject: + selftests-vm-update-hugetlb-madvise.patch added to mm-unstable branch
+Message-Id: <20221104224104.C18C4C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: replace IS_ERR() with IS_ERR_VALUE()
+     Subject: selftests/vm: update hugetlb madvise
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-replace-is_err-with-is_err_value.patch
+     selftests-vm-update-hugetlb-madvise.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-replace-is_err-with-is_err_value.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-update-hugetlb-madvise.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,36 +65,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Deming Wang <wangdeming@inspur.com>
-Subject: zsmalloc: replace IS_ERR() with IS_ERR_VALUE()
-Date: Thu, 3 Nov 2022 22:38:18 -0400
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: selftests/vm: update hugetlb madvise
+Date: Thu, 3 Nov 2022 18:16:32 -0700
 
-Avoid typecasts that are needed for IS_ERR() and use IS_ERR_VALUE()
-instead.
+Commit 8ebe0a5eaaeb ("mm,madvise,hugetlb: fix unexpected data loss with
+MADV_DONTNEED on hugetlbfs") changed how the passed length was interpreted
+for hugetlb mappings.  It was changed from align up to align down.  The
+hugetlb-madvise test explicitly tests this behavior.  Change test to
+expect new behavior.
 
-Link: https://lkml.kernel.org/r/20221104023818.1728-1-wangdeming@inspur.com
-Signed-off-by: Deming Wang <wangdeming@inspur.com>
+Link: https://lkml.kernel.org/r/20221104011632.357049-1-mike.kravetz@oracle.com
+Link: https://lore.kernel.org/oe-lkp/202211040619.2ec447d7-oliver.sang@intel.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/hugetlb-madvise.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-replace-is_err-with-is_err_value
-+++ a/mm/zsmalloc.c
-@@ -379,7 +379,7 @@ static int zs_zpool_malloc(void *pool, s
- {
- 	*handle = zs_malloc(pool, size, gfp);
+--- a/tools/testing/selftests/vm/hugetlb-madvise.c~selftests-vm-update-hugetlb-madvise
++++ a/tools/testing/selftests/vm/hugetlb-madvise.c
+@@ -195,7 +195,7 @@ int main(int argc, char **argv)
+ 			exit(1);
+ 	}
  
--	if (IS_ERR((void *)(*handle)))
-+	if (IS_ERR_VALUE(*handle))
- 		return PTR_ERR((void *)*handle);
- 	return 0;
- }
+-	/* addr + length should be aligned up to huge page size */
++	/* addr + length should be aligned down to huge page size */
+ 	if (madvise(addr,
+ 			((NR_HUGE_PAGES - 1) * huge_page_size) + base_page_size,
+ 			MADV_DONTNEED)) {
+@@ -203,10 +203,11 @@ int main(int argc, char **argv)
+ 		exit(1);
+ 	}
+ 
+-	/* should free all pages in mapping */
+-	validate_free_pages(free_hugepages);
++	/* should free all but last page in mapping */
++	validate_free_pages(free_hugepages - 1);
+ 
+ 	(void)munmap(addr, NR_HUGE_PAGES * huge_page_size);
++	validate_free_pages(free_hugepages);
+ 
+ 	/*
+ 	 * Test MADV_DONTNEED on anonymous private mapping
 _
 
-Patches currently in -mm which might be from wangdeming@inspur.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-use-vma_lookup-instead-of-find_vma.patch
-zsmalloc-replace-is_err-with-is_err_value.patch
+hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v4.patch
+hugetlb-simplify-hugetlb-handling-in-follow_page_mask-v5.patch
+selftests-vm-update-hugetlb-madvise.patch
 
