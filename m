@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 154ACC4332F
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Nov 2022 23:31:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEC57C4332F
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Nov 2022 23:45:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229461AbiKDXbQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Nov 2022 19:31:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54902 "EHLO
+        id S229551AbiKDXpr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Nov 2022 19:45:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35438 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229457AbiKDXbP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2022 19:31:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 580D9388A
-        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 16:31:13 -0700 (PDT)
+        with ESMTP id S229745AbiKDXpo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2022 19:45:44 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 238592EF2E
+        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 16:45:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C800462390
-        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 23:31:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A68AC433C1;
-        Fri,  4 Nov 2022 23:31:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A34CCB83037
+        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 23:45:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46090C433C1;
+        Fri,  4 Nov 2022 23:45:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667604672;
-        bh=xdl4PGuG5PZxZH14/GwLzuNcr6JzwSyXdzncHbk+j8o=;
+        s=korg; t=1667605540;
+        bh=HhojZjz1snvKZbCIlBzqiJ6skUHwZe3nshQhFMpopxI=;
         h=Date:To:From:Subject:From;
-        b=yEJpwqlUSb9wOEr+k9LioFDyXeN6A37Jm0bW9YKPDEDWpbCa51nFjUkHoOoFgsfGZ
-         iMCXA7WNH6eBF9wKL9YoL/rtHWsxx3jFrNGlwuWRvzRFLYMrFeqFRL3jjIl7XRgVo7
-         hZSrtUfgR+Bc62mrWISXxw/vItwpgN+vIG2mj5i0=
-Date:   Fri, 04 Nov 2022 16:31:11 -0700
-To:     mm-commits@vger.kernel.org, xiang@kernel.org, surenb@google.com,
-        linux@leemhuis.info, josef@toxicpanda.com, hch@lst.de,
-        dsterba@suse.com, clm@fb.com, chao@kernel.org, axboe@kernel.dk,
-        hannes@cmpxchg.org, akpm@linux-foundation.org
+        b=vN67OrUFYu+ULZnVAofAXyk/MZrKNGJCt1cDaSMPlFCi2OcaQw57DZTgj7B3qHRFk
+         +m9noqnBfH2t0wBNr/8u8NrzxPLPmca1MPpmwii1ESkbfFNkCI76T1Qjuwt6DuThsk
+         On3hH/7IXyz4B11yR0Y4lsDOJxlmvaSesZhU2BPo=
+Date:   Fri, 04 Nov 2022 16:45:39 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com,
+        willy@infradead.org, vbabka@suse.cz, songmuchun@bytedance.com,
+        sidhartha.kumar@oracle.com, shy828301@gmail.com, peterx@redhat.com,
+        naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
+        linmiaohe@huawei.com, kirill@shutemov.name, jthoughton@google.com,
+        jhubbard@nvidia.com, david@redhat.com, almasrymina@google.com,
+        hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-fix-leaked-psi-pressure-state.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221104233112.1A68AC433C1@smtp.kernel.org>
+Subject: + mmhugetlb-use-folio-fields-in-second-tail-page.patch added to mm-unstable branch
+Message-Id: <20221104234540.46090C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: fix leaked psi pressure state
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-fix-leaked-psi-pressure-state.patch
+     Subject: mm,hugetlb: use folio fields in second tail page
+has been added to the -mm mm-unstable branch.  Its filename is
+     mmhugetlb-use-folio-fields-in-second-tail-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-fix-leaked-psi-pressure-state.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmhugetlb-use-folio-fields-in-second-tail-page.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,156 +69,347 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: fs: fix leaked psi pressure state
-Date: Thu, 3 Nov 2022 17:34:31 -0400
+From: Hugh Dickins <hughd@google.com>
+Subject: mm,hugetlb: use folio fields in second tail page
+Date: Wed, 2 Nov 2022 18:48:45 -0700 (PDT)
 
-When psi annotations were added to to btrfs compression reads, the psi
-state tracking over add_ra_bio_pages and btrfs_submit_compressed_read was
-faulty.  A pressure state, once entered, is never left.  This results in
-incorrectly elevated pressure, which triggers OOM kills.
+Patch series "mm,huge,rmap: unify and speed up compound mapcounts".
 
-pflags record the *previous* memstall state when we enter a new one.  The
-code tried to initialize pflags to 1, and then optimize the leave call
-when we either didn't enter a memstall, or were already inside a nested
-stall.  However, there can be multiple PageWorkingset pages in the bio, at
-which point it's that path itself that enters repeatedly and overwrites
-pflags.  This causes us to miss the exit.
 
-Enter the stall only once if needed, then unwind correctly.
+This patch (of 3):
 
-erofs has the same problem, fix that up too.  And move the memstall exit
-past submit_bio() to restore submit accounting originally added by
-b8e24a9300b0 ("block: annotate refault stalls from IO submission").
+We want to declare one more int in the first tail of a compound page: that
+first tail page being valuable property, since every compound page has a
+first tail, but perhaps no more than that.
 
-Link: https://lkml.kernel.org/r/Y2UHRqthNUwuIQGS@cmpxchg.org
-Fixes: 4088a47e78f9 ("btrfs: add manual PSI accounting for compressed reads")
-Fixes: 99486c511f68 ("erofs: add manual PSI accounting for the compressed address space")
-Fixes: 118f3663fbc6 ("block: remove PSI accounting from the bio layer")
-Link: https://lore.kernel.org/r/d20a0a85-e415-cf78-27f9-77dd7a94bc8d@leemhuis.info/
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Thorsten Leemhuis <linux@leemhuis.info>
-Tested-by: Thorsten Leemhuis <linux@leemhuis.info>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Gao Xiang <xiang@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+No problem on 64-bit: there is already space for it.  No problem with
+32-bit THPs: 5.18 commit 5232c63f46fd ("mm: Make compound_pincount always
+available") kindly cleared the space for it, apparently not realizing that
+only 64-bit architectures enable CONFIG_THP_SWAP (whose use of tail
+page->private might conflict) - but make sure of that in its Kconfig.
+
+But hugetlb pages use tail page->private of the first tail page for a
+subpool pointer, which will conflict; and they also use page->private of
+the 2nd, 3rd and 4th tails.
+
+Undo "mm: add private field of first tail to struct page and struct
+folio"'s recent addition of private_1 to the folio tail: instead add
+hugetlb_subpool, hugetlb_cgroup, hugetlb_cgroup_rsvd, hugetlb_hwpoison to
+a second tail page of the folio: THP has long been using several fields of
+that tail, so make better use of it for hugetlb too.  This is not how a
+generic folio should be declared in future, but it is an effective
+transitional way to make use of it.
+
+Delete the SUBPAGE_INDEX stuff, but keep __NR_USED_SUBPAGE: now 3.
+
+Link: https://lkml.kernel.org/r/5f52de70-975-e94f-f141-543765736181@google.com
+Link: https://lkml.kernel.org/r/3818cc9a-9999-d064-d778-9c94c5911e6@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/compression.c |   14 ++++++++------
- fs/erofs/zdata.c       |   18 +++++++++++-------
- 2 files changed, 19 insertions(+), 13 deletions(-)
+ include/linux/hugetlb.h        |   23 ++-------
+ include/linux/hugetlb_cgroup.h |   31 +++----------
+ include/linux/mm_types.h       |   72 ++++++++++++++++++++-----------
+ mm/Kconfig                     |    2 
+ mm/memory-failure.c            |    5 --
+ 5 files changed, 65 insertions(+), 68 deletions(-)
 
---- a/fs/btrfs/compression.c~fs-fix-leaked-psi-pressure-state
-+++ a/fs/btrfs/compression.c
-@@ -512,7 +512,7 @@ static u64 bio_end_offset(struct bio *bi
- static noinline int add_ra_bio_pages(struct inode *inode,
- 				     u64 compressed_end,
- 				     struct compressed_bio *cb,
--				     unsigned long *pflags)
-+				     int *memstall, unsigned long *pflags)
+--- a/include/linux/hugetlb_cgroup.h~mmhugetlb-use-folio-fields-in-second-tail-page
++++ a/include/linux/hugetlb_cgroup.h
+@@ -24,12 +24,10 @@ struct file_region;
+ #ifdef CONFIG_CGROUP_HUGETLB
+ /*
+  * Minimum page order trackable by hugetlb cgroup.
+- * At least 4 pages are necessary for all the tracking information.
+- * The second tail page (hpage[SUBPAGE_INDEX_CGROUP]) is the fault
+- * usage cgroup. The third tail page (hpage[SUBPAGE_INDEX_CGROUP_RSVD])
+- * is the reservation usage cgroup.
++ * At least 3 pages are necessary for all the tracking information.
++ * The second tail page contains all of the hugetlb-specific fields.
+  */
+-#define HUGETLB_CGROUP_MIN_ORDER order_base_2(__MAX_CGROUP_SUBPAGE_INDEX + 1)
++#define HUGETLB_CGROUP_MIN_ORDER order_base_2(__NR_USED_SUBPAGE)
+ 
+ enum hugetlb_memory_event {
+ 	HUGETLB_MAX,
+@@ -69,21 +67,13 @@ struct hugetlb_cgroup {
+ static inline struct hugetlb_cgroup *
+ __hugetlb_cgroup_from_folio(struct folio *folio, bool rsvd)
  {
- 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
- 	unsigned long end_index;
-@@ -581,8 +581,10 @@ static noinline int add_ra_bio_pages(str
- 			continue;
- 		}
+-	struct page *tail;
+-
+ 	VM_BUG_ON_FOLIO(!folio_test_hugetlb(folio), folio);
+ 	if (folio_order(folio) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return NULL;
+-
+-	if (rsvd) {
+-		tail = folio_page(folio, SUBPAGE_INDEX_CGROUP_RSVD);
+-		return (void *)page_private(tail);
+-	}
+-
+-	else {
+-		tail = folio_page(folio, SUBPAGE_INDEX_CGROUP);
+-		return (void *)page_private(tail);
+-	}
++	if (rsvd)
++		return folio->_hugetlb_cgroup_rsvd;
++	else
++		return folio->_hugetlb_cgroup;
+ }
  
--		if (PageWorkingset(page))
-+		if (!*memstall && PageWorkingset(page)) {
- 			psi_memstall_enter(pflags);
-+			*memstall = 1;
-+		}
+ static inline struct hugetlb_cgroup *hugetlb_cgroup_from_folio(struct folio *folio)
+@@ -101,15 +91,12 @@ static inline void __set_hugetlb_cgroup(
+ 				       struct hugetlb_cgroup *h_cg, bool rsvd)
+ {
+ 	VM_BUG_ON_FOLIO(!folio_test_hugetlb(folio), folio);
+-
+ 	if (folio_order(folio) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return;
+ 	if (rsvd)
+-		set_page_private(folio_page(folio, SUBPAGE_INDEX_CGROUP_RSVD),
+-				 (unsigned long)h_cg);
++		folio->_hugetlb_cgroup_rsvd = h_cg;
+ 	else
+-		set_page_private(folio_page(folio, SUBPAGE_INDEX_CGROUP),
+-				 (unsigned long)h_cg);
++		folio->_hugetlb_cgroup = h_cg;
+ }
  
- 		ret = set_page_extent_mapped(page);
- 		if (ret < 0) {
-@@ -670,8 +672,8 @@ void btrfs_submit_compressed_read(struct
- 	u64 em_len;
- 	u64 em_start;
- 	struct extent_map *em;
--	/* Initialize to 1 to make skip psi_memstall_leave unless needed */
--	unsigned long pflags = 1;
-+	unsigned long pflags;
-+	int memstall = 0;
- 	blk_status_t ret;
- 	int ret2;
- 	int i;
-@@ -727,7 +729,7 @@ void btrfs_submit_compressed_read(struct
- 		goto fail;
- 	}
+ static inline void set_hugetlb_cgroup(struct folio *folio,
+--- a/include/linux/hugetlb.h~mmhugetlb-use-folio-fields-in-second-tail-page
++++ a/include/linux/hugetlb.h
+@@ -33,22 +33,9 @@ typedef struct { unsigned long pd; } hug
+ /*
+  * For HugeTLB page, there are more metadata to save in the struct page. But
+  * the head struct page cannot meet our needs, so we have to abuse other tail
+- * struct page to store the metadata. In order to avoid conflicts caused by
+- * subsequent use of more tail struct pages, we gather these discrete indexes
+- * of tail struct page here.
++ * struct page to store the metadata.
+  */
+-enum {
+-	SUBPAGE_INDEX_SUBPOOL = 1,	/* reuse page->private */
+-#ifdef CONFIG_CGROUP_HUGETLB
+-	SUBPAGE_INDEX_CGROUP,		/* reuse page->private */
+-	SUBPAGE_INDEX_CGROUP_RSVD,	/* reuse page->private */
+-	__MAX_CGROUP_SUBPAGE_INDEX = SUBPAGE_INDEX_CGROUP_RSVD,
+-#endif
+-#ifdef CONFIG_MEMORY_FAILURE
+-	SUBPAGE_INDEX_HWPOISON,
+-#endif
+-	__NR_USED_SUBPAGE,
+-};
++#define __NR_USED_SUBPAGE 3
  
--	add_ra_bio_pages(inode, em_start + em_len, cb, &pflags);
-+	add_ra_bio_pages(inode, em_start + em_len, cb, &memstall, &pflags);
+ struct hugepage_subpool {
+ 	spinlock_t lock;
+@@ -722,11 +709,11 @@ extern unsigned int default_hstate_idx;
  
- 	/* include any pages we added in add_ra-bio_pages */
- 	cb->len = bio->bi_iter.bi_size;
-@@ -807,7 +809,7 @@ void btrfs_submit_compressed_read(struct
- 		}
- 	}
+ static inline struct hugepage_subpool *hugetlb_folio_subpool(struct folio *folio)
+ {
+-	return (void *)folio_get_private_1(folio);
++	return folio->_hugetlb_subpool;
+ }
  
--	if (!pflags)
-+	if (memstall)
- 		psi_memstall_leave(&pflags);
+ /*
+- * hugetlb page subpool pointer located in hpage[1].private
++ * hugetlb page subpool pointer located in hpage[2].hugetlb_subpool
+  */
+ static inline struct hugepage_subpool *hugetlb_page_subpool(struct page *hpage)
+ {
+@@ -736,7 +723,7 @@ static inline struct hugepage_subpool *h
+ static inline void hugetlb_set_folio_subpool(struct folio *folio,
+ 					struct hugepage_subpool *subpool)
+ {
+-	folio_set_private_1(folio, (unsigned long)subpool);
++	folio->_hugetlb_subpool = subpool;
+ }
  
- 	if (refcount_dec_and_test(&cb->pending_ios))
---- a/fs/erofs/zdata.c~fs-fix-leaked-psi-pressure-state
-+++ a/fs/erofs/zdata.c
-@@ -1412,8 +1412,8 @@ static void z_erofs_submit_queue(struct
- 	struct block_device *last_bdev;
- 	unsigned int nr_bios = 0;
- 	struct bio *bio = NULL;
--	/* initialize to 1 to make skip psi_memstall_leave unless needed */
--	unsigned long pflags = 1;
-+	unsigned long pflags;
-+	int memstall = 0;
+ static inline void hugetlb_set_page_subpool(struct page *hpage,
+--- a/include/linux/mm_types.h~mmhugetlb-use-folio-fields-in-second-tail-page
++++ a/include/linux/mm_types.h
+@@ -145,15 +145,22 @@ struct page {
+ 			atomic_t compound_pincount;
+ #ifdef CONFIG_64BIT
+ 			unsigned int compound_nr; /* 1 << compound_order */
+-			unsigned long _private_1;
+ #endif
+ 		};
+-		struct {	/* Second tail page of compound page */
++		struct {	/* Second tail page of transparent huge page */
+ 			unsigned long _compound_pad_1;	/* compound_head */
+ 			unsigned long _compound_pad_2;
+ 			/* For both global and memcg */
+ 			struct list_head deferred_list;
+ 		};
++		struct {	/* Second tail page of hugetlb page */
++			unsigned long _hugetlb_pad_1;	/* compound_head */
++			void *hugetlb_subpool;
++			void *hugetlb_cgroup;
++			void *hugetlb_cgroup_rsvd;
++			void *hugetlb_hwpoison;
++			/* No more space on 32-bit: use third tail if more */
++		};
+ 		struct {	/* Page table pages */
+ 			unsigned long _pt_pad_1;	/* compound_head */
+ 			pgtable_t pmd_huge_pte; /* protected by page->ptl */
+@@ -260,13 +267,16 @@ struct page {
+  *    to find how many references there are to this folio.
+  * @memcg_data: Memory Control Group data.
+  * @_flags_1: For large folios, additional page flags.
+- * @__head: Points to the folio.  Do not use.
++ * @_head_1: Points to the folio.  Do not use.
+  * @_folio_dtor: Which destructor to use for this folio.
+  * @_folio_order: Do not use directly, call folio_order().
+  * @_total_mapcount: Do not use directly, call folio_entire_mapcount().
+  * @_pincount: Do not use directly, call folio_maybe_dma_pinned().
+  * @_folio_nr_pages: Do not use directly, call folio_nr_pages().
+- * @_private_1: Do not use directly, call folio_get_private_1().
++ * @_hugetlb_subpool: Do not use directly, use accessor in hugetlb.h.
++ * @_hugetlb_cgroup: Do not use directly, use accessor in hugetlb_cgroup.h.
++ * @_hugetlb_cgroup_rsvd: Do not use directly, use accessor in hugetlb_cgroup.h.
++ * @_hugetlb_hwpoison: Do not use directly, call raw_hwp_list_head().
+  *
+  * A folio is a physically, virtually and logically contiguous set
+  * of bytes.  It is a power-of-two in size, and it is aligned to that
+@@ -305,16 +315,31 @@ struct folio {
+ 		};
+ 		struct page page;
+ 	};
+-	unsigned long _flags_1;
+-	unsigned long __head;
+-	unsigned char _folio_dtor;
+-	unsigned char _folio_order;
+-	atomic_t _total_mapcount;
+-	atomic_t _pincount;
++	union {
++		struct {
++			unsigned long _flags_1;
++			unsigned long _head_1;
++			unsigned char _folio_dtor;
++			unsigned char _folio_order;
++			atomic_t _total_mapcount;
++			atomic_t _pincount;
+ #ifdef CONFIG_64BIT
+-	unsigned int _folio_nr_pages;
++			unsigned int _folio_nr_pages;
+ #endif
+-	unsigned long _private_1;
++		};
++		struct page page_1;
++	};
++	union {
++		struct {
++			unsigned long _flags_2;
++			unsigned long _head_2;
++			void *_hugetlb_subpool;
++			void *_hugetlb_cgroup;
++			void *_hugetlb_cgroup_rsvd;
++			void *_hugetlb_hwpoison;
++		};
++		struct page page_2;
++	};
+ };
  
- 	bi_private = jobqueueset_init(sb, q, fgq, force_fg);
- 	qtail[JQ_BYPASS] = &q[JQ_BYPASS]->head;
-@@ -1463,14 +1463,18 @@ static void z_erofs_submit_queue(struct
- 			if (bio && (cur != last_index + 1 ||
- 				    last_bdev != mdev.m_bdev)) {
- submit_bio_retry:
--				if (!pflags)
--					psi_memstall_leave(&pflags);
- 				submit_bio(bio);
-+				if (memstall) {
-+					psi_memstall_leave(&pflags);
-+					memstall = 0;
-+				}
- 				bio = NULL;
- 			}
+ #define FOLIO_MATCH(pg, fl)						\
+@@ -335,16 +360,25 @@ FOLIO_MATCH(memcg_data, memcg_data);
+ 	static_assert(offsetof(struct folio, fl) ==			\
+ 			offsetof(struct page, pg) + sizeof(struct page))
+ FOLIO_MATCH(flags, _flags_1);
+-FOLIO_MATCH(compound_head, __head);
++FOLIO_MATCH(compound_head, _head_1);
+ FOLIO_MATCH(compound_dtor, _folio_dtor);
+ FOLIO_MATCH(compound_order, _folio_order);
+ FOLIO_MATCH(compound_mapcount, _total_mapcount);
+ FOLIO_MATCH(compound_pincount, _pincount);
+ #ifdef CONFIG_64BIT
+ FOLIO_MATCH(compound_nr, _folio_nr_pages);
+-FOLIO_MATCH(_private_1, _private_1);
+ #endif
+ #undef FOLIO_MATCH
++#define FOLIO_MATCH(pg, fl)						\
++	static_assert(offsetof(struct folio, fl) ==			\
++			offsetof(struct page, pg) + 2 * sizeof(struct page))
++FOLIO_MATCH(flags, _flags_2);
++FOLIO_MATCH(compound_head, _head_2);
++FOLIO_MATCH(hugetlb_subpool, _hugetlb_subpool);
++FOLIO_MATCH(hugetlb_cgroup, _hugetlb_cgroup);
++FOLIO_MATCH(hugetlb_cgroup_rsvd, _hugetlb_cgroup_rsvd);
++FOLIO_MATCH(hugetlb_hwpoison, _hugetlb_hwpoison);
++#undef FOLIO_MATCH
  
--			if (unlikely(PageWorkingset(page)))
-+			if (unlikely(PageWorkingset(page)) && !memstall) {
- 				psi_memstall_enter(&pflags);
-+				memstall = 1;
-+			}
+ static inline atomic_t *folio_mapcount_ptr(struct folio *folio)
+ {
+@@ -388,16 +422,6 @@ static inline void *folio_get_private(st
+ 	return folio->private;
+ }
  
- 			if (!bio) {
- 				bio = bio_alloc(mdev.m_bdev, BIO_MAX_VECS,
-@@ -1500,9 +1504,9 @@ submit_bio_retry:
- 	} while (owned_head != Z_EROFS_PCLUSTER_TAIL);
+-static inline void folio_set_private_1(struct folio *folio, unsigned long private)
+-{
+-	folio->_private_1 = private;
+-}
+-
+-static inline unsigned long folio_get_private_1(struct folio *folio)
+-{
+-	return folio->_private_1;
+-}
+-
+ struct page_frag_cache {
+ 	void * va;
+ #if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
+--- a/mm/Kconfig~mmhugetlb-use-folio-fields-in-second-tail-page
++++ a/mm/Kconfig
+@@ -775,7 +775,7 @@ endchoice
  
- 	if (bio) {
--		if (!pflags)
--			psi_memstall_leave(&pflags);
- 		submit_bio(bio);
-+		if (memstall)
-+			psi_memstall_leave(&pflags);
- 	}
+ config THP_SWAP
+ 	def_bool y
+-	depends on TRANSPARENT_HUGEPAGE && ARCH_WANTS_THP_SWAP && SWAP
++	depends on TRANSPARENT_HUGEPAGE && ARCH_WANTS_THP_SWAP && SWAP && 64BIT
+ 	help
+ 	  Swap transparent huge pages in one piece, without splitting.
+ 	  XXX: For now, swap cluster backing transparent huge page
+--- a/mm/memory-failure.c~mmhugetlb-use-folio-fields-in-second-tail-page
++++ a/mm/memory-failure.c
+@@ -1687,8 +1687,7 @@ EXPORT_SYMBOL_GPL(mf_dax_kill_procs);
+ #ifdef CONFIG_HUGETLB_PAGE
+ /*
+  * Struct raw_hwp_page represents information about "raw error page",
+- * constructing singly linked list originated from ->private field of
+- * SUBPAGE_INDEX_HWPOISON-th tail page.
++ * constructing singly linked list from ->_hugetlb_hwpoison field of folio.
+  */
+ struct raw_hwp_page {
+ 	struct llist_node node;
+@@ -1697,7 +1696,7 @@ struct raw_hwp_page {
  
- 	/*
+ static inline struct llist_head *raw_hwp_list_head(struct page *hpage)
+ {
+-	return (struct llist_head *)&page_private(hpage + SUBPAGE_INDEX_HWPOISON);
++	return (struct llist_head *)&page_folio(hpage)->_hugetlb_hwpoison;
+ }
+ 
+ static unsigned long __free_raw_hwp_pages(struct page *hpage, bool move_flag)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-fs-fix-leaked-psi-pressure-state.patch
-mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch
-mm-vmscan-split-khugepaged-stats-from-direct-reclaim-stats.patch
-mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
+mmhugetlb-use-folio-fields-in-second-tail-page.patch
+mmthprmap-simplify-compound-page-mapcount-handling.patch
+mmthprmap-lock_compound_mapcounts-on-thp-mapcounts.patch
 
