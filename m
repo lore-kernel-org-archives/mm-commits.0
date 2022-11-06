@@ -2,657 +2,388 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDCA7C4332F
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Nov 2022 23:46:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F13AC433FE
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Nov 2022 23:53:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229693AbiKDXqB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Nov 2022 19:46:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35470 "EHLO
+        id S230054AbiKFXxy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Nov 2022 18:53:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229617AbiKDXpz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2022 19:45:55 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F6042E9D3
-        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 16:45:53 -0700 (PDT)
+        with ESMTP id S229628AbiKFXxx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Nov 2022 18:53:53 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAC62B850
+        for <mm-commits@vger.kernel.org>; Sun,  6 Nov 2022 15:53:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D5061B83037
-        for <mm-commits@vger.kernel.org>; Fri,  4 Nov 2022 23:45:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FE68C433C1;
-        Fri,  4 Nov 2022 23:45:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 697BF60DFE
+        for <mm-commits@vger.kernel.org>; Sun,  6 Nov 2022 23:53:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B83F0C433C1;
+        Sun,  6 Nov 2022 23:53:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667605550;
-        bh=ghs51a6q84vfIIwBg3kqGz2bMQm+fHp3i3ZshOwzkGQ=;
+        s=korg; t=1667778830;
+        bh=k7Lt1phDNf9c2UFzsmYNHOqF27nUjI9bpKjpondKuyY=;
         h=Date:To:From:Subject:From;
-        b=SdTN+hVKlf6akiQVSHPyc4XlAHj9Rl2z7EFZVp/WVUzUslrcZn/VRSobF2VjSw2JR
-         8IADw1nh63N5H0DYLefRyusSv0jMZ9dtoBPZ413skSKugXKUHlL/AUi4XHYghvaFAo
-         1rFw0a91ssGI6SAjkMF9Keh+pS/d3w2xX75h9Hsw=
-Date:   Fri, 04 Nov 2022 16:45:49 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com,
-        willy@infradead.org, vbabka@suse.cz, songmuchun@bytedance.com,
-        sidhartha.kumar@oracle.com, shy828301@gmail.com, peterx@redhat.com,
-        naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
-        linmiaohe@huawei.com, kirill@shutemov.name, jthoughton@google.com,
-        jhubbard@nvidia.com, david@redhat.com, almasrymina@google.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=gz+vWrz63FcHkaFSco6RMsYVEr/dtvBQjba9YAtXGdsXyxVV7ltFwd/mKb1VMdQGV
+         ng+evcf8oEmuii1UV+8Y6tTrkVS6OFxTHHXuhi6b18j4Tjz0S44KEDQ+81qIDE11xy
+         TsuOT8YBdkr487vmLt7pOR/mI1gI4F7buxwv2sfc=
+Date:   Sun, 06 Nov 2022 15:53:49 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, vbabka@suse.cz,
+        nsaenzju@redhat.com, mtosatti@redhat.com, m.szyprowski@samsung.com,
+        mhocko@kernel.org, hughd@google.com, mgorman@techsingularity.net,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmthprmap-lock_compound_mapcounts-on-thp-mapcounts.patch added to mm-unstable branch
-Message-Id: <20221104234550.6FE68C433C1@smtp.kernel.org>
+Subject: [failures] mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch removed from -mm tree
+Message-Id: <20221106235350.B83F0C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm,thp,rmap: lock_compound_mapcounts() on THP mapcounts
-has been added to the -mm mm-unstable branch.  Its filename is
-     mmthprmap-lock_compound_mapcounts-on-thp-mapcounts.patch
+The quilt patch titled
+     Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmthprmap-lock_compound_mapcounts-on-thp-mapcounts.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm,thp,rmap: lock_compound_mapcounts() on THP mapcounts
-Date: Wed, 2 Nov 2022 18:53:45 -0700 (PDT)
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations
+Date: Fri, 4 Nov 2022 14:22:59 +0000
 
-Fix the races in maintaining compound_mapcount, subpages_mapcount and
-subpage _mapcount by using PG_locked in the first tail of any compound
-page for a bit_spin_lock() on such modifications; skipping the usual
-atomic operations on those fields in this case.
+The pcp_spin_lock_irqsave protecting the PCP lists is IRQ-safe as a task
+allocating from the PCP must not re-enter the allocator from IRQ context. 
+In each instance where IRQ-reentrancy is possible, the lock is acquired
+using pcp_spin_trylock_irqsave() even though IRQs are disabled and
+re-entrancy is impossible.
 
-Bring page_remove_file_rmap() and page_remove_anon_compound_rmap() back
-into page_remove_rmap() itself.  Rearrange page_add_anon_rmap() and
-page_add_file_rmap() and page_remove_rmap() to follow the same "if
-(compound) {lock} else if (PageCompound) {lock} else {atomic}" pattern
-(with a PageTransHuge in the compound test, like before, to avoid BUG_ONs
-and optimize away that block when THP is not configured).  Move all the
-stats updates outside, after the bit_spin_locked section, so that it is
-sure to be a leaf lock.
+Demote the lock to pcp_spin_lock avoids an IRQ disable/enable in the
+common case at the cost of some IRQ allocations taking a slower path.  If
+the PCP lists need to be refilled, the zone lock still needs to disable
+IRQs but that will only happen on PCP refill and drain.  If an IRQ is
+raised when a PCP allocation is in progress, the trylock will fail and
+fallback to using the buddy lists directly.  Note that this may not be a
+universal win if an interrupt-intensive workload also allocates heavily
+from interrupt context and contends heavily on the zone->lock as a result.
 
-Add page_dup_compound_rmap() to manage compound locking versus atomics in
-sync with the rest.  In particular, hugetlb pages are still using the
-atomics: to avoid unnecessary interference there, and because they never
-have subpage mappings; but this exception can easily be changed. 
-Conveniently, page_dup_compound_rmap() turns out to suit an anon THP's
-__split_huge_pmd_locked() too.
-
-bit_spin_lock() is not popular with PREEMPT_RT folks: but PREEMPT_RT
-sensibly excludes TRANSPARENT_HUGEPAGE already, so its only exposure is to
-the non-hugetlb non-THP pte-mapped compound pages (with large folios being
-currently dependent on TRANSPARENT_HUGEPAGE).  There is never any scan of
-subpages in this case; but we have chosen to use PageCompound tests rather
-than PageTransCompound tests to gate the use of lock_compound_mapcounts(),
-so that page_mapped() is correct on all compound pages, whether or not
-TRANSPARENT_HUGEPAGE is enabled: could that be a problem for PREEMPT_RT,
-when there is contention on the lock - under heavy concurrent forking for
-example?  If so, then it can be turned into a sleeping lock (like
-folio_lock()) when PREEMPT_RT.
-
-A simple 100 X munmap(mmap(2GB, MAP_SHARED|MAP_POPULATE, tmpfs), 2GB) took
-18 seconds on small pages, and used to take 1 second on huge pages, but
-now takes 115 milliseconds on huge pages.  Mapping by pmds a second time
-used to take 860ms and now takes 86ms; mapping by pmds after mapping by
-ptes (when the scan is needed) used to take 870ms and now takes 495ms. 
-Mapping huge pages by ptes is largely unaffected but variable: between 5%
-faster and 5% slower in what I've recorded.  Contention on the lock is
-likely to behave worse than contention on the atomics behaved.
-
-Link: https://lkml.kernel.org/r/1b42bd1a-8223-e827-602f-d466c2db7d3c@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+[yuzhao@google.com: Reported lockdep issue on IO completion from softirq]
+Link: https://lkml.kernel.org/r/20221104142259.5hohev5hzvwanbi2@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Nicolas Saenz Julienne <nsaenzju@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/transhuge.rst |   14 -
- include/linux/rmap.h           |   14 -
- mm/huge_memory.c               |    3 
- mm/rmap.c                      |  337 +++++++++++++++++--------------
- 4 files changed, 205 insertions(+), 163 deletions(-)
+ mm/page_alloc.c |  122 +++++++++++++++++++---------------------------
+ 1 file changed, 53 insertions(+), 69 deletions(-)
 
---- a/Documentation/mm/transhuge.rst~mmthprmap-lock_compound_mapcounts-on-thp-mapcounts
-+++ a/Documentation/mm/transhuge.rst
-@@ -117,13 +117,15 @@ pages:
-   - ->_refcount in tail pages is always zero: get_page_unless_zero() never
-     succeeds on tail pages.
+--- a/mm/page_alloc.c~mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations
++++ a/mm/page_alloc.c
+@@ -170,21 +170,12 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
+ 	_ret;								\
+ })
  
--  - map/unmap of the pages with PTE entry increment/decrement ->_mapcount
--    on relevant sub-page of the compound page.
-+  - map/unmap of PMD entry for the whole compound page increment/decrement
-+    ->compound_mapcount, stored in the first tail page of the compound page.
+-#define pcpu_spin_lock_irqsave(type, member, ptr, flags)		\
++#define pcpu_spin_trylock(type, member, ptr)				\
+ ({									\
+ 	type *_ret;							\
+ 	pcpu_task_pin();						\
+ 	_ret = this_cpu_ptr(ptr);					\
+-	spin_lock_irqsave(&_ret->member, flags);			\
+-	_ret;								\
+-})
+-
+-#define pcpu_spin_trylock_irqsave(type, member, ptr, flags)		\
+-({									\
+-	type *_ret;							\
+-	pcpu_task_pin();						\
+-	_ret = this_cpu_ptr(ptr);					\
+-	if (!spin_trylock_irqsave(&_ret->member, flags)) {		\
++	if (!spin_trylock(&_ret->member)) {				\
+ 		pcpu_task_unpin();					\
+ 		_ret = NULL;						\
+ 	}								\
+@@ -197,27 +188,16 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
+ 	pcpu_task_unpin();						\
+ })
  
--  - map/unmap of the whole compound page is accounted for in compound_mapcount
--    (stored in first tail page). For file huge pages, we also increment
--    ->_mapcount of all sub-pages in order to have race-free detection of
--    last unmap of subpages.
-+  - map/unmap of sub-pages with PTE entry increment/decrement ->_mapcount
-+    on relevant sub-page of the compound page, and also increment/decrement
-+    ->subpages_mapcount, stored in first tail page of the compound page.
-+    In order to have race-free accounting of sub-pages mapped, changes to
-+    sub-page ->_mapcount, ->subpages_mapcount and ->compound_mapcount are
-+    are all locked by bit_spin_lock of PG_locked in the first tail ->flags.
+-#define pcpu_spin_unlock_irqrestore(member, ptr, flags)			\
+-({									\
+-	spin_unlock_irqrestore(&ptr->member, flags);			\
+-	pcpu_task_unpin();						\
+-})
+-
+ /* struct per_cpu_pages specific helpers. */
+ #define pcp_spin_lock(ptr)						\
+ 	pcpu_spin_lock(struct per_cpu_pages, lock, ptr)
  
- split_huge_page internally has to distribute the refcounts in the head
- page to the tail pages before clearing all PG_head/tail bits from the page
---- a/include/linux/rmap.h~mmthprmap-lock_compound_mapcounts-on-thp-mapcounts
-+++ a/include/linux/rmap.h
-@@ -204,16 +204,14 @@ void hugepage_add_anon_rmap(struct page
- void hugepage_add_new_anon_rmap(struct page *, struct vm_area_struct *,
- 		unsigned long address);
+-#define pcp_spin_lock_irqsave(ptr, flags)				\
+-	pcpu_spin_lock_irqsave(struct per_cpu_pages, lock, ptr, flags)
+-
+-#define pcp_spin_trylock_irqsave(ptr, flags)				\
+-	pcpu_spin_trylock_irqsave(struct per_cpu_pages, lock, ptr, flags)
++#define pcp_spin_trylock(ptr)						\
++	pcpu_spin_trylock(struct per_cpu_pages, lock, ptr)
  
--static inline void __page_dup_rmap(struct page *page, bool compound)
--{
--	if (!compound && PageCompound(page))
--		atomic_inc(subpages_mapcount_ptr(compound_head(page)));
--	atomic_inc(compound ? compound_mapcount_ptr(page) : &page->_mapcount);
--}
-+void page_dup_compound_rmap(struct page *page, bool compound);
+ #define pcp_spin_unlock(ptr)						\
+ 	pcpu_spin_unlock(lock, ptr)
  
- static inline void page_dup_file_rmap(struct page *page, bool compound)
+-#define pcp_spin_unlock_irqrestore(ptr, flags)				\
+-	pcpu_spin_unlock_irqrestore(lock, ptr, flags)
+ #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
+ DEFINE_PER_CPU(int, numa_node);
+ EXPORT_PER_CPU_SYMBOL(numa_node);
+@@ -1549,6 +1529,7 @@ static void free_pcppages_bulk(struct zo
+ 					struct per_cpu_pages *pcp,
+ 					int pindex)
  {
--	__page_dup_rmap(page, compound);
-+	if (PageCompound(page))
-+		page_dup_compound_rmap(page, compound);
-+	else
-+		atomic_inc(&page->_mapcount);
- }
++	unsigned long flags;
+ 	int min_pindex = 0;
+ 	int max_pindex = NR_PCP_LISTS - 1;
+ 	unsigned int order;
+@@ -1564,8 +1545,7 @@ static void free_pcppages_bulk(struct zo
+ 	/* Ensure requested pindex is drained first. */
+ 	pindex = pindex - 1;
  
- /**
-@@ -262,7 +260,7 @@ static inline int page_try_dup_anon_rmap
- 	 * the page R/O into both processes.
- 	 */
- dup:
--	__page_dup_rmap(page, compound);
-+	page_dup_file_rmap(page, compound);
- 	return 0;
- }
+-	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
+-	spin_lock(&zone->lock);
++	spin_lock_irqsave(&zone->lock, flags);
+ 	isolated_pageblocks = has_isolate_pageblock(zone);
  
---- a/mm/huge_memory.c~mmthprmap-lock_compound_mapcounts-on-thp-mapcounts
-+++ a/mm/huge_memory.c
-@@ -2096,7 +2096,6 @@ static void __split_huge_pmd_locked(stru
- 
- 		VM_BUG_ON_PAGE(!page_count(page), page);
- 		page_ref_add(page, HPAGE_PMD_NR - 1);
--		atomic_add(HPAGE_PMD_NR, subpages_mapcount_ptr(page));
- 
- 		/*
- 		 * Without "freeze", we'll simply split the PMD, propagating the
-@@ -2176,7 +2175,7 @@ static void __split_huge_pmd_locked(stru
- 		BUG_ON(!pte_none(*pte));
- 		set_pte_at(mm, addr, pte, entry);
- 		if (!pmd_migration)
--			atomic_inc(&page[i]._mapcount);
-+			page_dup_compound_rmap(page + i, false);
- 		pte_unmap(pte);
+ 	while (count > 0) {
+@@ -1613,7 +1593,7 @@ static void free_pcppages_bulk(struct zo
+ 		} while (count > 0 && !list_empty(list));
  	}
  
---- a/mm/rmap.c~mmthprmap-lock_compound_mapcounts-on-thp-mapcounts
-+++ a/mm/rmap.c
-@@ -1085,11 +1085,66 @@ int pfn_mkclean_range(unsigned long pfn,
- 	return page_vma_mkclean_one(&pvmw);
+-	spin_unlock(&zone->lock);
++	spin_unlock_irqrestore(&zone->lock, flags);
  }
  
-+struct compound_mapcounts {
-+	unsigned int compound_mapcount;
-+	unsigned int subpages_mapcount;
-+};
-+
-+/*
-+ * lock_compound_mapcounts() first locks, then copies subpages_mapcount and
-+ * compound_mapcount from head[1].compound_mapcount and subpages_mapcount,
-+ * converting from struct page's internal representation to logical count
-+ * (that is, adding 1 to compound_mapcount to hide its offset by -1).
-+ */
-+static void lock_compound_mapcounts(struct page *head,
-+		struct compound_mapcounts *local)
-+{
-+	bit_spin_lock(PG_locked, &head[1].flags);
-+	local->compound_mapcount = atomic_read(compound_mapcount_ptr(head)) + 1;
-+	local->subpages_mapcount = atomic_read(subpages_mapcount_ptr(head));
-+}
-+
-+/*
-+ * After caller has updated subpage._mapcount, local subpages_mapcount and
-+ * local compound_mapcount, as necessary, unlock_compound_mapcounts() converts
-+ * and copies them back to the compound head[1] fields, and then unlocks.
-+ */
-+static void unlock_compound_mapcounts(struct page *head,
-+		struct compound_mapcounts *local)
-+{
-+	atomic_set(compound_mapcount_ptr(head), local->compound_mapcount - 1);
-+	atomic_set(subpages_mapcount_ptr(head), local->subpages_mapcount);
-+	bit_spin_unlock(PG_locked, &head[1].flags);
-+}
-+
-+/*
-+ * When acting on a compound page under lock_compound_mapcounts(), avoid the
-+ * unnecessary overhead of an actual atomic operation on its subpage mapcount.
-+ * Return true if this is the first increment or the last decrement
-+ * (remembering that page->_mapcount -1 represents logical mapcount 0).
-+ */
-+static bool subpage_mapcount_inc(struct page *page)
-+{
-+	int orig_mapcount = atomic_read(&page->_mapcount);
-+
-+	atomic_set(&page->_mapcount, orig_mapcount + 1);
-+	return orig_mapcount < 0;
-+}
-+
-+static bool subpage_mapcount_dec(struct page *page)
-+{
-+	int orig_mapcount = atomic_read(&page->_mapcount);
-+
-+	atomic_set(&page->_mapcount, orig_mapcount - 1);
-+	return orig_mapcount == 0;
-+}
-+
- /*
-  * When mapping a THP's first pmd, or unmapping its last pmd, if that THP
-  * also has pte mappings, then those must be discounted: in order to maintain
-  * NR_ANON_MAPPED and NR_FILE_MAPPED statistics exactly, without any drift,
-  * and to decide when an anon THP should be put on the deferred split queue.
-+ * This function must be called between lock_ and unlock_compound_mapcounts().
+ static void free_one_page(struct zone *zone,
+@@ -3140,10 +3120,10 @@ static int rmqueue_bulk(struct zone *zon
+ 			unsigned long count, struct list_head *list,
+ 			int migratetype, unsigned int alloc_flags)
+ {
++	unsigned long flags;
+ 	int i, allocated = 0;
+ 
+-	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
+-	spin_lock(&zone->lock);
++	spin_lock_irqsave(&zone->lock, flags);
+ 	for (i = 0; i < count; ++i) {
+ 		struct page *page = __rmqueue(zone, order, migratetype,
+ 								alloc_flags);
+@@ -3177,7 +3157,7 @@ static int rmqueue_bulk(struct zone *zon
+ 	 * pages added to the pcp list.
+ 	 */
+ 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
+-	spin_unlock(&zone->lock);
++	spin_unlock_irqrestore(&zone->lock, flags);
+ 	return allocated;
+ }
+ 
+@@ -3194,16 +3174,9 @@ void drain_zone_pages(struct zone *zone,
+ 	batch = READ_ONCE(pcp->batch);
+ 	to_drain = min(pcp->count, batch);
+ 	if (to_drain > 0) {
+-		unsigned long flags;
+-
+-		/*
+-		 * free_pcppages_bulk expects IRQs disabled for zone->lock
+-		 * so even though pcp->lock is not intended to be IRQ-safe,
+-		 * it's needed in this context.
+-		 */
+-		spin_lock_irqsave(&pcp->lock, flags);
++		spin_lock(&pcp->lock);
+ 		free_pcppages_bulk(zone, to_drain, pcp, 0);
+-		spin_unlock_irqrestore(&pcp->lock, flags);
++		spin_unlock(&pcp->lock);
+ 	}
+ }
+ #endif
+@@ -3217,12 +3190,9 @@ static void drain_pages_zone(unsigned in
+ 
+ 	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
+ 	if (pcp->count) {
+-		unsigned long flags;
+-
+-		/* See drain_zone_pages on why this is disabling IRQs */
+-		spin_lock_irqsave(&pcp->lock, flags);
++		spin_lock(&pcp->lock);
+ 		free_pcppages_bulk(zone, pcp->count, pcp, 0);
+-		spin_unlock_irqrestore(&pcp->lock, flags);
++		spin_unlock(&pcp->lock);
+ 	}
+ }
+ 
+@@ -3488,7 +3458,6 @@ static void free_unref_page_commit(struc
   */
- static int nr_subpages_unmapped(struct page *head, int nr_subpages)
+ void free_unref_page(struct page *page, unsigned int order)
  {
-@@ -1103,6 +1158,40 @@ static int nr_subpages_unmapped(struct p
- 	return nr;
- }
+-	unsigned long flags;
+ 	unsigned long __maybe_unused UP_flags;
+ 	struct per_cpu_pages *pcp;
+ 	struct zone *zone;
+@@ -3516,10 +3485,10 @@ void free_unref_page(struct page *page,
  
-+/*
-+ * page_dup_compound_rmap(), used when copying mm, or when splitting pmd,
-+ * provides a simple example of using lock_ and unlock_compound_mapcounts().
-+ */
-+void page_dup_compound_rmap(struct page *page, bool compound)
-+{
-+	struct compound_mapcounts mapcounts;
-+	struct page *head;
-+
-+	/*
-+	 * Hugetlb pages could use lock_compound_mapcounts(), like THPs do;
-+	 * but at present they are still being managed by atomic operations:
-+	 * which are likely to be somewhat faster, so don't rush to convert
-+	 * them over without evaluating the effect.
-+	 *
-+	 * Note that hugetlb does not call page_add_file_rmap():
-+	 * here is where hugetlb shared page mapcount is raised.
-+	 */
-+	if (PageHuge(page)) {
-+		atomic_inc(compound_mapcount_ptr(page));
-+		return;
-+	}
-+
-+	head = compound_head(page);
-+	lock_compound_mapcounts(head, &mapcounts);
-+	if (compound) {
-+		mapcounts.compound_mapcount++;
-+	} else {
-+		mapcounts.subpages_mapcount++;
-+		subpage_mapcount_inc(page);
-+	}
-+	unlock_compound_mapcounts(head, &mapcounts);
-+}
-+
- /**
-  * page_move_anon_rmap - move a page to our anon_vma
-  * @page:	the page to move to our anon_vma
-@@ -1212,7 +1301,8 @@ static void __page_check_anon_rmap(struc
- void page_add_anon_rmap(struct page *page,
- 	struct vm_area_struct *vma, unsigned long address, rmap_t flags)
- {
--	int nr, nr_pages;
-+	struct compound_mapcounts mapcounts;
-+	int nr = 0, nr_pmdmapped = 0;
- 	bool compound = flags & RMAP_COMPOUND;
- 	bool first;
- 
-@@ -1222,33 +1312,37 @@ void page_add_anon_rmap(struct page *pag
- 		VM_BUG_ON_PAGE(!PageLocked(page), page);
- 
- 	if (compound && PageTransHuge(page)) {
--		atomic_t *mapcount;
--		VM_BUG_ON_PAGE(!PageLocked(page), page);
--		mapcount = compound_mapcount_ptr(page);
--		first = atomic_inc_and_test(mapcount);
-+		lock_compound_mapcounts(page, &mapcounts);
-+		first = !mapcounts.compound_mapcount;
-+		mapcounts.compound_mapcount++;
-+		if (first) {
-+			nr = nr_pmdmapped = thp_nr_pages(page);
-+			if (mapcounts.subpages_mapcount)
-+				nr = nr_subpages_unmapped(page, nr_pmdmapped);
-+		}
-+		unlock_compound_mapcounts(page, &mapcounts);
- 
--		nr = nr_pages = thp_nr_pages(page);
--		if (first && head_subpages_mapcount(page))
--			nr = nr_subpages_unmapped(page, nr_pages);
--	} else {
--		nr = 1;
--		if (PageTransCompound(page)) {
--			struct page *head = compound_head(page);
-+	} else if (PageCompound(page)) {
-+		struct page *head = compound_head(page);
- 
--			atomic_inc(subpages_mapcount_ptr(head));
--			nr = !head_compound_mapcount(head);
--		}
-+		lock_compound_mapcounts(head, &mapcounts);
-+		mapcounts.subpages_mapcount++;
-+		first = subpage_mapcount_inc(page);
-+		nr = first && !mapcounts.compound_mapcount;
-+		unlock_compound_mapcounts(head, &mapcounts);
-+
-+	} else {
- 		first = atomic_inc_and_test(&page->_mapcount);
-+		nr = first;
+ 	zone = page_zone(page);
+ 	pcp_trylock_prepare(UP_flags);
+-	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
++	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
+ 	if (pcp) {
+ 		free_unref_page_commit(zone, pcp, page, migratetype, order);
+-		pcp_spin_unlock_irqrestore(pcp, flags);
++		pcp_spin_unlock(pcp);
+ 	} else {
+ 		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
  	}
- 
- 	VM_BUG_ON_PAGE(!first && (flags & RMAP_EXCLUSIVE), page);
- 	VM_BUG_ON_PAGE(!first && PageAnonExclusive(page), page);
- 
--	if (first) {
--		if (compound)
--			__mod_lruvec_page_state(page, NR_ANON_THPS, nr_pages);
-+	if (nr_pmdmapped)
-+		__mod_lruvec_page_state(page, NR_ANON_THPS, nr_pmdmapped);
-+	if (nr)
- 		__mod_lruvec_page_state(page, NR_ANON_MAPPED, nr);
--	}
- 
- 	if (unlikely(PageKsm(page)))
- 		unlock_page_memcg(page);
-@@ -1308,39 +1402,41 @@ void page_add_new_anon_rmap(struct page
- void page_add_file_rmap(struct page *page,
- 	struct vm_area_struct *vma, bool compound)
+@@ -3531,10 +3500,10 @@ void free_unref_page(struct page *page,
+  */
+ void free_unref_page_list(struct list_head *list)
  {
--	int nr = 0;
-+	struct compound_mapcounts mapcounts;
-+	int nr = 0, nr_pmdmapped = 0;
-+	bool first;
++	unsigned long __maybe_unused UP_flags;
+ 	struct page *page, *next;
+ 	struct per_cpu_pages *pcp = NULL;
+ 	struct zone *locked_zone = NULL;
+-	unsigned long flags;
+ 	int batch_count = 0;
+ 	int migratetype;
  
- 	VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
- 	lock_page_memcg(page);
--	if (compound && PageTransHuge(page)) {
--		int nr_pages;
+@@ -3563,11 +3532,26 @@ void free_unref_page_list(struct list_he
  
--		if (!atomic_inc_and_test(compound_mapcount_ptr(page)))
--			goto out;
-+	if (compound && PageTransHuge(page)) {
-+		lock_compound_mapcounts(page, &mapcounts);
-+		first = !mapcounts.compound_mapcount;
-+		mapcounts.compound_mapcount++;
-+		if (first) {
-+			nr = nr_pmdmapped = thp_nr_pages(page);
-+			if (mapcounts.subpages_mapcount)
-+				nr = nr_subpages_unmapped(page, nr_pmdmapped);
-+		}
-+		unlock_compound_mapcounts(page, &mapcounts);
+ 		/* Different zone, different pcp lock. */
+ 		if (zone != locked_zone) {
+-			if (pcp)
+-				pcp_spin_unlock_irqrestore(pcp, flags);
++			if (pcp) {
++				pcp_spin_unlock(pcp);
++				pcp_trylock_finish(UP_flags);
++			}
  
--		nr = nr_pages = thp_nr_pages(page);
--		if (head_subpages_mapcount(page))
--			nr = nr_subpages_unmapped(page, nr_pages);
--
--		if (PageSwapBacked(page))
--			__mod_lruvec_page_state(page, NR_SHMEM_PMDMAPPED,
--						nr_pages);
--		else
--			__mod_lruvec_page_state(page, NR_FILE_PMDMAPPED,
--						nr_pages);
--	} else {
--		bool pmd_mapped = false;
-+	} else if (PageCompound(page)) {
-+		struct page *head = compound_head(page);
- 
--		if (PageTransCompound(page)) {
--			struct page *head = compound_head(page);
-+		lock_compound_mapcounts(head, &mapcounts);
-+		mapcounts.subpages_mapcount++;
-+		first = subpage_mapcount_inc(page);
-+		nr = first && !mapcounts.compound_mapcount;
-+		unlock_compound_mapcounts(head, &mapcounts);
- 
--			atomic_inc(subpages_mapcount_ptr(head));
--			pmd_mapped = head_compound_mapcount(head);
--		}
--		if (atomic_inc_and_test(&page->_mapcount) && !pmd_mapped)
--			nr++;
-+	} else {
-+		first = atomic_inc_and_test(&page->_mapcount);
-+		nr = first;
- 	}
--out:
-+
-+	if (nr_pmdmapped)
-+		__mod_lruvec_page_state(page, PageSwapBacked(page) ?
-+			NR_SHMEM_PMDMAPPED : NR_FILE_PMDMAPPED, nr_pmdmapped);
- 	if (nr)
- 		__mod_lruvec_page_state(page, NR_FILE_MAPPED, nr);
- 	unlock_page_memcg(page);
-@@ -1348,137 +1444,84 @@ out:
- 	mlock_vma_page(page, vma, compound);
- }
- 
--static void page_remove_file_rmap(struct page *page, bool compound)
-+/**
-+ * page_remove_rmap - take down pte mapping from a page
-+ * @page:	page to remove mapping from
-+ * @vma:	the vm area from which the mapping is removed
-+ * @compound:	uncharge the page as compound or small page
-+ *
-+ * The caller needs to hold the pte lock.
-+ */
-+void page_remove_rmap(struct page *page,
-+	struct vm_area_struct *vma, bool compound)
- {
--	int nr = 0;
-+	struct compound_mapcounts mapcounts;
-+	int nr = 0, nr_pmdmapped = 0;
-+	bool last;
- 
- 	VM_BUG_ON_PAGE(compound && !PageHead(page), page);
- 
--	/* Hugepages are not counted in NR_FILE_MAPPED for now. */
-+	/* Hugetlb pages are not counted in NR_*MAPPED */
- 	if (unlikely(PageHuge(page))) {
- 		/* hugetlb pages are always mapped with pmds */
- 		atomic_dec(compound_mapcount_ptr(page));
- 		return;
- 	}
- 
-+	lock_page_memcg(page);
-+
- 	/* page still mapped by someone else? */
- 	if (compound && PageTransHuge(page)) {
--		int nr_pages;
--
--		if (!atomic_add_negative(-1, compound_mapcount_ptr(page)))
--			return;
--
--		nr = nr_pages = thp_nr_pages(page);
--		if (head_subpages_mapcount(page))
--			nr = nr_subpages_unmapped(page, nr_pages);
--
--		if (PageSwapBacked(page))
--			__mod_lruvec_page_state(page, NR_SHMEM_PMDMAPPED,
--						-nr_pages);
--		else
--			__mod_lruvec_page_state(page, NR_FILE_PMDMAPPED,
--						-nr_pages);
--	} else {
--		bool pmd_mapped = false;
--
--		if (PageTransCompound(page)) {
--			struct page *head = compound_head(page);
--
--			atomic_dec(subpages_mapcount_ptr(head));
--			pmd_mapped = head_compound_mapcount(head);
-+		lock_compound_mapcounts(page, &mapcounts);
-+		mapcounts.compound_mapcount--;
-+		last = !mapcounts.compound_mapcount;
-+		if (last) {
-+			nr = nr_pmdmapped = thp_nr_pages(page);
-+			if (mapcounts.subpages_mapcount)
-+				nr = nr_subpages_unmapped(page, nr_pmdmapped);
++			/*
++			 * trylock is necessary as pages may be getting freed
++			 * from IRQ or SoftIRQ context after an IO completion.
++			 */
++			pcp_trylock_prepare(UP_flags);
++			pcp = pcp_spin_trylock(zone->per_cpu_pageset);
++			if (!pcp) {
++				pcp_trylock_finish(UP_flags);
++				list_del(&page->lru);
++				free_one_page(page_zone(page), page,
++					      page_to_pfn(page), 0, migratetype,
++					      FPI_NONE);
++				continue;
++			}
+ 			locked_zone = zone;
+-			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
  		}
--		if (atomic_add_negative(-1, &page->_mapcount) && !pmd_mapped)
--			nr++;
--	}
-+		unlock_compound_mapcounts(page, &mapcounts);
  
--	if (nr)
--		__mod_lruvec_page_state(page, NR_FILE_MAPPED, -nr);
--}
--
--static void page_remove_anon_compound_rmap(struct page *page)
--{
--	int nr, nr_pages;
--
--	if (!atomic_add_negative(-1, compound_mapcount_ptr(page)))
--		return;
--
--	/* Hugepages are not counted in NR_ANON_PAGES for now. */
--	if (unlikely(PageHuge(page)))
--		return;
--
--	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
--		return;
-+	} else if (PageCompound(page)) {
-+		struct page *head = compound_head(page);
- 
--	nr = nr_pages = thp_nr_pages(page);
--	__mod_lruvec_page_state(page, NR_ANON_THPS, -nr);
-+		lock_compound_mapcounts(head, &mapcounts);
-+		mapcounts.subpages_mapcount--;
-+		last = subpage_mapcount_dec(page);
-+		nr = last && !mapcounts.compound_mapcount;
-+		unlock_compound_mapcounts(head, &mapcounts);
- 
--	if (head_subpages_mapcount(page)) {
--		nr = nr_subpages_unmapped(page, nr_pages);
-+	} else {
-+		last = atomic_add_negative(-1, &page->_mapcount);
-+		nr = last;
-+	}
- 
-+	if (nr_pmdmapped) {
-+		__mod_lruvec_page_state(page, PageAnon(page) ? NR_ANON_THPS :
-+				(PageSwapBacked(page) ? NR_SHMEM_PMDMAPPED :
-+				NR_FILE_PMDMAPPED), -nr_pmdmapped);
-+	}
-+	if (nr) {
-+		__mod_lruvec_page_state(page, PageAnon(page) ? NR_ANON_MAPPED :
-+				NR_FILE_MAPPED, -nr);
  		/*
--		 * Queue the page for deferred split if at least one small
-+		 * Queue anon THP for deferred split if at least one small
- 		 * page of the compound page is unmapped, but at least one
- 		 * small page is still mapped.
+@@ -3582,18 +3566,23 @@ void free_unref_page_list(struct list_he
+ 		free_unref_page_commit(zone, pcp, page, migratetype, 0);
+ 
+ 		/*
+-		 * Guard against excessive IRQ disabled times when we get
+-		 * a large list of pages to free.
++		 * Guard against excessive IRQ disabled times when freeing
++		 * a large list of pages. Lock will be reacquired if
++		 * necessary on the next iteration.
  		 */
--		if (nr && nr < nr_pages)
--			deferred_split_huge_page(page);
-+		if (PageTransCompound(page) && PageAnon(page))
-+			if (!compound || nr < nr_pmdmapped)
-+				deferred_split_huge_page(compound_head(page));
+ 		if (++batch_count == SWAP_CLUSTER_MAX) {
+-			pcp_spin_unlock_irqrestore(pcp, flags);
++			pcp_spin_unlock(pcp);
++			pcp_trylock_finish(UP_flags);
+ 			batch_count = 0;
+-			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
++			pcp = NULL;
++			locked_zone = NULL;
+ 		}
  	}
  
--	if (nr)
--		__mod_lruvec_page_state(page, NR_ANON_MAPPED, -nr);
--}
--
--/**
-- * page_remove_rmap - take down pte mapping from a page
-- * @page:	page to remove mapping from
-- * @vma:	the vm area from which the mapping is removed
-- * @compound:	uncharge the page as compound or small page
-- *
-- * The caller needs to hold the pte lock.
-- */
--void page_remove_rmap(struct page *page,
--	struct vm_area_struct *vma, bool compound)
--{
--	bool pmd_mapped = false;
--
--	lock_page_memcg(page);
--
--	if (!PageAnon(page)) {
--		page_remove_file_rmap(page, compound);
--		goto out;
--	}
--
--	if (compound) {
--		page_remove_anon_compound_rmap(page);
--		goto out;
--	}
--
--	if (PageTransCompound(page)) {
--		struct page *head = compound_head(page);
--
--		atomic_dec(subpages_mapcount_ptr(head));
--		pmd_mapped = head_compound_mapcount(head);
--	}
--
--	/* page still mapped by someone else? */
--	if (!atomic_add_negative(-1, &page->_mapcount) || pmd_mapped)
--		goto out;
--
--	__dec_lruvec_page_state(page, NR_ANON_MAPPED);
--
--	if (PageTransCompound(page))
--		deferred_split_huge_page(compound_head(page));
--
- 	/*
--	 * It would be tidy to reset the PageAnon mapping here,
-+	 * It would be tidy to reset PageAnon mapping when fully unmapped,
- 	 * but that might overwrite a racing page_add_anon_rmap
- 	 * which increments mapcount after us but sets mapping
--	 * before us: so leave the reset to free_unref_page,
-+	 * before us: so leave the reset to free_pages_prepare,
- 	 * and remember that it's only reliable while mapped.
--	 * Leaving it set also helps swapoff to reinstate ptes
--	 * faster for those pages still in swapcache.
- 	 */
--out:
-+
- 	unlock_page_memcg(page);
+-	if (pcp)
+-		pcp_spin_unlock_irqrestore(pcp, flags);
++	if (pcp) {
++		pcp_spin_unlock(pcp);
++		pcp_trylock_finish(UP_flags);
++	}
+ }
  
- 	munlock_vma_page(page, vma, compound);
+ /*
+@@ -3794,15 +3783,11 @@ static struct page *rmqueue_pcplist(stru
+ 	struct per_cpu_pages *pcp;
+ 	struct list_head *list;
+ 	struct page *page;
+-	unsigned long flags;
+ 	unsigned long __maybe_unused UP_flags;
+ 
+-	/*
+-	 * spin_trylock may fail due to a parallel drain. In the future, the
+-	 * trylock will also protect against IRQ reentrancy.
+-	 */
++	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
+ 	pcp_trylock_prepare(UP_flags);
+-	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
++	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
+ 	if (!pcp) {
+ 		pcp_trylock_finish(UP_flags);
+ 		return NULL;
+@@ -3816,7 +3801,7 @@ static struct page *rmqueue_pcplist(stru
+ 	pcp->free_factor >>= 1;
+ 	list = &pcp->lists[order_to_pindex(migratetype, order)];
+ 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
+-	pcp_spin_unlock_irqrestore(pcp, flags);
++	pcp_spin_unlock(pcp);
+ 	pcp_trylock_finish(UP_flags);
+ 	if (page) {
+ 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
+@@ -5384,7 +5369,6 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 			struct page **page_array)
+ {
+ 	struct page *page;
+-	unsigned long flags;
+ 	unsigned long __maybe_unused UP_flags;
+ 	struct zone *zone;
+ 	struct zoneref *z;
+@@ -5466,9 +5450,9 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 	if (unlikely(!zone))
+ 		goto failed;
+ 
+-	/* Is a parallel drain in progress? */
++	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
+ 	pcp_trylock_prepare(UP_flags);
+-	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
++	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
+ 	if (!pcp)
+ 		goto failed_irq;
+ 
+@@ -5487,7 +5471,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 		if (unlikely(!page)) {
+ 			/* Try and allocate at least one page */
+ 			if (!nr_account) {
+-				pcp_spin_unlock_irqrestore(pcp, flags);
++				pcp_spin_unlock(pcp);
+ 				goto failed_irq;
+ 			}
+ 			break;
+@@ -5502,7 +5486,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 		nr_populated++;
+ 	}
+ 
+-	pcp_spin_unlock_irqrestore(pcp, flags);
++	pcp_spin_unlock(pcp);
+ 	pcp_trylock_finish(UP_flags);
+ 
+ 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mmhugetlb-use-folio-fields-in-second-tail-page.patch
-mmthprmap-simplify-compound-page-mapcount-handling.patch
-mmthprmap-lock_compound_mapcounts-on-thp-mapcounts.patch
 
