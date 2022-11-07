@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA7A2C433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Nov 2022 00:21:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D993C433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Nov 2022 19:38:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229955AbiKGAVU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Nov 2022 19:21:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53598 "EHLO
+        id S232051AbiKGTiQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Nov 2022 14:38:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33942 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229756AbiKGAVT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Nov 2022 19:21:19 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24BFA639B
-        for <mm-commits@vger.kernel.org>; Sun,  6 Nov 2022 16:21:18 -0800 (PST)
+        with ESMTP id S231946AbiKGTiP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2022 14:38:15 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58A491009;
+        Mon,  7 Nov 2022 11:38:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B68EE60DF0
-        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 00:21:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1432EC433D7;
-        Mon,  7 Nov 2022 00:21:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0F4AFB81624;
+        Mon,  7 Nov 2022 19:38:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 765EDC433D6;
+        Mon,  7 Nov 2022 19:38:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667780477;
-        bh=OeZGvuLw9CbqaFu3B8GNv+anAukK+4xf4M4A67aFJnI=;
+        s=korg; t=1667849891;
+        bh=hTTPjDQBcTBlso9TlnW+PIR5cqySQkgw38Bp/glfbQ0=;
         h=Date:To:From:Subject:From;
-        b=ncmDX1Ax5OE9jnRrTSFA4dcKMFC/28oqHqG8naWxcN0Dmovx24YhgyYX/480ySMDu
-         WB1lA7vTiJ48HCThnPrlXaDk1Dcv/yaxWTKsvPUiCcz/WzFwd1bykuQdNiSF2tPIhR
-         EnUQ7Sy3F/OWgN687I11806KpRNpC1cCEToobTCQ=
-Date:   Sun, 06 Nov 2022 16:21:16 -0800
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com, tj@kernel.org,
-        shuah@kernel.org, shakeelb@google.com, roman.gushchin@linux.dev,
-        rientjes@google.com, lizefan.x@bytedance.com, hannes@cmpxchg.org,
-        yuehaibing@huawei.com, akpm@linux-foundation.org
+        b=Cuny8pz5tbFvTwx57U2zM+QG2vBj+qPoy8mKFXRLqUadaSi8UjYARdF/MAwzQE/SC
+         Zu6AMSMNSw9UZhRpHtWqAMt+Z7EvII3PQ/49Hj8T0CtPtA+HwqKWihVFfz5FIYFxEp
+         hXQ6i0Kol4oEZ7NzGqXzgZ7LnG8n32jVt+YB1teg=
+Date:   Mon, 07 Nov 2022 11:38:10 -0800
+To:     mm-commits@vger.kernel.org, ville.syrjala@linux.intel.com,
+        tglx@linutronix.de, stable@vger.kernel.org,
+        songmuchun@bytedance.com, shy828301@gmail.com, osalvador@suse.de,
+        mingo@redhat.com, mike.kravetz@oracle.com, liushixin2@huawei.com,
+        linmiaohe@huawei.com, david@redhat.com,
+        dave.hansen@linux.intel.com, bp@alien8.de, naoya.horiguchi@nec.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-cgroup-fix-unsigned-comparison-with-less-than-zero.patch added to mm-nonmm-unstable branch
-Message-Id: <20221107002117.1432EC433D7@smtp.kernel.org>
+Subject: + arch-x86-mm-hugetlbpagec-pud_huge-returns-0-when-using-2-level-paging.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221107193811.765EDC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: cgroup: fix unsigned comparison with less than zero
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-cgroup-fix-unsigned-comparison-with-less-than-zero.patch
+     Subject: arch/x86/mm/hugetlbpage.c: pud_huge() returns 0 when using 2-level paging
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     arch-x86-mm-hugetlbpagec-pud_huge-returns-0-when-using-2-level-paging.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-fix-unsigned-comparison-with-less-than-zero.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-x86-mm-hugetlbpagec-pud_huge-returns-0-when-using-2-level-paging.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,53 +69,96 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: selftests: cgroup: fix unsigned comparison with less than zero
-Date: Sat, 5 Nov 2022 19:06:11 +0800
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: arch/x86/mm/hugetlbpage.c: pud_huge() returns 0 when using 2-level paging
+Date: Mon, 7 Nov 2022 11:10:10 +0900
 
-'size' is unsigned, it never less than zero.
+The following bug is reported to be triggered when starting X on x86-32
+system with i915:
 
-Link: https://lkml.kernel.org/r/20221105110611.28920-1-yuehaibing@huawei.com
-Fixes: 6c26df84e1f2 ("selftests: cgroup: return -errno from cg_read()/cg_write() on failure")
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: zefan li <lizefan.x@bytedance.com>
+  [  225.777375] kernel BUG at mm/memory.c:2664!
+  [  225.777391] invalid opcode: 0000 [#1] PREEMPT SMP
+  [  225.777405] CPU: 0 PID: 2402 Comm: Xorg Not tainted 6.1.0-rc3-bdg+ #86
+  [  225.777415] Hardware name:  /8I865G775-G, BIOS F1 08/29/2006
+  [  225.777421] EIP: __apply_to_page_range+0x24d/0x31c
+  [  225.777437] Code: ff ff 8b 55 e8 8b 45 cc e8 0a 11 ec ff 89 d8 83 c4 28 5b 5e 5f 5d c3 81 7d e0 a0 ef 96 c1 74 ad 8b 45 d0 e8 2d 83 49 00 eb a3 <0f> 0b 25 00 f0 ff ff 81 eb 00 00 00 40 01 c3 8b 45 ec 8b 00 e8 76
+  [  225.777446] EAX: 00000001 EBX: c53a3b58 ECX: b5c00000 EDX: c258aa00
+  [  225.777454] ESI: b5c00000 EDI: b5900000 EBP: c4b0fdb4 ESP: c4b0fd80
+  [  225.777462] DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068 EFLAGS: 00010202
+  [  225.777470] CR0: 80050033 CR2: b5900000 CR3: 053a3000 CR4: 000006d0
+  [  225.777479] Call Trace:
+  [  225.777486]  ? i915_memcpy_init_early+0x63/0x63 [i915]
+  [  225.777684]  apply_to_page_range+0x21/0x27
+  [  225.777694]  ? i915_memcpy_init_early+0x63/0x63 [i915]
+  [  225.777870]  remap_io_mapping+0x49/0x75 [i915]
+  [  225.778046]  ? i915_memcpy_init_early+0x63/0x63 [i915]
+  [  225.778220]  ? mutex_unlock+0xb/0xd
+  [  225.778231]  ? i915_vma_pin_fence+0x6d/0xf7 [i915]
+  [  225.778420]  vm_fault_gtt+0x2a9/0x8f1 [i915]
+  [  225.778644]  ? lock_is_held_type+0x56/0xe7
+  [  225.778655]  ? lock_is_held_type+0x7a/0xe7
+  [  225.778663]  ? 0xc1000000
+  [  225.778670]  __do_fault+0x21/0x6a
+  [  225.778679]  handle_mm_fault+0x708/0xb21
+  [  225.778686]  ? mt_find+0x21e/0x5ae
+  [  225.778696]  exc_page_fault+0x185/0x705
+  [  225.778704]  ? doublefault_shim+0x127/0x127
+  [  225.778715]  handle_exception+0x130/0x130
+  [  225.778723] EIP: 0xb700468a
+
+Recently pud_huge() got aware of non-present entry by commit 3a194f3f8ad0
+("mm/hugetlb: make pud_huge() and follow_huge_pud() aware of non-present
+pud entry") to handle some special states of gigantic page.  However, it's
+overlooked that pud_none() always returns false when running with 2-level
+paging, and as a result pmd_huge() can return true pointlessly.
+
+Introduce "#if CONFIG_PGTABLE_LEVELS > 2" to pud_huge() to deal with this.
+
+Link: https://lkml.kernel.org/r/20221107021010.2449306-1-naoya.horiguchi@linux.dev
+Fixes: 3a194f3f8ad0 ("mm/hugetlb: make pud_huge() and follow_huge_pud() aware of non-present pud entry")
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reported-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Tested-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/cgroup_util.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/x86/mm/hugetlbpage.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/tools/testing/selftests/cgroup/cgroup_util.c~selftests-cgroup-fix-unsigned-comparison-with-less-than-zero
-+++ a/tools/testing/selftests/cgroup/cgroup_util.c
-@@ -555,6 +555,7 @@ int proc_mount_contains(const char *opti
- ssize_t proc_read_text(int pid, bool thread, const char *item, char *buf, size_t size)
+--- a/arch/x86/mm/hugetlbpage.c~arch-x86-mm-hugetlbpagec-pud_huge-returns-0-when-using-2-level-paging
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -37,8 +37,12 @@ int pmd_huge(pmd_t pmd)
+  */
+ int pud_huge(pud_t pud)
  {
- 	char path[PATH_MAX];
-+	ssize_t ret;
- 
- 	if (!pid)
- 		snprintf(path, sizeof(path), "/proc/%s/%s",
-@@ -562,8 +563,8 @@ ssize_t proc_read_text(int pid, bool thr
- 	else
- 		snprintf(path, sizeof(path), "/proc/%d/%s", pid, item);
- 
--	size = read_text(path, buf, size);
--	return size < 0 ? -1 : size;
-+	ret = read_text(path, buf, size);
-+	return ret < 0 ? -1 : ret;
++#if CONFIG_PGTABLE_LEVELS > 2
+ 	return !pud_none(pud) &&
+ 		(pud_val(pud) & (_PAGE_PRESENT|_PAGE_PSE)) != _PAGE_PRESENT;
++#else
++	return 0;
++#endif
  }
  
- int proc_read_strstr(int pid, bool thread, const char *item, const char *needle)
+ #ifdef CONFIG_HUGETLB_PAGE
 _
 
-Patches currently in -mm which might be from yuehaibing@huawei.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-selftests-cgroup-fix-unsigned-comparison-with-less-than-zero.patch
+arch-x86-mm-hugetlbpagec-pud_huge-returns-0-when-using-2-level-paging.patch
+mmhwpoisonhugetlbmemory_hotplug-hotremove-memory-section-with-hwpoisoned-hugepage.patch
+mm-hwpoison-move-definitions-of-num_poisoned_pages_-to-memory-failurec.patch
+mm-hwpoison-pass-pfn-to-num_poisoned_pages_.patch
+mm-hwpoison-introduce-per-memory_block-hwpoison-counter.patch
 
