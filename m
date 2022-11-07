@@ -2,44 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A9F8C433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Nov 2022 20:25:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB728C433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Nov 2022 20:32:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232111AbiKGUZk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Nov 2022 15:25:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57388 "EHLO
+        id S232501AbiKGUcy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Nov 2022 15:32:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231906AbiKGUZk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2022 15:25:40 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A4F2DD2
-        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 12:25:38 -0800 (PST)
+        with ESMTP id S232411AbiKGUcw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2022 15:32:52 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A314028E10
+        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 12:32:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 389FB61182
-        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 20:25:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 850C1C433D6;
-        Mon,  7 Nov 2022 20:25:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4D716B81619
+        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 20:32:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC978C433D6;
+        Mon,  7 Nov 2022 20:32:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667852737;
-        bh=7JP0GJIvGRaCmm8wtOgZShoJ9gTMPKtH8ZaEokb9RdQ=;
+        s=korg; t=1667853169;
+        bh=LFUDXUgzLDFAdHNExlz419SLOTvjG+KqlX9jax+XJjE=;
         h=Date:To:From:Subject:From;
-        b=I/NtlDZ3FIZkHHrfRNv+QTdxXeuuJkXlf5qicFaMyINx5uVBjWES+VM4qCUWyUyna
-         1XtfyqSLZDiDa0OhnGe7/UbRtBfaxeh3kzwiks3VmOu9m9W/CVBp3pZrKkmTJK5HiI
-         nUeEow1XMqNy56V7BqPZ48L2SVr3uTD/PLkwNBD8=
-Date:   Mon, 07 Nov 2022 12:25:36 -0800
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        vincent.whitchurch@axis.com, vbabka@suse.cz, shy828301@gmail.com,
-        seanjc@google.com, rppt@kernel.org, peterx@redhat.com,
-        paul.gortmaker@windriver.com, liam.howlett@oracle.com,
-        kirill@shutemov.name, hughd@google.com, hannes@cmpxchg.org,
-        david@redhat.com, corbet@lwn.net, cgel.zte@gmail.com,
-        ccross@google.com, bagasdotme@gmail.com, arnd@arndb.de,
-        pasha.tatashin@soleen.com, akpm@linux-foundation.org
+        b=oQrobcScXdPcmREslz/+3xd7jfbY9tOkuoOXSyVBhLSasQwyWOnZrseqyyGQuAulL
+         Gl2gn/ra8DpbZ55iCP032W8Y57X3QeQTcfir/CS9qbjwNIPgaxc6eF/H2FIARSM4Fj
+         56KxMl4HxeG0y7cxy/Kxf1Rz6BdWtXDXLHHjEcyE=
+Date:   Mon, 07 Nov 2022 12:32:48 -0800
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, joao.m.martins@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-anonymous-shared-memory-naming.patch added to mm-unstable branch
-Message-Id: <20221107202537.850C1C433D6@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page.patch added to mm-unstable branch
+Message-Id: <20221107203248.DC978C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: anonymous shared memory naming
+     Subject: mm/hugetlb_vmemmap: remap head page to newly allocated page
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-anonymous-shared-memory-naming.patch
+     mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-anonymous-shared-memory-naming.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,284 +65,204 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: mm: anonymous shared memory naming
-Date: Mon, 7 Nov 2022 18:47:15 +0000
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm/hugetlb_vmemmap: remap head page to newly allocated page
+Date: Mon, 7 Nov 2022 15:39:22 +0000
 
-Since commit 9a10064f5625 ("mm: add a field to store names for private
-anonymous memory"), name for private anonymous memory, but not shared
-anonymous, can be set.  However, naming shared anonymous memory just as
-useful for tracking purposes.
+Today with `hugetlb_free_vmemmap=on` the struct page memory that is freed
+back to page allocator is as following: for a 2M hugetlb page it will
+reuse the first 4K vmemmap page to remap the remaining 7 vmemmap pages,
+and for a 1G hugetlb it will remap the remaining 4095 vmemmap pages. 
+Essentially, that means that it breaks the first 4K of a potentially
+contiguous chunk of memory of 32K (for 2M hugetlb pages) or 16M (for 1G
+hugetlb pages).  For this reason the memory that it's free back to page
+allocator cannot be used for hugetlb to allocate huge pages of the same
+size, but rather only of a smaller huge page size:
 
-Extend the functionality to be able to set names for shared anon.
+Trying to assign a 64G node to hugetlb (on a 128G 2node guest, each node
+having 64G):
 
-Sample output:
-  /* Create shared anonymous segmenet */
-  anon_shmem = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
-                    MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-  /* Name the segment: "MY-NAME" */
-  rv = prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME,
-             anon_shmem, SIZE, "MY-NAME");
+* Before allocation:
+Free pages count per migrate type at order       0      1      2      3
+4      5      6      7      8      9     10
+...
+Node    0, zone   Normal, type      Movable    340    100     32     15
+1      2      0      0      0      1  15558
 
-cat /proc/<pid>/maps (and smaps):
-7fc8e2b4c000-7fc8f2b4c000 rw-s 00000000 00:01 1024 [anon_shmem:MY-NAME]
+$ echo 32768 > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
+$ cat /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
+ 31987
 
-Link: https://lkml.kernel.org/r/20221107184715.3950621-1-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Colin Cross <ccross@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: xu xin <cgel.zte@gmail.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
+* After:
+
+Node    0, zone   Normal, type      Movable  30893  32006  31515      7
+0      0      0      0      0      0      0
+
+Notice how the memory freed back are put back into 4K / 8K / 16K page
+pools.  And it allocates a total of 31974 pages (63948M).
+
+To fix this behaviour rather than remapping one page (thus breaking the
+contiguous block of memory backing the struct pages) repopulate with a new
+page for the head vmemmap page.  It will copying the data from the
+currently mapped vmemmap page, and then remap it to this new page. 
+Additionally, change the remap_pte callback to look at the newly added
+walk::head_page which needs to be mapped as r/w compared to the tail page
+vmemmap reuse that uses r/o.
+
+The new head page is allocated by the caller of vmemmap_remap_free() given
+that on restore it should still be using the same code path as before. 
+Note that, because right now one hugepage is remapped at a time, thus only
+one free 4K page at a time is needed to remap the head page.  Should it
+fail to allocate said new page, it reuses the one that's already mapped
+just like before.  As a result, for every 64G of contiguous hugepages it
+can give back 1G more of contiguous memory per 64G, while needing in total
+128M new 4K pages (for 2M hugetlb) or 256k (for 1G hugetlb).
+
+After the changes, try to assign a 64G node to hugetlb (on a 128G 2node
+guest, each node with 64G):
+
+* Before allocation
+Free pages count per migrate type at order       0      1      2      3
+4      5      6      7      8      9     10
+...
+Node    0, zone   Normal, type      Movable      1      1      1      0
+0      1      0      0      1      1  15564
+
+$ echo 32768  > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
+$ cat /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
+32394
+
+* After:
+
+Node    0, zone   Normal, type      Movable      0     50     97    108
+96     81     70     46     18      0      0
+
+In the example above, 407 more hugeltb 2M pages are allocated i.e.  814M
+out of the 32394 (64796M) allocated.  So the memory freed back is indeed
+being used back in hugetlb and there's no massive order-0..order-2 pages
+accumulated unused.
+
+Link: https://lkml.kernel.org/r/20221107153922.77094-1-joao.m.martins@oracle.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    8 +++++---
- fs/proc/task_mmu.c                 |   14 ++++++++++----
- include/linux/mm.h                 |    2 ++
- include/linux/mm_types.h           |   27 +++++++++++++--------------
- mm/madvise.c                       |    7 ++-----
- mm/shmem.c                         |   20 ++++++++++++++++++--
- 6 files changed, 50 insertions(+), 28 deletions(-)
+ mm/hugetlb_vmemmap.c |   59 ++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 52 insertions(+), 7 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~mm-anonymous-shared-memory-naming
-+++ a/Documentation/filesystems/proc.rst
-@@ -426,14 +426,16 @@ with the memory region, as the case woul
- The "pathname" shows the name associated file for this mapping.  If the mapping
- is not associated with a file:
- 
-- =============              ====================================
-+ ===================        ===========================================
-  [heap]                     the heap of the program
-  [stack]                    the stack of the main process
-  [vdso]                     the "virtual dynamic shared object",
-                             the kernel system call handler
-- [anon:<name>]              an anonymous mapping that has been
-+ [anon:<name>]              a private anonymous mapping that has been
-                             named by userspace
-- =============              ====================================
-+ [anon_shmem:<name>]        an anonymous shared memory mapping that has
-+                            been named by userspace
-+ ===================        ===========================================
- 
-  or if empty, the mapping is anonymous.
- 
---- a/fs/proc/task_mmu.c~mm-anonymous-shared-memory-naming
-+++ a/fs/proc/task_mmu.c
-@@ -277,6 +277,7 @@ show_map_vma(struct seq_file *m, struct
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct file *file = vma->vm_file;
- 	vm_flags_t flags = vma->vm_flags;
-+	struct anon_vma_name *anon_name;
- 	unsigned long ino = 0;
- 	unsigned long long pgoff = 0;
- 	unsigned long start, end;
-@@ -293,6 +294,7 @@ show_map_vma(struct seq_file *m, struct
- 	start = vma->vm_start;
- 	end = vma->vm_end;
- 	show_vma_header_prefix(m, start, end, flags, pgoff, dev, ino);
-+	anon_name = anon_vma_name(vma);
- 
- 	/*
- 	 * Print the dentry name for named mappings, and a
-@@ -300,7 +302,14 @@ show_map_vma(struct seq_file *m, struct
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page
++++ a/mm/hugetlb_vmemmap.c
+@@ -22,6 +22,7 @@
+  *
+  * @remap_pte:		called for each lowest-level entry (PTE).
+  * @nr_walked:		the number of walked pte.
++ * @head_page:		the page which replaces the head vmemmap page.
+  * @reuse_page:		the page which is reused for the tail vmemmap pages.
+  * @reuse_addr:		the virtual address of the @reuse_page page.
+  * @vmemmap_pages:	the list head of the vmemmap pages that can be freed
+@@ -31,6 +32,7 @@ struct vmemmap_remap_walk {
+ 	void			(*remap_pte)(pte_t *pte, unsigned long addr,
+ 					     struct vmemmap_remap_walk *walk);
+ 	unsigned long		nr_walked;
++	struct page		*head_page;
+ 	struct page		*reuse_page;
+ 	unsigned long		reuse_addr;
+ 	struct list_head	*vmemmap_pages;
+@@ -105,10 +107,26 @@ static void vmemmap_pte_range(pmd_t *pmd
+ 	 * remapping (which is calling @walk->remap_pte).
  	 */
- 	if (file) {
- 		seq_pad(m, ' ');
--		seq_file_path(m, file, "\n");
+ 	if (!walk->reuse_page) {
+-		walk->reuse_page = pte_page(*pte);
++		struct page *page = pte_page(*pte);
++
 +		/*
-+		 * If user named this anon shared memory via
-+		 * prctl(PR_SET_VMA ..., use the provided name.
++		 * Copy the data from the original head, and remap to
++		 * the newly allocated page.
 +		 */
-+		if (anon_name)
-+			seq_printf(m, "[anon_shmem:%s]", anon_name->name);
-+		else
-+			seq_file_path(m, file, "\n");
- 		goto done;
- 	}
- 
-@@ -312,8 +321,6 @@ show_map_vma(struct seq_file *m, struct
- 
- 	name = arch_vma_name(vma);
- 	if (!name) {
--		struct anon_vma_name *anon_name;
--
- 		if (!mm) {
- 			name = "[vdso]";
- 			goto done;
-@@ -330,7 +337,6 @@ show_map_vma(struct seq_file *m, struct
- 			goto done;
- 		}
- 
--		anon_name = anon_vma_name(vma);
- 		if (anon_name) {
- 			seq_pad(m, ' ');
- 			seq_printf(m, "[anon:%s]", anon_name->name);
---- a/include/linux/mm.h~mm-anonymous-shared-memory-naming
-+++ a/include/linux/mm.h
-@@ -700,8 +700,10 @@ static inline unsigned long vma_iter_add
-  * paths in userfault.
-  */
- bool vma_is_shmem(struct vm_area_struct *vma);
-+bool vma_is_anon_shmem(struct vm_area_struct *vma);
- #else
- static inline bool vma_is_shmem(struct vm_area_struct *vma) { return false; }
-+static inline bool vma_is_anon_shmem(struct vm_area_struct *vma) { return false; }
- #endif
- 
- int vma_is_stack_for_current(struct vm_area_struct *vma);
---- a/include/linux/mm_types.h~mm-anonymous-shared-memory-naming
-+++ a/include/linux/mm_types.h
-@@ -515,21 +515,11 @@ struct vm_area_struct {
- 	 * For areas with an address space and backing store,
- 	 * linkage into the address_space->i_mmap interval tree.
- 	 *
--	 * For private anonymous mappings, a pointer to a null terminated string
--	 * containing the name given to the vma, or NULL if unnamed.
- 	 */
--
--	union {
--		struct {
--			struct rb_node rb;
--			unsigned long rb_subtree_last;
--		} shared;
--		/*
--		 * Serialized by mmap_sem. Never use directly because it is
--		 * valid only when vm_file is NULL. Use anon_vma_name instead.
--		 */
--		struct anon_vma_name *anon_name;
--	};
-+	struct {
-+		struct rb_node rb;
-+		unsigned long rb_subtree_last;
-+	} shared;
++		if (walk->head_page) {
++			memcpy(page_address(walk->head_page),
++			       page_address(page), PAGE_SIZE);
++			walk->remap_pte(pte, addr, walk);
++			page = walk->head_page;
++		}
++
++		walk->reuse_page = page;
++
+ 		/*
+-		 * Because the reuse address is part of the range that we are
+-		 * walking, skip the reuse address range.
++		 * Because the reuse address is part of the range that
++		 * we are walking or the head page was remapped to a
++		 * new page, skip the reuse address range.
++		 * .
+ 		 */
+ 		addr += PAGE_SIZE;
+ 		pte++;
+@@ -204,11 +222,11 @@ static int vmemmap_remap_range(unsigned
+ 	} while (pgd++, addr = next, addr != end);
  
  	/*
- 	 * A file's MAP_PRIVATE vma can be in both i_mmap tree and anon_vma
-@@ -539,6 +529,7 @@ struct vm_area_struct {
+-	 * We only change the mapping of the vmemmap virtual address range
+-	 * [@start + PAGE_SIZE, end), so we only need to flush the TLB which
++	 * We change the mapping of the vmemmap virtual address range
++	 * [@start, end], so we only need to flush the TLB which
+ 	 * belongs to the range.
  	 */
- 	struct list_head anon_vma_chain; /* Serialized by mmap_lock &
- 					  * page_table_lock */
-+
- 	struct anon_vma *anon_vma;	/* Serialized by page_table_lock */
- 
- 	/* Function pointers to deal with this struct. */
-@@ -550,6 +541,14 @@ struct vm_area_struct {
- 	struct file * vm_file;		/* File we map to (can be NULL). */
- 	void * vm_private_data;		/* was vm_pte (shared mem) */
- 
-+#ifdef CONFIG_ANON_VMA_NAME
-+	/*
-+	 * For private and shared anonymous mappings, a pointer to a null
-+	 * terminated string containing the name given to the vma, or NULL if
-+	 * unnamed. Serialized by mmap_sem. Use anon_vma_name to access.
-+	 */
-+	struct anon_vma_name *anon_name;
-+#endif
- #ifdef CONFIG_SWAP
- 	atomic_long_t swap_readahead_info;
- #endif
---- a/mm/madvise.c~mm-anonymous-shared-memory-naming
-+++ a/mm/madvise.c
-@@ -95,9 +95,6 @@ struct anon_vma_name *anon_vma_name(stru
- {
- 	mmap_assert_locked(vma->vm_mm);
- 
--	if (vma->vm_file)
--		return NULL;
--
- 	return vma->anon_name;
- }
- 
-@@ -183,7 +180,7 @@ success:
- 	 * vm_flags is protected by the mmap_lock held in write mode.
- 	 */
- 	vma->vm_flags = new_flags;
--	if (!vma->vm_file) {
-+	if (!vma->vm_file || vma_is_anon_shmem(vma)) {
- 		error = replace_anon_vma_name(vma, anon_name);
- 		if (error)
- 			return error;
-@@ -1273,7 +1270,7 @@ static int madvise_vma_anon_name(struct
- 	int error;
- 
- 	/* Only anonymous mappings can be named */
--	if (vma->vm_file)
-+	if (vma->vm_file && !vma_is_anon_shmem(vma))
- 		return -EBADF;
- 
- 	error = madvise_update_vma(vma, prev, start, end, vma->vm_flags,
---- a/mm/shmem.c~mm-anonymous-shared-memory-naming
-+++ a/mm/shmem.c
-@@ -237,11 +237,17 @@ static const struct inode_operations shm
- static const struct inode_operations shmem_dir_inode_operations;
- static const struct inode_operations shmem_special_inode_operations;
- static const struct vm_operations_struct shmem_vm_ops;
-+static const struct vm_operations_struct shmem_anon_vm_ops;
- static struct file_system_type shmem_fs_type;
- 
-+bool vma_is_anon_shmem(struct vm_area_struct *vma)
-+{
-+	return vma->vm_ops == &shmem_anon_vm_ops;
-+}
-+
- bool vma_is_shmem(struct vm_area_struct *vma)
- {
--	return vma->vm_ops == &shmem_vm_ops;
-+	return vma_is_anon_shmem(vma) || vma->vm_ops == &shmem_vm_ops;
- }
- 
- static LIST_HEAD(shmem_swaplist);
-@@ -3988,6 +3994,15 @@ static const struct vm_operations_struct
- #endif
- };
- 
-+static const struct vm_operations_struct shmem_anon_vm_ops = {
-+	.fault		= shmem_fault,
-+	.map_pages	= filemap_map_pages,
-+#ifdef CONFIG_NUMA
-+	.set_policy     = shmem_set_policy,
-+	.get_policy     = shmem_get_policy,
-+#endif
-+};
-+
- int shmem_init_fs_context(struct fs_context *fc)
- {
- 	struct shmem_options *ctx;
-@@ -4163,6 +4178,7 @@ void shmem_truncate_range(struct inode *
- EXPORT_SYMBOL_GPL(shmem_truncate_range);
- 
- #define shmem_vm_ops				generic_file_vm_ops
-+#define shmem_anon_vm_ops			generic_file_vm_ops
- #define shmem_file_operations			ramfs_file_operations
- #define shmem_get_inode(sb, dir, mode, dev, flags)	ramfs_get_inode(sb, dir, mode, dev)
- #define shmem_acct_size(flags, size)		0
-@@ -4268,7 +4284,7 @@ int shmem_zero_setup(struct vm_area_stru
- 	if (vma->vm_file)
- 		fput(vma->vm_file);
- 	vma->vm_file = file;
--	vma->vm_ops = &shmem_vm_ops;
-+	vma->vm_ops = &shmem_anon_vm_ops;
+-	flush_tlb_kernel_range(start + PAGE_SIZE, end);
++	flush_tlb_kernel_range(start, end);
  
  	return 0;
  }
+@@ -244,9 +262,21 @@ static void vmemmap_remap_pte(pte_t *pte
+ 	 * to the tail pages.
+ 	 */
+ 	pgprot_t pgprot = PAGE_KERNEL_RO;
+-	pte_t entry = mk_pte(walk->reuse_page, pgprot);
++	struct page *reuse = walk->reuse_page;
+ 	struct page *page = pte_page(*pte);
++	pte_t entry;
++
++	/*
++	 * When there's no walk::reuse_page, it means we allocated a new head
++	 * page (stored in walk::head_page) and copied from the old head page.
++	 * In that case use the walk::head_page as the page to remap.
++	 */
++	if (!reuse) {
++		pgprot = PAGE_KERNEL;
++		reuse = walk->head_page;
++	}
+ 
++	entry = mk_pte(reuse, pgprot);
+ 	list_add_tail(&page->lru, walk->vmemmap_pages);
+ 	set_pte_at(&init_mm, addr, pte, entry);
+ }
+@@ -315,6 +345,21 @@ static int vmemmap_remap_free(unsigned l
+ 		.reuse_addr	= reuse,
+ 		.vmemmap_pages	= &vmemmap_pages,
+ 	};
++	gfp_t gfp_mask = GFP_KERNEL|__GFP_RETRY_MAYFAIL|__GFP_NOWARN;
++	int nid = page_to_nid((struct page *)start);
++	struct page *page = NULL;
++
++	/*
++	 * Allocate a new head vmemmap page to avoid breaking a contiguous
++	 * block of struct page memory when freeing it back to page allocator
++	 * in free_vmemmap_page_list(). This will allow the likely contiguous
++	 * struct page backing memory to be kept contiguous and allowing for
++	 * more allocations of hugepages. Fallback to the currently
++	 * mapped head page in case should it fail to allocate.
++	 */
++	if (IS_ALIGNED((unsigned long)start, PAGE_SIZE))
++		page = alloc_pages_node(nid, gfp_mask, 0);
++	walk.head_page = page;
+ 
+ 	/*
+ 	 * In order to make remapping routine most efficient for the huge pages,
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
-mm-anonymous-shared-memory-naming.patch
+mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page.patch
 
