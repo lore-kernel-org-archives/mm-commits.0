@@ -2,388 +2,795 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F13AC433FE
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Nov 2022 23:53:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACCA0C433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Nov 2022 00:01:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230054AbiKFXxy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Nov 2022 18:53:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47526 "EHLO
+        id S230106AbiKGABf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Nov 2022 19:01:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229628AbiKFXxx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Nov 2022 18:53:53 -0500
+        with ESMTP id S230080AbiKGABc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Nov 2022 19:01:32 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAC62B850
-        for <mm-commits@vger.kernel.org>; Sun,  6 Nov 2022 15:53:51 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D89D4BC2D
+        for <mm-commits@vger.kernel.org>; Sun,  6 Nov 2022 16:01:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 697BF60DFE
-        for <mm-commits@vger.kernel.org>; Sun,  6 Nov 2022 23:53:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B83F0C433C1;
-        Sun,  6 Nov 2022 23:53:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 65A2960E09
+        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 00:01:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4251C433C1;
+        Mon,  7 Nov 2022 00:01:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667778830;
-        bh=k7Lt1phDNf9c2UFzsmYNHOqF27nUjI9bpKjpondKuyY=;
+        s=korg; t=1667779289;
+        bh=fQ0PDRItvLTgwuZeoJWxtXcOYaGsrUVkvyMPjdwlXG8=;
         h=Date:To:From:Subject:From;
-        b=gz+vWrz63FcHkaFSco6RMsYVEr/dtvBQjba9YAtXGdsXyxVV7ltFwd/mKb1VMdQGV
-         ng+evcf8oEmuii1UV+8Y6tTrkVS6OFxTHHXuhi6b18j4Tjz0S44KEDQ+81qIDE11xy
-         TsuOT8YBdkr487vmLt7pOR/mI1gI4F7buxwv2sfc=
-Date:   Sun, 06 Nov 2022 15:53:49 -0800
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, vbabka@suse.cz,
-        nsaenzju@redhat.com, mtosatti@redhat.com, m.szyprowski@samsung.com,
-        mhocko@kernel.org, hughd@google.com, mgorman@techsingularity.net,
-        akpm@linux-foundation.org
+        b=R7HMM/1KtyynzX5P9TgzHvVAsO1+AjP6RFZby5mTPYr5OYJ2jf8Fmaq8KVIXVFfcp
+         ozb9ICgV7rAmq37gHHc0EZgGzwLN1xD8nJOaZgG63o6cW7BZOzLnMQTCeI5n6YIjUJ
+         oZTMMsuX57wxZ3ToygIoj6tH04ZFERA96TACt0c8=
+Date:   Sun, 06 Nov 2022 16:01:28 -0800
+To:     mm-commits@vger.kernel.org, sander@svanheule.net,
+        rostedt@goodmis.org, peterz@infradead.org,
+        naveen.n.rao@linux.ibm.com, mhiramat@kernel.org,
+        jpoimboe@kernel.org, ebiggers@google.com, davem@davemloft.net,
+        dan.j.williams@intel.com, anil.s.keshavamurthy@intel.com,
+        wuqiang.matt@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch removed from -mm tree
-Message-Id: <20221106235350.B83F0C433C1@smtp.kernel.org>
+Subject: + lib-objpool-added-ring-array-based-lockless-mpmc-queue.patch added to mm-nonmm-unstable branch
+Message-Id: <20221107000129.A4251C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch
+The patch titled
+     Subject: lib: objpool added: ring-array based lockless MPMC queue
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-objpool-added-ring-array-based-lockless-mpmc-queue.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-objpool-added-ring-array-based-lockless-mpmc-queue.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations
-Date: Fri, 4 Nov 2022 14:22:59 +0000
+From: wuqiang <wuqiang.matt@bytedance.com>
+Subject: lib: objpool added: ring-array based lockless MPMC queue
+Date: Sun, 6 Nov 2022 13:34:38 +0800
 
-The pcp_spin_lock_irqsave protecting the PCP lists is IRQ-safe as a task
-allocating from the PCP must not re-enter the allocator from IRQ context. 
-In each instance where IRQ-reentrancy is possible, the lock is acquired
-using pcp_spin_trylock_irqsave() even though IRQs are disabled and
-re-entrancy is impossible.
+Patch series "lib,kprobes: kretprobe scalability improvement", v5.
 
-Demote the lock to pcp_spin_lock avoids an IRQ disable/enable in the
-common case at the cost of some IRQ allocations taking a slower path.  If
-the PCP lists need to be refilled, the zone lock still needs to disable
-IRQs but that will only happen on PCP refill and drain.  If an IRQ is
-raised when a PCP allocation is in progress, the trylock will fail and
-fallback to using the buddy lists directly.  Note that this may not be a
-universal win if an interrupt-intensive workload also allocates heavily
-from interrupt context and contends heavily on the zone->lock as a result.
+This patch series introduces a scalable and lockless ring-array based
+object pool and replaces the original freelist (a LIFO queue based on
+singly linked list) to improve the scalability of kretprobed routines.
 
-[yuzhao@google.com: Reported lockdep issue on IO completion from softirq]
-Link: https://lkml.kernel.org/r/20221104142259.5hohev5hzvwanbi2@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nicolas Saenz Julienne <nsaenzju@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+
+This patch (of 4):
+
+The object pool is a scalable implementaion of high performance queue for
+objects allocation and reclamation, such as kretprobe instances.
+
+With leveraging per-cpu ring-array to mitigate the hot spots of memory
+contention, it could deliver near-linear scalability for high parallel
+scenarios.  The ring-array is compactly managed in a single cache-line to
+benefit from warmed L1 cache for most cases (<= 4 objects per-core).  The
+body of pre-allocated objects is stored in continuous cache-lines just
+after the ring-array.
+
+The object pool is interrupt safe.  Both allocation and reclamation
+(object pop and push operations) can be preemptible or interruptable.
+
+It's best suited for following cases:
+1) Memory allocation or reclamation are prohibited or too expensive
+2) Consumers are of different priorities, such as irqs and threads
+
+Limitations:
+1) Maximum objects (capacity) is determined during pool initializing
+2) The memory of objects won't be freed until the poll is finalized
+3) Object allocation (pop) may fail after trying all cpu slots
+4) Object reclamation (push) won't fail but may take long time to
+   finish for imbalanced scenarios. You can try larger max_entries
+   to mitigate, or ( >= CPUS * nr_objs) to avoid
+
+Link: https://lkml.kernel.org/r/20221106053441.103199-1-wuqiang.matt@bytedance.com
+Link: https://lkml.kernel.org/r/20221106053441.103199-2-wuqiang.matt@bytedance.com
+Signed-off-by: wuqiang <wuqiang.matt@bytedance.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Eric Biggers <ebiggers@google.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sander Vanheule <sander@svanheule.net>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  122 +++++++++++++++++++---------------------------
- 1 file changed, 53 insertions(+), 69 deletions(-)
+ include/linux/objpool.h |  153 +++++++++++
+ lib/Makefile            |    2 
+ lib/objpool.c           |  487 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 641 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations
-+++ a/mm/page_alloc.c
-@@ -170,21 +170,12 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
- 	_ret;								\
- })
- 
--#define pcpu_spin_lock_irqsave(type, member, ptr, flags)		\
-+#define pcpu_spin_trylock(type, member, ptr)				\
- ({									\
- 	type *_ret;							\
- 	pcpu_task_pin();						\
- 	_ret = this_cpu_ptr(ptr);					\
--	spin_lock_irqsave(&_ret->member, flags);			\
--	_ret;								\
--})
--
--#define pcpu_spin_trylock_irqsave(type, member, ptr, flags)		\
--({									\
--	type *_ret;							\
--	pcpu_task_pin();						\
--	_ret = this_cpu_ptr(ptr);					\
--	if (!spin_trylock_irqsave(&_ret->member, flags)) {		\
-+	if (!spin_trylock(&_ret->member)) {				\
- 		pcpu_task_unpin();					\
- 		_ret = NULL;						\
- 	}								\
-@@ -197,27 +188,16 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
- 	pcpu_task_unpin();						\
- })
- 
--#define pcpu_spin_unlock_irqrestore(member, ptr, flags)			\
--({									\
--	spin_unlock_irqrestore(&ptr->member, flags);			\
--	pcpu_task_unpin();						\
--})
--
- /* struct per_cpu_pages specific helpers. */
- #define pcp_spin_lock(ptr)						\
- 	pcpu_spin_lock(struct per_cpu_pages, lock, ptr)
- 
--#define pcp_spin_lock_irqsave(ptr, flags)				\
--	pcpu_spin_lock_irqsave(struct per_cpu_pages, lock, ptr, flags)
--
--#define pcp_spin_trylock_irqsave(ptr, flags)				\
--	pcpu_spin_trylock_irqsave(struct per_cpu_pages, lock, ptr, flags)
-+#define pcp_spin_trylock(ptr)						\
-+	pcpu_spin_trylock(struct per_cpu_pages, lock, ptr)
- 
- #define pcp_spin_unlock(ptr)						\
- 	pcpu_spin_unlock(lock, ptr)
- 
--#define pcp_spin_unlock_irqrestore(ptr, flags)				\
--	pcpu_spin_unlock_irqrestore(lock, ptr, flags)
- #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
- DEFINE_PER_CPU(int, numa_node);
- EXPORT_PER_CPU_SYMBOL(numa_node);
-@@ -1549,6 +1529,7 @@ static void free_pcppages_bulk(struct zo
- 					struct per_cpu_pages *pcp,
- 					int pindex)
- {
-+	unsigned long flags;
- 	int min_pindex = 0;
- 	int max_pindex = NR_PCP_LISTS - 1;
- 	unsigned int order;
-@@ -1564,8 +1545,7 @@ static void free_pcppages_bulk(struct zo
- 	/* Ensure requested pindex is drained first. */
- 	pindex = pindex - 1;
- 
--	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
--	spin_lock(&zone->lock);
-+	spin_lock_irqsave(&zone->lock, flags);
- 	isolated_pageblocks = has_isolate_pageblock(zone);
- 
- 	while (count > 0) {
-@@ -1613,7 +1593,7 @@ static void free_pcppages_bulk(struct zo
- 		} while (count > 0 && !list_empty(list));
- 	}
- 
--	spin_unlock(&zone->lock);
-+	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
- static void free_one_page(struct zone *zone,
-@@ -3140,10 +3120,10 @@ static int rmqueue_bulk(struct zone *zon
- 			unsigned long count, struct list_head *list,
- 			int migratetype, unsigned int alloc_flags)
- {
-+	unsigned long flags;
- 	int i, allocated = 0;
- 
--	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
--	spin_lock(&zone->lock);
-+	spin_lock_irqsave(&zone->lock, flags);
- 	for (i = 0; i < count; ++i) {
- 		struct page *page = __rmqueue(zone, order, migratetype,
- 								alloc_flags);
-@@ -3177,7 +3157,7 @@ static int rmqueue_bulk(struct zone *zon
- 	 * pages added to the pcp list.
- 	 */
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
--	spin_unlock(&zone->lock);
-+	spin_unlock_irqrestore(&zone->lock, flags);
- 	return allocated;
- }
- 
-@@ -3194,16 +3174,9 @@ void drain_zone_pages(struct zone *zone,
- 	batch = READ_ONCE(pcp->batch);
- 	to_drain = min(pcp->count, batch);
- 	if (to_drain > 0) {
--		unsigned long flags;
--
--		/*
--		 * free_pcppages_bulk expects IRQs disabled for zone->lock
--		 * so even though pcp->lock is not intended to be IRQ-safe,
--		 * it's needed in this context.
--		 */
--		spin_lock_irqsave(&pcp->lock, flags);
-+		spin_lock(&pcp->lock);
- 		free_pcppages_bulk(zone, to_drain, pcp, 0);
--		spin_unlock_irqrestore(&pcp->lock, flags);
-+		spin_unlock(&pcp->lock);
- 	}
- }
- #endif
-@@ -3217,12 +3190,9 @@ static void drain_pages_zone(unsigned in
- 
- 	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
- 	if (pcp->count) {
--		unsigned long flags;
--
--		/* See drain_zone_pages on why this is disabling IRQs */
--		spin_lock_irqsave(&pcp->lock, flags);
-+		spin_lock(&pcp->lock);
- 		free_pcppages_bulk(zone, pcp->count, pcp, 0);
--		spin_unlock_irqrestore(&pcp->lock, flags);
-+		spin_unlock(&pcp->lock);
- 	}
- }
- 
-@@ -3488,7 +3458,6 @@ static void free_unref_page_commit(struc
-  */
- void free_unref_page(struct page *page, unsigned int order)
- {
--	unsigned long flags;
- 	unsigned long __maybe_unused UP_flags;
- 	struct per_cpu_pages *pcp;
- 	struct zone *zone;
-@@ -3516,10 +3485,10 @@ void free_unref_page(struct page *page,
- 
- 	zone = page_zone(page);
- 	pcp_trylock_prepare(UP_flags);
--	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (pcp) {
- 		free_unref_page_commit(zone, pcp, page, migratetype, order);
--		pcp_spin_unlock_irqrestore(pcp, flags);
-+		pcp_spin_unlock(pcp);
- 	} else {
- 		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
- 	}
-@@ -3531,10 +3500,10 @@ void free_unref_page(struct page *page,
-  */
- void free_unref_page_list(struct list_head *list)
- {
-+	unsigned long __maybe_unused UP_flags;
- 	struct page *page, *next;
- 	struct per_cpu_pages *pcp = NULL;
- 	struct zone *locked_zone = NULL;
--	unsigned long flags;
- 	int batch_count = 0;
- 	int migratetype;
- 
-@@ -3563,11 +3532,26 @@ void free_unref_page_list(struct list_he
- 
- 		/* Different zone, different pcp lock. */
- 		if (zone != locked_zone) {
--			if (pcp)
--				pcp_spin_unlock_irqrestore(pcp, flags);
-+			if (pcp) {
-+				pcp_spin_unlock(pcp);
-+				pcp_trylock_finish(UP_flags);
-+			}
- 
-+			/*
-+			 * trylock is necessary as pages may be getting freed
-+			 * from IRQ or SoftIRQ context after an IO completion.
-+			 */
-+			pcp_trylock_prepare(UP_flags);
-+			pcp = pcp_spin_trylock(zone->per_cpu_pageset);
-+			if (!pcp) {
-+				pcp_trylock_finish(UP_flags);
-+				list_del(&page->lru);
-+				free_one_page(page_zone(page), page,
-+					      page_to_pfn(page), 0, migratetype,
-+					      FPI_NONE);
-+				continue;
-+			}
- 			locked_zone = zone;
--			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
- 		}
- 
- 		/*
-@@ -3582,18 +3566,23 @@ void free_unref_page_list(struct list_he
- 		free_unref_page_commit(zone, pcp, page, migratetype, 0);
- 
- 		/*
--		 * Guard against excessive IRQ disabled times when we get
--		 * a large list of pages to free.
-+		 * Guard against excessive IRQ disabled times when freeing
-+		 * a large list of pages. Lock will be reacquired if
-+		 * necessary on the next iteration.
- 		 */
- 		if (++batch_count == SWAP_CLUSTER_MAX) {
--			pcp_spin_unlock_irqrestore(pcp, flags);
-+			pcp_spin_unlock(pcp);
-+			pcp_trylock_finish(UP_flags);
- 			batch_count = 0;
--			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
-+			pcp = NULL;
-+			locked_zone = NULL;
- 		}
- 	}
- 
--	if (pcp)
--		pcp_spin_unlock_irqrestore(pcp, flags);
-+	if (pcp) {
-+		pcp_spin_unlock(pcp);
-+		pcp_trylock_finish(UP_flags);
+--- /dev/null
++++ a/include/linux/objpool.h
+@@ -0,0 +1,153 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++#ifndef _LINUX_OBJPOOL_H
++#define _LINUX_OBJPOOL_H
++
++#include <linux/types.h>
++
++/*
++ * objpool: ring-array based lockless MPMC queue
++ *
++ * Copyright: wuqiang.matt@bytedance.com
++ *
++ * The object pool is a scalable implementaion of high performance queue
++ * for objects allocation and reclamation, such as kretprobe instances.
++ *
++ * With leveraging per-cpu ring-array to mitigate the hot spots of memory
++ * contention, it could deliver near-linear scalability for high parallel
++ * scenarios. The ring-array is compactly managed in a single cache-line
++ * to benefit from warmed L1 cache for most cases (<= 4 objects per-core).
++ * The body of pre-allocated objects is stored in continuous cache-lines
++ * just after the ring-array.
++ *
++ * The object pool is interrupt safe. Both allocation and reclamation
++ * (object pop and push operations) can be preemptible or interruptable.
++ *
++ * It's best suited for following cases:
++ * 1) Memory allocation or reclamation are prohibited or too expensive
++ * 2) Consumers are of different priorities, such as irqs and threads
++ *
++ * Limitations:
++ * 1) Maximum objects (capacity) is determined during pool initializing
++ * 2) The memory of objects won't be freed until the poll is finalized
++ * 3) Object allocation (pop) may fail after trying all cpu slots
++ * 4) Object reclamation (push) won't fail but may take long time to
++ *    finish for imbalanced scenarios. You can try larger max_entries
++ *    to mitigate, or ( >= CPUS * nr_objs) to avoid
++ */
++
++/*
++ * objpool_slot: per-cpu ring array
++ *
++ * Represents a cpu-local array-based ring buffer, its size is specialized
++ * during initialization of object pool.
++ *
++ * The objpool_slot is allocated from local memory for NUMA system, and to
++ * be kept compact in a single cacheline. ages[] is stored just after the
++ * body of objpool_slot, and then entries[]. The Array of ages[] describes
++ * revision of each item, solely used to avoid ABA. And array of entries[]
++ * contains the pointers of objects.
++ *
++ * The default size of objpool_slot is a single cache-line, aka. 64 bytes.
++ *
++ * 64bit:
++ *        4      8      12     16        32                 64
++ * | head | tail | size | mask | ages[4] | ents[4]: (8 * 4) | objects
++ *
++ * 32bit:
++ *        4      8      12     16        32        48       64
++ * | head | tail | size | mask | ages[4] | ents[4] | unused | objects
++ *
++ */
++
++struct objpool_slot {
++	uint32_t                head;	/* head of ring array */
++	uint32_t                tail;	/* tail of ring array */
++	uint32_t                size;	/* array size, pow of 2 */
++	uint32_t                mask;	/* size - 1 */
++} __attribute__((packed));
++
++/* caller-specified object initial callback to setup each object, only called once */
++typedef int (*objpool_init_obj_cb)(void *context, void *obj);
++
++/* caller-specified cleanup callback for private objects/pool/context */
++typedef int (*objpool_release_cb)(void *context, void *ptr, uint32_t flags);
++
++/* called for object releasing: ptr points to an object */
++#define OBJPOOL_FLAG_NODE        (0x00000001)
++/* for user pool and context releasing, ptr could be NULL */
++#define OBJPOOL_FLAG_POOL        (0x00001000)
++/* the object or pool to be released is user-managed */
++#define OBJPOOL_FLAG_USER        (0x00008000)
++
++/*
++ * objpool_head: object pooling metadata
++ */
++
++struct objpool_head {
++	unsigned int            obj_size;	/* object & element size */
++	unsigned int            nr_objs;	/* total objs (to be pre-allocated) */
++	unsigned int            nr_cpus;	/* num of possible cpus */
++	unsigned int            capacity;	/* max objects per cpuslot */
++	unsigned long           flags;		/* flags for objpool management */
++	gfp_t                   gfp;		/* gfp flags for kmalloc & vmalloc */
++	unsigned int            pool_size;	/* user pool size in byes */
++	void                   *pool;		/* user managed memory pool */
++	struct objpool_slot   **cpu_slots;	/* array of percpu slots */
++	unsigned int           *slot_sizes;	/* size in bytes of slots */
++	objpool_release_cb      release;	/* resource cleanup callback */
++	void                   *context;	/* caller-provided context */
++};
++
++#define OBJPOOL_FROM_VMALLOC	(0x800000000)	/* objpool allocated from vmalloc area */
++#define OBJPOOL_HAVE_OBJECTS	(0x400000000)	/* objects allocated along with objpool */
++
++/* initialize object pool and pre-allocate objects */
++int objpool_init(struct objpool_head *head, unsigned int nr_objs,
++		 unsigned int max_objs, unsigned int object_size,
++		 gfp_t gfp, void *context, objpool_init_obj_cb objinit,
++		 objpool_release_cb release);
++
++/* add objects in batch from user provided pool */
++int objpool_populate(struct objpool_head *head, void *pool,
++		     unsigned int size, unsigned int object_size,
++		     void *context, objpool_init_obj_cb objinit);
++
++/* add pre-allocated object (managed by user) to objpool */
++int objpool_add(void *obj, struct objpool_head *head);
++
++/* allocate an object from objects pool */
++void *objpool_pop(struct objpool_head *head);
++
++/* reclaim an object to objects pool */
++int objpool_push(void *node, struct objpool_head *head);
++
++/* cleanup the whole object pool (objects including) */
++void objpool_fini(struct objpool_head *head);
++
++/* whether the object is pre-allocated with percpu slots */
++static inline int objpool_is_inslot(void *obj, struct objpool_head *head)
++{
++	void *slot;
++	int i;
++
++	if (!obj || !(head->flags & OBJPOOL_HAVE_OBJECTS))
++		return 0;
++
++	for (i = 0; i < head->nr_cpus; i++) {
++		slot = head->cpu_slots[i];
++		if (obj >= slot && obj < slot + head->slot_sizes[i])
++			return 1;
 +	}
- }
++
++	return 0;
++}
++
++/* whether the object is from user pool (batched adding) */
++static inline int objpool_is_inpool(void *obj, struct objpool_head *head)
++{
++	return (obj && head->pool && obj >= head->pool &&
++		obj < head->pool + head->pool_size);
++}
++
++#endif /* _LINUX_OBJPOOL_H */
+--- a/lib/Makefile~lib-objpool-added-ring-array-based-lockless-mpmc-queue
++++ a/lib/Makefile
+@@ -34,7 +34,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
+ 	 earlycpio.o seq_buf.o siphash.o dec_and_lock.o \
+ 	 nmi_backtrace.o win_minmax.o memcat_p.o \
+-	 buildid.o
++	 buildid.o objpool.o
  
- /*
-@@ -3794,15 +3783,11 @@ static struct page *rmqueue_pcplist(stru
- 	struct per_cpu_pages *pcp;
- 	struct list_head *list;
- 	struct page *page;
--	unsigned long flags;
- 	unsigned long __maybe_unused UP_flags;
- 
--	/*
--	 * spin_trylock may fail due to a parallel drain. In the future, the
--	 * trylock will also protect against IRQ reentrancy.
--	 */
-+	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
- 	pcp_trylock_prepare(UP_flags);
--	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (!pcp) {
- 		pcp_trylock_finish(UP_flags);
- 		return NULL;
-@@ -3816,7 +3801,7 @@ static struct page *rmqueue_pcplist(stru
- 	pcp->free_factor >>= 1;
- 	list = &pcp->lists[order_to_pindex(migratetype, order)];
- 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
--	pcp_spin_unlock_irqrestore(pcp, flags);
-+	pcp_spin_unlock(pcp);
- 	pcp_trylock_finish(UP_flags);
- 	if (page) {
- 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
-@@ -5384,7 +5369,6 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 			struct page **page_array)
- {
- 	struct page *page;
--	unsigned long flags;
- 	unsigned long __maybe_unused UP_flags;
- 	struct zone *zone;
- 	struct zoneref *z;
-@@ -5466,9 +5450,9 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	if (unlikely(!zone))
- 		goto failed;
- 
--	/* Is a parallel drain in progress? */
-+	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
- 	pcp_trylock_prepare(UP_flags);
--	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (!pcp)
- 		goto failed_irq;
- 
-@@ -5487,7 +5471,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		if (unlikely(!page)) {
- 			/* Try and allocate at least one page */
- 			if (!nr_account) {
--				pcp_spin_unlock_irqrestore(pcp, flags);
-+				pcp_spin_unlock(pcp);
- 				goto failed_irq;
- 			}
- 			break;
-@@ -5502,7 +5486,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		nr_populated++;
- 	}
- 
--	pcp_spin_unlock_irqrestore(pcp, flags);
-+	pcp_spin_unlock(pcp);
- 	pcp_trylock_finish(UP_flags);
- 
- 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
+ lib-$(CONFIG_PRINTK) += dump_stack.o
+ lib-$(CONFIG_SMP) += cpumask.o
+--- /dev/null
++++ a/lib/objpool.c
+@@ -0,0 +1,487 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <linux/objpool.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++#include <linux/atomic.h>
++#include <linux/prefetch.h>
++
++/*
++ * objpool: ring-array based lockless MPMC/FIFO queues
++ *
++ * Copyright: wuqiang.matt@bytedance.com
++ */
++
++/* compute the suitable num of objects to be managed by slot */
++static inline unsigned int __objpool_num_of_objs(unsigned int size)
++{
++	return rounddown_pow_of_two((size - sizeof(struct objpool_slot)) /
++			(sizeof(uint32_t) + sizeof(void *)));
++}
++
++#define SLOT_AGES(s) ((uint32_t *)((char *)(s) + sizeof(struct objpool_slot)))
++#define SLOT_ENTS(s) ((void **)((char *)(s) + sizeof(struct objpool_slot) + \
++			sizeof(uint32_t) * (s)->size))
++#define SLOT_OBJS(s) ((void *)((char *)(s) + sizeof(struct objpool_slot) + \
++			(sizeof(uint32_t) + sizeof(void *)) * (s)->size))
++
++/* allocate and initialize percpu slots */
++static inline int
++__objpool_init_percpu_slots(struct objpool_head *head, unsigned int nobjs,
++			void *context, objpool_init_obj_cb objinit)
++{
++	unsigned int i, j, n, size, objsz, nents = head->capacity;
++
++	/* aligned object size by sizeof(void *) */
++	objsz = ALIGN(head->obj_size, sizeof(void *));
++	/* shall we allocate objects along with objpool_slot */
++	if (objsz)
++		head->flags |= OBJPOOL_HAVE_OBJECTS;
++
++	for (i = 0; i < head->nr_cpus; i++) {
++		struct objpool_slot *os;
++
++		/* compute how many objects to be managed by this slot */
++		n = nobjs / head->nr_cpus;
++		if (i < (nobjs % head->nr_cpus))
++			n++;
++		size = sizeof(struct objpool_slot) + sizeof(void *) * nents +
++		       sizeof(uint32_t) * nents + objsz * n;
++
++		/* decide memory area for cpu-slot allocation */
++		if (!i && !(head->gfp & GFP_ATOMIC) && size > PAGE_SIZE / 2)
++			head->flags |= OBJPOOL_FROM_VMALLOC;
++
++		/* allocate percpu slot & objects from local memory */
++		if (head->flags & OBJPOOL_FROM_VMALLOC)
++			os = __vmalloc_node(size, sizeof(void *), head->gfp,
++				cpu_to_node(i), __builtin_return_address(0));
++		else
++			os = kmalloc_node(size, head->gfp, cpu_to_node(i));
++		if (!os)
++			return -ENOMEM;
++
++		/* initialize percpu slot for the i-th cpu */
++		memset(os, 0, size);
++		os->size = head->capacity;
++		os->mask = os->size - 1;
++		head->cpu_slots[i] = os;
++		head->slot_sizes[i] = size;
++
++		/*
++		 * start from 2nd round to avoid conflict of 1st item.
++		 * we assume that the head item is ready for retrieval
++		 * iff head is equal to ages[head & mask]. but ages is
++		 * initialized as 0, so in view of the caller of pop(),
++		 * the 1st item (0th) is always ready, but fact could
++		 * be: push() is stalled before the final update, thus
++		 * the item being inserted will be lost forever.
++		 */
++		os->head = os->tail = head->capacity;
++
++		if (!objsz)
++			continue;
++
++		for (j = 0; j < n; j++) {
++			uint32_t *ages = SLOT_AGES(os);
++			void **ents = SLOT_ENTS(os);
++			void *obj = SLOT_OBJS(os) + j * objsz;
++			uint32_t ie = os->tail & os->mask;
++
++			/* perform object initialization */
++			if (objinit) {
++				int rc = objinit(context, obj);
++				if (rc)
++					return rc;
++			}
++
++			/* add obj into the ring array */
++			ents[ie] = obj;
++			ages[ie] = os->tail;
++			os->tail++;
++			head->nr_objs++;
++		}
++	}
++
++	return 0;
++}
++
++/* cleanup all percpu slots of the object pool */
++static inline void __objpool_fini_percpu_slots(struct objpool_head *head)
++{
++	unsigned int i;
++
++	if (!head->cpu_slots)
++		return;
++
++	for (i = 0; i < head->nr_cpus; i++) {
++		if (!head->cpu_slots[i])
++			continue;
++		if (head->flags & OBJPOOL_FROM_VMALLOC)
++			vfree(head->cpu_slots[i]);
++		else
++			kfree(head->cpu_slots[i]);
++	}
++	kfree(head->cpu_slots);
++	head->cpu_slots = NULL;
++	head->slot_sizes = NULL;
++}
++
++/**
++ * objpool_init: initialize object pool and pre-allocate objects
++ *
++ * args:
++ * @head:    the object pool to be initialized, declared by caller
++ * @nr_objs: total objects to be pre-allocated by this object pool
++ * @max_objs: max entries (object pool capacity), use nr_objs if 0
++ * @object_size: size of an object, no objects pre-allocated if 0
++ * @gfp:     flags for memory allocation (via kmalloc or vmalloc)
++ * @context: user context for object initialization callback
++ * @objinit: object initialization callback for extra setting-up
++ * @release: cleanup callback for private objects/pool/context
++ *
++ * return:
++ *         0 for success, otherwise error code
++ *
++ * All pre-allocated objects are to be zeroed. Caller could do extra
++ * initialization in objinit callback. The objinit callback will be
++ * called once and only once after the slot allocation. Then objpool
++ * won't touch any content of the objects since then. It's caller's
++ * duty to perform reinitialization after object allocation (pop) or
++ * clearance before object reclamation (push) if required.
++ */
++int objpool_init(struct objpool_head *head, unsigned int nr_objs,
++		unsigned int max_objs, unsigned int object_size,
++		gfp_t gfp, void *context, objpool_init_obj_cb objinit,
++		objpool_release_cb release)
++{
++	unsigned int nents, ncpus = num_possible_cpus();
++	int rc;
++
++	/* calculate percpu slot size (rounded to pow of 2) */
++	if (max_objs < nr_objs)
++		max_objs = nr_objs;
++	nents = max_objs / ncpus;
++	if (nents < __objpool_num_of_objs(L1_CACHE_BYTES))
++		nents = __objpool_num_of_objs(L1_CACHE_BYTES);
++	nents = roundup_pow_of_two(nents);
++	while (nents * ncpus < nr_objs)
++		nents = nents << 1;
++
++	memset(head, 0, sizeof(struct objpool_head));
++	head->nr_cpus = ncpus;
++	head->obj_size = object_size;
++	head->capacity = nents;
++	head->gfp = gfp & ~__GFP_ZERO;
++	head->context = context;
++	head->release = release;
++
++	/* allocate array for percpu slots */
++	head->cpu_slots = kzalloc(head->nr_cpus * sizeof(void *) +
++			       head->nr_cpus * sizeof(uint32_t), head->gfp);
++	if (!head->cpu_slots)
++		return -ENOMEM;
++	head->slot_sizes = (uint32_t *)&head->cpu_slots[head->nr_cpus];
++
++	/* initialize per-cpu slots */
++	rc = __objpool_init_percpu_slots(head, nr_objs, context, objinit);
++	if (rc)
++		__objpool_fini_percpu_slots(head);
++
++	return rc;
++}
++EXPORT_SYMBOL_GPL(objpool_init);
++
++/* adding object to slot tail, the given slot must NOT be full */
++static inline int __objpool_add_slot(void *obj, struct objpool_slot *os)
++{
++	uint32_t *ages = SLOT_AGES(os);
++	void **ents = SLOT_ENTS(os);
++	uint32_t tail = atomic_inc_return((atomic_t *)&os->tail) - 1;
++
++	WRITE_ONCE(ents[tail & os->mask], obj);
++
++	/* order matters: obj must be updated before tail updating */
++	smp_store_release(&ages[tail & os->mask], tail);
++	return 0;
++}
++
++/* adding object to slot, abort if the slot was already full */
++static inline int __objpool_try_add_slot(void *obj, struct objpool_slot *os)
++{
++	uint32_t *ages = SLOT_AGES(os);
++	void **ents = SLOT_ENTS(os);
++	uint32_t head, tail;
++
++	do {
++		/* perform memory loading for both head and tail */
++		head = READ_ONCE(os->head);
++		tail = READ_ONCE(os->tail);
++		/* just abort if slot is full */
++		if (tail >= head + os->size)
++			return -ENOENT;
++		/* try to extend tail by 1 using CAS to avoid races */
++		if (try_cmpxchg_acquire(&os->tail, &tail, tail + 1))
++			break;
++	} while (1);
++
++	/* the tail-th of slot is reserved for the given obj */
++	WRITE_ONCE(ents[tail & os->mask], obj);
++	/* update epoch id to make this object available for pop() */
++	smp_store_release(&ages[tail & os->mask], tail);
++	return 0;
++}
++
++/**
++ * objpool_populate: add objects from user provided pool in batch
++ *
++ * args:
++ * @head:  object pool
++ * @pool: user buffer for pre-allocated objects
++ * @size: size of user buffer
++ * @object_size: size of object & element
++ * @context: user context for objinit callback
++ * @objinit: object initialization callback
++ *
++ * return: 0 or error code
++ */
++int objpool_populate(struct objpool_head *head, void *pool,
++		unsigned int size, unsigned int object_size,
++		void *context, objpool_init_obj_cb objinit)
++{
++	unsigned int n = head->nr_objs, used = 0, i;
++
++	if (head->pool || !pool || size < object_size)
++		return -EINVAL;
++	if (head->obj_size && head->obj_size != object_size)
++		return -EINVAL;
++	if (head->context && context && head->context != context)
++		return -EINVAL;
++	if (head->nr_objs >= head->nr_cpus * head->capacity)
++		return -ENOENT;
++
++	WARN_ON_ONCE(((unsigned long)pool) & (sizeof(void *) - 1));
++	WARN_ON_ONCE(((uint32_t)object_size) & (sizeof(void *) - 1));
++
++	/* align object size by sizeof(void *) */
++	head->obj_size = object_size;
++	object_size = ALIGN(object_size, sizeof(void *));
++	if (object_size == 0)
++		return -EINVAL;
++
++	while (used + object_size <= size) {
++		void *obj = pool + used;
++
++		/* perform object initialization */
++		if (objinit) {
++			int rc = objinit(context, obj);
++			if (rc)
++				return rc;
++		}
++
++		/* insert obj to its corresponding objpool slot */
++		i = (n + used * head->nr_cpus/size) % head->nr_cpus;
++		if (!__objpool_try_add_slot(obj, head->cpu_slots[i]))
++			head->nr_objs++;
++
++		used += object_size;
++	}
++
++	if (!used)
++		return -ENOENT;
++
++	head->context = context;
++	head->pool = pool;
++	head->pool_size = size;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(objpool_populate);
++
++/**
++ * objpool_add: add pre-allocated object to objpool during pool
++ * initialization
++ *
++ * args:
++ * @obj:  object pointer to be added to objpool
++ * @head: object pool to be inserted into
++ *
++ * return:
++ *     0 or error code
++ *
++ * objpool_add_node doesn't handle race conditions, can only be
++ * called during objpool initialization
++ */
++int objpool_add(void *obj, struct objpool_head *head)
++{
++	unsigned int i, cpu;
++
++	if (!obj)
++		return -EINVAL;
++	if (head->nr_objs >= head->nr_cpus * head->capacity)
++		return -ENOENT;
++
++	cpu = head->nr_objs % head->nr_cpus;
++	for (i = 0; i < head->nr_cpus; i++) {
++		if (!__objpool_try_add_slot(obj, head->cpu_slots[cpu])) {
++			head->nr_objs++;
++			return 0;
++		}
++
++		if (++cpu >= head->nr_cpus)
++			cpu = 0;
++	}
++
++	return -ENOENT;
++}
++EXPORT_SYMBOL_GPL(objpool_add);
++
++/**
++ * objpool_push: reclaim the object and return back to objects pool
++ *
++ * args:
++ * @obj:  object pointer to be pushed to object pool
++ * @head: object pool
++ *
++ * return:
++ *     0 or error code: it fails only when objects pool are full
++ *
++ * objpool_push is non-blockable, and can be nested
++ */
++int objpool_push(void *obj, struct objpool_head *head)
++{
++	unsigned int cpu = raw_smp_processor_id() % head->nr_cpus;
++
++	do {
++		if (head->nr_objs > head->capacity) {
++			if (!__objpool_try_add_slot(obj, head->cpu_slots[cpu]))
++				return 0;
++		} else {
++			if (!__objpool_add_slot(obj, head->cpu_slots[cpu]))
++				return 0;
++		}
++		if (++cpu >= head->nr_cpus)
++			cpu = 0;
++	} while (1);
++
++	return -ENOENT;
++}
++EXPORT_SYMBOL_GPL(objpool_push);
++
++/* try to retrieve object from slot */
++static inline void *__objpool_try_get_slot(struct objpool_slot *os)
++{
++	uint32_t *ages = SLOT_AGES(os);
++	void **ents = SLOT_ENTS(os);
++	/* do memory load of head to local head */
++	uint32_t head = smp_load_acquire(&os->head);
++
++	/* loop if slot isn't empty */
++	while (head != READ_ONCE(os->tail)) {
++		uint32_t id = head & os->mask, prev = head;
++
++		/* do prefetching of object ents */
++		prefetch(&ents[id]);
++
++		/*
++		 * check whether this item was ready for retrieval ? There's
++		 * possibility * in theory * we might retrieve wrong object,
++		 * in case ages[id] overflows when current task is sleeping,
++		 * but it will take very very long to overflow an uint32_t
++		 */
++		if (smp_load_acquire(&ages[id]) == head) {
++			/* node must have been udpated by push() */
++			void *node = READ_ONCE(ents[id]);
++			/* commit and move forward head of the slot */
++			if (try_cmpxchg_release(&os->head, &head, head + 1))
++				return node;
++		}
++
++		/* re-load head from memory continue trying */
++		head = READ_ONCE(os->head);
++		/*
++		 * head stays unchanged, so it's very likely current pop()
++		 * just preempted/interrupted an ongoing push() operation
++		 */
++		if (head == prev)
++			break;
++	}
++
++	return NULL;
++}
++
++/**
++ * objpool_pop: allocate an object from objects pool
++ *
++ * args:
++ * @oh:  object pool
++ *
++ * return:
++ *   object: NULL if failed (object pool is empty)
++ *
++ * objpool_pop can be nested, so can be used in any context.
++ */
++void *objpool_pop(struct objpool_head *head)
++{
++	unsigned int i, cpu;
++	void *obj = NULL;
++
++	cpu = raw_smp_processor_id() % head->nr_cpus;
++	for (i = 0; i < head->nr_cpus; i++) {
++		struct objpool_slot *slot = head->cpu_slots[cpu];
++		obj = __objpool_try_get_slot(slot);
++		if (obj)
++			break;
++		if (++cpu >= head->nr_cpus)
++			cpu = 0;
++	}
++
++	return obj;
++}
++EXPORT_SYMBOL_GPL(objpool_pop);
++
++/**
++ * objpool_fini: cleanup the whole object pool (releasing all objects)
++ *
++ * args:
++ * @head: object pool to be released
++ *
++ */
++void objpool_fini(struct objpool_head *head)
++{
++	uint32_t i, flags;
++
++	if (!head->cpu_slots)
++		return;
++
++	if (!head->release) {
++		__objpool_fini_percpu_slots(head);
++		return;
++	}
++
++	/* cleanup all objects remained in objpool */
++	for (i = 0; i < head->nr_cpus; i++) {
++		void *obj;
++		do {
++			flags = OBJPOOL_FLAG_NODE;
++			obj = __objpool_try_get_slot(head->cpu_slots[i]);
++			if (!obj)
++				break;
++			if (!objpool_is_inpool(obj, head) &&
++			    !objpool_is_inslot(obj, head)) {
++				flags |= OBJPOOL_FLAG_USER;
++			}
++			head->release(head->context, obj, flags);
++		} while (obj);
++	}
++
++	/* release percpu slots */
++	__objpool_fini_percpu_slots(head);
++
++	/* cleanup user private pool and related context */
++	flags = OBJPOOL_FLAG_POOL;
++	if (head->pool)
++		flags |= OBJPOOL_FLAG_USER;
++	head->release(head->context, head->pool, flags);
++}
++EXPORT_SYMBOL_GPL(objpool_fini);
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from wuqiang.matt@bytedance.com are
 
+lib-objpool-added-ring-array-based-lockless-mpmc-queue.patch
+lib-objpool-test-module-added.patch
+kprobes-kretprobe-scalability-improvement-with-objpool.patch
+kprobes-freelisth-removed.patch
+kprobeslib-kretprobe-scalability-improvement.patch
 
