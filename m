@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9FAFC4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Nov 2022 20:33:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 869CAC433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Nov 2022 20:53:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231972AbiKGUdt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Nov 2022 15:33:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33342 "EHLO
+        id S233037AbiKGUxr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Nov 2022 15:53:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232951AbiKGUds (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2022 15:33:48 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E71F28E27
-        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 12:33:46 -0800 (PST)
+        with ESMTP id S232991AbiKGUxq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2022 15:53:46 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14328B01
+        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 12:53:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E5346B81619
-        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 20:33:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9072EC433C1;
-        Mon,  7 Nov 2022 20:33:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 965E0612E7
+        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 20:53:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA75AC433C1;
+        Mon,  7 Nov 2022 20:53:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667853223;
-        bh=HoGEZARM5HjxLFgONvZxYj07l5H5vD2edS56fsXEkp4=;
+        s=korg; t=1667854424;
+        bh=Igu+TgBTrIp4QqJj2xvO+HsNafbLuj7p44jHLulUSqI=;
         h=Date:To:From:Subject:From;
-        b=c/nR+XGN5GjVfXJU7NZvMKRpJnS7E1jYp4HKjtpZzpFMZ1G13pyBILA1OzqXpDSAl
-         xtiqXkLIzKzxq0Yk8Hp2/Jgtku1PIdKUT7DkaJKwAxqadBqqETy+09w4s0RyI5Apn6
-         B6wpIbmpy6x2420VGa2+S+Pez04PDb81nWsA90AI=
-Date:   Mon, 07 Nov 2022 12:33:42 -0800
-To:     mm-commits@vger.kernel.org, corbet@lwn.net, bagasdotme@gmail.com,
-        glider@google.com, akpm@linux-foundation.org
+        b=UYNx+UF3TBkSl4wXvi2LCWLrUh9OYgRvfWSYRs3sEXFZDJLHDFNeAslZ3ZVdMe8Mh
+         uTrrWiIXAJ8+kazgRC9amXHyqrnUf+UUsHeQrZSOfkYYuaXyyOzr7JMEWqa6Dqn6yJ
+         GfwdYS2MPB+MefJbtfzcA8lG16Edl1QwK1N9EFIU=
+Date:   Mon, 07 Nov 2022 12:53:43 -0800
+To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
+        tongtiangen@huawei.com, shy828301@gmail.com, osalvador@suse.de,
+        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
+        kirill.shutemov@linux.intel.com, jiaqiyan@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-kmsan-fix-formatting-of-example-report.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221107203343.9072EC433C1@smtp.kernel.org>
+Subject: + mm-khugepaged-recover-from-poisoned-file-backed-memory.patch added to mm-unstable branch
+Message-Id: <20221107205343.EA75AC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: docs: kmsan: fix formatting of "Example report"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     docs-kmsan-fix-formatting-of-example-report.patch
+     Subject: mm/khugepaged: recover from poisoned file-backed memory
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-kmsan-fix-formatting-of-example-report.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,42 +67,199 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: docs: kmsan: fix formatting of "Example report"
-Date: Mon, 7 Nov 2022 15:22:55 +0100
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm/khugepaged: recover from poisoned file-backed memory
+Date: Sun, 6 Nov 2022 18:53:59 -0800
 
-Add a blank line to make the sentence before the list render as a separate
-paragraph, not a definition.
+Make collapse_file roll back when copying pages failed. More concretely:
+- extract copying operations into a separate loop
+- postpone the updates for nr_none until both scanning and copying
+  succeeded
+- postpone joining small xarray entries until both scanning and copying
+  succeeded
+- postpone the update operations to NR_XXX_THPS until both scanning and
+  copying succeeded
+- for non-SHMEM file, roll back filemap_nr_thps_inc if scan succeeded but
+  copying failed
 
-Link: https://lkml.kernel.org/r/20221107142255.4038811-1-glider@google.com
-Fixes: 93858ae70cf4 ("kmsan: add ReST documentation")
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Suggested-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Tested manually:
+0. Enable khugepaged on system under test. Mount tmpfs at /mnt/ramdisk.
+1. Start a two-thread application. Each thread allocates a chunk of
+   non-huge memory buffer from /mnt/ramdisk.
+2. Pick 4 random buffer address (2 in each thread) and inject
+   uncorrectable memory errors at physical addresses.
+3. Signal both threads to make their memory buffer collapsible, i.e.
+   calling madvise(MADV_HUGEPAGE).
+4. Wait and then check kernel log: khugepaged is able to recover from
+   poisoned pages by skipping them.
+5. Signal both thread to inspect their buffer contents and make sure no
+   data corruption.
+
+Link: https://lkml.kernel.org/r/20221107025359.2911028-3-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Tong Tiangen <tongtiangen@huawei.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kmsan.rst |    1 +
- 1 file changed, 1 insertion(+)
+ mm/khugepaged.c |   74 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 45 insertions(+), 29 deletions(-)
 
---- a/Documentation/dev-tools/kmsan.rst~docs-kmsan-fix-formatting-of-example-report
-+++ a/Documentation/dev-tools/kmsan.rst
-@@ -67,6 +67,7 @@ uninitialized in the local variable, as
- copied to another memory location before use.
+--- a/mm/khugepaged.c~mm-khugepaged-recover-from-poisoned-file-backed-memory
++++ a/mm/khugepaged.c
+@@ -1769,7 +1769,7 @@ static int collapse_file(struct mm_struc
+ 			 struct collapse_control *cc)
+ {
+ 	struct address_space *mapping = file->f_mapping;
+-	struct page *hpage;
++	struct page *hpage, *page, *tmp;
+ 	pgoff_t index = 0, end = start + HPAGE_PMD_NR;
+ 	LIST_HEAD(pagelist);
+ 	XA_STATE_ORDER(xas, &mapping->i_pages, start, HPAGE_PMD_ORDER);
+@@ -1814,7 +1814,7 @@ static int collapse_file(struct mm_struc
  
- A use of uninitialized value ``v`` is reported by KMSAN in the following cases:
+ 	xas_set(&xas, start);
+ 	for (index = start; index < end; index++) {
+-		struct page *page = xas_next(&xas);
++		page = xas_next(&xas);
+ 
+ 		VM_BUG_ON(index != xas.xa_index);
+ 		if (is_shmem) {
+@@ -1996,10 +1996,7 @@ out_unlock:
+ 	}
+ 	nr = thp_nr_pages(hpage);
+ 
+-	if (is_shmem)
+-		__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
+-	else {
+-		__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
++	if (!is_shmem) {
+ 		filemap_nr_thps_inc(mapping);
+ 		/*
+ 		 * Paired with smp_mb() in do_dentry_open() to ensure
+@@ -2010,21 +2007,10 @@ out_unlock:
+ 		smp_mb();
+ 		if (inode_is_open_for_write(mapping->host)) {
+ 			result = SCAN_FAIL;
+-			__mod_lruvec_page_state(hpage, NR_FILE_THPS, -nr);
+ 			filemap_nr_thps_dec(mapping);
+ 			goto xa_locked;
+ 		}
+ 	}
+-
+-	if (nr_none) {
+-		__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
+-		/* nr_none is always 0 for non-shmem. */
+-		__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
+-	}
+-
+-	/* Join all the small entries into a single multi-index entry */
+-	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
+-	xas_store(&xas, hpage);
+ xa_locked:
+ 	xas_unlock_irq(&xas);
+ xa_unlocked:
+@@ -2037,20 +2023,34 @@ xa_unlocked:
+ 	try_to_unmap_flush();
+ 
+ 	if (result == SCAN_SUCCEED) {
+-		struct page *page, *tmp;
+-
+ 		/*
+ 		 * Replacing old pages with new one has succeeded, now we
+-		 * need to copy the content and free the old pages.
++		 * attempt to copy the contents.
+ 		 */
+ 		index = start;
+-		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
++		list_for_each_entry(page, &pagelist, lru) {
+ 			while (index < page->index) {
+ 				clear_highpage(hpage + (index % HPAGE_PMD_NR));
+ 				index++;
+ 			}
+-			copy_highpage(hpage + (page->index % HPAGE_PMD_NR),
+-				      page);
++			if (copy_highpage_mc(hpage + (page->index % HPAGE_PMD_NR), page)) {
++				result = SCAN_COPY_MC;
++				break;
++			}
++			index++;
++		}
++		while (result == SCAN_SUCCEED && index < end) {
++			clear_highpage(hpage + (page->index % HPAGE_PMD_NR));
++			index++;
++		}
++	}
 +
-  - in a condition, e.g. ``if (v) { ... }``;
-  - in an indexing or pointer dereferencing, e.g. ``array[v]`` or ``*v``;
-  - when it is copied to userspace or hardware, e.g. ``copy_to_user(..., &v, ...)``;
++	if (result == SCAN_SUCCEED) {
++		/*
++		 * Copying old pages to huge one has succeeded, now we
++		 * need to free the old pages.
++		 */
++		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
+ 			list_del(&page->lru);
+ 			page->mapping = NULL;
+ 			page_ref_unfreeze(page, 1);
+@@ -2058,12 +2058,23 @@ xa_unlocked:
+ 			ClearPageUnevictable(page);
+ 			unlock_page(page);
+ 			put_page(page);
+-			index++;
+ 		}
+-		while (index < end) {
+-			clear_highpage(hpage + (index % HPAGE_PMD_NR));
+-			index++;
++
++		xas_lock_irq(&xas);
++		if (is_shmem)
++			__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
++		else
++			__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
++
++		if (nr_none) {
++			__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
++			/* nr_none is always 0 for non-shmem. */
++			__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
+ 		}
++		/* Join all the small entries into a single multi-index entry. */
++		xas_set_order(&xas, start, HPAGE_PMD_ORDER);
++		xas_store(&xas, hpage);
++		xas_unlock_irq(&xas);
+ 
+ 		SetPageUptodate(hpage);
+ 		page_ref_add(hpage, HPAGE_PMD_NR - 1);
+@@ -2079,8 +2090,6 @@ xa_unlocked:
+ 		unlock_page(hpage);
+ 		hpage = NULL;
+ 	} else {
+-		struct page *page;
+-
+ 		/* Something went wrong: roll back page cache changes */
+ 		xas_lock_irq(&xas);
+ 		if (nr_none) {
+@@ -2114,6 +2123,13 @@ xa_unlocked:
+ 			xas_lock_irq(&xas);
+ 		}
+ 		VM_BUG_ON(nr_none);
++		/*
++		 * Undo the updates of filemap_nr_thps_inc for non-SHMEM file only.
++		 * This undo is not needed unless failure is due to SCAN_COPY_MC.
++		 */
++		if (!is_shmem && result == SCAN_COPY_MC)
++			filemap_nr_thps_dec(mapping);
++
+ 		xas_unlock_irq(&xas);
+ 
+ 		hpage->mapping = NULL;
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
-kmsan-core-kmsan_in_runtime-should-return-true-in-nmi-context.patch
-x86-uaccess-instrument-copy_from_user_nmi.patch
-kconfigdebug-ensure-early-check-for-kmsan-in-config_kmsan_warn.patch
-kmsan-make-sure-preempt_rt-is-off.patch
-x86-traps-avoid-kmsan-bugs-originating-from-handle_bug.patch
-docs-kmsan-fix-formatting-of-example-report.patch
+mm-khugepaged-recover-from-poisoned-anonymous-memory.patch
+mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
 
