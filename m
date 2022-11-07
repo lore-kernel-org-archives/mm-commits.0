@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A84AAC43217
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Nov 2022 20:08:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91C1CC4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Nov 2022 20:08:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232731AbiKGUII (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Nov 2022 15:08:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46880 "EHLO
+        id S232682AbiKGUIf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Nov 2022 15:08:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232706AbiKGUIE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2022 15:08:04 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EAA12AC6C;
-        Mon,  7 Nov 2022 12:08:01 -0800 (PST)
+        with ESMTP id S232474AbiKGUId (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2022 15:08:33 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C33C62E6
+        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 12:08:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B96B6B815E9;
-        Mon,  7 Nov 2022 20:07:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CFAAC433C1;
-        Mon,  7 Nov 2022 20:07:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 845D2612B7
+        for <mm-commits@vger.kernel.org>; Mon,  7 Nov 2022 20:08:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE084C433C1;
+        Mon,  7 Nov 2022 20:08:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667851678;
-        bh=lRVwPbiW9Ke3lUP7cnc9X5B7hikZ/+lOO4v31Zn6Gxw=;
+        s=korg; t=1667851710;
+        bh=nbygQl/PG7NVQD0VagUfcjhAECfH/yxN193s3fDhkbQ=;
         h=Date:To:From:Subject:From;
-        b=exSwZ97j0PPo0ccjrPsDcbuL9Y5d64QbRD83N7gQLTcLxTue9U2W3LtWmfR7raZtH
-         wcWOqi65Gf1Mhlhzl0LgxNR+frdy7RqPZA4ZPWDVdr8ThTBoH3Kxiax11g8fjeWKlX
-         4QIlFKzjROZLAAQm2wRF2JuCMOyRPeDX+uoTUkeg=
-Date:   Mon, 07 Nov 2022 12:07:57 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
+        b=dNXmT3vnQCm66VBMlR9wuwImz6cEq/1OKRwtBWb/7j3orbBQ7tZTjGc9X204hx/k5
+         rRUdotY8ezw7r3sAC3lq/ll5R99kadGdsWAH2LqEWE4YFGvbKVd7VnXypnpJJIqxyM
+         ZMcbPB5DzXI0VHkyeEx/pO/a9V2V6EFknNuhMgK0=
+Date:   Mon, 07 Nov 2022 12:08:29 -0800
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-dbgfs-check-if-rm_contexts-input-is-for-a-real-context.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221107200758.4CFAAC433C1@smtp.kernel.org>
+Subject: + selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch added to mm-unstable branch
+Message-Id: <20221107200829.DE084C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/dbgfs: check if rm_contexts input is for a real context
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-dbgfs-check-if-rm_contexts-input-is-for-a-real-context.patch
+     Subject: selftests/damon: test non-context inputs to rm_contexts file
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-dbgfs-check-if-rm_contexts-input-is-for-a-real-context.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,56 +65,56 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/dbgfs: check if rm_contexts input is for a real context
-Date: Mon, 7 Nov 2022 16:50:00 +0000
+Subject: selftests/damon: test non-context inputs to rm_contexts file
+Date: Mon, 7 Nov 2022 16:50:01 +0000
 
-A user could write a name of a file under 'damon/' debugfs directory,
-which is not a user-created context, to 'rm_contexts' file.  In the case,
-'dbgfs_rm_context()' just assumes it's the valid DAMON context directory
-only if a file of the name exist.  As a result, invalid memory access
-could happen as below.  Fix the bug by checking if the given input is for
-a directory.  This check can filter out non-context inputs because
-directories under 'damon/' debugfs directory can be created via only
-'mk_contexts' file.
-
-This bug has found by syzbot[1].
+There was a bug[1] that triggered by writing non-context DAMON debugfs
+file names to the 'rm_contexts' DAMON debugfs file.  Add a selftest for
+the bug to avoid it happen again.
 
 [1] https://lore.kernel.org/damon/000000000000ede3ac05ec4abf8e@google.com/
 
-Link: https://lkml.kernel.org/r/20221107165001.5717-2-sj@kernel.org
-Fixes: 75c1c2b53c78 ("mm/damon/dbgfs: support multiple contexts")
+Link: https://lkml.kernel.org/r/20221107165001.5717-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: syzbot+6087eafb76a94c4ac9eb@syzkaller.appspotmail.com
-Cc: <stable@vger.kernel.org>	[5.15.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ tools/testing/selftests/damon/Makefile                   |    1 
+ tools/testing/selftests/damon/debugfs_rm_non_contexts.sh |   19 ++++++++++
+ 2 files changed, 20 insertions(+)
 
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-check-if-rm_contexts-input-is-for-a-real-context
-+++ a/mm/damon/dbgfs.c
-@@ -890,6 +890,7 @@ out:
- static int dbgfs_rm_context(char *name)
- {
- 	struct dentry *root, *dir, **new_dirs;
-+	struct inode *inode;
- 	struct damon_ctx **new_ctxs;
- 	int i, j;
- 	int ret = 0;
-@@ -905,6 +906,12 @@ static int dbgfs_rm_context(char *name)
- 	if (!dir)
- 		return -ENOENT;
- 
-+	inode = d_inode(dir);
-+	if (!S_ISDIR(inode->i_mode)) {
-+		ret = -EINVAL;
-+		goto out_dput;
-+	}
+--- /dev/null
++++ a/tools/testing/selftests/damon/debugfs_rm_non_contexts.sh
+@@ -0,0 +1,19 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
 +
- 	new_dirs = kmalloc_array(dbgfs_nr_ctxs - 1, sizeof(*dbgfs_dirs),
- 			GFP_KERNEL);
- 	if (!new_dirs) {
++source _debugfs_common.sh
++
++# Test putting non-ctx files/dirs to rm_contexts file
++# ===================================================
++
++dmesg -C
++
++for file in "$DBGFS/"*
++do
++	echo "$(basename "$f")" > "$DBGFS/rm_contexts"
++	if dmesg | grep -q BUG
++	then
++		dmesg
++		exit 1
++	fi
++done
+--- a/tools/testing/selftests/damon/Makefile~selftests-damon-test-non-context-inputs-to-rm_contexts-file
++++ a/tools/testing/selftests/damon/Makefile
+@@ -7,6 +7,7 @@ TEST_FILES = _chk_dependency.sh _debugfs
+ TEST_PROGS = debugfs_attrs.sh debugfs_schemes.sh debugfs_target_ids.sh
+ TEST_PROGS += debugfs_empty_targets.sh debugfs_huge_count_read_write.sh
+ TEST_PROGS += debugfs_duplicate_context_creation.sh
++TEST_PROGS += debugfs_rm_non_contexts.sh
+ TEST_PROGS += sysfs.sh
+ TEST_PROGS += reclaim.sh lru_sort.sh
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
