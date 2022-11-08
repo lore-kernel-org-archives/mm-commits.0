@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24AA1C433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 20:03:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B15EAC433FE
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 20:03:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229567AbiKHUDM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 15:03:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55970 "EHLO
+        id S229533AbiKHUDS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 15:03:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229533AbiKHUDL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 15:03:11 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C703767F50
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 12:03:10 -0800 (PST)
+        with ESMTP id S229573AbiKHUDQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 15:03:16 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1F4668294
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 12:03:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7FE8FB81C4B
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 20:03:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 175B6C433D6;
-        Tue,  8 Nov 2022 20:03:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 46F0D6176A
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 20:03:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0425C433C1;
+        Tue,  8 Nov 2022 20:03:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667937788;
-        bh=0fbMS2dfGC8MAec9fnPCsjLofMIpDheHlzcFPxyxUM8=;
+        s=korg; t=1667937794;
+        bh=BuRLNHqLjxsyBvtNm3mL9CkUEH3+Kb6AGG8tWW1NwwQ=;
         h=Date:To:From:Subject:From;
-        b=UBzF6bUWjXpQY+JCqTQ/nqIPJA/MvaZpkEgiWXzzRgcYgPNYIkzWvys4MlKi7HISl
-         R/L0W1gbqUbNt0fQuq14hN/0WCgSVeG5jHFanjc+9u+rDEjzC5+8QBSkazlH2nsoKd
-         IItzL1i27ymNL4dfr3hLKv4KCECSGmWvqsBKE5aU=
-Date:   Tue, 08 Nov 2022 12:03:07 -0800
+        b=WlOaO4aTFcNDuNPEqJ6pRKCU02/Yrbd3IqL9r5n9WzP3pNRJzKfFD5dMCT++7+9ZU
+         39zuSrhD87TY+d7rn3PB1TXBb6sv+Uu/fKRjoKfU53KB3Abr9m7G9sUsV6GMywqN+O
+         lgmGt+7AfhNbTlsHb2LjnfWTMY6ry6NU+Rutq6OA=
+Date:   Tue, 08 Nov 2022 12:03:14 -0800
 To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        sjenning@redhat.com, senozhatsky@chromium.org, nphamcs@gmail.com,
-        ngupta@vflare.org, minchan@kernel.org, ddstreet@ieee.org,
-        hannes@cmpxchg.org, akpm@linux-foundation.org
+        sjenning@redhat.com, senozhatsky@chromium.org, ngupta@vflare.org,
+        minchan@kernel.org, hannes@cmpxchg.org, ddstreet@ieee.org,
+        nphamcs@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zswap-fix-writeback-lock-ordering-for-zsmalloc.patch added to mm-unstable branch
-Message-Id: <20221108200308.175B6C433D6@smtp.kernel.org>
+Subject: + zsmalloc-add-ops-fields-to-zs_pool-to-store-evict-handlers.patch added to mm-unstable branch
+Message-Id: <20221108200314.A0425C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap: fix writeback lock ordering for zsmalloc
+     Subject: zsmalloc: add ops fields to zs_pool to store evict handlers
 has been added to the -mm mm-unstable branch.  Its filename is
-     zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
+     zsmalloc-add-ops-fields-to-zs_pool-to-store-evict-handlers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-add-ops-fields-to-zs_pool-to-store-evict-handlers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,37 +66,17 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: zswap: fix writeback lock ordering for zsmalloc
-Date: Tue, 8 Nov 2022 11:32:03 -0800
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: zsmalloc: add ops fields to zs_pool to store evict handlers
+Date: Tue, 8 Nov 2022 11:32:06 -0800
 
-Patch series "Implement writeback for zsmalloc", v3.
+This adds fields to zs_pool to store evict handlers for writeback,
+analogous to the zbud allocator.
 
-Unlike other zswap allocators such as zbud or z3fold, zsmalloc currently
-lacks the writeback mechanism.  This means that when the zswap pool is
-full, it will simply reject further allocations, and the pages will be
-written directly to swap.
-
-This series of patches implements writeback for zsmalloc.  When the zswap
-pool becomes full, zsmalloc will attempt to evict all the compressed
-objects in the least-recently used zspages.
-
-
-This patch (of 3):
-
-zswap's customary lock order is tree->lock before pool->lock, because the
-tree->lock protects the entries' refcount, and the free callbacks in the
-backends acquire their respective pool locks to dispatch the backing
-object.  zsmalloc's map callback takes the pool lock, so zswap must not
-grab the tree->lock while a handle is mapped.  This currently only happens
-during writeback, which isn't implemented for zsmalloc.  In preparation
-for it, move the tree->lock section out of the mapped entry section
-
-Link: https://lkml.kernel.org/r/20221108193207.3297327-1-nphamcs@gmail.com
-Link: https://lkml.kernel.org/r/20221108193207.3297327-2-nphamcs@gmail.com
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20221108193207.3297327-5-nphamcs@gmail.com
 Signed-off-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
@@ -105,114 +85,84 @@ Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   37 ++++++++++++++++++++-----------------
- 1 file changed, 20 insertions(+), 17 deletions(-)
+ mm/zsmalloc.c |   39 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 38 insertions(+), 1 deletion(-)
 
---- a/mm/zswap.c~zswap-fix-writeback-lock-ordering-for-zsmalloc
-+++ a/mm/zswap.c
-@@ -958,7 +958,7 @@ static int zswap_writeback_entry(struct
+--- a/mm/zsmalloc.c~zsmalloc-add-ops-fields-to-zs_pool-to-store-evict-handlers
++++ a/mm/zsmalloc.c
+@@ -213,6 +213,12 @@ struct link_free {
  	};
+ };
  
- 	if (!zpool_can_sleep_mapped(pool)) {
--		tmp = kmalloc(PAGE_SIZE, GFP_ATOMIC);
-+		tmp = kmalloc(PAGE_SIZE, GFP_KERNEL);
- 		if (!tmp)
- 			return -ENOMEM;
- 	}
-@@ -968,6 +968,7 @@ static int zswap_writeback_entry(struct
- 	swpentry = zhdr->swpentry; /* here */
- 	tree = zswap_trees[swp_type(swpentry)];
- 	offset = swp_offset(swpentry);
-+	zpool_unmap_handle(pool, handle);
- 
- 	/* find and ref zswap entry */
- 	spin_lock(&tree->lock);
-@@ -975,20 +976,12 @@ static int zswap_writeback_entry(struct
- 	if (!entry) {
- 		/* entry was invalidated */
- 		spin_unlock(&tree->lock);
--		zpool_unmap_handle(pool, handle);
- 		kfree(tmp);
- 		return 0;
- 	}
- 	spin_unlock(&tree->lock);
- 	BUG_ON(offset != entry->offset);
- 
--	src = (u8 *)zhdr + sizeof(struct zswap_header);
--	if (!zpool_can_sleep_mapped(pool)) {
--		memcpy(tmp, src, entry->length);
--		src = tmp;
--		zpool_unmap_handle(pool, handle);
--	}
--
- 	/* try to allocate swap cache page */
- 	switch (zswap_get_swap_cache_page(swpentry, &page)) {
- 	case ZSWAP_SWAPCACHE_FAIL: /* no memory or invalidate happened */
-@@ -1006,6 +999,14 @@ static int zswap_writeback_entry(struct
- 		acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
- 		dlen = PAGE_SIZE;
- 
-+		zhdr = zpool_map_handle(pool, handle, ZPOOL_MM_RO);
-+		src = (u8 *)zhdr + sizeof(struct zswap_header);
-+		if (!zpool_can_sleep_mapped(pool)) {
-+			memcpy(tmp, src, entry->length);
-+			src = tmp;
-+			zpool_unmap_handle(pool, handle);
-+		}
++struct zs_pool;
 +
- 		mutex_lock(acomp_ctx->mutex);
- 		sg_init_one(&input, src, entry->length);
- 		sg_init_table(&output, 1);
-@@ -1015,6 +1016,11 @@ static int zswap_writeback_entry(struct
- 		dlen = acomp_ctx->req->dlen;
- 		mutex_unlock(acomp_ctx->mutex);
++struct zs_ops {
++	int (*evict)(struct zs_pool *pool, unsigned long handle);
++};
++
+ struct zs_pool {
+ 	const char *name;
  
-+		if (!zpool_can_sleep_mapped(pool))
-+			kfree(tmp);
+@@ -234,6 +240,12 @@ struct zs_pool {
+ 	/* List tracking the zspages in LRU order by most recently added object */
+ 	struct list_head lru;
+ 
++#ifdef CONFIG_ZPOOL
++	const struct zs_ops *ops;
++	struct zpool *zpool;
++	const struct zpool_ops *zpool_ops;
++#endif
++
+ #ifdef CONFIG_ZSMALLOC_STAT
+ 	struct dentry *stat_dentry;
+ #endif
+@@ -371,6 +383,18 @@ static void record_obj(unsigned long han
+ 
+ #ifdef CONFIG_ZPOOL
+ 
++static int zs_zpool_evict(struct zs_pool *pool, unsigned long handle)
++{
++	if (pool->zpool && pool->zpool_ops && pool->zpool_ops->evict)
++		return pool->zpool_ops->evict(pool->zpool, handle);
++	else
++		return -ENOENT;
++}
++
++static const struct zs_ops zs_zpool_ops = {
++	.evict =	zs_zpool_evict
++};
++
+ static void *zs_zpool_create(const char *name, gfp_t gfp,
+ 			     const struct zpool_ops *zpool_ops,
+ 			     struct zpool *zpool)
+@@ -380,7 +404,20 @@ static void *zs_zpool_create(const char
+ 	 * different contexts and its caller must provide a valid
+ 	 * gfp mask.
+ 	 */
+-	return zs_create_pool(name, ZS_DEFAULT_PAGES_PER_ZSPAGE);
++	struct zs_pool *pool;
++
++	pool = zs_create_pool(name, ZS_DEFAULT_PAGES_PER_ZSPAGE);
++	if (pool) {
++		pool->zpool = zpool;
++		pool->zpool_ops = zpool_ops;
++
++		if (zpool_ops)
++			pool->ops = &zs_zpool_ops;
 +		else
-+			zpool_unmap_handle(pool, handle);
++			pool->ops = NULL;
++	}
 +
- 		BUG_ON(ret);
- 		BUG_ON(dlen != PAGE_SIZE);
- 
-@@ -1045,7 +1051,11 @@ static int zswap_writeback_entry(struct
- 		zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
- 
--	goto end;
-+	return ret;
-+
-+fail:
-+	if (!zpool_can_sleep_mapped(pool))
-+		kfree(tmp);
- 
- 	/*
- 	* if we get here due to ZSWAP_SWAPCACHE_EXIST
-@@ -1054,17 +1064,10 @@ static int zswap_writeback_entry(struct
- 	* if we free the entry in the following put
- 	* it is also okay to return !0
- 	*/
--fail:
- 	spin_lock(&tree->lock);
- 	zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
- 
--end:
--	if (zpool_can_sleep_mapped(pool))
--		zpool_unmap_handle(pool, handle);
--	else
--		kfree(tmp);
--
- 	return ret;
++	return pool;
  }
  
+ static void zs_zpool_destroy(void *pool)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-fs-fix-leaked-psi-pressure-state.patch
-mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch
-mm-vmscan-split-khugepaged-stats-from-direct-reclaim-stats.patch
-zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
-mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
+zsmalloc-consolidate-zs_pools-migrate_lock-and-size_classs-locks.patch
+zsmalloc-add-a-lru-to-zs_pool-to-keep-track-of-zspages-in-lru-order.patch
+zsmalloc-add-ops-fields-to-zs_pool-to-store-evict-handlers.patch
+zsmalloc-implement-writeback-mechanism-for-zsmalloc.patch
 
