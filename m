@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68953C4332F
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 21:42:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2327DC4332F
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 21:42:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229713AbiKHVmn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 16:42:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57930 "EHLO
+        id S229716AbiKHVmv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 16:42:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57954 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229591AbiKHVmm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 16:42:42 -0500
+        with ESMTP id S229797AbiKHVms (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 16:42:48 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D457661B81
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 13:42:40 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59EB661775
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 13:42:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 63515617A4
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 21:42:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD0E0C433D6;
-        Tue,  8 Nov 2022 21:42:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DD709617A1
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 21:42:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40C4FC433D6;
+        Tue,  8 Nov 2022 21:42:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667943759;
-        bh=GE7qdBE3FjJyIS5hKAmQStAxqg+b5IpeJsiqWiQsk/8=;
+        s=korg; t=1667943766;
+        bh=aPs09NqLjWuHDTniO9HIfqnw6TS1U+F04wA3HhLVnJg=;
         h=Date:To:From:Subject:From;
-        b=rLcdGZSxVlVERcpuHECNAHoR7Bmd4H1CFqDBqQTVn7wOrjE4A9qod6eQ2mzR3c8GF
-         5cTVdIS7ritYki0oTJwY2xud/I3Alf4Snfpf8nEZRTCZbuI1cY7FcJ6+GbE0BXKNQ5
-         AU7NveASShMy2bKFA4AFpxZ72VrMt7gobc9CDxE4=
-Date:   Tue, 08 Nov 2022 13:42:39 -0800
+        b=vS7n86Q5TVl0/w5QTmicf06/yQeeFa7YGIqikdH0zsX8dfE49yCN0TWJj56LNA/US
+         1Q4TKuzZ55QTEqchZG2iKLC+dDD54KF3/TTAAVbTIEVluBna+eZNgv9YpLmYhvfj2I
+         Y521UP7VSpkWN/0IlTaGAsHcSukLpQl9QyNxSReI=
+Date:   Tue, 08 Nov 2022 13:42:45 -0800
 To:     mm-commits@vger.kernel.org, sander@svanheule.net,
         rostedt@goodmis.org, peterz@infradead.org,
         naveen.n.rao@linux.ibm.com, mhiramat@kernel.org,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, sander@svanheule.net,
         dan.j.williams@intel.com, anil.s.keshavamurthy@intel.com,
         wuqiang.matt@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-objpool-added-ring-array-based-lockless-mpmc-queue.patch added to mm-nonmm-unstable branch
-Message-Id: <20221108214239.AD0E0C433D6@smtp.kernel.org>
+Subject: + kprobes-kretprobe-scalability-improvement-with-objpool.patch added to mm-nonmm-unstable branch
+Message-Id: <20221108214246.40C4FC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: objpool added: ring-array based lockless MPMC queue
+     Subject: kprobes: kretprobe scalability improvement with objpool
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-objpool-added-ring-array-based-lockless-mpmc-queue.patch
+     kprobes-kretprobe-scalability-improvement-with-objpool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-objpool-added-ring-array-based-lockless-mpmc-queue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kprobes-kretprobe-scalability-improvement-with-objpool.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,45 +69,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: wuqiang <wuqiang.matt@bytedance.com>
-Subject: lib: objpool added: ring-array based lockless MPMC queue
-Date: Tue, 8 Nov 2022 15:14:40 +0800
+Subject: kprobes: kretprobe scalability improvement with objpool
+Date: Tue, 8 Nov 2022 15:14:42 +0800
 
-Patch series "lib,kprobes: kretprobe scalability improvement", v6.
+kretprobe is using freelist to manage return-instances, but freelist, as
+LIFO queue based on singly linked list, scales badly and reduces the
+overall throughput of kretprobed routines, especially for high contention
+scenarios.
 
-This patch series introduces a scalable and lockless ring-array based
-object pool and replaces the original freelist (a LIFO queue based on
-singly linked list) to improve the scalability of kretprobed routines.
+Here's a typical throughput test of sys_flock (counts in 10 seconds,
+measured with perf stat -a -I 10000 -e syscalls:sys_enter_flock):
 
+OS: Debian 10 X86_64, Linux 6.1rc2
+HW: XEON 8336C x 2, 64 cores/128 threads, DDR4 3200MT/s
 
-This patch (of 6):
+      1X       2X       4X       6X       8X      12X      16X
+34762430 36546920 17949900 13101899 12569595 12646601 14729195
+     24X      32X      48X      64X      72X      96X     128X
+19263546 10102064  8985418 11936495 11493980  7127789  9330985
 
-The object pool is a scalable implementaion of high performance queue for
-objects allocation and reclamation, such as kretprobe instances.
+This patch introduces objpool to kretprobe and rethook, with orginal
+freelist replaced and brings near-linear scalability to kretprobed
+routines. Tests of kretprobe throughput show the biggest ratio as
+333.9x of the original freelist. Here's the comparison:
 
-With leveraging per-cpu ring-array to mitigate the hot spots of memory
-contention, it could deliver near-linear scalability for high parallel
-scenarios.  The ring-array is compactly managed in a single cache-line to
-benefit from warmed L1 cache for most cases (<= 4 objects per-core).  The
-body of pre-allocated objects is stored in continuous cache-lines just
-after the ring-array.
+                  1X         2X         4X         8X        16X
+freelist:   34762430   36546920   17949900   12569595   14729195
+objpool:    35627544   72182095  144068494  287564688  576903916
+                 32X        48X        64X        96X       128X
+freelist:   10102064    8985418   11936495    7127789    9330985
+objpool:  1158876372 1737828164 2324371724 2380310472 2463182819
 
-The object pool is interrupt safe.  Both allocation and reclamation
-(object pop and push operations) can be preemptible or interruptable.
+Tests on 96-core ARM64 system output similarly, but with the biggest
+ratio up to 642.2x:
 
-It's best suited for following cases:
-1) Memory allocation or reclamation are prohibited or too expensive
-2) Consumers are of different priorities, such as irqs and threads
+OS: Debian 10 AARCH64, Linux 6.1rc2
+HW: Kunpeng-920 96 cores/2 sockets/4 NUMA nodes, DDR4 2933 MT/s
 
-Limitations:
-1) Maximum objects (capacity) is determined during pool initializing
-2) The memory of objects won't be freed until the poll is finalized
-3) Object allocation (pop) may fail after trying all cpu slots
-4) Object reclamation (push) won't fail but may take long time to
-   finish for imbalanced scenarios. You can try larger max_entries
-   to mitigate, or ( >= CPUS * nr_objs) to avoid
+                  1X         2X         4X         8X        16X
+freelist:   17498299   10887037   10224710    8499132    6421751
+objpool:    18715726   35549845   71615884  144258971  283707220
+                 24X        32X        48X        64X        96X
+freelist:    5339868    4819116    3593919    3121575    2687167
+objpool:   419830913  571609748  877456139 1143316315 1725668029
 
-Link: https://lkml.kernel.org/r/20221108071443.258794-1-wuqiang.matt@bytedance.com
-Link: https://lkml.kernel.org/r/20221108071443.258794-2-wuqiang.matt@bytedance.com
+Link: https://lkml.kernel.org/r/20221108071443.258794-4-wuqiang.matt@bytedance.com
 Signed-off-by: wuqiang <wuqiang.matt@bytedance.com>
 Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -122,668 +128,451 @@ Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/objpool.h |  153 +++++++++++
- lib/Makefile            |    2 
- lib/objpool.c           |  487 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 641 insertions(+), 1 deletion(-)
+ include/linux/kprobes.h |    9 +--
+ include/linux/rethook.h |   15 ++----
+ kernel/kprobes.c        |   95 +++++++++++++++++---------------------
+ kernel/trace/fprobe.c   |   15 +-----
+ kernel/trace/rethook.c  |   80 ++++++++++++++++----------------
+ 5 files changed, 94 insertions(+), 120 deletions(-)
 
---- /dev/null
-+++ a/include/linux/objpool.h
-@@ -0,0 +1,153 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef _LINUX_OBJPOOL_H
-+#define _LINUX_OBJPOOL_H
-+
-+#include <linux/types.h>
-+
-+/*
-+ * objpool: ring-array based lockless MPMC queue
-+ *
-+ * Copyright: wuqiang.matt@bytedance.com
-+ *
-+ * The object pool is a scalable implementaion of high performance queue
-+ * for objects allocation and reclamation, such as kretprobe instances.
-+ *
-+ * With leveraging per-cpu ring-array to mitigate the hot spots of memory
-+ * contention, it could deliver near-linear scalability for high parallel
-+ * scenarios. The ring-array is compactly managed in a single cache-line
-+ * to benefit from warmed L1 cache for most cases (<= 4 objects per-core).
-+ * The body of pre-allocated objects is stored in continuous cache-lines
-+ * just after the ring-array.
-+ *
-+ * The object pool is interrupt safe. Both allocation and reclamation
-+ * (object pop and push operations) can be preemptible or interruptable.
-+ *
-+ * It's best suited for following cases:
-+ * 1) Memory allocation or reclamation are prohibited or too expensive
-+ * 2) Consumers are of different priorities, such as irqs and threads
-+ *
-+ * Limitations:
-+ * 1) Maximum objects (capacity) is determined during pool initializing
-+ * 2) The memory of objects won't be freed until the poll is finalized
-+ * 3) Object allocation (pop) may fail after trying all cpu slots
-+ * 4) Object reclamation (push) won't fail but may take long time to
-+ *    finish for imbalanced scenarios. You can try larger max_entries
-+ *    to mitigate, or ( >= CPUS * nr_objs) to avoid
-+ */
-+
-+/*
-+ * objpool_slot: per-cpu ring array
-+ *
-+ * Represents a cpu-local array-based ring buffer, its size is specialized
-+ * during initialization of object pool.
-+ *
-+ * The objpool_slot is allocated from local memory for NUMA system, and to
-+ * be kept compact in a single cacheline. ages[] is stored just after the
-+ * body of objpool_slot, and then entries[]. The Array of ages[] describes
-+ * revision of each item, solely used to avoid ABA. And array of entries[]
-+ * contains the pointers of objects.
-+ *
-+ * The default size of objpool_slot is a single cache-line, aka. 64 bytes.
-+ *
-+ * 64bit:
-+ *        4      8      12     16        32                 64
-+ * | head | tail | size | mask | ages[4] | ents[4]: (8 * 4) | objects
-+ *
-+ * 32bit:
-+ *        4      8      12     16        32        48       64
-+ * | head | tail | size | mask | ages[4] | ents[4] | unused | objects
-+ *
-+ */
-+
-+struct objpool_slot {
-+	uint32_t                head;	/* head of ring array */
-+	uint32_t                tail;	/* tail of ring array */
-+	uint32_t                size;	/* array size, pow of 2 */
-+	uint32_t                mask;	/* size - 1 */
-+} __attribute__((packed));
-+
-+/* caller-specified object initial callback to setup each object, only called once */
-+typedef int (*objpool_init_obj_cb)(void *context, void *obj);
-+
-+/* caller-specified cleanup callback for private objects/pool/context */
-+typedef int (*objpool_release_cb)(void *context, void *ptr, uint32_t flags);
-+
-+/* called for object releasing: ptr points to an object */
-+#define OBJPOOL_FLAG_NODE        (0x00000001)
-+/* for user pool and context releasing, ptr could be NULL */
-+#define OBJPOOL_FLAG_POOL        (0x00001000)
-+/* the object or pool to be released is user-managed */
-+#define OBJPOOL_FLAG_USER        (0x00008000)
-+
-+/*
-+ * objpool_head: object pooling metadata
-+ */
-+
-+struct objpool_head {
-+	unsigned int            obj_size;	/* object & element size */
-+	unsigned int            nr_objs;	/* total objs (to be pre-allocated) */
-+	unsigned int            nr_cpus;	/* num of possible cpus */
-+	unsigned int            capacity;	/* max objects per cpuslot */
-+	unsigned long           flags;		/* flags for objpool management */
-+	gfp_t                   gfp;		/* gfp flags for kmalloc & vmalloc */
-+	unsigned int            pool_size;	/* user pool size in byes */
-+	void                   *pool;		/* user managed memory pool */
-+	struct objpool_slot   **cpu_slots;	/* array of percpu slots */
-+	unsigned int           *slot_sizes;	/* size in bytes of slots */
-+	objpool_release_cb      release;	/* resource cleanup callback */
-+	void                   *context;	/* caller-provided context */
-+};
-+
-+#define OBJPOOL_FROM_VMALLOC	(0x800000000)	/* objpool allocated from vmalloc area */
-+#define OBJPOOL_HAVE_OBJECTS	(0x400000000)	/* objects allocated along with objpool */
-+
-+/* initialize object pool and pre-allocate objects */
-+int objpool_init(struct objpool_head *head, unsigned int nr_objs,
-+		 unsigned int max_objs, unsigned int object_size,
-+		 gfp_t gfp, void *context, objpool_init_obj_cb objinit,
-+		 objpool_release_cb release);
-+
-+/* add objects in batch from user provided pool */
-+int objpool_populate(struct objpool_head *head, void *pool,
-+		     unsigned int size, unsigned int object_size,
-+		     void *context, objpool_init_obj_cb objinit);
-+
-+/* add pre-allocated object (managed by user) to objpool */
-+int objpool_add(void *obj, struct objpool_head *head);
-+
-+/* allocate an object from objects pool */
-+void *objpool_pop(struct objpool_head *head);
-+
-+/* reclaim an object to objects pool */
-+int objpool_push(void *node, struct objpool_head *head);
-+
-+/* cleanup the whole object pool (objects including) */
-+void objpool_fini(struct objpool_head *head);
-+
-+/* whether the object is pre-allocated with percpu slots */
-+static inline int objpool_is_inslot(void *obj, struct objpool_head *head)
-+{
-+	void *slot;
-+	int i;
-+
-+	if (!obj || !(head->flags & OBJPOOL_HAVE_OBJECTS))
-+		return 0;
-+
-+	for (i = 0; i < head->nr_cpus; i++) {
-+		slot = head->cpu_slots[i];
-+		if (obj >= slot && obj < slot + head->slot_sizes[i])
-+			return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+/* whether the object is from user pool (batched adding) */
-+static inline int objpool_is_inpool(void *obj, struct objpool_head *head)
-+{
-+	return (obj && head->pool && obj >= head->pool &&
-+		obj < head->pool + head->pool_size);
-+}
-+
-+#endif /* _LINUX_OBJPOOL_H */
---- a/lib/Makefile~lib-objpool-added-ring-array-based-lockless-mpmc-queue
-+++ a/lib/Makefile
-@@ -34,7 +34,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
- 	 earlycpio.o seq_buf.o siphash.o dec_and_lock.o \
- 	 nmi_backtrace.o win_minmax.o memcat_p.o \
--	 buildid.o
-+	 buildid.o objpool.o
- 
- lib-$(CONFIG_PRINTK) += dump_stack.o
- lib-$(CONFIG_SMP) += cpumask.o
---- /dev/null
-+++ a/lib/objpool.c
-@@ -0,0 +1,487 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
+--- a/include/linux/kprobes.h~kprobes-kretprobe-scalability-improvement-with-objpool
++++ a/include/linux/kprobes.h
+@@ -27,7 +27,7 @@
+ #include <linux/mutex.h>
+ #include <linux/ftrace.h>
+ #include <linux/refcount.h>
+-#include <linux/freelist.h>
 +#include <linux/objpool.h>
-+#include <linux/slab.h>
-+#include <linux/vmalloc.h>
-+#include <linux/atomic.h>
-+#include <linux/prefetch.h>
-+
-+/*
-+ * objpool: ring-array based lockless MPMC/FIFO queues
-+ *
-+ * Copyright: wuqiang.matt@bytedance.com
-+ */
-+
-+/* compute the suitable num of objects to be managed by slot */
-+static inline unsigned int __objpool_num_of_objs(unsigned int size)
-+{
-+	return rounddown_pow_of_two((size - sizeof(struct objpool_slot)) /
-+			(sizeof(uint32_t) + sizeof(void *)));
-+}
-+
-+#define SLOT_AGES(s) ((uint32_t *)((char *)(s) + sizeof(struct objpool_slot)))
-+#define SLOT_ENTS(s) ((void **)((char *)(s) + sizeof(struct objpool_slot) + \
-+			sizeof(uint32_t) * (s)->size))
-+#define SLOT_OBJS(s) ((void *)((char *)(s) + sizeof(struct objpool_slot) + \
-+			(sizeof(uint32_t) + sizeof(void *)) * (s)->size))
-+
-+/* allocate and initialize percpu slots */
-+static inline int
-+__objpool_init_percpu_slots(struct objpool_head *head, unsigned int nobjs,
-+			void *context, objpool_init_obj_cb objinit)
-+{
-+	unsigned int i, j, n, size, objsz, nents = head->capacity;
-+
-+	/* aligned object size by sizeof(void *) */
-+	objsz = ALIGN(head->obj_size, sizeof(void *));
-+	/* shall we allocate objects along with objpool_slot */
-+	if (objsz)
-+		head->flags |= OBJPOOL_HAVE_OBJECTS;
-+
-+	for (i = 0; i < head->nr_cpus; i++) {
-+		struct objpool_slot *os;
-+
-+		/* compute how many objects to be managed by this slot */
-+		n = nobjs / head->nr_cpus;
-+		if (i < (nobjs % head->nr_cpus))
-+			n++;
-+		size = sizeof(struct objpool_slot) + sizeof(void *) * nents +
-+		       sizeof(uint32_t) * nents + objsz * n;
-+
-+		/* decide memory area for cpu-slot allocation */
-+		if (!i && !(head->gfp & GFP_ATOMIC) && size > PAGE_SIZE / 2)
-+			head->flags |= OBJPOOL_FROM_VMALLOC;
-+
-+		/* allocate percpu slot & objects from local memory */
-+		if (head->flags & OBJPOOL_FROM_VMALLOC)
-+			os = __vmalloc_node(size, sizeof(void *), head->gfp,
-+				cpu_to_node(i), __builtin_return_address(0));
-+		else
-+			os = kmalloc_node(size, head->gfp, cpu_to_node(i));
-+		if (!os)
-+			return -ENOMEM;
-+
-+		/* initialize percpu slot for the i-th cpu */
-+		memset(os, 0, size);
-+		os->size = head->capacity;
-+		os->mask = os->size - 1;
-+		head->cpu_slots[i] = os;
-+		head->slot_sizes[i] = size;
-+
-+		/*
-+		 * start from 2nd round to avoid conflict of 1st item.
-+		 * we assume that the head item is ready for retrieval
-+		 * iff head is equal to ages[head & mask]. but ages is
-+		 * initialized as 0, so in view of the caller of pop(),
-+		 * the 1st item (0th) is always ready, but fact could
-+		 * be: push() is stalled before the final update, thus
-+		 * the item being inserted will be lost forever.
-+		 */
-+		os->head = os->tail = head->capacity;
-+
-+		if (!objsz)
-+			continue;
-+
-+		for (j = 0; j < n; j++) {
-+			uint32_t *ages = SLOT_AGES(os);
-+			void **ents = SLOT_ENTS(os);
-+			void *obj = SLOT_OBJS(os) + j * objsz;
-+			uint32_t ie = os->tail & os->mask;
-+
-+			/* perform object initialization */
-+			if (objinit) {
-+				int rc = objinit(context, obj);
-+				if (rc)
-+					return rc;
-+			}
-+
-+			/* add obj into the ring array */
-+			ents[ie] = obj;
-+			ages[ie] = os->tail;
-+			os->tail++;
-+			head->nr_objs++;
-+		}
+ #include <linux/rethook.h>
+ #include <asm/kprobes.h>
+ 
+@@ -141,6 +141,7 @@ static inline bool kprobe_ftrace(struct
+  */
+ struct kretprobe_holder {
+ 	struct kretprobe	*rp;
++	struct objpool_head	oh;
+ 	refcount_t		ref;
+ };
+ 
+@@ -154,7 +155,6 @@ struct kretprobe {
+ #ifdef CONFIG_KRETPROBE_ON_RETHOOK
+ 	struct rethook *rh;
+ #else
+-	struct freelist_head freelist;
+ 	struct kretprobe_holder *rph;
+ #endif
+ };
+@@ -165,10 +165,7 @@ struct kretprobe_instance {
+ #ifdef CONFIG_KRETPROBE_ON_RETHOOK
+ 	struct rethook_node node;
+ #else
+-	union {
+-		struct freelist_node freelist;
+-		struct rcu_head rcu;
+-	};
++	struct rcu_head rcu;
+ 	struct llist_node llist;
+ 	struct kretprobe_holder *rph;
+ 	kprobe_opcode_t *ret_addr;
+--- a/include/linux/rethook.h~kprobes-kretprobe-scalability-improvement-with-objpool
++++ a/include/linux/rethook.h
+@@ -6,7 +6,7 @@
+ #define _LINUX_RETHOOK_H
+ 
+ #include <linux/compiler.h>
+-#include <linux/freelist.h>
++#include <linux/objpool.h>
+ #include <linux/kallsyms.h>
+ #include <linux/llist.h>
+ #include <linux/rcupdate.h>
+@@ -30,14 +30,14 @@ typedef void (*rethook_handler_t) (struc
+ struct rethook {
+ 	void			*data;
+ 	rethook_handler_t	handler;
+-	struct freelist_head	pool;
++	struct objpool_head	pool;
+ 	refcount_t		ref;
+ 	struct rcu_head		rcu;
+ };
+ 
+ /**
+  * struct rethook_node - The rethook shadow-stack entry node.
+- * @freelist: The freelist, linked to struct rethook::pool.
++ * @nod: The objpool node, linked to struct rethook::pool.
+  * @rcu: The rcu_head for deferred freeing.
+  * @llist: The llist, linked to a struct task_struct::rethooks.
+  * @rethook: The pointer to the struct rethook.
+@@ -48,19 +48,15 @@ struct rethook {
+  * on each entry of the shadow stack.
+  */
+ struct rethook_node {
+-	union {
+-		struct freelist_node freelist;
+-		struct rcu_head      rcu;
+-	};
++	struct rcu_head		rcu;
+ 	struct llist_node	llist;
+ 	struct rethook		*rethook;
+ 	unsigned long		ret_addr;
+ 	unsigned long		frame;
+ };
+ 
+-struct rethook *rethook_alloc(void *data, rethook_handler_t handler);
++struct rethook *rethook_alloc(void *data, rethook_handler_t handler, gfp_t gfp, int size, int max);
+ void rethook_free(struct rethook *rh);
+-void rethook_add_node(struct rethook *rh, struct rethook_node *node);
+ struct rethook_node *rethook_try_get(struct rethook *rh);
+ void rethook_recycle(struct rethook_node *node);
+ void rethook_hook(struct rethook_node *node, struct pt_regs *regs, bool mcount);
+@@ -97,4 +93,3 @@ void rethook_flush_task(struct task_stru
+ #endif
+ 
+ #endif
+-
+--- a/kernel/kprobes.c~kprobes-kretprobe-scalability-improvement-with-objpool
++++ a/kernel/kprobes.c
+@@ -1865,10 +1865,12 @@ static struct notifier_block kprobe_exce
+ static void free_rp_inst_rcu(struct rcu_head *head)
+ {
+ 	struct kretprobe_instance *ri = container_of(head, struct kretprobe_instance, rcu);
++	struct kretprobe_holder *rph = ri->rph;
+ 
+-	if (refcount_dec_and_test(&ri->rph->ref))
+-		kfree(ri->rph);
+-	kfree(ri);
++	if (refcount_dec_and_test(&rph->ref)) {
++		objpool_fini(&rph->oh);
++		kfree(rph);
 +	}
+ }
+ NOKPROBE_SYMBOL(free_rp_inst_rcu);
+ 
+@@ -1877,7 +1879,7 @@ static void recycle_rp_inst(struct kretp
+ 	struct kretprobe *rp = get_kretprobe(ri);
+ 
+ 	if (likely(rp))
+-		freelist_add(&ri->freelist, &rp->freelist);
++		objpool_push(ri, &rp->rph->oh);
+ 	else
+ 		call_rcu(&ri->rcu, free_rp_inst_rcu);
+ }
+@@ -1914,23 +1916,19 @@ NOKPROBE_SYMBOL(kprobe_flush_task);
+ 
+ static inline void free_rp_inst(struct kretprobe *rp)
+ {
+-	struct kretprobe_instance *ri;
+-	struct freelist_node *node;
+-	int count = 0;
+-
+-	node = rp->freelist.head;
+-	while (node) {
+-		ri = container_of(node, struct kretprobe_instance, freelist);
+-		node = node->next;
+-
+-		kfree(ri);
+-		count++;
+-	}
++	struct kretprobe_holder *rph = rp->rph;
++	void *nod;
+ 
+-	if (refcount_sub_and_test(count, &rp->rph->ref)) {
+-		kfree(rp->rph);
+-		rp->rph = NULL;
+-	}
++	rp->rph = NULL;
++	do {
++		nod = objpool_pop(&rph->oh);
++		/* deref anyway since we've one extra ref grabbed */
++		if (refcount_dec_and_test(&rph->ref)) {
++			objpool_fini(&rph->oh);
++			kfree(rph);
++			break;
++		}
++	} while (nod);
+ }
+ 
+ /* This assumes the 'tsk' is the current task or the is not running. */
+@@ -2072,19 +2070,17 @@ NOKPROBE_SYMBOL(__kretprobe_trampoline_h
+ static int pre_handler_kretprobe(struct kprobe *p, struct pt_regs *regs)
+ {
+ 	struct kretprobe *rp = container_of(p, struct kretprobe, kp);
++	struct kretprobe_holder *rph = rp->rph;
+ 	struct kretprobe_instance *ri;
+-	struct freelist_node *fn;
+ 
+-	fn = freelist_try_get(&rp->freelist);
+-	if (!fn) {
++	ri = objpool_pop(&rph->oh);
++	if (!ri) {
+ 		rp->nmissed++;
+ 		return 0;
+ 	}
+ 
+-	ri = container_of(fn, struct kretprobe_instance, freelist);
+-
+ 	if (rp->entry_handler && rp->entry_handler(ri, regs)) {
+-		freelist_add(&ri->freelist, &rp->freelist);
++		objpool_push(ri, &rph->oh);
+ 		return 0;
+ 	}
+ 
+@@ -2174,10 +2170,19 @@ int kprobe_on_func_entry(kprobe_opcode_t
+ 	return 0;
+ }
+ 
++#ifndef CONFIG_KRETPROBE_ON_RETHOOK
++static int kretprobe_init_inst(void *context, void *nod)
++{
++	struct kretprobe_instance *ri = nod;
 +
++	ri->rph = context;
 +	return 0;
 +}
++#endif
 +
-+/* cleanup all percpu slots of the object pool */
-+static inline void __objpool_fini_percpu_slots(struct objpool_head *head)
-+{
-+	unsigned int i;
-+
-+	if (!head->cpu_slots)
-+		return;
-+
-+	for (i = 0; i < head->nr_cpus; i++) {
-+		if (!head->cpu_slots[i])
-+			continue;
-+		if (head->flags & OBJPOOL_FROM_VMALLOC)
-+			vfree(head->cpu_slots[i]);
-+		else
-+			kfree(head->cpu_slots[i]);
-+	}
-+	kfree(head->cpu_slots);
-+	head->cpu_slots = NULL;
-+	head->slot_sizes = NULL;
-+}
-+
-+/**
-+ * objpool_init: initialize object pool and pre-allocate objects
-+ *
-+ * args:
-+ * @head:    the object pool to be initialized, declared by caller
-+ * @nr_objs: total objects to be pre-allocated by this object pool
-+ * @max_objs: max entries (object pool capacity), use nr_objs if 0
-+ * @object_size: size of an object, no objects pre-allocated if 0
-+ * @gfp:     flags for memory allocation (via kmalloc or vmalloc)
-+ * @context: user context for object initialization callback
-+ * @objinit: object initialization callback for extra setting-up
-+ * @release: cleanup callback for private objects/pool/context
-+ *
-+ * return:
-+ *         0 for success, otherwise error code
-+ *
-+ * All pre-allocated objects are to be zeroed. Caller could do extra
-+ * initialization in objinit callback. The objinit callback will be
-+ * called once and only once after the slot allocation. Then objpool
-+ * won't touch any content of the objects since then. It's caller's
-+ * duty to perform reinitialization after object allocation (pop) or
-+ * clearance before object reclamation (push) if required.
-+ */
-+int objpool_init(struct objpool_head *head, unsigned int nr_objs,
-+		unsigned int max_objs, unsigned int object_size,
-+		gfp_t gfp, void *context, objpool_init_obj_cb objinit,
-+		objpool_release_cb release)
-+{
-+	unsigned int nents, ncpus = num_possible_cpus();
-+	int rc;
-+
-+	/* calculate percpu slot size (rounded to pow of 2) */
-+	if (max_objs < nr_objs)
-+		max_objs = nr_objs;
-+	nents = max_objs / ncpus;
-+	if (nents < __objpool_num_of_objs(L1_CACHE_BYTES))
-+		nents = __objpool_num_of_objs(L1_CACHE_BYTES);
-+	nents = roundup_pow_of_two(nents);
-+	while (nents * ncpus < nr_objs)
-+		nents = nents << 1;
-+
-+	memset(head, 0, sizeof(struct objpool_head));
-+	head->nr_cpus = ncpus;
-+	head->obj_size = object_size;
-+	head->capacity = nents;
-+	head->gfp = gfp & ~__GFP_ZERO;
-+	head->context = context;
-+	head->release = release;
-+
-+	/* allocate array for percpu slots */
-+	head->cpu_slots = kzalloc(head->nr_cpus * sizeof(void *) +
-+			       head->nr_cpus * sizeof(uint32_t), head->gfp);
-+	if (!head->cpu_slots)
+ int register_kretprobe(struct kretprobe *rp)
+ {
+ 	int ret;
+-	struct kretprobe_instance *inst;
+ 	int i;
+ 	void *addr;
+ 
+@@ -2215,20 +2220,12 @@ int register_kretprobe(struct kretprobe
+ #endif
+ 	}
+ #ifdef CONFIG_KRETPROBE_ON_RETHOOK
+-	rp->rh = rethook_alloc((void *)rp, kretprobe_rethook_handler);
++	rp->rh = rethook_alloc((void *)rp, kretprobe_rethook_handler, GFP_KERNEL,
++				sizeof(struct kretprobe_instance) + rp->data_size,
++				rp->maxactive);
+ 	if (!rp->rh)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < rp->maxactive; i++) {
+-		inst = kzalloc(sizeof(struct kretprobe_instance) +
+-			       rp->data_size, GFP_KERNEL);
+-		if (inst == NULL) {
+-			rethook_free(rp->rh);
+-			rp->rh = NULL;
+-			return -ENOMEM;
+-		}
+-		rethook_add_node(rp->rh, &inst->node);
+-	}
+ 	rp->nmissed = 0;
+ 	/* Establish function entry probe point */
+ 	ret = register_kprobe(&rp->kp);
+@@ -2237,25 +2234,19 @@ int register_kretprobe(struct kretprobe
+ 		rp->rh = NULL;
+ 	}
+ #else	/* !CONFIG_KRETPROBE_ON_RETHOOK */
+-	rp->freelist.head = NULL;
+ 	rp->rph = kzalloc(sizeof(struct kretprobe_holder), GFP_KERNEL);
+ 	if (!rp->rph)
+ 		return -ENOMEM;
+ 
+-	rp->rph->rp = rp;
+-	for (i = 0; i < rp->maxactive; i++) {
+-		inst = kzalloc(sizeof(struct kretprobe_instance) +
+-			       rp->data_size, GFP_KERNEL);
+-		if (inst == NULL) {
+-			refcount_set(&rp->rph->ref, i);
+-			free_rp_inst(rp);
+-			return -ENOMEM;
+-		}
+-		inst->rph = rp->rph;
+-		freelist_add(&inst->freelist, &rp->freelist);
++	if (objpool_init(&rp->rph->oh, rp->maxactive, rp->maxactive,
++			  rp->data_size + sizeof(struct kretprobe_instance),
++			  GFP_KERNEL, rp->rph, kretprobe_init_inst, NULL)) {
++		kfree(rp->rph);
++		rp->rph = NULL;
 +		return -ENOMEM;
-+	head->slot_sizes = (uint32_t *)&head->cpu_slots[head->nr_cpus];
-+
-+	/* initialize per-cpu slots */
-+	rc = __objpool_init_percpu_slots(head, nr_objs, context, objinit);
-+	if (rc)
-+		__objpool_fini_percpu_slots(head);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(objpool_init);
-+
-+/* adding object to slot tail, the given slot must NOT be full */
-+static inline int __objpool_add_slot(void *obj, struct objpool_slot *os)
-+{
-+	uint32_t *ages = SLOT_AGES(os);
-+	void **ents = SLOT_ENTS(os);
-+	uint32_t tail = atomic_inc_return((atomic_t *)&os->tail) - 1;
-+
-+	WRITE_ONCE(ents[tail & os->mask], obj);
-+
-+	/* order matters: obj must be updated before tail updating */
-+	smp_store_release(&ages[tail & os->mask], tail);
-+	return 0;
-+}
-+
-+/* adding object to slot, abort if the slot was already full */
-+static inline int __objpool_try_add_slot(void *obj, struct objpool_slot *os)
-+{
-+	uint32_t *ages = SLOT_AGES(os);
-+	void **ents = SLOT_ENTS(os);
-+	uint32_t head, tail;
-+
+ 	}
+-	refcount_set(&rp->rph->ref, i);
+-
++	refcount_set(&rp->rph->ref, rp->maxactive + 1);
++	rp->rph->rp = rp;
+ 	rp->nmissed = 0;
+ 	/* Establish function entry probe point */
+ 	ret = register_kprobe(&rp->kp);
+--- a/kernel/trace/fprobe.c~kprobes-kretprobe-scalability-improvement-with-objpool
++++ a/kernel/trace/fprobe.c
+@@ -125,7 +125,7 @@ static void fprobe_init(struct fprobe *f
+ 
+ static int fprobe_init_rethook(struct fprobe *fp, int num)
+ {
+-	int i, size;
++	int size;
+ 
+ 	if (num < 0)
+ 		return -EINVAL;
+@@ -140,20 +140,11 @@ static int fprobe_init_rethook(struct fp
+ 	if (size < 0)
+ 		return -E2BIG;
+ 
+-	fp->rethook = rethook_alloc((void *)fp, fprobe_exit_handler);
++	fp->rethook = rethook_alloc((void *)fp, fprobe_exit_handler, GFP_KERNEL,
++				sizeof(struct fprobe_rethook_node), size);
+ 	if (!fp->rethook)
+ 		return -ENOMEM;
+-	for (i = 0; i < size; i++) {
+-		struct fprobe_rethook_node *node;
+ 
+-		node = kzalloc(sizeof(*node), GFP_KERNEL);
+-		if (!node) {
+-			rethook_free(fp->rethook);
+-			fp->rethook = NULL;
+-			return -ENOMEM;
+-		}
+-		rethook_add_node(fp->rethook, &node->node);
+-	}
+ 	return 0;
+ }
+ 
+--- a/kernel/trace/rethook.c~kprobes-kretprobe-scalability-improvement-with-objpool
++++ a/kernel/trace/rethook.c
+@@ -36,21 +36,17 @@ void rethook_flush_task(struct task_stru
+ static void rethook_free_rcu(struct rcu_head *head)
+ {
+ 	struct rethook *rh = container_of(head, struct rethook, rcu);
+-	struct rethook_node *rhn;
+-	struct freelist_node *node;
+-	int count = 1;
+-
+-	node = rh->pool.head;
+-	while (node) {
+-		rhn = container_of(node, struct rethook_node, freelist);
+-		node = node->next;
+-		kfree(rhn);
+-		count++;
+-	}
++	struct rethook_node *nod;
+ 
+-	/* The rh->ref is the number of pooled node + 1 */
+-	if (refcount_sub_and_test(count, &rh->ref))
+-		kfree(rh);
 +	do {
-+		/* perform memory loading for both head and tail */
-+		head = READ_ONCE(os->head);
-+		tail = READ_ONCE(os->tail);
-+		/* just abort if slot is full */
-+		if (tail >= head + os->size)
-+			return -ENOENT;
-+		/* try to extend tail by 1 using CAS to avoid races */
-+		if (try_cmpxchg_acquire(&os->tail, &tail, tail + 1))
++		nod = objpool_pop(&rh->pool);
++		/* deref anyway since we've one extra ref grabbed */
++		if (refcount_dec_and_test(&rh->ref)) {
++			objpool_fini(&rh->pool);
++			kfree(rh);
 +			break;
-+	} while (1);
++		}
++	} while (nod);
+ }
+ 
+ /**
+@@ -70,16 +66,28 @@ void rethook_free(struct rethook *rh)
+ 	call_rcu(&rh->rcu, rethook_free_rcu);
+ }
+ 
++static int rethook_init_node(void *context, void *nod)
++{
++	struct rethook_node *node = nod;
 +
-+	/* the tail-th of slot is reserved for the given obj */
-+	WRITE_ONCE(ents[tail & os->mask], obj);
-+	/* update epoch id to make this object available for pop() */
-+	smp_store_release(&ages[tail & os->mask], tail);
++	node->rethook = context;
 +	return 0;
 +}
 +
-+/**
-+ * objpool_populate: add objects from user provided pool in batch
-+ *
-+ * args:
-+ * @head:  object pool
-+ * @pool: user buffer for pre-allocated objects
-+ * @size: size of user buffer
-+ * @object_size: size of object & element
-+ * @context: user context for objinit callback
-+ * @objinit: object initialization callback
-+ *
-+ * return: 0 or error code
-+ */
-+int objpool_populate(struct objpool_head *head, void *pool,
-+		unsigned int size, unsigned int object_size,
-+		void *context, objpool_init_obj_cb objinit)
-+{
-+	unsigned int n = head->nr_objs, used = 0, i;
-+
-+	if (head->pool || !pool || size < object_size)
-+		return -EINVAL;
-+	if (head->obj_size && head->obj_size != object_size)
-+		return -EINVAL;
-+	if (head->context && context && head->context != context)
-+		return -EINVAL;
-+	if (head->nr_objs >= head->nr_cpus * head->capacity)
-+		return -ENOENT;
-+
-+	WARN_ON_ONCE(((unsigned long)pool) & (sizeof(void *) - 1));
-+	WARN_ON_ONCE(((uint32_t)object_size) & (sizeof(void *) - 1));
-+
-+	/* align object size by sizeof(void *) */
-+	head->obj_size = object_size;
-+	object_size = ALIGN(object_size, sizeof(void *));
-+	if (object_size == 0)
-+		return -EINVAL;
-+
-+	while (used + object_size <= size) {
-+		void *obj = pool + used;
-+
-+		/* perform object initialization */
-+		if (objinit) {
-+			int rc = objinit(context, obj);
-+			if (rc)
-+				return rc;
-+		}
-+
-+		/* insert obj to its corresponding objpool slot */
-+		i = (n + used * head->nr_cpus/size) % head->nr_cpus;
-+		if (!__objpool_try_add_slot(obj, head->cpu_slots[i]))
-+			head->nr_objs++;
-+
-+		used += object_size;
+ /**
+  * rethook_alloc() - Allocate struct rethook.
+  * @data: a data to pass the @handler when hooking the return.
+  * @handler: the return hook callback function.
++ * @gfp: default gfp for objpool allocation
++ * @size: rethook node size
++ * @max: number of rethook nodes to be preallocated
+  *
+  * Allocate and initialize a new rethook with @data and @handler.
+  * Return NULL if memory allocation fails or @handler is NULL.
+  * Note that @handler == NULL means this rethook is going to be freed.
+  */
+-struct rethook *rethook_alloc(void *data, rethook_handler_t handler)
++struct rethook *rethook_alloc(void *data, rethook_handler_t handler, gfp_t gfp,
++			      int size, int max)
+ {
+ 	struct rethook *rh = kzalloc(sizeof(struct rethook), GFP_KERNEL);
+ 
+@@ -88,34 +96,26 @@ struct rethook *rethook_alloc(void *data
+ 
+ 	rh->data = data;
+ 	rh->handler = handler;
+-	rh->pool.head = NULL;
+-	refcount_set(&rh->ref, 1);
+ 
++	/* initialize the objpool for rethook nodes */
++	if (objpool_init(&rh->pool, max, max, size, gfp, rh, rethook_init_node,
++			NULL)) {
++		kfree(rh);
++		return NULL;
 +	}
-+
-+	if (!used)
-+		return -ENOENT;
-+
-+	head->context = context;
-+	head->pool = pool;
-+	head->pool_size = size;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(objpool_populate);
-+
-+/**
-+ * objpool_add: add pre-allocated object to objpool during pool
-+ * initialization
-+ *
-+ * args:
-+ * @obj:  object pointer to be added to objpool
-+ * @head: object pool to be inserted into
-+ *
-+ * return:
-+ *     0 or error code
-+ *
-+ * objpool_add_node doesn't handle race conditions, can only be
-+ * called during objpool initialization
-+ */
-+int objpool_add(void *obj, struct objpool_head *head)
-+{
-+	unsigned int i, cpu;
-+
-+	if (!obj)
-+		return -EINVAL;
-+	if (head->nr_objs >= head->nr_cpus * head->capacity)
-+		return -ENOENT;
-+
-+	cpu = head->nr_objs % head->nr_cpus;
-+	for (i = 0; i < head->nr_cpus; i++) {
-+		if (!__objpool_try_add_slot(obj, head->cpu_slots[cpu])) {
-+			head->nr_objs++;
-+			return 0;
-+		}
-+
-+		if (++cpu >= head->nr_cpus)
-+			cpu = 0;
++	refcount_set(&rh->ref, max + 1);
+ 	return rh;
+ }
+ 
+-/**
+- * rethook_add_node() - Add a new node to the rethook.
+- * @rh: the struct rethook.
+- * @node: the struct rethook_node to be added.
+- *
+- * Add @node to @rh. User must allocate @node (as a part of user's
+- * data structure.) The @node fields are initialized in this function.
+- */
+-void rethook_add_node(struct rethook *rh, struct rethook_node *node)
+-{
+-	node->rethook = rh;
+-	freelist_add(&node->freelist, &rh->pool);
+-	refcount_inc(&rh->ref);
+-}
+-
+ static void free_rethook_node_rcu(struct rcu_head *head)
+ {
+ 	struct rethook_node *node = container_of(head, struct rethook_node, rcu);
++	struct rethook *rh = node->rethook;
+ 
+-	if (refcount_dec_and_test(&node->rethook->ref))
+-		kfree(node->rethook);
+-	kfree(node);
++	if (refcount_dec_and_test(&rh->ref)) {
++		objpool_fini(&rh->pool);
++		kfree(rh);
 +	}
-+
-+	return -ENOENT;
-+}
-+EXPORT_SYMBOL_GPL(objpool_add);
-+
-+/**
-+ * objpool_push: reclaim the object and return back to objects pool
-+ *
-+ * args:
-+ * @obj:  object pointer to be pushed to object pool
-+ * @head: object pool
-+ *
-+ * return:
-+ *     0 or error code: it fails only when objects pool are full
-+ *
-+ * objpool_push is non-blockable, and can be nested
-+ */
-+int objpool_push(void *obj, struct objpool_head *head)
-+{
-+	unsigned int cpu = raw_smp_processor_id() % head->nr_cpus;
-+
-+	do {
-+		if (head->nr_objs > head->capacity) {
-+			if (!__objpool_try_add_slot(obj, head->cpu_slots[cpu]))
-+				return 0;
-+		} else {
-+			if (!__objpool_add_slot(obj, head->cpu_slots[cpu]))
-+				return 0;
-+		}
-+		if (++cpu >= head->nr_cpus)
-+			cpu = 0;
-+	} while (1);
-+
-+	return -ENOENT;
-+}
-+EXPORT_SYMBOL_GPL(objpool_push);
-+
-+/* try to retrieve object from slot */
-+static inline void *__objpool_try_get_slot(struct objpool_slot *os)
-+{
-+	uint32_t *ages = SLOT_AGES(os);
-+	void **ents = SLOT_ENTS(os);
-+	/* do memory load of head to local head */
-+	uint32_t head = smp_load_acquire(&os->head);
-+
-+	/* loop if slot isn't empty */
-+	while (head != READ_ONCE(os->tail)) {
-+		uint32_t id = head & os->mask, prev = head;
-+
-+		/* do prefetching of object ents */
-+		prefetch(&ents[id]);
-+
-+		/*
-+		 * check whether this item was ready for retrieval ? There's
-+		 * possibility * in theory * we might retrieve wrong object,
-+		 * in case ages[id] overflows when current task is sleeping,
-+		 * but it will take very very long to overflow an uint32_t
-+		 */
-+		if (smp_load_acquire(&ages[id]) == head) {
-+			/* node must have been udpated by push() */
-+			void *node = READ_ONCE(ents[id]);
-+			/* commit and move forward head of the slot */
-+			if (try_cmpxchg_release(&os->head, &head, head + 1))
-+				return node;
-+		}
-+
-+		/* re-load head from memory continue trying */
-+		head = READ_ONCE(os->head);
-+		/*
-+		 * head stays unchanged, so it's very likely current pop()
-+		 * just preempted/interrupted an ongoing push() operation
-+		 */
-+		if (head == prev)
-+			break;
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ * objpool_pop: allocate an object from objects pool
-+ *
-+ * args:
-+ * @oh:  object pool
-+ *
-+ * return:
-+ *   object: NULL if failed (object pool is empty)
-+ *
-+ * objpool_pop can be nested, so can be used in any context.
-+ */
-+void *objpool_pop(struct objpool_head *head)
-+{
-+	unsigned int i, cpu;
-+	void *obj = NULL;
-+
-+	cpu = raw_smp_processor_id() % head->nr_cpus;
-+	for (i = 0; i < head->nr_cpus; i++) {
-+		struct objpool_slot *slot = head->cpu_slots[cpu];
-+		obj = __objpool_try_get_slot(slot);
-+		if (obj)
-+			break;
-+		if (++cpu >= head->nr_cpus)
-+			cpu = 0;
-+	}
-+
-+	return obj;
-+}
-+EXPORT_SYMBOL_GPL(objpool_pop);
-+
-+/**
-+ * objpool_fini: cleanup the whole object pool (releasing all objects)
-+ *
-+ * args:
-+ * @head: object pool to be released
-+ *
-+ */
-+void objpool_fini(struct objpool_head *head)
-+{
-+	uint32_t i, flags;
-+
-+	if (!head->cpu_slots)
-+		return;
-+
-+	if (!head->release) {
-+		__objpool_fini_percpu_slots(head);
-+		return;
-+	}
-+
-+	/* cleanup all objects remained in objpool */
-+	for (i = 0; i < head->nr_cpus; i++) {
-+		void *obj;
-+		do {
-+			flags = OBJPOOL_FLAG_NODE;
-+			obj = __objpool_try_get_slot(head->cpu_slots[i]);
-+			if (!obj)
-+				break;
-+			if (!objpool_is_inpool(obj, head) &&
-+			    !objpool_is_inslot(obj, head)) {
-+				flags |= OBJPOOL_FLAG_USER;
-+			}
-+			head->release(head->context, obj, flags);
-+		} while (obj);
-+	}
-+
-+	/* release percpu slots */
-+	__objpool_fini_percpu_slots(head);
-+
-+	/* cleanup user private pool and related context */
-+	flags = OBJPOOL_FLAG_POOL;
-+	if (head->pool)
-+		flags |= OBJPOOL_FLAG_USER;
-+	head->release(head->context, head->pool, flags);
-+}
-+EXPORT_SYMBOL_GPL(objpool_fini);
+ }
+ 
+ /**
+@@ -130,7 +130,7 @@ void rethook_recycle(struct rethook_node
+ 	lockdep_assert_preemption_disabled();
+ 
+ 	if (likely(READ_ONCE(node->rethook->handler)))
+-		freelist_add(&node->freelist, &node->rethook->pool);
++		objpool_push(node, &node->rethook->pool);
+ 	else
+ 		call_rcu(&node->rcu, free_rethook_node_rcu);
+ }
+@@ -146,7 +146,7 @@ NOKPROBE_SYMBOL(rethook_recycle);
+ struct rethook_node *rethook_try_get(struct rethook *rh)
+ {
+ 	rethook_handler_t handler = READ_ONCE(rh->handler);
+-	struct freelist_node *fn;
++	struct rethook_node *nod;
+ 
+ 	lockdep_assert_preemption_disabled();
+ 
+@@ -163,11 +163,11 @@ struct rethook_node *rethook_try_get(str
+ 	if (unlikely(!rcu_is_watching()))
+ 		return NULL;
+ 
+-	fn = freelist_try_get(&rh->pool);
+-	if (!fn)
++	nod = (struct rethook_node *)objpool_pop(&rh->pool);
++	if (!nod)
+ 		return NULL;
+ 
+-	return container_of(fn, struct rethook_node, freelist);
++	return nod;
+ }
+ NOKPROBE_SYMBOL(rethook_try_get);
+ 
 _
 
 Patches currently in -mm which might be from wuqiang.matt@bytedance.com are
