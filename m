@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05437C4321E
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 22:00:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08043C4332F
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 23:49:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230034AbiKHWAD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 17:00:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36912 "EHLO
+        id S229498AbiKHXtB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 18:49:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230022AbiKHWAA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 17:00:00 -0500
+        with ESMTP id S229926AbiKHXtA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 18:49:00 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FFCC22514
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 13:59:59 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BD025B85E
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 15:49:00 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B448D617AB
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 21:59:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C76FC433D6;
-        Tue,  8 Nov 2022 21:59:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A5F7E616FB
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 23:48:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06283C433C1;
+        Tue,  8 Nov 2022 23:48:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667944798;
-        bh=S2sV4UMDscUJkSmXR3PakcZUpMGUqA6i9o9oK6oOCHM=;
+        s=korg; t=1667951339;
+        bh=8oLGN6XLRd5XeleIupkki0V/hJ1GCdt0y5yXXem3Pqc=;
         h=Date:To:From:Subject:From;
-        b=RWlZIMXGLz1DcYN1mEQ9MgQzMMBHca6jZ6BNAsx3YRr/pke2Z/5CWPk2a2sHSHiJy
-         wR6tXY3hblLFS46zg/y6rsIei0i6KlD3YOrKzDS4Gnr7BtnZcubMleJUqzZ/J5b1ut
-         0T/F1kEkNHliXBQVckXxpJlk0/d030Y+0yGMiZfQ=
-Date:   Tue, 08 Nov 2022 13:59:57 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        torvalds@linux-foundation.org, rppt@kernel.org, peterx@redhat.com,
-        npiggin@gmail.com, namit@vmware.com, mpe@ellerman.id.au,
-        mgorman@techsingularity.net, hughd@google.com, david@fromorbit.com,
-        anshuman.khandual@arm.com, aarcange@redhat.com, david@redhat.com,
-        akpm@linux-foundation.org
+        b=NddMgPtt9vz587U4hhktFY8ABCPLhxMwPz6iNe8dI7Lh4AuGtauBAAfwuZQiMPZGi
+         GnC+17em1vvTrljwMSPL9DPvfijWXqO8kiCKxyK4Mq7KTzz0LYeK03MR9lbxL8oHzG
+         fed9QksGK2PvK0uv5un+W3o03PrP56hx5KjkUg40=
+Date:   Tue, 08 Nov 2022 15:48:58 -0800
+To:     mm-commits@vger.kernel.org, vgoyal@redhat.com,
+        keescook@chromium.org, dyoung@redhat.com, bhe@redhat.com,
+        stephen.s.brennan@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-unused-savedwrite-infrastructure.patch added to mm-unstable branch
-Message-Id: <20221108215958.1C76FC433D6@smtp.kernel.org>
+Subject: + vmcoreinfo-warn-if-we-exceed-vmcoreinfo-data-size.patch added to mm-nonmm-unstable branch
+Message-Id: <20221108234859.06283C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove unused savedwrite infrastructure
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-unused-savedwrite-infrastructure.patch
+     Subject: vmcoreinfo: warn if we exceed vmcoreinfo data size
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     vmcoreinfo-warn-if-we-exceed-vmcoreinfo-data-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unused-savedwrite-infrastructure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmcoreinfo-warn-if-we-exceed-vmcoreinfo-data-size.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,312 +65,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: remove unused savedwrite infrastructure
-Date: Tue, 8 Nov 2022 18:46:51 +0100
+From: Stephen Brennan <stephen.s.brennan@oracle.com>
+Subject: vmcoreinfo: warn if we exceed vmcoreinfo data size
+Date: Thu, 27 Oct 2022 13:50:08 -0700
 
-NUMA hinting no longer uses savedwrite, let's rip it out.
+Though vmcoreinfo is intended to be small, at just one page, useful
+information is still added to it, so we risk running out of space. 
+Currently there is no runtime check to see whether the vmcoreinfo buffer
+has been exhausted.  Add a warning for this case.
 
-... and while at it, drop __pte_write() and __pmd_write() on ppc64.
+Currently, my static checking tool[1] indicates that a good upper bound
+for vmcoreinfo size is currently 3415 bytes, but the best time to add
+warnings is before the risk becomes too high.
 
-Link: https://lkml.kernel.org/r/20221108174652.198904-7-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[1] https://github.com/brenns10/kernel_stuff/blob/master/vmcoreinfosize/vmcoreinfosize.py
+
+Link: https://lkml.kernel.org/r/20221027205008.312534-1-stephen.s.brennan@oracle.com
+Signed-off-by: Stephen Brennan <stephen.s.brennan@oracle.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pgtable.h |   80 -----------------
- arch/powerpc/kvm/book3s_hv_rm_mmu.c          |    2 
- include/linux/pgtable.h                      |   24 -----
- mm/debug_vm_pgtable.c                        |   32 ------
- 4 files changed, 5 insertions(+), 133 deletions(-)
+ kernel/crash_core.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-remove-unused-savedwrite-infrastructure
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -401,35 +401,9 @@ static inline int __ptep_test_and_clear_
- #define __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
- #define pmdp_clear_flush_young pmdp_test_and_clear_young
+--- a/kernel/crash_core.c~vmcoreinfo-warn-if-we-exceed-vmcoreinfo-data-size
++++ a/kernel/crash_core.c
+@@ -383,6 +383,9 @@ void vmcoreinfo_append_str(const char *f
+ 	memcpy(&vmcoreinfo_data[vmcoreinfo_size], buf, r);
  
--static inline int __pte_write(pte_t pte)
--{
--	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
--}
--
--#ifdef CONFIG_NUMA_BALANCING
--#define pte_savedwrite pte_savedwrite
--static inline bool pte_savedwrite(pte_t pte)
--{
--	/*
--	 * Saved write ptes are prot none ptes that doesn't have
--	 * privileged bit sit. We mark prot none as one which has
--	 * present and pviliged bit set and RWX cleared. To mark
--	 * protnone which used to have _PAGE_WRITE set we clear
--	 * the privileged bit.
--	 */
--	return !(pte_raw(pte) & cpu_to_be64(_PAGE_RWX | _PAGE_PRIVILEGED));
--}
--#else
--#define pte_savedwrite pte_savedwrite
--static inline bool pte_savedwrite(pte_t pte)
--{
--	return false;
--}
--#endif
--
- static inline int pte_write(pte_t pte)
- {
--	return __pte_write(pte) || pte_savedwrite(pte);
-+	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
- }
- 
- static inline int pte_read(pte_t pte)
-@@ -441,24 +415,16 @@ static inline int pte_read(pte_t pte)
- static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- 				      pte_t *ptep)
- {
--	if (__pte_write(*ptep))
-+	if (pte_write(*ptep))
- 		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 0);
--	else if (unlikely(pte_savedwrite(*ptep)))
--		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 0);
- }
- 
- #define __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep)
- {
--	/*
--	 * We should not find protnone for hugetlb, but this complete the
--	 * interface.
--	 */
--	if (__pte_write(*ptep))
-+	if (pte_write(*ptep))
- 		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 1);
--	else if (unlikely(pte_savedwrite(*ptep)))
--		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 1);
- }
- 
- #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
-@@ -535,36 +501,6 @@ static inline int pte_protnone(pte_t pte
- 	return (pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_PTE | _PAGE_RWX)) ==
- 		cpu_to_be64(_PAGE_PRESENT | _PAGE_PTE);
- }
--
--#define pte_mk_savedwrite pte_mk_savedwrite
--static inline pte_t pte_mk_savedwrite(pte_t pte)
--{
--	/*
--	 * Used by Autonuma subsystem to preserve the write bit
--	 * while marking the pte PROT_NONE. Only allow this
--	 * on PROT_NONE pte
--	 */
--	VM_BUG_ON((pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_RWX | _PAGE_PRIVILEGED)) !=
--		  cpu_to_be64(_PAGE_PRESENT | _PAGE_PRIVILEGED));
--	return __pte_raw(pte_raw(pte) & cpu_to_be64(~_PAGE_PRIVILEGED));
--}
--
--#define pte_clear_savedwrite pte_clear_savedwrite
--static inline pte_t pte_clear_savedwrite(pte_t pte)
--{
--	/*
--	 * Used by KSM subsystem to make a protnone pte readonly.
--	 */
--	VM_BUG_ON(!pte_protnone(pte));
--	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_PRIVILEGED));
--}
--#else
--#define pte_clear_savedwrite pte_clear_savedwrite
--static inline pte_t pte_clear_savedwrite(pte_t pte)
--{
--	VM_WARN_ON(1);
--	return __pte_raw(pte_raw(pte) & cpu_to_be64(~_PAGE_WRITE));
--}
- #endif /* CONFIG_NUMA_BALANCING */
- 
- static inline bool pte_hw_valid(pte_t pte)
-@@ -641,8 +577,6 @@ static inline unsigned long pte_pfn(pte_
- /* Generic modifiers for PTE bits */
- static inline pte_t pte_wrprotect(pte_t pte)
- {
--	if (unlikely(pte_savedwrite(pte)))
--		return pte_clear_savedwrite(pte);
- 	return __pte_raw(pte_raw(pte) & cpu_to_be64(~_PAGE_WRITE));
- }
- 
-@@ -1139,8 +1073,6 @@ static inline pte_t *pmdp_ptep(pmd_t *pm
- #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
- #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
- #define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
--#define pmd_mk_savedwrite(pmd)	pte_pmd(pte_mk_savedwrite(pmd_pte(pmd)))
--#define pmd_clear_savedwrite(pmd)	pte_pmd(pte_clear_savedwrite(pmd_pte(pmd)))
- 
- #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- #define pmd_soft_dirty(pmd)    pte_soft_dirty(pmd_pte(pmd))
-@@ -1162,8 +1094,6 @@ static inline int pmd_protnone(pmd_t pmd
- #endif /* CONFIG_NUMA_BALANCING */
- 
- #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
--#define __pmd_write(pmd)	__pte_write(pmd_pte(pmd))
--#define pmd_savedwrite(pmd)	pte_savedwrite(pmd_pte(pmd))
- 
- #define pmd_access_permitted pmd_access_permitted
- static inline bool pmd_access_permitted(pmd_t pmd, bool write)
-@@ -1241,10 +1171,8 @@ static inline int __pmdp_test_and_clear_
- static inline void pmdp_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- 				      pmd_t *pmdp)
- {
--	if (__pmd_write((*pmdp)))
-+	if (pmd_write(*pmdp))
- 		pmd_hugepage_update(mm, addr, pmdp, _PAGE_WRITE, 0);
--	else if (unlikely(pmd_savedwrite(*pmdp)))
--		pmd_hugepage_update(mm, addr, pmdp, 0, _PAGE_PRIVILEGED);
+ 	vmcoreinfo_size += r;
++
++	WARN_ONCE(vmcoreinfo_size == VMCOREINFO_BYTES,
++		  "vmcoreinfo data exceeds allocated size, truncating");
  }
  
  /*
---- a/arch/powerpc/kvm/book3s_hv_rm_mmu.c~mm-remove-unused-savedwrite-infrastructure
-+++ a/arch/powerpc/kvm/book3s_hv_rm_mmu.c
-@@ -265,7 +265,7 @@ long kvmppc_do_h_enter(struct kvm *kvm,
- 		}
- 		pte = kvmppc_read_update_linux_pte(ptep, writing);
- 		if (pte_present(pte) && !pte_protnone(pte)) {
--			if (writing && !__pte_write(pte))
-+			if (writing && !pte_write(pte))
- 				/* make the actual HPTE be read-only */
- 				ptel = hpte_make_readonly(ptel);
- 			is_ci = pte_ci(pte);
---- a/include/linux/pgtable.h~mm-remove-unused-savedwrite-infrastructure
-+++ a/include/linux/pgtable.h
-@@ -485,30 +485,6 @@ static inline pte_t pte_sw_mkyoung(pte_t
- #define pte_sw_mkyoung	pte_sw_mkyoung
- #endif
- 
--#ifndef pte_savedwrite
--#define pte_savedwrite pte_write
--#endif
--
--#ifndef pte_mk_savedwrite
--#define pte_mk_savedwrite pte_mkwrite
--#endif
--
--#ifndef pte_clear_savedwrite
--#define pte_clear_savedwrite pte_wrprotect
--#endif
--
--#ifndef pmd_savedwrite
--#define pmd_savedwrite pmd_write
--#endif
--
--#ifndef pmd_mk_savedwrite
--#define pmd_mk_savedwrite pmd_mkwrite
--#endif
--
--#ifndef pmd_clear_savedwrite
--#define pmd_clear_savedwrite pmd_wrprotect
--#endif
--
- #ifndef __HAVE_ARCH_PMDP_SET_WRPROTECT
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline void pmdp_set_wrprotect(struct mm_struct *mm,
---- a/mm/debug_vm_pgtable.c~mm-remove-unused-savedwrite-infrastructure
-+++ a/mm/debug_vm_pgtable.c
-@@ -171,18 +171,6 @@ static void __init pte_advanced_tests(st
- 	ptep_get_and_clear_full(args->mm, args->vaddr, args->ptep, 1);
- }
- 
--static void __init pte_savedwrite_tests(struct pgtable_debug_args *args)
--{
--	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot_none);
--
--	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
--		return;
--
--	pr_debug("Validating PTE saved write\n");
--	WARN_ON(!pte_savedwrite(pte_mk_savedwrite(pte_clear_savedwrite(pte))));
--	WARN_ON(pte_savedwrite(pte_clear_savedwrite(pte_mk_savedwrite(pte))));
--}
--
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static void __init pmd_basic_tests(struct pgtable_debug_args *args, int idx)
- {
-@@ -302,22 +290,6 @@ static void __init pmd_leaf_tests(struct
- 	WARN_ON(!pmd_leaf(pmd));
- }
- 
--static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args)
--{
--	pmd_t pmd;
--
--	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
--		return;
--
--	if (!has_transparent_hugepage())
--		return;
--
--	pr_debug("Validating PMD saved write\n");
--	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot_none);
--	WARN_ON(!pmd_savedwrite(pmd_mk_savedwrite(pmd_clear_savedwrite(pmd))));
--	WARN_ON(pmd_savedwrite(pmd_clear_savedwrite(pmd_mk_savedwrite(pmd))));
--}
--
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- static void __init pud_basic_tests(struct pgtable_debug_args *args, int idx)
- {
-@@ -451,7 +423,6 @@ static void __init pmd_advanced_tests(st
- static void __init pud_advanced_tests(struct pgtable_debug_args *args) { }
- static void __init pmd_leaf_tests(struct pgtable_debug_args *args) { }
- static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
--static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args) { }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
-@@ -1288,9 +1259,6 @@ static int __init debug_vm_pgtable(void)
- 	pmd_leaf_tests(&args);
- 	pud_leaf_tests(&args);
- 
--	pte_savedwrite_tests(&args);
--	pmd_savedwrite_tests(&args);
--
- 	pte_special_tests(&args);
- 	pte_protnone_tests(&args);
- 	pmd_protnone_tests(&args);
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from stephen.s.brennan@oracle.com are
 
-selftests-vm-anon_cow-test-cow-handling-of-anonymous-memory.patch
-selftests-vm-anon_cow-test-cow-handling-of-anonymous-memory-fix.patch
-selftests-vm-factor-out-pagemap_is_populated-into-vm_util.patch
-selftests-vm-anon_cow-thp-tests.patch
-selftests-vm-anon_cow-hugetlb-tests.patch
-selftests-vm-anon_cow-add-liburing-test-cases.patch
-selftests-vm-anon_cow-add-liburing-test-cases-fix.patch
-mm-gup_test-start-stop-read-functionality-for-pin-longterm-test.patch
-mm-gup_test-start-stop-read-functionality-for-pin-longterm-test-fix.patch
-selftests-vm-anon_cow-add-r-o-longterm-tests-via-gup_test.patch
-selftests-vm-add-ksm-unmerge-tests.patch
-mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma.patch
-selftests-vm-add-test-to-measure-madv_unmergeable-performance.patch
-mm-ksm-simplify-break_ksm-to-not-rely-on-vm_fault_write.patch
-mm-remove-vm_fault_write.patch
-mm-ksm-fix-ksm-cow-breaking-with-userfaultfd-wp-via-fault_flag_unshare.patch
-mm-pagewalk-add-walk_page_range_vma.patch
-mm-ksm-convert-break_ksm-to-use-walk_page_range_vma.patch
-mm-gup-remove-foll_migration.patch
-mm-mprotect-minor-can_change_pte_writable-cleanups.patch
-mm-huge_memory-try-avoiding-write-faults-when-changing-pmd-protection.patch
-mm-mprotect-factor-out-check-whether-manual-pte-write-upgrades-are-required.patch
-mm-autonuma-use-can_change_ptepmd_writable-to-replace-savedwrite.patch
-mm-remove-unused-savedwrite-infrastructure.patch
-selftests-vm-anon_cow-add-mprotect-optimization-tests.patch
+vmcoreinfo-warn-if-we-exceed-vmcoreinfo-data-size.patch
 
