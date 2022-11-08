@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0281CC433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 21:43:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 972BEC4332F
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 21:47:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229813AbiKHVm6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 16:42:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57972 "EHLO
+        id S229790AbiKHVru (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 16:47:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229780AbiKHVmx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 16:42:53 -0500
+        with ESMTP id S229498AbiKHVru (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 16:47:50 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C8ED61775
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 13:42:51 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00F552019F
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 13:47:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 51D3AB81C8A
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 21:42:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0A46C433D6;
-        Tue,  8 Nov 2022 21:42:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AB487B81C1C
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 21:47:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44E69C433C1;
+        Tue,  8 Nov 2022 21:47:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667943769;
-        bh=5xu3k4nSk8EBn2Do6Q2wzgl6vb3mYT5gMyRHAeyOeBY=;
+        s=korg; t=1667944066;
+        bh=Vb0RmOkLJVN7uVRq6IqHJgSDNFVOnqk80GxeWbG4v+Q=;
         h=Date:To:From:Subject:From;
-        b=stAI8FzsTz0CdpBubD1PzEJIBWMHWX8k1yrcvp5YSZlaoe/oqWz08DQXy53w9ghWE
-         TRdAcDZUQvyLBxJU4v/x8nunTz94HwmRzS7CLziw61HHkxvsKBy89DCe7UnL+MiFCl
-         fL3mlIHeQIV8O2fyVC4oXrtGAw2pF8vyscbtd0Ew=
-Date:   Tue, 08 Nov 2022 13:42:48 -0800
-To:     mm-commits@vger.kernel.org, sander@svanheule.net,
-        rostedt@goodmis.org, peterz@infradead.org,
-        naveen.n.rao@linux.ibm.com, mhiramat@kernel.org,
-        jpoimboe@kernel.org, ebiggers@google.com, davem@davemloft.net,
-        dan.j.williams@intel.com, anil.s.keshavamurthy@intel.com,
-        wuqiang.matt@bytedance.com, akpm@linux-foundation.org
+        b=u+Q0qJQ4ycFk+ErJTrpYSHbp3rI9/4zmUrAPR6iRKDUBea/Tiqnivu8eumgMtNX0P
+         Xp+yyHHuy+ieolw4tT2EPd/mchME+7E8a2eZTIZX5jEu+y+ZZIaDkr745H0hE5kI0x
+         /hqM0vQPjNFsYMz1H9068qGZODr3gORS362VSIK8=
+Date:   Tue, 08 Nov 2022 13:47:45 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        quic_pkondeti@quicinc.com, quic_charante@quicinc.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kprobes-freelisth-removed.patch added to mm-nonmm-unstable branch
-Message-Id: <20221108214248.E0A46C433D6@smtp.kernel.org>
+Subject: + mm-fix-compiler-warning-with-make-w=1.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221108214746.44E69C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kprobes: freelist.h removed
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kprobes-freelisth-removed.patch
+     Subject: mm/page_exit: fix kernel doc warning in page_ext_put()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-compiler-warning-with-make-w=1.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kprobes-freelisth-removed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-compiler-warning-with-make-w=1.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,169 +65,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wuqiang <wuqiang.matt@bytedance.com>
-Subject: kprobes: freelist.h removed
-Date: Tue, 8 Nov 2022 15:14:43 +0800
+From: Charan Teja Kalla <quic_charante@quicinc.com>
+Subject: mm/page_exit: fix kernel doc warning in page_ext_put()
+Date: Tue, 8 Nov 2022 10:46:22 +0530
 
-This patch will remove freelist.h from kernel source tree, since the only
-use cases (kretprobe and rethook) are converted to objpool.
+Fix the below compiler warnings reported with 'make W=1 mm/'. 
+mm/page_ext.c:178: warning: Function parameter or member 'page_ext' not
+described in 'page_ext_put'.
 
-Link: https://lkml.kernel.org/r/20221108071443.258794-5-wuqiang.matt@bytedance.com
-Signed-off-by: wuqiang <wuqiang.matt@bytedance.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Biggers <ebiggers@google.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sander Vanheule <sander@svanheule.net>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+[quic_pkondeti@quicinc.com: better patch title]
+Link: https://lkml.kernel.org/r/1667884582-2465-1-git-send-email-quic_charante@quicinc.com
+Fixes: b1d5488a252dc9 ("mm: fix use-after free of page_ext after race with memory-offline")
+Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Pavan Kondeti <quic_pkondeti@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freelist.h |  129 -------------------------------------
- 1 file changed, 129 deletions(-)
+ mm/page_ext.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/freelist.h
-+++ /dev/null
-@@ -1,129 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause */
--#ifndef FREELIST_H
--#define FREELIST_H
--
--#include <linux/atomic.h>
--
--/*
-- * Copyright: cameron@moodycamel.com
-- *
-- * A simple CAS-based lock-free free list. Not the fastest thing in the world
-- * under heavy contention, but simple and correct (assuming nodes are never
-- * freed until after the free list is destroyed), and fairly speedy under low
-- * contention.
-- *
-- * Adapted from: https://moodycamel.com/blog/2014/solving-the-aba-problem-for-lock-free-free-lists
-- */
--
--struct freelist_node {
--	atomic_t		refs;
--	struct freelist_node	*next;
--};
--
--struct freelist_head {
--	struct freelist_node	*head;
--};
--
--#define REFS_ON_FREELIST 0x80000000
--#define REFS_MASK	 0x7FFFFFFF
--
--static inline void __freelist_add(struct freelist_node *node, struct freelist_head *list)
--{
--	/*
--	 * Since the refcount is zero, and nobody can increase it once it's
--	 * zero (except us, and we run only one copy of this method per node at
--	 * a time, i.e. the single thread case), then we know we can safely
--	 * change the next pointer of the node; however, once the refcount is
--	 * back above zero, then other threads could increase it (happens under
--	 * heavy contention, when the refcount goes to zero in between a load
--	 * and a refcount increment of a node in try_get, then back up to
--	 * something non-zero, then the refcount increment is done by the other
--	 * thread) -- so if the CAS to add the node to the actual list fails,
--	 * decrese the refcount and leave the add operation to the next thread
--	 * who puts the refcount back to zero (which could be us, hence the
--	 * loop).
--	 */
--	struct freelist_node *head = READ_ONCE(list->head);
--
--	for (;;) {
--		WRITE_ONCE(node->next, head);
--		atomic_set_release(&node->refs, 1);
--
--		if (!try_cmpxchg_release(&list->head, &head, node)) {
--			/*
--			 * Hmm, the add failed, but we can only try again when
--			 * the refcount goes back to zero.
--			 */
--			if (atomic_fetch_add_release(REFS_ON_FREELIST - 1, &node->refs) == 1)
--				continue;
--		}
--		return;
--	}
--}
--
--static inline void freelist_add(struct freelist_node *node, struct freelist_head *list)
--{
--	/*
--	 * We know that the should-be-on-freelist bit is 0 at this point, so
--	 * it's safe to set it using a fetch_add.
--	 */
--	if (!atomic_fetch_add_release(REFS_ON_FREELIST, &node->refs)) {
--		/*
--		 * Oh look! We were the last ones referencing this node, and we
--		 * know we want to add it to the free list, so let's do it!
--		 */
--		__freelist_add(node, list);
--	}
--}
--
--static inline struct freelist_node *freelist_try_get(struct freelist_head *list)
--{
--	struct freelist_node *prev, *next, *head = smp_load_acquire(&list->head);
--	unsigned int refs;
--
--	while (head) {
--		prev = head;
--		refs = atomic_read(&head->refs);
--		if ((refs & REFS_MASK) == 0 ||
--		    !atomic_try_cmpxchg_acquire(&head->refs, &refs, refs+1)) {
--			head = smp_load_acquire(&list->head);
--			continue;
--		}
--
--		/*
--		 * Good, reference count has been incremented (it wasn't at
--		 * zero), which means we can read the next and not worry about
--		 * it changing between now and the time we do the CAS.
--		 */
--		next = READ_ONCE(head->next);
--		if (try_cmpxchg_acquire(&list->head, &head, next)) {
--			/*
--			 * Yay, got the node. This means it was on the list,
--			 * which means should-be-on-freelist must be false no
--			 * matter the refcount (because nobody else knows it's
--			 * been taken off yet, it can't have been put back on).
--			 */
--			WARN_ON_ONCE(atomic_read(&head->refs) & REFS_ON_FREELIST);
--
--			/*
--			 * Decrease refcount twice, once for our ref, and once
--			 * for the list's ref.
--			 */
--			atomic_fetch_add(-2, &head->refs);
--
--			return head;
--		}
--
--		/*
--		 * OK, the head must have changed on us, but we still need to decrement
--		 * the refcount we increased.
--		 */
--		refs = atomic_fetch_add(-1, &prev->refs);
--		if (refs == REFS_ON_FREELIST + 1)
--			__freelist_add(prev, list);
--	}
--
--	return NULL;
--}
--
--#endif /* FREELIST_H */
+--- a/mm/page_ext.c~mm-fix-compiler-warning-with-make-w=1
++++ a/mm/page_ext.c
+@@ -166,7 +166,7 @@ struct page_ext *page_ext_get(struct pag
+ 
+ /**
+  * page_ext_put() - Working with page extended information is done.
+- * @page_ext - Page extended information received from page_ext_get().
++ * @page_ext: Page extended information received from page_ext_get().
+  *
+  * The page extended information of the page may not be valid after this
+  * function is called.
 _
 
-Patches currently in -mm which might be from wuqiang.matt@bytedance.com are
+Patches currently in -mm which might be from quic_charante@quicinc.com are
 
-lib-objpool-added-ring-array-based-lockless-mpmc-queue.patch
-lib-objpool-test-module-added.patch
-kprobes-kretprobe-scalability-improvement-with-objpool.patch
-kprobes-freelisth-removed.patch
+mm-fix-compiler-warning-with-make-w=1.patch
 
