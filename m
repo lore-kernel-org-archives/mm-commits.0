@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4915C4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05ED6C43219
 	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 23:58:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229948AbiKHX6e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 18:58:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51214 "EHLO
+        id S229926AbiKHX6d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 18:58:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51230 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229922AbiKHX6Q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 18:58:16 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D2FB60352
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 15:58:15 -0800 (PST)
+        with ESMTP id S229931AbiKHX6R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 18:58:17 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB33E606A8;
+        Tue,  8 Nov 2022 15:58:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 40759B81CC8
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 23:58:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E30B7C433D7;
-        Tue,  8 Nov 2022 23:58:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 582BAB81CC7;
+        Tue,  8 Nov 2022 23:58:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2A84C433D6;
+        Tue,  8 Nov 2022 23:58:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667951893;
-        bh=OUeUPlSJAFBf1rLIVq+EfL2R9Y8w1wYKglUJ/GwBTPM=;
+        s=korg; t=1667951894;
+        bh=czQQlpEAmU1oJjo1aMzSyfYQLp3bApbAUQfIig7Nizg=;
         h=Date:To:From:Subject:From;
-        b=V4SFkLU7k2xKyxhkkUw5rfeyiwCI1AVkSelzzQ4jddhg4pheU3M58flERN+SlCF7x
-         wr1oOpbJl1hYBBuaM29TNOJ/I6OB181KLyIBkEn0VO7C3ush2RDTyhmSNTlfGLHgi6
-         TutYpWB4zavd4HzAp1XLx8w6galkjD7+J9HNNZp0=
-Date:   Tue, 08 Nov 2022 15:58:12 -0800
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
-        nadav.amit@gmail.com, minchan@kernel.org, matorola@gmail.com,
-        kirill@shutemov.name, hughd@google.com, david@redhat.com,
-        davem@davemloft.net, apopple@nvidia.com, andi.kleen@intel.com,
-        aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
+        b=AUiftZDUZmxCknDq+4kZKnf3Lj9jeVuXpB6wYVElOtmzzm1ZfjOQoapbPcCrTc2eU
+         ApIYSR/+vuSu1f5yEv9+MmGQcQrZemHU3A4Ff1B5XRcKGCRKKtPTmkyK38Zd2m7Ifg
+         5tpP0XHupioCBAJuQzpC2G9jZ3DFM/IBVCr5b8gU=
+Date:   Tue, 08 Nov 2022 15:58:13 -0800
+To:     mm-commits@vger.kernel.org, thomas.lendacky@amd.com,
+        stable@vger.kernel.org, dan.j.williams@intel.com,
+        pankaj.gupta@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] partly-revert-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch removed from -mm tree
-Message-Id: <20221108235812.E30B7C433D7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memremapc-map-fs_dax-device-memory-as-decrypted.patch removed from -mm tree
+Message-Id: <20221108235813.F2A84C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,81 +42,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Partly revert "mm/thp: carry over dirty bit when thp splits  on pmd"
+     Subject: mm/memremap.c: map FS_DAX device memory as decrypted
 has been removed from the -mm tree.  Its filename was
-     partly-revert-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch
+     mm-memremapc-map-fs_dax-device-memory-as-decrypted.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: Partly revert "mm/thp: carry over dirty bit when thp splits  on pmd"
-Content-type: text/plain
+From: Pankaj Gupta <pankaj.gupta@amd.com>
+Subject: mm/memremap.c: map FS_DAX device memory as decrypted
+Date: Wed, 2 Nov 2022 11:07:28 -0500
 
-Anatoly Pugachev reported sparc64 breakage on the patch:
+virtio_pmem use devm_memremap_pages() to map the device memory.  By
+default this memory is mapped as encrypted with SEV.  Guest reboot changes
+the current encryption key and guest no longer properly decrypts the FSDAX
+device meta data.
 
-https://lore.kernel.org/r/20221021160603.GA23307@u164.east.ru
+Mark the corresponding device memory region for FSDAX devices (mapped with
+memremap_pages) as decrypted to retain the persistent memory property.
 
-The sparc64 impl of pte_mkdirty() is definitely slightly special in that
-it leverages a code patching mechanism for sun4u/sun4v on relevant pgtable
-entry operations.
-
-Before having a clue of why the sparc64 is special and caused the patch to
-SIGSEGV the processes, revert the patch for now.  The swap path of dirty
-bit inheritage is kept because that's using the swap shared code so we
-assume it'll not be affected.
-
-Link: https://lkml.kernel.org/r/Y1Wbi4yyVvDtg4zN@x1n
-Fixes: 0ccf7f168e17 ("mm/thp: carry over dirty bit when thp splits on pmd")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Anatoly Pugachev <matorola@gmail.com> 
-Tested-by: Anatoly Pugachev <matorola@gmail.com> 
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20221102160728.3184016-1-pankaj.gupta@amd.com
+Fixes: b7b3c01b19159 ("mm/memremap_pages: support multiple ranges per invocation")
+Signed-off-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/memremap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/huge_memory.c~partly-revert-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd
-+++ a/mm/huge_memory.c
-@@ -2206,9 +2206,12 @@ static void __split_huge_pmd_locked(stru
- 				entry = pte_wrprotect(entry);
- 			if (!young)
- 				entry = pte_mkold(entry);
--			/* NOTE: this may set soft-dirty too on some archs */
--			if (dirty)
--				entry = pte_mkdirty(entry);
-+			/*
-+			 * NOTE: we don't do pte_mkdirty when dirty==true
-+			 * because it breaks sparc64 which can sigsegv
-+			 * random process.  Need to revisit when we figure
-+			 * out what is special with sparc64.
-+			 */
- 			if (soft_dirty)
- 				entry = pte_mksoft_dirty(entry);
- 			if (uffd_wp)
+--- a/mm/memremap.c~mm-memremapc-map-fs_dax-device-memory-as-decrypted
++++ a/mm/memremap.c
+@@ -335,6 +335,7 @@ void *memremap_pages(struct dev_pagemap
+ 			WARN(1, "File system DAX not supported\n");
+ 			return ERR_PTR(-EINVAL);
+ 		}
++		params.pgprot = pgprot_decrypted(params.pgprot);
+ 		break;
+ 	case MEMORY_DEVICE_GENERIC:
+ 		break;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from pankaj.gupta@amd.com are
 
-selftests-vm-use-memfd-for-uffd-hugetlb-tests.patch
-selftests-vm-use-memfd-for-hugetlb-madvise-test.patch
-selftests-vm-use-memfd-for-hugepage-mremap-test.patch
-selftests-vm-drop-mnt-point-for-hugetlb-in-run_vmtestssh.patch
-mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages.patch
-revert-mm-uffd-fix-warning-without-pte_marker_uffd_wp-compiled-in.patch
-mm-always-compile-in-pte-markers.patch
-mm-use-pte-markers-for-swap-errors.patch
 
