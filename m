@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72BACC4332F
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 21:59:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACE0EC433FE
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 22:00:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229769AbiKHV7w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 16:59:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36850 "EHLO
+        id S230029AbiKHWAB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 17:00:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36894 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230022AbiKHV7v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 16:59:51 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33C0521E19
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 13:59:50 -0800 (PST)
+        with ESMTP id S230032AbiKHV7z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 16:59:55 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D88B322BC4
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 13:59:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 70766CE1CF9
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 21:59:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D403C433D6;
-        Tue,  8 Nov 2022 21:59:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7737A617AF
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 21:59:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE4F0C433C1;
+        Tue,  8 Nov 2022 21:59:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667944786;
-        bh=rzr8o7W8NN7LgALNnnSGbG4YrbEB9aQdmdS++whVf5A=;
+        s=korg; t=1667944792;
+        bh=Ye82lchll+d3Qizh2nW7Kgqd0gFfvuKH5LgothN/tVo=;
         h=Date:To:From:Subject:From;
-        b=GFBIW4hW/U85pCX4mpHPb9XrBw3ozn4KaWivGg0urbZmFr5DwUDglewo+XdBD0aWt
-         na4mwWmQleEcmR0GdYhRW7LEkAyi9Tb09kR6RVeOM8krMIHCiGh88Sne54V4OAM6Ko
-         sNiukLgSNkD6taP7af1fFTW5X9k3gnL08mB/SY5k=
-Date:   Tue, 08 Nov 2022 13:59:46 -0800
+        b=QoGiuYwRUGXtgS+qCIKQYM852CH//N1JsPyNV0Ngyso/+LB7N4I3W2npaie0YGr7Y
+         NRa6MnXl5mFt9oBLddsU457zkI5EvoQ3vU9Le9CzBPEDh1NKKJRhceBpTmbXRKDhIy
+         cHkIxsdBe/L7l5zu+Ds0cDzRk7JW7GWz+M81DyA8=
+Date:   Tue, 08 Nov 2022 13:59:52 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         torvalds@linux-foundation.org, rppt@kernel.org, peterx@redhat.com,
-        npiggin@gmail.com, mpe@ellerman.id.au, mgorman@techsingularity.net,
-        hughd@google.com, david@redhat.com, david@fromorbit.com,
-        anshuman.khandual@arm.com, aarcange@redhat.com, namit@vmware.com,
+        npiggin@gmail.com, namit@vmware.com, mpe@ellerman.id.au,
+        mgorman@techsingularity.net, hughd@google.com, david@fromorbit.com,
+        anshuman.khandual@arm.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mprotect-allow-clean-exclusive-anon-pages-to-be-writable.patch added to mm-unstable branch
-Message-Id: <20221108215946.9D403C433D6@smtp.kernel.org>
+Subject: + mm-mprotect-factor-out-check-whether-manual-pte-write-upgrades-are-required.patch added to mm-unstable branch
+Message-Id: <20221108215952.CE4F0C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mprotect: allow clean exclusive anon pages to be writable
+     Subject: mm/mprotect: factor out check whether manual PTE write upgrades are required
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mprotect-allow-clean-exclusive-anon-pages-to-be-writable.patch
+     mm-mprotect-factor-out-check-whether-manual-pte-write-upgrades-are-required.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-allow-clean-exclusive-anon-pages-to-be-writable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-factor-out-check-whether-manual-pte-write-upgrades-are-required.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,110 +68,129 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: mm/mprotect: allow clean exclusive anon pages to be writable
-Date: Tue, 8 Nov 2022 18:46:46 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/mprotect: factor out check whether manual PTE write upgrades are required
+Date: Tue, 8 Nov 2022 18:46:49 +0100
 
-Patch series "mm/autonuma: replace savedwrite infrastructure", v2.
+Let's factor the check out into vma_wants_manual_pte_write_upgrade(), to be
+reused in NUMA hinting fault context soon.
 
-As discussed in my talk at LPC, we can reuse the same mechanism for
-deciding whether to map a pte writable when upgrading permissions via
-mprotect() -- e.g., PROT_READ -> PROT_READ|PROT_WRITE -- to replace the
-savedwrite infrastructure used for NUMA hinting faults (e.g., PROT_NONE ->
-PROT_READ|PROT_WRITE).
-
-Instead of maintaining previous write permissions for a pte/pmd, we
-re-determine if the pte/pmd can be writable.  The big benefit is that we
-have a common logic for deciding whether we can map a pte/pmd writable on
-protection changes.
-
-For private mappings, there should be no difference -- from what I
-understand, that is what autonuma benchmarks care about.
-
-I ran autonumabench for v1 on a system with 2 NUMA nodes, 96 GiB each via:
-	perf stat --null --repeat 10
-The numa01 benchmark is quite noisy in my environment and I failed to
-reduce the noise so far.
-
-numa01:
-	mm-unstable:   146.88 +- 6.54 seconds time elapsed  ( +-  4.45% )
-	mm-unstable++: 147.45 +- 13.39 seconds time elapsed  ( +-  9.08% )
-
-numa02:
-	mm-unstable:   16.0300 +- 0.0624 seconds time elapsed  ( +-  0.39% )
-	mm-unstable++: 16.1281 +- 0.0945 seconds time elapsed  ( +-  0.59% )
-
-It is worth noting that for shared writable mappings that require
-writenotify, we will only avoid write faults if the pte/pmd is dirty
-(inherited from the older mprotect logic).  If we ever care about
-optimizing that further, we'd need a different mechanism to identify
-whether the FS still needs to get notified on the next write access.
-
-In any case, such an optimiztion will then not be autonuma-specific, but
-mprotect() permission upgrades would similarly benefit from it.
-
-
-This patch (of 7):
-
-Anonymous pages might have the dirty bit clear, but this should not
-prevent mprotect from making them writable if they are exclusive. 
-Therefore, skip the test whether the page is dirty in this case.
-
-Note that there are already other ways to get a writable PTE mapping an
-anonymous page that is clean: for example, via MADV_FREE.  In an ideal
-world, we'd have a different indication from the FS whether writenotify is
-still required.
-
-[david@redhat.com: return directly; update description]
-Link: https://lkml.kernel.org/r/20221108174652.198904-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20221108174652.198904-2-david@redhat.com
-Signed-off-by: Nadav Amit <namit@vmware.com>
+Link: https://lkml.kernel.org/r/20221108174652.198904-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/mm.h |   16 ++++++++++++++--
+ mm/mprotect.c      |   17 ++++-------------
+ 2 files changed, 18 insertions(+), 15 deletions(-)
 
---- a/mm/mprotect.c~mm-mprotect-allow-clean-exclusive-anon-pages-to-be-writable
-+++ a/mm/mprotect.c
-@@ -46,7 +46,7 @@ static inline bool can_change_pte_writab
+--- a/include/linux/mm.h~mm-mprotect-factor-out-check-whether-manual-pte-write-upgrades-are-required
++++ a/include/linux/mm.h
+@@ -2016,6 +2016,20 @@ extern unsigned long move_page_tables(st
+ #define  MM_CP_UFFD_WP_ALL                 (MM_CP_UFFD_WP | \
+ 					    MM_CP_UFFD_WP_RESOLVE)
  
- 	VM_BUG_ON(!(vma->vm_flags & VM_WRITE) || pte_write(pte));
- 
--	if (pte_protnone(pte) || !pte_dirty(pte))
-+	if (pte_protnone(pte))
- 		return false;
- 
- 	/* Do we need write faults for softdirty tracking? */
-@@ -65,11 +65,10 @@ static inline bool can_change_pte_writab
- 		 * the PT lock.
- 		 */
- 		page = vm_normal_page(vma, addr, pte);
--		if (!page || !PageAnon(page) || !PageAnonExclusive(page))
--			return false;
-+		return page && PageAnon(page) && PageAnonExclusive(page);
- 	}
- 
--	return true;
-+	return pte_dirty(pte);
++int vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot);
++static inline bool vma_wants_manual_pte_write_upgrade(struct vm_area_struct *vma)
++{
++	/*
++	 * We want to check manually if we can change individual PTEs writable
++	 * if we can't do that automatically for all PTEs in a mapping. For
++	 * private mappings, that's always the case when we have write
++	 * permissions as we properly have to handle COW.
++	 */
++	if (vma->vm_flags & VM_SHARED)
++		return vma_wants_writenotify(vma, vma->vm_page_prot);
++	return !!(vma->vm_flags & VM_WRITE);
++
++}
+ extern unsigned long change_protection(struct mmu_gather *tlb,
+ 			      struct vm_area_struct *vma, unsigned long start,
+ 			      unsigned long end, pgprot_t newprot,
+@@ -2155,8 +2169,6 @@ static inline int pte_devmap(pte_t pte)
  }
+ #endif
  
- static unsigned long change_pte_range(struct mmu_gather *tlb,
+-int vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot);
+-
+ extern pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
+ 			       spinlock_t **ptl);
+ static inline pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr,
+--- a/mm/mprotect.c~mm-mprotect-factor-out-check-whether-manual-pte-write-upgrades-are-required
++++ a/mm/mprotect.c
+@@ -558,8 +558,8 @@ mprotect_fixup(struct mmu_gather *tlb, s
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long oldflags = vma->vm_flags;
+ 	long nrpages = (end - start) >> PAGE_SHIFT;
++	unsigned int mm_cp_flags = 0;
+ 	unsigned long charged = 0;
+-	bool try_change_writable;
+ 	pgoff_t pgoff;
+ 	int error;
+ 
+@@ -637,20 +637,11 @@ success:
+ 	 * held in write mode.
+ 	 */
+ 	vma->vm_flags = newflags;
+-	/*
+-	 * We want to check manually if we can change individual PTEs writable
+-	 * if we can't do that automatically for all PTEs in a mapping. For
+-	 * private mappings, that's always the case when we have write
+-	 * permissions as we properly have to handle COW.
+-	 */
+-	if (vma->vm_flags & VM_SHARED)
+-		try_change_writable = vma_wants_writenotify(vma, vma->vm_page_prot);
+-	else
+-		try_change_writable = !!(vma->vm_flags & VM_WRITE);
++	if (vma_wants_manual_pte_write_upgrade(vma))
++		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
+ 	vma_set_page_prot(vma);
+ 
+-	change_protection(tlb, vma, start, end, vma->vm_page_prot,
+-			  try_change_writable ? MM_CP_TRY_CHANGE_WRITABLE : 0);
++	change_protection(tlb, vma, start, end, vma->vm_page_prot, mm_cp_flags);
+ 
+ 	/*
+ 	 * Private VM_LOCKED VMA becoming writable: trigger COW to avoid major
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-mprotect-allow-clean-exclusive-anon-pages-to-be-writable.patch
+selftests-vm-anon_cow-test-cow-handling-of-anonymous-memory.patch
+selftests-vm-anon_cow-test-cow-handling-of-anonymous-memory-fix.patch
+selftests-vm-factor-out-pagemap_is_populated-into-vm_util.patch
+selftests-vm-anon_cow-thp-tests.patch
+selftests-vm-anon_cow-hugetlb-tests.patch
+selftests-vm-anon_cow-add-liburing-test-cases.patch
+selftests-vm-anon_cow-add-liburing-test-cases-fix.patch
+mm-gup_test-start-stop-read-functionality-for-pin-longterm-test.patch
+mm-gup_test-start-stop-read-functionality-for-pin-longterm-test-fix.patch
+selftests-vm-anon_cow-add-r-o-longterm-tests-via-gup_test.patch
+selftests-vm-add-ksm-unmerge-tests.patch
+mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma.patch
+selftests-vm-add-test-to-measure-madv_unmergeable-performance.patch
+mm-ksm-simplify-break_ksm-to-not-rely-on-vm_fault_write.patch
+mm-remove-vm_fault_write.patch
+mm-ksm-fix-ksm-cow-breaking-with-userfaultfd-wp-via-fault_flag_unshare.patch
+mm-pagewalk-add-walk_page_range_vma.patch
+mm-ksm-convert-break_ksm-to-use-walk_page_range_vma.patch
+mm-gup-remove-foll_migration.patch
+mm-mprotect-minor-can_change_pte_writable-cleanups.patch
+mm-huge_memory-try-avoiding-write-faults-when-changing-pmd-protection.patch
+mm-mprotect-factor-out-check-whether-manual-pte-write-upgrades-are-required.patch
+mm-autonuma-use-can_change_ptepmd_writable-to-replace-savedwrite.patch
+mm-remove-unused-savedwrite-infrastructure.patch
+selftests-vm-anon_cow-add-mprotect-optimization-tests.patch
 
