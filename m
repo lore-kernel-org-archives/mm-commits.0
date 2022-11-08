@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B91BC433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 23:58:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A60ADC4332F
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 23:58:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230015AbiKHX61 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 18:58:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51228 "EHLO
+        id S230110AbiKHX6c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 18:58:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229868AbiKHX6N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 18:58:13 -0500
+        with ESMTP id S229926AbiKHX6R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 18:58:17 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9654B6068C;
-        Tue,  8 Nov 2022 15:58:12 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57806606A1;
+        Tue,  8 Nov 2022 15:58:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3334E617E2;
-        Tue,  8 Nov 2022 23:58:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A56DC433D6;
-        Tue,  8 Nov 2022 23:58:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D3CC5617E4;
+        Tue,  8 Nov 2022 23:58:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32AE2C43470;
+        Tue,  8 Nov 2022 23:58:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667951891;
-        bh=kBieeZP7ebC1ESMLsmykoSU2QtaDOK8PQV+EQT7FxQo=;
+        s=korg; t=1667951895;
+        bh=Rhokdn+5ejET0d+ZjL2KZQYSQALDc+3DCu8V18KSs4o=;
         h=Date:To:From:Subject:From;
-        b=F0GorJE7er1aLb/WCvIbw4Gz/YP+85sH0Huqm6qJtzr4Oo52G2WuHDHT2ayu1KE3t
-         ocoWMWZNLv6KO7yfkmLGhD2uE/2X9PyFRfGdMBPGWF7brh8tB7UDNVjaJtLsSc4086
-         u7SXnawRdMamoCf5skKrC2c9Qn84qsB96H9gbjJw=
-Date:   Tue, 08 Nov 2022 15:58:11 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=Mn4wYFf7HorFsjSqOc5dUY/gPrfed3vvpfOShe6NmrXfsJnqzZoytKjwgr/sKTWtf
+         ReHLRuFC7YjIc3mD3msmc9AeAn9ZVvf41KNA0M6vHDY1QOkMRsx/6MAlvXKJhWFtuf
+         3aZpNbIAyaEc9f/4MWQb9R8DaoMth1Y/4z06tJV8=
+Date:   Tue, 08 Nov 2022 15:58:14 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, hughd@google.com, axelrasmussen@google.com,
+        aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-deadlock-in-nilfs_count_free_blocks.patch removed from -mm tree
-Message-Id: <20221108235811.8A56DC433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-shmem-use-page_mapping-to-detect-page-cache-for-uffd-continue.patch removed from -mm tree
+Message-Id: <20221108235815.32AE2C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,94 +42,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nilfs2: fix deadlock in nilfs_count_free_blocks()
+     Subject: mm/shmem: use page_mapping() to detect page cache for uffd continue
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-deadlock-in-nilfs_count_free_blocks.patch
+     mm-shmem-use-page_mapping-to-detect-page-cache-for-uffd-continue.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix deadlock in nilfs_count_free_blocks()
-Date: Sat, 29 Oct 2022 13:49:12 +0900
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/shmem: use page_mapping() to detect page cache for uffd continue
+Date: Wed, 2 Nov 2022 14:41:52 -0400
 
-A semaphore deadlock can occur if nilfs_get_block() detects metadata
-corruption while locating data blocks and a superblock writeback occurs at
-the same time:
+mfill_atomic_install_pte() checks page->mapping to detect whether one page
+is used in the page cache.  However as pointed out by Matthew, the page
+can logically be a tail page rather than always the head in the case of
+uffd minor mode with UFFDIO_CONTINUE.  It means we could wrongly install
+one pte with shmem thp tail page assuming it's an anonymous page.
 
-task 1                               task 2
-------                               ------
-* A file operation *
-nilfs_truncate()
-  nilfs_get_block()
-    down_read(rwsem A) <--
-    nilfs_bmap_lookup_contig()
-      ...                            generic_shutdown_super()
-                                       nilfs_put_super()
-                                         * Prepare to write superblock *
-                                         down_write(rwsem B) <--
-                                         nilfs_cleanup_super()
-      * Detect b-tree corruption *         nilfs_set_log_cursor()
-      nilfs_bmap_convert_error()             nilfs_count_free_blocks()
-        __nilfs_error()                        down_read(rwsem A) <--
-          nilfs_set_error()
-            down_write(rwsem B) <--
+It's not that clear even for anonymous page, since normally anonymous
+pages also have page->mapping being setup with the anon vma.  It's safe
+here only because the only such caller to mfill_atomic_install_pte() is
+always passing in a newly allocated page (mcopy_atomic_pte()), whose
+page->mapping is not yet setup.  However that's not extremely obvious
+either.
 
-                           *** DEADLOCK ***
+For either of above, use page_mapping() instead.
 
-Here, nilfs_get_block() readlocks rwsem A (= NILFS_MDT(dat_inode)->mi_sem)
-and then calls nilfs_bmap_lookup_contig(), but if it fails due to metadata
-corruption, __nilfs_error() is called from nilfs_bmap_convert_error()
-inside the lock section.
-
-Since __nilfs_error() calls nilfs_set_error() unless the filesystem is
-read-only and nilfs_set_error() attempts to writelock rwsem B (=
-nilfs->ns_sem) to write back superblock exclusively, hierarchical lock
-acquisition occurs in the order rwsem A -> rwsem B.
-
-Now, if another task starts updating the superblock, it may writelock
-rwsem B during the lock sequence above, and can deadlock trying to
-readlock rwsem A in nilfs_count_free_blocks().
-
-However, there is actually no need to take rwsem A in
-nilfs_count_free_blocks() because it, within the lock section, only reads
-a single integer data on a shared struct with
-nilfs_sufile_get_ncleansegs().  This has been the case after commit
-aa474a220180 ("nilfs2: add local variable to cache the number of clean
-segments"), that is, even before this bug was introduced.
-
-So, this resolves the deadlock problem by just not taking the semaphore in
-nilfs_count_free_blocks().
-
-Link: https://lkml.kernel.org/r/20221029044912.9139-1-konishi.ryusuke@gmail.com
-Fixes: e828949e5b42 ("nilfs2: call nilfs_error inside bmap routines")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+45d6ce7b7ad7ef455d03@syzkaller.appspotmail.com
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>	[2.6.38+
+Link: https://lkml.kernel.org/r/Y2K+y7wnhC4vbnP2@x1n
+Fixes: 153132571f02 ("userfaultfd/shmem: support UFFDIO_CONTINUE for shmem")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Matthew Wilcox <willy@infradead.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/the_nilfs.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-deadlock-in-nilfs_count_free_blocks
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -690,9 +690,7 @@ int nilfs_count_free_blocks(struct the_n
- {
- 	unsigned long ncleansegs;
- 
--	down_read(&NILFS_MDT(nilfs->ns_dat)->mi_sem);
- 	ncleansegs = nilfs_sufile_get_ncleansegs(nilfs->ns_sufile);
--	up_read(&NILFS_MDT(nilfs->ns_dat)->mi_sem);
- 	*nblocks = (sector_t)ncleansegs * nilfs->ns_blocks_per_segment;
- 	return 0;
- }
+--- a/mm/userfaultfd.c~mm-shmem-use-page_mapping-to-detect-page-cache-for-uffd-continue
++++ a/mm/userfaultfd.c
+@@ -64,7 +64,7 @@ int mfill_atomic_install_pte(struct mm_s
+ 	pte_t _dst_pte, *dst_pte;
+ 	bool writable = dst_vma->vm_flags & VM_WRITE;
+ 	bool vm_shared = dst_vma->vm_flags & VM_SHARED;
+-	bool page_in_cache = page->mapping;
++	bool page_in_cache = page_mapping(page);
+ 	spinlock_t *ptl;
+ 	struct inode *inode;
+ 	pgoff_t offset, max_off;
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-nilfs2-fix-shift-out-of-bounds-overflow-in-nilfs_sb2_bad_offset.patch
-nilfs2-fix-shift-out-of-bounds-due-to-too-large-exponent-of-block-size.patch
+selftests-vm-use-memfd-for-uffd-hugetlb-tests.patch
+selftests-vm-use-memfd-for-hugetlb-madvise-test.patch
+selftests-vm-use-memfd-for-hugepage-mremap-test.patch
+selftests-vm-drop-mnt-point-for-hugetlb-in-run_vmtestssh.patch
+mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages.patch
+revert-mm-uffd-fix-warning-without-pte_marker_uffd_wp-compiled-in.patch
+mm-always-compile-in-pte-markers.patch
+mm-use-pte-markers-for-swap-errors.patch
 
