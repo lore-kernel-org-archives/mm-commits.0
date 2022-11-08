@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F2C0C43219
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 23:59:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 189E9C433FE
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 23:59:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229911AbiKHX7K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 18:59:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52024 "EHLO
+        id S230176AbiKHX7S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 18:59:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230097AbiKHX6b (ORCPT
+        with ESMTP id S230107AbiKHX6b (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 18:58:31 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63D3DB7D5
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 15:58:26 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B76CDB7DC
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 15:58:28 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B012D617E6
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 23:58:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FDBDC433C1;
-        Tue,  8 Nov 2022 23:58:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 21205617EA
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 23:58:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CB66C433D7;
+        Tue,  8 Nov 2022 23:58:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667951905;
-        bh=xVk/Rn2PnnUtyAoqtPeBedE+4fFFamUlvvxe5sPxDdk=;
+        s=korg; t=1667951907;
+        bh=etmIW+8e2VZ5KvTe5VOaq3OPMJV0F65w4Cb8yBnOBAQ=;
         h=Date:To:From:Subject:From;
-        b=NCzjtaOFYsDhZAT8PRgbsjL8O9nYJjBWn+IfB85LXcz0/dW3ItxkpGTnXpV2y7VLd
-         IIG9mT9BrlyXRF3On4/B3q02fDQKU6ZBaoUj6h/1us8JqT3unWtJlyMfVLES44vaiy
-         QtgmRYl87mQBGxAO+UUhWKySqRxh7Fs1jPLYZvX8=
-Date:   Tue, 08 Nov 2022 15:58:24 -0800
-To:     mm-commits@vger.kernel.org, xiang@kernel.org, surenb@google.com,
-        linux@leemhuis.info, josef@toxicpanda.com, hch@lst.de,
-        dsterba@suse.com, clm@fb.com, chao@kernel.org, axboe@kernel.dk,
-        hannes@cmpxchg.org, akpm@linux-foundation.org
+        b=DQDqf/Ta7BnTDv2m1bzpaZZl3Gw8UwFQQBbwm1aZ2FYq6NPlU/XkqfP3rRzyMUtsD
+         dlfde9/HdmsktYoo7VZx7l35PoLEoWEXmF8zFnfBEQy/3UbMfRRVFgnDIQd20bHbeO
+         IfyWtRQYdYtcwx5pMGVXJ3MgLDuFs93CZQh1DaW8=
+Date:   Tue, 08 Nov 2022 15:58:27 -0800
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fs-fix-leaked-psi-pressure-state.patch removed from -mm tree
-Message-Id: <20221108235825.0FDBDC433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maple_tree-fix-depth-tracking-in-maple_state.patch removed from -mm tree
+Message-Id: <20221108235827.7CB66C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,164 +41,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fs: fix leaked psi pressure state
+     Subject: maple_tree: fix depth tracking in maple_state
 has been removed from the -mm tree.  Its filename was
-     fs-fix-leaked-psi-pressure-state.patch
+     maple_tree-fix-depth-tracking-in-maple_state.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: fs: fix leaked psi pressure state
-Date: Thu, 3 Nov 2022 17:34:31 -0400
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: maple_tree: fix depth tracking in maple_state
+Date: Mon, 7 Nov 2022 16:38:35 +0000
 
-When psi annotations were added to to btrfs compression reads, the psi
-state tracking over add_ra_bio_pages and btrfs_submit_compressed_read was
-faulty.  A pressure state, once entered, is never left.  This results in
-incorrectly elevated pressure, which triggers OOM kills.
+It is possible to confuse the depth tracking in the maple state by
+searching the same node for values.  Fix the depth tracking by moving
+where the depth is incremented closer to where the node changes level. 
+Also change the initial depth setting when using the root node.
 
-pflags record the *previous* memstall state when we enter a new one.  The
-code tried to initialize pflags to 1, and then optimize the leave call
-when we either didn't enter a memstall, or were already inside a nested
-stall.  However, there can be multiple PageWorkingset pages in the bio, at
-which point it's that path itself that enters repeatedly and overwrites
-pflags.  This causes us to miss the exit.
-
-Enter the stall only once if needed, then unwind correctly.
-
-erofs has the same problem, fix that up too.  And move the memstall exit
-past submit_bio() to restore submit accounting originally added by
-b8e24a9300b0 ("block: annotate refault stalls from IO submission").
-
-Link: https://lkml.kernel.org/r/Y2UHRqthNUwuIQGS@cmpxchg.org
-Fixes: 4088a47e78f9 ("btrfs: add manual PSI accounting for compressed reads")
-Fixes: 99486c511f68 ("erofs: add manual PSI accounting for the compressed address space")
-Fixes: 118f3663fbc6 ("block: remove PSI accounting from the bio layer")
-Link: https://lore.kernel.org/r/d20a0a85-e415-cf78-27f9-77dd7a94bc8d@leemhuis.info/
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Thorsten Leemhuis <linux@leemhuis.info>
-Tested-by: Thorsten Leemhuis <linux@leemhuis.info>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Gao Xiang <xiang@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20221107163814.866612-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/compression.c |   14 ++++++++------
- fs/erofs/zdata.c       |   18 +++++++++++-------
- 2 files changed, 19 insertions(+), 13 deletions(-)
+ lib/maple_tree.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/btrfs/compression.c~fs-fix-leaked-psi-pressure-state
-+++ a/fs/btrfs/compression.c
-@@ -512,7 +512,7 @@ static u64 bio_end_offset(struct bio *bi
- static noinline int add_ra_bio_pages(struct inode *inode,
- 				     u64 compressed_end,
- 				     struct compressed_bio *cb,
--				     unsigned long *pflags)
-+				     int *memstall, unsigned long *pflags)
+--- a/lib/maple_tree.c~maple_tree-fix-depth-tracking-in-maple_state
++++ a/lib/maple_tree.c
+@@ -1351,6 +1351,7 @@ static inline struct maple_enode *mas_st
+ 		root = mas_root(mas);
+ 		/* Tree with nodes */
+ 		if (likely(xa_is_node(root))) {
++			mas->depth = 1;
+ 			mas->node = mte_safe_root(root);
+ 			return NULL;
+ 		}
+@@ -3727,7 +3728,6 @@ static bool mas_is_span_wr(struct ma_wr_
+ 
+ static inline void mas_wr_walk_descend(struct ma_wr_state *wr_mas)
  {
- 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
- 	unsigned long end_index;
-@@ -581,8 +581,10 @@ static noinline int add_ra_bio_pages(str
- 			continue;
- 		}
- 
--		if (PageWorkingset(page))
-+		if (!*memstall && PageWorkingset(page)) {
- 			psi_memstall_enter(pflags);
-+			*memstall = 1;
-+		}
- 
- 		ret = set_page_extent_mapped(page);
- 		if (ret < 0) {
-@@ -670,8 +672,8 @@ void btrfs_submit_compressed_read(struct
- 	u64 em_len;
- 	u64 em_start;
- 	struct extent_map *em;
--	/* Initialize to 1 to make skip psi_memstall_leave unless needed */
--	unsigned long pflags = 1;
-+	unsigned long pflags;
-+	int memstall = 0;
- 	blk_status_t ret;
- 	int ret2;
- 	int i;
-@@ -727,7 +729,7 @@ void btrfs_submit_compressed_read(struct
- 		goto fail;
- 	}
- 
--	add_ra_bio_pages(inode, em_start + em_len, cb, &pflags);
-+	add_ra_bio_pages(inode, em_start + em_len, cb, &memstall, &pflags);
- 
- 	/* include any pages we added in add_ra-bio_pages */
- 	cb->len = bio->bi_iter.bi_size;
-@@ -807,7 +809,7 @@ void btrfs_submit_compressed_read(struct
- 		}
- 	}
- 
--	if (!pflags)
-+	if (memstall)
- 		psi_memstall_leave(&pflags);
- 
- 	if (refcount_dec_and_test(&cb->pending_ios))
---- a/fs/erofs/zdata.c~fs-fix-leaked-psi-pressure-state
-+++ a/fs/erofs/zdata.c
-@@ -1412,8 +1412,8 @@ static void z_erofs_submit_queue(struct
- 	struct block_device *last_bdev;
- 	unsigned int nr_bios = 0;
- 	struct bio *bio = NULL;
--	/* initialize to 1 to make skip psi_memstall_leave unless needed */
--	unsigned long pflags = 1;
-+	unsigned long pflags;
-+	int memstall = 0;
- 
- 	bi_private = jobqueueset_init(sb, q, fgq, force_fg);
- 	qtail[JQ_BYPASS] = &q[JQ_BYPASS]->head;
-@@ -1463,14 +1463,18 @@ static void z_erofs_submit_queue(struct
- 			if (bio && (cur != last_index + 1 ||
- 				    last_bdev != mdev.m_bdev)) {
- submit_bio_retry:
--				if (!pflags)
--					psi_memstall_leave(&pflags);
- 				submit_bio(bio);
-+				if (memstall) {
-+					psi_memstall_leave(&pflags);
-+					memstall = 0;
-+				}
- 				bio = NULL;
- 			}
- 
--			if (unlikely(PageWorkingset(page)))
-+			if (unlikely(PageWorkingset(page)) && !memstall) {
- 				psi_memstall_enter(&pflags);
-+				memstall = 1;
-+			}
- 
- 			if (!bio) {
- 				bio = bio_alloc(mdev.m_bdev, BIO_MAX_VECS,
-@@ -1500,9 +1504,9 @@ submit_bio_retry:
- 	} while (owned_head != Z_EROFS_PCLUSTER_TAIL);
- 
- 	if (bio) {
--		if (!pflags)
--			psi_memstall_leave(&pflags);
- 		submit_bio(bio);
-+		if (memstall)
-+			psi_memstall_leave(&pflags);
- 	}
- 
- 	/*
+-	wr_mas->mas->depth++;
+ 	wr_mas->type = mte_node_type(wr_mas->mas->node);
+ 	mas_wr_node_walk(wr_mas);
+ 	wr_mas->slots = ma_slots(wr_mas->node, wr_mas->type);
+@@ -3739,6 +3739,7 @@ static inline void mas_wr_walk_traverse(
+ 	wr_mas->mas->min = wr_mas->r_min;
+ 	wr_mas->mas->node = wr_mas->content;
+ 	wr_mas->mas->offset = 0;
++	wr_mas->mas->depth++;
+ }
+ /*
+  * mas_wr_walk() - Walk the tree for a write.
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch
-mm-vmscan-split-khugepaged-stats-from-direct-reclaim-stats.patch
-zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
-mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
+maple_tree-fix-mas_find_rev-comment.patch
+maple_tree-update-copyright-dates-for-test-code.patch
+maple_tree-mte_set_full-and-mte_clear_full-clang-analyzer-clean-up.patch
 
