@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80964C43219
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 22:00:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05437C4321E
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 22:00:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230030AbiKHWAC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 17:00:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36910 "EHLO
+        id S230034AbiKHWAD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 17:00:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230035AbiKHWAA (ORCPT
+        with ESMTP id S230022AbiKHWAA (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 17:00:00 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 752ED222A2
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 13:59:56 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FFCC22514
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 13:59:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EFA76617AB
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 21:59:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 507B0C433D7;
-        Tue,  8 Nov 2022 21:59:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B448D617AB
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 21:59:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C76FC433D6;
+        Tue,  8 Nov 2022 21:59:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667944795;
-        bh=iaF/OlG8KQJRXvFq7uOBEH92y2KGcTkxdoLQkwbeNxM=;
+        s=korg; t=1667944798;
+        bh=S2sV4UMDscUJkSmXR3PakcZUpMGUqA6i9o9oK6oOCHM=;
         h=Date:To:From:Subject:From;
-        b=SeMLYpDD6fIyb3y37cH5R/tW4tiMTpNfp+oPPFCfzTMSCt5/ip+YWKc2r3to7FKD/
-         wdMlvdwPrYEhiJ+HAD+WjWUSHbjbXHwQyxCz8gqGOehgyNl7AtJKKTqZ4EmIxFVevu
-         /myM8QLnxtamiL8KB+38oO8VJahwOr6JvF2rfdiY=
-Date:   Tue, 08 Nov 2022 13:59:54 -0800
+        b=RWlZIMXGLz1DcYN1mEQ9MgQzMMBHca6jZ6BNAsx3YRr/pke2Z/5CWPk2a2sHSHiJy
+         wR6tXY3hblLFS46zg/y6rsIei0i6KlD3YOrKzDS4Gnr7BtnZcubMleJUqzZ/J5b1ut
+         0T/F1kEkNHliXBQVckXxpJlk0/d030Y+0yGMiZfQ=
+Date:   Tue, 08 Nov 2022 13:59:57 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         torvalds@linux-foundation.org, rppt@kernel.org, peterx@redhat.com,
         npiggin@gmail.com, namit@vmware.com, mpe@ellerman.id.au,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         anshuman.khandual@arm.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-autonuma-use-can_change_ptepmd_writable-to-replace-savedwrite.patch added to mm-unstable branch
-Message-Id: <20221108215955.507B0C433D7@smtp.kernel.org>
+Subject: + mm-remove-unused-savedwrite-infrastructure.patch added to mm-unstable branch
+Message-Id: <20221108215958.1C76FC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/autonuma: use can_change_(pte|pmd)_writable() to replace savedwrite
+     Subject: mm: remove unused savedwrite infrastructure
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-autonuma-use-can_change_ptepmd_writable-to-replace-savedwrite.patch
+     mm-remove-unused-savedwrite-infrastructure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-autonuma-use-can_change_ptepmd_writable-to-replace-savedwrite.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unused-savedwrite-infrastructure.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,68 +69,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/autonuma: use can_change_(pte|pmd)_writable() to replace savedwrite
-Date: Tue, 8 Nov 2022 18:46:50 +0100
+Subject: mm: remove unused savedwrite infrastructure
+Date: Tue, 8 Nov 2022 18:46:51 +0100
 
-commit b191f9b106ea ("mm: numa: preserve PTE write permissions across a
-NUMA hinting fault") added remembering write permissions using ordinary
-pte_write() for PROT_NONE mapped pages to avoid write faults when
-remapping the page !PROT_NONE on NUMA hinting faults.
+NUMA hinting no longer uses savedwrite, let's rip it out.
 
-That commit noted:
+... and while at it, drop __pte_write() and __pmd_write() on ppc64.
 
-    The patch looks hacky but the alternatives looked worse. The tidest was
-    to rewalk the page tables after a hinting fault but it was more complex
-    than this approach and the performance was worse. It's not generally
-    safe to just mark the page writable during the fault if it's a write
-    fault as it may have been read-only for COW so that approach was
-    discarded.
-
-Later, commit 288bc54949fc ("mm/autonuma: let architecture override how
-the write bit should be stashed in a protnone pte.") introduced a family
-of savedwrite PTE functions that didn't necessarily improve the whole
-situation.
-
-One confusing thing is that nowadays, if a page is pte_protnone()
-and pte_savedwrite() then also pte_write() is true. Another source of
-confusion is that there is only a single pte_mk_savedwrite() call in the
-kernel. All other write-protection code seems to silently rely on
-pte_wrprotect().
-
-Ever since PageAnonExclusive was introduced and we started using it in
-mprotect context via commit 64fe24a3e05e ("mm/mprotect: try avoiding write
-faults for exclusive anonymous pages when changing protection"), we do
-have machinery in place to avoid write faults when changing protection,
-which is exactly what we want to do here.
-
-Let's similarly do what ordinary mprotect() does nowadays when upgrading
-write permissions and reuse can_change_pte_writable() and
-can_change_pmd_writable() to detect if we can upgrade PTE permissions to be
-writable.
-
-For anonymous pages there should be absolutely no change: if an
-anonymous page is not exclusive, it could not have been mapped writable --
-because only exclusive anonymous pages can be mapped writable.
-
-However, there *might* be a change for writable shared mappings that
-require writenotify: if they are not dirty, we cannot map them writable.
-While it might not matter in practice, we'd need a different way to
-identify whether writenotify is actually required -- and ordinary mprotect
-would benefit from that as well.
-
-Note that we don't optimize for the actual migration case:
-(1) When migration succeeds the new PTE will not be writable because the
-    source PTE was not writable (protnone); in the future we
-    might just optimize that case similarly by reusing
-    can_change_pte_writable()/can_change_pmd_writable() when removing
-    migration PTEs.
-(2) When migration fails, we'd have to recalculate the "writable" flag
-    because we temporarily dropped the PT lock; for now keep it simple and
-    set "writable=false".
-
-We'll remove all savedwrite leftovers next.
-
-Link: https://lkml.kernel.org/r/20221108174652.198904-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20221108174652.198904-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -147,221 +93,260 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/huge_memory.c   |   26 +++++++++++++++-----------
- mm/ksm.c           |    9 ++++-----
- mm/memory.c        |   16 +++++++++++++---
- mm/mprotect.c      |    7 ++-----
- 5 files changed, 36 insertions(+), 24 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |   80 -----------------
+ arch/powerpc/kvm/book3s_hv_rm_mmu.c          |    2 
+ include/linux/pgtable.h                      |   24 -----
+ mm/debug_vm_pgtable.c                        |   32 ------
+ 4 files changed, 5 insertions(+), 133 deletions(-)
 
---- a/include/linux/mm.h~mm-autonuma-use-can_change_ptepmd_writable-to-replace-savedwrite
-+++ a/include/linux/mm.h
-@@ -2030,6 +2030,8 @@ static inline bool vma_wants_manual_pte_
- 	return !!(vma->vm_flags & VM_WRITE);
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-remove-unused-savedwrite-infrastructure
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -401,35 +401,9 @@ static inline int __ptep_test_and_clear_
+ #define __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
+ #define pmdp_clear_flush_young pmdp_test_and_clear_young
  
- }
-+bool can_change_pte_writable(struct vm_area_struct *vma, unsigned long addr,
-+			     pte_t pte);
- extern unsigned long change_protection(struct mmu_gather *tlb,
- 			      struct vm_area_struct *vma, unsigned long start,
- 			      unsigned long end, pgprot_t newprot,
---- a/mm/huge_memory.c~mm-autonuma-use-can_change_ptepmd_writable-to-replace-savedwrite
-+++ a/mm/huge_memory.c
-@@ -1465,8 +1465,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
- 	int page_nid = NUMA_NO_NODE;
- 	int target_nid, last_cpupid = (-1 & LAST_CPUPID_MASK);
--	bool migrated = false;
--	bool was_writable = pmd_savedwrite(oldpmd);
-+	bool migrated = false, writable = false;
- 	int flags = 0;
- 
- 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
-@@ -1476,12 +1475,22 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 	}
- 
- 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
-+
-+	/*
-+	 * Detect now whether the PMD could be writable; this information
-+	 * is only valid while holding the PT lock.
-+	 */
-+	writable = pmd_write(pmd);
-+	if (!writable && vma_wants_manual_pte_write_upgrade(vma) &&
-+	    can_change_pmd_writable(vma, vmf->address, pmd))
-+		writable = true;
-+
- 	page = vm_normal_page_pmd(vma, haddr, pmd);
- 	if (!page)
- 		goto out_map;
- 
- 	/* See similar comment in do_numa_page for explanation */
--	if (!was_writable)
-+	if (!writable)
- 		flags |= TNF_NO_GROUP;
- 
- 	page_nid = page_to_nid(page);
-@@ -1500,6 +1509,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 	}
- 
- 	spin_unlock(vmf->ptl);
-+	writable = false;
- 
- 	migrated = migrate_misplaced_page(page, vma, target_nid);
- 	if (migrated) {
-@@ -1526,7 +1536,7 @@ out_map:
- 	/* Restore the PMD */
- 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
- 	pmd = pmd_mkyoung(pmd);
--	if (was_writable)
-+	if (writable)
- 		pmd = pmd_mkwrite(pmd);
- 	set_pmd_at(vma->vm_mm, haddr, vmf->pmd, pmd);
- 	update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
-@@ -1767,11 +1777,10 @@ int change_huge_pmd(struct mmu_gather *t
- 	struct mm_struct *mm = vma->vm_mm;
- 	spinlock_t *ptl;
- 	pmd_t oldpmd, entry;
--	bool preserve_write;
--	int ret;
- 	bool prot_numa = cp_flags & MM_CP_PROT_NUMA;
- 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
- 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
-+	int ret = 1;
- 
- 	tlb_change_page_size(tlb, HPAGE_PMD_SIZE);
- 
-@@ -1782,9 +1791,6 @@ int change_huge_pmd(struct mmu_gather *t
- 	if (!ptl)
- 		return 0;
- 
--	preserve_write = prot_numa && pmd_write(*pmd);
--	ret = 1;
+-static inline int __pte_write(pte_t pte)
+-{
+-	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
+-}
 -
- #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
- 	if (is_swap_pmd(*pmd)) {
- 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
-@@ -1864,8 +1870,6 @@ int change_huge_pmd(struct mmu_gather *t
- 	oldpmd = pmdp_invalidate_ad(vma, addr, pmd);
- 
- 	entry = pmd_modify(oldpmd, newprot);
--	if (preserve_write)
--		entry = pmd_mk_savedwrite(entry);
- 	if (uffd_wp) {
- 		entry = pmd_wrprotect(entry);
- 		entry = pmd_mkuffd_wp(entry);
---- a/mm/ksm.c~mm-autonuma-use-can_change_ptepmd_writable-to-replace-savedwrite
-+++ a/mm/ksm.c
-@@ -1069,7 +1069,6 @@ static int write_protect_page(struct vm_
- 
- 	anon_exclusive = PageAnonExclusive(page);
- 	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
--	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte)) ||
- 	    anon_exclusive || mm_tlb_flush_pending(mm)) {
- 		pte_t entry;
- 
-@@ -1107,11 +1106,11 @@ static int write_protect_page(struct vm_
- 
- 		if (pte_dirty(entry))
- 			set_page_dirty(page);
-+		entry = pte_mkclean(entry);
-+
-+		if (pte_write(entry))
-+			entry = pte_wrprotect(entry);
- 
--		if (pte_protnone(entry))
--			entry = pte_mkclean(pte_clear_savedwrite(entry));
--		else
--			entry = pte_mkclean(pte_wrprotect(entry));
- 		set_pte_at_notify(mm, pvmw.address, pvmw.pte, entry);
- 	}
- 	*orig_pte = *pvmw.pte;
---- a/mm/memory.c~mm-autonuma-use-can_change_ptepmd_writable-to-replace-savedwrite
-+++ a/mm/memory.c
-@@ -4684,10 +4684,10 @@ static vm_fault_t do_numa_page(struct vm
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *page = NULL;
- 	int page_nid = NUMA_NO_NODE;
-+	bool writable = false;
- 	int last_cpupid;
- 	int target_nid;
- 	pte_t pte, old_pte;
--	bool was_writable = pte_savedwrite(vmf->orig_pte);
- 	int flags = 0;
- 
- 	/*
-@@ -4706,6 +4706,15 @@ static vm_fault_t do_numa_page(struct vm
- 	old_pte = ptep_get(vmf->pte);
- 	pte = pte_modify(old_pte, vma->vm_page_prot);
- 
-+	/*
-+	 * Detect now whether the PTE could be writable; this information
-+	 * is only valid while holding the PT lock.
-+	 */
-+	writable = pte_write(pte);
-+	if (!writable && vma_wants_manual_pte_write_upgrade(vma) &&
-+	    can_change_pte_writable(vma, vmf->address, pte))
-+		writable = true;
-+
- 	page = vm_normal_page(vma, vmf->address, pte);
- 	if (!page || is_zone_device_page(page))
- 		goto out_map;
-@@ -4722,7 +4731,7 @@ static vm_fault_t do_numa_page(struct vm
- 	 * pte_dirty has unpredictable behaviour between PTE scan updates,
- 	 * background writeback, dirty balancing and application behaviour.
- 	 */
--	if (!was_writable)
-+	if (!writable)
- 		flags |= TNF_NO_GROUP;
- 
- 	/*
-@@ -4749,6 +4758,7 @@ static vm_fault_t do_numa_page(struct vm
- 		goto out_map;
- 	}
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
-+	writable = false;
- 
- 	/* Migrate to the requested node */
- 	if (migrate_misplaced_page(page, vma, target_nid)) {
-@@ -4777,7 +4787,7 @@ out_map:
- 	old_pte = ptep_modify_prot_start(vma, vmf->address, vmf->pte);
- 	pte = pte_modify(old_pte, vma->vm_page_prot);
- 	pte = pte_mkyoung(pte);
--	if (was_writable)
-+	if (writable)
- 		pte = pte_mkwrite(pte);
- 	ptep_modify_prot_commit(vma, vmf->address, vmf->pte, old_pte, pte);
- 	update_mmu_cache(vma, vmf->address, vmf->pte);
---- a/mm/mprotect.c~mm-autonuma-use-can_change_ptepmd_writable-to-replace-savedwrite
-+++ a/mm/mprotect.c
-@@ -39,8 +39,8 @@
- 
- #include "internal.h"
- 
--static inline bool can_change_pte_writable(struct vm_area_struct *vma,
--					   unsigned long addr, pte_t pte)
-+bool can_change_pte_writable(struct vm_area_struct *vma, unsigned long addr,
-+			     pte_t pte)
+-#ifdef CONFIG_NUMA_BALANCING
+-#define pte_savedwrite pte_savedwrite
+-static inline bool pte_savedwrite(pte_t pte)
+-{
+-	/*
+-	 * Saved write ptes are prot none ptes that doesn't have
+-	 * privileged bit sit. We mark prot none as one which has
+-	 * present and pviliged bit set and RWX cleared. To mark
+-	 * protnone which used to have _PAGE_WRITE set we clear
+-	 * the privileged bit.
+-	 */
+-	return !(pte_raw(pte) & cpu_to_be64(_PAGE_RWX | _PAGE_PRIVILEGED));
+-}
+-#else
+-#define pte_savedwrite pte_savedwrite
+-static inline bool pte_savedwrite(pte_t pte)
+-{
+-	return false;
+-}
+-#endif
+-
+ static inline int pte_write(pte_t pte)
  {
- 	struct page *page;
+-	return __pte_write(pte) || pte_savedwrite(pte);
++	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
+ }
  
-@@ -121,7 +121,6 @@ static unsigned long change_pte_range(st
- 		oldpte = *pte;
- 		if (pte_present(oldpte)) {
- 			pte_t ptent;
--			bool preserve_write = prot_numa && pte_write(oldpte);
+ static inline int pte_read(pte_t pte)
+@@ -441,24 +415,16 @@ static inline int pte_read(pte_t pte)
+ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
+ 				      pte_t *ptep)
+ {
+-	if (__pte_write(*ptep))
++	if (pte_write(*ptep))
+ 		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 0);
+-	else if (unlikely(pte_savedwrite(*ptep)))
+-		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 0);
+ }
  
- 			/*
- 			 * Avoid trapping faults against the zero or KSM
-@@ -177,8 +176,6 @@ static unsigned long change_pte_range(st
+ #define __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
+ static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
+ 					   unsigned long addr, pte_t *ptep)
+ {
+-	/*
+-	 * We should not find protnone for hugetlb, but this complete the
+-	 * interface.
+-	 */
+-	if (__pte_write(*ptep))
++	if (pte_write(*ptep))
+ 		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 1);
+-	else if (unlikely(pte_savedwrite(*ptep)))
+-		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 1);
+ }
  
- 			oldpte = ptep_modify_prot_start(vma, addr, pte);
- 			ptent = pte_modify(oldpte, newprot);
--			if (preserve_write)
--				ptent = pte_mk_savedwrite(ptent);
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+@@ -535,36 +501,6 @@ static inline int pte_protnone(pte_t pte
+ 	return (pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_PTE | _PAGE_RWX)) ==
+ 		cpu_to_be64(_PAGE_PRESENT | _PAGE_PTE);
+ }
+-
+-#define pte_mk_savedwrite pte_mk_savedwrite
+-static inline pte_t pte_mk_savedwrite(pte_t pte)
+-{
+-	/*
+-	 * Used by Autonuma subsystem to preserve the write bit
+-	 * while marking the pte PROT_NONE. Only allow this
+-	 * on PROT_NONE pte
+-	 */
+-	VM_BUG_ON((pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_RWX | _PAGE_PRIVILEGED)) !=
+-		  cpu_to_be64(_PAGE_PRESENT | _PAGE_PRIVILEGED));
+-	return __pte_raw(pte_raw(pte) & cpu_to_be64(~_PAGE_PRIVILEGED));
+-}
+-
+-#define pte_clear_savedwrite pte_clear_savedwrite
+-static inline pte_t pte_clear_savedwrite(pte_t pte)
+-{
+-	/*
+-	 * Used by KSM subsystem to make a protnone pte readonly.
+-	 */
+-	VM_BUG_ON(!pte_protnone(pte));
+-	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_PRIVILEGED));
+-}
+-#else
+-#define pte_clear_savedwrite pte_clear_savedwrite
+-static inline pte_t pte_clear_savedwrite(pte_t pte)
+-{
+-	VM_WARN_ON(1);
+-	return __pte_raw(pte_raw(pte) & cpu_to_be64(~_PAGE_WRITE));
+-}
+ #endif /* CONFIG_NUMA_BALANCING */
  
- 			if (uffd_wp) {
- 				ptent = pte_wrprotect(ptent);
+ static inline bool pte_hw_valid(pte_t pte)
+@@ -641,8 +577,6 @@ static inline unsigned long pte_pfn(pte_
+ /* Generic modifiers for PTE bits */
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+-	if (unlikely(pte_savedwrite(pte)))
+-		return pte_clear_savedwrite(pte);
+ 	return __pte_raw(pte_raw(pte) & cpu_to_be64(~_PAGE_WRITE));
+ }
+ 
+@@ -1139,8 +1073,6 @@ static inline pte_t *pmdp_ptep(pmd_t *pm
+ #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+ #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
+ #define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
+-#define pmd_mk_savedwrite(pmd)	pte_pmd(pte_mk_savedwrite(pmd_pte(pmd)))
+-#define pmd_clear_savedwrite(pmd)	pte_pmd(pte_clear_savedwrite(pmd_pte(pmd)))
+ 
+ #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ #define pmd_soft_dirty(pmd)    pte_soft_dirty(pmd_pte(pmd))
+@@ -1162,8 +1094,6 @@ static inline int pmd_protnone(pmd_t pmd
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
+-#define __pmd_write(pmd)	__pte_write(pmd_pte(pmd))
+-#define pmd_savedwrite(pmd)	pte_savedwrite(pmd_pte(pmd))
+ 
+ #define pmd_access_permitted pmd_access_permitted
+ static inline bool pmd_access_permitted(pmd_t pmd, bool write)
+@@ -1241,10 +1171,8 @@ static inline int __pmdp_test_and_clear_
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm, unsigned long addr,
+ 				      pmd_t *pmdp)
+ {
+-	if (__pmd_write((*pmdp)))
++	if (pmd_write(*pmdp))
+ 		pmd_hugepage_update(mm, addr, pmdp, _PAGE_WRITE, 0);
+-	else if (unlikely(pmd_savedwrite(*pmdp)))
+-		pmd_hugepage_update(mm, addr, pmdp, 0, _PAGE_PRIVILEGED);
+ }
+ 
+ /*
+--- a/arch/powerpc/kvm/book3s_hv_rm_mmu.c~mm-remove-unused-savedwrite-infrastructure
++++ a/arch/powerpc/kvm/book3s_hv_rm_mmu.c
+@@ -265,7 +265,7 @@ long kvmppc_do_h_enter(struct kvm *kvm,
+ 		}
+ 		pte = kvmppc_read_update_linux_pte(ptep, writing);
+ 		if (pte_present(pte) && !pte_protnone(pte)) {
+-			if (writing && !__pte_write(pte))
++			if (writing && !pte_write(pte))
+ 				/* make the actual HPTE be read-only */
+ 				ptel = hpte_make_readonly(ptel);
+ 			is_ci = pte_ci(pte);
+--- a/include/linux/pgtable.h~mm-remove-unused-savedwrite-infrastructure
++++ a/include/linux/pgtable.h
+@@ -485,30 +485,6 @@ static inline pte_t pte_sw_mkyoung(pte_t
+ #define pte_sw_mkyoung	pte_sw_mkyoung
+ #endif
+ 
+-#ifndef pte_savedwrite
+-#define pte_savedwrite pte_write
+-#endif
+-
+-#ifndef pte_mk_savedwrite
+-#define pte_mk_savedwrite pte_mkwrite
+-#endif
+-
+-#ifndef pte_clear_savedwrite
+-#define pte_clear_savedwrite pte_wrprotect
+-#endif
+-
+-#ifndef pmd_savedwrite
+-#define pmd_savedwrite pmd_write
+-#endif
+-
+-#ifndef pmd_mk_savedwrite
+-#define pmd_mk_savedwrite pmd_mkwrite
+-#endif
+-
+-#ifndef pmd_clear_savedwrite
+-#define pmd_clear_savedwrite pmd_wrprotect
+-#endif
+-
+ #ifndef __HAVE_ARCH_PMDP_SET_WRPROTECT
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
+--- a/mm/debug_vm_pgtable.c~mm-remove-unused-savedwrite-infrastructure
++++ a/mm/debug_vm_pgtable.c
+@@ -171,18 +171,6 @@ static void __init pte_advanced_tests(st
+ 	ptep_get_and_clear_full(args->mm, args->vaddr, args->ptep, 1);
+ }
+ 
+-static void __init pte_savedwrite_tests(struct pgtable_debug_args *args)
+-{
+-	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot_none);
+-
+-	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
+-		return;
+-
+-	pr_debug("Validating PTE saved write\n");
+-	WARN_ON(!pte_savedwrite(pte_mk_savedwrite(pte_clear_savedwrite(pte))));
+-	WARN_ON(pte_savedwrite(pte_clear_savedwrite(pte_mk_savedwrite(pte))));
+-}
+-
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static void __init pmd_basic_tests(struct pgtable_debug_args *args, int idx)
+ {
+@@ -302,22 +290,6 @@ static void __init pmd_leaf_tests(struct
+ 	WARN_ON(!pmd_leaf(pmd));
+ }
+ 
+-static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args)
+-{
+-	pmd_t pmd;
+-
+-	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
+-		return;
+-
+-	if (!has_transparent_hugepage())
+-		return;
+-
+-	pr_debug("Validating PMD saved write\n");
+-	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot_none);
+-	WARN_ON(!pmd_savedwrite(pmd_mk_savedwrite(pmd_clear_savedwrite(pmd))));
+-	WARN_ON(pmd_savedwrite(pmd_clear_savedwrite(pmd_mk_savedwrite(pmd))));
+-}
+-
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ static void __init pud_basic_tests(struct pgtable_debug_args *args, int idx)
+ {
+@@ -451,7 +423,6 @@ static void __init pmd_advanced_tests(st
+ static void __init pud_advanced_tests(struct pgtable_debug_args *args) { }
+ static void __init pmd_leaf_tests(struct pgtable_debug_args *args) { }
+ static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
+-static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args) { }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+@@ -1288,9 +1259,6 @@ static int __init debug_vm_pgtable(void)
+ 	pmd_leaf_tests(&args);
+ 	pud_leaf_tests(&args);
+ 
+-	pte_savedwrite_tests(&args);
+-	pmd_savedwrite_tests(&args);
+-
+ 	pte_special_tests(&args);
+ 	pte_protnone_tests(&args);
+ 	pmd_protnone_tests(&args);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
