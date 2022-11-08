@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62112C433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 23:59:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F2C0C43219
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 23:59:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230146AbiKHX7J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 18:59:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51926 "EHLO
+        id S229911AbiKHX7K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 18:59:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230094AbiKHX6a (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 18:58:30 -0500
+        with ESMTP id S230097AbiKHX6b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 18:58:31 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5AE1A1A4;
-        Tue,  8 Nov 2022 15:58:24 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63D3DB7D5
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 15:58:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 611CA617C6;
-        Tue,  8 Nov 2022 23:58:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8813C433C1;
-        Tue,  8 Nov 2022 23:58:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B012D617E6
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 23:58:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FDBDC433C1;
+        Tue,  8 Nov 2022 23:58:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667951903;
-        bh=9JouXHHQZE4qoJcgW5pkf06utlkHVCVvNi9aIoKg2TA=;
+        s=korg; t=1667951905;
+        bh=xVk/Rn2PnnUtyAoqtPeBedE+4fFFamUlvvxe5sPxDdk=;
         h=Date:To:From:Subject:From;
-        b=tYKUiF0GLkR3ZtL8guDhCknW3lIPZsaC0qyP555WRXyGJRhNRvJRbsJ6z4kMVYwm4
-         mnABy6g3LISZSxAOO6DcvluxtLSwZTQwWSesqSsND5nQFzaD0oTP5ZFG0C0HI5rSR+
-         sPuOW+L7ZulzyZuUdkxxlV2uDcUmpzfP1UGBHZjY=
-Date:   Tue, 08 Nov 2022 15:58:23 -0800
-To:     mm-commits@vger.kernel.org, syoshida@redhat.com,
-        stable@vger.kernel.org, konishi.ryusuke@gmail.com,
-        akpm@linux-foundation.org
+        b=NCzjtaOFYsDhZAT8PRgbsjL8O9nYJjBWn+IfB85LXcz0/dW3ItxkpGTnXpV2y7VLd
+         IIG9mT9BrlyXRF3On4/B3q02fDQKU6ZBaoUj6h/1us8JqT3unWtJlyMfVLES44vaiy
+         QtgmRYl87mQBGxAO+UUhWKySqRxh7Fs1jPLYZvX8=
+Date:   Tue, 08 Nov 2022 15:58:24 -0800
+To:     mm-commits@vger.kernel.org, xiang@kernel.org, surenb@google.com,
+        linux@leemhuis.info, josef@toxicpanda.com, hch@lst.de,
+        dsterba@suse.com, clm@fb.com, chao@kernel.org, axboe@kernel.dk,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-use-after-free-bug-of-ns_writer-on-remount.patch removed from -mm tree
-Message-Id: <20221108235823.B8813C433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-fix-leaked-psi-pressure-state.patch removed from -mm tree
+Message-Id: <20221108235825.0FDBDC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,131 +43,164 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nilfs2: fix use-after-free bug of ns_writer on remount
+     Subject: fs: fix leaked psi pressure state
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-use-after-free-bug-of-ns_writer-on-remount.patch
+     fs-fix-leaked-psi-pressure-state.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix use-after-free bug of ns_writer on remount
-Date: Fri, 4 Nov 2022 23:29:59 +0900
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: fs: fix leaked psi pressure state
+Date: Thu, 3 Nov 2022 17:34:31 -0400
 
-If a nilfs2 filesystem is downgraded to read-only due to metadata
-corruption on disk and is remounted read/write, or if emergency read-only
-remount is performed, detaching a log writer and synchronizing the
-filesystem can be done at the same time.
+When psi annotations were added to to btrfs compression reads, the psi
+state tracking over add_ra_bio_pages and btrfs_submit_compressed_read was
+faulty.  A pressure state, once entered, is never left.  This results in
+incorrectly elevated pressure, which triggers OOM kills.
 
-In these cases, use-after-free of the log writer (hereinafter
-nilfs->ns_writer) can happen as shown in the scenario below:
+pflags record the *previous* memstall state when we enter a new one.  The
+code tried to initialize pflags to 1, and then optimize the leave call
+when we either didn't enter a memstall, or were already inside a nested
+stall.  However, there can be multiple PageWorkingset pages in the bio, at
+which point it's that path itself that enters repeatedly and overwrites
+pflags.  This causes us to miss the exit.
 
- Task1                               Task2
- --------------------------------    ------------------------------
- nilfs_construct_segment
-   nilfs_segctor_sync
-     init_wait
-     init_waitqueue_entry
-     add_wait_queue
-     schedule
-                                     nilfs_remount (R/W remount case)
-				       nilfs_attach_log_writer
-                                         nilfs_detach_log_writer
-                                           nilfs_segctor_destroy
-                                             kfree
-     finish_wait
-       _raw_spin_lock_irqsave
-         __raw_spin_lock_irqsave
-           do_raw_spin_lock
-             debug_spin_lock_before  <-- use-after-free
+Enter the stall only once if needed, then unwind correctly.
 
-While Task1 is sleeping, nilfs->ns_writer is freed by Task2.  After Task1
-waked up, Task1 accesses nilfs->ns_writer which is already freed.  This
-scenario diagram is based on the Shigeru Yoshida's post [1].
+erofs has the same problem, fix that up too.  And move the memstall exit
+past submit_bio() to restore submit accounting originally added by
+b8e24a9300b0 ("block: annotate refault stalls from IO submission").
 
-This patch fixes the issue by not detaching nilfs->ns_writer on remount so
-that this UAF race doesn't happen.  Along with this change, this patch
-also inserts a few necessary read-only checks with superblock instance
-where only the ns_writer pointer was used to check if the filesystem is
-read-only.
-
-Link: https://syzkaller.appspot.com/bug?id=79a4c002e960419ca173d55e863bd09e8112df8b
-Link: https://lkml.kernel.org/r/20221103141759.1836312-1-syoshida@redhat.com [1]
-Link: https://lkml.kernel.org/r/20221104142959.28296-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+f816fa82f8783f7a02bb@syzkaller.appspotmail.com
-Reported-by: Shigeru Yoshida <syoshida@redhat.com>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/Y2UHRqthNUwuIQGS@cmpxchg.org
+Fixes: 4088a47e78f9 ("btrfs: add manual PSI accounting for compressed reads")
+Fixes: 99486c511f68 ("erofs: add manual PSI accounting for the compressed address space")
+Fixes: 118f3663fbc6 ("block: remove PSI accounting from the bio layer")
+Link: https://lore.kernel.org/r/d20a0a85-e415-cf78-27f9-77dd7a94bc8d@leemhuis.info/
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Thorsten Leemhuis <linux@leemhuis.info>
+Tested-by: Thorsten Leemhuis <linux@leemhuis.info>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Chris Mason <clm@fb.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   15 ++++++++-------
- fs/nilfs2/super.c   |    2 --
- 2 files changed, 8 insertions(+), 9 deletions(-)
+ fs/btrfs/compression.c |   14 ++++++++------
+ fs/erofs/zdata.c       |   18 +++++++++++-------
+ 2 files changed, 19 insertions(+), 13 deletions(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-fix-use-after-free-bug-of-ns_writer-on-remount
-+++ a/fs/nilfs2/segment.c
-@@ -317,7 +317,7 @@ void nilfs_relax_pressure_in_lock(struct
- 	struct the_nilfs *nilfs = sb->s_fs_info;
- 	struct nilfs_sc_info *sci = nilfs->ns_writer;
+--- a/fs/btrfs/compression.c~fs-fix-leaked-psi-pressure-state
++++ a/fs/btrfs/compression.c
+@@ -512,7 +512,7 @@ static u64 bio_end_offset(struct bio *bi
+ static noinline int add_ra_bio_pages(struct inode *inode,
+ 				     u64 compressed_end,
+ 				     struct compressed_bio *cb,
+-				     unsigned long *pflags)
++				     int *memstall, unsigned long *pflags)
+ {
+ 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
+ 	unsigned long end_index;
+@@ -581,8 +581,10 @@ static noinline int add_ra_bio_pages(str
+ 			continue;
+ 		}
  
--	if (!sci || !sci->sc_flush_request)
-+	if (sb_rdonly(sb) || unlikely(!sci) || !sci->sc_flush_request)
- 		return;
+-		if (PageWorkingset(page))
++		if (!*memstall && PageWorkingset(page)) {
+ 			psi_memstall_enter(pflags);
++			*memstall = 1;
++		}
  
- 	set_bit(NILFS_SC_PRIOR_FLUSH, &sci->sc_flags);
-@@ -2242,7 +2242,7 @@ int nilfs_construct_segment(struct super
- 	struct nilfs_sc_info *sci = nilfs->ns_writer;
- 	struct nilfs_transaction_info *ti;
- 
--	if (!sci)
-+	if (sb_rdonly(sb) || unlikely(!sci))
- 		return -EROFS;
- 
- 	/* A call inside transactions causes a deadlock. */
-@@ -2280,7 +2280,7 @@ int nilfs_construct_dsync_segment(struct
- 	struct nilfs_transaction_info ti;
- 	int err = 0;
- 
--	if (!sci)
-+	if (sb_rdonly(sb) || unlikely(!sci))
- 		return -EROFS;
- 
- 	nilfs_transaction_lock(sb, &ti, 0);
-@@ -2776,11 +2776,12 @@ int nilfs_attach_log_writer(struct super
- 
- 	if (nilfs->ns_writer) {
- 		/*
--		 * This happens if the filesystem was remounted
--		 * read/write after nilfs_error degenerated it into a
--		 * read-only mount.
-+		 * This happens if the filesystem is made read-only by
-+		 * __nilfs_error or nilfs_remount and then remounted
-+		 * read/write.  In these cases, reuse the existing
-+		 * writer.
- 		 */
--		nilfs_detach_log_writer(sb);
-+		return 0;
+ 		ret = set_page_extent_mapped(page);
+ 		if (ret < 0) {
+@@ -670,8 +672,8 @@ void btrfs_submit_compressed_read(struct
+ 	u64 em_len;
+ 	u64 em_start;
+ 	struct extent_map *em;
+-	/* Initialize to 1 to make skip psi_memstall_leave unless needed */
+-	unsigned long pflags = 1;
++	unsigned long pflags;
++	int memstall = 0;
+ 	blk_status_t ret;
+ 	int ret2;
+ 	int i;
+@@ -727,7 +729,7 @@ void btrfs_submit_compressed_read(struct
+ 		goto fail;
  	}
  
- 	nilfs->ns_writer = nilfs_segctor_new(sb, root);
---- a/fs/nilfs2/super.c~nilfs2-fix-use-after-free-bug-of-ns_writer-on-remount
-+++ a/fs/nilfs2/super.c
-@@ -1133,8 +1133,6 @@ static int nilfs_remount(struct super_bl
- 	if ((bool)(*flags & SB_RDONLY) == sb_rdonly(sb))
- 		goto out;
- 	if (*flags & SB_RDONLY) {
--		/* Shutting down log writer */
--		nilfs_detach_log_writer(sb);
- 		sb->s_flags |= SB_RDONLY;
+-	add_ra_bio_pages(inode, em_start + em_len, cb, &pflags);
++	add_ra_bio_pages(inode, em_start + em_len, cb, &memstall, &pflags);
  
- 		/*
+ 	/* include any pages we added in add_ra-bio_pages */
+ 	cb->len = bio->bi_iter.bi_size;
+@@ -807,7 +809,7 @@ void btrfs_submit_compressed_read(struct
+ 		}
+ 	}
+ 
+-	if (!pflags)
++	if (memstall)
+ 		psi_memstall_leave(&pflags);
+ 
+ 	if (refcount_dec_and_test(&cb->pending_ios))
+--- a/fs/erofs/zdata.c~fs-fix-leaked-psi-pressure-state
++++ a/fs/erofs/zdata.c
+@@ -1412,8 +1412,8 @@ static void z_erofs_submit_queue(struct
+ 	struct block_device *last_bdev;
+ 	unsigned int nr_bios = 0;
+ 	struct bio *bio = NULL;
+-	/* initialize to 1 to make skip psi_memstall_leave unless needed */
+-	unsigned long pflags = 1;
++	unsigned long pflags;
++	int memstall = 0;
+ 
+ 	bi_private = jobqueueset_init(sb, q, fgq, force_fg);
+ 	qtail[JQ_BYPASS] = &q[JQ_BYPASS]->head;
+@@ -1463,14 +1463,18 @@ static void z_erofs_submit_queue(struct
+ 			if (bio && (cur != last_index + 1 ||
+ 				    last_bdev != mdev.m_bdev)) {
+ submit_bio_retry:
+-				if (!pflags)
+-					psi_memstall_leave(&pflags);
+ 				submit_bio(bio);
++				if (memstall) {
++					psi_memstall_leave(&pflags);
++					memstall = 0;
++				}
+ 				bio = NULL;
+ 			}
+ 
+-			if (unlikely(PageWorkingset(page)))
++			if (unlikely(PageWorkingset(page)) && !memstall) {
+ 				psi_memstall_enter(&pflags);
++				memstall = 1;
++			}
+ 
+ 			if (!bio) {
+ 				bio = bio_alloc(mdev.m_bdev, BIO_MAX_VECS,
+@@ -1500,9 +1504,9 @@ submit_bio_retry:
+ 	} while (owned_head != Z_EROFS_PCLUSTER_TAIL);
+ 
+ 	if (bio) {
+-		if (!pflags)
+-			psi_memstall_leave(&pflags);
+ 		submit_bio(bio);
++		if (memstall)
++			psi_memstall_leave(&pflags);
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-nilfs2-fix-shift-out-of-bounds-overflow-in-nilfs_sb2_bad_offset.patch
-nilfs2-fix-shift-out-of-bounds-due-to-too-large-exponent-of-block-size.patch
+mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch
+mm-vmscan-split-khugepaged-stats-from-direct-reclaim-stats.patch
+zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
+mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
 
