@@ -2,43 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BBF6C4332F
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 23:59:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2D89C4321E
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Nov 2022 23:59:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230183AbiKHX7Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 18:59:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51254 "EHLO
+        id S229978AbiKHX70 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 18:59:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51328 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230106AbiKHX6b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 18:58:31 -0500
+        with ESMTP id S230118AbiKHX6d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 18:58:33 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B74902600;
-        Tue,  8 Nov 2022 15:58:27 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B968513D2C
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 15:58:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 245AB617E4;
-        Tue,  8 Nov 2022 23:58:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BA27C433D6;
-        Tue,  8 Nov 2022 23:58:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 54BC2617C6
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 23:58:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B15BCC433C1;
+        Tue,  8 Nov 2022 23:58:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667951906;
-        bh=v/j4BcKetI9QOLu0i7vwgJd+47sLUqeWcAPYlKJuAVQ=;
+        s=korg; t=1667951910;
+        bh=ZGRLAxT9fKfND/2Kj2Gga7Dl9PkrM1I0vE7BaJSRyZY=;
         h=Date:To:From:Subject:From;
-        b=xfbPQt3QJQ+A6wHcloF5KCLr4Y3cAGBnu1yd8O400L4OP06myDqAwmMlVCxtaEfqx
-         0BKfGeK6dTUps6YJN2KZbspY36hHOhBnNRDDInyYkUW4G9pkDQyEWPKullT7agDIDc
-         SRKHbys37KM40cZqdSfGAObhC9vWfFtpNpVgJRMI=
-Date:   Tue, 08 Nov 2022 15:58:26 -0800
-To:     mm-commits@vger.kernel.org, ville.syrjala@linux.intel.com,
-        tglx@linutronix.de, stable@vger.kernel.org,
-        songmuchun@bytedance.com, shy828301@gmail.com, osalvador@suse.de,
-        mingo@redhat.com, mike.kravetz@oracle.com, liushixin2@huawei.com,
-        linmiaohe@huawei.com, david@redhat.com,
-        dave.hansen@linux.intel.com, bp@alien8.de, naoya.horiguchi@nec.com,
-        akpm@linux-foundation.org
+        b=c0feYzmVvBHf2LbDM47I7TPZh0coL2P6znPfpKeedsrgZP9o3zrghbG28UguD6LRt
+         IbRd6qDyySFjqowdrOHrc5x+xjplySykuGOMda/pXnIgSRT1YdoBGE240E3aUQhA4h
+         chnI5ENn/4aJywxvJVVAixAXs8ACOqmhwEx47HpE=
+Date:   Tue, 08 Nov 2022 15:58:30 -0800
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, bagasdotme@gmail.com,
+        glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] arch-x86-mm-hugetlbpagec-pud_huge-returns-0-when-using-2-level-paging.patch removed from -mm tree
-Message-Id: <20221108235826.7BA27C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] docs-kmsan-fix-formatting-of-example-report.patch removed from -mm tree
+Message-Id: <20221108235830.B15BCC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,103 +41,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: arch/x86/mm/hugetlbpage.c: pud_huge() returns 0 when using 2-level paging
+     Subject: docs: kmsan: fix formatting of "Example report"
 has been removed from the -mm tree.  Its filename was
-     arch-x86-mm-hugetlbpagec-pud_huge-returns-0-when-using-2-level-paging.patch
+     docs-kmsan-fix-formatting-of-example-report.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: arch/x86/mm/hugetlbpage.c: pud_huge() returns 0 when using 2-level paging
-Date: Mon, 7 Nov 2022 11:10:10 +0900
+From: Alexander Potapenko <glider@google.com>
+Subject: docs: kmsan: fix formatting of "Example report"
+Date: Mon, 7 Nov 2022 15:22:55 +0100
 
-The following bug is reported to be triggered when starting X on x86-32
-system with i915:
+Add a blank line to make the sentence before the list render as a separate
+paragraph, not a definition.
 
-  [  225.777375] kernel BUG at mm/memory.c:2664!
-  [  225.777391] invalid opcode: 0000 [#1] PREEMPT SMP
-  [  225.777405] CPU: 0 PID: 2402 Comm: Xorg Not tainted 6.1.0-rc3-bdg+ #86
-  [  225.777415] Hardware name:  /8I865G775-G, BIOS F1 08/29/2006
-  [  225.777421] EIP: __apply_to_page_range+0x24d/0x31c
-  [  225.777437] Code: ff ff 8b 55 e8 8b 45 cc e8 0a 11 ec ff 89 d8 83 c4 28 5b 5e 5f 5d c3 81 7d e0 a0 ef 96 c1 74 ad 8b 45 d0 e8 2d 83 49 00 eb a3 <0f> 0b 25 00 f0 ff ff 81 eb 00 00 00 40 01 c3 8b 45 ec 8b 00 e8 76
-  [  225.777446] EAX: 00000001 EBX: c53a3b58 ECX: b5c00000 EDX: c258aa00
-  [  225.777454] ESI: b5c00000 EDI: b5900000 EBP: c4b0fdb4 ESP: c4b0fd80
-  [  225.777462] DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068 EFLAGS: 00010202
-  [  225.777470] CR0: 80050033 CR2: b5900000 CR3: 053a3000 CR4: 000006d0
-  [  225.777479] Call Trace:
-  [  225.777486]  ? i915_memcpy_init_early+0x63/0x63 [i915]
-  [  225.777684]  apply_to_page_range+0x21/0x27
-  [  225.777694]  ? i915_memcpy_init_early+0x63/0x63 [i915]
-  [  225.777870]  remap_io_mapping+0x49/0x75 [i915]
-  [  225.778046]  ? i915_memcpy_init_early+0x63/0x63 [i915]
-  [  225.778220]  ? mutex_unlock+0xb/0xd
-  [  225.778231]  ? i915_vma_pin_fence+0x6d/0xf7 [i915]
-  [  225.778420]  vm_fault_gtt+0x2a9/0x8f1 [i915]
-  [  225.778644]  ? lock_is_held_type+0x56/0xe7
-  [  225.778655]  ? lock_is_held_type+0x7a/0xe7
-  [  225.778663]  ? 0xc1000000
-  [  225.778670]  __do_fault+0x21/0x6a
-  [  225.778679]  handle_mm_fault+0x708/0xb21
-  [  225.778686]  ? mt_find+0x21e/0x5ae
-  [  225.778696]  exc_page_fault+0x185/0x705
-  [  225.778704]  ? doublefault_shim+0x127/0x127
-  [  225.778715]  handle_exception+0x130/0x130
-  [  225.778723] EIP: 0xb700468a
-
-Recently pud_huge() got aware of non-present entry by commit 3a194f3f8ad0
-("mm/hugetlb: make pud_huge() and follow_huge_pud() aware of non-present
-pud entry") to handle some special states of gigantic page.  However, it's
-overlooked that pud_none() always returns false when running with 2-level
-paging, and as a result pud_huge() can return true pointlessly.
-
-Introduce "#if CONFIG_PGTABLE_LEVELS > 2" to pud_huge() to deal with this.
-
-Link: https://lkml.kernel.org/r/20221107021010.2449306-1-naoya.horiguchi@linux.dev
-Fixes: 3a194f3f8ad0 ("mm/hugetlb: make pud_huge() and follow_huge_pud() aware of non-present pud entry")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
-Tested-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20221107142255.4038811-1-glider@google.com
+Fixes: 93858ae70cf4 ("kmsan: add ReST documentation")
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Suggested-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/dev-tools/kmsan.rst |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/x86/mm/hugetlbpage.c~arch-x86-mm-hugetlbpagec-pud_huge-returns-0-when-using-2-level-paging
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -37,8 +37,12 @@ int pmd_huge(pmd_t pmd)
-  */
- int pud_huge(pud_t pud)
- {
-+#if CONFIG_PGTABLE_LEVELS > 2
- 	return !pud_none(pud) &&
- 		(pud_val(pud) & (_PAGE_PRESENT|_PAGE_PSE)) != _PAGE_PRESENT;
-+#else
-+	return 0;
-+#endif
- }
+--- a/Documentation/dev-tools/kmsan.rst~docs-kmsan-fix-formatting-of-example-report
++++ a/Documentation/dev-tools/kmsan.rst
+@@ -67,6 +67,7 @@ uninitialized in the local variable, as
+ copied to another memory location before use.
  
- #ifdef CONFIG_HUGETLB_PAGE
+ A use of uninitialized value ``v`` is reported by KMSAN in the following cases:
++
+  - in a condition, e.g. ``if (v) { ... }``;
+  - in an indexing or pointer dereferencing, e.g. ``array[v]`` or ``*v``;
+  - when it is copied to userspace or hardware, e.g. ``copy_to_user(..., &v, ...)``;
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from glider@google.com are
 
-mmhwpoisonhugetlbmemory_hotplug-hotremove-memory-section-with-hwpoisoned-hugepage.patch
-mm-hwpoison-move-definitions-of-num_poisoned_pages_-to-memory-failurec.patch
-mm-hwpoison-pass-pfn-to-num_poisoned_pages_.patch
-mm-hwpoison-introduce-per-memory_block-hwpoison-counter.patch
 
