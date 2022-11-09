@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F075FC4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:42:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28B23C433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:42:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229735AbiKIBmc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230104AbiKIBmc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 8 Nov 2022 20:42:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34798 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230104AbiKIBkb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:40:31 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB63F68699
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:47 -0800 (PST)
+        with ESMTP id S229891AbiKIBkc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:40:32 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08D3F657C9
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 715FD61803
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9BBFC433D7;
-        Wed,  9 Nov 2022 01:39:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8BFD361803
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3364C43470;
+        Wed,  9 Nov 2022 01:39:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957986;
-        bh=OQ08dSq/pdqXg9HWzPKwdyOp3hkzPt+KrucYASOqcJE=;
+        s=korg; t=1667957989;
+        bh=7DukY/3Q6OTqnqTPinv7rmMV0QJlp3PaAi9cN7fI98o=;
         h=Date:To:From:Subject:From;
-        b=GUWyLJjJ7vAZRiyitdGFVX2UHAJ6vOY63bjgbp1Q2gK/vBdLQhph/huMkYuRjEDWW
-         mRZ/3O3b9PWdkSLzsUneIcK4YC9KvMltEITZVq75BLVxQGzTbH7KNH+qkH3DeSonzp
-         zdTNRailGrNwF6XMBPs5ZudnTbNAafwJ3aac83L0=
-Date:   Tue, 08 Nov 2022 17:39:46 -0800
+        b=ipIym0p38pMCbIlUAlAQi1yVaUzm9weifQI/n/oAfO1QqaMIBYVLnxIkGH2JffI0p
+         muSwYkCn3F/mjkDF3nJnAzEB+B1C95WWpaTlbRX18/5utTbJv1BE1JQXffxDlpG1Qd
+         Y67I1graLbd+58NZhnobGCKGdSXD93+d6PkYEk4U=
+Date:   Tue, 08 Nov 2022 17:39:48 -0800
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function.patch removed from -mm tree
-Message-Id: <20221109013946.C9BBFC433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch removed from -mm tree
+Message-Id: <20221109013948.E3364C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,86 +41,160 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: split out kdamond-independent schemes stats update logic into a new function
+     Subject: mm/damon/modules: deduplicate init steps for DAMON context setup
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function.patch
+     mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: split out kdamond-independent schemes stats update logic into a new function
-Date: Wed, 26 Oct 2022 22:59:40 +0000
+Subject: mm/damon/modules: deduplicate init steps for DAMON context setup
+Date: Wed, 26 Oct 2022 22:59:42 +0000
 
-'damon_sysfs_schemes_update_stats()' is coupled with both
-damon_sysfs_kdamond and damon_sysfs_schemes.  It's a wide range of types
-dependency.  It makes splitting the logics a little bit distracting. 
-Split the function so that each function is coupled with smaller range of
-types.
+DAMON_RECLAIM and DAMON_LRU_SORT has duplicated code for DAMON context and
+target initializations.  Deduplicate the part by implementing a function
+for the initialization in 'modules-common.c' and using it.
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221026225943.100429-12-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   35 +++++++++++++++++++++--------------
- 1 file changed, 21 insertions(+), 14 deletions(-)
+ mm/damon/Makefile         |    4 +--
+ mm/damon/lru_sort.c       |   17 ++------------
+ mm/damon/modules-common.c |   42 ++++++++++++++++++++++++++++++++++++
+ mm/damon/modules-common.h |    3 ++
+ mm/damon/reclaim.c        |   17 ++------------
+ 5 files changed, 53 insertions(+), 30 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function
-+++ a/mm/damon/sysfs.c
-@@ -2204,6 +2204,25 @@ static void damon_sysfs_before_terminate
- 	mutex_unlock(&ctx->kdamond_lock);
- }
+--- a/mm/damon/lru_sort.c~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
++++ a/mm/damon/lru_sort.c
+@@ -314,25 +314,14 @@ static int damon_lru_sort_after_wmarks_c
  
-+static void damon_sysfs_schemes_update_stats(
-+		struct damon_sysfs_schemes *sysfs_schemes,
-+		struct damon_ctx *ctx)
-+{
-+	struct damos *scheme;
-+	int schemes_idx = 0;
-+
-+	damon_for_each_scheme(scheme, ctx) {
-+		struct damon_sysfs_stats *sysfs_stats;
-+
-+		sysfs_stats = sysfs_schemes->schemes_arr[schemes_idx++]->stats;
-+		sysfs_stats->nr_tried = scheme->stat.nr_tried;
-+		sysfs_stats->sz_tried = scheme->stat.sz_tried;
-+		sysfs_stats->nr_applied = scheme->stat.nr_applied;
-+		sysfs_stats->sz_applied = scheme->stat.sz_applied;
-+		sysfs_stats->qt_exceeds = scheme->stat.qt_exceeds;
-+	}
-+}
-+
- /*
-  * damon_sysfs_upd_schemes_stats() - Update schemes stats sysfs files.
-  * @kdamond:	The kobject wrapper that associated to the kdamond thread.
-@@ -2216,23 +2235,11 @@ static void damon_sysfs_before_terminate
- static int damon_sysfs_upd_schemes_stats(struct damon_sysfs_kdamond *kdamond)
+ static int __init damon_lru_sort_init(void)
  {
- 	struct damon_ctx *ctx = kdamond->damon_ctx;
--	struct damon_sysfs_schemes *sysfs_schemes;
--	struct damos *scheme;
--	int schemes_idx = 0;
+-	ctx = damon_new_ctx();
+-	if (!ctx)
+-		return -ENOMEM;
++	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
  
- 	if (!ctx)
- 		return -EINVAL;
--	sysfs_schemes = kdamond->contexts->contexts_arr[0]->schemes;
--	damon_for_each_scheme(scheme, ctx) {
--		struct damon_sysfs_stats *sysfs_stats;
--
--		sysfs_stats = sysfs_schemes->schemes_arr[schemes_idx++]->stats;
--		sysfs_stats->nr_tried = scheme->stat.nr_tried;
--		sysfs_stats->sz_tried = scheme->stat.sz_tried;
--		sysfs_stats->nr_applied = scheme->stat.nr_applied;
--		sysfs_stats->sz_applied = scheme->stat.sz_applied;
--		sysfs_stats->qt_exceeds = scheme->stat.qt_exceeds;
+-	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
+-		damon_destroy_ctx(ctx);
+-		return -EINVAL;
 -	}
-+	damon_sysfs_schemes_update_stats(
-+			kdamond->contexts->contexts_arr[0]->schemes, ctx);
- 	return 0;
- }
++	if (err)
++		return err;
  
+ 	ctx->callback.after_wmarks_check = damon_lru_sort_after_wmarks_check;
+ 	ctx->callback.after_aggregation = damon_lru_sort_after_aggregation;
+ 
+-	target = damon_new_target();
+-	if (!target) {
+-		damon_destroy_ctx(ctx);
+-		return -ENOMEM;
+-	}
+-	damon_add_target(ctx, target);
+-
+ 	schedule_delayed_work(&damon_lru_sort_timer, 0);
+ 
+ 	damon_lru_sort_initialized = true;
+--- a/mm/damon/Makefile~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
++++ a/mm/damon/Makefile
+@@ -5,5 +5,5 @@ obj-$(CONFIG_DAMON_VADDR)	+= ops-common.
+ obj-$(CONFIG_DAMON_PADDR)	+= ops-common.o paddr.o
+ obj-$(CONFIG_DAMON_SYSFS)	+= sysfs-common.o sysfs-schemes.o sysfs.o
+ obj-$(CONFIG_DAMON_DBGFS)	+= dbgfs.o
+-obj-$(CONFIG_DAMON_RECLAIM)	+= reclaim.o
+-obj-$(CONFIG_DAMON_LRU_SORT)	+= lru_sort.o
++obj-$(CONFIG_DAMON_RECLAIM)	+= modules-common.o reclaim.o
++obj-$(CONFIG_DAMON_LRU_SORT)	+= modules-common.o lru_sort.o
+--- /dev/null
++++ a/mm/damon/modules-common.c
+@@ -0,0 +1,42 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Common Primitives for DAMON Modules
++ *
++ * Author: SeongJae Park <sjpark@amazon.de>
++ */
++
++#include <linux/damon.h>
++
++#include "modules-common.h"
++
++/*
++ * Allocate, set, and return a DAMON context for the physical address space.
++ * @ctxp:	Pointer to save the point to the newly created context
++ * @targetp:	Pointer to save the point to the newly created target
++ */
++int damon_modules_new_paddr_ctx_target(struct damon_ctx **ctxp,
++		struct damon_target **targetp)
++{
++	struct damon_ctx *ctx;
++	struct damon_target *target;
++
++	ctx = damon_new_ctx();
++	if (!ctx)
++		return -ENOMEM;
++
++	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
++		damon_destroy_ctx(ctx);
++		return -EINVAL;
++	}
++
++	target = damon_new_target();
++	if (!target) {
++		damon_destroy_ctx(ctx);
++		return -ENOMEM;
++	}
++	damon_add_target(ctx, target);
++
++	*ctxp = ctx;
++	*targetp = target;
++	return 0;
++}
+--- a/mm/damon/modules-common.h~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
++++ a/mm/damon/modules-common.h
+@@ -44,3 +44,6 @@
+ 			0400);						\
+ 	module_param_named(nr_##qt_exceed_name, stat.qt_exceeds, ulong,	\
+ 			0400);
++
++int damon_modules_new_paddr_ctx_target(struct damon_ctx **ctxp,
++		struct damon_target **targetp);
+--- a/mm/damon/reclaim.c~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
++++ a/mm/damon/reclaim.c
+@@ -256,25 +256,14 @@ static int damon_reclaim_after_wmarks_ch
+ 
+ static int __init damon_reclaim_init(void)
+ {
+-	ctx = damon_new_ctx();
+-	if (!ctx)
+-		return -ENOMEM;
++	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
+ 
+-	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
+-		damon_destroy_ctx(ctx);
+-		return -EINVAL;
+-	}
++	if (err)
++		return err;
+ 
+ 	ctx->callback.after_wmarks_check = damon_reclaim_after_wmarks_check;
+ 	ctx->callback.after_aggregation = damon_reclaim_after_aggregation;
+ 
+-	target = damon_new_target();
+-	if (!target) {
+-		damon_destroy_ctx(ctx);
+-		return -ENOMEM;
+-	}
+-	damon_add_target(ctx, target);
+-
+ 	schedule_delayed_work(&damon_reclaim_timer, 0);
+ 
+ 	damon_reclaim_initialized = true;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
