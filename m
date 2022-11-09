@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9008FC4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:41:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37D27C43219
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:42:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230079AbiKIBl6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:41:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36142 "EHLO
+        id S230090AbiKIBl7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:41:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230093AbiKIBkO (ORCPT
+        with ESMTP id S230038AbiKIBkO (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:40:14 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12FE86587B
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A00E65E6D
         for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:39 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 96094617F0
+        by ams.source.kernel.org (Postfix) with ESMTPS id 388E7B81CC9
         for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1974C433C1;
-        Wed,  9 Nov 2022 01:39:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D94E0C433D6;
+        Wed,  9 Nov 2022 01:39:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957978;
-        bh=KKvIhSCn+lfnHXcRkamCMaizQnolUA2VDdhfzziwmkg=;
+        s=korg; t=1667957976;
+        bh=eQjZqqJaXayLk9jQaIwjiS53Kubr9KqB3f3kouvG/3w=;
         h=Date:To:From:Subject:From;
-        b=wSMMNKv1zUwTw0wClAlB0IoBvfopK6EXNdqrqdGkdzB3zMBib5f0xsNNUu/FRiGMr
-         KIc40OJNeUx/AezIv5TXJRGsjRSSQd607FwCtCEbbjsf2FvlrA972yiT4m10rzEaCV
-         EE/cBK81kpq0faSUQo5bz+sJ0OoqTOq8kg+oQ6zo=
-Date:   Tue, 08 Nov 2022 17:39:37 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        b=gMrBui4i8aVXik9W4pXA7jGj5pfYnVW+sU9hKtYFFR7fOvy9vpuPgqfr5Jgte289j
+         ZjNnDdxYdCqIOTcvBMhuDQz3w1sIxVo0sjt85Yimx5Mp9Ci3J0nv2Rau/TMZ3bwjJd
+         EiUnHc1d+HbXNl1qmHI0oh0Ve/UY4eKykFcRgbYE=
+Date:   Tue, 08 Nov 2022 17:39:36 -0800
+To:     mm-commits@vger.kernel.org, kasong@tencent.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch removed from -mm tree
-Message-Id: <20221109013937.F1974C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] swap-add-a-limit-for-readahead-page-cluster-value.patch removed from -mm tree
+Message-Id: <20221109013936.D94E0C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,186 +41,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/core: split out DAMOS-charged region skip logic into a new function
+     Subject: swap: add a limit for readahead page-cluster value
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch
+     swap-add-a-limit-for-readahead-page-cluster-value.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: split out DAMOS-charged region skip logic into a new function
-Date: Wed, 26 Oct 2022 22:59:32 +0000
+From: Kairui Song <kasong@tencent.com>
+Subject: swap: add a limit for readahead page-cluster value
+Date: Mon, 24 Oct 2022 00:25:33 +0800
 
-Patch series "mm/damon: cleanup and refactoring code", v2.
+Currenty there is no upper limit for /proc/sys/vm/page-cluster, and it's a
+bit shift value, so it could result in overflow of the 32-bit integer. 
+Add a reasonable upper limit for it, read-in at most 2**31 pages, which is
+a large enough value for readahead.
 
-This patchset cleans up and refactors a range of DAMON code including the
-core, DAMON sysfs interface, and DAMON modules, for better readability and
-convenient future feature implementations.
-
-In detail, this patchset splits unnecessarily long and complex functions
-in core into smaller functions (patches 1-4).  Then, it cleans up the
-DAMON sysfs interface by using more type-safe code (patch 5) and removing
-unnecessary function parameters (patch 6).  Further, it refactor the code
-by distributing the code into multiple files (patches 7-10).  Last two
-patches (patches 11 and 12) deduplicates and remove unnecessary header
-inclusion in DAMON modules (reclaim and lru_sort).
-
-
-This patch (of 12):
-
-The DAMOS action applying function, 'damon_do_apply_schemes()', is quite
-long and not so simple.  Split out the already quota-charged region skip
-code, which is not a small amount of simple code, into a new function with
-some comments for better readability.
-
-Link: https://lkml.kernel.org/r/20221026225943.100429-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20221026225943.100429-2-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20221023162533.81561-1-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   96 +++++++++++++++++++++++++++++++---------------
- 1 file changed, 65 insertions(+), 31 deletions(-)
+ include/linux/mm.h |    1 +
+ kernel/sysctl.c    |    1 +
+ mm/swap.c          |    3 ++-
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function
-+++ a/mm/damon/core.c
-@@ -694,6 +694,67 @@ static bool damos_valid_target(struct da
- 	return c->ops.get_scheme_score(c, t, r, s) >= s->quota.min_score;
- }
+--- a/include/linux/mm.h~swap-add-a-limit-for-readahead-page-cluster-value
++++ a/include/linux/mm.h
+@@ -74,6 +74,7 @@ static inline void totalram_pages_add(lo
  
-+/*
-+ * damos_skip_charged_region() - Check if the given region or starting part of
-+ * it is already charged for the DAMOS quota.
-+ * @t:	The target of the region.
-+ * @rp:	The pointer to the region.
-+ * @s:	The scheme to be applied.
-+ *
-+ * If a quota of a scheme has exceeded in a quota charge window, the scheme's
-+ * action would applied to only a part of the target access pattern fulfilling
-+ * regions.  To avoid applying the scheme action to only already applied
-+ * regions, DAMON skips applying the scheme action to the regions that charged
-+ * in the previous charge window.
-+ *
-+ * This function checks if a given region should be skipped or not for the
-+ * reason.  If only the starting part of the region has previously charged,
-+ * this function splits the region into two so that the second one covers the
-+ * area that not charged in the previous charge widnow and saves the second
-+ * region in *rp and returns false, so that the caller can apply DAMON action
-+ * to the second one.
-+ *
-+ * Return: true if the region should be entirely skipped, false otherwise.
-+ */
-+static bool damos_skip_charged_region(struct damon_target *t,
-+		struct damon_region **rp, struct damos *s)
-+{
-+	struct damon_region *r = *rp;
-+	struct damos_quota *quota = &s->quota;
-+	unsigned long sz_to_skip;
-+
-+	/* Skip previously charged regions */
-+	if (quota->charge_target_from) {
-+		if (t != quota->charge_target_from)
-+			return true;
-+		if (r == damon_last_region(t)) {
-+			quota->charge_target_from = NULL;
-+			quota->charge_addr_from = 0;
-+			return true;
-+		}
-+		if (quota->charge_addr_from &&
-+				r->ar.end <= quota->charge_addr_from)
-+			return true;
-+
-+		if (quota->charge_addr_from && r->ar.start <
-+				quota->charge_addr_from) {
-+			sz_to_skip = ALIGN_DOWN(quota->charge_addr_from -
-+					r->ar.start, DAMON_MIN_REGION);
-+			if (!sz_to_skip) {
-+				if (damon_sz_region(r) <= DAMON_MIN_REGION)
-+					return true;
-+				sz_to_skip = DAMON_MIN_REGION;
-+			}
-+			damon_split_region_at(t, r, sz_to_skip);
-+			r = damon_next_region(r);
-+			*rp = r;
-+		}
-+		quota->charge_target_from = NULL;
-+		quota->charge_addr_from = 0;
-+	}
-+	return false;
-+}
-+
- static void damon_do_apply_schemes(struct damon_ctx *c,
- 				   struct damon_target *t,
- 				   struct damon_region *r)
-@@ -702,7 +763,7 @@ static void damon_do_apply_schemes(struc
+ extern void * high_memory;
+ extern int page_cluster;
++extern const int page_cluster_max;
  
- 	damon_for_each_scheme(s, c) {
- 		struct damos_quota *quota = &s->quota;
--		unsigned long sz = damon_sz_region(r);
-+		unsigned long sz;
- 		struct timespec64 begin, end;
- 		unsigned long sz_applied = 0;
+ #ifdef CONFIG_SYSCTL
+ extern int sysctl_legacy_va_layout;
+--- a/kernel/sysctl.c~swap-add-a-limit-for-readahead-page-cluster-value
++++ a/kernel/sysctl.c
+@@ -2125,6 +2125,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= SYSCTL_ZERO,
++		.extra2		= (void *)&page_cluster_max,
+ 	},
+ 	{
+ 		.procname	= "dirtytime_expire_seconds",
+--- a/mm/swap.c~swap-add-a-limit-for-readahead-page-cluster-value
++++ a/mm/swap.c
+@@ -43,8 +43,9 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/pagemap.h>
  
-@@ -713,41 +774,14 @@ static void damon_do_apply_schemes(struc
- 		if (quota->esz && quota->charged_sz >= quota->esz)
- 			continue;
+-/* How many pages do we try to swap or page in/out together? */
++/* How many pages do we try to swap or page in/out together? As a power of 2 */
+ int page_cluster;
++const int page_cluster_max = 31;
  
--		/* Skip previously charged regions */
--		if (quota->charge_target_from) {
--			if (t != quota->charge_target_from)
--				continue;
--			if (r == damon_last_region(t)) {
--				quota->charge_target_from = NULL;
--				quota->charge_addr_from = 0;
--				continue;
--			}
--			if (quota->charge_addr_from &&
--					r->ar.end <= quota->charge_addr_from)
--				continue;
--
--			if (quota->charge_addr_from && r->ar.start <
--					quota->charge_addr_from) {
--				sz = ALIGN_DOWN(quota->charge_addr_from -
--						r->ar.start, DAMON_MIN_REGION);
--				if (!sz) {
--					if (damon_sz_region(r) <=
--					    DAMON_MIN_REGION)
--						continue;
--					sz = DAMON_MIN_REGION;
--				}
--				damon_split_region_at(t, r, sz);
--				r = damon_next_region(r);
--				sz = damon_sz_region(r);
--			}
--			quota->charge_target_from = NULL;
--			quota->charge_addr_from = 0;
--		}
-+		if (damos_skip_charged_region(t, &r, s))
-+			continue;
- 
- 		if (!damos_valid_target(c, t, r, s))
- 			continue;
- 
- 		/* Apply the scheme */
-+		sz = damon_sz_region(r);
- 		if (c->ops.apply_scheme) {
- 			if (quota->esz &&
- 					quota->charged_sz + sz > quota->esz) {
+ /* Protecting only lru_rotate.fbatch which requires disabling interrupts */
+ struct lru_rotate {
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch
-docs-admin-guide-mm-damon-usage-fix-wrong-usage-example-of-init_regions-file.patch
-mm-damon-core-add-a-callback-for-scheme-target-regions-check.patch
-mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch
-mm-damon-sysfs-schemes-implement-scheme-region-directory.patch
-mm-damon-sysfs-implement-damos-tried-regions-update-command.patch
-mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command.patch
-tools-selftets-damon-sysfs-test-tried_regions-directory-existence.patch
-docs-admin-guide-mm-damon-usage-document-schemes-s-tried_regions-sysfs-directory.patch
-docs-abi-damon-document-schemes-s-tried_regions-sysfs-directory.patch
-selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch
 
