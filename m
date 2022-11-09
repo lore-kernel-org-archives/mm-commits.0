@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0890C433FE
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:42:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5344C433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 04:04:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229978AbiKIBmj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:42:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36046 "EHLO
+        id S229776AbiKIEEG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 23:04:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229616AbiKIBkr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:40:47 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E8B0686BF
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:57 -0800 (PST)
+        with ESMTP id S229850AbiKIEEF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 23:04:05 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A41313E1C
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 20:04:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id DD060CE1D3C
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D965C433C1;
-        Wed,  9 Nov 2022 01:39:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C8032B81CA6
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 04:04:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53304C433C1;
+        Wed,  9 Nov 2022 04:04:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957994;
-        bh=lN08CdejnovigkpD7hUXLLmEJPbt7FdRBLVNQJCMI5U=;
+        s=korg; t=1667966641;
+        bh=WKnXS35bYi9XmHLbRBMK0bMF6fPQRK4C+lCGLq/ZZQA=;
         h=Date:To:From:Subject:From;
-        b=kCOCVlLlqrWZTX7ySCPljsEY7XCZkAG3rfR2VQGidYF1q/N5fjgeyxnfAr8I9H9JI
-         0zx6SqXoSnlT/Xqo43aV6qd2UACvfK+HzewdYJTG6zoyqn9CPKhqv3ayHm88JP1P7/
-         wU/5THFyID8KVIAOU9azITNnrRKy2lwRjmFla6I4=
-Date:   Tue, 08 Nov 2022 17:39:53 -0800
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, sj@kernel.org,
-        akpm@linux-foundation.org
+        b=AqyCjsTrRAxoyGRsy3wZ4p3kRdGDEM5baH7GqWgKLFDPuAMV762MjPu2uMfGGEaH3
+         zpYDloLPwzw5JTUkLrERHOH3+t0Vqkhn4EW7YW67nGT83o3c8ujGz8JV7EgyZElzit
+         cyHu/9xUAO4EGx3a5DcflIKbldhl+PHTBnjMCLOI=
+Date:   Tue, 08 Nov 2022 20:04:00 -0800
+To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-add-tests-for-damon_lru_sorts-enabled-parameter.patch removed from -mm tree
-Message-Id: <20221109013954.1D965C433C1@smtp.kernel.org>
+Subject: [to-be-updated] zram-add-recompression-algorithm-sysfs-knob.patch removed from -mm tree
+Message-Id: <20221109040401.53304C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,99 +41,223 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/damon: add tests for DAMON_LRU_SORT's enabled parameter
+     Subject: zram: add recompression algorithm sysfs knob
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-add-tests-for-damon_lru_sorts-enabled-parameter.patch
+     zram-add-recompression-algorithm-sysfs-knob.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: add tests for DAMON_LRU_SORT's enabled parameter
-Date: Tue, 25 Oct 2022 17:36:50 +0000
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: add recompression algorithm sysfs knob
+Date: Tue, 18 Oct 2022 13:55:26 +0900
 
-Add simple test cases for DAMON_LRU_SORT's 'enabled' parameter.  Those
-tests are focusing on the synchronous behavior of DAMON_RECLAIM enabling
-and disabling.
+Introduce recomp_algorithm sysfs knob that controls secondary algorithm
+selection used for recompression.  This device attribute works in a
+similar way with comp_algorithm attribute.
 
-Link: https://lkml.kernel.org/r/20221025173650.90624-5-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20221018045533.2396670-3-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile    |    2 
- tools/testing/selftests/damon/lru_sort.sh |   41 ++++++++++++++++++++
- 2 files changed, 42 insertions(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |  111 +++++++++++++++++++++++++-------
+ 1 file changed, 90 insertions(+), 21 deletions(-)
 
---- /dev/null
-+++ a/tools/testing/selftests/damon/lru_sort.sh
-@@ -0,0 +1,41 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+
-+# Kselftest framework requirement - SKIP code is 4.
-+ksft_skip=4
-+
-+if [ $EUID -ne 0 ]
-+then
-+	echo "Run as root"
-+	exit $ksft_skip
-+fi
-+
-+damon_lru_sort_enabled="/sys/module/damon_lru_sort/parameters/enabled"
-+if [ ! -f "$damon_lru_sort_enabled" ]
-+then
-+	echo "No 'enabled' file.  Maybe DAMON_LRU_SORT not built"
-+	exit $ksft_skip
-+fi
-+
-+nr_kdamonds=$(pgrep kdamond | wc -l)
-+if [ "$nr_kdamonds" -ne 0 ]
-+then
-+	echo "Another kdamond is running"
-+	exit $ksft_skip
-+fi
-+
-+echo Y > "$damon_lru_sort_enabled"
-+nr_kdamonds=$(pgrep kdamond | wc -l)
-+if [ "$nr_kdamonds" -ne 1 ]
-+then
-+	echo "kdamond is not turned on"
-+	exit 1
-+fi
-+
-+echo N > "$damon_lru_sort_enabled"
-+nr_kdamonds=$(pgrep kdamond | wc -l)
-+if [ "$nr_kdamonds" -ne 0 ]
-+then
-+	echo "kdamond is not turned off"
-+	exit 1
-+fi
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-add-tests-for-damon_lru_sorts-enabled-parameter
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -8,6 +8,6 @@ TEST_PROGS = debugfs_attrs.sh debugfs_sc
- TEST_PROGS += debugfs_empty_targets.sh debugfs_huge_count_read_write.sh
- TEST_PROGS += debugfs_duplicate_context_creation.sh
- TEST_PROGS += sysfs.sh
--TEST_PROGS += reclaim.sh
-+TEST_PROGS += reclaim.sh lru_sort.sh
+--- a/drivers/block/zram/zram_drv.c~zram-add-recompression-algorithm-sysfs-knob
++++ a/drivers/block/zram/zram_drv.c
+@@ -41,7 +41,12 @@ static DEFINE_IDR(zram_index_idr);
+ static DEFINE_MUTEX(zram_index_mutex);
  
- include ../lib.mk
+ static int zram_major;
+-static const char *default_compressor = CONFIG_ZRAM_DEF_COMP;
++static const char *default_comp_algs[ZRAM_MAX_ZCOMPS] = {
++	CONFIG_ZRAM_DEF_COMP,
++#ifdef CONFIG_ZRAM_MULTI_COMP
++	"zstd",
++#endif
++};
+ 
+ /* Module params (documentation at end) */
+ static unsigned int num_devices = 1;
+@@ -997,31 +1002,37 @@ static ssize_t max_comp_streams_store(st
+ 	return len;
+ }
+ 
+-static ssize_t comp_algorithm_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
++static void comp_algorithm_set(struct zram *zram, u32 idx, const char *alg)
+ {
+-	size_t sz;
+-	struct zram *zram = dev_to_zram(dev);
++	bool default_alg = false;
++	int i;
+ 
+-	down_read(&zram->init_lock);
+-	sz = zcomp_available_show(zram->comp_algs[ZRAM_PRIMARY_ZCOMP], buf);
+-	up_read(&zram->init_lock);
++	/* Do not kfree() algs that we didn't allocate, IOW the default ones */
++	for (i = 0; i < ZRAM_MAX_ZCOMPS; i++) {
++		if (zram->comp_algs[idx] == default_comp_algs[i]) {
++			default_alg = true;
++			break;
++		}
++	}
+ 
+-	return sz;
++	if (!default_alg)
++		kfree(zram->comp_algs[idx]);
++	zram->comp_algs[idx] = alg;
+ }
+ 
+-static void comp_algorithm_set(struct zram *zram, u32 idx, const char *alg)
++static ssize_t __comp_algorithm_show(struct zram *zram, u32 idx, char *buf)
+ {
+-	/* Do not kfree() algs that we didn't allocate, IOW the default ones */
+-	if (zram->comp_algs[idx] != default_compressor)
+-		kfree(zram->comp_algs[idx]);
+-	zram->comp_algs[idx] = alg;
++	ssize_t sz;
++
++	down_read(&zram->init_lock);
++	sz = zcomp_available_show(zram->comp_algs[idx], buf);
++	up_read(&zram->init_lock);
++
++	return sz;
+ }
+ 
+-static ssize_t comp_algorithm_store(struct device *dev,
+-		struct device_attribute *attr, const char *buf, size_t len)
++static int __comp_algorithm_store(struct zram *zram, u32 idx, const char *buf)
+ {
+-	struct zram *zram = dev_to_zram(dev);
+ 	char *compressor;
+ 	size_t sz;
+ 
+@@ -1050,11 +1061,55 @@ static ssize_t comp_algorithm_store(stru
+ 		return -EBUSY;
+ 	}
+ 
+-	comp_algorithm_set(zram, ZRAM_PRIMARY_ZCOMP, compressor);
++	comp_algorithm_set(zram, idx, compressor);
+ 	up_write(&zram->init_lock);
+-	return len;
++	return 0;
++}
++
++static ssize_t comp_algorithm_show(struct device *dev,
++				   struct device_attribute *attr,
++				   char *buf)
++{
++	struct zram *zram = dev_to_zram(dev);
++
++	return __comp_algorithm_show(zram, ZRAM_PRIMARY_ZCOMP, buf);
++}
++
++static ssize_t comp_algorithm_store(struct device *dev,
++				    struct device_attribute *attr,
++				    const char *buf,
++				    size_t len)
++{
++	struct zram *zram = dev_to_zram(dev);
++	int ret;
++
++	ret = __comp_algorithm_store(zram, ZRAM_PRIMARY_ZCOMP, buf);
++	return ret ? ret : len;
+ }
+ 
++#ifdef CONFIG_ZRAM_MULTI_COMP
++static ssize_t recomp_algorithm_show(struct device *dev,
++				     struct device_attribute *attr,
++				     char *buf)
++{
++	struct zram *zram = dev_to_zram(dev);
++
++	return __comp_algorithm_show(zram, ZRAM_SECONDARY_ZCOMP, buf);
++}
++
++static ssize_t recomp_algorithm_store(struct device *dev,
++				      struct device_attribute *attr,
++				      const char *buf,
++				      size_t len)
++{
++	struct zram *zram = dev_to_zram(dev);
++	int ret;
++
++	ret = __comp_algorithm_store(zram, ZRAM_SECONDARY_ZCOMP, buf);
++	return ret ? ret : len;
++}
++#endif
++
+ static ssize_t compact_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+@@ -1759,7 +1814,11 @@ static void zram_reset_device(struct zra
+ 	memset(&zram->stats, 0, sizeof(zram->stats));
+ 	reset_bdev(zram);
+ 
+-	comp_algorithm_set(zram, ZRAM_PRIMARY_ZCOMP, default_compressor);
++	comp_algorithm_set(zram, ZRAM_PRIMARY_ZCOMP,
++			   default_comp_algs[ZRAM_PRIMARY_ZCOMP]);
++	if (IS_ENABLED(CONFIG_ZRAM_MULTI_COMP))
++		comp_algorithm_set(zram, ZRAM_SECONDARY_ZCOMP,
++				   default_comp_algs[ZRAM_SECONDARY_ZCOMP]);
+ 	up_write(&zram->init_lock);
+ }
+ 
+@@ -1892,6 +1951,9 @@ static DEVICE_ATTR_WO(writeback);
+ static DEVICE_ATTR_RW(writeback_limit);
+ static DEVICE_ATTR_RW(writeback_limit_enable);
+ #endif
++#ifdef CONFIG_ZRAM_MULTI_COMP
++static DEVICE_ATTR_RW(recomp_algorithm);
++#endif
+ 
+ static struct attribute *zram_disk_attrs[] = {
+ 	&dev_attr_disksize.attr,
+@@ -1915,6 +1977,9 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_bd_stat.attr,
+ #endif
+ 	&dev_attr_debug_stat.attr,
++#ifdef CONFIG_ZRAM_MULTI_COMP
++	&dev_attr_recomp_algorithm.attr,
++#endif
+ 	NULL,
+ };
+ 
+@@ -1994,7 +2059,11 @@ static int zram_add(void)
+ 	if (ret)
+ 		goto out_cleanup_disk;
+ 
+-	zram->comp_algs[ZRAM_PRIMARY_ZCOMP] = default_compressor;
++	zram->comp_algs[ZRAM_PRIMARY_ZCOMP] =
++		default_comp_algs[ZRAM_PRIMARY_ZCOMP];
++	if (IS_ENABLED(CONFIG_ZRAM_MULTI_COMP))
++		zram->comp_algs[ZRAM_SECONDARY_ZCOMP] =
++			default_comp_algs[ZRAM_SECONDARY_ZCOMP];
+ 
+ 	zram_debugfs_register(zram);
+ 	pr_info("Added device: %s\n", zram->disk->disk_name);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch
-docs-admin-guide-mm-damon-usage-fix-wrong-usage-example-of-init_regions-file.patch
-mm-damon-core-add-a-callback-for-scheme-target-regions-check.patch
-mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch
-mm-damon-sysfs-schemes-implement-scheme-region-directory.patch
-mm-damon-sysfs-implement-damos-tried-regions-update-command.patch
-mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command.patch
-tools-selftets-damon-sysfs-test-tried_regions-directory-existence.patch
-docs-admin-guide-mm-damon-usage-document-schemes-s-tried_regions-sysfs-directory.patch
-docs-abi-damon-document-schemes-s-tried_regions-sysfs-directory.patch
-selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch
+zram-preparation-for-multi-zcomp-support.patch
+zram-factor-out-wb-and-non-wb-zram-read-functions.patch
+zram-introduce-recompress-sysfs-knob.patch
+documentation-add-recompression-documentation.patch
+zram-add-recompression-algorithm-choice-to-kconfig.patch
+zram-add-recompress-flag-to-read_block_state.patch
+zram-clarify-writeback_store-comment.patch
+zram-use-is_err_value-to-check-for-zs_malloc-errors.patch
+zsmalloc-turn-zspage-order-into-runtime-variable.patch
+zsmalloc-move-away-from-page-order-defines.patch
+zsmalloc-make-huge-class-watermark-zs_pool-member.patch
+zram-huge-size-watermark-cannot-be-global.patch
+zsmalloc-pass-limit-on-pages-per-zspage-to-zs_create_pool.patch
+zram-add-pages_per_pool_page-device-attribute.patch
+documentation-document-zram-pages_per_pool_page-attribute.patch
+zsmalloc-break-out-of-loop-when-found-perfect-zspage-order.patch
 
