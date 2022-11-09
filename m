@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C360FC4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:38:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 691B4C43217
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:38:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229551AbiKIBij (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:38:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35278 "EHLO
+        id S229854AbiKIBil (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:38:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229962AbiKIBic (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:38:32 -0500
+        with ESMTP id S229970AbiKIBid (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:38:33 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8A04B7E
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 652FE1A6
         for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:38:21 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7A5E7B81CD6
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:38:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13F9AC433D6;
-        Wed,  9 Nov 2022 01:38:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 23796B81CC8
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:38:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD0F2C433D7;
+        Wed,  9 Nov 2022 01:38:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957901;
-        bh=XWaFqwEx+kGQwpLRpJAwjo/iFTguKe+5Jsf/Xry4kZY=;
+        s=korg; t=1667957898;
+        bh=epIAocoB5CXyw6TrLvnrogH5+UF63ZL8L6XrHUWB0pY=;
         h=Date:To:From:Subject:From;
-        b=bI5yS5rjiKsa/xxbZTcnJqKoJiKVL6l6a0VrJ6v9bUjqXPBVN2V3Dqtg0OmZn4/M2
-         hun1Ex3iV1Jp1D9R6fsml9Slk8IyoFy0upUA6lxUA8WbNROVCVUHqkHvmCqtaFe/cD
-         4TKmTFntdGTDcxv/JglL0JQ/biuFMtIm9VPXoSMQ=
-Date:   Tue, 08 Nov 2022 17:38:20 -0800
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        ngupta@vflare.org, minchan@kernel.org, ubizjak@gmail.com,
-        akpm@linux-foundation.org
+        b=r/G5h6o6Yt0hsqnHbyrQW0i06lhwlenNnsMl9zFEnG74wFKYRhdBQV41n9Aqaye1C
+         iHvjJ2xnBrrlaSf+3XJ3bSSTr9RV47Rtp+XxgA211trGSHTunfn1zUYQAqgEdMesdj
+         EoGp2zSpEeVGPHAdLQuDb/raEXzdg4ri2X3YZLdo=
+Date:   Tue, 08 Nov 2022 17:38:18 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, hughd@google.com,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-use-try_cmpxchg-in-update_used_max.patch removed from -mm tree
-Message-Id: <20221109013821.13F9AC433D6@smtp.kernel.org>
+Subject: [merged mm-stable] filemap-find_lock_entries-now-updates-start-offset.patch removed from -mm tree
+Message-Id: <20221109013818.BD0F2C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,68 +41,191 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zram: use try_cmpxchg in update_used_max
+     Subject: filemap: find_lock_entries() now updates start offset
 has been removed from the -mm tree.  Its filename was
-     zram-use-try_cmpxchg-in-update_used_max.patch
+     filemap-find_lock_entries-now-updates-start-offset.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: zram: use try_cmpxchg in update_used_max
-Date: Tue, 18 Oct 2022 16:51:54 +0200
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: filemap: find_lock_entries() now updates start offset
+Date: Mon, 17 Oct 2022 09:17:59 -0700
 
-Use try_cmpxchg instead of cmpxchg (*ptr, old, new) == old in
-update_used_max.  x86 CMPXCHG instruction returns success in ZF flag, so
-this change saves a compare after cmpxchg (and related move instruction in
-front of cmpxchg).
+Patch series "Rework find_get_entries() and find_lock_entries()", v3.
 
-Also, reorder code a bit to remove additional compare and conditional jump
-from the assembly code.  Together, hese two changes save 15 bytes from the
-function when compiled for x86_64.
+Originally the callers of find_get_entries() and find_lock_entries() were
+keeping track of the start index themselves as they traverse the search
+range.
 
-No functional change intended.
+This resulted in hacky code such as in shmem_undo_range():
 
-Link: https://lkml.kernel.org/r/20221018145154.3699-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+			index = folio->index + folio_nr_pages(folio) - 1;
+
+where the - 1 is only present to stay in the right spot after incrementing
+index later.  This sort of calculation was also being done on every folio
+despite not even using index later within that function.
+
+These patches change find_get_entries() and find_lock_entries() to
+calculate the new index instead of leaving it to the callers so we can
+avoid all these complications.
+
+
+This patch (of 2):
+
+Initially, find_lock_entries() was being passed in the start offset as a
+value.  That left the calculation of the offset to the callers.  This led
+to complexity in the callers trying to keep track of the index.
+
+Now find_lock_entries() takes in a pointer to the start offset and updates
+the value to be directly after the last entry found.  If no entry is
+found, the offset is not changed.  This gets rid of multiple hacky
+calculations that kept track of the start offset.
+
+Link: https://lkml.kernel.org/r/20221017161800.2003-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20221017161800.2003-2-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ mm/filemap.c  |   15 ++++++++++++---
+ mm/internal.h |    2 +-
+ mm/shmem.c    |    8 ++------
+ mm/truncate.c |   11 +++--------
+ 4 files changed, 18 insertions(+), 18 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-use-try_cmpxchg-in-update_used_max
-+++ a/drivers/block/zram/zram_drv.c
-@@ -188,16 +188,13 @@ static void update_position(u32 *index,
- static inline void update_used_max(struct zram *zram,
- 					const unsigned long pages)
+--- a/mm/filemap.c~filemap-find_lock_entries-now-updates-start-offset
++++ a/mm/filemap.c
+@@ -2085,16 +2085,16 @@ unsigned find_get_entries(struct address
+  *
+  * Return: The number of entries which were found.
+  */
+-unsigned find_lock_entries(struct address_space *mapping, pgoff_t start,
++unsigned find_lock_entries(struct address_space *mapping, pgoff_t *start,
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices)
  {
--	unsigned long old_max, cur_max;
--
--	old_max = atomic_long_read(&zram->stats.max_used_pages);
-+	unsigned long cur_max = atomic_long_read(&zram->stats.max_used_pages);
+-	XA_STATE(xas, &mapping->i_pages, start);
++	XA_STATE(xas, &mapping->i_pages, *start);
+ 	struct folio *folio;
  
- 	do {
--		cur_max = old_max;
--		if (pages > cur_max)
--			old_max = atomic_long_cmpxchg(
--				&zram->stats.max_used_pages, cur_max, pages);
--	} while (old_max != cur_max);
-+		if (cur_max >= pages)
-+			return;
-+	} while (!atomic_long_try_cmpxchg(&zram->stats.max_used_pages,
-+					  &cur_max, pages));
+ 	rcu_read_lock();
+ 	while ((folio = find_get_entry(&xas, end, XA_PRESENT))) {
+ 		if (!xa_is_value(folio)) {
+-			if (folio->index < start)
++			if (folio->index < *start)
+ 				goto put;
+ 			if (folio->index + folio_nr_pages(folio) - 1 > end)
+ 				goto put;
+@@ -2117,6 +2117,15 @@ put:
+ 	}
+ 	rcu_read_unlock();
+ 
++	if (folio_batch_count(fbatch)) {
++		unsigned long nr = 1;
++		int idx = folio_batch_count(fbatch) - 1;
++
++		folio = fbatch->folios[idx];
++		if (!xa_is_value(folio) && !folio_test_hugetlb(folio))
++			nr = folio_nr_pages(folio);
++		*start = indices[idx] + nr;
++	}
+ 	return folio_batch_count(fbatch);
  }
  
- static inline void zram_fill_page(void *ptr, unsigned long len,
+--- a/mm/internal.h~filemap-find_lock_entries-now-updates-start-offset
++++ a/mm/internal.h
+@@ -106,7 +106,7 @@ static inline void force_page_cache_read
+ 	force_page_cache_ra(&ractl, nr_to_read);
+ }
+ 
+-unsigned find_lock_entries(struct address_space *mapping, pgoff_t start,
++unsigned find_lock_entries(struct address_space *mapping, pgoff_t *start,
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
+ unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
+--- a/mm/shmem.c~filemap-find_lock_entries-now-updates-start-offset
++++ a/mm/shmem.c
+@@ -922,21 +922,18 @@ static void shmem_undo_range(struct inod
+ 
+ 	folio_batch_init(&fbatch);
+ 	index = start;
+-	while (index < end && find_lock_entries(mapping, index, end - 1,
++	while (index < end && find_lock_entries(mapping, &index, end - 1,
+ 			&fbatch, indices)) {
+ 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
+ 			folio = fbatch.folios[i];
+ 
+-			index = indices[i];
+-
+ 			if (xa_is_value(folio)) {
+ 				if (unfalloc)
+ 					continue;
+ 				nr_swaps_freed += !shmem_free_swap(mapping,
+-								index, folio);
++							indices[i], folio);
+ 				continue;
+ 			}
+-			index += folio_nr_pages(folio) - 1;
+ 
+ 			if (!unfalloc || !folio_test_uptodate(folio))
+ 				truncate_inode_folio(mapping, folio);
+@@ -945,7 +942,6 @@ static void shmem_undo_range(struct inod
+ 		folio_batch_remove_exceptionals(&fbatch);
+ 		folio_batch_release(&fbatch);
+ 		cond_resched();
+-		index++;
+ 	}
+ 
+ 	same_folio = (lstart >> PAGE_SHIFT) == (lend >> PAGE_SHIFT);
+--- a/mm/truncate.c~filemap-find_lock_entries-now-updates-start-offset
++++ a/mm/truncate.c
+@@ -361,9 +361,8 @@ void truncate_inode_pages_range(struct a
+ 
+ 	folio_batch_init(&fbatch);
+ 	index = start;
+-	while (index < end && find_lock_entries(mapping, index, end - 1,
++	while (index < end && find_lock_entries(mapping, &index, end - 1,
+ 			&fbatch, indices)) {
+-		index = indices[folio_batch_count(&fbatch) - 1] + 1;
+ 		truncate_folio_batch_exceptionals(mapping, &fbatch, indices);
+ 		for (i = 0; i < folio_batch_count(&fbatch); i++)
+ 			truncate_cleanup_folio(fbatch.folios[i]);
+@@ -510,20 +509,17 @@ unsigned long invalidate_mapping_pagevec
+ 	int i;
+ 
+ 	folio_batch_init(&fbatch);
+-	while (find_lock_entries(mapping, index, end, &fbatch, indices)) {
++	while (find_lock_entries(mapping, &index, end, &fbatch, indices)) {
+ 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
+ 			struct folio *folio = fbatch.folios[i];
+ 
+ 			/* We rely upon deletion not changing folio->index */
+-			index = indices[i];
+ 
+ 			if (xa_is_value(folio)) {
+ 				count += invalidate_exceptional_entry(mapping,
+-								      index,
+-								      folio);
++							     indices[i], folio);
+ 				continue;
+ 			}
+-			index += folio_nr_pages(folio) - 1;
+ 
+ 			ret = mapping_evict_folio(mapping, folio);
+ 			folio_unlock(folio);
+@@ -542,7 +538,6 @@ unsigned long invalidate_mapping_pagevec
+ 		folio_batch_remove_exceptionals(&fbatch);
+ 		folio_batch_release(&fbatch);
+ 		cond_resched();
+-		index++;
+ 	}
+ 	return count;
+ }
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
-llist-avoid-extra-memory-read-in-llist_add_batch.patch
-sched-fair-use-try_cmpxchg-in-task_numa_work.patch
 
