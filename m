@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0CDDC433FE
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:38:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66B75C4332F
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:38:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229733AbiKIBiG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:38:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34674 "EHLO
+        id S229875AbiKIBiH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:38:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229612AbiKIBiF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:38:05 -0500
+        with ESMTP id S229612AbiKIBiG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:38:06 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E25860379
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:38:04 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEC576069F
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:38:05 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B630A617F0
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:38:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 129A0C433D6;
-        Wed,  9 Nov 2022 01:38:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C7456181A
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:38:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5C00C433C1;
+        Wed,  9 Nov 2022 01:38:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957883;
-        bh=EuYCQfwBtgGNYeMUER/qbONalbdyxJ2fk8EK3QxFpjc=;
+        s=korg; t=1667957884;
+        bh=FHpj+nuThn3WWTlGI4YV+/mJbpTBbarcta29USgT9DI=;
         h=Date:To:From:Subject:From;
-        b=ZFK2/ovfFANV696ndhU1kYr6GGdBILwHr1AnsSXPxnluSODoI4sklhmnTWoiKBejr
-         v1eLYIvh3C9KWzaIkSMpwqGQM/IBJefxN7O5C8PzomAZ19UmsuSJGJ4gTEvBdKg71k
-         2Uw6ZaNbxLSBna76IIqgD691+cdNrshxl2Ghe5Jc=
-Date:   Tue, 08 Nov 2022 17:38:02 -0800
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        naoya.horiguchi@linux.dev, mpe@ellerman.id.au, david@redhat.com,
-        christophe.leroy@csgroup.eu, baolin.wang@linux.alibaba.com,
-        aneesh.kumar@linux.ibm.com, mike.kravetz@oracle.com,
+        b=Mn8t8NZ2bdn6zqXPJ3FeYkBARswYac8jqfRxzJlV/uT4j6BvXzXBt9pPacS9u3zlX
+         JSgx7PrUS0WBLdhzpiWDQXyX6jomJNVKbHWwZT4ZL4euMSVNllrofHeHWqaoHrS+6a
+         Y4TBEpdMO6tINoRze/fO+e3Cw3p4m40BRmAySUAA=
+Date:   Tue, 08 Nov 2022 17:38:04 -0800
+To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch removed from -mm tree
-Message-Id: <20221109013803.129A0C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch removed from -mm tree
+Message-Id: <20221109013804.C5C00C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,554 +41,158 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlb: simplify hugetlb handling in follow_page_mask
+     Subject: mm: vmscan: make rotations a secondary factor in balancing anon vs file
 has been removed from the -mm tree.  Its filename was
-     hugetlb-simplify-hugetlb-handling-in-follow_page_mask.patch
+     mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: simplify hugetlb handling in follow_page_mask
-Date: Sun, 18 Sep 2022 19:13:48 -0700
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: make rotations a secondary factor in balancing anon vs file
+Date: Thu, 13 Oct 2022 15:31:13 -0400
 
-During discussions of this series [1], it was suggested that hugetlb
-handling code in follow_page_mask could be simplified.  At the beginning
-of follow_page_mask, there currently is a call to follow_huge_addr which
-'may' handle hugetlb pages.  ia64 is the only architecture which provides
-a follow_huge_addr routine that does not return error.  Instead, at each
-level of the page table a check is made for a hugetlb entry.  If a hugetlb
-entry is found, a call to a routine associated with that entry is made.
+We noticed a 2% webserver throughput regression after upgrading from 5.6. 
+This could be tracked down to a shift in the anon/file reclaim balance
+(confirmed with swappiness) that resulted in worse reclaim efficiency and
+thus more kswapd activity for the same outcome.
 
-Currently, there are two checks for hugetlb entries at each page table
-level.  The first check is of the form:
+The change that exposed the problem is aae466b0052e ("mm/swap: implement
+workingset detection for anonymous LRU").  By qualifying swapins based on
+their refault distance, it lowered the cost of anon reclaim in this
+workload, in turn causing (much) more anon scanning than before.  Scanning
+the anon list is more expensive due to the higher ratio of mmapped pages
+that may rotate during reclaim, and so the result was an increase in %sys
+time.
 
-        if (p?d_huge())
-                page = follow_huge_p?d();
+Right now, rotations aren't considered a cost when balancing scan pressure
+between LRUs.  We can end up with very few file refaults putting all the
+scan pressure on hot anon pages that are rotated en masse, don't get
+reclaimed, and never push back on the file LRU again.  We still only
+reclaim file cache in that case, but we burn a lot CPU rotating anon
+pages.  It's "fair" from an LRU age POV, but doesn't reflect the real cost
+it imposes on the system.
 
-the second check is of the form:
+Consider rotations as a secondary factor in balancing the LRUs.  This
+doesn't attempt to make a precise comparison between IO cost and CPU cost,
+it just says: if reloads are about comparable between the lists, or
+rotations are overwhelmingly different, adjust for CPU work.
 
-        if (is_hugepd())
-                page = follow_huge_pd().
+This fixed the regression on our webservers.  It has since been deployed
+to the entire Meta fleet and hasn't caused any problems.
 
-We can replace these checks, as well as the special handling routines such
-as follow_huge_p?d() and follow_huge_pd() with a single routine to handle
-hugetlb vmas.
-
-A new routine hugetlb_follow_page_mask is called for hugetlb vmas at the
-beginning of follow_page_mask.  hugetlb_follow_page_mask will use the
-existing routine huge_pte_offset to walk page tables looking for hugetlb
-entries.  huge_pte_offset can be overwritten by architectures, and already
-handles special cases such as hugepd entries.
-
-[1] https://lore.kernel.org/linux-mm/cover.1661240170.git.baolin.wang@linux.alibaba.com/
-
-[mike.kravetz@oracle.com: remove vma (pmd sharing) per Peter]
-  Link: https://lkml.kernel.org/r/20221028181108.119432-1-mike.kravetz@oracle.com
-[mike.kravetz@oracle.com: remove left over hugetlb_vma_unlock_read()]
-  Link: https://lkml.kernel.org/r/20221030225825.40872-1-mike.kravetz@oracle.com
-Link: https://lkml.kernel.org/r/20220919021348.22151-1-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Link: https://lkml.kernel.org/r/20221013193113.726425-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/hugetlbpage.c    |   15 --
- arch/powerpc/mm/hugetlbpage.c |   37 ------
- include/linux/hugetlb.h       |   50 +--------
- mm/gup.c                      |   80 ++------------
- mm/hugetlb.c                  |  172 ++++++++++----------------------
- 5 files changed, 76 insertions(+), 278 deletions(-)
+ include/linux/swap.h |    5 +++--
+ mm/swap.c            |   22 +++++++++++++++++-----
+ mm/vmscan.c          |    4 +++-
+ mm/workingset.c      |    2 +-
+ 4 files changed, 24 insertions(+), 9 deletions(-)
 
---- a/arch/ia64/mm/hugetlbpage.c~hugetlb-simplify-hugetlb-handling-in-follow_page_mask
-+++ a/arch/ia64/mm/hugetlbpage.c
-@@ -91,21 +91,6 @@ int prepare_hugepage_range(struct file *
- 	return 0;
- }
+--- a/include/linux/swap.h~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
++++ a/include/linux/swap.h
+@@ -384,8 +384,9 @@ extern unsigned long totalreserve_pages;
  
--struct page *follow_huge_addr(struct mm_struct *mm, unsigned long addr, int write)
--{
--	struct page *page;
--	pte_t *ptep;
--
--	if (REGION_NUMBER(addr) != RGN_HPAGE)
--		return ERR_PTR(-EINVAL);
--
--	ptep = huge_pte_offset(mm, addr, HPAGE_SIZE);
--	if (!ptep || pte_none(*ptep))
--		return NULL;
--	page = pte_page(*ptep);
--	page += ((addr & ~HPAGE_MASK) >> PAGE_SHIFT);
--	return page;
--}
- int pmd_huge(pmd_t pmd)
- {
- 	return 0;
---- a/arch/powerpc/mm/hugetlbpage.c~hugetlb-simplify-hugetlb-handling-in-follow_page_mask
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -506,43 +506,6 @@ void hugetlb_free_pgd_range(struct mmu_g
- 	} while (addr = next, addr != end);
- }
  
--struct page *follow_huge_pd(struct vm_area_struct *vma,
--			    unsigned long address, hugepd_t hpd,
--			    int flags, int pdshift)
--{
--	pte_t *ptep;
--	spinlock_t *ptl;
--	struct page *page = NULL;
--	unsigned long mask;
--	int shift = hugepd_shift(hpd);
--	struct mm_struct *mm = vma->vm_mm;
--
--retry:
--	/*
--	 * hugepage directory entries are protected by mm->page_table_lock
--	 * Use this instead of huge_pte_lockptr
--	 */
--	ptl = &mm->page_table_lock;
--	spin_lock(ptl);
--
--	ptep = hugepte_offset(hpd, address, pdshift);
--	if (pte_present(*ptep)) {
--		mask = (1UL << shift) - 1;
--		page = pte_page(*ptep);
--		page += ((address & mask) >> PAGE_SHIFT);
--		if (flags & FOLL_GET)
--			get_page(page);
--	} else {
--		if (is_hugetlb_entry_migration(*ptep)) {
--			spin_unlock(ptl);
--			__migration_entry_wait(mm, ptep, ptl);
--			goto retry;
--		}
--	}
--	spin_unlock(ptl);
--	return page;
--}
--
- bool __init arch_hugetlb_valid_size(unsigned long size)
- {
- 	int shift = __ffs(size);
---- a/include/linux/hugetlb.h~hugetlb-simplify-hugetlb-handling-in-follow_page_mask
-+++ a/include/linux/hugetlb.h
-@@ -149,6 +149,8 @@ int move_hugetlb_page_tables(struct vm_a
- 			     unsigned long len);
- int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *,
- 			    struct vm_area_struct *, struct vm_area_struct *);
-+struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
-+				unsigned long address, unsigned int flags);
- long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
- 			 struct page **, struct vm_area_struct **,
- 			 unsigned long *, unsigned long *, long, unsigned int,
-@@ -209,17 +211,6 @@ int huge_pmd_unshare(struct mm_struct *m
- 				unsigned long addr, pte_t *ptep);
- void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
- 				unsigned long *start, unsigned long *end);
--struct page *follow_huge_addr(struct mm_struct *mm, unsigned long address,
--			      int write);
--struct page *follow_huge_pd(struct vm_area_struct *vma,
--			    unsigned long address, hugepd_t hpd,
--			    int flags, int pdshift);
--struct page *follow_huge_pmd_pte(struct vm_area_struct *vma, unsigned long address,
--				 int flags);
--struct page *follow_huge_pud(struct mm_struct *mm, unsigned long address,
--				pud_t *pud, int flags);
--struct page *follow_huge_pgd(struct mm_struct *mm, unsigned long address,
--			     pgd_t *pgd, int flags);
- 
- void hugetlb_vma_lock_read(struct vm_area_struct *vma);
- void hugetlb_vma_unlock_read(struct vm_area_struct *vma);
-@@ -272,6 +263,12 @@ static inline void adjust_range_if_pmd_s
- {
- }
- 
-+static inline struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
-+				unsigned long address, unsigned int flags)
-+{
-+	BUILD_BUG(); /* should never be compiled in if !CONFIG_HUGETLB_PAGE*/
-+}
-+
- static inline long follow_hugetlb_page(struct mm_struct *mm,
- 			struct vm_area_struct *vma, struct page **pages,
- 			struct vm_area_struct **vmas, unsigned long *position,
-@@ -282,12 +279,6 @@ static inline long follow_hugetlb_page(s
- 	return 0;
- }
- 
--static inline struct page *follow_huge_addr(struct mm_struct *mm,
--					unsigned long address, int write)
--{
--	return ERR_PTR(-EINVAL);
--}
--
- static inline int copy_hugetlb_page_range(struct mm_struct *dst,
- 					  struct mm_struct *src,
- 					  struct vm_area_struct *dst_vma,
-@@ -320,31 +311,6 @@ static inline void hugetlb_show_meminfo_
- {
- }
- 
--static inline struct page *follow_huge_pd(struct vm_area_struct *vma,
--				unsigned long address, hugepd_t hpd, int flags,
--				int pdshift)
--{
--	return NULL;
--}
--
--static inline struct page *follow_huge_pmd_pte(struct vm_area_struct *vma,
--				unsigned long address, int flags)
--{
--	return NULL;
--}
--
--static inline struct page *follow_huge_pud(struct mm_struct *mm,
--				unsigned long address, pud_t *pud, int flags)
--{
--	return NULL;
--}
--
--static inline struct page *follow_huge_pgd(struct mm_struct *mm,
--				unsigned long address, pgd_t *pgd, int flags)
--{
--	return NULL;
--}
--
- static inline int prepare_hugepage_range(struct file *file,
- 				unsigned long addr, unsigned long len)
- {
---- a/mm/gup.c~hugetlb-simplify-hugetlb-handling-in-follow_page_mask
-+++ a/mm/gup.c
-@@ -537,18 +537,6 @@ static struct page *follow_page_pte(stru
- 	if (WARN_ON_ONCE((flags & (FOLL_PIN | FOLL_GET)) ==
- 			 (FOLL_PIN | FOLL_GET)))
- 		return ERR_PTR(-EINVAL);
--
--	/*
--	 * Considering PTE level hugetlb, like continuous-PTE hugetlb on
--	 * ARM64 architecture.
--	 */
--	if (is_vm_hugetlb_page(vma)) {
--		page = follow_huge_pmd_pte(vma, address, flags);
--		if (page)
--			return page;
--		return no_page_table(vma, flags);
--	}
--
- retry:
- 	if (unlikely(pmd_bad(*pmd)))
- 		return no_page_table(vma, flags);
-@@ -680,20 +668,6 @@ static struct page *follow_pmd_mask(stru
- 	pmdval = READ_ONCE(*pmd);
- 	if (pmd_none(pmdval))
- 		return no_page_table(vma, flags);
--	if (pmd_huge(pmdval) && is_vm_hugetlb_page(vma)) {
--		page = follow_huge_pmd_pte(vma, address, flags);
--		if (page)
--			return page;
--		return no_page_table(vma, flags);
--	}
--	if (is_hugepd(__hugepd(pmd_val(pmdval)))) {
--		page = follow_huge_pd(vma, address,
--				      __hugepd(pmd_val(pmdval)), flags,
--				      PMD_SHIFT);
--		if (page)
--			return page;
--		return no_page_table(vma, flags);
--	}
- retry:
- 	if (!pmd_present(pmdval)) {
- 		/*
-@@ -783,20 +757,6 @@ static struct page *follow_pud_mask(stru
- 	pud = pud_offset(p4dp, address);
- 	if (pud_none(*pud))
- 		return no_page_table(vma, flags);
--	if (pud_huge(*pud) && is_vm_hugetlb_page(vma)) {
--		page = follow_huge_pud(mm, address, pud, flags);
--		if (page)
--			return page;
--		return no_page_table(vma, flags);
--	}
--	if (is_hugepd(__hugepd(pud_val(*pud)))) {
--		page = follow_huge_pd(vma, address,
--				      __hugepd(pud_val(*pud)), flags,
--				      PUD_SHIFT);
--		if (page)
--			return page;
--		return no_page_table(vma, flags);
--	}
- 	if (pud_devmap(*pud)) {
- 		ptl = pud_lock(mm, pud);
- 		page = follow_devmap_pud(vma, address, pud, flags, &ctx->pgmap);
-@@ -816,7 +776,6 @@ static struct page *follow_p4d_mask(stru
- 				    struct follow_page_context *ctx)
- {
- 	p4d_t *p4d;
--	struct page *page;
- 
- 	p4d = p4d_offset(pgdp, address);
- 	if (p4d_none(*p4d))
-@@ -825,14 +784,6 @@ static struct page *follow_p4d_mask(stru
- 	if (unlikely(p4d_bad(*p4d)))
- 		return no_page_table(vma, flags);
- 
--	if (is_hugepd(__hugepd(p4d_val(*p4d)))) {
--		page = follow_huge_pd(vma, address,
--				      __hugepd(p4d_val(*p4d)), flags,
--				      P4D_SHIFT);
--		if (page)
--			return page;
--		return no_page_table(vma, flags);
--	}
- 	return follow_pud_mask(vma, address, p4d, flags, ctx);
- }
- 
-@@ -870,10 +821,18 @@ static struct page *follow_page_mask(str
- 
- 	ctx->page_mask = 0;
- 
--	/* make this handle hugepd */
--	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
--	if (!IS_ERR(page)) {
--		WARN_ON_ONCE(flags & (FOLL_GET | FOLL_PIN));
-+	/*
-+	 * Call hugetlb_follow_page_mask for hugetlb vmas as it will use
-+	 * special hugetlb page table walking code.  This eliminates the
-+	 * need to check for hugetlb entries in the general walking code.
-+	 *
-+	 * hugetlb_follow_page_mask is only for follow_page() handling here.
-+	 * Ordinary GUP uses follow_hugetlb_page for hugetlb processing.
-+	 */
-+	if (is_vm_hugetlb_page(vma)) {
-+		page = hugetlb_follow_page_mask(vma, address, flags);
-+		if (!page)
-+			page = no_page_table(vma, flags);
- 		return page;
+ /* linux/mm/swap.c */
+-void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages);
+-void lru_note_cost_folio(struct folio *);
++void lru_note_cost(struct lruvec *lruvec, bool file,
++		   unsigned int nr_io, unsigned int nr_rotated);
++void lru_note_cost_refault(struct folio *);
+ void folio_add_lru(struct folio *);
+ void folio_add_lru_vma(struct folio *, struct vm_area_struct *);
+ void lru_cache_add(struct page *);
+--- a/mm/swap.c~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
++++ a/mm/swap.c
+@@ -295,8 +295,20 @@ void folio_rotate_reclaimable(struct fol
  	}
- 
-@@ -882,21 +841,6 @@ static struct page *follow_page_mask(str
- 	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
- 		return no_page_table(vma, flags);
- 
--	if (pgd_huge(*pgd)) {
--		page = follow_huge_pgd(mm, address, pgd, flags);
--		if (page)
--			return page;
--		return no_page_table(vma, flags);
--	}
--	if (is_hugepd(__hugepd(pgd_val(*pgd)))) {
--		page = follow_huge_pd(vma, address,
--				      __hugepd(pgd_val(*pgd)), flags,
--				      PGDIR_SHIFT);
--		if (page)
--			return page;
--		return no_page_table(vma, flags);
--	}
--
- 	return follow_p4d_mask(vma, address, pgd, flags, ctx);
  }
  
---- a/mm/hugetlb.c~hugetlb-simplify-hugetlb-handling-in-follow_page_mask
-+++ a/mm/hugetlb.c
-@@ -6209,6 +6209,62 @@ static inline bool __follow_hugetlb_must
- 	return false;
- }
- 
-+struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
-+				unsigned long address, unsigned int flags)
-+{
-+	struct hstate *h = hstate_vma(vma);
-+	struct mm_struct *mm = vma->vm_mm;
-+	unsigned long haddr = address & huge_page_mask(h);
-+	struct page *page = NULL;
-+	spinlock_t *ptl;
-+	pte_t *pte, entry;
+-void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages)
++void lru_note_cost(struct lruvec *lruvec, bool file,
++		   unsigned int nr_io, unsigned int nr_rotated)
+ {
++	unsigned long cost;
 +
 +	/*
-+	 * FOLL_PIN is not supported for follow_page(). Ordinary GUP goes via
-+	 * follow_hugetlb_page().
++	 * Reflect the relative cost of incurring IO and spending CPU
++	 * time on rotations. This doesn't attempt to make a precise
++	 * comparison, it just says: if reloads are about comparable
++	 * between the LRU lists, or rotations are overwhelmingly
++	 * different between them, adjust scan balance for CPU work.
 +	 */
-+	if (WARN_ON_ONCE(flags & FOLL_PIN))
-+		return NULL;
++	cost = nr_io * SWAP_CLUSTER_MAX + nr_rotated;
 +
-+retry:
-+	pte = huge_pte_offset(mm, haddr, huge_page_size(h));
-+	if (!pte)
-+		return NULL;
-+
-+	ptl = huge_pte_lock(h, mm, pte);
-+	entry = huge_ptep_get(pte);
-+	if (pte_present(entry)) {
-+		page = pte_page(entry) +
-+				((address & ~huge_page_mask(h)) >> PAGE_SHIFT);
-+		/*
-+		 * Note that page may be a sub-page, and with vmemmap
-+		 * optimizations the page struct may be read only.
-+		 * try_grab_page() will increase the ref count on the
-+		 * head page, so this will be OK.
-+		 *
-+		 * try_grab_page() should always succeed here, because we hold
-+		 * the ptl lock and have verified pte_present().
-+		 */
-+		if (WARN_ON_ONCE(!try_grab_page(page, flags))) {
-+			page = NULL;
-+			goto out;
-+		}
-+	} else {
-+		if (is_hugetlb_entry_migration(entry)) {
-+			spin_unlock(ptl);
-+			__migration_entry_wait_huge(pte, ptl);
-+			goto retry;
-+		}
-+		/*
-+		 * hwpoisoned entry is treated as no_page_table in
-+		 * follow_page_mask().
-+		 */
-+	}
-+out:
-+	spin_unlock(ptl);
-+	return page;
-+}
-+
- long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			 struct page **pages, struct vm_area_struct **vmas,
- 			 unsigned long *position, unsigned long *nr_pages,
-@@ -7201,122 +7257,6 @@ __weak unsigned long hugetlb_mask_last_p
-  * These functions are overwritable if your architecture needs its own
-  * behavior.
-  */
--struct page * __weak
--follow_huge_addr(struct mm_struct *mm, unsigned long address,
--			      int write)
--{
--	return ERR_PTR(-EINVAL);
--}
--
--struct page * __weak
--follow_huge_pd(struct vm_area_struct *vma,
--	       unsigned long address, hugepd_t hpd, int flags, int pdshift)
--{
--	WARN(1, "hugepd follow called with no support for hugepage directory format\n");
--	return NULL;
--}
--
--struct page * __weak
--follow_huge_pmd_pte(struct vm_area_struct *vma, unsigned long address, int flags)
--{
--	struct hstate *h = hstate_vma(vma);
--	struct mm_struct *mm = vma->vm_mm;
--	struct page *page = NULL;
--	spinlock_t *ptl;
--	pte_t *ptep, pte;
--
--	/*
--	 * FOLL_PIN is not supported for follow_page(). Ordinary GUP goes via
--	 * follow_hugetlb_page().
--	 */
--	if (WARN_ON_ONCE(flags & FOLL_PIN))
--		return NULL;
--
--retry:
--	ptep = huge_pte_offset(mm, address, huge_page_size(h));
--	if (!ptep)
--		return NULL;
--
--	ptl = huge_pte_lock(h, mm, ptep);
--	pte = huge_ptep_get(ptep);
--	if (pte_present(pte)) {
--		page = pte_page(pte) +
--			((address & ~huge_page_mask(h)) >> PAGE_SHIFT);
--		/*
--		 * try_grab_page() should always succeed here, because: a) we
--		 * hold the pmd (ptl) lock, and b) we've just checked that the
--		 * huge pmd (head) page is present in the page tables. The ptl
--		 * prevents the head page and tail pages from being rearranged
--		 * in any way. So this page must be available at this point,
--		 * unless the page refcount overflowed:
--		 */
--		if (WARN_ON_ONCE(!try_grab_page(page, flags))) {
--			page = NULL;
--			goto out;
--		}
--	} else {
--		if (is_hugetlb_entry_migration(pte)) {
--			spin_unlock(ptl);
--			__migration_entry_wait_huge(ptep, ptl);
--			goto retry;
--		}
--		/*
--		 * hwpoisoned entry is treated as no_page_table in
--		 * follow_page_mask().
--		 */
--	}
--out:
--	spin_unlock(ptl);
--	return page;
--}
--
--struct page * __weak
--follow_huge_pud(struct mm_struct *mm, unsigned long address,
--		pud_t *pud, int flags)
--{
--	struct page *page = NULL;
--	spinlock_t *ptl;
--	pte_t pte;
--
--	if (WARN_ON_ONCE(flags & FOLL_PIN))
--		return NULL;
--
--retry:
--	ptl = huge_pte_lock(hstate_sizelog(PUD_SHIFT), mm, (pte_t *)pud);
--	if (!pud_huge(*pud))
--		goto out;
--	pte = huge_ptep_get((pte_t *)pud);
--	if (pte_present(pte)) {
--		page = pud_page(*pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
--		if (WARN_ON_ONCE(!try_grab_page(page, flags))) {
--			page = NULL;
--			goto out;
--		}
--	} else {
--		if (is_hugetlb_entry_migration(pte)) {
--			spin_unlock(ptl);
--			__migration_entry_wait(mm, (pte_t *)pud, ptl);
--			goto retry;
--		}
--		/*
--		 * hwpoisoned entry is treated as no_page_table in
--		 * follow_page_mask().
--		 */
--	}
--out:
--	spin_unlock(ptl);
--	return page;
--}
--
--struct page * __weak
--follow_huge_pgd(struct mm_struct *mm, unsigned long address, pgd_t *pgd, int flags)
--{
--	if (flags & (FOLL_GET | FOLL_PIN))
--		return NULL;
--
--	return pte_page(*(pte_t *)pgd) + ((address & ~PGDIR_MASK) >> PAGE_SHIFT);
--}
--
- int isolate_hugetlb(struct page *page, struct list_head *list)
+ 	do {
+ 		unsigned long lrusize;
+ 
+@@ -310,9 +322,9 @@ void lru_note_cost(struct lruvec *lruvec
+ 		spin_lock_irq(&lruvec->lru_lock);
+ 		/* Record cost event */
+ 		if (file)
+-			lruvec->file_cost += nr_pages;
++			lruvec->file_cost += cost;
+ 		else
+-			lruvec->anon_cost += nr_pages;
++			lruvec->anon_cost += cost;
+ 
+ 		/*
+ 		 * Decay previous events
+@@ -335,10 +347,10 @@ void lru_note_cost(struct lruvec *lruvec
+ 	} while ((lruvec = parent_lruvec(lruvec)));
+ }
+ 
+-void lru_note_cost_folio(struct folio *folio)
++void lru_note_cost_refault(struct folio *folio)
  {
- 	int ret = 0;
+ 	lru_note_cost(folio_lruvec(folio), folio_is_file_lru(folio),
+-			folio_nr_pages(folio));
++		      folio_nr_pages(folio), 0);
+ }
+ 
+ static void folio_activate_fn(struct lruvec *lruvec, struct folio *folio)
+--- a/mm/vmscan.c~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
++++ a/mm/vmscan.c
+@@ -2499,7 +2499,7 @@ static unsigned long shrink_inactive_lis
+ 	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
+ 	spin_unlock_irq(&lruvec->lru_lock);
+ 
+-	lru_note_cost(lruvec, file, stat.nr_pageout);
++	lru_note_cost(lruvec, file, stat.nr_pageout, nr_scanned - nr_reclaimed);
+ 	mem_cgroup_uncharge_list(&folio_list);
+ 	free_unref_page_list(&folio_list);
+ 
+@@ -2639,6 +2639,8 @@ static void shrink_active_list(unsigned
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+ 	spin_unlock_irq(&lruvec->lru_lock);
+ 
++	if (nr_rotated)
++		lru_note_cost(lruvec, file, 0, nr_rotated);
+ 	mem_cgroup_uncharge_list(&l_active);
+ 	free_unref_page_list(&l_active);
+ 	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
+--- a/mm/workingset.c~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
++++ a/mm/workingset.c
+@@ -493,7 +493,7 @@ void workingset_refault(struct folio *fo
+ 	if (workingset) {
+ 		folio_set_workingset(folio);
+ 		/* XXX: Move to lru_cache_add() when it supports new vs putback */
+-		lru_note_cost_folio(folio);
++		lru_note_cost_refault(folio);
+ 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + file, nr);
+ 	}
+ out:
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
-selftests-vm-update-hugetlb-madvise.patch
+mm-vmscan-split-khugepaged-stats-from-direct-reclaim-stats.patch
+zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
+mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
 
