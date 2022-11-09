@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28B23C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 017E7C4321E
 	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:42:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230104AbiKIBmc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:42:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35288 "EHLO
+        id S229453AbiKIBme (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:42:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229891AbiKIBkc (ORCPT
+        with ESMTP id S230107AbiKIBkc (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:40:32 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08D3F657C9
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1B3B686A2
         for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8BFD361803
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3364C43470;
-        Wed,  9 Nov 2022 01:39:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8EF94617D1
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8230C433C1;
+        Wed,  9 Nov 2022 01:39:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957989;
-        bh=7DukY/3Q6OTqnqTPinv7rmMV0QJlp3PaAi9cN7fI98o=;
+        s=korg; t=1667957990;
+        bh=uCfSewO5IgKeNhvDQxfTmrwgz8McaoTK7G6VG/+f0M0=;
         h=Date:To:From:Subject:From;
-        b=ipIym0p38pMCbIlUAlAQi1yVaUzm9weifQI/n/oAfO1QqaMIBYVLnxIkGH2JffI0p
-         muSwYkCn3F/mjkDF3nJnAzEB+B1C95WWpaTlbRX18/5utTbJv1BE1JQXffxDlpG1Qd
-         Y67I1graLbd+58NZhnobGCKGdSXD93+d6PkYEk4U=
-Date:   Tue, 08 Nov 2022 17:39:48 -0800
+        b=uBFP5rgFYpoNtaq06WwcEnaK0fITGl97BDhrPSiWzu2ZA/nDUAqoj4EasX9sUVimE
+         XeM8Kv2FzRVeImfOF4qXT/O0a6jFYjVy2qOT5bd/XW3BrQMWH+EMmz01xTcYBgLFaV
+         1ahrZBimWa1qa9fffLKHvtFxp9ugqgrrQQ1WSU40=
+Date:   Tue, 08 Nov 2022 17:39:49 -0800
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch removed from -mm tree
-Message-Id: <20221109013948.E3364C43470@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch removed from -mm tree
+Message-Id: <20221109013949.E8230C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,160 +41,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/modules: deduplicate init steps for DAMON context setup
+     Subject: mm/damon/{reclaim,lru_sort}: remove unnecessarily included headers
 has been removed from the -mm tree.  Its filename was
-     mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch
+     mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/modules: deduplicate init steps for DAMON context setup
-Date: Wed, 26 Oct 2022 22:59:42 +0000
+Subject: mm/damon/{reclaim,lru_sort}: remove unnecessarily included headers
+Date: Wed, 26 Oct 2022 22:59:43 +0000
 
-DAMON_RECLAIM and DAMON_LRU_SORT has duplicated code for DAMON context and
-target initializations.  Deduplicate the part by implementing a function
-for the initialization in 'modules-common.c' and using it.
+Some headers that 'reclaim.c' and 'lru_sort.c' are including are
+unnecessary now owing to previous cleanups and refactorings.  Remove
+those.
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-12-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221026225943.100429-13-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/Makefile         |    4 +--
- mm/damon/lru_sort.c       |   17 ++------------
- mm/damon/modules-common.c |   42 ++++++++++++++++++++++++++++++++++++
- mm/damon/modules-common.h |    3 ++
- mm/damon/reclaim.c        |   17 ++------------
- 5 files changed, 53 insertions(+), 30 deletions(-)
+ mm/damon/lru_sort.c |    2 --
+ mm/damon/reclaim.c  |    2 --
+ 2 files changed, 4 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
+--- a/mm/damon/lru_sort.c~mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers
 +++ a/mm/damon/lru_sort.c
-@@ -314,25 +314,14 @@ static int damon_lru_sort_after_wmarks_c
+@@ -8,9 +8,7 @@
+ #define pr_fmt(fmt) "damon-lru-sort: " fmt
  
- static int __init damon_lru_sort_init(void)
- {
--	ctx = damon_new_ctx();
--	if (!ctx)
--		return -ENOMEM;
-+	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
+ #include <linux/damon.h>
+-#include <linux/ioport.h>
+ #include <linux/module.h>
+-#include <linux/sched.h>
+ #include <linux/workqueue.h>
  
--	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
--		damon_destroy_ctx(ctx);
--		return -EINVAL;
--	}
-+	if (err)
-+		return err;
- 
- 	ctx->callback.after_wmarks_check = damon_lru_sort_after_wmarks_check;
- 	ctx->callback.after_aggregation = damon_lru_sort_after_aggregation;
- 
--	target = damon_new_target();
--	if (!target) {
--		damon_destroy_ctx(ctx);
--		return -ENOMEM;
--	}
--	damon_add_target(ctx, target);
--
- 	schedule_delayed_work(&damon_lru_sort_timer, 0);
- 
- 	damon_lru_sort_initialized = true;
---- a/mm/damon/Makefile~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
-+++ a/mm/damon/Makefile
-@@ -5,5 +5,5 @@ obj-$(CONFIG_DAMON_VADDR)	+= ops-common.
- obj-$(CONFIG_DAMON_PADDR)	+= ops-common.o paddr.o
- obj-$(CONFIG_DAMON_SYSFS)	+= sysfs-common.o sysfs-schemes.o sysfs.o
- obj-$(CONFIG_DAMON_DBGFS)	+= dbgfs.o
--obj-$(CONFIG_DAMON_RECLAIM)	+= reclaim.o
--obj-$(CONFIG_DAMON_LRU_SORT)	+= lru_sort.o
-+obj-$(CONFIG_DAMON_RECLAIM)	+= modules-common.o reclaim.o
-+obj-$(CONFIG_DAMON_LRU_SORT)	+= modules-common.o lru_sort.o
---- /dev/null
-+++ a/mm/damon/modules-common.c
-@@ -0,0 +1,42 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Common Primitives for DAMON Modules
-+ *
-+ * Author: SeongJae Park <sjpark@amazon.de>
-+ */
-+
-+#include <linux/damon.h>
-+
-+#include "modules-common.h"
-+
-+/*
-+ * Allocate, set, and return a DAMON context for the physical address space.
-+ * @ctxp:	Pointer to save the point to the newly created context
-+ * @targetp:	Pointer to save the point to the newly created target
-+ */
-+int damon_modules_new_paddr_ctx_target(struct damon_ctx **ctxp,
-+		struct damon_target **targetp)
-+{
-+	struct damon_ctx *ctx;
-+	struct damon_target *target;
-+
-+	ctx = damon_new_ctx();
-+	if (!ctx)
-+		return -ENOMEM;
-+
-+	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
-+		damon_destroy_ctx(ctx);
-+		return -EINVAL;
-+	}
-+
-+	target = damon_new_target();
-+	if (!target) {
-+		damon_destroy_ctx(ctx);
-+		return -ENOMEM;
-+	}
-+	damon_add_target(ctx, target);
-+
-+	*ctxp = ctx;
-+	*targetp = target;
-+	return 0;
-+}
---- a/mm/damon/modules-common.h~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
-+++ a/mm/damon/modules-common.h
-@@ -44,3 +44,6 @@
- 			0400);						\
- 	module_param_named(nr_##qt_exceed_name, stat.qt_exceeds, ulong,	\
- 			0400);
-+
-+int damon_modules_new_paddr_ctx_target(struct damon_ctx **ctxp,
-+		struct damon_target **targetp);
---- a/mm/damon/reclaim.c~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
+ #include "modules-common.h"
+--- a/mm/damon/reclaim.c~mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers
 +++ a/mm/damon/reclaim.c
-@@ -256,25 +256,14 @@ static int damon_reclaim_after_wmarks_ch
+@@ -8,9 +8,7 @@
+ #define pr_fmt(fmt) "damon-reclaim: " fmt
  
- static int __init damon_reclaim_init(void)
- {
--	ctx = damon_new_ctx();
--	if (!ctx)
--		return -ENOMEM;
-+	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
+ #include <linux/damon.h>
+-#include <linux/ioport.h>
+ #include <linux/module.h>
+-#include <linux/sched.h>
+ #include <linux/workqueue.h>
  
--	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
--		damon_destroy_ctx(ctx);
--		return -EINVAL;
--	}
-+	if (err)
-+		return err;
- 
- 	ctx->callback.after_wmarks_check = damon_reclaim_after_wmarks_check;
- 	ctx->callback.after_aggregation = damon_reclaim_after_aggregation;
- 
--	target = damon_new_target();
--	if (!target) {
--		damon_destroy_ctx(ctx);
--		return -ENOMEM;
--	}
--	damon_add_target(ctx, target);
--
- 	schedule_delayed_work(&damon_reclaim_timer, 0);
- 
- 	damon_reclaim_initialized = true;
+ #include "modules-common.h"
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
