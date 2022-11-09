@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD7C5C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCD77C43217
 	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:38:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229911AbiKIBiu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:38:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35296 "EHLO
+        id S229912AbiKIBiv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:38:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229924AbiKIBid (ORCPT
+        with ESMTP id S230000AbiKIBid (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:38:33 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 192F5B493
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:38:26 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7215613D09
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:38:28 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DE8E56181D
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:38:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 431DFC433C1;
-        Wed,  9 Nov 2022 01:38:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0010B61820
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:38:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AB48C433C1;
+        Wed,  9 Nov 2022 01:38:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957905;
-        bh=eT4vu/2cgDQ5tGjE7P/b35Mtq0N7BftKONNoGcogghE=;
+        s=korg; t=1667957907;
+        bh=ZJ5AAgI5wL/YgbPriniRhRPBQKoT3d8AW4wOIxDXnwE=;
         h=Date:To:From:Subject:From;
-        b=LgNgk5Q7jQ8xW4bydS1jq7qZtnNL2xIc47pfaosJ7i/2WiEEnoJSa0fBh1XoY/uW0
-         W8rCxHtoHh5TTQFFFKGCV+9XdfoKBQCaLUsI67Q3ct2ebXRtCg1U0HF15e+wASUWOz
-         GdRiZ1dSGiUB6w2DEoSjpbfsVzuFMNuUdTMDi3rc=
-Date:   Tue, 08 Nov 2022 17:38:24 -0800
-To:     mm-commits@vger.kernel.org, tom.hromatka@oracle.com,
-        songmuchun@bytedance.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
-        kamalesh.babulal@oracle.com, akpm@linux-foundation.org
+        b=nmSmddyRvET15imhUdrqILnXdShD8Z0USDkQwFAi7rtFDBTZGfWjYM7jKnXD4tQY3
+         x6iVAsikeRugUV89lEpZ4lpxjCWuM6nMJZ2bw1VDnpB2fRADf3WmN+Xh+kpQ1z4mqn
+         PKrqLSg0qbyrb5UYNd4Xisjj7m+qHRkgbF6lAUL8=
+Date:   Tue, 08 Nov 2022 17:38:26 -0800
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-use-mem_cgroup_is_root-helper.patch removed from -mm tree
-Message-Id: <20221109013825.431DFC433C1@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-switch-kunit-tests-to-console-tracepoints.patch removed from -mm tree
+Message-Id: <20221109013827.5AB48C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,130 +42,282 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: use mem_cgroup_is_root() helper
+     Subject: kasan: switch kunit tests to console tracepoints
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-use-mem_cgroup_is_root-helper.patch
+     kasan-switch-kunit-tests-to-console-tracepoints.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kamalesh Babulal <kamalesh.babulal@oracle.com>
-Subject: mm: memcontrol: use mem_cgroup_is_root() helper
-Date: Fri, 30 Sep 2022 19:14:33 +0530
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: switch kunit tests to console tracepoints
+Date: Tue, 27 Sep 2022 19:09:09 +0200
 
-Replace the checks for memcg is root memcg, with mem_cgroup_is_root()
-helper.
+Switch KUnit-compatible KASAN tests from using per-task KUnit resources to
+console tracepoints.
 
-Link: https://lkml.kernel.org/r/20220930134433.338103-1-kamalesh.babulal@oracle.com
-Signed-off-by: Kamalesh Babulal <kamalesh.babulal@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tom Hromatka <tom.hromatka@oracle.com>
+This allows for two things:
+
+1. Migrating tests that trigger a KASAN report in the context of a task
+   other than current to KUnit framework.
+   This is implemented in the patches that follow.
+
+2. Parsing and matching the contents of KASAN reports.
+   This is not yet implemented.
+
+Link: https://lkml.kernel.org/r/9345acdd11e953b207b0ed4724ff780e63afeb36.1664298455.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ lib/Kconfig.kasan     |    2 
+ mm/kasan/kasan.h      |    8 ---
+ mm/kasan/kasan_test.c |   85 +++++++++++++++++++++++++++++-----------
+ mm/kasan/report.c     |   31 --------------
+ 4 files changed, 63 insertions(+), 63 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-use-mem_cgroup_is_root-helper
-+++ a/mm/memcontrol.c
-@@ -1219,7 +1219,7 @@ static void invalidate_reclaim_iterators
- 	 * cgroup root (root_mem_cgroup). So we have to handle
- 	 * dead_memcg from cgroup root separately.
- 	 */
--	if (last != root_mem_cgroup)
-+	if (!mem_cgroup_is_root(last))
- 		__invalidate_reclaim_iterators(root_mem_cgroup,
- 						dead_memcg);
- }
-@@ -1243,7 +1243,7 @@ int mem_cgroup_scan_tasks(struct mem_cgr
- 	struct mem_cgroup *iter;
- 	int ret = 0;
+--- a/lib/Kconfig.kasan~kasan-switch-kunit-tests-to-console-tracepoints
++++ a/lib/Kconfig.kasan
+@@ -181,7 +181,7 @@ config KASAN_VMALLOC
  
--	BUG_ON(memcg == root_mem_cgroup);
-+	BUG_ON(mem_cgroup_is_root(memcg));
+ config KASAN_KUNIT_TEST
+ 	tristate "KUnit-compatible tests of KASAN bug detection capabilities" if !KUNIT_ALL_TESTS
+-	depends on KASAN && KUNIT
++	depends on KASAN && KUNIT && TRACEPOINTS
+ 	default KUNIT_ALL_TESTS
+ 	help
+ 	  A KUnit-based KASAN test suite. Triggers different kinds of
+--- a/mm/kasan/kasan.h~kasan-switch-kunit-tests-to-console-tracepoints
++++ a/mm/kasan/kasan.h
+@@ -261,14 +261,6 @@ struct kasan_stack_ring {
  
- 	for_each_mem_cgroup_tree(iter, memcg) {
- 		struct css_task_iter it;
-@@ -1272,7 +1272,7 @@ void lruvec_memcg_debug(struct lruvec *l
- 	memcg = folio_memcg(folio);
+ #endif /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
  
- 	if (!memcg)
--		VM_BUG_ON_FOLIO(lruvec_memcg(lruvec) != root_mem_cgroup, folio);
-+		VM_BUG_ON_FOLIO(!mem_cgroup_is_root(lruvec_memcg(lruvec)), folio);
- 	else
- 		VM_BUG_ON_FOLIO(lruvec_memcg(lruvec) != memcg, folio);
- }
-@@ -2036,7 +2036,7 @@ struct mem_cgroup *mem_cgroup_get_oom_gr
- 	rcu_read_lock();
+-#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+-/* Used in KUnit-compatible KASAN tests. */
+-struct kunit_kasan_status {
+-	bool report_found;
+-	bool sync_fault;
+-};
+-#endif
+-
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
  
- 	memcg = mem_cgroup_from_task(victim);
--	if (memcg == root_mem_cgroup)
-+	if (mem_cgroup_is_root(memcg))
- 		goto out;
+ static inline const void *kasan_shadow_to_mem(const void *shadow_addr)
+--- a/mm/kasan/kasan_test.c~kasan-switch-kunit-tests-to-console-tracepoints
++++ a/mm/kasan/kasan_test.c
+@@ -5,8 +5,12 @@
+  * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
+  */
  
- 	/*
-@@ -2995,7 +2995,7 @@ static struct obj_cgroup *__get_obj_cgro
++#define pr_fmt(fmt) "kasan_test: " fmt
++
++#include <kunit/test.h>
+ #include <linux/bitops.h>
+ #include <linux/delay.h>
++#include <linux/io.h>
+ #include <linux/kasan.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+@@ -14,21 +18,28 @@
+ #include <linux/module.h>
+ #include <linux/printk.h>
+ #include <linux/random.h>
++#include <linux/set_memory.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
++#include <linux/tracepoint.h>
+ #include <linux/uaccess.h>
+-#include <linux/io.h>
+ #include <linux/vmalloc.h>
+-#include <linux/set_memory.h>
++#include <trace/events/printk.h>
+ 
+ #include <asm/page.h>
+ 
+-#include <kunit/test.h>
+-
+ #include "kasan.h"
+ 
+ #define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_GRANULE_SIZE)
+ 
++static bool multishot;
++
++/* Fields set based on lines observed in the console. */
++static struct {
++	bool report_found;
++	bool async_fault;
++} test_status;
++
+ /*
+  * Some tests use these global variables to store return values from function
+  * calls that could otherwise be eliminated by the compiler as dead code.
+@@ -36,35 +47,61 @@
+ void *kasan_ptr_result;
+ int kasan_int_result;
+ 
+-static struct kunit_resource resource;
+-static struct kunit_kasan_status test_status;
+-static bool multishot;
++/* Probe for console output: obtains test_status lines of interest. */
++static void probe_console(void *ignore, const char *buf, size_t len)
++{
++	if (strnstr(buf, "BUG: KASAN: ", len))
++		WRITE_ONCE(test_status.report_found, true);
++	else if (strnstr(buf, "Asynchronous fault: ", len))
++		WRITE_ONCE(test_status.async_fault, true);
++}
+ 
+-/*
+- * Temporarily enable multi-shot mode. Otherwise, KASAN would only report the
+- * first detected bug and panic the kernel if panic_on_warn is enabled. For
+- * hardware tag-based KASAN also allow tag checking to be reenabled for each
+- * test, see the comment for KUNIT_EXPECT_KASAN_FAIL().
+- */
+-static int kasan_test_init(struct kunit *test)
++static void register_tracepoints(struct tracepoint *tp, void *ignore)
++{
++	check_trace_callback_type_console(probe_console);
++	if (!strcmp(tp->name, "console"))
++		WARN_ON(tracepoint_probe_register(tp, probe_console, NULL));
++}
++
++static void unregister_tracepoints(struct tracepoint *tp, void *ignore)
++{
++	if (!strcmp(tp->name, "console"))
++		tracepoint_probe_unregister(tp, probe_console, NULL);
++}
++
++static int kasan_suite_init(struct kunit_suite *suite)
  {
- 	struct obj_cgroup *objcg = NULL;
+ 	if (!kasan_enabled()) {
+-		kunit_err(test, "can't run KASAN tests with KASAN disabled");
++		pr_err("Can't run KASAN tests with KASAN disabled");
+ 		return -1;
+ 	}
  
--	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg)) {
-+	for (; !mem_cgroup_is_root(memcg); memcg = parent_mem_cgroup(memcg)) {
- 		objcg = rcu_dereference(memcg->objcg);
- 		if (objcg && obj_cgroup_tryget(objcg))
- 			break;
-@@ -7163,7 +7163,7 @@ void mem_cgroup_sk_alloc(struct sock *sk
++	/*
++	 * Temporarily enable multi-shot mode. Otherwise, KASAN would only
++	 * report the first detected bug and panic the kernel if panic_on_warn
++	 * is enabled.
++	 */
+ 	multishot = kasan_save_enable_multi_shot();
+-	test_status.report_found = false;
+-	test_status.sync_fault = false;
+-	kunit_add_named_resource(test, NULL, NULL, &resource,
+-					"kasan_status", &test_status);
++
++	/*
++	 * Because we want to be able to build the test as a module, we need to
++	 * iterate through all known tracepoints, since the static registration
++	 * won't work here.
++	 */
++	for_each_kernel_tracepoint(register_tracepoints, NULL);
+ 	return 0;
+ }
  
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_task(current);
--	if (memcg == root_mem_cgroup)
-+	if (mem_cgroup_is_root(memcg))
- 		goto out;
- 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && !memcg->tcpmem_active)
- 		goto out;
-@@ -7298,7 +7298,7 @@ static struct mem_cgroup *mem_cgroup_id_
- 		 * The root cgroup cannot be destroyed, so it's refcount must
- 		 * always be >= 1.
- 		 */
--		if (WARN_ON_ONCE(memcg == root_mem_cgroup)) {
-+		if (WARN_ON_ONCE(mem_cgroup_is_root(memcg))) {
- 			VM_BUG_ON(1);
- 			break;
- 		}
-@@ -7462,7 +7462,7 @@ long mem_cgroup_get_nr_swap_pages(struct
+-static void kasan_test_exit(struct kunit *test)
++static void kasan_suite_exit(struct kunit_suite *suite)
+ {
+ 	kasan_restore_multi_shot(multishot);
+-	KUNIT_EXPECT_FALSE(test, test_status.report_found);
++	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
++	tracepoint_synchronize_unregister();
++}
++
++static void kasan_test_exit(struct kunit *test)
++{
++	KUNIT_EXPECT_FALSE(test, READ_ONCE(test_status.report_found));
+ }
  
- 	if (mem_cgroup_disabled() || do_memsw_account())
- 		return nr_swap_pages;
--	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg))
-+	for (; !mem_cgroup_is_root(memcg); memcg = parent_mem_cgroup(memcg))
- 		nr_swap_pages = min_t(long, nr_swap_pages,
- 				      READ_ONCE(memcg->swap.max) -
- 				      page_counter_read(&memcg->swap));
-@@ -7484,7 +7484,7 @@ bool mem_cgroup_swap_full(struct folio *
- 	if (!memcg)
- 		return false;
+ /**
+@@ -106,11 +143,12 @@ static void kasan_test_exit(struct kunit
+ 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&				\
+ 	    kasan_sync_fault_possible()) {				\
+ 		if (READ_ONCE(test_status.report_found) &&		\
+-		    READ_ONCE(test_status.sync_fault))			\
++		    !READ_ONCE(test_status.async_fault))		\
+ 			kasan_enable_tagging();				\
+ 		migrate_enable();					\
+ 	}								\
+ 	WRITE_ONCE(test_status.report_found, false);			\
++	WRITE_ONCE(test_status.async_fault, false);			\
+ } while (0)
  
--	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg)) {
-+	for (; !mem_cgroup_is_root(memcg); memcg = parent_mem_cgroup(memcg)) {
- 		unsigned long usage = page_counter_read(&memcg->swap);
+ #define KASAN_TEST_NEEDS_CONFIG_ON(test, config) do {			\
+@@ -1447,9 +1485,10 @@ static struct kunit_case kasan_kunit_tes
  
- 		if (usage * 2 >= READ_ONCE(memcg->swap.high) ||
-@@ -7648,7 +7648,7 @@ bool obj_cgroup_may_zswap(struct obj_cgr
- 		return true;
+ static struct kunit_suite kasan_kunit_test_suite = {
+ 	.name = "kasan",
+-	.init = kasan_test_init,
+ 	.test_cases = kasan_kunit_test_cases,
+ 	.exit = kasan_test_exit,
++	.suite_init = kasan_suite_init,
++	.suite_exit = kasan_suite_exit,
+ };
  
- 	original_memcg = get_mem_cgroup_from_objcg(objcg);
--	for (memcg = original_memcg; memcg != root_mem_cgroup;
-+	for (memcg = original_memcg; !mem_cgroup_is_root(memcg);
- 	     memcg = parent_mem_cgroup(memcg)) {
- 		unsigned long max = READ_ONCE(memcg->zswap_max);
- 		unsigned long pages;
+ kunit_test_suite(kasan_kunit_test_suite);
+--- a/mm/kasan/report.c~kasan-switch-kunit-tests-to-console-tracepoints
++++ a/mm/kasan/report.c
+@@ -30,8 +30,6 @@
+ 
+ #include <asm/sections.h>
+ 
+-#include <kunit/test.h>
+-
+ #include "kasan.h"
+ #include "../slab.h"
+ 
+@@ -114,41 +112,12 @@ EXPORT_SYMBOL_GPL(kasan_restore_multi_sh
+ 
+ #endif
+ 
+-#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+-static void update_kunit_status(bool sync)
+-{
+-	struct kunit *test;
+-	struct kunit_resource *resource;
+-	struct kunit_kasan_status *status;
+-
+-	test = current->kunit_test;
+-	if (!test)
+-		return;
+-
+-	resource = kunit_find_named_resource(test, "kasan_status");
+-	if (!resource) {
+-		kunit_set_failure(test);
+-		return;
+-	}
+-
+-	status = (struct kunit_kasan_status *)resource->data;
+-	WRITE_ONCE(status->report_found, true);
+-	WRITE_ONCE(status->sync_fault, sync);
+-
+-	kunit_put_resource(resource);
+-}
+-#else
+-static void update_kunit_status(bool sync) { }
+-#endif
+-
+ static DEFINE_SPINLOCK(report_lock);
+ 
+ static void start_report(unsigned long *flags, bool sync)
+ {
+ 	/* Respect the /proc/sys/kernel/traceoff_on_warning interface. */
+ 	disable_trace_on_warning();
+-	/* Update status of the currently running KASAN test. */
+-	update_kunit_status(sync);
+ 	/* Do not allow LOCKDEP mangling KASAN reports. */
+ 	lockdep_off();
+ 	/* Make sure we don't end up in loop. */
 _
 
-Patches currently in -mm which might be from kamalesh.babulal@oracle.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
+kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
 
