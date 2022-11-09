@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 017E7C4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFC56C43217
 	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:42:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229453AbiKIBme (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:42:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35432 "EHLO
+        id S229891AbiKIBmd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:42:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230107AbiKIBkc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:40:32 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1B3B686A2
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:50 -0800 (PST)
+        with ESMTP id S229602AbiKIBkb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:40:31 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 810FE6869A
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8EF94617D1
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8230C433C1;
-        Wed,  9 Nov 2022 01:39:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 14117B81CD8
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4C14C433D6;
+        Wed,  9 Nov 2022 01:39:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957990;
-        bh=uCfSewO5IgKeNhvDQxfTmrwgz8McaoTK7G6VG/+f0M0=;
+        s=korg; t=1667957985;
+        bh=smVux+ubbgjYslRyDK6YBMAaNoxSmBua7eppIZAolIY=;
         h=Date:To:From:Subject:From;
-        b=uBFP5rgFYpoNtaq06WwcEnaK0fITGl97BDhrPSiWzu2ZA/nDUAqoj4EasX9sUVimE
-         XeM8Kv2FzRVeImfOF4qXT/O0a6jFYjVy2qOT5bd/XW3BrQMWH+EMmz01xTcYBgLFaV
-         1ahrZBimWa1qa9fffLKHvtFxp9ugqgrrQQ1WSU40=
-Date:   Tue, 08 Nov 2022 17:39:49 -0800
+        b=h2UDXxObYskzuOLcZ1jknfJlhTeyk1f2BU6XsXTW2yj9uGYLPEbMjFNsnCvGBClAL
+         4wmQgdbqO3fF1Et2P2KQQnOnRiWv2QeY7TrZbA/xoMWDi491QF43K1LALyVeiB0UV5
+         z4/94W5EDbklHQHaO/fVDK13StVrp/x0KXp7mkU8=
+Date:   Tue, 08 Nov 2022 17:39:45 -0800
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch removed from -mm tree
-Message-Id: <20221109013949.E8230C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module.patch removed from -mm tree
+Message-Id: <20221109013945.B4C14C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,55 +41,267 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/{reclaim,lru_sort}: remove unnecessarily included headers
+     Subject: mm/damon/sysfs: move unsigned long range directory to common module
 has been removed from the -mm tree.  Its filename was
-     mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch
+     mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/{reclaim,lru_sort}: remove unnecessarily included headers
-Date: Wed, 26 Oct 2022 22:59:43 +0000
+Subject: mm/damon/sysfs: move unsigned long range directory to common module
+Date: Wed, 26 Oct 2022 22:59:39 +0000
 
-Some headers that 'reclaim.c' and 'lru_sort.c' are including are
-unnecessary now owing to previous cleanups and refactorings.  Remove
-those.
+The implementation of unsigned long type range directories can be reused
+by multiple DAMON sysfs directories including those for DAMON-based
+Operation Schemes and the range of number of monitoring regions.  Move the
+code into the files for DAMON sysfs common logics.
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-13-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221026225943.100429-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    2 --
- mm/damon/reclaim.c  |    2 --
- 2 files changed, 4 deletions(-)
+ mm/damon/sysfs-common.c |   96 ++++++++++++++++++++++++++++++++++++
+ mm/damon/sysfs-common.h |   13 ++++
+ mm/damon/sysfs.c        |  100 --------------------------------------
+ 3 files changed, 109 insertions(+), 100 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers
-+++ a/mm/damon/lru_sort.c
-@@ -8,9 +8,7 @@
- #define pr_fmt(fmt) "damon-lru-sort: " fmt
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module
++++ a/mm/damon/sysfs.c
+@@ -12,106 +12,6 @@
+ #include "sysfs-common.h"
  
- #include <linux/damon.h>
--#include <linux/ioport.h>
- #include <linux/module.h>
--#include <linux/sched.h>
- #include <linux/workqueue.h>
+ /*
+- * unsigned long range directory
+- */
+-
+-struct damon_sysfs_ul_range {
+-	struct kobject kobj;
+-	unsigned long min;
+-	unsigned long max;
+-};
+-
+-static struct damon_sysfs_ul_range *damon_sysfs_ul_range_alloc(
+-		unsigned long min,
+-		unsigned long max)
+-{
+-	struct damon_sysfs_ul_range *range = kmalloc(sizeof(*range),
+-			GFP_KERNEL);
+-
+-	if (!range)
+-		return NULL;
+-	range->kobj = (struct kobject){};
+-	range->min = min;
+-	range->max = max;
+-
+-	return range;
+-}
+-
+-static ssize_t min_show(struct kobject *kobj, struct kobj_attribute *attr,
+-		char *buf)
+-{
+-	struct damon_sysfs_ul_range *range = container_of(kobj,
+-			struct damon_sysfs_ul_range, kobj);
+-
+-	return sysfs_emit(buf, "%lu\n", range->min);
+-}
+-
+-static ssize_t min_store(struct kobject *kobj, struct kobj_attribute *attr,
+-		const char *buf, size_t count)
+-{
+-	struct damon_sysfs_ul_range *range = container_of(kobj,
+-			struct damon_sysfs_ul_range, kobj);
+-	unsigned long min;
+-	int err;
+-
+-	err = kstrtoul(buf, 0, &min);
+-	if (err)
+-		return err;
+-
+-	range->min = min;
+-	return count;
+-}
+-
+-static ssize_t max_show(struct kobject *kobj, struct kobj_attribute *attr,
+-		char *buf)
+-{
+-	struct damon_sysfs_ul_range *range = container_of(kobj,
+-			struct damon_sysfs_ul_range, kobj);
+-
+-	return sysfs_emit(buf, "%lu\n", range->max);
+-}
+-
+-static ssize_t max_store(struct kobject *kobj, struct kobj_attribute *attr,
+-		const char *buf, size_t count)
+-{
+-	struct damon_sysfs_ul_range *range = container_of(kobj,
+-			struct damon_sysfs_ul_range, kobj);
+-	unsigned long max;
+-	int err;
+-
+-	err = kstrtoul(buf, 0, &max);
+-	if (err)
+-		return err;
+-
+-	range->max = max;
+-	return count;
+-}
+-
+-static void damon_sysfs_ul_range_release(struct kobject *kobj)
+-{
+-	kfree(container_of(kobj, struct damon_sysfs_ul_range, kobj));
+-}
+-
+-static struct kobj_attribute damon_sysfs_ul_range_min_attr =
+-		__ATTR_RW_MODE(min, 0600);
+-
+-static struct kobj_attribute damon_sysfs_ul_range_max_attr =
+-		__ATTR_RW_MODE(max, 0600);
+-
+-static struct attribute *damon_sysfs_ul_range_attrs[] = {
+-	&damon_sysfs_ul_range_min_attr.attr,
+-	&damon_sysfs_ul_range_max_attr.attr,
+-	NULL,
+-};
+-ATTRIBUTE_GROUPS(damon_sysfs_ul_range);
+-
+-static struct kobj_type damon_sysfs_ul_range_ktype = {
+-	.release = damon_sysfs_ul_range_release,
+-	.sysfs_ops = &kobj_sysfs_ops,
+-	.default_groups = damon_sysfs_ul_range_groups,
+-};
+-
+-/*
+  * schemes/stats directory
+  */
  
- #include "modules-common.h"
---- a/mm/damon/reclaim.c~mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers
-+++ a/mm/damon/reclaim.c
-@@ -8,9 +8,7 @@
- #define pr_fmt(fmt) "damon-reclaim: " fmt
+--- a/mm/damon/sysfs-common.c~mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module
++++ a/mm/damon/sysfs-common.c
+@@ -5,7 +5,103 @@
+  * Author: SeongJae Park <sj@kernel.org>
+  */
  
- #include <linux/damon.h>
--#include <linux/ioport.h>
- #include <linux/module.h>
--#include <linux/sched.h>
- #include <linux/workqueue.h>
++#include <linux/slab.h>
++
+ #include "sysfs-common.h"
  
- #include "modules-common.h"
+ DEFINE_MUTEX(damon_sysfs_lock);
+ 
++/*
++ * unsigned long range directory
++ */
++
++struct damon_sysfs_ul_range *damon_sysfs_ul_range_alloc(
++		unsigned long min,
++		unsigned long max)
++{
++	struct damon_sysfs_ul_range *range = kmalloc(sizeof(*range),
++			GFP_KERNEL);
++
++	if (!range)
++		return NULL;
++	range->kobj = (struct kobject){};
++	range->min = min;
++	range->max = max;
++
++	return range;
++}
++
++static ssize_t min_show(struct kobject *kobj, struct kobj_attribute *attr,
++		char *buf)
++{
++	struct damon_sysfs_ul_range *range = container_of(kobj,
++			struct damon_sysfs_ul_range, kobj);
++
++	return sysfs_emit(buf, "%lu\n", range->min);
++}
++
++static ssize_t min_store(struct kobject *kobj, struct kobj_attribute *attr,
++		const char *buf, size_t count)
++{
++	struct damon_sysfs_ul_range *range = container_of(kobj,
++			struct damon_sysfs_ul_range, kobj);
++	unsigned long min;
++	int err;
++
++	err = kstrtoul(buf, 0, &min);
++	if (err)
++		return err;
++
++	range->min = min;
++	return count;
++}
++
++static ssize_t max_show(struct kobject *kobj, struct kobj_attribute *attr,
++		char *buf)
++{
++	struct damon_sysfs_ul_range *range = container_of(kobj,
++			struct damon_sysfs_ul_range, kobj);
++
++	return sysfs_emit(buf, "%lu\n", range->max);
++}
++
++static ssize_t max_store(struct kobject *kobj, struct kobj_attribute *attr,
++		const char *buf, size_t count)
++{
++	struct damon_sysfs_ul_range *range = container_of(kobj,
++			struct damon_sysfs_ul_range, kobj);
++	unsigned long max;
++	int err;
++
++	err = kstrtoul(buf, 0, &max);
++	if (err)
++		return err;
++
++	range->max = max;
++	return count;
++}
++
++void damon_sysfs_ul_range_release(struct kobject *kobj)
++{
++	kfree(container_of(kobj, struct damon_sysfs_ul_range, kobj));
++}
++
++static struct kobj_attribute damon_sysfs_ul_range_min_attr =
++		__ATTR_RW_MODE(min, 0600);
++
++static struct kobj_attribute damon_sysfs_ul_range_max_attr =
++		__ATTR_RW_MODE(max, 0600);
++
++static struct attribute *damon_sysfs_ul_range_attrs[] = {
++	&damon_sysfs_ul_range_min_attr.attr,
++	&damon_sysfs_ul_range_max_attr.attr,
++	NULL,
++};
++ATTRIBUTE_GROUPS(damon_sysfs_ul_range);
++
++struct kobj_type damon_sysfs_ul_range_ktype = {
++	.release = damon_sysfs_ul_range_release,
++	.sysfs_ops = &kobj_sysfs_ops,
++	.default_groups = damon_sysfs_ul_range_groups,
++};
++
+--- a/mm/damon/sysfs-common.h~mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module
++++ a/mm/damon/sysfs-common.h
+@@ -9,3 +9,16 @@
+ #include <linux/kobject.h>
+ 
+ extern struct mutex damon_sysfs_lock;
++
++struct damon_sysfs_ul_range {
++	struct kobject kobj;
++	unsigned long min;
++	unsigned long max;
++};
++
++struct damon_sysfs_ul_range *damon_sysfs_ul_range_alloc(
++		unsigned long min,
++		unsigned long max);
++void damon_sysfs_ul_range_release(struct kobject *kobj);
++
++extern struct kobj_type damon_sysfs_ul_range_ktype;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
