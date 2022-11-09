@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E7CEC4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:39:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E699C433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:39:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229850AbiKIBju (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:39:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35432 "EHLO
+        id S229988AbiKIBjv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:39:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229974AbiKIBip (ORCPT
+        with ESMTP id S230018AbiKIBip (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:38:45 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1498E657C9
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:38:39 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1161165E4A
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:38:41 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C34E7B81CC9
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:38:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 659A6C433D6;
-        Wed,  9 Nov 2022 01:38:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F3BAB617F0
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:38:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CF2DC433D6;
+        Wed,  9 Nov 2022 01:38:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957916;
-        bh=dCYr036FwWry6M5hV71nwtwtJACa005tMS26dQHBHuM=;
+        s=korg; t=1667957920;
+        bh=0mCcoNbeqWI0e3gBzoZBd58snZ3yAV/IULbs4eygfPE=;
         h=Date:To:From:Subject:From;
-        b=r/u9z1uNiGegxBVo2gXtbLPrxDU1x873edGHVAUDUvaMvpBBLZgZujNlww4DLFFpw
-         w9SVjlaxHI9wdrkRrxZFjO78dsLaz5xXymcwgRIlViHdNCdtwnZjYITQufzuA14f7H
-         crDP8eR/2II8ug0SX4djVlFG2JeZfQiO+H3tauvc=
-Date:   Tue, 08 Nov 2022 17:38:35 -0800
+        b=mPycXWRIKBFTSyfDa/fgPhTO3D8o1pVq5fbDPy3d083JMwsmuvlK+smfHdpEuRpP6
+         rzXUw6s4XxwVyaACLzRep7qY+NmwxtX6nivEpQp3/lRTicq8YdJYbPi8keY+mcemWk
+         fblNIj38uI1MxHL25eEyML0uk2KEWCHkVy0wg1xE=
+Date:   Tue, 08 Nov 2022 17:38:39 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shuah@kernel.org,
         rppt@kernel.org, peterx@redhat.com, namit@vmware.com,
         jhubbard@nvidia.com, jgg@nvidia.com, ddutile@redhat.com,
         crecklin@redhat.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-anon_cow-add-liburing-test-cases.patch removed from -mm tree
-Message-Id: <20221109013836.659A6C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-anon_cow-add-r-o-longterm-tests-via-gup_test.patch removed from -mm tree
+Message-Id: <20221109013840.4CF2DC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,31 +44,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: anon_cow: add liburing test cases
+     Subject: selftests/vm: anon_cow: add R/O longterm tests via gup_test
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-anon_cow-add-liburing-test-cases.patch
+     selftests-vm-anon_cow-add-r-o-longterm-tests-via-gup_test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/vm: anon_cow: add liburing test cases
-Date: Tue, 27 Sep 2022 13:01:18 +0200
+Subject: selftests/vm: anon_cow: add R/O longterm tests via gup_test
+Date: Tue, 27 Sep 2022 13:01:20 +0200
 
-io_uring provides a simple mechanism to test long-term, R/W GUP pins
--- via fixed buffers -- and can be used to verify that GUP pins stay
-in sync with the pages in the page table even if a page would
-temporarily get mapped R/O or concurrent fork() could accidentially
-end up sharing pinned pages with the child.
+Let's trigger a R/O longterm pin on three cases of R/O mapped anonymous
+pages:
+* exclusive (never shared)
+* shared (child still alive)
+* previously shared (child no longer alive)
 
-Note that this essentially re-introduces local_config support that was
-removed recently in commit 6f83d6c74ea5 ("Kselftests: remove support of
-libhugetlbfs from kselftests").
+... and make sure that the pin is reliable: whatever we write via the page
+tables has to be observable via the pin.
 
-[david@redhat.com: s/size_t/ssize_t/ on `cur', `total'.]
-  Link: https://lkml.kernel.org/r/445fe1ae-9e22-0d1d-4d09-272231d2f84a@redhat.com
-Link: https://lkml.kernel.org/r/20220927110120.106906-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20220927110120.106906-8-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph von Recklinghausen <crecklin@redhat.com>
@@ -83,93 +80,82 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile        |   21 ++
- tools/testing/selftests/vm/anon_cow.c      |  190 +++++++++++++++++++
- tools/testing/selftests/vm/check_config.sh |   31 +++
- 3 files changed, 241 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/anon_cow.c |  210 ++++++++++++++++++++++++
+ 1 file changed, 210 insertions(+)
 
---- a/tools/testing/selftests/vm/anon_cow.c~selftests-vm-anon_cow-add-liburing-test-cases
+--- a/tools/testing/selftests/vm/anon_cow.c~selftests-vm-anon_cow-add-r-o-longterm-tests-via-gup_test
 +++ a/tools/testing/selftests/vm/anon_cow.c
-@@ -19,6 +19,11 @@
+@@ -17,6 +17,7 @@
+ #include <dirent.h>
+ #include <assert.h>
  #include <sys/mman.h>
++#include <sys/ioctl.h>
  #include <sys/wait.h>
  
-+#include "local_config.h"
-+#ifdef LOCAL_CONFIG_HAVE_LIBURING
-+#include <liburing.h>
-+#endif /* LOCAL_CONFIG_HAVE_LIBURING */
-+
+ #include "local_config.h"
+@@ -24,6 +25,7 @@
+ #include <liburing.h>
+ #endif /* LOCAL_CONFIG_HAVE_LIBURING */
+ 
++#include "../../../../mm/gup_test.h"
  #include "../kselftest.h"
  #include "vm_util.h"
  
-@@ -334,6 +339,170 @@ static void test_vmsplice_after_fork(cha
- 	do_test_vmsplice_in_parent(mem, size, false);
- }
+@@ -32,6 +34,7 @@ static int pagemap_fd;
+ static size_t thpsize;
+ static int nr_hugetlbsizes;
+ static size_t hugetlbsizes[10];
++static int gup_fd;
  
-+#ifdef LOCAL_CONFIG_HAVE_LIBURING
-+static void do_test_iouring(char *mem, size_t size, bool use_fork)
-+{
-+	struct comm_pipes comm_pipes;
-+	struct io_uring_cqe *cqe;
-+	struct io_uring_sqe *sqe;
-+	struct io_uring ring;
-+	ssize_t cur, total;
-+	struct iovec iov;
-+	char *buf, *tmp;
-+	int ret, fd;
-+	FILE *file;
+ static void detect_thpsize(void)
+ {
+@@ -503,6 +506,170 @@ static void test_iouring_fork(char *mem,
+ 
+ #endif /* LOCAL_CONFIG_HAVE_LIBURING */
+ 
++enum ro_pin_test {
++	RO_PIN_TEST_SHARED,
++	RO_PIN_TEST_PREVIOUSLY_SHARED,
++	RO_PIN_TEST_RO_EXCLUSIVE,
++};
 +
-+	ret = setup_comm_pipes(&comm_pipes);
-+	if (ret) {
-+		ksft_test_result_fail("pipe() failed\n");
++static void do_test_ro_pin(char *mem, size_t size, enum ro_pin_test test,
++			   bool fast)
++{
++	struct pin_longterm_test args;
++	struct comm_pipes comm_pipes;
++	char *tmp, buf;
++	__u64 tmp_val;
++	int ret;
++
++	if (gup_fd < 0) {
++		ksft_test_result_skip("gup_test not available\n");
 +		return;
 +	}
-+
-+	file = tmpfile();
-+	if (!file) {
-+		ksft_test_result_fail("tmpfile() failed\n");
-+		goto close_comm_pipes;
-+	}
-+	fd = fileno(file);
-+	assert(fd);
 +
 +	tmp = malloc(size);
 +	if (!tmp) {
 +		ksft_test_result_fail("malloc() failed\n");
-+		goto close_file;
++		return;
 +	}
 +
-+	/* Skip on errors, as we might just lack kernel support. */
-+	ret = io_uring_queue_init(1, &ring, 0);
-+	if (ret < 0) {
-+		ksft_test_result_skip("io_uring_queue_init() failed\n");
++	ret = setup_comm_pipes(&comm_pipes);
++	if (ret) {
++		ksft_test_result_fail("pipe() failed\n");
 +		goto free_tmp;
 +	}
 +
-+	/*
-+	 * Register the range as a fixed buffer. This will FOLL_WRITE | FOLL_PIN
-+	 * | FOLL_LONGTERM the range.
-+	 *
-+	 * Skip on errors, as we might just lack kernel support or might not
-+	 * have sufficient MEMLOCK permissions.
-+	 */
-+	iov.iov_base = mem;
-+	iov.iov_len = size;
-+	ret = io_uring_register_buffers(&ring, &iov, 1);
-+	if (ret) {
-+		ksft_test_result_skip("io_uring_register_buffers() failed\n");
-+		goto queue_exit;
-+	}
-+
-+	if (use_fork) {
++	switch (test) {
++	case RO_PIN_TEST_SHARED:
++	case RO_PIN_TEST_PREVIOUSLY_SHARED:
 +		/*
-+		 * fork() and keep the child alive until we're done. Note that
-+		 * we expect the pinned page to not get shared with the child.
++		 * Share the pages with our child. As the pages are not pinned,
++		 * this should just work.
 +		 */
 +		ret = fork();
 +		if (ret < 0) {
 +			ksft_test_result_fail("fork() failed\n");
-+			goto unregister_buffers;
++			goto close_comm_pipes;
 +		} else if (!ret) {
 +			write(comm_pipes.child_ready[1], "0", 1);
 +			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
@@ -177,9 +163,23 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +			exit(0);
 +		}
 +
++		/* Wait until our child is ready. */
 +		while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
 +			;
-+	} else {
++
++		if (test == RO_PIN_TEST_PREVIOUSLY_SHARED) {
++			/*
++			 * Tell the child to quit now and wait until it quit.
++			 * The pages should now be mapped R/O into our page
++			 * tables, but they are no longer shared.
++			 */
++			write(comm_pipes.parent_ready[1], "0", 1);
++			wait(&ret);
++			if (!WIFEXITED(ret))
++				ksft_print_msg("[INFO] wait() failed\n");
++		}
++		break;
++	case RO_PIN_TEST_RO_EXCLUSIVE:
 +		/*
 +		 * Map the page R/O into the page table. Enable softdirty
 +		 * tracking to stop the page from getting mapped R/W immediately
@@ -192,188 +192,151 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		ret |= mprotect(mem, size, PROT_READ | PROT_WRITE);
 +		if (ret) {
 +			ksft_test_result_fail("mprotect() failed\n");
-+			goto unregister_buffers;
++			goto close_comm_pipes;
 +		}
++		break;
++	default:
++		assert(false);
 +	}
++
++	/* Take a R/O pin. This should trigger unsharing. */
++	args.addr = (__u64)mem;
++	args.size = size;
++	args.flags = fast ? PIN_LONGTERM_TEST_FLAG_USE_FAST : 0;
++	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_START, &args);
++	if (ret) {
++		if (errno == EINVAL)
++			ksft_test_result_skip("PIN_LONGTERM_TEST_START failed\n");
++		else
++			ksft_test_result_fail("PIN_LONGTERM_TEST_START failed\n");
++		goto wait;
++	}
++
++	/* Modify the page. */
++	memset(mem, 0xff, size);
 +
 +	/*
-+	 * Modify the page and write page content as observed by the fixed
-+	 * buffer pin to the file so we can verify it.
++	 * Read back the content via the pin to the temporary buffer and
++	 * test if we observed the modification.
 +	 */
-+	memset(mem, 0xff, size);
-+	sqe = io_uring_get_sqe(&ring);
-+	if (!sqe) {
-+		ksft_test_result_fail("io_uring_get_sqe() failed\n");
-+		goto quit_child;
-+	}
-+	io_uring_prep_write_fixed(sqe, fd, mem, size, 0, 0);
++	tmp_val = (__u64)tmp;
++	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_READ, &tmp_val);
++	if (ret)
++		ksft_test_result_fail("PIN_LONGTERM_TEST_READ failed\n");
++	else
++		ksft_test_result(!memcmp(mem, tmp, size),
++				 "Longterm R/O pin is reliable\n");
 +
-+	ret = io_uring_submit(&ring);
-+	if (ret < 0) {
-+		ksft_test_result_fail("io_uring_submit() failed\n");
-+		goto quit_child;
-+	}
-+
-+	ret = io_uring_wait_cqe(&ring, &cqe);
-+	if (ret < 0) {
-+		ksft_test_result_fail("io_uring_wait_cqe() failed\n");
-+		goto quit_child;
-+	}
-+
-+	if (cqe->res != size) {
-+		ksft_test_result_fail("write_fixed failed\n");
-+		goto quit_child;
-+	}
-+	io_uring_cqe_seen(&ring, cqe);
-+
-+	/* Read back the file content to the temporary buffer. */
-+	total = 0;
-+	while (total < size) {
-+		cur = pread(fd, tmp + total, size - total, total);
-+		if (cur < 0) {
-+			ksft_test_result_fail("pread() failed\n");
-+			goto quit_child;
-+		}
-+		total += cur;
-+	}
-+
-+	/* Finally, check if we read what we expected. */
-+	ksft_test_result(!memcmp(mem, tmp, size),
-+			 "Longterm R/W pin is reliable\n");
-+
-+quit_child:
-+	if (use_fork) {
++	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_STOP);
++	if (ret)
++		ksft_print_msg("[INFO] PIN_LONGTERM_TEST_STOP failed\n");
++wait:
++	switch (test) {
++	case RO_PIN_TEST_SHARED:
 +		write(comm_pipes.parent_ready[1], "0", 1);
 +		wait(&ret);
++		if (!WIFEXITED(ret))
++			ksft_print_msg("[INFO] wait() failed\n");
++		break;
++	default:
++		break;
 +	}
-+unregister_buffers:
-+	io_uring_unregister_buffers(&ring);
-+queue_exit:
-+	io_uring_queue_exit(&ring);
-+free_tmp:
-+	free(tmp);
-+close_file:
-+	fclose(file);
 +close_comm_pipes:
 +	close_comm_pipes(&comm_pipes);
++free_tmp:
++	free(tmp);
 +}
 +
-+static void test_iouring_ro(char *mem, size_t size)
++static void test_ro_pin_on_shared(char *mem, size_t size)
 +{
-+	do_test_iouring(mem, size, false);
++	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, false);
 +}
 +
-+static void test_iouring_fork(char *mem, size_t size)
++static void test_ro_fast_pin_on_shared(char *mem, size_t size)
 +{
-+	do_test_iouring(mem, size, true);
++	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, true);
 +}
 +
-+#endif /* LOCAL_CONFIG_HAVE_LIBURING */
++static void test_ro_pin_on_ro_previously_shared(char *mem, size_t size)
++{
++	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, false);
++}
++
++static void test_ro_fast_pin_on_ro_previously_shared(char *mem, size_t size)
++{
++	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, true);
++}
++
++static void test_ro_pin_on_ro_exclusive(char *mem, size_t size)
++{
++	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, false);
++}
++
++static void test_ro_fast_pin_on_ro_exclusive(char *mem, size_t size)
++{
++	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, true);
++}
 +
  typedef void (*test_fn)(char *mem, size_t size);
  
  static void do_run_with_base_page(test_fn fn, bool swapout)
-@@ -660,6 +829,27 @@ static const struct test_case test_cases
- 		"vmsplice() + unmap in parent after fork()",
- 		test_vmsplice_after_fork,
+@@ -850,6 +1017,48 @@ static const struct test_case test_cases
  	},
-+#ifdef LOCAL_CONFIG_HAVE_LIBURING
+ 
+ #endif /* LOCAL_CONFIG_HAVE_LIBURING */
 +	/*
-+	 * Take a R/W longterm pin and then map the page R/O into the page
-+	 * table to trigger a write fault on next access. When modifying the
-+	 * page, the page content must be visible via the pin.
++	 * Take a R/O longterm pin on a R/O-mapped shared anonymous page.
++	 * When modifying the page via the page table, the page content change
++	 * must be visible via the pin.
 +	 */
 +	{
-+		"R/O-mapping a page registered as iouring fixed buffer",
-+		test_iouring_ro,
++		"R/O GUP pin on R/O-mapped shared page",
++		test_ro_pin_on_shared,
++	},
++	/* Same as above, but using GUP-fast. */
++	{
++		"R/O GUP-fast pin on R/O-mapped shared page",
++		test_ro_fast_pin_on_shared,
 +	},
 +	/*
-+	 * Take a R/W longterm pin and then fork() a child. When modifying the
-+	 * page, the page content must be visible via the pin. We expect the
-+	 * pinned page to not get shared with the child.
++	 * Take a R/O longterm pin on a R/O-mapped exclusive anonymous page that
++	 * was previously shared. When modifying the page via the page table,
++	 * the page content change must be visible via the pin.
 +	 */
 +	{
-+		"fork() with an iouring fixed buffer",
-+		test_iouring_fork,
++		"R/O GUP pin on R/O-mapped previously-shared page",
++		test_ro_pin_on_ro_previously_shared,
 +	},
-+
-+#endif /* LOCAL_CONFIG_HAVE_LIBURING */
++	/* Same as above, but using GUP-fast. */
++	{
++		"R/O GUP-fast pin on R/O-mapped previously-shared page",
++		test_ro_fast_pin_on_ro_previously_shared,
++	},
++	/*
++	 * Take a R/O longterm pin on a R/O-mapped exclusive anonymous page.
++	 * When modifying the page via the page table, the page content change
++	 * must be visible via the pin.
++	 */
++	{
++		"R/O GUP pin on R/O-mapped exclusive page",
++		test_ro_pin_on_ro_exclusive,
++	},
++	/* Same as above, but using GUP-fast. */
++	{
++		"R/O GUP-fast pin on R/O-mapped exclusive page",
++		test_ro_fast_pin_on_ro_exclusive,
++	},
  };
  
  static void run_test_case(struct test_case const *test_case)
---- /dev/null
-+++ a/tools/testing/selftests/vm/check_config.sh
-@@ -0,0 +1,31 @@
-+#!/bin/sh
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Probe for libraries and create header files to record the results. Both C
-+# header files and Makefile include fragments are created.
-+
-+OUTPUT_H_FILE=local_config.h
-+OUTPUT_MKFILE=local_config.mk
-+
-+tmpname=$(mktemp)
-+tmpfile_c=${tmpname}.c
-+tmpfile_o=${tmpname}.o
-+
-+# liburing
-+echo "#include <sys/types.h>"        > $tmpfile_c
-+echo "#include <liburing.h>"        >> $tmpfile_c
-+echo "int func(void) { return 0; }" >> $tmpfile_c
-+
-+CC=${1:?"Usage: $0 <compiler> # example compiler: gcc"}
-+$CC -c $tmpfile_c -o $tmpfile_o >/dev/null 2>&1
-+
-+if [ -f $tmpfile_o ]; then
-+    echo "#define LOCAL_CONFIG_HAVE_LIBURING 1"  > $OUTPUT_H_FILE
-+    echo "ANON_COW_EXTRA_LIBS = -luring"         > $OUTPUT_MKFILE
-+else
-+    echo "// No liburing support found"          > $OUTPUT_H_FILE
-+    echo "# No liburing support found, so:"      > $OUTPUT_MKFILE
-+    echo "ANON_COW_EXTRA_LIBS = "               >> $OUTPUT_MKFILE
-+fi
-+
-+rm ${tmpname}.*
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-anon_cow-add-liburing-test-cases
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -1,7 +1,9 @@
- # SPDX-License-Identifier: GPL-2.0
- # Makefile for vm selftests
+@@ -902,6 +1111,7 @@ int main(int argc, char **argv)
+ 	ksft_print_header();
+ 	ksft_set_plan(nr_test_cases * tests_per_test_case());
  
--LOCAL_HDRS += $(top_srcdir)/mm/gup_test.h
-+LOCAL_HDRS += $(selfdir)/vm/local_config.h $(top_srcdir)/mm/gup_test.h
-+
-+include local_config.mk
- 
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- MACHINE ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/ppc64/')
-@@ -152,8 +154,25 @@ warn_32bit_failure:
- endif
- endif
- 
-+# ANON_COW_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
-+$(OUTPUT)/anon_cow: LDLIBS += $(ANON_COW_EXTRA_LIBS)
-+
- $(OUTPUT)/mlock-random-test $(OUTPUT)/memfd_secret: LDLIBS += -lcap
- 
- $(OUTPUT)/ksm_tests: LDLIBS += -lnuma
- 
- $(OUTPUT)/migration: LDLIBS += -lnuma
-+
-+local_config.mk local_config.h: check_config.sh
-+	/bin/sh ./check_config.sh $(CC)
-+
-+EXTRA_CLEAN += local_config.mk local_config.h
-+
-+ifeq ($(ANON_COW_EXTRA_LIBS),)
-+all: warn_missing_liburing
-+
-+warn_missing_liburing:
-+	@echo ; \
-+	echo "Warning: missing liburing support. Some COW tests will be skipped." ; \
-+	echo
-+endif
++	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
+ 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
+ 	if (pagemap_fd < 0)
+ 		ksft_exit_fail_msg("opening pagemap failed\n");
 _
 
 Patches currently in -mm which might be from david@redhat.com are
