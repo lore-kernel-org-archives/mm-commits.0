@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A8CAC43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9008FC4332F
 	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:41:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230089AbiKIBl5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:41:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36138 "EHLO
+        id S230079AbiKIBl6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:41:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230090AbiKIBkO (ORCPT
+        with ESMTP id S230093AbiKIBkO (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:40:14 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9171B6829D
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:36 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12FE86587B
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:39 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1EE7E61824
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75B6EC433C1;
-        Wed,  9 Nov 2022 01:39:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 96094617F0
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1974C433C1;
+        Wed,  9 Nov 2022 01:39:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957975;
-        bh=bwsmnMN1rb9TRhH2NdsIXB7qXUQG6EYMC1DQSP8VaZk=;
+        s=korg; t=1667957978;
+        bh=KKvIhSCn+lfnHXcRkamCMaizQnolUA2VDdhfzziwmkg=;
         h=Date:To:From:Subject:From;
-        b=CMex1tI/nz9QB465Ej2KeLk0FkO3xJscVDY9/Al3IJHAB5FTNKBIlloFaNkNq4SEV
-         0ovvsIuGFiLrseTjWhKS20H1O3umQMzU15WQidNVaidia6z4jB+Bh35ywMOViZwzvV
-         eLVsqO4Zox6iVRgerbh/c7JGCRslWbUVozieU8gc=
-Date:   Tue, 08 Nov 2022 17:39:35 -0800
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        shy828301@gmail.com, osalvador@suse.de, mike.kravetz@oracle.com,
-        lkp@intel.com, linmiaohe@huawei.com, jane.chu@oracle.com,
-        david@redhat.com, naoya.horiguchi@nec.com,
+        b=wSMMNKv1zUwTw0wClAlB0IoBvfopK6EXNdqrqdGkdzB3zMBib5f0xsNNUu/FRiGMr
+         KIc40OJNeUx/AezIv5TXJRGsjRSSQd607FwCtCEbbjsf2FvlrA972yiT4m10rzEaCV
+         EE/cBK81kpq0faSUQo5bz+sJ0OoqTOq8kg+oQ6zo=
+Date:   Tue, 08 Nov 2022 17:39:37 -0800
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hwpoison-introduce-per-memory_block-hwpoison-counter.patch removed from -mm tree
-Message-Id: <20221109013935.75B6EC433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch removed from -mm tree
+Message-Id: <20221109013937.F1974C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,285 +41,186 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hwpoison: introduce per-memory_block hwpoison counter
+     Subject: mm/damon/core: split out DAMOS-charged region skip logic into a new function
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-introduce-per-memory_block-hwpoison-counter.patch
+     mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: introduce per-memory_block hwpoison counter
-Date: Mon, 24 Oct 2022 15:20:12 +0900
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: split out DAMOS-charged region skip logic into a new function
+Date: Wed, 26 Oct 2022 22:59:32 +0000
 
-Currently PageHWPoison flag does not behave well when experiencing memory
-hotremove/hotplug.  Any data field in struct page is unreliable when the
-associated memory is offlined, and the current mechanism can't tell
-whether a memory block is onlined because a new memory devices is
-installed or because previous failed offline operations are undone. 
-Especially if there's a hwpoisoned memory, it's unclear what the best
-option is.
+Patch series "mm/damon: cleanup and refactoring code", v2.
 
-So introduce a new mechanism to make struct memory_block remember that a
-memory block has hwpoisoned memory inside it.  And make any online event
-fail if the onlining memory block contains hwpoison.  struct memory_block
-is freed and reallocated over ACPI-based hotremove/hotplug, but not over
-sysfs-based hotremove/hotplug.  So the new counter can distinguish these
-cases.
+This patchset cleans up and refactors a range of DAMON code including the
+core, DAMON sysfs interface, and DAMON modules, for better readability and
+convenient future feature implementations.
 
-Link: https://lkml.kernel.org/r/20221024062012.1520887-5-naoya.horiguchi@linux.dev
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Shi <shy828301@gmail.com>
+In detail, this patchset splits unnecessarily long and complex functions
+in core into smaller functions (patches 1-4).  Then, it cleans up the
+DAMON sysfs interface by using more type-safe code (patch 5) and removing
+unnecessary function parameters (patch 6).  Further, it refactor the code
+by distributing the code into multiple files (patches 7-10).  Last two
+patches (patches 11 and 12) deduplicates and remove unnecessary header
+inclusion in DAMON modules (reclaim and lru_sort).
+
+
+This patch (of 12):
+
+The DAMOS action applying function, 'damon_do_apply_schemes()', is quite
+long and not so simple.  Split out the already quota-charged region skip
+code, which is not a small amount of simple code, into a new function with
+some comments for better readability.
+
+Link: https://lkml.kernel.org/r/20221026225943.100429-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221026225943.100429-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |   38 ++++++++++++++++++++++++++++++++++++++
- include/linux/memory.h |    3 +++
- include/linux/mm.h     |   20 +++++++++++++++++++-
- mm/internal.h          |    8 --------
- mm/memory-failure.c    |   36 +++++++++++-------------------------
- mm/sparse.c            |    2 --
- 6 files changed, 71 insertions(+), 36 deletions(-)
+ mm/damon/core.c |   96 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 65 insertions(+), 31 deletions(-)
 
---- a/drivers/base/memory.c~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
-+++ a/drivers/base/memory.c
-@@ -175,6 +175,15 @@ int memory_notify(unsigned long val, voi
- 	return blocking_notifier_call_chain(&memory_chain, val, v);
+--- a/mm/damon/core.c~mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function
++++ a/mm/damon/core.c
+@@ -694,6 +694,67 @@ static bool damos_valid_target(struct da
+ 	return c->ops.get_scheme_score(c, t, r, s) >= s->quota.min_score;
  }
  
-+#if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_MEMORY_HOTPLUG)
-+static unsigned long memblk_nr_poison(struct memory_block *mem);
-+#else
-+static inline unsigned long memblk_nr_poison(struct memory_block *mem)
++/*
++ * damos_skip_charged_region() - Check if the given region or starting part of
++ * it is already charged for the DAMOS quota.
++ * @t:	The target of the region.
++ * @rp:	The pointer to the region.
++ * @s:	The scheme to be applied.
++ *
++ * If a quota of a scheme has exceeded in a quota charge window, the scheme's
++ * action would applied to only a part of the target access pattern fulfilling
++ * regions.  To avoid applying the scheme action to only already applied
++ * regions, DAMON skips applying the scheme action to the regions that charged
++ * in the previous charge window.
++ *
++ * This function checks if a given region should be skipped or not for the
++ * reason.  If only the starting part of the region has previously charged,
++ * this function splits the region into two so that the second one covers the
++ * area that not charged in the previous charge widnow and saves the second
++ * region in *rp and returns false, so that the caller can apply DAMON action
++ * to the second one.
++ *
++ * Return: true if the region should be entirely skipped, false otherwise.
++ */
++static bool damos_skip_charged_region(struct damon_target *t,
++		struct damon_region **rp, struct damos *s)
 +{
-+	return 0;
++	struct damon_region *r = *rp;
++	struct damos_quota *quota = &s->quota;
++	unsigned long sz_to_skip;
++
++	/* Skip previously charged regions */
++	if (quota->charge_target_from) {
++		if (t != quota->charge_target_from)
++			return true;
++		if (r == damon_last_region(t)) {
++			quota->charge_target_from = NULL;
++			quota->charge_addr_from = 0;
++			return true;
++		}
++		if (quota->charge_addr_from &&
++				r->ar.end <= quota->charge_addr_from)
++			return true;
++
++		if (quota->charge_addr_from && r->ar.start <
++				quota->charge_addr_from) {
++			sz_to_skip = ALIGN_DOWN(quota->charge_addr_from -
++					r->ar.start, DAMON_MIN_REGION);
++			if (!sz_to_skip) {
++				if (damon_sz_region(r) <= DAMON_MIN_REGION)
++					return true;
++				sz_to_skip = DAMON_MIN_REGION;
++			}
++			damon_split_region_at(t, r, sz_to_skip);
++			r = damon_next_region(r);
++			*rp = r;
++		}
++		quota->charge_target_from = NULL;
++		quota->charge_addr_from = 0;
++	}
++	return false;
 +}
-+#endif
 +
- static int memory_block_online(struct memory_block *mem)
- {
- 	unsigned long start_pfn = section_nr_to_pfn(mem->start_section_nr);
-@@ -183,6 +192,9 @@ static int memory_block_online(struct me
- 	struct zone *zone;
- 	int ret;
+ static void damon_do_apply_schemes(struct damon_ctx *c,
+ 				   struct damon_target *t,
+ 				   struct damon_region *r)
+@@ -702,7 +763,7 @@ static void damon_do_apply_schemes(struc
  
-+	if (memblk_nr_poison(mem))
-+		return -EHWPOISON;
-+
- 	zone = zone_for_pfn_range(mem->online_type, mem->nid, mem->group,
- 				  start_pfn, nr_pages);
+ 	damon_for_each_scheme(s, c) {
+ 		struct damos_quota *quota = &s->quota;
+-		unsigned long sz = damon_sz_region(r);
++		unsigned long sz;
+ 		struct timespec64 begin, end;
+ 		unsigned long sz_applied = 0;
  
-@@ -864,6 +876,7 @@ void remove_memory_block_devices(unsigne
- 		mem = find_memory_block_by_id(block_id);
- 		if (WARN_ON_ONCE(!mem))
+@@ -713,41 +774,14 @@ static void damon_do_apply_schemes(struc
+ 		if (quota->esz && quota->charged_sz >= quota->esz)
  			continue;
-+		num_poisoned_pages_sub(-1UL, memblk_nr_poison(mem));
- 		unregister_memory_block_under_nodes(mem);
- 		remove_memory_block(mem);
- 	}
-@@ -1164,3 +1177,28 @@ int walk_dynamic_memory_groups(int nid,
- 	}
- 	return ret;
- }
-+
-+#if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_MEMORY_HOTPLUG)
-+void memblk_nr_poison_inc(unsigned long pfn)
-+{
-+	const unsigned long block_id = pfn_to_block_id(pfn);
-+	struct memory_block *mem = find_memory_block_by_id(block_id);
-+
-+	if (mem)
-+		atomic_long_inc(&mem->nr_hwpoison);
-+}
-+
-+void memblk_nr_poison_sub(unsigned long pfn, long i)
-+{
-+	const unsigned long block_id = pfn_to_block_id(pfn);
-+	struct memory_block *mem = find_memory_block_by_id(block_id);
-+
-+	if (mem)
-+		atomic_long_sub(i, &mem->nr_hwpoison);
-+}
-+
-+static unsigned long memblk_nr_poison(struct memory_block *mem)
-+{
-+	return atomic_long_read(&mem->nr_hwpoison);
-+}
-+#endif
---- a/include/linux/memory.h~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
-+++ a/include/linux/memory.h
-@@ -84,6 +84,9 @@ struct memory_block {
- 	unsigned long nr_vmemmap_pages;
- 	struct memory_group *group;	/* group (if any) for this block */
- 	struct list_head group_next;	/* next block inside memory group */
-+#if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_MEMORY_HOTPLUG)
-+	atomic_long_t nr_hwpoison;
-+#endif
- };
  
- int arch_get_memory_phys_device(unsigned long start_pfn);
---- a/include/linux/mm.h~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
-+++ a/include/linux/mm.h
-@@ -3279,7 +3279,8 @@ extern int soft_offline_page(unsigned lo
- #ifdef CONFIG_MEMORY_FAILURE
- extern int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
- 					bool *migratable_cleared);
--extern void num_poisoned_pages_inc(unsigned long pfn);
-+void num_poisoned_pages_inc(unsigned long pfn);
-+void num_poisoned_pages_sub(unsigned long pfn, long i);
- #else
- static inline int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
- 					bool *migratable_cleared)
-@@ -3290,6 +3291,23 @@ static inline int __get_huge_page_for_hw
- static inline void num_poisoned_pages_inc(unsigned long pfn)
- {
- }
-+
-+static inline void num_poisoned_pages_sub(unsigned long pfn, long i)
-+{
-+}
-+#endif
-+
-+#if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_MEMORY_HOTPLUG)
-+extern void memblk_nr_poison_inc(unsigned long pfn);
-+extern void memblk_nr_poison_sub(unsigned long pfn, long i);
-+#else
-+static inline void memblk_nr_poison_inc(unsigned long pfn)
-+{
-+}
-+
-+static inline void memblk_nr_poison_sub(unsigned long pfn, long i)
-+{
-+}
- #endif
- 
- #ifndef arch_memory_failure
---- a/mm/internal.h~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
-+++ a/mm/internal.h
-@@ -708,14 +708,6 @@ extern u64 hwpoison_filter_flags_value;
- extern u64 hwpoison_filter_memcg;
- extern u32 hwpoison_filter_enable;
- 
--#ifdef CONFIG_MEMORY_FAILURE
--void clear_hwpoisoned_pages(struct page *memmap, int nr_pages);
--#else
--static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
--{
--}
--#endif
+-		/* Skip previously charged regions */
+-		if (quota->charge_target_from) {
+-			if (t != quota->charge_target_from)
+-				continue;
+-			if (r == damon_last_region(t)) {
+-				quota->charge_target_from = NULL;
+-				quota->charge_addr_from = 0;
+-				continue;
+-			}
+-			if (quota->charge_addr_from &&
+-					r->ar.end <= quota->charge_addr_from)
+-				continue;
 -
- extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
-         unsigned long, unsigned long,
-         unsigned long, unsigned long);
---- a/mm/memory-failure.c~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
-+++ a/mm/memory-failure.c
-@@ -77,11 +77,14 @@ static bool hw_memory_failure __read_mos
- inline void num_poisoned_pages_inc(unsigned long pfn)
- {
- 	atomic_long_inc(&num_poisoned_pages);
-+	memblk_nr_poison_inc(pfn);
- }
- 
--static inline void num_poisoned_pages_sub(unsigned long pfn, long i)
-+inline void num_poisoned_pages_sub(unsigned long pfn, long i)
- {
- 	atomic_long_sub(i, &num_poisoned_pages);
-+	if (pfn != -1UL)
-+		memblk_nr_poison_sub(pfn, i);
- }
- 
- /*
-@@ -1706,6 +1709,8 @@ static unsigned long __free_raw_hwp_page
- 
- 		if (move_flag)
- 			SetPageHWPoison(p->page);
-+		else
-+			num_poisoned_pages_sub(page_to_pfn(p->page), 1);
- 		kfree(p);
- 		count++;
- 	}
-@@ -2332,6 +2337,7 @@ int unpoison_memory(unsigned long pfn)
- 	int ret = -EBUSY;
- 	int freeit = 0;
- 	unsigned long count = 1;
-+	bool huge = false;
- 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
- 					DEFAULT_RATELIMIT_BURST);
- 
-@@ -2380,6 +2386,7 @@ int unpoison_memory(unsigned long pfn)
- 	ret = get_hwpoison_page(p, MF_UNPOISON);
- 	if (!ret) {
- 		if (PageHuge(p)) {
-+			huge = true;
- 			count = free_raw_hwp_pages(page, false);
- 			if (count == 0) {
- 				ret = -EBUSY;
-@@ -2395,6 +2402,7 @@ int unpoison_memory(unsigned long pfn)
- 					 pfn, &unpoison_rs);
- 	} else {
- 		if (PageHuge(p)) {
-+			huge = true;
- 			count = free_raw_hwp_pages(page, false);
- 			if (count == 0) {
- 				ret = -EBUSY;
-@@ -2414,7 +2422,8 @@ int unpoison_memory(unsigned long pfn)
- unlock_mutex:
- 	mutex_unlock(&mf_mutex);
- 	if (!ret || freeit) {
--		num_poisoned_pages_sub(pfn, count);
-+		if (!huge)
-+			num_poisoned_pages_sub(pfn, 1);
- 		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
- 				 page_to_pfn(p), &unpoison_rs);
- 	}
-@@ -2609,26 +2618,3 @@ retry:
- 
- 	return ret;
- }
--
--void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
--{
--	int i, total = 0;
--
--	/*
--	 * A further optimization is to have per section refcounted
--	 * num_poisoned_pages.  But that would need more space per memmap, so
--	 * for now just do a quick global check to speed up this routine in the
--	 * absence of bad pages.
--	 */
--	if (atomic_long_read(&num_poisoned_pages) == 0)
--		return;
--
--	for (i = 0; i < nr_pages; i++) {
--		if (PageHWPoison(&memmap[i])) {
--			total++;
--			ClearPageHWPoison(&memmap[i]);
+-			if (quota->charge_addr_from && r->ar.start <
+-					quota->charge_addr_from) {
+-				sz = ALIGN_DOWN(quota->charge_addr_from -
+-						r->ar.start, DAMON_MIN_REGION);
+-				if (!sz) {
+-					if (damon_sz_region(r) <=
+-					    DAMON_MIN_REGION)
+-						continue;
+-					sz = DAMON_MIN_REGION;
+-				}
+-				damon_split_region_at(t, r, sz);
+-				r = damon_next_region(r);
+-				sz = damon_sz_region(r);
+-			}
+-			quota->charge_target_from = NULL;
+-			quota->charge_addr_from = 0;
 -		}
--	}
--	if (total)
--		num_poisoned_pages_sub(0, total);
--}
---- a/mm/sparse.c~mm-hwpoison-introduce-per-memory_block-hwpoison-counter
-+++ a/mm/sparse.c
-@@ -926,8 +926,6 @@ void sparse_remove_section(struct mem_se
- 		unsigned long nr_pages, unsigned long map_offset,
- 		struct vmem_altmap *altmap)
- {
--	clear_hwpoisoned_pages(pfn_to_page(pfn) + map_offset,
--			nr_pages - map_offset);
- 	section_deactivate(pfn, nr_pages, altmap);
- }
- #endif /* CONFIG_MEMORY_HOTPLUG */
++		if (damos_skip_charged_region(t, &r, s))
++			continue;
+ 
+ 		if (!damos_valid_target(c, t, r, s))
+ 			continue;
+ 
+ 		/* Apply the scheme */
++		sz = damon_sz_region(r);
+ 		if (c->ops.apply_scheme) {
+ 			if (quota->esz &&
+ 					quota->charged_sz + sz > quota->esz) {
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch
+docs-admin-guide-mm-damon-usage-fix-wrong-usage-example-of-init_regions-file.patch
+mm-damon-core-add-a-callback-for-scheme-target-regions-check.patch
+mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch
+mm-damon-sysfs-schemes-implement-scheme-region-directory.patch
+mm-damon-sysfs-implement-damos-tried-regions-update-command.patch
+mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command.patch
+tools-selftets-damon-sysfs-test-tried_regions-directory-existence.patch
+docs-admin-guide-mm-damon-usage-document-schemes-s-tried_regions-sysfs-directory.patch
+docs-abi-damon-document-schemes-s-tried_regions-sysfs-directory.patch
+selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch
 
