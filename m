@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D741FC433FE
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:30:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77F9DC4332F
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:31:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229903AbiKIBa1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:30:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33314 "EHLO
+        id S229871AbiKIBbD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:31:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229871AbiKIBa0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:30:26 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4848661749
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:30:24 -0800 (PST)
+        with ESMTP id S229911AbiKIBbC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:31:02 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0A18606A2
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:31:00 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EF21BB81C38
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:30:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AEC4C433D6;
-        Wed,  9 Nov 2022 01:30:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A2410B81C38
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:30:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B62FC433D6;
+        Wed,  9 Nov 2022 01:30:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957421;
-        bh=KZ7IK6BxpI4YbfjgRCBdPQRTjbebtn1dP9a60Pmw0O8=;
+        s=korg; t=1667957458;
+        bh=PVZVer42wBJ9vxWpG2Wob/cNWdhcxhfq9aSf1trTGdg=;
         h=Date:To:From:Subject:From;
-        b=T1GKoD2PXoZoIDIh7cvxgkuOukqFtSFRrM/LOWxaRZHlwmmuLUSCW/LbslCh5n0HR
-         MkNM7XEd6PUnSfs3fpIjEr2nnNKGqfaAJVcwxJKRq7QI7eeiYbQJvNOxU7RIAdWj+R
-         wGRsfGrguHTOgsVo4Nxbp43m2TQBb1FkKyHeryJc=
-Date:   Tue, 08 Nov 2022 17:30:21 -0800
-To:     mm-commits@vger.kernel.org, urezki@gmail.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=xn3m3FB202v00YlVOUERBlINfg5z/vVV+fArPzhrp3AEDnos5gMwh5vL+dwtMCslD
+         hWTgKtqQRhrPw0/WZcb9ZES1zIS25O0pVr5kMluiKfk0m3Jhaayw0Y8a8g2V5zC6Af
+         XljcgfMewxEw+wZxgzbQ+lQzEXfLYvP+mz1yLKkI=
+Date:   Tue, 08 Nov 2022 17:30:57 -0800
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, wangkefeng.wang@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch removed from -mm tree
-Message-Id: <20221109013021.8AEC4C433D6@smtp.kernel.org>
+Subject: [folded-merged] mm-memory-failure-make-action_result-return-int-v2.patch removed from -mm tree
+Message-Id: <20221109013058.4B62FC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,70 +42,83 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes
+     Subject: mm-memory-failure-make-action_result-return-int-v2
 has been removed from the -mm tree.  Its filename was
-     vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes.patch
+     mm-memory-failure-make-action_result-return-int-v2.patch
 
-This patch was dropped because it was folded into vmalloc-add-reviewers-for-vmalloc-code.patch
+This patch was dropped because it was folded into mm-memory-failure-make-action_result-return-int.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes
-Date: Tue Oct 18 03:17:35 PM PDT 2022
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm-memory-failure-make-action_result-return-int-v2
+Date: Mon, 24 Oct 2022 11:51:38 +0800
 
+- MF_DELAYED is considered as success, suggested by HORIGUCHI
 
-WARNING: Misordered MAINTAINERS entry - list file patterns in alphabetic order
-#39: FILE: MAINTAINERS:13300:
-+F:	mm/vmalloc.c
-+F:	include/linux/vmalloc.h
+- adjust order between unlock_page(head) and action_result()
+  after !hwpoison_user_mappings() to clean code more in
+  try_memory_failure_hugetlb()
 
-total: 0 errors, 1 warnings, 21 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/vmalloc-add-reviewers-for-vmalloc-code.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20221024035138.99119-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/MAINTAINERS~vmalloc-add-reviewers-for-vmalloc-code-checkpatch-fixes
-+++ a/MAINTAINERS
-@@ -13305,8 +13305,8 @@ L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
- T:	git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
--F:	mm/vmalloc.c
- F:	include/linux/vmalloc.h
-+F:	mm/vmalloc.c
+--- a/mm/memory-failure.c~mm-memory-failure-make-action_result-return-int-v2
++++ a/mm/memory-failure.c
+@@ -1191,7 +1191,7 @@ static int action_result(unsigned long p
+ 	pr_err("%#lx: recovery action for %s: %s\n",
+ 		pfn, action_page_types[type], action_name[result]);
  
- MEMORY HOT(UN)PLUG
- M:	David Hildenbrand <david@redhat.com>
+-	return result == MF_RECOVERED ? 0 : -EBUSY;
++	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
+ }
+ 
+ static int page_action(struct page_state *ps, struct page *p,
+@@ -1202,14 +1202,12 @@ static int page_action(struct page_state
+ 	/* page p should be unlocked after returning from ps->action().  */
+ 	result = ps->action(ps, p);
+ 
+-	action_result(pfn, ps->type, result);
+-
+ 	/* Could do more checks here if page looks ok */
+ 	/*
+ 	 * Could adjust zone counters here to correct for the missing page.
+ 	 */
+ 
+-	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
++	return action_result(pfn, ps->type, result);
+ }
+ 
+ static inline bool PageHWPoisonTakenOff(struct page *page)
+@@ -1890,9 +1888,8 @@ retry:
+ 	page_flags = head->flags;
+ 
+ 	if (!hwpoison_user_mappings(p, pfn, flags, head)) {
+-		res = action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
+ 		unlock_page(head);
+-		return res;
++		return action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
+ 	}
+ 
+ 	return identify_page_state(pfn, p, page_flags);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-vmalloc-add-reviewers-for-vmalloc-code.patch
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-gup-remove-foll_migration-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
-mm-use-stack_depot-for-recording-kmemleaks-backtrace-checkpatch-fixes.patch
-mm-use-stack_depot-for-recording-kmemleaks-backtrace-fix.patch
-mm-use-stack_depot-for-recording-kmemleaks-backtrace-v3-fix.patch
-kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
-mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch
-powerpc-ptrace-user_regset_copyin_ignore-always-returns-0-fix.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes.patch
-minmax-sanity-check-constant-bounds-when-clamping-checkpatch-fixes-fix.patch
-proc-report-open-files-as-size-in-stat-for-proc-pid-fd-v3-fix.patch
+mm-rmap-rename-page_not_mapped-to-folio_not_mapped.patch
+mm-remove-kern_addr_valid-completely.patch
+nios2-remove-unused-init_mmap.patch
+x86-sgx-use-vm_access_flags.patch
+mm-mprotect-use-vm_access_flags.patch
+mm-debug_vm_pgtable-use-vm_access_flags.patch
+amdgpu-use-vm_access_flags.patch
+mm-memory-failure-make-put_ref_page-more-useful.patch
+mm-memory-failure-avoid-pfn_valid-twice-in-soft_offline_page.patch
+mm-memory-failure-make-action_result-return-int.patch
 
