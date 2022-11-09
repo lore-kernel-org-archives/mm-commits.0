@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91003C43219
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:40:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED0D2C4332F
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:41:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229995AbiKIBkz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:40:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36056 "EHLO
+        id S230020AbiKIBlC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:41:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230058AbiKIBkC (ORCPT
+        with ESMTP id S230032AbiKIBkC (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:40:02 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FBC467F4E
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:14 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E2C667F54
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:39:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2A32361811
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8161AC433D6;
-        Wed,  9 Nov 2022 01:39:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BE76261803
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:39:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E4F5C433D6;
+        Wed,  9 Nov 2022 01:39:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957953;
-        bh=2C3dGs3560wArWOnq2PJzcK2+DbHL0557FNYPGYyOwE=;
+        s=korg; t=1667957955;
+        bh=xgQwNlOT2Dfu5wrRczVtbzcdVo0MX8ld0zLQHT0VntU=;
         h=Date:To:From:Subject:From;
-        b=2wY/OJcjCXok4C5WVNyud75NyY2zJLDsqj77HbW2IzQ6p3NFU4c4uyuDrc6A/waIA
-         zRF7PnI3Qo4jiIPyppvMjr/Y9VKjU5pAFryIPJTYdUcu/JJ6HnkrVc5lPDa26KWIxL
-         baWSugyqsJFPla2DOHaBUmolwBpl4yZGp35HEwP4=
-Date:   Tue, 08 Nov 2022 17:39:13 -0800
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=BWVTqwL9N7q15ue2oOs5FyfcoWaic7QZz2YLVNkHJ9GKlIRgRcUgba6aouR3iwNAr
+         NSoKkL2N2P9M9raYjLmjiBeioubfJuatW2eRHr5/xdG/hScAvtpvY+xAEesRa+6Y/f
+         +ko4D6pU7TgtH7OmW5HQt6B4TN47Gzu0jHcdND0M=
+Date:   Tue, 08 Nov 2022 17:39:14 -0800
+To:     mm-commits@vger.kernel.org, ubizjak@gmail.com,
+        ndesaulniers@google.com, nathan@kernel.org, memxor@gmail.com,
+        keescook@chromium.org, glider@google.com, elver@google.com,
+        ashimida@linux.alibaba.com, arnd@arndb.de, andreyknvl@gmail.com,
+        ojeda@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages.patch removed from -mm tree
-Message-Id: <20221109013913.8161AC433D6@smtp.kernel.org>
+Subject: [merged mm-stable] compiler-gcc-be-consistent-with-underscores-use-for-no_sanitize.patch removed from -mm tree
+Message-Id: <20221109013915.1E4F5C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,96 +44,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: unify clearing of RestoreReserve for private pages
+     Subject: compiler-gcc: be consistent with underscores use for `no_sanitize`
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages.patch
+     compiler-gcc-be-consistent-with-underscores-use-for-no_sanitize.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: unify clearing of RestoreReserve for private pages
-Date: Thu, 20 Oct 2022 15:38:32 -0400
+From: Miguel Ojeda <ojeda@kernel.org>
+Subject: compiler-gcc: be consistent with underscores use for `no_sanitize`
+Date: Fri, 21 Oct 2022 13:59:52 +0200
 
-A trivial cleanup to move clearing of RestoreReserve into adding anon rmap
-of private hugetlb mappings.  It matches with the shared mappings where we
-only clear the bit when adding into page cache, rather than spreading it
-around the code paths.
+Patch series "compiler-gcc: be consistent with underscores use for
+`no_sanitize`".
 
-Link: https://lkml.kernel.org/r/20221020193832.776173-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+
+This patch (of 5):
+
+Other macros that define shorthands for attributes in e.g. 
+`compiler_attributes.h` and elsewhere use underscores.
+
+Link: https://lkml.kernel.org/r/20221021115956.9947-1-ojeda@kernel.org
+Signed-off-by: Miguel Ojeda <ojeda@kernel.org>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Li <ashimida@linux.alibaba.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Uros Bizjak <ubizjak@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 ++++----------
- mm/rmap.c    |    2 +-
- 2 files changed, 5 insertions(+), 11 deletions(-)
+ include/linux/compiler-gcc.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages
-+++ a/mm/hugetlb.c
-@@ -4775,7 +4775,6 @@ hugetlb_install_page(struct vm_area_stru
- 	hugepage_add_new_anon_rmap(new_page, vma, addr);
- 	set_huge_pte_at(vma->vm_mm, addr, ptep, make_huge_pte(vma, new_page, 1));
- 	hugetlb_count_add(pages_per_huge_page(hstate_vma(vma)), vma->vm_mm);
--	ClearHPageRestoreReserve(new_page);
- 	SetHPageMigratable(new_page);
- }
+--- a/include/linux/compiler-gcc.h~compiler-gcc-be-consistent-with-underscores-use-for-no_sanitize
++++ a/include/linux/compiler-gcc.h
+@@ -83,25 +83,25 @@
+ #endif
  
-@@ -5438,8 +5437,6 @@ retry_avoidcopy:
- 	spin_lock(ptl);
- 	ptep = huge_pte_offset(mm, haddr, huge_page_size(h));
- 	if (likely(ptep && pte_same(huge_ptep_get(ptep), pte))) {
--		ClearHPageRestoreReserve(new_page);
--
- 		/* Break COW or unshare */
- 		huge_ptep_clear_flush(vma, haddr, ptep);
- 		mmu_notifier_invalidate_range(mm, range.start, range.end);
-@@ -5734,10 +5731,9 @@ static vm_fault_t hugetlb_no_page(struct
- 	if (!pte_same(huge_ptep_get(ptep), old_pte))
- 		goto backout;
+ #if __has_attribute(__no_sanitize_address__)
+-#define __no_sanitize_address __attribute__((no_sanitize_address))
++#define __no_sanitize_address __attribute__((__no_sanitize_address__))
+ #else
+ #define __no_sanitize_address
+ #endif
  
--	if (anon_rmap) {
--		ClearHPageRestoreReserve(page);
-+	if (anon_rmap)
- 		hugepage_add_new_anon_rmap(page, vma, haddr);
--	} else
-+	else
- 		page_dup_file_rmap(page, true);
- 	new_pte = make_huge_pte(vma, page, ((vma->vm_flags & VM_WRITE)
- 				&& (vma->vm_flags & VM_SHARED)));
-@@ -6120,12 +6116,10 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	if (!huge_pte_none_mostly(huge_ptep_get(dst_pte)))
- 		goto out_release_unlock;
+ #if defined(__SANITIZE_THREAD__) && __has_attribute(__no_sanitize_thread__)
+-#define __no_sanitize_thread __attribute__((no_sanitize_thread))
++#define __no_sanitize_thread __attribute__((__no_sanitize_thread__))
+ #else
+ #define __no_sanitize_thread
+ #endif
  
--	if (page_in_pagecache) {
-+	if (page_in_pagecache)
- 		page_dup_file_rmap(page, true);
--	} else {
--		ClearHPageRestoreReserve(page);
-+	else
- 		hugepage_add_new_anon_rmap(page, dst_vma, dst_addr);
--	}
+ #if __has_attribute(__no_sanitize_undefined__)
+-#define __no_sanitize_undefined __attribute__((no_sanitize_undefined))
++#define __no_sanitize_undefined __attribute__((__no_sanitize_undefined__))
+ #else
+ #define __no_sanitize_undefined
+ #endif
  
- 	/*
- 	 * For either: (1) CONTINUE on a non-shared VMA, or (2) UFFDIO_COPY
---- a/mm/rmap.c~mm-hugetlb-unify-clearing-of-restorereserve-for-private-pages
-+++ a/mm/rmap.c
-@@ -2571,7 +2571,7 @@ void hugepage_add_new_anon_rmap(struct p
- 	BUG_ON(address < vma->vm_start || address >= vma->vm_end);
- 	atomic_set(compound_mapcount_ptr(page), 0);
- 	atomic_set(compound_pincount_ptr(page), 0);
--
-+	ClearHPageRestoreReserve(page);
- 	__page_set_anon_rmap(page, vma, address, 1);
- }
- #endif /* CONFIG_HUGETLB_PAGE */
+ #if defined(CONFIG_KCOV) && __has_attribute(__no_sanitize_coverage__)
+-#define __no_sanitize_coverage __attribute__((no_sanitize_coverage))
++#define __no_sanitize_coverage __attribute__((__no_sanitize_coverage__))
+ #else
+ #define __no_sanitize_coverage
+ #endif
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from ojeda@kernel.org are
 
-mm-always-compile-in-pte-markers.patch
-mm-use-pte-markers-for-swap-errors.patch
 
