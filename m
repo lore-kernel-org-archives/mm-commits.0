@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66B75C4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:38:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FA65C433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Nov 2022 01:38:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229875AbiKIBiH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Nov 2022 20:38:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34680 "EHLO
+        id S229917AbiKIBiO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Nov 2022 20:38:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229612AbiKIBiG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:38:06 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEC576069F
-        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:38:05 -0800 (PST)
+        with ESMTP id S229612AbiKIBiH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2022 20:38:07 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8EF260379
+        for <mm-commits@vger.kernel.org>; Tue,  8 Nov 2022 17:38:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C7456181A
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:38:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5C00C433C1;
-        Wed,  9 Nov 2022 01:38:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 73FEF617F0
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 01:38:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF2F7C433D6;
+        Wed,  9 Nov 2022 01:38:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1667957884;
-        bh=FHpj+nuThn3WWTlGI4YV+/mJbpTBbarcta29USgT9DI=;
+        s=korg; t=1667957885;
+        bh=HpJuHF4usyH+MSe48z/NbP6p268rf+nmdeluIC+1iPA=;
         h=Date:To:From:Subject:From;
-        b=Mn8t8NZ2bdn6zqXPJ3FeYkBARswYac8jqfRxzJlV/uT4j6BvXzXBt9pPacS9u3zlX
-         JSgx7PrUS0WBLdhzpiWDQXyX6jomJNVKbHWwZT4ZL4euMSVNllrofHeHWqaoHrS+6a
-         Y4TBEpdMO6tINoRze/fO+e3Cw3p4m40BRmAySUAA=
-Date:   Tue, 08 Nov 2022 17:38:04 -0800
-To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
+        b=uncDbgzgiuUr0huX97lln+IqqgN3uHbQcogqRnCAOrddwfbodJUqLnG1HU88q2U37
+         AfSc8y4fuwPQWX4dtMoLhZY1ynwjrAnbsRkFzN1TAnuGzPGZZk2O3gSJrQYtDb64Oa
+         UD+Ig3Ss0/ndBiYj0V4odCSCjIZ1dV2OGT8WVFmg=
+Date:   Tue, 08 Nov 2022 17:38:05 -0800
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        axelrasmussen@google.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch removed from -mm tree
-Message-Id: <20221109013804.C5C00C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-use-memfd-for-uffd-hugetlb-tests.patch removed from -mm tree
+Message-Id: <20221109013805.CF2F7C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,158 +42,161 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: vmscan: make rotations a secondary factor in balancing anon vs file
+     Subject: selftests/vm: use memfd for uffd hugetlb tests
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file.patch
+     selftests-vm-use-memfd-for-uffd-hugetlb-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: make rotations a secondary factor in balancing anon vs file
-Date: Thu, 13 Oct 2022 15:31:13 -0400
+From: Peter Xu <peterx@redhat.com>
+Subject: selftests/vm: use memfd for uffd hugetlb tests
+Date: Fri, 14 Oct 2022 10:39:18 -0400
 
-We noticed a 2% webserver throughput regression after upgrading from 5.6. 
-This could be tracked down to a shift in the anon/file reclaim balance
-(confirmed with swappiness) that resulted in worse reclaim efficiency and
-thus more kswapd activity for the same outcome.
+Patch series "selftests/vm: Drop hugetlb mntpoint in run_vmtests.sh", v2.
 
-The change that exposed the problem is aae466b0052e ("mm/swap: implement
-workingset detection for anonymous LRU").  By qualifying swapins based on
-their refault distance, it lowered the cost of anon reclaim in this
-workload, in turn causing (much) more anon scanning than before.  Scanning
-the anon list is more expensive due to the higher ratio of mmapped pages
-that may rotate during reclaim, and so the result was an increase in %sys
-time.
+Clean the code up so we can use the same memfd for both hugetlb and shmem
+which is cleaner.
 
-Right now, rotations aren't considered a cost when balancing scan pressure
-between LRUs.  We can end up with very few file refaults putting all the
-scan pressure on hot anon pages that are rotated en masse, don't get
-reclaimed, and never push back on the file LRU again.  We still only
-reclaim file cache in that case, but we burn a lot CPU rotating anon
-pages.  It's "fair" from an LRU age POV, but doesn't reflect the real cost
-it imposes on the system.
 
-Consider rotations as a secondary factor in balancing the LRUs.  This
-doesn't attempt to make a precise comparison between IO cost and CPU cost,
-it just says: if reloads are about comparable between the lists, or
-rotations are overwhelmingly different, adjust for CPU work.
+This patch (of 4):
 
-This fixed the regression on our webservers.  It has since been deployed
-to the entire Meta fleet and hasn't caused any problems.
+We already used memfd for shmem test, move it forward with hugetlb too so
+that we don't need user to specify the hugetlb file path explicitly when
+running hugetlb shared tests.
 
-Link: https://lkml.kernel.org/r/20221013193113.726425-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
+Link: https://lkml.kernel.org/r/20221014143921.93887-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20221014143921.93887-2-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    5 +++--
- mm/swap.c            |   22 +++++++++++++++++-----
- mm/vmscan.c          |    4 +++-
- mm/workingset.c      |    2 +-
- 4 files changed, 24 insertions(+), 9 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   62 +++++++--------------
+ 1 file changed, 21 insertions(+), 41 deletions(-)
 
---- a/include/linux/swap.h~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
-+++ a/include/linux/swap.h
-@@ -384,8 +384,9 @@ extern unsigned long totalreserve_pages;
+--- a/tools/testing/selftests/vm/userfaultfd.c~selftests-vm-use-memfd-for-uffd-hugetlb-tests
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -93,10 +93,8 @@ static volatile bool test_uffdio_zeropag
+ static bool test_uffdio_wp = true;
+ /* Whether to test uffd minor faults */
+ static bool test_uffdio_minor = false;
+-
+ static bool map_shared;
+-static int shm_fd;
+-static int huge_fd;
++static int mem_fd;
+ static unsigned long long *count_verify;
+ static int uffd = -1;
+ static int uffd_flags, finished, *pipefd;
+@@ -143,7 +141,7 @@ const char *examples =
+     "# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
+     "./userfaultfd hugetlb 256 50\n\n"
+     "# Run the same hugetlb test but using shared file:\n"
+-    "./userfaultfd hugetlb_shared 256 50 /dev/hugepages/hugefile\n\n"
++    "./userfaultfd hugetlb_shared 256 50\n\n"
+     "# 10MiB-~6GiB 999 bounces anonymous test, "
+     "continue forever unless an error triggers\n"
+     "while ./userfaultfd anon $[RANDOM % 6000 + 10] 999; do true; done\n\n";
+@@ -260,35 +258,21 @@ static void hugetlb_release_pages(char *
  
- 
- /* linux/mm/swap.c */
--void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages);
--void lru_note_cost_folio(struct folio *);
-+void lru_note_cost(struct lruvec *lruvec, bool file,
-+		   unsigned int nr_io, unsigned int nr_rotated);
-+void lru_note_cost_refault(struct folio *);
- void folio_add_lru(struct folio *);
- void folio_add_lru_vma(struct folio *, struct vm_area_struct *);
- void lru_cache_add(struct page *);
---- a/mm/swap.c~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
-+++ a/mm/swap.c
-@@ -295,8 +295,20 @@ void folio_rotate_reclaimable(struct fol
- 	}
- }
- 
--void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages)
-+void lru_note_cost(struct lruvec *lruvec, bool file,
-+		   unsigned int nr_io, unsigned int nr_rotated)
+ static void hugetlb_allocate_area(void **alloc_area, bool is_src)
  {
-+	unsigned long cost;
-+
-+	/*
-+	 * Reflect the relative cost of incurring IO and spending CPU
-+	 * time on rotations. This doesn't attempt to make a precise
-+	 * comparison, it just says: if reloads are about comparable
-+	 * between the LRU lists, or rotations are overwhelmingly
-+	 * different between them, adjust scan balance for CPU work.
-+	 */
-+	cost = nr_io * SWAP_CLUSTER_MAX + nr_rotated;
-+
- 	do {
- 		unsigned long lrusize;
++	off_t size = nr_pages * page_size;
++	off_t offset = is_src ? 0 : size;
+ 	void *area_alias = NULL;
+ 	char **alloc_area_alias;
  
-@@ -310,9 +322,9 @@ void lru_note_cost(struct lruvec *lruvec
- 		spin_lock_irq(&lruvec->lru_lock);
- 		/* Record cost event */
- 		if (file)
--			lruvec->file_cost += nr_pages;
-+			lruvec->file_cost += cost;
- 		else
--			lruvec->anon_cost += nr_pages;
-+			lruvec->anon_cost += cost;
+-	if (!map_shared)
+-		*alloc_area = mmap(NULL,
+-			nr_pages * page_size,
+-			PROT_READ | PROT_WRITE,
+-			MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB |
+-				(is_src ? 0 : MAP_NORESERVE),
+-			-1,
+-			0);
+-	else
+-		*alloc_area = mmap(NULL,
+-			nr_pages * page_size,
+-			PROT_READ | PROT_WRITE,
+-			MAP_SHARED |
+-				(is_src ? 0 : MAP_NORESERVE),
+-			huge_fd,
+-			is_src ? 0 : nr_pages * page_size);
++	*alloc_area = mmap(NULL, size, PROT_READ | PROT_WRITE,
++			   (map_shared ? MAP_SHARED : MAP_PRIVATE) |
++			   (is_src ? 0 : MAP_NORESERVE),
++			   mem_fd, offset);
+ 	if (*alloc_area == MAP_FAILED)
+ 		err("mmap of hugetlbfs file failed");
  
- 		/*
- 		 * Decay previous events
-@@ -335,10 +347,10 @@ void lru_note_cost(struct lruvec *lruvec
- 	} while ((lruvec = parent_lruvec(lruvec)));
- }
- 
--void lru_note_cost_folio(struct folio *folio)
-+void lru_note_cost_refault(struct folio *folio)
- {
- 	lru_note_cost(folio_lruvec(folio), folio_is_file_lru(folio),
--			folio_nr_pages(folio));
-+		      folio_nr_pages(folio), 0);
- }
- 
- static void folio_activate_fn(struct lruvec *lruvec, struct folio *folio)
---- a/mm/vmscan.c~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
-+++ a/mm/vmscan.c
-@@ -2499,7 +2499,7 @@ static unsigned long shrink_inactive_lis
- 	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
- 	spin_unlock_irq(&lruvec->lru_lock);
- 
--	lru_note_cost(lruvec, file, stat.nr_pageout);
-+	lru_note_cost(lruvec, file, stat.nr_pageout, nr_scanned - nr_reclaimed);
- 	mem_cgroup_uncharge_list(&folio_list);
- 	free_unref_page_list(&folio_list);
- 
-@@ -2639,6 +2639,8 @@ static void shrink_active_list(unsigned
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
- 	spin_unlock_irq(&lruvec->lru_lock);
- 
-+	if (nr_rotated)
-+		lru_note_cost(lruvec, file, 0, nr_rotated);
- 	mem_cgroup_uncharge_list(&l_active);
- 	free_unref_page_list(&l_active);
- 	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
---- a/mm/workingset.c~mm-vmscan-make-rotations-a-secondary-factor-in-balancing-anon-vs-file
-+++ a/mm/workingset.c
-@@ -493,7 +493,7 @@ void workingset_refault(struct folio *fo
- 	if (workingset) {
- 		folio_set_workingset(folio);
- 		/* XXX: Move to lru_cache_add() when it supports new vs putback */
--		lru_note_cost_folio(folio);
-+		lru_note_cost_refault(folio);
- 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + file, nr);
+ 	if (map_shared) {
+-		area_alias = mmap(NULL,
+-			nr_pages * page_size,
+-			PROT_READ | PROT_WRITE,
+-			MAP_SHARED,
+-			huge_fd,
+-			is_src ? 0 : nr_pages * page_size);
++		area_alias = mmap(NULL, size, PROT_READ | PROT_WRITE,
++				  MAP_SHARED, mem_fd, offset);
+ 		if (area_alias == MAP_FAILED)
+ 			err("mmap of hugetlb file alias failed");
  	}
- out:
+@@ -334,14 +318,14 @@ static void shmem_allocate_area(void **a
+ 	}
+ 
+ 	*alloc_area = mmap(p, bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
+-			   shm_fd, offset);
++			   mem_fd, offset);
+ 	if (*alloc_area == MAP_FAILED)
+ 		err("mmap of memfd failed");
+ 	if (test_collapse && *alloc_area != p)
+ 		err("mmap of memfd failed at %p", p);
+ 
+ 	area_alias = mmap(p_alias, bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
+-			  shm_fd, offset);
++			  mem_fd, offset);
+ 	if (area_alias == MAP_FAILED)
+ 		err("mmap of memfd alias failed");
+ 	if (test_collapse && area_alias != p_alias)
+@@ -1841,21 +1825,17 @@ int main(int argc, char **argv)
+ 	}
+ 	nr_pages = nr_pages_per_cpu * nr_cpus;
+ 
+-	if (test_type == TEST_HUGETLB && map_shared) {
+-		if (argc < 5)
+-			usage();
+-		huge_fd = open(argv[4], O_CREAT | O_RDWR, 0755);
+-		if (huge_fd < 0)
+-			err("Open of %s failed", argv[4]);
+-		if (ftruncate(huge_fd, 0))
+-			err("ftruncate %s to size 0 failed", argv[4]);
+-	} else if (test_type == TEST_SHMEM) {
+-		shm_fd = memfd_create(argv[0], 0);
+-		if (shm_fd < 0)
++	if (test_type == TEST_SHMEM || test_type == TEST_HUGETLB) {
++		unsigned int memfd_flags = 0;
++
++		if (test_type == TEST_HUGETLB)
++			memfd_flags = MFD_HUGETLB;
++		mem_fd = memfd_create(argv[0], memfd_flags);
++		if (mem_fd < 0)
+ 			err("memfd_create");
+-		if (ftruncate(shm_fd, nr_pages * page_size * 2))
++		if (ftruncate(mem_fd, nr_pages * page_size * 2))
+ 			err("ftruncate");
+-		if (fallocate(shm_fd,
++		if (fallocate(mem_fd,
+ 			      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0,
+ 			      nr_pages * page_size * 2))
+ 			err("fallocate");
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-vmscan-split-khugepaged-stats-from-direct-reclaim-stats.patch
-zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
-mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
+mm-always-compile-in-pte-markers.patch
+mm-use-pte-markers-for-swap-errors.patch
 
