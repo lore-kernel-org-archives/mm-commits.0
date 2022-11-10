@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE39FC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Nov 2022 00:31:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8098CC43217
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Nov 2022 00:31:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232215AbiKJAbj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232172AbiKJAbj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 9 Nov 2022 19:31:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37290 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37252 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232221AbiKJAbY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Nov 2022 19:31:24 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17BE628E36
-        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 16:31:12 -0800 (PST)
+        with ESMTP id S232208AbiKJAbZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Nov 2022 19:31:25 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC1412A25C
+        for <mm-commits@vger.kernel.org>; Wed,  9 Nov 2022 16:31:13 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 64FC7CE2108
-        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2022 00:31:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8545EC433C1;
-        Thu, 10 Nov 2022 00:31:08 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4D2F1B82058
+        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2022 00:31:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4BEFC433D7;
+        Thu, 10 Nov 2022 00:31:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668040268;
-        bh=FTW5AacRMs5F9qZNWzCtXmT4dFtJIOSjU9ceGEIe3JY=;
+        s=korg; t=1668040270;
+        bh=YQ3gKEx9RS8Th24RdmYza9MRQ7kurlWb/BVKlNNI1KI=;
         h=Date:To:From:Subject:From;
-        b=Wi9QRigULAeVUZrlWcmyEKYeBy89fEU49MyNpd8r4RrzR54nU/gJE5yiUqaSLmNvv
-         wSEor1OaftF/h/xoO93y9AlsVJCDDnkHhpt4JFqUz4dwjZziaQU4Rhaw2RZ+UHEEm7
-         3Oinc5ZgmqiJAMEpkRpoCDupRCemxvhHMNmULx50=
-Date:   Wed, 09 Nov 2022 16:31:07 -0800
+        b=tTAZifzMm+CZ+thG51RNveUpr8yhwIVd59P59TCfQIVHrm7z7EF7BD4iUptwVGN3h
+         vjfQLVLtZ3s/r7fSMHy5Y6bS8bEcV/wi6Pv+M4ipHnGJoGJe5fd74RILyOMXPNgyVl
+         +1IOpI4P6ccfPlSI3gqkUEbD5OdqZvPmRMMzTeSQ=
+Date:   Wed, 09 Nov 2022 16:31:10 -0800
 To:     mm-commits@vger.kernel.org, suleiman@google.com, nphamcs@gmail.com,
         ngupta@vflare.org, minchan@kernel.org, avromanov@sberdevices.ru,
         senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-algo-parameter-support-to-zram_recompress.patch added to mm-unstable branch
-Message-Id: <20221110003108.8545EC433C1@smtp.kernel.org>
+Subject: + documentation-add-zram-recompression-documentation.patch added to mm-unstable branch
+Message-Id: <20221110003110.D4BEFC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: add algo parameter support to zram_recompress()
+     Subject: documentation: add zram recompression documentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-algo-parameter-support-to-zram_recompress.patch
+     documentation-add-zram-recompression-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-algo-parameter-support-to-zram_recompress.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-add-zram-recompression-documentation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,24 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add algo parameter support to zram_recompress()
-Date: Wed, 9 Nov 2022 20:50:44 +0900
+Subject: documentation: add zram recompression documentation
+Date: Wed, 9 Nov 2022 20:50:45 +0900
 
-Recompression iterates through all the registered secondary compression
-algorithms in order of their priorities so that we have higher chances of
-finding the algorithm that compresses a particular page.  This, however,
-may not always be best approach and sometimes we may want to limit
-recompression to only one particular algorithm.  For instance, when a
-higher priority algorithm uses too much power and device has a relatively
-low battery level we may want to limit recompression to use only a lower
-priority algorithm, which uses less power.
+Document user-space visible device attributes that are enabled by
+ZRAM_MULTI_COMP.
 
-Introduce algo= parameter support to recompression sysfs knob so that
-user-sapce can request recompression with particular algorithm only:
-
-  echo "type=idle algo=zstd" > /sys/block/zramX/recompress
-
-Link: https://lkml.kernel.org/r/20221109115047.2921851-11-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20221109115047.2921851-12-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Alexey Romanov <avromanov@sberdevices.ru>
@@ -93,142 +82,99 @@ Cc: Suleiman Souhlal <suleiman@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   54 ++++++++++++++++++++++++++------
- drivers/block/zram/zram_drv.h |    1 
- 2 files changed, 46 insertions(+), 9 deletions(-)
+ Documentation/admin-guide/blockdev/zram.rst |   81 ++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-add-algo-parameter-support-to-zram_recompress
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1674,6 +1674,7 @@ static int zram_recompress(struct zram *
- 	unsigned int comp_len_new;
- 	unsigned int class_index_old;
- 	unsigned int class_index_new;
-+	u32 num_recomps = 0;
- 	void *src, *dst;
- 	int ret;
+--- a/Documentation/admin-guide/blockdev/zram.rst~documentation-add-zram-recompression-documentation
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -401,6 +401,87 @@ budget in next setting is user's job.
+ If admin wants to measure writeback count in a certain period, they could
+ know it via /sys/block/zram0/bd_stat's 3rd column.
  
-@@ -1708,6 +1709,7 @@ static int zram_recompress(struct zram *
- 		if (prio <= zram_get_priority(zram, index))
- 			continue;
- 
-+		num_recomps++;
- 		zstrm = zcomp_stream_get(zram->comps[prio]);
- 		src = kmap_atomic(page);
- 		ret = zcomp_compress(zstrm, src, &comp_len_new);
-@@ -1740,13 +1742,19 @@ static int zram_recompress(struct zram *
- 	if (!zstrm)
- 		return 0;
- 
--	/*
--	 * All secondary algorithms failed to re-compress the page in a way
--	 * that would save memory, mark the object as incompressible so that
--	 * we will not try to compress it again.
--	 */
- 	if (class_index_new >= class_index_old) {
--		zram_set_flag(zram, index, ZRAM_INCOMPRESSIBLE);
-+		/*
-+		 * Secondary algorithms failed to re-compress the page
-+		 * in a way that would save memory, mark the object as
-+		 * incompressible so that we will not try to compress
-+		 * it again.
-+		 *
-+		 * We need to make sure that all secondary algorithms have
-+		 * failed, so we test if the number of recompressions matches
-+		 * the number of active secondary algorithms.
-+		 */
-+		if (num_recomps == zram->num_active_comps - 1)
-+			zram_set_flag(zram, index, ZRAM_INCOMPRESSIBLE);
- 		return 0;
- 	}
- 
-@@ -1795,10 +1803,11 @@ static ssize_t recompress_store(struct d
- 				struct device_attribute *attr,
- 				const char *buf, size_t len)
- {
-+	u32 prio = ZRAM_SECONDARY_COMP, prio_max = ZRAM_MAX_COMPS;
- 	struct zram *zram = dev_to_zram(dev);
--	u32 mode = 0, threshold = 0, prio = ZRAM_SECONDARY_COMP;
- 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
--	char *args, *param, *val;
-+	char *args, *param, *val, *algo = NULL;
-+	u32 mode = 0, threshold = 0;
- 	unsigned long index;
- 	struct page *page;
- 	ssize_t ret;
-@@ -1830,6 +1839,11 @@ static ssize_t recompress_store(struct d
- 				return ret;
- 			continue;
- 		}
++recompression
++-------------
 +
-+		if (!strcmp(param, "algo")) {
-+			algo = val;
-+			continue;
-+		}
- 	}
- 
- 	if (threshold >= PAGE_SIZE)
-@@ -1841,6 +1855,26 @@ static ssize_t recompress_store(struct d
- 		goto release_init_lock;
- 	}
- 
-+	if (algo) {
-+		bool found = false;
++With CONFIG_ZRAM_MULTI_COMP, zram can recompress pages using alternative
++(secondary) compression algorithms. The basic idea is that alternative
++compression algorithm can provide better compression ratio at a price of
++(potentially) slower compression/decompression speeds. Alternative compression
++algorithm can, for example, be more successful compressing huge pages (those
++that default algorithm failed to compress). Another application is idle pages
++recompression - pages that are cold and sit in the memory can be recompressed
++using more effective algorithm and, hence, reduce zsmalloc memory usage.
 +
-+		for (; prio < ZRAM_MAX_COMPS; prio++) {
-+			if (!zram->comp_algs[prio])
-+				continue;
++With CONFIG_ZRAM_MULTI_COMP, zram supports up to 4 compression algorithms:
++one primary and up to 3 secondary ones. Primary zram compressor is explained
++in "3) Select compression algorithm", secondary algorithms are configured
++using recomp_algorithm device attribute.
 +
-+			if (!strcmp(zram->comp_algs[prio], algo)) {
-+				prio_max = min(prio + 1, ZRAM_MAX_COMPS);
-+				found = true;
-+				break;
-+			}
-+		}
++Example:::
 +
-+		if (!found) {
-+			ret = -EINVAL;
-+			goto release_init_lock;
-+		}
-+	}
++	#show supported recompression algorithms
++	cat /sys/block/zramX/recomp_algorithm
++	#1: lzo lzo-rle lz4 lz4hc [zstd]
++	#2: lzo lzo-rle lz4 [lz4hc] zstd
 +
- 	page = alloc_page(GFP_KERNEL);
- 	if (!page) {
- 		ret = -ENOMEM;
-@@ -1871,7 +1905,7 @@ static ssize_t recompress_store(struct d
- 			goto next;
++Alternative compression algorithms are sorted by priority. In the example
++above, zstd is used as the first alternative algorithm, which has priority
++of 1, while lz4hc is configured as a compression algorithm with priority 2.
++Alternative compression algorithm's priority is provided during algorithms
++configuration:::
++
++	#select zstd recompression algorithm, priority 1
++	echo "algo=zstd priority=1" > /sys/block/zramX/recomp_algorithm
++
++	#select deflate recompression algorithm, priority 2
++	echo "algo=deflate priority=2" > /sys/block/zramX/recomp_algorithm
++
++Another device attribute that CONFIG_ZRAM_MULTI_COMP enables is recompress,
++which controls recompression.
++
++Examples:::
++
++	#IDLE pages recompression is activated by `idle` mode
++	echo "type=idle" > /sys/block/zramX/recompress
++
++	#HUGE pages recompression is activated by `huge` mode
++	echo "type=huge" > /sys/block/zram0/recompress
++
++	#HUGE_IDLE pages recompression is activated by `huge_idle` mode
++	echo "type=huge_idle" > /sys/block/zramX/recompress
++
++The number of idle pages can be significant, so user-space can pass a size
++threshold (in bytes) to the recompress knob: zram will recompress only pages
++of equal or greater size:::
++
++	#recompress all pages larger than 3000 bytes
++	echo "threshold=3000" > /sys/block/zramX/recompress
++
++	#recompress idle pages larger than 2000 bytes
++	echo "type=idle threshold=2000" > /sys/block/zramX/recompress
++
++Recompression of idle pages requires memory tracking.
++
++During re-compression for every page, that matches re-compression criteria,
++ZRAM iterates the list of registered alternative compression algorithms in
++order of their priorities. ZRAM stops either when re-compression was
++successful (re-compressed object is smaller in size than the original one)
++and matches re-compression criteria (e.g. size threshold) or when there are
++no secondary algorithms left to try. If none of the secondary algorithms can
++successfully re-compressed the page such a page is marked as incompressible,
++so ZRAM will not attempt to re-compress it in the future.
++
++This re-compression behaviour, when it iterates through the list of
++registered compression algorithms, increases our chances of finding the
++algorithm that successfully compresses a particular page. Sometimes, however,
++it is convenient (and sometimes even necessary) to limit recompression to
++only one particular algorithm so that it will not try any other algorithms.
++This can be achieved by providing a algo=NAME parameter:::
++
++	#use zstd algorithm only (if registered)
++	echo "type=huge algo=zstd" > /sys/block/zramX/recompress
++
+ memory tracking
+ ===============
  
- 		err = zram_recompress(zram, index, page, threshold,
--				      prio, ZRAM_MAX_COMPS);
-+				      prio, prio_max);
- next:
- 		zram_slot_unlock(zram, index);
- 		if (err) {
-@@ -2107,6 +2141,7 @@ static void zram_destroy_comps(struct zr
- 		if (!comp)
- 			continue;
- 		zcomp_destroy(comp);
-+		zram->num_active_comps--;
- 	}
- }
- 
-@@ -2174,6 +2209,7 @@ static ssize_t disksize_store(struct dev
- 		}
- 
- 		zram->comps[prio] = comp;
-+		zram->num_active_comps++;
- 	}
- 	zram->disksize = disksize;
- 	set_capacity_and_notify(zram->disk, zram->disksize >> SECTOR_SHIFT);
---- a/drivers/block/zram/zram_drv.h~zram-add-algo-parameter-support-to-zram_recompress
-+++ a/drivers/block/zram/zram_drv.h
-@@ -125,6 +125,7 @@ struct zram {
- 	 */
- 	u64 disksize;	/* bytes */
- 	const char *comp_algs[ZRAM_MAX_COMPS];
-+	s8 num_active_comps;
- 	/*
- 	 * zram is claimed so open request will be failed
- 	 */
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
