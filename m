@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE11AC43217
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Nov 2022 22:42:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 844D5C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Nov 2022 22:45:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232979AbiKKWm3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Nov 2022 17:42:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60092 "EHLO
+        id S232943AbiKKWp0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Nov 2022 17:45:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232943AbiKKWm3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 17:42:29 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AE21BF4C
-        for <mm-commits@vger.kernel.org>; Fri, 11 Nov 2022 14:42:28 -0800 (PST)
+        with ESMTP id S234140AbiKKWpZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 17:45:25 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C4A940922
+        for <mm-commits@vger.kernel.org>; Fri, 11 Nov 2022 14:45:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0730662117
-        for <mm-commits@vger.kernel.org>; Fri, 11 Nov 2022 22:42:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58590C433C1;
-        Fri, 11 Nov 2022 22:42:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 96D2CB8281F
+        for <mm-commits@vger.kernel.org>; Fri, 11 Nov 2022 22:45:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15CFFC433C1;
+        Fri, 11 Nov 2022 22:45:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668206547;
-        bh=WfY6c8gE3Yan0XgpMQg8ngDHIIX4LtQjWZMgOoTrxv0=;
+        s=korg; t=1668206721;
+        bh=z9GWAwuEDKsgJrJqIlbvGShCTeEydATiWc1rweLZv/Y=;
         h=Date:To:From:Subject:From;
-        b=yV4h+X3WnsO/w3ewndPinG1GTjdnJkK9NtgeBqtaSZGfk0uYq/Shg6Jz/+KFGoswa
-         cY2PcjZbo8Gv7AsxVTWnJavlBcTfRRA/NFMZ/h9YhYhgTtwgAu4S2Pe5PxlQMHiepP
-         OfhmtSqchDSGcR+iC4BwJWiAmKHrkPvqGbkKJ7AM=
-Date:   Fri, 11 Nov 2022 14:42:26 -0800
-To:     mm-commits@vger.kernel.org, wenjian1@xiaomi.com,
-        wenjianhn@gmail.com, akpm@linux-foundation.org
+        b=LAMyfgFNhzP/fpTIWqUTfcA8kUULW5KXEvqePyjyezdlWimnIOk7JidryDIxa9KJk
+         aNtmk+GVT/WSdl2WuuBHrl2nu1QiICtV/5zFGtnWGO6DV4meDjH58u8xQqyKI9Kd0/
+         +R8O9zW82e4VN8ORJfk1q+omltO8IXpL7clQ7YVE=
+Date:   Fri, 11 Nov 2022 14:45:20 -0800
+To:     mm-commits@vger.kernel.org, rcampbell@nvidia.com,
+        mpe@ellerman.id.au, lyude@redhat.com, jhubbard@nvidia.com,
+        jgg@nvidia.com, Felix.Kuehling@amd.com, bskeggs@redhat.com,
+        alex.sierra@amd.com, apopple@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-cgroup-v1-update-description-of-inactive_file.patch added to mm-unstable branch
-Message-Id: <20221111224227.58590C433C1@smtp.kernel.org>
+Subject: + mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call-fix.patch added to mm-unstable branch
+Message-Id: <20221111224521.15CFFC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: docs: admin-guide: cgroup-v1: update description of inactive_file
+     Subject: mm/migrate_device: return number of migrating pages in args->cpages
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-cgroup-v1-update-description-of-inactive_file.patch
+     mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-cgroup-v1-update-description-of-inactive_file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,36 +66,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jian Wen <wenjianhn@gmail.com>
-Subject: docs: admin-guide: cgroup-v1: update description of inactive_file
-Date: Fri, 11 Nov 2022 11:46:39 +0800
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/migrate_device: return number of migrating pages in args->cpages
+Date: Fri, 11 Nov 2022 11:51:35 +1100
 
-MADV_FREE pages have been moved into the LRU_INACTIVE_FILE list by commit
-f7ad2a6cb9f7 ("mm: move MADV_FREE pages into LRU_INACTIVE_FILE list").
+migrate_vma->cpages originally contained a count of the number of pages
+migrating including non-present pages which can be poluated directly on
+the target.
 
-Link: https://lkml.kernel.org/r/20221111034639.3593380-1-wenjian1@xiaomi.com
-Signed-off-by: Jian Wen <wenjian1@xiaomi.com>
+Commit 241f68859656 ("mm/migrate_device.c: refactor migrate_vma and
+migrate_deivce_coherent_page()") inadvertantly changed this to contain
+just the number of pages that were unmapped.  Usage of migrate_vma->cpages
+isn't documented, but most drivers use it to see if all the requested
+addresses can be migrated so restore the original behaviour.
+
+Link: https://lkml.kernel.org/r/20221111005135.1344004-1-apopple@nvidia.com
+Fixes: 241f68859656 ("mm/migrate_device.c: refactor migrate_vma and migrate_deivce_coherent_page()")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reported-by: Ralph Campbell <rcampbell@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Alex Sierra <alex.sierra@amd.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memory.rst |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/migrate_device.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~docs-admin-guide-cgroup-v1-update-description-of-inactive_file
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -543,7 +543,8 @@ inactive_anon	# of bytes of anonymous an
- 		LRU list.
- active_anon	# of bytes of anonymous and swap cache memory on active
- 		LRU list.
--inactive_file	# of bytes of file-backed memory on inactive LRU list.
-+inactive_file	# of bytes of file-backed memory and MADV_FREE anonymous memory(
-+                LazyFree pages) on inactive LRU list.
- active_file	# of bytes of file-backed memory on active LRU list.
- unevictable	# of bytes of memory that cannot be reclaimed (mlocked etc).
- =============== ===============================================================
+--- a/mm/migrate_device.c~mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call-fix
++++ a/mm/migrate_device.c
+@@ -357,7 +357,8 @@ static bool migrate_vma_check_page(struc
+ }
+ 
+ /*
+- * Unmaps pages for migration. Returns number of unmapped pages.
++ * Unmaps pages for migration. Returns number of source pfns marked as
++ * migrating.
+  */
+ static unsigned long migrate_device_unmap(unsigned long *src_pfns,
+ 					  unsigned long npages,
+@@ -373,8 +374,11 @@ static unsigned long migrate_device_unma
+ 		struct page *page = migrate_pfn_to_page(src_pfns[i]);
+ 		struct folio *folio;
+ 
+-		if (!page)
++		if (!page) {
++			if (src_pfns[i] & MIGRATE_PFN_MIGRATE)
++				unmapped++;
+ 			continue;
++		}
+ 
+ 		/* ZONE_DEVICE pages are not on LRU */
+ 		if (!is_zone_device_page(page)) {
 _
 
-Patches currently in -mm which might be from wenjianhn@gmail.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-docs-admin-guide-cgroup-v1-update-description-of-inactive_file.patch
+mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call-fix.patch
 
