@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF7BFC4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Nov 2022 23:16:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 980DBC433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Nov 2022 23:30:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231911AbiKKXQG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Nov 2022 18:16:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44236 "EHLO
+        id S234474AbiKKXax (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Nov 2022 18:30:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230043AbiKKXQF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 18:16:05 -0500
+        with ESMTP id S234318AbiKKXaw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 18:30:52 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56B87CE04
-        for <mm-commits@vger.kernel.org>; Fri, 11 Nov 2022 15:16:04 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 079671A82A;
+        Fri, 11 Nov 2022 15:30:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 13DE3B8280A
-        for <mm-commits@vger.kernel.org>; Fri, 11 Nov 2022 23:16:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A45B9C433D6;
-        Fri, 11 Nov 2022 23:16:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BC2A5B82832;
+        Fri, 11 Nov 2022 23:30:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A227C433C1;
+        Fri, 11 Nov 2022 23:30:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668208561;
-        bh=wst2qJaRjG78zKzu5ciQaj6Rekbi7+24n6rGHcfYGDI=;
+        s=korg; t=1668209448;
+        bh=X/RICrvo6WFejB534olyOWCr4lmT1caE3X1nS047jG0=;
         h=Date:To:From:Subject:From;
-        b=SNz9I9Fd4nNmEGAP5QLM85lkr3f3aDSkTU9nBucWv8APdfuZ5Nk1fV+I4cuYBP3ml
-         PCMTh2bJDUDYQkO4fyGga7+QYyBotdFO1fkNQX+SHDl5toNBGXMIvBtERfI6FnlqvY
-         21JACVbB0SyBFFWuyrpNgKONUQ366ZuV1Gea7CSU=
-Date:   Fri, 11 Nov 2022 15:16:00 -0800
-To:     mm-commits@vger.kernel.org, Chao.Xu9@zeekrlife.com,
-        amos.xuchao@gmail.com, akpm@linux-foundation.org
+        b=xQrP9XfBrJ9X2OvSSFh3aYbZTRhK0rwIRHGadphO9FXrb/MutnvDQUOBpY6Sv+G6x
+         hTsz09/8hCegUwavhWVbz00Lz+oo8kWQjKGqzKwJqz7GRrhUgkBq0m/Et5o85keVUz
+         P7TdEmTKeLohslHJmsN+LwGnJOEv1WqobtfiQ7xU=
+Date:   Fri, 11 Nov 2022 15:30:47 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        stable@vger.kernel.org, riel@surriel.com, peterx@redhat.com,
+        naoya.horiguchi@linux.dev, nadav.amit@gmail.com,
+        harperchen1110@gmail.com, david@redhat.com,
+        axelrasmussen@google.com, almasrymina@google.com,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-simplify-the-nr-assignment-logic-for-pages-to-scan.patch added to mm-unstable branch
-Message-Id: <20221111231601.A45B9C433D6@smtp.kernel.org>
+Subject: + madvise-use-zap_page_range_single-for-madvise-dontneed.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221111233048.5A227C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: simplify the nr assignment logic for pages to scan
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-simplify-the-nr-assignment-logic-for-pages-to-scan.patch
+     Subject: madvise: use zap_page_range_single for madvise dontneed
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     madvise-use-zap_page_range_single-for-madvise-dontneed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-simplify-the-nr-assignment-logic-for-pages-to-scan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/madvise-use-zap_page_range_single-for-madvise-dontneed.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,47 +68,184 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chao Xu <amos.xuchao@gmail.com>
-Subject: mm/vmscan: simplify the nr assignment logic for pages to scan
-Date: Thu, 10 Nov 2022 19:31:30 +0800
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: madvise: use zap_page_range_single for madvise dontneed
+Date: Fri, 11 Nov 2022 15:26:26 -0800
 
-By default the assignment logic of anonymouns or file inactive pages and
-active pages to scan using the same duplicated code snippet.  To simplify
-the logic, merge the same part.
+Patch series "fix hugetlb MADV_DONTNEED vma_lock handling", v9.
 
-Link: https://lkml.kernel.org/r/20221110113130.284290-1-Chao.Xu9@zeekrlife.com
-Signed-off-by: Chao Xu <Chao.Xu9@zeekrlife.com>
+This series addresses the issue first reported in [1], and fully described
+in patch 3.  While exploring solutions to this issue, related problems
+with mmu notification calls were discovered.  The first two patches
+address those issues.
+
+Previous discussions suggested further cleanup by removing the routine
+zap_page_range.  This is possible because zap_page_range_single is now
+exported, and all callers of zap_page_range pass ranges entirely within a
+single vma.  This work will be done in a later patch so as not to distract
+from this bug fix.
+
+[1] https://lore.kernel.org/lkml/CAO4mrfdLMXsao9RF4fUE8-Wfde8xmjsKrTNMNC9wjUb6JudD0g@mail.gmail.com/
+
+
+This patch (of 3):
+
+Expose the routine zap_page_range_single to zap a range within a single
+vma.  The madvise routine madvise_dontneed_single_vma can use this routine
+as it explicitly operates on a single vma.  Also, update the mmu
+notification range in zap_page_range_single to take hugetlb pmd sharing
+into account.  This is required as MADV_DONTNEED supports hugetlb vmas.
+
+Link: https://lkml.kernel.org/r/20221111232628.290160-1-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20221111232628.290160-2-mike.kravetz@oracle.com
+Fixes: 90e7e7f5ef3f ("mm: enable MADV_DONTNEED for hugetlb mappings")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Wei Chen <harperchen1110@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ include/linux/mm.h |   27 +++++++++++++++++++--------
+ mm/madvise.c       |    6 +++---
+ mm/memory.c        |   23 +++++++++++------------
+ 3 files changed, 33 insertions(+), 23 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-simplify-the-nr-assignment-logic-for-pages-to-scan
-+++ a/mm/vmscan.c
-@@ -5950,14 +5950,11 @@ static void shrink_lruvec(struct lruvec
- 		 * scan target and the percentage scanning already complete
- 		 */
- 		lru = (lru == LRU_FILE) ? LRU_BASE : LRU_FILE;
--		nr_scanned = targets[lru] - nr[lru];
--		nr[lru] = targets[lru] * (100 - percentage) / 100;
--		nr[lru] -= min(nr[lru], nr_scanned);
--
--		lru += LRU_ACTIVE;
--		nr_scanned = targets[lru] - nr[lru];
--		nr[lru] = targets[lru] * (100 - percentage) / 100;
--		nr[lru] -= min(nr[lru], nr_scanned);
-+		for ( ; lru <= lru + LRU_ACTIVE; lru += LRU_ACTIVE) {
-+			nr_scanned = targets[lru] - nr[lru];
-+			nr[lru] = targets[lru] * (100 - percentage) / 100;
-+			nr[lru] -= min(nr[lru], nr_scanned);
-+		}
+--- a/include/linux/mm.h~madvise-use-zap_page_range_single-for-madvise-dontneed
++++ a/include/linux/mm.h
+@@ -1852,6 +1852,23 @@ static void __maybe_unused show_free_are
+ 	__show_free_areas(flags, nodemask, MAX_NR_ZONES - 1);
+ }
  
- 		scan_adjusted = true;
- 	}
++/*
++ * Parameter block passed down to zap_pte_range in exceptional cases.
++ */
++struct zap_details {
++	struct folio *single_folio;	/* Locked folio to be unmapped */
++	bool even_cows;			/* Zap COWed private pages too? */
++	zap_flags_t zap_flags;		/* Extra flags for zapping */
++};
++
++/*
++ * Whether to drop the pte markers, for example, the uffd-wp information for
++ * file-backed memory.  This should only be specified when we will completely
++ * drop the page in the mm, either by truncation or unmapping of the vma.  By
++ * default, the flag is not set.
++ */
++#define  ZAP_FLAG_DROP_MARKER        ((__force zap_flags_t) BIT(0))
++
+ #ifdef CONFIG_MMU
+ extern bool can_do_mlock(void);
+ #else
+@@ -1869,6 +1886,8 @@ void zap_vma_ptes(struct vm_area_struct
+ 		  unsigned long size);
+ void zap_page_range(struct vm_area_struct *vma, unsigned long address,
+ 		    unsigned long size);
++void zap_page_range_single(struct vm_area_struct *vma, unsigned long address,
++			   unsigned long size, struct zap_details *details);
+ void unmap_vmas(struct mmu_gather *tlb, struct maple_tree *mt,
+ 		struct vm_area_struct *start_vma, unsigned long start,
+ 		unsigned long end);
+@@ -3467,12 +3486,4 @@ madvise_set_anon_name(struct mm_struct *
+ }
+ #endif
+ 
+-/*
+- * Whether to drop the pte markers, for example, the uffd-wp information for
+- * file-backed memory.  This should only be specified when we will completely
+- * drop the page in the mm, either by truncation or unmapping of the vma.  By
+- * default, the flag is not set.
+- */
+-#define  ZAP_FLAG_DROP_MARKER        ((__force zap_flags_t) BIT(0))
+-
+ #endif /* _LINUX_MM_H */
+--- a/mm/madvise.c~madvise-use-zap_page_range_single-for-madvise-dontneed
++++ a/mm/madvise.c
+@@ -772,8 +772,8 @@ static int madvise_free_single_vma(struc
+  * Application no longer needs these pages.  If the pages are dirty,
+  * it's OK to just throw them away.  The app will be more careful about
+  * data it wants to keep.  Be sure to free swap resources too.  The
+- * zap_page_range call sets things up for shrink_active_list to actually free
+- * these pages later if no one else has touched them in the meantime,
++ * zap_page_range_single call sets things up for shrink_active_list to actually
++ * free these pages later if no one else has touched them in the meantime,
+  * although we could add these pages to a global reuse list for
+  * shrink_active_list to pick up before reclaiming other pages.
+  *
+@@ -790,7 +790,7 @@ static int madvise_free_single_vma(struc
+ static long madvise_dontneed_single_vma(struct vm_area_struct *vma,
+ 					unsigned long start, unsigned long end)
+ {
+-	zap_page_range(vma, start, end - start);
++	zap_page_range_single(vma, start, end - start, NULL);
+ 	return 0;
+ }
+ 
+--- a/mm/memory.c~madvise-use-zap_page_range_single-for-madvise-dontneed
++++ a/mm/memory.c
+@@ -1341,15 +1341,6 @@ copy_page_range(struct vm_area_struct *d
+ 	return ret;
+ }
+ 
+-/*
+- * Parameter block passed down to zap_pte_range in exceptional cases.
+- */
+-struct zap_details {
+-	struct folio *single_folio;	/* Locked folio to be unmapped */
+-	bool even_cows;			/* Zap COWed private pages too? */
+-	zap_flags_t zap_flags;		/* Extra flags for zapping */
+-};
+-
+ /* Whether we should zap all COWed (private) pages too */
+ static inline bool should_zap_cows(struct zap_details *details)
+ {
+@@ -1774,19 +1765,27 @@ void zap_page_range(struct vm_area_struc
+  *
+  * The range must fit into one VMA.
+  */
+-static void zap_page_range_single(struct vm_area_struct *vma, unsigned long address,
++void zap_page_range_single(struct vm_area_struct *vma, unsigned long address,
+ 		unsigned long size, struct zap_details *details)
+ {
++	unsigned long end = address + size;
+ 	struct mmu_notifier_range range;
+ 	struct mmu_gather tlb;
+ 
+ 	lru_add_drain();
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+-				address, address + size);
++				address, end);
++	if (is_vm_hugetlb_page(vma))
++		adjust_range_if_pmd_sharing_possible(vma, &range.start,
++						     &range.end);
+ 	tlb_gather_mmu(&tlb, vma->vm_mm);
+ 	update_hiwater_rss(vma->vm_mm);
+ 	mmu_notifier_invalidate_range_start(&range);
+-	unmap_single_vma(&tlb, vma, address, range.end, details);
++	/*
++	 * unmap 'address-end' not 'range.start-range.end' as range
++	 * could have been expanded for hugetlb pmd sharing.
++	 */
++	unmap_single_vma(&tlb, vma, address, end, details);
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_finish_mmu(&tlb);
+ }
 _
 
-Patches currently in -mm which might be from amos.xuchao@gmail.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-vmscan-simplify-the-nr-assignment-logic-for-pages-to-scan.patch
+ipc-shm-call-underlying-open-close-vm_ops.patch
+madvise-use-zap_page_range_single-for-madvise-dontneed.patch
+hugetlb-remove-duplicate-mmu-notifications.patch
+hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
+selftests-vm-update-hugetlb-madvise.patch
 
