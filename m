@@ -2,129 +2,259 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 844D5C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Nov 2022 22:45:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E2F7C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Nov 2022 22:59:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232943AbiKKWp0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Nov 2022 17:45:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60882 "EHLO
+        id S233911AbiKKW75 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Nov 2022 17:59:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234140AbiKKWpZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 17:45:25 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C4A940922
-        for <mm-commits@vger.kernel.org>; Fri, 11 Nov 2022 14:45:23 -0800 (PST)
+        with ESMTP id S234311AbiKKW74 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 17:59:56 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D14A511C0D;
+        Fri, 11 Nov 2022 14:59:54 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 96D2CB8281F
-        for <mm-commits@vger.kernel.org>; Fri, 11 Nov 2022 22:45:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15CFFC433C1;
-        Fri, 11 Nov 2022 22:45:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 28D3E62124;
+        Fri, 11 Nov 2022 22:59:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70CFDC433D6;
+        Fri, 11 Nov 2022 22:59:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668206721;
-        bh=z9GWAwuEDKsgJrJqIlbvGShCTeEydATiWc1rweLZv/Y=;
+        s=korg; t=1668207593;
+        bh=heH/mPXelU/TCWmffL3s9a50O1UJJQBYLSYknGpFAOs=;
         h=Date:To:From:Subject:From;
-        b=LAMyfgFNhzP/fpTIWqUTfcA8kUULW5KXEvqePyjyezdlWimnIOk7JidryDIxa9KJk
-         aNtmk+GVT/WSdl2WuuBHrl2nu1QiICtV/5zFGtnWGO6DV4meDjH58u8xQqyKI9Kd0/
-         +R8O9zW82e4VN8ORJfk1q+omltO8IXpL7clQ7YVE=
-Date:   Fri, 11 Nov 2022 14:45:20 -0800
-To:     mm-commits@vger.kernel.org, rcampbell@nvidia.com,
-        mpe@ellerman.id.au, lyude@redhat.com, jhubbard@nvidia.com,
-        jgg@nvidia.com, Felix.Kuehling@amd.com, bskeggs@redhat.com,
-        alex.sierra@amd.com, apopple@nvidia.com, akpm@linux-foundation.org
+        b=Smcwzfx0QICJ2sVVEw3joK2elxsz1UvtNuHF5QBkTBKrubRa4g1FypZIg46n0+5sJ
+         IvWWlJJk50t7bAbSMGUPn3gnVHeLblkJUfR8Rw1SdwaJCgEpe4OedXHZ6yA/B6iTzD
+         2I2+sPPLUvIxnjJX/U/ia2U9P8+B76+/rNzTon2U=
+Date:   Fri, 11 Nov 2022 14:59:52 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        stable@vger.kernel.org, riel@surriel.com, peterx@redhat.com,
+        naoya.horiguchi@linux.dev, nadav.amit@gmail.com,
+        harperchen1110@gmail.com, david@redhat.com,
+        axelrasmussen@google.com, almasrymina@google.com,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call-fix.patch added to mm-unstable branch
-Message-Id: <20221111224521.15CFFC433C1@smtp.kernel.org>
+Subject: [to-be-updated] hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch removed from -mm tree
+Message-Id: <20221111225953.70CFDC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/migrate_device: return number of migrating pages in args->cpages
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call-fix.patch
+The quilt patch titled
+     Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
+has been removed from the -mm tree.  Its filename was
+     hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/migrate_device: return number of migrating pages in args->cpages
-Date: Fri, 11 Nov 2022 11:51:35 +1100
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
+Date: Tue, 1 Nov 2022 18:31:00 -0700
 
-migrate_vma->cpages originally contained a count of the number of pages
-migrating including non-present pages which can be poluated directly on
-the target.
+madvise(MADV_DONTNEED) ends up calling zap_page_range() to clear page
+tables associated with the address range.  For hugetlb vmas,
+zap_page_range will call __unmap_hugepage_range_final.  However,
+__unmap_hugepage_range_final assumes the passed vma is about to be removed
+and deletes the vma_lock to prevent pmd sharing as the vma is on the way
+out.  In the case of madvise(MADV_DONTNEED) the vma remains, but the
+missing vma_lock prevents pmd sharing and could potentially lead to issues
+with truncation/fault races.
 
-Commit 241f68859656 ("mm/migrate_device.c: refactor migrate_vma and
-migrate_deivce_coherent_page()") inadvertantly changed this to contain
-just the number of pages that were unmapped.  Usage of migrate_vma->cpages
-isn't documented, but most drivers use it to see if all the requested
-addresses can be migrated so restore the original behaviour.
+This issue was originally reported here [1] as a BUG triggered in
+page_try_dup_anon_rmap.  Prior to the introduction of the hugetlb
+vma_lock, __unmap_hugepage_range_final cleared the VM_MAYSHARE flag to
+prevent pmd sharing.  Subsequent faults on this vma were confused as
+VM_MAYSHARE indicates a sharable vma, but was not set so page_mapping was
+not set in new pages added to the page table.  This resulted in pages that
+appeared anonymous in a VM_SHARED vma and triggered the BUG.
 
-Link: https://lkml.kernel.org/r/20221111005135.1344004-1-apopple@nvidia.com
-Fixes: 241f68859656 ("mm/migrate_device.c: refactor migrate_vma and migrate_deivce_coherent_page()")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reported-by: Ralph Campbell <rcampbell@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Alex Sierra <alex.sierra@amd.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Address issue by:
+- Add a new zap flag ZAP_FLAG_UNMAP to indicate an unmap call from
+  unmap_vmas().  This is used to indicate the 'final' unmapping of a vma.
+  When called via MADV_DONTNEED, this flag is not set and the vm_lock is
+  not deleted.
+- mmu notification is removed from __unmap_hugepage_range to avoid
+  duplication, and notification is added to the other calling routine
+  (unmap_hugepage_range).
+- notification calls are updated in zap_page range to take into account
+  the possibility of multiple vmas.
+
+[1] https://lore.kernel.org/lkml/CAO4mrfdLMXsao9RF4fUE8-Wfde8xmjsKrTNMNC9wjUb6JudD0g@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20221102013100.455139-1-mike.kravetz@oracle.com
+Fixes: 90e7e7f5ef3f ("mm: enable MADV_DONTNEED for hugetlb mappings")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Wei Chen <harperchen1110@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    3 ++
+ mm/hugetlb.c       |   45 +++++++++++++++++++++++++------------------
+ mm/memory.c        |   21 ++++++++++++++------
+ 3 files changed, 45 insertions(+), 24 deletions(-)
 
---- a/mm/migrate_device.c~mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call-fix
-+++ a/mm/migrate_device.c
-@@ -357,7 +357,8 @@ static bool migrate_vma_check_page(struc
+--- a/include/linux/mm.h~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/include/linux/mm.h
+@@ -3475,4 +3475,7 @@ madvise_set_anon_name(struct mm_struct *
+  */
+ #define  ZAP_FLAG_DROP_MARKER        ((__force zap_flags_t) BIT(0))
+ 
++/* Set in unmap_vmas() to indicate an unmap call.  Only used by hugetlb */
++#define  ZAP_FLAG_UNMAP              ((__force zap_flags_t) BIT(1))
++
+ #endif /* _LINUX_MM_H */
+--- a/mm/hugetlb.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/mm/hugetlb.c
+@@ -5064,7 +5064,6 @@ static void __unmap_hugepage_range(struc
+ 	struct page *page;
+ 	struct hstate *h = hstate_vma(vma);
+ 	unsigned long sz = huge_page_size(h);
+-	struct mmu_notifier_range range;
+ 	unsigned long last_addr_mask;
+ 	bool force_flush = false;
+ 
+@@ -5079,13 +5078,6 @@ static void __unmap_hugepage_range(struc
+ 	tlb_change_page_size(tlb, sz);
+ 	tlb_start_vma(tlb, vma);
+ 
+-	/*
+-	 * If sharing possible, alert mmu notifiers of worst case.
+-	 */
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, mm, start,
+-				end);
+-	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
+-	mmu_notifier_invalidate_range_start(&range);
+ 	last_addr_mask = hugetlb_mask_last_page(h);
+ 	address = start;
+ 	for (; address < end; address += sz) {
+@@ -5174,7 +5166,6 @@ static void __unmap_hugepage_range(struc
+ 		if (ref_page)
+ 			break;
+ 	}
+-	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_end_vma(tlb, vma);
+ 
+ 	/*
+@@ -5199,32 +5190,50 @@ void __unmap_hugepage_range_final(struct
+ 			  unsigned long end, struct page *ref_page,
+ 			  zap_flags_t zap_flags)
+ {
++	bool final = zap_flags & ZAP_FLAG_UNMAP;
++
+ 	hugetlb_vma_lock_write(vma);
+ 	i_mmap_lock_write(vma->vm_file->f_mapping);
+ 
+ 	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
+ 
+ 	/*
+-	 * Unlock and free the vma lock before releasing i_mmap_rwsem.  When
+-	 * the vma_lock is freed, this makes the vma ineligible for pmd
+-	 * sharing.  And, i_mmap_rwsem is required to set up pmd sharing.
+-	 * This is important as page tables for this unmapped range will
+-	 * be asynchrously deleted.  If the page tables are shared, there
+-	 * will be issues when accessed by someone else.
++	 * When called via zap_page_range (MADV_DONTNEED), this is not the
++	 * final unmap of the vma, and we do not want to delete the vma_lock.
+ 	 */
+-	__hugetlb_vma_unlock_write_free(vma);
+-
+-	i_mmap_unlock_write(vma->vm_file->f_mapping);
++	if (final) {
++		/*
++		 * Unlock and free the vma lock before releasing i_mmap_rwsem.
++		 * When the vma_lock is freed, this makes the vma ineligible
++		 * for pmd sharing.  And, i_mmap_rwsem is required to set up
++		 * pmd sharing.  This is important as page tables for this
++		 * unmapped range will be asynchrously deleted.  If the page
++		 * tables are shared, there will be issues when accessed by
++		 * someone else.
++		 */
++		__hugetlb_vma_unlock_write_free(vma);
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
++	} else {
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
++		hugetlb_vma_unlock_write(vma);
++	}
  }
  
- /*
-- * Unmaps pages for migration. Returns number of unmapped pages.
-+ * Unmaps pages for migration. Returns number of source pfns marked as
-+ * migrating.
-  */
- static unsigned long migrate_device_unmap(unsigned long *src_pfns,
- 					  unsigned long npages,
-@@ -373,8 +374,11 @@ static unsigned long migrate_device_unma
- 		struct page *page = migrate_pfn_to_page(src_pfns[i]);
- 		struct folio *folio;
+ void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
+ 			  unsigned long end, struct page *ref_page,
+ 			  zap_flags_t zap_flags)
+ {
++	struct mmu_notifier_range range;
+ 	struct mmu_gather tlb;
  
--		if (!page)
-+		if (!page) {
-+			if (src_pfns[i] & MIGRATE_PFN_MIGRATE)
-+				unmapped++;
- 			continue;
-+		}
++	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, vma->vm_mm,
++				start, end);
++	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
+ 	tlb_gather_mmu(&tlb, vma->vm_mm);
++
+ 	__unmap_hugepage_range(&tlb, vma, start, end, ref_page, zap_flags);
++
++	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_finish_mmu(&tlb);
+ }
  
- 		/* ZONE_DEVICE pages are not on LRU */
- 		if (!is_zone_device_page(page)) {
+--- a/mm/memory.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/mm/memory.c
+@@ -1720,7 +1720,7 @@ void unmap_vmas(struct mmu_gather *tlb,
+ {
+ 	struct mmu_notifier_range range;
+ 	struct zap_details details = {
+-		.zap_flags = ZAP_FLAG_DROP_MARKER,
++		.zap_flags = ZAP_FLAG_DROP_MARKER | ZAP_FLAG_UNMAP,
+ 		/* Careful - we need to zap private pages too! */
+ 		.even_cows = true,
+ 	};
+@@ -1753,15 +1753,24 @@ void zap_page_range(struct vm_area_struc
+ 	MA_STATE(mas, mt, vma->vm_end, vma->vm_end);
+ 
+ 	lru_add_drain();
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+-				start, start + size);
+ 	tlb_gather_mmu(&tlb, vma->vm_mm);
+ 	update_hiwater_rss(vma->vm_mm);
+-	mmu_notifier_invalidate_range_start(&range);
+ 	do {
+-		unmap_single_vma(&tlb, vma, start, range.end, NULL);
++		mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma,
++					vma->vm_mm,
++					max(start, vma->vm_start),
++					min(end, vma->vm_end));
++		if (is_vm_hugetlb_page(vma))
++			adjust_range_if_pmd_sharing_possible(vma,
++						&range.start, &range.end);
++		mmu_notifier_invalidate_range_start(&range);
++		/*
++		 * unmap 'start-end' not 'range.start-range.end' as range
++		 * could have been expanded for pmd sharing.
++		 */
++		unmap_single_vma(&tlb, vma, start, end, NULL);
++		mmu_notifier_invalidate_range_end(&range);
+ 	} while ((vma = mas_find(&mas, end - 1)) != NULL);
+-	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_finish_mmu(&tlb);
+ }
+ 
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-khugepaged-refactor-mm_khugepaged_scan_file-tracepoint-to-remove-filename-from-function-call-fix.patch
+ipc-shm-call-underlying-open-close-vm_ops.patch
+selftests-vm-update-hugetlb-madvise.patch
 
