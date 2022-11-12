@@ -2,186 +2,144 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0296DC43219
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Nov 2022 23:31:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A739C4332F
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Nov 2022 01:12:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234540AbiKKXbA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Nov 2022 18:31:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54466 "EHLO
+        id S230303AbiKLBMH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Nov 2022 20:12:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234522AbiKKXaz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 18:30:55 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 902581A82A;
-        Fri, 11 Nov 2022 15:30:54 -0800 (PST)
+        with ESMTP id S233477AbiKLBMF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 20:12:05 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C9F03E083;
+        Fri, 11 Nov 2022 17:12:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 182486214B;
-        Fri, 11 Nov 2022 23:30:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 713AEC433D6;
-        Fri, 11 Nov 2022 23:30:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F208662072;
+        Sat, 12 Nov 2022 01:12:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 310E4C433C1;
+        Sat, 12 Nov 2022 01:12:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668209453;
-        bh=VkubNjC+PF5DzWxeN+0mTBtctsStg38p3EkaaNHSKRQ=;
-        h=Date:To:From:Subject:From;
-        b=wI0nbaypALHEsgQI/YGgN1+P1dbyDD27Cjt0FAKP0A2GkJA5rG/DNSnUMQf9YcPFz
-         1SFKimCLrZoz9NFY8F0jvuPyl5VDYeeyY5XiOszdhxGpEa/TevcvsRmGG41VSnqfCY
-         7DQCWYzHFmFXgoht6YslmLUbEjW7yG9Y3fAvAn10=
-Date:   Fri, 11 Nov 2022 15:30:52 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        stable@vger.kernel.org, riel@surriel.com, peterx@redhat.com,
-        naoya.horiguchi@linux.dev, nadav.amit@gmail.com,
-        harperchen1110@gmail.com, david@redhat.com,
-        axelrasmussen@google.com, almasrymina@google.com,
-        mike.kravetz@oracle.com, akpm@linux-foundation.org
+        s=korg; t=1668215523;
+        bh=5P/vkTNNFYnVUsCFF39aI25rT70+cTZdi40D+jKi23M=;
+        h=Date:From:To:Cc:Subject:From;
+        b=u4vKfhgCvN/w6LJuS2YUYYhBQ6RBcfR1z7zw2L10S0NdfdcnrqC/EkfASjQPYEG4H
+         BQzCKZFQ1zoBJjdg9o2HfT3uFLtgqypTUhDyfQEeLgxEVs061qmJIm+JZgIKuybf+L
+         oNbRXfnTHb0VZBk1eedIQUHSn2CPQuticaDm4xcM=
+Date:   Fri, 11 Nov 2022 17:12:02 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221111233053.713AEC433D6@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.1-rc5
+Message-Id: <20221111171202.b8b7ff671c97cb9782ad8e78@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
+Linus, please merge this batch of hotfixes.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
+Thanks.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit f0c4d9fc9cc9462659728d168387191387e903cc:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Linux 6.1-rc4 (2022-11-06 15:07:11 -0800)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-11-11
 
-------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
-Date: Fri, 11 Nov 2022 15:26:28 -0800
+for you to fetch changes up to 436fa4a699bcd1c368bea9199e22b0a1b9cf9e0f:
 
-madvise(MADV_DONTNEED) ends up calling zap_page_range() to clear page
-tables associated with the address range.  For hugetlb vmas,
-zap_page_range will call __unmap_hugepage_range_final.  However,
-__unmap_hugepage_range_final assumes the passed vma is about to be removed
-and deletes the vma_lock to prevent pmd sharing as the vma is on the way
-out.  In the case of madvise(MADV_DONTNEED) the vma remains, but the
-missing vma_lock prevents pmd sharing and could potentially lead to issues
-with truncation/fault races.
+  docs: kmsan: fix formatting of "Example report" (2022-11-08 15:57:25 -0800)
 
-This issue was originally reported here [1] as a BUG triggered in
-page_try_dup_anon_rmap.  Prior to the introduction of the hugetlb
-vma_lock, __unmap_hugepage_range_final cleared the VM_MAYSHARE flag to
-prevent pmd sharing.  Subsequent faults on this vma were confused as
-VM_MAYSHARE indicates a sharable vma, but was not set so page_mapping was
-not set in new pages added to the page table.  This resulted in pages that
-appeared anonymous in a VM_SHARED vma and triggered the BUG.
+----------------------------------------------------------------
+22 hotfixes.  8 are cc:stable and the remainder address issues which were
+introduced post-6.0 or which aren't considered serious enough to justify a
+-stable backport.
 
-Address issue by adding a new zap flag ZAP_FLAG_UNMAP to indicate an unmap
-call from unmap_vmas().  This is used to indicate the 'final' unmapping of
-a hugetlb vma.  When called via MADV_DONTNEED, this flag is not set and
-the vm_lock is not deleted.
+----------------------------------------------------------------
+Alexander Potapenko (6):
+      kmsan: core: kmsan_in_runtime() should return true in NMI context
+      x86/uaccess: instrument copy_from_user_nmi()
+      Kconfig.debug: ensure early check for KMSAN in CONFIG_KMSAN_WARN
+      kmsan: make sure PREEMPT_RT is off
+      x86/traps: avoid KMSAN bugs originating from handle_bug()
+      docs: kmsan: fix formatting of "Example report"
 
-[1] https://lore.kernel.org/lkml/CAO4mrfdLMXsao9RF4fUE8-Wfde8xmjsKrTNMNC9wjUb6JudD0g@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20221111232628.290160-4-mike.kravetz@oracle.com
-Fixes: 90e7e7f5ef3f ("mm: enable MADV_DONTNEED for hugetlb mappings")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: Wei Chen <harperchen1110@gmail.com>
-Cc: <stable@vger.kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+James Houghton (1):
+      hugetlbfs: don't delete error page from pagecache
 
- include/linux/mm.h |    2 ++
- mm/hugetlb.c       |   27 ++++++++++++++++-----------
- mm/memory.c        |    2 +-
- 3 files changed, 19 insertions(+), 12 deletions(-)
+Johannes Weiner (1):
+      fs: fix leaked psi pressure state
 
---- a/include/linux/mm.h~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
-+++ a/include/linux/mm.h
-@@ -1868,6 +1868,8 @@ struct zap_details {
-  * default, the flag is not set.
-  */
- #define  ZAP_FLAG_DROP_MARKER        ((__force zap_flags_t) BIT(0))
-+/* Set in unmap_vmas() to indicate a final unmap call.  Only used by hugetlb */
-+#define  ZAP_FLAG_UNMAP              ((__force zap_flags_t) BIT(1))
- 
- #ifdef CONFIG_MMU
- extern bool can_do_mlock(void);
---- a/mm/hugetlb.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
-+++ a/mm/hugetlb.c
-@@ -5196,17 +5196,22 @@ void __unmap_hugepage_range_final(struct
- 	/* mmu notification performed in caller */
- 	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
- 
--	/*
--	 * Unlock and free the vma lock before releasing i_mmap_rwsem.  When
--	 * the vma_lock is freed, this makes the vma ineligible for pmd
--	 * sharing.  And, i_mmap_rwsem is required to set up pmd sharing.
--	 * This is important as page tables for this unmapped range will
--	 * be asynchrously deleted.  If the page tables are shared, there
--	 * will be issues when accessed by someone else.
--	 */
--	__hugetlb_vma_unlock_write_free(vma);
--
--	i_mmap_unlock_write(vma->vm_file->f_mapping);
-+	if (zap_flags & ZAP_FLAG_UNMAP) {	/* final unmap */
-+		/*
-+		 * Unlock and free the vma lock before releasing i_mmap_rwsem.
-+		 * When the vma_lock is freed, this makes the vma ineligible
-+		 * for pmd sharing.  And, i_mmap_rwsem is required to set up
-+		 * pmd sharing.  This is important as page tables for this
-+		 * unmapped range will be asynchrously deleted.  If the page
-+		 * tables are shared, there will be issues when accessed by
-+		 * someone else.
-+		 */
-+		__hugetlb_vma_unlock_write_free(vma);
-+		i_mmap_unlock_write(vma->vm_file->f_mapping);
-+	} else {
-+		i_mmap_unlock_write(vma->vm_file->f_mapping);
-+		hugetlb_vma_unlock_write(vma);
-+	}
- }
- 
- void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
---- a/mm/memory.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
-+++ a/mm/memory.c
-@@ -1711,7 +1711,7 @@ void unmap_vmas(struct mmu_gather *tlb,
- {
- 	struct mmu_notifier_range range;
- 	struct zap_details details = {
--		.zap_flags = ZAP_FLAG_DROP_MARKER,
-+		.zap_flags = ZAP_FLAG_DROP_MARKER | ZAP_FLAG_UNMAP,
- 		/* Careful - we need to zap private pages too! */
- 		.even_cows = true,
- 	};
-_
+Li Zetao (1):
+      mm/mmap: fix memory leak in mmap_region()
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Liam Howlett (5):
+      maple_tree: remove pointer to pointer use in mas_alloc_nodes()
+      maple_tree: mas_anode_descend() clang-analyzer cleanup
+      maple_tree: reorganize testing to restore module testing
+      maple_tree: fix depth tracking in maple_state
+      maple_tree: don't set a new maximum on the node when not reusing nodes
 
-ipc-shm-call-underlying-open-close-vm_ops.patch
-madvise-use-zap_page_range_single-for-madvise-dontneed.patch
-hugetlb-remove-duplicate-mmu-notifications.patch
-hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
-selftests-vm-update-hugetlb-madvise.patch
+Naoya Horiguchi (1):
+      arch/x86/mm/hugetlbpage.c: pud_huge() returns 0 when using 2-level paging
+
+Pankaj Gupta (1):
+      mm/memremap.c: map FS_DAX device memory as decrypted
+
+Peter Xu (2):
+      Partly revert "mm/thp: carry over dirty bit when thp splits on pmd"
+      mm/shmem: use page_mapping() to detect page cache for uffd continue
+
+Ryusuke Konishi (2):
+      nilfs2: fix deadlock in nilfs_count_free_blocks()
+      nilfs2: fix use-after-free bug of ns_writer on remount
+
+SeongJae Park (1):
+      mm/damon/dbgfs: check if rm_contexts input is for a real context
+
+Vasily Gorbik (1):
+      mm: hugetlb_vmemmap: include missing linux/moduleparam.h
+
+ Documentation/dev-tools/kmsan.rst             |     1 +
+ arch/x86/kernel/traps.c                       |     7 +
+ arch/x86/lib/usercopy.c                       |     3 +
+ arch/x86/mm/hugetlbpage.c                     |     4 +
+ fs/btrfs/compression.c                        |    14 +-
+ fs/erofs/zdata.c                              |    18 +-
+ fs/hugetlbfs/inode.c                          |    13 +-
+ fs/nilfs2/segment.c                           |    15 +-
+ fs/nilfs2/super.c                             |     2 -
+ fs/nilfs2/the_nilfs.c                         |     2 -
+ include/linux/maple_tree.h                    |     7 +
+ lib/Kconfig.debug                             |     6 +-
+ lib/Kconfig.kmsan                             |     1 +
+ lib/Makefile                                  |     1 +
+ lib/maple_tree.c                              |    58 +-
+ lib/test_maple_tree.c                         | 37926 +-----------------------
+ mm/damon/dbgfs.c                              |     7 +
+ mm/huge_memory.c                              |     9 +-
+ mm/hugetlb.c                                  |     4 +
+ mm/hugetlb_vmemmap.c                          |     1 +
+ mm/kmsan/kmsan.h                              |     2 +
+ mm/memory-failure.c                           |     5 +-
+ mm/memremap.c                                 |     1 +
+ mm/mmap.c                                     |     6 +-
+ mm/userfaultfd.c                              |     2 +-
+ tools/testing/radix-tree/.gitignore           |     1 +
+ tools/testing/radix-tree/Makefile             |    19 +-
+ tools/testing/radix-tree/generated/autoconf.h |     2 +-
+ tools/testing/radix-tree/linux.c              |     4 +
+ tools/testing/radix-tree/maple.c              | 35770 ++++++++++++++++++++++
+ 30 files changed, 37118 insertions(+), 36793 deletions(-)
 
