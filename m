@@ -2,144 +2,68 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A739C4332F
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Nov 2022 01:12:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0317C4332F
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Nov 2022 02:02:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230303AbiKLBMH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Nov 2022 20:12:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57644 "EHLO
+        id S234058AbiKLCCo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Nov 2022 21:02:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233477AbiKLBMF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 20:12:05 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C9F03E083;
-        Fri, 11 Nov 2022 17:12:04 -0800 (PST)
+        with ESMTP id S233940AbiKLCCn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 21:02:43 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2A736AEE7;
+        Fri, 11 Nov 2022 18:02:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F208662072;
-        Sat, 12 Nov 2022 01:12:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 310E4C433C1;
-        Sat, 12 Nov 2022 01:12:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668215523;
-        bh=5P/vkTNNFYnVUsCFF39aI25rT70+cTZdi40D+jKi23M=;
-        h=Date:From:To:Cc:Subject:From;
-        b=u4vKfhgCvN/w6LJuS2YUYYhBQ6RBcfR1z7zw2L10S0NdfdcnrqC/EkfASjQPYEG4H
-         BQzCKZFQ1zoBJjdg9o2HfT3uFLtgqypTUhDyfQEeLgxEVs061qmJIm+JZgIKuybf+L
-         oNbRXfnTHb0VZBk1eedIQUHSn2CPQuticaDm4xcM=
-Date:   Fri, 11 Nov 2022 17:12:02 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.1-rc5
-Message-Id: <20221111171202.b8b7ff671c97cb9782ad8e78@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        by ams.source.kernel.org (Postfix) with ESMTPS id A604BB82887;
+        Sat, 12 Nov 2022 02:02:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 62E64C433C1;
+        Sat, 12 Nov 2022 02:02:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1668218560;
+        bh=LbiPkuvW0U6ohcRWv28AT/S1UzjEDtnrxcxa1wDGo+k=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=psIjThu9VmNNcv1NHfppYDL3PW9Vscz/mD1xgFcTSBZzbU0u/npJF/oEz5EvYMIOs
+         DLWEXATIe0d9is6HlDacpFM8v2N/Flwkse1Udtea52ps56LBZ2ejYFuCfUZYLpJVFQ
+         S6QN5XseduCvBwUYockgaQHxcnhmJF8j3JDhuqzBWr5N9QyTPcwe+AoaRfXQ73/3/9
+         c9z2eUw4xrEeCuNP8/QhSAoxAe+9Y6kLciVKxRLoh00Ja77p1i14H39UrOZoedN7wq
+         RxpWAJMkXWHVNrdhC3e32HH/9dJGNwQKpR0mlW7btKg3SL5F5nkBO1qiMYqFX1tVrS
+         rdAp1Ht8lnnRw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 4F061C395FE;
+        Sat, 12 Nov 2022 02:02:40 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.1-rc5
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20221111171202.b8b7ff671c97cb9782ad8e78@linux-foundation.org>
+References: <20221111171202.b8b7ff671c97cb9782ad8e78@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20221111171202.b8b7ff671c97cb9782ad8e78@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-11-11
+X-PR-Tracked-Commit-Id: 436fa4a699bcd1c368bea9199e22b0a1b9cf9e0f
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: d7c2b1f64e44c98206752a1599b0203ae5e92f27
+Message-Id: <166821856031.28551.6780874855245963336.pr-tracker-bot@kernel.org>
+Date:   Sat, 12 Nov 2022 02:02:40 +0000
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+The pull request you sent on Fri, 11 Nov 2022 17:12:02 -0800:
 
-Linus, please merge this batch of hotfixes.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-11-11
 
-Thanks.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/d7c2b1f64e44c98206752a1599b0203ae5e92f27
 
-The following changes since commit f0c4d9fc9cc9462659728d168387191387e903cc:
+Thank you!
 
-  Linux 6.1-rc4 (2022-11-06 15:07:11 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-11-11
-
-for you to fetch changes up to 436fa4a699bcd1c368bea9199e22b0a1b9cf9e0f:
-
-  docs: kmsan: fix formatting of "Example report" (2022-11-08 15:57:25 -0800)
-
-----------------------------------------------------------------
-22 hotfixes.  8 are cc:stable and the remainder address issues which were
-introduced post-6.0 or which aren't considered serious enough to justify a
--stable backport.
-
-----------------------------------------------------------------
-Alexander Potapenko (6):
-      kmsan: core: kmsan_in_runtime() should return true in NMI context
-      x86/uaccess: instrument copy_from_user_nmi()
-      Kconfig.debug: ensure early check for KMSAN in CONFIG_KMSAN_WARN
-      kmsan: make sure PREEMPT_RT is off
-      x86/traps: avoid KMSAN bugs originating from handle_bug()
-      docs: kmsan: fix formatting of "Example report"
-
-James Houghton (1):
-      hugetlbfs: don't delete error page from pagecache
-
-Johannes Weiner (1):
-      fs: fix leaked psi pressure state
-
-Li Zetao (1):
-      mm/mmap: fix memory leak in mmap_region()
-
-Liam Howlett (5):
-      maple_tree: remove pointer to pointer use in mas_alloc_nodes()
-      maple_tree: mas_anode_descend() clang-analyzer cleanup
-      maple_tree: reorganize testing to restore module testing
-      maple_tree: fix depth tracking in maple_state
-      maple_tree: don't set a new maximum on the node when not reusing nodes
-
-Naoya Horiguchi (1):
-      arch/x86/mm/hugetlbpage.c: pud_huge() returns 0 when using 2-level paging
-
-Pankaj Gupta (1):
-      mm/memremap.c: map FS_DAX device memory as decrypted
-
-Peter Xu (2):
-      Partly revert "mm/thp: carry over dirty bit when thp splits on pmd"
-      mm/shmem: use page_mapping() to detect page cache for uffd continue
-
-Ryusuke Konishi (2):
-      nilfs2: fix deadlock in nilfs_count_free_blocks()
-      nilfs2: fix use-after-free bug of ns_writer on remount
-
-SeongJae Park (1):
-      mm/damon/dbgfs: check if rm_contexts input is for a real context
-
-Vasily Gorbik (1):
-      mm: hugetlb_vmemmap: include missing linux/moduleparam.h
-
- Documentation/dev-tools/kmsan.rst             |     1 +
- arch/x86/kernel/traps.c                       |     7 +
- arch/x86/lib/usercopy.c                       |     3 +
- arch/x86/mm/hugetlbpage.c                     |     4 +
- fs/btrfs/compression.c                        |    14 +-
- fs/erofs/zdata.c                              |    18 +-
- fs/hugetlbfs/inode.c                          |    13 +-
- fs/nilfs2/segment.c                           |    15 +-
- fs/nilfs2/super.c                             |     2 -
- fs/nilfs2/the_nilfs.c                         |     2 -
- include/linux/maple_tree.h                    |     7 +
- lib/Kconfig.debug                             |     6 +-
- lib/Kconfig.kmsan                             |     1 +
- lib/Makefile                                  |     1 +
- lib/maple_tree.c                              |    58 +-
- lib/test_maple_tree.c                         | 37926 +-----------------------
- mm/damon/dbgfs.c                              |     7 +
- mm/huge_memory.c                              |     9 +-
- mm/hugetlb.c                                  |     4 +
- mm/hugetlb_vmemmap.c                          |     1 +
- mm/kmsan/kmsan.h                              |     2 +
- mm/memory-failure.c                           |     5 +-
- mm/memremap.c                                 |     1 +
- mm/mmap.c                                     |     6 +-
- mm/userfaultfd.c                              |     2 +-
- tools/testing/radix-tree/.gitignore           |     1 +
- tools/testing/radix-tree/Makefile             |    19 +-
- tools/testing/radix-tree/generated/autoconf.h |     2 +-
- tools/testing/radix-tree/linux.c              |     4 +
- tools/testing/radix-tree/maple.c              | 35770 ++++++++++++++++++++++
- 30 files changed, 37118 insertions(+), 36793 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
