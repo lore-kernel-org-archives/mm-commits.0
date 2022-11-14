@@ -2,68 +2,126 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0317C4332F
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Nov 2022 02:02:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 758BBC433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Nov 2022 07:52:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234058AbiKLCCo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Nov 2022 21:02:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38212 "EHLO
+        id S236049AbiKNHwW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Nov 2022 02:52:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233940AbiKLCCn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Nov 2022 21:02:43 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2A736AEE7;
-        Fri, 11 Nov 2022 18:02:42 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A604BB82887;
-        Sat, 12 Nov 2022 02:02:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 62E64C433C1;
-        Sat, 12 Nov 2022 02:02:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1668218560;
-        bh=LbiPkuvW0U6ohcRWv28AT/S1UzjEDtnrxcxa1wDGo+k=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=psIjThu9VmNNcv1NHfppYDL3PW9Vscz/mD1xgFcTSBZzbU0u/npJF/oEz5EvYMIOs
-         DLWEXATIe0d9is6HlDacpFM8v2N/Flwkse1Udtea52ps56LBZ2ejYFuCfUZYLpJVFQ
-         S6QN5XseduCvBwUYockgaQHxcnhmJF8j3JDhuqzBWr5N9QyTPcwe+AoaRfXQ73/3/9
-         c9z2eUw4xrEeCuNP8/QhSAoxAe+9Y6kLciVKxRLoh00Ja77p1i14H39UrOZoedN7wq
-         RxpWAJMkXWHVNrdhC3e32HH/9dJGNwQKpR0mlW7btKg3SL5F5nkBO1qiMYqFX1tVrS
-         rdAp1Ht8lnnRw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 4F061C395FE;
-        Sat, 12 Nov 2022 02:02:40 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.1-rc5
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20221111171202.b8b7ff671c97cb9782ad8e78@linux-foundation.org>
+        with ESMTP id S236078AbiKNHwQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2022 02:52:16 -0500
+Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8920F18E2D;
+        Sun, 13 Nov 2022 23:52:15 -0800 (PST)
+Received: by mail-qk1-f170.google.com with SMTP id z17so6903300qki.11;
+        Sun, 13 Nov 2022 23:52:15 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=GQYzymVjANMQK9eubE/7UqEjbipDRit38pMaXnEjvgA=;
+        b=rKo4zEnexncfrg0OaEtUrOP80prRt4zn7BWH7xWWFi60ybsYdSoTs/BP3MQJCWG6Pw
+         eU1rKJq2c02jf/+4i6fCh1o3hj3VVqkCgMuVWcRDLlgtSgOvmyNO4tSpDSVY6Ha/LTHY
+         gcAp5odvmdqma46QtF0r14Ma6GVmb8sPVtRwbvB7hxvBHx2XWhWQW07kkLve2sqRKZSQ
+         zmvh+CPBX1itnUvU3kWkAka0juJ5iogHNfn36oB6K5KnIeaods2L74zmw/jcAzqJJXlQ
+         Z+dyWICQ7N+qBeosDrj+dwerKPTPFSKcro+zJu44Mx8Mm2HqpW9h7AqhN3/ip5K0NINL
+         eRig==
+X-Gm-Message-State: ANoB5pmYp5s0gG3IX/gPXeTRPUb6beMylISGQYpc3eQnPsy/hHPVIiH1
+        4/hOvbcTtzD+eK7crD0sNB1ck+tXxv8FOA==
+X-Google-Smtp-Source: AA0mqf76JiElkm67RQhGobKBUs2ff5CKt19hi+ER7v4QRlEAh47enk0DbRCFu+harFhYeI54vu939g==
+X-Received: by 2002:a05:620a:1a:b0:6f6:e7d1:4d1f with SMTP id j26-20020a05620a001a00b006f6e7d14d1fmr10028849qki.477.1668412334544;
+        Sun, 13 Nov 2022 23:52:14 -0800 (PST)
+Received: from mail-yb1-f169.google.com (mail-yb1-f169.google.com. [209.85.219.169])
+        by smtp.gmail.com with ESMTPSA id n77-20020a374050000000b006b5cc25535fsm5981189qka.99.2022.11.13.23.52.14
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 13 Nov 2022 23:52:14 -0800 (PST)
+Received: by mail-yb1-f169.google.com with SMTP id o70so12486109yba.7;
+        Sun, 13 Nov 2022 23:52:14 -0800 (PST)
+X-Received: by 2002:a25:844b:0:b0:6de:6c43:3991 with SMTP id
+ r11-20020a25844b000000b006de6c433991mr10632776ybm.604.1668412333810; Sun, 13
+ Nov 2022 23:52:13 -0800 (PST)
+MIME-Version: 1.0
 References: <20221111171202.b8b7ff671c97cb9782ad8e78@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20221111171202.b8b7ff671c97cb9782ad8e78@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-11-11
-X-PR-Tracked-Commit-Id: 436fa4a699bcd1c368bea9199e22b0a1b9cf9e0f
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: d7c2b1f64e44c98206752a1599b0203ae5e92f27
-Message-Id: <166821856031.28551.6780874855245963336.pr-tracker-bot@kernel.org>
-Date:   Sat, 12 Nov 2022 02:02:40 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
+In-Reply-To: <20221111171202.b8b7ff671c97cb9782ad8e78@linux-foundation.org>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Mon, 14 Nov 2022 08:52:02 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdUnY_SH_WRd3MUo3MPiin8H0EhkWY_9xGFyt+7_rwOEOw@mail.gmail.com>
+Message-ID: <CAMuHMdUnY_SH_WRd3MUo3MPiin8H0EhkWY_9xGFyt+7_rwOEOw@mail.gmail.com>
+Subject: Re: [GIT PULL] hotfixes for 6.1-rc5
+To:     Liam Howlett <liam.howlett@oracle.com>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Fri, 11 Nov 2022 17:12:02 -0800:
+Hi Liam,
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-11-11
+On Sat, Nov 12, 2022 at 2:25 AM Andrew Morton <akpm@linux-foundation.org> wrote:
+> Linus, please merge this batch of hotfixes.
+>
+> Thanks.
+>
+> The following changes since commit f0c4d9fc9cc9462659728d168387191387e903cc:
+>
+>   Linux 6.1-rc4 (2022-11-06 15:07:11 -0800)
+>
+> are available in the Git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-11-11
+>
+> for you to fetch changes up to 436fa4a699bcd1c368bea9199e22b0a1b9cf9e0f:
+>
+>   docs: kmsan: fix formatting of "Example report" (2022-11-08 15:57:25 -0800)
+>
+> ----------------------------------------------------------------
+> 22 hotfixes.  8 are cc:stable and the remainder address issues which were
+> introduced post-6.0 or which aren't considered serious enough to justify a
+> -stable backport.
+>
+> ----------------------------------------------------------------
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/d7c2b1f64e44c98206752a1599b0203ae5e92f27
+> Liam Howlett (5):
+>       maple_tree: remove pointer to pointer use in mas_alloc_nodes()
+>       maple_tree: mas_anode_descend() clang-analyzer cleanup
+>       maple_tree: reorganize testing to restore module testing
 
-Thank you!
+Thanks for your patch, which is now commit 120b116208a08772
+("maple_tree: reorganize testing to restore module testing")
+in v6.1-rc5.
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+    +config TEST_MAPLE_TREE
+    +       select DEBUG_MAPLE_TREE
+    +       tristate "Test the Maple Tree code at runtime"
+    +
+
+There are two problems with this:
+
+  1. If CONFIG_DEBUG_KERNEL=n:
+
+        WARNING: unmet direct dependencies detected for DEBUG_MAPLE_TREE
+          Depends on [n]: DEBUG_KERNEL [=n]
+          Selected by [m]:
+          - TEST_MAPLE_TREE [=m] && RUNTIME_TESTING_MENU [=y]
+
+  2. IMHO test code should not silently enable additional features, as
+     it prevents providing a test module for a production system,
+     without having any other impact on that system.
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
