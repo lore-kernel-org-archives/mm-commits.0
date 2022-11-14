@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81C33C4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Nov 2022 22:08:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21F5AC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Nov 2022 22:10:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236201AbiKNWIX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Nov 2022 17:08:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48816 "EHLO
+        id S237844AbiKNWKx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Nov 2022 17:10:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50036 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236124AbiKNWIX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2022 17:08:23 -0500
+        with ESMTP id S237825AbiKNWKo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2022 17:10:44 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5032D10573
-        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2022 14:08:21 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E04831A042;
+        Mon, 14 Nov 2022 14:10:32 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E035461484
-        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2022 22:08:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 389A0C433C1;
-        Mon, 14 Nov 2022 22:08:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D1CF61485;
+        Mon, 14 Nov 2022 22:10:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE2A7C433C1;
+        Mon, 14 Nov 2022 22:10:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668463700;
-        bh=44O+rACZVYXBzghivlFYPIdmjNf1xEpKStcHk0lAkIs=;
+        s=korg; t=1668463831;
+        bh=zVbDNFCUsWvcTSqNt9X3CIW4vUTUSB02RVP/uZREMKs=;
         h=Date:To:From:Subject:From;
-        b=jEhInBC+b4oJK58Dtnx/zSnry+UJV7o98Enk3fnpWdk6cNJdbfzuFgn7FRsXnSGNo
-         oh5UrNqAY3UXVdh2ve73byysK0NUfaKK02sXfmAZ82ut9XtNXA4+Ub4u24kQ3uUuAQ
-         aS/4yUuil578hOEYCLvozjTAeQMwhhITZFUdFmzI=
-Date:   Mon, 14 Nov 2022 14:08:19 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        b=dz3WRJBMd7wriMjT5ScV+SfvBifIjveUBrgTUPe0wJn+7ee60kKu8jDGV4lsp5B6d
+         zFwtkKRb0td+vViCZGpqBkZGEqKfx82L8TqtKnU3ypRCYEDm4rJM/nAHW+2Xh2B9+C
+         sOJ/gQQREkMBs/VbyMN6R4/KB/d03UaKS5sBBHbs=
+Date:   Mon, 14 Nov 2022 14:10:30 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix.patch added to mm-unstable branch
-Message-Id: <20221114220820.389A0C433C1@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221114221031.BE2A7C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: skip schemes regions clearing if the scheme directory has removed
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix.patch
+     Subject: mm/damon/sysfs-schemes: skip stats update if the scheme directory is removed
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,41 +65,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: skip schemes regions clearing if the scheme directory has removed
-Date: Mon, 14 Nov 2022 18:29:54 +0000
+Subject: mm/damon/sysfs-schemes: skip stats update if the scheme directory is removed
+Date: Mon, 14 Nov 2022 17:55:52 +0000
 
 A DAMON sysfs interface user can start DAMON with a scheme, remove the
-sysfs directory for the scheme, and then ask clearing of the scheme's
-tried regions.  Because the schemes tried regions clearing logic doesn't
-aware of the situation, it results in an invalid memory access.  Fix the
-bug by checking if the scheme sysfs directory exists.
+sysfs directory for the scheme, and then ask update of the scheme's stats.
+Because the schemes stats update logic isn't aware of the situation, it
+results in an invalid memory access.  Fix the bug by checking if the
+scheme sysfs directory exists.
 
-Link: https://lkml.kernel.org/r/20221114182954.4745-3-sj@kernel.org
-Fixes: ("mm/damon/sysfs-schemes: implement DAMOS-tried regions clear command")
+Link: https://lkml.kernel.org/r/20221114175552.1951-1-sj@kernel.org
+Fixes: 0ac32b8affb5 ("mm/damon/sysfs: support DAMOS stats")
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[v5.18]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    4 ++++
+ mm/damon/sysfs.c |    4 ++++
  1 file changed, 4 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1256,6 +1256,10 @@ int damon_sysfs_schemes_clear_regions(
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed
++++ a/mm/damon/sysfs.c
+@@ -2339,6 +2339,10 @@ static int damon_sysfs_upd_schemes_stats
  	damon_for_each_scheme(scheme, ctx) {
- 		struct damon_sysfs_scheme *sysfs_scheme;
+ 		struct damon_sysfs_stats *sysfs_stats;
  
 +		/* user could removed the scheme sysfs dir */
 +		if (schemes_idx >= sysfs_schemes->nr)
 +			break;
 +
- 		sysfs_scheme = sysfs_schemes->schemes_arr[schemes_idx++];
- 		damon_sysfs_scheme_regions_rm_dirs(
- 				sysfs_scheme->tried_regions);
+ 		sysfs_stats = sysfs_schemes->schemes_arr[schemes_idx++]->stats;
+ 		sysfs_stats->nr_tried = scheme->stat.nr_tried;
+ 		sysfs_stats->sz_tried = scheme->stat.sz_tried;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed.patch
 docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch
 docs-admin-guide-mm-damon-usage-fix-wrong-usage-example-of-init_regions-file.patch
 mm-damon-core-add-a-callback-for-scheme-target-regions-check.patch
