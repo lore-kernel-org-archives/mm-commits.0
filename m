@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CABEC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5842C4332F
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 22:33:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232839AbiKOWdr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Nov 2022 17:33:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37338 "EHLO
+        id S238095AbiKOWds (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Nov 2022 17:33:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238339AbiKOWdI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 17:33:08 -0500
+        with ESMTP id S238534AbiKOWdC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 17:33:02 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A1B031376
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 14:32:39 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A26D331215
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 14:32:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3784F61A66
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 22:32:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EC02C433D6;
-        Tue, 15 Nov 2022 22:32:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F4A861A66
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 22:32:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 839F5C433C1;
+        Tue, 15 Nov 2022 22:32:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668551558;
-        bh=T29EV/bosE+HdA2wMdjykK4UuFccWXvBX5bKahqLCwk=;
+        s=korg; t=1668551556;
+        bh=TSZOwEYoCscrQOrB46jDIBHrQ2a3dou0VCUtXQ8igwo=;
         h=Date:To:From:Subject:From;
-        b=2hbDswWQ9PSJLPrd5VEn+TDET/sHiqWfcc1rT60GyZaJlOhPbCCHlStd/gjFb8hOx
-         qd+zFmZocmMBc5xWCSSddvwwJeJbpRpkJMi4IKUxzIFK8BYOXtCXOpRALvRjot1Ne7
-         Z6Q14pojkbv7SHr43BtvbYTq6rWVFWGS2KcnYml0=
-Date:   Tue, 15 Nov 2022 14:32:38 -0800
-To:     mm-commits@vger.kernel.org, colin.i.king@gmail.com,
-        akpm@linux-foundation.org
+        b=JLi6rk18A+TpGkBOXQG/eF1hg/5WdvTT/iT+t4jvCoLbqOldzlwRTWf1NIiqjdDwp
+         nBYX+h2VsXQzrtQJ+sxTaR3fxXnc/PgASkphfXEb96Xu1psQvAW5FCJ+IIz//vIsYU
+         JXLNSNqNwBxKG+fqV6I4aU3YkhH3lBhK8MvuDFEQ=
+Date:   Tue, 15 Nov 2022 14:32:36 -0800
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com, tj@kernel.org,
+        shuah@kernel.org, shakeelb@google.com, roman.gushchin@linux.dev,
+        rientjes@google.com, lizefan.x@bytedance.com,
+        kamalesh.babulal@oracle.com, hannes@cmpxchg.org,
+        yuehaibing@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch removed from -mm tree
-Message-Id: <20221115223238.8EC02C433D6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-cgroup-fix-unsigned-comparison-with-less-than-zero.patch removed from -mm tree
+Message-Id: <20221115223236.839F5C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,262 +44,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: scripts/spelling.txt: add more spellings to spelling.txt
+     Subject: selftests: cgroup: fix unsigned comparison with less than zero
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+     selftests-cgroup-fix-unsigned-comparison-with-less-than-zero.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Colin Ian King <colin.i.king@gmail.com>
-Subject: scripts/spelling.txt: add more spellings to spelling.txt
-Date: Tue, 8 Nov 2022 11:07:12 +0000
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: selftests: cgroup: fix unsigned comparison with less than zero
+Date: Sat, 5 Nov 2022 19:06:11 +0800
 
-Some of the more common spelling mistakes and typos that I've found while
-fixing up spelling mistakes in the kernel in the past year.
+'size' is unsigned, it never less than zero.
 
-Link: https://lkml.kernel.org/r/20221108110712.114611-1-colin.i.king@gmail.com
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Link: https://lkml.kernel.org/r/20221105110611.28920-1-yuehaibing@huawei.com
+Fixes: 6c26df84e1f2 ("selftests: cgroup: return -errno from cg_read()/cg_write() on failure")
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Kamalesh Babulal <kamalesh.babulal@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: zefan li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |   33 ++++++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+ tools/testing/selftests/cgroup/cgroup_util.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spellings-to-spellingtxt
-+++ a/scripts/spelling.txt
-@@ -23,6 +23,7 @@ absoulte||absolute
- acccess||access
- acceess||access
- accelaration||acceleration
-+accelearion||acceleration
- acceleratoin||acceleration
- accelleration||acceleration
- accesing||accessing
-@@ -58,6 +59,7 @@ acording||according
- activete||activate
- actived||activated
- actualy||actually
-+actvie||active
- acumulating||accumulating
- acumulative||accumulative
- acumulator||accumulator
-@@ -253,6 +255,7 @@ brigde||bridge
- broadcase||broadcast
- broadcat||broadcast
- bufer||buffer
-+bufferred||buffered
- bufufer||buffer
- cacluated||calculated
- caculate||calculate
-@@ -273,6 +276,7 @@ cant||can't
- cant'||can't
- canot||cannot
- cann't||can't
-+cannnot||cannot
- capabilites||capabilities
- capabilties||capabilities
- capabilty||capability
-@@ -309,6 +313,7 @@ chiled||child
- chked||checked
- chnage||change
- chnages||changes
-+chnange||change
- chnnel||channel
- choosen||chosen
- chouse||chose
-@@ -439,6 +444,7 @@ defferred||deferred
- definate||definite
- definately||definitely
- definiation||definition
-+definiton||definition
- defintion||definition
- defintions||definitions
- defualt||default
-@@ -452,6 +458,7 @@ delare||declare
- delares||declares
- delaring||declaring
- delemiter||delimiter
-+delibrately||deliberately
- delievered||delivered
- demodualtor||demodulator
- demension||dimension
-@@ -481,6 +488,7 @@ destroied||destroyed
- detabase||database
- deteced||detected
- detectt||detect
-+detroyed||destroyed
- develope||develop
- developement||development
- developped||developed
-@@ -507,6 +515,7 @@ dimention||dimension
- dimesions||dimensions
- diconnected||disconnected
- disabed||disabled
-+disasembler||disassembler
- disble||disable
- disgest||digest
- disired||desired
-@@ -666,6 +675,7 @@ finanize||finalize
- findn||find
- finilizes||finalizes
- finsih||finish
-+fliter||filter
- flusing||flushing
- folloing||following
- followign||following
-@@ -725,6 +735,7 @@ hanled||handled
- happend||happened
- hardare||hardware
- harware||hardware
-+hardward||hardware
- havind||having
- heirarchically||hierarchically
- heirarchy||hierarchy
-@@ -740,6 +751,7 @@ howver||however
- hsould||should
- hypervior||hypervisor
- hypter||hyper
-+idel||idle
- identidier||identifier
- iligal||illegal
- illigal||illegal
-@@ -931,9 +943,11 @@ matchs||matches
- mathimatical||mathematical
- mathimatic||mathematic
- mathimatics||mathematics
-+maxmium||maximum
- maximium||maximum
- maxium||maximum
- mechamism||mechanism
-+mechanim||mechanism
- meetign||meeting
- memeory||memory
- memmber||member
-@@ -942,6 +956,7 @@ memroy||memory
- ment||meant
- mergable||mergeable
- mesage||message
-+mesages||messages
- messags||messages
- messgaes||messages
- messsage||message
-@@ -983,8 +998,9 @@ monochromo||monochrome
- monocrome||monochrome
- mopdule||module
- mroe||more
--multipler||multiplier
- mulitplied||multiplied
-+muliple||multiple
-+multipler||multiplier
- multidimensionnal||multidimensional
- multipe||multiple
- multple||multiple
-@@ -1109,6 +1125,7 @@ peroid||period
- persistance||persistence
- persistant||persistent
- phoneticly||phonetically
-+plaform||platform
- plalform||platform
- platfoem||platform
- platfrom||platform
-@@ -1236,6 +1253,7 @@ refering||referring
- refernces||references
- refernnce||reference
- refrence||reference
-+regiser||register
- registed||registered
- registerd||registered
- registeration||registration
-@@ -1276,6 +1294,7 @@ reseting||resetting
- reseved||reserved
- reseverd||reserved
- resizeable||resizable
-+resotre||restore
- resouce||resource
- resouces||resources
- resoures||resources
-@@ -1314,6 +1333,7 @@ runtine||runtime
- sacrifying||sacrificing
- safly||safely
- safty||safety
-+satify||satisfy
- savable||saveable
- scaleing||scaling
- scaned||scanned
-@@ -1365,10 +1385,12 @@ similiar||similar
- simlar||similar
- simliar||similar
- simpified||simplified
-+simultaneusly||simultaneously
- simultanous||simultaneous
- singaled||signaled
- singal||signal
- singed||signed
-+slect||select
- sleeped||slept
- sliped||slipped
- softwade||software
-@@ -1438,6 +1460,7 @@ suported||supported
- suport||support
- supportet||supported
- suppored||supported
-+supporing||supporting
- supportin||supporting
- suppoted||supported
- suppported||supported
-@@ -1475,15 +1498,18 @@ sytem||system
- sythesis||synthesis
- taht||that
- tained||tainted
-+tarffic||traffic
- tansmit||transmit
- targetted||targeted
- targetting||targeting
- taskelt||tasklet
- teh||the
-+temeprature||temperature
- temorary||temporary
- temproarily||temporarily
- temperture||temperature
- thead||thread
-+theads||threads
- therfore||therefore
- thier||their
- threds||threads
-@@ -1533,12 +1559,14 @@ ture||true
- tyep||type
- udpate||update
- uesd||used
-+unknwon||unknown
- uknown||unknown
- usccess||success
- uncommited||uncommitted
- uncompatible||incompatible
- unconditionaly||unconditionally
- undeflow||underflow
-+undelying||underlying
- underun||underrun
- unecessary||unnecessary
- unexecpted||unexpected
-@@ -1569,11 +1597,14 @@ unneedingly||unnecessarily
- unnsupported||unsupported
- unmached||unmatched
- unprecise||imprecise
-+unpriviledged||unprivileged
-+unpriviliged||unprivileged
- unregester||unregister
- unresgister||unregister
- unrgesiter||unregister
- unsinged||unsigned
- unstabel||unstable
-+unsolicted||unsolicited
- unsolicitied||unsolicited
- unsuccessfull||unsuccessful
- unsuported||unsupported
+--- a/tools/testing/selftests/cgroup/cgroup_util.c~selftests-cgroup-fix-unsigned-comparison-with-less-than-zero
++++ a/tools/testing/selftests/cgroup/cgroup_util.c
+@@ -555,6 +555,7 @@ int proc_mount_contains(const char *opti
+ ssize_t proc_read_text(int pid, bool thread, const char *item, char *buf, size_t size)
+ {
+ 	char path[PATH_MAX];
++	ssize_t ret;
+ 
+ 	if (!pid)
+ 		snprintf(path, sizeof(path), "/proc/%s/%s",
+@@ -562,8 +563,8 @@ ssize_t proc_read_text(int pid, bool thr
+ 	else
+ 		snprintf(path, sizeof(path), "/proc/%d/%s", pid, item);
+ 
+-	size = read_text(path, buf, size);
+-	return size < 0 ? -1 : size;
++	ret = read_text(path, buf, size);
++	return ret < 0 ? -1 : ret;
+ }
+ 
+ int proc_read_strstr(int pid, bool thread, const char *item, const char *needle)
 _
 
-Patches currently in -mm which might be from colin.i.king@gmail.com are
+Patches currently in -mm which might be from yuehaibing@huawei.com are
 
 
