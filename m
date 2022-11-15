@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2873C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 22:32:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 824D3C4321E
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 22:32:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231792AbiKOWci (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Nov 2022 17:32:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36678 "EHLO
+        id S238473AbiKOWck (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Nov 2022 17:32:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231997AbiKOWcQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 17:32:16 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 957D61163
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 14:32:15 -0800 (PST)
+        with ESMTP id S230136AbiKOWcT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 17:32:19 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F555E9F
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 14:32:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3FAB4B81A1C
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 22:32:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6FDFC433D7;
-        Tue, 15 Nov 2022 22:32:12 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 7D695CE1998
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 22:32:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2EE4C433C1;
+        Tue, 15 Nov 2022 22:32:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668551532;
-        bh=D+641vKfSvwzf7hTl8kssY0KhK/F9NwQTdJcA/SB0lM=;
+        s=korg; t=1668551534;
+        bh=EUaqSEA8hVXBerNVlg3nef5eFKn8zW8HMr9s+YY19Kc=;
         h=Date:To:From:Subject:From;
-        b=GBQTQ3Dlc5jba89DyI5gJ1gN62yr39A7EfaTRTlxK+2vf/YNVeVYoXUyQ5ZXU96F3
-         b3S2AYk/yAoqR5baGuy0NJseeHsD57i2a2h6t7W3Lp4I5S1nM1y+prwIcGmC4Kr49Y
-         TUOkoXdHwrvUFgH35HEHVei/w1ITdXofv8270cv0=
-Date:   Tue, 15 Nov 2022 14:32:12 -0800
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu,
-        rppt@kernel.org, paul.gortmaker@windriver.com,
-        mail@christoph.anton.mitterer.name, kaleshsingh@google.com,
-        hannes@cmpxchg.org, david@redhat.com, David.Laight@ACULAB.COM,
-        corbet@lwn.net, adobriyan@gmail.com, ivan@cloudflare.com,
+        b=Qs1UOI6RhXd1YbKdYwck76zQjjHM9kLZs4Dalm6RwBeFUsjVP4TXiNCEsIpE3fVWL
+         c8myD78wkBDVd1hQ7AVyft9Y0/HO+bQsjtmESZ6Pk8E6s4WmT+DN/XaDnxeny17Fyq
+         96+zLRNeQiRLplNNe1cz1FUODQbi+3p3HsNaralU=
+Date:   Tue, 15 Nov 2022 14:32:14 -0800
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org, pcc@google.com,
+        lukas.bulwahn@gmail.com, keescook@chromium.org, joe@perches.com,
+        dwaipayanray1@gmail.com, apw@canonical.com, bhelgaas@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] proc-report-open-files-as-size-in-stat-for-proc-pid-fd.patch removed from -mm tree
-Message-Id: <20221115223212.D6FDFC433D7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] checkpatch-add-warning-for-non-lore-mailing-list-urls.patch removed from -mm tree
+Message-Id: <20221115223214.B2EE4C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,200 +43,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: proc: report open files as size in stat() for /proc/pid/fd
+     Subject: checkpatch: add warning for non-lore mailing list URLs
 has been removed from the -mm tree.  Its filename was
-     proc-report-open-files-as-size-in-stat-for-proc-pid-fd.patch
+     checkpatch-add-warning-for-non-lore-mailing-list-urls.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ivan Babrou <ivan@cloudflare.com>
-Subject: proc: report open files as size in stat() for /proc/pid/fd
-Date: Thu, 22 Sep 2022 15:40:26 -0700
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: checkpatch: add warning for non-lore mailing list URLs
+Date: Wed, 19 Oct 2022 15:28:43 -0500
 
-Many monitoring tools include open file count as a metric.  Currently the
-only way to get this number is to enumerate the files in /proc/pid/fd.
+The lkml.org, marc.info, spinics.net, etc archives are not quite as useful
+as lore.kernel.org because they use different styles, add advertising, and
+may disappear in the future.  The lore archives are more consistent and
+more likely to stick around, so prefer https://lore.kernel.org URLs when
+they exist.
 
-The problem with the current approach is that it does many things people
-generally don't care about when they need one number for a metric.  In our
-tests for cadvisor, which reports open file counts per cgroup, we observed
-that reading the number of open files is slow.  Out of 35.23% of CPU time
-spent in `proc_readfd_common`, we see 29.43% spent in `proc_fill_cache`,
-which is responsible for filling dentry info.  Some of this extra time is
-spinlock contention, but it's a contention for the lock we don't want to
-take to begin with.
-
-We considered putting the number of open files in /proc/pid/status. 
-Unfortunately, counting the number of fds involves iterating the
-open_files bitmap, which has a linear complexity in proportion with the
-number of open files (bitmap slots really, but it's close).  We don't want
-to make /proc/pid/status any slower, so instead we put this info in
-/proc/pid/fd as a size member of the stat syscall result.  Previously the
-reported number was zero, so there's very little risk of breaking
-anything, while still providing a somewhat logical way to count the open
-files with a fallback if it's zero.
-
-RFC for this patch included iterating open fds under RCU.  Thanks to Frank
-Hofmann for the suggestion to use the bitmap instead.
-
-Previously:
-
-```
-$ sudo stat /proc/1/fd | head -n2
-  File: /proc/1/fd
-  Size: 0         	Blocks: 0          IO Block: 1024   directory
-```
-
-With this patch:
-
-```
-$ sudo stat /proc/1/fd | head -n2
-  File: /proc/1/fd
-  Size: 65        	Blocks: 0          IO Block: 1024   directory
-```
-
-Correctness check:
-
-```
-$ sudo ls /proc/1/fd | wc -l
-65
-```
-
-I added the docs for /proc/<pid>/fd while I'm at it.
-
-[ivan@cloudflare.com: use bitmap_weight() to count the bits]
-  Link: https://lkml.kernel.org/r/20221018045844.37697-1-ivan@cloudflare.com
-[akpm@linux-foundation.org: include linux/bitmap.h for bitmap_weight()]
-[ivan@cloudflare.com: return errno from proc_fd_getattr() instead of setting negative size]
-  Link: https://lkml.kernel.org/r/20221024173140.30673-1-ivan@cloudflare.com
-Link: https://lkml.kernel.org/r/20220922224027.59266-1-ivan@cloudflare.com
-Signed-off-by: Ivan Babrou <ivan@cloudflare.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Ivan Babrou <ivan@cloudflare.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+[bhelgaas@google.com: only warn if we see "http" before the archive hostname]
+  Link: https://lkml.kernel.org/r/20221114224315.GA939630@bhelgaas
+Link: https://lkml.kernel.org/r/20221019202843.40810-1-helgaas@kernel.org
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Reviewed-by: Peter Collingbourne <pcc@google.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org> # build-tested
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |   17 ++++++++++
- fs/proc/fd.c                       |   45 +++++++++++++++++++++++++++
- 2 files changed, 62 insertions(+)
+ scripts/checkpatch.pl |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/Documentation/filesystems/proc.rst~proc-report-open-files-as-size-in-stat-for-proc-pid-fd
-+++ a/Documentation/filesystems/proc.rst
-@@ -47,6 +47,7 @@ fixes/update part 1.1  Stefani Seibold <
-   3.10  /proc/<pid>/timerslack_ns - Task timerslack value
-   3.11	/proc/<pid>/patch_state - Livepatch patch operation state
-   3.12	/proc/<pid>/arch_status - Task architecture specific information
-+  3.13  /proc/<pid>/fd - List of symlinks to open files
- 
-   4	Configuring procfs
-   4.1	Mount options
-@@ -2149,6 +2150,22 @@ AVX512_elapsed_ms
-   the task is unlikely an AVX512 user, but depends on the workload and the
-   scheduling scenario, it also could be a false negative mentioned above.
- 
-+3.13 /proc/<pid>/fd - List of symlinks to open files
-+-------------------------------------------------------
-+This directory contains symbolic links which represent open files
-+the process is maintaining.  Example output::
-+
-+  lr-x------ 1 root root 64 Sep 20 17:53 0 -> /dev/null
-+  l-wx------ 1 root root 64 Sep 20 17:53 1 -> /dev/null
-+  lrwx------ 1 root root 64 Sep 20 17:53 10 -> 'socket:[12539]'
-+  lrwx------ 1 root root 64 Sep 20 17:53 11 -> 'socket:[12540]'
-+  lrwx------ 1 root root 64 Sep 20 17:53 12 -> 'socket:[12542]'
-+
-+The number of open files for the process is stored in 'size' member
-+of stat() output for /proc/<pid>/fd for fast access.
-+-------------------------------------------------------
-+
-+
- Chapter 4: Configuring procfs
- =============================
- 
---- a/fs/proc/fd.c~proc-report-open-files-as-size-in-stat-for-proc-pid-fd
-+++ a/fs/proc/fd.c
-@@ -7,6 +7,7 @@
- #include <linux/namei.h>
- #include <linux/pid.h>
- #include <linux/ptrace.h>
-+#include <linux/bitmap.h>
- #include <linux/security.h>
- #include <linux/file.h>
- #include <linux/seq_file.h>
-@@ -279,6 +280,30 @@ out:
- 	return 0;
+--- a/scripts/checkpatch.pl~checkpatch-add-warning-for-non-lore-mailing-list-urls
++++ a/scripts/checkpatch.pl
+@@ -702,6 +702,17 @@ sub find_standard_signature {
+ 	return "";
  }
  
-+static int proc_readfd_count(struct inode *inode, loff_t *count)
-+{
-+	struct task_struct *p = get_proc_task(inode);
-+	struct fdtable *fdt;
++our $obsolete_archives = qr{(?xi:
++	\Qfreedesktop.org/archives/dri-devel\E |
++	\Qlists.infradead.org\E |
++	\Qlkml.org\E |
++	\Qmail-archive.com\E |
++	\Qmailman.alsa-project.org/pipermail\E |
++	\Qmarc.info\E |
++	\Qozlabs.org/pipermail\E |
++	\Qspinics.net\E
++)};
 +
-+	if (!p)
-+		return -ENOENT;
-+
-+	task_lock(p);
-+	if (p->files) {
-+		rcu_read_lock();
-+
-+		fdt = files_fdtable(p->files);
-+		*count = bitmap_weight(fdt->open_fds, fdt->max_fds);
-+
-+		rcu_read_unlock();
-+	}
-+	task_unlock(p);
-+
-+	put_task_struct(p);
-+
-+	return 0;
-+}
-+
- static int proc_readfd(struct file *file, struct dir_context *ctx)
- {
- 	return proc_readfd_common(file, ctx, proc_fd_instantiate);
-@@ -319,9 +344,29 @@ int proc_fd_permission(struct user_names
- 	return rv;
- }
+ our @typeListMisordered = (
+ 	qr{char\s+(?:un)?signed},
+ 	qr{int\s+(?:(?:un)?signed\s+)?short\s},
+@@ -3324,6 +3335,12 @@ sub process {
+ 			$last_git_commit_id_linenr = $linenr if ($line =~ /\bcommit\s*$/i);
+ 		}
  
-+static int proc_fd_getattr(struct user_namespace *mnt_userns,
-+			const struct path *path, struct kstat *stat,
-+			u32 request_mask, unsigned int query_flags)
-+{
-+	struct inode *inode = d_inode(path->dentry);
-+	int rv = 0;
++# Check for mailing list archives other than lore.kernel.org
++		if ($rawline =~ m{http.*\b$obsolete_archives}) {
++			WARN("PREFER_LORE_ARCHIVE",
++			     "Use lore.kernel.org archive links when possible - see https://lore.kernel.org/lists.html\n" . $herecurr);
++		}
 +
-+	generic_fillattr(&init_user_ns, inode, stat);
-+
-+	/* If it's a directory, put the number of open fds there */
-+	if (S_ISDIR(inode->i_mode)) {
-+		rv = proc_readfd_count(inode, &stat->size);
-+		if (rv < 0)
-+			return rv;
-+	}
-+
-+	return rv;
-+}
-+
- const struct inode_operations proc_fd_inode_operations = {
- 	.lookup		= proc_lookupfd,
- 	.permission	= proc_fd_permission,
-+	.getattr	= proc_fd_getattr,
- 	.setattr	= proc_setattr,
- };
- 
+ # Check for added, moved or deleted files
+ 		if (!$reported_maintainer_file && !$in_commit_log &&
+ 		    ($line =~ /^(?:new|deleted) file mode\s*\d+\s*$/ ||
 _
 
-Patches currently in -mm which might be from ivan@cloudflare.com are
+Patches currently in -mm which might be from bhelgaas@google.com are
 
 
