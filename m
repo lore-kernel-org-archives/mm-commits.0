@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8E35C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 22:33:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B936C43219
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 22:33:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238465AbiKOWdJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Nov 2022 17:33:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37012 "EHLO
+        id S231723AbiKOWdK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Nov 2022 17:33:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238422AbiKOWch (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 17:32:37 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B41BB1B79A
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 14:32:27 -0800 (PST)
+        with ESMTP id S238456AbiKOWck (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 17:32:40 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 692A81F9C1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 14:32:28 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 64266B81B87
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 22:32:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0ADCBC433B5;
-        Tue, 15 Nov 2022 22:32:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EC6ED61A69
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 22:32:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52A04C433D7;
+        Tue, 15 Nov 2022 22:32:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668551545;
-        bh=j9dgD4nqDJCv5uqVPuHYPxgfU0HrUye1oG82/ikp/O0=;
+        s=korg; t=1668551547;
+        bh=PW5nWKcet2/q9GT7Q2U/OPtkj5tvd3m5Kfk8VOs56Iw=;
         h=Date:To:From:Subject:From;
-        b=Vs0X0WtJ9dpBJC3+pumryseOfOjvxwR9hrcQlybJx8UDhAyCFO7S1RV/eHixMsv7s
-         FvVKOq0y0mxd+FelmDmahFQRrqOVLj4S21dtGDO6lhaY+H3pWhK64CRNCF6Cte5Dk/
-         Yhd/F24J8p3pbltctOJD7i+teu4zyX/tPkCebYjs=
-Date:   Tue, 15 Nov 2022 14:32:24 -0800
-To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
+        b=q1Lu2NaZ03S1dXRJq4FQ81GfpMyaviUMvDIQG4j0FtpWaqPMLLP8RtN45h8oo+DK4
+         vpE+1ejWuNmhg84BgCxK2SM8dWQbMSsjEwr5SmYzNoMVW0V/8SGbAbeE7+iOIGha2D
+         8+obEphwmxVoGxDMLd+o1woYXB85C8PtTI6EwhMU=
+Date:   Tue, 15 Nov 2022 14:32:26 -0800
+To:     mm-commits@vger.kernel.org, zhongjubin@huawei.com,
+        yi.zhang@huawei.com, phillip@squashfs.org.uk,
+        chenjianguo3@huawei.com, nixiaoming@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-fix-shift-out-of-bounds-due-to-too-large-exponent-of-block-size.patch removed from -mm tree
-Message-Id: <20221115223225.0ADCBC433B5@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-add-the-mount-parameter-theads=singlemultipercpu.patch removed from -mm tree
+Message-Id: <20221115223227.52A04C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,115 +43,511 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nilfs2: fix shift-out-of-bounds due to too large exponent of block size
+     Subject: squashfs: add the mount parameter theads=<single|multi|percpu>
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-shift-out-of-bounds-due-to-too-large-exponent-of-block-size.patch
+     squashfs-add-the-mount-parameter-theads=singlemultipercpu.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix shift-out-of-bounds due to too large exponent of block size
-Date: Thu, 27 Oct 2022 13:43:06 +0900
+From: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: squashfs: add the mount parameter theads=<single|multi|percpu>
+Date: Wed, 19 Oct 2022 11:09:29 +0800
 
-If field s_log_block_size of superblock data is corrupted and too large,
-init_nilfs() and load_nilfs() still can trigger a shift-out-of-bounds
-warning followed by a kernel panic (if panic_on_warn is set):
+Patch series 'squashfs: Add the mount parameter "threads="'.
 
- shift exponent 38973 is too large for 32-bit type 'int'
- Call Trace:
-  <TASK>
-  dump_stack_lvl+0xcd/0x134
-  ubsan_epilogue+0xb/0x50
-  __ubsan_handle_shift_out_of_bounds.cold.12+0x17b/0x1f5
-  init_nilfs.cold.11+0x18/0x1d [nilfs2]
-  nilfs_mount+0x9b5/0x12b0 [nilfs2]
-  ...
+Currently, Squashfs supports multiple decompressor parallel modes. 
+However, this mode can be configured only during kernel building and does
+not support flexible selection during runtime.
 
-This fixes the issue by adding and using a new helper function for getting
-block size with sanity check.
+In the current patch set, the mount parameter "threads=" is added to allow
+users to select the parallel decompressor mode and configure the number of
+decompressors when mounting a file system.
 
-Link: https://lkml.kernel.org/r/20221027044306.42774-3-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+"threads=<single|multi|percpu|1|2|3|...>"
+The upper limit is num_online_cpus() * 2.
+
+
+This patch (of 2):
+
+Squashfs supports three decompression concurrency modes:
+	Single-thread mode: concurrent reads are blocked and the memory
+		overhead is small.
+	Multi-thread mode/percpu mode: reduces concurrent read blocking but
+		increases memory overhead.
+
+The corresponding schema must be fixed at compile time. During mounting,
+the concurrent decompression mode cannot be adjusted based on file read
+blocking.
+
+The mount parameter theads=<single|multi|percpu> is added to select
+the concurrent decompression mode of a single SquashFS file system
+image.
+
+Link: https://lkml.kernel.org/r/20221019030930.130456-1-nixiaoming@huawei.com
+Link: https://lkml.kernel.org/r/20221019030930.130456-2-nixiaoming@huawei.com
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
+Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Jianguo Chen <chenjianguo3@huawei.com>
+Cc: Jubin Zhong <zhongjubin@huawei.com>
+Cc: Zhang Yi <yi.zhang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/the_nilfs.c |   42 ++++++++++++++++++++++++++++++++++++----
- 1 file changed, 38 insertions(+), 4 deletions(-)
+ fs/squashfs/Kconfig                     |   39 +++++++++++++--
+ fs/squashfs/block.c                     |    2 
+ fs/squashfs/decompressor.c              |    2 
+ fs/squashfs/decompressor_multi.c        |   16 ++++--
+ fs/squashfs/decompressor_multi_percpu.c |   23 ++++++---
+ fs/squashfs/decompressor_single.c       |   15 ++++-
+ fs/squashfs/squashfs.h                  |   23 +++++++--
+ fs/squashfs/squashfs_fs_sb.h            |    3 -
+ fs/squashfs/super.c                     |   56 ++++++++++++++++++++--
+ 9 files changed, 147 insertions(+), 32 deletions(-)
 
---- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-shift-out-of-bounds-due-to-too-large-exponent-of-block-size
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -194,6 +194,34 @@ static int nilfs_store_log_cursor(struct
+--- a/fs/squashfs/block.c~squashfs-add-the-mount-parameter-theads=singlemultipercpu
++++ a/fs/squashfs/block.c
+@@ -216,7 +216,7 @@ int squashfs_read_data(struct super_bloc
+ 			res = -EIO;
+ 			goto out_free_bio;
+ 		}
+-		res = squashfs_decompress(msblk, bio, offset, length, output);
++		res = msblk->thread_ops->decompress(msblk, bio, offset, length, output);
+ 	} else {
+ 		res = copy_bio_to_actor(bio, output, offset, length);
+ 	}
+--- a/fs/squashfs/decompressor.c~squashfs-add-the-mount-parameter-theads=singlemultipercpu
++++ a/fs/squashfs/decompressor.c
+@@ -134,7 +134,7 @@ void *squashfs_decompressor_setup(struct
+ 	if (IS_ERR(comp_opts))
+ 		return comp_opts;
+ 
+-	stream = squashfs_decompressor_create(msblk, comp_opts);
++	stream = msblk->thread_ops->create(msblk, comp_opts);
+ 	if (IS_ERR(stream))
+ 		kfree(comp_opts);
+ 
+--- a/fs/squashfs/decompressor_multi.c~squashfs-add-the-mount-parameter-theads=singlemultipercpu
++++ a/fs/squashfs/decompressor_multi.c
+@@ -29,12 +29,11 @@
+ #define MAX_DECOMPRESSOR	(num_online_cpus() * 2)
+ 
+ 
+-int squashfs_max_decompressors(void)
++static int squashfs_max_decompressors(void)
+ {
+ 	return MAX_DECOMPRESSOR;
  }
  
- /**
-+ * nilfs_get_blocksize - get block size from raw superblock data
-+ * @sb: super block instance
-+ * @sbp: superblock raw data buffer
-+ * @blocksize: place to store block size
-+ *
-+ * nilfs_get_blocksize() calculates the block size from the block size
-+ * exponent information written in @sbp and stores it in @blocksize,
-+ * or aborts with an error message if it's too large.
-+ *
-+ * Return Value: On success, 0 is returned. If the block size is too
-+ * large, -EINVAL is returned.
-+ */
-+static int nilfs_get_blocksize(struct super_block *sb,
-+			       struct nilfs_super_block *sbp, int *blocksize)
-+{
-+	unsigned int shift_bits = le32_to_cpu(sbp->s_log_block_size);
+-
+ struct squashfs_stream {
+ 	void			*comp_opts;
+ 	struct list_head	strm_list;
+@@ -59,7 +58,7 @@ static void put_decomp_stream(struct dec
+ 	wake_up(&stream->wait);
+ }
+ 
+-void *squashfs_decompressor_create(struct squashfs_sb_info *msblk,
++static void *squashfs_decompressor_create(struct squashfs_sb_info *msblk,
+ 				void *comp_opts)
+ {
+ 	struct squashfs_stream *stream;
+@@ -103,7 +102,7 @@ out:
+ }
+ 
+ 
+-void squashfs_decompressor_destroy(struct squashfs_sb_info *msblk)
++static void squashfs_decompressor_destroy(struct squashfs_sb_info *msblk)
+ {
+ 	struct squashfs_stream *stream = msblk->stream;
+ 	if (stream) {
+@@ -180,7 +179,7 @@ wait:
+ }
+ 
+ 
+-int squashfs_decompress(struct squashfs_sb_info *msblk, struct bio *bio,
++static int squashfs_decompress(struct squashfs_sb_info *msblk, struct bio *bio,
+ 			int offset, int length,
+ 			struct squashfs_page_actor *output)
+ {
+@@ -195,3 +194,10 @@ int squashfs_decompress(struct squashfs_
+ 			msblk->decompressor->name);
+ 	return res;
+ }
 +
-+	if (unlikely(shift_bits >
-+		     ilog2(NILFS_MAX_BLOCK_SIZE) - BLOCK_SIZE_BITS)) {
-+		nilfs_err(sb, "too large filesystem blocksize: 2 ^ %u KiB",
-+			  shift_bits);
-+		return -EINVAL;
++const struct squashfs_decompressor_thread_ops squashfs_decompressor_multi = {
++	.create = squashfs_decompressor_create,
++	.destroy = squashfs_decompressor_destroy,
++	.decompress = squashfs_decompress,
++	.max_decompressors = squashfs_max_decompressors,
++};
+--- a/fs/squashfs/decompressor_multi_percpu.c~squashfs-add-the-mount-parameter-theads=singlemultipercpu
++++ a/fs/squashfs/decompressor_multi_percpu.c
+@@ -25,7 +25,7 @@ struct squashfs_stream {
+ 	local_lock_t	lock;
+ };
+ 
+-void *squashfs_decompressor_create(struct squashfs_sb_info *msblk,
++static void *squashfs_decompressor_create(struct squashfs_sb_info *msblk,
+ 						void *comp_opts)
+ {
+ 	struct squashfs_stream *stream;
+@@ -59,7 +59,7 @@ out:
+ 	return ERR_PTR(err);
+ }
+ 
+-void squashfs_decompressor_destroy(struct squashfs_sb_info *msblk)
++static void squashfs_decompressor_destroy(struct squashfs_sb_info *msblk)
+ {
+ 	struct squashfs_stream __percpu *percpu =
+ 			(struct squashfs_stream __percpu *) msblk->stream;
+@@ -75,19 +75,21 @@ void squashfs_decompressor_destroy(struc
+ 	}
+ }
+ 
+-int squashfs_decompress(struct squashfs_sb_info *msblk, struct bio *bio,
++static int squashfs_decompress(struct squashfs_sb_info *msblk, struct bio *bio,
+ 	int offset, int length, struct squashfs_page_actor *output)
+ {
+ 	struct squashfs_stream *stream;
++	struct squashfs_stream __percpu *percpu =
++			(struct squashfs_stream __percpu *) msblk->stream;
+ 	int res;
+ 
+-	local_lock(&msblk->stream->lock);
+-	stream = this_cpu_ptr(msblk->stream);
++	local_lock(&percpu->lock);
++	stream = this_cpu_ptr(percpu);
+ 
+ 	res = msblk->decompressor->decompress(msblk, stream->stream, bio,
+ 					      offset, length, output);
+ 
+-	local_unlock(&msblk->stream->lock);
++	local_unlock(&percpu->lock);
+ 
+ 	if (res < 0)
+ 		ERROR("%s decompression failed, data probably corrupt\n",
+@@ -96,7 +98,14 @@ int squashfs_decompress(struct squashfs_
+ 	return res;
+ }
+ 
+-int squashfs_max_decompressors(void)
++static int squashfs_max_decompressors(void)
+ {
+ 	return num_possible_cpus();
+ }
++
++const struct squashfs_decompressor_thread_ops squashfs_decompressor_percpu = {
++	.create = squashfs_decompressor_create,
++	.destroy = squashfs_decompressor_destroy,
++	.decompress = squashfs_decompress,
++	.max_decompressors = squashfs_max_decompressors,
++};
+--- a/fs/squashfs/decompressor_single.c~squashfs-add-the-mount-parameter-theads=singlemultipercpu
++++ a/fs/squashfs/decompressor_single.c
+@@ -24,7 +24,7 @@ struct squashfs_stream {
+ 	struct mutex	mutex;
+ };
+ 
+-void *squashfs_decompressor_create(struct squashfs_sb_info *msblk,
++static void *squashfs_decompressor_create(struct squashfs_sb_info *msblk,
+ 						void *comp_opts)
+ {
+ 	struct squashfs_stream *stream;
+@@ -49,7 +49,7 @@ out:
+ 	return ERR_PTR(err);
+ }
+ 
+-void squashfs_decompressor_destroy(struct squashfs_sb_info *msblk)
++static void squashfs_decompressor_destroy(struct squashfs_sb_info *msblk)
+ {
+ 	struct squashfs_stream *stream = msblk->stream;
+ 
+@@ -59,7 +59,7 @@ void squashfs_decompressor_destroy(struc
+ 	}
+ }
+ 
+-int squashfs_decompress(struct squashfs_sb_info *msblk, struct bio *bio,
++static int squashfs_decompress(struct squashfs_sb_info *msblk, struct bio *bio,
+ 			int offset, int length,
+ 			struct squashfs_page_actor *output)
+ {
+@@ -78,7 +78,14 @@ int squashfs_decompress(struct squashfs_
+ 	return res;
+ }
+ 
+-int squashfs_max_decompressors(void)
++static int squashfs_max_decompressors(void)
+ {
+ 	return 1;
+ }
++
++const struct squashfs_decompressor_thread_ops squashfs_decompressor_single = {
++	.create = squashfs_decompressor_create,
++	.destroy = squashfs_decompressor_destroy,
++	.decompress = squashfs_decompress,
++	.max_decompressors = squashfs_max_decompressors,
++};
+--- a/fs/squashfs/Kconfig~squashfs-add-the-mount-parameter-theads=singlemultipercpu
++++ a/fs/squashfs/Kconfig
+@@ -54,9 +54,36 @@ config SQUASHFS_FILE_DIRECT
+ 
+ endchoice
+ 
++config SQUASHFS_DECOMP_SINGLE
++	depends on SQUASHFS
++	def_bool n
++
++config SQUASHFS_DECOMP_MULTI
++	depends on SQUASHFS
++	def_bool n
++
++config SQUASHFS_DECOMP_MULTI_PERCPU
++	depends on SQUASHFS
++	def_bool n
++
++config SQUASHFS_CHOICE_DECOMP_BY_MOUNT
++	bool "Select the parallel decompression mode during mount"
++	depends on SQUASHFS
++	default n
++	select SQUASHFS_DECOMP_SINGLE
++	select SQUASHFS_DECOMP_MULTI
++	select SQUASHFS_DECOMP_MULTI_PERCPU
++	help
++	  Compile all parallel decompression modes and specify the
++	  decompression mode by setting "threads=" during mount.
++	    threads=<single|multi|percpu>
++
++	  default Decompressor parallelisation is SQUASHFS_DECOMP_SINGLE
++
+ choice
+-	prompt "Decompressor parallelisation options"
++	prompt "Select decompression parallel mode at compile time"
+ 	depends on SQUASHFS
++	depends on !SQUASHFS_CHOICE_DECOMP_BY_MOUNT
+ 	help
+ 	  Squashfs now supports three parallelisation options for
+ 	  decompression.  Each one exhibits various trade-offs between
+@@ -64,15 +91,17 @@ choice
+ 
+ 	  If in doubt, select "Single threaded compression"
+ 
+-config SQUASHFS_DECOMP_SINGLE
++config SQUASHFS_COMPILE_DECOMP_SINGLE
+ 	bool "Single threaded compression"
++	select SQUASHFS_DECOMP_SINGLE
+ 	help
+ 	  Traditionally Squashfs has used single-threaded decompression.
+ 	  Only one block (data or metadata) can be decompressed at any
+ 	  one time.  This limits CPU and memory usage to a minimum.
+ 
+-config SQUASHFS_DECOMP_MULTI
++config SQUASHFS_COMPILE_DECOMP_MULTI
+ 	bool "Use multiple decompressors for parallel I/O"
++	select SQUASHFS_DECOMP_MULTI
+ 	help
+ 	  By default Squashfs uses a single decompressor but it gives
+ 	  poor performance on parallel I/O workloads when using multiple CPU
+@@ -85,8 +114,9 @@ config SQUASHFS_DECOMP_MULTI
+ 	  decompressors per core.  It dynamically allocates decompressors
+ 	  on a demand basis.
+ 
+-config SQUASHFS_DECOMP_MULTI_PERCPU
++config SQUASHFS_COMPILE_DECOMP_MULTI_PERCPU
+ 	bool "Use percpu multiple decompressors for parallel I/O"
++	select SQUASHFS_DECOMP_MULTI_PERCPU
+ 	help
+ 	  By default Squashfs uses a single decompressor but it gives
+ 	  poor performance on parallel I/O workloads when using multiple CPU
+@@ -95,7 +125,6 @@ config SQUASHFS_DECOMP_MULTI_PERCPU
+ 	  This decompressor implementation uses a maximum of one
+ 	  decompressor per core.  It uses percpu variables to ensure
+ 	  decompression is load-balanced across the cores.
+-
+ endchoice
+ 
+ config SQUASHFS_XATTR
+--- a/fs/squashfs/squashfs_fs_sb.h~squashfs-add-the-mount-parameter-theads=singlemultipercpu
++++ a/fs/squashfs/squashfs_fs_sb.h
+@@ -53,7 +53,7 @@ struct squashfs_sb_info {
+ 	__le64					*xattr_id_table;
+ 	struct mutex				meta_index_mutex;
+ 	struct meta_index			*meta_index;
+-	struct squashfs_stream			*stream;
++	void					*stream;
+ 	__le64					*inode_lookup_table;
+ 	u64					inode_table;
+ 	u64					directory_table;
+@@ -66,5 +66,6 @@ struct squashfs_sb_info {
+ 	int					xattr_ids;
+ 	unsigned int				ids;
+ 	bool					panic_on_errors;
++	const struct squashfs_decompressor_thread_ops *thread_ops;
+ };
+ #endif
+--- a/fs/squashfs/squashfs.h~squashfs-add-the-mount-parameter-theads=singlemultipercpu
++++ a/fs/squashfs/squashfs.h
+@@ -38,11 +38,24 @@ extern const struct squashfs_decompresso
+ extern void *squashfs_decompressor_setup(struct super_block *, unsigned short);
+ 
+ /* decompressor_xxx.c */
+-extern void *squashfs_decompressor_create(struct squashfs_sb_info *, void *);
+-extern void squashfs_decompressor_destroy(struct squashfs_sb_info *);
+-extern int squashfs_decompress(struct squashfs_sb_info *, struct bio *,
+-				int, int, struct squashfs_page_actor *);
+-extern int squashfs_max_decompressors(void);
++
++struct squashfs_decompressor_thread_ops {
++	void * (*create)(struct squashfs_sb_info *msblk, void *comp_opts);
++	void (*destroy)(struct squashfs_sb_info *msblk);
++	int (*decompress)(struct squashfs_sb_info *msblk, struct bio *bio,
++			  int offset, int length, struct squashfs_page_actor *output);
++	int (*max_decompressors)(void);
++};
++
++#ifdef CONFIG_SQUASHFS_DECOMP_SINGLE
++extern const struct squashfs_decompressor_thread_ops squashfs_decompressor_single;
++#endif
++#ifdef CONFIG_SQUASHFS_DECOMP_MULTI
++extern const struct squashfs_decompressor_thread_ops squashfs_decompressor_multi;
++#endif
++#ifdef CONFIG_SQUASHFS_DECOMP_MULTI_PERCPU
++extern const struct squashfs_decompressor_thread_ops squashfs_decompressor_percpu;
++#endif
+ 
+ /* export.c */
+ extern __le64 *squashfs_read_inode_lookup_table(struct super_block *, u64, u64,
+--- a/fs/squashfs/super.c~squashfs-add-the-mount-parameter-theads=singlemultipercpu
++++ a/fs/squashfs/super.c
+@@ -47,10 +47,12 @@ enum Opt_errors {
+ 
+ enum squashfs_param {
+ 	Opt_errors,
++	Opt_threads,
+ };
+ 
+ struct squashfs_mount_opts {
+ 	enum Opt_errors errors;
++	const struct squashfs_decompressor_thread_ops *thread_ops;
+ };
+ 
+ static const struct constant_table squashfs_param_errors[] = {
+@@ -61,9 +63,29 @@ static const struct constant_table squas
+ 
+ static const struct fs_parameter_spec squashfs_fs_parameters[] = {
+ 	fsparam_enum("errors", Opt_errors, squashfs_param_errors),
++	fsparam_string("threads", Opt_threads),
+ 	{}
+ };
+ 
++static int squashfs_parse_param_threads(const char *str, struct squashfs_mount_opts *opts)
++{
++#ifdef CONFIG_SQUASHFS_CHOICE_DECOMP_BY_MOUNT
++	if (strcmp(str, "single") == 0) {
++		opts->thread_ops = &squashfs_decompressor_single;
++		return 0;
 +	}
-+	*blocksize = BLOCK_SIZE << shift_bits;
-+	return 0;
++	if (strcmp(str, "multi") == 0) {
++		opts->thread_ops = &squashfs_decompressor_multi;
++		return 0;
++	}
++	if (strcmp(str, "percpu") == 0) {
++		opts->thread_ops = &squashfs_decompressor_percpu;
++		return 0;
++	}
++#endif
++	return -EINVAL;
 +}
 +
-+/**
-  * load_nilfs - load and recover the nilfs
-  * @nilfs: the_nilfs structure to be released
-  * @sb: super block instance used to recover past segment
-@@ -246,11 +274,15 @@ int load_nilfs(struct the_nilfs *nilfs,
- 		nilfs->ns_sbwtime = le64_to_cpu(sbp[0]->s_wtime);
+ static int squashfs_parse_param(struct fs_context *fc, struct fs_parameter *param)
+ {
+ 	struct squashfs_mount_opts *opts = fc->fs_private;
+@@ -78,6 +100,10 @@ static int squashfs_parse_param(struct f
+ 	case Opt_errors:
+ 		opts->errors = result.uint_32;
+ 		break;
++	case Opt_threads:
++		if (squashfs_parse_param_threads(param->string, opts) != 0)
++			return -EINVAL;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -167,6 +193,7 @@ static int squashfs_fill_super(struct su
+ 			       sb->s_bdev);
+ 		goto failed_mount;
+ 	}
++	msblk->thread_ops = opts->thread_ops;
  
- 		/* verify consistency between two super blocks */
--		blocksize = BLOCK_SIZE << le32_to_cpu(sbp[0]->s_log_block_size);
-+		err = nilfs_get_blocksize(sb, sbp[0], &blocksize);
-+		if (err)
-+			goto scan_error;
-+
- 		if (blocksize != nilfs->ns_blocksize) {
- 			nilfs_warn(sb,
- 				   "blocksize differs between two super blocks (%d != %d)",
- 				   blocksize, nilfs->ns_blocksize);
-+			err = -EINVAL;
- 			goto scan_error;
- 		}
+ 	/* Check the MAJOR & MINOR versions and lookup compression type */
+ 	msblk->decompressor = supported_squashfs_filesystem(
+@@ -252,7 +279,7 @@ static int squashfs_fill_super(struct su
  
-@@ -609,9 +641,11 @@ int init_nilfs(struct the_nilfs *nilfs,
- 	if (err)
- 		goto failed_sbh;
+ 	/* Allocate read_page block */
+ 	msblk->read_page = squashfs_cache_init("data",
+-		squashfs_max_decompressors(), msblk->block_size);
++		msblk->thread_ops->max_decompressors(), msblk->block_size);
+ 	if (msblk->read_page == NULL) {
+ 		errorf(fc, "Failed to allocate read_page block");
+ 		goto failed_mount;
+@@ -383,7 +410,7 @@ failed_mount:
+ 	squashfs_cache_delete(msblk->block_cache);
+ 	squashfs_cache_delete(msblk->fragment_cache);
+ 	squashfs_cache_delete(msblk->read_page);
+-	squashfs_decompressor_destroy(msblk);
++	msblk->thread_ops->destroy(msblk);
+ 	kfree(msblk->inode_lookup_table);
+ 	kfree(msblk->fragment_index);
+ 	kfree(msblk->id_table);
+@@ -435,6 +462,20 @@ static int squashfs_show_options(struct
+ 	else
+ 		seq_puts(s, ",errors=continue");
  
--	blocksize = BLOCK_SIZE << le32_to_cpu(sbp->s_log_block_size);
--	if (blocksize < NILFS_MIN_BLOCK_SIZE ||
--	    blocksize > NILFS_MAX_BLOCK_SIZE) {
-+	err = nilfs_get_blocksize(sb, sbp, &blocksize);
-+	if (err)
-+		goto failed_sbh;
-+
-+	if (blocksize < NILFS_MIN_BLOCK_SIZE) {
- 		nilfs_err(sb,
- 			  "couldn't mount because of unsupported filesystem blocksize %d",
- 			  blocksize);
++#ifdef CONFIG_SQUASHFS_CHOICE_DECOMP_BY_MOUNT
++	if (msblk->thread_ops == &squashfs_decompressor_single) {
++		seq_puts(s, ",threads=single");
++		return 0;
++	}
++	if (msblk->thread_ops == &squashfs_decompressor_multi) {
++		seq_puts(s, ",threads=multi");
++		return 0;
++	}
++	if (msblk->thread_ops == &squashfs_decompressor_percpu) {
++		seq_puts(s, ",threads=percpu");
++		return 0;
++	}
++#endif
+ 	return 0;
+ }
+ 
+@@ -446,6 +487,15 @@ static int squashfs_init_fs_context(stru
+ 	if (!opts)
+ 		return -ENOMEM;
+ 
++#ifdef CONFIG_SQUASHFS_DECOMP_SINGLE
++	opts->thread_ops = &squashfs_decompressor_single;
++#elif defined(CONFIG_SQUASHFS_DECOMP_MULTI)
++	opts->thread_ops = &squashfs_decompressor_multi;
++#elif defined(CONFIG_SQUASHFS_DECOMP_MULTI_PERCPU)
++	opts->thread_ops = &squashfs_decompressor_percpu;
++#else
++#error "fail: unknown squashfs decompression thread mode?"
++#endif
+ 	fc->fs_private = opts;
+ 	fc->ops = &squashfs_context_ops;
+ 	return 0;
+@@ -478,7 +528,7 @@ static void squashfs_put_super(struct su
+ 		squashfs_cache_delete(sbi->block_cache);
+ 		squashfs_cache_delete(sbi->fragment_cache);
+ 		squashfs_cache_delete(sbi->read_page);
+-		squashfs_decompressor_destroy(sbi);
++		sbi->thread_ops->destroy(sbi);
+ 		kfree(sbi->id_table);
+ 		kfree(sbi->fragment_index);
+ 		kfree(sbi->meta_index);
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from nixiaoming@huawei.com are
 
 
