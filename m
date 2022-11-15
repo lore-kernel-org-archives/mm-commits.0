@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E261C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 19:50:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95C35C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 19:50:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229560AbiKOTuT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Nov 2022 14:50:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45686 "EHLO
+        id S229678AbiKOTuV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Nov 2022 14:50:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229478AbiKOTuT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 14:50:19 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30FFD5F8E
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 11:50:18 -0800 (PST)
+        with ESMTP id S229478AbiKOTuU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 14:50:20 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E01925F8E
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 11:50:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B72766199D
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 19:50:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D131C433C1;
-        Tue, 15 Nov 2022 19:50:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C08D61784
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 19:50:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C67FCC433C1;
+        Tue, 15 Nov 2022 19:50:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668541817;
-        bh=BJm80b96Vbv5Z7fVyub0Rk7ZeZzbYKQmuznZld2j1w8=;
+        s=korg; t=1668541818;
+        bh=b0W7fhP2PKgSpW0RuTi0VOscp9C/MS25UGmQO9eYL4E=;
         h=Date:To:From:Subject:From;
-        b=WBn0qaNxYOZ+ajQPPfjSpBg+PlUAVcaXpZx8nugRy1clRPGzxopCjVq/jMYKOKAKd
-         0pFuzaTxzw+FQFMBvPuS1IUxicExWOFTYRCRenY70QC2CYtKR/vSVDLHK2dnFVU2Ek
-         hy2kg/yjE1PgpMVKkROSd+w2Tnf0UKkJP+TEyDy4=
-Date:   Tue, 15 Nov 2022 11:50:16 -0800
+        b=VedqYJNQAjdTAZeap+chO3MFhk158KqU9dCKhMFgz+VH+hLgYpOtQONyKGmOlzb9s
+         2YfQWPFas/cD5qH5SoR8rkEoFiFI0uQdxQCTQtYjkfQ0xLNCkHB0Q78gc2grDAIizL
+         pAlBFhoPiqQOQGctCI5naKfR76/Cy1Dn5virCufM=
+Date:   Tue, 15 Nov 2022 11:50:18 -0800
 To:     mm-commits@vger.kernel.org, zhangjinhao2@huawei.com,
         vbabka@suse.cz, rdunlap@infradead.org, guohanjun@huawei.com,
         zhengyejian1@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + acct-fix-accuracy-loss-for-input-value-of-encode_comp_t.patch added to mm-nonmm-unstable branch
-Message-Id: <20221115195017.1D131C433C1@smtp.kernel.org>
+Subject: + acct-fix-potential-integer-overflow-in-encode_comp_t.patch added to mm-nonmm-unstable branch
+Message-Id: <20221115195018.C67FCC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acct: fix accuracy loss for input value of encode_comp_t()
+     Subject: acct: fix potential integer overflow in encode_comp_t()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     acct-fix-accuracy-loss-for-input-value-of-encode_comp_t.patch
+     acct-fix-potential-integer-overflow-in-encode_comp_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/acct-fix-accuracy-loss-for-input-value-of-encode_comp_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/acct-fix-potential-integer-overflow-in-encode_comp_t.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,59 +66,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zheng Yejian <zhengyejian1@huawei.com>
-Subject: acct: fix accuracy loss for input value of encode_comp_t()
-Date: Sat, 15 May 2021 22:06:30 +0800
+Subject: acct: fix potential integer overflow in encode_comp_t()
+Date: Sat, 15 May 2021 22:06:31 +0800
 
-Patch series "Fix encode_comp_t()".
+The integer overflow is descripted with following codes:
+  > 317 static comp_t encode_comp_t(u64 value)
+  > 318 {
+  > 319         int exp, rnd;
+    ......
+  > 341         exp <<= MANTSIZE;
+  > 342         exp += value;
+  > 343         return exp;
+  > 344 }
 
-Type conversion in encode_comp_t() may look a bit problematic.
+Currently comp_t is defined as type of '__u16', but the variable 'exp' is
+type of 'int', so overflow would happen when variable 'exp' in line 343 is
+greater than 65535.
 
-
-This patch (of 2):
-
-See calculation of ac_{u,s}time in fill_ac():
-  > ac->ac_utime = encode_comp_t(nsec_to_AHZ(pacct->ac_utime));
-  > ac->ac_stime = encode_comp_t(nsec_to_AHZ(pacct->ac_stime));
-
-Return value of nsec_to_AHZ() is always type of 'u64', but it is handled
-as type of 'unsigned long' in encode_comp_t, and accuracy loss would
-happen on 32-bit platform when 'unsigned long' value is 32-bit-width.
-
-So 'u64' value of encode_comp_t() may look better.
-
-Link: https://lkml.kernel.org/r/20210515140631.369106-1-zhengyejian1@huawei.com
-Link: https://lkml.kernel.org/r/20210515140631.369106-2-zhengyejian1@huawei.com
+Link: https://lkml.kernel.org/r/20210515140631.369106-3-zhengyejian1@huawei.com
 Signed-off-by: Zheng Yejian <zhengyejian1@huawei.com>
 Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Randy Dunlap <rdunlap@infradead.org> # build-tested
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zhang Jinhao <zhangjinhao2@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/acct.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/kernel/acct.c~acct-fix-accuracy-loss-for-input-value-of-encode_comp_t
+--- a/kernel/acct.c~acct-fix-potential-integer-overflow-in-encode_comp_t
 +++ a/kernel/acct.c
-@@ -320,7 +320,7 @@ void acct_exit_ns(struct pid_namespace *
- }
+@@ -350,6 +350,8 @@ static comp_t encode_comp_t(u64 value)
+ 		exp++;
+ 	}
  
- /*
-- *  encode an unsigned long into a comp_t
-+ *  encode an u64 into a comp_t
-  *
-  *  This routine has been adopted from the encode_comp_t() function in
-  *  the kern_acct.c file of the FreeBSD operating system. The encoding
-@@ -331,7 +331,7 @@ void acct_exit_ns(struct pid_namespace *
- #define	EXPSIZE		3			/* Base 8 (3 bit) exponent. */
- #define	MAXFRACT	((1 << MANTSIZE) - 1)	/* Maximum fractional value. */
- 
--static comp_t encode_comp_t(unsigned long value)
-+static comp_t encode_comp_t(u64 value)
- {
- 	int exp, rnd;
- 
++	if (exp > (((comp_t) ~0U) >> MANTSIZE))
++		return (comp_t) ~0U;
+ 	/*
+ 	 * Clean it up and polish it off.
+ 	 */
 _
 
 Patches currently in -mm which might be from zhengyejian1@huawei.com are
