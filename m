@@ -2,132 +2,851 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3909C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 22:58:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22A99C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 23:00:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230457AbiKOW6j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Nov 2022 17:58:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51666 "EHLO
+        id S238551AbiKOXA5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Nov 2022 18:00:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238529AbiKOW6i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 17:58:38 -0500
-Received: from mail-pj1-x102c.google.com (mail-pj1-x102c.google.com [IPv6:2607:f8b0:4864:20::102c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C0A0617E
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 14:58:36 -0800 (PST)
-Received: by mail-pj1-x102c.google.com with SMTP id m14-20020a17090a3f8e00b00212dab39bcdso611457pjc.0
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 14:58:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=kq4Y6rQhdXOoiJ3ApzoaQ4iWRuNKguAJvH7fFiA5+lM=;
-        b=BaJKP/ZS2tHAcjTUXqz3a6j2RfJYf363C+N2oshVYmO/U1tJEXTxXhQZGAZhi0rlCu
-         C5TQh4yiPabbWWPWALVZV2clCiTNjG8N5sQmPBmGwAZ5gEp4kXMebCg8CfZ3Temkcyl+
-         zpVl0KYW+sMECgu84u7wyEp1xBEUuRbwF7LksHLeL1HrfrXx61ItAfCbWmZ+VWN3IQ4c
-         nTki297fzgf5YN83nAxiJgJyVkRG+Nn+ST4d7OFDe2ixKKAy/r5pT630jKVJOzfcvpx+
-         8tUygCTI5WxgsfACmwEjif22Hn0lc+ZAk65hhwb0ajm8dyGYIfQzoHrdNwwmFLPTQf+Z
-         NfcA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=kq4Y6rQhdXOoiJ3ApzoaQ4iWRuNKguAJvH7fFiA5+lM=;
-        b=aPdfZ7y5BsvBTnPOwLZv41p9aY1pTWc0TRVASOv3AKpSsX3B4VO6GO9CQyqpqxjcN4
-         s1t81Mi+mORPrWU5XmRWv93Rpat868L/Sq0FDx4egal/y97tdWd92LuODY9OmKO6hH4S
-         J4JlHV9AGszjKzeJItI0g7t9hqO5n2hAvY6Xd7I4HS8QJV0jYMXpiMMIEo2oLRCao8Uj
-         aBfJ0kbnsKQ2hHJG/IAfE5bTJ+cdL6cAc63sNRBA7gu2laLuR5jvpwLlt2WXR/we7jZd
-         x46vtuF7m+pj+eU45RTifu38COS0Z70qetrZk0i8Lvd4YnYburVWkq4JijGCFfVe7WT3
-         oxCg==
-X-Gm-Message-State: ANoB5pmiV6L0Fsjd9a42hk3tJjU3aGwtgxNHGCjAZChTlzYsh1ZSztCQ
-        I2y4t1lY+9fNH+cCZH8CXoU=
-X-Google-Smtp-Source: AA0mqf7dFFUXl1zLLNV8FGTEYby7Lxfm8TM/+QXzLrc2VxfWkD8V/ashED8J6Pr+wkC5ClC52XEYNg==
-X-Received: by 2002:a17:90b:4d0b:b0:20a:d78d:ed20 with SMTP id mw11-20020a17090b4d0b00b0020ad78ded20mr653781pjb.65.1668553115940;
-        Tue, 15 Nov 2022 14:58:35 -0800 (PST)
-Received: from google.com ([2620:15c:211:201:6ff2:4caf:5d97:1932])
-        by smtp.gmail.com with ESMTPSA id i65-20020a628744000000b0056b6c7a17c6sm9696352pfe.12.2022.11.15.14.58.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 15 Nov 2022 14:58:35 -0800 (PST)
-Sender: Minchan Kim <minchan.kim@gmail.com>
-Date:   Tue, 15 Nov 2022 14:58:33 -0800
-From:   Minchan Kim <minchan@kernel.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, suleiman@google.com, ngupta@vflare.org,
-        keescook+coverity-bot@chromium.org, keescook@chromium.org,
-        senozhatsky@chromium.org
-Subject: Re: + zram-introduce-recompress-sysfs-knob-fix-2.patch added to
- mm-unstable branch
-Message-ID: <Y3QZmY9KyJWEDv5v@google.com>
-References: <20221115004212.CD9B7C433C1@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221115004212.CD9B7C433C1@smtp.kernel.org>
+        with ESMTP id S238548AbiKOXAz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 18:00:55 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 209BB2C671
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 15:00:54 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A2CE3612D3
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 23:00:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE8A4C433C1;
+        Tue, 15 Nov 2022 23:00:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1668553253;
+        bh=wlDeV0dWUsEUiBc2/vnvWoovAOR/KOyGh72YPMohA00=;
+        h=Date:To:From:Subject:From;
+        b=JcYkgelmldFmww113A7/T2SMZEV6gZJLtp3jwADoNzfMrBs/1DCGEcq/AhhaVFoWp
+         8/DqJSuvBJCAassRfRBJto6jSTQ9/Wf3dKLxM5SzgslWkVkpAcAMcjs+Yr5OM5oKtG
+         DoWo3DFrBEM054rq8DvxvpmFybkRCgyH3pjGsc/M=
+Date:   Tue, 15 Nov 2022 15:00:52 -0800
+To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
+        senozhatsky@chromium.org, minchan@kernel.org,
+        a.badmaev@clicknet.pro, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-add-zblock-new-allocator-for-use-via-zpool-api.patch added to mm-unstable branch
+Message-Id: <20221115230052.EE8A4C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, Nov 14, 2022 at 04:42:12PM -0800, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: zram: explicitly limit prio_max for static analyzers
-> has been added to the -mm mm-unstable branch.  Its filename is
->      zram-introduce-recompress-sysfs-knob-fix-2.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-introduce-recompress-sysfs-knob-fix-2.patch
-> 
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Sergey Senozhatsky <senozhatsky@chromium.org>
-> Subject: zram: explicitly limit prio_max for static analyzers
-> Date: Mon, 14 Nov 2022 11:14:20 +0900
-> 
-> Link: https://lkml.kernel.org/r/20221114021420.4060601-1-senozhatsky@chromium.org
-> Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-> Reported-by: coverity-bot <keescook+coverity-bot@chromium.org>
-> Cc: Minchan Kim <minchan@kernel.org>
-> Cc: Nitin Gupta <ngupta@vflare.org>
-> Cc: Suleiman Souhlal <suleiman@google.com>
-> Cc: Kees Cook <keescook@chromium.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  drivers/block/zram/zram_drv.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> --- a/drivers/block/zram/zram_drv.c~zram-introduce-recompress-sysfs-knob-fix-2
-> +++ a/drivers/block/zram/zram_drv.c
-> @@ -1689,6 +1689,7 @@ static int zram_recompress(struct zram *
->  	 * Iterate the secondary comp algorithms list (in order of priority)
->  	 * and try to recompress the page.
->  	 */
-> +	prio_max = min(prio_max, ZRAM_MAX_COMPS);
->  	for (; prio < prio_max; prio++) {
->  		if (!zram->comps[prio])
->  			continue;
-> _
 
-Hi Andrew,
+The patch titled
+     Subject: mm: add zblock - new allocator for use via zpool API
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-zblock-new-allocator-for-use-via-zpool-api.patch
 
-Please drop this patch. It makes reviewer think "oh, zram_recompress
-pass the higher prio_max value than the one zram allowed by somehow
-so we need to get the min value here", which is not true once review
-read code again/again and scratch head and then post patch to remove
-the unncessary line. I prefer reviewer happier.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-zblock-new-allocator-for-use-via-zpool-api.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Ananda <a.badmaev@clicknet.pro>
+Subject: mm: add zblock - new allocator for use via zpool API
+Date: Fri, 4 Nov 2022 11:58:56 +0300
+
+Zblock stores integer number of compressed objects per zblock block. 
+These blocks consist of several physical pages (1/2/4/8) and are arranged
+in linked lists.
+
+The range from 0 to PAGE_SIZE is divided into the number of intervals
+corresponding to the number of lists and each list only operates objects
+of size from its interval.  Thus the block lists are isolated from each
+other, which makes it possible to simultaneously perform actions with
+several objects from different lists.
+
+Blocks make it possible to densely arrange objects of various sizes
+resulting in low internal fragmentation.  Also this allocator tries to
+fill incomplete blocks instead of adding new ones thus in many cases
+providing a compression ratio substantially higher than z3fold and zbud.
+
+Zblock does not require MMU and also is superior to zsmalloc with regard
+to the worst execution times, thus allowing for better response time and
+real-time characteristics of the whole system.
+
+Link: https://lkml.kernel.org/r/20221104085856.18745-1-a.badmaev@clicknet.pro
+Signed-off-by: Ananda <a.badmaev@clicknet.pro>
+Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/mm/zblock.rst |   31 +
+ MAINTAINERS                 |    7 
+ mm/Kconfig                  |   17 
+ mm/Makefile                 |    1 
+ mm/zblock.c                 |  638 ++++++++++++++++++++++++++++++++++
+ 5 files changed, 694 insertions(+)
+
+--- /dev/null
++++ a/Documentation/mm/zblock.rst
+@@ -0,0 +1,31 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++.. _block:
++
++======
++zblock
++======
++
++Zblock stores integer number of compressed objects per block. These
++blocks consist of several consecutive physical pages (from 1 to 8) and
++are arranged in lists. The range from 0 to PAGE_SIZE is divided into the
++number of intervals corresponding to the number of lists and each list
++only operates objects of size from its interval. Thus the block lists are
++isolated from each other, which makes it possible to simultaneously
++perform actions with several objects from different lists.
++
++Blocks make it possible to densely arrange objects of various sizes
++resulting in low internal fragmentation. Also this allocator tries to fill
++incomplete blocks instead of adding new ones thus in many cases providing
++a compression ratio substantially higher than z3fold and zbud. Zblock does
++not require MMU and also is superior to zsmalloc with regard to the worst
++execution times, thus allowing for better response time and real-time
++characteristics of the whole system.
++
++Like z3fold and zsmalloc zblock_alloc() does not return a dereferenceable
++pointer. Instead, it returns an unsigned long handle which encodes actual
++location of the allocated object.
++
++Unlike zbud and z3fold zblock works well with objects of various sizes - both
++highly compressed and poorly compressed including cases where both types
++are present.
+--- a/MAINTAINERS~mm-add-zblock-new-allocator-for-use-via-zpool-api
++++ a/MAINTAINERS
+@@ -22703,6 +22703,13 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	mm/z3fold.c
+ 
++ZBLOCK COMPRESSED PAGE ALLOCATOR
++M:	Ananda Badmaev <a.badmaev@clicknet.pro>
++M:	Vitaly Wool <vitaly.wool@konsulko.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	mm/zblock.c
++
+ ZD1211RW WIRELESS DRIVER
+ M:	Ulrich Kunitz <kune@deine-taler.de>
+ L:	linux-wireless@vger.kernel.org
+--- a/mm/Kconfig~mm-add-zblock-new-allocator-for-use-via-zpool-api
++++ a/mm/Kconfig
+@@ -143,6 +143,12 @@ config ZSWAP_ZPOOL_DEFAULT_ZSMALLOC
+ 	select ZSMALLOC
+ 	help
+ 	  Use the zsmalloc allocator as the default allocator.
++
++config ZSWAP_ZPOOL_DEFAULT_ZBLOCK
++	bool "zblock"
++	select ZBLOCK
++	help
++	  Use the zblock allocator as the default allocator.
+ endchoice
+ 
+ config ZSWAP_ZPOOL_DEFAULT
+@@ -151,6 +157,7 @@ config ZSWAP_ZPOOL_DEFAULT
+        default "zbud" if ZSWAP_ZPOOL_DEFAULT_ZBUD
+        default "z3fold" if ZSWAP_ZPOOL_DEFAULT_Z3FOLD
+        default "zsmalloc" if ZSWAP_ZPOOL_DEFAULT_ZSMALLOC
++	default "zblock" if ZSWAP_ZPOOL_DEFAULT_ZBLOCK
+        default ""
+ 
+ config ZBUD
+@@ -181,6 +188,16 @@ config ZSMALLOC
+ 	  pages of various compression levels efficiently. It achieves
+ 	  the highest storage density with the least amount of fragmentation.
+ 
++config ZBLOCK
++	tristate "Simple block allocator (zblock)"
++	depends on ZPOOL
++	help
++	  A special purpose allocator for storing compressed pages.
++	  It stores integer number of compressed pages per block and
++	  each block consists of number of physical pages being a power of 2.
++	  zblock provides fast read/write, limited worst case time for
++	  operations and good compression ratio in most scenarios.
++
+ config ZSMALLOC_STAT
+ 	bool "Export zsmalloc statistics"
+ 	depends on ZSMALLOC
+--- a/mm/Makefile~mm-add-zblock-new-allocator-for-use-via-zpool-api
++++ a/mm/Makefile
+@@ -114,6 +114,7 @@ obj-$(CONFIG_ZPOOL)	+= zpool.o
+ obj-$(CONFIG_ZBUD)	+= zbud.o
+ obj-$(CONFIG_ZSMALLOC)	+= zsmalloc.o
+ obj-$(CONFIG_Z3FOLD)	+= z3fold.o
++obj-$(CONFIG_ZBLOCK)	+= zblock.o
+ obj-$(CONFIG_GENERIC_EARLY_IOREMAP) += early_ioremap.o
+ obj-$(CONFIG_CMA)	+= cma.o
+ obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
+--- /dev/null
++++ a/mm/zblock.c
+@@ -0,0 +1,638 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * zblock.c
++ *
++ * Author: Ananda Badmaev <a.badmaev@clicknet.pro>
++ * Copyright (C) 2022, Konsulko AB.
++ *
++ * This implementation is based on z3fold written by Vitaly Wool.
++ * Zblock is a small object allocator with the intention to serve as a
++ * zpool backend. It operates on page blocks which consist of number
++ * of physical pages being a power of 2 and store integer number of
++ * compressed pages per block which results in determinism and simplicity.
++ *
++ * zblock doesn't export any API and is meant to be used via zpool API.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/atomic.h>
++#include <linux/list.h>
++#include <linux/mm.h>
++#include <linux/module.h>
++#include <linux/preempt.h>
++#include <linux/slab.h>
++#include <linux/spinlock.h>
++#include <linux/zpool.h>
++
++#define SLOT_FREE 0
++#define SLOT_OCCUPIED 1
++#define SLOT_MAPPED 2
++#define SLOT_UNMAPPED 3
++
++#define SLOT_BITS 5
++#define MAX_SLOTS (1 << SLOT_BITS)
++#define SLOT_MASK ((0x1UL << SLOT_BITS) - 1)
++
++#define BLOCK_DATA_SIZE(order) ((PAGE_SIZE << order) - sizeof(struct zblock_block))
++#define SLOT_SIZE(nslots, order) (round_down((BLOCK_DATA_SIZE(order) / nslots), sizeof(long)))
++
++#define BLOCK_CACHE_SIZE 32
++
++struct zblock_pool;
++
++struct zblock_ops {
++	int (*evict)(struct zblock_pool *pool, unsigned long handle);
++};
++
++/**
++ * struct zblock_block - block metadata
++ * Block consists of several (1/2/4/8) pages and contains fixed
++ * integer number of slots for allocating compressed pages.
++ *
++ * lock:		protects block
++ * block_node:		links block into the relevant list in the pool
++ * slot_info:		contains data about free/occupied slots
++ * free_slots:		number of free slots in the block
++ * under_reclaim:	if true shows that block is being evicted
++ */
++struct zblock_block {
++	spinlock_t lock;
++	struct list_head block_node;
++	u8 slot_info[MAX_SLOTS];
++	unsigned int free_slots;
++	bool under_reclaim;
++};
++/**
++ * struct block_desc - general metadata for block lists
++ * Each block list stores only blocks of corresponding type which means
++ * that all blocks in it have the same number and size of slots.
++ * All slots are aligned to size of long.
++ *
++ * slot_size:		size of slot for this list
++ * slots_per_block:	number of slots per block for this list
++ * order:		order for __get_free_pages
++ */
++static const struct block_desc {
++	const unsigned int slot_size;
++	const unsigned short slots_per_block;
++	const unsigned short order;
++} block_desc[] = {
++	{ SLOT_SIZE(32, 0), 32, 0 },
++	{ SLOT_SIZE(22, 0), 22, 0 },
++	{ SLOT_SIZE(17, 0), 17, 0 },
++	{ SLOT_SIZE(13, 0), 13, 0 },
++	{ SLOT_SIZE(11, 0), 11, 0 },
++	{ SLOT_SIZE(9, 0), 9, 0 },
++	{ SLOT_SIZE(8, 0), 8, 0 },
++	{ SLOT_SIZE(14, 1), 14, 1 },
++	{ SLOT_SIZE(12, 1), 12, 1 },
++	{ SLOT_SIZE(11, 1), 11, 1 },
++	{ SLOT_SIZE(10, 1), 10, 1 },
++	{ SLOT_SIZE(9, 1), 9, 1 },
++	{ SLOT_SIZE(8, 1), 8, 1 },
++	{ SLOT_SIZE(15, 2), 15, 2 },
++	{ SLOT_SIZE(14, 2), 14, 2 },
++	{ SLOT_SIZE(13, 2), 13, 2 },
++	{ SLOT_SIZE(12, 2), 12, 2 },
++	{ SLOT_SIZE(11, 2), 11, 2 },
++	{ SLOT_SIZE(10, 2), 10, 2 },
++	{ SLOT_SIZE(9, 2), 9, 2 },
++	{ SLOT_SIZE(8, 2), 8, 2 },
++	{ SLOT_SIZE(15, 3), 15, 3 },
++	{ SLOT_SIZE(14, 3), 14, 3 },
++	{ SLOT_SIZE(13, 3), 13, 3 },
++	{ SLOT_SIZE(12, 3), 12, 3 },
++	{ SLOT_SIZE(11, 3), 11, 3 },
++	{ SLOT_SIZE(10, 3), 10, 3 },
++	{ SLOT_SIZE(9, 3), 9, 3 },
++	{ SLOT_SIZE(7, 3), 7, 3 }
++};
++
++/**
++ * struct block_list - stores metadata of particular list
++ * lock:		protects list
++ * head:		head of this list
++ * block_cache:	blocks with free slots
++ * block_count:	total number of blocks in the list
++ */
++struct block_list {
++	spinlock_t lock;
++	struct list_head head;
++	struct zblock_block *block_cache[BLOCK_CACHE_SIZE];
++	unsigned long block_count;
++};
++
++/**
++ * struct zblock_pool - stores metadata for each zblock pool
++ * @block_lists:	array of block lists
++ * @ops:		pointer to a structure of user defined operations specified at
++ *			pool creation time.
++ * @zpool:		zpool driver
++ * @zpool_ops:		zpool operations structure with an evict callback
++ * @alloc_flag:	protects block allocation from memory leak
++ *
++ * This structure is allocated at pool creation time and maintains metadata
++ * for a particular zblock pool.
++ */
++struct zblock_pool {
++	struct block_list block_lists[ARRAY_SIZE(block_desc)];
++	const struct zblock_ops *ops;
++	struct zpool *zpool;
++	const struct zpool_ops *zpool_ops;
++	atomic_t alloc_flag;
++};
++
++/*****************
++ * Helpers
++ *****************/
++
++static void cache_insert_block(struct zblock_block *block, struct block_list *list)
++{
++	unsigned int i, min_free_slots, min_index;
++
++	min_free_slots = MAX_SLOTS;
++	for (i = 0; i < BLOCK_CACHE_SIZE; i++) {
++		if (!list->block_cache[i] || !(list->block_cache[i])->free_slots) {
++			list->block_cache[i] = block;
++			return;
++		}
++		if ((list->block_cache[i])->free_slots < min_free_slots) {
++			min_free_slots = (list->block_cache[i])->free_slots;
++			min_index = i;
++		}
++	}
++	list->block_cache[min_index] = block;
++}
++
++static struct zblock_block *cache_find_block(struct block_list *list)
++{
++	int i;
++
++	for (i = 0; i < BLOCK_CACHE_SIZE; i++) {
++		if (list->block_cache[i] && (list->block_cache[i])->free_slots)
++			return list->block_cache[i];
++	}
++	return NULL;
++}
++
++static int is_in_cache(struct zblock_block *block, struct block_list *list)
++{
++	int i;
++
++	for (i = 0; i < BLOCK_CACHE_SIZE; i++) {
++		if (block == list->block_cache[i])
++			return i;
++	}
++	return -1;
++}
++
++/*
++ * allocate new block and add it to corresponding block list
++ */
++static struct zblock_block *alloc_block(struct zblock_pool *pool,
++					int block_type, gfp_t gfp)
++{
++	struct zblock_block *block;
++	struct block_list *list;
++
++	block = (void *)__get_free_pages(gfp, block_desc[block_type].order);
++	if (!block)
++		return NULL;
++
++	list = &(pool->block_lists)[block_type];
++
++	/* init block data  */
++	spin_lock_init(&block->lock);
++	memset(block->slot_info, SLOT_FREE, block_desc[block_type].slots_per_block);
++	block->free_slots = block_desc[block_type].slots_per_block;
++	block->under_reclaim = false;
++
++	spin_lock(&list->lock);
++	/* inserting block into list */
++	INIT_LIST_HEAD(&block->block_node);
++	list_add(&block->block_node, &list->head);
++	cache_insert_block(block, list);
++	list->block_count++;
++	spin_unlock(&list->lock);
++	return block;
++}
++
++/*
++ * Encodes the handle of a particular slot in the pool using metadata
++ */
++static inline unsigned long metadata_to_handle(struct zblock_block *block,
++					unsigned int block_type, unsigned int slot)
++{
++	return (unsigned long)(block) + (block_type << SLOT_BITS) + slot;
++}
++
++/* Returns block, block type and slot in the pool corresponding to handle */
++static inline struct zblock_block *handle_to_metadata(unsigned long handle,
++					unsigned int *block_type, unsigned int *slot)
++{
++	*block_type = (handle & (PAGE_SIZE - 1)) >> SLOT_BITS;
++	*slot = handle & SLOT_MASK;
++	return (struct zblock_block *)(handle & PAGE_MASK);
++}
++
++
++/*****************
++ * API Functions
++ *****************/
++/**
++ * zblock_create_pool() - create a new zblock pool
++ * @gfp: gfp flags when allocating the zblock pool structure
++ * @ops: user-defined operations for the zblock pool
++ *
++ * Return: pointer to the new zblock pool or NULL if the metadata allocation
++ * failed.
++ */
++static struct zblock_pool *zblock_create_pool(gfp_t gfp, const struct zblock_ops *ops)
++{
++	struct zblock_pool *pool;
++	struct block_list *list;
++	int i, j;
++
++	pool = kmalloc(sizeof(struct zblock_pool), gfp);
++	if (!pool)
++		return NULL;
++
++	/* init each block list */
++	for (i = 0; i < ARRAY_SIZE(block_desc); i++) {
++		list = &(pool->block_lists)[i];
++		spin_lock_init(&list->lock);
++		INIT_LIST_HEAD(&list->head);
++		for (j = 0; j < BLOCK_CACHE_SIZE; j++)
++			list->block_cache[j] = NULL;
++		list->block_count = 0;
++	}
++	pool->ops = ops;
++	atomic_set(&pool->alloc_flag, 0);
++	return pool;
++}
++
++/**
++ * zblock_destroy_pool() - destroys an existing zblock pool
++ * @pool: the zblock pool to be destroyed
++ *
++ */
++static void zblock_destroy_pool(struct zblock_pool *pool)
++{
++	kfree(pool);
++}
++
++
++/**
++ * zblock_alloc() - allocates a slot of appropriate size
++ * @pool:	zblock pool from which to allocate
++ * @size:	size in bytes of the desired allocation
++ * @gfp:	gfp flags used if the pool needs to grow
++ * @handle:	handle of the new allocation
++ *
++ * Return: 0 if success and handle is set, otherwise -EINVAL if the size or
++ * gfp arguments are invalid or -ENOMEM if the pool was unable to allocate
++ * a new slot.
++ */
++static int zblock_alloc(struct zblock_pool *pool, size_t size, gfp_t gfp,
++			unsigned long *handle)
++{
++	unsigned int block_type, slot;
++	struct zblock_block *block;
++	struct block_list *list;
++
++	if (!size)
++		return -EINVAL;
++
++	if (size > PAGE_SIZE)
++		return -ENOSPC;
++
++	/* find basic block type with suitable slot size */
++	for (block_type = 0; block_type < ARRAY_SIZE(block_desc); block_type++) {
++		if (size <= block_desc[block_type].slot_size)
++			break;
++	}
++	list = &(pool->block_lists[block_type]);
++
++check:
++	spin_lock(&list->lock);
++	/* check if there are free slots in cache */
++	block = cache_find_block(list);
++	if (block)
++		goto found;
++	spin_unlock(&list->lock);
++
++	/* not found block with free slots try to allocate new empty block */
++	if (atomic_cmpxchg(&pool->alloc_flag, 0, 1))
++		goto check;
++	block = alloc_block(pool, block_type, gfp & ~(__GFP_HIGHMEM | __GFP_MOVABLE));
++	if (block) {
++		spin_lock(&list->lock);
++		goto found;
++	}
++	atomic_set(&pool->alloc_flag, 0);
++	return -ENOMEM;
++
++found:
++	spin_lock(&block->lock);
++	block->free_slots--;
++	spin_unlock(&list->lock);
++	/* find the first free slot in block */
++	for (slot = 0; slot < block_desc[block_type].slots_per_block; slot++) {
++		if (block->slot_info[slot] == SLOT_FREE)
++			break;
++	}
++	block->slot_info[slot] = SLOT_OCCUPIED;
++	spin_unlock(&block->lock);
++	*handle = metadata_to_handle(block, block_type, slot);
++	atomic_set(&pool->alloc_flag, 0);
++	return 0;
++}
++
++/**
++ * zblock_free() - frees the allocation associated with the given handle
++ * @pool:	pool in which the allocation resided
++ * @handle:	handle associated with the allocation returned by zblock_alloc()
++ *
++ */
++static void zblock_free(struct zblock_pool *pool, unsigned long handle)
++{
++	unsigned int slot, block_type;
++	struct zblock_block *block;
++	struct block_list *list;
++	int i;
++
++	block = handle_to_metadata(handle, &block_type, &slot);
++	list = &(pool->block_lists[block_type]);
++
++	if (block->under_reclaim)
++		return;
++	spin_lock(&list->lock);
++	i = is_in_cache(block, list);
++	block->free_slots++;
++	/* if all slots in block are empty delete whole block */
++	if (block->free_slots == block_desc[block_type].slots_per_block) {
++		list_del(&block->block_node);
++		list->block_count--;
++
++		/* if cached block to be deleted */
++		if (i != -1)
++			list->block_cache[i] = NULL;
++		spin_unlock(&list->lock);
++		free_pages((unsigned long)block, block_desc[block_type].order);
++		return;
++	}
++	/* if block is not cached update cache */
++	if (i == -1)
++		cache_insert_block(block, list);
++
++	spin_lock(&block->lock);
++	spin_unlock(&list->lock);
++	block->slot_info[slot] = SLOT_FREE;
++	spin_unlock(&block->lock);
++}
++
++/**
++ * zblock_reclaim_block() - evicts allocations from block and frees it
++ * @pool: pool from which a block will attempt to be evicted
++ *
++ * Returns: pages reclaimed count if block is successfully freed
++ *          otherwise -EINVAL if there are no blocks to evict
++ */
++static int zblock_reclaim_block(struct zblock_pool *pool)
++{
++	struct zblock_block *block;
++	struct block_list *list;
++	unsigned long handle, block_type, slot;
++	int ret, i, reclaimed;
++
++	/* start with list storing blocks with the worst compression and try
++	 * to evict the first added (oldest) block in this list
++	 */
++	for (block_type = ARRAY_SIZE(block_desc) - 1; block_type >= 0; --block_type) {
++		list = &(pool->block_lists[block_type]);
++		spin_lock(&list->lock);
++
++		/* find the oldest block in list */
++		block = list_last_entry(&list->head, struct zblock_block, block_node);
++
++		if (!block) {
++			spin_unlock(&list->lock);
++			continue;
++		}
++		i = is_in_cache(block, list);
++		/* skip iteration if this block is cached */
++		if (i != -1) {
++			spin_unlock(&list->lock);
++			continue;
++		}
++		block->under_reclaim = true;
++		spin_unlock(&list->lock);
++		reclaimed = 0;
++
++		/* try to evict all OCCUPIED and UNMAPPED slots in block */
++		for (slot = 0; slot < block_desc[block_type].slots_per_block; ++slot) {
++			if (block->slot_info[slot] == SLOT_OCCUPIED ||
++				block->slot_info[slot] == SLOT_UNMAPPED) {
++				handle = metadata_to_handle(block, block_type, slot);
++				ret = pool->ops->evict(pool, handle);
++				if (ret)
++					break;
++
++				++reclaimed;
++				spin_lock(&block->lock);
++				block->slot_info[slot] = SLOT_FREE;
++				spin_unlock(&block->lock);
++				block->free_slots++;
++			}
++		}
++		spin_lock(&list->lock);
++		/* some occupied slots remained - insert block */
++		if (block->free_slots != block_desc[block_type].slots_per_block) {
++			block->under_reclaim = false;
++			cache_insert_block(block, list);
++			spin_unlock(&list->lock);
++		} else {
++		/* all slots are free - delete this block */
++			list_del(&block->block_node);
++			list->block_count--;
++			spin_unlock(&list->lock);
++			free_pages((unsigned long)block, block_desc[block_type].order);
++		}
++		if (reclaimed != 0)
++			return reclaimed;
++		return -EAGAIN;
++	}
++	return -EINVAL;
++}
++
++
++/**
++ * zblock_map() - maps the allocation associated with the given handle
++ * @pool:	pool in which the allocation resides
++ * @handle:	handle associated with the allocation to be mapped
++ *
++ *
++ * Returns: a pointer to the mapped allocation
++ */
++static void *zblock_map(struct zblock_pool *pool, unsigned long handle)
++{
++	unsigned int block_type, slot;
++	struct zblock_block *block;
++
++	block = handle_to_metadata(handle, &block_type, &slot);
++	spin_lock(&block->lock);
++	block->slot_info[slot] = SLOT_MAPPED;
++	spin_unlock(&block->lock);
++	return (void *)(block + 1) + slot * block_desc[block_type].slot_size;
++}
++
++/**
++ * zblock_unmap() - unmaps the allocation associated with the given handle
++ * @pool:	pool in which the allocation resides
++ * @handle:	handle associated with the allocation to be unmapped
++ */
++static void zblock_unmap(struct zblock_pool *pool, unsigned long handle)
++{
++	unsigned int block_type, slot;
++	struct zblock_block *block;
++
++	block = handle_to_metadata(handle, &block_type, &slot);
++	spin_lock(&block->lock);
++	block->slot_info[slot] = SLOT_UNMAPPED;
++	spin_unlock(&block->lock);
++}
++
++/**
++ * zblock_get_pool_size() - gets the zblock pool size in bytes
++ * @pool: pool whose size is being queried
++ *
++ * Returns: size in bytes of the given pool.
++ */
++static u64 zblock_get_pool_size(struct zblock_pool *pool)
++{
++	u64 total_size;
++	int i;
++
++	total_size = 0;
++	for (i = 0; i < ARRAY_SIZE(block_desc); i++) {
++		total_size += (pool->block_lists)[i].block_count
++				* (PAGE_SIZE << block_desc[i].order);
++	}
++	return total_size;
++}
++
++/*****************
++ * zpool
++ ****************/
++
++static int zblock_zpool_evict(struct zblock_pool *pool, unsigned long handle)
++{
++	if (pool->zpool && pool->zpool_ops && pool->zpool_ops->evict)
++		return pool->zpool_ops->evict(pool->zpool, handle);
++	else
++		return -ENOENT;
++}
++
++static const struct zblock_ops zblock_zpool_ops = {
++	.evict = zblock_zpool_evict
++};
++
++static void *zblock_zpool_create(const char *name, gfp_t gfp,
++				const struct zpool_ops *zpool_ops,
++				struct zpool *zpool)
++{
++	struct zblock_pool *pool;
++
++	pool = zblock_create_pool(gfp, &zblock_zpool_ops);
++	if (pool) {
++		pool->zpool = zpool;
++		pool->zpool_ops = zpool_ops;
++	}
++	return pool;
++}
++
++static void zblock_zpool_destroy(void *pool)
++{
++	zblock_destroy_pool(pool);
++}
++
++static int zblock_zpool_malloc(void *pool, size_t size, gfp_t gfp,
++			unsigned long *handle)
++{
++	return zblock_alloc(pool, size, gfp, handle);
++}
++
++static void zblock_zpool_free(void *pool, unsigned long handle)
++{
++	zblock_free(pool, handle);
++}
++
++static int zblock_zpool_shrink(void *pool, unsigned int pages,
++			unsigned int *reclaimed)
++{
++	unsigned int total = 0;
++	int ret = -EINVAL;
++
++	while (total < pages) {
++		ret = zblock_reclaim_block(pool);
++		if (ret < 0)
++			break;
++		total += ret;
++	}
++	if (reclaimed)
++		*reclaimed = total;
++
++	return ret;
++}
++
++static void *zblock_zpool_map(void *pool, unsigned long handle,
++			enum zpool_mapmode mm)
++{
++	return zblock_map(pool, handle);
++}
++
++static void zblock_zpool_unmap(void *pool, unsigned long handle)
++{
++	zblock_unmap(pool, handle);
++}
++
++static u64 zblock_zpool_total_size(void *pool)
++{
++	return zblock_get_pool_size(pool);
++}
++
++static struct zpool_driver zblock_zpool_driver = {
++	.type =		"zblock",
++	.owner =	THIS_MODULE,
++	.create =	zblock_zpool_create,
++	.destroy =	zblock_zpool_destroy,
++	.malloc =	zblock_zpool_malloc,
++	.free =		zblock_zpool_free,
++	.shrink =	zblock_zpool_shrink,
++	.map =		zblock_zpool_map,
++	.unmap =	zblock_zpool_unmap,
++	.total_size =	zblock_zpool_total_size,
++};
++
++MODULE_ALIAS("zpool-zblock");
++
++static int __init init_zblock(void)
++{
++	pr_info("loaded\n");
++	zpool_register_driver(&zblock_zpool_driver);
++	return 0;
++}
++
++static void __exit exit_zblock(void)
++{
++	zpool_unregister_driver(&zblock_zpool_driver);
++	pr_info("unloaded\n");
++}
++
++module_init(init_zblock);
++module_exit(exit_zblock);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Ananda Badmaeb <a.badmaev@clicknet.pro>");
++MODULE_DESCRIPTION("Block allocator for compressed pages");
+_
+
+Patches currently in -mm which might be from a.badmaev@clicknet.pro are
+
+mm-add-zblock-new-allocator-for-use-via-zpool-api.patch
+
