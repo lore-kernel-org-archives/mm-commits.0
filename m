@@ -2,39 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A369AC433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 01:20:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33244C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 03:06:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229452AbiKOBU1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Nov 2022 20:20:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34232 "EHLO
+        id S232421AbiKODGN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Nov 2022 22:06:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232230AbiKOBUW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2022 20:20:22 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E95231C90D
-        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2022 17:20:19 -0800 (PST)
+        with ESMTP id S230072AbiKODFk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2022 22:05:40 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E517E17066
+        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2022 19:04:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9E99BB8163D
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 01:20:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47D0FC433D6;
-        Tue, 15 Nov 2022 01:20:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7275761521
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 03:04:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4ECBC433D6;
+        Tue, 15 Nov 2022 03:04:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668475217;
-        bh=sOq2sPEbEIQFf+wm939pBhSiih2sv31u5YN5/x3B+2c=;
+        s=korg; t=1668481449;
+        bh=QV4V/iJMkp9zJGpfDp9ikb3MI7Yu1cYb/gzvlm6LLS8=;
         h=Date:To:From:Subject:From;
-        b=UmeJBxCe0tVO1BLD+r/YzutKC7KAtApEaAPgmRGGzJJd7rbhlpqEFo71c/NwxSEoP
-         bgiVWFSCKbCkZhP+GQ39NKoeTji7ezgR4GezFFR3UTQxW+ddEbhUVXmfI2uUD6wHny
-         NFbcQMj4veedg6+29KYZyTYYxaGKnpFhI2g1rMiw=
-Date:   Mon, 14 Nov 2022 17:20:16 -0800
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        khlebnikov@openvz.org, dchinner@redhat.com, tjmercier@google.com,
-        akpm@linux-foundation.org
+        b=qR1zAXQVduuvfMCNEG6tvTmioCE+TDNxOh4VReAItXV+BRjlwO1ZxVfIDYdbywXA5
+         J0mycOqi6tVQr3sCD5KBS//8/fBo4oivK9xTjRO/9oekHFHwUuWxbVd/HLBaIeOqTl
+         bCxfwQW53lgCyVS8WvFS+cXdOGL35RBTTaAbXtks=
+Date:   Mon, 14 Nov 2022 19:04:08 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        vincent.whitchurch@axis.com, vbabka@suse.cz, shy828301@gmail.com,
+        seanjc@google.com, rppt@kernel.org, peterx@redhat.com,
+        paul.gortmaker@windriver.com, liam.howlett@oracle.com,
+        kirill@shutemov.name, hughd@google.com, hannes@cmpxchg.org,
+        david@redhat.com, corbet@lwn.net, cgel.zte@gmail.com,
+        ccross@google.com, bagasdotme@gmail.com, arnd@arndb.de,
+        pasha.tatashin@soleen.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinkers-add-missing-includes-for-undeclared-types.patch added to mm-unstable branch
-Message-Id: <20221115012017.47D0FC433D6@smtp.kernel.org>
+Subject: + mm-anonymous-shared-memory-naming.patch added to mm-unstable branch
+Message-Id: <20221115030409.C4ECBC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shrinkers: Add missing includes for undeclared types
+     Subject: mm: anonymous shared memory naming
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shrinkers-add-missing-includes-for-undeclared-types.patch
+     mm-anonymous-shared-memory-naming.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinkers-add-missing-includes-for-undeclared-types.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-anonymous-shared-memory-naming.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,52 +70,323 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "T.J. Mercier" <tjmercier@google.com>
-Subject: mm: shrinkers: Add missing includes for undeclared types
-Date: Mon, 14 Nov 2022 23:59:49 +0000
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: mm: anonymous shared memory naming
+Date: Tue, 15 Nov 2022 02:06:01 +0000
 
-The shrinker.h header depends on a user including other headers before it
-for types used by shrinker.h.  Fix this by including the appropriate
-headers in shrinker.h.
+Since commit 9a10064f5625 ("mm: add a field to store names for private
+anonymous memory"), name for private anonymous memory, but not shared
+anonymous, can be set.  However, naming shared anonymous memory just as
+useful for tracking purposes.
 
-./include/linux/shrinker.h:13:9: error: unknown type name `gfp_t'
-   13 |         gfp_t gfp_mask;
-      |         ^~~~~
-./include/linux/shrinker.h:71:26: error: field `list' has incomplete type
-   71 |         struct list_head list;
-      |                          ^~~~
-./include/linux/shrinker.h:82:9: error: unknown type name `atomic_long_t'
-   82 |         atomic_long_t *nr_deferred;
-      |
+Extend the functionality to be able to set names for shared anon.
 
-Link: https://lkml.kernel.org/r/20221114235949.201749-1-tjmercier@google.com
-Fixes: 83aeeada7c69 ("vmscan: use atomic-long for shrinker batching")
-Fixes: b0d40c92adaf ("superblock: introduce per-sb cache shrinker infrastructure")
-Signed-off-by: T.J. Mercier <tjmercier@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+There are two ways to create anonymous shared memory, using memfd or
+directly via mmap():
+1. fd = memfd_create(...)
+   mem = mmap(..., MAP_SHARED, fd, ...)
+2. mem = mmap(..., MAP_SHARED | MAP_ANONYMOUS, -1, ...)
+
+In both cases the anonymous shared memory is created the same way by
+mapping an unlinked file on tmpfs.
+
+The memfd way allows to give a name for anonymous shared memory, but
+not useful when parts of shared memory require to have distinct names.
+
+Example use case: The VMM maps VM memory as anonymous shared memory (not
+private because VMM is sandboxed and drivers are running in their own
+processes).  However, the VM tells back to the VMM how parts of the memory
+are actually used by the guest, how each of the segments should be backed
+(i.e.  4K pages, 2M pages), and some other information about the segments.
+The naming allows us to monitor the effective memory footprint for each
+of these segments from the host without looking inside the guest.
+
+Sample output:
+  /* Create shared anonymous segmenet */
+  anon_shmem = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
+                    MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  /* Name the segment: "MY-NAME" */
+  rv = prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME,
+             anon_shmem, SIZE, "MY-NAME");
+
+cat /proc/<pid>/maps (and smaps):
+7fc8e2b4c000-7fc8f2b4c000 rw-s 00000000 00:01 1024 [anon_shmem:MY-NAME]
+
+If the segment is not named, the output is:
+7fc8e2b4c000-7fc8f2b4c000 rw-s 00000000 00:01 1024 /dev/zero (deleted)
+
+Link: https://lkml.kernel.org/r/20221115020602.804224-1-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Colin Cross <ccross@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: xu xin <cgel.zte@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/filesystems/proc.rst |    8 ++++---
+ fs/proc/task_mmu.c                 |   15 ++++++++++---
+ include/linux/mm.h                 |    2 +
+ include/linux/mm_types.h           |   26 +++++++++++-------------
+ mm/madvise.c                       |    7 +-----
+ mm/shmem.c                         |   29 +++++++++++++++++++++++----
+ 6 files changed, 57 insertions(+), 30 deletions(-)
 
---- a/include/linux/shrinker.h~mm-shrinkers-add-missing-includes-for-undeclared-types
-+++ a/include/linux/shrinker.h
-@@ -2,6 +2,9 @@
- #ifndef _LINUX_SHRINKER_H
- #define _LINUX_SHRINKER_H
+--- a/Documentation/filesystems/proc.rst~mm-anonymous-shared-memory-naming
++++ a/Documentation/filesystems/proc.rst
+@@ -426,14 +426,16 @@ with the memory region, as the case woul
+ The "pathname" shows the name associated file for this mapping.  If the mapping
+ is not associated with a file:
  
-+#include <linux/atomic.h>
-+#include <linux/types.h>
+- =============              ====================================
++ ===================        ===========================================
+  [heap]                     the heap of the program
+  [stack]                    the stack of the main process
+  [vdso]                     the "virtual dynamic shared object",
+                             the kernel system call handler
+- [anon:<name>]              an anonymous mapping that has been
++ [anon:<name>]              a private anonymous mapping that has been
+                             named by userspace
+- =============              ====================================
++ [anon_shmem:<name>]        an anonymous shared memory mapping that has
++                            been named by userspace
++ ===================        ===========================================
+ 
+  or if empty, the mapping is anonymous.
+ 
+--- a/fs/proc/task_mmu.c~mm-anonymous-shared-memory-naming
++++ a/fs/proc/task_mmu.c
+@@ -274,6 +274,7 @@ static void show_vma_header_prefix(struc
+ static void
+ show_map_vma(struct seq_file *m, struct vm_area_struct *vma)
+ {
++	struct anon_vma_name *anon_name = NULL;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct file *file = vma->vm_file;
+ 	vm_flags_t flags = vma->vm_flags;
+@@ -293,6 +294,8 @@ show_map_vma(struct seq_file *m, struct
+ 	start = vma->vm_start;
+ 	end = vma->vm_end;
+ 	show_vma_header_prefix(m, start, end, flags, pgoff, dev, ino);
++	if (mm)
++		anon_name = anon_vma_name(vma);
+ 
+ 	/*
+ 	 * Print the dentry name for named mappings, and a
+@@ -300,7 +303,14 @@ show_map_vma(struct seq_file *m, struct
+ 	 */
+ 	if (file) {
+ 		seq_pad(m, ' ');
+-		seq_file_path(m, file, "\n");
++		/*
++		 * If user named this anon shared memory via
++		 * prctl(PR_SET_VMA ..., use the provided name.
++		 */
++		if (anon_name)
++			seq_printf(m, "[anon_shmem:%s]", anon_name->name);
++		else
++			seq_file_path(m, file, "\n");
+ 		goto done;
+ 	}
+ 
+@@ -312,8 +322,6 @@ show_map_vma(struct seq_file *m, struct
+ 
+ 	name = arch_vma_name(vma);
+ 	if (!name) {
+-		struct anon_vma_name *anon_name;
+-
+ 		if (!mm) {
+ 			name = "[vdso]";
+ 			goto done;
+@@ -330,7 +338,6 @@ show_map_vma(struct seq_file *m, struct
+ 			goto done;
+ 		}
+ 
+-		anon_name = anon_vma_name(vma);
+ 		if (anon_name) {
+ 			seq_pad(m, ' ');
+ 			seq_printf(m, "[anon:%s]", anon_name->name);
+--- a/include/linux/mm.h~mm-anonymous-shared-memory-naming
++++ a/include/linux/mm.h
+@@ -700,8 +700,10 @@ static inline unsigned long vma_iter_add
+  * paths in userfault.
+  */
+ bool vma_is_shmem(struct vm_area_struct *vma);
++bool vma_is_anon_shmem(struct vm_area_struct *vma);
+ #else
+ static inline bool vma_is_shmem(struct vm_area_struct *vma) { return false; }
++static inline bool vma_is_anon_shmem(struct vm_area_struct *vma) { return false; }
+ #endif
+ 
+ int vma_is_stack_for_current(struct vm_area_struct *vma);
+--- a/include/linux/mm_types.h~mm-anonymous-shared-memory-naming
++++ a/include/linux/mm_types.h
+@@ -549,21 +549,11 @@ struct vm_area_struct {
+ 	 * For areas with an address space and backing store,
+ 	 * linkage into the address_space->i_mmap interval tree.
+ 	 *
+-	 * For private anonymous mappings, a pointer to a null terminated string
+-	 * containing the name given to the vma, or NULL if unnamed.
+ 	 */
+-
+-	union {
+-		struct {
+-			struct rb_node rb;
+-			unsigned long rb_subtree_last;
+-		} shared;
+-		/*
+-		 * Serialized by mmap_sem. Never use directly because it is
+-		 * valid only when vm_file is NULL. Use anon_vma_name instead.
+-		 */
+-		struct anon_vma_name *anon_name;
+-	};
++	struct {
++		struct rb_node rb;
++		unsigned long rb_subtree_last;
++	} shared;
+ 
+ 	/*
+ 	 * A file's MAP_PRIVATE vma can be in both i_mmap tree and anon_vma
+@@ -584,6 +574,14 @@ struct vm_area_struct {
+ 	struct file * vm_file;		/* File we map to (can be NULL). */
+ 	void * vm_private_data;		/* was vm_pte (shared mem) */
+ 
++#ifdef CONFIG_ANON_VMA_NAME
++	/*
++	 * For private and shared anonymous mappings, a pointer to a null
++	 * terminated string containing the name given to the vma, or NULL if
++	 * unnamed. Serialized by mmap_sem. Use anon_vma_name to access.
++	 */
++	struct anon_vma_name *anon_name;
++#endif
+ #ifdef CONFIG_SWAP
+ 	atomic_long_t swap_readahead_info;
+ #endif
+--- a/mm/madvise.c~mm-anonymous-shared-memory-naming
++++ a/mm/madvise.c
+@@ -96,9 +96,6 @@ struct anon_vma_name *anon_vma_name(stru
+ {
+ 	mmap_assert_locked(vma->vm_mm);
+ 
+-	if (vma->vm_file)
+-		return NULL;
+-
+ 	return vma->anon_name;
+ }
+ 
+@@ -184,7 +181,7 @@ success:
+ 	 * vm_flags is protected by the mmap_lock held in write mode.
+ 	 */
+ 	vma->vm_flags = new_flags;
+-	if (!vma->vm_file) {
++	if (!vma->vm_file || vma_is_anon_shmem(vma)) {
+ 		error = replace_anon_vma_name(vma, anon_name);
+ 		if (error)
+ 			return error;
+@@ -1289,7 +1286,7 @@ static int madvise_vma_anon_name(struct
+ 	int error;
+ 
+ 	/* Only anonymous mappings can be named */
+-	if (vma->vm_file)
++	if (vma->vm_file && !vma_is_anon_shmem(vma))
+ 		return -EBADF;
+ 
+ 	error = madvise_update_vma(vma, prev, start, end, vma->vm_flags,
+--- a/mm/shmem.c~mm-anonymous-shared-memory-naming
++++ a/mm/shmem.c
+@@ -237,11 +237,17 @@ static const struct inode_operations shm
+ static const struct inode_operations shmem_dir_inode_operations;
+ static const struct inode_operations shmem_special_inode_operations;
+ static const struct vm_operations_struct shmem_vm_ops;
++static const struct vm_operations_struct shmem_anon_vm_ops;
+ static struct file_system_type shmem_fs_type;
+ 
++bool vma_is_anon_shmem(struct vm_area_struct *vma)
++{
++	return vma->vm_ops == &shmem_anon_vm_ops;
++}
 +
- /*
-  * This struct is used to pass information from page reclaim to the shrinkers.
-  * We consolidate the values for easier extension later.
+ bool vma_is_shmem(struct vm_area_struct *vma)
+ {
+-	return vma->vm_ops == &shmem_vm_ops;
++	return vma_is_anon_shmem(vma) || vma->vm_ops == &shmem_vm_ops;
+ }
+ 
+ static LIST_HEAD(shmem_swaplist);
+@@ -2263,7 +2269,8 @@ out_nomem:
+ 
+ static int shmem_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	struct shmem_inode_info *info = SHMEM_I(file_inode(file));
++	struct inode *inode = file_inode(file);
++	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	int ret;
+ 
+ 	ret = seal_check_future_write(info->seals, vma);
+@@ -2274,7 +2281,11 @@ static int shmem_mmap(struct file *file,
+ 	vma->vm_flags |= VM_MTE_ALLOWED;
+ 
+ 	file_accessed(file);
+-	vma->vm_ops = &shmem_vm_ops;
++	/* This is anonymous shared memory if it is unlinked at the time of mmap */
++	if (inode->i_nlink)
++		vma->vm_ops = &shmem_vm_ops;
++	else
++		vma->vm_ops = &shmem_anon_vm_ops;
+ 	return 0;
+ }
+ 
+@@ -3988,6 +3999,15 @@ static const struct vm_operations_struct
+ #endif
+ };
+ 
++static const struct vm_operations_struct shmem_anon_vm_ops = {
++	.fault		= shmem_fault,
++	.map_pages	= filemap_map_pages,
++#ifdef CONFIG_NUMA
++	.set_policy     = shmem_set_policy,
++	.get_policy     = shmem_get_policy,
++#endif
++};
++
+ int shmem_init_fs_context(struct fs_context *fc)
+ {
+ 	struct shmem_options *ctx;
+@@ -4163,6 +4183,7 @@ void shmem_truncate_range(struct inode *
+ EXPORT_SYMBOL_GPL(shmem_truncate_range);
+ 
+ #define shmem_vm_ops				generic_file_vm_ops
++#define shmem_anon_vm_ops			generic_file_vm_ops
+ #define shmem_file_operations			ramfs_file_operations
+ #define shmem_get_inode(sb, dir, mode, dev, flags)	ramfs_get_inode(sb, dir, mode, dev)
+ #define shmem_acct_size(flags, size)		0
+@@ -4268,7 +4289,7 @@ int shmem_zero_setup(struct vm_area_stru
+ 	if (vma->vm_file)
+ 		fput(vma->vm_file);
+ 	vma->vm_file = file;
+-	vma->vm_ops = &shmem_vm_ops;
++	vma->vm_ops = &shmem_anon_vm_ops;
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from tjmercier@google.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-shrinkers-add-missing-includes-for-undeclared-types.patch
+mm-anonymous-shared-memory-naming.patch
 
