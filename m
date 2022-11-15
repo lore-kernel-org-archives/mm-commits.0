@@ -2,131 +2,100 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B6D9C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 23:04:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7ACEC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 23:07:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238619AbiKOXEv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Nov 2022 18:04:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54230 "EHLO
+        id S229840AbiKOXHq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Nov 2022 18:07:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55438 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238581AbiKOXEi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 18:04:38 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F6E420984
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 15:04:35 -0800 (PST)
+        with ESMTP id S229607AbiKOXHp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2022 18:07:45 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C9C22C67F
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 15:07:44 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BF54DB81B88
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 23:04:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D3BAC433C1;
-        Tue, 15 Nov 2022 23:04:31 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4C837B81B88
+        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 23:07:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E006FC433B5;
+        Tue, 15 Nov 2022 23:07:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668553471;
-        bh=dLDtaziBoR4Dv/MYp69hi1BlsGforSEw7w6JlvNt69M=;
+        s=korg; t=1668553662;
+        bh=A866E0QqttkPIYg5f9pbMdQtpSjXfXf4WMbQcXaFRd4=;
         h=Date:To:From:Subject:From;
-        b=2f6JF2auctvn/py59BdQmKTIksNXu+iSkkj++AsW3jxRDrZNs8GWLnnad5ZNBB+V7
-         jco4GI5kf8XyFbhsTeNJB0k+IvhPbLyyBiELEhv+GpoQhed0Ddc5Nn2JWoGIDKx6kr
-         6P1CqS11yG5HFePAqNgz66yb8WTgDHXGS3vQilNc=
-Date:   Tue, 15 Nov 2022 15:04:30 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org, rongtao@cestc.cn,
+        b=smeOl8qXsg+PYf6lvZAl9NJxNMh8gbZKW12c+eISQOSgLfbNIrEIRAn285pq9ImDv
+         IyqqF0dCuGKbUj1QGB6uVl4mgRCHDWnAxPBdKvkSBfsQT352rxM6uh/obJT7dluPHa
+         03m0woblSjO+F8lL5QgpunWFp6ItRHDsPK3L00Gg=
+Date:   Tue, 15 Nov 2022 15:07:41 -0800
+To:     mm-commits@vger.kernel.org, suleiman@google.com, ngupta@vflare.org,
+        minchan@kernel.org, keescook+coverity-bot@chromium.org,
+        keescook@chromium.org, senozhatsky@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-fix-unnecessary-compilation-warnings.patch added to mm-unstable branch
-Message-Id: <20221115230431.4D3BAC433C1@smtp.kernel.org>
+Subject: [obsolete] zram-introduce-recompress-sysfs-knob-fix-2.patch removed from -mm tree
+Message-Id: <20221115230741.E006FC433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: selftests/damon: fix unnecessary compilation warnings
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-damon-fix-unnecessary-compilation-warnings.patch
+The quilt patch titled
+     Subject: zram: explicitly limit prio_max for static analyzers
+has been removed from the -mm tree.  Its filename was
+     zram-introduce-recompress-sysfs-knob-fix-2.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-fix-unnecessary-compilation-warnings.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Rong Tao <rongtao@cestc.cn>
-Subject: selftests/damon: fix unnecessary compilation warnings
-Date: Sun, 13 Nov 2022 08:38:45 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: explicitly limit prio_max for static analyzers
+Date: Mon, 14 Nov 2022 11:14:20 +0900
 
-When testing overflow and overread, there is no need to keep unnecessary
-compilation warnings, we should simply ignore them.
+coverity (got confused by the code, so this simply is supposed to help
+coverity figure out that we never do an out of bounds access in comps[]
+array: https://lore.kernel.org/lkml/202211100847.388C61B3@keescook/
 
-The motivation for this patch is to eliminate the compilation warning,
-maybe one day we will compile the kernel with "-Werror -Wall", at which
-point this compilation warning will turn into a compilation error, we
-should fix this error in advance.
-
-How to reproduce the problem (with gcc-11.3.1):
-
-    $ make -C tools/testing/selftests/
-    ...
-    warning: `write' reading 4294967295 bytes from a region of size 1
-    [-Wstringop-overread]
-    warning: `read' writing 4294967295 bytes into a region of size 25
-    overflows the destination [-Wstringop-overflow=]
-
-"-Wno-stringop-overread" is supported at least in gcc-11.1.0.
-
-Link: https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=d14c547abd484d3540b692bb8048c4a6efe92c8b
-Link: https://lkml.kernel.org/r/tencent_51C4ACA8CB3895C2D7F35178440283602107@qq.com
-Signed-off-by: Rong Tao <rongtao@cestc.cn>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20221114021420.4060601-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reported-by: coverity-bot <keescook+coverity-bot@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/huge_count_read_write.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/block/zram/zram_drv.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/damon/huge_count_read_write.c~selftests-damon-fix-unnecessary-compilation-warnings
-+++ a/tools/testing/selftests/damon/huge_count_read_write.c
-@@ -8,6 +8,13 @@
- #include <unistd.h>
- #include <stdio.h>
- 
-+#pragma GCC diagnostic push
-+#if __GNUC__ >= 11 && __GNUC_MINOR__ >= 1
-+/* Ignore read(2) overflow and write(2) overread compile warnings */
-+#pragma GCC diagnostic ignored "-Wstringop-overread"
-+#pragma GCC diagnostic ignored "-Wstringop-overflow"
-+#endif
-+
- void write_read_with_huge_count(char *file)
- {
- 	int filedesc = open(file, O_RDWR);
-@@ -27,6 +34,8 @@ void write_read_with_huge_count(char *fi
- 	close(filedesc);
- }
- 
-+#pragma GCC diagnostic pop
-+
- int main(int argc, char *argv[])
- {
- 	if (argc != 2) {
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-recompress-sysfs-knob-fix-2
++++ a/drivers/block/zram/zram_drv.c
+@@ -1689,6 +1689,7 @@ static int zram_recompress(struct zram *
+ 	 * Iterate the secondary comp algorithms list (in order of priority)
+ 	 * and try to recompress the page.
+ 	 */
++	prio_max = min(prio_max, ZRAM_MAX_COMPS);
+ 	for (; prio < prio_max; prio++) {
+ 		if (!zram->comps[prio])
+ 			continue;
 _
 
-Patches currently in -mm which might be from rongtao@cestc.cn are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-tools-vm-page_owner-ignore-page_owner_sort-binary.patch
-selftests-damon-fix-unnecessary-compilation-warnings.patch
-radix-tree-test-suite-fix-uninitialized-variable-compilation-warning.patch
+zram-preparation-for-multi-zcomp-support.patch
+zram-add-recompression-algorithm-sysfs-knob.patch
+zram-factor-out-wb-and-non-wb-zram-read-functions.patch
+zram-introduce-recompress-sysfs-knob.patch
+zram-introduce-recompress-sysfs-knob-fix.patch
+zram-add-recompress-flag-to-read_block_state.patch
+zram-clarify-writeback_store-comment.patch
+zram-use-is_err_value-to-check-for-zs_malloc-errors.patch
+zram-remove-redundant-checks-from-zram_recompress.patch
+zram-add-algo-parameter-support-to-zram_recompress.patch
+documentation-add-zram-recompression-documentation.patch
+zram-add-incompressible-writeback.patch
+zram-add-incompressible-flag-to-read_block_state.patch
 
