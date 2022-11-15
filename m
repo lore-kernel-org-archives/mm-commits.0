@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8220CC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 00:49:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A07CAC433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Nov 2022 01:08:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231969AbiKOAtN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Nov 2022 19:49:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46932 "EHLO
+        id S231355AbiKOBIe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Nov 2022 20:08:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230199AbiKOAtM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2022 19:49:12 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FB3417A98
-        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2022 16:49:11 -0800 (PST)
+        with ESMTP id S229635AbiKOBIe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2022 20:08:34 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACC52F05;
+        Mon, 14 Nov 2022 17:08:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3FF77B8133B
-        for <mm-commits@vger.kernel.org>; Tue, 15 Nov 2022 00:49:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7D5DC433D7;
-        Tue, 15 Nov 2022 00:49:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C11A5614E7;
+        Tue, 15 Nov 2022 01:08:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D6C0C433D6;
+        Tue, 15 Nov 2022 01:08:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668473348;
-        bh=sOQzyt4KuJOgR7wHmG0vGAl5bJLpUPcwLmasSAkZaGY=;
+        s=korg; t=1668474510;
+        bh=eNgm8jzWztFGkaoZgOrlyNTrUu6Ed9ds/XEOsGuA+UM=;
         h=Date:To:From:Subject:From;
-        b=Wedyo8Uxw/NwPhewnOcgOZh9qz6IyRevJ38iHIHc2mXIZ4bT2DmIimPQn5QQIMY7x
-         e4WboraNJzlCYXP7l5dZZX9MjBZKjeB/a5ULLds992qahxn8I2YshDwKLEitqBjjJz
-         w+PXqW1H7Z1O5TqlatMpPIsa/xAv+yJ4go9/kxjg=
-Date:   Mon, 14 Nov 2022 16:49:07 -0800
-To:     mm-commits@vger.kernel.org, yijiangshan@kylinos.cn,
-        samitolvanen@google.com, rdunlap@infradead.org,
-        peterz@infradead.org, keescook@chromium.org, masahiroy@kernel.org,
-        akpm@linux-foundation.org
+        b=adSiGcJcFIDyEV9uEHhaWyPxCKNFI9oSqPZBkT/BRU5r7Qx/jsxtKbPR5KwqsofH9
+         WCqH9E7UmaQR6Je2y4SSpdOtB5aMIbOkokQjWfYWVVLujYU9bfssMFIxlPvNlEtghx
+         QJ2kfk6fKcmgW0TQp89BwckjtLe0Yy52PQemZi20=
+Date:   Mon, 14 Nov 2022 17:08:29 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        stable@vger.kernel.org, riel@surriel.com, peterx@redhat.com,
+        naoya.horiguchi@linux.dev, nadav.amit@gmail.com,
+        harperchen1110@gmail.com, david@redhat.com,
+        axelrasmussen@google.com, almasrymina@google.com,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + linux-inith-include-linux-build_bugh-and-linux-stringifyh.patch added to mm-nonmm-unstable branch
-Message-Id: <20221115004908.A7D5DC433D7@smtp.kernel.org>
+Subject: + hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221115010830.1D6C0C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/init.h: include <linux/build_bug.h> and <linux/stringify.h>
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     linux-inith-include-linux-build_bugh-and-linux-stringifyh.patch
+     Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/linux-inith-include-linux-build_bugh-and-linux-stringifyh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,51 +68,121 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Masahiro Yamada <masahiroy@kernel.org>
-Subject: linux/init.h: include <linux/build_bug.h> and <linux/stringify.h>
-Date: Sun, 13 Nov 2022 20:08:02 +0900
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing
+Date: Mon, 14 Nov 2022 15:55:06 -0800
 
-With CONFIG_HAVE_ARCH_PREL32_RELOCATIONS=y, the following code fails to
-build:
+madvise(MADV_DONTNEED) ends up calling zap_page_range() to clear page
+tables associated with the address range.  For hugetlb vmas,
+zap_page_range will call __unmap_hugepage_range_final.  However,
+__unmap_hugepage_range_final assumes the passed vma is about to be removed
+and deletes the vma_lock to prevent pmd sharing as the vma is on the way
+out.  In the case of madvise(MADV_DONTNEED) the vma remains, but the
+missing vma_lock prevents pmd sharing and could potentially lead to issues
+with truncation/fault races.
 
-  ---------------->8----------------
-  #include <linux/init.h>
+This issue was originally reported here [1] as a BUG triggered in
+page_try_dup_anon_rmap.  Prior to the introduction of the hugetlb
+vma_lock, __unmap_hugepage_range_final cleared the VM_MAYSHARE flag to
+prevent pmd sharing.  Subsequent faults on this vma were confused as
+VM_MAYSHARE indicates a sharable vma, but was not set so page_mapping was
+not set in new pages added to the page table.  This resulted in pages that
+appeared anonymous in a VM_SHARED vma and triggered the BUG.
 
-  int foo(void) { return 0; }
-  core_initcall(foo);
-  ---------------->8----------------
+Address issue by adding a new zap flag ZAP_FLAG_UNMAP to indicate an unmap
+call from unmap_vmas().  This is used to indicate the 'final' unmapping of
+a hugetlb vma.  When called via MADV_DONTNEED, this flag is not set and
+the vm_lock is not deleted.
 
-Include <linux/build_bug.h> for static_assert() and <linux/stringify.h>
-for __stringify().
+[1] https://lore.kernel.org/lkml/CAO4mrfdLMXsao9RF4fUE8-Wfde8xmjsKrTNMNC9wjUb6JudD0g@mail.gmail.com/
 
-Link: https://lkml.kernel.org/r/20221113110802.3760705-1-masahiroy@kernel.org
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Jiangshan Yi <yijiangshan@kylinos.cn>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org> # build-tested
-Cc: Sami Tolvanen <samitolvanen@google.com>
+Link: https://lkml.kernel.org/r/20221114235507.294320-3-mike.kravetz@oracle.com
+Fixes: 90e7e7f5ef3f ("mm: enable MADV_DONTNEED for hugetlb mappings")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Wei Chen <harperchen1110@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mm.h |    2 ++
+ mm/hugetlb.c       |   27 ++++++++++++++++-----------
+ mm/memory.c        |    2 +-
+ 3 files changed, 19 insertions(+), 12 deletions(-)
 
---- a/include/linux/init.h~linux-inith-include-linux-build_bugh-and-linux-stringifyh
-+++ a/include/linux/init.h
-@@ -2,7 +2,9 @@
- #ifndef _LINUX_INIT_H
- #define _LINUX_INIT_H
+--- a/include/linux/mm.h~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/include/linux/mm.h
+@@ -1868,6 +1868,8 @@ struct zap_details {
+  * default, the flag is not set.
+  */
+ #define  ZAP_FLAG_DROP_MARKER        ((__force zap_flags_t) BIT(0))
++/* Set in unmap_vmas() to indicate a final unmap call.  Only used by hugetlb */
++#define  ZAP_FLAG_UNMAP              ((__force zap_flags_t) BIT(1))
  
-+#include <linux/build_bug.h>
- #include <linux/compiler.h>
-+#include <linux/stringify.h>
- #include <linux/types.h>
+ #ifdef CONFIG_MMU
+ extern bool can_do_mlock(void);
+--- a/mm/hugetlb.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/mm/hugetlb.c
+@@ -5204,17 +5204,22 @@ void __unmap_hugepage_range_final(struct
  
- /* Built-in __init functions needn't be compiled with retpoline */
+ 	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
+ 
+-	/*
+-	 * Unlock and free the vma lock before releasing i_mmap_rwsem.  When
+-	 * the vma_lock is freed, this makes the vma ineligible for pmd
+-	 * sharing.  And, i_mmap_rwsem is required to set up pmd sharing.
+-	 * This is important as page tables for this unmapped range will
+-	 * be asynchrously deleted.  If the page tables are shared, there
+-	 * will be issues when accessed by someone else.
+-	 */
+-	__hugetlb_vma_unlock_write_free(vma);
+-
+-	i_mmap_unlock_write(vma->vm_file->f_mapping);
++	if (zap_flags & ZAP_FLAG_UNMAP) {	/* final unmap */
++		/*
++		 * Unlock and free the vma lock before releasing i_mmap_rwsem.
++		 * When the vma_lock is freed, this makes the vma ineligible
++		 * for pmd sharing.  And, i_mmap_rwsem is required to set up
++		 * pmd sharing.  This is important as page tables for this
++		 * unmapped range will be asynchrously deleted.  If the page
++		 * tables are shared, there will be issues when accessed by
++		 * someone else.
++		 */
++		__hugetlb_vma_unlock_write_free(vma);
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
++	} else {
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
++		hugetlb_vma_unlock_write(vma);
++	}
+ }
+ 
+ void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
+--- a/mm/memory.c~hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing
++++ a/mm/memory.c
+@@ -1711,7 +1711,7 @@ void unmap_vmas(struct mmu_gather *tlb,
+ {
+ 	struct mmu_notifier_range range;
+ 	struct zap_details details = {
+-		.zap_flags = ZAP_FLAG_DROP_MARKER,
++		.zap_flags = ZAP_FLAG_DROP_MARKER | ZAP_FLAG_UNMAP,
+ 		/* Careful - we need to zap private pages too! */
+ 		.even_cows = true,
+ 	};
 _
 
-Patches currently in -mm which might be from masahiroy@kernel.org are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-linux-inith-include-linux-build_bugh-and-linux-stringifyh.patch
+ipc-shm-call-underlying-open-close-vm_ops.patch
+madvise-use-zap_page_range_single-for-madvise-dontneed.patch
+hugetlb-dont-delete-vma_lock-in-hugetlb-madv_dontneed-processing.patch
+selftests-vm-update-hugetlb-madvise.patch
+hugetlb-remove-duplicate-mmu-notifications.patch
 
