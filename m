@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3419C4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:46:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F2E4C4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 23:01:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239112AbiKPWqj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Nov 2022 17:46:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33476 "EHLO
+        id S236796AbiKPXB2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Nov 2022 18:01:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239119AbiKPWqR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Nov 2022 17:46:17 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25625C74C
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:46:03 -0800 (PST)
+        with ESMTP id S234473AbiKPXB0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Nov 2022 18:01:26 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5EED6AEDD
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 15:01:25 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D81AAB81EAF
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:46:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79127C433C1;
-        Wed, 16 Nov 2022 22:46:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3E47162034
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 23:01:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9144AC433D6;
+        Wed, 16 Nov 2022 23:01:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668638760;
-        bh=s/6YogSVK4jrXTSEY6YDleV//xoODveTVkQjuH1yOpo=;
+        s=korg; t=1668639684;
+        bh=35OZpsVQAqvlf0mZIVuQivjFKhssl3KzzcvtM/11ce0=;
         h=Date:To:From:Subject:From;
-        b=GUG3+rR20u9DJemB8B3OMosR0nZp8AzXf26rDvYZ0nf4NlHOvmyl0zix4DiAlFIqo
-         iPLm7ewtrrr8T0D7QtUpoG/jsk3b5ICoNMNQVd2TJkgdeBlIKbyZ/l/34GO9LpdDWe
-         NiECFNAs0aN58NaoILlO7bE2JSthqyaoSMbYrHew=
-Date:   Wed, 16 Nov 2022 14:45:59 -0800
-To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        agordeev@linux.ibm.com, akpm@linux-foundation.org
+        b=YdYeYmeTE8fzJ5zhij8sSy40K1EAqQuH5rK1tA9UOAncYbm9VPzGX4nHkDIGed6XF
+         LyGtFxZqwnWNuCmLJEGjFEGgOx0FCB4DoRhIuuA0Rn1UAGW6ekoaSoAeGiMHJnbkdB
+         VKBQWTjMFzhbHDX7fWh4bmZktXCQVaWcXkzy8Rds=
+Date:   Wed, 16 Nov 2022 15:01:23 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmu_gather-do-not-expose-delayed_rmap-flag.patch added to mm-unstable branch
-Message-Id: <20221116224600.79127C433C1@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-remove-null-checks-on-node_data.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221116230124.9144AC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mmu_gather: do not expose delayed_rmap flag
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmu_gather-do-not-expose-delayed_rmap-flag.patch
+     Subject: mm: multi-gen LRU: remove NULL checks on NODE_DATA()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-multi-gen-lru-remove-null-checks-on-node_data.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_gather-do-not-expose-delayed_rmap-flag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-remove-null-checks-on-node_data.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,51 +64,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: mm: mmu_gather: do not expose delayed_rmap flag
-Date: Wed, 16 Nov 2022 08:49:30 +0100
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: multi-gen LRU: remove NULL checks on NODE_DATA()
+Date: Tue, 15 Nov 2022 18:38:08 -0700
 
-Flag delayed_rmap of 'struct mmu_gather' is rather a private member, but
-it is still accessed directly.  Instead, let the TLB gather code access
-the flag.
+NODE_DATA() is preallocated for all possible nodes after commit
+09f49dca570a ("mm: handle uninitialized numa nodes gracefully").  Checking
+its return value against NULL is now unnecessary.
 
-Link: https://lkml.kernel.org/r/Y3SWCu6NRaMQ5dbD@li-4a3a4a4c-28e5-11b2-a85c-a8d192c6f089.ibm.com
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Link: https://lkml.kernel.org/r/20221116013808.3995280-2-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c     |    3 +--
- mm/mmu_gather.c |    3 +++
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
---- a/mm/memory.c~mm-mmu_gather-do-not-expose-delayed_rmap-flag
-+++ a/mm/memory.c
-@@ -1465,8 +1465,7 @@ again:
- 	/* Do the actual TLB flush before dropping ptl */
- 	if (force_flush) {
- 		tlb_flush_mmu_tlbonly(tlb);
--		if (tlb->delayed_rmap)
--			tlb_flush_rmaps(tlb, vma);
-+		tlb_flush_rmaps(tlb, vma);
- 	}
- 	pte_unmap_unlock(start_pte, ptl);
+--- a/mm/vmscan.c~mm-multi-gen-lru-remove-null-checks-on-node_data
++++ a/mm/vmscan.c
+@@ -3154,7 +3154,7 @@ static struct lruvec *get_lruvec(struct
+ 	if (memcg) {
+ 		struct lruvec *lruvec = &memcg->nodeinfo[nid]->lruvec;
  
---- a/mm/mmu_gather.c~mm-mmu_gather-do-not-expose-delayed_rmap-flag
-+++ a/mm/mmu_gather.c
-@@ -60,6 +60,9 @@ void tlb_flush_rmaps(struct mmu_gather *
- {
- 	struct mmu_gather_batch *batch;
+-		/* for hotadd_new_pgdat() */
++		/* see the comment in mem_cgroup_lruvec() */
+ 		if (!lruvec->pgdat)
+ 			lruvec->pgdat = pgdat;
  
-+	if (!tlb->delayed_rmap)
-+		return;
-+
- 	batch = tlb->active;
- 	for (int i = 0; i < batch->nr; i++) {
- 		struct encoded_page *enc = batch->encoded_pages[i];
+@@ -3163,7 +3163,7 @@ static struct lruvec *get_lruvec(struct
+ #endif
+ 	VM_WARN_ON_ONCE(!mem_cgroup_disabled());
+ 
+-	return pgdat ? &pgdat->__lruvec : NULL;
++	return &pgdat->__lruvec;
+ }
+ 
+ static int get_swappiness(struct lruvec *lruvec, struct scan_control *sc)
+@@ -3227,9 +3227,6 @@ void lru_gen_add_mm(struct mm_struct *mm
+ 	for_each_node_state(nid, N_MEMORY) {
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
+ 
+-		if (!lruvec)
+-			continue;
+-
+ 		/* the first addition since the last iteration */
+ 		if (lruvec->mm_state.tail == &mm_list->fifo)
+ 			lruvec->mm_state.tail = &mm->lru_gen.list;
+@@ -3259,9 +3256,6 @@ void lru_gen_del_mm(struct mm_struct *mm
+ 	for_each_node(nid) {
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
+ 
+-		if (!lruvec)
+-			continue;
+-
+ 		/* where the last iteration ended (exclusive) */
+ 		if (lruvec->mm_state.tail == &mm->lru_gen.list)
+ 			lruvec->mm_state.tail = lruvec->mm_state.tail->next;
+@@ -5336,9 +5330,6 @@ static void lru_gen_change_state(bool en
+ 		for_each_node(nid) {
+ 			struct lruvec *lruvec = get_lruvec(memcg, nid);
+ 
+-			if (!lruvec)
+-				continue;
+-
+ 			spin_lock_irq(&lruvec->lru_lock);
+ 
+ 			VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-mmu_gather-do-not-expose-delayed_rmap-flag.patch
+mm-multi-gen-lru-retry-folios-written-back-while-isolated.patch
+mm-multi-gen-lru-remove-null-checks-on-node_data.patch
 
