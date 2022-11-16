@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3405CC4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:45:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E88ADC433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:45:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238629AbiKPWpL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Nov 2022 17:45:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60158 "EHLO
+        id S238951AbiKPWpM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Nov 2022 17:45:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238998AbiKPWoW (ORCPT
+        with ESMTP id S239004AbiKPWoW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Nov 2022 17:44:22 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C5DFDEEF
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:44:17 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2C14289
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:44:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 17033B81EAF
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:44:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4060C433C1;
-        Wed, 16 Nov 2022 22:44:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 71600B81EE1
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:44:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11910C433C1;
+        Wed, 16 Nov 2022 22:44:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668638654;
-        bh=WFv9k+hb/XRLWP33q1Ri4iKkrvauiVHj39gAEaz8TzA=;
+        s=korg; t=1668638657;
+        bh=KkDuLHy/WyjkGmYtG/hn68c/Su8EX9AP+M2feMvJ3JQ=;
         h=Date:To:From:Subject:From;
-        b=A66u9RPjBSGynFRjmgf3k72O1tk3eaO4CwG4QVF1aDJU+dNmPK+cbW2V3oV0K6YBE
-         iJqyI1L11en3e3ZVCIMdi3VtXxtHvwGt7tx6m6Df+TxUemAvfVTZA3UGD4O4zyjvbj
-         zmpFGUA2GdoeNq5SJhCZ5HvQeMU4lFkUePyfSj/g=
-Date:   Wed, 16 Nov 2022 14:44:14 -0800
-To:     mm-commits@vger.kernel.org, mchehab@kernel.org,
-        awalls@md.metrocast.net, david@redhat.com,
-        akpm@linux-foundation.org
+        b=j5Fb8j49f+rU7ys50LNdMFdcl43NiSkyjATGWak4mVOj8LWhZEL2MT8wNbij4VPHQ
+         nxYsL8Z2+uBDzb3isDO8xMWv6oD3ZCn9y+Ro9qx+lPYwPrxS4/gz3+jnWOPEv1vJ31
+         GIiqhAmEGGktRovlaR073nbgkJYkZXfTbr+Allko=
+Date:   Wed, 16 Nov 2022 14:44:16 -0800
+To:     mm-commits@vger.kernel.org, tfiga@chromium.org,
+        m.szyprowski@samsung.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        daniel.vetter@ffwll.ch, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + media-pci-ivtv-remove-foll_force-usage.patch added to mm-unstable branch
-Message-Id: <20221116224414.C4060C433C1@smtp.kernel.org>
+Subject: + mm-frame-vector-remove-foll_force-usage.patch added to mm-unstable branch
+Message-Id: <20221116224417.11910C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: media: pci/ivtv: remove FOLL_FORCE usage
+     Subject: mm/frame-vector: remove FOLL_FORCE usage
 has been added to the -mm mm-unstable branch.  Its filename is
-     media-pci-ivtv-remove-foll_force-usage.patch
+     mm-frame-vector-remove-foll_force-usage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/media-pci-ivtv-remove-foll_force-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-frame-vector-remove-foll_force-usage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,55 +66,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: media: pci/ivtv: remove FOLL_FORCE usage
-Date: Wed, 16 Nov 2022 11:26:54 +0100
+Subject: mm/frame-vector: remove FOLL_FORCE usage
+Date: Wed, 16 Nov 2022 11:26:55 +0100
 
-FOLL_FORCE is really only for ptrace access. R/O pinning a page is
-supposed to fail if the VMA misses proper access permissions (no VM_READ).
+FOLL_FORCE is really only for ptrace access. According to commit
+707947247e95 ("media: videobuf2-vmalloc: get_userptr: buffers are always
+writable"), get_vaddr_frames() currently pins all pages writable as a
+workaround for issues with read-only buffers.
 
-Let's just remove FOLL_FORCE usage here; there would have to be a pretty
-good reason to allow arbitrary drivers to R/O pin pages in a PROT_NONE
-VMA. Most probably, FOLL_FORCE usage is just some legacy leftover.
+FOLL_FORCE, however, seems to be a legacy leftover as it predates
+commit 707947247e95 ("media: videobuf2-vmalloc: get_userptr: buffers are
+always writable"). Let's just remove it.
 
-Link: https://lkml.kernel.org/r/20221116102659.70287-16-david@redhat.com
+Once the read-only buffer issue has been resolved, FOLL_WRITE could
+again be set depending on the DMA direction.
+
+Link: https://lkml.kernel.org/r/20221116102659.70287-17-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Tomasz Figa <tfiga@chromium.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/pci/ivtv/ivtv-udma.c |    2 +-
- drivers/media/pci/ivtv/ivtv-yuv.c  |    5 ++---
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/media/common/videobuf2/frame_vector.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/media/pci/ivtv/ivtv-udma.c~media-pci-ivtv-remove-foll_force-usage
-+++ a/drivers/media/pci/ivtv/ivtv-udma.c
-@@ -115,7 +115,7 @@ int ivtv_udma_setup(struct ivtv *itv, un
+--- a/drivers/media/common/videobuf2/frame_vector.c~mm-frame-vector-remove-foll_force-usage
++++ a/drivers/media/common/videobuf2/frame_vector.c
+@@ -50,7 +50,7 @@ int get_vaddr_frames(unsigned long start
+ 	start = untagged_addr(start);
  
- 	/* Pin user pages for DMA Xfer */
- 	err = pin_user_pages_unlocked(user_dma.uaddr, user_dma.page_count,
--			dma->map, FOLL_FORCE);
-+			dma->map, 0);
- 
- 	if (user_dma.page_count != err) {
- 		IVTV_DEBUG_WARN("failed to map user pages, returned %d instead of %d\n",
---- a/drivers/media/pci/ivtv/ivtv-yuv.c~media-pci-ivtv-remove-foll_force-usage
-+++ a/drivers/media/pci/ivtv/ivtv-yuv.c
-@@ -63,12 +63,11 @@ static int ivtv_yuv_prep_user_dma(struct
- 
- 	/* Pin user pages for DMA Xfer */
- 	y_pages = pin_user_pages_unlocked(y_dma.uaddr,
--			y_dma.page_count, &dma->map[0], FOLL_FORCE);
-+			y_dma.page_count, &dma->map[0], 0);
- 	uv_pages = 0; /* silence gcc. value is set and consumed only if: */
- 	if (y_pages == y_dma.page_count) {
- 		uv_pages = pin_user_pages_unlocked(uv_dma.uaddr,
--				uv_dma.page_count, &dma->map[y_pages],
--				FOLL_FORCE);
-+				uv_dma.page_count, &dma->map[y_pages], 0);
- 	}
- 
- 	if (y_pages != y_dma.page_count || uv_pages != uv_dma.page_count) {
+ 	ret = pin_user_pages_fast(start, nr_frames,
+-				  FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM,
++				  FOLL_WRITE | FOLL_LONGTERM,
+ 				  (struct page **)(vec->ptrs));
+ 	if (ret > 0) {
+ 		vec->got_ref = true;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
