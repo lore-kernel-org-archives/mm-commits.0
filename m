@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6657FC4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:44:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61D3CC43219
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:44:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234461AbiKPWom (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Nov 2022 17:44:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60422 "EHLO
+        id S237885AbiKPWoo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Nov 2022 17:44:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234495AbiKPWoT (ORCPT
+        with ESMTP id S238971AbiKPWoT (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Nov 2022 17:44:19 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2589FBE07
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:43:58 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5BB0264B
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:43:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 79FEEB81EE6
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:43:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DE81C433C1;
-        Wed, 16 Nov 2022 22:43:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 886FCB81EDA
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:43:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EA12C433D6;
+        Wed, 16 Nov 2022 22:43:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668638635;
-        bh=DmycEtI8pUxtIod+VdeKlBAfeMPa3rNYEQ7cF40gHnY=;
+        s=korg; t=1668638637;
+        bh=g+gxfwi64tDG+tkDwzLpYNwd3sB9Z2YcR6hK+q8g4KU=;
         h=Date:To:From:Subject:From;
-        b=y0Hrs+CXBfMAQ1TgUOkIleoec1VAuiU0UgmyYdjWpXd1JLx0A0OzvmSnzASrKDisb
-         0Pgawc2ca49jCTJ/ExSXlu2mh5+u0QH49noSClJAKFTHpk5OE0DT3aEX68Txk8CFbo
-         YJCKdefHyt9WNoFMK6ooYOFWUPTXdCVDWsDRENPc=
-Date:   Wed, 16 Nov 2022 14:43:54 -0800
+        b=bkIrJ8/1wMuqfjsi61fY/X0fFlqzC1efsyc6pJCujoNXJ+zK7VoMehKjU0WEVRj5M
+         I8UBkHL6tuxRDtE1ZWvrmAKkMc8qtrSkg70UzWozdzZrmFhNF1Hq4bApAwXy0Z7dXZ
+         bRAOPc84rj/U3hSBqTrFqNuO7V5ONUZid+HX85V4=
+Date:   Wed, 16 Nov 2022 14:43:56 -0800
 To:     mm-commits@vger.kernel.org, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings.patch added to mm-unstable branch
-Message-Id: <20221116224355.2DE81C433C1@smtp.kernel.org>
+Subject: + mm-dont-call-vm_ops-huge_fault-in-wp_huge_pmd-wp_huge_pud-for-private-mappings.patch added to mm-unstable branch
+Message-Id: <20221116224357.2EA12C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rework handling in do_wp_page() based on private vs. shared mappings
+     Subject: mm: don't call vm_ops->huge_fault() in wp_huge_pmd()/wp_huge_pud() for private mappings
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings.patch
+     mm-dont-call-vm_ops-huge_fault-in-wp_huge_pmd-wp_huge_pud-for-private-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-call-vm_ops-huge_fault-in-wp_huge_pmd-wp_huge_pud-for-private-mappings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,107 +65,78 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: rework handling in do_wp_page() based on private vs. shared mappings
-Date: Wed, 16 Nov 2022 11:26:45 +0100
+Subject: mm: don't call vm_ops->huge_fault() in wp_huge_pmd()/wp_huge_pud() for private mappings
+Date: Wed, 16 Nov 2022 11:26:46 +0100
 
-We want to extent FAULT_FLAG_UNSHARE support to anything mapped into a
-COW mapping (pagecache page, zeropage, PFN, ...), not just anonymous pages.
-Let's prepare for that by handling shared mappings first such that we can
-handle private mappings last.
+If we already have a PMD/PUD mapped write-protected in a private mapping
+and we want to break COW either due to FAULT_FLAG_WRITE or
+FAULT_FLAG_UNSHARE, there is no need to inform the file system just like on
+the PTE path.
 
-While at it, use folio-based functions instead of page-based functions
-where we touch the code either way.
+Let's just split (->zap) + fallback in that case.
 
-Link: https://lkml.kernel.org/r/20221116102659.70287-7-david@redhat.com
+This is a preparation for more generic FAULT_FLAG_UNSHARE support in
+COW mappings.
+
+Link: https://lkml.kernel.org/r/20221116102659.70287-8-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   38 +++++++++++++++++---------------------
- 1 file changed, 17 insertions(+), 21 deletions(-)
+ mm/memory.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
---- a/mm/memory.c~mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings
+--- a/mm/memory.c~mm-dont-call-vm_ops-huge_fault-in-wp_huge_pmd-wp_huge_pud-for-private-mappings
 +++ a/mm/memory.c
-@@ -3342,7 +3342,7 @@ static vm_fault_t do_wp_page(struct vm_f
+@@ -4802,6 +4802,7 @@ static inline vm_fault_t create_huge_pmd
+ static inline vm_fault_t wp_huge_pmd(struct vm_fault *vmf)
  {
  	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
- 	struct vm_area_struct *vma = vmf->vma;
--	struct folio *folio;
-+	struct folio *folio = NULL;
++	vm_fault_t ret;
  
- 	if (likely(!unshare)) {
- 		if (userfaultfd_pte_wp(vma, *vmf->pte)) {
-@@ -3360,13 +3360,12 @@ static vm_fault_t do_wp_page(struct vm_f
+ 	if (vma_is_anonymous(vmf->vma)) {
+ 		if (likely(!unshare) &&
+@@ -4809,11 +4810,13 @@ static inline vm_fault_t wp_huge_pmd(str
+ 			return handle_userfault(vmf, VM_UFFD_WP);
+ 		return do_huge_pmd_wp_page(vmf);
+ 	}
+-	if (vmf->vma->vm_ops->huge_fault) {
+-		vm_fault_t ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PMD);
+ 
+-		if (!(ret & VM_FAULT_FALLBACK))
+-			return ret;
++	if (vmf->vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
++		if (vmf->vma->vm_ops->huge_fault) {
++			ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PMD);
++			if (!(ret & VM_FAULT_FALLBACK))
++				return ret;
++		}
  	}
  
- 	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
--	if (!vmf->page) {
--		if (unlikely(unshare)) {
--			/* No anonymous page -> nothing to do. */
--			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			return 0;
--		}
- 
-+	/*
-+	 * Shared mapping: we are guaranteed to have VM_WRITE and
-+	 * FAULT_FLAG_WRITE set at this point.
-+	 */
-+	if (vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
- 		/*
- 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
- 		 * VM_PFNMAP VMA.
-@@ -3374,20 +3373,19 @@ static vm_fault_t do_wp_page(struct vm_f
- 		 * We should not cow pages in a shared writeable mapping.
- 		 * Just mark the pages writable and/or call ops->pfn_mkwrite.
- 		 */
--		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
--				     (VM_WRITE|VM_SHARED))
-+		if (!vmf->page)
- 			return wp_pfn_shared(vmf);
--
--		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		return wp_page_copy(vmf);
-+		return wp_page_shared(vmf);
- 	}
- 
-+	if (vmf->page)
-+		folio = page_folio(vmf->page);
+ 	/* COW or write-notify handled on pte level: split pmd. */
+@@ -4839,14 +4842,17 @@ static vm_fault_t wp_huge_pud(struct vm_
+ {
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) &&			\
+ 	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
++	vm_fault_t ret;
 +
- 	/*
--	 * Take out anonymous pages first, anonymous shared vmas are
--	 * not dirty accountable.
-+	 * Private mapping: create an exclusive anonymous page copy if reuse
-+	 * is impossible. We might miss VM_WRITE for FOLL_FORCE handling.
- 	 */
--	folio = page_folio(vmf->page);
--	if (folio_test_anon(folio)) {
-+	if (folio && folio_test_anon(folio)) {
- 		/*
- 		 * If the page is exclusive to this process we must reuse the
- 		 * page without further checks.
-@@ -3438,19 +3436,17 @@ reuse:
- 		/* No anonymous page -> nothing to do. */
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 		return 0;
--	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
--					(VM_WRITE|VM_SHARED))) {
--		return wp_page_shared(vmf);
+ 	/* No support for anonymous transparent PUD pages yet */
+ 	if (vma_is_anonymous(vmf->vma))
+ 		goto split;
+-	if (vmf->vma->vm_ops->huge_fault) {
+-		vm_fault_t ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
+-
+-		if (!(ret & VM_FAULT_FALLBACK))
+-			return ret;
++	if (vmf->vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
++		if (vmf->vma->vm_ops->huge_fault) {
++			ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
++			if (!(ret & VM_FAULT_FALLBACK))
++				return ret;
++		}
  	}
- copy:
- 	/*
- 	 * Ok, we need to copy. Oh, well..
- 	 */
--	get_page(vmf->page);
-+	if (folio)
-+		folio_get(folio);
- 
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- #ifdef CONFIG_KSM
--	if (PageKsm(vmf->page))
-+	if (folio && folio_test_ksm(folio))
- 		count_vm_event(COW_KSM);
- #endif
- 	return wp_page_copy(vmf);
+ split:
+ 	/* COW or write-notify not handled on PUD level: split pud.*/
 _
 
 Patches currently in -mm which might be from david@redhat.com are
