@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D098C433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:44:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B0D9C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:45:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238754AbiKPWop (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Nov 2022 17:44:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60452 "EHLO
+        id S238884AbiKPWpJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Nov 2022 17:45:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60808 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234460AbiKPWoU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Nov 2022 17:44:20 -0500
+        with ESMTP id S238988AbiKPWoW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Nov 2022 17:44:22 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B629ABF66
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:44:02 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C06ED6412
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:44:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 448C761FC8
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:44:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98922C433C1;
-        Wed, 16 Nov 2022 22:44:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5B63562005
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:44:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACA82C433C1;
+        Wed, 16 Nov 2022 22:44:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668638641;
-        bh=yfXt56OXC+StO/M8tb5Y7u5E7Bnqh4ftnpD0kbamQbw=;
+        s=korg; t=1668638650;
+        bh=KSVwneQhdw8FjEwv4PKXrg/9ecN+Xc9/L2S6jNYBU90=;
         h=Date:To:From:Subject:From;
-        b=0TnD2XZD1Go1b2P3hssjy8C/4wPJNdyKJsj2Dz4CJQa/oyNg3YsolPl71WQLErSC0
-         MluTVuRnGplBqpFK1ck2FhVc6yarIMFXw87G4uOHKkgbI0Oz/8AFbfKpyjUqyg4HIv
-         7U04VHq4fQ6OEOw4eL33XLEy6ROcIkDVg47BWMJk=
-Date:   Wed, 16 Nov 2022 14:44:00 -0800
-To:     mm-commits@vger.kernel.org, daniel.vetter@ffwll.ch,
-        david@redhat.com, akpm@linux-foundation.org
+        b=UtgtbWiNxeCbrThDVCkCD69cj37HMrhDNPDbkvG3KSstFt+RjXJtmWFFDrpDLBQkQ
+         NvnKb7t3lTXqTJVvw64KSBUGyge5fRHxPXp7aswj0WvU0kk47hcS6QmzF+Irmm50bT
+         ajyq77mgbKFoUNoRHukOUteRwLzeRfMqlq/9jNPo=
+Date:   Wed, 16 Nov 2022 14:44:10 -0800
+To:     mm-commits@vger.kernel.org, mchehab@kernel.org,
+        daniel.vetter@ffwll.ch, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-reliable-r-o-long-term-pinning-in-cow-mappings.patch added to mm-unstable branch
-Message-Id: <20221116224401.98922C433C1@smtp.kernel.org>
+Subject: + media-videobuf-dma-sg-remove-foll_force-usage.patch added to mm-unstable branch
+Message-Id: <20221116224410.ACA82C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: reliable R/O long-term pinning in COW mappings
+     Subject: media: videobuf-dma-sg: remove FOLL_FORCE usage
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-reliable-r-o-long-term-pinning-in-cow-mappings.patch
+     media-videobuf-dma-sg-remove-foll_force-usage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-reliable-r-o-long-term-pinning-in-cow-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/media-videobuf-dma-sg-remove-foll_force-usage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,223 +65,69 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/gup: reliable R/O long-term pinning in COW mappings
-Date: Wed, 16 Nov 2022 11:26:48 +0100
+Subject: media: videobuf-dma-sg: remove FOLL_FORCE usage
+Date: Wed, 16 Nov 2022 11:26:52 +0100
 
-We already support reliable R/O pinning of anonymous memory. However,
-assume we end up pinning (R/O long-term) a pagecache page or the shared
-zeropage inside a writable private ("COW") mapping. The next write access
-will trigger a write-fault and replace the pinned page by an exclusive
-anonymous page in the process page tables to break COW: the pinned page no
-longer corresponds to the page mapped into the process' page table.
+GUP now supports reliable R/O long-term pinning in COW mappings, such
+that we break COW early. MAP_SHARED VMAs only use the shared zeropage so
+far in one corner case (DAXFS file with holes), which can be ignored
+because GUP does not support long-term pinning in fsdax (see
+check_vma_flags()).
 
-Now that FAULT_FLAG_UNSHARE can break COW on anything mapped into a
-COW mapping, let's properly break COW first before R/O long-term
-pinning something that's not an exclusive anon page inside a COW
-mapping. FAULT_FLAG_UNSHARE will break COW and map an exclusive anon page
-instead that can get pinned safely.
+Consequently, FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM is no longer required
+for reliable R/O long-term pinning: FOLL_LONGTERM is sufficient. So stop
+using FOLL_FORCE, which is really only for ptrace access.
 
-With this change, we can stop using FOLL_FORCE|FOLL_WRITE for reliable
-R/O long-term pinning in COW mappings.
-
-With this change, the new R/O long-term pinning tests for non-anonymous
-memory succeed:
-  # [RUN] R/O longterm GUP pin ... with shared zeropage
-  ok 151 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP pin ... with memfd
-  ok 152 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP pin ... with tmpfile
-  ok 153 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP pin ... with huge zeropage
-  ok 154 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP pin ... with memfd hugetlb (2048 kB)
-  ok 155 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP pin ... with memfd hugetlb (1048576 kB)
-  ok 156 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP-fast pin ... with shared zeropage
-  ok 157 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP-fast pin ... with memfd
-  ok 158 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP-fast pin ... with tmpfile
-  ok 159 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP-fast pin ... with huge zeropage
-  ok 160 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP-fast pin ... with memfd hugetlb (2048 kB)
-  ok 161 Longterm R/O pin is reliable
-  # [RUN] R/O longterm GUP-fast pin ... with memfd hugetlb (1048576 kB)
-  ok 162 Longterm R/O pin is reliable
-
-Note 1: We don't care about short-term R/O-pinning, because they have
-snapshot semantics: they are not supposed to observe modifications that
-happen after pinning.
-
-As one example, assume we start direct I/O to read from a page and store
-page content into a file: modifications to page content after starting
-direct I/O are not guaranteed to end up in the file. So even if we'd pin
-the shared zeropage, the end result would be as expected -- getting zeroes
-stored to the file.
-
-Note 2: For shared mappings we'll now always fallback to the slow path to
-lookup the VMA when R/O long-term pining. While that's the necessary price
-we have to pay right now, it's actually not that bad in practice: most
-FOLL_LONGTERM users already specify FOLL_WRITE, for example, along with
-FOLL_FORCE because they tried dealing with COW mappings correctly ...
-
-Note 3: For users that use FOLL_LONGTERM right now without FOLL_WRITE,
-such as VFIO, we'd now no longer pin the shared zeropage. Instead, we'd
-populate exclusive anon pages that we can pin. There was a concern that
-this could affect the memlock limit of existing setups.
-
-For example, a VM running with VFIO could run into the memlock limit and
-fail to run. However, we essentially had the same behavior already in
-commit 17839856fd58 ("gup: document and work around "COW can break either
-way" issue") which got merged into some enterprise distros, and there were
-not any such complaints. So most probably, we're fine.
-
-Link: https://lkml.kernel.org/r/20221116102659.70287-10-david@redhat.com
+Link: https://lkml.kernel.org/r/20221116102659.70287-14-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   27 ++++++++++++++++++++++++---
- mm/gup.c           |   10 +++++-----
- mm/huge_memory.c   |    2 +-
- mm/hugetlb.c       |    7 ++++---
- 4 files changed, 34 insertions(+), 12 deletions(-)
+ drivers/media/v4l2-core/videobuf-dma-sg.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm.h~mm-gup-reliable-r-o-long-term-pinning-in-cow-mappings
-+++ a/include/linux/mm.h
-@@ -3095,8 +3095,12 @@ static inline int vm_fault_to_errno(vm_f
-  * Must be called with the (sub)page that's actually referenced via the
-  * page table entry, which might not necessarily be the head page for a
-  * PTE-mapped THP.
-+ *
-+ * If the vma is NULL, we're coming from the GUP-fast path and might have
-+ * to fallback to the slow path just to lookup the vma.
-  */
--static inline bool gup_must_unshare(unsigned int flags, struct page *page)
-+static inline bool gup_must_unshare(struct vm_area_struct *vma,
-+				    unsigned int flags, struct page *page)
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c~media-videobuf-dma-sg-remove-foll_force-usage
++++ a/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -151,17 +151,16 @@ static void videobuf_dma_init(struct vid
+ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 			int direction, unsigned long data, unsigned long size)
  {
- 	/*
- 	 * FOLL_WRITE is implicitly handled correctly as the page table entry
-@@ -3109,8 +3113,25 @@ static inline bool gup_must_unshare(unsi
- 	 * Note: PageAnon(page) is stable until the page is actually getting
- 	 * freed.
- 	 */
--	if (!PageAnon(page))
--		return false;
-+	if (!PageAnon(page)) {
-+		/*
-+		 * We only care about R/O long-term pining: R/O short-term
-+		 * pinning does not have the semantics to observe successive
-+		 * changes through the process page tables.
-+		 */
-+		if (!(flags & FOLL_LONGTERM))
-+			return false;
-+
-+		/* We really need the vma ... */
-+		if (!vma)
-+			return true;
-+
-+		/*
-+		 * ... because we only care about writable private ("COW")
-+		 * mappings where we have to break COW early.
-+		 */
-+		return is_cow_mapping(vma->vm_flags);
-+	}
++	unsigned int gup_flags = FOLL_LONGTERM;
+ 	unsigned long first, last;
+-	int err, rw = 0;
+-	unsigned int flags = FOLL_FORCE;
++	int err;
  
- 	/* Paired with a memory barrier in page_try_share_anon_rmap(). */
- 	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP))
---- a/mm/gup.c~mm-gup-reliable-r-o-long-term-pinning-in-cow-mappings
-+++ a/mm/gup.c
-@@ -578,7 +578,7 @@ static struct page *follow_page_pte(stru
- 		}
- 	}
+ 	dma->direction = direction;
+ 	switch (dma->direction) {
+ 	case DMA_FROM_DEVICE:
+-		rw = READ;
++		gup_flags |= FOLL_WRITE;
+ 		break;
+ 	case DMA_TO_DEVICE:
+-		rw = WRITE;
+ 		break;
+ 	default:
+ 		BUG();
+@@ -177,14 +176,11 @@ static int videobuf_dma_init_user_locked
+ 	if (NULL == dma->pages)
+ 		return -ENOMEM;
  
--	if (!pte_write(pte) && gup_must_unshare(flags, page)) {
-+	if (!pte_write(pte) && gup_must_unshare(vma, flags, page)) {
- 		page = ERR_PTR(-EMLINK);
- 		goto out;
- 	}
-@@ -2306,7 +2306,7 @@ static int gup_pte_range(pmd_t pmd, pmd_
- 			goto pte_unmap;
- 		}
+-	if (rw == READ)
+-		flags |= FOLL_WRITE;
+-
+ 	dprintk(1, "init user [0x%lx+0x%lx => %lu pages]\n",
+ 		data, size, dma->nr_pages);
  
--		if (!pte_write(pte) && gup_must_unshare(flags, page)) {
-+		if (!pte_write(pte) && gup_must_unshare(NULL, flags, page)) {
- 			gup_put_folio(folio, 1, flags);
- 			goto pte_unmap;
- 		}
-@@ -2474,7 +2474,7 @@ static int gup_hugepte(pte_t *ptep, unsi
- 		return 0;
- 	}
+-	err = pin_user_pages(data & PAGE_MASK, dma->nr_pages,
+-			     flags | FOLL_LONGTERM, dma->pages, NULL);
++	err = pin_user_pages(data & PAGE_MASK, dma->nr_pages, gup_flags,
++			     dma->pages, NULL);
  
--	if (!pte_write(pte) && gup_must_unshare(flags, &folio->page)) {
-+	if (!pte_write(pte) && gup_must_unshare(NULL, flags, &folio->page)) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
- 	}
-@@ -2540,7 +2540,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
- 		return 0;
- 	}
- 
--	if (!pmd_write(orig) && gup_must_unshare(flags, &folio->page)) {
-+	if (!pmd_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
- 	}
-@@ -2580,7 +2580,7 @@ static int gup_huge_pud(pud_t orig, pud_
- 		return 0;
- 	}
- 
--	if (!pud_write(orig) && gup_must_unshare(flags, &folio->page)) {
-+	if (!pud_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
- 	}
---- a/mm/huge_memory.c~mm-gup-reliable-r-o-long-term-pinning-in-cow-mappings
-+++ a/mm/huge_memory.c
-@@ -1434,7 +1434,7 @@ struct page *follow_trans_huge_pmd(struc
- 	if (pmd_protnone(*pmd) && !gup_can_follow_protnone(flags))
- 		return NULL;
- 
--	if (!pmd_write(*pmd) && gup_must_unshare(flags, page))
-+	if (!pmd_write(*pmd) && gup_must_unshare(vma, flags, page))
- 		return ERR_PTR(-EMLINK);
- 
- 	VM_BUG_ON_PAGE((flags & FOLL_PIN) && PageAnon(page) &&
---- a/mm/hugetlb.c~mm-gup-reliable-r-o-long-term-pinning-in-cow-mappings
-+++ a/mm/hugetlb.c
-@@ -6195,7 +6195,8 @@ static void record_subpages_vmas(struct
- 	}
- }
- 
--static inline bool __follow_hugetlb_must_fault(unsigned int flags, pte_t *pte,
-+static inline bool __follow_hugetlb_must_fault(struct vm_area_struct *vma,
-+					       unsigned int flags, pte_t *pte,
- 					       bool *unshare)
- {
- 	pte_t pteval = huge_ptep_get(pte);
-@@ -6207,7 +6208,7 @@ static inline bool __follow_hugetlb_must
- 		return false;
- 	if (flags & FOLL_WRITE)
- 		return true;
--	if (gup_must_unshare(flags, pte_page(pteval))) {
-+	if (gup_must_unshare(vma, flags, pte_page(pteval))) {
- 		*unshare = true;
- 		return true;
- 	}
-@@ -6336,7 +6337,7 @@ long follow_hugetlb_page(struct mm_struc
- 		 * directly from any kind of swap entries.
- 		 */
- 		if (absent ||
--		    __follow_hugetlb_must_fault(flags, pte, &unshare)) {
-+		    __follow_hugetlb_must_fault(vma, flags, pte, &unshare)) {
- 			vm_fault_t ret;
- 			unsigned int fault_flags = 0;
- 
+ 	if (err != dma->nr_pages) {
+ 		dma->nr_pages = (err >= 0) ? err : 0;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
