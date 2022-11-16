@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9D51C4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:45:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF1D2C43217
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:45:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233963AbiKPWpP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Nov 2022 17:45:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60518 "EHLO
+        id S238722AbiKPWpQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Nov 2022 17:45:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238722AbiKPWoW (ORCPT
+        with ESMTP id S238704AbiKPWoW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Nov 2022 17:44:22 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5119389B
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:44:21 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26576626B
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:44:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8C8C3B81EE6
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:44:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30500C433D6;
-        Wed, 16 Nov 2022 22:44:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B75EF62003
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:44:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AA42C433C1;
+        Wed, 16 Nov 2022 22:44:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668638659;
-        bh=GDm9VBKCBqf4+nQEW230gChmSc46bC7vJiVozX46m/k=;
+        s=korg; t=1668638661;
+        bh=4eJ3h10AkW4zLMdVicMkZlGxLSFXzmHLYE48um5q2zk=;
         h=Date:To:From:Subject:From;
-        b=fGjKYBRzr0Kke68Oc0iUQIbTTjOWuKzFSIZjeJxe1aPjlgne9MKt/6LjYjfUGqz7x
-         lnyxudsGJUIXNGsAaBMRheQWLNFSXz+8FkfRMq+aV9TOPCvPFj0CU/jJmX7x5LHyub
-         tXfBSQ+wNdZdT/4vzN4Cn7GR/daH42LGJNkgaV18=
-Date:   Wed, 16 Nov 2022 14:44:18 -0800
-To:     mm-commits@vger.kernel.org, sw0312.kim@samsung.com,
-        kyungmin.park@samsung.com, krzysztof.kozlowski@linaro.org,
-        inki.dae@samsung.com, daniel.vetter@ffwll.ch, airlied@gmail.com,
-        david@redhat.com, akpm@linux-foundation.org
+        b=a3WNuTJYgPZfJgD1usjcb9j/M6jUlfHUZ6u8wu59rGA6gkEC3gW2PA3or1Ce1Q/RN
+         FYIiOG4CVmEBCfhzitzjAlx1FAssg1IqsOn/zLpcHcH9o5IJxvt7D5z3U7qivf38wa
+         nXulvnxyQ6E1AebARDeZ3WBwxU1ni85H96RsfLN8=
+Date:   Wed, 16 Nov 2022 14:44:20 -0800
+To:     mm-commits@vger.kernel.org, leon@kernel.org, jgg@ziepe.ca,
+        dennis.dalessandro@cornelisnetworks.com, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-exynos-remove-foll_force-usage.patch added to mm-unstable branch
-Message-Id: <20221116224419.30500C433D6@smtp.kernel.org>
+Subject: + rdma-hw-qib-qib_user_pages-remove-foll_force-usage.patch added to mm-unstable branch
+Message-Id: <20221116224421.1AA42C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/exynos: remove FOLL_FORCE usage
+     Subject: RDMA/hw/qib/qib_user_pages: remove FOLL_FORCE usage
 has been added to the -mm mm-unstable branch.  Its filename is
-     drm-exynos-remove-foll_force-usage.patch
+     rdma-hw-qib-qib_user_pages-remove-foll_force-usage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-exynos-remove-foll_force-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rdma-hw-qib-qib_user_pages-remove-foll_force-usage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,8 +66,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: drm/exynos: remove FOLL_FORCE usage
-Date: Wed, 16 Nov 2022 11:26:56 +0100
+Subject: RDMA/hw/qib/qib_user_pages: remove FOLL_FORCE usage
+Date: Wed, 16 Nov 2022 11:26:57 +0100
 
 FOLL_FORCE is really only for ptrace access. As we unpin the pinned pages
 using unpin_user_pages_dirty_lock(true), the assumption is that all these
@@ -77,31 +76,28 @@ pages are writable.
 FOLL_FORCE in this case seems to be a legacy leftover. Let's just remove
 it.
 
-Link: https://lkml.kernel.org/r/20221116102659.70287-18-david@redhat.com
+Link: https://lkml.kernel.org/r/20221116102659.70287-19-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Inki Dae <inki.dae@samsung.com>
-Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/exynos/exynos_drm_g2d.c |    2 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c~drm-exynos-remove-foll_force-usage
-+++ a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-@@ -477,7 +477,7 @@ static dma_addr_t *g2d_userptr_get_dma_a
- 	}
- 
- 	ret = pin_user_pages_fast(start, npages,
--				  FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM,
-+				  FOLL_WRITE | FOLL_LONGTERM,
- 				  g2d_userptr->pages);
- 	if (ret != npages) {
- 		DRM_DEV_ERROR(g2d->dev,
+--- a/drivers/infiniband/hw/qib/qib_user_pages.c~rdma-hw-qib-qib_user_pages-remove-foll_force-usage
++++ a/drivers/infiniband/hw/qib/qib_user_pages.c
+@@ -110,7 +110,7 @@ int qib_get_user_pages(unsigned long sta
+ 	for (got = 0; got < num_pages; got += ret) {
+ 		ret = pin_user_pages(start_page + got * PAGE_SIZE,
+ 				     num_pages - got,
+-				     FOLL_LONGTERM | FOLL_WRITE | FOLL_FORCE,
++				     FOLL_LONGTERM | FOLL_WRITE,
+ 				     p + got, NULL);
+ 		if (ret < 0) {
+ 			mmap_read_unlock(current->mm);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
