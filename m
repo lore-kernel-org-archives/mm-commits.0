@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93E6AC433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:44:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6657FC4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Nov 2022 22:44:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234622AbiKPWol (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Nov 2022 17:44:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60420 "EHLO
+        id S234461AbiKPWom (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Nov 2022 17:44:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234461AbiKPWoS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Nov 2022 17:44:18 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BD676C71B
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:43:54 -0800 (PST)
+        with ESMTP id S234495AbiKPWoT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Nov 2022 17:44:19 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2589FBE07
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 14:43:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D70D361FF6
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:43:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36D9EC433D6;
-        Wed, 16 Nov 2022 22:43:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 79FEEB81EE6
+        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 22:43:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DE81C433C1;
+        Wed, 16 Nov 2022 22:43:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668638633;
-        bh=sqsONy2JbZwsHJbX+eRdn90igsUVxb6aU25CHuXUIcI=;
+        s=korg; t=1668638635;
+        bh=DmycEtI8pUxtIod+VdeKlBAfeMPa3rNYEQ7cF40gHnY=;
         h=Date:To:From:Subject:From;
-        b=RWKWKMaGHWiXa97IRpuzTBjj2/QnoAUrMgSi53AiU01xc4jFxDAiwhsZ5cykW605d
-         uX1ZpSkP9cjhwu8pswdaAuelnPu3H8X5zfQp5zr/kjsdxJDKZ+NvvAV3NM6DMO0sO8
-         P9ZnjLATC8Fk/c2vs/M4T/BG5M96/PFaiZ5MxgXM=
-Date:   Wed, 16 Nov 2022 14:43:52 -0800
+        b=y0Hrs+CXBfMAQ1TgUOkIleoec1VAuiU0UgmyYdjWpXd1JLx0A0OzvmSnzASrKDisb
+         0Pgawc2ca49jCTJ/ExSXlu2mh5+u0QH49noSClJAKFTHpk5OE0DT3aEX68Txk8CFbo
+         YJCKdefHyt9WNoFMK6ooYOFWUPTXdCVDWsDRENPc=
+Date:   Wed, 16 Nov 2022 14:43:54 -0800
 To:     mm-commits@vger.kernel.org, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-early-fault_flag_write-consistency-checks.patch added to mm-unstable branch
-Message-Id: <20221116224353.36D9EC433D6@smtp.kernel.org>
+Subject: + mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings.patch added to mm-unstable branch
+Message-Id: <20221116224355.2DE81C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add early FAULT_FLAG_WRITE consistency checks
+     Subject: mm: rework handling in do_wp_page() based on private vs. shared mappings
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-early-fault_flag_write-consistency-checks.patch
+     mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-early-fault_flag_write-consistency-checks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,49 +65,107 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: add early FAULT_FLAG_WRITE consistency checks
-Date: Wed, 16 Nov 2022 11:26:44 +0100
+Subject: mm: rework handling in do_wp_page() based on private vs. shared mappings
+Date: Wed, 16 Nov 2022 11:26:45 +0100
 
-Let's catch abuse of FAULT_FLAG_WRITE early, such that we don't have to
-care in all other handlers and might get "surprises" if we forget to do
-so.
+We want to extent FAULT_FLAG_UNSHARE support to anything mapped into a
+COW mapping (pagecache page, zeropage, PFN, ...), not just anonymous pages.
+Let's prepare for that by handling shared mappings first such that we can
+handle private mappings last.
 
-Write faults without VM_MAYWRITE don't make any sense, and our
-maybe_mkwrite() logic could have hidden such abuse for now.
+While at it, use folio-based functions instead of page-based functions
+where we touch the code either way.
 
-Write faults without VM_WRITE on something that is not a COW mapping is
-similarly broken, and e.g., do_wp_page() could end up placing an
-anonymous page into a shared mapping, which would be bad.
-
-This is a preparation for reliable R/O long-term pinning of pages in
-private mappings, whereby we want to make sure that we will never break
-COW in a read-only private mapping.
-
-Link: https://lkml.kernel.org/r/20221116102659.70287-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20221116102659.70287-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/memory.c |   38 +++++++++++++++++---------------------
+ 1 file changed, 17 insertions(+), 21 deletions(-)
 
---- a/mm/memory.c~mm-add-early-fault_flag_write-consistency-checks
+--- a/mm/memory.c~mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings
 +++ a/mm/memory.c
-@@ -5170,6 +5170,14 @@ static vm_fault_t sanitize_fault_flags(s
- 		 */
- 		if (!is_cow_mapping(vma->vm_flags))
- 			*flags &= ~FAULT_FLAG_UNSHARE;
-+	} else if (*flags & FAULT_FLAG_WRITE) {
-+		/* Write faults on read-only mappings are impossible ... */
-+		if (WARN_ON_ONCE(!(vma->vm_flags & VM_MAYWRITE)))
-+			return VM_FAULT_SIGSEGV;
-+		/* ... and FOLL_FORCE only applies to COW mappings. */
-+		if (WARN_ON_ONCE(!(vma->vm_flags & VM_WRITE) &&
-+				 !is_cow_mapping(vma->vm_flags)))
-+			return VM_FAULT_SIGSEGV;
+@@ -3342,7 +3342,7 @@ static vm_fault_t do_wp_page(struct vm_f
+ {
+ 	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct folio *folio;
++	struct folio *folio = NULL;
+ 
+ 	if (likely(!unshare)) {
+ 		if (userfaultfd_pte_wp(vma, *vmf->pte)) {
+@@ -3360,13 +3360,12 @@ static vm_fault_t do_wp_page(struct vm_f
  	}
- 	return 0;
- }
+ 
+ 	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
+-	if (!vmf->page) {
+-		if (unlikely(unshare)) {
+-			/* No anonymous page -> nothing to do. */
+-			pte_unmap_unlock(vmf->pte, vmf->ptl);
+-			return 0;
+-		}
+ 
++	/*
++	 * Shared mapping: we are guaranteed to have VM_WRITE and
++	 * FAULT_FLAG_WRITE set at this point.
++	 */
++	if (vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
+ 		/*
+ 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
+ 		 * VM_PFNMAP VMA.
+@@ -3374,20 +3373,19 @@ static vm_fault_t do_wp_page(struct vm_f
+ 		 * We should not cow pages in a shared writeable mapping.
+ 		 * Just mark the pages writable and/or call ops->pfn_mkwrite.
+ 		 */
+-		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+-				     (VM_WRITE|VM_SHARED))
++		if (!vmf->page)
+ 			return wp_pfn_shared(vmf);
+-
+-		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		return wp_page_copy(vmf);
++		return wp_page_shared(vmf);
+ 	}
+ 
++	if (vmf->page)
++		folio = page_folio(vmf->page);
++
+ 	/*
+-	 * Take out anonymous pages first, anonymous shared vmas are
+-	 * not dirty accountable.
++	 * Private mapping: create an exclusive anonymous page copy if reuse
++	 * is impossible. We might miss VM_WRITE for FOLL_FORCE handling.
+ 	 */
+-	folio = page_folio(vmf->page);
+-	if (folio_test_anon(folio)) {
++	if (folio && folio_test_anon(folio)) {
+ 		/*
+ 		 * If the page is exclusive to this process we must reuse the
+ 		 * page without further checks.
+@@ -3438,19 +3436,17 @@ reuse:
+ 		/* No anonymous page -> nothing to do. */
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 		return 0;
+-	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+-					(VM_WRITE|VM_SHARED))) {
+-		return wp_page_shared(vmf);
+ 	}
+ copy:
+ 	/*
+ 	 * Ok, we need to copy. Oh, well..
+ 	 */
+-	get_page(vmf->page);
++	if (folio)
++		folio_get(folio);
+ 
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ #ifdef CONFIG_KSM
+-	if (PageKsm(vmf->page))
++	if (folio && folio_test_ksm(folio))
+ 		count_vm_event(COW_KSM);
+ #endif
+ 	return wp_page_copy(vmf);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
