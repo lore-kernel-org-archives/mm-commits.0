@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDE6EC43219
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Nov 2022 21:25:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EFF6C4332F
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Nov 2022 21:25:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240749AbiKQVZo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Nov 2022 16:25:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45072 "EHLO
+        id S240804AbiKQVZp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Nov 2022 16:25:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240880AbiKQVZW (ORCPT
+        with ESMTP id S240881AbiKQVZW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2022 16:25:22 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 491EB22B3B
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 13:23:57 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 294DE248C5
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 13:24:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D8E2562277
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 21:23:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FE06C433D6;
-        Thu, 17 Nov 2022 21:23:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9340362278
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 21:24:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBA66C433D6;
+        Thu, 17 Nov 2022 21:23:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668720236;
-        bh=ozH2o3BY7KsmnI9lXOe7NjTUj9o/J4OpsZDKM2zXtIA=;
+        s=korg; t=1668720240;
+        bh=JezG4S1Kyvx59ZHusUUN82xJ5/VvWVRiid8s9hbpH9Y=;
         h=Date:To:From:Subject:From;
-        b=jHaal7+us9DCUtPro7i3jz/t3fva+hzLFUIKucg7/H6sLH/YifKiHJGM/mBtIGbnu
-         uWveKh3WLEM89ID/LNKHJG1kXLm1GQfL7b/RcbsgljI+0B623pli0/IQz/pvEXeYwR
-         43COcRyHJHDdUKK9LP9yLKpnspjCKlO06FsV9p2w=
-Date:   Thu, 17 Nov 2022 13:23:55 -0800
+        b=NfSRlsUQnf4rJhgZRn+qgCqr9IUC38poIMl5qerUwaD+MaTbFHOwPaWr7Mz5oKUlO
+         0M7x/HKlhllIawt3RbSpDi/1fSuU9WRnFLNV2TXK0f8ZBA9jcpKn9SqR9V6IjYqrMG
+         xV5LgLcZdeaHbeqJmy8EopDH3N4eif8pv8pbQkqs=
+Date:   Thu, 17 Nov 2022 13:23:59 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         songmuchun@bytedance.com, mike.kravetz@oracle.com,
         linmiaohe@huawei.com, hughd@google.com, almasrymina@google.com,
         sidhartha.kumar@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-add_hugetlb_page-to-folios-and-add-hugetlb_cma_folio.patch added to mm-unstable branch
-Message-Id: <20221117212356.2FE06C433D6@smtp.kernel.org>
+Subject: + mm-hugetlb-convert-free_gigantic_page-to-folios.patch added to mm-unstable branch
+Message-Id: <20221117212359.EBA66C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: convert add_hugetlb_page() to folios and add hugetlb_cma_folio()
+     Subject: mm/hugetlb: convert free_gigantic_page() to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-add_hugetlb_page-to-folios-and-add-hugetlb_cma_folio.patch
+     mm-hugetlb-convert-free_gigantic_page-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-add_hugetlb_page-to-folios-and-add-hugetlb_cma_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-free_gigantic_page-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: convert add_hugetlb_page() to folios and add hugetlb_cma_folio()
-Date: Thu, 17 Nov 2022 13:14:57 -0800
+Subject: mm/hugetlb: convert free_gigantic_page() to folios
+Date: Thu, 17 Nov 2022 13:14:59 -0800
 
-Convert add_hugetlb_page() to take in a folio, also convert
-hugetlb_cma_page() to take in a folio.
+Convert callers of free_gigantic_page() to use folios, function is then
+renamed to free_gigantic_folio().
 
-Link: https://lkml.kernel.org/r/20221117211501.17150-7-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20221117211501.17150-9-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -84,126 +84,129 @@ Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ mm/hugetlb.c |   29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-convert-add_hugetlb_page-to-folios-and-add-hugetlb_cma_folio
+--- a/mm/hugetlb.c~mm-hugetlb-convert-free_gigantic_page-to-folios
 +++ a/mm/hugetlb.c
-@@ -54,13 +54,13 @@ struct hstate hstates[HUGE_MAX_HSTATE];
+@@ -1361,18 +1361,20 @@ static void destroy_compound_gigantic_fo
+ 	__destroy_compound_gigantic_folio(folio, order, false);
+ }
+ 
+-static void free_gigantic_page(struct page *page, unsigned int order)
++static void free_gigantic_folio(struct folio *folio, unsigned int order)
+ {
+ 	/*
+ 	 * If the page isn't allocated using the cma allocator,
+ 	 * cma_release() returns false.
+ 	 */
  #ifdef CONFIG_CMA
- static struct cma *hugetlb_cma[MAX_NUMNODES];
- static unsigned long hugetlb_cma_size_in_node[MAX_NUMNODES] __initdata;
--static bool hugetlb_cma_page(struct page *page, unsigned int order)
-+static bool hugetlb_cma_folio(struct folio *folio, unsigned int order)
- {
--	return cma_pages_valid(hugetlb_cma[page_to_nid(page)], page,
-+	return cma_pages_valid(hugetlb_cma[folio_nid(folio)], &folio->page,
- 				1 << order);
- }
- #else
--static bool hugetlb_cma_page(struct page *page, unsigned int order)
-+static bool hugetlb_cma_folio(struct folio *folio, unsigned int order)
- {
- 	return false;
- }
-@@ -1506,17 +1506,17 @@ static void remove_hugetlb_folio_for_dem
- 	__remove_hugetlb_folio(h, folio, adjust_surplus, true);
- }
- 
--static void add_hugetlb_page(struct hstate *h, struct page *page,
-+static void add_hugetlb_folio(struct hstate *h, struct folio *folio,
- 			     bool adjust_surplus)
- {
- 	int zeroed;
--	int nid = page_to_nid(page);
+-	if (cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order))
 +	int nid = folio_nid(folio);
++
++	if (cma_release(hugetlb_cma[nid], &folio->page, 1 << order))
+ 		return;
+ #endif
  
--	VM_BUG_ON_PAGE(!HPageVmemmapOptimized(page), page);
-+	VM_BUG_ON_FOLIO(!folio_test_hugetlb_vmemmap_optimized(folio), folio);
+-	free_contig_range(page_to_pfn(page), 1 << order);
++	free_contig_range(folio_pfn(folio), 1 << order);
+ }
  
- 	lockdep_assert_held(&hugetlb_lock);
- 
--	INIT_LIST_HEAD(&page->lru);
-+	INIT_LIST_HEAD(&folio->lru);
- 	h->nr_huge_pages++;
- 	h->nr_huge_pages_node[nid]++;
- 
-@@ -1525,21 +1525,21 @@ static void add_hugetlb_page(struct hsta
- 		h->surplus_huge_pages_node[nid]++;
- 	}
- 
--	set_compound_page_dtor(page, HUGETLB_PAGE_DTOR);
--	set_page_private(page, 0);
-+	folio_set_compound_dtor(folio, HUGETLB_PAGE_DTOR);
-+	folio_change_private(folio, 0);
- 	/*
- 	 * We have to set HPageVmemmapOptimized again as above
--	 * set_page_private(page, 0) cleared it.
-+	 * folio_change_private(folio, 0) cleared it.
+ #ifdef CONFIG_CONTIG_ALLOC
+@@ -1426,7 +1428,8 @@ static struct page *alloc_gigantic_page(
+ {
+ 	return NULL;
+ }
+-static inline void free_gigantic_page(struct page *page, unsigned int order) { }
++static inline void free_gigantic_folio(struct folio *folio,
++						unsigned int order) { }
+ static inline void destroy_compound_gigantic_folio(struct folio *folio,
+ 						unsigned int order) { }
+ #endif
+@@ -1565,7 +1568,7 @@ static void __update_and_free_page(struc
+ 	 * If we don't know which subpages are hwpoisoned, we can't free
+ 	 * the hugepage, so it's leaked intentionally.
  	 */
--	SetHPageVmemmapOptimized(page);
-+	folio_set_hugetlb_vmemmap_optimized(folio);
- 
- 	/*
--	 * This page is about to be managed by the hugetlb allocator and
-+	 * This folio is about to be managed by the hugetlb allocator and
- 	 * should have no users.  Drop our reference, and check for others
- 	 * just in case.
- 	 */
--	zeroed = put_page_testzero(page);
--	if (!zeroed)
-+	zeroed = folio_put_testzero(folio);
-+	if (unlikely(!zeroed))
- 		/*
- 		 * It is VERY unlikely soneone else has taken a ref on
- 		 * the page.  In this case, we simply return as the
-@@ -1548,8 +1548,8 @@ static void add_hugetlb_page(struct hsta
- 		 */
+-	if (HPageRawHwpUnreliable(page))
++	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
  		return;
  
--	arch_clear_hugepage_flags(page);
--	enqueue_huge_page(h, page);
-+	arch_clear_hugepage_flags(&folio->page);
-+	enqueue_huge_page(h, &folio->page);
- }
- 
- static void __update_and_free_page(struct hstate *h, struct page *page)
-@@ -1575,7 +1575,7 @@ static void __update_and_free_page(struc
+ 	if (hugetlb_vmemmap_restore(h, page)) {
+@@ -1575,7 +1578,7 @@ static void __update_and_free_page(struc
  		 * page and put the page back on the hugetlb free list and treat
  		 * as a surplus page.
  		 */
--		add_hugetlb_page(h, page, true);
-+		add_hugetlb_folio(h, page_folio(page), true);
+-		add_hugetlb_folio(h, page_folio(page), true);
++		add_hugetlb_folio(h, folio, true);
  		spin_unlock_irq(&hugetlb_lock);
  		return;
  	}
-@@ -1600,7 +1600,7 @@ static void __update_and_free_page(struc
- 	 * need to be given back to CMA in free_gigantic_page.
+@@ -1588,7 +1591,7 @@ static void __update_and_free_page(struc
+ 		hugetlb_clear_page_hwpoison(&folio->page);
+ 
+ 	for (i = 0; i < pages_per_huge_page(h); i++) {
+-		subpage = nth_page(page, i);
++		subpage = folio_page(folio, i);
+ 		subpage->flags &= ~(1 << PG_locked | 1 << PG_error |
+ 				1 << PG_referenced | 1 << PG_dirty |
+ 				1 << PG_active | 1 << PG_private |
+@@ -1597,12 +1600,12 @@ static void __update_and_free_page(struc
+ 
+ 	/*
+ 	 * Non-gigantic pages demoted from CMA allocated gigantic pages
+-	 * need to be given back to CMA in free_gigantic_page.
++	 * need to be given back to CMA in free_gigantic_folio.
  	 */
  	if (hstate_is_gigantic(h) ||
--	    hugetlb_cma_page(page, huge_page_order(h))) {
-+	    hugetlb_cma_folio(folio, huge_page_order(h))) {
+ 	    hugetlb_cma_folio(folio, huge_page_order(h))) {
  		destroy_compound_gigantic_folio(folio, huge_page_order(h));
- 		free_gigantic_page(page, huge_page_order(h));
+-		free_gigantic_page(page, huge_page_order(h));
++		free_gigantic_folio(folio, huge_page_order(h));
  	} else {
-@@ -2184,7 +2184,7 @@ retry:
- 			update_and_free_hugetlb_folio(h, folio, false);
- 		} else {
- 			spin_lock_irq(&hugetlb_lock);
--			add_hugetlb_page(h, &folio->page, false);
-+			add_hugetlb_folio(h, folio, false);
- 			h->max_huge_pages++;
- 			spin_unlock_irq(&hugetlb_lock);
- 		}
-@@ -3451,7 +3451,7 @@ static int demote_free_huge_page(struct
- 		/* Allocation of vmemmmap failed, we can not demote page */
- 		spin_lock_irq(&hugetlb_lock);
- 		set_page_refcounted(page);
--		add_hugetlb_page(h, page, false);
-+		add_hugetlb_folio(h, page_folio(page), false);
- 		return rc;
+ 		__free_pages(page, huge_page_order(h));
  	}
+@@ -2023,6 +2026,7 @@ static struct page *alloc_fresh_huge_pag
+ 		nodemask_t *node_alloc_noretry)
+ {
+ 	struct page *page;
++	struct folio *folio;
+ 	bool retry = false;
  
+ retry:
+@@ -2033,14 +2037,14 @@ retry:
+ 				nid, nmask, node_alloc_noretry);
+ 	if (!page)
+ 		return NULL;
+-
++	folio = page_folio(page);
+ 	if (hstate_is_gigantic(h)) {
+ 		if (!prep_compound_gigantic_page(page, huge_page_order(h))) {
+ 			/*
+ 			 * Rare failure to convert pages to compound page.
+ 			 * Free pages and try again - ONCE!
+ 			 */
+-			free_gigantic_page(page, huge_page_order(h));
++			free_gigantic_folio(folio, huge_page_order(h));
+ 			if (!retry) {
+ 				retry = true;
+ 				goto retry;
+@@ -3048,6 +3052,7 @@ static void __init gather_bootmem_preall
+ 
+ 	list_for_each_entry(m, &huge_boot_pages, list) {
+ 		struct page *page = virt_to_page(m);
++		struct folio *folio = page_folio(page);
+ 		struct hstate *h = m->hstate;
+ 
+ 		VM_BUG_ON(!hstate_is_gigantic(h));
+@@ -3058,7 +3063,7 @@ static void __init gather_bootmem_preall
+ 			free_huge_page(page); /* add to the hugepage allocator */
+ 		} else {
+ 			/* VERY unlikely inflated ref count on a tail page */
+-			free_gigantic_page(page, huge_page_order(h));
++			free_gigantic_folio(folio, huge_page_order(h));
+ 		}
+ 
+ 		/*
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
