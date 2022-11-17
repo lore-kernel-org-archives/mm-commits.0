@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9B78C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Nov 2022 00:17:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E961C4332F
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Nov 2022 19:58:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230287AbiKQARn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Nov 2022 19:17:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52712 "EHLO
+        id S234747AbiKQT6u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Nov 2022 14:58:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234101AbiKQARk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Nov 2022 19:17:40 -0500
+        with ESMTP id S234246AbiKQT6t (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2022 14:58:49 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 243C63207D
-        for <mm-commits@vger.kernel.org>; Wed, 16 Nov 2022 16:17:40 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53230391EE
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 11:58:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CA12EB81F6A
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 00:17:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A794C433D6;
-        Thu, 17 Nov 2022 00:17:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 08FB0B821DD
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 19:58:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEE36C433C1;
+        Thu, 17 Nov 2022 19:58:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668644257;
-        bh=shEbUUCM3BwSMU0YKLrM+hW/qUnXDm2575tTU8x1PZc=;
+        s=korg; t=1668715125;
+        bh=LRH3GCOEgFNt7gubaehnz9Jt1aPcmTNIGzJJse7NyUQ=;
         h=Date:To:From:Subject:From;
-        b=tF+ug2slAomLC+RJntscMG9a7qsyQ+RnxNQndcYpJO8wRGaCS/rpaxmxXguqY0sH6
-         7C6Zp72mMvRsp5yQoRqL0jNc1Esq4ui3IlomEohTQfz4WHJm+saK60gn21vkTc+OGN
-         IWcVrJWo4nAXa4GmO03XfX4CtX+k1KOSrGBM8AVU=
-Date:   Wed, 16 Nov 2022 16:17:36 -0800
-To:     mm-commits@vger.kernel.org, sam@gentoo.org,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=yythKPNCklhyCdmXSO9Xd/nhEDHb4tO8XMTFlw7Olt/Hp3Jb4hR327y0klhJm95jW
+         3RM8+nweiRg47oVQd7yKV7PEkfYFAgOrDYbuV17oz+lLd5l8AAb6khcHUZwMb1UOR7
+         qMMulDzkcOCeh+Rsr+0N84ev2Wctux5RDhqXfjms=
+Date:   Thu, 17 Nov 2022 11:58:45 -0800
+To:     mm-commits@vger.kernel.org, shakeelb@google.com, seanjc@google.com,
+        maz@kernel.org, hannes@cmpxchg.org, david@redhat.com,
+        yosryahmed@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221117001737.7A794C433D6@smtp.kernel.org>
+Subject: + proc-meminfo-fix-spacing-in-secpagetables.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221117195845.AEE36C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix
+     Subject: proc/meminfo: fix spacing in SecPageTables
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix.patch
+     proc-meminfo-fix-spacing-in-secpagetables.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-meminfo-fix-spacing-in-secpagetables.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,43 +65,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix
-Date: Wed Nov 16 03:46:25 PM PST 2022
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: proc/meminfo: fix spacing in SecPageTables
+Date: Thu, 17 Nov 2022 04:32:47 +0000
 
-remember "linux/"
+SecPageTables has a tab after it instead of a space, this can break
+fragile parsers that depend on spaces after the stat names.
 
-Cc: Sam James <sam@gentoo.org>
+Link: https://lkml.kernel.org/r/20221117043247.133294-1-yosryahmed@google.com
+Fixes: ebc97a ("mm: add NR_SECONDARY_PAGETABLE to count secondary page table uses.")
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/license.h |    2 +-
+ fs/proc/meminfo.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/license.h~kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix
-+++ a/include/linux/license.h
-@@ -2,7 +2,7 @@
- #ifndef __LICENSE_H
- #define __LICENSE_H
+--- a/fs/proc/meminfo.c~proc-meminfo-fix-spacing-in-secpagetables
++++ a/fs/proc/meminfo.c
+@@ -115,7 +115,7 @@ static int meminfo_proc_show(struct seq_
+ #endif
+ 	show_val_kb(m, "PageTables:     ",
+ 		    global_node_page_state(NR_PAGETABLE));
+-	show_val_kb(m, "SecPageTables:	",
++	show_val_kb(m, "SecPageTables:  ",
+ 		    global_node_page_state(NR_SECONDARY_PAGETABLE));
  
--#include <string.h>
-+#include <linux/string.h>
- 
- static inline int license_is_gpl_compatible(const char *license)
- {
+ 	show_val_kb(m, "NFS_Unstable:   ", 0);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix.patch
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-gup-remove-foll_migration-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
-mm-use-stack_depot-for-recording-kmemleaks-backtrace-checkpatch-fixes.patch
-mm-use-stack_depot-for-recording-kmemleaks-backtrace-fix.patch
-mm-use-stack_depot-for-recording-kmemleaks-backtrace-v3-fix.patch
-kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
-mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch
-mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix.patch
+proc-meminfo-fix-spacing-in-secpagetables.patch
 
