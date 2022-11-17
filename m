@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3E38C4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Nov 2022 21:25:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4AF7C433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Nov 2022 21:25:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235113AbiKQVZi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Nov 2022 16:25:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44038 "EHLO
+        id S235135AbiKQVZj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Nov 2022 16:25:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240550AbiKQVZV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2022 16:25:21 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11BEEB4A3
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 13:23:51 -0800 (PST)
+        with ESMTP id S240877AbiKQVZU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2022 16:25:20 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A21CD15837
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 13:23:49 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 21CCD62277
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 21:23:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BB90C433D6;
-        Thu, 17 Nov 2022 21:23:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3381C61E76
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 21:23:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DE00C433C1;
+        Thu, 17 Nov 2022 21:23:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668720230;
-        bh=RmibTiHK3MO/h5+lF+gZ0jpXnyRIMSKQXKy6PuBhHhc=;
+        s=korg; t=1668720228;
+        bh=W4b3S1wp/9lAoAC3/2Vk2L5T8GSExgfQLRhIlEQzwcc=;
         h=Date:To:From:Subject:From;
-        b=lHlYkq4XEps08viJ1dpxPuQBaQDgZmjGcsmbg4ieA50527+YoIyvtGMwK/53DSGRI
-         got1mGwp22LC+Qq38+kiGL7S7usBmiYSiFLV6kv1IUT7BOqys3tjZ9uYhknEWUu2wz
-         n1eY7AlKhs7lh9hpQHS2kYq70EeKrpJGgBtHBDtg=
-Date:   Thu, 17 Nov 2022 13:23:50 -0800
+        b=ZYByyuRlq0W7+1TQt8tIpbbTvpFvv0nCPmmuj1Bwv3qsfo52u8cKGUjAcz6He7J9j
+         mtPs5bQTbgfOFMT2Y1iAaOfIK/KSmME2ShNMu6AbSApQSZ0R334T13TFvL6rLSIuKV
+         +e9YZv2lsfd42Js8WUJt97xU+v/dk6LtHXW/ayMk=
+Date:   Thu, 17 Nov 2022 13:23:48 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         songmuchun@bytedance.com, mike.kravetz@oracle.com,
         linmiaohe@huawei.com, hughd@google.com, almasrymina@google.com,
         sidhartha.kumar@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-dissolve_free_huge_page-to-folios.patch added to mm-unstable branch
-Message-Id: <20221117212350.7BB90C433D6@smtp.kernel.org>
+Subject: + mm-hugetlb-convert-destroy_compound_gigantic_page-to-folios.patch added to mm-unstable branch
+Message-Id: <20221117212348.8DE00C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: convert dissolve_free_huge_page() to folios
+     Subject: mm/hugetlb: convert destroy_compound_gigantic_page() to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-dissolve_free_huge_page-to-folios.patch
+     mm-hugetlb-convert-destroy_compound_gigantic_page-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-dissolve_free_huge_page-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-destroy_compound_gigantic_page-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,12 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: convert dissolve_free_huge_page() to folios
-Date: Thu, 17 Nov 2022 13:14:54 -0800
+Subject: mm/hugetlb: convert destroy_compound_gigantic_page() to folios
+Date: Thu, 17 Nov 2022 13:14:53 -0800
 
-Remove compound_head() call by using a folio rather than a head page.
+Convert page operations within __destroy_compound_gigantic_page() to the
+corresponding folio operations.
 
-Link: https://lkml.kernel.org/r/20221117211501.17150-4-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20221117211501.17150-3-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -83,72 +84,135 @@ Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/hugetlb.c |   43 +++++++++++++++++++++----------------------
+ 1 file changed, 21 insertions(+), 22 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-convert-dissolve_free_huge_page-to-folios
+--- a/mm/hugetlb.c~mm-hugetlb-convert-destroy_compound_gigantic_page-to-folios
 +++ a/mm/hugetlb.c
-@@ -2126,21 +2126,21 @@ static struct page *remove_pool_huge_pag
- int dissolve_free_huge_page(struct page *page)
+@@ -1325,43 +1325,40 @@ static int hstate_next_node_to_free(stru
+ 		nr_nodes--)
+ 
+ /* used to demote non-gigantic_huge pages as well */
+-static void __destroy_compound_gigantic_page(struct page *page,
++static void __destroy_compound_gigantic_folio(struct folio *folio,
+ 					unsigned int order, bool demote)
  {
- 	int rc = -EBUSY;
-+	struct folio *folio = page_folio(page);
+ 	int i;
+ 	int nr_pages = 1 << order;
+ 	struct page *p;
  
- retry:
- 	/* Not to disrupt normal path by vainly holding hugetlb_lock */
--	if (!PageHuge(page))
-+	if (!folio_test_hugetlb(folio))
- 		return 0;
+-	atomic_set(compound_mapcount_ptr(page), 0);
+-	atomic_set(subpages_mapcount_ptr(page), 0);
+-	atomic_set(compound_pincount_ptr(page), 0);
++	atomic_set(folio_mapcount_ptr(folio), 0);
++	atomic_set(folio_subpages_mapcount_ptr(folio), 0);
++	atomic_set(folio_pincount_ptr(folio), 0);
  
- 	spin_lock_irq(&hugetlb_lock);
--	if (!PageHuge(page)) {
-+	if (!folio_test_hugetlb(folio)) {
- 		rc = 0;
- 		goto out;
+ 	for (i = 1; i < nr_pages; i++) {
+-		p = nth_page(page, i);
++		p = folio_page(folio, i);
+ 		p->mapping = NULL;
+ 		clear_compound_head(p);
+ 		if (!demote)
+ 			set_page_refcounted(p);
  	}
  
--	if (!page_count(page)) {
--		struct page *head = compound_head(page);
--		struct hstate *h = page_hstate(head);
-+	if (!folio_ref_count(folio)) {
-+		struct hstate *h = folio_hstate(folio);
- 		if (!available_huge_pages(h))
- 			goto out;
+-	set_compound_order(page, 0);
+-#ifdef CONFIG_64BIT
+-	page[1].compound_nr = 0;
+-#endif
+-	__ClearPageHead(page);
++	folio_set_compound_order(folio, 0);
++	folio_clear_head(folio);
+ }
  
-@@ -2148,7 +2148,7 @@ retry:
- 		 * We should make sure that the page is already on the free list
- 		 * when it is dissolved.
- 		 */
--		if (unlikely(!HPageFreed(head))) {
-+		if (unlikely(!folio_test_hugetlb_freed(folio))) {
- 			spin_unlock_irq(&hugetlb_lock);
- 			cond_resched();
+-static void destroy_compound_hugetlb_page_for_demote(struct page *page,
++static void destroy_compound_hugetlb_folio_for_demote(struct folio *folio,
+ 					unsigned int order)
+ {
+-	__destroy_compound_gigantic_page(page, order, true);
++	__destroy_compound_gigantic_folio(folio, order, true);
+ }
  
-@@ -2163,7 +2163,7 @@ retry:
- 			goto retry;
- 		}
+ #ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
+-static void destroy_compound_gigantic_page(struct page *page,
++static void destroy_compound_gigantic_folio(struct folio *folio,
+ 					unsigned int order)
+ {
+-	__destroy_compound_gigantic_page(page, order, false);
++	__destroy_compound_gigantic_folio(folio, order, false);
+ }
  
--		remove_hugetlb_page(h, head, false);
-+		remove_hugetlb_page(h, &folio->page, false);
- 		h->max_huge_pages--;
- 		spin_unlock_irq(&hugetlb_lock);
+ static void free_gigantic_page(struct page *page, unsigned int order)
+@@ -1430,7 +1427,7 @@ static struct page *alloc_gigantic_page(
+ 	return NULL;
+ }
+ static inline void free_gigantic_page(struct page *page, unsigned int order) { }
+-static inline void destroy_compound_gigantic_page(struct page *page,
++static inline void destroy_compound_gigantic_folio(struct folio *folio,
+ 						unsigned int order) { }
+ #endif
  
-@@ -2175,12 +2175,12 @@ retry:
- 		 * Attempt to allocate vmemmmap here so that we can take
- 		 * appropriate action on failure.
- 		 */
--		rc = hugetlb_vmemmap_restore(h, head);
-+		rc = hugetlb_vmemmap_restore(h, &folio->page);
- 		if (!rc) {
--			update_and_free_page(h, head, false);
-+			update_and_free_page(h, &folio->page, false);
- 		} else {
- 			spin_lock_irq(&hugetlb_lock);
--			add_hugetlb_page(h, head, false);
-+			add_hugetlb_page(h, &folio->page, false);
- 			h->max_huge_pages++;
- 			spin_unlock_irq(&hugetlb_lock);
- 		}
+@@ -1477,8 +1474,8 @@ static void __remove_hugetlb_page(struct
+ 	 *
+ 	 * For gigantic pages set the destructor to the null dtor.  This
+ 	 * destructor will never be called.  Before freeing the gigantic
+-	 * page destroy_compound_gigantic_page will turn the compound page
+-	 * into a simple group of pages.  After this the destructor does not
++	 * page destroy_compound_gigantic_folio will turn the folio into a
++	 * simple group of pages.  After this the destructor does not
+ 	 * apply.
+ 	 *
+ 	 * This handles the case where more than one ref is held when and
+@@ -1559,6 +1556,7 @@ static void add_hugetlb_page(struct hsta
+ static void __update_and_free_page(struct hstate *h, struct page *page)
+ {
+ 	int i;
++	struct folio *folio = page_folio(page);
+ 	struct page *subpage;
+ 
+ 	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+@@ -1587,8 +1585,8 @@ static void __update_and_free_page(struc
+ 	 * Move PageHWPoison flag from head page to the raw error pages,
+ 	 * which makes any healthy subpages reusable.
+ 	 */
+-	if (unlikely(PageHWPoison(page)))
+-		hugetlb_clear_page_hwpoison(page);
++	if (unlikely(folio_test_hwpoison(folio)))
++		hugetlb_clear_page_hwpoison(&folio->page);
+ 
+ 	for (i = 0; i < pages_per_huge_page(h); i++) {
+ 		subpage = nth_page(page, i);
+@@ -1604,7 +1602,7 @@ static void __update_and_free_page(struc
+ 	 */
+ 	if (hstate_is_gigantic(h) ||
+ 	    hugetlb_cma_page(page, huge_page_order(h))) {
+-		destroy_compound_gigantic_page(page, huge_page_order(h));
++		destroy_compound_gigantic_folio(folio, huge_page_order(h));
+ 		free_gigantic_page(page, huge_page_order(h));
+ 	} else {
+ 		__free_pages(page, huge_page_order(h));
+@@ -3435,6 +3433,7 @@ static int demote_free_huge_page(struct
+ {
+ 	int i, nid = page_to_nid(page);
+ 	struct hstate *target_hstate;
++	struct folio *folio = page_folio(page);
+ 	struct page *subpage;
+ 	int rc = 0;
+ 
+@@ -3453,10 +3452,10 @@ static int demote_free_huge_page(struct
+ 	}
+ 
+ 	/*
+-	 * Use destroy_compound_hugetlb_page_for_demote for all huge page
++	 * Use destroy_compound_hugetlb_folio_for_demote for all huge page
+ 	 * sizes as it will not ref count pages.
+ 	 */
+-	destroy_compound_hugetlb_page_for_demote(page, huge_page_order(h));
++	destroy_compound_hugetlb_folio_for_demote(folio, huge_page_order(h));
+ 
+ 	/*
+ 	 * Taking target hstate mutex synchronizes with set_max_huge_pages.
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
