@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D961C4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Nov 2022 22:07:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05C4BC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Nov 2022 01:10:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234954AbiKQWHc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Nov 2022 17:07:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43140 "EHLO
+        id S240254AbiKRBKI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Nov 2022 20:10:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241388AbiKQWHO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2022 17:07:14 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D359173B94
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 14:07:05 -0800 (PST)
+        with ESMTP id S234930AbiKRBKH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2022 20:10:07 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE11463CF4
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 17:10:05 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7003A62251
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2022 22:07:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB663C433D6;
-        Thu, 17 Nov 2022 22:07:04 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E5799B8221F
+        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2022 01:10:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4AFDC433C1;
+        Fri, 18 Nov 2022 01:10:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668722824;
-        bh=KzvFtj7p1ik2Xi2WTZhHmbv1RYSuUXpXGeVMbpTDi8g=;
+        s=korg; t=1668733802;
+        bh=dHkfhdMI/XZ15OALQO7EiLWoWyjbfrqI/tjWwNiswE8=;
         h=Date:To:From:Subject:From;
-        b=bQqprvfma+vM7eJtxZhyrj1HrTNlGu3UOq3kzTMmtY3NWyJqwv7daqcId074bDXql
-         6AhEPXDG1u0k9xobia6mpH850hqlJ8T27B5+obYcqGQICkyfXIpX9LIFXd6iU5h3sr
-         J6dr/pS/3ZPxyiLq516kGXRL06roiKrX7vgcwgsc=
-Date:   Thu, 17 Nov 2022 14:07:04 -0800
-To:     mm-commits@vger.kernel.org, jsavitz@redhat.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=lk7S5eAf6DwVz1iQZcS5/MTIhKp2HH9xmPYgZql7tcEDHBqLo6d0O7aoeOQRbOcCb
+         BRM4EehoJUsq7bnxi5VQoahfnUEY/9P2S15u0Pi26qsbEgpfTcAuTnYTHPpCmCA9JH
+         b4WfWXOfOMKePHR/cUgm5ndBxkBfv3LLWtHXrZcE=
+Date:   Thu, 17 Nov 2022 17:10:02 -0800
+To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-use-memfd-for-hugepage-mmap-test.patch added to mm-unstable branch
-Message-Id: <20221117220704.CB663C433D6@smtp.kernel.org>
+Subject: + docs-abi-zram-document-zram-recompress-sysfs-knobs.patch added to mm-unstable branch
+Message-Id: <20221118011002.A4AFDC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: use memfd for hugepage-mmap test
+     Subject: Docs/ABI/zram: document zram recompress sysfs knobs
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-use-memfd-for-hugepage-mmap-test.patch
+     docs-abi-zram-document-zram-recompress-sysfs-knobs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-use-memfd-for-hugepage-mmap-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-zram-document-zram-recompress-sysfs-knobs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,77 +64,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: selftests/vm: use memfd for hugepage-mmap test
-Date: Thu, 17 Nov 2022 16:29:15 -0500
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: Docs/ABI/zram: document zram recompress sysfs knobs
+Date: Tue, 15 Nov 2022 11:03:14 +0900
 
-This test was overlooked with a hard-coded mntpoint path in test when
-we're removing the hugetlb mntpoint in commit 0796c7b8be84.  Fix it up so
-the test can keep running.
+Document zram re-compression sysfs knobs.
 
-Link: https://lkml.kernel.org/r/Y3aojfUC2nSwbCzB@x1n
-Fixes: 0796c7b8be84 ("selftests/vm: drop mnt point for hugetlb in run_vmtests.sh")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Joel Savitz <jsavitz@redhat.com>
+Link: https://lkml.kernel.org/r/20221115020314.386235-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hugepage-mmap.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ Documentation/ABI/testing/sysfs-block-zram |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/tools/testing/selftests/vm/hugepage-mmap.c~selftests-vm-use-memfd-for-hugepage-mmap-test
-+++ a/tools/testing/selftests/vm/hugepage-mmap.c
-@@ -16,14 +16,13 @@
-  * range.
-  * Other architectures, such as ppc64, i386 or x86_64 are not so constrained.
-  */
--
-+#define _GNU_SOURCE
- #include <stdlib.h>
- #include <stdio.h>
- #include <unistd.h>
- #include <sys/mman.h>
- #include <fcntl.h>
- 
--#define FILE_NAME "huge/hugepagefile"
- #define LENGTH (256UL*1024*1024)
- #define PROTECTION (PROT_READ | PROT_WRITE)
- 
-@@ -67,16 +66,16 @@ int main(void)
- 	void *addr;
- 	int fd, ret;
- 
--	fd = open(FILE_NAME, O_CREAT | O_RDWR, 0755);
-+	fd = memfd_create("hugepage-mmap", MFD_HUGETLB);
- 	if (fd < 0) {
--		perror("Open failed");
-+		perror("memfd_create() failed");
- 		exit(1);
- 	}
- 
- 	addr = mmap(ADDR, LENGTH, PROTECTION, FLAGS, fd, 0);
- 	if (addr == MAP_FAILED) {
- 		perror("mmap");
--		unlink(FILE_NAME);
-+		close(fd);
- 		exit(1);
- 	}
- 
-@@ -87,7 +86,6 @@ int main(void)
- 
- 	munmap(addr, LENGTH);
- 	close(fd);
--	unlink(FILE_NAME);
- 
- 	return ret;
- }
+--- a/Documentation/ABI/testing/sysfs-block-zram~docs-abi-zram-document-zram-recompress-sysfs-knobs
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -137,3 +137,17 @@ Description:
+ 		The writeback_limit file is read-write and specifies the maximum
+ 		amount of writeback ZRAM can do. The limit could be changed
+ 		in run time.
++
++What:		/sys/block/zram<id>/recomp_algorithm
++Date:		November 2022
++Contact:	Sergey Senozhatsky <senozhatsky@chromium.org>
++Description:
++		The recomp_algorithm file is read-write and allows to set
++		or show secondary compression algorithms.
++
++What:		/sys/block/zram<id>/recompress
++Date:		November 2022
++Contact:	Sergey Senozhatsky <senozhatsky@chromium.org>
++Description:
++		The recompress file is write-only and triggers re-compression
++		with secondary compression algorithms.
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-migrate-fix-read-only-page-got-writable-when-recover-pte.patch
-mm-always-compile-in-pte-markers.patch
-mm-use-pte-markers-for-swap-errors.patch
-mm-uffd-sanity-check-write-bit-for-uffd-wp-protected-ptes.patch
-selftests-vm-use-memfd-for-hugepage-mmap-test.patch
+zram-preparation-for-multi-zcomp-support.patch
+zram-add-recompression-algorithm-sysfs-knob.patch
+zram-factor-out-wb-and-non-wb-zram-read-functions.patch
+zram-introduce-recompress-sysfs-knob.patch
+zram-introduce-recompress-sysfs-knob-fix.patch
+zram-add-recompress-flag-to-read_block_state.patch
+zram-clarify-writeback_store-comment.patch
+zram-use-is_err_value-to-check-for-zs_malloc-errors.patch
+zram-remove-redundant-checks-from-zram_recompress.patch
+zram-add-algo-parameter-support-to-zram_recompress.patch
+documentation-add-zram-recompression-documentation.patch
+zram-add-incompressible-writeback.patch
+zram-add-incompressible-flag-to-read_block_state.patch
+docs-abi-zram-document-zram-recompress-sysfs-knobs.patch
+zram-remove-unused-stats-fields.patch
 
