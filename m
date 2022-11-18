@@ -2,127 +2,410 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C9F8C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Nov 2022 22:12:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AD8CC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Nov 2022 22:18:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231259AbiKRWMt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Nov 2022 17:12:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39526 "EHLO
+        id S229470AbiKRWSu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Nov 2022 17:18:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231409AbiKRWMm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2022 17:12:42 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A3D3E007
-        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2022 14:12:40 -0800 (PST)
+        with ESMTP id S230198AbiKRWSs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2022 17:18:48 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F023976F8
+        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2022 14:18:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3D54CB82529
-        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2022 22:12:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA6DBC433D6;
-        Fri, 18 Nov 2022 22:12:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DDD866276C
+        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2022 22:18:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36B2CC433C1;
+        Fri, 18 Nov 2022 22:18:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668809558;
-        bh=LPKtkcKf+/3X9e1hK/cnUGWX/EXHJ1W6P6F4Hj6UL6s=;
+        s=korg; t=1668809924;
+        bh=xBNUUJpr27GtgNtlxvft4kuDuxH2wVbD1uyXUrtaxOQ=;
         h=Date:To:From:Subject:From;
-        b=Jd2b3jkSAMhMdr6EuFgTfqcPH315wSzETOR22kR6VQrPSrtpNw8PIdj8foDkKPf51
-         4S5jbICk+QtFLyhJ3d17xGF2gESPVwaqKQcyHvq3ApRAWq6C+znIAIe2tuzn8wKyfJ
-         8APO9Uvl6u04Ig4qvWcHYLGYGU28WGpQpTkUDaBM=
-Date:   Fri, 18 Nov 2022 14:12:37 -0800
-To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
-        chenzhongjin@huawei.com, akpm@linux-foundation.org
+        b=gJnI2AhjssuoU/lqd/gDJwAd1lO11J9nq3tfu2k3GtgjYSoxkW6JBFeg6IVxnv7jt
+         DCY6RpqwdtLpiW1X+eJGJsZnUoCbzoPBsXYdyuNkDLry6795cSymaGFIAAsdpH5mM5
+         pFQXdLYogQuIW7KqNKkPfFq0c1gcQiLPxvrhFRTk=
+Date:   Fri, 18 Nov 2022 14:18:43 -0800
+To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
+        tongtiangen@huawei.com, shy828301@gmail.com, osalvador@suse.de,
+        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
+        kirill.shutemov@linux.intel.com, jiaqiyan@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-nilfs_sufile_mark_dirty-not-set-segment-usage-as-dirty.patch added to mm-nonmm-unstable branch
-Message-Id: <20221118221237.EA6DBC433D6@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-recover-from-poisoned-anonymous-memory.patch removed from -mm tree
+Message-Id: <20221118221844.36B2CC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: nilfs2: fix nilfs_sufile_mark_dirty() not set segment usage as dirty
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-fix-nilfs_sufile_mark_dirty-not-set-segment-usage-as-dirty.patch
+The quilt patch titled
+     Subject: mm/khugepaged: recover from poisoned anonymous memory
+has been removed from the -mm tree.  Its filename was
+     mm-khugepaged-recover-from-poisoned-anonymous-memory.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-nilfs_sufile_mark_dirty-not-set-segment-usage-as-dirty.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Chen Zhongjin <chenzhongjin@huawei.com>
-Subject: nilfs2: fix nilfs_sufile_mark_dirty() not set segment usage as dirty
-Date: Fri, 18 Nov 2022 14:33:04 +0800
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm/khugepaged: recover from poisoned anonymous memory
+Date: Sun, 6 Nov 2022 18:53:58 -0800
 
-In nilfs_sufile_mark_dirty(), the buffer and inode are set dirty, but
-nilfs_segment_usage is not set dirty, which makes it can be found by
-nilfs_sufile_alloc() because it checks nilfs_segment_usage_clean(su).
+Patch series "Memory poison recovery in khugepaged collapsing", v6.
 
-This will cause the problem reported by syzkaller:
-https://syzkaller.appspot.com/bug?id=c7c4748e11ffcc367cef04f76e02e931833cbd24
+Problem
+=======
 
-It's because the case starts with segbuf1.segnum = 3, nextnum = 4, and
-nilfs_sufile_alloc() not called to allocate a new segment.
+Memory DIMMs are subject to multi-bit flips, i.e.  memory errors.  As
+memory size and density increase, the chances of and number of memory
+errors increase.  The increasing size and density of server RAM in the
+data center and cloud have shown increased uncorrectable memory errors. 
+There are already mechanisms in the kernel to recover from uncorrectable
+memory errors.  This series of patches provides the recovery mechanism for
+the particular kernel agent khugepaged when it collapses memory pages.
 
-The first time nilfs_segctor_extend_segments() allocated segment
-segbuf2.segnum = segbuf1.nextnum = 4, then nilfs_sufile_alloc() found
-nextnextnum = 4 segment because its su is not set dirty.  So
-segbuf2.nextnum = 4, which causes next segbuf3.segnum = 4.
+Impact
+======
 
-sb_getblk() will get same bh for segbuf2 and segbuf3, and this bh is added
-to both buffer lists of two segbuf.  It makes the list head of second list
-linked to the first one.  When iterating the first one, it will access and
-deref the head of second, which causes NULL pointer dereference.
+The main reason we chose to make khugepaged collapsing tolerant of memory
+failures was its high possibility of accessing poisoned memory while
+performing functionally optional compaction actions.  Standard
+applications typically don't have strict requirements on the size of its
+pages.  So they are given 4K pages by the kernel.  The kernel is able to
+improve application performance by either
 
-Link: https://lkml.kernel.org/r/20221118063304.140187-1-chenzhongjin@huawei.com
-Fixes: 9ff05123e3bf ("nilfs2: segment constructor")
-Reported-by: syzbot+77e4f0...@syzkaller.appspotmail.com
-Signed-off-by: Chen Zhongjin <chenzhongjin@huawei.com>
-Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+  1) giving applications 2M pages to begin with, or
+  2) collapsing 4K pages into 2M pages when possible.
+
+This collapsing operation is done by khugepaged, a kernel agent that is
+constantly scanning memory.  When collapsing 4K pages into a 2M page, it
+must copy the data from the 4K pages into a physically contiguous 2M page.
+Therefore, as long as there exists one poisoned cache line in collapsible
+4K pages, khugepaged will eventually access it.  The current impact to
+users is a machine check exception triggered kernel panic.  However,
+khugepaged’s compaction operations are not functionally required kernel
+actions.  Therefore making khugepaged tolerant to poisoned memory will
+greatly improve user experience.
+
+This patch series is for cases where khugepaged is the first guy that
+detects the memory errors on the poisoned pages.  IOW, the pages are not
+known to have memory errors when khugepaged collapsing gets to them.  In
+our observation, this happens frequently when the huge page ratio of the
+system is relatively low, which is fairly common in virtual machines
+running on cloud.
+
+Solution
+========
+
+As stated before, it is less desirable to crash the system only because
+khugepaged accesses poisoned pages while it is collapsing 4K pages.  The
+high level idea of this patch series is to skip the group of pages
+(usually 512 4K-size pages) once khugepaged finds one of them is poisoned,
+as these pages have become ineligible to be collapsed.
+
+We are also careful to unwind operations khuagepaged has performed before
+it detects memory failures.  For example, before copying and collapsing a
+group of anonymous pages into a huge page, the source pages will be
+isolated and their page table is unlinked from their PMD.  These
+operations need to be undone in order to ensure these pages are not
+changed/lost from the perspective of other threads (both user and kernel
+space).  As for file backed memory pages, there already exists a rollback
+case.  This patch just extends it so that khugepaged also correctly rolls
+back when it fails to copy poisoned 4K pages.
+
+
+This patch (of 2):
+
+Make __collapse_huge_page_copy return whether copying anonymous pages
+succeeded, and make collapse_huge_page handle the return status.
+
+Break existing PTE scan loop into two for-loops. The first loop copies
+source pages into target huge page, and can fail gracefully when running
+into memory errors in source pages. If copying all pages succeeds, the
+second loop releases and clears up these normal pages. Otherwise, the
+second loop rolls back the page table and page states by:
+- re-establishing the original PTEs-to-PMD connection.
+- releasing source pages back to their LRU list.
+
+Tested manually:
+0. Enable khugepaged on system under test.
+1. Start a two-thread application. Each thread allocates a chunk of
+   non-huge anonymous memory buffer.
+2. Pick 4 random buffer locations (2 in each thread) and inject
+   uncorrectable memory errors at corresponding physical addresses.
+3. Signal both threads to make their memory buffer collapsible, i.e.
+   calling madvise(MADV_HUGEPAGE).
+4. Wait and check kernel log: khugepaged is able to recover from poisoned
+   pages and skips collapsing them.
+5. Signal both threads to inspect their buffer contents and make sure no
+   data corruption.
+
+Link: https://lkml.kernel.org/r/20221107025359.2911028-1-jiaqiyan@google.com
+Link: https://lkml.kernel.org/r/20221107025359.2911028-2-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Tong Tiangen <tongtiangen@huawei.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sufile.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/highmem.h            |   19 +++
+ include/trace/events/huge_memory.h |    3 
+ mm/khugepaged.c                    |  159 +++++++++++++++++++--------
+ 3 files changed, 138 insertions(+), 43 deletions(-)
 
---- a/fs/nilfs2/sufile.c~nilfs2-fix-nilfs_sufile_mark_dirty-not-set-segment-usage-as-dirty
-+++ a/fs/nilfs2/sufile.c
-@@ -495,12 +495,18 @@ void nilfs_sufile_do_free(struct inode *
- int nilfs_sufile_mark_dirty(struct inode *sufile, __u64 segnum)
- {
- 	struct buffer_head *bh;
-+	void *kaddr;
-+	struct nilfs_segment_usage *su;
- 	int ret;
+--- a/include/linux/highmem.h~mm-khugepaged-recover-from-poisoned-anonymous-memory
++++ a/include/linux/highmem.h
+@@ -361,6 +361,25 @@ static inline void copy_highpage(struct
  
- 	ret = nilfs_sufile_get_segment_usage_block(sufile, segnum, 0, &bh);
- 	if (!ret) {
- 		mark_buffer_dirty(bh);
- 		nilfs_mdt_mark_dirty(sufile);
-+		kaddr = kmap_atomic(bh->b_page);
-+		su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
-+		nilfs_segment_usage_set_dirty(su);
-+		kunmap_atomic(kaddr);
- 		brelse(bh);
+ #endif
+ 
++/*
++ * Machine check exception handled version of copy_highpage.
++ * Return true if copying page content failed; otherwise false.
++ * Note handling #MC requires arch opt-in.
++ */
++static inline bool copy_highpage_mc(struct page *to, struct page *from)
++{
++	char *vfrom, *vto;
++	unsigned long ret;
++
++	vfrom = kmap_local_page(from);
++	vto = kmap_local_page(to);
++	ret = copy_mc_to_kernel(vto, vfrom, PAGE_SIZE);
++	kunmap_local(vto);
++	kunmap_local(vfrom);
++
++	return ret > 0;
++}
++
+ static inline void memcpy_page(struct page *dst_page, size_t dst_off,
+ 			       struct page *src_page, size_t src_off,
+ 			       size_t len)
+--- a/include/trace/events/huge_memory.h~mm-khugepaged-recover-from-poisoned-anonymous-memory
++++ a/include/trace/events/huge_memory.h
+@@ -36,7 +36,8 @@
+ 	EM( SCAN_ALLOC_HUGE_PAGE_FAIL,	"alloc_huge_page_failed")	\
+ 	EM( SCAN_CGROUP_CHARGE_FAIL,	"ccgroup_charge_failed")	\
+ 	EM( SCAN_TRUNCATED,		"truncated")			\
+-	EMe(SCAN_PAGE_HAS_PRIVATE,	"page_has_private")		\
++	EM( SCAN_PAGE_HAS_PRIVATE,	"page_has_private")		\
++	EMe(SCAN_COPY_MC,		"copy_poisoned_page")		\
+ 
+ #undef EM
+ #undef EMe
+--- a/mm/khugepaged.c~mm-khugepaged-recover-from-poisoned-anonymous-memory
++++ a/mm/khugepaged.c
+@@ -55,6 +55,7 @@ enum scan_result {
+ 	SCAN_CGROUP_CHARGE_FAIL,
+ 	SCAN_TRUNCATED,
+ 	SCAN_PAGE_HAS_PRIVATE,
++	SCAN_COPY_MC,
+ };
+ 
+ #define CREATE_TRACE_POINTS
+@@ -670,56 +671,125 @@ out:
+ 	return result;
+ }
+ 
+-static void __collapse_huge_page_copy(pte_t *pte, struct page *page,
+-				      struct vm_area_struct *vma,
+-				      unsigned long address,
+-				      spinlock_t *ptl,
+-				      struct list_head *compound_pagelist)
++/*
++ * __collapse_huge_page_copy - attempts to copy memory contents from normal
++ * pages to a hugepage. Cleanup the normal pages if copying succeeds;
++ * otherwise restore the original page table and release isolated normal pages.
++ * Returns true if copying succeeds, otherwise returns false.
++ *
++ * @pte: starting of the PTEs to copy from
++ * @page: the new hugepage to copy contents to
++ * @pmd: pointer to the new hugepage's PMD
++ * @rollback: the original normal pages' PMD
++ * @vma: the original normal pages' virtual memory area
++ * @address: starting address to copy
++ * @pte_ptl: lock on normal pages' PTEs
++ * @compound_pagelist: list that stores compound pages
++ */
++static bool __collapse_huge_page_copy(pte_t *pte,
++				struct page *page,
++				pmd_t *pmd,
++				pmd_t rollback,
++				struct vm_area_struct *vma,
++				unsigned long address,
++				spinlock_t *pte_ptl,
++				struct list_head *compound_pagelist)
+ {
+ 	struct page *src_page, *tmp;
+ 	pte_t *_pte;
+-	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
+-				_pte++, page++, address += PAGE_SIZE) {
+-		pte_t pteval = *_pte;
++	pte_t pteval;
++	unsigned long _address;
++	spinlock_t *pmd_ptl;
++	bool copy_succeeded = true;
+ 
+-		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
+-			clear_user_highpage(page, address);
+-			add_mm_counter(vma->vm_mm, MM_ANONPAGES, 1);
+-			if (is_zero_pfn(pte_pfn(pteval))) {
++	/*
++	 * Copying pages' contents is subject to memory poison at any iteration.
++	 */
++	for (_pte = pte, _address = address;
++			_pte < pte + HPAGE_PMD_NR;
++			_pte++, page++, _address += PAGE_SIZE) {
++		pteval = *_pte;
++
++		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval)))
++			clear_user_highpage(page, _address);
++		else {
++			src_page = pte_page(pteval);
++			if (copy_highpage_mc(page, src_page)) {
++				copy_succeeded = false;
++				break;
++			}
++		}
++	}
++
++	if (copy_succeeded) {
++		for (_pte = pte, _address = address; _pte < pte + HPAGE_PMD_NR;
++			_pte++, _address += PAGE_SIZE) {
++			pteval = *_pte;
++			if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
++				add_mm_counter(vma->vm_mm, MM_ANONPAGES, 1);
++				if (is_zero_pfn(pte_pfn(pteval))) {
++					/*
++					 * pte_ptl mostly unnecessary.
++					 */
++					spin_lock(pte_ptl);
++					pte_clear(vma->vm_mm, _address, _pte);
++					spin_unlock(pte_ptl);
++				}
++			} else {
++				src_page = pte_page(pteval);
++				if (!PageCompound(src_page))
++					release_pte_page(src_page);
+ 				/*
+-				 * ptl mostly unnecessary.
++				 * pte_ptl mostly unnecessary, but preempt has to
++				 * be disabled to update the per-cpu stats
++				 * inside page_remove_rmap().
+ 				 */
+-				spin_lock(ptl);
+-				ptep_clear(vma->vm_mm, address, _pte);
+-				spin_unlock(ptl);
++				spin_lock(pte_ptl);
++				ptep_clear(vma->vm_mm, _address, _pte);
++				page_remove_rmap(src_page, vma, false);
++				spin_unlock(pte_ptl);
++				free_page_and_swap_cache(src_page);
+ 			}
+-		} else {
+-			src_page = pte_page(pteval);
+-			copy_user_highpage(page, src_page, address, vma);
+-			if (!PageCompound(src_page))
+-				release_pte_page(src_page);
+-			/*
+-			 * ptl mostly unnecessary, but preempt has to
+-			 * be disabled to update the per-cpu stats
+-			 * inside page_remove_rmap().
+-			 */
+-			spin_lock(ptl);
+-			ptep_clear(vma->vm_mm, address, _pte);
+-			page_remove_rmap(src_page, vma, false);
+-			spin_unlock(ptl);
+-			free_page_and_swap_cache(src_page);
++		}
++		list_for_each_entry_safe(src_page, tmp, compound_pagelist, lru) {
++			list_del(&src_page->lru);
++			mod_node_page_state(page_pgdat(src_page),
++					NR_ISOLATED_ANON + page_is_file_lru(src_page),
++					-compound_nr(src_page));
++			unlock_page(src_page);
++			free_swap_cache(src_page);
++			putback_lru_page(src_page);
++		}
++	} else {
++		/*
++		 * Re-establish the regular PMD that points to the regular
++		 * page table. Restoring PMD needs to be done prior to
++		 * releasing pages. Since pages are still isolated and
++		 * locked here, acquiring anon_vma_lock_write is unnecessary.
++		 */
++		pmd_ptl = pmd_lock(vma->vm_mm, pmd);
++		pmd_populate(vma->vm_mm, pmd, pmd_pgtable(rollback));
++		spin_unlock(pmd_ptl);
++		/*
++		 * Release both raw and compound pages isolated
++		 * in __collapse_huge_page_isolate.
++		 */
++		for (_pte = pte, _address = address; _pte < pte + HPAGE_PMD_NR;
++			_pte++, _address += PAGE_SIZE) {
++			pteval = *_pte;
++			if (!pte_none(pteval) && !is_zero_pfn(pte_pfn(pteval))) {
++				src_page = pte_page(pteval);
++				if (!PageCompound(src_page))
++					release_pte_page(src_page);
++			}
++		}
++		list_for_each_entry_safe(src_page, tmp, compound_pagelist, lru) {
++			list_del(&src_page->lru);
++			release_pte_page(src_page);
+ 		}
  	}
- 	return ret;
+ 
+-	list_for_each_entry_safe(src_page, tmp, compound_pagelist, lru) {
+-		list_del(&src_page->lru);
+-		mod_node_page_state(page_pgdat(src_page),
+-				    NR_ISOLATED_ANON + page_is_file_lru(src_page),
+-				    -compound_nr(src_page));
+-		unlock_page(src_page);
+-		free_swap_cache(src_page);
+-		putback_lru_page(src_page);
+-	}
++	return copy_succeeded;
+ }
+ 
+ static void khugepaged_alloc_sleep(void)
+@@ -975,6 +1045,7 @@ static int collapse_huge_page(struct mm_
+ 	int result = SCAN_FAIL;
+ 	struct vm_area_struct *vma;
+ 	struct mmu_notifier_range range;
++	bool copied = false;
+ 
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 
+@@ -1078,9 +1149,13 @@ static int collapse_huge_page(struct mm_
+ 	 */
+ 	anon_vma_unlock_write(vma->anon_vma);
+ 
+-	__collapse_huge_page_copy(pte, hpage, vma, address, pte_ptl,
+-				  &compound_pagelist);
++	copied = __collapse_huge_page_copy(pte, hpage, pmd, _pmd,
++			vma, address, pte_ptl, &compound_pagelist);
+ 	pte_unmap(pte);
++	if (!copied) {
++		result = SCAN_COPY_MC;
++		goto out_up_write;
++	}
+ 	/*
+ 	 * spin_lock() below is not the equivalent of smp_wmb(), but
+ 	 * the smp_wmb() inside __SetPageUptodate() can be reused to
 _
 
-Patches currently in -mm which might be from chenzhongjin@huawei.com are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
-nilfs2-fix-nilfs_sufile_mark_dirty-not-set-segment-usage-as-dirty.patch
+mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
 
