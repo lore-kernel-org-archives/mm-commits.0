@@ -2,246 +2,127 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A1FCC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Nov 2022 22:18:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 786DBC4332F
+	for <mm-commits@archiver.kernel.org>; Sat, 19 Nov 2022 08:07:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230198AbiKRWSv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Nov 2022 17:18:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43620 "EHLO
+        id S229606AbiKSIHr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 19 Nov 2022 03:07:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230403AbiKRWSt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2022 17:18:49 -0500
+        with ESMTP id S229802AbiKSIHq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 19 Nov 2022 03:07:46 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7D8899EA3
-        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2022 14:18:46 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59163776FB
+        for <mm-commits@vger.kernel.org>; Sat, 19 Nov 2022 00:07:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F644627A9
-        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2022 22:18:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8098FC433D7;
-        Fri, 18 Nov 2022 22:18:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E215D601DB
+        for <mm-commits@vger.kernel.org>; Sat, 19 Nov 2022 08:07:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38E3FC433D6;
+        Sat, 19 Nov 2022 08:07:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1668809925;
-        bh=zdrJ0O9dW1mS/0unWT8TWIApvwT21kKSZNKQ0kLy8XM=;
+        s=korg; t=1668845264;
+        bh=+I+IoVwi/vDDEwVhtHV0wrliuZnQsSzeYB7UD21UPuI=;
         h=Date:To:From:Subject:From;
-        b=usrTk9L41+xBZKbJmH06Hb7gLg57AlZfKw+yLMY7LdqWE3G6JodBQZC+6aMgFMiDP
-         ugZS0R1HdTW8hxHOkJSGjcH+gY8FT/JS384MJnzMImXE1LK8wToyZP4aPJftuEUIw0
-         5lV9jMkra/8UcGCiutbFbk4nTJt4AOTfQygHq4/U=
-Date:   Fri, 18 Nov 2022 14:18:44 -0800
-To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
-        tongtiangen@huawei.com, shy828301@gmail.com, osalvador@suse.de,
-        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
-        kirill.shutemov@linux.intel.com, jiaqiyan@google.com,
-        akpm@linux-foundation.org
+        b=AQtBpmTAgjUXmzaEUKwOaEtNQIVX8Nqc/mrrNmC4Xoiw7kUn2s9xtKtcrxCjjugOr
+         6RpRHPxQwXBBd6Hk31o63K/yjLyygVwLazzwwrcvvV1TWS5sJXppW0IfOhpmsR4+qT
+         6vhxmOp4Ke24hwdHoVMBgknz4AFJ/uB2TU3pd3Jk=
+Date:   Sat, 19 Nov 2022 00:07:43 -0800
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        torvalds@linux-foundation.org, svens@linux.ibm.com,
+        rdunlap@infradead.org, peterz@infradead.org, npiggin@gmail.com,
+        nadav.amit@gmail.com, hughd@google.com, hca@linux.ibm.com,
+        hannes@cmpxchg.org, gor@linux.ibm.com,
+        gerald.schaefer@linux.ibm.com, david@redhat.com,
+        borntraeger@linux.ibm.com, bagasdotme@gmail.com,
+        aneesh.kumar@linux.ibm.com, agordeev@linux.ibm.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-khugepaged-recover-from-poisoned-file-backed-memory.patch removed from -mm tree
-Message-Id: <20221118221845.8098FC433D7@smtp.kernel.org>
+Subject: + mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix.patch added to mm-unstable branch
+Message-Id: <20221119080744.38E3FC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/khugepaged: recover from poisoned file-backed memory
-has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
+The patch titled
+     Subject: mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: mm/khugepaged: recover from poisoned file-backed memory
-Date: Sun, 6 Nov 2022 18:53:59 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix
+Date: Sat Nov 19 12:02:30 AM PST 2022
 
-Make collapse_file roll back when copying pages failed. More concretely:
-- extract copying operations into a separate loop
-- postpone the updates for nr_none until both scanning and copying
-  succeeded
-- postpone joining small xarray entries until both scanning and copying
-  succeeded
-- postpone the update operations to NR_XXX_THPS until both scanning and
-  copying succeeded
-- for non-SHMEM file, roll back filemap_nr_thps_inc if scan succeeded but
-  copying failed
+kerneldoc on a forward-declared struct confuses htmldocs
 
-Tested manually:
-0. Enable khugepaged on system under test. Mount tmpfs at /mnt/ramdisk.
-1. Start a two-thread application. Each thread allocates a chunk of
-   non-huge memory buffer from /mnt/ramdisk.
-2. Pick 4 random buffer address (2 in each thread) and inject
-   uncorrectable memory errors at physical addresses.
-3. Signal both threads to make their memory buffer collapsible, i.e.
-   calling madvise(MADV_HUGEPAGE).
-4. Wait and then check kernel log: khugepaged is able to recover from
-   poisoned pages by skipping them.
-5. Signal both thread to inspect their buffer contents and make sure no
-   data corruption.
-
-Link: https://lkml.kernel.org/r/20221107025359.2911028-3-jiaqiyan@google.com
-Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Tong Tiangen <tongtiangen@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   74 +++++++++++++++++++++++++++-------------------
- 1 file changed, 45 insertions(+), 29 deletions(-)
+ include/linux/mm_types.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-recover-from-poisoned-file-backed-memory
-+++ a/mm/khugepaged.c
-@@ -1764,7 +1764,7 @@ static int collapse_file(struct mm_struc
- 			 struct collapse_control *cc)
- {
- 	struct address_space *mapping = file->f_mapping;
--	struct page *hpage;
-+	struct page *hpage, *page, *tmp;
- 	pgoff_t index = 0, end = start + HPAGE_PMD_NR;
- 	LIST_HEAD(pagelist);
- 	XA_STATE_ORDER(xas, &mapping->i_pages, start, HPAGE_PMD_ORDER);
-@@ -1809,7 +1809,7 @@ static int collapse_file(struct mm_struc
+--- a/include/linux/mm_types.h~mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix
++++ a/include/linux/mm_types.h
+@@ -251,7 +251,7 @@ struct page {
+ #endif
+ } _struct_page_alignment;
  
- 	xas_set(&xas, start);
- 	for (index = start; index < end; index++) {
--		struct page *page = xas_next(&xas);
-+		page = xas_next(&xas);
- 
- 		VM_BUG_ON(index != xas.xa_index);
- 		if (is_shmem) {
-@@ -1991,10 +1991,7 @@ out_unlock:
- 	}
- 	nr = thp_nr_pages(hpage);
- 
--	if (is_shmem)
--		__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
--	else {
--		__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
-+	if (!is_shmem) {
- 		filemap_nr_thps_inc(mapping);
- 		/*
- 		 * Paired with smp_mb() in do_dentry_open() to ensure
-@@ -2005,21 +2002,10 @@ out_unlock:
- 		smp_mb();
- 		if (inode_is_open_for_write(mapping->host)) {
- 			result = SCAN_FAIL;
--			__mod_lruvec_page_state(hpage, NR_FILE_THPS, -nr);
- 			filemap_nr_thps_dec(mapping);
- 			goto xa_locked;
- 		}
- 	}
--
--	if (nr_none) {
--		__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
--		/* nr_none is always 0 for non-shmem. */
--		__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
--	}
--
--	/* Join all the small entries into a single multi-index entry */
--	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
--	xas_store(&xas, hpage);
- xa_locked:
- 	xas_unlock_irq(&xas);
- xa_unlocked:
-@@ -2032,20 +2018,34 @@ xa_unlocked:
- 	try_to_unmap_flush();
- 
- 	if (result == SCAN_SUCCEED) {
--		struct page *page, *tmp;
--
- 		/*
- 		 * Replacing old pages with new one has succeeded, now we
--		 * need to copy the content and free the old pages.
-+		 * attempt to copy the contents.
- 		 */
- 		index = start;
--		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
-+		list_for_each_entry(page, &pagelist, lru) {
- 			while (index < page->index) {
- 				clear_highpage(hpage + (index % HPAGE_PMD_NR));
- 				index++;
- 			}
--			copy_highpage(hpage + (page->index % HPAGE_PMD_NR),
--				      page);
-+			if (copy_highpage_mc(hpage + (page->index % HPAGE_PMD_NR), page)) {
-+				result = SCAN_COPY_MC;
-+				break;
-+			}
-+			index++;
-+		}
-+		while (result == SCAN_SUCCEED && index < end) {
-+			clear_highpage(hpage + (page->index % HPAGE_PMD_NR));
-+			index++;
-+		}
-+	}
-+
-+	if (result == SCAN_SUCCEED) {
-+		/*
-+		 * Copying old pages to huge one has succeeded, now we
-+		 * need to free the old pages.
-+		 */
-+		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
- 			list_del(&page->lru);
- 			page->mapping = NULL;
- 			page_ref_unfreeze(page, 1);
-@@ -2053,12 +2053,23 @@ xa_unlocked:
- 			ClearPageUnevictable(page);
- 			unlock_page(page);
- 			put_page(page);
--			index++;
- 		}
--		while (index < end) {
--			clear_highpage(hpage + (index % HPAGE_PMD_NR));
--			index++;
-+
-+		xas_lock_irq(&xas);
-+		if (is_shmem)
-+			__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
-+		else
-+			__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
-+
-+		if (nr_none) {
-+			__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
-+			/* nr_none is always 0 for non-shmem. */
-+			__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
- 		}
-+		/* Join all the small entries into a single multi-index entry. */
-+		xas_set_order(&xas, start, HPAGE_PMD_ORDER);
-+		xas_store(&xas, hpage);
-+		xas_unlock_irq(&xas);
- 
- 		SetPageUptodate(hpage);
- 		page_ref_add(hpage, HPAGE_PMD_NR - 1);
-@@ -2074,8 +2085,6 @@ xa_unlocked:
- 		unlock_page(hpage);
- 		hpage = NULL;
- 	} else {
--		struct page *page;
--
- 		/* Something went wrong: roll back page cache changes */
- 		xas_lock_irq(&xas);
- 		if (nr_none) {
-@@ -2109,6 +2118,13 @@ xa_unlocked:
- 			xas_lock_irq(&xas);
- 		}
- 		VM_BUG_ON(nr_none);
-+		/*
-+		 * Undo the updates of filemap_nr_thps_inc for non-SHMEM file only.
-+		 * This undo is not needed unless failure is due to SCAN_COPY_MC.
-+		 */
-+		if (!is_shmem && result == SCAN_COPY_MC)
-+			filemap_nr_thps_dec(mapping);
-+
- 		xas_unlock_irq(&xas);
- 
- 		hpage->mapping = NULL;
+-/**
++/*
+  * struct encoded_page - a nonexistent type marking this pointer
+  *
+  * An 'encoded_page' pointer is a pointer to a regular 'struct page', but
 _
 
-Patches currently in -mm which might be from jiaqiyan@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix.patch
+mm-fix-unexpected-changes-to-failslabfail_page_allocattr-fix.patch
+mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+mm-gup-remove-foll_migration-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
+kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
+mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch
+mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix.patch
+mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix.patch
 
