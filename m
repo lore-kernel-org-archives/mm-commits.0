@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21948C43217
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 22:17:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BB8AC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 22:18:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231641AbiKUWRt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Nov 2022 17:17:49 -0500
+        id S231827AbiKUWSA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Nov 2022 17:18:00 -0500
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231752AbiKUWRp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 17:17:45 -0500
+        with ESMTP id S231790AbiKUWRr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 17:17:47 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B121310B4F
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 14:17:41 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37F5210FDD
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 14:17:44 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4E3C4614BE
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 22:17:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9056C433D6;
-        Mon, 21 Nov 2022 22:17:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 98709614BF
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 22:17:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFDF4C433D7;
+        Mon, 21 Nov 2022 22:17:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669069060;
-        bh=p5pwt8rBhrA6yF/xW4lHsFUR75Vb4omm33f7h/BfV0s=;
+        s=korg; t=1669069063;
+        bh=7xDCFb5OZjKPlPozC8QlQXSs/SF+lQUiLSkU8iWhs48=;
         h=Date:To:From:Subject:From;
-        b=QM29qZ5SIv68Q7yhKYkahf+RW/DW1S2UwbII8AGBD9am3C7VgOys5f1qVM2O6wIAc
-         Hmfr8G7FhTGlhjj2gscnLiEFplEURwCoGGP/s7o9qAO43XCWO3fcTdPIbUcHhGytd5
-         QF+Z5rtgiDEUrzJIc86GQ+e4LiJOHFif+iQ2DS60=
-Date:   Mon, 21 Nov 2022 14:17:40 -0800
+        b=vOfbhqGpxVgCnEPd8tVoWOXyJ86fOK9rA9wQCAb7+WFAEkea5DAwk//7EHmdvM6yX
+         WKL971WmEosINxz7uhRluY0tJZ6dyAQ6DL7YazUZGOTwRRSK/LwyFYRoO8E+cO/Op8
+         2HJ1Pd+zkOvYDVBHNgcTMbtX8jXK7+mnOwfeQcdE=
+Date:   Mon, 21 Nov 2022 14:17:42 -0800
 To:     mm-commits@vger.kernel.org, clm@meta.com, axboe@kernel.dk,
         shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-bdi_get_max_bytes-function.patch added to mm-unstable branch
-Message-Id: <20221121221740.A9056C433D6@smtp.kernel.org>
+Subject: + mm-split-off-__bdi_set_max_ratio-function.patch added to mm-unstable branch
+Message-Id: <20221121221742.EFDF4C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add bdi_get_max_bytes() function
+     Subject: mm: split off __bdi_set_max_ratio() function
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-bdi_get_max_bytes-function.patch
+     mm-split-off-__bdi_set_max_ratio-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-bdi_get_max_bytes-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-split-off-__bdi_set_max_ratio-function.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,70 +65,56 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: add bdi_get_max_bytes() function
-Date: Fri, 18 Nov 2022 16:52:00 -0800
+Subject: mm: split off __bdi_set_max_ratio() function
+Date: Fri, 18 Nov 2022 16:52:01 -0800
 
-This adds a function to return the specified value for max_bytes. It
-converts the stored max_ratio of the bdi to the corresponding bytes
-value. It introduces the bdi_get_bytes helper function to do the
-conversion. This is an approximation as it is based on the value that is
-returned by global_dirty_limits(), which can change. The helper function
-will also be used by the min_bytes bdi knob.
+This splits off __bdi_set_max_ratio() from bdi_set_max_ratio().
+__bdi_set_max_ratio() will also be called from bdi_set_max_bytes(),
+which will be introduced in the next patch.
 
-Link: https://lkml.kernel.org/r/20221119005215.3052436-6-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20221119005215.3052436-7-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
 Cc: Chris Mason <clm@meta.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    1 +
- mm/page-writeback.c         |   17 +++++++++++++++++
- 2 files changed, 18 insertions(+)
+ mm/page-writeback.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/include/linux/backing-dev.h~mm-add-bdi_get_max_bytes-function
-+++ a/include/linux/backing-dev.h
-@@ -105,6 +105,7 @@ static inline unsigned long wb_stat_erro
- /* BDI ratio is expressed as part per 1000000 for finer granularity. */
- #define BDI_RATIO_SCALE 10000
- 
-+u64 bdi_get_max_bytes(struct backing_dev_info *bdi);
- int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio);
- int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio);
- int bdi_set_strict_limit(struct backing_dev_info *bdi, unsigned int strict_limit);
---- a/mm/page-writeback.c~mm-add-bdi_get_max_bytes-function
+--- a/mm/page-writeback.c~mm-split-off-__bdi_set_max_ratio-function
 +++ a/mm/page-writeback.c
-@@ -650,6 +650,18 @@ void wb_domain_exit(struct wb_domain *do
-  */
- static unsigned int bdi_min_ratio;
- 
-+static u64 bdi_get_bytes(unsigned int ratio)
-+{
-+	unsigned long background_thresh;
-+	unsigned long dirty_thresh;
-+	u64 bytes;
-+
-+	global_dirty_limits(&background_thresh, &dirty_thresh);
-+	bytes = (dirty_thresh * PAGE_SIZE * ratio) / BDI_RATIO_SCALE / 100;
-+
-+	return bytes;
-+}
-+
- int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio)
- {
- 	unsigned int delta;
-@@ -701,6 +713,11 @@ int bdi_set_max_ratio(struct backing_dev
+@@ -692,14 +692,10 @@ int bdi_set_min_ratio(struct backing_dev
+ 	return ret;
  }
+ 
+-int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned max_ratio)
++static int __bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio)
+ {
+ 	int ret = 0;
+ 
+-	if (max_ratio > 100)
+-		return -EINVAL;
+-	max_ratio *= BDI_RATIO_SCALE;
+-
+ 	spin_lock_bh(&bdi_lock);
+ 	if (bdi->min_ratio > max_ratio) {
+ 		ret = -EINVAL;
+@@ -711,6 +707,14 @@ int bdi_set_max_ratio(struct backing_dev
+ 
+ 	return ret;
+ }
++
++int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio)
++{
++	if (max_ratio > 100)
++		return -EINVAL;
++
++	return __bdi_set_max_ratio(bdi, max_ratio * BDI_RATIO_SCALE);
++}
  EXPORT_SYMBOL(bdi_set_max_ratio);
  
-+u64 bdi_get_max_bytes(struct backing_dev_info *bdi)
-+{
-+	return bdi_get_bytes(bdi->max_ratio);
-+}
-+
- int bdi_set_strict_limit(struct backing_dev_info *bdi, unsigned int strict_limit)
- {
- 	if (strict_limit > 1)
+ u64 bdi_get_max_bytes(struct backing_dev_info *bdi)
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
