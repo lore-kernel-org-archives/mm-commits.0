@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 024DAC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 21:36:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0907BC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 21:50:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231664AbiKUVgW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Nov 2022 16:36:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56366 "EHLO
+        id S231923AbiKUVu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Nov 2022 16:50:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40156 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231774AbiKUVgE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 16:36:04 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 122876C702
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 13:35:55 -0800 (PST)
+        with ESMTP id S231920AbiKUVuD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 16:50:03 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6813411168;
+        Mon, 21 Nov 2022 13:50:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9DF5E6144F
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 21:35:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFB9EC433D6;
-        Mon, 21 Nov 2022 21:35:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0CB3661482;
+        Mon, 21 Nov 2022 21:50:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A566C433C1;
+        Mon, 21 Nov 2022 21:50:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669066554;
-        bh=iz+/wbZyqXJ/ofsMzXrrI3DGA/oQ2GvC8jDcJulixd8=;
+        s=korg; t=1669067400;
+        bh=LS2V2EyhPBbSCeCDB5MLHsn3hCkAftB/ZVMjZ/wOTik=;
         h=Date:To:From:Subject:From;
-        b=EnYqntA020YKFPW+E4Z1jhOW0al054vpdYd+/pFf3xdXcKXXAuQcw4raPljc0XKh4
-         +mUOxS8Hvrvfo+G/3oYrb3N7u2IMs0EzRTc/L7fuTWnDHPtVYya2SY0AOpOlhsqSCe
-         uh0WI35pkqoyAVfT0qQkLfo6XuFWDd4XsUT+eO1g=
-Date:   Mon, 21 Nov 2022 13:35:53 -0800
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
-        mhiramat@kernel.org, hucool.lihua@huawei.com,
+        b=xvzziCKWViZ5Xy3UwK/8pfDYi8/X/8ua/1c0eSjSgjRR/XpsaOoPf1/+oR2R5J4yM
+         O6RbrnIwRtPvbnnHP0Fqf5ikuDTdw7h/jHbb6RpBdCi7bc/2aaYfU69GcJeMLs0oKB
+         2RHSrkRIwvuSzW5dGeCbIA3R0rNkVp9S1YDUDgfg=
+Date:   Mon, 21 Nov 2022 13:49:59 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        revest@chromium.org, peterz@infradead.org, mhiramat@kernel.org,
+        mark.rutland@arm.com, kpsingh@kernel.org, keescook@chromium.org,
+        jpoimboe@redhat.com, hch@infradead.org, gregkh@linuxfoundation.org,
+        bp@suse.de, alexei.starovoitov@gmail.com, rostedt@goodmis.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + test_kprobes-fix-implicit-declaration-error-of-test_kprobes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221121213553.EFB9EC433D6@smtp.kernel.org>
+Subject: + error-injection-add-prompt-for-function-error-injection.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221121215000.5A566C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_kprobes: fix implicit declaration error of test_kprobes
+     Subject: error-injection: add prompt for function error injection
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     test_kprobes-fix-implicit-declaration-error-of-test_kprobes.patch
+     error-injection-add-prompt-for-function-error-injection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/test_kprobes-fix-implicit-declaration-error-of-test_kprobes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/error-injection-add-prompt-for-function-error-injection.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,48 +68,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Li Hua <hucool.lihua@huawei.com>
-Subject: test_kprobes: fix implicit declaration error of test_kprobes
-Date: Mon, 21 Nov 2022 11:06:20 +0800
+From: "Steven Rostedt (Google)" <rostedt@goodmis.org>
+Subject: error-injection: add prompt for function error injection
+Date: Mon, 21 Nov 2022 10:44:03 -0500
 
-If KPROBES_SANITY_TEST and ARCH_CORRECT_STACKTRACE_ON_KRETPROBE is enabled, but
-STACKTRACE is not set. Build failed as below:
+The config to be able to inject error codes into any function annotated
+with ALLOW_ERROR_INJECTION() is enabled when
+CONFIG_FUNCTION_ERROR_INJECTION is enabled.  But unfortunately, this is
+always enabled on x86 when KPROBES is enabled, and there's no way to turn
+it off.
 
-lib/test_kprobes.c: In function `stacktrace_return_handler':
-lib/test_kprobes.c:228:8: error: implicit declaration of function `stack_trace_save'; did you mean `stacktrace_driver'? [-Werror=implicit-function-declaration]
-  ret = stack_trace_save(stack_buf, STACK_BUF_SIZE, 0);
-        ^~~~~~~~~~~~~~~~
-        stacktrace_driver
-cc1: all warnings being treated as errors
-scripts/Makefile.build:250: recipe for target 'lib/test_kprobes.o' failed
-make[2]: *** [lib/test_kprobes.o] Error 1
+As kprobes is useful for observability of the kernel, it is useful to have
+it enabled in production environments.  But error injection should be
+avoided.  Add a prompt to the config to allow it to be disabled even when
+kprobes is enabled, and get rid of the "def_bool y".
 
-To fix this error, Select STACKTRACE if ARCH_CORRECT_STACKTRACE_ON_KRETPROBE is enabled.
+This is a kernel debug feature (it's in Kconfig.debug), and should have
+never been something enabled by default.
 
-Link: https://lkml.kernel.org/r/20221121030620.63181-1-hucool.lihua@huawei.com
-Fixes: 1f6d3a8f5e39 ("kprobes: Add a test case for stacktrace from kretprobe handler")
-Signed-off-by: Li Hua <hucool.lihua@huawei.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20221121104403.1545f9b5@gandalf.local.home
+Fixes: 540adea3809f6 ("error-injection: Separate error-injection from kprobe")
+Signed-off-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Acked-by: Borislav Petkov <bp@suse.de>
+Cc: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Florent Revest <revest@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 +
- 1 file changed, 1 insertion(+)
+ lib/Kconfig.debug |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/lib/Kconfig.debug~test_kprobes-fix-implicit-declaration-error-of-test_kprobes
+--- a/lib/Kconfig.debug~error-injection-add-prompt-for-function-error-injection
 +++ a/lib/Kconfig.debug
-@@ -2107,6 +2107,7 @@ config KPROBES_SANITY_TEST
- 	depends on DEBUG_KERNEL
- 	depends on KPROBES
- 	depends on KUNIT
-+	select STACKTRACE if ARCH_CORRECT_STACKTRACE_ON_KRETPROBE
- 	default KUNIT_ALL_TESTS
- 	help
- 	  This option provides for testing basic kprobes functionality on
+@@ -1874,8 +1874,14 @@ config NETDEV_NOTIFIER_ERROR_INJECT
+ 	  If unsure, say N.
+ 
+ config FUNCTION_ERROR_INJECTION
+-	def_bool y
++	bool "Fault-injections of functions"
+ 	depends on HAVE_FUNCTION_ERROR_INJECTION && KPROBES
++	help
++	  Add fault injections into various functions that are annotated with
++	  ALLOW_ERROR_INJECTION() in the kernel. BPF may also modify the return
++	  value of theses functions. This is useful to test error paths of code.
++
++	  If unsure, say N
+ 
+ config FAULT_INJECTION
+ 	bool "Fault-injection framework"
 _
 
-Patches currently in -mm which might be from hucool.lihua@huawei.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-test_kprobes-fix-implicit-declaration-error-of-test_kprobes.patch
+error-injection-add-prompt-for-function-error-injection.patch
 
