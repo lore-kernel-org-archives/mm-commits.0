@@ -2,91 +2,119 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88248C433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 17:25:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58D4CC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 20:06:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229491AbiKURZ1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Nov 2022 12:25:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49266 "EHLO
+        id S230416AbiKUUG2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Nov 2022 15:06:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229460AbiKURZ0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 12:25:26 -0500
-Received: from mail-qk1-x72c.google.com (mail-qk1-x72c.google.com [IPv6:2607:f8b0:4864:20::72c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 023B32AC9
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 09:25:26 -0800 (PST)
-Received: by mail-qk1-x72c.google.com with SMTP id d7so8482205qkk.3
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 09:25:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=9HcjKMfGyc5vWKHCdEvgUimexbmYdSMFMtRjkFYCy0c=;
-        b=GQDmb2Ri3pJ3sCVS4xlEAzwqNq/2UGdmffhKYItWI0RuGiFmCKNdzOth0F1ymdbJYu
-         AwK9qB28imcSlEgJE2A08m4t8OeLFTBdW2mqINamJuOHzKnf0l44c8YwDJYdjaHWe60h
-         zTkaPIHlilDrBk1QWyAfPiSBnXP8Y31xu9MIE=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=9HcjKMfGyc5vWKHCdEvgUimexbmYdSMFMtRjkFYCy0c=;
-        b=2gWsmcF97ajrLldRi6VrJpruZkllmyNazDcWXjqGdwDTR+Va05MZI7soYLl3TTOh1C
-         opUXLH9rFBTSf0SFk0/v+zvxVEBwfI2m4O638StGRt6+8Li3CO7AP9g2XPjiRIdZEvFZ
-         69qhxC/6RX2RlsEdsd28UxRj5l7qB+7feIEvC5ZNYTk8knv8Op1kCNScCQXe8fT4UsFH
-         ZZIKMpz+w3QujAYYVFRyvN7a+k09S2mLt6gQPEQlDbTIyUqjg7xQfYjFpd26eeAKdKWz
-         EnpdYlySllUgJbepvaNe03ppQh2crpqnI6ok14T1Q35ld8uwxdK8UUYU/2EGL9yvLmpC
-         0jaQ==
-X-Gm-Message-State: ANoB5plvXCkP3KOgd+0dA2dBF+4R0vEcEdq0WWBud6HIcZcJSw+pLBR0
-        QPsxs+imeRwAdcDyjMB0Nr1vctW+sUGlTA==
-X-Google-Smtp-Source: AA0mqf6ffuIaxnAMr1+g5xd5O4CFqox9xUOV2wDQSINHp11EJoo4ZuyS0jtp8sreLCCP5kmc199rJw==
-X-Received: by 2002:a05:620a:491a:b0:6eb:70db:b2e5 with SMTP id ed26-20020a05620a491a00b006eb70dbb2e5mr15305945qkb.445.1669051524773;
-        Mon, 21 Nov 2022 09:25:24 -0800 (PST)
-Received: from mail-qv1-f41.google.com (mail-qv1-f41.google.com. [209.85.219.41])
-        by smtp.gmail.com with ESMTPSA id y18-20020ac87092000000b0039a08c0a594sm6861460qto.82.2022.11.21.09.25.23
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 21 Nov 2022 09:25:23 -0800 (PST)
-Received: by mail-qv1-f41.google.com with SMTP id s18so6843032qvo.9
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 09:25:23 -0800 (PST)
-X-Received: by 2002:a0c:efd0:0:b0:4bb:a80f:3f43 with SMTP id
- a16-20020a0cefd0000000b004bba80f3f43mr989395qvt.43.1669051523306; Mon, 21 Nov
- 2022 09:25:23 -0800 (PST)
-MIME-Version: 1.0
-References: <20221111231502.1238DC433C1@smtp.kernel.org> <CAG_fn=WeE=_jP0sQ8Hvwr4chdZupZp-cJd0v268Pdo1n1ROpug@mail.gmail.com>
-In-Reply-To: <CAG_fn=WeE=_jP0sQ8Hvwr4chdZupZp-cJd0v268Pdo1n1ROpug@mail.gmail.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Mon, 21 Nov 2022 09:25:07 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wjkQb7s1+WknAW03R3RCKNQK78S=SYXj3GU6b2RUe--xQ@mail.gmail.com>
-Message-ID: <CAHk-=wjkQb7s1+WknAW03R3RCKNQK78S=SYXj3GU6b2RUe--xQ@mail.gmail.com>
-Subject: Re: + revert-kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch added to
- mm-hotfixes-unstable branch
-To:     Alexander Potapenko <glider@google.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, will@kernel.org, peterz@infradead.org,
-        elver@google.com, ebiggers@google.com, dvyukov@google.com
-Content-Type: text/plain; charset="UTF-8"
+        with ESMTP id S229553AbiKUUG2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 15:06:28 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4264626AE1
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 12:06:27 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B8920B80FB3
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 20:06:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60D93C433D6;
+        Mon, 21 Nov 2022 20:06:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1669061184;
+        bh=RJ6Ysw4T9Nzk50ToUX9dWqMUr9fREqMxFLVXgmZ8/FM=;
+        h=Date:To:From:Subject:From;
+        b=ervTbmDM8MxG4C3Jpfgc8X+HBBtW2H15e+WdY25CUE/rksRAWmcOrth8TD0RiVyLf
+         CmC9O/9KMGinwKzxfXoyo/9sOH2+qr0ieL/uaBLZWbwygln2GpB/dywcgDV0i1k3l4
+         lMdWmbBIPwo4GS3fnlILqweUqBpLywgVJYdcVqU0=
+Date:   Mon, 21 Nov 2022 12:06:23 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        kirill@shutemov.name, hughd@google.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mmthprmap-subpages_mapcount-of-pte-mapped-subpages-fix.patch added to mm-unstable branch
+Message-Id: <20221121200624.60D93C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, Nov 21, 2022 at 1:38 AM Alexander Potapenko <glider@google.com> wrote:
->
-> @Linus as a heads-up, this revert is still missing in 6.1
-> It's not strictly required for the release, but, as noted on the other
-> thread, the original patch is not needed anymore, so reverting it will
-> make mmu_gather less ugly.
 
-Yes, but as Andrew picked it up, I'll just get it for 6.2 when he
-sends me his pull requests.
+The patch titled
+     Subject: mm,thp,rmap: subpages_mapcount of PTE-mapped subpages: fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mmthprmap-subpages_mapcount-of-pte-mapped-subpages-fix.patch
 
-The revert cleans code up, and gets rid of an ugly thing I happened to
-notice while just working on that code anyway, but I don't consider it
-in any way critical just because I happened to note it and complain
-about it.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmthprmap-subpages_mapcount-of-pte-mapped-subpages-fix.patch
 
-So I'm perfectly happy just in the knowledge that it will go away, and
-don't feel any need to hurry it along.
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Thanks,
-               Linus
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Hugh Dickins <hughd@google.com>
+Subject: mm,thp,rmap: subpages_mapcount of PTE-mapped subpages: fix
+Date: Fri, 18 Nov 2022 17:35:05 -0800 (PST)
+
+Yu Zhao reports compiler warning in page_add_anon_rmap():
+
+mm/rmap.c:1236:13: warning: variable 'first' is used uninitialized
+whenever 'if' condition is false [-Wsometimes-uninitialized]
+        } else if (PageTransHuge(page)) {
+                   ^~~~~~~~~~~~~~~~~~~
+mm/rmap.c:1248:18: note: uninitialized use occurs here
+        VM_BUG_ON_PAGE(!first && (flags & RMAP_EXCLUSIVE), page);
+                        ^~~~~
+
+We do need to fix that, even though it's only uninitialized in an
+impossible condition: I've chosen to initialize "first" true, to
+minimize the BUGs it might then hit; but you could just as well
+choose to initialize it false, to maximize the BUGs it might hit.
+
+Link: https://lkml.kernel.org/r/7a4f5e5e-de33-dace-c526-4a3d3cf5f6e0@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Yu Zhao <yuzhao@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/mm/rmap.c~mmthprmap-subpages_mapcount-of-pte-mapped-subpages-fix
++++ a/mm/rmap.c
+@@ -1281,7 +1281,7 @@ void page_add_anon_rmap(struct page *pag
+ 	struct compound_mapcounts mapcounts;
+ 	int nr = 0, nr_pmdmapped = 0;
+ 	bool compound = flags & RMAP_COMPOUND;
+-	bool first;
++	bool first = true;
+ 
+ 	if (unlikely(PageKsm(page)))
+ 		lock_page_memcg(page);
+_
+
+Patches currently in -mm which might be from hughd@google.com are
+
+mmhugetlb-use-folio-fields-in-second-tail-page.patch
+mmhugetlb-use-folio-fields-in-second-tail-page-fix.patch
+mmthprmap-simplify-compound-page-mapcount-handling.patch
+mmthprmap-lock_compound_mapcounts-on-thp-mapcounts.patch
+mmthprmap-handle-the-normal-pagecompound-case-first.patch
+mmthprmap-subpages_mapcount-of-pte-mapped-subpages.patch
+mmthprmap-subpages_mapcount-of-pte-mapped-subpages-fix.patch
+mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped.patch
+mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked.patch
+
