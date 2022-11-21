@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84097C433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 22:19:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 945CAC433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 22:35:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231615AbiKUWTO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Nov 2022 17:19:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60906 "EHLO
+        id S229919AbiKUWfu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Nov 2022 17:35:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231913AbiKUWSr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 17:18:47 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DF66AEBD8
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 14:18:14 -0800 (PST)
+        with ESMTP id S229772AbiKUWft (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 17:35:49 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15E0C2DF8
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 14:35:49 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2554FB8169B
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 22:18:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6145C433D6;
-        Mon, 21 Nov 2022 22:18:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A2339614C0
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 22:35:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC795C433C1;
+        Mon, 21 Nov 2022 22:35:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669069091;
-        bh=E0ORdIfmzvEhz4JzMiThwWu8I5h4Edjblsn6MfdvROw=;
+        s=korg; t=1669070148;
+        bh=W5ChUG8F+G4BzAOOrLKI7R1j14zM76uX0ItHM4ydEhQ=;
         h=Date:To:From:Subject:From;
-        b=vQEHaUYrh6Pefiuhx392ojDoE+eMf7eyMgBsNmW+ZPv912eMvCLVuwQ1ExT/YxEye
-         JLv36cjSEC09ekuXdXmkQ19lYoKEvAExwM/YUyqIEcbRlM/OE2V78vTTFEPwvHGV2y
-         XC4GOyxvTlqEPtcWg10wWIkSDpm7LFNKECLNfEnM=
-Date:   Mon, 21 Nov 2022 14:18:11 -0800
-To:     mm-commits@vger.kernel.org, clm@meta.com, axboe@kernel.dk,
-        shr@devkernel.io, akpm@linux-foundation.org
+        b=VZDOZcgwbR2BeANU6HzkJRjomrJ4Km36MSSSdwJDodvcTPpLhdgKvJPHVxd5sZETF
+         5/7hT67ajrSL1LedA5kvkBoMAU/NyJDliBcLT/SquRmojw6qPyzQlDIAxqEstXVPMM
+         7E3PbjLMUigB23Fk8PA90xPTHX7gXX/Brs461jcU=
+Date:   Mon, 21 Nov 2022 14:35:47 -0800
+To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
+        sjenning@redhat.com, senozhatsky@chromium.org, nphamcs@gmail.com,
+        ngupta@vflare.org, minchan@kernel.org, ddstreet@ieee.org,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-document-sys-class-bdi-bdi-min_ratio_fine-knob.patch added to mm-unstable branch
-Message-Id: <20221121221811.B6145C433D6@smtp.kernel.org>
+Subject: + zswap-fix-writeback-lock-ordering-for-zsmalloc.patch added to mm-unstable branch
+Message-Id: <20221121223547.DC795C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: document /sys/class/bdi/<bdi>/min_ratio_fine knob
+     Subject: zswap: fix writeback lock ordering for zsmalloc
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-document-sys-class-bdi-bdi-min_ratio_fine-knob.patch
+     zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-document-sys-class-bdi-bdi-min_ratio_fine-knob.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,68 +66,150 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: document /sys/class/bdi/<bdi>/min_ratio_fine knob
-Date: Fri, 18 Nov 2022 16:52:15 -0800
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: zswap: fix writeback lock ordering for zsmalloc
+Date: Fri, 18 Nov 2022 16:15:31 -0800
 
-This documents the new /sys/class/bdi/<bdi>/max_ratio_fine knob.
+Unlike other zswaps allocators such as zbud or z3fold, zsmalloc currently
+lacks the writeback mechanism.  This means that when the zswap pool is
+full, it will simply reject further allocations, and the pages will be
+written directly to swap.
 
-Link: https://lkml.kernel.org/r/20221119005215.3052436-21-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Cc: Chris Mason <clm@meta.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+This series of patches implements writeback for zsmalloc.  When the zswap
+pool becomes full, zsmalloc will attempt to evict all the compressed
+objects in the least-recently used zspages.
+
+
+This patch (of 6):
+
+zswap's customary lock order is tree->lock before pool->lock, because the
+tree->lock protects the entries' refcount, and the free callbacks in the
+backends acquire their respective pool locks to dispatch the backing
+object.  zsmalloc's map callback takes the pool lock, so zswap must not
+grab the tree->lock while a handle is mapped.  This currently only happens
+during writeback, which isn't implemented for zsmalloc.  In preparation
+for it, move the tree->lock section out of the mapped entry section
+
+Link: https://lkml.kernel.org/r/20221119001536.2086599-1-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20221119001536.2086599-2-nphamcs@gmail.com
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-bdi |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ mm/zswap.c |   37 ++++++++++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 17 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-class-bdi~mm-document-sys-class-bdi-bdi-min_ratio_fine-knob
-+++ a/Documentation/ABI/testing/sysfs-class-bdi
-@@ -44,6 +44,21 @@ Description:
+--- a/mm/zswap.c~zswap-fix-writeback-lock-ordering-for-zsmalloc
++++ a/mm/zswap.c
+@@ -958,7 +958,7 @@ static int zswap_writeback_entry(struct
+ 	};
  
- 	(read-write)
+ 	if (!zpool_can_sleep_mapped(pool)) {
+-		tmp = kmalloc(PAGE_SIZE, GFP_ATOMIC);
++		tmp = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ 		if (!tmp)
+ 			return -ENOMEM;
+ 	}
+@@ -968,6 +968,7 @@ static int zswap_writeback_entry(struct
+ 	swpentry = zhdr->swpentry; /* here */
+ 	tree = zswap_trees[swp_type(swpentry)];
+ 	offset = swp_offset(swpentry);
++	zpool_unmap_handle(pool, handle);
  
-+What:		/sys/class/bdi/<bdi>/min_ratio_fine
-+Date:		November 2022
-+Contact:	Stefan Roesch <shr@devkernel.io>
-+Description:
-+	Under normal circumstances each device is given a part of the
-+	total write-back cache that relates to its current average
-+	writeout speed in relation to the other devices.
+ 	/* find and ref zswap entry */
+ 	spin_lock(&tree->lock);
+@@ -975,20 +976,12 @@ static int zswap_writeback_entry(struct
+ 	if (!entry) {
+ 		/* entry was invalidated */
+ 		spin_unlock(&tree->lock);
+-		zpool_unmap_handle(pool, handle);
+ 		kfree(tmp);
+ 		return 0;
+ 	}
+ 	spin_unlock(&tree->lock);
+ 	BUG_ON(offset != entry->offset);
+ 
+-	src = (u8 *)zhdr + sizeof(struct zswap_header);
+-	if (!zpool_can_sleep_mapped(pool)) {
+-		memcpy(tmp, src, entry->length);
+-		src = tmp;
+-		zpool_unmap_handle(pool, handle);
+-	}
+-
+ 	/* try to allocate swap cache page */
+ 	switch (zswap_get_swap_cache_page(swpentry, &page)) {
+ 	case ZSWAP_SWAPCACHE_FAIL: /* no memory or invalidate happened */
+@@ -1006,6 +999,14 @@ static int zswap_writeback_entry(struct
+ 		acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+ 		dlen = PAGE_SIZE;
+ 
++		zhdr = zpool_map_handle(pool, handle, ZPOOL_MM_RO);
++		src = (u8 *)zhdr + sizeof(struct zswap_header);
++		if (!zpool_can_sleep_mapped(pool)) {
++			memcpy(tmp, src, entry->length);
++			src = tmp;
++			zpool_unmap_handle(pool, handle);
++		}
 +
-+	The 'min_ratio_fine' parameter allows assigning a minimum reserve
-+	of the write-back cache to a particular device. The value is
-+    expressed as part of 1 million. For example, this is useful for
-+    providing a minimum QoS.
+ 		mutex_lock(acomp_ctx->mutex);
+ 		sg_init_one(&input, src, entry->length);
+ 		sg_init_table(&output, 1);
+@@ -1015,6 +1016,11 @@ static int zswap_writeback_entry(struct
+ 		dlen = acomp_ctx->req->dlen;
+ 		mutex_unlock(acomp_ctx->mutex);
+ 
++		if (!zpool_can_sleep_mapped(pool))
++			kfree(tmp);
++		else
++			zpool_unmap_handle(pool, handle);
 +
-+	(read-write)
+ 		BUG_ON(ret);
+ 		BUG_ON(dlen != PAGE_SIZE);
+ 
+@@ -1045,7 +1051,11 @@ static int zswap_writeback_entry(struct
+ 		zswap_entry_put(tree, entry);
+ 	spin_unlock(&tree->lock);
+ 
+-	goto end;
++	return ret;
 +
- What:		/sys/class/bdi/<bdi>/max_ratio
- Date:		January 2008
- Contact:	Peter Zijlstra <a.p.zijlstra@chello.nl>
++fail:
++	if (!zpool_can_sleep_mapped(pool))
++		kfree(tmp);
+ 
+ 	/*
+ 	* if we get here due to ZSWAP_SWAPCACHE_EXIST
+@@ -1054,17 +1064,10 @@ static int zswap_writeback_entry(struct
+ 	* if we free the entry in the following put
+ 	* it is also okay to return !0
+ 	*/
+-fail:
+ 	spin_lock(&tree->lock);
+ 	zswap_entry_put(tree, entry);
+ 	spin_unlock(&tree->lock);
+ 
+-end:
+-	if (zpool_can_sleep_mapped(pool))
+-		zpool_unmap_handle(pool, handle);
+-	else
+-		kfree(tmp);
+-
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-add-bdi_set_strict_limit-function.patch
-mm-add-knob-sys-class-bdi-bdi-strict_limit.patch
-mm-document-sys-class-bdi-bdi-strict_limit-knob.patch
-mm-use-part-per-1000000-for-bdi-ratios.patch
-mm-add-bdi_get_max_bytes-function.patch
-mm-split-off-__bdi_set_max_ratio-function.patch
-mm-add-bdi_set_max_bytes-function.patch
-mm-add-knob-sys-class-bdi-bdi-max_bytes.patch
-mm-document-sys-class-bdi-bdi-max_bytes-knob.patch
-mm-add-bdi_get_min_bytes-function.patch
-mm-split-off-__bdi_set_min_ratio-function.patch
-mm-add-bdi_set_min_bytes-function.patch
-mm-add-sys-class-bdi-bdi-min_bytes-knob.patch
-mm-document-sys-class-bdi-bdi-min_bytes-knob.patch
-mm-add-bdi_set_max_ratio_no_scale-function.patch
-mm-add-sys-class-bdi-bdi-max_ratio_fine-knob.patch
-mm-document-sys-class-bdi-bdi-max_ratio_fine-knob.patch
-mm-add-bdi_set_min_ratio_no_scale-function.patch
-mm-add-sys-class-bdi-bdi-min_ratio_fine-knob.patch
-mm-document-sys-class-bdi-bdi-min_ratio_fine-knob.patch
+mm-vmscan-fix-extreme-overreclaim-and-swap-floods.patch
+mm-vmscan-split-khugepaged-stats-from-direct-reclaim-stats.patch
+zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
+zpool-clean-out-dead-code.patch
 
