@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC1DAC43219
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 22:18:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF6BEC43217
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 22:18:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231752AbiKUWSG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Nov 2022 17:18:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59546 "EHLO
+        id S231967AbiKUWSb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Nov 2022 17:18:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231833AbiKUWSA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 17:18:00 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE8DD15FC3
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 14:17:51 -0800 (PST)
+        with ESMTP id S231888AbiKUWSB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 17:18:01 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B01C18B0E
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 14:17:54 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C14B8614BF
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 22:17:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2324FC433C1;
-        Mon, 21 Nov 2022 22:17:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 087E5614BF
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 22:17:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63263C433D6;
+        Mon, 21 Nov 2022 22:17:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669069071;
-        bh=lCLN9XHRbmeUYqvM7/CM+AMLkfW2EsK0Fv4LyD677dw=;
+        s=korg; t=1669069073;
+        bh=0xyLcF+P8qnEk+5d9HPIVmc6LaJFSiDFFwKSznBxUB8=;
         h=Date:To:From:Subject:From;
-        b=yAoY87Kj+8ABc+DHfrzVwaB/smkoeN4vihpDRiQ4461ZXjc6b47ums0rAQdEDf2zT
-         06x0t9ZuinbXXaSWeFcGH7raM2/DtL3T1NetmtanwU3MzXCuw+1p8tDXBlb8JknQkv
-         hiY8uTHfGEZZNgEk/yrlQwAEknjPCu1OutXK8dYs=
-Date:   Mon, 21 Nov 2022 14:17:50 -0800
+        b=XQynYNQs6V/ikUY4hS6wmzi9Hn8loAaEtlO/YfiI9e3iJnMUiYr29pvDYEPBMdFAM
+         MUrxQYHEnv3UI09KQG7G/D0GAu3uWbdDweL31zbhKxho3mwvBUBusP+riJKD7g49GA
+         aurD03zYCmGP/EGiJCu5MS22qotUCYwVSDjqYoq8=
+Date:   Mon, 21 Nov 2022 14:17:52 -0800
 To:     mm-commits@vger.kernel.org, clm@meta.com, axboe@kernel.dk,
         shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-bdi_get_min_bytes-function.patch added to mm-unstable branch
-Message-Id: <20221121221751.2324FC433C1@smtp.kernel.org>
+Subject: + mm-split-off-__bdi_set_min_ratio-function.patch added to mm-unstable branch
+Message-Id: <20221121221753.63263C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add bdi_get_min_bytes() function.
+     Subject: mm: split off __bdi_set_min_ratio() function
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-bdi_get_min_bytes-function.patch
+     mm-split-off-__bdi_set_min_ratio-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-bdi_get_min_bytes-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-split-off-__bdi_set_min_ratio-function.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,50 +65,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: add bdi_get_min_bytes() function.
-Date: Fri, 18 Nov 2022 16:52:05 -0800
+Subject: mm: split off __bdi_set_min_ratio() function
+Date: Fri, 18 Nov 2022 16:52:06 -0800
 
-This adds a function to return the specified value for min_bytes. It
-converts the stored min_ratio of the bdi to the corresponding bytes
-value. This is an approximation as it is based on the value that is
-returned by global_dirty_limits(), which can change. The returned
-value can be different than the value when the min_bytes value was set.
+This splits off the __bdi_set_min_ratio() function from the
+bdi_set_min_ratio() function. The __bdi_set_min_ratio() function will
+also be called from the bdi_set_min_bytes() function, which will be
+introduced in the next patch.
 
-Link: https://lkml.kernel.org/r/20221119005215.3052436-11-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20221119005215.3052436-12-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
 Cc: Chris Mason <clm@meta.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    1 +
- mm/page-writeback.c         |    5 +++++
- 2 files changed, 6 insertions(+)
+ mm/page-writeback.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/include/linux/backing-dev.h~mm-add-bdi_get_min_bytes-function
-+++ a/include/linux/backing-dev.h
-@@ -105,6 +105,7 @@ static inline unsigned long wb_stat_erro
- /* BDI ratio is expressed as part per 1000000 for finer granularity. */
- #define BDI_RATIO_SCALE 10000
- 
-+u64 bdi_get_min_bytes(struct backing_dev_info *bdi);
- u64 bdi_get_max_bytes(struct backing_dev_info *bdi);
- int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio);
- int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio);
---- a/mm/page-writeback.c~mm-add-bdi_get_min_bytes-function
+--- a/mm/page-writeback.c~mm-split-off-__bdi_set_min_ratio-function
 +++ a/mm/page-writeback.c
-@@ -740,6 +740,11 @@ int bdi_set_max_ratio(struct backing_dev
+@@ -685,7 +685,7 @@ static u64 bdi_get_bytes(unsigned int ra
+ 	return bytes;
  }
- EXPORT_SYMBOL(bdi_set_max_ratio);
  
-+u64 bdi_get_min_bytes(struct backing_dev_info *bdi)
+-int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio)
++static int __bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio)
+ {
+ 	unsigned int delta;
+ 	int ret = 0;
+@@ -731,6 +731,11 @@ static int __bdi_set_max_ratio(struct ba
+ 	return ret;
+ }
+ 
++int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio)
 +{
-+	return bdi_get_bytes(bdi->min_ratio);
++	return __bdi_set_min_ratio(bdi, min_ratio * BDI_RATIO_SCALE);
 +}
 +
- u64 bdi_get_max_bytes(struct backing_dev_info *bdi)
+ int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio)
  {
- 	return bdi_get_bytes(bdi->max_ratio);
+ 	if (max_ratio > 100)
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
