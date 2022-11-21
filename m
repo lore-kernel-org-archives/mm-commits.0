@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B42D8C43217
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 22:19:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84097C433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Nov 2022 22:19:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232082AbiKUWTM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Nov 2022 17:19:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59546 "EHLO
+        id S231615AbiKUWTO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Nov 2022 17:19:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231905AbiKUWSe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 17:18:34 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9413026482
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 14:18:12 -0800 (PST)
+        with ESMTP id S231913AbiKUWSr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2022 17:18:47 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DF66AEBD8
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 14:18:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 37994B816A2
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 22:18:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCF1CC433C1;
-        Mon, 21 Nov 2022 22:18:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2554FB8169B
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2022 22:18:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6145C433D6;
+        Mon, 21 Nov 2022 22:18:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669069089;
-        bh=AzedcyTEsdz5xz4Slm+g6/D2HkObWX1QklLYQtUyjSk=;
+        s=korg; t=1669069091;
+        bh=E0ORdIfmzvEhz4JzMiThwWu8I5h4Edjblsn6MfdvROw=;
         h=Date:To:From:Subject:From;
-        b=HnUf4meIGL2ubrrn9fb1l+GPWJiGMUj9ho6olRo1ZSEz2ZguKdXL6dT1Gc8gh8EGQ
-         DJ9TaylknJqOstZipnF7UTBzneXFtrmxq7gmFu8SCIQwzauK1H3ytk1dB/Uzaz58Q2
-         HNw1L75daXieDQK5atGchVQ7KK4kSOUIzNIJDLeY=
-Date:   Mon, 21 Nov 2022 14:18:09 -0800
+        b=vQEHaUYrh6Pefiuhx392ojDoE+eMf7eyMgBsNmW+ZPv912eMvCLVuwQ1ExT/YxEye
+         JLv36cjSEC09ekuXdXmkQ19lYoKEvAExwM/YUyqIEcbRlM/OE2V78vTTFEPwvHGV2y
+         XC4GOyxvTlqEPtcWg10wWIkSDpm7LFNKECLNfEnM=
+Date:   Mon, 21 Nov 2022 14:18:11 -0800
 To:     mm-commits@vger.kernel.org, clm@meta.com, axboe@kernel.dk,
         shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-sys-class-bdi-bdi-min_ratio_fine-knob.patch added to mm-unstable branch
-Message-Id: <20221121221809.CCF1CC433C1@smtp.kernel.org>
+Subject: + mm-document-sys-class-bdi-bdi-min_ratio_fine-knob.patch added to mm-unstable branch
+Message-Id: <20221121221811.B6145C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add /sys/class/bdi/<bdi>/min_ratio_fine knob
+     Subject: mm: document /sys/class/bdi/<bdi>/min_ratio_fine knob
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-sys-class-bdi-bdi-min_ratio_fine-knob.patch
+     mm-document-sys-class-bdi-bdi-min_ratio_fine-knob.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-sys-class-bdi-bdi-min_ratio_fine-knob.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-document-sys-class-bdi-bdi-min_ratio_fine-knob.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,58 +65,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: add /sys/class/bdi/<bdi>/min_ratio_fine knob
-Date: Fri, 18 Nov 2022 16:52:14 -0800
+Subject: mm: document /sys/class/bdi/<bdi>/min_ratio_fine knob
+Date: Fri, 18 Nov 2022 16:52:15 -0800
 
-This adds the min_ratio_fine knob. The knob specifies the values not
-based on 1 of 100, but instead 1 per million.
+This documents the new /sys/class/bdi/<bdi>/max_ratio_fine knob.
 
-Link: https://lkml.kernel.org/r/20221119005215.3052436-20-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20221119005215.3052436-21-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
 Cc: Chris Mason <clm@meta.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ Documentation/ABI/testing/sysfs-class-bdi |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/mm/backing-dev.c~mm-add-sys-class-bdi-bdi-min_ratio_fine-knob
-+++ a/mm/backing-dev.c
-@@ -180,6 +180,25 @@ static ssize_t min_ratio_store(struct de
- }
- BDI_SHOW(min_ratio, bdi->min_ratio / BDI_RATIO_SCALE)
+--- a/Documentation/ABI/testing/sysfs-class-bdi~mm-document-sys-class-bdi-bdi-min_ratio_fine-knob
++++ a/Documentation/ABI/testing/sysfs-class-bdi
+@@ -44,6 +44,21 @@ Description:
  
-+static ssize_t min_ratio_fine_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct backing_dev_info *bdi = dev_get_drvdata(dev);
-+	unsigned int ratio;
-+	ssize_t ret;
+ 	(read-write)
+ 
++What:		/sys/class/bdi/<bdi>/min_ratio_fine
++Date:		November 2022
++Contact:	Stefan Roesch <shr@devkernel.io>
++Description:
++	Under normal circumstances each device is given a part of the
++	total write-back cache that relates to its current average
++	writeout speed in relation to the other devices.
 +
-+	ret = kstrtouint(buf, 10, &ratio);
-+	if (ret < 0)
-+		return ret;
++	The 'min_ratio_fine' parameter allows assigning a minimum reserve
++	of the write-back cache to a particular device. The value is
++    expressed as part of 1 million. For example, this is useful for
++    providing a minimum QoS.
 +
-+	ret = bdi_set_min_ratio_no_scale(bdi, ratio);
-+	if (!ret)
-+		ret = count;
++	(read-write)
 +
-+	return ret;
-+}
-+BDI_SHOW(min_ratio_fine, bdi->min_ratio)
-+
- static ssize_t max_ratio_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t count)
- {
-@@ -315,6 +334,7 @@ static DEVICE_ATTR_RW(strict_limit);
- static struct attribute *bdi_dev_attrs[] = {
- 	&dev_attr_read_ahead_kb.attr,
- 	&dev_attr_min_ratio.attr,
-+	&dev_attr_min_ratio_fine.attr,
- 	&dev_attr_max_ratio.attr,
- 	&dev_attr_max_ratio_fine.attr,
- 	&dev_attr_min_bytes.attr,
+ What:		/sys/class/bdi/<bdi>/max_ratio
+ Date:		January 2008
+ Contact:	Peter Zijlstra <a.p.zijlstra@chello.nl>
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
