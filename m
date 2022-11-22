@@ -2,45 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E05AC433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Nov 2022 22:53:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D85FEC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Nov 2022 23:00:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235288AbiKVWxT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Nov 2022 17:53:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52528 "EHLO
+        id S234911AbiKVXAc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Nov 2022 18:00:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235244AbiKVWwk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 17:52:40 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEDA5B20
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 14:52:25 -0800 (PST)
+        with ESMTP id S234708AbiKVXA2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 18:00:28 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A474A5132A
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 15:00:27 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 718D361935
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 22:52:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C571AC433D6;
-        Tue, 22 Nov 2022 22:52:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4B73DB81DFB
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 23:00:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9A45C433D6;
+        Tue, 22 Nov 2022 23:00:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669157544;
-        bh=LhoWDK/Mo5w3cq7XxRRucF5WH4CM5NdGlaCaWuKupvE=;
+        s=korg; t=1669158025;
+        bh=xFvCcidakx6kKWnAMXGxzj8UrOYmWm2NN5dAS6INE8o=;
         h=Date:To:From:Subject:From;
-        b=YcQz+Cwqn+6E02AATN7zrzdA7L2wmgMlZWq116Ojk5P3jYptNqE0luyy5hdvzpodb
-         xuIEUC4afozLYb9Ty9/g98uNLPD0EGulUhN/5/fr648Etc5ohBDhpXj9BKjDxuXEFI
-         FBdLfaHdZLiT1Lks6Szt/vmRKQWPSE0Frg+xGGPg=
-Date:   Tue, 22 Nov 2022 14:52:24 -0800
-To:     mm-commits@vger.kernel.org, zokeefe@google.com, yuzhao@google.com,
-        willy@infradead.org, vbabka@suse.cz, torvalds@linux-foundation.org,
-        songmuchun@bytedance.com, sidhartha.kumar@oracle.com,
-        shy828301@gmail.com, peterx@redhat.com, naoya.horiguchi@linux.dev,
-        mike.kravetz@oracle.com, linmiaohe@huawei.com,
-        kirill.shutemov@linux.intel.com, jthoughton@google.com,
-        jhubbard@nvidia.com, hannes@cmpxchg.org, error27@gmail.com,
-        david@redhat.com, almasrymina@google.com, hughd@google.com,
+        b=qgLKqONM4SRv5KHSqbKaoaRN/+eQXvHsRxshlNRbhb2ipIwaR6/gJS2WZOK6solCz
+         93NFwYcUv5HSRhL1+af/tI8DkKcQQ+9iGwz4Cjq5i5RQcTRcmTglA5kMFMpTVObCb/
+         HdaGujKW49xf6UzZ8+Mf7hh8IwHHXPUsfYsR4J5I=
+Date:   Tue, 22 Nov 2022 15:00:23 -0800
+To:     mm-commits@vger.kernel.org, shr@devkernel.io, sfr@canb.auug.org.au,
+        clm@meta.com, axboe@kernel.dk, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked.patch added to mm-unstable branch
-Message-Id: <20221122225224.C571AC433D6@smtp.kernel.org>
+Subject: + mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch added to mm-unstable branch
+Message-Id: <20221122230024.D9A45C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,thp,rmap: clean up the end of __split_huge_pmd_locked()
+     Subject: mm-document-sys-class-bdi-bdi-min_bytes-knob-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked.patch
+     mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,108 +65,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm,thp,rmap: clean up the end of __split_huge_pmd_locked()
-Date: Tue, 22 Nov 2022 01:51:50 -0800 (PST)
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-document-sys-class-bdi-bdi-min_bytes-knob-fix
+Date: Tue Nov 22 02:57:12 PM PST 2022
 
-It's hard to add a page_add_anon_rmap() into __split_huge_pmd_locked()'s
-HPAGE_PMD_NR set_pte_at() loop, without wincing at the "freeze" case's
-HPAGE_PMD_NR page_remove_rmap() loop below it.
+fix htmldocs warnings
 
-It's just a mistake to add rmaps in the "freeze" (insert migration entries
-prior to splitting huge page) case: the pmd_migration case already avoids
-doing that, so just follow its lead.  page_add_ref() versus put_page()
-likewise.  But why is one more put_page() needed in the "freeze" case? 
-Because it's removing the pmd rmap, already removed when pmd_migration
-(and freeze and pmd_migration are mutually exclusive cases).
-
-Link: https://lkml.kernel.org/r/d43748aa-fece-e0b9-c4ab-f23c9ebc9011@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dan Carpenter <error27@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Chris Mason <clm@meta.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Stefan Roesch <shr@devkernel.io>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ Documentation/ABI/testing/sysfs-class-bdi |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked
-+++ a/mm/huge_memory.c
-@@ -2095,7 +2095,6 @@ static void __split_huge_pmd_locked(stru
- 		uffd_wp = pmd_uffd_wp(old_pmd);
+--- a/Documentation/ABI/testing/sysfs-class-bdi~mm-document-sys-class-bdi-bdi-min_bytes-knob-fix
++++ a/Documentation/ABI/testing/sysfs-class-bdi
+@@ -67,7 +67,7 @@ Description:
  
- 		VM_BUG_ON_PAGE(!page_count(page), page);
--		page_ref_add(page, HPAGE_PMD_NR - 1);
+ 	The 'min_bytes' parameter allows assigning a minimum
+ 	percentage of the write-back cache to a particular device
+-    expressed in bytes.
++	expressed in bytes.
+ 	For example, this is useful for providing a minimum QoS.
  
- 		/*
- 		 * Without "freeze", we'll simply split the PMD, propagating the
-@@ -2115,6 +2114,8 @@ static void __split_huge_pmd_locked(stru
- 		anon_exclusive = PageAnon(page) && PageAnonExclusive(page);
- 		if (freeze && anon_exclusive && page_try_share_anon_rmap(page))
- 			freeze = false;
-+		if (!freeze)
-+			page_ref_add(page, HPAGE_PMD_NR - 1);
- 	}
- 
- 	/*
-@@ -2170,27 +2171,21 @@ static void __split_huge_pmd_locked(stru
- 				entry = pte_mksoft_dirty(entry);
- 			if (uffd_wp)
- 				entry = pte_mkuffd_wp(entry);
-+			page_add_anon_rmap(page + i, vma, addr, false);
- 		}
- 		pte = pte_offset_map(&_pmd, addr);
- 		BUG_ON(!pte_none(*pte));
- 		set_pte_at(mm, addr, pte, entry);
--		if (!pmd_migration)
--			page_add_anon_rmap(page + i, vma, addr, false);
- 		pte_unmap(pte);
- 	}
- 
- 	if (!pmd_migration)
- 		page_remove_rmap(page, vma, true);
-+	if (freeze)
-+		put_page(page);
- 
- 	smp_wmb(); /* make pte visible before pmd */
- 	pmd_populate(mm, pmd, pgtable);
--
--	if (freeze) {
--		for (i = 0; i < HPAGE_PMD_NR; i++) {
--			page_remove_rmap(page + i, vma, false);
--			put_page(page + i);
--		}
--	}
- }
- 
- void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 	(read-write)
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mmhugetlb-use-folio-fields-in-second-tail-page.patch
-mmhugetlb-use-folio-fields-in-second-tail-page-fix.patch
-mmthprmap-simplify-compound-page-mapcount-handling.patch
-mmthprmap-lock_compound_mapcounts-on-thp-mapcounts.patch
-mmthprmap-handle-the-normal-pagecompound-case-first.patch
-mmthprmap-subpages_mapcount-of-pte-mapped-subpages.patch
-mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped.patch
-mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked.patch
+kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix.patch
+mm-fix-unexpected-changes-to-failslabfail_page_allocattr-fix.patch
+mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+mm-gup-remove-foll_migration-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
+kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
+mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch
+mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix.patch
+mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix.patch
+mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch
+mm-document-sys-class-bdi-bdi-max_ratio_fine-knob-fix.patch
+mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch
 
