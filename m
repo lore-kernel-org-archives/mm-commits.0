@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F2C8C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Nov 2022 22:53:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E05AC433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Nov 2022 22:53:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235273AbiKVWw6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Nov 2022 17:52:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51620 "EHLO
+        id S235288AbiKVWxT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Nov 2022 17:53:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235148AbiKVWwX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 17:52:23 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C064C846D
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 14:52:22 -0800 (PST)
+        with ESMTP id S235244AbiKVWwk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 17:52:40 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEDA5B20
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 14:52:25 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DE2CE61935
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 22:52:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 401C5C433D6;
-        Tue, 22 Nov 2022 22:52:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 718D361935
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 22:52:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C571AC433D6;
+        Tue, 22 Nov 2022 22:52:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669157541;
-        bh=I0F9QdT1cSnv+3MDUbHiWnL59flJSwKNJlt+EzaPolU=;
+        s=korg; t=1669157544;
+        bh=LhoWDK/Mo5w3cq7XxRRucF5WH4CM5NdGlaCaWuKupvE=;
         h=Date:To:From:Subject:From;
-        b=RCJDEf8PYBlPh7287mXdTZr02n6BMuaBK2Yye77PPp37JLTU8HMRLzZDgCtj3e1f4
-         vQhjRPGydAKwH5w/28ZdQTj+5y6si1e5fYWd2I/X4XxnRJcN1Vl44XOIuND6sCwg3/
-         93Nf3m/3uxd4ktcSs84kKMsQhnyHOVSHxV9SFwc4=
-Date:   Tue, 22 Nov 2022 14:52:20 -0800
+        b=YcQz+Cwqn+6E02AATN7zrzdA7L2wmgMlZWq116Ojk5P3jYptNqE0luyy5hdvzpodb
+         xuIEUC4afozLYb9Ty9/g98uNLPD0EGulUhN/5/fr648Etc5ohBDhpXj9BKjDxuXEFI
+         FBdLfaHdZLiT1Lks6Szt/vmRKQWPSE0Frg+xGGPg=
+Date:   Tue, 22 Nov 2022 14:52:24 -0800
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, yuzhao@google.com,
         willy@infradead.org, vbabka@suse.cz, torvalds@linux-foundation.org,
         songmuchun@bytedance.com, sidhartha.kumar@oracle.com,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, zokeefe@google.com, yuzhao@google.com,
         david@redhat.com, almasrymina@google.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped.patch added to mm-unstable branch
-Message-Id: <20221122225221.401C5C433D6@smtp.kernel.org>
+Subject: + mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked.patch added to mm-unstable branch
+Message-Id: <20221122225224.C571AC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +48,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,thp,rmap: subpages_mapcount COMPOUND_MAPPED if PMD-mapped
+     Subject: mm,thp,rmap: clean up the end of __split_huge_pmd_locked()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped.patch
+     mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -72,33 +72,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm,thp,rmap: subpages_mapcount COMPOUND_MAPPED if PMD-mapped
-Date: Tue, 22 Nov 2022 01:49:36 -0800 (PST)
+Subject: mm,thp,rmap: clean up the end of __split_huge_pmd_locked()
+Date: Tue, 22 Nov 2022 01:51:50 -0800 (PST)
 
-Can the lock_compound_mapcount() bit_spin_lock apparatus be removed now? 
-Yes.  Not by atomic64_t or cmpxchg games, those get difficult on 32-bit;
-but if we slightly abuse subpages_mapcount by additionally demanding that
-one bit be set there when the compound page is PMD-mapped, then a cascade
-of two atomic ops is able to maintain the stats without bit_spin_lock.
+It's hard to add a page_add_anon_rmap() into __split_huge_pmd_locked()'s
+HPAGE_PMD_NR set_pte_at() loop, without wincing at the "freeze" case's
+HPAGE_PMD_NR page_remove_rmap() loop below it.
 
-This is harder to reason about than when bit_spin_locked, but I believe
-safe; and no drift in stats detected when testing.  When there are racing
-removes and adds, of course the sequence of operations is less well-
-defined; but each operation on subpages_mapcount is atomically good.  What
-might be disastrous, is if subpages_mapcount could ever fleetingly appear
-negative: but the pte lock (or pmd lock) these rmap functions are called
-under, ensures that a last remove cannot race ahead of a first add.
+It's just a mistake to add rmaps in the "freeze" (insert migration entries
+prior to splitting huge page) case: the pmd_migration case already avoids
+doing that, so just follow its lead.  page_add_ref() versus put_page()
+likewise.  But why is one more put_page() needed in the "freeze" case? 
+Because it's removing the pmd rmap, already removed when pmd_migration
+(and freeze and pmd_migration are mutually exclusive cases).
 
-Continue to make an exception for hugetlb (PageHuge) pages, though that
-exception can be easily removed by a further commit if necessary: leave
-subpages_mapcount 0, don't bother with COMPOUND_MAPPED in its case, just
-carry on checking compound_mapcount too in folio_mapped(), page_mapped().
-
-Evidence is that this way goes slightly faster than the previous
-implementation in all cases (pmds after ptes now taking around 103ms); and
-relieves us of worrying about contention on the bit_spin_lock.
-
-Link: https://lkml.kernel.org/r/3978f3ca-5473-55a7-4e14-efea5968d892@google.com
+Link: https://lkml.kernel.org/r/d43748aa-fece-e0b9-c4ab-f23c9ebc9011@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Dan Carpenter <error27@gmail.com>
@@ -122,324 +110,59 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/transhuge.rst |    7 -
- include/linux/mm.h             |   19 ++++
- include/linux/rmap.h           |   13 +--
- mm/page_alloc.c                |    2 
- mm/rmap.c                      |  121 ++++++-------------------------
- 5 files changed, 51 insertions(+), 111 deletions(-)
+ mm/huge_memory.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
---- a/Documentation/mm/transhuge.rst~mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped
-+++ a/Documentation/mm/transhuge.rst
-@@ -118,15 +118,14 @@ pages:
-     succeeds on tail pages.
+--- a/mm/huge_memory.c~mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked
++++ a/mm/huge_memory.c
+@@ -2095,7 +2095,6 @@ static void __split_huge_pmd_locked(stru
+ 		uffd_wp = pmd_uffd_wp(old_pmd);
  
-   - map/unmap of PMD entry for the whole compound page increment/decrement
--    ->compound_mapcount, stored in the first tail page of the compound page.
-+    ->compound_mapcount, stored in the first tail page of the compound page;
-+    and also increment/decrement ->subpages_mapcount (also in the first tail)
-+    by COMPOUND_MAPPED when compound_mapcount goes from -1 to 0 or 0 to -1.
+ 		VM_BUG_ON_PAGE(!page_count(page), page);
+-		page_ref_add(page, HPAGE_PMD_NR - 1);
  
-   - map/unmap of sub-pages with PTE entry increment/decrement ->_mapcount
-     on relevant sub-page of the compound page, and also increment/decrement
-     ->subpages_mapcount, stored in first tail page of the compound page, when
-     _mapcount goes from -1 to 0 or 0 to -1: counting sub-pages mapped by PTE.
--    In order to have race-free accounting of sub-pages mapped, changes to
--    sub-page ->_mapcount, ->subpages_mapcount and ->compound_mapcount are
--    are all locked by bit_spin_lock of PG_locked in the first tail ->flags.
+ 		/*
+ 		 * Without "freeze", we'll simply split the PMD, propagating the
+@@ -2115,6 +2114,8 @@ static void __split_huge_pmd_locked(stru
+ 		anon_exclusive = PageAnon(page) && PageAnonExclusive(page);
+ 		if (freeze && anon_exclusive && page_try_share_anon_rmap(page))
+ 			freeze = false;
++		if (!freeze)
++			page_ref_add(page, HPAGE_PMD_NR - 1);
+ 	}
  
- split_huge_page internally has to distribute the refcounts in the head
- page to the tail pages before clearing all PG_head/tail bits from the page
---- a/include/linux/mm.h~mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped
-+++ a/include/linux/mm.h
-@@ -837,12 +837,21 @@ static inline int head_compound_mapcount
- }
- 
- /*
-+ * If a 16GB hugetlb page were mapped by PTEs of all of its 4kB sub-pages,
-+ * its subpages_mapcount would be 0x400000: choose the COMPOUND_MAPPED bit
-+ * above that range, instead of 2*(PMD_SIZE/PAGE_SIZE).  Hugetlb currently
-+ * leaves subpages_mapcount at 0, but avoid surprise if it participates later.
-+ */
-+#define COMPOUND_MAPPED	0x800000
-+#define SUBPAGES_MAPPED	(COMPOUND_MAPPED - 1)
-+
-+/*
-  * Number of sub-pages mapped by PTE, does not include compound mapcount.
-  * Must be called only on head of compound page.
-  */
- static inline int head_subpages_mapcount(struct page *head)
- {
--	return atomic_read(subpages_mapcount_ptr(head));
-+	return atomic_read(subpages_mapcount_ptr(head)) & SUBPAGES_MAPPED;
- }
- 
- /*
-@@ -902,8 +911,12 @@ static inline int total_mapcount(struct
- 
- static inline bool folio_large_is_mapped(struct folio *folio)
- {
--	return atomic_read(folio_mapcount_ptr(folio)) +
--		atomic_read(folio_subpages_mapcount_ptr(folio)) >= 0;
-+	/*
-+	 * Reading folio_mapcount_ptr() below could be omitted if hugetlb
-+	 * participated in incrementing subpages_mapcount when compound mapped.
-+	 */
-+	return atomic_read(folio_subpages_mapcount_ptr(folio)) > 0 ||
-+		atomic_read(folio_mapcount_ptr(folio)) >= 0;
- }
- 
- /**
---- a/include/linux/rmap.h~mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped
-+++ a/include/linux/rmap.h
-@@ -204,15 +204,14 @@ void hugepage_add_anon_rmap(struct page
- void hugepage_add_new_anon_rmap(struct page *, struct vm_area_struct *,
- 		unsigned long address);
- 
--void page_dup_compound_rmap(struct page *page);
-+static inline void __page_dup_rmap(struct page *page, bool compound)
-+{
-+	atomic_inc(compound ? compound_mapcount_ptr(page) : &page->_mapcount);
-+}
- 
- static inline void page_dup_file_rmap(struct page *page, bool compound)
- {
--	/* Is page being mapped by PTE? */
--	if (likely(!compound))
--		atomic_inc(&page->_mapcount);
--	else
--		page_dup_compound_rmap(page);
-+	__page_dup_rmap(page, compound);
- }
- 
- /**
-@@ -261,7 +260,7 @@ static inline int page_try_dup_anon_rmap
- 	 * the page R/O into both processes.
- 	 */
- dup:
--	page_dup_file_rmap(page, compound);
-+	__page_dup_rmap(page, compound);
- 	return 0;
- }
- 
---- a/mm/page_alloc.c~mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped
-+++ a/mm/page_alloc.c
-@@ -1330,7 +1330,7 @@ static int free_tail_pages_check(struct
- 			bad_page(page, "nonzero compound_mapcount");
- 			goto out;
+ 	/*
+@@ -2170,27 +2171,21 @@ static void __split_huge_pmd_locked(stru
+ 				entry = pte_mksoft_dirty(entry);
+ 			if (uffd_wp)
+ 				entry = pte_mkuffd_wp(entry);
++			page_add_anon_rmap(page + i, vma, addr, false);
  		}
--		if (unlikely(head_subpages_mapcount(head_page))) {
-+		if (unlikely(atomic_read(subpages_mapcount_ptr(head_page)))) {
- 			bad_page(page, "nonzero subpages_mapcount");
- 			goto out;
- 		}
---- a/mm/rmap.c~mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped
-+++ a/mm/rmap.c
-@@ -1085,38 +1085,6 @@ int pfn_mkclean_range(unsigned long pfn,
- 	return page_vma_mkclean_one(&pvmw);
- }
+ 		pte = pte_offset_map(&_pmd, addr);
+ 		BUG_ON(!pte_none(*pte));
+ 		set_pte_at(mm, addr, pte, entry);
+-		if (!pmd_migration)
+-			page_add_anon_rmap(page + i, vma, addr, false);
+ 		pte_unmap(pte);
+ 	}
  
--struct compound_mapcounts {
--	unsigned int compound_mapcount;
--	unsigned int subpages_mapcount;
--};
--
--/*
-- * lock_compound_mapcounts() first locks, then copies subpages_mapcount and
-- * compound_mapcount from head[1].compound_mapcount and subpages_mapcount,
-- * converting from struct page's internal representation to logical count
-- * (that is, adding 1 to compound_mapcount to hide its offset by -1).
-- */
--static void lock_compound_mapcounts(struct page *head,
--		struct compound_mapcounts *local)
--{
--	bit_spin_lock(PG_locked, &head[1].flags);
--	local->compound_mapcount = atomic_read(compound_mapcount_ptr(head)) + 1;
--	local->subpages_mapcount = atomic_read(subpages_mapcount_ptr(head));
--}
--
--/*
-- * After caller has updated subpage._mapcount, local subpages_mapcount and
-- * local compound_mapcount, as necessary, unlock_compound_mapcounts() converts
-- * and copies them back to the compound head[1] fields, and then unlocks.
-- */
--static void unlock_compound_mapcounts(struct page *head,
--		struct compound_mapcounts *local)
--{
--	atomic_set(compound_mapcount_ptr(head), local->compound_mapcount - 1);
--	atomic_set(subpages_mapcount_ptr(head), local->subpages_mapcount);
--	bit_spin_unlock(PG_locked, &head[1].flags);
--}
--
- int total_compound_mapcount(struct page *head)
- {
- 	int mapcount = head_compound_mapcount(head);
-@@ -1140,34 +1108,6 @@ int total_compound_mapcount(struct page
- 	return mapcount;
- }
+ 	if (!pmd_migration)
+ 		page_remove_rmap(page, vma, true);
++	if (freeze)
++		put_page(page);
  
--/*
-- * page_dup_compound_rmap(), used when copying mm,
-- * provides a simple example of using lock_ and unlock_compound_mapcounts().
-- */
--void page_dup_compound_rmap(struct page *head)
--{
--	struct compound_mapcounts mapcounts;
+ 	smp_wmb(); /* make pte visible before pmd */
+ 	pmd_populate(mm, pmd, pgtable);
 -
--	/*
--	 * Hugetlb pages could use lock_compound_mapcounts(), like THPs do;
--	 * but at present they are still being managed by atomic operations:
--	 * which are likely to be somewhat faster, so don't rush to convert
--	 * them over without evaluating the effect.
--	 *
--	 * Note that hugetlb does not call page_add_file_rmap():
--	 * here is where hugetlb shared page mapcount is raised.
--	 */
--	if (PageHuge(head)) {
--		atomic_inc(compound_mapcount_ptr(head));
--	} else if (PageTransHuge(head)) {
--		/* That test is redundant: it's for safety or to optimize out */
--
--		lock_compound_mapcounts(head, &mapcounts);
--		mapcounts.compound_mapcount++;
--		unlock_compound_mapcounts(head, &mapcounts);
+-	if (freeze) {
+-		for (i = 0; i < HPAGE_PMD_NR; i++) {
+-			page_remove_rmap(page + i, vma, false);
+-			put_page(page + i);
+-		}
 -	}
--}
--
- /**
-  * page_move_anon_rmap - move a page to our anon_vma
-  * @page:	the page to move to our anon_vma
-@@ -1277,7 +1217,7 @@ static void __page_check_anon_rmap(struc
- void page_add_anon_rmap(struct page *page,
- 	struct vm_area_struct *vma, unsigned long address, rmap_t flags)
- {
--	struct compound_mapcounts mapcounts;
-+	atomic_t *mapped;
- 	int nr = 0, nr_pmdmapped = 0;
- 	bool compound = flags & RMAP_COMPOUND;
- 	bool first = true;
-@@ -1290,24 +1230,20 @@ void page_add_anon_rmap(struct page *pag
- 		first = atomic_inc_and_test(&page->_mapcount);
- 		nr = first;
- 		if (first && PageCompound(page)) {
--			struct page *head = compound_head(page);
--
--			lock_compound_mapcounts(head, &mapcounts);
--			mapcounts.subpages_mapcount++;
--			nr = !mapcounts.compound_mapcount;
--			unlock_compound_mapcounts(head, &mapcounts);
-+			mapped = subpages_mapcount_ptr(compound_head(page));
-+			nr = atomic_inc_return_relaxed(mapped);
-+			nr = !(nr & COMPOUND_MAPPED);
- 		}
- 	} else if (PageTransHuge(page)) {
- 		/* That test is redundant: it's for safety or to optimize out */
+ }
  
--		lock_compound_mapcounts(page, &mapcounts);
--		first = !mapcounts.compound_mapcount;
--		mapcounts.compound_mapcount++;
-+		first = atomic_inc_and_test(compound_mapcount_ptr(page));
- 		if (first) {
-+			mapped = subpages_mapcount_ptr(page);
-+			nr = atomic_add_return_relaxed(COMPOUND_MAPPED, mapped);
- 			nr_pmdmapped = thp_nr_pages(page);
--			nr = nr_pmdmapped - mapcounts.subpages_mapcount;
-+			nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
- 		}
--		unlock_compound_mapcounts(page, &mapcounts);
- 	}
- 
- 	VM_BUG_ON_PAGE(!first && (flags & RMAP_EXCLUSIVE), page);
-@@ -1360,6 +1296,7 @@ void page_add_new_anon_rmap(struct page
- 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
- 		/* increment count (starts at -1) */
- 		atomic_set(compound_mapcount_ptr(page), 0);
-+		atomic_set(subpages_mapcount_ptr(page), COMPOUND_MAPPED);
- 		nr = thp_nr_pages(page);
- 		__mod_lruvec_page_state(page, NR_ANON_THPS, nr);
- 	}
-@@ -1379,7 +1316,7 @@ void page_add_new_anon_rmap(struct page
- void page_add_file_rmap(struct page *page,
- 	struct vm_area_struct *vma, bool compound)
- {
--	struct compound_mapcounts mapcounts;
-+	atomic_t *mapped;
- 	int nr = 0, nr_pmdmapped = 0;
- 	bool first;
- 
-@@ -1391,24 +1328,20 @@ void page_add_file_rmap(struct page *pag
- 		first = atomic_inc_and_test(&page->_mapcount);
- 		nr = first;
- 		if (first && PageCompound(page)) {
--			struct page *head = compound_head(page);
--
--			lock_compound_mapcounts(head, &mapcounts);
--			mapcounts.subpages_mapcount++;
--			nr = !mapcounts.compound_mapcount;
--			unlock_compound_mapcounts(head, &mapcounts);
-+			mapped = subpages_mapcount_ptr(compound_head(page));
-+			nr = atomic_inc_return_relaxed(mapped);
-+			nr = !(nr & COMPOUND_MAPPED);
- 		}
- 	} else if (PageTransHuge(page)) {
- 		/* That test is redundant: it's for safety or to optimize out */
- 
--		lock_compound_mapcounts(page, &mapcounts);
--		first = !mapcounts.compound_mapcount;
--		mapcounts.compound_mapcount++;
-+		first = atomic_inc_and_test(compound_mapcount_ptr(page));
- 		if (first) {
-+			mapped = subpages_mapcount_ptr(page);
-+			nr = atomic_add_return_relaxed(COMPOUND_MAPPED, mapped);
- 			nr_pmdmapped = thp_nr_pages(page);
--			nr = nr_pmdmapped - mapcounts.subpages_mapcount;
-+			nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
- 		}
--		unlock_compound_mapcounts(page, &mapcounts);
- 	}
- 
- 	if (nr_pmdmapped)
-@@ -1432,7 +1365,7 @@ void page_add_file_rmap(struct page *pag
- void page_remove_rmap(struct page *page,
- 	struct vm_area_struct *vma, bool compound)
- {
--	struct compound_mapcounts mapcounts;
-+	atomic_t *mapped;
- 	int nr = 0, nr_pmdmapped = 0;
- 	bool last;
- 
-@@ -1452,24 +1385,20 @@ void page_remove_rmap(struct page *page,
- 		last = atomic_add_negative(-1, &page->_mapcount);
- 		nr = last;
- 		if (last && PageCompound(page)) {
--			struct page *head = compound_head(page);
--
--			lock_compound_mapcounts(head, &mapcounts);
--			mapcounts.subpages_mapcount--;
--			nr = !mapcounts.compound_mapcount;
--			unlock_compound_mapcounts(head, &mapcounts);
-+			mapped = subpages_mapcount_ptr(compound_head(page));
-+			nr = atomic_dec_return_relaxed(mapped);
-+			nr = !(nr & COMPOUND_MAPPED);
- 		}
- 	} else if (PageTransHuge(page)) {
- 		/* That test is redundant: it's for safety or to optimize out */
- 
--		lock_compound_mapcounts(page, &mapcounts);
--		mapcounts.compound_mapcount--;
--		last = !mapcounts.compound_mapcount;
-+		last = atomic_add_negative(-1, compound_mapcount_ptr(page));
- 		if (last) {
-+			mapped = subpages_mapcount_ptr(page);
-+			nr = atomic_sub_return_relaxed(COMPOUND_MAPPED, mapped);
- 			nr_pmdmapped = thp_nr_pages(page);
--			nr = nr_pmdmapped - mapcounts.subpages_mapcount;
-+			nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
- 		}
--		unlock_compound_mapcounts(page, &mapcounts);
- 	}
- 
- 	if (nr_pmdmapped) {
+ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
 _
 
 Patches currently in -mm which might be from hughd@google.com are
