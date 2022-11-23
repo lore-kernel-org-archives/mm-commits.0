@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6581C433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 19:45:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70743C46467
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 19:59:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233044AbiKWTph (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Nov 2022 14:45:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39128 "EHLO
+        id S234925AbiKWT7I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Nov 2022 14:59:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50774 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233560AbiKWTpg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2022 14:45:36 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 245A39373D
-        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 11:45:36 -0800 (PST)
+        with ESMTP id S239949AbiKWT6C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2022 14:58:02 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74D171D310
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 11:57:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B27D861DB3
-        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 19:45:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09FDCC433C1;
-        Wed, 23 Nov 2022 19:45:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A7E5661EE3
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 19:57:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2521C433C1;
+        Wed, 23 Nov 2022 19:57:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669232735;
-        bh=mqjXEH0cnk8NqznMkmuj9GYZ4hbpraykwzvPxIYUpxc=;
+        s=korg; t=1669233476;
+        bh=7undMfy1VzlMk5plttukmPe1ZwG0SwwkVXjNVl2iocQ=;
         h=Date:To:From:Subject:From;
-        b=oEpmp63dyzCXxU7bcHIMFbULTjWezjBvhkszCJJhy0NmmmKwJSJ0AROO2UsckJN3l
-         TvW8S3t8mRP8rdE3MUQJOMveFG5VWGmAwsylcOf91A38G+Civ1EYdYrqcQ1x+jz/t+
-         5H2phi+UuLNvpnSp+P7QJM0oOu0k/q/wLD32z4Io=
-Date:   Wed, 23 Nov 2022 11:45:34 -0800
-To:     mm-commits@vger.kernel.org, yangyingliang@huawei.com,
-        mporter@kernel.crashing.org, jhubbard@nvidia.com,
-        jakobkoschel@gmail.com, error27@gmail.com, alex.bou9@gmail.com,
-        wangweiyang2@huawei.com, akpm@linux-foundation.org
+        b=hthsv9z/e1L03ec2KJC+eLBjmTfpqoTvFLCeB6IG35QSxKVyNjWXKRDMG/uZ28x/r
+         K2gGmFH7yPh7zcLszrgRZO5QT5t9rLqOzUg3AvuUKwkh0Toco3DUG4j/PQSk6rmsnK
+         1NSTC9QZtpMTJYXP5RmZ1eUMIIna+o3/TdjSaVYE=
+Date:   Wed, 23 Nov 2022 11:57:55 -0800
+To:     mm-commits@vger.kernel.org, zokeefe@google.com, mhocko@suse.com,
+        shy828301@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + rapidio-fix-possible-uaf-when-kfifo_alloc-fails.patch added to mm-nonmm-unstable branch
-Message-Id: <20221123194535.09FDCC433C1@smtp.kernel.org>
+Subject: + mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode-v4.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221123195755.F2521C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: fix possible UAF when kfifo_alloc() fails
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     rapidio-fix-possible-uaf-when-kfifo_alloc-fails.patch
+     Subject: mm: replace VM_WARN_ON to pr_warn if the node is offline with __GFP_THISNODE
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode-v4.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-fix-possible-uaf-when-kfifo_alloc-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode-v4.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,57 +64,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wang Weiyang <wangweiyang2@huawei.com>
-Subject: rapidio: fix possible UAF when kfifo_alloc() fails
-Date: Wed, 23 Nov 2022 17:51:47 +0800
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: replace VM_WARN_ON to pr_warn if the node is offline with __GFP_THISNODE
+Date: Wed, 23 Nov 2022 11:30:14 -0800
 
-If kfifo_alloc() fails in mport_cdev_open(), goto err_fifo and just free
-priv. But priv is still in the chdev->file_list, then list traversal
-may cause UAF. This fixes the following smatch warning:
+renamed nid to this_node and gfp to warn_gfp to make the code more
+readable per Michal.
 
-drivers/rapidio/devices/rio_mport_cdev.c:1930 mport_cdev_open() warn: '&priv->list' not removed from list
-
-Link: https://lkml.kernel.org/r/20221123095147.52408-1-wangweiyang2@huawei.com
-Fixes: e8de370188d0 ("rapidio: add mport char device driver")
-Signed-off-by: Wang Weiyang <wangweiyang2@huawei.com>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Dan Carpenter <error27@gmail.com>
-Cc: Jakob Koschel <jakobkoschel@gmail.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Yang Yingliang <yangyingliang@huawei.com>
+Link: https://lkml.kernel.org/r/20221123193014.153983-1-shy828301@gmail.com
+Reported-by: syzbot+0044b22d177870ee974f@syzkaller.appspotmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/gfp.h |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-possible-uaf-when-kfifo_alloc-fails
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -1904,10 +1904,6 @@ static int mport_cdev_open(struct inode
+--- a/include/linux/gfp.h~mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode-v4
++++ a/include/linux/gfp.h
+@@ -210,14 +210,18 @@ alloc_pages_bulk_array_node(gfp_t gfp, i
+ 	return __alloc_pages_bulk(gfp, nid, NULL, nr_pages, NULL, page_array);
+ }
  
- 	priv->md = chdev;
+-static inline void warn_if_node_offline(int nid, gfp_t gfp_mask)
++static inline void warn_if_node_offline(int this_node, gfp_t gfp_mask)
+ {
+-	gfp_t gfp = gfp_mask & (__GFP_THISNODE|__GFP_NOWARN);
++	gfp_t warn_gfp = gfp_mask & (__GFP_THISNODE|__GFP_NOWARN);
  
--	mutex_lock(&chdev->file_mutex);
--	list_add_tail(&priv->list, &chdev->file_list);
--	mutex_unlock(&chdev->file_mutex);
--
- 	INIT_LIST_HEAD(&priv->db_filters);
- 	INIT_LIST_HEAD(&priv->pw_filters);
- 	spin_lock_init(&priv->fifo_lock);
-@@ -1926,6 +1922,9 @@ static int mport_cdev_open(struct inode
- 	spin_lock_init(&priv->req_lock);
- 	mutex_init(&priv->dma_lock);
- #endif
-+	mutex_lock(&chdev->file_mutex);
-+	list_add_tail(&priv->list, &chdev->file_list);
-+	mutex_unlock(&chdev->file_mutex);
+-	if ((gfp == (__GFP_THISNODE|__GFP_NOWARN)) && !node_online(nid)) {
+-		pr_warn("%pGg allocation from offline node %d\n", &gfp, nid);
+-		dump_stack();
+-	}
++	if (warn_gfp != (__GFP_THISNODE|__GFP_NOWARN))
++		return;
++
++	if(node_online(this_node))
++		return;
++
++	pr_warn("%pGg allocation from offline node %d\n", &warn_gfp, this_node);
++	dump_stack();
+ }
  
- 	filp->private_data = priv;
- 	goto out;
+ /*
 _
 
-Patches currently in -mm which might be from wangweiyang2@huawei.com are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-rapidio-fix-possible-uaf-when-kfifo_alloc-fails.patch
+mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode.patch
+mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode-v4.patch
 
