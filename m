@@ -2,115 +2,91 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0112C433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 02:01:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D884CC433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 02:47:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235137AbiKWCBs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Nov 2022 21:01:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54782 "EHLO
+        id S234531AbiKWCrL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Nov 2022 21:47:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232445AbiKWCBr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 21:01:47 -0500
+        with ESMTP id S234375AbiKWCrK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 21:47:10 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 582F38CB85;
-        Tue, 22 Nov 2022 18:01:45 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9993C85EE2
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 18:47:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A9AD9B81E4A;
-        Wed, 23 Nov 2022 02:01:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54E04C433C1;
-        Wed, 23 Nov 2022 02:01:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 49226B81E57
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 02:47:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC174C433D7;
+        Wed, 23 Nov 2022 02:47:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669168902;
-        bh=l1jLE/1YfQ9CwRLPHlaj7+hym3pr6IwrKNds4QhWp0c=;
+        s=korg; t=1669171626;
+        bh=IkT/NH8zq7bnVWrb4o7gShoMzaLs8GO6iVgAgc7qGwQ=;
         h=Date:To:From:Subject:From;
-        b=0f7b60k7l5L2CgBQxyV8zDvRQj7oiNp1C5et1aPfVFskyCc7cOca850lN0aAKEsKw
-         IcadSO7LB7zeZopfhgdIwSZDuE5223Oz0RbAQXPP3UX5oA8ieEGHjNjqRBwLpGwUye
-         f4g8OyQnVA3dPWKfuRrOeAJI/XPeBOpE6EuFcEJk=
-Date:   Tue, 22 Nov 2022 18:01:41 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, zhenyzha@redhat.com,
-        william.kucharski@oracle.com, stable@vger.kernel.org,
-        kirill.shutemov@linux.intel.com, david@redhat.com,
-        gshan@redhat.com, akpm@linux-foundation.org
+        b=IS/pgUxwXFdIZfEwY0puvUDRsV/0Ms6hH7W9plcTLVZQ5eVIUD5vNkHGXudz1snz1
+         kIp0nCP+cxlpyGrTqVeb6Pb6O4+TnxSDsuYlDyWy3fkcuipRO/bSVSvg0GYaM3sHG1
+         WNrhwZeKbkAKbtqaE1c5WrID6UUgJXBqLzp8HZas=
+Date:   Tue, 22 Nov 2022 18:47:05 -0800
+To:     mm-commits@vger.kernel.org, sam@gentoo.org,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-fix-thps-mapcount-on-isolation.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221123020142.54E04C433C1@smtp.kernel.org>
+Subject: [folded-merged] kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix.patch removed from -mm tree
+Message-Id: <20221123024706.CC174C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: migrate: Fix THP's mapcount on isolation
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-migrate-fix-thps-mapcount-on-isolation.patch
+The quilt patch titled
+     Subject: kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix
+has been removed from the -mm tree.  Its filename was
+     kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-fix-thps-mapcount-on-isolation.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible.patch
 
 ------------------------------------------------------
-From: Gavin Shan <gshan@redhat.com>
-Subject: mm: migrate: Fix THP's mapcount on isolation
-Date: Wed, 23 Nov 2022 08:57:52 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix
+Date: Wed Nov 16 03:46:25 PM PST 2022
 
-The issue is reported when removing memory through virtio_mem device.  The
-transparent huge page, experienced copy-on-write fault, is wrongly
-regarded as pinned.  The transparent huge page is escaped from being
-isolated in isolate_migratepages_block().  The transparent huge page can't
-be migrated and the corresponding memory block can't be put into offline
-state.
+remember "linux/"
 
-Fix it by replacing page_mapcount() with total_mapcount().  With this, the
-transparent huge page can be isolated and migrated, and the memory block
-can be put into offline state.
-
-Link: https://lkml.kernel.org/r/20221123005752.161003-1-gshan@redhat.com
-Fixes: 3917c80280c9 ("thp: change CoW semantics for anon-THP")
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Reported-by: Zhenyu Zhang <zhenyzha@redhat.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>	[v5.8+]
+Cc: Sam James <sam@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
+ include/linux/license.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-migrate-fix-thps-mapcount-on-isolation
-+++ a/mm/compaction.c
-@@ -990,7 +990,7 @@ isolate_migratepages_block(struct compac
- 		 * admittedly racy check.
- 		 */
- 		mapping = page_mapping(page);
--		if (!mapping && page_count(page) > page_mapcount(page))
-+		if (!mapping && page_count(page) > total_mapcount(page))
- 			goto isolate_fail;
+--- a/include/linux/license.h~kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix
++++ a/include/linux/license.h
+@@ -2,7 +2,7 @@
+ #ifndef __LICENSE_H
+ #define __LICENSE_H
  
- 		/*
+-#include <string.h>
++#include <linux/string.h>
+ 
+ static inline int license_is_gpl_compatible(const char *license)
+ {
 _
 
-Patches currently in -mm which might be from gshan@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-migrate-fix-thps-mapcount-on-isolation.patch
+kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible.patch
+mm-fix-unexpected-changes-to-failslabfail_page_allocattr-fix.patch
+mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+mm-gup-remove-foll_migration-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
+kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
+mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch
+mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix.patch
+mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix.patch
+mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch
+mm-document-sys-class-bdi-bdi-max_ratio_fine-knob-fix.patch
+mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch
 
