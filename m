@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A2F4C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0E76C43217
 	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 02:53:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235636AbiKWCx5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235619AbiKWCx5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Nov 2022 21:53:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56312 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235619AbiKWCxo (ORCPT
+        with ESMTP id S235620AbiKWCxo (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 21:53:44 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5517713DFC;
-        Tue, 22 Nov 2022 18:53:33 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43B3A7A349
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 18:53:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 06F54B81E5C;
-        Wed, 23 Nov 2022 02:53:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95A60C433D6;
-        Wed, 23 Nov 2022 02:53:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D649F61A0F
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 02:53:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C759C433C1;
+        Wed, 23 Nov 2022 02:53:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669172010;
-        bh=VBIdbsv1gZpQJ2FTebTStYzW5jcXQpOPHBseZDBvLXg=;
+        s=korg; t=1669172013;
+        bh=q5ZkVO+hNXRptF3NcKsw+opJeSCxL8wx+3Fm7b/fh9Y=;
         h=Date:To:From:Subject:From;
-        b=SkIsVuwgxB25uWzWzEJVb42o9XTb0Ge7C+ZJC7QXaAL/xx5FG25jJYNvlJRfclZ7N
-         xk618jyxcHA78PO0zEqnalZiF4pfjtFXU59uAvpqBs3IUNMFAD1NzGkmjtxmZaFzTo
-         cP7NCZt2/gtRt3Twp2ZG23K6Dvv11IMHuHpgrB7U=
-Date:   Tue, 22 Nov 2022 18:53:29 -0800
-To:     mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org,
-        lizefan.x@bytedance.com, hannes@cmpxchg.org,
-        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
+        b=E6TGWdu2TfyRHEHXlAFHJKx3f/cgfCHDBoTuxR/uvTesoulcIBVzcwKZnt7xq2D1n
+         II2WufvpFOFaHhqt1hVNZfVvqG5muGicR/R3T3bqIMcU1uVXZ5CLVpkXOaAfekeVsl
+         Bn7pNgH3g+EB/6D68uVbxjVH73BC8bMVNtMohjfY=
+Date:   Tue, 22 Nov 2022 18:53:32 -0800
+To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
+        mhiramat@kernel.org, hucool.lihua@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-cgroup-reclaim-fix-dirty-pages-throttling-on-cgroup-v1.patch removed from -mm tree
-Message-Id: <20221123025330.95A60C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] test_kprobes-fix-implicit-declaration-error-of-test_kprobes.patch removed from -mm tree
+Message-Id: <20221123025333.3C759C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,76 +42,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/cgroup/reclaim: fix dirty pages throttling on cgroup v1
+     Subject: test_kprobes: fix implicit declaration error of test_kprobes
 has been removed from the -mm tree.  Its filename was
-     mm-cgroup-reclaim-fix-dirty-pages-throttling-on-cgroup-v1.patch
+     test_kprobes-fix-implicit-declaration-error-of-test_kprobes.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/cgroup/reclaim: fix dirty pages throttling on cgroup v1
-Date: Fri, 18 Nov 2022 12:36:03 +0530
+From: Li Hua <hucool.lihua@huawei.com>
+Subject: test_kprobes: fix implicit declaration error of test_kprobes
+Date: Mon, 21 Nov 2022 11:06:20 +0800
 
-balance_dirty_pages doesn't do the required dirty throttling on cgroupv1. 
-See commit 9badce000e2c ("cgroup, writeback: don't enable cgroup writeback
-on traditional hierarchies").  Instead, the kernel depends on writeback
-throttling in shrink_folio_list to achieve the same goal.  With large
-memory systems, the flusher may not be able to writeback quickly enough
-such that we will start finding pages in the shrink_folio_list already in
-writeback.  Hence for cgroupv1 let's do a reclaim throttle after waking up
-the flusher.
+If KPROBES_SANITY_TEST and ARCH_CORRECT_STACKTRACE_ON_KRETPROBE is enabled, but
+STACKTRACE is not set. Build failed as below:
 
-The below test which used to fail on a 256GB system completes till the the
-file system is full with this change.
+lib/test_kprobes.c: In function `stacktrace_return_handler':
+lib/test_kprobes.c:228:8: error: implicit declaration of function `stack_trace_save'; did you mean `stacktrace_driver'? [-Werror=implicit-function-declaration]
+  ret = stack_trace_save(stack_buf, STACK_BUF_SIZE, 0);
+        ^~~~~~~~~~~~~~~~
+        stacktrace_driver
+cc1: all warnings being treated as errors
+scripts/Makefile.build:250: recipe for target 'lib/test_kprobes.o' failed
+make[2]: *** [lib/test_kprobes.o] Error 1
 
-root@lp2:/sys/fs/cgroup/memory# mkdir test
-root@lp2:/sys/fs/cgroup/memory# cd test/
-root@lp2:/sys/fs/cgroup/memory/test# echo 120M > memory.limit_in_bytes
-root@lp2:/sys/fs/cgroup/memory/test# echo $$ > tasks
-root@lp2:/sys/fs/cgroup/memory/test# dd if=/dev/zero of=/home/kvaneesh/test bs=1M
-Killed
+To fix this error, Select STACKTRACE if ARCH_CORRECT_STACKTRACE_ON_KRETPROBE is enabled.
 
-Link: https://lkml.kernel.org/r/20221118070603.84081-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: zefan li <lizefan.x@bytedance.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20221121030620.63181-1-hucool.lihua@huawei.com
+Fixes: 1f6d3a8f5e39 ("kprobes: Add a test case for stacktrace from kretprobe handler")
+Signed-off-by: Li Hua <hucool.lihua@huawei.com>
+Acked-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmscan.c~mm-cgroup-reclaim-fix-dirty-pages-throttling-on-cgroup-v1
-+++ a/mm/vmscan.c
-@@ -2514,8 +2514,20 @@ static unsigned long shrink_inactive_lis
- 	 * the flushers simply cannot keep up with the allocation
- 	 * rate. Nudge the flusher threads in case they are asleep.
- 	 */
--	if (stat.nr_unqueued_dirty == nr_taken)
-+	if (stat.nr_unqueued_dirty == nr_taken) {
- 		wakeup_flusher_threads(WB_REASON_VMSCAN);
-+		/*
-+		 * For cgroupv1 dirty throttling is achieved by waking up
-+		 * the kernel flusher here and later waiting on folios
-+		 * which are in writeback to finish (see shrink_folio_list()).
-+		 *
-+		 * Flusher may not be able to issue writeback quickly
-+		 * enough for cgroupv1 writeback throttling to work
-+		 * on a large system.
-+		 */
-+		if (!writeback_throttling_sane(sc))
-+			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
-+	}
- 
- 	sc->nr.dirty += stat.nr_dirty;
- 	sc->nr.congested += stat.nr_congested;
+--- a/lib/Kconfig.debug~test_kprobes-fix-implicit-declaration-error-of-test_kprobes
++++ a/lib/Kconfig.debug
+@@ -2107,6 +2107,7 @@ config KPROBES_SANITY_TEST
+ 	depends on DEBUG_KERNEL
+ 	depends on KPROBES
+ 	depends on KUNIT
++	select STACKTRACE if ARCH_CORRECT_STACKTRACE_ON_KRETPROBE
+ 	default KUNIT_ALL_TESTS
+ 	help
+ 	  This option provides for testing basic kprobes functionality on
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from hucool.lihua@huawei.com are
 
 
