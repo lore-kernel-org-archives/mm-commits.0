@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 477B1C4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Nov 2022 23:00:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0112C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 02:01:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233044AbiKVXAq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Nov 2022 18:00:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58426 "EHLO
+        id S235137AbiKWCBs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Nov 2022 21:01:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235267AbiKVXAm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 18:00:42 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94FD158029
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 15:00:34 -0800 (PST)
+        with ESMTP id S232445AbiKWCBr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 21:01:47 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 582F38CB85;
+        Tue, 22 Nov 2022 18:01:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id DD457CE1FCA
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 23:00:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9127C433D7;
-        Tue, 22 Nov 2022 23:00:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A9AD9B81E4A;
+        Wed, 23 Nov 2022 02:01:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54E04C433C1;
+        Wed, 23 Nov 2022 02:01:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669158031;
-        bh=HA0bPpWubAlNsgXy0xJFCH3Pzk/EMsPx/QCbj47/3i8=;
+        s=korg; t=1669168902;
+        bh=l1jLE/1YfQ9CwRLPHlaj7+hym3pr6IwrKNds4QhWp0c=;
         h=Date:To:From:Subject:From;
-        b=F+fpPXhpiRj3wuT7d/hJXBD1ZgQDt8vLXsl1/HetnynOt3tb6uRrAK54RWsoPYz+Q
-         +Tz7LmAJb1J91zvWpjlO3GKhHdxE+CMMTOQwvN4k8o0vaY0a/AEUu6vtcsfvWFxKUz
-         LkLWcaRsr8+6M/suI99CfC1q9Xq5RW+063QAnyfQ=
-Date:   Tue, 22 Nov 2022 15:00:29 -0800
-To:     mm-commits@vger.kernel.org, shr@devkernel.io, sfr@canb.auug.org.au,
-        clm@meta.com, axboe@kernel.dk, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=0f7b60k7l5L2CgBQxyV8zDvRQj7oiNp1C5et1aPfVFskyCc7cOca850lN0aAKEsKw
+         IcadSO7LB7zeZopfhgdIwSZDuE5223Oz0RbAQXPP3UX5oA8ieEGHjNjqRBwLpGwUye
+         f4g8OyQnVA3dPWKfuRrOeAJI/XPeBOpE6EuFcEJk=
+Date:   Tue, 22 Nov 2022 18:01:41 -0800
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, zhenyzha@redhat.com,
+        william.kucharski@oracle.com, stable@vger.kernel.org,
+        kirill.shutemov@linux.intel.com, david@redhat.com,
+        gshan@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch added to mm-unstable branch
-Message-Id: <20221122230030.D9127C433D7@smtp.kernel.org>
+Subject: + mm-migrate-fix-thps-mapcount-on-isolation.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221123020142.54E04C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch
+     Subject: mm: migrate: Fix THP's mapcount on isolation
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-migrate-fix-thps-mapcount-on-isolation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-fix-thps-mapcount-on-isolation.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,50 +66,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix
-Date: Tue Nov 22 02:59:02 PM PST 2022
+From: Gavin Shan <gshan@redhat.com>
+Subject: mm: migrate: Fix THP's mapcount on isolation
+Date: Wed, 23 Nov 2022 08:57:52 +0800
 
-fix htmldocs warnings
+The issue is reported when removing memory through virtio_mem device.  The
+transparent huge page, experienced copy-on-write fault, is wrongly
+regarded as pinned.  The transparent huge page is escaped from being
+isolated in isolate_migratepages_block().  The transparent huge page can't
+be migrated and the corresponding memory block can't be put into offline
+state.
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Chris Mason <clm@meta.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Stefan Roesch <shr@devkernel.io>
+Fix it by replacing page_mapcount() with total_mapcount().  With this, the
+transparent huge page can be isolated and migrated, and the memory block
+can be put into offline state.
+
+Link: https://lkml.kernel.org/r/20221123005752.161003-1-gshan@redhat.com
+Fixes: 3917c80280c9 ("thp: change CoW semantics for anon-THP")
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Reported-by: Zhenyu Zhang <zhenyzha@redhat.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>	[v5.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-bdi |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/ABI/testing/sysfs-class-bdi~mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix
-+++ a/Documentation/ABI/testing/sysfs-class-bdi
-@@ -54,8 +54,8 @@ Description:
+--- a/mm/compaction.c~mm-migrate-fix-thps-mapcount-on-isolation
++++ a/mm/compaction.c
+@@ -990,7 +990,7 @@ isolate_migratepages_block(struct compac
+ 		 * admittedly racy check.
+ 		 */
+ 		mapping = page_mapping(page);
+-		if (!mapping && page_count(page) > page_mapcount(page))
++		if (!mapping && page_count(page) > total_mapcount(page))
+ 			goto isolate_fail;
  
- 	The 'min_ratio_fine' parameter allows assigning a minimum reserve
- 	of the write-back cache to a particular device. The value is
--    expressed as part of 1 million. For example, this is useful for
--    providing a minimum QoS.
-+	expressed as part of 1 million. For example, this is useful for
-+	providing a minimum QoS.
- 
- 	(read-write)
- 
+ 		/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gshan@redhat.com are
 
-kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible-fix.patch
-mm-fix-unexpected-changes-to-failslabfail_page_allocattr-fix.patch
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-gup-remove-foll_migration-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
-kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
-mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch
-mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix.patch
-mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix.patch
-mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch
-mm-document-sys-class-bdi-bdi-max_ratio_fine-knob-fix.patch
-mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch
+mm-migrate-fix-thps-mapcount-on-isolation.patch
 
