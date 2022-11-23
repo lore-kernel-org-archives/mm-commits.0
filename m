@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D4E0C43217
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 02:53:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33E58C47089
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 02:53:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235171AbiKWCxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Nov 2022 21:53:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56176 "EHLO
+        id S235606AbiKWCxW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Nov 2022 21:53:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235594AbiKWCxQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 21:53:16 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CB5E8DA41;
-        Tue, 22 Nov 2022 18:53:15 -0800 (PST)
+        with ESMTP id S235615AbiKWCxV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 21:53:21 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AC0D9CF4D
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 18:53:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1AA3161A05;
-        Wed, 23 Nov 2022 02:53:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 721C2C433D6;
-        Wed, 23 Nov 2022 02:53:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1AFBBB81E56
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 02:53:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC789C433D6;
+        Wed, 23 Nov 2022 02:53:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669171994;
-        bh=kldJ5OS7elwHMefD+Wx4q3drM1aCX8OiY/uvVrvh1KA=;
+        s=korg; t=1669171997;
+        bh=kWJ/YgFpHrqUIkYWuIkrmEW3AFaPOiZ2NmJEF+NQATo=;
         h=Date:To:From:Subject:From;
-        b=oz2BpGs7Sz3vAEddGHe3bm9kqM0VY6kaDsWnukz0wt4qF48Y3CgMR4Qz/13MThbvu
-         hFbsX8N97UVpu5qdFM3YeRDAUW0nHH4SuJLyyAPVefMeFz7KpjFsO9mZ6J8Qf0cz3d
-         A0wyLgEPGGBARz20QjCs+gsL2fdcwBmgGTK9F6Yk=
-Date:   Tue, 22 Nov 2022 18:53:13 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
+        b=KiPFamllS6+x6Zyye/JEdLXwZZj7tjFT5pKPQu1WpXZi5Nk4+A1FF8FYOTIiLj+7C
+         q5eGDyBVFdun61BXs0ojHK9iuplAMNn+FwN0N23OIdl2a8OTEgRUbTgLcpLANJCaYk
+         0UZNIpMdHUfMCmVaMEbWA21ANGkvaGPoTY3Ck3WE=
+Date:   Tue, 22 Nov 2022 18:53:17 -0800
+To:     mm-commits@vger.kernel.org, alexhung@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed.patch removed from -mm tree
-Message-Id: <20221123025314.721C2C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-update-alex-hungs-email-address.patch removed from -mm tree
+Message-Id: <20221123025317.CC789C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,79 +41,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: skip stats update if the scheme directory is removed
+     Subject: MAINTAINERS: update Alex Hung's email address
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed.patch
+     maintainers-update-alex-hungs-email-address.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: skip stats update if the scheme directory is removed
-Date: Mon, 14 Nov 2022 17:55:52 +0000
+From: Alex Hung <alexhung@gmail.com>
+Subject: MAINTAINERS: update Alex Hung's email address
+Date: Sun, 13 Nov 2022 17:13:02 -0700
 
-A DAMON sysfs interface user can start DAMON with a scheme, remove the
-sysfs directory for the scheme, and then ask update of the scheme's stats.
-Because the schemes stats update logic isn't aware of the situation, it
-results in an invalid memory access.  Fix the bug by checking if the
-scheme sysfs directory exists.
+Use my personal email address.
 
-Link: https://lkml.kernel.org/r/20221114175552.1951-1-sj@kernel.org
-Fixes: 0ac32b8affb5 ("mm/damon/sysfs: support DAMOS stats")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[v5.18]
+Link: https://lkml.kernel.org/r/20221114001302.671897-2-alex.hung@amd.com
+Signed-off-by: Alex Hung <alexhung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed
-+++ a/mm/damon/sysfs.c
-@@ -2339,6 +2339,10 @@ static int damon_sysfs_upd_schemes_stats
- 	damon_for_each_scheme(scheme, ctx) {
- 		struct damon_sysfs_stats *sysfs_stats;
+--- a/MAINTAINERS~maintainers-update-alex-hungs-email-address
++++ a/MAINTAINERS
+@@ -10288,7 +10288,7 @@ T:	git https://github.com/intel/gvt-linu
+ F:	drivers/gpu/drm/i915/gvt/
  
-+		/* user could have removed the scheme sysfs dir */
-+		if (schemes_idx >= sysfs_schemes->nr)
-+			break;
-+
- 		sysfs_stats = sysfs_schemes->schemes_arr[schemes_idx++]->stats;
- 		sysfs_stats->nr_tried = scheme->stat.nr_tried;
- 		sysfs_stats->sz_tried = scheme->stat.sz_tried;
+ INTEL HID EVENT DRIVER
+-M:	Alex Hung <alex.hung@canonical.com>
++M:	Alex Hung <alexhung@gmail.com>
+ L:	platform-driver-x86@vger.kernel.org
+ S:	Maintained
+ F:	drivers/platform/x86/intel/hid.c
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from alexhung@gmail.com are
 
-mm-damon-sysfs-fix-wrong-empty-schemes-assumption-under-online-tuning-in-damon_sysfs_set_schemes.patch
-mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch
-mm-damon-core-split-damos-application-logic-into-a-new-function.patch
-mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function.patch
-mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function.patch
-mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values.patch
-mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch
-mm-damon-sysfs-move-sysfs_lock-to-common-module.patch
-mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module.patch
-mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function.patch
-mm-damon-sysfs-split-out-schemes-directory-implementation-to-separate-file.patch
-mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch
-mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch
-mm-damon-reclaim-enable-and-disable-synchronously.patch
-selftests-damon-add-tests-for-damon_reclaims-enabled-parameter.patch
-mm-damon-lru_sort-enable-and-disable-synchronously.patch
-selftests-damon-add-tests-for-damon_lru_sorts-enabled-parameter.patch
-docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch
-docs-admin-guide-mm-damon-usage-fix-wrong-usage-example-of-init_regions-file.patch
-mm-damon-core-add-a-callback-for-scheme-target-regions-check.patch
-mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch
-mm-damon-sysfs-schemes-implement-scheme-region-directory.patch
-mm-damon-sysfs-implement-damos-tried-regions-update-command.patch
-mm-damon-sysfs-implement-damos-tried-regions-update-command-fix.patch
-mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command.patch
-mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix.patch
-tools-selftets-damon-sysfs-test-tried_regions-directory-existence.patch
-docs-admin-guide-mm-damon-usage-document-schemes-s-tried_regions-sysfs-directory.patch
-docs-abi-damon-document-schemes-s-tried_regions-sysfs-directory.patch
-selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch
 
