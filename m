@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AFB4C43219
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 02:53:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D4E0C43217
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 02:53:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235613AbiKWCxT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Nov 2022 21:53:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56178 "EHLO
+        id S235171AbiKWCxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Nov 2022 21:53:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235518AbiKWCxQ (ORCPT
+        with ESMTP id S235594AbiKWCxQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 21:53:16 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DDD88DA42
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 18:53:16 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CB5E8DA41;
+        Tue, 22 Nov 2022 18:53:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AEA4DB81E56
-        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 02:53:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A8ECC433C1;
-        Wed, 23 Nov 2022 02:53:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1AA3161A05;
+        Wed, 23 Nov 2022 02:53:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 721C2C433D6;
+        Wed, 23 Nov 2022 02:53:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669171993;
-        bh=c0bj21UigpL0y7JSJ6tDUmLtTtsgcqZgAmyBnYTQ72s=;
+        s=korg; t=1669171994;
+        bh=kldJ5OS7elwHMefD+Wx4q3drM1aCX8OiY/uvVrvh1KA=;
         h=Date:To:From:Subject:From;
-        b=m5z3dzikvVDzTllasg6yqjkJ5jfYXQXN4+sRZEJ+UMgBKHYBmyi/hHW2feeGILDff
-         dzLCZIIoFy65mL+7bGc2gCm79aWZTgA3TSrQ5pVaCltcKOwctnZrCriI9WZp/Oki4R
-         dzs5Ix7rUsrwonCy3BsIN2PpWFKc6NpAiVyEvmrU=
-Date:   Tue, 22 Nov 2022 18:53:12 -0800
-To:     mm-commits@vger.kernel.org, rcampbell@nvidia.com,
-        mpe@ellerman.id.au, lyude@redhat.com, jhubbard@nvidia.com,
-        jgg@nvidia.com, Felix.Kuehling@amd.com, david@redhat.com,
-        bskeggs@redhat.com, alex.sierra@amd.com, apopple@nvidia.com,
+        b=oz2BpGs7Sz3vAEddGHe3bm9kqM0VY6kaDsWnukz0wt4qF48Y3CgMR4Qz/13MThbvu
+         hFbsX8N97UVpu5qdFM3YeRDAUW0nHH4SuJLyyAPVefMeFz7KpjFsO9mZ6J8Qf0cz3d
+         A0wyLgEPGGBARz20QjCs+gsL2fdcwBmgGTK9F6Yk=
+Date:   Tue, 22 Nov 2022 18:53:13 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-return-vm_fault_t-result-from-migrate_to_ram-callback.patch removed from -mm tree
-Message-Id: <20221123025313.4A8ECC433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed.patch removed from -mm tree
+Message-Id: <20221123025314.721C2C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,55 +41,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/memory: return vm_fault_t result from migrate_to_ram() callback
+     Subject: mm/damon/sysfs-schemes: skip stats update if the scheme directory is removed
 has been removed from the -mm tree.  Its filename was
-     mm-memory-return-vm_fault_t-result-from-migrate_to_ram-callback.patch
+     mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/memory: return vm_fault_t result from migrate_to_ram() callback
-Date: Mon, 14 Nov 2022 22:55:37 +1100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: skip stats update if the scheme directory is removed
+Date: Mon, 14 Nov 2022 17:55:52 +0000
 
-The migrate_to_ram() callback should always succeed, but in rare cases can
-fail usually returning VM_FAULT_SIGBUS.  Commit 16ce101db85d
-("mm/memory.c: fix race when faulting a device private page") incorrectly
-stopped passing the return code up the stack.  Fix this by setting the ret
-variable, restoring the previous behaviour on migrate_to_ram() failure.
+A DAMON sysfs interface user can start DAMON with a scheme, remove the
+sysfs directory for the scheme, and then ask update of the scheme's stats.
+Because the schemes stats update logic isn't aware of the situation, it
+results in an invalid memory access.  Fix the bug by checking if the
+scheme sysfs directory exists.
 
-Link: https://lkml.kernel.org/r/20221114115537.727371-1-apopple@nvidia.com
-Fixes: 16ce101db85d ("mm/memory.c: fix race when faulting a device private page")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Alex Sierra <alex.sierra@amd.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: https://lkml.kernel.org/r/20221114175552.1951-1-sj@kernel.org
+Fixes: 0ac32b8affb5 ("mm/damon/sysfs: support DAMOS stats")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[v5.18]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/sysfs.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/memory.c~mm-memory-return-vm_fault_t-result-from-migrate_to_ram-callback
-+++ a/mm/memory.c
-@@ -3763,7 +3763,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 			 */
- 			get_page(vmf->page);
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			vmf->page->pgmap->ops->migrate_to_ram(vmf);
-+			ret = vmf->page->pgmap->ops->migrate_to_ram(vmf);
- 			put_page(vmf->page);
- 		} else if (is_hwpoison_entry(entry)) {
- 			ret = VM_FAULT_HWPOISON;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-schemes-skip-stats-update-if-the-scheme-directory-is-removed
++++ a/mm/damon/sysfs.c
+@@ -2339,6 +2339,10 @@ static int damon_sysfs_upd_schemes_stats
+ 	damon_for_each_scheme(scheme, ctx) {
+ 		struct damon_sysfs_stats *sysfs_stats;
+ 
++		/* user could have removed the scheme sysfs dir */
++		if (schemes_idx >= sysfs_schemes->nr)
++			break;
++
+ 		sysfs_stats = sysfs_schemes->schemes_arr[schemes_idx++]->stats;
+ 		sysfs_stats->nr_tried = scheme->stat.nr_tried;
+ 		sysfs_stats->sz_tried = scheme->stat.sz_tried;
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-sysfs-fix-wrong-empty-schemes-assumption-under-online-tuning-in-damon_sysfs_set_schemes.patch
+mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch
+mm-damon-core-split-damos-application-logic-into-a-new-function.patch
+mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function.patch
+mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function.patch
+mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values.patch
+mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch
+mm-damon-sysfs-move-sysfs_lock-to-common-module.patch
+mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module.patch
+mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function.patch
+mm-damon-sysfs-split-out-schemes-directory-implementation-to-separate-file.patch
+mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch
+mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch
+mm-damon-reclaim-enable-and-disable-synchronously.patch
+selftests-damon-add-tests-for-damon_reclaims-enabled-parameter.patch
+mm-damon-lru_sort-enable-and-disable-synchronously.patch
+selftests-damon-add-tests-for-damon_lru_sorts-enabled-parameter.patch
+docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch
+docs-admin-guide-mm-damon-usage-fix-wrong-usage-example-of-init_regions-file.patch
+mm-damon-core-add-a-callback-for-scheme-target-regions-check.patch
+mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch
+mm-damon-sysfs-schemes-implement-scheme-region-directory.patch
+mm-damon-sysfs-implement-damos-tried-regions-update-command.patch
+mm-damon-sysfs-implement-damos-tried-regions-update-command-fix.patch
+mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command.patch
+mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix.patch
+tools-selftets-damon-sysfs-test-tried_regions-directory-existence.patch
+docs-admin-guide-mm-damon-usage-document-schemes-s-tried_regions-sysfs-directory.patch
+docs-abi-damon-document-schemes-s-tried_regions-sysfs-directory.patch
+selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch
 
