@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A2BCC4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 19:33:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7B1FC4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 19:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239019AbiKWTdI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Nov 2022 14:33:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57830 "EHLO
+        id S234723AbiKWTdp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Nov 2022 14:33:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239030AbiKWTcz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2022 14:32:55 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 294EA11474
-        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 11:32:51 -0800 (PST)
+        with ESMTP id S238248AbiKWTdo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2022 14:33:44 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A65505A6F7
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 11:33:43 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B0B0161ED3
-        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 19:32:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11D4AC433C1;
-        Wed, 23 Nov 2022 19:32:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5E3C6B823D0
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 19:33:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B1B2C433C1;
+        Wed, 23 Nov 2022 19:33:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669231970;
-        bh=IH4mIO5YqgVlWolUYY+DwDVkjaKo8UQKrervpVHCNoY=;
+        s=korg; t=1669232021;
+        bh=uCnDlsd4d+LwlSnzJ3CSPPhJvzCR2OzIi2NrgEWM1So=;
         h=Date:To:From:Subject:From;
-        b=zWEx8zW2iIbDc9Hh6gUbB+V1mx6vvSYkdOhe+lG3QmEDwBp1/36s5+vOtabGQajfg
-         rGBqCuC6LIf7iJqer8lYj4T9xE5kI3kQAwgmCjJVbAvl99r5CabyqwwqgCPdS/c9sp
-         exr/su1iYoWetfSTiAqkgX+XP2b/p+b1FJycsFGA=
-Date:   Wed, 23 Nov 2022 11:32:49 -0800
+        b=KHXZcN/+trcigOLaCrlYETORfOvY5Re3ItU2LFLo4CKwSlG3zmFgczSL8fk242ozd
+         nnSwvlqLf9SXWFSSLLfhsXMevj4m2MCElTqpCWfMjKHeTZI4MgaakTd5hYl+m5cZxa
+         5EdIe3T7w8etWYaZ646YQ44QM+Jyuh4K+8Wl0bqk=
+Date:   Wed, 23 Nov 2022 11:33:40 -0800
 To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        hannes@cmpxchg.org, nphamcs@gmail.com, akpm@linux-foundation.org
+        minchan@kernel.org, hannes@cmpxchg.org, nphamcs@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-add-a-lru-to-zs_pool-to-keep-track-of-zspages-in-lru-order-fix.patch added to mm-unstable branch
-Message-Id: <20221123193250.11D4AC433C1@smtp.kernel.org>
+Subject: + zsmalloc-implement-writeback-mechanism-for-zsmalloc-fix.patch added to mm-unstable branch
+Message-Id: <20221123193341.0B1B2C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: add a LRU to zs_pool to keep track of zspages in LRU order (fix)
+     Subject: zsmalloc: implement writeback mechanism for zsmalloc (fix)
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-add-a-lru-to-zs_pool-to-keep-track-of-zspages-in-lru-order-fix.patch
+     zsmalloc-implement-writeback-mechanism-for-zsmalloc-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-add-a-lru-to-zs_pool-to-keep-track-of-zspages-in-lru-order-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-implement-writeback-mechanism-for-zsmalloc-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,48 +66,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nhat Pham <nphamcs@gmail.com>
-Subject: zsmalloc: add a LRU to zs_pool to keep track of zspages in LRU order (fix)
-Date: Wed, 23 Nov 2022 11:17:02 -0800
+Subject: zsmalloc: implement writeback mechanism for zsmalloc (fix)
+Date: Wed, 23 Nov 2022 11:17:03 -0800
 
-Add a comment explaining the mapping check for LRU update.
+Use get_first_page(), and add cond_resched() in retry loop.
 
-Link: https://lkml.kernel.org/r/20221123191703.2902079-2-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20221123191703.2902079-3-nphamcs@gmail.com
 Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
 Suggested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ mm/zsmalloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/zsmalloc.c~zsmalloc-add-a-lru-to-zs_pool-to-keep-track-of-zspages-in-lru-order-fix
+--- a/mm/zsmalloc.c~zsmalloc-implement-writeback-mechanism-for-zsmalloc-fix
 +++ a/mm/zsmalloc.c
-@@ -1289,7 +1289,23 @@ void *zs_map_object(struct zs_pool *pool
- 	zspage = get_zspage(page);
+@@ -2509,12 +2509,13 @@ static int zs_reclaim_page(struct zs_poo
+ 		remove_zspage(class, zspage, fullness);
  
- #ifdef CONFIG_ZPOOL
--	/* Move the zspage to front of pool's LRU */
-+	/*
-+	 * Move the zspage to front of pool's LRU.
-+	 *
-+	 * Note that this is swap-specific, so by definition there are no ongoing
-+	 * accesses to the memory while the page is swapped out that would make
-+	 * it "hot". A new entry is hot, then ages to the tail until it gets either
-+	 * written back or swaps back in.
-+	 *
-+	 * Furthermore, map is also called during writeback. We must not put an
-+	 * isolated page on the LRU mid-reclaim.
-+	 *
-+	 * As a result, only update the LRU when the page is mapped for write
-+	 * when it's first instantiated.
-+	 *
-+	 * This is a deviation from the other backends, which perform this update
-+	 * in the allocation function (zbud_alloc, z3fold_alloc).
-+	 */
- 	if (mm == ZS_MM_WO) {
- 		if (!list_empty(&zspage->lru))
- 			list_del(&zspage->lru);
+ 		spin_unlock(&pool->lock);
++		cond_resched();
+ 
+ 		/* Lock backing pages into place */
+ 		lock_zspage(zspage);
+ 
+ 		obj_idx = 0;
+-		page = zspage->first_page;
++		page = get_first_page(zspage);
+ 		while (1) {
+ 			handle = find_alloced_obj(class, page, &obj_idx);
+ 			if (!handle) {
 _
 
 Patches currently in -mm which might be from nphamcs@gmail.com are
@@ -116,4 +108,5 @@ zsmalloc-add-a-lru-to-zs_pool-to-keep-track-of-zspages-in-lru-order.patch
 zsmalloc-add-a-lru-to-zs_pool-to-keep-track-of-zspages-in-lru-order-fix.patch
 zsmalloc-add-zpool_ops-field-to-zs_pool-to-store-evict-handlers.patch
 zsmalloc-implement-writeback-mechanism-for-zsmalloc.patch
+zsmalloc-implement-writeback-mechanism-for-zsmalloc-fix.patch
 
