@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CDADC46467
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 19:39:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6581C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 19:45:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237461AbiKWTjv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Nov 2022 14:39:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35058 "EHLO
+        id S233044AbiKWTph (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Nov 2022 14:45:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39128 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237463AbiKWTju (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2022 14:39:50 -0500
+        with ESMTP id S233560AbiKWTpg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2022 14:45:36 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B1B690386;
-        Wed, 23 Nov 2022 11:39:50 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 245A39373D
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 11:45:36 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BBEBE61ED3;
-        Wed, 23 Nov 2022 19:39:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B254C433C1;
-        Wed, 23 Nov 2022 19:39:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B27D861DB3
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 19:45:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09FDCC433C1;
+        Wed, 23 Nov 2022 19:45:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669232389;
-        bh=WPQ8jSW2w5XVr7s07TsrmP4ku620sh2BjlZVwr2IAfk=;
+        s=korg; t=1669232735;
+        bh=mqjXEH0cnk8NqznMkmuj9GYZ4hbpraykwzvPxIYUpxc=;
         h=Date:To:From:Subject:From;
-        b=uDmK7f7poODWF/p3gDokffjEQjN3unnYkPgiZXZEjsDOIQAW8ZgF/6u7pa/XBYZPM
-         ko3Y4g69A4wlzclDIz98ymjS3uGjuF/9MRKFLIhMtMehixq5QJOVyyDSdVMDTxdjhc
-         o8XejjX1fjQckcIS2hwnbJn5QEs7jsZ21l70Isfs=
-Date:   Wed, 23 Nov 2022 11:39:48 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        shy828301@gmail.com, peterx@redhat.com, mike.kravetz@oracle.com,
-        jhubbard@nvidia.com, david@redhat.com, jannh@google.com,
-        akpm@linux-foundation.org
+        b=oEpmp63dyzCXxU7bcHIMFbULTjWezjBvhkszCJJhy0NmmmKwJSJ0AROO2UsckJN3l
+         TvW8S3t8mRP8rdE3MUQJOMveFG5VWGmAwsylcOf91A38G+Civ1EYdYrqcQ1x+jz/t+
+         5H2phi+UuLNvpnSp+P7QJM0oOu0k/q/wLD32z4Io=
+Date:   Wed, 23 Nov 2022 11:45:34 -0800
+To:     mm-commits@vger.kernel.org, yangyingliang@huawei.com,
+        mporter@kernel.crashing.org, jhubbard@nvidia.com,
+        jakobkoschel@gmail.com, error27@gmail.com, alex.bou9@gmail.com,
+        wangweiyang2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-invoke-mmu-notifiers-in-shmem-file-collapse-paths.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221123193949.1B254C433C1@smtp.kernel.org>
+Subject: + rapidio-fix-possible-uaf-when-kfifo_alloc-fails.patch added to mm-nonmm-unstable branch
+Message-Id: <20221123194535.09FDCC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: invoke MMU notifiers in shmem/file collapse paths
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-khugepaged-invoke-mmu-notifiers-in-shmem-file-collapse-paths.patch
+     Subject: rapidio: fix possible UAF when kfifo_alloc() fails
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     rapidio-fix-possible-uaf-when-kfifo_alloc-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-invoke-mmu-notifiers-in-shmem-file-collapse-paths.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-fix-possible-uaf-when-kfifo_alloc-fails.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,72 +66,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm/khugepaged: invoke MMU notifiers in shmem/file collapse paths
-Date: Wed, 23 Nov 2022 17:56:52 +0100
+From: Wang Weiyang <wangweiyang2@huawei.com>
+Subject: rapidio: fix possible UAF when kfifo_alloc() fails
+Date: Wed, 23 Nov 2022 17:51:47 +0800
 
-Any codepath that zaps page table entries must invoke MMU notifiers to
-ensure that secondary MMUs (like KVM) don't keep accessing pages which
-aren't mapped anymore.  Secondary MMUs don't hold their own references to
-pages that are mirrored over, so failing to notify them can lead to page
-use-after-free.
+If kfifo_alloc() fails in mport_cdev_open(), goto err_fifo and just free
+priv. But priv is still in the chdev->file_list, then list traversal
+may cause UAF. This fixes the following smatch warning:
 
-I'm marking this as addressing an issue introduced in commit f3f0e1d2150b
-("khugepaged: add support of collapse for tmpfs/shmem pages"), but most of
-the security impact of this only came in commit 27e1f8273113 ("khugepaged:
-enable collapse pmd for pte-mapped THP"), which actually omitted flushes
-for the removal of present PTEs, not just for the removal of empty page
-tables.
+drivers/rapidio/devices/rio_mport_cdev.c:1930 mport_cdev_open() warn: '&priv->list' not removed from list
 
-Link: https://lkml.kernel.org/r/20221123165652.2204925-5-jannh@google.com
-Fixes: f3f0e1d2150b ("khugepaged: add support of collapse for tmpfs/shmem p=
-ages")
-Signed-off-by: Jann Horn <jannh@google.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20221123095147.52408-1-wangweiyang2@huawei.com
+Fixes: e8de370188d0 ("rapidio: add mport char device driver")
+Signed-off-by: Wang Weiyang <wangweiyang2@huawei.com>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: Jakob Koschel <jakobkoschel@gmail.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Yang Yingliang <yangyingliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/rapidio/devices/rio_mport_cdev.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-invoke-mmu-notifiers-in-shmem-file-collapse-paths
-+++ a/mm/khugepaged.c
-@@ -1421,6 +1421,7 @@ static void collapse_and_free_pmd(struct
- {
- 	pmd_t pmd;
- 	struct mmu_gather tlb;
-+	struct mmu_notifier_range range;
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-possible-uaf-when-kfifo_alloc-fails
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -1904,10 +1904,6 @@ static int mport_cdev_open(struct inode
  
- 	mmap_assert_write_locked(mm);
- 	if (vma->vm_file)
-@@ -1433,12 +1434,16 @@ static void collapse_and_free_pmd(struct
- 		lockdep_assert_held_write(&vma->anon_vma->root->rwsem);
- 	page_table_check_pte_clear_range(mm, addr, pmd);
+ 	priv->md = chdev;
  
-+	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, NULL, mm, addr,
-+				addr + HPAGE_PMD_SIZE);
-+	mmu_notifier_invalidate_range_start(&range);
- 	tlb_gather_mmu(&tlb, mm);
- 	pmd = READ_ONCE(*pmdp);
- 	pmd_clear(pmdp);
- 	tlb_flush_pte_range(&tlb, addr, HPAGE_PMD_SIZE);
- 	pte_free_tlb(&tlb, pmd_pgtable(pmd), addr);
- 	tlb_finish_mmu(&tlb);
-+	mmu_notifier_invalidate_range_end(&range);
- 	mm_dec_nr_ptes(mm);
- }
+-	mutex_lock(&chdev->file_mutex);
+-	list_add_tail(&priv->list, &chdev->file_list);
+-	mutex_unlock(&chdev->file_mutex);
+-
+ 	INIT_LIST_HEAD(&priv->db_filters);
+ 	INIT_LIST_HEAD(&priv->pw_filters);
+ 	spin_lock_init(&priv->fifo_lock);
+@@ -1926,6 +1922,9 @@ static int mport_cdev_open(struct inode
+ 	spin_lock_init(&priv->req_lock);
+ 	mutex_init(&priv->dma_lock);
+ #endif
++	mutex_lock(&chdev->file_mutex);
++	list_add_tail(&priv->list, &chdev->file_list);
++	mutex_unlock(&chdev->file_mutex);
  
+ 	filp->private_data = priv;
+ 	goto out;
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from wangweiyang2@huawei.com are
 
-mm-khugepaged-take-the-right-locks-for-page-table-retraction.patch
-mmu_gather-use-macro-arguments-more-carefully.patch
-mm-khugepaged-fix-gup-fast-interaction-by-freeing-ptes-via-mmu_gather.patch
-mm-khugepaged-invoke-mmu-notifiers-in-shmem-file-collapse-paths.patch
+rapidio-fix-possible-uaf-when-kfifo_alloc-fails.patch
 
