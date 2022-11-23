@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86C84C433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 02:53:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FD1EC43219
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Nov 2022 02:53:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235603AbiKWCxN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Nov 2022 21:53:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56124 "EHLO
+        id S234400AbiKWCxP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Nov 2022 21:53:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235172AbiKWCxJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 21:53:09 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 205168DA42
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2022 18:53:08 -0800 (PST)
+        with ESMTP id S235511AbiKWCxL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2022 21:53:11 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EDC9D14E8;
+        Tue, 22 Nov 2022 18:53:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A8439B81E15
-        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2022 02:53:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63B09C433C1;
-        Wed, 23 Nov 2022 02:53:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DCBE161886;
+        Wed, 23 Nov 2022 02:53:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CB7CC433D7;
+        Wed, 23 Nov 2022 02:53:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669171985;
-        bh=fAA4NlBuLNGVKqHMboqiiHvUsFwZs6BaHkxX42AFklM=;
+        s=korg; t=1669171989;
+        bh=0So1NgWUb/rCPnUB+1LP1VYAakaVyjG8IA9w3+4uLgs=;
         h=Date:To:From:Subject:From;
-        b=KHo3V3GVbs/l+aZSDY2F6r4mgs+5RjU1MEjTVQqB3PKx+u3blHxwq5dI+JKeYf7pS
-         56wpYQUhfz0ps5wFvKpIfIubMOwjD/gttYnZXuvTW+HXBwUNtV6Qf+pmGGzKzINM5L
-         tVUXICDXZguFHb0+3H4Ojc+uLgbOHciZLkEaRIoI=
-Date:   Tue, 22 Nov 2022 18:53:04 -0800
-To:     mm-commits@vger.kernel.org, zokeefe@google.com,
-        syzbot+0044b22d177870ee974f@syzkaller.appspotmail.com,
-        mhocko@suse.com, shy828301@gmail.com, akpm@linux-foundation.org
+        b=eNYyjjrS+F5hfRzH8PylRHMVubJkiN5kfv6kGHSqUQLbtcyoFbi17FNyYPTu19Ezo
+         v+4ij1Q1ZO3k4CWxnDsvMVGcT5iSLNyxVGTBVeDKX9l/a3Q9ucYXO4FfUlejUEOaRd
+         3zWShr/Sdpu29oVPhCKLp9fpDsbsNPtdCvDKKbSA=
+Date:   Tue, 22 Nov 2022 18:53:08 -0800
+To:     mm-commits@vger.kernel.org, trix@redhat.com,
+        stable@vger.kernel.org, oberpar@linux.ibm.com,
+        ndesaulniers@google.com, nathan@kernel.org, quic_mojha@quicinc.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-khugepaged-allow-page-allocation-fallback-to-eligible-nodes.patch removed from -mm tree
-Message-Id: <20221123025305.63B09C433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] gcov-clang-fix-the-buffer-overflow-issue.patch removed from -mm tree
+Message-Id: <20221123025309.3CB7CC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,212 +43,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: khugepaged: allow page allocation fallback to eligible nodes
+     Subject: gcov: clang: fix the buffer overflow issue
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-allow-page-allocation-fallback-to-eligible-nodes.patch
+     gcov-clang-fix-the-buffer-overflow-issue.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: khugepaged: allow page allocation fallback to eligible nodes
-Date: Tue, 8 Nov 2022 10:43:56 -0800
+From: Mukesh Ojha <quic_mojha@quicinc.com>
+Subject: gcov: clang: fix the buffer overflow issue
+Date: Thu, 10 Nov 2022 00:31:37 +0530
 
-Syzbot reported the below splat:
+Currently, in clang version of gcov code when module is getting removed
+gcov_info_add() incorrectly adds the sfn_ptr->counter to all the
+dst->functions and it result in the kernel panic in below crash report. 
+Fix this by properly handling it.
 
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221 __alloc_pages_node include/linux/gfp.h:221 [inline]
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221 hpage_collapse_alloc_page mm/khugepaged.c:807 [inline]
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221 alloc_charge_hpage+0x802/0xaa0 mm/khugepaged.c:963
-Modules linked in:
-CPU: 1 PID: 3646 Comm: syz-executor210 Not tainted 6.1.0-rc1-syzkaller-00454-ga70385240892 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/11/2022
-RIP: 0010:__alloc_pages_node include/linux/gfp.h:221 [inline]
-RIP: 0010:hpage_collapse_alloc_page mm/khugepaged.c:807 [inline]
-RIP: 0010:alloc_charge_hpage+0x802/0xaa0 mm/khugepaged.c:963
-Code: e5 01 4c 89 ee e8 6e f9 ae ff 4d 85 ed 0f 84 28 fc ff ff e8 70 fc ae ff 48 8d 6b ff 4c 8d 63 07 e9 16 fc ff ff e8 5e fc ae ff <0f> 0b e9 96 fa ff ff 41 bc 1a 00 00 00 e9 86 fd ff ff e8 47 fc ae
-RSP: 0018:ffffc90003fdf7d8 EFLAGS: 00010293
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: ffff888077f457c0 RSI: ffffffff81cd8f42 RDI: 0000000000000001
-RBP: ffff888079388c0c R08: 0000000000000001 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-R13: dffffc0000000000 R14: 0000000000000000 R15: 0000000000000000
-FS:  00007f6b48ccf700(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f6b48a819f0 CR3: 00000000171e7000 CR4: 00000000003506e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- collapse_file+0x1ca/0x5780 mm/khugepaged.c:1715
- hpage_collapse_scan_file+0xd6c/0x17a0 mm/khugepaged.c:2156
- madvise_collapse+0x53a/0xb40 mm/khugepaged.c:2611
- madvise_vma_behavior+0xd0a/0x1cc0 mm/madvise.c:1066
- madvise_walk_vmas+0x1c7/0x2b0 mm/madvise.c:1240
- do_madvise.part.0+0x24a/0x340 mm/madvise.c:1419
- do_madvise mm/madvise.c:1432 [inline]
- __do_sys_madvise mm/madvise.c:1432 [inline]
- __se_sys_madvise mm/madvise.c:1430 [inline]
- __x64_sys_madvise+0x113/0x150 mm/madvise.c:1430
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7f6b48a4eef9
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 b1 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f6b48ccf318 EFLAGS: 00000246 ORIG_RAX: 000000000000001c
-RAX: ffffffffffffffda RBX: 00007f6b48af0048 RCX: 00007f6b48a4eef9
-RDX: 0000000000000019 RSI: 0000000000600003 RDI: 0000000020000000
-RBP: 00007f6b48af0040 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00007f6b48aa53a4
-R13: 00007f6b48bffcbf R14: 00007f6b48ccf400 R15: 0000000000022000
- </TASK>
+[    8.899094][  T599] Unable to handle kernel write to read-only memory at virtual address ffffff80461cc000
+[    8.899100][  T599] Mem abort info:
+[    8.899102][  T599]   ESR = 0x9600004f
+[    8.899103][  T599]   EC = 0x25: DABT (current EL), IL = 32 bits
+[    8.899105][  T599]   SET = 0, FnV = 0
+[    8.899107][  T599]   EA = 0, S1PTW = 0
+[    8.899108][  T599]   FSC = 0x0f: level 3 permission fault
+[    8.899110][  T599] Data abort info:
+[    8.899111][  T599]   ISV = 0, ISS = 0x0000004f
+[    8.899113][  T599]   CM = 0, WnR = 1
+[    8.899114][  T599] swapper pgtable: 4k pages, 39-bit VAs, pgdp=00000000ab8de000
+[    8.899116][  T599] [ffffff80461cc000] pgd=18000009ffcde003, p4d=18000009ffcde003, pud=18000009ffcde003, pmd=18000009ffcad003, pte=00600000c61cc787
+[    8.899124][  T599] Internal error: Oops: 9600004f [#1] PREEMPT SMP
+[    8.899265][  T599] Skip md ftrace buffer dump for: 0x1609e0
+....
+..,
+[    8.899544][  T599] CPU: 7 PID: 599 Comm: modprobe Tainted: G S         OE     5.15.41-android13-8-g38e9b1af6bce #1
+[    8.899547][  T599] Hardware name: XXX (DT)
+[    8.899549][  T599] pstate: 82400005 (Nzcv daif +PAN -UAO +TCO -DIT -SSBS BTYPE=--)
+[    8.899551][  T599] pc : gcov_info_add+0x9c/0xb8
+[    8.899557][  T599] lr : gcov_event+0x28c/0x6b8
+[    8.899559][  T599] sp : ffffffc00e733b00
+[    8.899560][  T599] x29: ffffffc00e733b00 x28: ffffffc00e733d30 x27: ffffffe8dc297470
+[    8.899563][  T599] x26: ffffffe8dc297000 x25: ffffffe8dc297000 x24: ffffffe8dc297000
+[    8.899566][  T599] x23: ffffffe8dc0a6200 x22: ffffff880f68bf20 x21: 0000000000000000
+[    8.899569][  T599] x20: ffffff880f68bf00 x19: ffffff8801babc00 x18: ffffffc00d7f9058
+[    8.899572][  T599] x17: 0000000000088793 x16: ffffff80461cbe00 x15: 9100052952800785
+[    8.899575][  T599] x14: 0000000000000200 x13: 0000000000000041 x12: 9100052952800785
+[    8.899577][  T599] x11: ffffffe8dc297000 x10: ffffffe8dc297000 x9 : ffffff80461cbc80
+[    8.899580][  T599] x8 : ffffff8801babe80 x7 : ffffffe8dc2ec000 x6 : ffffffe8dc2ed000
+[    8.899583][  T599] x5 : 000000008020001f x4 : fffffffe2006eae0 x3 : 000000008020001f
+[    8.899586][  T599] x2 : ffffff8027c49200 x1 : ffffff8801babc20 x0 : ffffff80461cb3a0
+[    8.899589][  T599] Call trace:
+[    8.899590][  T599]  gcov_info_add+0x9c/0xb8
+[    8.899592][  T599]  gcov_module_notifier+0xbc/0x120
+[    8.899595][  T599]  blocking_notifier_call_chain+0xa0/0x11c
+[    8.899598][  T599]  do_init_module+0x2a8/0x33c
+[    8.899600][  T599]  load_module+0x23cc/0x261c
+[    8.899602][  T599]  __arm64_sys_finit_module+0x158/0x194
+[    8.899604][  T599]  invoke_syscall+0x94/0x2bc
+[    8.899607][  T599]  el0_svc_common+0x1d8/0x34c
+[    8.899609][  T599]  do_el0_svc+0x40/0x54
+[    8.899611][  T599]  el0_svc+0x94/0x2f0
+[    8.899613][  T599]  el0t_64_sync_handler+0x88/0xec
+[    8.899615][  T599]  el0t_64_sync+0x1b4/0x1b8
+[    8.899618][  T599] Code: f905f56c f86e69ec f86e6a0f 8b0c01ec (f82e6a0c)
+[    8.899620][  T599] ---[ end trace ed5218e9e5b6e2e6 ]---
 
-The khugepaged code would pick up the node with the most hit as the preferred
-node, and also tries to do some balance if several nodes have the same
-hit record.  Basically it does conceptually:
-    * If the target_node <= last_target_node, then iterate from
-last_target_node + 1 to MAX_NUMNODES (1024 on default config)
-    * If the max_value == node_load[nid], then target_node = nid
-
-But there is a corner case, paritucularly for MADV_COLLAPSE, that the
-non-existing node may be returned as preferred node.
-
-Assuming the system has 2 nodes, the target_node is 0 and the
-last_target_node is 1, if MADV_COLLAPSE path is hit, the max_value may
-be 0, then it may return 2 for target_node, but it is actually not
-existing (offline), so the warn is triggered.
-
-The node balance was introduced by commit 9f1b868a13ac ("mm: thp:
-khugepaged: add policy for finding target node") to satisfy
-"numactl --interleave=all".  But interleaving is a mere hint rather than
-something that has hard requirements.
-
-So use nodemask to record the nodes which have the same hit record, the
-hugepage allocation could fallback to those nodes.  And remove
-__GFP_THISNODE since it does disallow fallback.  And if the nodemask
-just has one node set, it means there is one single node has the most
-hit record, the nodemask approach actually behaves like __GFP_THISNODE.
-
-Link: https://lkml.kernel.org/r/20221108184357.55614-2-shy828301@gmail.com
-Fixes: 7d8faaf15545 ("mm/madvise: introduce MADV_COLLAPSE sync hugepage collapse")
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Suggested-by: Zach O'Keefe <zokeefe@google.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Zach O'Keefe <zokeefe@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reported-by: <syzbot+0044b22d177870ee974f@syzkaller.appspotmail.com>
-
+Link: https://lkml.kernel.org/r/1668020497-13142-1-git-send-email-quic_mojha@quicinc.com
+Fixes: e178a5beb369 ("gcov: clang support")
+Signed-off-by: Mukesh Ojha <quic_mojha@quicinc.com>
+Reviewed-by: Peter Oberparleiter <oberpar@linux.ibm.com>
+Tested-by: Peter Oberparleiter <oberpar@linux.ibm.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Tom Rix <trix@redhat.com>
+Cc: <stable@vger.kernel.org>	[5.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   32 ++++++++++++++------------------
- 1 file changed, 14 insertions(+), 18 deletions(-)
+ kernel/gcov/clang.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/khugepaged.c~mm-khugepaged-allow-page-allocation-fallback-to-eligible-nodes
-+++ a/mm/khugepaged.c
-@@ -97,8 +97,8 @@ struct collapse_control {
- 	/* Num pages scanned per node */
- 	u32 node_load[MAX_NUMNODES];
+--- a/kernel/gcov/clang.c~gcov-clang-fix-the-buffer-overflow-issue
++++ a/kernel/gcov/clang.c
+@@ -280,6 +280,8 @@ void gcov_info_add(struct gcov_info *dst
  
--	/* Last target selected in hpage_collapse_find_target_node() */
--	int last_target_node;
-+	/* nodemask for allocation fallback */
-+	nodemask_t alloc_nmask;
- };
- 
- /**
-@@ -734,7 +734,6 @@ static void khugepaged_alloc_sleep(void)
- 
- struct collapse_control khugepaged_collapse_control = {
- 	.is_khugepaged = true,
--	.last_target_node = NUMA_NO_NODE,
- };
- 
- static bool hpage_collapse_scan_abort(int nid, struct collapse_control *cc)
-@@ -783,16 +782,11 @@ static int hpage_collapse_find_target_no
- 			target_node = nid;
- 		}
- 
--	/* do some balance if several nodes have the same hit record */
--	if (target_node <= cc->last_target_node)
--		for (nid = cc->last_target_node + 1; nid < MAX_NUMNODES;
--		     nid++)
--			if (max_value == cc->node_load[nid]) {
--				target_node = nid;
--				break;
--			}
-+	for_each_online_node(nid) {
-+		if (max_value == cc->node_load[nid])
-+			node_set(nid, cc->alloc_nmask);
-+	}
- 
--	cc->last_target_node = target_node;
- 	return target_node;
+ 		for (i = 0; i < sfn_ptr->num_counters; i++)
+ 			dfn_ptr->counters[i] += sfn_ptr->counters[i];
++
++		sfn_ptr = list_next_entry(sfn_ptr, head);
+ 	}
  }
- #else
-@@ -802,9 +796,10 @@ static int hpage_collapse_find_target_no
- }
- #endif
  
--static bool hpage_collapse_alloc_page(struct page **hpage, gfp_t gfp, int node)
-+static bool hpage_collapse_alloc_page(struct page **hpage, gfp_t gfp, int node,
-+				      nodemask_t *nmask)
- {
--	*hpage = __alloc_pages_node(node, gfp, HPAGE_PMD_ORDER);
-+	*hpage = __alloc_pages(gfp, HPAGE_PMD_ORDER, node, nmask);
- 	if (unlikely(!*hpage)) {
- 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
- 		return false;
-@@ -955,12 +950,11 @@ static int __collapse_huge_page_swapin(s
- static int alloc_charge_hpage(struct page **hpage, struct mm_struct *mm,
- 			      struct collapse_control *cc)
- {
--	/* Only allocate from the target node */
- 	gfp_t gfp = (cc->is_khugepaged ? alloc_hugepage_khugepaged_gfpmask() :
--		     GFP_TRANSHUGE) | __GFP_THISNODE;
-+		     GFP_TRANSHUGE);
- 	int node = hpage_collapse_find_target_node(cc);
- 
--	if (!hpage_collapse_alloc_page(hpage, gfp, node))
-+	if (!hpage_collapse_alloc_page(hpage, gfp, node, &cc->alloc_nmask))
- 		return SCAN_ALLOC_HUGE_PAGE_FAIL;
- 	if (unlikely(mem_cgroup_charge(page_folio(*hpage), mm, gfp)))
- 		return SCAN_CGROUP_CHARGE_FAIL;
-@@ -1144,6 +1138,7 @@ static int hpage_collapse_scan_pmd(struc
- 		goto out;
- 
- 	memset(cc->node_load, 0, sizeof(cc->node_load));
-+	nodes_clear(cc->alloc_nmask);
- 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
- 	for (_address = address, _pte = pte; _pte < pte + HPAGE_PMD_NR;
- 	     _pte++, _address += PAGE_SIZE) {
-@@ -2077,6 +2072,7 @@ static int hpage_collapse_scan_file(stru
- 	present = 0;
- 	swap = 0;
- 	memset(cc->node_load, 0, sizeof(cc->node_load));
-+	nodes_clear(cc->alloc_nmask);
- 	rcu_read_lock();
- 	xas_for_each(&xas, page, start + HPAGE_PMD_NR - 1) {
- 		if (xas_retry(&xas, page))
-@@ -2576,7 +2572,6 @@ int madvise_collapse(struct vm_area_stru
- 	if (!cc)
- 		return -ENOMEM;
- 	cc->is_khugepaged = false;
--	cc->last_target_node = NUMA_NO_NODE;
- 
- 	mmgrab(mm);
- 	lru_add_drain_all();
-@@ -2602,6 +2597,7 @@ int madvise_collapse(struct vm_area_stru
- 		}
- 		mmap_assert_locked(mm);
- 		memset(cc->node_load, 0, sizeof(cc->node_load));
-+		nodes_clear(cc->alloc_nmask);
- 		if (IS_ENABLED(CONFIG_SHMEM) && vma->vm_file) {
- 			struct file *file = get_file(vma->vm_file);
- 			pgoff_t pgoff = linear_page_index(vma, addr);
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from quic_mojha@quicinc.com are
 
-mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode.patch
 
