@@ -2,108 +2,163 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92459C43217
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Nov 2022 22:24:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8716BC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Nov 2022 06:20:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229450AbiKXWYV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Nov 2022 17:24:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38036 "EHLO
+        id S229452AbiKYGUC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Nov 2022 01:20:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57634 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229515AbiKXWYU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Nov 2022 17:24:20 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D47277F5A7
-        for <mm-commits@vger.kernel.org>; Thu, 24 Nov 2022 14:24:19 -0800 (PST)
+        with ESMTP id S229436AbiKYGUB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Nov 2022 01:20:01 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B34E4240B1;
+        Thu, 24 Nov 2022 22:20:00 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7C225B82932
-        for <mm-commits@vger.kernel.org>; Thu, 24 Nov 2022 22:24:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30988C433D7;
-        Thu, 24 Nov 2022 22:24:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7C2D5B8296C;
+        Fri, 25 Nov 2022 06:19:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFBD7C433C1;
+        Fri, 25 Nov 2022 06:19:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669328657;
-        bh=jpuFkhe+hjGBSkvmqmaFrAUFS1XYhOEmUwPV42mbisI=;
-        h=Date:To:From:Subject:From;
-        b=Yec3eRqQBC5Apd/SWdbZOLTpRP7PBK+GG6XMj31WiloHUggZXQT+a6QftJRGL5oGU
-         K+XTXqcLSn6O5by6cFhj2YDkvTxtYpVsohWOYJQZVB/GIbijyqrzw3Sl/wG98y0MSX
-         tLrH3oFJsQhFY5JaN3tOYuhwPrZELkM9Iojn+LAM=
-Date:   Thu, 24 Nov 2022 14:24:16 -0800
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        rdunlap@infradead.org, akpm@linux-foundation.org
+        s=korg; t=1669357198;
+        bh=lwUIOPkS2nkRiCcVVbf1phCqilu19fGrO7QVgbS+Ag4=;
+        h=Date:From:To:Cc:Subject:From;
+        b=T54rKLt0/2gVIlmTERS2EZn18vBFPN2fa5qi0m4X7O/o+lCsI24sg9t1ZWF3tGWrr
+         Au/C4JZ8Wad2ceRONb3TYvuNtbABuhXnJLLOWs6XVrifeekALWKAWXoOyuZzKXykca
+         bDWsbkxH2esaH0nZ930TaaIsWed3SAHbUkuZzkKk=
+Date:   Thu, 24 Nov 2022 22:19:57 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + irqreturnh-fix-kernel-doc-warnings.patch added to mm-nonmm-unstable branch
-Message-Id: <20221124222417.30988C433D7@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.1-rc7
+Message-Id: <20221124221957.e1237518cd877725e5e7f698@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: irqreturn.h: fix kernel-doc warnings
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     irqreturnh-fix-kernel-doc-warnings.patch
+Linus, please merge this batch of MM and non-MM hotfixes.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/irqreturnh-fix-kernel-doc-warnings.patch
+Thanks.
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+The following changes since commit 436fa4a699bcd1c368bea9199e22b0a1b9cf9e0f:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  docs: kmsan: fix formatting of "Example report" (2022-11-08 15:57:25 -0800)
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+are available in the Git repository at:
 
-------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: irqreturn.h: fix kernel-doc warnings
-Date: Wed, 23 Nov 2022 22:30:13 -0800
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-11-24
 
-irqreturn.h:6: warning: missing initial short description on line:
- * enum irqreturn
-irqreturn.h:15: warning: Enum value 'IRQ_NONE' not described in enum 'irqreturn'
-irqreturn.h:15: warning: Enum value 'IRQ_HANDLED' not described in enum 'irqreturn'
-irqreturn.h:15: warning: Enum value 'IRQ_WAKE_THREAD' not described in enum 'irqreturn'
+for you to fetch changes up to de3db3f883a82c4800f4af0ae2cc3b96a408ee9b:
 
-Link: https://lkml.kernel.org/r/20221124063013.28479-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  test_kprobes: fix implicit declaration error of test_kprobes (2022-11-22 18:50:45 -0800)
 
- include/linux/irqreturn.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+----------------------------------------------------------------
+24 hotfixes.  8 marked cc:stable and 16 for post-6.0 issues.
 
---- a/include/linux/irqreturn.h~irqreturnh-fix-kernel-doc-warnings
-+++ a/include/linux/irqreturn.h
-@@ -3,10 +3,10 @@
- #define _LINUX_IRQRETURN_H
- 
- /**
-- * enum irqreturn
-- * @IRQ_NONE		interrupt was not from this device or was not handled
-- * @IRQ_HANDLED		interrupt was handled by this device
-- * @IRQ_WAKE_THREAD	handler requests to wake the handler thread
-+ * enum irqreturn - irqreturn type values
-+ * @IRQ_NONE:		interrupt was not from this device or was not handled
-+ * @IRQ_HANDLED:	interrupt was handled by this device
-+ * @IRQ_WAKE_THREAD:	handler requests to wake the handler thread
-  */
- enum irqreturn {
- 	IRQ_NONE		= (0 << 0),
-_
+There have been a lot of hotfixes this cycle, and this is quite a large
+batch given how far we are into the -rc cycle.  Presumably a reflection of
+the unusually large amount of MM material which went into 6.1-rc1.
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+----------------------------------------------------------------
+Alex Hung (2):
+      mailmap: update Alex Hung's email address
+      MAINTAINERS: update Alex Hung's email address
 
-maple_tree-allow-test_maple_tree-only-when-debug_kernel-is-set.patch
-irqreturnh-fix-kernel-doc-warnings.patch
+Alistair Popple (2):
+      mm/memory: return vm_fault_t result from migrate_to_ram() callback
+      mm/migrate_device: return number of migrating pages in args->cpages
+
+Aneesh Kumar K.V (1):
+      mm/cgroup/reclaim: fix dirty pages throttling on cgroup v1
+
+Charan Teja Kalla (1):
+      mm/page_exit: fix kernel doc warning in page_ext_put()
+
+Chen Wandun (1):
+      swapfile: fix soft lockup in scan_swap_map_slots
+
+Chen Zhongjin (1):
+      nilfs2: fix nilfs_sufile_mark_dirty() not set segment usage as dirty
+
+Gautam Menghani (1):
+      mm/khugepaged: refactor mm_khugepaged_scan_file tracepoint to remove filename from function call
+
+Ian Cowan (1):
+      mm: mmap: fix documentation for vma_mas_szero
+
+Johannes Weiner (1):
+      mm: vmscan: fix extreme overreclaim and swap floods
+
+Li Hua (1):
+      test_kprobes: fix implicit declaration error of test_kprobes
+
+Li Liguang (1):
+      mm: correctly charge compressed memory to its memcg
+
+Marco Elver (1):
+      kfence: fix stack trace pruning
+
+Mike Kravetz (2):
+      ipc/shm: call underlying open/close vm_ops
+      hugetlb: fix __prep_compound_gigantic_page page flag setting
+
+Mukesh Ojha (1):
+      gcov: clang: fix the buffer overflow issue
+
+Qi Zheng (1):
+      mm: fix unexpected changes to {failslab|fail_page_alloc}.attr
+
+Sam James (1):
+      kbuild: fix -Wimplicit-function-declaration in license_is_gpl_compatible
+
+Satya Priya (1):
+      mailmap: update email address for Satya Priya
+
+SeongJae Park (1):
+      mm/damon/sysfs-schemes: skip stats update if the scheme directory is removed
+
+Yang Shi (1):
+      mm: khugepaged: allow page allocation fallback to eligible nodes
+
+Yosry Ahmed (1):
+      proc/meminfo: fix spacing in SecPageTables
+
+Yu Zhao (1):
+      mm: multi-gen LRU: retry folios written back while isolated
+
+ .mailmap                           |  2 ++
+ MAINTAINERS                        |  2 +-
+ fs/nilfs2/sufile.c                 |  8 +++++
+ fs/proc/meminfo.c                  |  2 +-
+ include/linux/fault-inject.h       |  7 ++--
+ include/linux/license.h            |  2 ++
+ include/trace/events/huge_memory.h |  8 ++---
+ ipc/shm.c                          | 34 +++++++++++++-----
+ kernel/gcov/clang.c                |  2 ++
+ lib/Kconfig.debug                  |  1 +
+ lib/fault-inject.c                 | 13 ++++---
+ mm/damon/sysfs.c                   |  4 +++
+ mm/failslab.c                      | 12 +++++--
+ mm/hugetlb.c                       |  4 ++-
+ mm/kfence/report.c                 | 13 ++++---
+ mm/khugepaged.c                    | 35 ++++++++----------
+ mm/memcontrol.c                    |  2 +-
+ mm/memory.c                        |  2 +-
+ mm/migrate_device.c                |  8 +++--
+ mm/mmap.c                          |  2 +-
+ mm/page_alloc.c                    |  7 ++--
+ mm/page_ext.c                      |  2 +-
+ mm/swapfile.c                      |  8 ++---
+ mm/vmscan.c                        | 72 ++++++++++++++++++++++++++++----------
+ 24 files changed, 173 insertions(+), 79 deletions(-)
 
