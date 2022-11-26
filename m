@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A667C43217
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Nov 2022 00:54:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D81FC43217
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Nov 2022 00:56:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229767AbiKZAyN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Nov 2022 19:54:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59332 "EHLO
+        id S229835AbiKZA4p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Nov 2022 19:56:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229687AbiKZAyM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Nov 2022 19:54:12 -0500
+        with ESMTP id S229570AbiKZA4o (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Nov 2022 19:56:44 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C68613FAA
-        for <mm-commits@vger.kernel.org>; Fri, 25 Nov 2022 16:54:12 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CFDD5985A
+        for <mm-commits@vger.kernel.org>; Fri, 25 Nov 2022 16:56:43 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9AA3F60F84
-        for <mm-commits@vger.kernel.org>; Sat, 26 Nov 2022 00:54:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF95AC433D6;
-        Sat, 26 Nov 2022 00:54:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1721660C6D
+        for <mm-commits@vger.kernel.org>; Sat, 26 Nov 2022 00:56:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67325C433D6;
+        Sat, 26 Nov 2022 00:56:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669424051;
-        bh=2t5YFp37Go8b3qYK5zjs1DRaHtLFTZmpCzrIzqftWc8=;
+        s=korg; t=1669424202;
+        bh=elF7Jnvka0K61U6Cdiv5q7pyVPhgMMqPzLwYFGQXM1g=;
         h=Date:To:From:Subject:From;
-        b=PgA77JysVQwieaw/4ye7hFW/D71/HDUQiy1Tt1QBzlcFNbRJnJwQJA0PK/OiCA1mu
-         Fwj0WQxHCtQMJwh0/8dAj0m7e/oA95nkoYFsOV2VoQK8IIEDYOo4RqW2LVdzOpBVee
-         ytD7v7ZSaAmbQundamUK/NSI1aZuQJfURSXYyTdc=
-Date:   Fri, 25 Nov 2022 16:54:10 -0800
-To:     mm-commits@vger.kernel.org, pizhenwei@bytedance.com,
-        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
-        mawupeng1@huawei.com, akpm@linux-foundation.org
+        b=L3KwOLuN+yLf6m3Rnbi3HLF2d43gWnGIfY8EZcmANDsa5fPHch1gxMADYgh4FVjvj
+         8rzRXLZFRJ/D81JDCUcRsoVFeYAgKLt+MmY+jHtzEon0ZExvqHIc2iJjK8qPP/f2K9
+         2F/+ekKsuinh5R8iphUvEQ6gHNVgdWCh6jxYrRIM=
+Date:   Fri, 25 Nov 2022 16:56:40 -0800
+To:     mm-commits@vger.kernel.org, hca@linux.ibm.com, david@redhat.com,
+        borntraeger@linux.ibm.com, anshuman.khandual@arm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failurec-cleanup-in-unpoison_memory.patch added to mm-unstable branch
-Message-Id: <20221126005410.EF95AC433D6@smtp.kernel.org>
+Subject: + s390-mm-use-pmd_pgtable_page-helper-in-__gmap_segment_gaddr.patch added to mm-unstable branch
+Message-Id: <20221126005642.67325C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: cleanup in unpoison_memory
+     Subject: s390/mm: use pmd_pgtable_page() helper in __gmap_segment_gaddr()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failurec-cleanup-in-unpoison_memory.patch
+     s390-mm-use-pmd_pgtable_page-helper-in-__gmap_segment_gaddr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failurec-cleanup-in-unpoison_memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-use-pmd_pgtable_page-helper-in-__gmap_segment_gaddr.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,60 +65,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ma Wupeng <mawupeng1@huawei.com>
-Subject: mm/memory-failure.c: cleanup in unpoison_memory
-Date: Fri, 25 Nov 2022 14:54:44 +0800
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: s390/mm: use pmd_pgtable_page() helper in __gmap_segment_gaddr()
+Date: Fri, 25 Nov 2022 09:15:02 +0530
 
-If freeit it true, the value of ret must be zero, there is no need to
-check the value of freeit after label unlock_mutex.
+In __gmap_segment_gaddr() pmd level page table page is being extracted
+from the pmd pointer, similar to pmd_pgtable_page() implementation.  This
+reduces some redundancy by directly using pmd_pgtable_page() instead,
+though first making it available.
 
-We can drop variable freeit to do this cleanup.
-
-Link: https://lkml.kernel.org/r/20221125065444.3462681-1-mawupeng1@huawei.com
-Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: zhenwei pi <pizhenwei@bytedance.com>
+Link: https://lkml.kernel.org/r/20221125034502.1559986-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/s390/mm/gmap.c |    5 ++---
+ include/linux/mm.h  |    2 +-
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failurec-cleanup-in-unpoison_memory
-+++ a/mm/memory-failure.c
-@@ -2338,7 +2338,6 @@ int unpoison_memory(unsigned long pfn)
+--- a/arch/s390/mm/gmap.c~s390-mm-use-pmd_pgtable_page-helper-in-__gmap_segment_gaddr
++++ a/arch/s390/mm/gmap.c
+@@ -336,12 +336,11 @@ static int gmap_alloc_table(struct gmap
+ static unsigned long __gmap_segment_gaddr(unsigned long *entry)
+ {
  	struct page *page;
- 	struct page *p;
- 	int ret = -EBUSY;
--	int freeit = 0;
- 	unsigned long count = 1;
- 	bool huge = false;
- 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
-@@ -2413,10 +2412,9 @@ int unpoison_memory(unsigned long pfn)
- 				goto unlock_mutex;
- 			}
- 		}
--		freeit = !!TestClearPageHWPoison(p);
+-	unsigned long offset, mask;
++	unsigned long offset;
  
- 		put_page(page);
--		if (freeit) {
-+		if (TestClearPageHWPoison(p)) {
- 			put_page(page);
- 			ret = 0;
- 		}
-@@ -2424,7 +2422,7 @@ int unpoison_memory(unsigned long pfn)
+ 	offset = (unsigned long) entry / sizeof(unsigned long);
+ 	offset = (offset & (PTRS_PER_PMD - 1)) * PMD_SIZE;
+-	mask = ~(PTRS_PER_PMD * sizeof(pmd_t) - 1);
+-	page = virt_to_page((void *)((unsigned long) entry & mask));
++	page = pmd_pgtable_page((pmd_t *) entry);
+ 	return page->index + offset;
+ }
  
- unlock_mutex:
- 	mutex_unlock(&mf_mutex);
--	if (!ret || freeit) {
-+	if (!ret) {
- 		if (!huge)
- 			num_poisoned_pages_sub(pfn, 1);
- 		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
+--- a/include/linux/mm.h~s390-mm-use-pmd_pgtable_page-helper-in-__gmap_segment_gaddr
++++ a/include/linux/mm.h
+@@ -2480,7 +2480,7 @@ static inline void pgtable_pte_page_dtor
+ 
+ #if USE_SPLIT_PMD_PTLOCKS
+ 
+-static struct page *pmd_pgtable_page(pmd_t *pmd)
++static inline struct page *pmd_pgtable_page(pmd_t *pmd)
+ {
+ 	unsigned long mask = ~(PTRS_PER_PMD * sizeof(pmd_t) - 1);
+ 	return virt_to_page((void *)((unsigned long) pmd & mask));
 _
 
-Patches currently in -mm which might be from mawupeng1@huawei.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-memory-failurec-cleanup-in-unpoison_memory.patch
+documentation-mm-update-pmd_present-in-arch_pgtable_helpersrst.patch
+mm-thp-rename-pmd_to_page-as-pmd_pgtable_page.patch
+s390-mm-use-pmd_pgtable_page-helper-in-__gmap_segment_gaddr.patch
 
