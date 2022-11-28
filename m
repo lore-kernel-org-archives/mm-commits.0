@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2E31C433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Nov 2022 22:24:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFEDFC43217
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Nov 2022 22:28:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234127AbiK1WYr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Nov 2022 17:24:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60748 "EHLO
+        id S233537AbiK1W2L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Nov 2022 17:28:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232825AbiK1WYp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2022 17:24:45 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84F0C10FC6
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 14:24:44 -0800 (PST)
+        with ESMTP id S233898AbiK1W2C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2022 17:28:02 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C2AA3BA
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 14:28:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3983BB80F79
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 22:24:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE2E1C433D6;
-        Mon, 28 Nov 2022 22:24:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 43BEDB8102C
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 22:28:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E41C2C433D6;
+        Mon, 28 Nov 2022 22:27:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669674282;
-        bh=fxSplx6/5kqYBlvp4GsFTrZr99BjHhfQsdJdpTQMitM=;
+        s=korg; t=1669674479;
+        bh=8tYn9MpDn0KmI48MUPBLNBsxT66UpsLVlML/lMvx4SI=;
         h=Date:To:From:Subject:From;
-        b=MJmn10ubW4TZtHjMeBfSV+AhmAronr7Kr3TBrtb7VSYD9aeid9ZQJFmn+dAMiOl0P
-         LA77VfHthikWGfr72PbXX0f84YJGl7eSkKb6xwwuf6UAPWftJ54L2jOt3lGf3tTIP0
-         KoATclKeR69OlCFE7ZSuKZdtHqSbkcC/tm0B+8fQ=
-Date:   Mon, 28 Nov 2022 14:24:41 -0800
-To:     mm-commits@vger.kernel.org, keescook@chromium.org, Jason@zx2c4.com,
-        elver@google.com, davidgow@google.com, arnd@arndb.de,
-        anders.roxell@linaro.org, akpm@linux-foundation.org
+        b=TNb+fLLcOq/EzA2P1DiAKftoL6iP5b76PW/PRdO8NKh6D7f2mcjeGKg97ViYUxivN
+         na4L0j+28/R+gxqNULJiro/B4WNzYor2WRZ/RAxZFvL7NIwpRE59PoRC6AgiyHHMt9
+         OqUxr4J/DtQazXHT0l9C6J6t4rfIl2THu6qopsm4=
+Date:   Mon, 28 Nov 2022 14:27:58 -0800
+To:     mm-commits@vger.kernel.org, will@kernel.org, peterz@infradead.org,
+        mingo@redhat.com, elver@google.com, ebiggers@kernel.org,
+        dvyukov@google.com, glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-kcsan-kcsan_test-build-without-structleak-plugin.patch added to mm-nonmm-unstable branch
-Message-Id: <20221128222441.EE2E1C433D6@smtp.kernel.org>
+Subject: + lockdep-allow-instrumenting-lockdepc-with-kmsan.patch added to mm-unstable branch
+Message-Id: <20221128222758.E41C2C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel: kcsan: kcsan_test: build without structleak plugin
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-kcsan-kcsan_test-build-without-structleak-plugin.patch
+     Subject: lockdep: allow instrumenting lockdep.c with KMSAN
+has been added to the -mm mm-unstable branch.  Its filename is
+     lockdep-allow-instrumenting-lockdepc-with-kmsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-kcsan-kcsan_test-build-without-structleak-plugin.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lockdep-allow-instrumenting-lockdepc-with-kmsan.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,42 +65,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anders Roxell <anders.roxell@linaro.org>
-Subject: kernel: kcsan: kcsan_test: build without structleak plugin
-Date: Mon, 28 Nov 2022 11:43:58 +0100
+From: Alexander Potapenko <glider@google.com>
+Subject: lockdep: allow instrumenting lockdep.c with KMSAN
+Date: Mon, 28 Nov 2022 10:45:40 +0100
 
-Building kcsan_test with strucleak plugin enabled makes the stack frame
-size to grow.
+Lockdep and KMSAN used to play badly together, causing deadlocks when
+KMSAN instrumentation of lockdep.c called lockdep functions recursively.
 
-kernel/kcsan/kcsan_test.c:704:1: error: the frame size of 3296 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
+Looks like this is no more the case, and a kernel can run (yet slower)
+with both KMSAN and lockdep enabled.  This patch should fix false
+positives on wq_head->lock->dep_map, which KMSAN used to consider
+uninitialized because of lockdep.c not being instrumented.
 
-Turn off the structleak plugin checks for kcsan_test.
-
-Link: https://lkml.kernel.org/r/20221128104358.2660634-1-anders.roxell@linaro.org
-Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Gow <davidgow@google.com>
-Cc: Jason A. Donenfeld <Jason@zx2c4.com>
-Cc: Kees Cook <keescook@chromium.org>
+Link: https://lore.kernel.org/lkml/Y3b9AAEKp2Vr3e6O@sol.localdomain/
+Link: https://lkml.kernel.org/r/20221128094541.2645890-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reported-by: Eric Biggers <ebiggers@kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcsan/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/locking/Makefile |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/kernel/kcsan/Makefile~kernel-kcsan-kcsan_test-build-without-structleak-plugin
-+++ a/kernel/kcsan/Makefile
-@@ -17,4 +17,5 @@ KCSAN_INSTRUMENT_BARRIERS_selftest.o :=
- obj-$(CONFIG_KCSAN_SELFTEST) += selftest.o
+--- a/kernel/locking/Makefile~lockdep-allow-instrumenting-lockdepc-with-kmsan
++++ a/kernel/locking/Makefile
+@@ -7,7 +7,6 @@ obj-y += mutex.o semaphore.o rwsem.o per
  
- CFLAGS_kcsan_test.o := $(CFLAGS_KCSAN) -g -fno-omit-frame-pointer
-+CFLAGS_kcsan_test.o += $(DISABLE_STRUCTLEAK_PLUGIN)
- obj-$(CONFIG_KCSAN_KUNIT_TEST) += kcsan_test.o
+ # Avoid recursion lockdep -> sanitizer -> ... -> lockdep.
+ KCSAN_SANITIZE_lockdep.o := n
+-KMSAN_SANITIZE_lockdep.o := n
+ 
+ ifdef CONFIG_FUNCTION_TRACER
+ CFLAGS_REMOVE_lockdep.o = $(CC_FLAGS_FTRACE)
 _
 
-Patches currently in -mm which might be from anders.roxell@linaro.org are
+Patches currently in -mm which might be from glider@google.com are
 
-kernel-kcsan-kcsan_test-build-without-structleak-plugin.patch
+revert-kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch
+lockdep-allow-instrumenting-lockdepc-with-kmsan.patch
+kmsan-allow-using-__msan_instrument_asm_store-inside-runtime.patch
 
