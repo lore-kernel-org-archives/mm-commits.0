@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 694FBC4321E
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Nov 2022 22:21:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34D51C4321E
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Nov 2022 22:21:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232957AbiK1WVb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Nov 2022 17:21:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58974 "EHLO
+        id S233584AbiK1WVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Nov 2022 17:21:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232825AbiK1WVa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2022 17:21:30 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0DD930563
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 14:21:29 -0800 (PST)
+        with ESMTP id S232825AbiK1WVi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2022 17:21:38 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B5B930568
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 14:21:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 84F8561496
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 22:21:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3AEFC433C1;
-        Mon, 28 Nov 2022 22:21:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 12530B81034
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 22:21:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFC07C433C1;
+        Mon, 28 Nov 2022 22:21:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669674088;
-        bh=tpAYamYB3UCWkmy7jhtbjQp442BUQCyxy4X/WlLEMQw=;
+        s=korg; t=1669674094;
+        bh=Pblp5y2PpWd5jy3YjX6ohibPfBPzR6+/EWeMLGfpHj0=;
         h=Date:To:From:Subject:From;
-        b=z8lg6Urw7t1VsvlXZslTHfrisTTEkba+cX9BqZINkbr34Af/TrgGmEYSc5nRxua4a
-         Y3pFcb6S33jZ//PZLC6W9ZFjDkjO8hxNhiQRzvF1VcTQYtdhpYzhCoe4U44dRhqOEU
-         HVCqX7UwP2V/SEQ63UmRiB+hFC8Gd1Bvx74EXLx4=
-Date:   Mon, 28 Nov 2022 14:21:28 -0800
+        b=sCsb/1O587cYDro1ZLN8O627HKXTCCBz+zGvL7iMZXWMGcoSMQS6BaoEGC3vMsKUy
+         d+AxdR2uZvNIpJBV5EYoKmPWr18AzU9S0KvSUSLY39PN+/ychc5IN5YNxTamPGkaFn
+         W2VXGwZkfEX6s+Y0C1fQWTeP1J8N69ZaeQpq4v+s=
+Date:   Mon, 28 Nov 2022 14:21:34 -0800
 To:     mm-commits@vger.kernel.org, zhang.songyi@zte.com.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + =utf-8bw1bbveniigxpbnv4lw5lehrdig1toibyzw1vdmugcmvkdw5kyw50ihb0zsb2yxjpywjszq===.patch added to mm-unstable branch
-Message-Id: <20221128222128.D3AEFC433C1@smtp.kernel.org>
+Subject: + include-linux-pgtableh-remove-redundant-pte-variable.patch added to mm-unstable branch
+Message-Id: <20221128222134.BFC07C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,10 +43,10 @@ X-Mailing-List: mm-commits@vger.kernel.org
 The patch titled
      Subject: include/linux/pgtable.h: : remove redundant pte variable
 has been added to the -mm mm-unstable branch.  Its filename is
-     =utf-8bw1bbveniigxpbnv4lw5lehrdig1toibyzw1vdmugcmvkdw5kyw50ihb0zsb2yxjpywjszq===.patch
+     include-linux-pgtableh-remove-redundant-pte-variable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/=utf-8bw1bbveniigxpbnv4lw5lehrdig1toibyzw1vdmugcmvkdw5kyw50ihb0zsb2yxjpywjszq===.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-linux-pgtableh-remove-redundant-pte-variable.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,7 +79,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/linux/pgtable.h |    4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/include/linux/pgtable.h~=utf-8bw1bbveniigxpbnv4lw5lehrdig1toibyzw1vdmugcmvkdw5kyw50ihb0zsb2yxjpywjszq===
+--- a/include/linux/pgtable.h~include-linux-pgtableh-remove-redundant-pte-variable
 +++ a/include/linux/pgtable.h
 @@ -425,9 +425,7 @@ static inline pte_t ptep_get_and_clear_f
  					    unsigned long address, pte_t *ptep,
@@ -96,5 +96,5 @@ _
 
 Patches currently in -mm which might be from zhang.songyi@zte.com.cn are
 
-=utf-8bw1bbveniigxpbnv4lw5lehrdig1toibyzw1vdmugcmvkdw5kyw50ihb0zsb2yxjpywjszq===.patch
+include-linux-pgtableh-remove-redundant-pte-variable.patch
 
