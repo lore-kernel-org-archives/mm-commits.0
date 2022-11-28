@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2921CC4321E
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Nov 2022 21:24:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39F52C4321E
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Nov 2022 21:39:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234516AbiK1VYh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Nov 2022 16:24:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55186 "EHLO
+        id S233027AbiK1Vjv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Nov 2022 16:39:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231909AbiK1VYg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2022 16:24:36 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F97510FC3
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 13:24:35 -0800 (PST)
+        with ESMTP id S234228AbiK1Vju (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2022 16:39:50 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E1712B618
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 13:39:49 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D8EE3B80E9A
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 21:24:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92977C433C1;
-        Mon, 28 Nov 2022 21:24:32 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id DEDCDCE1085
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 21:39:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD6EBC433D7;
+        Mon, 28 Nov 2022 21:39:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669670672;
-        bh=+dzBnjvBX9nom+sLEzXhFQyfwdPbJ6bcLi7HUdbZ7Gg=;
+        s=korg; t=1669671585;
+        bh=Wl9jeM1pbDdr04CeJ15FZPczqwN26eNH5dzq24l6zs8=;
         h=Date:To:From:Subject:From;
-        b=2Mo94AHJGT35lFmg9ojEXbYrWk2LwoQebbs59c35zdAPeThh3+6T5v3pJo4HHv2P4
-         FWwaj16XQCWcSZGXw+NcJS1Y5+zvWbEigTKr4ayIs9VXKqsTcA7aEfg6hOmLZ2V3IC
-         TPP8J26AoPRaDZ0/sWqmUAh6jDxtkoKqu64kTopc=
-Date:   Mon, 28 Nov 2022 13:24:31 -0800
-To:     mm-commits@vger.kernel.org, sam@gentoo.org, hns@goldelico.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=zg8z2KVixKtQcbGZ5FQdZwho9wSEH76QHECBa/vlzbEWob7HPD9XEO1pe8yaDlSB/
+         3k6MXx0nupX49RFkTpo+XGvCYVcT3S1QQALMlLtxgkepd4JsXySepRGETlKhILN2Zo
+         H0qrRh4J4Jtu9Jesl/DRXlZDmoEFIMFmbMtlxptQ=
+Date:   Mon, 28 Nov 2022 13:39:44 -0800
+To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
+        sjenning@redhat.com, senozhatsky@chromium.org, nphamcs@gmail.com,
+        ngupta@vflare.org, minchan@kernel.org, ddstreet@ieee.org,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221128212432.92977C433C1@smtp.kernel.org>
+Subject: + zswap-fix-writeback-lock-ordering-for-zsmalloc.patch added to mm-unstable branch
+Message-Id: <20221128213945.CD6EBC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "kbuild: fix -Wimplicit-function-declaration in license_is_gpl_compatible"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible.patch
+     Subject: zswap: fix writeback lock ordering for zsmalloc
+has been added to the -mm mm-unstable branch.  Its filename is
+     zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,78 +66,142 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "kbuild: fix -Wimplicit-function-declaration in license_is_gpl_compatible"
-Date: Mon Nov 28 01:21:40 PM PST 2022
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: zswap: fix writeback lock ordering for zsmalloc
+Date: Mon, 28 Nov 2022 11:16:10 -0800
 
-It causes build failures with unusual CC/HOSTCC combinations.
+Patch series "Implement writeback for zsmalloc", v7.
 
-Quoting
-https://lkml.kernel.org/r/A222B1E6-69B8-4085-AD1B-27BDB72CA971@goldelico.com:
+Unlike other zswap allocators such as zbud or z3fold, zsmalloc currently
+lacks the writeback mechanism.  This means that when the zswap pool is
+full, it will simply reject further allocations, and the pages will be
+written directly to swap.
 
-  HOSTCC  scripts/mod/modpost.o - due to target missing
-In file included from include/linux/string.h:5,
-                 from scripts/mod/../../include/linux/license.h:5,
-                 from scripts/mod/modpost.c:24:
-include/linux/compiler.h:246:10: fatal error: asm/rwonce.h: No such file or directory
-  246 | #include <asm/rwonce.h>
-      |          ^~~~~~~~~~~~~~
-compilation terminated.
+This series of patches implements writeback for zsmalloc. When the zswap
+pool becomes full, zsmalloc will attempt to evict all the compressed
+objects in the least-recently used zspages.
 
-...
 
-The problem is that HOSTCC is not necessarily the same compiler or even
-architecture as CC and pulling in <linux/compiler.h> or <asm/rwonce.h>
-files indirectly isn't a good idea then.
+This patch (of 6):
 
-My toolchain is providing HOSTCC = gcc (MacPorts) and CC = arm-linux-gnueabihf
-(built from gcc source) and all running on Darwin.
+zswap's customary lock order is tree->lock before pool->lock, because the
+tree->lock protects the entries' refcount, and the free callbacks in the
+backends acquire their respective pool locks to dispatch the backing
+object.  zsmalloc's map callback takes the pool lock, so zswap must not
+grab the tree->lock while a handle is mapped.  This currently only happens
+during writeback, which isn't implemented for zsmalloc.  In preparation
+for it, move the tree->lock section out of the mapped entry section
 
-If I change the include to <string.h> I can then "HOSTCC scripts/mod/modpost.c"
-but then it fails for "CC kernel/module/main.c" not finding <string.h>:
-
-  CC      kernel/module/main.o - due to target missing
-In file included from kernel/module/main.c:43:0:
-./include/linux/license.h:5:20: fatal error: string.h: No such file or directory
- #include <string.h>
-                    ^
-compilation terminated.
-
-Reportd-by: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Sam James <sam@gentoo.org>
+Link: https://lkml.kernel.org/r/20221128191616.1261026-1-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20221128191616.1261026-2-nphamcs@gmail.com
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/license.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/zswap.c |   35 +++++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 16 deletions(-)
 
---- a/include/linux/license.h~revert-kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible
-+++ a/include/linux/license.h
-@@ -2,8 +2,6 @@
- #ifndef __LICENSE_H
- #define __LICENSE_H
+--- a/mm/zswap.c~zswap-fix-writeback-lock-ordering-for-zsmalloc
++++ a/mm/zswap.c
+@@ -968,6 +968,7 @@ static int zswap_writeback_entry(struct
+ 	swpentry = zhdr->swpentry; /* here */
+ 	tree = zswap_trees[swp_type(swpentry)];
+ 	offset = swp_offset(swpentry);
++	zpool_unmap_handle(pool, handle);
  
--#include <linux/string.h>
+ 	/* find and ref zswap entry */
+ 	spin_lock(&tree->lock);
+@@ -975,20 +976,12 @@ static int zswap_writeback_entry(struct
+ 	if (!entry) {
+ 		/* entry was invalidated */
+ 		spin_unlock(&tree->lock);
+-		zpool_unmap_handle(pool, handle);
+ 		kfree(tmp);
+ 		return 0;
+ 	}
+ 	spin_unlock(&tree->lock);
+ 	BUG_ON(offset != entry->offset);
+ 
+-	src = (u8 *)zhdr + sizeof(struct zswap_header);
+-	if (!zpool_can_sleep_mapped(pool)) {
+-		memcpy(tmp, src, entry->length);
+-		src = tmp;
+-		zpool_unmap_handle(pool, handle);
+-	}
 -
- static inline int license_is_gpl_compatible(const char *license)
- {
- 	return (strcmp(license, "GPL") == 0
+ 	/* try to allocate swap cache page */
+ 	switch (zswap_get_swap_cache_page(swpentry, &page)) {
+ 	case ZSWAP_SWAPCACHE_FAIL: /* no memory or invalidate happened */
+@@ -1006,6 +999,14 @@ static int zswap_writeback_entry(struct
+ 		acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+ 		dlen = PAGE_SIZE;
+ 
++		zhdr = zpool_map_handle(pool, handle, ZPOOL_MM_RO);
++		src = (u8 *)zhdr + sizeof(struct zswap_header);
++		if (!zpool_can_sleep_mapped(pool)) {
++			memcpy(tmp, src, entry->length);
++			src = tmp;
++			zpool_unmap_handle(pool, handle);
++		}
++
+ 		mutex_lock(acomp_ctx->mutex);
+ 		sg_init_one(&input, src, entry->length);
+ 		sg_init_table(&output, 1);
+@@ -1015,6 +1016,11 @@ static int zswap_writeback_entry(struct
+ 		dlen = acomp_ctx->req->dlen;
+ 		mutex_unlock(acomp_ctx->mutex);
+ 
++		if (!zpool_can_sleep_mapped(pool))
++			kfree(tmp);
++		else
++			zpool_unmap_handle(pool, handle);
++
+ 		BUG_ON(ret);
+ 		BUG_ON(dlen != PAGE_SIZE);
+ 
+@@ -1045,7 +1051,11 @@ static int zswap_writeback_entry(struct
+ 		zswap_entry_put(tree, entry);
+ 	spin_unlock(&tree->lock);
+ 
+-	goto end;
++	return ret;
++
++fail:
++	if (!zpool_can_sleep_mapped(pool))
++		kfree(tmp);
+ 
+ 	/*
+ 	* if we get here due to ZSWAP_SWAPCACHE_EXIST
+@@ -1054,17 +1064,10 @@ static int zswap_writeback_entry(struct
+ 	* if we free the entry in the following put
+ 	* it is also okay to return !0
+ 	*/
+-fail:
+ 	spin_lock(&tree->lock);
+ 	zswap_entry_put(tree, entry);
+ 	spin_unlock(&tree->lock);
+ 
+-end:
+-	if (zpool_can_sleep_mapped(pool))
+-		zpool_unmap_handle(pool, handle);
+-	else
+-		kfree(tmp);
+-
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode-v4-fix.patch
-mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode-v4-fix-2.patch
-revert-kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible.patch
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-gup-remove-foll_migration-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
-kasan-allow-sampling-page_alloc-allocations-for-hw_tags-fix.patch
-mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch
-mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix.patch
-mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix.patch
-mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch
-mm-document-sys-class-bdi-bdi-max_ratio_fine-knob-fix.patch
-mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch
+mm-vmscan-split-khugepaged-stats-from-direct-reclaim-stats.patch
+zswap-fix-writeback-lock-ordering-for-zsmalloc.patch
+zpool-clean-out-dead-code.patch
 
