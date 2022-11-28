@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F06AC43217
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Nov 2022 22:44:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A0B4C43217
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Nov 2022 22:51:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232966AbiK1WoA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Nov 2022 17:44:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43380 "EHLO
+        id S233866AbiK1WvK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Nov 2022 17:51:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232683AbiK1Wn7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2022 17:43:59 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2030629354
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 14:43:59 -0800 (PST)
+        with ESMTP id S233972AbiK1WvJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2022 17:51:09 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D3FD2B1A4
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 14:51:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BEB1DB8102B
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 22:43:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D239C433D6;
-        Mon, 28 Nov 2022 22:43:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DEF6D6120C
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 22:51:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FC5AC433D7;
+        Mon, 28 Nov 2022 22:51:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669675436;
-        bh=9SWgCRQFBWVu6RTRUWuGWKLfNzDBTRErYS/WMYjwYY4=;
+        s=korg; t=1669675863;
+        bh=8Xm0q+afoQVIy3YsxD11l6q2fwq5qgx2NP6c1QhnxRY=;
         h=Date:To:From:Subject:From;
-        b=nk4XAXbFVQcGIV9vqzSTO6NkQcYeZ5eMJUVB4cPz7Pwl51phcwlBkBZEfDMfToIvY
-         9BdxTeDmLKsjInwCV1nPvmVrEZuDTRL/UyFV3V+LYIkXHTiLZ9SqwjBwF0KttwXRd3
-         5AoolHgu6mINGZ3cOJqjvenSflbycOQybQSoKm/s=
-Date:   Mon, 28 Nov 2022 14:43:55 -0800
-To:     mm-commits@vger.kernel.org, christophe.jaillet@wanadoo.fr,
-        akpm@linux-foundation.org
+        b=p7oTg3LT4AExTiR3L082w1NaeAYPmoZQ1TscsJnR5CxsAWrMPQc546yk7L4c7vfDW
+         WkI8QqiYmdPaPDOrRZEnazKy+KP5sb2NLG92/yd4PxVCPqkbWNsT6WgSFSSFViTDp/
+         2mDUu1RqSMv/7JDLx2VA1Wv3PlD/UN7Gm21YzHc4=
+Date:   Mon, 28 Nov 2022 14:51:02 -0800
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
+        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
+        alex@alex-at.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + io-mapping-move-some-code-within-the-include-guarded-section.patch added to mm-nonmm-unstable branch
-Message-Id: <20221128224356.6D239C433D6@smtp.kernel.org>
+Subject: + ocfs2-always-read-both-high-and-low-parts-of-dinode-link-count.patch added to mm-nonmm-unstable branch
+Message-Id: <20221128225103.2FC5AC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: io-mapping: move some code within the include guarded section
+     Subject: [PATCH] ocfs2: always read both high and low parts of dinode link count
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     io-mapping-move-some-code-within-the-include-guarded-section.patch
+     ocfs2-always-read-both-high-and-low-parts-of-dinode-link-count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/io-mapping-move-some-code-within-the-include-guarded-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-always-read-both-high-and-low-parts-of-dinode-link-count.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,39 +66,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: io-mapping: move some code within the include guarded section
-Date: Sun, 27 Nov 2022 17:07:32 +0100
+From: Alexey Asemov <alex@alex-at.net>
+Subject: [PATCH] ocfs2: always read both high and low parts of dinode link count
+Date: Sun, 27 Nov 2022 09:46:38 +0300
 
-It is spurious to have some code out-side the include guard in a .h file. 
-Fix it.
+When filesystem is using indexed-dirs feature, maximum link count values
+can spill over to i_links_count_hi, up to OCFS2_DX_LINK_MAX links. 
+ocfs2_read_links_count() checks for OCFS2_INDEXED_DIR_FL flag in dinode,
+but this flag is only valid for directories so for files the check causes
+high part of the link count not being read back from file dinodes
+resulting in wrong link count value when file has >65535 links.
 
-Link: https://lkml.kernel.org/r/4dbaf427d4300edba6c6bbfaf4d57493b9bec6ee.1669565241.git.christophe.jaillet@wanadoo.fr
-Fixes: 1fbaf8fc12a0 ("mm: add a io_mapping_map_user helper")
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+As ocfs2_set_links_count() always writes both high and low parts of link
+count, the flag check on reading may be removed.
+
+Link: https://lkml.kernel.org/r/cbfca02b-b39f-89de-e1a8-904a6c60407e@alex-at.net
+Signed-off-by: Alexey Asemov <alex@alex-at.net>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io-mapping.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/ocfs2.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/io-mapping.h~io-mapping-move-some-code-within-the-include-guarded-section
-+++ a/include/linux/io-mapping.h
-@@ -213,7 +213,7 @@ io_mapping_free(struct io_mapping *iomap
- 	kfree(iomap);
- }
+--- a/fs/ocfs2/ocfs2.h~ocfs2-always-read-both-high-and-low-parts-of-dinode-link-count
++++ a/fs/ocfs2/ocfs2.h
+@@ -560,8 +560,7 @@ static inline unsigned int ocfs2_read_li
+ 	u32 nlink = le16_to_cpu(di->i_links_count);
+ 	u32 hi = le16_to_cpu(di->i_links_count_hi);
  
--#endif /* _LINUX_IO_MAPPING_H */
--
- int io_mapping_map_user(struct io_mapping *iomap, struct vm_area_struct *vma,
- 		unsigned long addr, unsigned long pfn, unsigned long size);
-+
-+#endif /* _LINUX_IO_MAPPING_H */
+-	if (di->i_dyn_features & cpu_to_le16(OCFS2_INDEXED_DIR_FL))
+-		nlink |= (hi << OCFS2_LINKS_HI_SHIFT);
++	nlink |= (hi << OCFS2_LINKS_HI_SHIFT);
+ 
+ 	return nlink;
+ }
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from alex@alex-at.net are
 
-mm-damon-use-kstrtobool-instead-of-strtobool.patch
-mm-use-kstrtobool-instead-of-strtobool.patch
-io-mapping-move-some-code-within-the-include-guarded-section.patch
+ocfs2-always-read-both-high-and-low-parts-of-dinode-link-count.patch
 
