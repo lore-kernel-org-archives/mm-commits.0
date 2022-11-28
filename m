@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B6BEC43217
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Nov 2022 23:10:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C29D0C43217
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Nov 2022 23:10:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234577AbiK1XKY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Nov 2022 18:10:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34834 "EHLO
+        id S234590AbiK1XK3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Nov 2022 18:10:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234642AbiK1XKV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2022 18:10:21 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F5BE317F0
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 15:10:19 -0800 (PST)
+        with ESMTP id S234602AbiK1XKW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2022 18:10:22 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBE4231DC6
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 15:10:21 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 279C6B8104C
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 23:10:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6B3CC433D6;
-        Mon, 28 Nov 2022 23:10:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A381614DB
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2022 23:10:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF17BC433D6;
+        Mon, 28 Nov 2022 23:10:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669677016;
-        bh=UujQIHgptncC4DJQ5hTq0BeiwsU07rnvnBNQi6NlOyw=;
+        s=korg; t=1669677020;
+        bh=PNwOZGQWDbawTzr5w+EPrkBG93hFvnqnpAoR/CB6dTk=;
         h=Date:To:From:Subject:From;
-        b=ezwo9m/dxDV01u9xvt7ANTcairLFzZ0QQCfzLbBFuaxtfv2SDNRJsxUvw5CalqCqZ
-         9xddmejVZz8UTwfQZxj61vsgU91SMu9a+WseHqonzFWztgSvGINlyxycX8vYrAp3Lu
-         TZ1n/PzZ2A3fww6kJeitfUz9plcANED/cl6/oYfg=
-Date:   Mon, 28 Nov 2022 15:10:16 -0800
+        b=jcHOptbsdIjPCEzN8JDvClThFR2ty4dxvUe6Dn82lCboByNI7PEDmQg47JUO1wTCs
+         LwTkjfbtS6tDInI0MZhjHIVz8CKDwVf6PJXyDNpDkAHiAQ85WjL3K0Fizwuw8InNNq
+         SgFAYpHsS5Ld/gNlgbZoMTRx/FTmuPVTYmpyEZ94=
+Date:   Mon, 28 Nov 2022 15:10:19 -0800
 To:     mm-commits@vger.kernel.org, zhoumin@loongson.cn, will@kernel.org,
         tsbogend@alpha.franken.de, songmuchun@bytedance.com,
         philmd@linaro.org, peterz@infradead.org, luto@kernel.org,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, zhoumin@loongson.cn, will@kernel.org,
         catalin.marinas@arm.com, arnd@arndb.de, chenfeiyang@loongson.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + loongarch-add-sparse-memory-vmemmap-support.patch added to mm-unstable branch
-Message-Id: <20221128231016.D6B3CC433D6@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages.patch added to mm-unstable branch
+Message-Id: <20221128231020.AF17BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: LoongArch: add sparse memory vmemmap support
+     Subject: mm/sparse-vmemmap: generalise vmemmap_populate_hugepages()
 has been added to the -mm mm-unstable branch.  Its filename is
-     loongarch-add-sparse-memory-vmemmap-support.patch
+     mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-add-sparse-memory-vmemmap-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,122 +71,332 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Feiyang Chen <chenfeiyang@loongson.cn>
-Subject: LoongArch: add sparse memory vmemmap support
-Date: Thu, 27 Oct 2022 20:52:51 +0800
+Subject: mm/sparse-vmemmap: generalise vmemmap_populate_hugepages()
+Date: Thu, 27 Oct 2022 20:52:52 +0800
 
-Add sparse memory vmemmap support for LoongArch.  SPARSEMEM_VMEMMAP uses a
-virtually mapped memmap to optimise pfn_to_page and page_to_pfn
-operations.  This is the most efficient option when sufficient kernel
-resources are available.
+Generalise vmemmap_populate_hugepages() so ARM64 & X86 & LoongArch can
+share its implementation.
 
-Link: https://lkml.kernel.org/r/20221027125253.3458989-3-chenhuacai@loongson.cn
-Signed-off-by: Min Zhou <zhoumin@loongson.cn>
+Link: https://lkml.kernel.org/r/20221027125253.3458989-4-chenhuacai@loongson.cn
 Signed-off-by: Feiyang Chen <chenfeiyang@loongson.cn>
 Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Acked-by: Will Deacon <will@kernel.org>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
 Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Guo Ren <guoren@kernel.org>
 Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: Min Zhou <zhoumin@loongson.cn>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Philippe Mathieu-Daudé <philmd@linaro.org>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Will Deacon <will@kernel.org>
 Cc: Xuefeng Li <lixuefeng@loongson.cn>
 Cc: Xuerui Wang <kernel@xen0n.name>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/Kconfig                 |    1 
- arch/loongarch/include/asm/pgtable.h   |    7 +-
- arch/loongarch/include/asm/sparsemem.h |    8 ++
- arch/loongarch/mm/init.c               |   72 ++++++++++++++++++++++-
- include/linux/mm.h                     |    2 
- mm/sparse-vmemmap.c                    |   10 +++
- 6 files changed, 96 insertions(+), 4 deletions(-)
+ arch/arm64/mm/mmu.c      |   55 +++++---------------
+ arch/loongarch/mm/init.c |   61 ++++++----------------
+ arch/x86/mm/init_64.c    |  100 +++++++++++++------------------------
+ include/linux/mm.h       |    6 ++
+ mm/sparse-vmemmap.c      |   63 +++++++++++++++++++++++
+ 5 files changed, 137 insertions(+), 148 deletions(-)
 
---- a/arch/loongarch/include/asm/pgtable.h~loongarch-add-sparse-memory-vmemmap-support
-+++ a/arch/loongarch/include/asm/pgtable.h
-@@ -11,6 +11,7 @@
- 
- #include <linux/compiler.h>
- #include <asm/addrspace.h>
-+#include <asm/page.h>
- #include <asm/pgtable-bits.h>
- 
- #if CONFIG_PGTABLE_LEVELS == 2
-@@ -59,6 +60,7 @@
- #include <linux/mm_types.h>
- #include <linux/mmzone.h>
- #include <asm/fixmap.h>
-+#include <asm/sparsemem.h>
- 
- struct mm_struct;
- struct vm_area_struct;
-@@ -86,7 +88,10 @@ extern unsigned long zero_page_mask;
- #define VMALLOC_START	MODULES_END
- #define VMALLOC_END	\
- 	(vm_map_base +	\
--	 min(PTRS_PER_PGD * PTRS_PER_PUD * PTRS_PER_PMD * PTRS_PER_PTE * PAGE_SIZE, (1UL << cpu_vabits)) - PMD_SIZE)
-+	 min(PTRS_PER_PGD * PTRS_PER_PUD * PTRS_PER_PMD * PTRS_PER_PTE * PAGE_SIZE, (1UL << cpu_vabits)) - PMD_SIZE - VMEMMAP_SIZE)
-+
-+#define vmemmap		((struct page *)((VMALLOC_END + PMD_SIZE) & PMD_MASK))
-+#define VMEMMAP_END	((unsigned long)vmemmap + VMEMMAP_SIZE - 1)
- 
- #define pte_ERROR(e) \
- 	pr_err("%s:%d: bad pte %016lx.\n", __FILE__, __LINE__, pte_val(e))
---- a/arch/loongarch/include/asm/sparsemem.h~loongarch-add-sparse-memory-vmemmap-support
-+++ a/arch/loongarch/include/asm/sparsemem.h
-@@ -11,8 +11,16 @@
- #define SECTION_SIZE_BITS	29 /* 2^29 = Largest Huge Page Size */
- #define MAX_PHYSMEM_BITS	48
- 
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+#define VMEMMAP_SIZE	(sizeof(struct page) * (1UL << (cpu_pabits + 1 - PAGE_SHIFT)))
-+#endif
-+
- #endif /* CONFIG_SPARSEMEM */
- 
-+#ifndef VMEMMAP_SIZE
-+#define VMEMMAP_SIZE	0	/* 1, For FLATMEM; 2, For SPARSEMEM without VMEMMAP. */
-+#endif
-+
- #ifdef CONFIG_MEMORY_HOTPLUG
- int memory_add_physaddr_to_nid(u64 addr);
- #define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
---- a/arch/loongarch/Kconfig~loongarch-add-sparse-memory-vmemmap-support
-+++ a/arch/loongarch/Kconfig
-@@ -487,6 +487,7 @@ config ARCH_FLATMEM_ENABLE
- 
- config ARCH_SPARSEMEM_ENABLE
- 	def_bool y
-+	select SPARSEMEM_VMEMMAP_ENABLE
- 	help
- 	  Say Y to support efficient handling of sparse physical memory,
- 	  for architectures which are either NUMA (Non-Uniform Memory Access)
---- a/arch/loongarch/mm/init.c~loongarch-add-sparse-memory-vmemmap-support
-+++ a/arch/loongarch/mm/init.c
-@@ -22,7 +22,7 @@
- #include <linux/pfn.h>
- #include <linux/hardirq.h>
- #include <linux/gfp.h>
--#include <linux/initrd.h>
-+#include <linux/hugetlb.h>
- #include <linux/mmzone.h>
- 
- #include <asm/asm-offsets.h>
-@@ -152,6 +152,72 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
- #endif
+--- a/arch/arm64/mm/mmu.c~mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages
++++ a/arch/arm64/mm/mmu.c
+@@ -1137,53 +1137,28 @@ static void free_empty_tables(unsigned l
+ }
  #endif
  
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+static int __meminit vmemmap_populate_hugepages(unsigned long start, unsigned long end,
-+						int node, struct vmem_altmap *altmap)
++void __meminit vmemmap_set_pmd(pmd_t *pmdp, void *p, int node,
++			       unsigned long addr, unsigned long next)
 +{
-+	unsigned long addr = start;
++	pmd_set_huge(pmdp, __pa(p), __pgprot(PROT_SECT_NORMAL));
++}
++
++int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
++				unsigned long addr, unsigned long next)
++{
++	vmemmap_verify((pte_t *)pmdp, node, addr, next);
++	return 1;
++}
++
+ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+ 		struct vmem_altmap *altmap)
+ {
+-	unsigned long addr = start;
+-	unsigned long next;
+-	pgd_t *pgdp;
+-	p4d_t *p4dp;
+-	pud_t *pudp;
+-	pmd_t *pmdp;
+-
+ 	WARN_ON((start < VMEMMAP_START) || (end > VMEMMAP_END));
+ 
+ 	if (!ARM64_KERNEL_USES_PMD_MAPS)
+ 		return vmemmap_populate_basepages(start, end, node, altmap);
+-
+-	do {
+-		next = pmd_addr_end(addr, end);
+-
+-		pgdp = vmemmap_pgd_populate(addr, node);
+-		if (!pgdp)
+-			return -ENOMEM;
+-
+-		p4dp = vmemmap_p4d_populate(pgdp, addr, node);
+-		if (!p4dp)
+-			return -ENOMEM;
+-
+-		pudp = vmemmap_pud_populate(p4dp, addr, node);
+-		if (!pudp)
+-			return -ENOMEM;
+-
+-		pmdp = pmd_offset(pudp, addr);
+-		if (pmd_none(READ_ONCE(*pmdp))) {
+-			void *p = NULL;
+-
+-			p = vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
+-			if (!p) {
+-				if (vmemmap_populate_basepages(addr, next, node, altmap))
+-					return -ENOMEM;
+-				continue;
+-			}
+-
+-			pmd_set_huge(pmdp, __pa(p), __pgprot(PROT_SECT_NORMAL));
+-		} else
+-			vmemmap_verify((pte_t *)pmdp, node, addr, next);
+-	} while (addr = next, addr != end);
+-
+-	return 0;
++	else
++		return vmemmap_populate_hugepages(start, end, node, altmap);
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+--- a/arch/loongarch/mm/init.c~mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages
++++ a/arch/loongarch/mm/init.c
+@@ -153,52 +153,25 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
+ #endif
+ 
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+-static int __meminit vmemmap_populate_hugepages(unsigned long start, unsigned long end,
+-						int node, struct vmem_altmap *altmap)
++void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
++			       unsigned long addr, unsigned long next)
+ {
+-	unsigned long addr = start;
+-	unsigned long next;
+-	pgd_t *pgd;
+-	p4d_t *p4d;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-
+-	for (addr = start; addr < end; addr = next) {
+-		next = pmd_addr_end(addr, end);
+-
+-		pgd = vmemmap_pgd_populate(addr, node);
+-		if (!pgd)
+-			return -ENOMEM;
+-		p4d = vmemmap_p4d_populate(pgd, addr, node);
+-		if (!p4d)
+-			return -ENOMEM;
+-		pud = vmemmap_pud_populate(p4d, addr, node);
+-		if (!pud)
+-			return -ENOMEM;
+-
+-		pmd = pmd_offset(pud, addr);
+-		if (pmd_none(*pmd)) {
+-			void *p = NULL;
+-
+-			p = vmemmap_alloc_block_buf(PMD_SIZE, node, NULL);
+-			if (p) {
+-				pmd_t entry;
+-
+-				entry = pfn_pmd(virt_to_pfn(p), PAGE_KERNEL);
+-				pmd_val(entry) |= _PAGE_HUGE | _PAGE_HGLOBAL;
+-				set_pmd_at(&init_mm, addr, pmd, entry);
+-
+-				continue;
+-			}
+-		} else if (pmd_val(*pmd) & _PAGE_HUGE) {
+-			vmemmap_verify((pte_t *)pmd, node, addr, next);
+-			continue;
+-		}
+-		if (vmemmap_populate_basepages(addr, next, node, NULL))
+-			return -ENOMEM;
+-	}
++	pmd_t entry;
+ 
+-	return 0;
++	entry = pfn_pmd(virt_to_pfn(p), PAGE_KERNEL);
++	pmd_val(entry) |= _PAGE_HUGE | _PAGE_HGLOBAL;
++	set_pmd_at(&init_mm, addr, pmd, entry);
++}
++
++int __meminit vmemmap_check_pmd(pmd_t *pmd, int node,
++				unsigned long addr, unsigned long next)
++{
++	int huge = pmd_val(*pmd) & _PAGE_HUGE;
++
++	if (huge)
++		vmemmap_verify((pte_t *)pmd, node, addr, next);
++
++	return huge;
+ }
+ 
+ int __meminit vmemmap_populate(unsigned long start, unsigned long end,
+--- a/arch/x86/mm/init_64.c~mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages
++++ a/arch/x86/mm/init_64.c
+@@ -1492,72 +1492,44 @@ static long __meminitdata addr_start, ad
+ static void __meminitdata *p_start, *p_end;
+ static int __meminitdata node_start;
+ 
+-static int __meminit vmemmap_populate_hugepages(unsigned long start,
+-		unsigned long end, int node, struct vmem_altmap *altmap)
++void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
++			       unsigned long addr, unsigned long next)
+ {
+-	unsigned long addr;
+-	unsigned long next;
+-	pgd_t *pgd;
+-	p4d_t *p4d;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-
+-	for (addr = start; addr < end; addr = next) {
+-		next = pmd_addr_end(addr, end);
+-
+-		pgd = vmemmap_pgd_populate(addr, node);
+-		if (!pgd)
+-			return -ENOMEM;
+-
+-		p4d = vmemmap_p4d_populate(pgd, addr, node);
+-		if (!p4d)
+-			return -ENOMEM;
+-
+-		pud = vmemmap_pud_populate(p4d, addr, node);
+-		if (!pud)
+-			return -ENOMEM;
+-
+-		pmd = pmd_offset(pud, addr);
+-		if (pmd_none(*pmd)) {
+-			void *p;
+-
+-			p = vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
+-			if (p) {
+-				pte_t entry;
+-
+-				entry = pfn_pte(__pa(p) >> PAGE_SHIFT,
+-						PAGE_KERNEL_LARGE);
+-				set_pmd(pmd, __pmd(pte_val(entry)));
+-
+-				/* check to see if we have contiguous blocks */
+-				if (p_end != p || node_start != node) {
+-					if (p_start)
+-						pr_debug(" [%lx-%lx] PMD -> [%p-%p] on node %d\n",
+-						       addr_start, addr_end-1, p_start, p_end-1, node_start);
+-					addr_start = addr;
+-					node_start = node;
+-					p_start = p;
+-				}
+-
+-				addr_end = addr + PMD_SIZE;
+-				p_end = p + PMD_SIZE;
+-
+-				if (!IS_ALIGNED(addr, PMD_SIZE) ||
+-				    !IS_ALIGNED(next, PMD_SIZE))
+-					vmemmap_use_new_sub_pmd(addr, next);
+-
+-				continue;
+-			} else if (altmap)
+-				return -ENOMEM; /* no fallback */
+-		} else if (pmd_large(*pmd)) {
+-			vmemmap_verify((pte_t *)pmd, node, addr, next);
+-			vmemmap_use_sub_pmd(addr, next);
+-			continue;
+-		}
+-		if (vmemmap_populate_basepages(addr, next, node, NULL))
+-			return -ENOMEM;
++	pte_t entry;
++
++	entry = pfn_pte(__pa(p) >> PAGE_SHIFT,
++			PAGE_KERNEL_LARGE);
++	set_pmd(pmd, __pmd(pte_val(entry)));
++
++	/* check to see if we have contiguous blocks */
++	if (p_end != p || node_start != node) {
++		if (p_start)
++			pr_debug(" [%lx-%lx] PMD -> [%p-%p] on node %d\n",
++				addr_start, addr_end-1, p_start, p_end-1, node_start);
++		addr_start = addr;
++		node_start = node;
++		p_start = p;
+ 	}
+-	return 0;
++
++	addr_end = addr + PMD_SIZE;
++	p_end = p + PMD_SIZE;
++
++	if (!IS_ALIGNED(addr, PMD_SIZE) ||
++		!IS_ALIGNED(next, PMD_SIZE))
++		vmemmap_use_new_sub_pmd(addr, next);
++}
++
++int __meminit vmemmap_check_pmd(pmd_t *pmd, int node,
++				unsigned long addr, unsigned long next)
++{
++	int large = pmd_large(*pmd);
++
++	if (pmd_large(*pmd)) {
++		vmemmap_verify((pte_t *)pmd, node, addr, next);
++		vmemmap_use_sub_pmd(addr, next);
++	}
++
++	return large;
+ }
+ 
+ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+--- a/include/linux/mm.h~mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages
++++ a/include/linux/mm.h
+@@ -3343,8 +3343,14 @@ struct vmem_altmap;
+ void *vmemmap_alloc_block_buf(unsigned long size, int node,
+ 			      struct vmem_altmap *altmap);
+ void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
++void vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
++		     unsigned long addr, unsigned long next);
++int vmemmap_check_pmd(pmd_t *pmd, int node,
++		      unsigned long addr, unsigned long next);
+ int vmemmap_populate_basepages(unsigned long start, unsigned long end,
+ 			       int node, struct vmem_altmap *altmap);
++int vmemmap_populate_hugepages(unsigned long start, unsigned long end,
++			       int node, struct vmem_altmap *altmap);
+ int vmemmap_populate(unsigned long start, unsigned long end, int node,
+ 		struct vmem_altmap *altmap);
+ void vmemmap_populate_print_last(void);
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages
++++ a/mm/sparse-vmemmap.c
+@@ -295,6 +295,69 @@ int __meminit vmemmap_populate_basepages
+ 	return vmemmap_populate_range(start, end, node, altmap, NULL);
+ }
+ 
++void __weak __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
++				      unsigned long addr, unsigned long next)
++{
++}
++
++int __weak __meminit vmemmap_check_pmd(pmd_t *pmd, int node,
++				       unsigned long addr, unsigned long next)
++{
++	return 0;
++}
++
++int __meminit vmemmap_populate_hugepages(unsigned long start, unsigned long end,
++					 int node, struct vmem_altmap *altmap)
++{
++	unsigned long addr;
 +	unsigned long next;
 +	pgd_t *pgd;
 +	p4d_t *p4d;
@@ -199,125 +409,45 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		pgd = vmemmap_pgd_populate(addr, node);
 +		if (!pgd)
 +			return -ENOMEM;
++
 +		p4d = vmemmap_p4d_populate(pgd, addr, node);
 +		if (!p4d)
 +			return -ENOMEM;
++
 +		pud = vmemmap_pud_populate(p4d, addr, node);
 +		if (!pud)
 +			return -ENOMEM;
 +
 +		pmd = pmd_offset(pud, addr);
-+		if (pmd_none(*pmd)) {
-+			void *p = NULL;
++		if (pmd_none(READ_ONCE(*pmd))) {
++			void *p;
 +
-+			p = vmemmap_alloc_block_buf(PMD_SIZE, node, NULL);
++			p = vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
 +			if (p) {
-+				pmd_t entry;
-+
-+				entry = pfn_pmd(virt_to_pfn(p), PAGE_KERNEL);
-+				pmd_val(entry) |= _PAGE_HUGE | _PAGE_HGLOBAL;
-+				set_pmd_at(&init_mm, addr, pmd, entry);
-+
++				vmemmap_set_pmd(pmd, p, node, addr, next);
 +				continue;
++			} else if (altmap) {
++				/*
++				 * No fallback: In any case we care about, the
++				 * altmap should be reasonably sized and aligned
++				 * such that vmemmap_alloc_block_buf() will always
++				 * succeed. For consistency with the PTE case,
++				 * return an error here as failure could indicate
++				 * a configuration issue with the size of the altmap.
++				 */
++				return -ENOMEM;
 +			}
-+		} else if (pmd_val(*pmd) & _PAGE_HUGE) {
-+			vmemmap_verify((pte_t *)pmd, node, addr, next);
++		} else if (vmemmap_check_pmd(pmd, node, addr, next))
 +			continue;
-+		}
-+		if (vmemmap_populate_basepages(addr, next, node, NULL))
++		if (vmemmap_populate_basepages(addr, next, node, altmap))
 +			return -ENOMEM;
 +	}
-+
 +	return 0;
 +}
 +
-+int __meminit vmemmap_populate(unsigned long start, unsigned long end,
-+			       int node, struct vmem_altmap *altmap)
-+{
-+#if CONFIG_PGTABLE_LEVELS == 2
-+	return vmemmap_populate_basepages(start, end, node, NULL);
-+#else
-+	return vmemmap_populate_hugepages(start, end, node, NULL);
-+#endif
-+}
-+
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+void vmemmap_free(unsigned long start, unsigned long end, struct vmem_altmap *altmap)
-+{
-+}
-+#endif
-+#endif
-+
- static pte_t *fixmap_pte(unsigned long addr)
- {
- 	pgd_t *pgd;
-@@ -168,7 +234,7 @@ static pte_t *fixmap_pte(unsigned long a
- 		new = memblock_alloc_low(PAGE_SIZE, PAGE_SIZE);
- 		pgd_populate(&init_mm, pgd, new);
- #ifndef __PAGETABLE_PUD_FOLDED
--		pud_init((unsigned long)new, (unsigned long)invalid_pmd_table);
-+		pud_init(new);
- #endif
- 	}
- 
-@@ -179,7 +245,7 @@ static pte_t *fixmap_pte(unsigned long a
- 		new = memblock_alloc_low(PAGE_SIZE, PAGE_SIZE);
- 		pud_populate(&init_mm, pud, new);
- #ifndef __PAGETABLE_PMD_FOLDED
--		pmd_init((unsigned long)new, (unsigned long)invalid_pte_table);
-+		pmd_init(new);
- #endif
- 	}
- 
---- a/include/linux/mm.h~loongarch-add-sparse-memory-vmemmap-support
-+++ a/include/linux/mm.h
-@@ -3330,6 +3330,8 @@ void *sparse_buffer_alloc(unsigned long
- struct page * __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap);
-+void pmd_init(void *addr);
-+void pud_init(void *addr);
- pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
- p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
- pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
---- a/mm/sparse-vmemmap.c~loongarch-add-sparse-memory-vmemmap-support
-+++ a/mm/sparse-vmemmap.c
-@@ -196,6 +196,10 @@ pmd_t * __meminit vmemmap_pmd_populate(p
- 	return pmd;
- }
- 
-+void __weak __meminit pmd_init(void *addr)
-+{
-+}
-+
- pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
- {
- 	pud_t *pud = pud_offset(p4d, addr);
-@@ -203,11 +207,16 @@ pud_t * __meminit vmemmap_pud_populate(p
- 		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
-+		pmd_init(p);
- 		pud_populate(&init_mm, pud, p);
- 	}
- 	return pud;
- }
- 
-+void __weak __meminit pud_init(void *addr)
-+{
-+}
-+
- p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
- {
- 	p4d_t *p4d = p4d_offset(pgd, addr);
-@@ -215,6 +224,7 @@ p4d_t * __meminit vmemmap_p4d_populate(p
- 		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
-+		pud_init(p);
- 		p4d_populate(&init_mm, p4d, p);
- 	}
- 	return p4d;
+ /*
+  * For compound pages bigger than section size (e.g. x86 1G compound
+  * pages with 2M subsection size) fill the rest of sections as tail
 _
 
 Patches currently in -mm which might be from chenfeiyang@loongson.cn are
