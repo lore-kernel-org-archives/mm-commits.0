@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B280C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 21:56:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12A26C4321E
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 21:56:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236163AbiK2V4Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235589AbiK2V4Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 29 Nov 2022 16:56:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38334 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235589AbiK2V4Y (ORCPT
+        with ESMTP id S235880AbiK2V4Y (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2022 16:56:24 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E1356C733
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1CE76C73A
         for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 13:56:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E8428B8191F
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 21:56:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84B9FC433D6;
-        Tue, 29 Nov 2022 21:56:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5EA476190F
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 21:56:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9F30C433C1;
+        Tue, 29 Nov 2022 21:56:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669758979;
-        bh=mUcFYPYt/jnkJN2OWktDnTIBtzwdHMxznHe/kEWYxQA=;
+        s=korg; t=1669758981;
+        bh=g2mlJjg2jsEaccz3FvTdtUiBGULAQP6bEgXWzGl1o2s=;
         h=Date:To:From:Subject:From;
-        b=hcIouFs+fFD8aHBTFSKi8loGlP2txxL56nJJWXbu2/vxRxPQLlEgQpkZJmRB33xgS
-         lspZiBMfb/CK1CQCZ7jv8zU/JiiNS+GRoOs57HDf9/7N4G74npyBtDbxow9wuhAiwo
-         jLwlDOVRoGQfP8vQED3vBWaCRYBcWg1LJhxmxoyI=
-Date:   Tue, 29 Nov 2022 13:56:18 -0800
+        b=0v4yr+xK8ErU4KVV1PL1e9N42mN+pLSQWZxYGm9n8FYYyoINysPLYzSmk3d4EvNpd
+         iRzb4Mel8y6NrrTmHp6xk2g1u77IWy4RGwXjpwLahlT1KmZVrhFz1CnaPqvB8Fzz7j
+         /m7ejA5x31bstTrgDPVN8Wf31Zk+/vlxWOjiTla0=
+Date:   Tue, 29 Nov 2022 13:56:21 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         mszeredi@redhat.com, mike.kravetz@oracle.com,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-convert-replace_page_cache_page-to-replace_page_cache_folio.patch added to mm-unstable branch
-Message-Id: <20221129215619.84B9FC433D6@smtp.kernel.org>
+Subject: + fuse-convert-fuse_try_move_page-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20221129215621.B9F30C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: filemap: convert replace_page_cache_page() to replace_page_cache_folio()
+     Subject: fuse: convert fuse_try_move_page() to use folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     filemap-convert-replace_page_cache_page-to-replace_page_cache_folio.patch
+     fuse-convert-fuse_try_move_page-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-convert-replace_page_cache_page-to-replace_page_cache_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fuse-convert-fuse_try_move_page-to-use-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,139 +66,151 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: filemap: convert replace_page_cache_page() to replace_page_cache_folio()
-Date: Tue, 1 Nov 2022 10:53:22 -0700
+Subject: fuse: convert fuse_try_move_page() to use folios
+Date: Tue, 1 Nov 2022 10:53:23 -0700
 
-Patch series "Removing the lru_cache_add() wrapper".
+Converts the function to try to move folios instead of pages. Also
+converts fuse_check_page() to fuse_get_folio() since this is its only
+caller. This change removes 15 calls to compound_head().
 
-This patchset replaces all calls of lru_cache_add() with the folio
-equivalent: folio_add_lru().  This is allows us to get rid of the wrapper
-The series passes xfstests and the userfaultfd selftests.
-
-
-This patch (of 5):
-
-Eliminates 7 calls to compound_head().
-
-Link: https://lkml.kernel.org/r/20221101175326.13265-1-vishal.moola@gmail.com
-Link: https://lkml.kernel.org/r/20221101175326.13265-2-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20221101175326.13265-3-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c           |    2 -
- include/linux/pagemap.h |    2 -
- mm/filemap.c            |   50 ++++++++++++++++++--------------------
- 3 files changed, 26 insertions(+), 28 deletions(-)
+ fs/fuse/dev.c |   55 ++++++++++++++++++++++++------------------------
+ 1 file changed, 28 insertions(+), 27 deletions(-)
 
---- a/fs/fuse/dev.c~filemap-convert-replace_page_cache_page-to-replace_page_cache_folio
+--- a/fs/fuse/dev.c~fuse-convert-fuse_try_move_page-to-use-folios
 +++ a/fs/fuse/dev.c
-@@ -837,7 +837,7 @@ static int fuse_try_move_page(struct fus
- 	if (WARN_ON(PageMlocked(oldpage)))
+@@ -764,11 +764,11 @@ static int fuse_copy_do(struct fuse_copy
+ 	return ncpy;
+ }
+ 
+-static int fuse_check_page(struct page *page)
++static int fuse_check_folio(struct folio *folio)
+ {
+-	if (page_mapcount(page) ||
+-	    page->mapping != NULL ||
+-	    (page->flags & PAGE_FLAGS_CHECK_AT_PREP &
++	if (folio_mapped(folio) ||
++	    folio->mapping != NULL ||
++	    (folio->flags & PAGE_FLAGS_CHECK_AT_PREP &
+ 	     ~(1 << PG_locked |
+ 	       1 << PG_referenced |
+ 	       1 << PG_uptodate |
+@@ -778,7 +778,7 @@ static int fuse_check_page(struct page *
+ 	       1 << PG_reclaim |
+ 	       1 << PG_waiters |
+ 	       LRU_GEN_MASK | LRU_REFS_MASK))) {
+-		dump_page(page, "fuse: trying to steal weird page");
++		dump_page(&folio->page, "fuse: trying to steal weird page");
+ 		return 1;
+ 	}
+ 	return 0;
+@@ -787,11 +787,11 @@ static int fuse_check_page(struct page *
+ static int fuse_try_move_page(struct fuse_copy_state *cs, struct page **pagep)
+ {
+ 	int err;
+-	struct page *oldpage = *pagep;
+-	struct page *newpage;
++	struct folio *oldfolio = page_folio(*pagep);
++	struct folio *newfolio;
+ 	struct pipe_buffer *buf = cs->pipebufs;
+ 
+-	get_page(oldpage);
++	folio_get(oldfolio);
+ 	err = unlock_request(cs->req);
+ 	if (err)
+ 		goto out_put_old;
+@@ -814,35 +814,36 @@ static int fuse_try_move_page(struct fus
+ 	if (!pipe_buf_try_steal(cs->pipe, buf))
+ 		goto out_fallback;
+ 
+-	newpage = buf->page;
++	newfolio = page_folio(buf->page);
+ 
+-	if (!PageUptodate(newpage))
+-		SetPageUptodate(newpage);
++	if (!folio_test_uptodate(newfolio))
++		folio_mark_uptodate(newfolio);
+ 
+-	ClearPageMappedToDisk(newpage);
++	folio_clear_mappedtodisk(newfolio);
+ 
+-	if (fuse_check_page(newpage) != 0)
++	if (fuse_check_folio(newfolio) != 0)
  		goto out_fallback_unlock;
  
--	replace_page_cache_page(oldpage, newpage);
-+	replace_page_cache_folio(page_folio(oldpage), page_folio(newpage));
+ 	/*
+ 	 * This is a new and locked page, it shouldn't be mapped or
+ 	 * have any special flags on it
+ 	 */
+-	if (WARN_ON(page_mapped(oldpage)))
++	if (WARN_ON(folio_mapped(oldfolio)))
+ 		goto out_fallback_unlock;
+-	if (WARN_ON(page_has_private(oldpage)))
++	if (WARN_ON(folio_has_private(oldfolio)))
+ 		goto out_fallback_unlock;
+-	if (WARN_ON(PageDirty(oldpage) || PageWriteback(oldpage)))
++	if (WARN_ON(folio_test_dirty(oldfolio) ||
++				folio_test_writeback(oldfolio)))
+ 		goto out_fallback_unlock;
+-	if (WARN_ON(PageMlocked(oldpage)))
++	if (WARN_ON(folio_test_mlocked(oldfolio)))
+ 		goto out_fallback_unlock;
  
- 	get_page(newpage);
+-	replace_page_cache_folio(page_folio(oldpage), page_folio(newpage));
++	replace_page_cache_folio(oldfolio, newfolio);
  
---- a/include/linux/pagemap.h~filemap-convert-replace_page_cache_page-to-replace_page_cache_folio
-+++ a/include/linux/pagemap.h
-@@ -1102,7 +1102,7 @@ int filemap_add_folio(struct address_spa
- 		pgoff_t index, gfp_t gfp);
- void filemap_remove_folio(struct folio *folio);
- void __filemap_remove_folio(struct folio *folio, void *shadow);
--void replace_page_cache_page(struct page *old, struct page *new);
-+void replace_page_cache_folio(struct folio *old, struct folio *new);
- void delete_from_page_cache_batch(struct address_space *mapping,
- 				  struct folio_batch *fbatch);
- bool filemap_release_folio(struct folio *folio, gfp_t gfp);
---- a/mm/filemap.c~filemap-convert-replace_page_cache_page-to-replace_page_cache_folio
-+++ a/mm/filemap.c
-@@ -788,56 +788,54 @@ int file_write_and_wait_range(struct fil
- EXPORT_SYMBOL(file_write_and_wait_range);
+-	get_page(newpage);
++	folio_get(newfolio);
  
- /**
-- * replace_page_cache_page - replace a pagecache page with a new one
-- * @old:	page to be replaced
-- * @new:	page to replace with
-+ * replace_page_cache_folio - replace a pagecache folio with a new one
-+ * @old:	folio to be replaced
-+ * @new:	folio to replace with
-  *
-- * This function replaces a page in the pagecache with a new one.  On
-- * success it acquires the pagecache reference for the new page and
-- * drops it for the old page.  Both the old and new pages must be
-- * locked.  This function does not add the new page to the LRU, the
-+ * This function replaces a folio in the pagecache with a new one.  On
-+ * success it acquires the pagecache reference for the new folio and
-+ * drops it for the old folio.  Both the old and new folios must be
-+ * locked.  This function does not add the new folio to the LRU, the
-  * caller must do that.
-  *
-  * The remove + add is atomic.  This function cannot fail.
-  */
--void replace_page_cache_page(struct page *old, struct page *new)
-+void replace_page_cache_folio(struct folio *old, struct folio *new)
- {
--	struct folio *fold = page_folio(old);
--	struct folio *fnew = page_folio(new);
- 	struct address_space *mapping = old->mapping;
- 	void (*free_folio)(struct folio *) = mapping->a_ops->free_folio;
- 	pgoff_t offset = old->index;
- 	XA_STATE(xas, &mapping->i_pages, offset);
+ 	if (!(buf->flags & PIPE_BUF_FLAG_LRU))
+-		lru_cache_add(newpage);
++		folio_add_lru(newfolio);
  
--	VM_BUG_ON_PAGE(!PageLocked(old), old);
--	VM_BUG_ON_PAGE(!PageLocked(new), new);
--	VM_BUG_ON_PAGE(new->mapping, new);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(old), old);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(new), new);
-+	VM_BUG_ON_FOLIO(new->mapping, new);
+ 	/*
+ 	 * Release while we have extra ref on stolen page.  Otherwise
+@@ -855,28 +856,28 @@ static int fuse_try_move_page(struct fus
+ 	if (test_bit(FR_ABORTED, &cs->req->flags))
+ 		err = -ENOENT;
+ 	else
+-		*pagep = newpage;
++		*pagep = &newfolio->page;
+ 	spin_unlock(&cs->req->waitq.lock);
  
--	get_page(new);
-+	folio_get(new);
- 	new->mapping = mapping;
- 	new->index = offset;
+ 	if (err) {
+-		unlock_page(newpage);
+-		put_page(newpage);
++		folio_unlock(newfolio);
++		folio_put(newfolio);
+ 		goto out_put_old;
+ 	}
  
--	mem_cgroup_migrate(fold, fnew);
-+	mem_cgroup_migrate(old, new);
+-	unlock_page(oldpage);
++	folio_unlock(oldfolio);
+ 	/* Drop ref for ap->pages[] array */
+-	put_page(oldpage);
++	folio_put(oldfolio);
+ 	cs->len = 0;
  
- 	xas_lock_irq(&xas);
- 	xas_store(&xas, new);
+ 	err = 0;
+ out_put_old:
+ 	/* Drop ref obtained in this function */
+-	put_page(oldpage);
++	folio_put(oldfolio);
+ 	return err;
  
- 	old->mapping = NULL;
- 	/* hugetlb pages do not participate in page cache accounting. */
--	if (!PageHuge(old))
--		__dec_lruvec_page_state(old, NR_FILE_PAGES);
--	if (!PageHuge(new))
--		__inc_lruvec_page_state(new, NR_FILE_PAGES);
--	if (PageSwapBacked(old))
--		__dec_lruvec_page_state(old, NR_SHMEM);
--	if (PageSwapBacked(new))
--		__inc_lruvec_page_state(new, NR_SHMEM);
-+	if (!folio_test_hugetlb(old))
-+		__lruvec_stat_sub_folio(old, NR_FILE_PAGES);
-+	if (!folio_test_hugetlb(new))
-+		__lruvec_stat_add_folio(new, NR_FILE_PAGES);
-+	if (folio_test_swapbacked(old))
-+		__lruvec_stat_sub_folio(old, NR_SHMEM);
-+	if (folio_test_swapbacked(new))
-+		__lruvec_stat_add_folio(new, NR_SHMEM);
- 	xas_unlock_irq(&xas);
- 	if (free_folio)
--		free_folio(fold);
--	folio_put(fold);
-+		free_folio(old);
-+	folio_put(old);
- }
--EXPORT_SYMBOL_GPL(replace_page_cache_page);
-+EXPORT_SYMBOL_GPL(replace_page_cache_folio);
- 
- noinline int __filemap_add_folio(struct address_space *mapping,
- 		struct folio *folio, pgoff_t index, gfp_t gfp, void **shadowp)
+ out_fallback_unlock:
+-	unlock_page(newpage);
++	folio_unlock(newfolio);
+ out_fallback:
+ 	cs->pg = buf->page;
+ 	cs->offset = buf->offset;
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
