@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91A30C46467
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 21:23:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53783C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 21:23:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236835AbiK2VXF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Nov 2022 16:23:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50630 "EHLO
+        id S237041AbiK2VXI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Nov 2022 16:23:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237051AbiK2VXD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2022 16:23:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87430175A9
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 13:23:02 -0800 (PST)
+        with ESMTP id S237051AbiK2VXH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2022 16:23:07 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BC79120BC
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 13:23:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2513F617A0
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 21:23:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E68EC433D6;
-        Tue, 29 Nov 2022 21:23:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D2A09B8191E
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 21:23:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79D07C433D7;
+        Tue, 29 Nov 2022 21:23:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669756981;
-        bh=p/dUdqBRfpOuTc7Y8FPbJVbocalKiVQsIgR1aTFOTLE=;
+        s=korg; t=1669756983;
+        bh=ss2MFv93+xuey2cqRjFBcPnOdXbTegoNBBs5VERaqWs=;
         h=Date:To:From:Subject:From;
-        b=avMTHd0jrUbcNaJt0ds2hVkVTfvj3TPh9lWjmZmotqU/ldMntgJNbZ+/qd5PvRFPH
-         EfQ1eSnkkKZsGzyyKdzEacm89sbvnH+TNvaAbvqmrCNK908j6Ka+8tfk9XHLdFxnPe
-         fEvcS18zmaBEpI5CaTD9DKY0pIS9WR8dvG11O2/Y=
-Date:   Tue, 29 Nov 2022 13:23:01 -0800
+        b=N5v3uvty2Zbos74dQJKG9dlppj0MoCcMd80eT+e7eXAQ26qwqwQOr/a/XAbndLQHs
+         hd0He1o+BMr6pLmuY7fJlA+Hj0iCUya7RKni0yweDHklYzrXcrLRAUsRONZeS0sdZr
+         0XmQ9QfRgzNJsO4cbxBr/An+CLjCwXKlzbKZ7NP4=
+Date:   Tue, 29 Nov 2022 13:23:02 -0800
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         riel@surriel.com, nadav.amit@gmail.com, mike.kravetz@oracle.com,
         linmiaohe@huawei.com, jthoughton@google.com, jannh@google.com,
         aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-make-userfaultfd_huge_must_wait-safe-to-pmd-unshare.patch added to mm-unstable branch
-Message-Id: <20221129212301.7E68EC433D6@smtp.kernel.org>
+Subject: + mm-hugetlb-make-hugetlb_follow_page_mask-safe-to-pmd-unshare.patch added to mm-unstable branch
+Message-Id: <20221129212303.79D07C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: make userfaultfd_huge_must_wait() safe to pmd unshare
+     Subject: mm/hugetlb: make hugetlb_follow_page_mask() safe to pmd unshare
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-make-userfaultfd_huge_must_wait-safe-to-pmd-unshare.patch
+     mm-hugetlb-make-hugetlb_follow_page_mask-safe-to-pmd-unshare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-make-userfaultfd_huge_must_wait-safe-to-pmd-unshare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-make-hugetlb_follow_page_mask-safe-to-pmd-unshare.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,12 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: make userfaultfd_huge_must_wait() safe to pmd unshare
-Date: Tue, 29 Nov 2022 14:35:21 -0500
+Subject: mm/hugetlb: make hugetlb_follow_page_mask() safe to pmd unshare
+Date: Tue, 29 Nov 2022 14:35:22 -0500
 
-We can take the hugetlb walker lock, here taking vma lock directly.
+Since hugetlb_follow_page_mask() walks the pgtable, it needs the vma lock
+to make sure the pgtable page will not be freed concurrently.
 
-Link: https://lkml.kernel.org/r/20221129193526.3588187-6-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20221129193526.3588187-7-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: James Houghton <jthoughton@google.com>
@@ -85,62 +86,32 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/fs/userfaultfd.c~mm-hugetlb-make-userfaultfd_huge_must_wait-safe-to-pmd-unshare
-+++ a/fs/userfaultfd.c
-@@ -376,7 +376,8 @@ static inline unsigned int userfaultfd_g
-  */
- vm_fault_t handle_userfault(struct vm_fault *vmf, unsigned long reason)
- {
--	struct mm_struct *mm = vmf->vma->vm_mm;
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct mm_struct *mm = vma->vm_mm;
- 	struct userfaultfd_ctx *ctx;
- 	struct userfaultfd_wait_queue uwq;
- 	vm_fault_t ret = VM_FAULT_SIGBUS;
-@@ -403,7 +404,7 @@ vm_fault_t handle_userfault(struct vm_fa
- 	 */
- 	mmap_assert_locked(mm);
+--- a/mm/hugetlb.c~mm-hugetlb-make-hugetlb_follow_page_mask-safe-to-pmd-unshare
++++ a/mm/hugetlb.c
+@@ -6232,9 +6232,10 @@ struct page *hugetlb_follow_page_mask(st
+ 	if (WARN_ON_ONCE(flags & FOLL_PIN))
+ 		return NULL;
  
--	ctx = vmf->vma->vm_userfaultfd_ctx.ctx;
-+	ctx = vma->vm_userfaultfd_ctx.ctx;
- 	if (!ctx)
- 		goto out;
++	hugetlb_vma_lock_read(vma);
+ 	pte = huge_pte_offset(mm, haddr, huge_page_size(h));
+ 	if (!pte)
+-		return NULL;
++		goto out_unlock;
  
-@@ -493,6 +494,13 @@ vm_fault_t handle_userfault(struct vm_fa
+ 	ptl = huge_pte_lock(h, mm, pte);
+ 	entry = huge_ptep_get(pte);
+@@ -6257,6 +6258,8 @@ struct page *hugetlb_follow_page_mask(st
+ 	}
+ out:
+ 	spin_unlock(ptl);
++out_unlock:
++	hugetlb_vma_unlock_read(vma);
+ 	return page;
+ }
  
- 	blocking_state = userfaultfd_get_blocking_state(vmf->flags);
- 
-+	/*
-+	 * This stablizes pgtable for hugetlb on e.g. pmd unsharing.  Need
-+	 * to be before setting current state.
-+	 */
-+	if (is_vm_hugetlb_page(vma))
-+		hugetlb_vma_lock_read(vma);
-+
- 	spin_lock_irq(&ctx->fault_pending_wqh.lock);
- 	/*
- 	 * After the __add_wait_queue the uwq is visible to userland
-@@ -507,13 +515,15 @@ vm_fault_t handle_userfault(struct vm_fa
- 	set_current_state(blocking_state);
- 	spin_unlock_irq(&ctx->fault_pending_wqh.lock);
- 
--	if (!is_vm_hugetlb_page(vmf->vma))
-+	if (!is_vm_hugetlb_page(vma))
- 		must_wait = userfaultfd_must_wait(ctx, vmf->address, vmf->flags,
- 						  reason);
- 	else
--		must_wait = userfaultfd_huge_must_wait(ctx, vmf->vma,
-+		must_wait = userfaultfd_huge_must_wait(ctx, vma,
- 						       vmf->address,
- 						       vmf->flags, reason);
-+	if (is_vm_hugetlb_page(vma))
-+		hugetlb_vma_unlock_read(vma);
- 	mmap_read_unlock(mm);
- 
- 	if (likely(must_wait && !READ_ONCE(ctx->released))) {
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
