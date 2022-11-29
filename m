@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AEC5C4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 21:23:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7368DC4167B
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 21:23:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235957AbiK2VXY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Nov 2022 16:23:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50946 "EHLO
+        id S235900AbiK2VXZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Nov 2022 16:23:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237073AbiK2VXK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2022 16:23:10 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61ED21A228
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 13:23:09 -0800 (PST)
+        with ESMTP id S237083AbiK2VXW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2022 16:23:22 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E36DC1DF28
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 13:23:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EEB14617AC
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 21:23:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5765EC433D6;
-        Tue, 29 Nov 2022 21:23:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9E962B8191D
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 21:23:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42FDAC433D6;
+        Tue, 29 Nov 2022 21:23:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669756988;
-        bh=sTxLChM6Y3bS0BcAAtD+bMutCx4LJaAaj2/PVeOk7ZY=;
+        s=korg; t=1669756990;
+        bh=0mEpvMp8Z/cQD/op0y1NrukRdIkd5mdQ5V8chlWVDsY=;
         h=Date:To:From:Subject:From;
-        b=ioVrxUqJSG5/oHMsgib/60Ntmiec7pKBCez5gAdmseUnBEOIQpo1XWRO5onEk8zY6
-         odgDWe+o/D70AqwhVKHciL13xqtUMkJ5Jw8Tblkz37icXMJBeCdUjWDEuavBDoq0Ac
-         kMok6ATueLHWoKj+dZZ7O0sE1NrzYNBozctv2QXc=
-Date:   Tue, 29 Nov 2022 13:23:06 -0800
+        b=BQg2N249yTS+VoeCpYBnwmDbPSCCjyMcWGcLwu9CK5DJBWxFB0EG21EouPGetFCov
+         DZ/XGu2nAmrTcJxr4ZNLKidmMLInI/DDQ98krS8tJ0UkGw4UW3WMM35HNEH2koxEdW
+         skmGUJlmqzXGmr6BbQGJ3CDcDNvSfZuThejECtSQ=
+Date:   Tue, 29 Nov 2022 13:23:09 -0800
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         riel@surriel.com, nadav.amit@gmail.com, mike.kravetz@oracle.com,
         linmiaohe@huawei.com, jthoughton@google.com, jannh@google.com,
         aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare.patch added to mm-unstable branch
-Message-Id: <20221129212308.5765EC433D6@smtp.kernel.org>
+Subject: + mm-hugetlb-make-page_vma_mapped_walk-safe-to-pmd-unshare.patch added to mm-unstable branch
+Message-Id: <20221129212310.42FDAC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: make walk_hugetlb_range() safe to pmd unshare
+     Subject: mm/hugetlb: make page_vma_mapped_walk() safe to pmd unshare
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare.patch
+     mm-hugetlb-make-page_vma_mapped_walk-safe-to-pmd-unshare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-make-page_vma_mapped_walk-safe-to-pmd-unshare.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: make walk_hugetlb_range() safe to pmd unshare
-Date: Tue, 29 Nov 2022 14:35:24 -0500
+Subject: mm/hugetlb: make page_vma_mapped_walk() safe to pmd unshare
+Date: Tue, 29 Nov 2022 14:35:25 -0500
 
-Since walk_hugetlb_range() walks the pgtable, it needs the vma lock
+Since page_vma_mapped_walk() walks the pgtable, it needs the vma lock
 to make sure the pgtable page will not be freed concurrently.
 
-Link: https://lkml.kernel.org/r/20221129193526.3588187-9-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20221129193526.3588187-10-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: James Houghton <jthoughton@google.com>
@@ -86,27 +86,47 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/rmap.h |    4 ++++
+ mm/page_vma_mapped.c |    5 ++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/pagewalk.c~mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare
-+++ a/mm/pagewalk.c
-@@ -302,6 +302,7 @@ static int walk_hugetlb_range(unsigned l
- 	const struct mm_walk_ops *ops = walk->ops;
- 	int err = 0;
+--- a/include/linux/rmap.h~mm-hugetlb-make-page_vma_mapped_walk-safe-to-pmd-unshare
++++ a/include/linux/rmap.h
+@@ -13,6 +13,7 @@
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
+ #include <linux/memremap.h>
++#include <linux/hugetlb.h>
  
-+	hugetlb_vma_lock_read(vma);
- 	do {
- 		next = hugetlb_entry_end(h, addr, end);
- 		pte = huge_pte_offset(walk->mm, addr & hmask, sz);
-@@ -314,6 +315,7 @@ static int walk_hugetlb_range(unsigned l
- 		if (err)
- 			break;
- 	} while (addr = next, addr != end);
-+	hugetlb_vma_unlock_read(vma);
- 
- 	return err;
+ /*
+  * The anon_vma heads a list of private "related" vmas, to scan if
+@@ -408,6 +409,9 @@ static inline void page_vma_mapped_walk_
+ 		pte_unmap(pvmw->pte);
+ 	if (pvmw->ptl)
+ 		spin_unlock(pvmw->ptl);
++	/* This needs to be after unlock of the spinlock */
++	if (is_vm_hugetlb_page(pvmw->vma))
++		hugetlb_vma_unlock_read(pvmw->vma);
  }
+ 
+ bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw);
+--- a/mm/page_vma_mapped.c~mm-hugetlb-make-page_vma_mapped_walk-safe-to-pmd-unshare
++++ a/mm/page_vma_mapped.c
+@@ -169,10 +169,13 @@ bool page_vma_mapped_walk(struct page_vm
+ 		if (pvmw->pte)
+ 			return not_found(pvmw);
+ 
++		hugetlb_vma_lock_read(vma);
+ 		/* when pud is not present, pte will be NULL */
+ 		pvmw->pte = huge_pte_offset(mm, pvmw->address, size);
+-		if (!pvmw->pte)
++		if (!pvmw->pte) {
++			hugetlb_vma_unlock_read(vma);
+ 			return false;
++		}
+ 
+ 		pvmw->ptl = huge_pte_lock(hstate, mm, pvmw->pte);
+ 		if (!check_pte(pvmw))
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
