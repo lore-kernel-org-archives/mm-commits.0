@@ -2,321 +2,111 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C8D1C4321E
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 23:05:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B4DCC4167B
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 23:27:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236645AbiK2XFz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Nov 2022 18:05:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46942 "EHLO
+        id S229741AbiK2X1A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Nov 2022 18:27:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236189AbiK2XFx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2022 18:05:53 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F86F66CAA
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 15:05:52 -0800 (PST)
+        with ESMTP id S229529AbiK2X07 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2022 18:26:59 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2F2D5B593
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 15:26:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 4DAADCE173A
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 23:05:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59295C433D6;
-        Tue, 29 Nov 2022 23:05:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6CAB3B8196F
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 23:26:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12B4CC433C1;
+        Tue, 29 Nov 2022 23:26:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669763148;
-        bh=LP9aTY6A+lEOSQ9atVp6+uFJAOM2efB7uYx8sPlsjtI=;
+        s=korg; t=1669764416;
+        bh=PIpWMyUZywOn5lnRuB5GsEDvWGP9FPW/sdl2t3nCUxQ=;
         h=Date:To:From:Subject:From;
-        b=lmosM3BIqByz6DXtYeU+dA3sHF3UHkCz3OLpghc1DdQxuWgZ3TiLwOLxvnSlqfvDt
-         HeGCkBECAXYUYCNNNHiQDFtHC0TBQRk5TN3wo/N+hNnIm9rcDHpiVUXHwmAfB2pNKG
-         vOByNQJIBWP1xOGK3VHzijdb57sdTvIKng3yqAXo=
-Date:   Tue, 29 Nov 2022 15:05:47 -0800
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, pcc@google.com,
-        glider@google.com, eugenis@google.com, elver@google.com,
-        dvyukov@google.com, andreyknvl@google.com,
+        b=OyFjlL+tRTQYGuKheWi1R/q9jHJgDWxYlRJ3QBrYvR1bmqaA7lrMpViZU0IjfikK1
+         vzFqCjghdyLJa4ImiInhslMkRAWPxfDRI1Z0VoEtfogolxZSHm6gX9GFdvae2GzuzR
+         hTF0ue6Yoz5sz5jxPssVqZmYWYV4noPK1/fmP+QA=
+Date:   Tue, 29 Nov 2022 15:26:55 -0800
+To:     mm-commits@vger.kernel.org, wuchi.zero@gmail.com,
+        colin.i.king@gmail.com, axboe@kernel.dk, Ilia.Gavrilov@infotecs.ru,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch removed from -mm tree
-Message-Id: <20221129230548.59295C433D6@smtp.kernel.org>
+Subject: + relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf.patch added to mm-nonmm-unstable branch
+Message-Id: <20221129232656.12B4CC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: kasan: allow sampling page_alloc allocations for HW_TAGS
-has been removed from the -mm tree.  Its filename was
-     kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
+The patch titled
+     Subject: relay: fix type mismatch when allocating memory in relay_create_buf()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: allow sampling page_alloc allocations for HW_TAGS
-Date: Thu, 27 Oct 2022 22:10:09 +0200
+From: Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
+Subject: relay: fix type mismatch when allocating memory in relay_create_buf()
+Date: Tue, 29 Nov 2022 09:23:38 +0000
 
-Add a new boot parameter called kasan.page_alloc.sample, which makes
-Hardware Tag-Based KASAN tag only every Nth page_alloc allocation.
+The 'padding' field of the 'rchan_buf' structure is an array of 'size_t'
+elements, but the memory is allocated for an array of 'size_t *' elements.
 
-As Hardware Tag-Based KASAN is intended to be used in production, its
-performance impact is crucial.  As page_alloc allocations tend to be big,
-tagging and checking all such allocations introduces a significant
-slowdown in some testing scenarios.  The new flag allows to alleviate that
-slowdown.
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
 
-Enabling page_alloc sampling has a downside: KASAN will miss bad accesses
-to a page_alloc allocation that has not been tagged.
-
-[akpm@linux-foundation.org: fix build with CONFIG_KASAN=n]
-Link: https://lkml.kernel.org/r/c124467c401e9d44dd35a36fdae1c48e4e505e9e.1666901317.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
+Link: https://lkml.kernel.org/r/20221129092002.3538384-1-Ilia.Gavrilov@infotecs.ru
+Fixes: b86ff981a825 ("[PATCH] relay: migrate from relayfs to a generic relay API")
+Signed-off-by: Ilia.Gavrilov <Ilia.Gavrilov@infotecs.ru>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: wuchi <wuchi.zero@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    4 ++
- include/linux/kasan.h             |   11 +++----
- mm/kasan/common.c                 |    9 ++++-
- mm/kasan/hw_tags.c                |   26 ++++++++++++++++
- mm/kasan/kasan.h                  |   15 +++++++++
- mm/page_alloc.c                   |   43 ++++++++++++++++++----------
- 6 files changed, 87 insertions(+), 21 deletions(-)
+ kernel/relay.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -140,6 +140,10 @@ disabling KASAN altogether or controllin
- - ``kasan.vmalloc=off`` or ``=on`` disables or enables tagging of vmalloc
-   allocations (default: ``on``).
- 
-+- ``kasan.page_alloc.sample=<sampling frequency>`` makes KASAN tag only
-+  every Nth page_alloc allocation, where N is the value of the parameter
-+  (default: ``1``).
-+
- Error reports
- ~~~~~~~~~~~~~
- 
---- a/include/linux/kasan.h~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/include/linux/kasan.h
-@@ -120,12 +120,13 @@ static __always_inline void kasan_poison
- 		__kasan_poison_pages(page, order, init);
- }
- 
--void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init);
--static __always_inline void kasan_unpoison_pages(struct page *page,
-+bool __kasan_unpoison_pages(struct page *page, unsigned int order, bool init);
-+static __always_inline bool kasan_unpoison_pages(struct page *page,
- 						 unsigned int order, bool init)
+--- a/kernel/relay.c~relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf
++++ a/kernel/relay.c
+@@ -148,13 +148,13 @@ static struct rchan_buf *relay_create_bu
  {
- 	if (kasan_enabled())
--		__kasan_unpoison_pages(page, order, init);
-+		return __kasan_unpoison_pages(page, order, init);
-+	return false;
- }
+ 	struct rchan_buf *buf;
  
- void __kasan_cache_create_kmalloc(struct kmem_cache *cache);
-@@ -249,8 +250,8 @@ static __always_inline bool kasan_check_
- static inline void kasan_unpoison_range(const void *address, size_t size) {}
- static inline void kasan_poison_pages(struct page *page, unsigned int order,
- 				      bool init) {}
--static inline void kasan_unpoison_pages(struct page *page, unsigned int order,
--					bool init) {}
-+static inline bool kasan_unpoison_pages(struct page *page, unsigned int order,
-+					bool init) { return false; }
- static inline void kasan_cache_create_kmalloc(struct kmem_cache *cache) {}
- static inline void kasan_poison_slab(struct slab *slab) {}
- static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
---- a/mm/kasan/common.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/kasan/common.c
-@@ -95,19 +95,24 @@ asmlinkage void kasan_unpoison_task_stac
- }
- #endif /* CONFIG_KASAN_STACK */
+-	if (chan->n_subbufs > KMALLOC_MAX_SIZE / sizeof(size_t *))
++	if (chan->n_subbufs > KMALLOC_MAX_SIZE / sizeof(size_t))
+ 		return NULL;
  
--void __kasan_unpoison_pages(struct page *page, unsigned int order, bool init)
-+bool __kasan_unpoison_pages(struct page *page, unsigned int order, bool init)
- {
- 	u8 tag;
- 	unsigned long i;
- 
- 	if (unlikely(PageHighMem(page)))
--		return;
-+		return false;
-+
-+	if (!kasan_sample_page_alloc())
-+		return false;
- 
- 	tag = kasan_random_tag();
- 	kasan_unpoison(set_tag(page_address(page), tag),
- 		       PAGE_SIZE << order, init);
- 	for (i = 0; i < (1 << order); i++)
- 		page_kasan_tag_set(page + i, tag);
-+
-+	return true;
- }
- 
- void __kasan_poison_pages(struct page *page, unsigned int order, bool init)
---- a/mm/kasan/hw_tags.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/kasan/hw_tags.c
-@@ -59,6 +59,11 @@ EXPORT_SYMBOL_GPL(kasan_mode);
- /* Whether to enable vmalloc tagging. */
- DEFINE_STATIC_KEY_TRUE(kasan_flag_vmalloc);
- 
-+/* Frequency of page_alloc allocation poisoning. */
-+unsigned long kasan_page_alloc_sample = 1;
-+
-+DEFINE_PER_CPU(unsigned long, kasan_page_alloc_count);
-+
- /* kasan=off/on */
- static int __init early_kasan_flag(char *arg)
- {
-@@ -122,6 +127,27 @@ static inline const char *kasan_mode_inf
- 		return "sync";
- }
- 
-+/* kasan.page_alloc.sample=<sampling frequency> */
-+static int __init early_kasan_flag_page_alloc_sample(char *arg)
-+{
-+	int rv;
-+
-+	if (!arg)
-+		return -EINVAL;
-+
-+	rv = kstrtoul(arg, 0, &kasan_page_alloc_sample);
-+	if (rv)
-+		return rv;
-+
-+	if (!kasan_page_alloc_sample) {
-+		kasan_page_alloc_sample = 1;
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+early_param("kasan.page_alloc.sample", early_kasan_flag_page_alloc_sample);
-+
- /*
-  * kasan_init_hw_tags_cpu() is called for each CPU.
-  * Not marked as __init as a CPU can be hot-plugged after boot.
---- a/mm/kasan/kasan.h~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/kasan/kasan.h
-@@ -42,6 +42,9 @@ enum kasan_mode {
- 
- extern enum kasan_mode kasan_mode __ro_after_init;
- 
-+extern unsigned long kasan_page_alloc_sample;
-+DECLARE_PER_CPU(unsigned long, kasan_page_alloc_count);
-+
- static inline bool kasan_vmalloc_enabled(void)
- {
- 	return static_branch_likely(&kasan_flag_vmalloc);
-@@ -57,6 +60,13 @@ static inline bool kasan_sync_fault_poss
- 	return kasan_mode == KASAN_MODE_SYNC || kasan_mode == KASAN_MODE_ASYMM;
- }
- 
-+static inline bool kasan_sample_page_alloc(void)
-+{
-+	unsigned long *count = this_cpu_ptr(&kasan_page_alloc_count);
-+
-+	return (*count)++ % kasan_page_alloc_sample == 0;
-+}
-+
- #else /* CONFIG_KASAN_HW_TAGS */
- 
- static inline bool kasan_async_fault_possible(void)
-@@ -68,6 +78,11 @@ static inline bool kasan_sync_fault_poss
- {
- 	return true;
- }
-+
-+static inline bool kasan_sample_page_alloc(void)
-+{
-+	return true;
-+}
- 
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
---- a/mm/page_alloc.c~kasan-allow-sampling-page_alloc-allocations-for-hw_tags
-+++ a/mm/page_alloc.c
-@@ -1367,6 +1367,8 @@ out:
-  *    see the comment next to it.
-  * 3. Skipping poisoning is requested via __GFP_SKIP_KASAN_POISON,
-  *    see the comment next to it.
-+ * 4. The allocation is excluded from being checked due to sampling,
-+ *    see the call to kasan_unpoison_pages.
-  *
-  * Poisoning pages during deferred memory init will greatly lengthen the
-  * process and cause problem in large memory systems as the deferred pages
-@@ -2476,7 +2478,8 @@ inline void post_alloc_hook(struct page
- {
- 	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags) &&
- 			!should_skip_init(gfp_flags);
--	bool init_tags = init && (gfp_flags & __GFP_ZEROTAGS);
-+	bool zero_tags = init && (gfp_flags & __GFP_ZEROTAGS);
-+	bool reset_tags = !zero_tags;
- 	int i;
- 
- 	set_page_private(page, 0);
-@@ -2499,30 +2502,42 @@ inline void post_alloc_hook(struct page
- 	 */
- 
- 	/*
--	 * If memory tags should be zeroed (which happens only when memory
--	 * should be initialized as well).
-+	 * If memory tags should be zeroed
-+	 * (which happens only when memory should be initialized as well).
- 	 */
--	if (init_tags) {
-+	if (zero_tags) {
- 		/* Initialize both memory and tags. */
- 		for (i = 0; i != 1 << order; ++i)
- 			tag_clear_highpage(page + i);
- 
--		/* Note that memory is already initialized by the loop above. */
-+		/* Take note that memory was initialized by the loop above. */
- 		init = false;
- 	}
- 	if (!should_skip_kasan_unpoison(gfp_flags)) {
--		/* Unpoison shadow memory or set memory tags. */
--		kasan_unpoison_pages(page, order, init);
--
--		/* Note that memory is already initialized by KASAN. */
--		if (kasan_has_integrated_init())
--			init = false;
--	} else {
--		/* Ensure page_address() dereferencing does not fault. */
-+		/* Try unpoisoning (or setting tags) and initializing memory. */
-+		if (kasan_unpoison_pages(page, order, init)) {
-+			/* Take note that memory was initialized by KASAN. */
-+			if (kasan_has_integrated_init())
-+				init = false;
-+			/* Take note that memory tags were set by KASAN. */
-+			reset_tags = false;
-+		} else {
-+			/*
-+			 * KASAN decided to exclude this allocation from being
-+			 * poisoned due to sampling. Skip poisoning as well.
-+			 */
-+			SetPageSkipKASanPoison(page);
-+		}
-+	}
-+	/*
-+	 * If memory tags have not been set, reset the page tags to ensure
-+	 * page_address() dereferencing does not fault.
-+	 */
-+	if (reset_tags) {
- 		for (i = 0; i != 1 << order; ++i)
- 			page_kasan_tag_reset(page + i);
- 	}
--	/* If memory is still not initialized, do it now. */
-+	/* If memory is still not initialized, initialize it now. */
- 	if (init)
- 		kernel_init_pages(page, 1 << order);
- 	/* Propagate __GFP_SKIP_KASAN_POISON to page flags. */
+ 	buf = kzalloc(sizeof(struct rchan_buf), GFP_KERNEL);
+ 	if (!buf)
+ 		return NULL;
+-	buf->padding = kmalloc_array(chan->n_subbufs, sizeof(size_t *),
++	buf->padding = kmalloc_array(chan->n_subbufs, sizeof(size_t),
+ 				     GFP_KERNEL);
+ 	if (!buf->padding)
+ 		goto free_buf;
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from Ilia.Gavrilov@infotecs.ru are
 
+relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf.patch
 
