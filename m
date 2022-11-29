@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B4DCC4167B
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 23:27:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97608C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 23:57:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229741AbiK2X1A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Nov 2022 18:27:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56304 "EHLO
+        id S229615AbiK2X5G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Nov 2022 18:57:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229529AbiK2X07 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2022 18:26:59 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2F2D5B593
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 15:26:58 -0800 (PST)
+        with ESMTP id S229497AbiK2X5F (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2022 18:57:05 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C72D5ADE3
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 15:57:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6CAB3B8196F
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 23:26:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12B4CC433C1;
-        Tue, 29 Nov 2022 23:26:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F0F46195B
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 23:57:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E31CCC433D6;
+        Tue, 29 Nov 2022 23:57:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669764416;
-        bh=PIpWMyUZywOn5lnRuB5GsEDvWGP9FPW/sdl2t3nCUxQ=;
+        s=korg; t=1669766223;
+        bh=zzss9uTISNWK1hSd52JWSDsC6mp/RvJd739NxWLUeKc=;
         h=Date:To:From:Subject:From;
-        b=OyFjlL+tRTQYGuKheWi1R/q9jHJgDWxYlRJ3QBrYvR1bmqaA7lrMpViZU0IjfikK1
-         vzFqCjghdyLJa4ImiInhslMkRAWPxfDRI1Z0VoEtfogolxZSHm6gX9GFdvae2GzuzR
-         hTF0ue6Yoz5sz5jxPssVqZmYWYV4noPK1/fmP+QA=
-Date:   Tue, 29 Nov 2022 15:26:55 -0800
-To:     mm-commits@vger.kernel.org, wuchi.zero@gmail.com,
-        colin.i.king@gmail.com, axboe@kernel.dk, Ilia.Gavrilov@infotecs.ru,
-        akpm@linux-foundation.org
+        b=0hkYT8ZRM6wffMZzV8XFMDwNTuHqAYtUfuv950JM/oNV8tO1N8t59Q++NMD+D5mno
+         CtAeSjp/dB+SjQudF4rouYMfeflX3QOVxpU4xAGGR36BEJCOv2dShw5Cfr+FxquTte
+         TAdsE5uoD12ujHne/XBVHwQARY8P+Cor/T1vab+o=
+Date:   Tue, 29 Nov 2022 15:57:02 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        tsahu@linux.ibm.com, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, linux@rasmusvillemoes.dk,
+        linmiaohe@huawei.com, jhubbard@nvidia.com,
+        harperchen1110@gmail.com, david@redhat.com, almasrymina@google.com,
+        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf.patch added to mm-nonmm-unstable branch
-Message-Id: <20221129232656.12B4CC433C1@smtp.kernel.org>
+Subject: + mm-add-folio-dtor-and-order-setter-functions.patch added to mm-unstable branch
+Message-Id: <20221129235702.E31CCC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: relay: fix type mismatch when allocating memory in relay_create_buf()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf.patch
+     Subject: mm: add folio dtor and order setter functions
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-folio-dtor-and-order-setter-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio-dtor-and-order-setter-functions.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,48 +68,155 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
-Subject: relay: fix type mismatch when allocating memory in relay_create_buf()
-Date: Tue, 29 Nov 2022 09:23:38 +0000
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm: add folio dtor and order setter functions
+Date: Tue, 29 Nov 2022 14:50:30 -0800
 
-The 'padding' field of the 'rchan_buf' structure is an array of 'size_t'
-elements, but the memory is allocated for an array of 'size_t *' elements.
+Patch series "convert core hugetlb functions to folios", v5.
 
-Found by Linux Verification Center (linuxtesting.org) with SVACE.
+============== OVERVIEW ===========================
+Now that many hugetlb helper functions that deal with hugetlb specific
+flags[1] and hugetlb cgroups[2] are converted to folios, higher level
+allocation, prep, and freeing functions within hugetlb can also be
+converted to operate in folios.
 
-Link: https://lkml.kernel.org/r/20221129092002.3538384-1-Ilia.Gavrilov@infotecs.ru
-Fixes: b86ff981a825 ("[PATCH] relay: migrate from relayfs to a generic relay API")
-Signed-off-by: Ilia.Gavrilov <Ilia.Gavrilov@infotecs.ru>
-Cc: Colin Ian King <colin.i.king@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: wuchi <wuchi.zero@gmail.com>
+Patch 1 of this series implements the wrapper functions around setting the
+compound destructor and compound order for a folio.  Besides the user
+added in patch 1, patch 2 and patch 9 also use these helper functions.
+
+Patches 2-10 convert the higher level hugetlb functions to folios.
+
+============== TESTING ===========================
+LTP:
+	Ran 10 back to back rounds of the LTP hugetlb test suite.
+
+Gigantic Huge Pages:
+	Test allocation and freeing via hugeadm commands:
+		hugeadm --pool-pages-min 1GB:10
+		hugeadm --pool-pages-min 1GB:0
+
+Demote:
+	Demote 1 1GB hugepages to 512 2MB hugepages
+		echo 1 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+		echo 1 > /sys/kernel/mm/hugepages/hugepages-1048576kB/demote
+		cat /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+			# 512
+		cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+			# 0
+
+[1] https://lore.kernel.org/lkml/20220922154207.1575343-1-sidhartha.kumar@oracle.com/
+[2] https://lore.kernel.org/linux-mm/20221101223059.460937-1-sidhartha.kumar@oracle.com/
+
+
+This patch (of 10):
+
+Add folio equivalents for set_compound_order() and
+set_compound_page_dtor().
+
+Also remove extra new-lines introduced by mm/hugetlb: convert
+move_hugetlb_state() to folios and mm/hugetlb_cgroup: convert
+hugetlb_cgroup_uncharge_page() to folios.
+
+Link: https://lkml.kernel.org/r/20221129225039.82257-1-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20221129225039.82257-2-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: Muchun Song <songmuchun@bytedance.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Tarun Sahu <tsahu@linux.ibm.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Wei Chen <harperchen1110@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h |   16 ++++++++++++++++
+ mm/hugetlb.c       |    4 +---
+ 2 files changed, 17 insertions(+), 3 deletions(-)
 
---- a/kernel/relay.c~relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf
-+++ a/kernel/relay.c
-@@ -148,13 +148,13 @@ static struct rchan_buf *relay_create_bu
+--- a/include/linux/mm.h~mm-add-folio-dtor-and-order-setter-functions
++++ a/include/linux/mm.h
+@@ -997,6 +997,13 @@ static inline void set_compound_page_dto
+ 	page[1].compound_dtor = compound_dtor;
+ }
+ 
++static inline void folio_set_compound_dtor(struct folio *folio,
++		enum compound_dtor_id compound_dtor)
++{
++	VM_BUG_ON_FOLIO(compound_dtor >= NR_COMPOUND_DTORS, folio);
++	folio->_folio_dtor = compound_dtor;
++}
++
+ void destroy_large_folio(struct folio *folio);
+ 
+ static inline int head_compound_pincount(struct page *head)
+@@ -1012,6 +1019,15 @@ static inline void set_compound_order(st
+ #endif
+ }
+ 
++static inline void folio_set_compound_order(struct folio *folio,
++		unsigned int order)
++{
++	folio->_folio_order = order;
++#ifdef CONFIG_64BIT
++	folio->_folio_nr_pages = order ? 1U << order : 0;
++#endif
++}
++
+ /* Returns the number of pages in this potentially compound page. */
+ static inline unsigned long compound_nr(struct page *page)
  {
- 	struct rchan_buf *buf;
+--- a/mm/hugetlb.c~mm-add-folio-dtor-and-order-setter-functions
++++ a/mm/hugetlb.c
+@@ -1780,7 +1780,7 @@ static void __prep_new_hugetlb_folio(str
+ {
+ 	hugetlb_vmemmap_optimize(h, &folio->page);
+ 	INIT_LIST_HEAD(&folio->lru);
+-	folio->_folio_dtor = HUGETLB_PAGE_DTOR;
++	folio_set_compound_dtor(folio, HUGETLB_PAGE_DTOR);
+ 	hugetlb_set_folio_subpool(folio, NULL);
+ 	set_hugetlb_cgroup(folio, NULL);
+ 	set_hugetlb_cgroup_rsvd(folio, NULL);
+@@ -2938,7 +2938,6 @@ struct page *alloc_huge_page(struct vm_a
+ 	 * a reservation exists for the allocation.
+ 	 */
+ 	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve, gbl_chg);
+-
+ 	if (!page) {
+ 		spin_unlock_irq(&hugetlb_lock);
+ 		page = alloc_buddy_huge_page_with_mpol(h, vma, addr);
+@@ -7334,7 +7333,6 @@ void move_hugetlb_state(struct folio *ol
+ 		int old_nid = folio_nid(old_folio);
+ 		int new_nid = folio_nid(new_folio);
  
--	if (chan->n_subbufs > KMALLOC_MAX_SIZE / sizeof(size_t *))
-+	if (chan->n_subbufs > KMALLOC_MAX_SIZE / sizeof(size_t))
- 		return NULL;
+-
+ 		folio_set_hugetlb_temporary(old_folio);
+ 		folio_clear_hugetlb_temporary(new_folio);
  
- 	buf = kzalloc(sizeof(struct rchan_buf), GFP_KERNEL);
- 	if (!buf)
- 		return NULL;
--	buf->padding = kmalloc_array(chan->n_subbufs, sizeof(size_t *),
-+	buf->padding = kmalloc_array(chan->n_subbufs, sizeof(size_t),
- 				     GFP_KERNEL);
- 	if (!buf->padding)
- 		goto free_buf;
 _
 
-Patches currently in -mm which might be from Ilia.Gavrilov@infotecs.ru are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf.patch
+mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch
+mm-hugetlb_cgroup-convert-hugetlb_cgroup_from_page-to-folios.patch
+mm-hugetlb_cgroup-convert-set_hugetlb_cgroup-to-folios.patch
+mm-hugetlb_cgroup-convert-hugetlb_cgroup_migrate-to-folios.patch
+mm-hugetlb-convert-isolate_or_dissolve_huge_page-to-folios.patch
+mm-hugetlb-convert-free_huge_page-to-folios.patch
+mm-hugetlb_cgroup-convert-hugetlb_cgroup_uncharge_page-to-folios.patch
+mm-hugeltb_cgroup-convert-hugetlb_cgroup_commit_charge-to-folios.patch
+mm-hugetlb-convert-move_hugetlb_state-to-folios.patch
+mm-add-folio-dtor-and-order-setter-functions.patch
+mm-hugetlb-convert-destroy_compound_gigantic_page-to-folios.patch
+mm-hugetlb-convert-dissolve_free_huge_page-to-folios.patch
+mm-hugetlb-convert-remove_hugetlb_page-to-folios.patch
+mm-hugetlb-convert-update_and_free_page-to-folios.patch
+mm-hugetlb-convert-add_hugetlb_page-to-folios-and-add-hugetlb_cma_folio.patch
+mm-hugetlb-convert-enqueue_huge_page-to-folios.patch
+mm-hugetlb-convert-free_gigantic_page-to-folios.patch
+mm-hugetlb-convert-hugetlb-prep-functions-to-folios.patch
+mm-hugetlb-change-hugetlb-allocation-functions-to-return-a-folio.patch
 
