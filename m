@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AF85C4321E
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:46:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ECCCC4321E
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:47:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229726AbiK3XqH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 18:46:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36364 "EHLO
+        id S229870AbiK3XrX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 18:47:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229516AbiK3XqG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:46:06 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF194442EB
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:46:05 -0800 (PST)
+        with ESMTP id S229516AbiK3XrW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:47:22 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2241E2CCB8
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:47:21 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4DCB061E4C
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:46:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 833AEC433D7;
-        Wed, 30 Nov 2022 23:46:04 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D1D69B81D59
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:47:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78D7FC433D7;
+        Wed, 30 Nov 2022 23:47:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669851964;
-        bh=FIZhzyeeY10nF5pljazbcciPU8PmDOAXwx5GP+sP6tk=;
+        s=korg; t=1669852038;
+        bh=U9gcgAbUnPMUfX07Dq0G9I9lx8as6/GGbksJr0yejkI=;
         h=Date:To:From:Subject:From;
-        b=iI/pPVgk+5eV9VwHw/f75i5QAZJfe65QQ7CUPJafFqF4vDSuap3MzQo//ft+qHaya
-         I+BeI2wUAJlM1204sZ3wgFnrXgAeZVHTo24R0w8w+dCAdxO6TGg+PbXztFoXVxYgPY
-         ojWcdN1vbf48DRysmnTpUugqmY72x0/Jjtovbm5E=
-Date:   Wed, 30 Nov 2022 15:46:03 -0800
-To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        nadav.amit@gmail.com, hughd@google.com, hannes@cmpxchg.org,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=1l5AiT6C4zGvR/VSTpJEbzx0YlLMa2uaim1ZqqvCyP55T727O3OA39nS39oMwD4M7
+         828pdy4S3D1L4xraEPzX9uWmiN5EG759/45sc/N2FDG2EXmKwvTiidlQI/b5J5bzh0
+         NEd7a5aQQsoX/Wo2Shl+Szn1TklGPL6uNQt6BEwI=
+Date:   Wed, 30 Nov 2022 15:47:17 -0800
+To:     mm-commits@vger.kernel.org, nathan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix.patch removed from -mm tree
-Message-Id: <20221130234604.833AEC433D7@smtp.kernel.org>
+Subject: [folded-merged] zram-introduce-recompress-sysfs-knob-fix.patch removed from -mm tree
+Message-Id: <20221130234718.78D7FC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,56 +41,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix
+     Subject: zram: we should always zero out err variable in recompress loop
 has been removed from the -mm tree.  Its filename was
-     mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix.patch
+     zram-introduce-recompress-sysfs-knob-fix.patch
 
-This patch was dropped because it was folded into mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed.patch
+This patch was dropped because it was folded into zram-introduce-recompress-sysfs-knob.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix
-Date: Wed Nov  9 04:07:36 PM PST 2022
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: we should always zero out err variable in recompress loop
+Date: Thu, 10 Nov 2022 23:34:23 +0900
 
-Fix UP build, per Linus
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Nadav Amit <nadav.amit@gmail.com>
+Link: https://lkml.kernel.org/r/20221110143423.3250790-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reported-by: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_gather.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mmu_gather.c~mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix
-+++ a/mm/mmu_gather.c
-@@ -48,6 +48,7 @@ static bool tlb_next_batch(struct mmu_ga
- 	return true;
- }
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-recompress-sysfs-knob-fix
++++ a/drivers/block/zram/zram_drv.c
+@@ -1839,7 +1839,7 @@ static ssize_t recompress_store(struct d
  
-+#ifdef CONFIG_SMP
- /**
-  * tlb_flush_rmaps - do pending rmap removals after we have flushed the TLB
-  * @tlb: the current mmu_gather
-@@ -72,6 +73,7 @@ void tlb_flush_rmaps(struct mmu_gather *
+ 	ret = len;
+ 	for (index = 0; index < nr_pages; index++) {
+-		int err;
++		int err = 0;
  
- 	tlb->delayed_rmap = 0;
- }
-+#endif
+ 		zram_slot_lock(zram, index);
  
- static void tlb_batch_pages_flush(struct mmu_gather *tlb)
- {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed.patch
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-gup-remove-foll_migration-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
-mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch
-mm-document-sys-class-bdi-bdi-max_ratio_fine-knob-fix.patch
-mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch
+zram-preparation-for-multi-zcomp-support.patch
+zram-add-recompression-algorithm-sysfs-knob.patch
+zram-factor-out-wb-and-non-wb-zram-read-functions.patch
+zram-introduce-recompress-sysfs-knob.patch
+zram-add-recompress-flag-to-read_block_state.patch
+zram-clarify-writeback_store-comment.patch
+zram-use-is_err_value-to-check-for-zs_malloc-errors.patch
+zram-remove-redundant-checks-from-zram_recompress.patch
+zram-add-algo-parameter-support-to-zram_recompress.patch
+documentation-add-zram-recompression-documentation.patch
+zram-add-incompressible-writeback.patch
+zram-add-incompressible-flag-to-read_block_state.patch
+docs-abi-zram-document-zram-recompress-sysfs-knobs.patch
+zram-remove-unused-stats-fields.patch
+zswap-do-not-allocate-from-atomic-pool.patch
 
