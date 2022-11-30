@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61A3CC4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9AE1C47088
 	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229622AbiK3XCE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 18:02:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37872 "EHLO
+        id S229551AbiK3XCF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 18:02:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229551AbiK3XB7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:01:59 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDBFF8E592
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:01:58 -0800 (PST)
+        with ESMTP id S229588AbiK3XCA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:02:00 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 334EE8E5BD
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:01:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6956F61E38
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:01:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9163C433D6;
-        Wed, 30 Nov 2022 23:01:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DB1EAB81D4D
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:01:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B8AAC433C1;
+        Wed, 30 Nov 2022 23:01:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669849317;
-        bh=7vuFtGpuu2x9vtqy1OgIFuHEsafUiC+0bKBkL57+j18=;
+        s=korg; t=1669849316;
+        bh=F/DLS52C1U2yHTR20AUI1hIbyvKIOSXlFJ+C43XpjkY=;
         h=Date:To:From:Subject:From;
-        b=WqG0WP7PK2i2RVGMkK2iDJu9PyhHLEEvi8TT6LvGkZPwNSjGiDP0YUDncinGZWllt
-         xtYPsOfSXSpVZeAOIYhtE8euEbx8ybZhr3FqJT/sXrPHTdTP8Rj+u7rOftgqk2StS9
-         weo6h8LjWCgGbDvv531sdrvfR4tOKgumzYj0U5u4=
-Date:   Wed, 30 Nov 2022 15:01:57 -0800
+        b=uRJBx4zAQlLdDFRX87POO8WXhOuj6pLyGrvdadun0EovV7RSgzlSjN9rs5/GTfWjp
+         riPK49S8VyY2hQE/4O0UWDV0rbMGqa4hn16f2s8mOtMF/FWJfFpHrTJm7qtMCqZGz3
+         nXeDSsLnbTzxc/1LqNX0Qt1bUPOj4oPQ1XaUYg98=
+Date:   Wed, 30 Nov 2022 15:01:55 -0800
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function.patch removed from -mm tree
-Message-Id: <20221130230157.B9163C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function.patch removed from -mm tree
+Message-Id: <20221130230156.8B8AAC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,140 +41,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/core: split out scheme quota adjustment logic into a new function
+     Subject: mm/damon/core: split out scheme stat update logic into a new function
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function.patch
+     mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: split out scheme quota adjustment logic into a new function
-Date: Wed, 26 Oct 2022 22:59:35 +0000
+Subject: mm/damon/core: split out scheme stat update logic into a new function
+Date: Wed, 26 Oct 2022 22:59:34 +0000
 
-DAMOS quota adjustment logic in 'kdamond_apply_schemes()', has some amount
-of code, and the logic is not so straightforward.  Split it out to a new
-function for better readability.
+The function for applying a given DAMON scheme action to a given DAMON
+region, 'damos_apply_scheme()' is not quite short.  Make it better to read
+by splitting out the stat update logic into a new function.
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221026225943.100429-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   91 ++++++++++++++++++++++++----------------------
- 1 file changed, 48 insertions(+), 43 deletions(-)
+ mm/damon/core.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function
+--- a/mm/damon/core.c~mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function
 +++ a/mm/damon/core.c
-@@ -848,6 +848,53 @@ static void damos_set_effective_quota(st
- 	quota->esz = esz;
+@@ -755,6 +755,16 @@ static bool damos_skip_charged_region(st
+ 	return false;
  }
  
-+static void damos_adjust_quota(struct damon_ctx *c, struct damos *s)
++static void damos_update_stat(struct damos *s,
++		unsigned long sz_tried, unsigned long sz_applied)
 +{
-+	struct damos_quota *quota = &s->quota;
-+	struct damon_target *t;
-+	struct damon_region *r;
-+	unsigned long cumulated_sz;
-+	unsigned int score, max_score = 0;
-+
-+	if (!quota->ms && !quota->sz)
-+		return;
-+
-+	/* New charge window starts */
-+	if (time_after_eq(jiffies, quota->charged_from +
-+				msecs_to_jiffies(quota->reset_interval))) {
-+		if (quota->esz && quota->charged_sz >= quota->esz)
-+			s->stat.qt_exceeds++;
-+		quota->total_charged_sz += quota->charged_sz;
-+		quota->charged_from = jiffies;
-+		quota->charged_sz = 0;
-+		damos_set_effective_quota(quota);
-+	}
-+
-+	if (!c->ops.get_scheme_score)
-+		return;
-+
-+	/* Fill up the score histogram */
-+	memset(quota->histogram, 0, sizeof(quota->histogram));
-+	damon_for_each_target(t, c) {
-+		damon_for_each_region(r, t) {
-+			if (!__damos_valid_target(r, s))
-+				continue;
-+			score = c->ops.get_scheme_score(c, t, r, s);
-+			quota->histogram[score] += damon_sz_region(r);
-+			if (score > max_score)
-+				max_score = score;
-+		}
-+	}
-+
-+	/* Set the min score limit */
-+	for (cumulated_sz = 0, score = max_score; ; score--) {
-+		cumulated_sz += quota->histogram[score];
-+		if (cumulated_sz >= quota->esz || !score)
-+			break;
-+	}
-+	quota->min_score = score;
++	s->stat.nr_tried++;
++	s->stat.sz_tried += sz_tried;
++	if (sz_applied)
++		s->stat.nr_applied++;
++	s->stat.sz_applied += sz_applied;
 +}
 +
- static void kdamond_apply_schemes(struct damon_ctx *c)
+ static void damos_apply_scheme(struct damon_ctx *c, struct damon_target *t,
+ 		struct damon_region *r, struct damos *s)
  {
- 	struct damon_target *t;
-@@ -855,52 +902,10 @@ static void kdamond_apply_schemes(struct
- 	struct damos *s;
+@@ -786,11 +796,7 @@ static void damos_apply_scheme(struct da
+ 		r->age = 0;
  
- 	damon_for_each_scheme(s, c) {
--		struct damos_quota *quota = &s->quota;
--		unsigned long cumulated_sz;
--		unsigned int score, max_score = 0;
--
- 		if (!s->wmarks.activated)
- 			continue;
+ update_stat:
+-	s->stat.nr_tried++;
+-	s->stat.sz_tried += sz;
+-	if (sz_applied)
+-		s->stat.nr_applied++;
+-	s->stat.sz_applied += sz_applied;
++	damos_update_stat(s, sz, sz_applied);
+ }
  
--		if (!quota->ms && !quota->sz)
--			continue;
--
--		/* New charge window starts */
--		if (time_after_eq(jiffies, quota->charged_from +
--					msecs_to_jiffies(
--						quota->reset_interval))) {
--			if (quota->esz && quota->charged_sz >= quota->esz)
--				s->stat.qt_exceeds++;
--			quota->total_charged_sz += quota->charged_sz;
--			quota->charged_from = jiffies;
--			quota->charged_sz = 0;
--			damos_set_effective_quota(quota);
--		}
--
--		if (!c->ops.get_scheme_score)
--			continue;
--
--		/* Fill up the score histogram */
--		memset(quota->histogram, 0, sizeof(quota->histogram));
--		damon_for_each_target(t, c) {
--			damon_for_each_region(r, t) {
--				if (!__damos_valid_target(r, s))
--					continue;
--				score = c->ops.get_scheme_score(
--						c, t, r, s);
--				quota->histogram[score] += damon_sz_region(r);
--				if (score > max_score)
--					max_score = score;
--			}
--		}
--
--		/* Set the min score limit */
--		for (cumulated_sz = 0, score = max_score; ; score--) {
--			cumulated_sz += quota->histogram[score];
--			if (cumulated_sz >= quota->esz || !score)
--				break;
--		}
--		quota->min_score = score;
-+		damos_adjust_quota(c, s);
- 	}
- 
- 	damon_for_each_target(t, c) {
+ static void damon_do_apply_schemes(struct damon_ctx *c,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
