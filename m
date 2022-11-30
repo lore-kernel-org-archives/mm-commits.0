@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9AE1C47088
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 372E0C4708D
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229551AbiK3XCF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229468AbiK3XCF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 30 Nov 2022 18:02:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37886 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229588AbiK3XCA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:02:00 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 334EE8E5BD
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:01:59 -0800 (PST)
+        with ESMTP id S229472AbiK3XCB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:02:01 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2515A934F7
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:02:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DB1EAB81D4D
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:01:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B8AAC433C1;
-        Wed, 30 Nov 2022 23:01:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B6D6D61E37
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:02:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B631C433C1;
+        Wed, 30 Nov 2022 23:02:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669849316;
-        bh=F/DLS52C1U2yHTR20AUI1hIbyvKIOSXlFJ+C43XpjkY=;
+        s=korg; t=1669849320;
+        bh=5ah3wLDAOlClSETTlULzKds6ltHYAtaJYjr2zZ4jxV8=;
         h=Date:To:From:Subject:From;
-        b=uRJBx4zAQlLdDFRX87POO8WXhOuj6pLyGrvdadun0EovV7RSgzlSjN9rs5/GTfWjp
-         riPK49S8VyY2hQE/4O0UWDV0rbMGqa4hn16f2s8mOtMF/FWJfFpHrTJm7qtMCqZGz3
-         nXeDSsLnbTzxc/1LqNX0Qt1bUPOj4oPQ1XaUYg98=
-Date:   Wed, 30 Nov 2022 15:01:55 -0800
+        b=hHEm28A2N4E5Ed6TWtNFUyfuanpAxtRbMo5D1ewfMgBrMKUQx3SYGmWHTbtEZSg48
+         OTgQJu/eFdah1kCwNYa4Sao7QKq3qOJxn2aXbPwD7sCJqF+Z/cvdiiG5RtoGgKBy9j
+         Ytey2JspKHnb9KbX7BeU8iWHc3zQ3wRvh7RFKhBw=
+Date:   Wed, 30 Nov 2022 15:01:59 -0800
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function.patch removed from -mm tree
-Message-Id: <20221130230156.8B8AAC433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch removed from -mm tree
+Message-Id: <20221130230200.1B631C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,62 +41,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/core: split out scheme stat update logic into a new function
+     Subject: mm/damon/sysfs: remove parameters of damon_sysfs_region_alloc()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function.patch
+     mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: split out scheme stat update logic into a new function
-Date: Wed, 26 Oct 2022 22:59:34 +0000
+Subject: mm/damon/sysfs: remove parameters of damon_sysfs_region_alloc()
+Date: Wed, 26 Oct 2022 22:59:37 +0000
 
-The function for applying a given DAMON scheme action to a given DAMON
-region, 'damos_apply_scheme()' is not quite short.  Make it better to read
-by splitting out the stat update logic into a new function.
+'damon_sysfs_region_alloc()' is always called with zero-filled 'struct
+damon_addr_range', because the start and end addresses should set by
+users.  Remove unnecessary parameters of the function and simplify the
+body by using 'kzalloc()'.
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221026225943.100429-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/damon/sysfs.c |   14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function
-+++ a/mm/damon/core.c
-@@ -755,6 +755,16 @@ static bool damos_skip_charged_region(st
- 	return false;
- }
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc
++++ a/mm/damon/sysfs.c
+@@ -1065,17 +1065,9 @@ struct damon_sysfs_region {
+ 	struct damon_addr_range ar;
+ };
  
-+static void damos_update_stat(struct damos *s,
-+		unsigned long sz_tried, unsigned long sz_applied)
-+{
-+	s->stat.nr_tried++;
-+	s->stat.sz_tried += sz_tried;
-+	if (sz_applied)
-+		s->stat.nr_applied++;
-+	s->stat.sz_applied += sz_applied;
-+}
-+
- static void damos_apply_scheme(struct damon_ctx *c, struct damon_target *t,
- 		struct damon_region *r, struct damos *s)
+-static struct damon_sysfs_region *damon_sysfs_region_alloc(
+-		struct damon_addr_range ar)
++static struct damon_sysfs_region *damon_sysfs_region_alloc(void)
  {
-@@ -786,11 +796,7 @@ static void damos_apply_scheme(struct da
- 		r->age = 0;
- 
- update_stat:
--	s->stat.nr_tried++;
--	s->stat.sz_tried += sz;
--	if (sz_applied)
--		s->stat.nr_applied++;
--	s->stat.sz_applied += sz_applied;
-+	damos_update_stat(s, sz, sz_applied);
+-	struct damon_sysfs_region *region = kmalloc(sizeof(*region),
+-			GFP_KERNEL);
+-
+-	if (!region)
+-		return NULL;
+-	region->kobj = (struct kobject){};
+-	region->ar = ar;
+-	return region;
++	return kzalloc(sizeof(struct damon_sysfs_region), GFP_KERNEL);
  }
  
- static void damon_do_apply_schemes(struct damon_ctx *c,
+ static ssize_t start_show(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -1184,7 +1176,7 @@ static int damon_sysfs_regions_add_dirs(
+ 	regions->regions_arr = regions_arr;
+ 
+ 	for (i = 0; i < nr_regions; i++) {
+-		region = damon_sysfs_region_alloc((struct damon_addr_range){});
++		region = damon_sysfs_region_alloc();
+ 		if (!region) {
+ 			damon_sysfs_regions_rm_dirs(regions);
+ 			return -ENOMEM;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
