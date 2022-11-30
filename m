@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8241C4321E
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:43:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ABC3C4321E
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:43:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230083AbiK3XnO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 18:43:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33958 "EHLO
+        id S229772AbiK3Xnb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 18:43:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33058 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230250AbiK3Xmk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:42:40 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12BC6281
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:42:32 -0800 (PST)
+        with ESMTP id S229877AbiK3XnU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:43:20 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F07BB5FBE
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:43:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BC741B81D4C
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:42:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7454BC43470;
-        Wed, 30 Nov 2022 23:42:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 83FDB61E50
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:43:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0CC4C43470;
+        Wed, 30 Nov 2022 23:43:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669851749;
-        bh=CGU6hYB6htRiZlAxnASb9dIGbe0KcVAWYha4RcS2TX0=;
+        s=korg; t=1669851798;
+        bh=QMxeyrrlz3GIiE7W3LV+tRdc8daV03vLTvtFZ+25H+I=;
         h=Date:To:From:Subject:From;
-        b=FnA1ZBvY9B38o9lZN/fxEsSMABGWYAvhq44b4opZhJqC5mEPT2fX27DMJZ+dQREJL
-         7b8vMuHiG7XZ9g/KOnOcVBte8371NdWvcIlVoSLAQg/zaGdBR6RUGMVjDGOT6ZWQNa
-         MKLMhOAJrrol9nSYj8oXikW0IOkqdYMWEkWTWojM=
-Date:   Wed, 30 Nov 2022 15:42:28 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
-        akpm@linux-foundation.org
+        b=nuNdvNu1w4Zv8B6zFBAFpPJ1XHS/+EcxcuG0/l1a+WQ9SM4hzw77tlJvLUImFIKrz
+         tur59k9cSyZTIFoaQu1KTjw1zUKNuJG4F2nZED6knt9lruRK2tQ6wUEbEHKp2kYwdE
+         BPRvpbZyC9lQ+bxtwqk3pszaPN3T31sn90dYcWWE=
+Date:   Wed, 30 Nov 2022 15:43:18 -0800
+To:     mm-commits@vger.kernel.org, zokeefe@google.com,
+        willy@infradead.org, vbabka@suse.cz, songmuchun@bytedance.com,
+        sidhartha.kumar@oracle.com, shy828301@gmail.com, peterx@redhat.com,
+        naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
+        linmiaohe@huawei.com, kirill.shutemov@linux.intel.com,
+        jthoughton@google.com, jhubbard@nvidia.com, david@redhat.com,
+        almasrymina@google.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix.patch removed from -mm tree
-Message-Id: <20221130234229.7454BC43470@smtp.kernel.org>
+Subject: [folded-merged] mmhugetlb-use-folio-fields-in-second-tail-page-fix.patch removed from -mm tree
+Message-Id: <20221130234318.B0CC4C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,58 +46,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: skip schemes regions clearing if the scheme directory has removed
+     Subject: mm,hugetlb: use folio fields in second tail page: fix
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix.patch
+     mmhugetlb-use-folio-fields-in-second-tail-page-fix.patch
 
-This patch was dropped because it was folded into mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command.patch
+This patch was dropped because it was folded into mmhugetlb-use-folio-fields-in-second-tail-page.patch
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: skip schemes regions clearing if the scheme directory has removed
-Date: Mon, 14 Nov 2022 18:29:54 +0000
+From: Hugh Dickins <hughd@google.com>
+Subject: mm,hugetlb: use folio fields in second tail page: fix
+Date: Wed, 9 Nov 2022 18:13:50 -0800 (PST)
 
-A DAMON sysfs interface user can start DAMON with a scheme, remove the
-sysfs directory for the scheme, and then ask clearing of the scheme's
-tried regions.  Because the schemes tried regions clearing logic doesn't
-aware of the situation, it results in an invalid memory access.  Fix the
-bug by checking if the scheme sysfs directory exists.
+Per review comment from Sidhartha: prefix folio's page_1 and page_2 with
+double underscore, to underscore that they are fillers for alignment
+rather than directly usable members of the union (whereas the first
+"struct page page" is important for folio<->page conversions).
 
-Link: https://lkml.kernel.org/r/20221114182954.4745-3-sj@kernel.org
-Fixes: ("mm/damon/sysfs-schemes: implement DAMOS-tried regions clear command")
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Per review comment from Kirill: give folio's _flags_2 and _head_2 a line
+of documentation each, though both of them "Do not use" (I think _flags_1
+should be enough for now, and shouldn't recommend spilling to _flags_2).
+
+Link: https://lkml.kernel.org/r/9e2cb6b-5b58-d3f2-b5ee-5f8a14e8f10@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/mm_types.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1302,6 +1302,10 @@ int damon_sysfs_schemes_clear_regions(
- 	damon_for_each_scheme(scheme, ctx) {
- 		struct damon_sysfs_scheme *sysfs_scheme;
+--- a/include/linux/mm_types.h~mmhugetlb-use-folio-fields-in-second-tail-page-fix
++++ a/include/linux/mm_types.h
+@@ -273,6 +273,8 @@ struct page {
+  * @_total_mapcount: Do not use directly, call folio_entire_mapcount().
+  * @_pincount: Do not use directly, call folio_maybe_dma_pinned().
+  * @_folio_nr_pages: Do not use directly, call folio_nr_pages().
++ * @_flags_2: For alignment.  Do not use.
++ * @_head_2: Points to the folio.  Do not use.
+  * @_hugetlb_subpool: Do not use directly, use accessor in hugetlb.h.
+  * @_hugetlb_cgroup: Do not use directly, use accessor in hugetlb_cgroup.h.
+  * @_hugetlb_cgroup_rsvd: Do not use directly, use accessor in hugetlb_cgroup.h.
+@@ -327,7 +329,7 @@ struct folio {
+ 			unsigned int _folio_nr_pages;
+ #endif
+ 		};
+-		struct page page_1;
++		struct page __page_1;
+ 	};
+ 	union {
+ 		struct {
+@@ -338,7 +340,7 @@ struct folio {
+ 			void *_hugetlb_cgroup_rsvd;
+ 			void *_hugetlb_hwpoison;
+ 		};
+-		struct page page_2;
++		struct page __page_2;
+ 	};
+ };
  
-+		/* user could have removed the scheme sysfs dir */
-+		if (schemes_idx >= sysfs_schemes->nr)
-+			break;
-+
- 		sysfs_scheme = sysfs_schemes->schemes_arr[schemes_idx++];
- 		damon_sysfs_scheme_regions_rm_dirs(
- 				sysfs_scheme->tried_regions);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch
-docs-admin-guide-mm-damon-usage-fix-wrong-usage-example-of-init_regions-file.patch
-mm-damon-core-add-a-callback-for-scheme-target-regions-check.patch
-mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch
-mm-damon-sysfs-schemes-implement-scheme-region-directory.patch
-mm-damon-sysfs-implement-damos-tried-regions-update-command.patch
-mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command.patch
-tools-selftets-damon-sysfs-test-tried_regions-directory-existence.patch
-docs-admin-guide-mm-damon-usage-document-schemes-s-tried_regions-sysfs-directory.patch
-docs-abi-damon-document-schemes-s-tried_regions-sysfs-directory.patch
-selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch
+mmhugetlb-use-folio-fields-in-second-tail-page.patch
+mmthprmap-simplify-compound-page-mapcount-handling.patch
+mmthprmap-lock_compound_mapcounts-on-thp-mapcounts.patch
+mmthprmap-handle-the-normal-pagecompound-case-first.patch
+mmthprmap-subpages_mapcount-of-pte-mapped-subpages.patch
+mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped.patch
+mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked.patch
 
