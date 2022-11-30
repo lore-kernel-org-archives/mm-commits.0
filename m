@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE043C4321E
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:41:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EE6EC4321E
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:41:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229548AbiK3XlZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 18:41:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60724 "EHLO
+        id S229591AbiK3Xlt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 18:41:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229503AbiK3XlY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:41:24 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13DC44AF03
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:41:23 -0800 (PST)
+        with ESMTP id S229503AbiK3Xlr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:41:47 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C69D24AF03
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:41:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 6F9B2CE1B76
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:41:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87DB9C43470;
-        Wed, 30 Nov 2022 23:41:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 84401B81D4C
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:41:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37A27C4347C;
+        Wed, 30 Nov 2022 23:41:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669851679;
-        bh=Mvrzu3jzq3PHRCvOPgmbSfehZZ3Zs2JAMoPGt/OoPrc=;
+        s=korg; t=1669851704;
+        bh=vec0spVyJgW87p3GIywWulLSJcA33w3ewVHIvwmfAAc=;
         h=Date:To:From:Subject:From;
-        b=Sr2Ecyknp0+BY/I/5l2+uCIub1OUiWgIztPr5t/JSjNOiXC26aqIhEjmJOqCdLpVG
-         W4xn1peuHwMw+OFl2h2bNBEbtyrBXNVr8gv7fI6yDE6M4DG8IULJwwyNUQibleyH3a
-         qtMyn6Jwf3tH2GlUln83NbhBM53BhZn+Nf6MMOnc=
-Date:   Wed, 30 Nov 2022 15:41:18 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, sidhartha.kumar@oracle.com,
-        sfr@canb.auug.org.au, minhquangbui99@gmail.com,
-        mike.kravetz@oracle.com, linmiaohe@huawei.com,
-        aneesh.kumar@linux.ibm.com, almasrymina@google.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=ExAthVjTyduFYSUMNBvhVcLe65BiWaIySrXaX/RwlVeia4ehiGO4aQzXleyqv0i1x
+         4tw7c0M1XTyDKV99i66QMSn1PXUe7IJWsakkxEKEsOwKWgN+hAE1AuNExiRAsgTiuf
+         EhdKPmtMIJqTEhpA7xADB9uCIvpMkdRvUB+cUBM4=
+Date:   Wed, 30 Nov 2022 15:41:43 -0800
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch removed from -mm tree
-Message-Id: <20221130234119.87DB9C43470@smtp.kernel.org>
+Subject: [folded-merged] mm-damon-sysfs-implement-damos-tried-regions-update-command-fix.patch removed from -mm tree
+Message-Id: <20221130234144.37A27C4347C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,60 +41,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-hugetlb-convert-move_hugetlb_state-to-folios-fix
+     Subject: mm/damon/sysfs-schemes: skip tried regions update if the scheme directory has removed
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch
+     mm-damon-sysfs-implement-damos-tried-regions-update-command-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-convert-move_hugetlb_state-to-folios.patch
+This patch was dropped because it was folded into mm-damon-sysfs-implement-damos-tried-regions-update-command.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-convert-move_hugetlb_state-to-folios-fix
-Date: Wed Nov  2 02:25:07 PM PDT 2022
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: skip tried regions update if the scheme directory has removed
+Date: Mon, 14 Nov 2022 18:29:53 +0000
 
-fix CONFIG_HUGETLB_PAGE=n build
+A DAMON sysfs interface user can start DAMON with a scheme, remove the
+sysfs directory for the scheme, and then ask updates of the scheme's tried
+regions.  Because the schemes tried regions update logic doesn't aware of
+the situation, it results in an invalid memory access.  Fix the bug by
+checking if the scheme sysfs directory exists.
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Bui Quang Minh <minhquangbui99@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Link: https://lkml.kernel.org/r/20221114182954.4745-2-sj@kernel.org
+Fixes: ("mm/damon/sysfs: implement DAMOS tried regions update command")
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +++++
+ mm/damon/sysfs-schemes.c |    5 +++++
  1 file changed, 5 insertions(+)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-convert-move_hugetlb_state-to-folios-fix
-+++ a/include/linux/hugetlb.h
-@@ -991,6 +991,11 @@ void hugetlb_unregister_node(struct node
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- 
-+static inline struct hugepage_subpool *hugetlb_folio_subpool(struct folio *folio)
-+{
-+	return NULL;
-+}
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-implement-damos-tried-regions-update-command-fix
++++ a/mm/damon/sysfs-schemes.c
+@@ -1273,6 +1273,11 @@ static int damon_sysfs_before_damos_appl
+ 			break;
+ 		schemes_idx++;
+ 	}
 +
- static inline struct hugepage_subpool *hugetlb_page_subpool(struct page *hpage)
- {
- 	return NULL;
++	/* user could have removed the scheme sysfs dir */
++	if (schemes_idx >= sysfs_schemes->nr)
++		return 0;
++
+ 	sysfs_regions = sysfs_schemes->schemes_arr[schemes_idx]->tried_regions;
+ 	region = damon_sysfs_scheme_region_alloc(r);
+ 	list_add_tail(&region->list, &sysfs_regions->regions_list);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-hugetlb-convert-move_hugetlb_state-to-folios.patch
-mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix.patch
-mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix.patch
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-gup-remove-foll_migration-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
-mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch
-mm-document-sys-class-bdi-bdi-max_ratio_fine-knob-fix.patch
-mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch
+docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch
+docs-admin-guide-mm-damon-usage-fix-wrong-usage-example-of-init_regions-file.patch
+mm-damon-core-add-a-callback-for-scheme-target-regions-check.patch
+mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch
+mm-damon-sysfs-schemes-implement-scheme-region-directory.patch
+mm-damon-sysfs-implement-damos-tried-regions-update-command.patch
+mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command.patch
+mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix.patch
+tools-selftets-damon-sysfs-test-tried_regions-directory-existence.patch
+docs-admin-guide-mm-damon-usage-document-schemes-s-tried_regions-sysfs-directory.patch
+docs-abi-damon-document-schemes-s-tried_regions-sysfs-directory.patch
+selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch
 
