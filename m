@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ABC3C4321E
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:43:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31FA2C4321E
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:44:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229772AbiK3Xnb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 18:43:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33058 "EHLO
+        id S229520AbiK3Xon (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 18:44:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229877AbiK3XnU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:43:20 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F07BB5FBE
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:43:19 -0800 (PST)
+        with ESMTP id S229449AbiK3Xon (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:44:43 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46BCA5FBE
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:44:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 83FDB61E50
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:43:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0CC4C43470;
-        Wed, 30 Nov 2022 23:43:18 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EBC3BB81D59
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:44:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91A40C43470;
+        Wed, 30 Nov 2022 23:44:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669851798;
-        bh=QMxeyrrlz3GIiE7W3LV+tRdc8daV03vLTvtFZ+25H+I=;
+        s=korg; t=1669851877;
+        bh=WoE5vPWDLyQx7NpsozgEyzhf7mLM8PFMRfj/2ub1Ayc=;
         h=Date:To:From:Subject:From;
-        b=nuNdvNu1w4Zv8B6zFBAFpPJ1XHS/+EcxcuG0/l1a+WQ9SM4hzw77tlJvLUImFIKrz
-         tur59k9cSyZTIFoaQu1KTjw1zUKNuJG4F2nZED6knt9lruRK2tQ6wUEbEHKp2kYwdE
-         BPRvpbZyC9lQ+bxtwqk3pszaPN3T31sn90dYcWWE=
-Date:   Wed, 30 Nov 2022 15:43:18 -0800
-To:     mm-commits@vger.kernel.org, zokeefe@google.com,
-        willy@infradead.org, vbabka@suse.cz, songmuchun@bytedance.com,
-        sidhartha.kumar@oracle.com, shy828301@gmail.com, peterx@redhat.com,
-        naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
-        linmiaohe@huawei.com, kirill.shutemov@linux.intel.com,
-        jthoughton@google.com, jhubbard@nvidia.com, david@redhat.com,
-        almasrymina@google.com, hughd@google.com, akpm@linux-foundation.org
+        b=COKZWer9ywqkmM0AnNtuR1gmhTDUDk/9KfjaTtCqA6KQpdQlcLv9RvZ+anfhOTDN6
+         pOIlSvcYnH+4zKiGEvuC2M7ylx8iJ2Wlu3Qux6oe0Gj95FXJePff2gN1rOBqFFGOQ8
+         wZ/Uab4I9jpYm/lC3ke0PvmceJKn78Ai6aeqEoFA=
+Date:   Wed, 30 Nov 2022 15:44:36 -0800
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, joao.m.martins@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mmhugetlb-use-folio-fields-in-second-tail-page-fix.patch removed from -mm tree
-Message-Id: <20221130234318.B0CC4C43470@smtp.kernel.org>
+Subject: [folded-merged] mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page-v3.patch removed from -mm tree
+Message-Id: <20221130234437.91A40C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,87 +42,156 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm,hugetlb: use folio fields in second tail page: fix
+     Subject: mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page-v3
 has been removed from the -mm tree.  Its filename was
-     mmhugetlb-use-folio-fields-in-second-tail-page-fix.patch
+     mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page-v3.patch
 
-This patch was dropped because it was folded into mmhugetlb-use-folio-fields-in-second-tail-page.patch
+This patch was dropped because it was folded into mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page.patch
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm,hugetlb: use folio fields in second tail page: fix
-Date: Wed, 9 Nov 2022 18:13:50 -0800 (PST)
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page-v3
+Date: Wed, 9 Nov 2022 20:06:23 +0000
 
-Per review comment from Sidhartha: prefix folio's page_1 and page_2 with
-double underscore, to underscore that they are fillers for alignment
-rather than directly usable members of the union (whereas the first
-"struct page page" is important for folio<->page conversions).
+ Comments from Muchun:
+ * Delete the comment above the tlb flush
+ * Move the head vmemmap page copy into vmemmap_remap_free()
+ * Add and del the new head page to the vmemmap_pages (to be freed
+   in case of error)
+ * Move the remap of the head like the tail pages in vmemmap_remap_pte()
+   but special casing only when addr == reuse_Addr
+ * Removes the PAGE_SIZE alignment check as the code has the assumption
+   that start/end are page-aligned (and VM_BUG_ON otherwise).
+ * Adjusted commit message taking the above changes into account.
 
-Per review comment from Kirill: give folio's _flags_2 and _head_2 a line
-of documentation each, though both of them "Do not use" (I think _flags_1
-should be enough for now, and shouldn't recommend spilling to _flags_2).
-
-Link: https://lkml.kernel.org/r/9e2cb6b-5b58-d3f2-b5ee-5f8a14e8f10@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20221109200623.96867-1-joao.m.martins@oracle.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mina Almasry <almasrymina@google.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/hugetlb_vmemmap.c |   55 +++++++++++------------------------------
+ 1 file changed, 15 insertions(+), 40 deletions(-)
 
---- a/include/linux/mm_types.h~mmhugetlb-use-folio-fields-in-second-tail-page-fix
-+++ a/include/linux/mm_types.h
-@@ -273,6 +273,8 @@ struct page {
-  * @_total_mapcount: Do not use directly, call folio_entire_mapcount().
-  * @_pincount: Do not use directly, call folio_maybe_dma_pinned().
-  * @_folio_nr_pages: Do not use directly, call folio_nr_pages().
-+ * @_flags_2: For alignment.  Do not use.
-+ * @_head_2: Points to the folio.  Do not use.
-  * @_hugetlb_subpool: Do not use directly, use accessor in hugetlb.h.
-  * @_hugetlb_cgroup: Do not use directly, use accessor in hugetlb_cgroup.h.
-  * @_hugetlb_cgroup_rsvd: Do not use directly, use accessor in hugetlb_cgroup.h.
-@@ -327,7 +329,7 @@ struct folio {
- 			unsigned int _folio_nr_pages;
- #endif
- 		};
--		struct page page_1;
-+		struct page __page_1;
- 	};
- 	union {
- 		struct {
-@@ -338,7 +340,7 @@ struct folio {
- 			void *_hugetlb_cgroup_rsvd;
- 			void *_hugetlb_hwpoison;
- 		};
--		struct page page_2;
-+		struct page __page_2;
- 	};
- };
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page-v3
++++ a/mm/hugetlb_vmemmap.c
+@@ -22,7 +22,6 @@
+  *
+  * @remap_pte:		called for each lowest-level entry (PTE).
+  * @nr_walked:		the number of walked pte.
+- * @head_page:		the page which replaces the head vmemmap page.
+  * @reuse_page:		the page which is reused for the tail vmemmap pages.
+  * @reuse_addr:		the virtual address of the @reuse_page page.
+  * @vmemmap_pages:	the list head of the vmemmap pages that can be freed
+@@ -32,7 +31,6 @@ struct vmemmap_remap_walk {
+ 	void			(*remap_pte)(pte_t *pte, unsigned long addr,
+ 					     struct vmemmap_remap_walk *walk);
+ 	unsigned long		nr_walked;
+-	struct page		*head_page;
+ 	struct page		*reuse_page;
+ 	unsigned long		reuse_addr;
+ 	struct list_head	*vmemmap_pages;
+@@ -107,26 +105,10 @@ static void vmemmap_pte_range(pmd_t *pmd
+ 	 * remapping (which is calling @walk->remap_pte).
+ 	 */
+ 	if (!walk->reuse_page) {
+-		struct page *page = pte_page(*pte);
+-
+-		/*
+-		 * Copy the data from the original head, and remap to
+-		 * the newly allocated page.
+-		 */
+-		if (walk->head_page) {
+-			memcpy(page_address(walk->head_page),
+-			       page_address(page), PAGE_SIZE);
+-			walk->remap_pte(pte, addr, walk);
+-			page = walk->head_page;
+-		}
+-
+-		walk->reuse_page = page;
+-
++		walk->reuse_page = pte_page(*pte);
+ 		/*
+-		 * Because the reuse address is part of the range that
+-		 * we are walking or the head page was remapped to a
+-		 * new page, skip the reuse address range.
+-		 * .
++		 * Because the reuse address is part of the range that we are
++		 * walking, skip the reuse address range.
+ 		 */
+ 		addr += PAGE_SIZE;
+ 		pte++;
+@@ -221,11 +203,6 @@ static int vmemmap_remap_range(unsigned
+ 			return ret;
+ 	} while (pgd++, addr = next, addr != end);
  
+-	/*
+-	 * We change the mapping of the vmemmap virtual address range
+-	 * [@start, end], so we only need to flush the TLB which
+-	 * belongs to the range.
+-	 */
+ 	flush_tlb_kernel_range(start, end);
+ 
+ 	return 0;
+@@ -262,21 +239,16 @@ static void vmemmap_remap_pte(pte_t *pte
+ 	 * to the tail pages.
+ 	 */
+ 	pgprot_t pgprot = PAGE_KERNEL_RO;
+-	struct page *reuse = walk->reuse_page;
+ 	struct page *page = pte_page(*pte);
+ 	pte_t entry;
+ 
+-	/*
+-	 * When there's no walk::reuse_page, it means we allocated a new head
+-	 * page (stored in walk::head_page) and copied from the old head page.
+-	 * In that case use the walk::head_page as the page to remap.
+-	 */
+-	if (!reuse) {
++	/* Remapping the head page requires r/w */
++	if (unlikely(addr == walk->reuse_addr)) {
+ 		pgprot = PAGE_KERNEL;
+-		reuse = walk->head_page;
++		list_del(&walk->reuse_page->lru);
+ 	}
+ 
+-	entry = mk_pte(reuse, pgprot);
++	entry = mk_pte(walk->reuse_page, pgprot);
+ 	list_add_tail(&page->lru, walk->vmemmap_pages);
+ 	set_pte_at(&init_mm, addr, pte, entry);
+ }
+@@ -345,9 +317,9 @@ static int vmemmap_remap_free(unsigned l
+ 		.reuse_addr	= reuse,
+ 		.vmemmap_pages	= &vmemmap_pages,
+ 	};
+-	gfp_t gfp_mask = GFP_KERNEL|__GFP_RETRY_MAYFAIL|__GFP_NOWARN;
+ 	int nid = page_to_nid((struct page *)start);
+-	struct page *page = NULL;
++	gfp_t gfp_mask = GFP_KERNEL | __GFP_THISNODE | __GFP_NORETRY |
++			__GFP_NOWARN;
+ 
+ 	/*
+ 	 * Allocate a new head vmemmap page to avoid breaking a contiguous
+@@ -357,9 +329,12 @@ static int vmemmap_remap_free(unsigned l
+ 	 * more allocations of hugepages. Fallback to the currently
+ 	 * mapped head page in case should it fail to allocate.
+ 	 */
+-	if (IS_ALIGNED((unsigned long)start, PAGE_SIZE))
+-		page = alloc_pages_node(nid, gfp_mask, 0);
+-	walk.head_page = page;
++	walk.reuse_page = alloc_pages_node(nid, gfp_mask, 0);
++	if (walk.reuse_page) {
++		copy_page(page_to_virt(walk.reuse_page),
++			  (void *)walk.reuse_addr);
++		list_add(&walk.reuse_page->lru, &vmemmap_pages);
++	}
+ 
+ 	/*
+ 	 * In order to make remapping routine most efficient for the huge pages,
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
-mmhugetlb-use-folio-fields-in-second-tail-page.patch
-mmthprmap-simplify-compound-page-mapcount-handling.patch
-mmthprmap-lock_compound_mapcounts-on-thp-mapcounts.patch
-mmthprmap-handle-the-normal-pagecompound-case-first.patch
-mmthprmap-subpages_mapcount-of-pte-mapped-subpages.patch
-mmthprmap-subpages_mapcount-compound_mapped-if-pmd-mapped.patch
-mmthprmap-clean-up-the-end-of-__split_huge_pmd_locked.patch
+mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page.patch
+mm-hugetlb_vmemmap-remap-head-page-to-newly-allocated-page-v4.patch
 
