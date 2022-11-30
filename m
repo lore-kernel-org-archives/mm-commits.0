@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6CA2C47089
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 22:51:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D673AC4321E
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 22:51:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229456AbiK3Wvj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 17:51:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57984 "EHLO
+        id S229507AbiK3Wvo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 17:51:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229476AbiK3Wvi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 17:51:38 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D42718DBDD
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 14:51:36 -0800 (PST)
+        with ESMTP id S229579AbiK3Wvk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 17:51:40 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB8898DBDD;
+        Wed, 30 Nov 2022 14:51:39 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8F432B81D12
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 22:51:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AF11C433C1;
-        Wed, 30 Nov 2022 22:51:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 48B4A61E26;
+        Wed, 30 Nov 2022 22:51:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C29FC433D7;
+        Wed, 30 Nov 2022 22:51:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669848694;
-        bh=B4914vrb2xZ05mZmgCDlmImcfIozKNAtZOphfOatbgw=;
+        s=korg; t=1669848698;
+        bh=G1DOaMoZDix8nPelGd1uKcnfhWICnemtQU/uk758EMw=;
         h=Date:To:From:Subject:From;
-        b=OaDYj9R6dK+ROVo7OEvkp4Ghkch+7Y01mKwnBNKkW4NEiNqsGX34PzACnVM8kH0mp
-         QgX6rBlDssUUdqOQv2SA8woZuwBDNSNWgNv5tADxt8oaKU9jklw2rBFicnM+X+AjE0
-         1A+HCaT5aNZuk+/p0OHDYgrpSIclMdfIaItYiBJs=
-Date:   Wed, 30 Nov 2022 14:51:33 -0800
-To:     mm-commits@vger.kernel.org, zokeefe@google.com,
-        syzbot+0044b22d177870ee974f@syzkaller.appspotmail.com,
-        mhocko@suse.com, shy828301@gmail.com, akpm@linux-foundation.org
+        b=SOqB8r9JKGjWxOtkH7eCVBW1t1MtUSECrI8CscgvKhpiSanz7dYqx3g927lLSF/25
+         X6NOuU1PWibKVCGWqbwczQuUJ52wXBCnrqsyoBKX/t/JobchfcSyyiYdB8kJ5HKsv2
+         MBvnF1ZhKfvcBygi6UHKNhsg+RQcyhm9j9++Ym1U=
+Date:   Wed, 30 Nov 2022 14:51:37 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        konishi.ryusuke@gmail.com, zhangpeng362@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode.patch removed from -mm tree
-Message-Id: <20221130225134.2AF11C433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-null-pointer-dereference-in-nilfs_palloc_commit_free_entry.patch removed from -mm tree
+Message-Id: <20221130225138.9C29FC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,156 +42,119 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: replace VM_WARN_ON to pr_warn if the node is offline with __GFP_THISNODE
+     Subject: nilfs2: fix NULL pointer dereference in nilfs_palloc_commit_free_entry()
 has been removed from the -mm tree.  Its filename was
-     mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode.patch
+     nilfs2-fix-null-pointer-dereference-in-nilfs_palloc_commit_free_entry.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: replace VM_WARN_ON to pr_warn if the node is offline with __GFP_THISNODE
-Date: Tue, 8 Nov 2022 10:43:57 -0800
+From: ZhangPeng <zhangpeng362@huawei.com>
+Subject: nilfs2: fix NULL pointer dereference in nilfs_palloc_commit_free_entry()
+Date: Sat, 19 Nov 2022 21:05:42 +0900
 
-Syzbot reported the below splat:
+Syzbot reported a null-ptr-deref bug:
 
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221 __alloc_pages_node
-include/linux/gfp.h:221 [inline]
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221
-hpage_collapse_alloc_page mm/khugepaged.c:807 [inline]
-WARNING: CPU: 1 PID: 3646 at include/linux/gfp.h:221
-alloc_charge_hpage+0x802/0xaa0 mm/khugepaged.c:963
-Modules linked in:
-CPU: 1 PID: 3646 Comm: syz-executor210 Not tainted
-6.1.0-rc1-syzkaller-00454-ga70385240892 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
-Google 10/11/2022
-RIP: 0010:__alloc_pages_node include/linux/gfp.h:221 [inline]
-RIP: 0010:hpage_collapse_alloc_page mm/khugepaged.c:807 [inline]
-RIP: 0010:alloc_charge_hpage+0x802/0xaa0 mm/khugepaged.c:963
-Code: e5 01 4c 89 ee e8 6e f9 ae ff 4d 85 ed 0f 84 28 fc ff ff e8 70 fc
-ae ff 48 8d 6b ff 4c 8d 63 07 e9 16 fc ff ff e8 5e fc ae ff <0f> 0b e9
-96 fa ff ff 41 bc 1a 00 00 00 e9 86 fd ff ff e8 47 fc ae
-RSP: 0018:ffffc90003fdf7d8 EFLAGS: 00010293
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: ffff888077f457c0 RSI: ffffffff81cd8f42 RDI: 0000000000000001
-RBP: ffff888079388c0c R08: 0000000000000001 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-R13: dffffc0000000000 R14: 0000000000000000 R15: 0000000000000000
-FS:  00007f6b48ccf700(0000) GS:ffff8880b9b00000(0000)
-knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f6b48a819f0 CR3: 00000000171e7000 CR4: 00000000003506e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- collapse_file+0x1ca/0x5780 mm/khugepaged.c:1715
- hpage_collapse_scan_file+0xd6c/0x17a0 mm/khugepaged.c:2156
- madvise_collapse+0x53a/0xb40 mm/khugepaged.c:2611
- madvise_vma_behavior+0xd0a/0x1cc0 mm/madvise.c:1066
- madvise_walk_vmas+0x1c7/0x2b0 mm/madvise.c:1240
- do_madvise.part.0+0x24a/0x340 mm/madvise.c:1419
- do_madvise mm/madvise.c:1432 [inline]
- __do_sys_madvise mm/madvise.c:1432 [inline]
- __se_sys_madvise mm/madvise.c:1430 [inline]
- __x64_sys_madvise+0x113/0x150 mm/madvise.c:1430
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7f6b48a4eef9
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 b1 15 00 00 90 48 89 f8 48 89
-f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01
-f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f6b48ccf318 EFLAGS: 00000246 ORIG_RAX: 000000000000001c
-RAX: ffffffffffffffda RBX: 00007f6b48af0048 RCX: 00007f6b48a4eef9
-RDX: 0000000000000019 RSI: 0000000000600003 RDI: 0000000020000000
-RBP: 00007f6b48af0040 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00007f6b48aa53a4
-R13: 00007f6b48bffcbf R14: 00007f6b48ccf400 R15: 0000000000022000
- </TASK>
+ NILFS (loop0): segctord starting. Construction interval = 5 seconds, CP
+ frequency < 30 seconds
+ general protection fault, probably for non-canonical address
+ 0xdffffc0000000002: 0000 [#1] PREEMPT SMP KASAN
+ KASAN: null-ptr-deref in range [0x0000000000000010-0x0000000000000017]
+ CPU: 1 PID: 3603 Comm: segctord Not tainted
+ 6.1.0-rc2-syzkaller-00105-gb229b6ca5abb #0
+ Hardware name: Google Compute Engine/Google Compute Engine, BIOS Google
+ 10/11/2022
+ RIP: 0010:nilfs_palloc_commit_free_entry+0xe5/0x6b0
+ fs/nilfs2/alloc.c:608
+ Code: 00 00 00 00 fc ff df 80 3c 02 00 0f 85 cd 05 00 00 48 b8 00 00 00
+ 00 00 fc ff df 4c 8b 73 08 49 8d 7e 10 48 89 fa 48 c1 ea 03 <80> 3c 02
+ 00 0f 85 26 05 00 00 49 8b 46 10 be a6 00 00 00 48 c7 c7
+ RSP: 0018:ffffc90003dff830 EFLAGS: 00010212
+ RAX: dffffc0000000000 RBX: ffff88802594e218 RCX: 000000000000000d
+ RDX: 0000000000000002 RSI: 0000000000002000 RDI: 0000000000000010
+ RBP: ffff888071880222 R08: 0000000000000005 R09: 000000000000003f
+ R10: 000000000000000d R11: 0000000000000000 R12: ffff888071880158
+ R13: ffff88802594e220 R14: 0000000000000000 R15: 0000000000000004
+ FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000)
+ knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: 00007fb1c08316a8 CR3: 0000000018560000 CR4: 0000000000350ee0
+ Call Trace:
+  <TASK>
+  nilfs_dat_commit_free fs/nilfs2/dat.c:114 [inline]
+  nilfs_dat_commit_end+0x464/0x5f0 fs/nilfs2/dat.c:193
+  nilfs_dat_commit_update+0x26/0x40 fs/nilfs2/dat.c:236
+  nilfs_btree_commit_update_v+0x87/0x4a0 fs/nilfs2/btree.c:1940
+  nilfs_btree_commit_propagate_v fs/nilfs2/btree.c:2016 [inline]
+  nilfs_btree_propagate_v fs/nilfs2/btree.c:2046 [inline]
+  nilfs_btree_propagate+0xa00/0xd60 fs/nilfs2/btree.c:2088
+  nilfs_bmap_propagate+0x73/0x170 fs/nilfs2/bmap.c:337
+  nilfs_collect_file_data+0x45/0xd0 fs/nilfs2/segment.c:568
+  nilfs_segctor_apply_buffers+0x14a/0x470 fs/nilfs2/segment.c:1018
+  nilfs_segctor_scan_file+0x3f4/0x6f0 fs/nilfs2/segment.c:1067
+  nilfs_segctor_collect_blocks fs/nilfs2/segment.c:1197 [inline]
+  nilfs_segctor_collect fs/nilfs2/segment.c:1503 [inline]
+  nilfs_segctor_do_construct+0x12fc/0x6af0 fs/nilfs2/segment.c:2045
+  nilfs_segctor_construct+0x8e3/0xb30 fs/nilfs2/segment.c:2379
+  nilfs_segctor_thread_construct fs/nilfs2/segment.c:2487 [inline]
+  nilfs_segctor_thread+0x3c3/0xf30 fs/nilfs2/segment.c:2570
+  kthread+0x2e4/0x3a0 kernel/kthread.c:376
+  ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+  </TASK>
+ ...
 
-It is because khugepaged allocates pages with __GFP_THISNODE, but the
-preferred node is bogus.  The previous patch fixed the khugepaged code to
-avoid allocating page from non-existing node.  But it is still racy
-against memory hotremove.  There is no synchronization with the memory
-hotplug so it is possible that memory gets offline during a longer taking
-scanning.
+If DAT metadata file is corrupted on disk, there is a case where
+req->pr_desc_bh is NULL and blocknr is 0 at nilfs_dat_commit_end() during
+a b-tree operation that cascadingly updates ancestor nodes of the b-tree,
+because nilfs_dat_commit_alloc() for a lower level block can initialize
+the blocknr on the same DAT entry between nilfs_dat_prepare_end() and
+nilfs_dat_commit_end().
 
-So this warning still seems not quite helpful because:
-  * There is no guarantee the node is online for __GFP_THISNODE context
-    for all the callsites.
-  * Kernel just fails the allocation regardless the warning, and it looks
-    all callsites handle the allocation failure gracefully.
+If this happens, nilfs_dat_commit_end() calls nilfs_dat_commit_free()
+without valid buffer heads in req->pr_desc_bh and req->pr_bitmap_bh, and
+causes the NULL pointer dereference above in
+nilfs_palloc_commit_free_entry() function, which leads to a crash.
 
-Although while the warning has helped to identify a buggy code, it is not
-safe in general and this warning could panic the system with panic-on-warn
-configuration which tends to be used surprisingly often.  So replace
-VM_WARN_ON to pr_warn().  And the warning will be triggered if
-__GFP_NOWARN is set since the allocator would print out warning for such
-case if __GFP_NOWARN is not set.
+Fix this by adding a NULL check on req->pr_desc_bh and req->pr_bitmap_bh
+before nilfs_palloc_commit_free_entry() in nilfs_dat_commit_free().
 
-[shy828301@gmail.com: rename nid to this_node and gfp to warn_gfp]
-  Link: https://lkml.kernel.org/r/20221123193014.153983-1-shy828301@gmail.com
-[akpm@linux-foundation.org: fix whitespace]
-[akpm@linux-foundation.org: print gfp_mask instead of warn_gfp, per Michel]
-Link: https://lkml.kernel.org/r/20221108184357.55614-3-shy828301@gmail.com
-Fixes: 7d8faaf15545 ("mm/madvise: introduce MADV_COLLAPSE sync hugepage collapse")
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reported-by: <syzbot+0044b22d177870ee974f@syzkaller.appspotmail.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+This also calls nilfs_error() in that case to notify that there is a fatal
+flaw in the filesystem metadata and prevent further operations.
+
+Link: https://lkml.kernel.org/r/00000000000097c20205ebaea3d6@google.com
+Link: https://lkml.kernel.org/r/20221114040441.1649940-1-zhangpeng362@huawei.com
+Link: https://lkml.kernel.org/r/20221119120542.17204-1-konishi.ryusuke@gmail.com
+Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+ebe05ee8e98f755f61d0@syzkaller.appspotmail.com
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ fs/nilfs2/dat.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/include/linux/gfp.h~mm-replace-vm_warn_on-to-pr_warn-if-the-node-is-offline-with-__gfp_thisnode
-+++ a/include/linux/gfp.h
-@@ -210,6 +210,20 @@ alloc_pages_bulk_array_node(gfp_t gfp, i
- 	return __alloc_pages_bulk(gfp, nid, NULL, nr_pages, NULL, page_array);
- }
+--- a/fs/nilfs2/dat.c~nilfs2-fix-null-pointer-dereference-in-nilfs_palloc_commit_free_entry
++++ a/fs/nilfs2/dat.c
+@@ -111,6 +111,13 @@ static void nilfs_dat_commit_free(struct
+ 	kunmap_atomic(kaddr);
  
-+static inline void warn_if_node_offline(int this_node, gfp_t gfp_mask)
-+{
-+	gfp_t warn_gfp = gfp_mask & (__GFP_THISNODE|__GFP_NOWARN);
+ 	nilfs_dat_commit_entry(dat, req);
 +
-+	if (warn_gfp != (__GFP_THISNODE|__GFP_NOWARN))
++	if (unlikely(req->pr_desc_bh == NULL || req->pr_bitmap_bh == NULL)) {
++		nilfs_error(dat->i_sb,
++			    "state inconsistency probably due to duplicate use of vblocknr = %llu",
++			    (unsigned long long)req->pr_entry_nr);
 +		return;
-+
-+	if (node_online(this_node))
-+		return;
-+
-+	pr_warn("%pGg allocation from offline node %d\n", &gfp_mask, this_node);
-+	dump_stack();
-+}
-+
- /*
-  * Allocate pages, preferring the node given as nid. The node must be valid and
-  * online. For more general interface, see alloc_pages_node().
-@@ -218,7 +232,7 @@ static inline struct page *
- __alloc_pages_node(int nid, gfp_t gfp_mask, unsigned int order)
- {
- 	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
--	VM_WARN_ON((gfp_mask & __GFP_THISNODE) && !node_online(nid));
-+	warn_if_node_offline(nid, gfp_mask);
- 
- 	return __alloc_pages(gfp_mask, order, nid, NULL);
++	}
+ 	nilfs_palloc_commit_free_entry(dat, req);
  }
-@@ -227,7 +241,7 @@ static inline
- struct folio *__folio_alloc_node(gfp_t gfp, unsigned int order, int nid)
- {
- 	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
--	VM_WARN_ON((gfp & __GFP_THISNODE) && !node_online(nid));
-+	warn_if_node_offline(nid, gfp);
  
- 	return __folio_alloc(gfp, order, nid, NULL);
- }
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from zhangpeng362@huawei.com are
 
+hfs-fix-oob-read-in-__hfs_brec_find.patch
 
