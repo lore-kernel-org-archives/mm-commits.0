@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30025C4167B
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Nov 2022 23:57:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BF5BC4321E
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 20:20:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230298AbiK2X5m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Nov 2022 18:57:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46352 "EHLO
+        id S230119AbiK3UU1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 15:20:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229845AbiK2X50 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2022 18:57:26 -0500
+        with ESMTP id S230017AbiK3UUK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 15:20:10 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 722175B861
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 15:57:24 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F246D4E681
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 12:15:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EF4E6B8196F
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2022 23:57:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A610FC433D6;
-        Tue, 29 Nov 2022 23:57:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AEFBAB81CB6
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 20:15:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6628CC433C1;
+        Wed, 30 Nov 2022 20:15:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669766241;
-        bh=thMhZ7zBI9TU6ZKLj6Ed6hQvAbvyIjOTGkmOSidf0Pk=;
+        s=korg; t=1669839356;
+        bh=W45KfM2IiuaL0Mpu1B1oyOQfotVrEA5ISIYamvdEHBs=;
         h=Date:To:From:Subject:From;
-        b=06gIRW8V20kOEZ2MZtU2uQZvZDSRszjzlC/S5rCU3/Mgyf0nrolzOJh5HRE/Kdq2H
-         +m4TDzrqlLUVi9c82Hd+KwEyJ5OJM9piG7WUJu6AYXIa4li6ObK2DGAvFblEgGq0aE
-         1BO4UGyg9OroIcgURcR5yKrD+4zaWrvMMVMuFFO8=
-Date:   Tue, 29 Nov 2022 15:57:21 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        tsahu@linux.ibm.com, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, linux@rasmusvillemoes.dk,
-        linmiaohe@huawei.com, jhubbard@nvidia.com,
-        harperchen1110@gmail.com, david@redhat.com, almasrymina@google.com,
-        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
+        b=nMCxIEx3LYPli1ZTqrqsi0wuYjmGYUITJGrDFDV00IDepgnombsYTzgwATHYrVVD2
+         sfJB2HULCsdzLn7L9cZRh2DqXpU1JNRZQ4nTcWh3bivKJBP2VodYhzxcxR1D8bkZwu
+         7fsZaIZ/vSVSDa3PNTuWG7cey2t7BVMQXiTiU3Io=
+Date:   Wed, 30 Nov 2022 12:15:55 -0800
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        davidgow@google.com, andreyknvl@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-change-hugetlb-allocation-functions-to-return-a-folio.patch added to mm-unstable branch
-Message-Id: <20221129235721.A610FC433D6@smtp.kernel.org>
+Subject: + kasan-fail-non-kasan-kunit-tests-on-kasan-reports.patch added to mm-unstable branch
+Message-Id: <20221130201556.6628CC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: change hugetlb allocation functions to return a folio
+     Subject: kasan: fail non-kasan KUnit tests on KASAN reports
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-change-hugetlb-allocation-functions-to-return-a-folio.patch
+     kasan-fail-non-kasan-kunit-tests-on-kasan-reports.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-change-hugetlb-allocation-functions-to-return-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-fail-non-kasan-kunit-tests-on-kasan-reports.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,378 +66,156 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: change hugetlb allocation functions to return a folio
-Date: Tue, 29 Nov 2022 14:50:39 -0800
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: fail non-kasan KUnit tests on KASAN reports
+Date: Wed, 30 Nov 2022 16:02:03 +0100
 
-Many hugetlb allocation helper functions have now been converting to
-folios, update their higher level callers to be compatible with folios. 
-alloc_pool_huge_page is reorganized to avoid a smatch warning reporting
-the folio variable is unintialized.
+After the recent changes done to KUnit-enabled KASAN tests, non-KASAN
+KUnit tests stopped being failed when KASAN report is detected.
 
-Link: https://lkml.kernel.org/r/20221129225039.82257-11-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reported-by: Wei Chen <harperchen1110@gmail.com>
-Suggested-by: John Hubbard <jhubbard@nvidia.com>
-Suggested-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Tarun Sahu <tsahu@linux.ibm.com>
+Recover that property by failing the currently running non-KASAN KUnit
+test when KASAN detects and prints a report for a bad memory access.
+
+Note that if the bad accesses happened in a kernel thread that doesn't
+have a reference to the currently running KUnit-test available via
+current->kunit_test, the test won't be failed.  This is a limitation of
+KUnit, which doesn't yet provide a thread-agnostic way to find the
+reference to the currenly running test.
+
+Link: https://lkml.kernel.org/r/7be29a8ea967cee6b7e48d3d5a242d1d0bd96851.1669820505.git.andreyknvl@google.com
+Fixes: 49d9977ac909 ("kasan: check CONFIG_KASAN_KUNIT_TEST instead of CONFIG_KUNIT")
+Fixes: 7ce0ea19d50e ("kasan: switch kunit tests to console tracepoints")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  120 +++++++++++++++++++++++--------------------------
- 1 file changed, 57 insertions(+), 63 deletions(-)
+ mm/kasan/kasan.h      |   12 +++++++++
+ mm/kasan/kasan_test.c |    4 +++
+ mm/kasan/report.c     |   53 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-change-hugetlb-allocation-functions-to-return-a-folio
-+++ a/mm/hugetlb.c
-@@ -1378,23 +1378,23 @@ static void free_gigantic_folio(struct f
- }
- 
- #ifdef CONFIG_CONTIG_ALLOC
--static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
-+static struct folio *alloc_gigantic_folio(struct hstate *h, gfp_t gfp_mask,
- 		int nid, nodemask_t *nodemask)
- {
-+	struct page *page;
- 	unsigned long nr_pages = pages_per_huge_page(h);
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
- 
- #ifdef CONFIG_CMA
- 	{
--		struct page *page;
- 		int node;
- 
- 		if (hugetlb_cma[nid]) {
- 			page = cma_alloc(hugetlb_cma[nid], nr_pages,
- 					huge_page_order(h), true);
- 			if (page)
--				return page;
-+				return page_folio(page);
- 		}
- 
- 		if (!(gfp_mask & __GFP_THISNODE)) {
-@@ -1405,17 +1405,18 @@ static struct page *alloc_gigantic_page(
- 				page = cma_alloc(hugetlb_cma[node], nr_pages,
- 						huge_page_order(h), true);
- 				if (page)
--					return page;
-+					return page_folio(page);
- 			}
- 		}
- 	}
+--- a/mm/kasan/kasan.h~kasan-fail-non-kasan-kunit-tests-on-kasan-reports
++++ a/mm/kasan/kasan.h
+@@ -541,6 +541,18 @@ static inline bool kasan_arch_is_ready(v
+ #error kasan_arch_is_ready only works in KASAN generic outline mode!
  #endif
  
--	return alloc_contig_pages(nr_pages, gfp_mask, nid, nodemask);
-+	page = alloc_contig_pages(nr_pages, gfp_mask, nid, nodemask);
-+	return page ? page_folio(page) : NULL;
- }
- 
- #else /* !CONFIG_CONTIG_ALLOC */
--static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
-+static struct folio *alloc_gigantic_folio(struct hstate *h, gfp_t gfp_mask,
- 					int nid, nodemask_t *nodemask)
- {
- 	return NULL;
-@@ -1423,7 +1424,7 @@ static struct page *alloc_gigantic_page(
- #endif /* CONFIG_CONTIG_ALLOC */
- 
- #else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
--static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
-+static struct folio *alloc_gigantic_folio(struct hstate *h, gfp_t gfp_mask,
- 					int nid, nodemask_t *nodemask)
- {
- 	return NULL;
-@@ -1950,7 +1951,7 @@ pgoff_t hugetlb_basepage_index(struct pa
- 	return (index << compound_order(page_head)) + compound_idx;
- }
- 
--static struct page *alloc_buddy_huge_page(struct hstate *h,
-+static struct folio *alloc_buddy_hugetlb_folio(struct hstate *h,
- 		gfp_t gfp_mask, int nid, nodemask_t *nmask,
- 		nodemask_t *node_alloc_noretry)
- {
-@@ -1988,11 +1989,6 @@ retry:
- 		page = NULL;
- 	}
- 
--	if (page)
--		__count_vm_event(HTLB_BUDDY_PGALLOC);
--	else
--		__count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
--
- 	/*
- 	 * If we did not specify __GFP_RETRY_MAYFAIL, but still got a page this
- 	 * indicates an overall state change.  Clear bit so that we resume
-@@ -2009,7 +2005,13 @@ retry:
- 	if (node_alloc_noretry && !page && alloc_try_hard)
- 		node_set(nid, *node_alloc_noretry);
- 
--	return page;
-+	if (!page) {
-+		__count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
-+		return NULL;
-+	}
++#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
 +
-+	__count_vm_event(HTLB_BUDDY_PGALLOC);
-+	return page_folio(page);
- }
++void kasan_kunit_test_suite_start(void);
++void kasan_kunit_test_suite_end(void);
++
++#else /* CONFIG_KASAN_KUNIT_TEST */
++
++static inline void kasan_kunit_test_suite_start(void) { }
++static inline void kasan_kunit_test_suite_end(void) { }
++
++#endif /* CONFIG_KASAN_KUNIT_TEST */
++
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST) || IS_ENABLED(CONFIG_KASAN_MODULE_TEST)
  
- /*
-@@ -2019,23 +2021,21 @@ retry:
-  * Note that returned page is 'frozen':  ref count of head page and all tail
-  * pages is zero.
-  */
--static struct page *alloc_fresh_huge_page(struct hstate *h,
-+static struct folio *alloc_fresh_hugetlb_folio(struct hstate *h,
- 		gfp_t gfp_mask, int nid, nodemask_t *nmask,
- 		nodemask_t *node_alloc_noretry)
- {
--	struct page *page;
- 	struct folio *folio;
- 	bool retry = false;
- 
- retry:
- 	if (hstate_is_gigantic(h))
--		page = alloc_gigantic_page(h, gfp_mask, nid, nmask);
-+		folio = alloc_gigantic_folio(h, gfp_mask, nid, nmask);
- 	else
--		page = alloc_buddy_huge_page(h, gfp_mask,
-+		folio = alloc_buddy_hugetlb_folio(h, gfp_mask,
- 				nid, nmask, node_alloc_noretry);
--	if (!page)
-+	if (!folio)
- 		return NULL;
--	folio = page_folio(page);
- 	if (hstate_is_gigantic(h)) {
- 		if (!prep_compound_gigantic_folio(folio, huge_page_order(h))) {
- 			/*
-@@ -2052,7 +2052,7 @@ retry:
- 	}
- 	prep_new_hugetlb_folio(h, folio, folio_nid(folio));
- 
--	return page;
-+	return folio;
- }
- 
- /*
-@@ -2062,23 +2062,20 @@ retry:
- static int alloc_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed,
- 				nodemask_t *node_alloc_noretry)
- {
--	struct page *page;
-+	struct folio *folio;
- 	int nr_nodes, node;
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
- 
- 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
--		page = alloc_fresh_huge_page(h, gfp_mask, node, nodes_allowed,
--						node_alloc_noretry);
--		if (page)
--			break;
-+		folio = alloc_fresh_hugetlb_folio(h, gfp_mask, node,
-+					nodes_allowed, node_alloc_noretry);
-+		if (folio) {
-+			free_huge_page(&folio->page); /* free it into the hugepage allocator */
-+			return 1;
-+		}
+ bool kasan_save_enable_multi_shot(void);
+--- a/mm/kasan/kasan_test.c~kasan-fail-non-kasan-kunit-tests-on-kasan-reports
++++ a/mm/kasan/kasan_test.c
+@@ -76,6 +76,9 @@ static int kasan_suite_init(struct kunit
+ 		return -1;
  	}
  
--	if (!page)
--		return 0;
--
--	free_huge_page(page); /* free it into the hugepage allocator */
--
--	return 1;
-+	return 0;
- }
- 
- /*
-@@ -2237,7 +2234,7 @@ int dissolve_free_huge_pages(unsigned lo
- static struct page *alloc_surplus_huge_page(struct hstate *h, gfp_t gfp_mask,
- 						int nid, nodemask_t *nmask)
- {
--	struct page *page = NULL;
-+	struct folio *folio = NULL;
- 
- 	if (hstate_is_gigantic(h))
- 		return NULL;
-@@ -2247,8 +2244,8 @@ static struct page *alloc_surplus_huge_p
- 		goto out_unlock;
- 	spin_unlock_irq(&hugetlb_lock);
- 
--	page = alloc_fresh_huge_page(h, gfp_mask, nid, nmask, NULL);
--	if (!page)
-+	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
-+	if (!folio)
- 		return NULL;
- 
- 	spin_lock_irq(&hugetlb_lock);
-@@ -2260,43 +2257,42 @@ static struct page *alloc_surplus_huge_p
- 	 * codeflow
- 	 */
- 	if (h->surplus_huge_pages >= h->nr_overcommit_huge_pages) {
--		SetHPageTemporary(page);
-+		folio_set_hugetlb_temporary(folio);
- 		spin_unlock_irq(&hugetlb_lock);
--		free_huge_page(page);
-+		free_huge_page(&folio->page);
- 		return NULL;
- 	}
- 
- 	h->surplus_huge_pages++;
--	h->surplus_huge_pages_node[page_to_nid(page)]++;
-+	h->surplus_huge_pages_node[folio_nid(folio)]++;
- 
- out_unlock:
- 	spin_unlock_irq(&hugetlb_lock);
- 
--	return page;
-+	return &folio->page;
- }
- 
- static struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
- 				     int nid, nodemask_t *nmask)
- {
--	struct page *page;
-+	struct folio *folio;
- 
- 	if (hstate_is_gigantic(h))
- 		return NULL;
- 
--	page = alloc_fresh_huge_page(h, gfp_mask, nid, nmask, NULL);
--	if (!page)
-+	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
-+	if (!folio)
- 		return NULL;
- 
- 	/* fresh huge pages are frozen */
--	set_page_refcounted(page);
--
-+	folio_ref_unfreeze(folio, 1);
++	/* Stop failing KUnit tests on KASAN reports. */
++	kasan_kunit_test_suite_start();
++
  	/*
- 	 * We do not account these pages as surplus because they are only
- 	 * temporary and will be released properly on the last reference
- 	 */
--	SetHPageTemporary(page);
-+	folio_set_hugetlb_temporary(folio);
+ 	 * Temporarily enable multi-shot mode. Otherwise, KASAN would only
+ 	 * report the first detected bug and panic the kernel if panic_on_warn
+@@ -94,6 +97,7 @@ static int kasan_suite_init(struct kunit
  
--	return page;
-+	return &folio->page;
- }
- 
- /*
-@@ -2745,19 +2741,18 @@ void restore_reserve_on_error(struct hst
- }
- 
- /*
-- * alloc_and_dissolve_huge_page - Allocate a new page and dissolve the old one
-+ * alloc_and_dissolve_hugetlb_folio - Allocate a new folio and dissolve
-+ * the old one
-  * @h: struct hstate old page belongs to
-- * @old_page: Old page to dissolve
-+ * @old_folio: Old folio to dissolve
-  * @list: List to isolate the page in case we need to
-  * Returns 0 on success, otherwise negated error.
-  */
--static int alloc_and_dissolve_huge_page(struct hstate *h, struct page *old_page,
--					struct list_head *list)
-+static int alloc_and_dissolve_hugetlb_folio(struct hstate *h,
-+			struct folio *old_folio, struct list_head *list)
+ static void kasan_suite_exit(struct kunit_suite *suite)
  {
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
--	struct folio *old_folio = page_folio(old_page);
- 	int nid = folio_nid(old_folio);
--	struct page *new_page;
- 	struct folio *new_folio;
- 	int ret = 0;
++	kasan_kunit_test_suite_end();
+ 	kasan_restore_multi_shot(multishot);
+ 	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
+ 	tracepoint_synchronize_unregister();
+--- a/mm/kasan/report.c~kasan-fail-non-kasan-kunit-tests-on-kasan-reports
++++ a/mm/kasan/report.c
+@@ -9,6 +9,7 @@
+  *        Andrey Konovalov <andreyknvl@gmail.com>
+  */
  
-@@ -2768,26 +2763,25 @@ static int alloc_and_dissolve_huge_page(
- 	 * the pool.  This simplifies and let us do most of the processing
- 	 * under the lock.
- 	 */
--	new_page = alloc_buddy_huge_page(h, gfp_mask, nid, NULL, NULL);
--	if (!new_page)
-+	new_folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid, NULL, NULL);
-+	if (!new_folio)
- 		return -ENOMEM;
--	new_folio = page_folio(new_page);
- 	__prep_new_hugetlb_folio(h, new_folio);
++#include <kunit/test.h>
+ #include <linux/bitops.h>
+ #include <linux/ftrace.h>
+ #include <linux/init.h>
+@@ -112,10 +113,62 @@ EXPORT_SYMBOL_GPL(kasan_restore_multi_sh
  
- retry:
- 	spin_lock_irq(&hugetlb_lock);
- 	if (!folio_test_hugetlb(old_folio)) {
- 		/*
--		 * Freed from under us. Drop new_page too.
-+		 * Freed from under us. Drop new_folio too.
- 		 */
- 		goto free_new;
- 	} else if (folio_ref_count(old_folio)) {
- 		/*
--		 * Someone has grabbed the page, try to isolate it here.
-+		 * Someone has grabbed the folio, try to isolate it here.
- 		 * Fail with -EBUSY if not possible.
- 		 */
- 		spin_unlock_irq(&hugetlb_lock);
--		ret = isolate_hugetlb(old_page, list);
-+		ret = isolate_hugetlb(&old_folio->page, list);
- 		spin_lock_irq(&hugetlb_lock);
- 		goto free_new;
- 	} else if (!folio_test_hugetlb_freed(old_folio)) {
-@@ -2865,7 +2859,7 @@ int isolate_or_dissolve_huge_page(struct
- 	if (folio_ref_count(folio) && !isolate_hugetlb(&folio->page, list))
- 		ret = 0;
- 	else if (!folio_ref_count(folio))
--		ret = alloc_and_dissolve_huge_page(h, &folio->page, list);
-+		ret = alloc_and_dissolve_hugetlb_folio(h, folio, list);
+ #endif
  
- 	return ret;
- }
-@@ -3083,14 +3077,14 @@ static void __init hugetlb_hstate_alloc_
- 			if (!alloc_bootmem_huge_page(h, nid))
- 				break;
- 		} else {
--			struct page *page;
-+			struct folio *folio;
- 			gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
++#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
++
++/*
++ * Whether the KASAN KUnit test suite is currently being executed.
++ * Updated in kasan_test.c.
++ */
++bool kasan_kunit_executing;
++
++void kasan_kunit_test_suite_start(void)
++{
++	WRITE_ONCE(kasan_kunit_executing, true);
++}
++EXPORT_SYMBOL_GPL(kasan_kunit_test_suite_start);
++
++void kasan_kunit_test_suite_end(void)
++{
++	WRITE_ONCE(kasan_kunit_executing, false);
++}
++EXPORT_SYMBOL_GPL(kasan_kunit_test_suite_end);
++
++static bool kasan_kunit_test_suite_executing(void)
++{
++	return READ_ONCE(kasan_kunit_executing);
++}
++
++#else /* CONFIG_KASAN_KUNIT_TEST */
++
++static inline bool kasan_kunit_test_suite_executing(void) { return false; }
++
++#endif /* CONFIG_KASAN_KUNIT_TEST */
++
++#if IS_ENABLED(CONFIG_KUNIT)
++
++static void fail_non_kasan_kunit_test(void)
++{
++	struct kunit *test;
++
++	if (kasan_kunit_test_suite_executing())
++		return;
++
++	test = current->kunit_test;
++	if (test)
++		kunit_set_failure(test);
++}
++
++#else /* CONFIG_KUNIT */
++
++static inline void fail_non_kasan_kunit_test(void) { }
++
++#endif /* CONFIG_KUNIT */
++
+ static DEFINE_SPINLOCK(report_lock);
  
--			page = alloc_fresh_huge_page(h, gfp_mask, nid,
-+			folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
- 					&node_states[N_MEMORY], NULL);
--			if (!page)
-+			if (!folio)
- 				break;
--			free_huge_page(page); /* free it into the hugepage allocator */
-+			free_huge_page(&folio->page); /* free it into the hugepage allocator */
- 		}
- 		cond_resched();
- 	}
+ static void start_report(unsigned long *flags, bool sync)
+ {
++	fail_non_kasan_kunit_test();
+ 	/* Respect the /proc/sys/kernel/traceoff_on_warning interface. */
+ 	disable_trace_on_warning();
+ 	/* Do not allow LOCKDEP mangling KASAN reports. */
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch
-mm-hugetlb_cgroup-convert-hugetlb_cgroup_from_page-to-folios.patch
-mm-hugetlb_cgroup-convert-set_hugetlb_cgroup-to-folios.patch
-mm-hugetlb_cgroup-convert-hugetlb_cgroup_migrate-to-folios.patch
-mm-hugetlb-convert-isolate_or_dissolve_huge_page-to-folios.patch
-mm-hugetlb-convert-free_huge_page-to-folios.patch
-mm-hugetlb_cgroup-convert-hugetlb_cgroup_uncharge_page-to-folios.patch
-mm-hugeltb_cgroup-convert-hugetlb_cgroup_commit_charge-to-folios.patch
-mm-hugetlb-convert-move_hugetlb_state-to-folios.patch
-mm-add-folio-dtor-and-order-setter-functions.patch
-mm-hugetlb-convert-destroy_compound_gigantic_page-to-folios.patch
-mm-hugetlb-convert-dissolve_free_huge_page-to-folios.patch
-mm-hugetlb-convert-remove_hugetlb_page-to-folios.patch
-mm-hugetlb-convert-update_and_free_page-to-folios.patch
-mm-hugetlb-convert-add_hugetlb_page-to-folios-and-add-hugetlb_cma_folio.patch
-mm-hugetlb-convert-enqueue_huge_page-to-folios.patch
-mm-hugetlb-convert-free_gigantic_page-to-folios.patch
-mm-hugetlb-convert-hugetlb-prep-functions-to-folios.patch
-mm-hugetlb-change-hugetlb-allocation-functions-to-return-a-folio.patch
+kasan-fail-non-kasan-kunit-tests-on-kasan-reports.patch
 
