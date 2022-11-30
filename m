@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 372E0C4708D
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DAD8C4321E
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229468AbiK3XCF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 18:02:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37908 "EHLO
+        id S229472AbiK3XCH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 18:02:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229472AbiK3XCB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:02:01 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2515A934F7
+        with ESMTP id S229607AbiK3XCC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:02:02 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E34393A69
         for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:02:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B6D6D61E37
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2D68CB81D4C
         for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:02:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B631C433C1;
-        Wed, 30 Nov 2022 23:02:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA7B3C433D6;
+        Wed, 30 Nov 2022 23:01:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669849320;
-        bh=5ah3wLDAOlClSETTlULzKds6ltHYAtaJYjr2zZ4jxV8=;
+        s=korg; t=1669849318;
+        bh=GNnufNSz4ff9SqRY2vYRaP2TCqzAgQUtjq14VK0NRe0=;
         h=Date:To:From:Subject:From;
-        b=hHEm28A2N4E5Ed6TWtNFUyfuanpAxtRbMo5D1ewfMgBrMKUQx3SYGmWHTbtEZSg48
-         OTgQJu/eFdah1kCwNYa4Sao7QKq3qOJxn2aXbPwD7sCJqF+Z/cvdiiG5RtoGgKBy9j
-         Ytey2JspKHnb9KbX7BeU8iWHc3zQ3wRvh7RFKhBw=
-Date:   Wed, 30 Nov 2022 15:01:59 -0800
+        b=xos7UbLP5VwUGcW4t2o3FBZEElHX9N2doGrIXHW11BoiZPLuHcfLNlpOZ4rdOqX+0
+         /4xSKk4FxmOnuBWBWXKgs2GOZfyoT7PE+FrQFhVX8eJE3sAuU4buO2H8uSdHWh3HXO
+         0KnxeL4YKzUzZPgf+l/bg+92U9m91FyMjDxwBLqE=
+Date:   Wed, 30 Nov 2022 15:01:58 -0800
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch removed from -mm tree
-Message-Id: <20221130230200.1B631C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values.patch removed from -mm tree
+Message-Id: <20221130230158.DA7B3C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,62 +41,118 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: remove parameters of damon_sysfs_region_alloc()
+     Subject: mm/damon/sysfs: use damon_addr_range for region's start and end values
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch
+     mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: remove parameters of damon_sysfs_region_alloc()
-Date: Wed, 26 Oct 2022 22:59:37 +0000
+Subject: mm/damon/sysfs: use damon_addr_range for region's start and end values
+Date: Wed, 26 Oct 2022 22:59:36 +0000
 
-'damon_sysfs_region_alloc()' is always called with zero-filled 'struct
-damon_addr_range', because the start and end addresses should set by
-users.  Remove unnecessary parameters of the function and simplify the
-body by using 'kzalloc()'.
+DAMON has a struct for each address range but DAMON sysfs interface is
+using the low type (unsigned long) for storing the start and end addresses
+of regions.  Use the dedicated struct for better type safety.
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221026225943.100429-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ mm/damon/sysfs.c |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values
 +++ a/mm/damon/sysfs.c
-@@ -1065,17 +1065,9 @@ struct damon_sysfs_region {
- 	struct damon_addr_range ar;
+@@ -1062,13 +1062,11 @@ static struct kobj_type damon_sysfs_sche
+ 
+ struct damon_sysfs_region {
+ 	struct kobject kobj;
+-	unsigned long start;
+-	unsigned long end;
++	struct damon_addr_range ar;
  };
  
--static struct damon_sysfs_region *damon_sysfs_region_alloc(
--		struct damon_addr_range ar)
-+static struct damon_sysfs_region *damon_sysfs_region_alloc(void)
+ static struct damon_sysfs_region *damon_sysfs_region_alloc(
+-		unsigned long start,
+-		unsigned long end)
++		struct damon_addr_range ar)
  {
--	struct damon_sysfs_region *region = kmalloc(sizeof(*region),
--			GFP_KERNEL);
--
--	if (!region)
--		return NULL;
--	region->kobj = (struct kobject){};
--	region->ar = ar;
--	return region;
-+	return kzalloc(sizeof(struct damon_sysfs_region), GFP_KERNEL);
+ 	struct damon_sysfs_region *region = kmalloc(sizeof(*region),
+ 			GFP_KERNEL);
+@@ -1076,8 +1074,7 @@ static struct damon_sysfs_region *damon_
+ 	if (!region)
+ 		return NULL;
+ 	region->kobj = (struct kobject){};
+-	region->start = start;
+-	region->end = end;
++	region->ar = ar;
+ 	return region;
  }
  
- static ssize_t start_show(struct kobject *kobj, struct kobj_attribute *attr,
-@@ -1184,7 +1176,7 @@ static int damon_sysfs_regions_add_dirs(
+@@ -1087,7 +1084,7 @@ static ssize_t start_show(struct kobject
+ 	struct damon_sysfs_region *region = container_of(kobj,
+ 			struct damon_sysfs_region, kobj);
+ 
+-	return sysfs_emit(buf, "%lu\n", region->start);
++	return sysfs_emit(buf, "%lu\n", region->ar.start);
+ }
+ 
+ static ssize_t start_store(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -1095,7 +1092,7 @@ static ssize_t start_store(struct kobjec
+ {
+ 	struct damon_sysfs_region *region = container_of(kobj,
+ 			struct damon_sysfs_region, kobj);
+-	int err = kstrtoul(buf, 0, &region->start);
++	int err = kstrtoul(buf, 0, &region->ar.start);
+ 
+ 	return err ? err : count;
+ }
+@@ -1106,7 +1103,7 @@ static ssize_t end_show(struct kobject *
+ 	struct damon_sysfs_region *region = container_of(kobj,
+ 			struct damon_sysfs_region, kobj);
+ 
+-	return sysfs_emit(buf, "%lu\n", region->end);
++	return sysfs_emit(buf, "%lu\n", region->ar.end);
+ }
+ 
+ static ssize_t end_store(struct kobject *kobj, struct kobj_attribute *attr,
+@@ -1114,7 +1111,7 @@ static ssize_t end_store(struct kobject
+ {
+ 	struct damon_sysfs_region *region = container_of(kobj,
+ 			struct damon_sysfs_region, kobj);
+-	int err = kstrtoul(buf, 0, &region->end);
++	int err = kstrtoul(buf, 0, &region->ar.end);
+ 
+ 	return err ? err : count;
+ }
+@@ -1187,7 +1184,7 @@ static int damon_sysfs_regions_add_dirs(
  	regions->regions_arr = regions_arr;
  
  	for (i = 0; i < nr_regions; i++) {
--		region = damon_sysfs_region_alloc((struct damon_addr_range){});
-+		region = damon_sysfs_region_alloc();
+-		region = damon_sysfs_region_alloc(0, 0);
++		region = damon_sysfs_region_alloc((struct damon_addr_range){});
  		if (!region) {
  			damon_sysfs_regions_rm_dirs(regions);
  			return -ENOMEM;
+@@ -2147,11 +2144,11 @@ static int damon_sysfs_set_regions(struc
+ 		struct damon_sysfs_region *sys_region =
+ 			sysfs_regions->regions_arr[i];
+ 
+-		if (sys_region->start > sys_region->end)
++		if (sys_region->ar.start > sys_region->ar.end)
+ 			goto out;
+ 
+-		ranges[i].start = sys_region->start;
+-		ranges[i].end = sys_region->end;
++		ranges[i].start = sys_region->ar.start;
++		ranges[i].end = sys_region->ar.end;
+ 		if (i == 0)
+ 			continue;
+ 		if (ranges[i - 1].end > ranges[i].start)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
