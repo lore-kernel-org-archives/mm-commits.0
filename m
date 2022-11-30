@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD72DC352A1
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0136C47089
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229630AbiK3XCb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 18:02:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37996 "EHLO
+        id S229507AbiK3XCc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 18:02:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229597AbiK3XCJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:02:09 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCA9D5AE1A
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:02:07 -0800 (PST)
+        with ESMTP id S229483AbiK3XCK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:02:10 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C29E594928
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:02:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 69292B81D12
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:02:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B91EC433B5;
-        Wed, 30 Nov 2022 23:02:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 153B061E37
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:02:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6765DC433D6;
+        Wed, 30 Nov 2022 23:02:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669849326;
-        bh=GTy+YgOSZWLNyuvLTjp9ht+FLzGjC3AHtoDAC2/mhBo=;
+        s=korg; t=1669849328;
+        bh=W1VKgX3ADUgU/j4KD/FhtljEzpUW7Km9KtEM55LU0Qo=;
         h=Date:To:From:Subject:From;
-        b=0f5Ciwd/xHSMrbMqbvpRSxFeaqfVGMA/F+OcKS7lAHtlUPviB4jGwwUTZds+5LXdu
-         MW/ryxtxCg7ykiX9oX/1dpIi/J6eJtnhdMVTQiuP0qvLUQmttotnnog4EFR79U4O0y
-         Cfb5j/n2hAQ+3VTTHF0HdlbS3x0Kk45yoJYPx+rM=
-Date:   Wed, 30 Nov 2022 15:02:05 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        b=uQyBUBF17FqAktoNBdfpuMtcfbyPjJ0hpPdmMutvn3Ik0Ab6mYGUi4lJiw+e/lImb
+         QuocJT5o/0TxW9M/p/NXAVkYV5fZjJjcYKKpICa6ue/alR+3TRJ6XuZrSa/bESRRVG
+         0i+F4u5UhZEUpX+3/GjrwxARxD87d28O0vyHaS2Y=
+Date:   Wed, 30 Nov 2022 15:02:07 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch removed from -mm tree
-Message-Id: <20221130230206.0B91EC433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-reclaim-enable-and-disable-synchronously.patch removed from -mm tree
+Message-Id: <20221130230208.6765DC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,160 +41,141 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/modules: deduplicate init steps for DAMON context setup
+     Subject: mm/damon/reclaim: enable and disable synchronously
 has been removed from the -mm tree.  Its filename was
-     mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch
+     mm-damon-reclaim-enable-and-disable-synchronously.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/modules: deduplicate init steps for DAMON context setup
-Date: Wed, 26 Oct 2022 22:59:42 +0000
+Subject: mm/damon/reclaim: enable and disable synchronously
+Date: Tue, 25 Oct 2022 17:36:47 +0000
 
-DAMON_RECLAIM and DAMON_LRU_SORT has duplicated code for DAMON context and
-target initializations.  Deduplicate the part by implementing a function
-for the initialization in 'modules-common.c' and using it.
+Patch series "mm/damon/reclaim,lru_sort: enable/disable synchronously".
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-12-sj@kernel.org
+Writing a value to DAMON_RECLAIM and DAMON_LRU_SORT's 'enabled' parameters
+turns on or off DAMON in an ansychronous way.  This means the parameter
+cannot be used to read the current status of them.  'kdamond_pid'
+parameter should be used instead for the purpose.  The documentation is
+easy to be read as it works in a synchronous way, so it is a little bit
+confusing.  It also makes the user space tooling dirty.
+
+There's no real reason to have the asynchronous behavior, though.  Simply
+make the parameter works synchronously, rather than updating the document.
+
+The first and second patches changes the behavior of the 'enabled'
+parameter for DAMON_RECLAIM and adds a selftest for the changed behavior,
+respectively.  Following two patches make the same changes for
+DAMON_LRU_SORT.
+
+
+This patch (of 4):
+
+Writing a value to DAMON_RECLAIM's 'enabled' parameter turns on or off
+DAMON in an ansychronous way.  This means the parameter cannot be used to
+read the current status of DAMON_RECLAIM.  'kdamond_pid' parameter should
+be used instead for the purpose.  The documentation is easy to be read as
+it works in a synchronous way, so it is a little bit confusing.  It also
+makes the user space tooling dirty.
+
+There's no real reason to have the asynchronous behavior, though.  Simply
+make the parameter works synchronously, rather than updating the document.
+
+Link: https://lkml.kernel.org/r/20221025173650.90624-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221025173650.90624-2-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/Makefile         |    4 +--
- mm/damon/lru_sort.c       |   17 ++------------
- mm/damon/modules-common.c |   42 ++++++++++++++++++++++++++++++++++++
- mm/damon/modules-common.h |    3 ++
- mm/damon/reclaim.c        |   17 ++------------
- 5 files changed, 53 insertions(+), 30 deletions(-)
+ mm/damon/reclaim.c |   53 ++++++++++++++++++-------------------------
+ 1 file changed, 23 insertions(+), 30 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
-+++ a/mm/damon/lru_sort.c
-@@ -314,25 +314,14 @@ static int damon_lru_sort_after_wmarks_c
- 
- static int __init damon_lru_sort_init(void)
- {
--	ctx = damon_new_ctx();
--	if (!ctx)
--		return -ENOMEM;
-+	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
- 
--	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
--		damon_destroy_ctx(ctx);
--		return -EINVAL;
--	}
-+	if (err)
-+		return err;
- 
- 	ctx->callback.after_wmarks_check = damon_lru_sort_after_wmarks_check;
- 	ctx->callback.after_aggregation = damon_lru_sort_after_aggregation;
- 
--	target = damon_new_target();
--	if (!target) {
--		damon_destroy_ctx(ctx);
--		return -ENOMEM;
--	}
--	damon_add_target(ctx, target);
--
- 	schedule_delayed_work(&damon_lru_sort_timer, 0);
- 
- 	damon_lru_sort_initialized = true;
---- a/mm/damon/Makefile~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
-+++ a/mm/damon/Makefile
-@@ -5,5 +5,5 @@ obj-$(CONFIG_DAMON_VADDR)	+= ops-common.
- obj-$(CONFIG_DAMON_PADDR)	+= ops-common.o paddr.o
- obj-$(CONFIG_DAMON_SYSFS)	+= sysfs-common.o sysfs-schemes.o sysfs.o
- obj-$(CONFIG_DAMON_DBGFS)	+= dbgfs.o
--obj-$(CONFIG_DAMON_RECLAIM)	+= reclaim.o
--obj-$(CONFIG_DAMON_LRU_SORT)	+= lru_sort.o
-+obj-$(CONFIG_DAMON_RECLAIM)	+= modules-common.o reclaim.o
-+obj-$(CONFIG_DAMON_LRU_SORT)	+= modules-common.o lru_sort.o
---- /dev/null
-+++ a/mm/damon/modules-common.c
-@@ -0,0 +1,42 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Common Primitives for DAMON Modules
-+ *
-+ * Author: SeongJae Park <sjpark@amazon.de>
-+ */
-+
-+#include <linux/damon.h>
-+
-+#include "modules-common.h"
-+
-+/*
-+ * Allocate, set, and return a DAMON context for the physical address space.
-+ * @ctxp:	Pointer to save the point to the newly created context
-+ * @targetp:	Pointer to save the point to the newly created target
-+ */
-+int damon_modules_new_paddr_ctx_target(struct damon_ctx **ctxp,
-+		struct damon_target **targetp)
-+{
-+	struct damon_ctx *ctx;
-+	struct damon_target *target;
-+
-+	ctx = damon_new_ctx();
-+	if (!ctx)
-+		return -ENOMEM;
-+
-+	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
-+		damon_destroy_ctx(ctx);
-+		return -EINVAL;
-+	}
-+
-+	target = damon_new_target();
-+	if (!target) {
-+		damon_destroy_ctx(ctx);
-+		return -ENOMEM;
-+	}
-+	damon_add_target(ctx, target);
-+
-+	*ctxp = ctx;
-+	*targetp = target;
-+	return 0;
-+}
---- a/mm/damon/modules-common.h~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
-+++ a/mm/damon/modules-common.h
-@@ -44,3 +44,6 @@
- 			0400);						\
- 	module_param_named(nr_##qt_exceed_name, stat.qt_exceeds, ulong,	\
- 			0400);
-+
-+int damon_modules_new_paddr_ctx_target(struct damon_ctx **ctxp,
-+		struct damon_target **targetp);
---- a/mm/damon/reclaim.c~mm-damon-modules-deduplicate-init-steps-for-damon-context-setup
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-enable-and-disable-synchronously
 +++ a/mm/damon/reclaim.c
-@@ -256,25 +256,14 @@ static int damon_reclaim_after_wmarks_ch
+@@ -9,7 +9,6 @@
  
- static int __init damon_reclaim_init(void)
- {
--	ctx = damon_new_ctx();
--	if (!ctx)
--		return -ENOMEM;
-+	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
+ #include <linux/damon.h>
+ #include <linux/module.h>
+-#include <linux/workqueue.h>
  
--	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
--		damon_destroy_ctx(ctx);
--		return -EINVAL;
+ #include "modules-common.h"
+ 
+@@ -181,38 +180,31 @@ static int damon_reclaim_turn(bool on)
+ 	return 0;
+ }
+ 
+-static struct delayed_work damon_reclaim_timer;
+-static void damon_reclaim_timer_fn(struct work_struct *work)
+-{
+-	static bool last_enabled;
+-	bool now_enabled;
+-
+-	now_enabled = enabled;
+-	if (last_enabled != now_enabled) {
+-		if (!damon_reclaim_turn(now_enabled))
+-			last_enabled = now_enabled;
+-		else
+-			enabled = last_enabled;
 -	}
+-}
+-static DECLARE_DELAYED_WORK(damon_reclaim_timer, damon_reclaim_timer_fn);
+-
+-static bool damon_reclaim_initialized;
+-
+ static int damon_reclaim_enabled_store(const char *val,
+ 		const struct kernel_param *kp)
+ {
+-	int rc = param_set_bool(val, kp);
++	bool is_enabled = enabled;
++	bool enable;
++	int err;
++
++	err = strtobool(val, &enable);
 +	if (err)
 +		return err;
  
+-	if (rc < 0)
+-		return rc;
++	if (is_enabled == enable)
++		return 0;
+ 
+-	/* system_wq might not initialized yet */
+-	if (!damon_reclaim_initialized)
+-		return rc;
++	/* Called before init function.  The function will handle this. */
++	if (!ctx)
++		goto set_param_out;
+ 
+-	schedule_delayed_work(&damon_reclaim_timer, 0);
+-	return 0;
++	err = damon_reclaim_turn(enable);
++	if (err)
++		return err;
++
++set_param_out:
++	enabled = enable;
++	return err;
+ }
+ 
+ static const struct kernel_param_ops enabled_param_ops = {
+@@ -262,10 +254,11 @@ static int __init damon_reclaim_init(voi
  	ctx->callback.after_wmarks_check = damon_reclaim_after_wmarks_check;
  	ctx->callback.after_aggregation = damon_reclaim_after_aggregation;
  
--	target = damon_new_target();
--	if (!target) {
--		damon_destroy_ctx(ctx);
--		return -ENOMEM;
--	}
--	damon_add_target(ctx, target);
--
- 	schedule_delayed_work(&damon_reclaim_timer, 0);
+-	schedule_delayed_work(&damon_reclaim_timer, 0);
++	/* 'enabled' has set before this function, probably via command line */
++	if (enabled)
++		err = damon_reclaim_turn(true);
  
- 	damon_reclaim_initialized = true;
+-	damon_reclaim_initialized = true;
+-	return 0;
++	return err;
+ }
+ 
+ module_init(damon_reclaim_init);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
