@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9797C47088
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C92AFC352A1
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbiK3XCX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229534AbiK3XCX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 30 Nov 2022 18:02:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37908 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229534AbiK3XCG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:02:06 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3934756EE2
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:02:05 -0800 (PST)
+        with ESMTP id S229513AbiK3XCH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:02:07 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C78A94566
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:02:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BD97CB81D4B
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:02:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FF46C43470;
-        Wed, 30 Nov 2022 23:02:02 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E6B38B81D4F
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:02:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 981ADC433C1;
+        Wed, 30 Nov 2022 23:02:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669849322;
-        bh=naeUfJUXxo7qsrY+i/P1hUqKjDLzFfhndStSaU6MIYY=;
+        s=korg; t=1669849323;
+        bh=uEj3Sc2QcCTZWPk0SEIGtFKonPUrnam4BpAymmMEnv8=;
         h=Date:To:From:Subject:From;
-        b=L8q43uDEuzsMAE2doIXI1vfwDOMurmbMLDw64DAlVxrME+65XunCLC6Zsnr9QtL2h
-         dWZxTgaAXIINNni0kb0RmRrpoFOxkQcr/ONV1SDAax1plgNT31O+g2abEBRyKJ323S
-         RjRbwEhgZ4jU/N2qoDlchql0/OBCuD49ks3MrCjk=
-Date:   Wed, 30 Nov 2022 15:02:01 -0800
+        b=vtcM6uCku6z+/fGaXG5AdCXQhSNMRg+aCWVBVm4/jsGdGvvwQZN/casSGN6dZBoZz
+         XaVXunVG2zly8mGhcXgc+02QBwavgD9sJnPOCB5J9LDVLb7yX+49OwEBiw8MxUJF0l
+         sIHl3Mb+hq5E7qgAvQA/YUYdAQHEjH3ICvLDnqQ8=
+Date:   Wed, 30 Nov 2022 15:02:02 -0800
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module.patch removed from -mm tree
-Message-Id: <20221130230202.6FF46C43470@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function.patch removed from -mm tree
+Message-Id: <20221130230203.981ADC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,267 +41,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: move unsigned long range directory to common module
+     Subject: mm/damon/sysfs: split out kdamond-independent schemes stats update logic into a new function
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module.patch
+     mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: move unsigned long range directory to common module
-Date: Wed, 26 Oct 2022 22:59:39 +0000
+Subject: mm/damon/sysfs: split out kdamond-independent schemes stats update logic into a new function
+Date: Wed, 26 Oct 2022 22:59:40 +0000
 
-The implementation of unsigned long type range directories can be reused
-by multiple DAMON sysfs directories including those for DAMON-based
-Operation Schemes and the range of number of monitoring regions.  Move the
-code into the files for DAMON sysfs common logics.
+'damon_sysfs_schemes_update_stats()' is coupled with both
+damon_sysfs_kdamond and damon_sysfs_schemes.  It's a wide range of types
+dependency.  It makes splitting the logics a little bit distracting. 
+Split the function so that each function is coupled with smaller range of
+types.
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-9-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221026225943.100429-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-common.c |   96 ++++++++++++++++++++++++++++++++++++
- mm/damon/sysfs-common.h |   13 ++++
- mm/damon/sysfs.c        |  100 --------------------------------------
- 3 files changed, 109 insertions(+), 100 deletions(-)
+ mm/damon/sysfs.c |   37 ++++++++++++++++++++++---------------
+ 1 file changed, 22 insertions(+), 15 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function
 +++ a/mm/damon/sysfs.c
-@@ -12,106 +12,6 @@
- #include "sysfs-common.h"
+@@ -2246,25 +2246,13 @@ static void damon_sysfs_before_terminate
+ 	mutex_unlock(&ctx->kdamond_lock);
+ }
  
- /*
-- * unsigned long range directory
-- */
--
--struct damon_sysfs_ul_range {
--	struct kobject kobj;
--	unsigned long min;
--	unsigned long max;
--};
--
--static struct damon_sysfs_ul_range *damon_sysfs_ul_range_alloc(
--		unsigned long min,
--		unsigned long max)
--{
--	struct damon_sysfs_ul_range *range = kmalloc(sizeof(*range),
--			GFP_KERNEL);
--
--	if (!range)
--		return NULL;
--	range->kobj = (struct kobject){};
--	range->min = min;
--	range->max = max;
--
--	return range;
--}
--
--static ssize_t min_show(struct kobject *kobj, struct kobj_attribute *attr,
--		char *buf)
--{
--	struct damon_sysfs_ul_range *range = container_of(kobj,
--			struct damon_sysfs_ul_range, kobj);
--
--	return sysfs_emit(buf, "%lu\n", range->min);
--}
--
--static ssize_t min_store(struct kobject *kobj, struct kobj_attribute *attr,
--		const char *buf, size_t count)
--{
--	struct damon_sysfs_ul_range *range = container_of(kobj,
--			struct damon_sysfs_ul_range, kobj);
--	unsigned long min;
--	int err;
--
--	err = kstrtoul(buf, 0, &min);
--	if (err)
--		return err;
--
--	range->min = min;
--	return count;
--}
--
--static ssize_t max_show(struct kobject *kobj, struct kobj_attribute *attr,
--		char *buf)
--{
--	struct damon_sysfs_ul_range *range = container_of(kobj,
--			struct damon_sysfs_ul_range, kobj);
--
--	return sysfs_emit(buf, "%lu\n", range->max);
--}
--
--static ssize_t max_store(struct kobject *kobj, struct kobj_attribute *attr,
--		const char *buf, size_t count)
--{
--	struct damon_sysfs_ul_range *range = container_of(kobj,
--			struct damon_sysfs_ul_range, kobj);
--	unsigned long max;
--	int err;
--
--	err = kstrtoul(buf, 0, &max);
--	if (err)
--		return err;
--
--	range->max = max;
--	return count;
--}
--
--static void damon_sysfs_ul_range_release(struct kobject *kobj)
--{
--	kfree(container_of(kobj, struct damon_sysfs_ul_range, kobj));
--}
--
--static struct kobj_attribute damon_sysfs_ul_range_min_attr =
--		__ATTR_RW_MODE(min, 0600);
--
--static struct kobj_attribute damon_sysfs_ul_range_max_attr =
--		__ATTR_RW_MODE(max, 0600);
--
--static struct attribute *damon_sysfs_ul_range_attrs[] = {
--	&damon_sysfs_ul_range_min_attr.attr,
--	&damon_sysfs_ul_range_max_attr.attr,
--	NULL,
--};
--ATTRIBUTE_GROUPS(damon_sysfs_ul_range);
--
--static struct kobj_type damon_sysfs_ul_range_ktype = {
--	.release = damon_sysfs_ul_range_release,
--	.sysfs_ops = &kobj_sysfs_ops,
--	.default_groups = damon_sysfs_ul_range_groups,
--};
--
 -/*
-  * schemes/stats directory
-  */
+- * damon_sysfs_upd_schemes_stats() - Update schemes stats sysfs files.
+- * @kdamond:	The kobject wrapper that associated to the kdamond thread.
+- *
+- * This function reads the schemes stats of specific kdamond and update the
+- * related values for sysfs files.  This function should be called from DAMON
+- * callbacks while holding ``damon_syfs_lock``, to safely access the DAMON
+- * contexts-internal data and DAMON sysfs variables.
+- */
+-static int damon_sysfs_upd_schemes_stats(struct damon_sysfs_kdamond *kdamond)
++static void damon_sysfs_schemes_update_stats(
++		struct damon_sysfs_schemes *sysfs_schemes,
++		struct damon_ctx *ctx)
+ {
+-	struct damon_ctx *ctx = kdamond->damon_ctx;
+-	struct damon_sysfs_schemes *sysfs_schemes;
+ 	struct damos *scheme;
+ 	int schemes_idx = 0;
  
---- a/mm/damon/sysfs-common.c~mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module
-+++ a/mm/damon/sysfs-common.c
-@@ -5,7 +5,103 @@
-  * Author: SeongJae Park <sj@kernel.org>
-  */
+-	if (!ctx)
+-		return -EINVAL;
+-	sysfs_schemes = kdamond->contexts->contexts_arr[0]->schemes;
+ 	damon_for_each_scheme(scheme, ctx) {
+ 		struct damon_sysfs_stats *sysfs_stats;
  
-+#include <linux/slab.h>
+@@ -2279,6 +2267,25 @@ static int damon_sysfs_upd_schemes_stats
+ 		sysfs_stats->sz_applied = scheme->stat.sz_applied;
+ 		sysfs_stats->qt_exceeds = scheme->stat.qt_exceeds;
+ 	}
++}
 +
- #include "sysfs-common.h"
- 
- DEFINE_MUTEX(damon_sysfs_lock);
- 
 +/*
-+ * unsigned long range directory
++ * damon_sysfs_upd_schemes_stats() - Update schemes stats sysfs files.
++ * @kdamond:	The kobject wrapper that associated to the kdamond thread.
++ *
++ * This function reads the schemes stats of specific kdamond and update the
++ * related values for sysfs files.  This function should be called from DAMON
++ * callbacks while holding ``damon_syfs_lock``, to safely access the DAMON
++ * contexts-internal data and DAMON sysfs variables.
 + */
-+
-+struct damon_sysfs_ul_range *damon_sysfs_ul_range_alloc(
-+		unsigned long min,
-+		unsigned long max)
++static int damon_sysfs_upd_schemes_stats(struct damon_sysfs_kdamond *kdamond)
 +{
-+	struct damon_sysfs_ul_range *range = kmalloc(sizeof(*range),
-+			GFP_KERNEL);
++	struct damon_ctx *ctx = kdamond->damon_ctx;
 +
-+	if (!range)
-+		return NULL;
-+	range->kobj = (struct kobject){};
-+	range->min = min;
-+	range->max = max;
-+
-+	return range;
-+}
-+
-+static ssize_t min_show(struct kobject *kobj, struct kobj_attribute *attr,
-+		char *buf)
-+{
-+	struct damon_sysfs_ul_range *range = container_of(kobj,
-+			struct damon_sysfs_ul_range, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", range->min);
-+}
-+
-+static ssize_t min_store(struct kobject *kobj, struct kobj_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct damon_sysfs_ul_range *range = container_of(kobj,
-+			struct damon_sysfs_ul_range, kobj);
-+	unsigned long min;
-+	int err;
-+
-+	err = kstrtoul(buf, 0, &min);
-+	if (err)
-+		return err;
-+
-+	range->min = min;
-+	return count;
-+}
-+
-+static ssize_t max_show(struct kobject *kobj, struct kobj_attribute *attr,
-+		char *buf)
-+{
-+	struct damon_sysfs_ul_range *range = container_of(kobj,
-+			struct damon_sysfs_ul_range, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", range->max);
-+}
-+
-+static ssize_t max_store(struct kobject *kobj, struct kobj_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct damon_sysfs_ul_range *range = container_of(kobj,
-+			struct damon_sysfs_ul_range, kobj);
-+	unsigned long max;
-+	int err;
-+
-+	err = kstrtoul(buf, 0, &max);
-+	if (err)
-+		return err;
-+
-+	range->max = max;
-+	return count;
-+}
-+
-+void damon_sysfs_ul_range_release(struct kobject *kobj)
-+{
-+	kfree(container_of(kobj, struct damon_sysfs_ul_range, kobj));
-+}
-+
-+static struct kobj_attribute damon_sysfs_ul_range_min_attr =
-+		__ATTR_RW_MODE(min, 0600);
-+
-+static struct kobj_attribute damon_sysfs_ul_range_max_attr =
-+		__ATTR_RW_MODE(max, 0600);
-+
-+static struct attribute *damon_sysfs_ul_range_attrs[] = {
-+	&damon_sysfs_ul_range_min_attr.attr,
-+	&damon_sysfs_ul_range_max_attr.attr,
-+	NULL,
-+};
-+ATTRIBUTE_GROUPS(damon_sysfs_ul_range);
-+
-+struct kobj_type damon_sysfs_ul_range_ktype = {
-+	.release = damon_sysfs_ul_range_release,
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_groups = damon_sysfs_ul_range_groups,
-+};
-+
---- a/mm/damon/sysfs-common.h~mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module
-+++ a/mm/damon/sysfs-common.h
-@@ -9,3 +9,16 @@
- #include <linux/kobject.h>
++	if (!ctx)
++		return -EINVAL;
++	damon_sysfs_schemes_update_stats(
++			kdamond->contexts->contexts_arr[0]->schemes, ctx);
+ 	return 0;
+ }
  
- extern struct mutex damon_sysfs_lock;
-+
-+struct damon_sysfs_ul_range {
-+	struct kobject kobj;
-+	unsigned long min;
-+	unsigned long max;
-+};
-+
-+struct damon_sysfs_ul_range *damon_sysfs_ul_range_alloc(
-+		unsigned long min,
-+		unsigned long max);
-+void damon_sysfs_ul_range_release(struct kobject *kobj);
-+
-+extern struct kobj_type damon_sysfs_ul_range_ktype;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
