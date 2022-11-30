@@ -2,39 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 497B1C4708E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC08DC636F8
 	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 22:52:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229722AbiK3Wv6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 17:51:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58116 "EHLO
+        id S229724AbiK3Wv7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 17:51:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229724AbiK3Wvv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 17:51:51 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 225698DFED;
-        Wed, 30 Nov 2022 14:51:50 -0800 (PST)
+        with ESMTP id S229539AbiK3Wvw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 17:51:52 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8855D1F609;
+        Wed, 30 Nov 2022 14:51:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D3DB7B81D12;
-        Wed, 30 Nov 2022 22:51:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 912A7C433D6;
-        Wed, 30 Nov 2022 22:51:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 241DB61D53;
+        Wed, 30 Nov 2022 22:51:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79EF4C433D6;
+        Wed, 30 Nov 2022 22:51:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669848707;
-        bh=QNlu7uBKlHkTo8d3sbNCwpzjq0HKdwijBeFxAA8c37k=;
+        s=korg; t=1669848710;
+        bh=YEXcZh2hOnrutTFjMcvXJ7B95vvTadjKtK+eduTf+yM=;
         h=Date:To:From:Subject:From;
-        b=0oJpGxezsZWuEBH4O4dbBjXtFB2n6eybCOD0gFkDtRhwBm+Bpnbjot2pQQMemdfLu
-         ZuXVPZA+xyGMdXSqWsId4VSvGV524B56IWbEoOYhsfgdewmqUdxIi7u8qCcwiF0+2X
-         2SlULl2VSOo3VLaMJTlGyynyeLABkYO47RN3wvzo=
-Date:   Wed, 30 Nov 2022 14:51:46 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        shy828301@gmail.com, peterx@redhat.com, jhubbard@nvidia.com,
-        david@redhat.com, jannh@google.com, akpm@linux-foundation.org
+        b=hfnHqvIxhah1IDqb+dyw5CWGIO4bd9rPaalzdISur5aUSR9SgF1nOxIbUW1DJf6ox
+         hcks5GMl4JejUfvNjglh6Vq035rfh+/HJd0MYRP3CHQZL+c+h287Hzb5yJ5MqkH5xP
+         TUj5tpzSBR4yvlIfanh177sK9nx4eRu5+KceaeEQ=
+Date:   Wed, 30 Nov 2022 14:51:49 -0800
+To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
+        tzimmermann@suse.de, trix@redhat.com, sunpeng.li@amd.com,
+        stable@vger.kernel.org, Rodrigo.Siqueira@amd.com,
+        ndesaulniers@google.com, nathan@kernel.org, mripard@kernel.org,
+        maarten.lankhorst@linux.intel.com, harry.wentland@amd.com,
+        daniel@ffwll.ch, christian.koenig@amd.com, arnd@arndb.de,
+        alexander.deucher@amd.com, airlied@gmail.com, lee@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-khugepaged-fix-gup-fast-interaction-by-sending-ipi.patch removed from -mm tree
-Message-Id: <20221130225147.912A7C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] drm-amdgpu-temporarily-disable-broken-clang-builds-due-to-blown-stack-frame.patch removed from -mm tree
+Message-Id: <20221130225150.79EF4C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,103 +47,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: fix GUP-fast interaction by sending IPI
+     Subject: drm/amdgpu: temporarily disable broken Clang builds due to blown stack-frame
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-fix-gup-fast-interaction-by-sending-ipi.patch
+     drm-amdgpu-temporarily-disable-broken-clang-builds-due-to-blown-stack-frame.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm/khugepaged: fix GUP-fast interaction by sending IPI
-Date: Fri, 25 Nov 2022 22:37:13 +0100
+From: Lee Jones <lee@kernel.org>
+Subject: drm/amdgpu: temporarily disable broken Clang builds due to blown stack-frame
+Date: Fri, 25 Nov 2022 12:07:49 +0000
 
-Since commit 70cbc3cc78a99 ("mm: gup: fix the fast GUP race against THP
-collapse"), the lockless_pages_from_mm() fastpath rechecks the pmd_t to
-ensure that the page table was not removed by khugepaged in between.
+Patch series "Fix a bunch of allmodconfig errors", v2.
 
-However, lockless_pages_from_mm() still requires that the page table is
-not concurrently freed.  Fix it by sending IPIs (if the architecture uses
-semi-RCU-style page table freeing) before freeing/reusing page tables.
+Since b339ec9c229aa ("kbuild: Only default to -Werror if COMPILE_TEST")
+WERROR now defaults to COMPILE_TEST meaning that it's enabled for
+allmodconfig builds.  This leads to some interesting build failures when
+using Clang, each resolved in this set.
 
-Link: https://lkml.kernel.org/r/20221129154730.2274278-2-jannh@google.com
-Link: https://lkml.kernel.org/r/20221128180252.1684965-2-jannh@google.com
-Link: https://lkml.kernel.org/r/20221125213714.4115729-2-jannh@google.com
-Fixes: ba76149f47d8 ("thp: khugepaged")
-Signed-off-by: Jann Horn <jannh@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
+With this set applied, I am able to obtain a successful allmodconfig Arm
+build.
+
+
+This patch (of 2):
+
+calculate_bandwidth() is presently broken on all !(X86_64 || SPARC64 ||
+ARM64) architectures built with Clang (all released versions), whereby the
+stack frame gets blown up to well over 5k.  This would cause an immediate
+kernel panic on most architectures.  We'll revert this when the following
+bug report has been resolved:
+https://github.com/llvm/llvm-project/issues/41896.
+
+Link: https://lkml.kernel.org/r/20221125120750.3537134-1-lee@kernel.org
+Link: https://lkml.kernel.org/r/20221125120750.3537134-2-lee@kernel.org
+Signed-off-by: Lee Jones <lee@kernel.org>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: "Christian König" <christian.koenig@amd.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Harry Wentland <harry.wentland@amd.com>
+Cc: Lee Jones <lee@kernel.org>
+Cc: Leo Li <sunpeng.li@amd.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
+Cc: Rodrigo Siqueira <Rodrigo.Siqueira@amd.com>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Tom Rix <trix@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |    4 ++++
- mm/khugepaged.c           |    2 ++
- mm/mmu_gather.c           |    4 +---
- 3 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/amd/display/Kconfig |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/include/asm-generic/tlb.h~mm-khugepaged-fix-gup-fast-interaction-by-sending-ipi
-+++ a/include/asm-generic/tlb.h
-@@ -222,12 +222,16 @@ extern void tlb_remove_table(struct mmu_
- #define tlb_needs_table_invalidate() (true)
- #endif
+--- a/drivers/gpu/drm/amd/display/Kconfig~drm-amdgpu-temporarily-disable-broken-clang-builds-due-to-blown-stack-frame
++++ a/drivers/gpu/drm/amd/display/Kconfig
+@@ -5,6 +5,7 @@ menu "Display Engine Configuration"
+ config DRM_AMD_DC
+ 	bool "AMD DC - Enable new display engine"
+ 	default y
++	depends on BROKEN || !CC_IS_CLANG || X86_64 || SPARC64 || ARM64
+ 	select SND_HDA_COMPONENT if SND_HDA_CORE
+ 	select DRM_AMD_DC_DCN if (X86 || PPC_LONG_DOUBLE_128)
+ 	help
+@@ -12,6 +13,12 @@ config DRM_AMD_DC
+ 	  support for AMDGPU. This adds required support for Vega and
+ 	  Raven ASICs.
  
-+void tlb_remove_table_sync_one(void);
++	  calculate_bandwidth() is presently broken on all !(X86_64 || SPARC64 || ARM64)
++	  architectures built with Clang (all released versions), whereby the stack
++	  frame gets blown up to well over 5k.  This would cause an immediate kernel
++	  panic on most architectures.  We'll revert this when the following bug report
++	  has been resolved: https://github.com/llvm/llvm-project/issues/41896.
 +
- #else
- 
- #ifdef tlb_needs_table_invalidate
- #error tlb_needs_table_invalidate() requires MMU_GATHER_RCU_TABLE_FREE
- #endif
- 
-+static inline void tlb_remove_table_sync_one(void) { }
-+
- #endif /* CONFIG_MMU_GATHER_RCU_TABLE_FREE */
- 
- 
---- a/mm/khugepaged.c~mm-khugepaged-fix-gup-fast-interaction-by-sending-ipi
-+++ a/mm/khugepaged.c
-@@ -1051,6 +1051,7 @@ static int collapse_huge_page(struct mm_
- 	_pmd = pmdp_collapse_flush(vma, address, pmd);
- 	spin_unlock(pmd_ptl);
- 	mmu_notifier_invalidate_range_end(&range);
-+	tlb_remove_table_sync_one();
- 
- 	spin_lock(pte_ptl);
- 	result =  __collapse_huge_page_isolate(vma, address, pte, cc,
-@@ -1410,6 +1411,7 @@ static void collapse_and_free_pmd(struct
- 		lockdep_assert_held_write(&vma->anon_vma->root->rwsem);
- 
- 	pmd = pmdp_collapse_flush(vma, addr, pmdp);
-+	tlb_remove_table_sync_one();
- 	mm_dec_nr_ptes(mm);
- 	page_table_check_pte_clear_range(mm, addr, pmd);
- 	pte_free(mm, pmd_pgtable(pmd));
---- a/mm/mmu_gather.c~mm-khugepaged-fix-gup-fast-interaction-by-sending-ipi
-+++ a/mm/mmu_gather.c
-@@ -153,7 +153,7 @@ static void tlb_remove_table_smp_sync(vo
- 	/* Simply deliver the interrupt */
- }
- 
--static void tlb_remove_table_sync_one(void)
-+void tlb_remove_table_sync_one(void)
- {
- 	/*
- 	 * This isn't an RCU grace period and hence the page-tables cannot be
-@@ -177,8 +177,6 @@ static void tlb_remove_table_free(struct
- 
- #else /* !CONFIG_MMU_GATHER_RCU_TABLE_FREE */
- 
--static void tlb_remove_table_sync_one(void) { }
--
- static void tlb_remove_table_free(struct mmu_table_batch *batch)
- {
- 	__tlb_remove_table_free(batch);
+ config DRM_AMD_DC_DCN
+ 	def_bool n
+ 	help
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from lee@kernel.org are
 
 
