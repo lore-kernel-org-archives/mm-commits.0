@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95482C47088
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:51:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6456C352A1
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:52:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229507AbiK3XvF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 18:51:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39418 "EHLO
+        id S229918AbiK3XwW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 18:52:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39538 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229472AbiK3XvE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:51:04 -0500
+        with ESMTP id S229472AbiK3XwU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:52:20 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4280970DDC
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:51:03 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39E9377415
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:52:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CFEA061E5B
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:51:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D5F2C433D6;
-        Wed, 30 Nov 2022 23:51:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CA70861E66
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:52:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2909CC433D7;
+        Wed, 30 Nov 2022 23:52:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852262;
-        bh=jkz/pMjIYSRKxr9lrVdqf/V694PMCmMy6geiaSILmLc=;
+        s=korg; t=1669852339;
+        bh=65RdSb/HtmMggns13F9f0ofp+YTBjjdeTb9mDbZpVog=;
         h=Date:To:From:Subject:From;
-        b=hj5XfJcQx+jv1FUsx8HYCg1CJPy3zMZgGOdlqo1Iinn7eiv115WY5VSsH6/6YnEyl
-         1Mj/GrpG/mqIR3qhJ2ofZQNMsauPCoS5nzsWj8OL7uPslxlhJcG+wnSlYl9o6Qkpt7
-         6aPIizW0/9TPTEM08F9C9LxHjQ3I7GVmk/ael+1I=
-Date:   Wed, 30 Nov 2022 15:51:01 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        mgorman@techsingularity.net, akpm@linux-foundation.org
+        b=B6qoKR80+w3G6HtpYwQQ4RWHNRMChs45Z0PV4sObv99QmoHu4TmZn7wCPtLWkumU+
+         ID2MqlCHo1ilBzta1zKwYLCQavnWTkqxsAHGNLW4oDJDwBXcdeA3SynQJHZi/rLvqM
+         PGTAqG3D5Pxx1ln4efTpMAodVutOYGy4A8Zr2/FA=
+Date:   Wed, 30 Nov 2022 15:52:18 -0800
+To:     mm-commits@vger.kernel.org, shr@devkernel.io, sfr@canb.auug.org.au,
+        clm@meta.com, axboe@kernel.dk, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations-fix.patch removed from -mm tree
-Message-Id: <20221130235102.1D5F2C433D6@smtp.kernel.org>
+Subject: [folded-merged] mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch removed from -mm tree
+Message-Id: <20221130235219.2909CC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,66 +42,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations -fix
+     Subject: mm-document-sys-class-bdi-bdi-min_bytes-knob-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations-fix.patch
+     mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch
 
-This patch was dropped because it was folded into mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch
+This patch was dropped because it was folded into mm-document-sys-class-bdi-bdi-min_bytes-knob.patch
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations -fix
-Date: Tue, 22 Nov 2022 13:12:28 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-document-sys-class-bdi-bdi-min_bytes-knob-fix
+Date: Tue Nov 22 02:57:12 PM PST 2022
 
-As noted by Vlastimil Babka, the migratetype might be wrong if a PCP was
-not locked so check the migrate type early.  Similarly the !pcp check is
-generally unlikely so explicitly tagging it makes sense.
+fix htmldocs warnings
 
-This is a fix for the mm-unstable patch
-mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch
-
-Link: https://lkml.kernel.org/r/20221122131229.5263-2-mgorman@techsingularity.net
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Chris Mason <clm@meta.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Stefan Roesch <shr@devkernel.io>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/ABI/testing/sysfs-class-bdi |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations-fix
-+++ a/mm/page_alloc.c
-@@ -3523,6 +3523,7 @@ void free_unref_page_list(struct list_he
- 		struct zone *zone = page_zone(page);
+--- a/Documentation/ABI/testing/sysfs-class-bdi~mm-document-sys-class-bdi-bdi-min_bytes-knob-fix
++++ a/Documentation/ABI/testing/sysfs-class-bdi
+@@ -67,7 +67,7 @@ Description:
  
- 		list_del(&page->lru);
-+		migratetype = get_pcppage_migratetype(page);
+ 	The 'min_bytes' parameter allows assigning a minimum
+ 	percentage of the write-back cache to a particular device
+-    expressed in bytes.
++	expressed in bytes.
+ 	For example, this is useful for providing a minimum QoS.
  
- 		/* Different zone, different pcp lock. */
- 		if (zone != locked_zone) {
-@@ -3537,7 +3538,7 @@ void free_unref_page_list(struct list_he
- 			 */
- 			pcp_trylock_prepare(UP_flags);
- 			pcp = pcp_spin_trylock(zone->per_cpu_pageset);
--			if (!pcp) {
-+			if (unlikely(!pcp)) {
- 				pcp_trylock_finish(UP_flags);
- 				free_one_page(zone, page, page_to_pfn(page),
- 					      0, migratetype, FPI_NONE);
-@@ -3552,7 +3553,6 @@ void free_unref_page_list(struct list_he
- 		 * Non-isolated types over MIGRATE_PCPTYPES get added
- 		 * to the MIGRATE_MOVABLE pcp list.
- 		 */
--		migratetype = get_pcppage_migratetype(page);
- 		if (unlikely(migratetype >= MIGRATE_PCPTYPES))
- 			migratetype = MIGRATE_MOVABLE;
- 
+ 	(read-write)
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-always-remove-pages-from-temporary-list.patch
-mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch
-mm-page_alloc-simplify-locking-during-free_unref_page_list.patch
+mm-document-sys-class-bdi-bdi-min_bytes-knob.patch
+mm-document-sys-class-bdi-bdi-max_ratio_fine-knob-fix.patch
+mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch
+mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+mm-gup-remove-foll_migration-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
 
