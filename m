@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDEDCC352A1
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6D45C47089
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 23:02:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229629AbiK3XCp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229476AbiK3XCp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 30 Nov 2022 18:02:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37976 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229476AbiK3XCX (ORCPT
+        with ESMTP id S229612AbiK3XCX (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 18:02:23 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5147950DA
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:02:10 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9EB8950E6
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 15:02:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 26D61CE1B75
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:02:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EB68C43470;
-        Wed, 30 Nov 2022 23:02:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5AB4461E37
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 23:02:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1529C433D6;
+        Wed, 30 Nov 2022 23:02:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669849327;
-        bh=Ubq0qps/WVwCmd6nSpwW7EKJqV3LarIPcgMtb2hY6dQ=;
+        s=korg; t=1669849330;
+        bh=vELS25PQcgv2HFpLymY3jtWA0ifEJlzqbCb+k8Cqrho=;
         h=Date:To:From:Subject:From;
-        b=trugFkc7t7mpwNs8l9goB8sdLoyjZZXhkfFW7/SYxJ1Ns/l+EjIBHM/fyh/xCe4Mg
-         M0djQoW/LSAHhZqsHCL1lvuZqQk8b0WS/D3MiZscwYqlH+sBBOe7PPq+1bIDlLkEz6
-         HAN8zkZwV8lFtNAm41ilZB1P3qbCzoFgtNNuMV9U=
-Date:   Wed, 30 Nov 2022 15:02:06 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        b=QfphSQn/dh2GW5EkbtDrv376yKh1Voy6SQcfYanGkkNVD39B5HlLsvhsm96xiUALZ
+         K1aeLCOqsWcSv3sTcja9EEUrdMNn81JoVfWghVR7kZrJo1UHAo2HkCm/RHr3NbFAHw
+         r9Ky5dFe//euKxYKjv29L5+jAMh25Ssf3ZFO2RXU=
+Date:   Wed, 30 Nov 2022 15:02:10 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch removed from -mm tree
-Message-Id: <20221130230207.2EB68C43470@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-lru_sort-enable-and-disable-synchronously.patch removed from -mm tree
+Message-Id: <20221130230210.B1529C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,55 +41,119 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/{reclaim,lru_sort}: remove unnecessarily included headers
+     Subject: mm/damon/lru_sort: enable and disable synchronously
 has been removed from the -mm tree.  Its filename was
-     mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch
+     mm-damon-lru_sort-enable-and-disable-synchronously.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/{reclaim,lru_sort}: remove unnecessarily included headers
-Date: Wed, 26 Oct 2022 22:59:43 +0000
+Subject: mm/damon/lru_sort: enable and disable synchronously
+Date: Tue, 25 Oct 2022 17:36:49 +0000
 
-Some headers that 'reclaim.c' and 'lru_sort.c' are including are
-unnecessary now owing to previous cleanups and refactorings.  Remove
-those.
+Writing a value to DAMON_RECLAIM's 'enabled' parameter turns on or off
+DAMON in an ansychronous way.  This means the parameter cannot be used to
+read the current status of DAMON_RECLAIM.  'kdamond_pid' parameter should
+be used instead for the purpose.  The documentation is easy to be read as
+it works in a synchronous way, so it is a little bit confusing.  It also
+makes the user space tooling dirty.
 
-Link: https://lkml.kernel.org/r/20221026225943.100429-13-sj@kernel.org
+There's no real reason to have the asynchronous behavior, though.  Simply
+make the parameter works synchronously, rather than updating the document.
+
+Link: https://lkml.kernel.org/r/20221025173650.90624-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    2 --
- mm/damon/reclaim.c  |    2 --
- 2 files changed, 4 deletions(-)
+ mm/damon/lru_sort.c |   51 ++++++++++++++++++------------------------
+ 1 file changed, 22 insertions(+), 29 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-enable-and-disable-synchronously
 +++ a/mm/damon/lru_sort.c
-@@ -8,9 +8,7 @@
- #define pr_fmt(fmt) "damon-lru-sort: " fmt
+@@ -9,7 +9,6 @@
  
  #include <linux/damon.h>
--#include <linux/ioport.h>
  #include <linux/module.h>
--#include <linux/sched.h>
- #include <linux/workqueue.h>
+-#include <linux/workqueue.h>
  
  #include "modules-common.h"
---- a/mm/damon/reclaim.c~mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers
-+++ a/mm/damon/reclaim.c
-@@ -8,9 +8,7 @@
- #define pr_fmt(fmt) "damon-reclaim: " fmt
  
- #include <linux/damon.h>
--#include <linux/ioport.h>
- #include <linux/module.h>
--#include <linux/sched.h>
- #include <linux/workqueue.h>
+@@ -235,38 +234,31 @@ static int damon_lru_sort_turn(bool on)
+ 	return 0;
+ }
  
- #include "modules-common.h"
+-static struct delayed_work damon_lru_sort_timer;
+-static void damon_lru_sort_timer_fn(struct work_struct *work)
+-{
+-	static bool last_enabled;
+-	bool now_enabled;
+-
+-	now_enabled = enabled;
+-	if (last_enabled != now_enabled) {
+-		if (!damon_lru_sort_turn(now_enabled))
+-			last_enabled = now_enabled;
+-		else
+-			enabled = last_enabled;
+-	}
+-}
+-static DECLARE_DELAYED_WORK(damon_lru_sort_timer, damon_lru_sort_timer_fn);
+-
+-static bool damon_lru_sort_initialized;
+-
+ static int damon_lru_sort_enabled_store(const char *val,
+ 		const struct kernel_param *kp)
+ {
+-	int rc = param_set_bool(val, kp);
++	bool is_enabled = enabled;
++	bool enable;
++	int err;
+ 
+-	if (rc < 0)
+-		return rc;
++	err = strtobool(val, &enable);
++	if (err)
++		return err;
+ 
+-	if (!damon_lru_sort_initialized)
+-		return rc;
++	if (is_enabled == enable)
++		return 0;
+ 
+-	schedule_delayed_work(&damon_lru_sort_timer, 0);
++	/* Called before init function.  The function will handle this. */
++	if (!ctx)
++		goto set_param_out;
+ 
+-	return 0;
++	err = damon_lru_sort_turn(enable);
++	if (err)
++		return err;
++
++set_param_out:
++	enabled = enable;
++	return err;
+ }
+ 
+ static const struct kernel_param_ops enabled_param_ops = {
+@@ -320,10 +312,11 @@ static int __init damon_lru_sort_init(vo
+ 	ctx->callback.after_wmarks_check = damon_lru_sort_after_wmarks_check;
+ 	ctx->callback.after_aggregation = damon_lru_sort_after_aggregation;
+ 
+-	schedule_delayed_work(&damon_lru_sort_timer, 0);
++	/* 'enabled' has set before this function, probably via command line */
++	if (enabled)
++		err = damon_lru_sort_turn(true);
+ 
+-	damon_lru_sort_initialized = true;
+-	return 0;
++	return err;
+ }
+ 
+ module_init(damon_lru_sort_init);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
