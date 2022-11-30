@@ -2,38 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C5FAC4321E
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 22:52:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0561AC4708D
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 22:52:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229472AbiK3WwA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229605AbiK3WwA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 30 Nov 2022 17:52:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58150 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229696AbiK3Wvz (ORCPT
+        with ESMTP id S229709AbiK3Wvz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 17:51:55 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09A9C6034D
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 14:51:54 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F3A98E598;
+        Wed, 30 Nov 2022 14:51:54 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 998C961E26
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 22:51:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2377C433D7;
-        Wed, 30 Nov 2022 22:51:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1B0F5B81D4B;
+        Wed, 30 Nov 2022 22:51:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9724C433C1;
+        Wed, 30 Nov 2022 22:51:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669848713;
-        bh=4L1LMTnk11w5RjbW7yi2XwaKRJkrZBBRa1ieDDEN87c=;
+        s=korg; t=1669848711;
+        bh=evvF53w8GxD/57JBkn5RanlX8F+Ck9LbWx8lj8rl2XM=;
         h=Date:To:From:Subject:From;
-        b=gzFRbJ8skoA3t0tn0OA+X9yqHOhMW2a5zAU+kJUnWlj4N9KaiqLfnOnrMM13aIi9P
-         ErB+ozpgghdK9+/BzKp+vAKOYM0xALPYkU5IgXAkPFcgnDpVjRwARMzof4s9kxsxYm
-         1YNJiOJ2C8XuJSczCZ3LikwHcOB541P1bqjm65uc=
-Date:   Wed, 30 Nov 2022 14:51:52 -0800
-To:     mm-commits@vger.kernel.org, sam@gentoo.org, hns@goldelico.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=Go9Q8H7EE5F29VfGdqHbGMuLOsPScCAQQl+l14fMOdrqgaeJUCEPdDpm/N9DesSQ5
+         ESDn4yrLp4hks/EQl/prDx2Bne9NvAIb6t35v61ftSbX4f1YgVFdFHl4M1Te8RsMX/
+         P5cXJ1YeFATev/ozhI11wamPpgPda3FDBdBzQvR8=
+Date:   Wed, 30 Nov 2022 14:51:51 -0800
+To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
+        tzimmermann@suse.de, trix@redhat.com, sunpeng.li@amd.com,
+        stable@vger.kernel.org, Rodrigo.Siqueira@amd.com,
+        ndesaulniers@google.com, nathan@kernel.org, mripard@kernel.org,
+        maarten.lankhorst@linux.intel.com, harry.wentland@amd.com,
+        daniel@ffwll.ch, christian.koenig@amd.com, arnd@arndb.de,
+        alexander.deucher@amd.com, airlied@gmail.com, lee@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] revert-kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible.patch removed from -mm tree
-Message-Id: <20221130225152.F2377C433D7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kconfigdebug-provide-a-little-extra-frame_warn-leeway-when-kasan-is-enabled.patch removed from -mm tree
+Message-Id: <20221130225151.C9724C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,82 +47,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: revert "kbuild: fix -Wimplicit-function-declaration in license_is_gpl_compatible"
+     Subject: Kconfig.debug: provide a little extra FRAME_WARN leeway when KASAN is enabled
 has been removed from the -mm tree.  Its filename was
-     revert-kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible.patch
+     kconfigdebug-provide-a-little-extra-frame_warn-leeway-when-kasan-is-enabled.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "kbuild: fix -Wimplicit-function-declaration in license_is_gpl_compatible"
-Date: Mon Nov 28 01:21:40 PM PST 2022
+From: Lee Jones <lee@kernel.org>
+Subject: Kconfig.debug: provide a little extra FRAME_WARN leeway when KASAN is enabled
+Date: Fri, 25 Nov 2022 12:07:50 +0000
 
-It causes build failures with unusual CC/HOSTCC combinations.
+When enabled, KASAN enlarges function's stack-frames.  Pushing quite a few
+over the current threshold.  This can mainly be seen on 32-bit
+architectures where the present limit (when !GCC) is a lowly 1024-Bytes.
 
-Quoting
-https://lkml.kernel.org/r/A222B1E6-69B8-4085-AD1B-27BDB72CA971@goldelico.com:
-
-  HOSTCC  scripts/mod/modpost.o - due to target missing
-In file included from include/linux/string.h:5,
-                 from scripts/mod/../../include/linux/license.h:5,
-                 from scripts/mod/modpost.c:24:
-include/linux/compiler.h:246:10: fatal error: asm/rwonce.h: No such file or directory
-  246 | #include <asm/rwonce.h>
-      |          ^~~~~~~~~~~~~~
-compilation terminated.
-
-...
-
-The problem is that HOSTCC is not necessarily the same compiler or even
-architecture as CC and pulling in <linux/compiler.h> or <asm/rwonce.h>
-files indirectly isn't a good idea then.
-
-My toolchain is providing HOSTCC = gcc (MacPorts) and CC = arm-linux-gnueabihf
-(built from gcc source) and all running on Darwin.
-
-If I change the include to <string.h> I can then "HOSTCC scripts/mod/modpost.c"
-but then it fails for "CC kernel/module/main.c" not finding <string.h>:
-
-  CC      kernel/module/main.o - due to target missing
-In file included from kernel/module/main.c:43:0:
-./include/linux/license.h:5:20: fatal error: string.h: No such file or directory
- #include <string.h>
-                    ^
-compilation terminated.
-
-Reported-by: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Sam James <sam@gentoo.org>
+Link: https://lkml.kernel.org/r/20221125120750.3537134-3-lee@kernel.org
+Signed-off-by: Lee Jones <lee@kernel.org>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: "Christian König" <christian.koenig@amd.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Harry Wentland <harry.wentland@amd.com>
+Cc: Leo Li <sunpeng.li@amd.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
+Cc: Rodrigo Siqueira <Rodrigo.Siqueira@amd.com>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Tom Rix <trix@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/license.h |    2 --
- 1 file changed, 2 deletions(-)
+ lib/Kconfig.debug |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/license.h~revert-kbuild-fix-wimplicit-function-declaration-in-license_is_gpl_compatible
-+++ a/include/linux/license.h
-@@ -2,8 +2,6 @@
- #ifndef __LICENSE_H
- #define __LICENSE_H
- 
--#include <linux/string.h>
--
- static inline int license_is_gpl_compatible(const char *license)
- {
- 	return (strcmp(license, "GPL") == 0
+--- a/lib/Kconfig.debug~kconfigdebug-provide-a-little-extra-frame_warn-leeway-when-kasan-is-enabled
++++ a/lib/Kconfig.debug
+@@ -399,6 +399,7 @@ config FRAME_WARN
+ 	default 2048 if GCC_PLUGIN_LATENT_ENTROPY
+ 	default 2048 if PARISC
+ 	default 1536 if (!64BIT && XTENSA)
++	default 1280 if KASAN && !64BIT
+ 	default 1024 if !64BIT
+ 	default 2048 if 64BIT
+ 	help
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lee@kernel.org are
 
-mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
-mm-gup-remove-foll_migration-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
-mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
-mm-hugetlb-convert-move_hugetlb_state-to-folios-fix.patch
-mm-introduce-encoded-page-pointers-with-embedded-extra-bits-fix.patch
-mm-delay-page_remove_rmap-until-after-the-tlb-has-been-flushed-fix.patch
-mm-document-sys-class-bdi-bdi-min_bytes-knob-fix.patch
-mm-document-sys-class-bdi-bdi-max_ratio_fine-knob-fix.patch
-mm-document-sys-class-bdi-bdi-min_ratio_fine-knob-fix.patch
 
