@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41F7CC636F9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B528AC47088
 	for <mm-commits@archiver.kernel.org>; Wed, 30 Nov 2022 22:51:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229695AbiK3Wvz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229699AbiK3Wvz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 30 Nov 2022 17:51:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58098 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229699AbiK3Wvu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 17:51:50 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 218B091C0A
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 14:51:46 -0800 (PST)
+        with ESMTP id S229476AbiK3Wvn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 17:51:43 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6184D8E598;
+        Wed, 30 Nov 2022 14:51:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CF60DB81D4E
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 22:51:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FDD4C433B5;
-        Wed, 30 Nov 2022 22:51:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B653061D53;
+        Wed, 30 Nov 2022 22:51:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1311EC433D7;
+        Wed, 30 Nov 2022 22:51:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669848703;
-        bh=v+JDlxWRcMY5Fl38euiA6AVFRpRQaynbIGpNPDcttwg=;
+        s=korg; t=1669848701;
+        bh=p6uj0vBJbTC56O/6SClTa02F/4udZegs6k2B6l0zuUA=;
         h=Date:To:From:Subject:From;
-        b=Ieawu+NJA914PUQyxmfeZC6jEe0D637OseVeBMQt76Ts2QtJSGrKya8GyYPcmGph9
-         uVFqLQnjO7laHndsTNkKLwC9IbY1ZtBCCwIIkWwax8aKZXVHii47Vm53YTphP5jQWw
-         2WYkLDcbPjXr17AyZ7PcU5R5JKYMGqv61O+WJwTI=
-Date:   Wed, 30 Nov 2022 14:51:42 -0800
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        linux@eikelenboom.it, david@redhat.com, jgross@suse.com,
+        b=nBwXrn4ua4ocnGbQ5lqAUJWvnhAxJ6F3eIT5xdFF17mcvfvcmC72VF70o1LHroHex
+         Jv4wm01/nfxcFqAZ12gHeKrcausI89UaLO9aFRYYPwD4OCKGE25nuHIemx3is7T8En
+         qhZjKwxmJEOGpVc+WPQJiPl7LmifVWXvUPim51YM=
+Date:   Wed, 30 Nov 2022 14:51:40 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-introduce-arch_has_hw_nonleaf_pmd_young.patch removed from -mm tree
-Message-Id: <20221130225143.7FDD4C433B5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-fix-wrong-empty-schemes-assumption-under-online-tuning-in-damon_sysfs_set_schemes.patch removed from -mm tree
+Message-Id: <20221130225141.1311EC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,129 +41,131 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: introduce arch_has_hw_nonleaf_pmd_young()
+     Subject: mm/damon/sysfs: fix wrong empty schemes assumption under online tuning in damon_sysfs_set_schemes()
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-arch_has_hw_nonleaf_pmd_young.patch
+     mm-damon-sysfs-fix-wrong-empty-schemes-assumption-under-online-tuning-in-damon_sysfs_set_schemes.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Juergen Gross <jgross@suse.com>
-Subject: mm: introduce arch_has_hw_nonleaf_pmd_young()
-Date: Wed, 23 Nov 2022 07:45:10 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs: fix wrong empty schemes assumption under online tuning in damon_sysfs_set_schemes()
+Date: Tue, 22 Nov 2022 19:48:31 +0000
 
-When running as a Xen PV guests commit eed9a328aa1a ("mm: x86: add
-CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG") can cause a protection violation in
-pmdp_test_and_clear_young():
+Commit da87878010e5 ("mm/damon/sysfs: support online inputs update") made
+'damon_sysfs_set_schemes()' to be called for running DAMON context, which
+could have schemes.  In the case, DAMON sysfs interface is supposed to
+update, remove, or add schemes to reflect the sysfs files.  However, the
+code is assuming the DAMON context wouldn't have schemes at all, and
+therefore creates and adds new schemes.  As a result, the code doesn't
+work as intended for online schemes tuning and could have more than
+expected memory footprint.  The schemes are all in the DAMON context, so
+it doesn't leak the memory, though.
 
- BUG: unable to handle page fault for address: ffff8880083374d0
- #PF: supervisor write access in kernel mode
- #PF: error_code(0x0003) - permissions violation
- PGD 3026067 P4D 3026067 PUD 3027067 PMD 7fee5067 PTE 8010000008337065
- Oops: 0003 [#1] PREEMPT SMP NOPTI
- CPU: 7 PID: 158 Comm: kswapd0 Not tainted 6.1.0-rc5-20221118-doflr+ #1
- RIP: e030:pmdp_test_and_clear_young+0x25/0x40
+Remove the wrong asssumption (the DAMON context wouldn't have schemes) in
+'damon_sysfs_set_schemes()' to fix the bug.
 
-This happens because the Xen hypervisor can't emulate direct writes to
-page table entries other than PTEs.
-
-This can easily be fixed by introducing arch_has_hw_nonleaf_pmd_young()
-similar to arch_has_hw_pte_young() and test that instead of
-CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG.
-
-Link: https://lkml.kernel.org/r/20221123064510.16225-1-jgross@suse.com
-Fixes: eed9a328aa1a ("mm: x86: add CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG")
-Signed-off-by: Juergen Gross <jgross@suse.com>
-Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Tested-by: Sander Eikelenboom <linux@eikelenboom.it>
-Acked-by: David Hildenbrand <david@redhat.com>	[core changes]
+Link: https://lkml.kernel.org/r/20221122194831.3472-1-sj@kernel.org
+Fixes: da87878010e5 ("mm/damon/sysfs: support online inputs update")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[5.19+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    8 ++++++++
- include/linux/pgtable.h        |   11 +++++++++++
- mm/vmscan.c                    |   10 +++++-----
- 3 files changed, 24 insertions(+), 5 deletions(-)
+ mm/damon/sysfs.c |   46 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 44 insertions(+), 2 deletions(-)
 
---- a/arch/x86/include/asm/pgtable.h~mm-introduce-arch_has_hw_nonleaf_pmd_young
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1439,6 +1439,14 @@ static inline bool arch_has_hw_pte_young
- 	return true;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-fix-wrong-empty-schemes-assumption-under-online-tuning-in-damon_sysfs_set_schemes
++++ a/mm/damon/sysfs.c
+@@ -2283,12 +2283,54 @@ static struct damos *damon_sysfs_mk_sche
+ 			&wmarks);
  }
  
-+#ifdef CONFIG_XEN_PV
-+#define arch_has_hw_nonleaf_pmd_young arch_has_hw_nonleaf_pmd_young
-+static inline bool arch_has_hw_nonleaf_pmd_young(void)
++static void damon_sysfs_update_scheme(struct damos *scheme,
++		struct damon_sysfs_scheme *sysfs_scheme)
 +{
-+	return !cpu_feature_enabled(X86_FEATURE_XENPV);
-+}
-+#endif
++	struct damon_sysfs_access_pattern *access_pattern =
++		sysfs_scheme->access_pattern;
++	struct damon_sysfs_quotas *sysfs_quotas = sysfs_scheme->quotas;
++	struct damon_sysfs_weights *sysfs_weights = sysfs_quotas->weights;
++	struct damon_sysfs_watermarks *sysfs_wmarks = sysfs_scheme->watermarks;
 +
- #ifdef CONFIG_PAGE_TABLE_CHECK
- static inline bool pte_user_accessible_page(pte_t pte)
++	scheme->pattern.min_sz_region = access_pattern->sz->min;
++	scheme->pattern.max_sz_region = access_pattern->sz->max;
++	scheme->pattern.min_nr_accesses = access_pattern->nr_accesses->min;
++	scheme->pattern.max_nr_accesses = access_pattern->nr_accesses->max;
++	scheme->pattern.min_age_region = access_pattern->age->min;
++	scheme->pattern.max_age_region = access_pattern->age->max;
++
++	scheme->action = sysfs_scheme->action;
++
++	scheme->quota.ms = sysfs_quotas->ms;
++	scheme->quota.sz = sysfs_quotas->sz;
++	scheme->quota.reset_interval = sysfs_quotas->reset_interval_ms;
++	scheme->quota.weight_sz = sysfs_weights->sz;
++	scheme->quota.weight_nr_accesses = sysfs_weights->nr_accesses;
++	scheme->quota.weight_age = sysfs_weights->age;
++
++	scheme->wmarks.metric = sysfs_wmarks->metric;
++	scheme->wmarks.interval = sysfs_wmarks->interval_us;
++	scheme->wmarks.high = sysfs_wmarks->high;
++	scheme->wmarks.mid = sysfs_wmarks->mid;
++	scheme->wmarks.low = sysfs_wmarks->low;
++}
++
+ static int damon_sysfs_set_schemes(struct damon_ctx *ctx,
+ 		struct damon_sysfs_schemes *sysfs_schemes)
  {
---- a/include/linux/pgtable.h~mm-introduce-arch_has_hw_nonleaf_pmd_young
-+++ a/include/linux/pgtable.h
-@@ -267,6 +267,17 @@ static inline int pmdp_clear_flush_young
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- #endif
- 
-+#ifndef arch_has_hw_nonleaf_pmd_young
-+/*
-+ * Return whether the accessed bit in non-leaf PMD entries is supported on the
-+ * local CPU.
-+ */
-+static inline bool arch_has_hw_nonleaf_pmd_young(void)
-+{
-+	return IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG);
-+}
-+#endif
+-	int i;
++	struct damos *scheme, *next;
++	int i = 0;
 +
- #ifndef arch_has_hw_pte_young
- /*
-  * Return whether the accessed bit is supported on the local CPU.
---- a/mm/vmscan.c~mm-introduce-arch_has_hw_nonleaf_pmd_young
-+++ a/mm/vmscan.c
-@@ -3987,7 +3987,7 @@ static void walk_pmd_range_locked(pud_t
- 			goto next;
++	damon_for_each_scheme_safe(scheme, next, ctx) {
++		if (i < sysfs_schemes->nr)
++			damon_sysfs_update_scheme(scheme,
++					sysfs_schemes->schemes_arr[i]);
++		else
++			damon_destroy_scheme(scheme);
++		i++;
++	}
  
- 		if (!pmd_trans_huge(pmd[i])) {
--			if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG) &&
-+			if (arch_has_hw_nonleaf_pmd_young() &&
- 			    get_cap(LRU_GEN_NONLEAF_YOUNG))
- 				pmdp_test_and_clear_young(vma, addr, pmd + i);
- 			goto next;
-@@ -4085,14 +4085,14 @@ restart:
- #endif
- 		walk->mm_stats[MM_NONLEAF_TOTAL]++;
+-	for (i = 0; i < sysfs_schemes->nr; i++) {
++	for (; i < sysfs_schemes->nr; i++) {
+ 		struct damos *scheme, *next;
  
--#ifdef CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG
--		if (get_cap(LRU_GEN_NONLEAF_YOUNG)) {
-+		if (arch_has_hw_nonleaf_pmd_young() &&
-+		    get_cap(LRU_GEN_NONLEAF_YOUNG)) {
- 			if (!pmd_young(val))
- 				continue;
- 
- 			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
- 		}
--#endif
-+
- 		if (!walk->force_scan && !test_bloom_filter(walk->lruvec, walk->max_seq, pmd + i))
- 			continue;
- 
-@@ -5392,7 +5392,7 @@ static ssize_t show_enabled(struct kobje
- 	if (arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))
- 		caps |= BIT(LRU_GEN_MM_WALK);
- 
--	if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG) && get_cap(LRU_GEN_NONLEAF_YOUNG))
-+	if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG))
- 		caps |= BIT(LRU_GEN_NONLEAF_YOUNG);
- 
- 	return snprintf(buf, PAGE_SIZE, "0x%04x\n", caps);
+ 		scheme = damon_sysfs_mk_scheme(sysfs_schemes->schemes_arr[i]);
 _
 
-Patches currently in -mm which might be from jgross@suse.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-core-split-out-damos-charged-region-skip-logic-into-a-new-function.patch
+mm-damon-core-split-damos-application-logic-into-a-new-function.patch
+mm-damon-core-split-out-scheme-stat-update-logic-into-a-new-function.patch
+mm-damon-core-split-out-scheme-quota-adjustment-logic-into-a-new-function.patch
+mm-damon-sysfs-use-damon_addr_range-for-regions-start-and-end-values.patch
+mm-damon-sysfs-remove-parameters-of-damon_sysfs_region_alloc.patch
+mm-damon-sysfs-move-sysfs_lock-to-common-module.patch
+mm-damon-sysfs-move-unsigned-long-range-directory-to-common-module.patch
+mm-damon-sysfs-split-out-kdamond-independent-schemes-stats-update-logic-into-a-new-function.patch
+mm-damon-sysfs-split-out-schemes-directory-implementation-to-separate-file.patch
+mm-damon-modules-deduplicate-init-steps-for-damon-context-setup.patch
+mm-damon-reclaimlru_sort-remove-unnecessarily-included-headers.patch
+mm-damon-reclaim-enable-and-disable-synchronously.patch
+selftests-damon-add-tests-for-damon_reclaims-enabled-parameter.patch
+mm-damon-lru_sort-enable-and-disable-synchronously.patch
+selftests-damon-add-tests-for-damon_lru_sorts-enabled-parameter.patch
+docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch
+docs-admin-guide-mm-damon-usage-fix-wrong-usage-example-of-init_regions-file.patch
+mm-damon-core-add-a-callback-for-scheme-target-regions-check.patch
+mm-damon-sysfs-schemes-implement-schemes-tried_regions-directory.patch
+mm-damon-sysfs-schemes-implement-scheme-region-directory.patch
+mm-damon-sysfs-implement-damos-tried-regions-update-command.patch
+mm-damon-sysfs-implement-damos-tried-regions-update-command-fix.patch
+mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command.patch
+mm-damon-sysfs-schemes-implement-damos-tried-regions-clear-command-fix.patch
+tools-selftets-damon-sysfs-test-tried_regions-directory-existence.patch
+docs-admin-guide-mm-damon-usage-document-schemes-s-tried_regions-sysfs-directory.patch
+docs-abi-damon-document-schemes-s-tried_regions-sysfs-directory.patch
+selftests-damon-test-non-context-inputs-to-rm_contexts-file.patch
 
