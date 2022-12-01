@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6A6EC352A1
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:10:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA04CC4321E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:10:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229715AbiLAAKn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:10:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53446 "EHLO
+        id S229794AbiLAAKp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:10:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230458AbiLAAIm (ORCPT
+        with ESMTP id S230333AbiLAAIm (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:08:42 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1C3683251
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:03:00 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7883B83EA7
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:03:02 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 780B061E6E
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A46DFC433D7;
-        Thu,  1 Dec 2022 00:02:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2903EB81AD6
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:03:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0A32C433D6;
+        Thu,  1 Dec 2022 00:02:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852978;
-        bh=RWmFp2vTvw3y7WZjcrn0jHQCFd2UxoMDmFufhJqYVPE=;
+        s=korg; t=1669852979;
+        bh=a8AF1G5WLHWuNMu7M6phtjKOxEg9jmSQQdwSgFrjQHo=;
         h=Date:To:From:Subject:From;
-        b=Zn3dLpQB9Dkmt3EvChFvUQde2z3Wl63RNhbD8N8RMaFedHN91c5TR9Ekh0ij5+eK0
-         bZlEchtm9SmDcJX1MrMZ4VYb0/HM5p1tL9lwHHm8DkkSl3hr5etxB/NZMpHT7KXIN7
-         JQdiD6sqYP7pUACFLP4VBlpqmMXeW8jcFj2DdPz4=
-Date:   Wed, 30 Nov 2022 16:02:58 -0800
+        b=fCryiEhyr5iTyku0JwVudbFlY8LZ7QYIn6ZdC9gXdwBhGp0KS/fpjogC8rUJd0pLP
+         Mvbt0UjsNMnYptWLNflmOlrJAoLEWpI2a/YDD5rXbJQEasfUGGne/b/XpKFovmtXaa
+         +7ZwBdc+Bkm8wYIGN96ZIWuOjz/P/kjhXtvcB6BY=
+Date:   Wed, 30 Nov 2022 16:02:59 -0800
 To:     mm-commits@vger.kernel.org, clm@meta.com, axboe@kernel.dk,
         shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-bdi_set_min_bytes-function.patch removed from -mm tree
-Message-Id: <20221201000258.A46DFC433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-sys-class-bdi-bdi-min_bytes-knob.patch removed from -mm tree
+Message-Id: <20221201000259.D0A32C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,66 +41,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add bdi_set_min_bytes() function
+     Subject: mm: add /sys/class/bdi/<bdi>/min_bytes knob
 has been removed from the -mm tree.  Its filename was
-     mm-add-bdi_set_min_bytes-function.patch
+     mm-add-sys-class-bdi-bdi-min_bytes-knob.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: add bdi_set_min_bytes() function
-Date: Fri, 18 Nov 2022 16:52:07 -0800
+Subject: mm: add /sys/class/bdi/<bdi>/min_bytes knob
+Date: Fri, 18 Nov 2022 16:52:08 -0800
 
-This introduces the bdi_set_min_bytes() function. The min_bytes function
-does not store the min_bytes value. Instead it converts the min_bytes
-value into the corresponding ratio value.
+bdi has two existing knobs to limit the amount of dirty memory:
+min_ratio and max_ratio. However the granularity of the knobs is limited
+and often it is more convenient to specify limits in terms of bytes.
+This change adds the min_bytes knob.
 
-Link: https://lkml.kernel.org/r/20221119005215.3052436-13-shr@devkernel.io
+It does not store the min_bytes value, instead it converts the max_bytes
+value to a ratio. The value is therefore more an approximation than an
+absolute value.
+
+It also maintains the sum over all the bdi min_ratio values stored in
+the variable bdi_min_ratio.
+
+Link: https://lkml.kernel.org/r/20221119005215.3052436-14-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
 Cc: Chris Mason <clm@meta.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    1 +
- mm/page-writeback.c         |   14 ++++++++++++++
- 2 files changed, 15 insertions(+)
+ mm/backing-dev.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
---- a/include/linux/backing-dev.h~mm-add-bdi_set_min_bytes-function
-+++ a/include/linux/backing-dev.h
-@@ -109,6 +109,7 @@ u64 bdi_get_min_bytes(struct backing_dev
- u64 bdi_get_max_bytes(struct backing_dev_info *bdi);
- int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio);
- int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio);
-+int bdi_set_min_bytes(struct backing_dev_info *bdi, u64 min_bytes);
- int bdi_set_max_bytes(struct backing_dev_info *bdi, u64 max_bytes);
- int bdi_set_strict_limit(struct backing_dev_info *bdi, unsigned int strict_limit);
- 
---- a/mm/page-writeback.c~mm-add-bdi_set_min_bytes-function
-+++ a/mm/page-writeback.c
-@@ -750,6 +750,20 @@ u64 bdi_get_min_bytes(struct backing_dev
- 	return bdi_get_bytes(bdi->min_ratio);
+--- a/mm/backing-dev.c~mm-add-sys-class-bdi-bdi-min_bytes-knob
++++ a/mm/backing-dev.c
+@@ -199,6 +199,34 @@ static ssize_t max_ratio_store(struct de
  }
+ BDI_SHOW(max_ratio, bdi->max_ratio / BDI_RATIO_SCALE)
  
-+int bdi_set_min_bytes(struct backing_dev_info *bdi, u64 min_bytes)
++static ssize_t min_bytes_show(struct device *dev,
++			      struct device_attribute *attr,
++			      char *buf)
 +{
-+	int ret;
-+	unsigned long pages = min_bytes >> PAGE_SHIFT;
-+	unsigned long min_ratio;
++	struct backing_dev_info *bdi = dev_get_drvdata(dev);
 +
-+	ret = bdi_check_pages_limit(pages);
-+	if (ret)
-+		return ret;
-+
-+	min_ratio = bdi_ratio_from_pages(pages);
-+	return __bdi_set_min_ratio(bdi, min_ratio);
++	return sysfs_emit(buf, "%llu\n", bdi_get_min_bytes(bdi));
 +}
 +
- u64 bdi_get_max_bytes(struct backing_dev_info *bdi)
- {
- 	return bdi_get_bytes(bdi->max_ratio);
++static ssize_t min_bytes_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct backing_dev_info *bdi = dev_get_drvdata(dev);
++	u64 bytes;
++	ssize_t ret;
++
++	ret = kstrtoull(buf, 10, &bytes);
++	if (ret < 0)
++		return ret;
++
++	ret = bdi_set_min_bytes(bdi, bytes);
++	if (!ret)
++		ret = count;
++
++	return ret;
++}
++DEVICE_ATTR_RW(min_bytes);
++
+ static ssize_t max_bytes_show(struct device *dev,
+ 			      struct device_attribute *attr,
+ 			      char *buf)
+@@ -269,6 +297,7 @@ static struct attribute *bdi_dev_attrs[]
+ 	&dev_attr_read_ahead_kb.attr,
+ 	&dev_attr_min_ratio.attr,
+ 	&dev_attr_max_ratio.attr,
++	&dev_attr_min_bytes.attr,
+ 	&dev_attr_max_bytes.attr,
+ 	&dev_attr_stable_pages_required.attr,
+ 	&dev_attr_strict_limit.attr,
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
