@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F357FC47089
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:01:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECE0CC4321E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:01:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230145AbiLAABX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:01:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46496 "EHLO
+        id S229898AbiLAABU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:01:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46580 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229997AbiLAAAw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:00:52 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8660C87CB9
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:00:46 -0800 (PST)
+        with ESMTP id S230121AbiLAAAp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:00:45 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C031C87C83
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:00:43 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 240E8614D0
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:00:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73FADC433B5;
-        Thu,  1 Dec 2022 00:00:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6272DB81D86
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:00:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16042C43470;
+        Thu,  1 Dec 2022 00:00:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852845;
-        bh=tZ3Sb65i7Udg0L/pXPTdmm9KqUJBgcq0BSu0xA0EDg4=;
+        s=korg; t=1669852842;
+        bh=UTqnsBfHfTGyqY+BKHD0ig6LZiQU5wYm0g3xEmq1dGs=;
         h=Date:To:From:Subject:From;
-        b=Tx/NsbjdYH4PIh1ErcJ5l21MohW5xvEYX/JnkK7vnEegjhj/Eecci4tGFafZ1JY8K
-         Lu/6JAxeV4ejJZtcTHnahA4T98tcUjsOiLsRayczFXVjN+U/PM1hfsH7Kzffz0kyGW
-         gtVYO2A3efMZu69/WU47x9l6DgHfbmKtem5uVmRM=
-Date:   Wed, 30 Nov 2022 16:00:44 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
-        christophe.jaillet@wanadoo.fr, akpm@linux-foundation.org
+        b=yr9QBWqE0YC/YkjIFF8rQQ1Y/c+1+BSu4OgBSuFD9WtAaik4ktsdyVlsywUAKQi9w
+         CASEUKn2+ERdrj2tgscNFgpTKcjdPHP6vE+lLHg/m+TrTtmsgiYL/WJHe1XFFny8vn
+         2UDtMvy4D/Nu2/EC2PABpamlZgDn4emW62P4I26E=
+Date:   Wed, 30 Nov 2022 16:00:41 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
+        sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-use-kstrtobool-instead-of-strtobool.patch removed from -mm tree
-Message-Id: <20221201000045.73FADC433B5@smtp.kernel.org>
+Subject: [merged mm-stable] tools-selftets-damon-sysfs-test-tried_regions-directory-existence.patch removed from -mm tree
+Message-Id: <20221201000042.16042C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,77 +41,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon: use kstrtobool() instead of strtobool()
+     Subject: tools/selftets/damon/sysfs: test tried_regions directory existence
 has been removed from the -mm tree.  Its filename was
-     mm-damon-use-kstrtobool-instead-of-strtobool.patch
+     tools-selftets-damon-sysfs-test-tried_regions-directory-existence.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: mm/damon: use kstrtobool() instead of strtobool()
-Date: Tue, 1 Nov 2022 22:14:08 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: tools/selftets/damon/sysfs: test tried_regions directory existence
+Date: Tue, 1 Nov 2022 22:03:26 +0000
 
-strtobool() is the same as kstrtobool().  However, the latter is more used
-within the kernel.
+Add a simple test case for ensuring tried_regions directory existence.
 
-In order to remove strtobool() and slightly simplify kstrtox.h, switch to
-the other function name.
-
-While at it, include the corresponding header file (<linux/kstrtox.h>)
-
-Link: https://lkml.kernel.org/r/ed2b46489a513988688decb53850339cc228940c.1667336095.git.christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20221101220328.95765-7-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    3 ++-
- mm/damon/reclaim.c  |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ tools/testing/selftests/damon/sysfs.sh |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/damon/lru_sort.c~mm-damon-use-kstrtobool-instead-of-strtobool
-+++ a/mm/damon/lru_sort.c
-@@ -8,6 +8,7 @@
- #define pr_fmt(fmt) "damon-lru-sort: " fmt
+--- a/tools/testing/selftests/damon/sysfs.sh~tools-selftets-damon-sysfs-test-tried_regions-directory-existence
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -80,6 +80,12 @@ test_range()
+ 	ensure_file "$range_dir/max" "exist" 600
+ }
  
- #include <linux/damon.h>
-+#include <linux/kstrtox.h>
- #include <linux/module.h>
++test_tried_regions()
++{
++	tried_regions_dir=$1
++	ensure_dir "$tried_regions_dir" "exist"
++}
++
+ test_stats()
+ {
+ 	stats_dir=$1
+@@ -138,6 +144,7 @@ test_scheme()
+ 	test_quotas "$scheme_dir/quotas"
+ 	test_watermarks "$scheme_dir/watermarks"
+ 	test_stats "$scheme_dir/stats"
++	test_tried_regions "$scheme_dir/tried_regions"
+ }
  
- #include "modules-common.h"
-@@ -241,7 +242,7 @@ static int damon_lru_sort_enabled_store(
- 	bool enable;
- 	int err;
- 
--	err = strtobool(val, &enable);
-+	err = kstrtobool(val, &enable);
- 	if (err)
- 		return err;
- 
---- a/mm/damon/reclaim.c~mm-damon-use-kstrtobool-instead-of-strtobool
-+++ a/mm/damon/reclaim.c
-@@ -8,6 +8,7 @@
- #define pr_fmt(fmt) "damon-reclaim: " fmt
- 
- #include <linux/damon.h>
-+#include <linux/kstrtox.h>
- #include <linux/module.h>
- 
- #include "modules-common.h"
-@@ -187,7 +188,7 @@ static int damon_reclaim_enabled_store(c
- 	bool enable;
- 	int err;
- 
--	err = strtobool(val, &enable);
-+	err = kstrtobool(val, &enable);
- 	if (err)
- 		return err;
- 
+ test_schemes()
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from sj@kernel.org are
 
-io-mapping-move-some-code-within-the-include-guarded-section.patch
 
