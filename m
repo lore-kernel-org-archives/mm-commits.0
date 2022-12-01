@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04F27C4321E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41C7EC4708E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230432AbiLAAIM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:08:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47424 "EHLO
+        id S230436AbiLAAIN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:08:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230315AbiLAAGJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:09 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 141A395811
+        with ESMTP id S230374AbiLAAGO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:14 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F93195813
         for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9E2D761E6E
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1D115B81D84
         for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAFE7C43470;
-        Thu,  1 Dec 2022 00:02:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3EA2C433B5;
+        Thu,  1 Dec 2022 00:02:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852944;
-        bh=Y3QD5x8LV++Ly0A6blGTU7Rog70AVQvfwNWzIb0f6NI=;
+        s=korg; t=1669852943;
+        bh=Q/vlSXGKG7lMUf5WbU6H51wK1MCUWLUKZ/z0FAL6F6g=;
         h=Date:To:From:Subject:From;
-        b=ROZyCeFm+8ojeV1eD7RlZW3fl0GFvQmT6vZoqfzZP3IBfXW2FKHWiDfsgdVNiGoUL
-         627yiTlGzgidwh+1/ravS0KWx6rep+a49bkbznpcihuRhLQHn/vBW7/DEA2JJ0EnIL
-         MQaUb87ohAX5dUupdbxvzt+32QEfg9CZ6XzeNEK0=
-Date:   Wed, 30 Nov 2022 16:02:24 -0800
-To:     mm-commits@vger.kernel.org, ogabbay@kernel.org,
-        gregkh@linuxfoundation.org, arnd@arndb.de, david@redhat.com,
+        b=pL1FMWtAZ3ZjDpZjIZ0ZbszrPe77CZRBRZfb2ZkXOw2tEYwKkKiisfE7Jua0fY/IY
+         L6Hg6enyjro9eRuG19sj0J2uX8D8oSPeI699DrpqURVto5I2s3kOid6+K/mTVfDe3u
+         7pxoRaOIC08desLaXVIIcz+2ei58jIlSVWTXsk8g=
+Date:   Wed, 30 Nov 2022 16:02:23 -0800
+To:     mm-commits@vger.kernel.org, leon@kernel.org, jgg@ziepe.ca,
+        dennis.dalessandro@cornelisnetworks.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] habanalabs-remove-foll_force-usage.patch removed from -mm tree
-Message-Id: <20221201000224.CAFE7C43470@smtp.kernel.org>
+Subject: [merged mm-stable] rdma-hw-qib-qib_user_pages-remove-foll_force-usage.patch removed from -mm tree
+Message-Id: <20221201000223.A3EA2C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,49 +42,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: habanalabs: remove FOLL_FORCE usage
+     Subject: RDMA/hw/qib/qib_user_pages: remove FOLL_FORCE usage
 has been removed from the -mm tree.  Its filename was
-     habanalabs-remove-foll_force-usage.patch
+     rdma-hw-qib-qib_user_pages-remove-foll_force-usage.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: habanalabs: remove FOLL_FORCE usage
-Date: Wed, 16 Nov 2022 11:26:58 +0100
+Subject: RDMA/hw/qib/qib_user_pages: remove FOLL_FORCE usage
+Date: Wed, 16 Nov 2022 11:26:57 +0100
 
 FOLL_FORCE is really only for ptrace access. As we unpin the pinned pages
 using unpin_user_pages_dirty_lock(true), the assumption is that all these
 pages are writable.
 
-FOLL_FORCE in this case seems to be due to copy-and-past from other
-drivers. Let's just remove it.
+FOLL_FORCE in this case seems to be a legacy leftover. Let's just remove
+it.
 
-Link: https://lkml.kernel.org/r/20221116102659.70287-20-david@redhat.com
+Link: https://lkml.kernel.org/r/20221116102659.70287-19-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oded Gabbay <ogabbay@kernel.org>
-Cc: Oded Gabbay <ogabbay@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/habanalabs/common/memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/qib/qib_user_pages.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/misc/habanalabs/common/memory.c~habanalabs-remove-foll_force-usage
-+++ a/drivers/misc/habanalabs/common/memory.c
-@@ -2312,8 +2312,7 @@ static int get_user_memory(struct hl_dev
- 	if (!userptr->pages)
- 		return -ENOMEM;
- 
--	rc = pin_user_pages_fast(start, npages,
--				 FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM,
-+	rc = pin_user_pages_fast(start, npages, FOLL_WRITE | FOLL_LONGTERM,
- 				 userptr->pages);
- 
- 	if (rc != npages) {
+--- a/drivers/infiniband/hw/qib/qib_user_pages.c~rdma-hw-qib-qib_user_pages-remove-foll_force-usage
++++ a/drivers/infiniband/hw/qib/qib_user_pages.c
+@@ -110,7 +110,7 @@ int qib_get_user_pages(unsigned long sta
+ 	for (got = 0; got < num_pages; got += ret) {
+ 		ret = pin_user_pages(start_page + got * PAGE_SIZE,
+ 				     num_pages - got,
+-				     FOLL_LONGTERM | FOLL_WRITE | FOLL_FORCE,
++				     FOLL_LONGTERM | FOLL_WRITE,
+ 				     p + got, NULL);
+ 		if (ret < 0) {
+ 			mmap_read_unlock(current->mm);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
