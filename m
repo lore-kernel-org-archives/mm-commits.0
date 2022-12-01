@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2FAFC4321E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:17:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA4EDC4708E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:17:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230454AbiLAARV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:17:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60686 "EHLO
+        id S230476AbiLAARX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:17:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230507AbiLAARA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:17:00 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C83669077D
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:13:52 -0800 (PST)
+        with ESMTP id S230520AbiLAARC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:17:02 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A48DC95802
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:13:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7AB29B81D17
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:13:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11F23C433C1;
-        Thu,  1 Dec 2022 00:13:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 416F361926
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:13:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B77AC43470;
+        Thu,  1 Dec 2022 00:13:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669853630;
-        bh=Hj0/WrPsroDdssMYLPgweZizw7aR0rQ0mubd/5ABSA8=;
+        s=korg; t=1669853636;
+        bh=0OhAu01vv0kYa7FKw/IW1S0uDO7kQWYkNxIigKNdTJs=;
         h=Date:To:From:Subject:From;
-        b=gI1jjNLhdx6YCcyIPs0Es0ZqxHbLWpjLkuYcB0cqbvL4JuoMUtiVi0xI35FGjj22d
-         Sa0T1IRnsAlpkILzaWlY3fL68Xbasr8R2ghPOQLAJ8dgX2yjXLzW4LRSuiPOQ1ON6x
-         hx4+ukMUq8v/7r4lAENlDIMXJu1Ay4KXIBLn/fIo=
-Date:   Wed, 30 Nov 2022 16:13:49 -0800
-To:     mm-commits@vger.kernel.org, zhaogongyi@huawei.com,
-        yangyicong@hisilicon.com, weiyongjun1@huawei.com,
-        viro@zeniv.linux.org.uk, shuah@kernel.org, rafael@kernel.org,
-        osalvador@suse.de, gregkh@linuxfoundation.org, david@redhat.com,
-        corbet@lwn.net, akinobu.mita@gmail.com, akpm@linux-foundation.org
+        b=wMKpgrJQtTZD2hiRpRwNfIPjDmIuyNY9WMqWG/cU1idhJHrENmzttBOofoejgbGmA
+         A2ltU6WiqiHhWdejgP92IyDQn+iQ4KBLGoka9UOb3X3kaIWFSxfhorZICUq0B3n7Rb
+         fimFx01vezdUg2VSRTl7WoaDZcH7AT/rR6gyZGBw=
+Date:   Wed, 30 Nov 2022 16:13:55 -0800
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        lizetao1@huawei.com, junxiao.bi@oracle.com,
+        joseph.qi@linux.alibaba.com, jlbec@evilplan.org, ghe@suse.com,
+        gechangwei@live.cn, ocfs2-devel@oss.oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] debugfs-fix-error-when-writing-negative-value-to-atomic_t-debugfs-file.patch removed from -mm tree
-Message-Id: <20221201001350.11F23C433C1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-fix-memory-leak-in-ocfs2_mount_volume.patch removed from -mm tree
+Message-Id: <20221201001356.7B77AC43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,199 +44,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: debugfs: fix error when writing negative value to atomic_t debugfs file
+     Subject: ocfs2: fix memory leak in ocfs2_mount_volume()
 has been removed from the -mm tree.  Its filename was
-     debugfs-fix-error-when-writing-negative-value-to-atomic_t-debugfs-file.patch
+     ocfs2-fix-memory-leak-in-ocfs2_mount_volume.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: debugfs: fix error when writing negative value to atomic_t debugfs file
-Date: Tue, 20 Sep 2022 02:24:18 +0900
+From: Li Zetao <ocfs2-devel@oss.oracle.com>
+Subject: ocfs2: fix memory leak in ocfs2_mount_volume()
+Date: Wed, 9 Nov 2022 15:46:27 +0800
 
-The simple attribute files do not accept a negative value since the commit
-488dac0c9237 ("libfs: fix error cast of negative value in
-simple_attr_write()"), so we have to use a 64-bit value to write a
-negative value for a debugfs file created by debugfs_create_atomic_t().
+There is a memory leak reported by kmemleak:
 
-This restores the previous behaviour by introducing
-DEFINE_DEBUGFS_ATTRIBUTE_SIGNED for a signed value.
+  unreferenced object 0xffff88810cc65e60 (size 32):
+    comm "mount.ocfs2", pid 23753, jiffies 4302528942 (age 34735.105s)
+    hex dump (first 32 bytes):
+      10 00 00 00 00 00 00 00 00 01 01 01 01 01 01 01  ................
+      01 01 01 01 01 01 01 01 00 00 00 00 00 00 00 00  ................
+    backtrace:
+      [<ffffffff8170f73d>] __kmalloc+0x4d/0x150
+      [<ffffffffa0ac3f51>] ocfs2_compute_replay_slots+0x121/0x330 [ocfs2]
+      [<ffffffffa0b65165>] ocfs2_check_volume+0x485/0x900 [ocfs2]
+      [<ffffffffa0b68129>] ocfs2_mount_volume.isra.0+0x1e9/0x650 [ocfs2]
+      [<ffffffffa0b7160b>] ocfs2_fill_super+0xe0b/0x1740 [ocfs2]
+      [<ffffffff818e1fe2>] mount_bdev+0x312/0x400
+      [<ffffffff819a086d>] legacy_get_tree+0xed/0x1d0
+      [<ffffffff818de82d>] vfs_get_tree+0x7d/0x230
+      [<ffffffff81957f92>] path_mount+0xd62/0x1760
+      [<ffffffff81958a5a>] do_mount+0xca/0xe0
+      [<ffffffff81958d3c>] __x64_sys_mount+0x12c/0x1a0
+      [<ffffffff82f26f15>] do_syscall_64+0x35/0x80
+      [<ffffffff8300006a>] entry_SYSCALL_64_after_hwframe+0x46/0xb0
 
-Link: https://lkml.kernel.org/r/20220919172418.45257-4-akinobu.mita@gmail.com
-Fixes: 488dac0c9237 ("libfs: fix error cast of negative value in simple_attr_write()")
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Reported-by: Zhao Gongyi <zhaogongyi@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>
-Cc: Yicong Yang <yangyicong@hisilicon.com>
+This call stack is related to two problems.  Firstly, the ocfs2 super uses
+"replay_map" to trace online/offline slots, in order to recover offline
+slots during recovery and mount.  But when ocfs2_truncate_log_init()
+returns an error in ocfs2_mount_volume(), the memory of "replay_map" will
+not be freed in error handling path.  Secondly, the memory of "replay_map"
+will not be freed if d_make_root() returns an error in ocfs2_fill_super().
+But the memory of "replay_map" will be freed normally when completing
+recovery and mount in ocfs2_complete_mount_recovery().
+
+Fix the first problem by adding error handling path to free "replay_map"
+when ocfs2_truncate_log_init() fails.  And fix the second problem by
+calling ocfs2_free_replay_slots(osb) in the error handling path
+"out_dismount".  In addition, since ocfs2_free_replay_slots() is static,
+it is necessary to remove its static attribute and declare it in header
+file.
+
+Link: https://lkml.kernel.org/r/20221109074627.2303950-1-lizetao1@huawei.com
+Fixes: 9140db04ef18 ("ocfs2: recover orphans in offline slots during recovery and mount")
+Signed-off-by: Li Zetao <lizetao1@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fault-injection/fault-injection.rst |   10 +---
- fs/debugfs/file.c                                 |   28 +++++++++---
- include/linux/debugfs.h                           |   19 +++++++-
- 3 files changed, 43 insertions(+), 14 deletions(-)
+ fs/ocfs2/journal.c |    2 +-
+ fs/ocfs2/journal.h |    1 +
+ fs/ocfs2/super.c   |    5 ++++-
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
---- a/Documentation/fault-injection/fault-injection.rst~debugfs-fix-error-when-writing-negative-value-to-atomic_t-debugfs-file
-+++ a/Documentation/fault-injection/fault-injection.rst
-@@ -83,9 +83,7 @@ configuration of fault-injection capabil
- - /sys/kernel/debug/fail*/times:
- 
- 	specifies how many times failures may happen at most. A value of -1
--	means "no limit". Note, though, that this file only accepts unsigned
--	values. So, if you want to specify -1, you better use 'printf' instead
--	of 'echo', e.g.: $ printf %#x -1 > times
-+	means "no limit".
- 
- - /sys/kernel/debug/fail*/space:
- 
-@@ -284,7 +282,7 @@ Application Examples
-     echo Y > /sys/kernel/debug/$FAILTYPE/task-filter
-     echo 10 > /sys/kernel/debug/$FAILTYPE/probability
-     echo 100 > /sys/kernel/debug/$FAILTYPE/interval
--    printf %#x -1 > /sys/kernel/debug/$FAILTYPE/times
-+    echo -1 > /sys/kernel/debug/$FAILTYPE/times
-     echo 0 > /sys/kernel/debug/$FAILTYPE/space
-     echo 2 > /sys/kernel/debug/$FAILTYPE/verbose
-     echo Y > /sys/kernel/debug/$FAILTYPE/ignore-gfp-wait
-@@ -338,7 +336,7 @@ Application Examples
-     echo N > /sys/kernel/debug/$FAILTYPE/task-filter
-     echo 10 > /sys/kernel/debug/$FAILTYPE/probability
-     echo 100 > /sys/kernel/debug/$FAILTYPE/interval
--    printf %#x -1 > /sys/kernel/debug/$FAILTYPE/times
-+    echo -1 > /sys/kernel/debug/$FAILTYPE/times
-     echo 0 > /sys/kernel/debug/$FAILTYPE/space
-     echo 2 > /sys/kernel/debug/$FAILTYPE/verbose
-     echo Y > /sys/kernel/debug/$FAILTYPE/ignore-gfp-wait
-@@ -369,7 +367,7 @@ Application Examples
-     echo N > /sys/kernel/debug/$FAILTYPE/task-filter
-     echo 100 > /sys/kernel/debug/$FAILTYPE/probability
-     echo 0 > /sys/kernel/debug/$FAILTYPE/interval
--    printf %#x -1 > /sys/kernel/debug/$FAILTYPE/times
-+    echo -1 > /sys/kernel/debug/$FAILTYPE/times
-     echo 0 > /sys/kernel/debug/$FAILTYPE/space
-     echo 1 > /sys/kernel/debug/$FAILTYPE/verbose
- 
---- a/fs/debugfs/file.c~debugfs-fix-error-when-writing-negative-value-to-atomic_t-debugfs-file
-+++ a/fs/debugfs/file.c
-@@ -378,8 +378,8 @@ ssize_t debugfs_attr_read(struct file *f
+--- a/fs/ocfs2/journal.c~ocfs2-fix-memory-leak-in-ocfs2_mount_volume
++++ a/fs/ocfs2/journal.c
+@@ -157,7 +157,7 @@ static void ocfs2_queue_replay_slots(str
+ 	replay_map->rm_state = REPLAY_DONE;
  }
- EXPORT_SYMBOL_GPL(debugfs_attr_read);
  
--ssize_t debugfs_attr_write(struct file *file, const char __user *buf,
--			 size_t len, loff_t *ppos)
-+static ssize_t debugfs_attr_write_xsigned(struct file *file, const char __user *buf,
-+			 size_t len, loff_t *ppos, bool is_signed)
+-static void ocfs2_free_replay_slots(struct ocfs2_super *osb)
++void ocfs2_free_replay_slots(struct ocfs2_super *osb)
  {
- 	struct dentry *dentry = F_DENTRY(file);
- 	ssize_t ret;
-@@ -387,12 +387,28 @@ ssize_t debugfs_attr_write(struct file *
- 	ret = debugfs_file_get(dentry);
- 	if (unlikely(ret))
- 		return ret;
--	ret = simple_attr_write(file, buf, len, ppos);
-+	if (is_signed)
-+		ret = simple_attr_write_signed(file, buf, len, ppos);
-+	else
-+		ret = simple_attr_write(file, buf, len, ppos);
- 	debugfs_file_put(dentry);
- 	return ret;
- }
-+
-+ssize_t debugfs_attr_write(struct file *file, const char __user *buf,
-+			 size_t len, loff_t *ppos)
-+{
-+	return debugfs_attr_write_xsigned(file, buf, len, ppos, false);
-+}
- EXPORT_SYMBOL_GPL(debugfs_attr_write);
+ 	struct ocfs2_replay_map *replay_map = osb->replay_map;
  
-+ssize_t debugfs_attr_write_signed(struct file *file, const char __user *buf,
-+			 size_t len, loff_t *ppos)
-+{
-+	return debugfs_attr_write_xsigned(file, buf, len, ppos, true);
-+}
-+EXPORT_SYMBOL_GPL(debugfs_attr_write_signed);
-+
- static struct dentry *debugfs_create_mode_unsafe(const char *name, umode_t mode,
- 					struct dentry *parent, void *value,
- 					const struct file_operations *fops,
-@@ -738,11 +754,11 @@ static int debugfs_atomic_t_get(void *da
- 	*val = atomic_read((atomic_t *)data);
+--- a/fs/ocfs2/journal.h~ocfs2-fix-memory-leak-in-ocfs2_mount_volume
++++ a/fs/ocfs2/journal.h
+@@ -150,6 +150,7 @@ int ocfs2_recovery_init(struct ocfs2_sup
+ void ocfs2_recovery_exit(struct ocfs2_super *osb);
+ 
+ int ocfs2_compute_replay_slots(struct ocfs2_super *osb);
++void ocfs2_free_replay_slots(struct ocfs2_super *osb);
+ /*
+  *  Journal Control:
+  *  Initialize, Load, Shutdown, Wipe a journal.
+--- a/fs/ocfs2/super.c~ocfs2-fix-memory-leak-in-ocfs2_mount_volume
++++ a/fs/ocfs2/super.c
+@@ -1159,6 +1159,7 @@ static int ocfs2_fill_super(struct super
+ out_dismount:
+ 	atomic_set(&osb->vol_state, VOLUME_DISABLED);
+ 	wake_up(&osb->osb_mount_event);
++	ocfs2_free_replay_slots(osb);
+ 	ocfs2_dismount_volume(sb, 1);
+ 	goto out;
+ 
+@@ -1822,12 +1823,14 @@ static int ocfs2_mount_volume(struct sup
+ 	status = ocfs2_truncate_log_init(osb);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		goto out_system_inodes;
++		goto out_check_volume;
+ 	}
+ 
+ 	ocfs2_super_unlock(osb, 1);
  	return 0;
- }
--DEFINE_DEBUGFS_ATTRIBUTE(fops_atomic_t, debugfs_atomic_t_get,
-+DEFINE_DEBUGFS_ATTRIBUTE_SIGNED(fops_atomic_t, debugfs_atomic_t_get,
- 			debugfs_atomic_t_set, "%lld\n");
--DEFINE_DEBUGFS_ATTRIBUTE(fops_atomic_t_ro, debugfs_atomic_t_get, NULL,
-+DEFINE_DEBUGFS_ATTRIBUTE_SIGNED(fops_atomic_t_ro, debugfs_atomic_t_get, NULL,
- 			"%lld\n");
--DEFINE_DEBUGFS_ATTRIBUTE(fops_atomic_t_wo, NULL, debugfs_atomic_t_set,
-+DEFINE_DEBUGFS_ATTRIBUTE_SIGNED(fops_atomic_t_wo, NULL, debugfs_atomic_t_set,
- 			"%lld\n");
  
- /**
---- a/include/linux/debugfs.h~debugfs-fix-error-when-writing-negative-value-to-atomic_t-debugfs-file
-+++ a/include/linux/debugfs.h
-@@ -45,7 +45,7 @@ struct debugfs_u32_array {
- 
- extern struct dentry *arch_debugfs_dir;
- 
--#define DEFINE_DEBUGFS_ATTRIBUTE(__fops, __get, __set, __fmt)		\
-+#define DEFINE_DEBUGFS_ATTRIBUTE_XSIGNED(__fops, __get, __set, __fmt, __is_signed)	\
- static int __fops ## _open(struct inode *inode, struct file *file)	\
- {									\
- 	__simple_attr_check_format(__fmt, 0ull);			\
-@@ -56,10 +56,16 @@ static const struct file_operations __fo
- 	.open	 = __fops ## _open,					\
- 	.release = simple_attr_release,					\
- 	.read	 = debugfs_attr_read,					\
--	.write	 = debugfs_attr_write,					\
-+	.write	 = (__is_signed) ? debugfs_attr_write_signed : debugfs_attr_write,	\
- 	.llseek  = no_llseek,						\
- }
- 
-+#define DEFINE_DEBUGFS_ATTRIBUTE(__fops, __get, __set, __fmt)		\
-+	DEFINE_DEBUGFS_ATTRIBUTE_XSIGNED(__fops, __get, __set, __fmt, false)
-+
-+#define DEFINE_DEBUGFS_ATTRIBUTE_SIGNED(__fops, __get, __set, __fmt)	\
-+	DEFINE_DEBUGFS_ATTRIBUTE_XSIGNED(__fops, __get, __set, __fmt, true)
-+
- typedef struct vfsmount *(*debugfs_automount_t)(struct dentry *, void *);
- 
- #if defined(CONFIG_DEBUG_FS)
-@@ -102,6 +108,8 @@ ssize_t debugfs_attr_read(struct file *f
- 			size_t len, loff_t *ppos);
- ssize_t debugfs_attr_write(struct file *file, const char __user *buf,
- 			size_t len, loff_t *ppos);
-+ssize_t debugfs_attr_write_signed(struct file *file, const char __user *buf,
-+			size_t len, loff_t *ppos);
- 
- struct dentry *debugfs_rename(struct dentry *old_dir, struct dentry *old_dentry,
-                 struct dentry *new_dir, const char *new_name);
-@@ -251,6 +259,13 @@ static inline ssize_t debugfs_attr_write
- 					const char __user *buf,
- 					size_t len, loff_t *ppos)
- {
-+	return -ENODEV;
-+}
-+
-+static inline ssize_t debugfs_attr_write_signed(struct file *file,
-+					const char __user *buf,
-+					size_t len, loff_t *ppos)
-+{
- 	return -ENODEV;
- }
- 
++out_check_volume:
++	ocfs2_free_replay_slots(osb);
+ out_system_inodes:
+ 	if (osb->local_alloc_state == OCFS2_LA_ENABLED)
+ 		ocfs2_shutdown_local_alloc(osb);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from ocfs2-devel@oss.oracle.com are
 
 
