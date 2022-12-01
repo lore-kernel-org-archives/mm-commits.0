@@ -2,38 +2,64 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D208BC4708D
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:06:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51A47C4321E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:06:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230236AbiLAAGp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:06:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46496 "EHLO
+        id S230220AbiLAAGi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:06:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230303AbiLAAEk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:04:40 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0A519076A
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:12 -0800 (PST)
+        with ESMTP id S230217AbiLAAEg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:04:36 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 676AC90752
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 762BE61E6B
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A48C2C433B5;
-        Thu,  1 Dec 2022 00:02:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B0F2461E5B
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9E41C433D7;
+        Thu,  1 Dec 2022 00:02:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852931;
-        bh=7zsOFIzFIjNVompvJEkh267jICarEaqRZQKl+yaRAQg=;
+        s=korg; t=1669852923;
+        bh=81jBZf5nR871voETFtBnWHpG8Tz0iB+Sa5sDr3ba5Qg=;
         h=Date:To:From:Subject:From;
-        b=VIuxvROHDpy3ML2wJDhi2TmhKGS/WjcpxslfbgUfYuzqfuKkfzTVZlUOG2rlMlTVl
-         LUmnEmwwe7hX/8PtbyuRsQoPrl3O/ZkXku89WUu9NHSK6Kg92gFiofd2d3VF8Tp6eO
-         TT7Ul39SFz6927/ReIxCWrW6ZcF8qNpzSlgSxUwc=
-Date:   Wed, 30 Nov 2022 16:02:11 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, david@redhat.com,
-        akpm@linux-foundation.org
+        b=hgXyoW1OPGRm3s15LbAgrUhx83xaGhMv8gCP4szg2pJ8AuQkYGQhK7rxio6ix2448
+         6wHX5kaM0FOn4CJ9QQtImuXFbaxu/kx9FqLsRuqEy5YWF7oR2CWsmM2E4/ft3IqIoM
+         9592qVElS5mNlUuDBUufWH6IJFwRNE1tJKZ8+doY=
+Date:   Wed, 30 Nov 2022 16:02:02 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
+        viro@zeniv.linux.org.uk, vbabka@suse.cz, tsbogend@alpha.franken.de,
+        torvalds@linux-foundation.org, tglx@linutronix.de,
+        tfiga@chromium.org, takedakn@nttdata.co.jp, sw0312.kim@samsung.com,
+        songmuchun@bytedance.com, shuah@kernel.org, serge@hallyn.com,
+        richard@nod.at, richard.henderson@linaro.org, peterz@infradead.org,
+        peterx@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp,
+        paul@paul-moore.com, oleg@redhat.com, ogabbay@kernel.org,
+        npiggin@gmail.com, neescoba@cisco.com, namit@vmware.com,
+        namhyung@kernel.org, m.szyprowski@samsung.com, mpe@ellerman.id.au,
+        mingo@redhat.com, mike.kravetz@oracle.com, mchehab@kernel.org,
+        mattst88@gmail.com, mark.rutland@arm.com, l.stach@pengutronix.de,
+        linux+etnaviv@armlinux.org.uk, leonro@nvidia.com, leon@kernel.org,
+        kyungmin.park@samsung.com, krzysztof.kozlowski@linaro.org,
+        keescook@chromium.org, jolsa@kernel.org, johannes@sipsolutions.net,
+        jmorris@namei.org, jhubbard@nvidia.com, jgg@ziepe.ca,
+        ink@jurassic.park.msu.ru, inki.dae@samsung.com, hverkuil@xs4all.nl,
+        hughd@google.com, hpa@zytor.com, hch@infradead.org,
+        gregkh@linuxfoundation.org, ebiederm@xmission.com,
+        dennis.dalessandro@cornelisnetworks.com, davem@davemloft.net,
+        dave.hansen@linux.intel.com, daniel.vetter@ffwll.ch,
+        daniel@ffwll.ch, christophe.leroy@csgroup.eu,
+        christian.gmeiner@gmail.com, catalin.marinas@arm.com, bp@alien8.de,
+        bmt@zurich.ibm.com, benve@cisco.com, awalls@md.metrocast.net,
+        arnd@arndb.de, anton.ivanov@cambridgegreys.com,
+        alex.williamson@redhat.com, alexander.shishkin@linux.intel.com,
+        airlied@gmail.com, acme@kernel.org, aarcange@redhat.com,
+        david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-extend-fault_flag_unshare-support-to-anything-in-a-cow-mapping.patch removed from -mm tree
-Message-Id: <20221201000211.A48C2C433B5@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-anon_cow-prepare-for-non-anonymous-cow-tests.patch removed from -mm tree
+Message-Id: <20221201000202.B9E41C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,82 +67,2576 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: extend FAULT_FLAG_UNSHARE support to anything in a COW mapping
+     Subject: selftests/vm: anon_cow: prepare for non-anonymous COW tests
 has been removed from the -mm tree.  Its filename was
-     mm-extend-fault_flag_unshare-support-to-anything-in-a-cow-mapping.patch
+     selftests-vm-anon_cow-prepare-for-non-anonymous-cow-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: extend FAULT_FLAG_UNSHARE support to anything in a COW mapping
-Date: Wed, 16 Nov 2022 11:26:47 +0100
+Subject: selftests/vm: anon_cow: prepare for non-anonymous COW tests
+Date: Wed, 16 Nov 2022 11:26:40 +0100
 
-Extend FAULT_FLAG_UNSHARE to break COW on anything mapped into a
-COW (i.e., private writable) mapping and adjust the documentation
-accordingly.
+Patch series "mm/gup: remove FOLL_FORCE usage from drivers (reliable R/O
+long-term pinning)".
 
-FAULT_FLAG_UNSHARE will now also break COW when encountering the shared
-zeropage, a pagecache page, a PFNMAP, ... inside a COW mapping, by
-properly replacing the mapped page/pfn by a private copy (an exclusive
-anonymous page).
+For now, we did not support reliable R/O long-term pinning in COW
+mappings.  That means, if we would trigger R/O long-term pinning in
+MAP_PRIVATE mapping, we could end up pinning the (R/O-mapped) shared
+zeropage or a pagecache page.
 
-Note that only do_wp_page() needs care: hugetlb_wp() already handles
-FAULT_FLAG_UNSHARE correctly. wp_huge_pmd()/wp_huge_pud() also handles it
-correctly, for example, splitting the huge zeropage on FAULT_FLAG_UNSHARE
-such that we can handle FAULT_FLAG_UNSHARE on the PTE level.
+The next write access would trigger a write fault and replace the pinned
+page by an exclusive anonymous page in the process page table; whatever
+the process would write to that private page copy would not be visible by
+the owner of the previous page pin: for example, RDMA could read stale
+data.  The end result is essentially an unexpected and hard-to-debug
+memory corruption.
 
-This change is a requirement for reliable long-term R/O pinning in
-COW mappings.
+Some drivers tried working around that limitation by using
+"FOLL_FORCE|FOLL_WRITE|FOLL_LONGTERM" for R/O long-term pinning for now. 
+FOLL_WRITE would trigger a write fault, if required, and break COW before
+pinning the page.  FOLL_FORCE is required because the VMA might lack write
+permissions, and drivers wanted to make that working as well, just like
+one would expect (no write access, but still triggering a write access to
+break COW).
 
-Link: https://lkml.kernel.org/r/20221116102659.70287-9-david@redhat.com
+However, that is not a practical solution, because
+(1) Drivers that don't stick to that undocumented and debatable pattern
+    would still run into that issue. For example, VFIO only uses
+    FOLL_LONGTERM for R/O long-term pinning.
+(2) Using FOLL_WRITE just to work around a COW mapping + page pinning
+    limitation is unintuitive. FOLL_WRITE would, for example, mark the
+    page softdirty or trigger uffd-wp, even though, there actually isn't
+    going to be any write access.
+(3) The purpose of FOLL_FORCE is debug access, not access without lack of
+    VMA permissions by arbitrarty drivers.
+
+So instead, make R/O long-term pinning work as expected, by breaking COW
+in a COW mapping early, such that we can remove any FOLL_FORCE usage from
+drivers and make FOLL_FORCE ptrace-specific (renaming it to FOLL_PTRACE).
+More details in patch #8.
+
+
+This patch (of 19):
+
+Originally, the plan was to have a separate tests for testing COW of
+non-anonymous (e.g., shared zeropage) pages.
+
+Turns out, that we'd need a lot of similar functionality and that there
+isn't a really good reason to separate it. So let's prepare for non-anon
+tests by renaming to "cow".
+
+Link: https://lkml.kernel.org/r/20221116102659.70287-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20221116102659.70287-2-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Walls <awalls@md.metrocast.net>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bernard Metzler <bmt@zurich.ibm.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Benvenuti <benve@cisco.com>
+Cc: Christian Gmeiner <christian.gmeiner@gmail.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: James Morris <jmorris@namei.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kentaro Takeda <takedakn@nttdata.co.jp>
+Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Leon Romanovsky <leonro@nvidia.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Lucas Stach <l.stach@pengutronix.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Nelson Escobar <neescoba@cisco.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oded Gabbay <ogabbay@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Richard Henderson <richard.henderson@linaro.org>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Russell King <linux+etnaviv@armlinux.org.uk>
+Cc: Serge Hallyn <serge@hallyn.com>
+Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tomasz Figa <tfiga@chromium.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    8 ++++----
- mm/memory.c              |    4 ----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ tools/testing/selftests/vm/.gitignore      |    2 
+ tools/testing/selftests/vm/Makefile        |   10 
+ tools/testing/selftests/vm/anon_cow.c      | 1169 ------------------
+ tools/testing/selftests/vm/check_config.sh |    4 
+ tools/testing/selftests/vm/cow.c           | 1174 +++++++++++++++++++
+ tools/testing/selftests/vm/run_vmtests.sh  |    2 
+ 6 files changed, 1183 insertions(+), 1178 deletions(-)
 
---- a/include/linux/mm_types.h~mm-extend-fault_flag_unshare-support-to-anything-in-a-cow-mapping
-+++ a/include/linux/mm_types.h
-@@ -1039,9 +1039,9 @@ typedef struct {
-  * @FAULT_FLAG_REMOTE: The fault is not for current task/mm.
-  * @FAULT_FLAG_INSTRUCTION: The fault was during an instruction fetch.
-  * @FAULT_FLAG_INTERRUPTIBLE: The fault can be interrupted by non-fatal signals.
-- * @FAULT_FLAG_UNSHARE: The fault is an unsharing request to unshare (and mark
-- *                      exclusive) a possibly shared anonymous page that is
-- *                      mapped R/O.
-+ * @FAULT_FLAG_UNSHARE: The fault is an unsharing request to break COW in a
-+ *                      COW mapping, making sure that an exclusive anon page is
-+ *                      mapped after the fault.
-  * @FAULT_FLAG_ORIG_PTE_VALID: whether the fault has vmf->orig_pte cached.
-  *                        We should only access orig_pte if this flag set.
-  *
-@@ -1066,7 +1066,7 @@ typedef struct {
-  *
-  * The combination FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE is illegal.
-  * FAULT_FLAG_UNSHARE is ignored and treated like an ordinary read fault when
-- * no existing R/O-mapped anonymous page is encountered.
-+ * applied to mappings that are not COW mappings.
-  */
- enum fault_flag {
- 	FAULT_FLAG_WRITE =		1 << 0,
---- a/mm/memory.c~mm-extend-fault_flag_unshare-support-to-anything-in-a-cow-mapping
-+++ a/mm/memory.c
-@@ -3431,10 +3431,6 @@ reuse:
- 		}
- 		wp_page_reuse(vmf);
- 		return VM_FAULT_WRITE;
--	} else if (unshare) {
--		/* No anonymous page -> nothing to do. */
--		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		return 0;
- 	}
- copy:
- 	/*
+--- a/tools/testing/selftests/vm/anon_cow.c
++++ /dev/null
+@@ -1,1169 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * COW (Copy On Write) tests for anonymous memory.
+- *
+- * Copyright 2022, Red Hat, Inc.
+- *
+- * Author(s): David Hildenbrand <david@redhat.com>
+- */
+-#define _GNU_SOURCE
+-#include <stdlib.h>
+-#include <string.h>
+-#include <stdbool.h>
+-#include <stdint.h>
+-#include <unistd.h>
+-#include <errno.h>
+-#include <fcntl.h>
+-#include <dirent.h>
+-#include <assert.h>
+-#include <sys/mman.h>
+-#include <sys/ioctl.h>
+-#include <sys/wait.h>
+-
+-#include "local_config.h"
+-#ifdef LOCAL_CONFIG_HAVE_LIBURING
+-#include <liburing.h>
+-#endif /* LOCAL_CONFIG_HAVE_LIBURING */
+-
+-#include "../../../../mm/gup_test.h"
+-#include "../kselftest.h"
+-#include "vm_util.h"
+-
+-static size_t pagesize;
+-static int pagemap_fd;
+-static size_t thpsize;
+-static int nr_hugetlbsizes;
+-static size_t hugetlbsizes[10];
+-static int gup_fd;
+-
+-static void detect_thpsize(void)
+-{
+-	int fd = open("/sys/kernel/mm/transparent_hugepage/hpage_pmd_size",
+-		      O_RDONLY);
+-	size_t size = 0;
+-	char buf[15];
+-	int ret;
+-
+-	if (fd < 0)
+-		return;
+-
+-	ret = pread(fd, buf, sizeof(buf), 0);
+-	if (ret > 0 && ret < sizeof(buf)) {
+-		buf[ret] = 0;
+-
+-		size = strtoul(buf, NULL, 10);
+-		if (size < pagesize)
+-			size = 0;
+-		if (size > 0) {
+-			thpsize = size;
+-			ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
+-				       thpsize / 1024);
+-		}
+-	}
+-
+-	close(fd);
+-}
+-
+-static void detect_hugetlbsizes(void)
+-{
+-	DIR *dir = opendir("/sys/kernel/mm/hugepages/");
+-
+-	if (!dir)
+-		return;
+-
+-	while (nr_hugetlbsizes < ARRAY_SIZE(hugetlbsizes)) {
+-		struct dirent *entry = readdir(dir);
+-		size_t kb;
+-
+-		if (!entry)
+-			break;
+-		if (entry->d_type != DT_DIR)
+-			continue;
+-		if (sscanf(entry->d_name, "hugepages-%zukB", &kb) != 1)
+-			continue;
+-		hugetlbsizes[nr_hugetlbsizes] = kb * 1024;
+-		nr_hugetlbsizes++;
+-		ksft_print_msg("[INFO] detected hugetlb size: %zu KiB\n",
+-			       kb);
+-	}
+-	closedir(dir);
+-}
+-
+-static bool range_is_swapped(void *addr, size_t size)
+-{
+-	for (; size; addr += pagesize, size -= pagesize)
+-		if (!pagemap_is_swapped(pagemap_fd, addr))
+-			return false;
+-	return true;
+-}
+-
+-struct comm_pipes {
+-	int child_ready[2];
+-	int parent_ready[2];
+-};
+-
+-static int setup_comm_pipes(struct comm_pipes *comm_pipes)
+-{
+-	if (pipe(comm_pipes->child_ready) < 0)
+-		return -errno;
+-	if (pipe(comm_pipes->parent_ready) < 0) {
+-		close(comm_pipes->child_ready[0]);
+-		close(comm_pipes->child_ready[1]);
+-		return -errno;
+-	}
+-
+-	return 0;
+-}
+-
+-static void close_comm_pipes(struct comm_pipes *comm_pipes)
+-{
+-	close(comm_pipes->child_ready[0]);
+-	close(comm_pipes->child_ready[1]);
+-	close(comm_pipes->parent_ready[0]);
+-	close(comm_pipes->parent_ready[1]);
+-}
+-
+-static int child_memcmp_fn(char *mem, size_t size,
+-			   struct comm_pipes *comm_pipes)
+-{
+-	char *old = malloc(size);
+-	char buf;
+-
+-	/* Backup the original content. */
+-	memcpy(old, mem, size);
+-
+-	/* Wait until the parent modified the page. */
+-	write(comm_pipes->child_ready[1], "0", 1);
+-	while (read(comm_pipes->parent_ready[0], &buf, 1) != 1)
+-		;
+-
+-	/* See if we still read the old values. */
+-	return memcmp(old, mem, size);
+-}
+-
+-static int child_vmsplice_memcmp_fn(char *mem, size_t size,
+-				    struct comm_pipes *comm_pipes)
+-{
+-	struct iovec iov = {
+-		.iov_base = mem,
+-		.iov_len = size,
+-	};
+-	ssize_t cur, total, transferred;
+-	char *old, *new;
+-	int fds[2];
+-	char buf;
+-
+-	old = malloc(size);
+-	new = malloc(size);
+-
+-	/* Backup the original content. */
+-	memcpy(old, mem, size);
+-
+-	if (pipe(fds) < 0)
+-		return -errno;
+-
+-	/* Trigger a read-only pin. */
+-	transferred = vmsplice(fds[1], &iov, 1, 0);
+-	if (transferred < 0)
+-		return -errno;
+-	if (transferred == 0)
+-		return -EINVAL;
+-
+-	/* Unmap it from our page tables. */
+-	if (munmap(mem, size) < 0)
+-		return -errno;
+-
+-	/* Wait until the parent modified it. */
+-	write(comm_pipes->child_ready[1], "0", 1);
+-	while (read(comm_pipes->parent_ready[0], &buf, 1) != 1)
+-		;
+-
+-	/* See if we still read the old values via the pipe. */
+-	for (total = 0; total < transferred; total += cur) {
+-		cur = read(fds[0], new + total, transferred - total);
+-		if (cur < 0)
+-			return -errno;
+-	}
+-
+-	return memcmp(old, new, transferred);
+-}
+-
+-typedef int (*child_fn)(char *mem, size_t size, struct comm_pipes *comm_pipes);
+-
+-static void do_test_cow_in_parent(char *mem, size_t size, bool do_mprotect,
+-				  child_fn fn)
+-{
+-	struct comm_pipes comm_pipes;
+-	char buf;
+-	int ret;
+-
+-	ret = setup_comm_pipes(&comm_pipes);
+-	if (ret) {
+-		ksft_test_result_fail("pipe() failed\n");
+-		return;
+-	}
+-
+-	ret = fork();
+-	if (ret < 0) {
+-		ksft_test_result_fail("fork() failed\n");
+-		goto close_comm_pipes;
+-	} else if (!ret) {
+-		exit(fn(mem, size, &comm_pipes));
+-	}
+-
+-	while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
+-		;
+-
+-	if (do_mprotect) {
+-		/*
+-		 * mprotect() optimizations might try avoiding
+-		 * write-faults by directly mapping pages writable.
+-		 */
+-		ret = mprotect(mem, size, PROT_READ);
+-		ret |= mprotect(mem, size, PROT_READ|PROT_WRITE);
+-		if (ret) {
+-			ksft_test_result_fail("mprotect() failed\n");
+-			write(comm_pipes.parent_ready[1], "0", 1);
+-			wait(&ret);
+-			goto close_comm_pipes;
+-		}
+-	}
+-
+-	/* Modify the page. */
+-	memset(mem, 0xff, size);
+-	write(comm_pipes.parent_ready[1], "0", 1);
+-
+-	wait(&ret);
+-	if (WIFEXITED(ret))
+-		ret = WEXITSTATUS(ret);
+-	else
+-		ret = -EINVAL;
+-
+-	ksft_test_result(!ret, "No leak from parent into child\n");
+-close_comm_pipes:
+-	close_comm_pipes(&comm_pipes);
+-}
+-
+-static void test_cow_in_parent(char *mem, size_t size)
+-{
+-	do_test_cow_in_parent(mem, size, false, child_memcmp_fn);
+-}
+-
+-static void test_cow_in_parent_mprotect(char *mem, size_t size)
+-{
+-	do_test_cow_in_parent(mem, size, true, child_memcmp_fn);
+-}
+-
+-static void test_vmsplice_in_child(char *mem, size_t size)
+-{
+-	do_test_cow_in_parent(mem, size, false, child_vmsplice_memcmp_fn);
+-}
+-
+-static void test_vmsplice_in_child_mprotect(char *mem, size_t size)
+-{
+-	do_test_cow_in_parent(mem, size, true, child_vmsplice_memcmp_fn);
+-}
+-
+-static void do_test_vmsplice_in_parent(char *mem, size_t size,
+-				       bool before_fork)
+-{
+-	struct iovec iov = {
+-		.iov_base = mem,
+-		.iov_len = size,
+-	};
+-	ssize_t cur, total, transferred;
+-	struct comm_pipes comm_pipes;
+-	char *old, *new;
+-	int ret, fds[2];
+-	char buf;
+-
+-	old = malloc(size);
+-	new = malloc(size);
+-
+-	memcpy(old, mem, size);
+-
+-	ret = setup_comm_pipes(&comm_pipes);
+-	if (ret) {
+-		ksft_test_result_fail("pipe() failed\n");
+-		goto free;
+-	}
+-
+-	if (pipe(fds) < 0) {
+-		ksft_test_result_fail("pipe() failed\n");
+-		goto close_comm_pipes;
+-	}
+-
+-	if (before_fork) {
+-		transferred = vmsplice(fds[1], &iov, 1, 0);
+-		if (transferred <= 0) {
+-			ksft_test_result_fail("vmsplice() failed\n");
+-			goto close_pipe;
+-		}
+-	}
+-
+-	ret = fork();
+-	if (ret < 0) {
+-		ksft_test_result_fail("fork() failed\n");
+-		goto close_pipe;
+-	} else if (!ret) {
+-		write(comm_pipes.child_ready[1], "0", 1);
+-		while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
+-			;
+-		/* Modify page content in the child. */
+-		memset(mem, 0xff, size);
+-		exit(0);
+-	}
+-
+-	if (!before_fork) {
+-		transferred = vmsplice(fds[1], &iov, 1, 0);
+-		if (transferred <= 0) {
+-			ksft_test_result_fail("vmsplice() failed\n");
+-			wait(&ret);
+-			goto close_pipe;
+-		}
+-	}
+-
+-	while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
+-		;
+-	if (munmap(mem, size) < 0) {
+-		ksft_test_result_fail("munmap() failed\n");
+-		goto close_pipe;
+-	}
+-	write(comm_pipes.parent_ready[1], "0", 1);
+-
+-	/* Wait until the child is done writing. */
+-	wait(&ret);
+-	if (!WIFEXITED(ret)) {
+-		ksft_test_result_fail("wait() failed\n");
+-		goto close_pipe;
+-	}
+-
+-	/* See if we still read the old values. */
+-	for (total = 0; total < transferred; total += cur) {
+-		cur = read(fds[0], new + total, transferred - total);
+-		if (cur < 0) {
+-			ksft_test_result_fail("read() failed\n");
+-			goto close_pipe;
+-		}
+-	}
+-
+-	ksft_test_result(!memcmp(old, new, transferred),
+-			 "No leak from child into parent\n");
+-close_pipe:
+-	close(fds[0]);
+-	close(fds[1]);
+-close_comm_pipes:
+-	close_comm_pipes(&comm_pipes);
+-free:
+-	free(old);
+-	free(new);
+-}
+-
+-static void test_vmsplice_before_fork(char *mem, size_t size)
+-{
+-	do_test_vmsplice_in_parent(mem, size, true);
+-}
+-
+-static void test_vmsplice_after_fork(char *mem, size_t size)
+-{
+-	do_test_vmsplice_in_parent(mem, size, false);
+-}
+-
+-#ifdef LOCAL_CONFIG_HAVE_LIBURING
+-static void do_test_iouring(char *mem, size_t size, bool use_fork)
+-{
+-	struct comm_pipes comm_pipes;
+-	struct io_uring_cqe *cqe;
+-	struct io_uring_sqe *sqe;
+-	struct io_uring ring;
+-	ssize_t cur, total;
+-	struct iovec iov;
+-	char *buf, *tmp;
+-	int ret, fd;
+-	FILE *file;
+-
+-	ret = setup_comm_pipes(&comm_pipes);
+-	if (ret) {
+-		ksft_test_result_fail("pipe() failed\n");
+-		return;
+-	}
+-
+-	file = tmpfile();
+-	if (!file) {
+-		ksft_test_result_fail("tmpfile() failed\n");
+-		goto close_comm_pipes;
+-	}
+-	fd = fileno(file);
+-	assert(fd);
+-
+-	tmp = malloc(size);
+-	if (!tmp) {
+-		ksft_test_result_fail("malloc() failed\n");
+-		goto close_file;
+-	}
+-
+-	/* Skip on errors, as we might just lack kernel support. */
+-	ret = io_uring_queue_init(1, &ring, 0);
+-	if (ret < 0) {
+-		ksft_test_result_skip("io_uring_queue_init() failed\n");
+-		goto free_tmp;
+-	}
+-
+-	/*
+-	 * Register the range as a fixed buffer. This will FOLL_WRITE | FOLL_PIN
+-	 * | FOLL_LONGTERM the range.
+-	 *
+-	 * Skip on errors, as we might just lack kernel support or might not
+-	 * have sufficient MEMLOCK permissions.
+-	 */
+-	iov.iov_base = mem;
+-	iov.iov_len = size;
+-	ret = io_uring_register_buffers(&ring, &iov, 1);
+-	if (ret) {
+-		ksft_test_result_skip("io_uring_register_buffers() failed\n");
+-		goto queue_exit;
+-	}
+-
+-	if (use_fork) {
+-		/*
+-		 * fork() and keep the child alive until we're done. Note that
+-		 * we expect the pinned page to not get shared with the child.
+-		 */
+-		ret = fork();
+-		if (ret < 0) {
+-			ksft_test_result_fail("fork() failed\n");
+-			goto unregister_buffers;
+-		} else if (!ret) {
+-			write(comm_pipes.child_ready[1], "0", 1);
+-			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
+-				;
+-			exit(0);
+-		}
+-
+-		while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
+-			;
+-	} else {
+-		/*
+-		 * Map the page R/O into the page table. Enable softdirty
+-		 * tracking to stop the page from getting mapped R/W immediately
+-		 * again by mprotect() optimizations. Note that we don't have an
+-		 * easy way to test if that worked (the pagemap does not export
+-		 * if the page is mapped R/O vs. R/W).
+-		 */
+-		ret = mprotect(mem, size, PROT_READ);
+-		clear_softdirty();
+-		ret |= mprotect(mem, size, PROT_READ | PROT_WRITE);
+-		if (ret) {
+-			ksft_test_result_fail("mprotect() failed\n");
+-			goto unregister_buffers;
+-		}
+-	}
+-
+-	/*
+-	 * Modify the page and write page content as observed by the fixed
+-	 * buffer pin to the file so we can verify it.
+-	 */
+-	memset(mem, 0xff, size);
+-	sqe = io_uring_get_sqe(&ring);
+-	if (!sqe) {
+-		ksft_test_result_fail("io_uring_get_sqe() failed\n");
+-		goto quit_child;
+-	}
+-	io_uring_prep_write_fixed(sqe, fd, mem, size, 0, 0);
+-
+-	ret = io_uring_submit(&ring);
+-	if (ret < 0) {
+-		ksft_test_result_fail("io_uring_submit() failed\n");
+-		goto quit_child;
+-	}
+-
+-	ret = io_uring_wait_cqe(&ring, &cqe);
+-	if (ret < 0) {
+-		ksft_test_result_fail("io_uring_wait_cqe() failed\n");
+-		goto quit_child;
+-	}
+-
+-	if (cqe->res != size) {
+-		ksft_test_result_fail("write_fixed failed\n");
+-		goto quit_child;
+-	}
+-	io_uring_cqe_seen(&ring, cqe);
+-
+-	/* Read back the file content to the temporary buffer. */
+-	total = 0;
+-	while (total < size) {
+-		cur = pread(fd, tmp + total, size - total, total);
+-		if (cur < 0) {
+-			ksft_test_result_fail("pread() failed\n");
+-			goto quit_child;
+-		}
+-		total += cur;
+-	}
+-
+-	/* Finally, check if we read what we expected. */
+-	ksft_test_result(!memcmp(mem, tmp, size),
+-			 "Longterm R/W pin is reliable\n");
+-
+-quit_child:
+-	if (use_fork) {
+-		write(comm_pipes.parent_ready[1], "0", 1);
+-		wait(&ret);
+-	}
+-unregister_buffers:
+-	io_uring_unregister_buffers(&ring);
+-queue_exit:
+-	io_uring_queue_exit(&ring);
+-free_tmp:
+-	free(tmp);
+-close_file:
+-	fclose(file);
+-close_comm_pipes:
+-	close_comm_pipes(&comm_pipes);
+-}
+-
+-static void test_iouring_ro(char *mem, size_t size)
+-{
+-	do_test_iouring(mem, size, false);
+-}
+-
+-static void test_iouring_fork(char *mem, size_t size)
+-{
+-	do_test_iouring(mem, size, true);
+-}
+-
+-#endif /* LOCAL_CONFIG_HAVE_LIBURING */
+-
+-enum ro_pin_test {
+-	RO_PIN_TEST_SHARED,
+-	RO_PIN_TEST_PREVIOUSLY_SHARED,
+-	RO_PIN_TEST_RO_EXCLUSIVE,
+-};
+-
+-static void do_test_ro_pin(char *mem, size_t size, enum ro_pin_test test,
+-			   bool fast)
+-{
+-	struct pin_longterm_test args;
+-	struct comm_pipes comm_pipes;
+-	char *tmp, buf;
+-	__u64 tmp_val;
+-	int ret;
+-
+-	if (gup_fd < 0) {
+-		ksft_test_result_skip("gup_test not available\n");
+-		return;
+-	}
+-
+-	tmp = malloc(size);
+-	if (!tmp) {
+-		ksft_test_result_fail("malloc() failed\n");
+-		return;
+-	}
+-
+-	ret = setup_comm_pipes(&comm_pipes);
+-	if (ret) {
+-		ksft_test_result_fail("pipe() failed\n");
+-		goto free_tmp;
+-	}
+-
+-	switch (test) {
+-	case RO_PIN_TEST_SHARED:
+-	case RO_PIN_TEST_PREVIOUSLY_SHARED:
+-		/*
+-		 * Share the pages with our child. As the pages are not pinned,
+-		 * this should just work.
+-		 */
+-		ret = fork();
+-		if (ret < 0) {
+-			ksft_test_result_fail("fork() failed\n");
+-			goto close_comm_pipes;
+-		} else if (!ret) {
+-			write(comm_pipes.child_ready[1], "0", 1);
+-			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
+-				;
+-			exit(0);
+-		}
+-
+-		/* Wait until our child is ready. */
+-		while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
+-			;
+-
+-		if (test == RO_PIN_TEST_PREVIOUSLY_SHARED) {
+-			/*
+-			 * Tell the child to quit now and wait until it quit.
+-			 * The pages should now be mapped R/O into our page
+-			 * tables, but they are no longer shared.
+-			 */
+-			write(comm_pipes.parent_ready[1], "0", 1);
+-			wait(&ret);
+-			if (!WIFEXITED(ret))
+-				ksft_print_msg("[INFO] wait() failed\n");
+-		}
+-		break;
+-	case RO_PIN_TEST_RO_EXCLUSIVE:
+-		/*
+-		 * Map the page R/O into the page table. Enable softdirty
+-		 * tracking to stop the page from getting mapped R/W immediately
+-		 * again by mprotect() optimizations. Note that we don't have an
+-		 * easy way to test if that worked (the pagemap does not export
+-		 * if the page is mapped R/O vs. R/W).
+-		 */
+-		ret = mprotect(mem, size, PROT_READ);
+-		clear_softdirty();
+-		ret |= mprotect(mem, size, PROT_READ | PROT_WRITE);
+-		if (ret) {
+-			ksft_test_result_fail("mprotect() failed\n");
+-			goto close_comm_pipes;
+-		}
+-		break;
+-	default:
+-		assert(false);
+-	}
+-
+-	/* Take a R/O pin. This should trigger unsharing. */
+-	args.addr = (__u64)mem;
+-	args.size = size;
+-	args.flags = fast ? PIN_LONGTERM_TEST_FLAG_USE_FAST : 0;
+-	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_START, &args);
+-	if (ret) {
+-		if (errno == EINVAL)
+-			ksft_test_result_skip("PIN_LONGTERM_TEST_START failed\n");
+-		else
+-			ksft_test_result_fail("PIN_LONGTERM_TEST_START failed\n");
+-		goto wait;
+-	}
+-
+-	/* Modify the page. */
+-	memset(mem, 0xff, size);
+-
+-	/*
+-	 * Read back the content via the pin to the temporary buffer and
+-	 * test if we observed the modification.
+-	 */
+-	tmp_val = (__u64)tmp;
+-	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_READ, &tmp_val);
+-	if (ret)
+-		ksft_test_result_fail("PIN_LONGTERM_TEST_READ failed\n");
+-	else
+-		ksft_test_result(!memcmp(mem, tmp, size),
+-				 "Longterm R/O pin is reliable\n");
+-
+-	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_STOP);
+-	if (ret)
+-		ksft_print_msg("[INFO] PIN_LONGTERM_TEST_STOP failed\n");
+-wait:
+-	switch (test) {
+-	case RO_PIN_TEST_SHARED:
+-		write(comm_pipes.parent_ready[1], "0", 1);
+-		wait(&ret);
+-		if (!WIFEXITED(ret))
+-			ksft_print_msg("[INFO] wait() failed\n");
+-		break;
+-	default:
+-		break;
+-	}
+-close_comm_pipes:
+-	close_comm_pipes(&comm_pipes);
+-free_tmp:
+-	free(tmp);
+-}
+-
+-static void test_ro_pin_on_shared(char *mem, size_t size)
+-{
+-	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, false);
+-}
+-
+-static void test_ro_fast_pin_on_shared(char *mem, size_t size)
+-{
+-	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, true);
+-}
+-
+-static void test_ro_pin_on_ro_previously_shared(char *mem, size_t size)
+-{
+-	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, false);
+-}
+-
+-static void test_ro_fast_pin_on_ro_previously_shared(char *mem, size_t size)
+-{
+-	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, true);
+-}
+-
+-static void test_ro_pin_on_ro_exclusive(char *mem, size_t size)
+-{
+-	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, false);
+-}
+-
+-static void test_ro_fast_pin_on_ro_exclusive(char *mem, size_t size)
+-{
+-	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, true);
+-}
+-
+-typedef void (*test_fn)(char *mem, size_t size);
+-
+-static void do_run_with_base_page(test_fn fn, bool swapout)
+-{
+-	char *mem;
+-	int ret;
+-
+-	mem = mmap(NULL, pagesize, PROT_READ | PROT_WRITE,
+-		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-	if (mem == MAP_FAILED) {
+-		ksft_test_result_fail("mmap() failed\n");
+-		return;
+-	}
+-
+-	ret = madvise(mem, pagesize, MADV_NOHUGEPAGE);
+-	/* Ignore if not around on a kernel. */
+-	if (ret && errno != EINVAL) {
+-		ksft_test_result_fail("MADV_NOHUGEPAGE failed\n");
+-		goto munmap;
+-	}
+-
+-	/* Populate a base page. */
+-	memset(mem, 0, pagesize);
+-
+-	if (swapout) {
+-		madvise(mem, pagesize, MADV_PAGEOUT);
+-		if (!pagemap_is_swapped(pagemap_fd, mem)) {
+-			ksft_test_result_skip("MADV_PAGEOUT did not work, is swap enabled?\n");
+-			goto munmap;
+-		}
+-	}
+-
+-	fn(mem, pagesize);
+-munmap:
+-	munmap(mem, pagesize);
+-}
+-
+-static void run_with_base_page(test_fn fn, const char *desc)
+-{
+-	ksft_print_msg("[RUN] %s ... with base page\n", desc);
+-	do_run_with_base_page(fn, false);
+-}
+-
+-static void run_with_base_page_swap(test_fn fn, const char *desc)
+-{
+-	ksft_print_msg("[RUN] %s ... with swapped out base page\n", desc);
+-	do_run_with_base_page(fn, true);
+-}
+-
+-enum thp_run {
+-	THP_RUN_PMD,
+-	THP_RUN_PMD_SWAPOUT,
+-	THP_RUN_PTE,
+-	THP_RUN_PTE_SWAPOUT,
+-	THP_RUN_SINGLE_PTE,
+-	THP_RUN_SINGLE_PTE_SWAPOUT,
+-	THP_RUN_PARTIAL_MREMAP,
+-	THP_RUN_PARTIAL_SHARED,
+-};
+-
+-static void do_run_with_thp(test_fn fn, enum thp_run thp_run)
+-{
+-	char *mem, *mmap_mem, *tmp, *mremap_mem = MAP_FAILED;
+-	size_t size, mmap_size, mremap_size;
+-	int ret;
+-
+-	/* For alignment purposes, we need twice the thp size. */
+-	mmap_size = 2 * thpsize;
+-	mmap_mem = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
+-			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-	if (mmap_mem == MAP_FAILED) {
+-		ksft_test_result_fail("mmap() failed\n");
+-		return;
+-	}
+-
+-	/* We need a THP-aligned memory area. */
+-	mem = (char *)(((uintptr_t)mmap_mem + thpsize) & ~(thpsize - 1));
+-
+-	ret = madvise(mem, thpsize, MADV_HUGEPAGE);
+-	if (ret) {
+-		ksft_test_result_fail("MADV_HUGEPAGE failed\n");
+-		goto munmap;
+-	}
+-
+-	/*
+-	 * Try to populate a THP. Touch the first sub-page and test if we get
+-	 * another sub-page populated automatically.
+-	 */
+-	mem[0] = 0;
+-	if (!pagemap_is_populated(pagemap_fd, mem + pagesize)) {
+-		ksft_test_result_skip("Did not get a THP populated\n");
+-		goto munmap;
+-	}
+-	memset(mem, 0, thpsize);
+-
+-	size = thpsize;
+-	switch (thp_run) {
+-	case THP_RUN_PMD:
+-	case THP_RUN_PMD_SWAPOUT:
+-		break;
+-	case THP_RUN_PTE:
+-	case THP_RUN_PTE_SWAPOUT:
+-		/*
+-		 * Trigger PTE-mapping the THP by temporarily mapping a single
+-		 * subpage R/O.
+-		 */
+-		ret = mprotect(mem + pagesize, pagesize, PROT_READ);
+-		if (ret) {
+-			ksft_test_result_fail("mprotect() failed\n");
+-			goto munmap;
+-		}
+-		ret = mprotect(mem + pagesize, pagesize, PROT_READ | PROT_WRITE);
+-		if (ret) {
+-			ksft_test_result_fail("mprotect() failed\n");
+-			goto munmap;
+-		}
+-		break;
+-	case THP_RUN_SINGLE_PTE:
+-	case THP_RUN_SINGLE_PTE_SWAPOUT:
+-		/*
+-		 * Discard all but a single subpage of that PTE-mapped THP. What
+-		 * remains is a single PTE mapping a single subpage.
+-		 */
+-		ret = madvise(mem + pagesize, thpsize - pagesize, MADV_DONTNEED);
+-		if (ret) {
+-			ksft_test_result_fail("MADV_DONTNEED failed\n");
+-			goto munmap;
+-		}
+-		size = pagesize;
+-		break;
+-	case THP_RUN_PARTIAL_MREMAP:
+-		/*
+-		 * Remap half of the THP. We need some new memory location
+-		 * for that.
+-		 */
+-		mremap_size = thpsize / 2;
+-		mremap_mem = mmap(NULL, mremap_size, PROT_NONE,
+-				  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-		if (mem == MAP_FAILED) {
+-			ksft_test_result_fail("mmap() failed\n");
+-			goto munmap;
+-		}
+-		tmp = mremap(mem + mremap_size, mremap_size, mremap_size,
+-			     MREMAP_MAYMOVE | MREMAP_FIXED, mremap_mem);
+-		if (tmp != mremap_mem) {
+-			ksft_test_result_fail("mremap() failed\n");
+-			goto munmap;
+-		}
+-		size = mremap_size;
+-		break;
+-	case THP_RUN_PARTIAL_SHARED:
+-		/*
+-		 * Share the first page of the THP with a child and quit the
+-		 * child. This will result in some parts of the THP never
+-		 * have been shared.
+-		 */
+-		ret = madvise(mem + pagesize, thpsize - pagesize, MADV_DONTFORK);
+-		if (ret) {
+-			ksft_test_result_fail("MADV_DONTFORK failed\n");
+-			goto munmap;
+-		}
+-		ret = fork();
+-		if (ret < 0) {
+-			ksft_test_result_fail("fork() failed\n");
+-			goto munmap;
+-		} else if (!ret) {
+-			exit(0);
+-		}
+-		wait(&ret);
+-		/* Allow for sharing all pages again. */
+-		ret = madvise(mem + pagesize, thpsize - pagesize, MADV_DOFORK);
+-		if (ret) {
+-			ksft_test_result_fail("MADV_DOFORK failed\n");
+-			goto munmap;
+-		}
+-		break;
+-	default:
+-		assert(false);
+-	}
+-
+-	switch (thp_run) {
+-	case THP_RUN_PMD_SWAPOUT:
+-	case THP_RUN_PTE_SWAPOUT:
+-	case THP_RUN_SINGLE_PTE_SWAPOUT:
+-		madvise(mem, size, MADV_PAGEOUT);
+-		if (!range_is_swapped(mem, size)) {
+-			ksft_test_result_skip("MADV_PAGEOUT did not work, is swap enabled?\n");
+-			goto munmap;
+-		}
+-		break;
+-	default:
+-		break;
+-	}
+-
+-	fn(mem, size);
+-munmap:
+-	munmap(mmap_mem, mmap_size);
+-	if (mremap_mem != MAP_FAILED)
+-		munmap(mremap_mem, mremap_size);
+-}
+-
+-static void run_with_thp(test_fn fn, const char *desc)
+-{
+-	ksft_print_msg("[RUN] %s ... with THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PMD);
+-}
+-
+-static void run_with_thp_swap(test_fn fn, const char *desc)
+-{
+-	ksft_print_msg("[RUN] %s ... with swapped-out THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PMD_SWAPOUT);
+-}
+-
+-static void run_with_pte_mapped_thp(test_fn fn, const char *desc)
+-{
+-	ksft_print_msg("[RUN] %s ... with PTE-mapped THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PTE);
+-}
+-
+-static void run_with_pte_mapped_thp_swap(test_fn fn, const char *desc)
+-{
+-	ksft_print_msg("[RUN] %s ... with swapped-out, PTE-mapped THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PTE_SWAPOUT);
+-}
+-
+-static void run_with_single_pte_of_thp(test_fn fn, const char *desc)
+-{
+-	ksft_print_msg("[RUN] %s ... with single PTE of THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_SINGLE_PTE);
+-}
+-
+-static void run_with_single_pte_of_thp_swap(test_fn fn, const char *desc)
+-{
+-	ksft_print_msg("[RUN] %s ... with single PTE of swapped-out THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_SINGLE_PTE_SWAPOUT);
+-}
+-
+-static void run_with_partial_mremap_thp(test_fn fn, const char *desc)
+-{
+-	ksft_print_msg("[RUN] %s ... with partially mremap()'ed THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PARTIAL_MREMAP);
+-}
+-
+-static void run_with_partial_shared_thp(test_fn fn, const char *desc)
+-{
+-	ksft_print_msg("[RUN] %s ... with partially shared THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PARTIAL_SHARED);
+-}
+-
+-static void run_with_hugetlb(test_fn fn, const char *desc, size_t hugetlbsize)
+-{
+-	int flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB;
+-	char *mem, *dummy;
+-
+-	ksft_print_msg("[RUN] %s ... with hugetlb (%zu kB)\n", desc,
+-		       hugetlbsize / 1024);
+-
+-	flags |= __builtin_ctzll(hugetlbsize) << MAP_HUGE_SHIFT;
+-
+-	mem = mmap(NULL, hugetlbsize, PROT_READ | PROT_WRITE, flags, -1, 0);
+-	if (mem == MAP_FAILED) {
+-		ksft_test_result_skip("need more free huge pages\n");
+-		return;
+-	}
+-
+-	/* Populate an huge page. */
+-	memset(mem, 0, hugetlbsize);
+-
+-	/*
+-	 * We need a total of two hugetlb pages to handle COW/unsharing
+-	 * properly, otherwise we might get zapped by a SIGBUS.
+-	 */
+-	dummy = mmap(NULL, hugetlbsize, PROT_READ | PROT_WRITE, flags, -1, 0);
+-	if (dummy == MAP_FAILED) {
+-		ksft_test_result_skip("need more free huge pages\n");
+-		goto munmap;
+-	}
+-	munmap(dummy, hugetlbsize);
+-
+-	fn(mem, hugetlbsize);
+-munmap:
+-	munmap(mem, hugetlbsize);
+-}
+-
+-struct test_case {
+-	const char *desc;
+-	test_fn fn;
+-};
+-
+-static const struct test_case test_cases[] = {
+-	/*
+-	 * Basic COW tests for fork() without any GUP. If we miss to break COW,
+-	 * either the child can observe modifications by the parent or the
+-	 * other way around.
+-	 */
+-	{
+-		"Basic COW after fork()",
+-		test_cow_in_parent,
+-	},
+-	/*
+-	 * Basic test, but do an additional mprotect(PROT_READ)+
+-	 * mprotect(PROT_READ|PROT_WRITE) in the parent before write access.
+-	 */
+-	{
+-		"Basic COW after fork() with mprotect() optimization",
+-		test_cow_in_parent_mprotect,
+-	},
+-	/*
+-	 * vmsplice() [R/O GUP] + unmap in the child; modify in the parent. If
+-	 * we miss to break COW, the child observes modifications by the parent.
+-	 * This is CVE-2020-29374 reported by Jann Horn.
+-	 */
+-	{
+-		"vmsplice() + unmap in child",
+-		test_vmsplice_in_child
+-	},
+-	/*
+-	 * vmsplice() test, but do an additional mprotect(PROT_READ)+
+-	 * mprotect(PROT_READ|PROT_WRITE) in the parent before write access.
+-	 */
+-	{
+-		"vmsplice() + unmap in child with mprotect() optimization",
+-		test_vmsplice_in_child_mprotect
+-	},
+-	/*
+-	 * vmsplice() [R/O GUP] in parent before fork(), unmap in parent after
+-	 * fork(); modify in the child. If we miss to break COW, the parent
+-	 * observes modifications by the child.
+-	 */
+-	{
+-		"vmsplice() before fork(), unmap in parent after fork()",
+-		test_vmsplice_before_fork,
+-	},
+-	/*
+-	 * vmsplice() [R/O GUP] + unmap in parent after fork(); modify in the
+-	 * child. If we miss to break COW, the parent observes modifications by
+-	 * the child.
+-	 */
+-	{
+-		"vmsplice() + unmap in parent after fork()",
+-		test_vmsplice_after_fork,
+-	},
+-#ifdef LOCAL_CONFIG_HAVE_LIBURING
+-	/*
+-	 * Take a R/W longterm pin and then map the page R/O into the page
+-	 * table to trigger a write fault on next access. When modifying the
+-	 * page, the page content must be visible via the pin.
+-	 */
+-	{
+-		"R/O-mapping a page registered as iouring fixed buffer",
+-		test_iouring_ro,
+-	},
+-	/*
+-	 * Take a R/W longterm pin and then fork() a child. When modifying the
+-	 * page, the page content must be visible via the pin. We expect the
+-	 * pinned page to not get shared with the child.
+-	 */
+-	{
+-		"fork() with an iouring fixed buffer",
+-		test_iouring_fork,
+-	},
+-
+-#endif /* LOCAL_CONFIG_HAVE_LIBURING */
+-	/*
+-	 * Take a R/O longterm pin on a R/O-mapped shared anonymous page.
+-	 * When modifying the page via the page table, the page content change
+-	 * must be visible via the pin.
+-	 */
+-	{
+-		"R/O GUP pin on R/O-mapped shared page",
+-		test_ro_pin_on_shared,
+-	},
+-	/* Same as above, but using GUP-fast. */
+-	{
+-		"R/O GUP-fast pin on R/O-mapped shared page",
+-		test_ro_fast_pin_on_shared,
+-	},
+-	/*
+-	 * Take a R/O longterm pin on a R/O-mapped exclusive anonymous page that
+-	 * was previously shared. When modifying the page via the page table,
+-	 * the page content change must be visible via the pin.
+-	 */
+-	{
+-		"R/O GUP pin on R/O-mapped previously-shared page",
+-		test_ro_pin_on_ro_previously_shared,
+-	},
+-	/* Same as above, but using GUP-fast. */
+-	{
+-		"R/O GUP-fast pin on R/O-mapped previously-shared page",
+-		test_ro_fast_pin_on_ro_previously_shared,
+-	},
+-	/*
+-	 * Take a R/O longterm pin on a R/O-mapped exclusive anonymous page.
+-	 * When modifying the page via the page table, the page content change
+-	 * must be visible via the pin.
+-	 */
+-	{
+-		"R/O GUP pin on R/O-mapped exclusive page",
+-		test_ro_pin_on_ro_exclusive,
+-	},
+-	/* Same as above, but using GUP-fast. */
+-	{
+-		"R/O GUP-fast pin on R/O-mapped exclusive page",
+-		test_ro_fast_pin_on_ro_exclusive,
+-	},
+-};
+-
+-static void run_test_case(struct test_case const *test_case)
+-{
+-	int i;
+-
+-	run_with_base_page(test_case->fn, test_case->desc);
+-	run_with_base_page_swap(test_case->fn, test_case->desc);
+-	if (thpsize) {
+-		run_with_thp(test_case->fn, test_case->desc);
+-		run_with_thp_swap(test_case->fn, test_case->desc);
+-		run_with_pte_mapped_thp(test_case->fn, test_case->desc);
+-		run_with_pte_mapped_thp_swap(test_case->fn, test_case->desc);
+-		run_with_single_pte_of_thp(test_case->fn, test_case->desc);
+-		run_with_single_pte_of_thp_swap(test_case->fn, test_case->desc);
+-		run_with_partial_mremap_thp(test_case->fn, test_case->desc);
+-		run_with_partial_shared_thp(test_case->fn, test_case->desc);
+-	}
+-	for (i = 0; i < nr_hugetlbsizes; i++)
+-		run_with_hugetlb(test_case->fn, test_case->desc,
+-				 hugetlbsizes[i]);
+-}
+-
+-static void run_test_cases(void)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(test_cases); i++)
+-		run_test_case(&test_cases[i]);
+-}
+-
+-static int tests_per_test_case(void)
+-{
+-	int tests = 2 + nr_hugetlbsizes;
+-
+-	if (thpsize)
+-		tests += 8;
+-	return tests;
+-}
+-
+-int main(int argc, char **argv)
+-{
+-	int nr_test_cases = ARRAY_SIZE(test_cases);
+-	int err;
+-
+-	pagesize = getpagesize();
+-	detect_thpsize();
+-	detect_hugetlbsizes();
+-
+-	ksft_print_header();
+-	ksft_set_plan(nr_test_cases * tests_per_test_case());
+-
+-	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
+-	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
+-	if (pagemap_fd < 0)
+-		ksft_exit_fail_msg("opening pagemap failed\n");
+-
+-	run_test_cases();
+-
+-	err = ksft_get_fail_cnt();
+-	if (err)
+-		ksft_exit_fail_msg("%d out of %d tests failed\n",
+-				   err, ksft_test_num());
+-	return ksft_exit_pass();
+-}
+--- a/tools/testing/selftests/vm/check_config.sh~selftests-vm-anon_cow-prepare-for-non-anonymous-cow-tests
++++ a/tools/testing/selftests/vm/check_config.sh
+@@ -21,11 +21,11 @@ $CC -c $tmpfile_c -o $tmpfile_o >/dev/nu
+ 
+ if [ -f $tmpfile_o ]; then
+     echo "#define LOCAL_CONFIG_HAVE_LIBURING 1"  > $OUTPUT_H_FILE
+-    echo "ANON_COW_EXTRA_LIBS = -luring"         > $OUTPUT_MKFILE
++    echo "COW_EXTRA_LIBS = -luring"              > $OUTPUT_MKFILE
+ else
+     echo "// No liburing support found"          > $OUTPUT_H_FILE
+     echo "# No liburing support found, so:"      > $OUTPUT_MKFILE
+-    echo "ANON_COW_EXTRA_LIBS = "               >> $OUTPUT_MKFILE
++    echo "COW_EXTRA_LIBS = "                    >> $OUTPUT_MKFILE
+ fi
+ 
+ rm ${tmpname}.*
+--- /dev/null
++++ a/tools/testing/selftests/vm/cow.c
+@@ -0,0 +1,1174 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * COW (Copy On Write) tests.
++ *
++ * Copyright 2022, Red Hat, Inc.
++ *
++ * Author(s): David Hildenbrand <david@redhat.com>
++ */
++#define _GNU_SOURCE
++#include <stdlib.h>
++#include <string.h>
++#include <stdbool.h>
++#include <stdint.h>
++#include <unistd.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <dirent.h>
++#include <assert.h>
++#include <sys/mman.h>
++#include <sys/ioctl.h>
++#include <sys/wait.h>
++
++#include "local_config.h"
++#ifdef LOCAL_CONFIG_HAVE_LIBURING
++#include <liburing.h>
++#endif /* LOCAL_CONFIG_HAVE_LIBURING */
++
++#include "../../../../mm/gup_test.h"
++#include "../kselftest.h"
++#include "vm_util.h"
++
++static size_t pagesize;
++static int pagemap_fd;
++static size_t thpsize;
++static int nr_hugetlbsizes;
++static size_t hugetlbsizes[10];
++static int gup_fd;
++
++static void detect_thpsize(void)
++{
++	int fd = open("/sys/kernel/mm/transparent_hugepage/hpage_pmd_size",
++		      O_RDONLY);
++	size_t size = 0;
++	char buf[15];
++	int ret;
++
++	if (fd < 0)
++		return;
++
++	ret = pread(fd, buf, sizeof(buf), 0);
++	if (ret > 0 && ret < sizeof(buf)) {
++		buf[ret] = 0;
++
++		size = strtoul(buf, NULL, 10);
++		if (size < pagesize)
++			size = 0;
++		if (size > 0) {
++			thpsize = size;
++			ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
++				       thpsize / 1024);
++		}
++	}
++
++	close(fd);
++}
++
++static void detect_hugetlbsizes(void)
++{
++	DIR *dir = opendir("/sys/kernel/mm/hugepages/");
++
++	if (!dir)
++		return;
++
++	while (nr_hugetlbsizes < ARRAY_SIZE(hugetlbsizes)) {
++		struct dirent *entry = readdir(dir);
++		size_t kb;
++
++		if (!entry)
++			break;
++		if (entry->d_type != DT_DIR)
++			continue;
++		if (sscanf(entry->d_name, "hugepages-%zukB", &kb) != 1)
++			continue;
++		hugetlbsizes[nr_hugetlbsizes] = kb * 1024;
++		nr_hugetlbsizes++;
++		ksft_print_msg("[INFO] detected hugetlb size: %zu KiB\n",
++			       kb);
++	}
++	closedir(dir);
++}
++
++static bool range_is_swapped(void *addr, size_t size)
++{
++	for (; size; addr += pagesize, size -= pagesize)
++		if (!pagemap_is_swapped(pagemap_fd, addr))
++			return false;
++	return true;
++}
++
++struct comm_pipes {
++	int child_ready[2];
++	int parent_ready[2];
++};
++
++static int setup_comm_pipes(struct comm_pipes *comm_pipes)
++{
++	if (pipe(comm_pipes->child_ready) < 0)
++		return -errno;
++	if (pipe(comm_pipes->parent_ready) < 0) {
++		close(comm_pipes->child_ready[0]);
++		close(comm_pipes->child_ready[1]);
++		return -errno;
++	}
++
++	return 0;
++}
++
++static void close_comm_pipes(struct comm_pipes *comm_pipes)
++{
++	close(comm_pipes->child_ready[0]);
++	close(comm_pipes->child_ready[1]);
++	close(comm_pipes->parent_ready[0]);
++	close(comm_pipes->parent_ready[1]);
++}
++
++static int child_memcmp_fn(char *mem, size_t size,
++			   struct comm_pipes *comm_pipes)
++{
++	char *old = malloc(size);
++	char buf;
++
++	/* Backup the original content. */
++	memcpy(old, mem, size);
++
++	/* Wait until the parent modified the page. */
++	write(comm_pipes->child_ready[1], "0", 1);
++	while (read(comm_pipes->parent_ready[0], &buf, 1) != 1)
++		;
++
++	/* See if we still read the old values. */
++	return memcmp(old, mem, size);
++}
++
++static int child_vmsplice_memcmp_fn(char *mem, size_t size,
++				    struct comm_pipes *comm_pipes)
++{
++	struct iovec iov = {
++		.iov_base = mem,
++		.iov_len = size,
++	};
++	ssize_t cur, total, transferred;
++	char *old, *new;
++	int fds[2];
++	char buf;
++
++	old = malloc(size);
++	new = malloc(size);
++
++	/* Backup the original content. */
++	memcpy(old, mem, size);
++
++	if (pipe(fds) < 0)
++		return -errno;
++
++	/* Trigger a read-only pin. */
++	transferred = vmsplice(fds[1], &iov, 1, 0);
++	if (transferred < 0)
++		return -errno;
++	if (transferred == 0)
++		return -EINVAL;
++
++	/* Unmap it from our page tables. */
++	if (munmap(mem, size) < 0)
++		return -errno;
++
++	/* Wait until the parent modified it. */
++	write(comm_pipes->child_ready[1], "0", 1);
++	while (read(comm_pipes->parent_ready[0], &buf, 1) != 1)
++		;
++
++	/* See if we still read the old values via the pipe. */
++	for (total = 0; total < transferred; total += cur) {
++		cur = read(fds[0], new + total, transferred - total);
++		if (cur < 0)
++			return -errno;
++	}
++
++	return memcmp(old, new, transferred);
++}
++
++typedef int (*child_fn)(char *mem, size_t size, struct comm_pipes *comm_pipes);
++
++static void do_test_cow_in_parent(char *mem, size_t size, bool do_mprotect,
++				  child_fn fn)
++{
++	struct comm_pipes comm_pipes;
++	char buf;
++	int ret;
++
++	ret = setup_comm_pipes(&comm_pipes);
++	if (ret) {
++		ksft_test_result_fail("pipe() failed\n");
++		return;
++	}
++
++	ret = fork();
++	if (ret < 0) {
++		ksft_test_result_fail("fork() failed\n");
++		goto close_comm_pipes;
++	} else if (!ret) {
++		exit(fn(mem, size, &comm_pipes));
++	}
++
++	while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
++		;
++
++	if (do_mprotect) {
++		/*
++		 * mprotect() optimizations might try avoiding
++		 * write-faults by directly mapping pages writable.
++		 */
++		ret = mprotect(mem, size, PROT_READ);
++		ret |= mprotect(mem, size, PROT_READ|PROT_WRITE);
++		if (ret) {
++			ksft_test_result_fail("mprotect() failed\n");
++			write(comm_pipes.parent_ready[1], "0", 1);
++			wait(&ret);
++			goto close_comm_pipes;
++		}
++	}
++
++	/* Modify the page. */
++	memset(mem, 0xff, size);
++	write(comm_pipes.parent_ready[1], "0", 1);
++
++	wait(&ret);
++	if (WIFEXITED(ret))
++		ret = WEXITSTATUS(ret);
++	else
++		ret = -EINVAL;
++
++	ksft_test_result(!ret, "No leak from parent into child\n");
++close_comm_pipes:
++	close_comm_pipes(&comm_pipes);
++}
++
++static void test_cow_in_parent(char *mem, size_t size)
++{
++	do_test_cow_in_parent(mem, size, false, child_memcmp_fn);
++}
++
++static void test_cow_in_parent_mprotect(char *mem, size_t size)
++{
++	do_test_cow_in_parent(mem, size, true, child_memcmp_fn);
++}
++
++static void test_vmsplice_in_child(char *mem, size_t size)
++{
++	do_test_cow_in_parent(mem, size, false, child_vmsplice_memcmp_fn);
++}
++
++static void test_vmsplice_in_child_mprotect(char *mem, size_t size)
++{
++	do_test_cow_in_parent(mem, size, true, child_vmsplice_memcmp_fn);
++}
++
++static void do_test_vmsplice_in_parent(char *mem, size_t size,
++				       bool before_fork)
++{
++	struct iovec iov = {
++		.iov_base = mem,
++		.iov_len = size,
++	};
++	ssize_t cur, total, transferred;
++	struct comm_pipes comm_pipes;
++	char *old, *new;
++	int ret, fds[2];
++	char buf;
++
++	old = malloc(size);
++	new = malloc(size);
++
++	memcpy(old, mem, size);
++
++	ret = setup_comm_pipes(&comm_pipes);
++	if (ret) {
++		ksft_test_result_fail("pipe() failed\n");
++		goto free;
++	}
++
++	if (pipe(fds) < 0) {
++		ksft_test_result_fail("pipe() failed\n");
++		goto close_comm_pipes;
++	}
++
++	if (before_fork) {
++		transferred = vmsplice(fds[1], &iov, 1, 0);
++		if (transferred <= 0) {
++			ksft_test_result_fail("vmsplice() failed\n");
++			goto close_pipe;
++		}
++	}
++
++	ret = fork();
++	if (ret < 0) {
++		ksft_test_result_fail("fork() failed\n");
++		goto close_pipe;
++	} else if (!ret) {
++		write(comm_pipes.child_ready[1], "0", 1);
++		while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
++			;
++		/* Modify page content in the child. */
++		memset(mem, 0xff, size);
++		exit(0);
++	}
++
++	if (!before_fork) {
++		transferred = vmsplice(fds[1], &iov, 1, 0);
++		if (transferred <= 0) {
++			ksft_test_result_fail("vmsplice() failed\n");
++			wait(&ret);
++			goto close_pipe;
++		}
++	}
++
++	while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
++		;
++	if (munmap(mem, size) < 0) {
++		ksft_test_result_fail("munmap() failed\n");
++		goto close_pipe;
++	}
++	write(comm_pipes.parent_ready[1], "0", 1);
++
++	/* Wait until the child is done writing. */
++	wait(&ret);
++	if (!WIFEXITED(ret)) {
++		ksft_test_result_fail("wait() failed\n");
++		goto close_pipe;
++	}
++
++	/* See if we still read the old values. */
++	for (total = 0; total < transferred; total += cur) {
++		cur = read(fds[0], new + total, transferred - total);
++		if (cur < 0) {
++			ksft_test_result_fail("read() failed\n");
++			goto close_pipe;
++		}
++	}
++
++	ksft_test_result(!memcmp(old, new, transferred),
++			 "No leak from child into parent\n");
++close_pipe:
++	close(fds[0]);
++	close(fds[1]);
++close_comm_pipes:
++	close_comm_pipes(&comm_pipes);
++free:
++	free(old);
++	free(new);
++}
++
++static void test_vmsplice_before_fork(char *mem, size_t size)
++{
++	do_test_vmsplice_in_parent(mem, size, true);
++}
++
++static void test_vmsplice_after_fork(char *mem, size_t size)
++{
++	do_test_vmsplice_in_parent(mem, size, false);
++}
++
++#ifdef LOCAL_CONFIG_HAVE_LIBURING
++static void do_test_iouring(char *mem, size_t size, bool use_fork)
++{
++	struct comm_pipes comm_pipes;
++	struct io_uring_cqe *cqe;
++	struct io_uring_sqe *sqe;
++	struct io_uring ring;
++	ssize_t cur, total;
++	struct iovec iov;
++	char *buf, *tmp;
++	int ret, fd;
++	FILE *file;
++
++	ret = setup_comm_pipes(&comm_pipes);
++	if (ret) {
++		ksft_test_result_fail("pipe() failed\n");
++		return;
++	}
++
++	file = tmpfile();
++	if (!file) {
++		ksft_test_result_fail("tmpfile() failed\n");
++		goto close_comm_pipes;
++	}
++	fd = fileno(file);
++	assert(fd);
++
++	tmp = malloc(size);
++	if (!tmp) {
++		ksft_test_result_fail("malloc() failed\n");
++		goto close_file;
++	}
++
++	/* Skip on errors, as we might just lack kernel support. */
++	ret = io_uring_queue_init(1, &ring, 0);
++	if (ret < 0) {
++		ksft_test_result_skip("io_uring_queue_init() failed\n");
++		goto free_tmp;
++	}
++
++	/*
++	 * Register the range as a fixed buffer. This will FOLL_WRITE | FOLL_PIN
++	 * | FOLL_LONGTERM the range.
++	 *
++	 * Skip on errors, as we might just lack kernel support or might not
++	 * have sufficient MEMLOCK permissions.
++	 */
++	iov.iov_base = mem;
++	iov.iov_len = size;
++	ret = io_uring_register_buffers(&ring, &iov, 1);
++	if (ret) {
++		ksft_test_result_skip("io_uring_register_buffers() failed\n");
++		goto queue_exit;
++	}
++
++	if (use_fork) {
++		/*
++		 * fork() and keep the child alive until we're done. Note that
++		 * we expect the pinned page to not get shared with the child.
++		 */
++		ret = fork();
++		if (ret < 0) {
++			ksft_test_result_fail("fork() failed\n");
++			goto unregister_buffers;
++		} else if (!ret) {
++			write(comm_pipes.child_ready[1], "0", 1);
++			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
++				;
++			exit(0);
++		}
++
++		while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
++			;
++	} else {
++		/*
++		 * Map the page R/O into the page table. Enable softdirty
++		 * tracking to stop the page from getting mapped R/W immediately
++		 * again by mprotect() optimizations. Note that we don't have an
++		 * easy way to test if that worked (the pagemap does not export
++		 * if the page is mapped R/O vs. R/W).
++		 */
++		ret = mprotect(mem, size, PROT_READ);
++		clear_softdirty();
++		ret |= mprotect(mem, size, PROT_READ | PROT_WRITE);
++		if (ret) {
++			ksft_test_result_fail("mprotect() failed\n");
++			goto unregister_buffers;
++		}
++	}
++
++	/*
++	 * Modify the page and write page content as observed by the fixed
++	 * buffer pin to the file so we can verify it.
++	 */
++	memset(mem, 0xff, size);
++	sqe = io_uring_get_sqe(&ring);
++	if (!sqe) {
++		ksft_test_result_fail("io_uring_get_sqe() failed\n");
++		goto quit_child;
++	}
++	io_uring_prep_write_fixed(sqe, fd, mem, size, 0, 0);
++
++	ret = io_uring_submit(&ring);
++	if (ret < 0) {
++		ksft_test_result_fail("io_uring_submit() failed\n");
++		goto quit_child;
++	}
++
++	ret = io_uring_wait_cqe(&ring, &cqe);
++	if (ret < 0) {
++		ksft_test_result_fail("io_uring_wait_cqe() failed\n");
++		goto quit_child;
++	}
++
++	if (cqe->res != size) {
++		ksft_test_result_fail("write_fixed failed\n");
++		goto quit_child;
++	}
++	io_uring_cqe_seen(&ring, cqe);
++
++	/* Read back the file content to the temporary buffer. */
++	total = 0;
++	while (total < size) {
++		cur = pread(fd, tmp + total, size - total, total);
++		if (cur < 0) {
++			ksft_test_result_fail("pread() failed\n");
++			goto quit_child;
++		}
++		total += cur;
++	}
++
++	/* Finally, check if we read what we expected. */
++	ksft_test_result(!memcmp(mem, tmp, size),
++			 "Longterm R/W pin is reliable\n");
++
++quit_child:
++	if (use_fork) {
++		write(comm_pipes.parent_ready[1], "0", 1);
++		wait(&ret);
++	}
++unregister_buffers:
++	io_uring_unregister_buffers(&ring);
++queue_exit:
++	io_uring_queue_exit(&ring);
++free_tmp:
++	free(tmp);
++close_file:
++	fclose(file);
++close_comm_pipes:
++	close_comm_pipes(&comm_pipes);
++}
++
++static void test_iouring_ro(char *mem, size_t size)
++{
++	do_test_iouring(mem, size, false);
++}
++
++static void test_iouring_fork(char *mem, size_t size)
++{
++	do_test_iouring(mem, size, true);
++}
++
++#endif /* LOCAL_CONFIG_HAVE_LIBURING */
++
++enum ro_pin_test {
++	RO_PIN_TEST_SHARED,
++	RO_PIN_TEST_PREVIOUSLY_SHARED,
++	RO_PIN_TEST_RO_EXCLUSIVE,
++};
++
++static void do_test_ro_pin(char *mem, size_t size, enum ro_pin_test test,
++			   bool fast)
++{
++	struct pin_longterm_test args;
++	struct comm_pipes comm_pipes;
++	char *tmp, buf;
++	__u64 tmp_val;
++	int ret;
++
++	if (gup_fd < 0) {
++		ksft_test_result_skip("gup_test not available\n");
++		return;
++	}
++
++	tmp = malloc(size);
++	if (!tmp) {
++		ksft_test_result_fail("malloc() failed\n");
++		return;
++	}
++
++	ret = setup_comm_pipes(&comm_pipes);
++	if (ret) {
++		ksft_test_result_fail("pipe() failed\n");
++		goto free_tmp;
++	}
++
++	switch (test) {
++	case RO_PIN_TEST_SHARED:
++	case RO_PIN_TEST_PREVIOUSLY_SHARED:
++		/*
++		 * Share the pages with our child. As the pages are not pinned,
++		 * this should just work.
++		 */
++		ret = fork();
++		if (ret < 0) {
++			ksft_test_result_fail("fork() failed\n");
++			goto close_comm_pipes;
++		} else if (!ret) {
++			write(comm_pipes.child_ready[1], "0", 1);
++			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
++				;
++			exit(0);
++		}
++
++		/* Wait until our child is ready. */
++		while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
++			;
++
++		if (test == RO_PIN_TEST_PREVIOUSLY_SHARED) {
++			/*
++			 * Tell the child to quit now and wait until it quit.
++			 * The pages should now be mapped R/O into our page
++			 * tables, but they are no longer shared.
++			 */
++			write(comm_pipes.parent_ready[1], "0", 1);
++			wait(&ret);
++			if (!WIFEXITED(ret))
++				ksft_print_msg("[INFO] wait() failed\n");
++		}
++		break;
++	case RO_PIN_TEST_RO_EXCLUSIVE:
++		/*
++		 * Map the page R/O into the page table. Enable softdirty
++		 * tracking to stop the page from getting mapped R/W immediately
++		 * again by mprotect() optimizations. Note that we don't have an
++		 * easy way to test if that worked (the pagemap does not export
++		 * if the page is mapped R/O vs. R/W).
++		 */
++		ret = mprotect(mem, size, PROT_READ);
++		clear_softdirty();
++		ret |= mprotect(mem, size, PROT_READ | PROT_WRITE);
++		if (ret) {
++			ksft_test_result_fail("mprotect() failed\n");
++			goto close_comm_pipes;
++		}
++		break;
++	default:
++		assert(false);
++	}
++
++	/* Take a R/O pin. This should trigger unsharing. */
++	args.addr = (__u64)mem;
++	args.size = size;
++	args.flags = fast ? PIN_LONGTERM_TEST_FLAG_USE_FAST : 0;
++	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_START, &args);
++	if (ret) {
++		if (errno == EINVAL)
++			ksft_test_result_skip("PIN_LONGTERM_TEST_START failed\n");
++		else
++			ksft_test_result_fail("PIN_LONGTERM_TEST_START failed\n");
++		goto wait;
++	}
++
++	/* Modify the page. */
++	memset(mem, 0xff, size);
++
++	/*
++	 * Read back the content via the pin to the temporary buffer and
++	 * test if we observed the modification.
++	 */
++	tmp_val = (__u64)tmp;
++	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_READ, &tmp_val);
++	if (ret)
++		ksft_test_result_fail("PIN_LONGTERM_TEST_READ failed\n");
++	else
++		ksft_test_result(!memcmp(mem, tmp, size),
++				 "Longterm R/O pin is reliable\n");
++
++	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_STOP);
++	if (ret)
++		ksft_print_msg("[INFO] PIN_LONGTERM_TEST_STOP failed\n");
++wait:
++	switch (test) {
++	case RO_PIN_TEST_SHARED:
++		write(comm_pipes.parent_ready[1], "0", 1);
++		wait(&ret);
++		if (!WIFEXITED(ret))
++			ksft_print_msg("[INFO] wait() failed\n");
++		break;
++	default:
++		break;
++	}
++close_comm_pipes:
++	close_comm_pipes(&comm_pipes);
++free_tmp:
++	free(tmp);
++}
++
++static void test_ro_pin_on_shared(char *mem, size_t size)
++{
++	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, false);
++}
++
++static void test_ro_fast_pin_on_shared(char *mem, size_t size)
++{
++	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, true);
++}
++
++static void test_ro_pin_on_ro_previously_shared(char *mem, size_t size)
++{
++	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, false);
++}
++
++static void test_ro_fast_pin_on_ro_previously_shared(char *mem, size_t size)
++{
++	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, true);
++}
++
++static void test_ro_pin_on_ro_exclusive(char *mem, size_t size)
++{
++	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, false);
++}
++
++static void test_ro_fast_pin_on_ro_exclusive(char *mem, size_t size)
++{
++	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, true);
++}
++
++typedef void (*test_fn)(char *mem, size_t size);
++
++static void do_run_with_base_page(test_fn fn, bool swapout)
++{
++	char *mem;
++	int ret;
++
++	mem = mmap(NULL, pagesize, PROT_READ | PROT_WRITE,
++		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (mem == MAP_FAILED) {
++		ksft_test_result_fail("mmap() failed\n");
++		return;
++	}
++
++	ret = madvise(mem, pagesize, MADV_NOHUGEPAGE);
++	/* Ignore if not around on a kernel. */
++	if (ret && errno != EINVAL) {
++		ksft_test_result_fail("MADV_NOHUGEPAGE failed\n");
++		goto munmap;
++	}
++
++	/* Populate a base page. */
++	memset(mem, 0, pagesize);
++
++	if (swapout) {
++		madvise(mem, pagesize, MADV_PAGEOUT);
++		if (!pagemap_is_swapped(pagemap_fd, mem)) {
++			ksft_test_result_skip("MADV_PAGEOUT did not work, is swap enabled?\n");
++			goto munmap;
++		}
++	}
++
++	fn(mem, pagesize);
++munmap:
++	munmap(mem, pagesize);
++}
++
++static void run_with_base_page(test_fn fn, const char *desc)
++{
++	ksft_print_msg("[RUN] %s ... with base page\n", desc);
++	do_run_with_base_page(fn, false);
++}
++
++static void run_with_base_page_swap(test_fn fn, const char *desc)
++{
++	ksft_print_msg("[RUN] %s ... with swapped out base page\n", desc);
++	do_run_with_base_page(fn, true);
++}
++
++enum thp_run {
++	THP_RUN_PMD,
++	THP_RUN_PMD_SWAPOUT,
++	THP_RUN_PTE,
++	THP_RUN_PTE_SWAPOUT,
++	THP_RUN_SINGLE_PTE,
++	THP_RUN_SINGLE_PTE_SWAPOUT,
++	THP_RUN_PARTIAL_MREMAP,
++	THP_RUN_PARTIAL_SHARED,
++};
++
++static void do_run_with_thp(test_fn fn, enum thp_run thp_run)
++{
++	char *mem, *mmap_mem, *tmp, *mremap_mem = MAP_FAILED;
++	size_t size, mmap_size, mremap_size;
++	int ret;
++
++	/* For alignment purposes, we need twice the thp size. */
++	mmap_size = 2 * thpsize;
++	mmap_mem = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
++			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (mmap_mem == MAP_FAILED) {
++		ksft_test_result_fail("mmap() failed\n");
++		return;
++	}
++
++	/* We need a THP-aligned memory area. */
++	mem = (char *)(((uintptr_t)mmap_mem + thpsize) & ~(thpsize - 1));
++
++	ret = madvise(mem, thpsize, MADV_HUGEPAGE);
++	if (ret) {
++		ksft_test_result_fail("MADV_HUGEPAGE failed\n");
++		goto munmap;
++	}
++
++	/*
++	 * Try to populate a THP. Touch the first sub-page and test if we get
++	 * another sub-page populated automatically.
++	 */
++	mem[0] = 0;
++	if (!pagemap_is_populated(pagemap_fd, mem + pagesize)) {
++		ksft_test_result_skip("Did not get a THP populated\n");
++		goto munmap;
++	}
++	memset(mem, 0, thpsize);
++
++	size = thpsize;
++	switch (thp_run) {
++	case THP_RUN_PMD:
++	case THP_RUN_PMD_SWAPOUT:
++		break;
++	case THP_RUN_PTE:
++	case THP_RUN_PTE_SWAPOUT:
++		/*
++		 * Trigger PTE-mapping the THP by temporarily mapping a single
++		 * subpage R/O.
++		 */
++		ret = mprotect(mem + pagesize, pagesize, PROT_READ);
++		if (ret) {
++			ksft_test_result_fail("mprotect() failed\n");
++			goto munmap;
++		}
++		ret = mprotect(mem + pagesize, pagesize, PROT_READ | PROT_WRITE);
++		if (ret) {
++			ksft_test_result_fail("mprotect() failed\n");
++			goto munmap;
++		}
++		break;
++	case THP_RUN_SINGLE_PTE:
++	case THP_RUN_SINGLE_PTE_SWAPOUT:
++		/*
++		 * Discard all but a single subpage of that PTE-mapped THP. What
++		 * remains is a single PTE mapping a single subpage.
++		 */
++		ret = madvise(mem + pagesize, thpsize - pagesize, MADV_DONTNEED);
++		if (ret) {
++			ksft_test_result_fail("MADV_DONTNEED failed\n");
++			goto munmap;
++		}
++		size = pagesize;
++		break;
++	case THP_RUN_PARTIAL_MREMAP:
++		/*
++		 * Remap half of the THP. We need some new memory location
++		 * for that.
++		 */
++		mremap_size = thpsize / 2;
++		mremap_mem = mmap(NULL, mremap_size, PROT_NONE,
++				  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++		if (mem == MAP_FAILED) {
++			ksft_test_result_fail("mmap() failed\n");
++			goto munmap;
++		}
++		tmp = mremap(mem + mremap_size, mremap_size, mremap_size,
++			     MREMAP_MAYMOVE | MREMAP_FIXED, mremap_mem);
++		if (tmp != mremap_mem) {
++			ksft_test_result_fail("mremap() failed\n");
++			goto munmap;
++		}
++		size = mremap_size;
++		break;
++	case THP_RUN_PARTIAL_SHARED:
++		/*
++		 * Share the first page of the THP with a child and quit the
++		 * child. This will result in some parts of the THP never
++		 * have been shared.
++		 */
++		ret = madvise(mem + pagesize, thpsize - pagesize, MADV_DONTFORK);
++		if (ret) {
++			ksft_test_result_fail("MADV_DONTFORK failed\n");
++			goto munmap;
++		}
++		ret = fork();
++		if (ret < 0) {
++			ksft_test_result_fail("fork() failed\n");
++			goto munmap;
++		} else if (!ret) {
++			exit(0);
++		}
++		wait(&ret);
++		/* Allow for sharing all pages again. */
++		ret = madvise(mem + pagesize, thpsize - pagesize, MADV_DOFORK);
++		if (ret) {
++			ksft_test_result_fail("MADV_DOFORK failed\n");
++			goto munmap;
++		}
++		break;
++	default:
++		assert(false);
++	}
++
++	switch (thp_run) {
++	case THP_RUN_PMD_SWAPOUT:
++	case THP_RUN_PTE_SWAPOUT:
++	case THP_RUN_SINGLE_PTE_SWAPOUT:
++		madvise(mem, size, MADV_PAGEOUT);
++		if (!range_is_swapped(mem, size)) {
++			ksft_test_result_skip("MADV_PAGEOUT did not work, is swap enabled?\n");
++			goto munmap;
++		}
++		break;
++	default:
++		break;
++	}
++
++	fn(mem, size);
++munmap:
++	munmap(mmap_mem, mmap_size);
++	if (mremap_mem != MAP_FAILED)
++		munmap(mremap_mem, mremap_size);
++}
++
++static void run_with_thp(test_fn fn, const char *desc)
++{
++	ksft_print_msg("[RUN] %s ... with THP\n", desc);
++	do_run_with_thp(fn, THP_RUN_PMD);
++}
++
++static void run_with_thp_swap(test_fn fn, const char *desc)
++{
++	ksft_print_msg("[RUN] %s ... with swapped-out THP\n", desc);
++	do_run_with_thp(fn, THP_RUN_PMD_SWAPOUT);
++}
++
++static void run_with_pte_mapped_thp(test_fn fn, const char *desc)
++{
++	ksft_print_msg("[RUN] %s ... with PTE-mapped THP\n", desc);
++	do_run_with_thp(fn, THP_RUN_PTE);
++}
++
++static void run_with_pte_mapped_thp_swap(test_fn fn, const char *desc)
++{
++	ksft_print_msg("[RUN] %s ... with swapped-out, PTE-mapped THP\n", desc);
++	do_run_with_thp(fn, THP_RUN_PTE_SWAPOUT);
++}
++
++static void run_with_single_pte_of_thp(test_fn fn, const char *desc)
++{
++	ksft_print_msg("[RUN] %s ... with single PTE of THP\n", desc);
++	do_run_with_thp(fn, THP_RUN_SINGLE_PTE);
++}
++
++static void run_with_single_pte_of_thp_swap(test_fn fn, const char *desc)
++{
++	ksft_print_msg("[RUN] %s ... with single PTE of swapped-out THP\n", desc);
++	do_run_with_thp(fn, THP_RUN_SINGLE_PTE_SWAPOUT);
++}
++
++static void run_with_partial_mremap_thp(test_fn fn, const char *desc)
++{
++	ksft_print_msg("[RUN] %s ... with partially mremap()'ed THP\n", desc);
++	do_run_with_thp(fn, THP_RUN_PARTIAL_MREMAP);
++}
++
++static void run_with_partial_shared_thp(test_fn fn, const char *desc)
++{
++	ksft_print_msg("[RUN] %s ... with partially shared THP\n", desc);
++	do_run_with_thp(fn, THP_RUN_PARTIAL_SHARED);
++}
++
++static void run_with_hugetlb(test_fn fn, const char *desc, size_t hugetlbsize)
++{
++	int flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB;
++	char *mem, *dummy;
++
++	ksft_print_msg("[RUN] %s ... with hugetlb (%zu kB)\n", desc,
++		       hugetlbsize / 1024);
++
++	flags |= __builtin_ctzll(hugetlbsize) << MAP_HUGE_SHIFT;
++
++	mem = mmap(NULL, hugetlbsize, PROT_READ | PROT_WRITE, flags, -1, 0);
++	if (mem == MAP_FAILED) {
++		ksft_test_result_skip("need more free huge pages\n");
++		return;
++	}
++
++	/* Populate an huge page. */
++	memset(mem, 0, hugetlbsize);
++
++	/*
++	 * We need a total of two hugetlb pages to handle COW/unsharing
++	 * properly, otherwise we might get zapped by a SIGBUS.
++	 */
++	dummy = mmap(NULL, hugetlbsize, PROT_READ | PROT_WRITE, flags, -1, 0);
++	if (dummy == MAP_FAILED) {
++		ksft_test_result_skip("need more free huge pages\n");
++		goto munmap;
++	}
++	munmap(dummy, hugetlbsize);
++
++	fn(mem, hugetlbsize);
++munmap:
++	munmap(mem, hugetlbsize);
++}
++
++struct test_case {
++	const char *desc;
++	test_fn fn;
++};
++
++/*
++ * Test cases that are specific to anonymous pages: pages in private mappings
++ * that may get shared via COW during fork().
++ */
++static const struct test_case anon_test_cases[] = {
++	/*
++	 * Basic COW tests for fork() without any GUP. If we miss to break COW,
++	 * either the child can observe modifications by the parent or the
++	 * other way around.
++	 */
++	{
++		"Basic COW after fork()",
++		test_cow_in_parent,
++	},
++	/*
++	 * Basic test, but do an additional mprotect(PROT_READ)+
++	 * mprotect(PROT_READ|PROT_WRITE) in the parent before write access.
++	 */
++	{
++		"Basic COW after fork() with mprotect() optimization",
++		test_cow_in_parent_mprotect,
++	},
++	/*
++	 * vmsplice() [R/O GUP] + unmap in the child; modify in the parent. If
++	 * we miss to break COW, the child observes modifications by the parent.
++	 * This is CVE-2020-29374 reported by Jann Horn.
++	 */
++	{
++		"vmsplice() + unmap in child",
++		test_vmsplice_in_child
++	},
++	/*
++	 * vmsplice() test, but do an additional mprotect(PROT_READ)+
++	 * mprotect(PROT_READ|PROT_WRITE) in the parent before write access.
++	 */
++	{
++		"vmsplice() + unmap in child with mprotect() optimization",
++		test_vmsplice_in_child_mprotect
++	},
++	/*
++	 * vmsplice() [R/O GUP] in parent before fork(), unmap in parent after
++	 * fork(); modify in the child. If we miss to break COW, the parent
++	 * observes modifications by the child.
++	 */
++	{
++		"vmsplice() before fork(), unmap in parent after fork()",
++		test_vmsplice_before_fork,
++	},
++	/*
++	 * vmsplice() [R/O GUP] + unmap in parent after fork(); modify in the
++	 * child. If we miss to break COW, the parent observes modifications by
++	 * the child.
++	 */
++	{
++		"vmsplice() + unmap in parent after fork()",
++		test_vmsplice_after_fork,
++	},
++#ifdef LOCAL_CONFIG_HAVE_LIBURING
++	/*
++	 * Take a R/W longterm pin and then map the page R/O into the page
++	 * table to trigger a write fault on next access. When modifying the
++	 * page, the page content must be visible via the pin.
++	 */
++	{
++		"R/O-mapping a page registered as iouring fixed buffer",
++		test_iouring_ro,
++	},
++	/*
++	 * Take a R/W longterm pin and then fork() a child. When modifying the
++	 * page, the page content must be visible via the pin. We expect the
++	 * pinned page to not get shared with the child.
++	 */
++	{
++		"fork() with an iouring fixed buffer",
++		test_iouring_fork,
++	},
++
++#endif /* LOCAL_CONFIG_HAVE_LIBURING */
++	/*
++	 * Take a R/O longterm pin on a R/O-mapped shared anonymous page.
++	 * When modifying the page via the page table, the page content change
++	 * must be visible via the pin.
++	 */
++	{
++		"R/O GUP pin on R/O-mapped shared page",
++		test_ro_pin_on_shared,
++	},
++	/* Same as above, but using GUP-fast. */
++	{
++		"R/O GUP-fast pin on R/O-mapped shared page",
++		test_ro_fast_pin_on_shared,
++	},
++	/*
++	 * Take a R/O longterm pin on a R/O-mapped exclusive anonymous page that
++	 * was previously shared. When modifying the page via the page table,
++	 * the page content change must be visible via the pin.
++	 */
++	{
++		"R/O GUP pin on R/O-mapped previously-shared page",
++		test_ro_pin_on_ro_previously_shared,
++	},
++	/* Same as above, but using GUP-fast. */
++	{
++		"R/O GUP-fast pin on R/O-mapped previously-shared page",
++		test_ro_fast_pin_on_ro_previously_shared,
++	},
++	/*
++	 * Take a R/O longterm pin on a R/O-mapped exclusive anonymous page.
++	 * When modifying the page via the page table, the page content change
++	 * must be visible via the pin.
++	 */
++	{
++		"R/O GUP pin on R/O-mapped exclusive page",
++		test_ro_pin_on_ro_exclusive,
++	},
++	/* Same as above, but using GUP-fast. */
++	{
++		"R/O GUP-fast pin on R/O-mapped exclusive page",
++		test_ro_fast_pin_on_ro_exclusive,
++	},
++};
++
++static void run_anon_test_case(struct test_case const *test_case)
++{
++	int i;
++
++	run_with_base_page(test_case->fn, test_case->desc);
++	run_with_base_page_swap(test_case->fn, test_case->desc);
++	if (thpsize) {
++		run_with_thp(test_case->fn, test_case->desc);
++		run_with_thp_swap(test_case->fn, test_case->desc);
++		run_with_pte_mapped_thp(test_case->fn, test_case->desc);
++		run_with_pte_mapped_thp_swap(test_case->fn, test_case->desc);
++		run_with_single_pte_of_thp(test_case->fn, test_case->desc);
++		run_with_single_pte_of_thp_swap(test_case->fn, test_case->desc);
++		run_with_partial_mremap_thp(test_case->fn, test_case->desc);
++		run_with_partial_shared_thp(test_case->fn, test_case->desc);
++	}
++	for (i = 0; i < nr_hugetlbsizes; i++)
++		run_with_hugetlb(test_case->fn, test_case->desc,
++				 hugetlbsizes[i]);
++}
++
++static void run_anon_test_cases(void)
++{
++	int i;
++
++	ksft_print_msg("[INFO] Anonymous memory tests in private mappings\n");
++
++	for (i = 0; i < ARRAY_SIZE(anon_test_cases); i++)
++		run_anon_test_case(&anon_test_cases[i]);
++}
++
++static int tests_per_anon_test_case(void)
++{
++	int tests = 2 + nr_hugetlbsizes;
++
++	if (thpsize)
++		tests += 8;
++	return tests;
++}
++
++int main(int argc, char **argv)
++{
++	int err;
++
++	pagesize = getpagesize();
++	detect_thpsize();
++	detect_hugetlbsizes();
++
++	ksft_print_header();
++	ksft_set_plan(ARRAY_SIZE(anon_test_cases) * tests_per_anon_test_case());
++
++	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		ksft_exit_fail_msg("opening pagemap failed\n");
++
++	run_anon_test_cases();
++
++	err = ksft_get_fail_cnt();
++	if (err)
++		ksft_exit_fail_msg("%d out of %d tests failed\n",
++				   err, ksft_test_num());
++	return ksft_exit_pass();
++}
+--- a/tools/testing/selftests/vm/.gitignore~selftests-vm-anon_cow-prepare-for-non-anonymous-cow-tests
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -1,5 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+-anon_cow
++cow
+ hugepage-mmap
+ hugepage-mremap
+ hugepage-shm
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-anon_cow-prepare-for-non-anonymous-cow-tests
++++ a/tools/testing/selftests/vm/Makefile
+@@ -27,7 +27,7 @@ MAKEFLAGS += --no-builtin-rules
+ 
+ CFLAGS = -Wall -I $(top_srcdir) -I $(top_srcdir)/usr/include $(EXTRA_CFLAGS) $(KHDR_INCLUDES)
+ LDLIBS = -lrt -lpthread
+-TEST_GEN_FILES = anon_cow
++TEST_GEN_FILES = cow
+ TEST_GEN_FILES += compaction_test
+ TEST_GEN_FILES += gup_test
+ TEST_GEN_FILES += hmm-tests
+@@ -98,7 +98,7 @@ TEST_FILES += va_128TBswitch.sh
+ 
+ include ../lib.mk
+ 
+-$(OUTPUT)/anon_cow: vm_util.c
++$(OUTPUT)/cow: vm_util.c
+ $(OUTPUT)/khugepaged: vm_util.c
+ $(OUTPUT)/madv_populate: vm_util.c
+ $(OUTPUT)/soft-dirty: vm_util.c
+@@ -154,8 +154,8 @@ warn_32bit_failure:
+ endif
+ endif
+ 
+-# ANON_COW_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
+-$(OUTPUT)/anon_cow: LDLIBS += $(ANON_COW_EXTRA_LIBS)
++# cow_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
++$(OUTPUT)/cow: LDLIBS += $(COW_EXTRA_LIBS)
+ 
+ $(OUTPUT)/mlock-random-test $(OUTPUT)/memfd_secret: LDLIBS += -lcap
+ 
+@@ -168,7 +168,7 @@ local_config.mk local_config.h: check_co
+ 
+ EXTRA_CLEAN += local_config.mk local_config.h
+ 
+-ifeq ($(ANON_COW_EXTRA_LIBS),)
++ifeq ($(COW_EXTRA_LIBS),)
+ all: warn_missing_liburing
+ 
+ warn_missing_liburing:
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-anon_cow-prepare-for-non-anonymous-cow-tests
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -186,6 +186,6 @@ fi
+ run_test ./soft-dirty
+ 
+ # COW tests for anonymous memory
+-run_test ./anon_cow
++run_test ./cow
+ 
+ exit $exitcode
 _
 
 Patches currently in -mm which might be from david@redhat.com are
