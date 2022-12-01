@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 293C8C4321E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93C5BC352A1
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230390AbiLAAIe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:08:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53240 "EHLO
+        id S230326AbiLAAIi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:08:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230284AbiLAAGd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:33 -0500
+        with ESMTP id S230324AbiLAAGh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:37 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5C4138B
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:33 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45AFDE47
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:36 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A686DB81D81
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AD84C433B5;
-        Thu,  1 Dec 2022 00:02:31 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 03110B81D6A
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AADBDC433D7;
+        Thu,  1 Dec 2022 00:02:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852951;
-        bh=1d84yOi2DbsAQB3q552+xyfX3AkxDOawP0cfXoMFC5M=;
+        s=korg; t=1669852953;
+        bh=Wj6OJal422XJZLn6erR/wSbJ04NP9n6DSJWXkLfaBw4=;
         h=Date:To:From:Subject:From;
-        b=sSAUDVOOUgVKhjIgsMZWxILObfAmTCnv1N+Q8ZHfExWsYyi3VNlo5PMkLUh5QKVK6
-         2oeDTt4QSMYpwlno7C0bx4wZqVsPdTivutBV//Y02IxgHRZcdBeq/4xo/qWXB4d1qq
-         eZ2H8t7AnR33PTE6ZU3m3wybg4sebwd7RCDRpw8U=
-Date:   Wed, 30 Nov 2022 16:02:30 -0800
-To:     mm-commits@vger.kernel.org, jsavitz@redhat.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=WPdgpgPom+yXOrazpdoSYvGbyBR/8h0yQ1BKuo5oEoTIQ5Hf/Hf14wDJgCsLXaUIU
+         MoyBrhxtgwEylbM2VWI9SbDLQc9wpp7rmHI2AkGz9CZCKtjq76kjo0BqNxhjthTlRj
+         EGIIj0TXMEEvusREPzEDzCGyyjQe30k3lU3oeMaA=
+Date:   Wed, 30 Nov 2022 16:02:32 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mtosatti@redhat.com,
+        m.szyprowski@samsung.com, mhocko@kernel.org,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-use-memfd-for-hugepage-mmap-test.patch removed from -mm tree
-Message-Id: <20221201000231.4AD84C433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch removed from -mm tree
+Message-Id: <20221201000233.AADBDC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,93 +42,359 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: use memfd for hugepage-mmap test
+     Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-use-memfd-for-hugepage-mmap-test.patch
+     mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: selftests/vm: use memfd for hugepage-mmap test
-Date: Thu, 17 Nov 2022 16:29:15 -0500
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations
+Date: Fri, 18 Nov 2022 10:17:14 +0000
 
-This test was overlooked with a hard-coded mntpoint path in test when
-we're removing the hugetlb mntpoint in commit 0796c7b8be84.  Fix it up so
-the test can keep running.
+The pcp_spin_lock_irqsave protecting the PCP lists is IRQ-safe as a task
+allocating from the PCP must not re-enter the allocator from IRQ context. 
+In each instance where IRQ-reentrancy is possible, the lock is acquired
+using pcp_spin_trylock_irqsave() even though IRQs are disabled and
+re-entrancy is impossible.
 
-Link: https://lkml.kernel.org/r/Y3aojfUC2nSwbCzB@x1n
-Fixes: 0796c7b8be84 ("selftests/vm: drop mnt point for hugetlb in run_vmtests.sh")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Joel Savitz <jsavitz@redhat.com>
+Demote the lock to pcp_spin_lock avoids an IRQ disable/enable in the
+common case at the cost of some IRQ allocations taking a slower path.  If
+the PCP lists need to be refilled, the zone lock still needs to disable
+IRQs but that will only happen on PCP refill and drain.  If an IRQ is
+raised when a PCP allocation is in progress, the trylock will fail and
+fallback to using the buddy lists directly.  Note that this may not be a
+universal win if an interrupt-intensive workload also allocates heavily
+from interrupt context and contends heavily on the zone->lock as a result.
+
+[mgorman@techsingularity.net: migratetype might be wrong if a PCP was locked]
+  Link: https://lkml.kernel.org/r/20221122131229.5263-2-mgorman@techsingularity.net
+[yuzhao@google.com: reported lockdep issue on IO completion from softirq]
+[hughd@google.com: fix list corruption, lock improvements, micro-optimsations]
+Link: https://lkml.kernel.org/r/20221118101714.19590-3-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hugepage-mmap.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |  124 ++++++++++++++++++++--------------------------
+ 1 file changed, 54 insertions(+), 70 deletions(-)
 
---- a/tools/testing/selftests/vm/hugepage-mmap.c~selftests-vm-use-memfd-for-hugepage-mmap-test
-+++ a/tools/testing/selftests/vm/hugepage-mmap.c
-@@ -16,14 +16,13 @@
-  * range.
-  * Other architectures, such as ppc64, i386 or x86_64 are not so constrained.
-  */
+--- a/mm/page_alloc.c~mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations
++++ a/mm/page_alloc.c
+@@ -170,21 +170,12 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
+ 	_ret;								\
+ })
+ 
+-#define pcpu_spin_lock_irqsave(type, member, ptr, flags)		\
++#define pcpu_spin_trylock(type, member, ptr)				\
+ ({									\
+ 	type *_ret;							\
+ 	pcpu_task_pin();						\
+ 	_ret = this_cpu_ptr(ptr);					\
+-	spin_lock_irqsave(&_ret->member, flags);			\
+-	_ret;								\
+-})
 -
-+#define _GNU_SOURCE
- #include <stdlib.h>
- #include <stdio.h>
- #include <unistd.h>
- #include <sys/mman.h>
- #include <fcntl.h>
+-#define pcpu_spin_trylock_irqsave(type, member, ptr, flags)		\
+-({									\
+-	type *_ret;							\
+-	pcpu_task_pin();						\
+-	_ret = this_cpu_ptr(ptr);					\
+-	if (!spin_trylock_irqsave(&_ret->member, flags)) {		\
++	if (!spin_trylock(&_ret->member)) {				\
+ 		pcpu_task_unpin();					\
+ 		_ret = NULL;						\
+ 	}								\
+@@ -197,27 +188,16 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
+ 	pcpu_task_unpin();						\
+ })
  
--#define FILE_NAME "huge/hugepagefile"
- #define LENGTH (256UL*1024*1024)
- #define PROTECTION (PROT_READ | PROT_WRITE)
+-#define pcpu_spin_unlock_irqrestore(member, ptr, flags)			\
+-({									\
+-	spin_unlock_irqrestore(&ptr->member, flags);			\
+-	pcpu_task_unpin();						\
+-})
+-
+ /* struct per_cpu_pages specific helpers. */
+ #define pcp_spin_lock(ptr)						\
+ 	pcpu_spin_lock(struct per_cpu_pages, lock, ptr)
  
-@@ -67,16 +66,16 @@ int main(void)
- 	void *addr;
- 	int fd, ret;
+-#define pcp_spin_lock_irqsave(ptr, flags)				\
+-	pcpu_spin_lock_irqsave(struct per_cpu_pages, lock, ptr, flags)
+-
+-#define pcp_spin_trylock_irqsave(ptr, flags)				\
+-	pcpu_spin_trylock_irqsave(struct per_cpu_pages, lock, ptr, flags)
++#define pcp_spin_trylock(ptr)						\
++	pcpu_spin_trylock(struct per_cpu_pages, lock, ptr)
  
--	fd = open(FILE_NAME, O_CREAT | O_RDWR, 0755);
-+	fd = memfd_create("hugepage-mmap", MFD_HUGETLB);
- 	if (fd < 0) {
--		perror("Open failed");
-+		perror("memfd_create() failed");
- 		exit(1);
+ #define pcp_spin_unlock(ptr)						\
+ 	pcpu_spin_unlock(lock, ptr)
+ 
+-#define pcp_spin_unlock_irqrestore(ptr, flags)				\
+-	pcpu_spin_unlock_irqrestore(lock, ptr, flags)
+ #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
+ DEFINE_PER_CPU(int, numa_node);
+ EXPORT_PER_CPU_SYMBOL(numa_node);
+@@ -1554,6 +1534,7 @@ static void free_pcppages_bulk(struct zo
+ 					struct per_cpu_pages *pcp,
+ 					int pindex)
+ {
++	unsigned long flags;
+ 	int min_pindex = 0;
+ 	int max_pindex = NR_PCP_LISTS - 1;
+ 	unsigned int order;
+@@ -1569,8 +1550,7 @@ static void free_pcppages_bulk(struct zo
+ 	/* Ensure requested pindex is drained first. */
+ 	pindex = pindex - 1;
+ 
+-	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
+-	spin_lock(&zone->lock);
++	spin_lock_irqsave(&zone->lock, flags);
+ 	isolated_pageblocks = has_isolate_pageblock(zone);
+ 
+ 	while (count > 0) {
+@@ -1618,7 +1598,7 @@ static void free_pcppages_bulk(struct zo
+ 		} while (count > 0 && !list_empty(list));
  	}
  
- 	addr = mmap(ADDR, LENGTH, PROTECTION, FLAGS, fd, 0);
- 	if (addr == MAP_FAILED) {
- 		perror("mmap");
--		unlink(FILE_NAME);
-+		close(fd);
- 		exit(1);
- 	}
- 
-@@ -87,7 +86,6 @@ int main(void)
- 
- 	munmap(addr, LENGTH);
- 	close(fd);
--	unlink(FILE_NAME);
- 
- 	return ret;
+-	spin_unlock(&zone->lock);
++	spin_unlock_irqrestore(&zone->lock, flags);
  }
+ 
+ static void free_one_page(struct zone *zone,
+@@ -3132,10 +3112,10 @@ static int rmqueue_bulk(struct zone *zon
+ 			unsigned long count, struct list_head *list,
+ 			int migratetype, unsigned int alloc_flags)
+ {
++	unsigned long flags;
+ 	int i, allocated = 0;
+ 
+-	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
+-	spin_lock(&zone->lock);
++	spin_lock_irqsave(&zone->lock, flags);
+ 	for (i = 0; i < count; ++i) {
+ 		struct page *page = __rmqueue(zone, order, migratetype,
+ 								alloc_flags);
+@@ -3169,7 +3149,7 @@ static int rmqueue_bulk(struct zone *zon
+ 	 * pages added to the pcp list.
+ 	 */
+ 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
+-	spin_unlock(&zone->lock);
++	spin_unlock_irqrestore(&zone->lock, flags);
+ 	return allocated;
+ }
+ 
+@@ -3186,16 +3166,9 @@ void drain_zone_pages(struct zone *zone,
+ 	batch = READ_ONCE(pcp->batch);
+ 	to_drain = min(pcp->count, batch);
+ 	if (to_drain > 0) {
+-		unsigned long flags;
+-
+-		/*
+-		 * free_pcppages_bulk expects IRQs disabled for zone->lock
+-		 * so even though pcp->lock is not intended to be IRQ-safe,
+-		 * it's needed in this context.
+-		 */
+-		spin_lock_irqsave(&pcp->lock, flags);
++		spin_lock(&pcp->lock);
+ 		free_pcppages_bulk(zone, to_drain, pcp, 0);
+-		spin_unlock_irqrestore(&pcp->lock, flags);
++		spin_unlock(&pcp->lock);
+ 	}
+ }
+ #endif
+@@ -3209,12 +3182,9 @@ static void drain_pages_zone(unsigned in
+ 
+ 	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
+ 	if (pcp->count) {
+-		unsigned long flags;
+-
+-		/* See drain_zone_pages on why this is disabling IRQs */
+-		spin_lock_irqsave(&pcp->lock, flags);
++		spin_lock(&pcp->lock);
+ 		free_pcppages_bulk(zone, pcp->count, pcp, 0);
+-		spin_unlock_irqrestore(&pcp->lock, flags);
++		spin_unlock(&pcp->lock);
+ 	}
+ }
+ 
+@@ -3480,7 +3450,6 @@ static void free_unref_page_commit(struc
+  */
+ void free_unref_page(struct page *page, unsigned int order)
+ {
+-	unsigned long flags;
+ 	unsigned long __maybe_unused UP_flags;
+ 	struct per_cpu_pages *pcp;
+ 	struct zone *zone;
+@@ -3508,10 +3477,10 @@ void free_unref_page(struct page *page,
+ 
+ 	zone = page_zone(page);
+ 	pcp_trylock_prepare(UP_flags);
+-	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
++	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
+ 	if (pcp) {
+ 		free_unref_page_commit(zone, pcp, page, migratetype, order);
+-		pcp_spin_unlock_irqrestore(pcp, flags);
++		pcp_spin_unlock(pcp);
+ 	} else {
+ 		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
+ 	}
+@@ -3523,10 +3492,10 @@ void free_unref_page(struct page *page,
+  */
+ void free_unref_page_list(struct list_head *list)
+ {
++	unsigned long __maybe_unused UP_flags;
+ 	struct page *page, *next;
+ 	struct per_cpu_pages *pcp = NULL;
+ 	struct zone *locked_zone = NULL;
+-	unsigned long flags;
+ 	int batch_count = 0;
+ 	int migratetype;
+ 
+@@ -3554,21 +3523,36 @@ void free_unref_page_list(struct list_he
+ 		struct zone *zone = page_zone(page);
+ 
+ 		list_del(&page->lru);
++		migratetype = get_pcppage_migratetype(page);
+ 
+ 		/* Different zone, different pcp lock. */
+ 		if (zone != locked_zone) {
+-			if (pcp)
+-				pcp_spin_unlock_irqrestore(pcp, flags);
++			if (pcp) {
++				pcp_spin_unlock(pcp);
++				pcp_trylock_finish(UP_flags);
++			}
+ 
++			/*
++			 * trylock is necessary as pages may be getting freed
++			 * from IRQ or SoftIRQ context after an IO completion.
++			 */
++			pcp_trylock_prepare(UP_flags);
++			pcp = pcp_spin_trylock(zone->per_cpu_pageset);
++			if (unlikely(!pcp)) {
++				pcp_trylock_finish(UP_flags);
++				free_one_page(zone, page, page_to_pfn(page),
++					      0, migratetype, FPI_NONE);
++				locked_zone = NULL;
++				continue;
++			}
+ 			locked_zone = zone;
+-			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
++			batch_count = 0;
+ 		}
+ 
+ 		/*
+ 		 * Non-isolated types over MIGRATE_PCPTYPES get added
+ 		 * to the MIGRATE_MOVABLE pcp list.
+ 		 */
+-		migratetype = get_pcppage_migratetype(page);
+ 		if (unlikely(migratetype >= MIGRATE_PCPTYPES))
+ 			migratetype = MIGRATE_MOVABLE;
+ 
+@@ -3576,18 +3560,23 @@ void free_unref_page_list(struct list_he
+ 		free_unref_page_commit(zone, pcp, page, migratetype, 0);
+ 
+ 		/*
+-		 * Guard against excessive IRQ disabled times when we get
+-		 * a large list of pages to free.
++		 * Guard against excessive lock hold times when freeing
++		 * a large list of pages. Lock will be reacquired if
++		 * necessary on the next iteration.
+ 		 */
+ 		if (++batch_count == SWAP_CLUSTER_MAX) {
+-			pcp_spin_unlock_irqrestore(pcp, flags);
++			pcp_spin_unlock(pcp);
++			pcp_trylock_finish(UP_flags);
+ 			batch_count = 0;
+-			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
++			pcp = NULL;
++			locked_zone = NULL;
+ 		}
+ 	}
+ 
+-	if (pcp)
+-		pcp_spin_unlock_irqrestore(pcp, flags);
++	if (pcp) {
++		pcp_spin_unlock(pcp);
++		pcp_trylock_finish(UP_flags);
++	}
+ }
+ 
+ /*
+@@ -3788,15 +3777,11 @@ static struct page *rmqueue_pcplist(stru
+ 	struct per_cpu_pages *pcp;
+ 	struct list_head *list;
+ 	struct page *page;
+-	unsigned long flags;
+ 	unsigned long __maybe_unused UP_flags;
+ 
+-	/*
+-	 * spin_trylock may fail due to a parallel drain. In the future, the
+-	 * trylock will also protect against IRQ reentrancy.
+-	 */
++	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
+ 	pcp_trylock_prepare(UP_flags);
+-	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
++	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
+ 	if (!pcp) {
+ 		pcp_trylock_finish(UP_flags);
+ 		return NULL;
+@@ -3810,7 +3795,7 @@ static struct page *rmqueue_pcplist(stru
+ 	pcp->free_factor >>= 1;
+ 	list = &pcp->lists[order_to_pindex(migratetype, order)];
+ 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
+-	pcp_spin_unlock_irqrestore(pcp, flags);
++	pcp_spin_unlock(pcp);
+ 	pcp_trylock_finish(UP_flags);
+ 	if (page) {
+ 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
+@@ -5381,7 +5366,6 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 			struct page **page_array)
+ {
+ 	struct page *page;
+-	unsigned long flags;
+ 	unsigned long __maybe_unused UP_flags;
+ 	struct zone *zone;
+ 	struct zoneref *z;
+@@ -5463,9 +5447,9 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 	if (unlikely(!zone))
+ 		goto failed;
+ 
+-	/* Is a parallel drain in progress? */
++	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
+ 	pcp_trylock_prepare(UP_flags);
+-	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
++	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
+ 	if (!pcp)
+ 		goto failed_irq;
+ 
+@@ -5484,7 +5468,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 		if (unlikely(!page)) {
+ 			/* Try and allocate at least one page */
+ 			if (!nr_account) {
+-				pcp_spin_unlock_irqrestore(pcp, flags);
++				pcp_spin_unlock(pcp);
+ 				goto failed_irq;
+ 			}
+ 			break;
+@@ -5499,7 +5483,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 		nr_populated++;
+ 	}
+ 
+-	pcp_spin_unlock_irqrestore(pcp, flags);
++	pcp_spin_unlock(pcp);
+ 	pcp_trylock_finish(UP_flags);
+ 
+ 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-migrate-fix-read-only-page-got-writable-when-recover-pte.patch
-mm-hugetlb-let-vma_offset_start-to-return-start.patch
-mm-hugetlb-dont-wait-for-migration-entry-during-follow-page.patch
-mm-hugetlb-document-huge_pte_offset-usage.patch
-mm-hugetlb-move-swap-entry-handling-into-vma-lock-when-faulted.patch
-mm-hugetlb-make-userfaultfd_huge_must_wait-safe-to-pmd-unshare.patch
-mm-hugetlb-make-hugetlb_follow_page_mask-safe-to-pmd-unshare.patch
-mm-hugetlb-make-follow_hugetlb_page-safe-to-pmd-unshare.patch
-mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare.patch
-mm-hugetlb-make-page_vma_mapped_walk-safe-to-pmd-unshare.patch
-mm-hugetlb-introduce-hugetlb_walk.patch
-mm-hugetlb-introduce-hugetlb_walk-fix.patch
-mm-hugetlb-introduce-hugetlb_walk-fix-2.patch
 
