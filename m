@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F50DC352A1
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:10:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5ABCC4321E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:10:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230300AbiLAAKr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:10:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52412 "EHLO
+        id S230341AbiLAAKx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:10:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230310AbiLAAIt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:08:49 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D471D8E590
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:03:03 -0800 (PST)
+        with ESMTP id S230401AbiLAAI4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:08:56 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D51D276140
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:03:05 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 49A846176C
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:03:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60133C433D7;
-        Thu,  1 Dec 2022 00:03:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A7C461E69
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:03:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 985EFC433B5;
+        Thu,  1 Dec 2022 00:03:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852982;
-        bh=sA0w2/o7Zx0tOP0b8k77yLBopfXqNpg4sWwyi+BuAno=;
+        s=korg; t=1669852984;
+        bh=J+fsz5YmSayHQuJT5hfzVIMpHDvouMwbpNGNyhb97Xo=;
         h=Date:To:From:Subject:From;
-        b=QKtvFNfrZ9PGyp85A/Erads0+7VcLjTOSw+FAFo/75IDtZUQhPudsz73y2L9PzWFs
-         iYKbtnQGMGxhZbTBpptClOL5tWd3jxKGU/miWdBZ3T556j33uGE0NIs+tVv1F4t0if
-         hMYbmcfwY5XExKiBBboQNfVYPWWVNwOka8ZI7DWY=
-Date:   Wed, 30 Nov 2022 16:03:01 -0800
+        b=a8+37kAHkGjzsL4x5uzxLEhmCBLL/NsHDIqNzlSaAR3ZAGhfIlbb4S6bIe8Yfz7Tq
+         9Lalvdr44pNIavULOFcAjZWqrcj4sFpL7Xa0xSk9bkVRZVTLALdglhhi18dRoDJdiL
+         VRoYKdXyBGweXWszchZyJV8AzzVT2n8EO8oaLFTo=
+Date:   Wed, 30 Nov 2022 16:03:03 -0800
 To:     mm-commits@vger.kernel.org, clm@meta.com, axboe@kernel.dk,
         shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-bdi_set_max_ratio_no_scale-function.patch removed from -mm tree
-Message-Id: <20221201000302.60133C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-document-sys-class-bdi-bdi-max_ratio_fine-knob.patch removed from -mm tree
+Message-Id: <20221201000304.985EFC433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,77 +41,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add bdi_set_max_ratio_no_scale() function
+     Subject: mm: document /sys/class/bdi/<bdi>/max_ratio_fine knob
 has been removed from the -mm tree.  Its filename was
-     mm-add-bdi_set_max_ratio_no_scale-function.patch
+     mm-document-sys-class-bdi-bdi-max_ratio_fine-knob.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: add bdi_set_max_ratio_no_scale() function
-Date: Fri, 18 Nov 2022 16:52:10 -0800
+Subject: mm: document /sys/class/bdi/<bdi>/max_ratio_fine knob
+Date: Fri, 18 Nov 2022 16:52:12 -0800
 
-This introduces bdi_set_max_ratio_no_scale(). It uses the max
-granularity for the ratio. This function by the new sysfs knob
-max_ratio_fine.
+This documents the new /sys/class/bdi/<bdi>/max_ratio_fine knob.
 
-Link: https://lkml.kernel.org/r/20221119005215.3052436-16-shr@devkernel.io
+[akpm@linux-foundation.org: fix htmldocs warnings]
+Link: https://lkml.kernel.org/r/20221119005215.3052436-18-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
 Cc: Chris Mason <clm@meta.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    1 +
- mm/page-writeback.c         |   11 ++++++++---
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-class-bdi |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/include/linux/backing-dev.h~mm-add-bdi_set_max_ratio_no_scale-function
-+++ a/include/linux/backing-dev.h
-@@ -109,6 +109,7 @@ u64 bdi_get_min_bytes(struct backing_dev
- u64 bdi_get_max_bytes(struct backing_dev_info *bdi);
- int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio);
- int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio);
-+int bdi_set_max_ratio_no_scale(struct backing_dev_info *bdi, unsigned int max_ratio);
- int bdi_set_min_bytes(struct backing_dev_info *bdi, u64 min_bytes);
- int bdi_set_max_bytes(struct backing_dev_info *bdi, u64 max_bytes);
- int bdi_set_strict_limit(struct backing_dev_info *bdi, unsigned int strict_limit);
---- a/mm/page-writeback.c~mm-add-bdi_set_max_ratio_no_scale-function
-+++ a/mm/page-writeback.c
-@@ -719,6 +719,9 @@ static int __bdi_set_max_ratio(struct ba
- {
- 	int ret = 0;
+--- a/Documentation/ABI/testing/sysfs-class-bdi~mm-document-sys-class-bdi-bdi-max_ratio_fine-knob
++++ a/Documentation/ABI/testing/sysfs-class-bdi
+@@ -57,6 +57,19 @@ Description:
  
-+	if (max_ratio > 100 * BDI_RATIO_SCALE)
-+		return -EINVAL;
+ 	(read-write)
+ 
++What:		/sys/class/bdi/<bdi>/max_ratio_fine
++Date:		November 2022
++Contact:	Stefan Roesch <shr@devkernel.io>
++Description:
++	Allows limiting a particular device to use not more than the
++	given value of the write-back cache.  The value is given as part
++	of 1 million. This is useful in situations where we want to avoid
++	one device taking all or most of the write-back cache.  For example
++	in case of an NFS mount that is prone to get stuck, or a FUSE mount
++	which cannot be trusted to play fair.
 +
- 	spin_lock_bh(&bdi_lock);
- 	if (bdi->min_ratio > max_ratio) {
- 		ret = -EINVAL;
-@@ -731,6 +734,11 @@ static int __bdi_set_max_ratio(struct ba
- 	return ret;
- }
- 
-+int bdi_set_max_ratio_no_scale(struct backing_dev_info *bdi, unsigned int max_ratio)
-+{
-+	return __bdi_set_max_ratio(bdi, max_ratio);
-+}
++	(read-write)
 +
- int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio)
- {
- 	return __bdi_set_min_ratio(bdi, min_ratio * BDI_RATIO_SCALE);
-@@ -738,9 +746,6 @@ int bdi_set_min_ratio(struct backing_dev
- 
- int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio)
- {
--	if (max_ratio > 100)
--		return -EINVAL;
--
- 	return __bdi_set_max_ratio(bdi, max_ratio * BDI_RATIO_SCALE);
- }
- EXPORT_SYMBOL(bdi_set_max_ratio);
+ What:		/sys/class/bdi/<bdi>/min_bytes
+ Date:		October 2022
+ Contact:	Stefan Roesch <shr@devkernel.io>
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
