@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53709C4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74A11C636F8
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:17:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229513AbiLAAR1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:17:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36596 "EHLO
+        id S229902AbiLAAR0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:17:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60764 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230516AbiLAARB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:17:01 -0500
+        with ESMTP id S229513AbiLAARC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:17:02 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 624C6920B3
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:13:56 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A7929894E
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:14:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EDDA461903
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:13:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23CDCC43470;
-        Thu,  1 Dec 2022 00:13:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F21A761977
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:14:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15D97C433C1;
+        Thu,  1 Dec 2022 00:14:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669853635;
-        bh=vcfnrdEStZK2ygb+Zmnpptg3CLFJ+RJGmKYRiS7xhyo=;
+        s=korg; t=1669853640;
+        bh=CKwMowhkoeyWhZVWKkbByt1z8+tiovjM6g73D1RwuLU=;
         h=Date:To:From:Subject:From;
-        b=PoOVbKTfcY+L3ctfBpiKAD2rexKtooDiT7WhAxC5Eepr5/aWg6Srh36OHl9UW+cuW
-         fip8MLBgt1Wb7kk7XFWI77TJy5vm+wY6js8tfRVC0opdOAL4sUZYBG6+XQuHhdw185
-         9lSz+bhLpPXmKqpGB7QwnnpSpk3vbqH+I1MnrY8I=
-Date:   Wed, 30 Nov 2022 16:13:54 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, rongtao@cestc.cn,
+        b=fKUHs7FQgqP2fyZbqb60j40tFKNlK8g0J/jzggWRDKrVbXJgL0gwKQ7ZkQyl2UjzW
+         NL//5+s0/Y7oqj+s49SMbJCOsLXzIvDWjAwJ8aTQanLjfVx3cIoKnfn5wbb55C9eE9
+         uvV9AUXnN7SXKeATLGSp1V2uk/tnyxscyEJ2qtRA=
+Date:   Wed, 30 Nov 2022 16:13:59 -0800
+To:     mm-commits@vger.kernel.org, mporter@kernel.crashing.org,
+        alex.bou9@gmail.com, yangyingliang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] radix-tree-test-suite-fix-uninitialized-variable-compilation-warning.patch removed from -mm tree
-Message-Id: <20221201001355.23CDCC43470@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] rapidio-rio-fix-possible-name-leak-in-rio_register_mport.patch removed from -mm tree
+Message-Id: <20221201001400.15D97C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,51 +42,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib/radix-tree.c: fix uninitialized variable compilation warning
+     Subject: rapidio: rio: fix possible name leak in rio_register_mport()
 has been removed from the -mm tree.  Its filename was
-     radix-tree-test-suite-fix-uninitialized-variable-compilation-warning.patch
+     rapidio-rio-fix-possible-name-leak-in-rio_register_mport.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Rong Tao <rongtao@cestc.cn>
-Subject: lib/radix-tree.c: fix uninitialized variable compilation warning
-Date: Wed, 9 Nov 2022 22:34:25 +0800
+From: Yang Yingliang <yangyingliang@huawei.com>
+Subject: rapidio: rio: fix possible name leak in rio_register_mport()
+Date: Mon, 14 Nov 2022 23:26:36 +0800
 
-We need to set an initial value for offset to eliminate compilation
-warning.
+If device_register() returns error, the name allocated by dev_set_name()
+need be freed.  It should use put_device() to give up the reference in the
+error path, so that the name can be freed in kobject_cleanup(), and
+list_del() is called to delete the port from rio_mports.
 
-How to reproduce warning:
-
-$ make -C tools/testing/radix-tree
-radix-tree.c: In function `radix_tree_tag_clear':
-radix-tree.c:1046:17: warning: `offset' may be used uninitialized in this function [-Wmaybe-uninitialized]
- 1046 |                 node_tag_clear(root, parent, tag, offset);
-      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Link: https://lkml.kernel.org/r/tencent_DF74099967595DCEA93CBDC28D062026180A@qq.com
-Signed-off-by: Rong Tao <rongtao@cestc.cn>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20221114152636.2939035-3-yangyingliang@huawei.com
+Fixes: 2aaf308b95b2 ("rapidio: rework device hierarchy and introduce mport class of devices")
+Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rapidio/rio.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/lib/radix-tree.c~radix-tree-test-suite-fix-uninitialized-variable-compilation-warning
-+++ a/lib/radix-tree.c
-@@ -1029,7 +1029,7 @@ void *radix_tree_tag_clear(struct radix_
- {
- 	struct radix_tree_node *node, *parent;
- 	unsigned long maxindex;
--	int offset;
-+	int offset = 0;
+--- a/drivers/rapidio/rio.c~rapidio-rio-fix-possible-name-leak-in-rio_register_mport
++++ a/drivers/rapidio/rio.c
+@@ -2186,11 +2186,16 @@ int rio_register_mport(struct rio_mport
+ 	atomic_set(&port->state, RIO_DEVICE_RUNNING);
  
- 	radix_tree_load_root(root, &node, &maxindex);
- 	if (index > maxindex)
+ 	res = device_register(&port->dev);
+-	if (res)
++	if (res) {
+ 		dev_err(&port->dev, "RIO: mport%d registration failed ERR=%d\n",
+ 			port->id, res);
+-	else
++		mutex_lock(&rio_mport_list_lock);
++		list_del(&port->node);
++		mutex_unlock(&rio_mport_list_lock);
++		put_device(&port->dev);
++	} else {
+ 		dev_dbg(&port->dev, "RIO: registered mport%d\n", port->id);
++	}
+ 
+ 	return res;
+ }
 _
 
-Patches currently in -mm which might be from rongtao@cestc.cn are
+Patches currently in -mm which might be from yangyingliang@huawei.com are
 
 
