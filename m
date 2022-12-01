@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADA99C47089
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:00:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50C97C352A1
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:00:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230062AbiLAAAk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:00:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46450 "EHLO
+        id S229780AbiLAAAl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:00:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46460 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229936AbiLAAAY (ORCPT
+        with ESMTP id S229975AbiLAAAY (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:00:24 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC64B7E425
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:00:19 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E73C83EBC
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:00:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5D81DB81D12
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:00:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B3C8C433C1;
-        Thu,  1 Dec 2022 00:00:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9246161E69
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:00:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA578C433C1;
+        Thu,  1 Dec 2022 00:00:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852817;
-        bh=giD63DRJUKx+gOsrmibcw0mE0dSEweldnTiQvVaGZ3s=;
+        s=korg; t=1669852820;
+        bh=SejqET2c5J7LWoElJWpZCBKDuZxTDJRnXQraE97b6rM=;
         h=Date:To:From:Subject:From;
-        b=iPGZyGCmp/h5f0hs7A8jFKD7wqtR+IJfFB6pYiEvWpSyhv7jBFLDELoZrS4B+9OUe
-         Djp6j+ETayTcKDV1/7PnbgkFs/pWM7wbTpcA2l+3yD4rhQcwZwB4E36dtUVU9KwgXK
-         TFg0Eyj4w9oCjOR/CUS0zQ1uzv/ZDh+cwOhTFJxs=
-Date:   Wed, 30 Nov 2022 16:00:16 -0800
-To:     mm-commits@vger.kernel.org, vpetrucci@gmail.com, corbet@lwn.net,
-        sj@kernel.org, akpm@linux-foundation.org
+        b=XIXA9m3XLSQLwR+8Nof7LKrulkK34W6bbApwuW9pKtTSpy1ptqrFJtXf7FkD02eQK
+         uNhtVK6j1FSPi4FVKFfQ8mp1T32KiP6/dT6yoSOtW+8EgR8+MA6BLIPd8ALjEpaBki
+         CM7ux9YpjpAnlircqST6x/DxYaUrJ0tLSQX+Sw1Y=
+Date:   Wed, 30 Nov 2022 16:00:20 -0800
+To:     mm-commits@vger.kernel.org, lukas.bulwahn@gmail.com,
+        Liam.Howlett@oracle.com, dan.carpenter@oracle.com,
+        liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch removed from -mm tree
-Message-Id: <20221201000017.1B3C8C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-mte_set_full-and-mte_clear_full-clang-analyzer-clean-up.patch removed from -mm tree
+Message-Id: <20221201000020.CA578C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,58 +42,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: describe the rules of sysfs region directories
+     Subject: maple_tree: mte_set_full() and mte_clear_full() clang-analyzer clean up
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories.patch
+     maple_tree-mte_set_full-and-mte_clear_full-clang-analyzer-clean-up.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: describe the rules of sysfs region directories
-Date: Mon, 24 Oct 2022 17:46:18 +0000
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: maple_tree: mte_set_full() and mte_clear_full() clang-analyzer clean up
+Date: Fri, 28 Oct 2022 14:45:34 +0000
 
-Patch series "Docs/admin-buide/mm/damon/usage: minor fixes".
+mte_set_full() and mte_clear_full() were incorrectly setting a pointer to
+a value without returning a result.  Fix this by returning the modified
+pointer to be use as necessary.  Also add a third function to return if
+the bit is set or not.
 
-DAMON usage document contains an unclear description and a wrong usage
-example.  This patchset fixes the two minor problems.
-
-
-This patch (of 2):
-
-Target region directories of DAMON sysfs interface should contain no
-overlap and sorted by the address, but not clearly documented.  Actually,
-a user had an issue[1] due to the poor documentation.  Add clear
-description of it on the usage document.
-
-[1] https://lore.kernel.org/damon/CAEZ6=UNUcH2BvJj++OrT=XQLdkidU79wmCO=tantSOB36pPNTg@mail.gmail.com/
-
-Link: https://lkml.kernel.org/r/20221024174619.15600-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20221024174619.15600-2-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: Vinicius Petrucci <vpetrucci@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lore.kernel.org/lkml/20221026120029.12555-1-lukas.bulwahn@gmail.com/
+Link: https://lkml.kernel.org/r/20221028144520.2776767-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Suggested-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Suggested-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/maple_tree.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-describe-the-rules-of-sysfs-region-directories
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -235,6 +235,9 @@ In each region directory, you will find
- can set and get the start and end addresses of the initial monitoring target
- region by writing to and reading from the files, respectively.
+--- a/lib/maple_tree.c~maple_tree-mte_set_full-and-mte_clear_full-clang-analyzer-clean-up
++++ a/lib/maple_tree.c
+@@ -323,14 +323,19 @@ static inline void *mte_safe_root(const
+ 	return (void *)((unsigned long)node & ~MAPLE_ROOT_NODE);
+ }
  
-+Each region should not overlap with others.  ``end`` of directory ``N`` should
-+be equal or smaller than ``start`` of directory ``N+1``.
+-static inline void mte_set_full(const struct maple_enode *node)
++static inline void *mte_set_full(const struct maple_enode *node)
+ {
+-	node = (void *)((unsigned long)node & ~MAPLE_ENODE_NULL);
++	return (void *)((unsigned long)node & ~MAPLE_ENODE_NULL);
+ }
+ 
+-static inline void mte_clear_full(const struct maple_enode *node)
++static inline void *mte_clear_full(const struct maple_enode *node)
+ {
+-	node = (void *)((unsigned long)node | MAPLE_ENODE_NULL);
++	return (void *)((unsigned long)node | MAPLE_ENODE_NULL);
++}
 +
- contexts/<N>/schemes/
- ---------------------
++static inline bool mte_has_null(const struct maple_enode *node)
++{
++	return (unsigned long)node & MAPLE_ENODE_NULL;
+ }
  
+ static inline bool ma_is_root(struct maple_node *node)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
+maple_tree-fix-mas_find_rev-comment.patch
+maple_tree-update-copyright-dates-for-test-code.patch
 
