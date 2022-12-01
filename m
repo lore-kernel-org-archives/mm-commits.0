@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 170F1C4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E604CC47088
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:04:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230318AbiLAAEJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:04:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46460 "EHLO
+        id S230320AbiLAAEL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:04:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230284AbiLAACc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:02:32 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A38387CAA
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:01:15 -0800 (PST)
+        with ESMTP id S230202AbiLAACd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:02:33 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45F7055AAB
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:01:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 15E3961E22
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:01:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F833C433D7;
-        Thu,  1 Dec 2022 00:01:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 05D84B81D80
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:01:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A35DFC433D7;
+        Thu,  1 Dec 2022 00:01:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852874;
-        bh=DgJRsW4M1MHvE/v4CprQpPiYii4CKxwUWj9Y0TAUAWY=;
+        s=korg; t=1669852875;
+        bh=4SqTmUtQP4g8O0kLkXPy2wY3xSY7pLQmN4iVHP7y4jk=;
         h=Date:To:From:Subject:From;
-        b=VekL9pxuazSZflK7cw3erh/nXy6tBZDl6HisgT+tSWU0lZnqseggczHnR72MDrxU0
-         WpyP2Oa1+95dm/R6Au+3VtUaMjrNQcQmix7nSjaGYtBa7Hq88pDL9T3xvk2jJ8ccv+
-         HUluyWQhTZuSX0wmSqZcDhM4xixmiRag3NKp1Khw=
-Date:   Wed, 30 Nov 2022 16:01:13 -0800
+        b=ljh/yspH6WS3vq7cO7lcYy2pt93n07QYBv1n2ZYPrtE37DIgVDBA6jiIo/zc1f7FX
+         vpl2lVbgo3cvuHw12vBa7UM8D0nSc/MvQhquZKVDYGuVzgK2VrfIix4aOAeO/390k/
+         SzcAFyXkVRH0ZgOdtD/K542Xbnj3ZYXDpzAzQm98=
+Date:   Wed, 30 Nov 2022 16:01:14 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         torvalds@linux-foundation.org, rppt@kernel.org, peterx@redhat.com,
         npiggin@gmail.com, namit@vmware.com, mpe@ellerman.id.au,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         anshuman.khandual@arm.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-unused-savedwrite-infrastructure.patch removed from -mm tree
-Message-Id: <20221201000114.5F833C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-anon_cow-add-mprotect-optimization-tests.patch removed from -mm tree
+Message-Id: <20221201000115.A35DFC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,23 +45,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove unused savedwrite infrastructure
+     Subject: selftests/vm: anon_cow: add mprotect() optimization tests
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unused-savedwrite-infrastructure.patch
+     selftests-vm-anon_cow-add-mprotect-optimization-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: remove unused savedwrite infrastructure
-Date: Tue, 8 Nov 2022 18:46:51 +0100
+Subject: selftests/vm: anon_cow: add mprotect() optimization tests
+Date: Tue, 8 Nov 2022 18:46:52 +0100
 
-NUMA hinting no longer uses savedwrite, let's rip it out.
+Let's extend the test to cover the possible mprotect() optimization when
+removing write-protection. mprotect() must not allow write-access to a
+COW-shared page by accident.
 
-... and while at it, drop __pte_write() and __pmd_write() on ppc64.
-
-Link: https://lkml.kernel.org/r/20221108174652.198904-7-david@redhat.com
+Link: https://lkml.kernel.org/r/20221108174652.198904-8-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -78,260 +78,99 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pgtable.h |   80 -----------------
- arch/powerpc/kvm/book3s_hv_rm_mmu.c          |    2 
- include/linux/pgtable.h                      |   24 -----
- mm/debug_vm_pgtable.c                        |   32 ------
- 4 files changed, 5 insertions(+), 133 deletions(-)
+ tools/testing/selftests/vm/anon_cow.c |   49 ++++++++++++++++++++++--
+ 1 file changed, 46 insertions(+), 3 deletions(-)
 
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-remove-unused-savedwrite-infrastructure
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -401,35 +401,9 @@ static inline int __ptep_test_and_clear_
- #define __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
- #define pmdp_clear_flush_young pmdp_test_and_clear_young
+--- a/tools/testing/selftests/vm/anon_cow.c~selftests-vm-anon_cow-add-mprotect-optimization-tests
++++ a/tools/testing/selftests/vm/anon_cow.c
+@@ -190,7 +190,8 @@ static int child_vmsplice_memcmp_fn(char
  
--static inline int __pte_write(pte_t pte)
--{
--	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
--}
--
--#ifdef CONFIG_NUMA_BALANCING
--#define pte_savedwrite pte_savedwrite
--static inline bool pte_savedwrite(pte_t pte)
--{
--	/*
--	 * Saved write ptes are prot none ptes that doesn't have
--	 * privileged bit sit. We mark prot none as one which has
--	 * present and pviliged bit set and RWX cleared. To mark
--	 * protnone which used to have _PAGE_WRITE set we clear
--	 * the privileged bit.
--	 */
--	return !(pte_raw(pte) & cpu_to_be64(_PAGE_RWX | _PAGE_PRIVILEGED));
--}
--#else
--#define pte_savedwrite pte_savedwrite
--static inline bool pte_savedwrite(pte_t pte)
--{
--	return false;
--}
--#endif
--
- static inline int pte_write(pte_t pte)
+ typedef int (*child_fn)(char *mem, size_t size, struct comm_pipes *comm_pipes);
+ 
+-static void do_test_cow_in_parent(char *mem, size_t size, child_fn fn)
++static void do_test_cow_in_parent(char *mem, size_t size, bool do_mprotect,
++				  child_fn fn)
  {
--	return __pte_write(pte) || pte_savedwrite(pte);
-+	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
- }
+ 	struct comm_pipes comm_pipes;
+ 	char buf;
+@@ -212,6 +213,22 @@ static void do_test_cow_in_parent(char *
  
- static inline int pte_read(pte_t pte)
-@@ -441,24 +415,16 @@ static inline int pte_read(pte_t pte)
- static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- 				      pte_t *ptep)
+ 	while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
+ 		;
++
++	if (do_mprotect) {
++		/*
++		 * mprotect() optimizations might try avoiding
++		 * write-faults by directly mapping pages writable.
++		 */
++		ret = mprotect(mem, size, PROT_READ);
++		ret |= mprotect(mem, size, PROT_READ|PROT_WRITE);
++		if (ret) {
++			ksft_test_result_fail("mprotect() failed\n");
++			write(comm_pipes.parent_ready[1], "0", 1);
++			wait(&ret);
++			goto close_comm_pipes;
++		}
++	}
++
+ 	/* Modify the page. */
+ 	memset(mem, 0xff, size);
+ 	write(comm_pipes.parent_ready[1], "0", 1);
+@@ -229,12 +246,22 @@ close_comm_pipes:
+ 
+ static void test_cow_in_parent(char *mem, size_t size)
  {
--	if (__pte_write(*ptep))
-+	if (pte_write(*ptep))
- 		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 0);
--	else if (unlikely(pte_savedwrite(*ptep)))
--		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 0);
+-	do_test_cow_in_parent(mem, size, child_memcmp_fn);
++	do_test_cow_in_parent(mem, size, false, child_memcmp_fn);
++}
++
++static void test_cow_in_parent_mprotect(char *mem, size_t size)
++{
++	do_test_cow_in_parent(mem, size, true, child_memcmp_fn);
  }
  
- #define __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep)
+ static void test_vmsplice_in_child(char *mem, size_t size)
  {
--	/*
--	 * We should not find protnone for hugetlb, but this complete the
--	 * interface.
--	 */
--	if (__pte_write(*ptep))
-+	if (pte_write(*ptep))
- 		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 1);
--	else if (unlikely(pte_savedwrite(*ptep)))
--		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 1);
+-	do_test_cow_in_parent(mem, size, child_vmsplice_memcmp_fn);
++	do_test_cow_in_parent(mem, size, false, child_vmsplice_memcmp_fn);
++}
++
++static void test_vmsplice_in_child_mprotect(char *mem, size_t size)
++{
++	do_test_cow_in_parent(mem, size, true, child_vmsplice_memcmp_fn);
  }
  
- #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
-@@ -535,36 +501,6 @@ static inline int pte_protnone(pte_t pte
- 	return (pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_PTE | _PAGE_RWX)) ==
- 		cpu_to_be64(_PAGE_PRESENT | _PAGE_PTE);
- }
--
--#define pte_mk_savedwrite pte_mk_savedwrite
--static inline pte_t pte_mk_savedwrite(pte_t pte)
--{
--	/*
--	 * Used by Autonuma subsystem to preserve the write bit
--	 * while marking the pte PROT_NONE. Only allow this
--	 * on PROT_NONE pte
--	 */
--	VM_BUG_ON((pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_RWX | _PAGE_PRIVILEGED)) !=
--		  cpu_to_be64(_PAGE_PRESENT | _PAGE_PRIVILEGED));
--	return __pte_raw(pte_raw(pte) & cpu_to_be64(~_PAGE_PRIVILEGED));
--}
--
--#define pte_clear_savedwrite pte_clear_savedwrite
--static inline pte_t pte_clear_savedwrite(pte_t pte)
--{
--	/*
--	 * Used by KSM subsystem to make a protnone pte readonly.
--	 */
--	VM_BUG_ON(!pte_protnone(pte));
--	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_PRIVILEGED));
--}
--#else
--#define pte_clear_savedwrite pte_clear_savedwrite
--static inline pte_t pte_clear_savedwrite(pte_t pte)
--{
--	VM_WARN_ON(1);
--	return __pte_raw(pte_raw(pte) & cpu_to_be64(~_PAGE_WRITE));
--}
- #endif /* CONFIG_NUMA_BALANCING */
- 
- static inline bool pte_hw_valid(pte_t pte)
-@@ -641,8 +577,6 @@ static inline unsigned long pte_pfn(pte_
- /* Generic modifiers for PTE bits */
- static inline pte_t pte_wrprotect(pte_t pte)
- {
--	if (unlikely(pte_savedwrite(pte)))
--		return pte_clear_savedwrite(pte);
- 	return __pte_raw(pte_raw(pte) & cpu_to_be64(~_PAGE_WRITE));
- }
- 
-@@ -1139,8 +1073,6 @@ static inline pte_t *pmdp_ptep(pmd_t *pm
- #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
- #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
- #define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
--#define pmd_mk_savedwrite(pmd)	pte_pmd(pte_mk_savedwrite(pmd_pte(pmd)))
--#define pmd_clear_savedwrite(pmd)	pte_pmd(pte_clear_savedwrite(pmd_pte(pmd)))
- 
- #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- #define pmd_soft_dirty(pmd)    pte_soft_dirty(pmd_pte(pmd))
-@@ -1162,8 +1094,6 @@ static inline int pmd_protnone(pmd_t pmd
- #endif /* CONFIG_NUMA_BALANCING */
- 
- #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
--#define __pmd_write(pmd)	__pte_write(pmd_pte(pmd))
--#define pmd_savedwrite(pmd)	pte_savedwrite(pmd_pte(pmd))
- 
- #define pmd_access_permitted pmd_access_permitted
- static inline bool pmd_access_permitted(pmd_t pmd, bool write)
-@@ -1241,10 +1171,8 @@ static inline int __pmdp_test_and_clear_
- static inline void pmdp_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- 				      pmd_t *pmdp)
- {
--	if (__pmd_write((*pmdp)))
-+	if (pmd_write(*pmdp))
- 		pmd_hugepage_update(mm, addr, pmdp, _PAGE_WRITE, 0);
--	else if (unlikely(pmd_savedwrite(*pmdp)))
--		pmd_hugepage_update(mm, addr, pmdp, 0, _PAGE_PRIVILEGED);
- }
- 
- /*
---- a/arch/powerpc/kvm/book3s_hv_rm_mmu.c~mm-remove-unused-savedwrite-infrastructure
-+++ a/arch/powerpc/kvm/book3s_hv_rm_mmu.c
-@@ -265,7 +265,7 @@ long kvmppc_do_h_enter(struct kvm *kvm,
- 		}
- 		pte = kvmppc_read_update_linux_pte(ptep, writing);
- 		if (pte_present(pte) && !pte_protnone(pte)) {
--			if (writing && !__pte_write(pte))
-+			if (writing && !pte_write(pte))
- 				/* make the actual HPTE be read-only */
- 				ptel = hpte_make_readonly(ptel);
- 			is_ci = pte_ci(pte);
---- a/include/linux/pgtable.h~mm-remove-unused-savedwrite-infrastructure
-+++ a/include/linux/pgtable.h
-@@ -503,30 +503,6 @@ static inline pte_t pte_sw_mkyoung(pte_t
- #define pte_sw_mkyoung	pte_sw_mkyoung
- #endif
- 
--#ifndef pte_savedwrite
--#define pte_savedwrite pte_write
--#endif
--
--#ifndef pte_mk_savedwrite
--#define pte_mk_savedwrite pte_mkwrite
--#endif
--
--#ifndef pte_clear_savedwrite
--#define pte_clear_savedwrite pte_wrprotect
--#endif
--
--#ifndef pmd_savedwrite
--#define pmd_savedwrite pmd_write
--#endif
--
--#ifndef pmd_mk_savedwrite
--#define pmd_mk_savedwrite pmd_mkwrite
--#endif
--
--#ifndef pmd_clear_savedwrite
--#define pmd_clear_savedwrite pmd_wrprotect
--#endif
--
- #ifndef __HAVE_ARCH_PMDP_SET_WRPROTECT
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline void pmdp_set_wrprotect(struct mm_struct *mm,
---- a/mm/debug_vm_pgtable.c~mm-remove-unused-savedwrite-infrastructure
-+++ a/mm/debug_vm_pgtable.c
-@@ -171,18 +171,6 @@ static void __init pte_advanced_tests(st
- 	ptep_get_and_clear_full(args->mm, args->vaddr, args->ptep, 1);
- }
- 
--static void __init pte_savedwrite_tests(struct pgtable_debug_args *args)
--{
--	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot_none);
--
--	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
--		return;
--
--	pr_debug("Validating PTE saved write\n");
--	WARN_ON(!pte_savedwrite(pte_mk_savedwrite(pte_clear_savedwrite(pte))));
--	WARN_ON(pte_savedwrite(pte_clear_savedwrite(pte_mk_savedwrite(pte))));
--}
--
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static void __init pmd_basic_tests(struct pgtable_debug_args *args, int idx)
- {
-@@ -302,22 +290,6 @@ static void __init pmd_leaf_tests(struct
- 	WARN_ON(!pmd_leaf(pmd));
- }
- 
--static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args)
--{
--	pmd_t pmd;
--
--	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
--		return;
--
--	if (!has_transparent_hugepage())
--		return;
--
--	pr_debug("Validating PMD saved write\n");
--	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot_none);
--	WARN_ON(!pmd_savedwrite(pmd_mk_savedwrite(pmd_clear_savedwrite(pmd))));
--	WARN_ON(pmd_savedwrite(pmd_clear_savedwrite(pmd_mk_savedwrite(pmd))));
--}
--
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- static void __init pud_basic_tests(struct pgtable_debug_args *args, int idx)
- {
-@@ -451,7 +423,6 @@ static void __init pmd_advanced_tests(st
- static void __init pud_advanced_tests(struct pgtable_debug_args *args) { }
- static void __init pmd_leaf_tests(struct pgtable_debug_args *args) { }
- static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
--static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args) { }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
-@@ -1288,9 +1259,6 @@ static int __init debug_vm_pgtable(void)
- 	pmd_leaf_tests(&args);
- 	pud_leaf_tests(&args);
- 
--	pte_savedwrite_tests(&args);
--	pmd_savedwrite_tests(&args);
--
- 	pte_special_tests(&args);
- 	pte_protnone_tests(&args);
- 	pmd_protnone_tests(&args);
+ static void do_test_vmsplice_in_parent(char *mem, size_t size,
+@@ -970,6 +997,14 @@ static const struct test_case test_cases
+ 		test_cow_in_parent,
+ 	},
+ 	/*
++	 * Basic test, but do an additional mprotect(PROT_READ)+
++	 * mprotect(PROT_READ|PROT_WRITE) in the parent before write access.
++	 */
++	{
++		"Basic COW after fork() with mprotect() optimization",
++		test_cow_in_parent_mprotect,
++	},
++	/*
+ 	 * vmsplice() [R/O GUP] + unmap in the child; modify in the parent. If
+ 	 * we miss to break COW, the child observes modifications by the parent.
+ 	 * This is CVE-2020-29374 reported by Jann Horn.
+@@ -979,6 +1014,14 @@ static const struct test_case test_cases
+ 		test_vmsplice_in_child
+ 	},
+ 	/*
++	 * vmsplice() test, but do an additional mprotect(PROT_READ)+
++	 * mprotect(PROT_READ|PROT_WRITE) in the parent before write access.
++	 */
++	{
++		"vmsplice() + unmap in child with mprotect() optimization",
++		test_vmsplice_in_child_mprotect
++	},
++	/*
+ 	 * vmsplice() [R/O GUP] in parent before fork(), unmap in parent after
+ 	 * fork(); modify in the child. If we miss to break COW, the parent
+ 	 * observes modifications by the child.
 _
 
 Patches currently in -mm which might be from david@redhat.com are
