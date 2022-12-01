@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7816FC352A1
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:17:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E464C47089
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:17:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230352AbiLAARU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:17:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34858 "EHLO
+        id S230430AbiLAARV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:17:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230501AbiLAAQ7 (ORCPT
+        with ESMTP id S230504AbiLAAQ7 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:16:59 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 757FE9951A
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:13:51 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A18D991C11
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:13:52 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 20EFEB81D95
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:13:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5278C43470;
-        Thu,  1 Dec 2022 00:13:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1E1D061926
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:13:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3656AC433B5;
+        Thu,  1 Dec 2022 00:13:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669853628;
-        bh=J6dCCJaGCHtN649AXy7m2oN64VqwRF67u9zR//bYUvM=;
+        s=korg; t=1669853631;
+        bh=acOzxhlZaItZhbD5e1mfHK9a7sTbAaz8graMP0CDkuA=;
         h=Date:To:From:Subject:From;
-        b=pgFzyJ0qda5lbf8MVDoJXz0t9icvGqne0TvcKkAWLWhjIHPH57V9+RKljUBvbIavl
-         2uXBZeSyj9xd1QrTv2zy8OoXxHAk6D9lEKrHrmQez6YpBmxoPsmtybuTdnWPQgMqQT
-         ibwJPGRHqiQYEcwGTwCwzeh8UD/xz0DP1zbx+Vmk=
-Date:   Wed, 30 Nov 2022 16:13:48 -0800
-To:     mm-commits@vger.kernel.org, zhaogongyi@huawei.com,
-        yangyicong@hisilicon.com, weiyongjun1@huawei.com,
-        viro@zeniv.linux.org.uk, shuah@kernel.org, rafael@kernel.org,
-        osalvador@suse.de, gregkh@linuxfoundation.org, david@redhat.com,
-        corbet@lwn.net, akinobu.mita@gmail.com, akpm@linux-foundation.org
+        b=YjK2yiWAsbLaVRYeS015nzQ7f6LojCcvAMC6fz0k88n+DmAQ8kCpHr+ClyAaLGVUG
+         k78lxETBcJwbAU23yfX3kzTZ+Uxzz3RHAw/xThA6Dld2NQtWow3lJrmaRn2ev5CU8m
+         tJMeH1DYHlAUCJN896WkU9RCVrGBVQgy+7oHbe2k=
+Date:   Wed, 30 Nov 2022 16:13:50 -0800
+To:     mm-commits@vger.kernel.org, Jason@zx2c4.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-notifier-error-inject-fix-error-when-writing-errno-to-debugfs-file.patch removed from -mm tree
-Message-Id: <20221201001348.B5278C43470@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] wifi-rt2x00-use-explicitly-signed-or-unsigned-types.patch removed from -mm tree
+Message-Id: <20221201001351.3656AC433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,57 +41,445 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib/notifier-error-inject: fix error when writing -errno to debugfs file
+     Subject: wifi: rt2x00: use explicitly signed or unsigned types
 has been removed from the -mm tree.  Its filename was
-     lib-notifier-error-inject-fix-error-when-writing-errno-to-debugfs-file.patch
+     wifi-rt2x00-use-explicitly-signed-or-unsigned-types.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: lib/notifier-error-inject: fix error when writing -errno to debugfs file
-Date: Tue, 20 Sep 2022 02:24:17 +0900
+From: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Subject: wifi: rt2x00: use explicitly signed or unsigned types
+Date: Wed, 19 Oct 2022 09:55:41 -0600
 
-The simple attribute files do not accept a negative value since the commit
-488dac0c9237 ("libfs: fix error cast of negative value in
-simple_attr_write()").
+On some platforms, `char` is unsigned, but this driver, for the most part,
+assumed it was signed.  In other places, it uses `char` to mean an
+unsigned number, but only in cases when the values are small.  And in
+still other places, `char` is used as a boolean.  Put an end to this
+confusion by declaring explicit types, depending on the context.
 
-This restores the previous behaviour by using newly introduced
-DEFINE_SIMPLE_ATTRIBUTE_SIGNED instead of DEFINE_SIMPLE_ATTRIBUTE.
-
-Link: https://lkml.kernel.org/r/20220919172418.45257-3-akinobu.mita@gmail.com
-Fixes: 488dac0c9237 ("libfs: fix error cast of negative value in simple_attr_write()")
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Reported-by: Zhao Gongyi <zhaogongyi@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>
-Cc: Yicong Yang <yangyicong@hisilicon.com>
+Link: https://lkml.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
+Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/notifier-error-inject.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/ralink/rt2x00/rt2400pci.c |    8 +-
+ drivers/net/wireless/ralink/rt2x00/rt2400pci.h |    2 
+ drivers/net/wireless/ralink/rt2x00/rt2500pci.c |    8 +-
+ drivers/net/wireless/ralink/rt2x00/rt2500pci.h |    2 
+ drivers/net/wireless/ralink/rt2x00/rt2500usb.c |    8 +-
+ drivers/net/wireless/ralink/rt2x00/rt2500usb.h |    2 
+ drivers/net/wireless/ralink/rt2x00/rt2800lib.c |   60 +++++++--------
+ drivers/net/wireless/ralink/rt2x00/rt2800lib.h |    8 +-
+ drivers/net/wireless/ralink/rt2x00/rt2x00usb.c |    6 -
+ drivers/net/wireless/ralink/rt2x00/rt61pci.c   |    4 -
+ drivers/net/wireless/ralink/rt2x00/rt61pci.h   |    2 
+ drivers/net/wireless/ralink/rt2x00/rt73usb.c   |    4 -
+ drivers/net/wireless/ralink/rt2x00/rt73usb.h   |    2 
+ 13 files changed, 58 insertions(+), 58 deletions(-)
 
---- a/lib/notifier-error-inject.c~lib-notifier-error-inject-fix-error-when-writing-errno-to-debugfs-file
-+++ a/lib/notifier-error-inject.c
-@@ -15,7 +15,7 @@ static int debugfs_errno_get(void *data,
+--- a/drivers/net/wireless/ralink/rt2x00/rt2400pci.c~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt2400pci.c
+@@ -1023,9 +1023,9 @@ static int rt2400pci_set_state(struct rt
+ {
+ 	u32 reg, reg2;
+ 	unsigned int i;
+-	char put_to_sleep;
+-	char bbp_state;
+-	char rf_state;
++	bool put_to_sleep;
++	u8 bbp_state;
++	u8 rf_state;
+ 
+ 	put_to_sleep = (state != STATE_AWAKE);
+ 
+@@ -1561,7 +1561,7 @@ static int rt2400pci_probe_hw_mode(struc
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *tx_power;
++	u8 *tx_power;
+ 	unsigned int i;
+ 
+ 	/*
+--- a/drivers/net/wireless/ralink/rt2x00/rt2400pci.h~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt2400pci.h
+@@ -939,7 +939,7 @@
+ #define DEFAULT_TXPOWER	39
+ 
+ #define __CLAMP_TX(__txpower) \
+-	clamp_t(char, (__txpower), MIN_TXPOWER, MAX_TXPOWER)
++	clamp_t(u8, (__txpower), MIN_TXPOWER, MAX_TXPOWER)
+ 
+ #define TXPOWER_FROM_DEV(__txpower) \
+ 	((__CLAMP_TX(__txpower) - MAX_TXPOWER) + MIN_TXPOWER)
+--- a/drivers/net/wireless/ralink/rt2x00/rt2500pci.c~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt2500pci.c
+@@ -1176,9 +1176,9 @@ static int rt2500pci_set_state(struct rt
+ {
+ 	u32 reg, reg2;
+ 	unsigned int i;
+-	char put_to_sleep;
+-	char bbp_state;
+-	char rf_state;
++	bool put_to_sleep;
++	u8 bbp_state;
++	u8 rf_state;
+ 
+ 	put_to_sleep = (state != STATE_AWAKE);
+ 
+@@ -1856,7 +1856,7 @@ static int rt2500pci_probe_hw_mode(struc
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *tx_power;
++	u8 *tx_power;
+ 	unsigned int i;
+ 
+ 	/*
+--- a/drivers/net/wireless/ralink/rt2x00/rt2500pci.h~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt2500pci.h
+@@ -1219,6 +1219,6 @@
+ 	(((u8)(__txpower)) > MAX_TXPOWER) ? DEFAULT_TXPOWER : (__txpower)
+ 
+ #define TXPOWER_TO_DEV(__txpower) \
+-	clamp_t(char, __txpower, MIN_TXPOWER, MAX_TXPOWER)
++	clamp_t(u8, __txpower, MIN_TXPOWER, MAX_TXPOWER)
+ 
+ #endif /* RT2500PCI_H */
+--- a/drivers/net/wireless/ralink/rt2x00/rt2500usb.c~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt2500usb.c
+@@ -984,9 +984,9 @@ static int rt2500usb_set_state(struct rt
+ 	u16 reg;
+ 	u16 reg2;
+ 	unsigned int i;
+-	char put_to_sleep;
+-	char bbp_state;
+-	char rf_state;
++	bool put_to_sleep;
++	u8 bbp_state;
++	u8 rf_state;
+ 
+ 	put_to_sleep = (state != STATE_AWAKE);
+ 
+@@ -1663,7 +1663,7 @@ static int rt2500usb_probe_hw_mode(struc
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *tx_power;
++	u8 *tx_power;
+ 	unsigned int i;
+ 
+ 	/*
+--- a/drivers/net/wireless/ralink/rt2x00/rt2500usb.h~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt2500usb.h
+@@ -839,6 +839,6 @@
+ 	(((u8)(__txpower)) > MAX_TXPOWER) ? DEFAULT_TXPOWER : (__txpower)
+ 
+ #define TXPOWER_TO_DEV(__txpower) \
+-	clamp_t(char, __txpower, MIN_TXPOWER, MAX_TXPOWER)
++	clamp_t(u8, __txpower, MIN_TXPOWER, MAX_TXPOWER)
+ 
+ #endif /* RT2500USB_H */
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+@@ -3372,10 +3372,10 @@ static void rt2800_config_channel_rf53xx
+ 	if (rt2x00_has_cap_bt_coexist(rt2x00dev)) {
+ 		if (rt2x00_rt_rev_gte(rt2x00dev, RT5390, REV_RT5390F)) {
+ 			/* r55/r59 value array of channel 1~14 */
+-			static const char r55_bt_rev[] = {0x83, 0x83,
++			static const u8 r55_bt_rev[] = {0x83, 0x83,
+ 				0x83, 0x73, 0x73, 0x63, 0x53, 0x53,
+ 				0x53, 0x43, 0x43, 0x43, 0x43, 0x43};
+-			static const char r59_bt_rev[] = {0x0e, 0x0e,
++			static const u8 r59_bt_rev[] = {0x0e, 0x0e,
+ 				0x0e, 0x0e, 0x0e, 0x0b, 0x0a, 0x09,
+ 				0x07, 0x07, 0x07, 0x07, 0x07, 0x07};
+ 
+@@ -3384,7 +3384,7 @@ static void rt2800_config_channel_rf53xx
+ 			rt2800_rfcsr_write(rt2x00dev, 59,
+ 					   r59_bt_rev[idx]);
+ 		} else {
+-			static const char r59_bt[] = {0x8b, 0x8b, 0x8b,
++			static const u8 r59_bt[] = {0x8b, 0x8b, 0x8b,
+ 				0x8b, 0x8b, 0x8b, 0x8b, 0x8a, 0x89,
+ 				0x88, 0x88, 0x86, 0x85, 0x84};
+ 
+@@ -3392,10 +3392,10 @@ static void rt2800_config_channel_rf53xx
+ 		}
+ 	} else {
+ 		if (rt2x00_rt_rev_gte(rt2x00dev, RT5390, REV_RT5390F)) {
+-			static const char r55_nonbt_rev[] = {0x23, 0x23,
++			static const u8 r55_nonbt_rev[] = {0x23, 0x23,
+ 				0x23, 0x23, 0x13, 0x13, 0x03, 0x03,
+ 				0x03, 0x03, 0x03, 0x03, 0x03, 0x03};
+-			static const char r59_nonbt_rev[] = {0x07, 0x07,
++			static const u8 r59_nonbt_rev[] = {0x07, 0x07,
+ 				0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+ 				0x07, 0x07, 0x06, 0x05, 0x04, 0x04};
+ 
+@@ -3406,14 +3406,14 @@ static void rt2800_config_channel_rf53xx
+ 		} else if (rt2x00_rt(rt2x00dev, RT5390) ||
+ 			   rt2x00_rt(rt2x00dev, RT5392) ||
+ 			   rt2x00_rt(rt2x00dev, RT6352)) {
+-			static const char r59_non_bt[] = {0x8f, 0x8f,
++			static const u8 r59_non_bt[] = {0x8f, 0x8f,
+ 				0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8d,
+ 				0x8a, 0x88, 0x88, 0x87, 0x87, 0x86};
+ 
+ 			rt2800_rfcsr_write(rt2x00dev, 59,
+ 					   r59_non_bt[idx]);
+ 		} else if (rt2x00_rt(rt2x00dev, RT5350)) {
+-			static const char r59_non_bt[] = {0x0b, 0x0b,
++			static const u8 r59_non_bt[] = {0x0b, 0x0b,
+ 				0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0a,
+ 				0x0a, 0x09, 0x08, 0x07, 0x07, 0x06};
+ 
+@@ -4035,23 +4035,23 @@ static void rt2800_iq_calibrate(struct r
+ 	rt2800_bbp_write(rt2x00dev, 159, cal != 0xff ? cal : 0);
+ }
+ 
+-static char rt2800_txpower_to_dev(struct rt2x00_dev *rt2x00dev,
++static s8 rt2800_txpower_to_dev(struct rt2x00_dev *rt2x00dev,
+ 				  unsigned int channel,
+-				  char txpower)
++				  s8 txpower)
+ {
+ 	if (rt2x00_rt(rt2x00dev, RT3593) ||
+ 	    rt2x00_rt(rt2x00dev, RT3883))
+ 		txpower = rt2x00_get_field8(txpower, EEPROM_TXPOWER_ALC);
+ 
+ 	if (channel <= 14)
+-		return clamp_t(char, txpower, MIN_G_TXPOWER, MAX_G_TXPOWER);
++		return clamp_t(s8, txpower, MIN_G_TXPOWER, MAX_G_TXPOWER);
+ 
+ 	if (rt2x00_rt(rt2x00dev, RT3593) ||
+ 	    rt2x00_rt(rt2x00dev, RT3883))
+-		return clamp_t(char, txpower, MIN_A_TXPOWER_3593,
++		return clamp_t(s8, txpower, MIN_A_TXPOWER_3593,
+ 			       MAX_A_TXPOWER_3593);
+ 	else
+-		return clamp_t(char, txpower, MIN_A_TXPOWER, MAX_A_TXPOWER);
++		return clamp_t(s8, txpower, MIN_A_TXPOWER, MAX_A_TXPOWER);
+ }
+ 
+ static void rt3883_bbp_adjust(struct rt2x00_dev *rt2x00dev,
+@@ -8530,7 +8530,7 @@ static void rt2800_r_calibration(struct
+ 	u8 bytevalue = 0;
+ 	int rcalcode;
+ 	u8 r_cal_code = 0;
+-	char d1 = 0, d2 = 0;
++	s8 d1 = 0, d2 = 0;
+ 	u8 rfvalue;
+ 	u32 MAC_RF_BYPASS0, MAC_RF_CONTROL0, MAC_PWR_PIN_CFG;
+ 	u32 maccfg;
+@@ -8591,7 +8591,7 @@ static void rt2800_r_calibration(struct
+ 	if (bytevalue > 128)
+ 		d1 = bytevalue - 256;
+ 	else
+-		d1 = (char)bytevalue;
++		d1 = (s8)bytevalue;
+ 	rt2800_bbp_write(rt2x00dev, 22, 0x0);
+ 	rt2800_rfcsr_write_bank(rt2x00dev, 0, 35, 0x01);
+ 
+@@ -8601,7 +8601,7 @@ static void rt2800_r_calibration(struct
+ 	if (bytevalue > 128)
+ 		d2 = bytevalue - 256;
+ 	else
+-		d2 = (char)bytevalue;
++		d2 = (s8)bytevalue;
+ 	rt2800_bbp_write(rt2x00dev, 22, 0x0);
+ 
+ 	rcalcode = rt2800_calcrcalibrationcode(rt2x00dev, d1, d2);
+@@ -8703,7 +8703,7 @@ static void rt2800_rxdcoc_calibration(st
+ static u32 rt2800_do_sqrt_accumulation(u32 si)
+ {
+ 	u32 root, root_pre, bit;
+-	char i;
++	s8 i;
+ 
+ 	bit = 1 << 15;
+ 	root = 0;
+@@ -9330,11 +9330,11 @@ static void rt2800_loft_search(struct rt
+ 			       u8 alc_idx, u8 dc_result[][RF_ALC_NUM][2])
+ {
+ 	u32 p0 = 0, p1 = 0, pf = 0;
+-	char idx0 = 0, idx1 = 0;
++	s8 idx0 = 0, idx1 = 0;
+ 	u8 idxf[] = {0x00, 0x00};
+ 	u8 ibit = 0x20;
+ 	u8 iorq;
+-	char bidx;
++	s8 bidx;
+ 
+ 	rt2800_bbp_write(rt2x00dev, 158, 0xb0);
+ 	rt2800_bbp_write(rt2x00dev, 159, 0x80);
+@@ -9384,17 +9384,17 @@ static void rt2800_loft_search(struct rt
+ static void rt2800_iq_search(struct rt2x00_dev *rt2x00dev, u8 ch_idx, u8 *ges, u8 *pes)
+ {
+ 	u32 p0 = 0, p1 = 0, pf = 0;
+-	char perr = 0, gerr = 0, iq_err = 0;
+-	char pef = 0, gef = 0;
+-	char psta, pend;
+-	char gsta, gend;
++	s8 perr = 0, gerr = 0, iq_err = 0;
++	s8 pef = 0, gef = 0;
++	s8 psta, pend;
++	s8 gsta, gend;
+ 
+ 	u8 ibit = 0x20;
+ 	u8 first_search = 0x00, touch_neg_max = 0x00;
+-	char idx0 = 0, idx1 = 0;
++	s8 idx0 = 0, idx1 = 0;
+ 	u8 gop;
+ 	u8 bbp = 0;
+-	char bidx;
++	s8 bidx;
+ 
+ 	for (bidx = 5; bidx >= 1; bidx--) {
+ 		for (gop = 0; gop < 2; gop++) {
+@@ -10043,11 +10043,11 @@ static int rt2800_rf_lp_config(struct rt
  	return 0;
  }
  
--DEFINE_SIMPLE_ATTRIBUTE(fops_errno, debugfs_errno_get, debugfs_errno_set,
-+DEFINE_SIMPLE_ATTRIBUTE_SIGNED(fops_errno, debugfs_errno_get, debugfs_errno_set,
- 			"%lld\n");
+-static char rt2800_lp_tx_filter_bw_cal(struct rt2x00_dev *rt2x00dev)
++static s8 rt2800_lp_tx_filter_bw_cal(struct rt2x00_dev *rt2x00dev)
+ {
+ 	unsigned int cnt;
+ 	u8 bbp_val;
+-	char cal_val;
++	s8 cal_val;
  
- static struct dentry *debugfs_create_errno(const char *name, umode_t mode,
+ 	rt2800_bbp_dcoc_write(rt2x00dev, 0, 0x82);
+ 
+@@ -10079,7 +10079,7 @@ static void rt2800_bw_filter_calibration
+ 	u8 rx_filter_target_20m = 0x27, rx_filter_target_40m = 0x31;
+ 	int loop = 0, is_ht40, cnt;
+ 	u8 bbp_val, rf_val;
+-	char cal_r32_init, cal_r32_val, cal_diff;
++	s8 cal_r32_init, cal_r32_val, cal_diff;
+ 	u8 saverfb5r00, saverfb5r01, saverfb5r03, saverfb5r04, saverfb5r05;
+ 	u8 saverfb5r06, saverfb5r07;
+ 	u8 saverfb5r08, saverfb5r17, saverfb5r18, saverfb5r19, saverfb5r20;
+@@ -11550,9 +11550,9 @@ static int rt2800_probe_hw_mode(struct r
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *default_power1;
+-	char *default_power2;
+-	char *default_power3;
++	s8 *default_power1;
++	s8 *default_power2;
++	s8 *default_power3;
+ 	unsigned int i, tx_chains, rx_chains;
+ 	u32 reg;
+ 
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
+@@ -32,10 +32,10 @@ struct rf_reg_pair {
+ struct rt2800_drv_data {
+ 	u8 calibration_bw20;
+ 	u8 calibration_bw40;
+-	char rx_calibration_bw20;
+-	char rx_calibration_bw40;
+-	char tx_calibration_bw20;
+-	char tx_calibration_bw40;
++	s8 rx_calibration_bw20;
++	s8 rx_calibration_bw40;
++	s8 tx_calibration_bw20;
++	s8 tx_calibration_bw40;
+ 	u8 bbp25;
+ 	u8 bbp26;
+ 	u8 txmixer_gain_24g;
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00usb.c~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt2x00usb.c
+@@ -117,12 +117,12 @@ int rt2x00usb_vendor_request_buff(struct
+ 				  const u16 buffer_length)
+ {
+ 	int status = 0;
+-	unsigned char *tb;
++	u8 *tb;
+ 	u16 off, len, bsize;
+ 
+ 	mutex_lock(&rt2x00dev->csr_mutex);
+ 
+-	tb  = (char *)buffer;
++	tb  = (u8 *)buffer;
+ 	off = offset;
+ 	len = buffer_length;
+ 	while (len && !status) {
+@@ -215,7 +215,7 @@ void rt2x00usb_register_read_async(struc
+ 	rd->cr.wLength = cpu_to_le16(sizeof(u32));
+ 
+ 	usb_fill_control_urb(urb, usb_dev, usb_rcvctrlpipe(usb_dev, 0),
+-			     (unsigned char *)(&rd->cr), &rd->reg, sizeof(rd->reg),
++			     (u8 *)(&rd->cr), &rd->reg, sizeof(rd->reg),
+ 			     rt2x00usb_register_read_async_cb, rd);
+ 	usb_anchor_urb(urb, rt2x00dev->anchor);
+ 	if (usb_submit_urb(urb, GFP_ATOMIC) < 0) {
+--- a/drivers/net/wireless/ralink/rt2x00/rt61pci.c~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt61pci.c
+@@ -1709,7 +1709,7 @@ static int rt61pci_set_state(struct rt2x
+ {
+ 	u32 reg, reg2;
+ 	unsigned int i;
+-	char put_to_sleep;
++	bool put_to_sleep;
+ 
+ 	put_to_sleep = (state != STATE_AWAKE);
+ 
+@@ -2656,7 +2656,7 @@ static int rt61pci_probe_hw_mode(struct
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *tx_power;
++	u8 *tx_power;
+ 	unsigned int i;
+ 
+ 	/*
+--- a/drivers/net/wireless/ralink/rt2x00/rt61pci.h~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt61pci.h
+@@ -1484,6 +1484,6 @@ struct hw_pairwise_ta_entry {
+ 	(((u8)(__txpower)) > MAX_TXPOWER) ? DEFAULT_TXPOWER : (__txpower)
+ 
+ #define TXPOWER_TO_DEV(__txpower) \
+-	clamp_t(char, __txpower, MIN_TXPOWER, MAX_TXPOWER)
++	clamp_t(u8, __txpower, MIN_TXPOWER, MAX_TXPOWER)
+ 
+ #endif /* RT61PCI_H */
+--- a/drivers/net/wireless/ralink/rt2x00/rt73usb.c~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt73usb.c
+@@ -1378,7 +1378,7 @@ static int rt73usb_set_state(struct rt2x
+ {
+ 	u32 reg, reg2;
+ 	unsigned int i;
+-	char put_to_sleep;
++	bool put_to_sleep;
+ 
+ 	put_to_sleep = (state != STATE_AWAKE);
+ 
+@@ -2090,7 +2090,7 @@ static int rt73usb_probe_hw_mode(struct
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *tx_power;
++	u8 *tx_power;
+ 	unsigned int i;
+ 
+ 	/*
+--- a/drivers/net/wireless/ralink/rt2x00/rt73usb.h~wifi-rt2x00-use-explicitly-signed-or-unsigned-types
++++ a/drivers/net/wireless/ralink/rt2x00/rt73usb.h
+@@ -1063,6 +1063,6 @@ struct hw_pairwise_ta_entry {
+ 	(((u8)(__txpower)) > MAX_TXPOWER) ? DEFAULT_TXPOWER : (__txpower)
+ 
+ #define TXPOWER_TO_DEV(__txpower) \
+-	clamp_t(char, __txpower, MIN_TXPOWER, MAX_TXPOWER)
++	clamp_t(u8, __txpower, MIN_TXPOWER, MAX_TXPOWER)
+ 
+ #endif /* RT73USB_H */
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from Jason@zx2c4.com are
 
 
