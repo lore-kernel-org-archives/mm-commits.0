@@ -2,115 +2,116 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C23DEC47089
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 21:11:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9664C4321E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 21:30:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229967AbiLAVL5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Dec 2022 16:11:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33622 "EHLO
+        id S229571AbiLAVaM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Dec 2022 16:30:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229921AbiLAVLz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2022 16:11:55 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A08DBEE1A;
-        Thu,  1 Dec 2022 13:11:54 -0800 (PST)
+        with ESMTP id S231166AbiLAV35 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2022 16:29:57 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C1F5A958E
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 13:29:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3451B6211F;
-        Thu,  1 Dec 2022 21:11:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89F1AC433D6;
-        Thu,  1 Dec 2022 21:11:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B2CAFB80955
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 21:29:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C0ADC433D6;
+        Thu,  1 Dec 2022 21:29:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669929113;
-        bh=3nzk2Hz804l2X5kp1Ia4dfXY8pRJ0AmHiPtOm4v+ijg=;
+        s=korg; t=1669930192;
+        bh=5EP5dmbxtQoywahYIRnfFOgdUFUu6PkYjFgJ6qr+ic8=;
         h=Date:To:From:Subject:From;
-        b=EIo8eEp0qBwTZ9qL3rKUbThVgOB01ho/wRFhnrCT6LIJoE6ecMZ9KJGiI5gIAeyWo
-         Dft0C1w+UlxtzYom0fIpUS97FZOGWOxMtB91dZXe/adLzr3cFyrwV1/JXpAk1CeseT
-         kerDq+gk16LiVJDopf5iXew+BFYRrNhq4PLFl2fE=
-Date:   Thu, 01 Dec 2022 13:11:52 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        revest@chromium.org, peterz@infradead.org, mhiramat@kernel.org,
-        mark.rutland@arm.com, kpsingh@kernel.org, keescook@chromium.org,
-        jpoimboe@redhat.com, hch@infradead.org, gregkh@linuxfoundation.org,
-        bp@suse.de, alexei.starovoitov@gmail.com, rostedt@goodmis.org,
-        akpm@linux-foundation.org
+        b=bDzkkvYbfUqvS5T4ml2QdvDDKiJKqSaR9Cro7xHRvCK4j8QAI0rz4FMeHGsXwsaY4
+         M8bIHR1Vp+daTU2bAfbi5nuZEV3dF3ak3WRhThzKKE7qUUXfScfP3AvtPKdFdPOMry
+         6xueGAXTMhcTQCGwpiqqucUcje2ukMThOviODQUc=
+Date:   Thu, 01 Dec 2022 13:29:51 -0800
+To:     mm-commits@vger.kernel.org, zhengjun.xing@linux.intel.com,
+        yujie.liu@intel.com, ying.huang@intel.com, willy@infradead.org,
+        shy828301@gmail.com, riel@surriel.com, regressions@leemhuis.info,
+        nathan@kernel.org, fengwei.yin@intel.com, feng.tang@intel.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] error-injection-add-prompt-for-function-error-injection.patch removed from -mm tree
-Message-Id: <20221201211153.89F1AC433D6@smtp.kernel.org>
+Subject: + revert-mm-align-larger-anonymous-mappings-on-thp-boundaries.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221201212952.5C0ADC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: error-injection: add prompt for function error injection
-has been removed from the -mm tree.  Its filename was
-     error-injection-add-prompt-for-function-error-injection.patch
+The patch titled
+     Subject: revert "mm: align larger anonymous mappings on THP boundaries"
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     revert-mm-align-larger-anonymous-mappings-on-thp-boundaries.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-align-larger-anonymous-mappings-on-thp-boundaries.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Steven Rostedt (Google)" <rostedt@goodmis.org>
-Subject: error-injection: add prompt for function error injection
-Date: Mon, 21 Nov 2022 10:44:03 -0500
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "mm: align larger anonymous mappings on THP boundaries"
+Date: Thu Dec  1 01:22:56 PM PST 2022
 
-The config to be able to inject error codes into any function annotated
-with ALLOW_ERROR_INJECTION() is enabled when
-CONFIG_FUNCTION_ERROR_INJECTION is enabled.  But unfortunately, this is
-always enabled on x86 when KPROBES is enabled, and there's no way to turn
-it off.
+Several testers are seeing large slowdowns from this commit.  The reasons
+for this are unclear.  Revert it from 6.1-rcX so this can be better
+examined.
 
-As kprobes is useful for observability of the kernel, it is useful to have
-it enabled in production environments.  But error injection should be
-avoided.  Add a prompt to the config to allow it to be disabled even when
-kprobes is enabled, and get rid of the "def_bool y".
-
-This is a kernel debug feature (it's in Kconfig.debug), and should have
-never been something enabled by default.
-
-Link: https://lkml.kernel.org/r/20221121104403.1545f9b5@gandalf.local.home
-Fixes: 540adea3809f6 ("error-injection: Separate error-injection from kprobe")
-Signed-off-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-Acked-by: Borislav Petkov <bp@suse.de>
-Acked-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Florent Revest <revest@chromium.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: <stable@vger.kernel.org>
+Fixes: f35b5d7d676e ("mm: align larger anonymous mappings on THP boundaries")
+Reported-by: kernel test robot <yujie.liu@intel.com>
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+Reported-by: Thorsten Leemhuis <regressions@leemhuis.info>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Xing Zhengjun <zhengjun.xing@linux.intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: "Yin, Fengwei" <fengwei.yin@intel.com>
+Cc: Yujie Liu <yujie.liu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/mmap.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/lib/Kconfig.debug~error-injection-add-prompt-for-function-error-injection
-+++ a/lib/Kconfig.debug
-@@ -1875,8 +1875,14 @@ config NETDEV_NOTIFIER_ERROR_INJECT
- 	  If unsure, say N.
+--- a/mm/mmap.c~revert-mm-align-larger-anonymous-mappings-on-thp-boundaries
++++ a/mm/mmap.c
+@@ -1779,9 +1779,6 @@ get_unmapped_area(struct file *file, uns
+ 		 */
+ 		pgoff = 0;
+ 		get_area = shmem_get_unmapped_area;
+-	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
+-		/* Ensures that larger anonymous mappings are THP aligned. */
+-		get_area = thp_get_unmapped_area;
+ 	}
  
- config FUNCTION_ERROR_INJECTION
--	def_bool y
-+	bool "Fault-injections of functions"
- 	depends on HAVE_FUNCTION_ERROR_INJECTION && KPROBES
-+	help
-+	  Add fault injections into various functions that are annotated with
-+	  ALLOW_ERROR_INJECTION() in the kernel. BPF may also modify the return
-+	  value of theses functions. This is useful to test error paths of code.
-+
-+	  If unsure, say N
- 
- config FAULT_INJECTION
- 	bool "Fault-injection framework"
+ 	addr = get_area(file, addr, len, pgoff, flags);
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-mm-align-larger-anonymous-mappings-on-thp-boundaries.patch
+mm-gup-remove-foll_migration-fix.patch
+mm-memremap_pages-replace-zone_device_page_init-with-pgmap_request_folios-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix.patch
+mm-memremap-introduce-pgmap_request_folio-using-pgmap-offsets-fix-2.patch
 
