@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36B98C47089
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9F9EC4321E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230392AbiLAAIj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:08:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53308 "EHLO
+        id S229943AbiLAAIh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:08:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230394AbiLAAGi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:38 -0500
+        with ESMTP id S230269AbiLAAGg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:36 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB15010B8
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:37 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DE1CE0A
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 851C0B81D69
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4386BC433D6;
-        Thu,  1 Dec 2022 00:02:35 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CED71B81D84
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 731D5C433D6;
+        Thu,  1 Dec 2022 00:02:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852955;
-        bh=z+i3p23UObSq/S2tzMTAuCkChnU8wkj75qO3YG73Kcc=;
+        s=korg; t=1669852952;
+        bh=jgQbE7ebSSY1Zn9wSrCPdwdiUdqV2coZW2uezcOTARU=;
         h=Date:To:From:Subject:From;
-        b=Z/VOjls6MjI+p4x+8dB8SmU7xiRti7BFsHrieVsoQNX3cQki74HCEMXMmjgGMQLaR
-         d1gelanqwWFxUwRhVpJEaRJAWpomU+0mszXOzWCmekq/ne8k2AZjWotZ1vHekKPe9I
-         a76yDjbIbb7PTvp5HjYiAluV4H9V0nClp7HoB9ng=
-Date:   Wed, 30 Nov 2022 16:02:34 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        mgorman@techsingularity.net, akpm@linux-foundation.org
+        b=Gh3j9VT+IpRs6tNkdM3tSOXsZG4JwaBAzGevup3NtFb3Suh5igRUwLJTbLL+g+wf/
+         bIPNE4F7LO/1zrRzljv4P6cdlK63e/+GyX62hYsMuK1MOpOou1wIM+UF1pijwmKBzy
+         Vg54dpZGCbW0bq7Kv/JW6MYw4wVUF+2nvyeXTqi8=
+Date:   Wed, 30 Nov 2022 16:02:31 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, vbabka@suse.cz,
+        mtosatti@redhat.com, m.szyprowski@samsung.com, mhocko@kernel.org,
+        hughd@google.com, mgorman@techsingularity.net,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-simplify-locking-during-free_unref_page_list.patch removed from -mm tree
-Message-Id: <20221201000235.4386BC433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-always-remove-pages-from-temporary-list.patch removed from -mm tree
+Message-Id: <20221201000232.731D5C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,87 +43,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: simplify locking during free_unref_page_list
+     Subject: mm/page_alloc: always remove pages from temporary list
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-simplify-locking-during-free_unref_page_list.patch
+     mm-page_alloc-always-remove-pages-from-temporary-list.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: simplify locking during free_unref_page_list
-Date: Tue, 22 Nov 2022 13:12:29 +0000
+Subject: mm/page_alloc: always remove pages from temporary list
+Date: Fri, 18 Nov 2022 10:17:13 +0000
 
-While freeing a large list, the zone lock will be released and reacquired
-to avoid long hold times since commit c24ad77d962c ("mm/page_alloc.c:
-avoid excessive IRQ disabled times in free_unref_page_list()").  As
-suggested by Vlastimil Babka, the lockrelease/reacquire logic can be
-simplified by reusing the logic that acquires a different lock when
-changing zones.
+Patch series "Leave IRQs enabled for per-cpu page allocations", v3.
 
-Link: https://lkml.kernel.org/r/20221122131229.5263-3-mgorman@techsingularity.net
+
+This patch (of 2):
+
+free_unref_page_list() has neglected to remove pages properly from the
+list of pages to free since forever.  It works by coincidence because
+list_add happened to do the right thing adding the pages to just the PCP
+lists.  However, a later patch added pages to either the PCP list or the
+zone list but only properly deleted the page from the list in one path
+leading to list corruption and a subsequent failure.  As a preparation
+patch, always delete the pages from one list properly before adding to
+another.  On its own, this fixes nothing although it adds a fractional
+amount of overhead but is critical to the next patch.
+
+Link: https://lkml.kernel.org/r/20221118101714.19590-1-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20221118101714.19590-2-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   25 +++++++++----------------
- 1 file changed, 9 insertions(+), 16 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-simplify-locking-during-free_unref_page_list
+--- a/mm/page_alloc.c~mm-page_alloc-always-remove-pages-from-temporary-list
 +++ a/mm/page_alloc.c
-@@ -3525,13 +3525,19 @@ void free_unref_page_list(struct list_he
- 		list_del(&page->lru);
- 		migratetype = get_pcppage_migratetype(page);
+@@ -3553,6 +3553,8 @@ void free_unref_page_list(struct list_he
+ 	list_for_each_entry_safe(page, next, list, lru) {
+ 		struct zone *zone = page_zone(page);
  
--		/* Different zone, different pcp lock. */
--		if (zone != locked_zone) {
-+		/*
-+		 * Either different zone requiring a different pcp lock or
-+		 * excessive lock hold times when freeing a large list of
-+		 * pages.
-+		 */
-+		if (zone != locked_zone || batch_count == SWAP_CLUSTER_MAX) {
- 			if (pcp) {
- 				pcp_spin_unlock(pcp);
- 				pcp_trylock_finish(UP_flags);
- 			}
- 
-+			batch_count = 0;
++		list_del(&page->lru);
 +
- 			/*
- 			 * trylock is necessary as pages may be getting freed
- 			 * from IRQ or SoftIRQ context after an IO completion.
-@@ -3546,7 +3552,6 @@ void free_unref_page_list(struct list_he
- 				continue;
- 			}
- 			locked_zone = zone;
--			batch_count = 0;
- 		}
- 
- 		/*
-@@ -3558,19 +3563,7 @@ void free_unref_page_list(struct list_he
- 
- 		trace_mm_page_free_batched(page);
- 		free_unref_page_commit(zone, pcp, page, migratetype, 0);
--
--		/*
--		 * Guard against excessive lock hold times when freeing
--		 * a large list of pages. Lock will be reacquired if
--		 * necessary on the next iteration.
--		 */
--		if (++batch_count == SWAP_CLUSTER_MAX) {
--			pcp_spin_unlock(pcp);
--			pcp_trylock_finish(UP_flags);
--			batch_count = 0;
--			pcp = NULL;
--			locked_zone = NULL;
--		}
-+		batch_count++;
- 	}
- 
- 	if (pcp) {
+ 		/* Different zone, different pcp lock. */
+ 		if (zone != locked_zone) {
+ 			if (pcp)
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
