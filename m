@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA962C4321E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:05:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B403C47089
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:05:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230212AbiLAAFN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:05:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46984 "EHLO
+        id S230144AbiLAAFO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:05:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230144AbiLAADe (ORCPT
+        with ESMTP id S230223AbiLAADe (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:03:34 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EAF98EE48
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:01:38 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 115B68EE49
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:01:39 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3031FB81D85
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:01:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6C65C433D7;
-        Thu,  1 Dec 2022 00:01:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9FCB461E22
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:01:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E95E7C433D6;
+        Thu,  1 Dec 2022 00:01:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852896;
-        bh=4eVvbU9qUp+3idoGOHBP+decZzu1/HkvwTx+QK/HwW4=;
+        s=korg; t=1669852898;
+        bh=WgZULnTRL8zRyZd2q7NuPoF2UKMnN69PkYtcfmVg9AI=;
         h=Date:To:From:Subject:From;
-        b=zVjg49HegSfksnzbEoODnyvYhSYtgiQVb8xkD6F/osR0rXZvQrdRqC34BMss2jnAe
-         bcExD+T8EJFr80O8zgxFkQhdbif0w5N/oeOgdkD/NSNMCkTOJxdNHXaxCyDDOl31/M
-         0105Njb1fge5TSF7tQB2UbrAeu6u8LEvV0Xq0/VY=
-Date:   Wed, 30 Nov 2022 16:01:36 -0800
+        b=XgAk9c2xbTclIPam2AUlmfA97wSHm+kn7erqG5fmO5ityn7yshQ+KkJf9eW2EGIKh
+         YZT7bO7K5bICweDtOmVLCqYiav7OVMUGMOOoVlrUbaSCloSKtOE8vJURMYD9h559vM
+         jw+FOyRGE3dV4cc7oFvzRIFUg0Iunn1hkMvm2sXQ=
+Date:   Wed, 30 Nov 2022 16:01:37 -0800
 To:     mm-commits@vger.kernel.org, suleiman@google.com, nphamcs@gmail.com,
         ngupta@vflare.org, minchan@kernel.org, avromanov@sberdevices.ru,
         senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] documentation-add-zram-recompression-documentation.patch removed from -mm tree
-Message-Id: <20221201000136.C6C65C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] zram-add-incompressible-writeback.patch removed from -mm tree
+Message-Id: <20221201000137.E95E7C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,22 +42,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: documentation: add zram recompression documentation
+     Subject: zram: add incompressible writeback
 has been removed from the -mm tree.  Its filename was
-     documentation-add-zram-recompression-documentation.patch
+     zram-add-incompressible-writeback.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: documentation: add zram recompression documentation
-Date: Wed, 9 Nov 2022 20:50:45 +0900
+Subject: zram: add incompressible writeback
+Date: Wed, 9 Nov 2022 20:50:46 +0900
 
-Document user-space visible device attributes that are enabled by
-ZRAM_MULTI_COMP.
+Add support for incompressible pages writeback:
 
-Link: https://lkml.kernel.org/r/20221109115047.2921851-12-senozhatsky@chromium.org
+  echo incompressible > /sys/block/zramX/writeback
+
+Link: https://lkml.kernel.org/r/20221109115047.2921851-13-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Alexey Romanov <avromanov@sberdevices.ru>
@@ -67,99 +68,71 @@ Cc: Suleiman Souhlal <suleiman@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |   81 ++++++++++++++++++
- 1 file changed, 81 insertions(+)
+ Documentation/admin-guide/blockdev/zram.rst |    7 ++++++-
+ drivers/block/zram/zram_drv.c               |   18 ++++++++++++------
+ 2 files changed, 18 insertions(+), 7 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~documentation-add-zram-recompression-documentation
+--- a/Documentation/admin-guide/blockdev/zram.rst~zram-add-incompressible-writeback
 +++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -401,6 +401,87 @@ budget in next setting is user's job.
- If admin wants to measure writeback count in a certain period, they could
- know it via /sys/block/zram0/bd_stat's 3rd column.
+@@ -348,8 +348,13 @@ this can be accomplished with::
  
-+recompression
-+-------------
-+
-+With CONFIG_ZRAM_MULTI_COMP, zram can recompress pages using alternative
-+(secondary) compression algorithms. The basic idea is that alternative
-+compression algorithm can provide better compression ratio at a price of
-+(potentially) slower compression/decompression speeds. Alternative compression
-+algorithm can, for example, be more successful compressing huge pages (those
-+that default algorithm failed to compress). Another application is idle pages
-+recompression - pages that are cold and sit in the memory can be recompressed
-+using more effective algorithm and, hence, reduce zsmalloc memory usage.
-+
-+With CONFIG_ZRAM_MULTI_COMP, zram supports up to 4 compression algorithms:
-+one primary and up to 3 secondary ones. Primary zram compressor is explained
-+in "3) Select compression algorithm", secondary algorithms are configured
-+using recomp_algorithm device attribute.
-+
-+Example:::
-+
-+	#show supported recompression algorithms
-+	cat /sys/block/zramX/recomp_algorithm
-+	#1: lzo lzo-rle lz4 lz4hc [zstd]
-+	#2: lzo lzo-rle lz4 [lz4hc] zstd
-+
-+Alternative compression algorithms are sorted by priority. In the example
-+above, zstd is used as the first alternative algorithm, which has priority
-+of 1, while lz4hc is configured as a compression algorithm with priority 2.
-+Alternative compression algorithm's priority is provided during algorithms
-+configuration:::
-+
-+	#select zstd recompression algorithm, priority 1
-+	echo "algo=zstd priority=1" > /sys/block/zramX/recomp_algorithm
-+
-+	#select deflate recompression algorithm, priority 2
-+	echo "algo=deflate priority=2" > /sys/block/zramX/recomp_algorithm
-+
-+Another device attribute that CONFIG_ZRAM_MULTI_COMP enables is recompress,
-+which controls recompression.
-+
-+Examples:::
-+
-+	#IDLE pages recompression is activated by `idle` mode
-+	echo "type=idle" > /sys/block/zramX/recompress
-+
-+	#HUGE pages recompression is activated by `huge` mode
-+	echo "type=huge" > /sys/block/zram0/recompress
-+
-+	#HUGE_IDLE pages recompression is activated by `huge_idle` mode
-+	echo "type=huge_idle" > /sys/block/zramX/recompress
-+
-+The number of idle pages can be significant, so user-space can pass a size
-+threshold (in bytes) to the recompress knob: zram will recompress only pages
-+of equal or greater size:::
-+
-+	#recompress all pages larger than 3000 bytes
-+	echo "threshold=3000" > /sys/block/zramX/recompress
-+
-+	#recompress idle pages larger than 2000 bytes
-+	echo "type=idle threshold=2000" > /sys/block/zramX/recompress
-+
-+Recompression of idle pages requires memory tracking.
-+
-+During re-compression for every page, that matches re-compression criteria,
-+ZRAM iterates the list of registered alternative compression algorithms in
-+order of their priorities. ZRAM stops either when re-compression was
-+successful (re-compressed object is smaller in size than the original one)
-+and matches re-compression criteria (e.g. size threshold) or when there are
-+no secondary algorithms left to try. If none of the secondary algorithms can
-+successfully re-compressed the page such a page is marked as incompressible,
-+so ZRAM will not attempt to re-compress it in the future.
-+
-+This re-compression behaviour, when it iterates through the list of
-+registered compression algorithms, increases our chances of finding the
-+algorithm that successfully compresses a particular page. Sometimes, however,
-+it is convenient (and sometimes even necessary) to limit recompression to
-+only one particular algorithm so that it will not try any other algorithms.
-+This can be achieved by providing a algo=NAME parameter:::
-+
-+	#use zstd algorithm only (if registered)
-+	echo "type=huge algo=zstd" > /sys/block/zramX/recompress
-+
- memory tracking
- ===============
+         echo huge_idle > /sys/block/zramX/writeback
  
++If a user chooses to writeback only incompressible pages (pages that none of
++algorithms can compress) this can be accomplished with::
++
++	echo incompressible > /sys/block/zramX/writeback
++
+ If an admin wants to write a specific page in zram device to the backing device,
+-they could write a page index into the interface.
++they could write a page index into the interface::
+ 
+ 	echo "page_index=1251" > /sys/block/zramX/writeback
+ 
+--- a/drivers/block/zram/zram_drv.c~zram-add-incompressible-writeback
++++ a/drivers/block/zram/zram_drv.c
+@@ -645,10 +645,10 @@ static int read_from_bdev_async(struct z
+ 
+ #define PAGE_WB_SIG "page_index="
+ 
+-#define PAGE_WRITEBACK 0
+-#define HUGE_WRITEBACK (1<<0)
+-#define IDLE_WRITEBACK (1<<1)
+-
++#define PAGE_WRITEBACK			0
++#define HUGE_WRITEBACK			(1<<0)
++#define IDLE_WRITEBACK			(1<<1)
++#define INCOMPRESSIBLE_WRITEBACK	(1<<2)
+ 
+ static ssize_t writeback_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+@@ -669,6 +669,8 @@ static ssize_t writeback_store(struct de
+ 		mode = HUGE_WRITEBACK;
+ 	else if (sysfs_streq(buf, "huge_idle"))
+ 		mode = IDLE_WRITEBACK | HUGE_WRITEBACK;
++	else if (sysfs_streq(buf, "incompressible"))
++		mode = INCOMPRESSIBLE_WRITEBACK;
+ 	else {
+ 		if (strncmp(buf, PAGE_WB_SIG, sizeof(PAGE_WB_SIG) - 1))
+ 			return -EINVAL;
+@@ -731,11 +733,15 @@ static ssize_t writeback_store(struct de
+ 			goto next;
+ 
+ 		if (mode & IDLE_WRITEBACK &&
+-			  !zram_test_flag(zram, index, ZRAM_IDLE))
++		    !zram_test_flag(zram, index, ZRAM_IDLE))
+ 			goto next;
+ 		if (mode & HUGE_WRITEBACK &&
+-			  !zram_test_flag(zram, index, ZRAM_HUGE))
++		    !zram_test_flag(zram, index, ZRAM_HUGE))
++			goto next;
++		if (mode & INCOMPRESSIBLE_WRITEBACK &&
++		    !zram_test_flag(zram, index, ZRAM_INCOMPRESSIBLE))
+ 			goto next;
++
+ 		/*
+ 		 * Clearing ZRAM_UNDER_WB is duty of caller.
+ 		 * IOW, zram_free_page never clear it.
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
