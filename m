@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78A66C47088
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:00:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30818C47088
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:00:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229750AbiLAAAO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:00:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46382 "EHLO
+        id S229833AbiLAAAZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:00:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229780AbiLAAAN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:00:13 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6BD858027
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:00:11 -0800 (PST)
+        with ESMTP id S229852AbiLAAAS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:00:18 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 374AA6DFEC
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:00:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 37C4B614D0
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:00:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F540C433D6;
-        Thu,  1 Dec 2022 00:00:10 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E5044B81D80
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:00:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4663C433D7;
+        Thu,  1 Dec 2022 00:00:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852810;
-        bh=4i9QgnnpZ5g4yH1eyZMwkVCiYsb70sSGAHGmg73DgbA=;
+        s=korg; t=1669852814;
+        bh=cB8ZMGkfcVV9tPycbPhUF0oPWDSwHTv3N6mhUNfD+gI=;
         h=Date:To:From:Subject:From;
-        b=sPwNoez5QPls9+BdCraPck/M/VJGSMlA/qledNvI50U/BU1b6q4M0nOi/VyFBasSW
-         1saZiOtjrMW1f0qdnHKM69SPXT5zacvSQtE6MB+CBN8BkmupbMM0CljdpcarpC43Mv
-         AKH4QOWapy3xUimwfNKPgk96K3TSfhoMEe9Ck/1o=
-Date:   Wed, 30 Nov 2022 16:00:09 -0800
-To:     mm-commits@vger.kernel.org, m.szyprowski@samsung.com,
-        shakeelb@google.com, akpm@linux-foundation.org
+        b=PTjMToCaF+dIdK/2O2He/JDG0mmRMVWczRu8k0w0t4eHATDg8Cnh1Ck+zXnpRl9wW
+         RwNRFVTKBeiqrcwctnkQtxuuw7hUwbeoFy35yrJOcAK4DEvpuk/VLd1ygdVhDTOFYi
+         kNDhU+nUQ64u7UwEnOr5/EKiHD15beCXCS/4doiI=
+Date:   Wed, 30 Nov 2022 16:00:13 -0800
+To:     mm-commits@vger.kernel.org, xueshuai@linux.alibaba.com,
+        willy@infradead.org, npiggin@gmail.com, naoya.horiguchi@nec.com,
+        mpe@ellerman.id.au, linmiaohe@huawei.com, dan.j.williams@intel.com,
+        christophe.leroy@csgroup.eu, tony.luck@intel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-mms-rss-stats-into-percpu_counter.patch removed from -mm tree
-Message-Id: <20221201000010.5F540C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hwpoison-when-copy-on-write-hits-poison-take-page-offline.patch removed from -mm tree
+Message-Id: <20221201000014.A4663C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,396 +44,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: convert mm's rss stats into percpu_counter
+     Subject: mm, hwpoison: when copy-on-write hits poison, take page offline
 has been removed from the -mm tree.  Its filename was
-     mm-convert-mms-rss-stats-into-percpu_counter.patch
+     mm-hwpoison-when-copy-on-write-hits-poison-take-page-offline.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: convert mm's rss stats into percpu_counter
-Date: Mon, 24 Oct 2022 05:28:41 +0000
+From: Tony Luck <tony.luck@intel.com>
+Subject: mm, hwpoison: when copy-on-write hits poison, take page offline
+Date: Fri, 21 Oct 2022 13:01:20 -0700
 
-Currently mm_struct maintains rss_stats which are updated on page fault
-and the unmapping codepaths.  For page fault codepath the updates are
-cached per thread with the batch of TASK_RSS_EVENTS_THRESH which is 64. 
-The reason for caching is performance for multithreaded applications
-otherwise the rss_stats updates may become hotspot for such applications.
+Cannot call memory_failure() directly from the fault handler because
+mmap_lock (and others) are held.
 
-However this optimization comes with the cost of error margin in the rss
-stats.  The rss_stats for applications with large number of threads can be
-very skewed.  At worst the error margin is (nr_threads * 64) and we have a
-lot of applications with 100s of threads, so the error margin can be very
-high.  Internally we had to reduce TASK_RSS_EVENTS_THRESH to 32.
+It is important, but not urgent, to mark the source page as h/w poisoned
+and unmap it from other tasks.
 
-Recently we started seeing the unbounded errors for rss_stats for specific
-applications which use TCP rx0cp.  It seems like vm_insert_pages()
-codepath does not sync rss_stats at all.
+Use memory_failure_queue() to request a call to memory_failure() for the
+page with the error.
 
-This patch converts the rss_stats into percpu_counter to convert the error
-margin from (nr_threads * 64) to approximately (nr_cpus ^ 2).  However
-this conversion enable us to get the accurate stats for situations where
-accuracy is more important than the cpu cost.
+Also provide a stub version for CONFIG_MEMORY_FAILURE=n
 
-This patch does not make such tradeoffs - we can just use
-percpu_counter_add_local() for the updates and percpu_counter_sum() (or
-percpu_counter_sync() + percpu_counter_read) for the readers.  At the
-moment the readers are either procfs interface, oom_killer and memory
-reclaim which I think are not performance critical and should be ok with
-slow read.  However I think we can make that change in a separate patch.
-
-Link: https://lkml.kernel.org/r/20221024052841.3291983-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Link: https://lkml.kernel.org/r/20221021200120.175753-3-tony.luck@intel.com
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Shuai Xue <xueshuai@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h             |   26 +++--------
- include/linux/mm_types.h       |    7 --
- include/linux/mm_types_task.h  |   13 -----
- include/linux/percpu_counter.h |    1 
- include/linux/sched.h          |    3 -
- include/trace/events/kmem.h    |    8 +--
- kernel/fork.c                  |   16 ++++++
- mm/memory.c                    |   73 ++++---------------------------
- 8 files changed, 40 insertions(+), 107 deletions(-)
+ include/linux/mm.h |    6 +++++-
+ mm/memory.c        |    4 +++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-convert-mms-rss-stats-into-percpu_counter
+--- a/include/linux/mm.h~mm-hwpoison-when-copy-on-write-hits-poison-take-page-offline
 +++ a/include/linux/mm.h
-@@ -2052,40 +2052,30 @@ static inline bool get_user_page_fast_on
-  */
- static inline unsigned long get_mm_counter(struct mm_struct *mm, int member)
- {
--	long val = atomic_long_read(&mm->rss_stat.count[member]);
--
--#ifdef SPLIT_RSS_COUNTING
--	/*
--	 * counter is updated in asynchronous manner and may go to minus.
--	 * But it's never be expected number for users.
--	 */
--	if (val < 0)
--		val = 0;
--#endif
--	return (unsigned long)val;
-+	return percpu_counter_read_positive(&mm->rss_stat[member]);
- }
- 
--void mm_trace_rss_stat(struct mm_struct *mm, int member, long count);
-+void mm_trace_rss_stat(struct mm_struct *mm, int member);
- 
- static inline void add_mm_counter(struct mm_struct *mm, int member, long value)
- {
--	long count = atomic_long_add_return(value, &mm->rss_stat.count[member]);
-+	percpu_counter_add(&mm->rss_stat[member], value);
- 
--	mm_trace_rss_stat(mm, member, count);
-+	mm_trace_rss_stat(mm, member);
- }
- 
- static inline void inc_mm_counter(struct mm_struct *mm, int member)
- {
--	long count = atomic_long_inc_return(&mm->rss_stat.count[member]);
-+	percpu_counter_inc(&mm->rss_stat[member]);
- 
--	mm_trace_rss_stat(mm, member, count);
-+	mm_trace_rss_stat(mm, member);
- }
- 
- static inline void dec_mm_counter(struct mm_struct *mm, int member)
- {
--	long count = atomic_long_dec_return(&mm->rss_stat.count[member]);
-+	percpu_counter_dec(&mm->rss_stat[member]);
- 
--	mm_trace_rss_stat(mm, member, count);
-+	mm_trace_rss_stat(mm, member);
- }
- 
- /* Optimized variant when page is already known not to be PageAnon */
---- a/include/linux/mm_types.h~mm-convert-mms-rss-stats-into-percpu_counter
-+++ a/include/linux/mm_types.h
-@@ -18,6 +18,7 @@
- #include <linux/page-flags-layout.h>
- #include <linux/workqueue.h>
- #include <linux/seqlock.h>
-+#include <linux/percpu_counter.h>
- 
- #include <asm/mmu.h>
- 
-@@ -626,11 +627,7 @@ struct mm_struct {
- 
- 		unsigned long saved_auxv[AT_VECTOR_SIZE]; /* for /proc/PID/auxv */
- 
--		/*
--		 * Special counters, in some configurations protected by the
--		 * page_table_lock, in other configurations by being atomic.
--		 */
--		struct mm_rss_stat rss_stat;
-+		struct percpu_counter rss_stat[NR_MM_COUNTERS];
- 
- 		struct linux_binfmt *binfmt;
- 
---- a/include/linux/mm_types_task.h~mm-convert-mms-rss-stats-into-percpu_counter
-+++ a/include/linux/mm_types_task.h
-@@ -36,19 +36,6 @@ enum {
- 	NR_MM_COUNTERS
- };
- 
--#if USE_SPLIT_PTE_PTLOCKS && defined(CONFIG_MMU)
--#define SPLIT_RSS_COUNTING
--/* per-thread cached information, */
--struct task_rss_stat {
--	int events;	/* for synchronization threshold */
--	int count[NR_MM_COUNTERS];
--};
--#endif /* USE_SPLIT_PTE_PTLOCKS */
--
--struct mm_rss_stat {
--	atomic_long_t count[NR_MM_COUNTERS];
--};
--
- struct page_frag {
- 	struct page *page;
- #if (BITS_PER_LONG > 32) || (PAGE_SIZE >= 65536)
---- a/include/linux/percpu_counter.h~mm-convert-mms-rss-stats-into-percpu_counter
-+++ a/include/linux/percpu_counter.h
-@@ -13,7 +13,6 @@
- #include <linux/threads.h>
- #include <linux/percpu.h>
- #include <linux/types.h>
--#include <linux/gfp.h>
- 
- /* percpu_counter batch for local add or sub */
- #define PERCPU_COUNTER_LOCAL_BATCH	INT_MAX
---- a/include/linux/sched.h~mm-convert-mms-rss-stats-into-percpu_counter
-+++ a/include/linux/sched.h
-@@ -870,9 +870,6 @@ struct task_struct {
- 	struct mm_struct		*mm;
- 	struct mm_struct		*active_mm;
- 
--#ifdef SPLIT_RSS_COUNTING
--	struct task_rss_stat		rss_stat;
--#endif
- 	int				exit_state;
- 	int				exit_code;
- 	int				exit_signal;
---- a/include/trace/events/kmem.h~mm-convert-mms-rss-stats-into-percpu_counter
-+++ a/include/trace/events/kmem.h
-@@ -346,10 +346,9 @@ TRACE_MM_PAGES
- TRACE_EVENT(rss_stat,
- 
- 	TP_PROTO(struct mm_struct *mm,
--		int member,
--		long count),
-+		int member),
- 
--	TP_ARGS(mm, member, count),
-+	TP_ARGS(mm, member),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned int, mm_id)
-@@ -362,7 +361,8 @@ TRACE_EVENT(rss_stat,
- 		__entry->mm_id = mm_ptr_to_hash(mm);
- 		__entry->curr = !!(current->mm == mm);
- 		__entry->member = member;
--		__entry->size = (count << PAGE_SHIFT);
-+		__entry->size = (percpu_counter_sum_positive(&mm->rss_stat[member])
-+							    << PAGE_SHIFT);
- 	),
- 
- 	TP_printk("mm_id=%u curr=%d type=%s size=%ldB",
---- a/kernel/fork.c~mm-convert-mms-rss-stats-into-percpu_counter
-+++ a/kernel/fork.c
-@@ -753,7 +753,7 @@ static void check_mm(struct mm_struct *m
- 			 "Please make sure 'struct resident_page_types[]' is updated as well");
- 
- 	for (i = 0; i < NR_MM_COUNTERS; i++) {
--		long x = atomic_long_read(&mm->rss_stat.count[i]);
-+		long x = percpu_counter_sum(&mm->rss_stat[i]);
- 
- 		if (unlikely(x))
- 			pr_alert("BUG: Bad rss-counter state mm:%p type:%s val:%ld\n",
-@@ -779,6 +779,8 @@ static void check_mm(struct mm_struct *m
-  */
- void __mmdrop(struct mm_struct *mm)
- {
-+	int i;
+@@ -3280,7 +3280,6 @@ enum mf_flags {
+ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+ 		      unsigned long count, int mf_flags);
+ extern int memory_failure(unsigned long pfn, int flags);
+-extern void memory_failure_queue(unsigned long pfn, int flags);
+ extern void memory_failure_queue_kick(int cpu);
+ extern int unpoison_memory(unsigned long pfn);
+ extern int sysctl_memory_failure_early_kill;
+@@ -3289,11 +3288,16 @@ extern void shake_page(struct page *p);
+ extern atomic_long_t num_poisoned_pages __read_mostly;
+ extern int soft_offline_page(unsigned long pfn, int flags);
+ #ifdef CONFIG_MEMORY_FAILURE
++extern void memory_failure_queue(unsigned long pfn, int flags);
+ extern int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+ 					bool *migratable_cleared);
+ void num_poisoned_pages_inc(unsigned long pfn);
+ void num_poisoned_pages_sub(unsigned long pfn, long i);
+ #else
++static inline void memory_failure_queue(unsigned long pfn, int flags)
++{
++}
 +
- 	BUG_ON(mm == &init_mm);
- 	WARN_ON_ONCE(mm == current->mm);
- 	WARN_ON_ONCE(mm == current->active_mm);
-@@ -788,6 +790,9 @@ void __mmdrop(struct mm_struct *mm)
- 	check_mm(mm);
- 	put_user_ns(mm->user_ns);
- 	mm_pasid_drop(mm);
-+
-+	for (i = 0; i < NR_MM_COUNTERS; i++)
-+		percpu_counter_destroy(&mm->rss_stat[i]);
- 	free_mm(mm);
- }
- EXPORT_SYMBOL_GPL(__mmdrop);
-@@ -1107,6 +1112,8 @@ static void mm_init_uprobes_state(struct
- static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
- 	struct user_namespace *user_ns)
+ static inline int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+ 					bool *migratable_cleared)
  {
-+	int i;
-+
- 	mt_init_flags(&mm->mm_mt, MM_MT_FLAGS);
- 	mt_set_external_lock(&mm->mm_mt, &mm->mmap_lock);
- 	atomic_set(&mm->mm_users, 1);
-@@ -1148,10 +1155,17 @@ static struct mm_struct *mm_init(struct
- 	if (init_new_context(p, mm))
- 		goto fail_nocontext;
- 
-+	for (i = 0; i < NR_MM_COUNTERS; i++)
-+		if (percpu_counter_init(&mm->rss_stat[i], 0, GFP_KERNEL_ACCOUNT))
-+			goto fail_pcpu;
-+
- 	mm->user_ns = get_user_ns(user_ns);
- 	lru_gen_init_mm(mm);
- 	return mm;
- 
-+fail_pcpu:
-+	while (i > 0)
-+		percpu_counter_destroy(&mm->rss_stat[--i]);
- fail_nocontext:
- 	mm_free_pgd(mm);
- fail_nopgd:
---- a/mm/memory.c~mm-convert-mms-rss-stats-into-percpu_counter
+--- a/mm/memory.c~mm-hwpoison-when-copy-on-write-hits-poison-take-page-offline
 +++ a/mm/memory.c
-@@ -162,58 +162,11 @@ static int __init init_zero_pfn(void)
- }
- early_initcall(init_zero_pfn);
+@@ -2816,8 +2816,10 @@ static inline int __wp_page_copy_user(st
+ 	unsigned long addr = vmf->address;
  
--void mm_trace_rss_stat(struct mm_struct *mm, int member, long count)
-+void mm_trace_rss_stat(struct mm_struct *mm, int member)
- {
--	trace_rss_stat(mm, member, count);
-+	trace_rss_stat(mm, member);
- }
- 
--#if defined(SPLIT_RSS_COUNTING)
--
--void sync_mm_rss(struct mm_struct *mm)
--{
--	int i;
--
--	for (i = 0; i < NR_MM_COUNTERS; i++) {
--		if (current->rss_stat.count[i]) {
--			add_mm_counter(mm, i, current->rss_stat.count[i]);
--			current->rss_stat.count[i] = 0;
--		}
--	}
--	current->rss_stat.events = 0;
--}
--
--static void add_mm_counter_fast(struct mm_struct *mm, int member, int val)
--{
--	struct task_struct *task = current;
--
--	if (likely(task->mm == mm))
--		task->rss_stat.count[member] += val;
--	else
--		add_mm_counter(mm, member, val);
--}
--#define inc_mm_counter_fast(mm, member) add_mm_counter_fast(mm, member, 1)
--#define dec_mm_counter_fast(mm, member) add_mm_counter_fast(mm, member, -1)
--
--/* sync counter once per 64 page faults */
--#define TASK_RSS_EVENTS_THRESH	(64)
--static void check_sync_rss_stat(struct task_struct *task)
--{
--	if (unlikely(task != current))
--		return;
--	if (unlikely(task->rss_stat.events++ > TASK_RSS_EVENTS_THRESH))
--		sync_mm_rss(task->mm);
--}
--#else /* SPLIT_RSS_COUNTING */
--
--#define inc_mm_counter_fast(mm, member) inc_mm_counter(mm, member)
--#define dec_mm_counter_fast(mm, member) dec_mm_counter(mm, member)
--
--static void check_sync_rss_stat(struct task_struct *task)
--{
--}
--
--#endif /* SPLIT_RSS_COUNTING */
--
- /*
-  * Note: this doesn't free the actual pages themselves. That
-  * has been handled earlier when unmapping all the memory regions.
-@@ -1857,7 +1810,7 @@ static int insert_page_into_pte_locked(s
- 		return -EBUSY;
- 	/* Ok, finally just insert the thing.. */
- 	get_page(page);
--	inc_mm_counter_fast(vma->vm_mm, mm_counter_file(page));
-+	inc_mm_counter(vma->vm_mm, mm_counter_file(page));
- 	page_add_file_rmap(page, vma, false);
- 	set_pte_at(vma->vm_mm, addr, pte, mk_pte(page, prot));
- 	return 0;
-@@ -3153,12 +3106,11 @@ static vm_fault_t wp_page_copy(struct vm
- 	if (likely(pte_same(*vmf->pte, vmf->orig_pte))) {
- 		if (old_page) {
- 			if (!PageAnon(old_page)) {
--				dec_mm_counter_fast(mm,
--						mm_counter_file(old_page));
--				inc_mm_counter_fast(mm, MM_ANONPAGES);
-+				dec_mm_counter(mm, mm_counter_file(old_page));
-+				inc_mm_counter(mm, MM_ANONPAGES);
- 			}
- 		} else {
--			inc_mm_counter_fast(mm, MM_ANONPAGES);
-+			inc_mm_counter(mm, MM_ANONPAGES);
- 		}
- 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
- 		entry = mk_pte(new_page, vma->vm_page_prot);
-@@ -3965,8 +3917,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 	if (should_try_to_free_swap(folio, vma, vmf->flags))
- 		folio_free_swap(folio);
- 
--	inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
--	dec_mm_counter_fast(vma->vm_mm, MM_SWAPENTS);
-+	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
-+	dec_mm_counter(vma->vm_mm, MM_SWAPENTS);
- 	pte = mk_pte(page, vma->vm_page_prot);
- 
- 	/*
-@@ -4146,7 +4098,7 @@ static vm_fault_t do_anonymous_page(stru
- 		return handle_userfault(vmf, VM_UFFD_MISSING);
+ 	if (likely(src)) {
+-		if (copy_mc_user_highpage(dst, src, addr, vma))
++		if (copy_mc_user_highpage(dst, src, addr, vma)) {
++			memory_failure_queue(page_to_pfn(src), 0);
+ 			return -EHWPOISON;
++		}
+ 		return 0;
  	}
  
--	inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
-+	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
- 	page_add_new_anon_rmap(page, vma, vmf->address);
- 	lru_cache_add_inactive_or_unevictable(page, vma);
- setpte:
-@@ -4336,11 +4288,11 @@ void do_set_pte(struct vm_fault *vmf, st
- 		entry = pte_mkuffd_wp(pte_wrprotect(entry));
- 	/* copy-on-write page */
- 	if (write && !(vma->vm_flags & VM_SHARED)) {
--		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
-+		inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
- 		page_add_new_anon_rmap(page, vma, addr);
- 		lru_cache_add_inactive_or_unevictable(page, vma);
- 	} else {
--		inc_mm_counter_fast(vma->vm_mm, mm_counter_file(page));
-+		inc_mm_counter(vma->vm_mm, mm_counter_file(page));
- 		page_add_file_rmap(page, vma, false);
- 	}
- 	set_pte_at(vma->vm_mm, addr, vmf->pte, entry);
-@@ -5192,9 +5144,6 @@ vm_fault_t handle_mm_fault(struct vm_are
- 	count_vm_event(PGFAULT);
- 	count_memcg_event_mm(vma->vm_mm, PGFAULT);
- 
--	/* do counter updates before entering really critical section. */
--	check_sync_rss_stat(current);
--
- 	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
- 					    flags & FAULT_FLAG_INSTRUCTION,
- 					    flags & FAULT_FLAG_REMOTE))
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from tony.luck@intel.com are
 
 
