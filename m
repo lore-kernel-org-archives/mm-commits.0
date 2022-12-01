@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5385FC4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD78AC4708D
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230309AbiLAAIn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:08:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53394 "EHLO
+        id S230228AbiLAAIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:08:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230228AbiLAAGk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:40 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5834764CB
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:42 -0800 (PST)
+        with ESMTP id S230307AbiLAAHO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:07:14 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9E071B9F6
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 31A726176C
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E7D3C433D6;
-        Thu,  1 Dec 2022 00:02:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 67F25B81D84
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1355BC43146;
+        Thu,  1 Dec 2022 00:02:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852961;
-        bh=sEbhT0ksh9hoLPc2eGVer2Z/HnJjwLiv67pfLwxXQdg=;
+        s=korg; t=1669852965;
+        bh=VZgMnyS5ewyoDMvHjUEyuURX1OBdy3j3GJmQGy4QaWg=;
         h=Date:To:From:Subject:From;
-        b=MHHAKn1VVE9E5gT3KBJoPMLslthrV8KDXnXe9hLb01sVonVmoBVq9LcNuOjgzNeb8
-         7AepPGogyzqsPO22L6bV9OqQJM+6K+vTlPo8AX3dFQukD8l3urrgGelvGq2AWxH2Sg
-         Qa/2UdOYni2teUF9rChdfkwhQGxytVWr4XOeNQIQ=
-Date:   Wed, 30 Nov 2022 16:02:40 -0800
-To:     mm-commits@vger.kernel.org, will@kernel.org, peterz@infradead.org,
-        elver@google.com, ebiggers@google.com, dvyukov@google.com,
-        glider@google.com, akpm@linux-foundation.org
+        b=F3jNBMyvwBZnaDkZs9RrUx7p6qDuvn+CKsoCRO06vlaUY4l0frBowlARXHPo+kGTw
+         McJxuk7cGl0hN8aS6OOgW7gUCITgFbvh7+Ko2onQRi67JGXWMWcJV//+0Z54tyw7ZV
+         QbQ+P9wQQc3BESKDdJOyniCZmPx9IGlRExq2cg+4=
+Date:   Wed, 30 Nov 2022 16:02:44 -0800
+To:     mm-commits@vger.kernel.org, clm@meta.com, axboe@kernel.dk,
+        shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] revert-kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch removed from -mm tree
-Message-Id: <20221201000241.5E7D3C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-knob-sys-class-bdi-bdi-strict_limit.patch removed from -mm tree
+Message-Id: <20221201000245.1355BC43146@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,71 +41,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Revert "kmsan: unpoison @tlb in arch_tlb_gather_mmu()"
+     Subject: mm: add knob /sys/class/bdi/<bdi>/strict_limit
 has been removed from the -mm tree.  Its filename was
-     revert-kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch
+     mm-add-knob-sys-class-bdi-bdi-strict_limit.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: Revert "kmsan: unpoison @tlb in arch_tlb_gather_mmu()"
-Date: Thu, 10 Nov 2022 12:35:41 +0100
+From: Stefan Roesch <shr@devkernel.io>
+Subject: mm: add knob /sys/class/bdi/<bdi>/strict_limit
+Date: Fri, 18 Nov 2022 16:51:57 -0800
 
-This reverts commit ac801e7e252c5588325e3c983c7d4167fc68c024.
+Add a new knob to /sys/class/bdi/<bdi>/strict_limit. This new knob
+allows to set/unset the flag BDI_CAP_STRICTLIMIT in the bdi
+capabilities.
 
-The patch in question was picked to -mm from the KMSAN v6 patch series
-(https://lore.kernel.org/linux-mm/20220905122452.2258262-1-glider@google.com/)
-and sneaked into mainline despite its removal from the v7 series
-(https://lore.kernel.org/linux-mm/20220915150417.722975-1-glider@google.com/)
-
-Currently KMSAN does not warn about origin chains hitting the maximum
-depth, so keeping @tlb poisoned won't result in any inconveniences.
-
-Link: https://lkml.kernel.org/r/20221110113541.1844156-1-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Eric Biggers <ebiggers@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20221119005215.3052436-3-shr@devkernel.io
+Signed-off-by: Stefan Roesch <shr@devkernel.io>
+Cc: Chris Mason <clm@meta.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_gather.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ mm/backing-dev.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
---- a/mm/mmu_gather.c~revert-kmsan-unpoison-tlb-in-arch_tlb_gather_mmu
-+++ a/mm/mmu_gather.c
-@@ -1,7 +1,6 @@
- #include <linux/gfp.h>
- #include <linux/highmem.h>
- #include <linux/kernel.h>
--#include <linux/kmsan-checks.h>
- #include <linux/mmdebug.h>
- #include <linux/mm_types.h>
- #include <linux/mm_inline.h>
-@@ -299,15 +298,6 @@ void tlb_flush_mmu(struct mmu_gather *tl
- static void __tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
- 			     bool fullmm)
- {
--	/*
--	 * struct mmu_gather contains 7 1-bit fields packed into a 32-bit
--	 * unsigned int value. The remaining 25 bits remain uninitialized
--	 * and are never used, but KMSAN updates the origin for them in
--	 * zap_pXX_range() in mm/memory.c, thus creating very long origin
--	 * chains. This is technically correct, but consumes too much memory.
--	 * Unpoisoning the whole structure will prevent creating such chains.
--	 */
--	kmsan_unpoison_memory(tlb, sizeof(*tlb));
- 	tlb->mm = mm;
- 	tlb->fullmm = fullmm;
+--- a/mm/backing-dev.c~mm-add-knob-sys-class-bdi-bdi-strict_limit
++++ a/mm/backing-dev.c
+@@ -209,11 +209,40 @@ static ssize_t stable_pages_required_sho
+ }
+ static DEVICE_ATTR_RO(stable_pages_required);
  
++static ssize_t strict_limit_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct backing_dev_info *bdi = dev_get_drvdata(dev);
++	unsigned int strict_limit;
++	ssize_t ret;
++
++	ret = kstrtouint(buf, 10, &strict_limit);
++	if (ret < 0)
++		return ret;
++
++	ret = bdi_set_strict_limit(bdi, strict_limit);
++	if (!ret)
++		ret = count;
++
++	return ret;
++}
++
++static ssize_t strict_limit_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct backing_dev_info *bdi = dev_get_drvdata(dev);
++
++	return sysfs_emit(buf, "%d\n",
++			!!(bdi->capabilities & BDI_CAP_STRICTLIMIT));
++}
++static DEVICE_ATTR_RW(strict_limit);
++
+ static struct attribute *bdi_dev_attrs[] = {
+ 	&dev_attr_read_ahead_kb.attr,
+ 	&dev_attr_min_ratio.attr,
+ 	&dev_attr_max_ratio.attr,
+ 	&dev_attr_stable_pages_required.attr,
++	&dev_attr_strict_limit.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(bdi_dev);
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from shr@devkernel.io are
 
-lockdep-allow-instrumenting-lockdepc-with-kmsan.patch
-kmsan-allow-using-__msan_instrument_asm_store-inside-runtime.patch
 
