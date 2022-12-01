@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAFFDC4708D
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:00:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEFA5C4321E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:00:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229975AbiLAAAn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:00:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46522 "EHLO
+        id S230191AbiLAAAx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:00:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46498 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229898AbiLAAAZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:00:25 -0500
+        with ESMTP id S229879AbiLAAAj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:00:39 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE0A359852
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:00:24 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FEAF5AE26
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:00:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 678216176C
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:00:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B125C433C1;
-        Thu,  1 Dec 2022 00:00:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A02F861E6C
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:00:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBAADC433B5;
+        Thu,  1 Dec 2022 00:00:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852823;
-        bh=7OMXDvdF38JTnmOvcMtC0oKcOpp+pVTEh4CJbOjQocY=;
+        s=korg; t=1669852829;
+        bh=sjktd8v37+aU/V5BVLkqw4pukOTAk/KVFzewDpK4ksA=;
         h=Date:To:From:Subject:From;
-        b=odawZD5iZYVwiYYhXLlOhpmfqbY3jySjeZmeLdn2G9Exlwc1mVHR7mhP2LqkqbOKd
-         I95Oz+NQ0mWv0dXqsY6IiSOuFh0ne73ANQFexh8re+Gi/hAxZMNDeAM/8HungKN2QV
-         WA+iQrn837pYuZAun/IRXi6G25o/k2HqJef6aeY0=
-Date:   Wed, 30 Nov 2022 16:00:22 -0800
+        b=S6qwYga46DE5tCU/PunHN24Vt6LjkL/f+8dCgLgciQnoR/sniK8Wgk3fnCuaqAU8Y
+         lab/JjbVeKXvbTvHdIt1zTUVl5lKe9mwLZAezYT7zTn9uk0tgdopQy38LKG9I+RRQL
+         zFzjFr1/QJqN19LlzvML3TaD46sNExcD9wipCv4Y=
+Date:   Wed, 30 Nov 2022 16:00:28 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         songmuchun@bytedance.com, minhquangbui99@gmail.com,
         mike.kravetz@oracle.com, linmiaohe@huawei.com,
         aneesh.kumar@linux.ibm.com, almasrymina@google.com,
         sidhartha.kumar@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch removed from -mm tree
-Message-Id: <20221201000023.9B125C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-convert-isolate_or_dissolve_huge_page-to-folios.patch removed from -mm tree
+Message-Id: <20221201000028.EBAADC433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,33 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb_cgroup: convert __set_hugetlb_cgroup() to folios
+     Subject: mm/hugetlb: convert isolate_or_dissolve_huge_page to folios
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios.patch
+     mm-hugetlb-convert-isolate_or_dissolve_huge_page-to-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb_cgroup: convert __set_hugetlb_cgroup() to folios
-Date: Tue, 1 Nov 2022 15:30:51 -0700
+Subject: mm/hugetlb: convert isolate_or_dissolve_huge_page to folios
+Date: Tue, 1 Nov 2022 15:30:55 -0700
 
-Patch series "convert hugetlb_cgroup helper functions to folios", v2.
+Removes a call to compound_head() by using a folio when operating on the
+head page of a hugetlb compound page.
 
-This patch series continues the conversion of hugetlb code from being
-managed in pages to folios by converting many of the hugetlb_cgroup helper
-functions to use folios.  This allows the core hugetlb functions to pass
-in a folio to these helper functions.
-
-
-This patch (of 9);
-
-Change __set_hugetlb_cgroup() to use folios so it is explicit that the
-function operates on a head page.
-
-Link: https://lkml.kernel.org/r/20221101223059.460937-1-sidhartha.kumar@oracle.com
-Link: https://lkml.kernel.org/r/20221101223059.460937-2-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20221101223059.460937-6-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
@@ -82,71 +71,46 @@ Cc: Mina Almasry <almasrymina@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb_cgroup.h |   14 +++++++-------
- mm/hugetlb_cgroup.c            |    4 ++--
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ mm/hugetlb.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/include/linux/hugetlb_cgroup.h~mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -90,31 +90,31 @@ hugetlb_cgroup_from_page_rsvd(struct pag
- 	return __hugetlb_cgroup_from_page(page, true);
- }
- 
--static inline void __set_hugetlb_cgroup(struct page *page,
-+static inline void __set_hugetlb_cgroup(struct folio *folio,
- 				       struct hugetlb_cgroup *h_cg, bool rsvd)
+--- a/mm/hugetlb.c~mm-hugetlb-convert-isolate_or_dissolve_huge_page-to-folios
++++ a/mm/hugetlb.c
+@@ -2832,7 +2832,7 @@ free_new:
+ int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list)
  {
--	VM_BUG_ON_PAGE(!PageHuge(page), page);
-+	VM_BUG_ON_FOLIO(!folio_test_hugetlb(folio), folio);
+ 	struct hstate *h;
+-	struct page *head;
++	struct folio *folio = page_folio(page);
+ 	int ret = -EBUSY;
  
--	if (compound_order(page) < HUGETLB_CGROUP_MIN_ORDER)
-+	if (folio_order(folio) < HUGETLB_CGROUP_MIN_ORDER)
- 		return;
- 	if (rsvd)
--		set_page_private(page + SUBPAGE_INDEX_CGROUP_RSVD,
-+		set_page_private(folio_page(folio, SUBPAGE_INDEX_CGROUP_RSVD),
- 				 (unsigned long)h_cg);
- 	else
--		set_page_private(page + SUBPAGE_INDEX_CGROUP,
-+		set_page_private(folio_page(folio, SUBPAGE_INDEX_CGROUP),
- 				 (unsigned long)h_cg);
+ 	/*
+@@ -2841,9 +2841,8 @@ int isolate_or_dissolve_huge_page(struct
+ 	 * Return success when racing as if we dissolved the page ourselves.
+ 	 */
+ 	spin_lock_irq(&hugetlb_lock);
+-	if (PageHuge(page)) {
+-		head = compound_head(page);
+-		h = page_hstate(head);
++	if (folio_test_hugetlb(folio)) {
++		h = folio_hstate(folio);
+ 	} else {
+ 		spin_unlock_irq(&hugetlb_lock);
+ 		return 0;
+@@ -2858,10 +2857,10 @@ int isolate_or_dissolve_huge_page(struct
+ 	if (hstate_is_gigantic(h))
+ 		return -ENOMEM;
+ 
+-	if (page_count(head) && !isolate_hugetlb(head, list))
++	if (folio_ref_count(folio) && !isolate_hugetlb(&folio->page, list))
+ 		ret = 0;
+-	else if (!page_count(head))
+-		ret = alloc_and_dissolve_huge_page(h, head, list);
++	else if (!folio_ref_count(folio))
++		ret = alloc_and_dissolve_huge_page(h, &folio->page, list);
+ 
+ 	return ret;
  }
- 
- static inline void set_hugetlb_cgroup(struct page *page,
- 				     struct hugetlb_cgroup *h_cg)
- {
--	__set_hugetlb_cgroup(page, h_cg, false);
-+	__set_hugetlb_cgroup(page_folio(page), h_cg, false);
- }
- 
- static inline void set_hugetlb_cgroup_rsvd(struct page *page,
- 					  struct hugetlb_cgroup *h_cg)
- {
--	__set_hugetlb_cgroup(page, h_cg, true);
-+	__set_hugetlb_cgroup(page_folio(page), h_cg, true);
- }
- 
- static inline bool hugetlb_cgroup_disabled(void)
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-convert-__set_hugetlb_cgroup-to-folios
-+++ a/mm/hugetlb_cgroup.c
-@@ -314,7 +314,7 @@ static void __hugetlb_cgroup_commit_char
- 	if (hugetlb_cgroup_disabled() || !h_cg)
- 		return;
- 
--	__set_hugetlb_cgroup(page, h_cg, rsvd);
-+	__set_hugetlb_cgroup(page_folio(page), h_cg, rsvd);
- 	if (!rsvd) {
- 		unsigned long usage =
- 			h_cg->nodeinfo[page_to_nid(page)]->usage[idx];
-@@ -356,7 +356,7 @@ static void __hugetlb_cgroup_uncharge_pa
- 	h_cg = __hugetlb_cgroup_from_page(page, rsvd);
- 	if (unlikely(!h_cg))
- 		return;
--	__set_hugetlb_cgroup(page, NULL, rsvd);
-+	__set_hugetlb_cgroup(page_folio(page), NULL, rsvd);
- 
- 	page_counter_uncharge(__hugetlb_cgroup_counter_from_cgroup(h_cg, idx,
- 								   rsvd),
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
