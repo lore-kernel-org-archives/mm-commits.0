@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93C5BC352A1
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14807C47088
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230326AbiLAAIi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230328AbiLAAIi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 30 Nov 2022 19:08:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53274 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53310 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230324AbiLAAGh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:37 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45AFDE47
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:36 -0800 (PST)
+        with ESMTP id S230392AbiLAAGi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:38 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB0ED1027
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 03110B81D6A
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AADBDC433D7;
-        Thu,  1 Dec 2022 00:02:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4E71D614D0
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79031C433D7;
+        Thu,  1 Dec 2022 00:02:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852953;
-        bh=Wj6OJal422XJZLn6erR/wSbJ04NP9n6DSJWXkLfaBw4=;
+        s=korg; t=1669852956;
+        bh=4zqd0AESSqCbYSPmPhhvlgPFRHGuEjwVTNcr+RuF4+k=;
         h=Date:To:From:Subject:From;
-        b=WPdgpgPom+yXOrazpdoSYvGbyBR/8h0yQ1BKuo5oEoTIQ5Hf/Hf14wDJgCsLXaUIU
-         MoyBrhxtgwEylbM2VWI9SbDLQc9wpp7rmHI2AkGz9CZCKtjq76kjo0BqNxhjthTlRj
-         EGIIj0TXMEEvusREPzEDzCGyyjQe30k3lU3oeMaA=
-Date:   Wed, 30 Nov 2022 16:02:32 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mtosatti@redhat.com,
-        m.szyprowski@samsung.com, mhocko@kernel.org,
-        mgorman@techsingularity.net, akpm@linux-foundation.org
+        b=eZDH/3klTjrzwE6toHtC8KsZlfZUZOK909Gg9WbDyw/9A2V64miV+N4Olwz+QPMiB
+         BnmpBqJigS6AvIaT8lVP9iRsFxQAiniK0tYY2W0tpKKwO0dRpKR1y3ldzFNmYZBAnD
+         yeQer/GiT0XaqbkpCj0mayFpdH7xO4VBQrP414O4=
+Date:   Wed, 30 Nov 2022 16:02:35 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
+        naoya.horiguchi@nec.com, vishal.moola@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch removed from -mm tree
-Message-Id: <20221201000233.AADBDC433D7@smtp.kernel.org>
+Subject: [merged mm-stable] ext4-convert-move_extent_per_page-to-use-folios.patch removed from -mm tree
+Message-Id: <20221201000236.79031C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,359 +42,170 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations
+     Subject: ext4: convert move_extent_per_page() to use folios
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations.patch
+     ext4-convert-move_extent_per_page-to-use-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: leave IRQs enabled for per-cpu page allocations
-Date: Fri, 18 Nov 2022 10:17:14 +0000
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: ext4: convert move_extent_per_page() to use folios
+Date: Thu, 17 Nov 2022 23:30:52 -0800
 
-The pcp_spin_lock_irqsave protecting the PCP lists is IRQ-safe as a task
-allocating from the PCP must not re-enter the allocator from IRQ context. 
-In each instance where IRQ-reentrancy is possible, the lock is acquired
-using pcp_spin_trylock_irqsave() even though IRQs are disabled and
-re-entrancy is impossible.
+Patch series "Removing the try_to_release_page() wrapper", v3.
 
-Demote the lock to pcp_spin_lock avoids an IRQ disable/enable in the
-common case at the cost of some IRQ allocations taking a slower path.  If
-the PCP lists need to be refilled, the zone lock still needs to disable
-IRQs but that will only happen on PCP refill and drain.  If an IRQ is
-raised when a PCP allocation is in progress, the trylock will fail and
-fallback to using the buddy lists directly.  Note that this may not be a
-universal win if an interrupt-intensive workload also allocates heavily
-from interrupt context and contends heavily on the zone->lock as a result.
+This patchset replaces the remaining calls of try_to_release_page() with
+the folio equivalent: filemap_release_folio().  This allows us to remove
+the wrapper.
 
-[mgorman@techsingularity.net: migratetype might be wrong if a PCP was locked]
-  Link: https://lkml.kernel.org/r/20221122131229.5263-2-mgorman@techsingularity.net
-[yuzhao@google.com: reported lockdep issue on IO completion from softirq]
-[hughd@google.com: fix list corruption, lock improvements, micro-optimsations]
-Link: https://lkml.kernel.org/r/20221118101714.19590-3-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+
+This patch (of 4):
+
+Convert move_extent_per_page() to use folios.  This change removes 5 calls
+to compound_head() and is in preparation for the removal of the
+try_to_release_page() wrapper.
+
+Link: https://lkml.kernel.org/r/20221118073055.55694-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20221118073055.55694-2-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  124 ++++++++++++++++++++--------------------------
- 1 file changed, 54 insertions(+), 70 deletions(-)
+ fs/ext4/move_extent.c |   52 +++++++++++++++++++++++-----------------
+ 1 file changed, 31 insertions(+), 21 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-leave-irqs-enabled-for-per-cpu-page-allocations
-+++ a/mm/page_alloc.c
-@@ -170,21 +170,12 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
- 	_ret;								\
- })
- 
--#define pcpu_spin_lock_irqsave(type, member, ptr, flags)		\
-+#define pcpu_spin_trylock(type, member, ptr)				\
- ({									\
- 	type *_ret;							\
- 	pcpu_task_pin();						\
- 	_ret = this_cpu_ptr(ptr);					\
--	spin_lock_irqsave(&_ret->member, flags);			\
--	_ret;								\
--})
--
--#define pcpu_spin_trylock_irqsave(type, member, ptr, flags)		\
--({									\
--	type *_ret;							\
--	pcpu_task_pin();						\
--	_ret = this_cpu_ptr(ptr);					\
--	if (!spin_trylock_irqsave(&_ret->member, flags)) {		\
-+	if (!spin_trylock(&_ret->member)) {				\
- 		pcpu_task_unpin();					\
- 		_ret = NULL;						\
- 	}								\
-@@ -197,27 +188,16 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
- 	pcpu_task_unpin();						\
- })
- 
--#define pcpu_spin_unlock_irqrestore(member, ptr, flags)			\
--({									\
--	spin_unlock_irqrestore(&ptr->member, flags);			\
--	pcpu_task_unpin();						\
--})
--
- /* struct per_cpu_pages specific helpers. */
- #define pcp_spin_lock(ptr)						\
- 	pcpu_spin_lock(struct per_cpu_pages, lock, ptr)
- 
--#define pcp_spin_lock_irqsave(ptr, flags)				\
--	pcpu_spin_lock_irqsave(struct per_cpu_pages, lock, ptr, flags)
--
--#define pcp_spin_trylock_irqsave(ptr, flags)				\
--	pcpu_spin_trylock_irqsave(struct per_cpu_pages, lock, ptr, flags)
-+#define pcp_spin_trylock(ptr)						\
-+	pcpu_spin_trylock(struct per_cpu_pages, lock, ptr)
- 
- #define pcp_spin_unlock(ptr)						\
- 	pcpu_spin_unlock(lock, ptr)
- 
--#define pcp_spin_unlock_irqrestore(ptr, flags)				\
--	pcpu_spin_unlock_irqrestore(lock, ptr, flags)
- #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
- DEFINE_PER_CPU(int, numa_node);
- EXPORT_PER_CPU_SYMBOL(numa_node);
-@@ -1554,6 +1534,7 @@ static void free_pcppages_bulk(struct zo
- 					struct per_cpu_pages *pcp,
- 					int pindex)
+--- a/fs/ext4/move_extent.c~ext4-convert-move_extent_per_page-to-use-folios
++++ a/fs/ext4/move_extent.c
+@@ -253,6 +253,7 @@ move_extent_per_page(struct file *o_filp
  {
-+	unsigned long flags;
- 	int min_pindex = 0;
- 	int max_pindex = NR_PCP_LISTS - 1;
- 	unsigned int order;
-@@ -1569,8 +1550,7 @@ static void free_pcppages_bulk(struct zo
- 	/* Ensure requested pindex is drained first. */
- 	pindex = pindex - 1;
- 
--	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
--	spin_lock(&zone->lock);
-+	spin_lock_irqsave(&zone->lock, flags);
- 	isolated_pageblocks = has_isolate_pageblock(zone);
- 
- 	while (count > 0) {
-@@ -1618,7 +1598,7 @@ static void free_pcppages_bulk(struct zo
- 		} while (count > 0 && !list_empty(list));
- 	}
- 
--	spin_unlock(&zone->lock);
-+	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
- static void free_one_page(struct zone *zone,
-@@ -3132,10 +3112,10 @@ static int rmqueue_bulk(struct zone *zon
- 			unsigned long count, struct list_head *list,
- 			int migratetype, unsigned int alloc_flags)
- {
-+	unsigned long flags;
- 	int i, allocated = 0;
- 
--	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
--	spin_lock(&zone->lock);
-+	spin_lock_irqsave(&zone->lock, flags);
- 	for (i = 0; i < count; ++i) {
- 		struct page *page = __rmqueue(zone, order, migratetype,
- 								alloc_flags);
-@@ -3169,7 +3149,7 @@ static int rmqueue_bulk(struct zone *zon
- 	 * pages added to the pcp list.
+ 	struct inode *orig_inode = file_inode(o_filp);
+ 	struct page *pagep[2] = {NULL, NULL};
++	struct folio *folio[2] = {NULL, NULL};
+ 	handle_t *handle;
+ 	ext4_lblk_t orig_blk_offset, donor_blk_offset;
+ 	unsigned long blocksize = orig_inode->i_sb->s_blocksize;
+@@ -313,6 +314,13 @@ again:
+ 	 * hold page's lock, if it is still the case data copy is not
+ 	 * necessary, just swap data blocks between orig and donor.
  	 */
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
--	spin_unlock(&zone->lock);
-+	spin_unlock_irqrestore(&zone->lock, flags);
- 	return allocated;
- }
- 
-@@ -3186,16 +3166,9 @@ void drain_zone_pages(struct zone *zone,
- 	batch = READ_ONCE(pcp->batch);
- 	to_drain = min(pcp->count, batch);
- 	if (to_drain > 0) {
--		unsigned long flags;
--
--		/*
--		 * free_pcppages_bulk expects IRQs disabled for zone->lock
--		 * so even though pcp->lock is not intended to be IRQ-safe,
--		 * it's needed in this context.
--		 */
--		spin_lock_irqsave(&pcp->lock, flags);
-+		spin_lock(&pcp->lock);
- 		free_pcppages_bulk(zone, to_drain, pcp, 0);
--		spin_unlock_irqrestore(&pcp->lock, flags);
-+		spin_unlock(&pcp->lock);
- 	}
- }
- #endif
-@@ -3209,12 +3182,9 @@ static void drain_pages_zone(unsigned in
- 
- 	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
- 	if (pcp->count) {
--		unsigned long flags;
--
--		/* See drain_zone_pages on why this is disabling IRQs */
--		spin_lock_irqsave(&pcp->lock, flags);
-+		spin_lock(&pcp->lock);
- 		free_pcppages_bulk(zone, pcp->count, pcp, 0);
--		spin_unlock_irqrestore(&pcp->lock, flags);
-+		spin_unlock(&pcp->lock);
- 	}
- }
- 
-@@ -3480,7 +3450,6 @@ static void free_unref_page_commit(struc
-  */
- void free_unref_page(struct page *page, unsigned int order)
- {
--	unsigned long flags;
- 	unsigned long __maybe_unused UP_flags;
- 	struct per_cpu_pages *pcp;
- 	struct zone *zone;
-@@ -3508,10 +3477,10 @@ void free_unref_page(struct page *page,
- 
- 	zone = page_zone(page);
- 	pcp_trylock_prepare(UP_flags);
--	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (pcp) {
- 		free_unref_page_commit(zone, pcp, page, migratetype, order);
--		pcp_spin_unlock_irqrestore(pcp, flags);
-+		pcp_spin_unlock(pcp);
- 	} else {
- 		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
- 	}
-@@ -3523,10 +3492,10 @@ void free_unref_page(struct page *page,
-  */
- void free_unref_page_list(struct list_head *list)
- {
-+	unsigned long __maybe_unused UP_flags;
- 	struct page *page, *next;
- 	struct per_cpu_pages *pcp = NULL;
- 	struct zone *locked_zone = NULL;
--	unsigned long flags;
- 	int batch_count = 0;
- 	int migratetype;
- 
-@@ -3554,21 +3523,36 @@ void free_unref_page_list(struct list_he
- 		struct zone *zone = page_zone(page);
- 
- 		list_del(&page->lru);
-+		migratetype = get_pcppage_migratetype(page);
- 
- 		/* Different zone, different pcp lock. */
- 		if (zone != locked_zone) {
--			if (pcp)
--				pcp_spin_unlock_irqrestore(pcp, flags);
-+			if (pcp) {
-+				pcp_spin_unlock(pcp);
-+				pcp_trylock_finish(UP_flags);
-+			}
- 
-+			/*
-+			 * trylock is necessary as pages may be getting freed
-+			 * from IRQ or SoftIRQ context after an IO completion.
-+			 */
-+			pcp_trylock_prepare(UP_flags);
-+			pcp = pcp_spin_trylock(zone->per_cpu_pageset);
-+			if (unlikely(!pcp)) {
-+				pcp_trylock_finish(UP_flags);
-+				free_one_page(zone, page, page_to_pfn(page),
-+					      0, migratetype, FPI_NONE);
-+				locked_zone = NULL;
-+				continue;
-+			}
- 			locked_zone = zone;
--			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
-+			batch_count = 0;
++	folio[0] = page_folio(pagep[0]);
++	folio[1] = page_folio(pagep[1]);
++
++	VM_BUG_ON_FOLIO(folio_test_large(folio[0]), folio[0]);
++	VM_BUG_ON_FOLIO(folio_test_large(folio[1]), folio[1]);
++	VM_BUG_ON_FOLIO(folio_nr_pages(folio[0]) != folio_nr_pages(folio[1]), folio[1]);
++
+ 	if (unwritten) {
+ 		ext4_double_down_write_data_sem(orig_inode, donor_inode);
+ 		/* If any of extents in range became initialized we have to
+@@ -331,10 +339,10 @@ again:
+ 			ext4_double_up_write_data_sem(orig_inode, donor_inode);
+ 			goto data_copy;
  		}
- 
- 		/*
- 		 * Non-isolated types over MIGRATE_PCPTYPES get added
- 		 * to the MIGRATE_MOVABLE pcp list.
- 		 */
--		migratetype = get_pcppage_migratetype(page);
- 		if (unlikely(migratetype >= MIGRATE_PCPTYPES))
- 			migratetype = MIGRATE_MOVABLE;
- 
-@@ -3576,18 +3560,23 @@ void free_unref_page_list(struct list_he
- 		free_unref_page_commit(zone, pcp, page, migratetype, 0);
- 
- 		/*
--		 * Guard against excessive IRQ disabled times when we get
--		 * a large list of pages to free.
-+		 * Guard against excessive lock hold times when freeing
-+		 * a large list of pages. Lock will be reacquired if
-+		 * necessary on the next iteration.
- 		 */
- 		if (++batch_count == SWAP_CLUSTER_MAX) {
--			pcp_spin_unlock_irqrestore(pcp, flags);
-+			pcp_spin_unlock(pcp);
-+			pcp_trylock_finish(UP_flags);
- 			batch_count = 0;
--			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
-+			pcp = NULL;
-+			locked_zone = NULL;
+-		if ((page_has_private(pagep[0]) &&
+-		     !try_to_release_page(pagep[0], 0)) ||
+-		    (page_has_private(pagep[1]) &&
+-		     !try_to_release_page(pagep[1], 0))) {
++		if ((folio_has_private(folio[0]) &&
++		     !filemap_release_folio(folio[0], 0)) ||
++		    (folio_has_private(folio[1]) &&
++		     !filemap_release_folio(folio[1], 0))) {
+ 			*err = -EBUSY;
+ 			goto drop_data_sem;
  		}
+@@ -344,19 +352,21 @@ again:
+ 						   block_len_in_page, 1, err);
+ 	drop_data_sem:
+ 		ext4_double_up_write_data_sem(orig_inode, donor_inode);
+-		goto unlock_pages;
++		goto unlock_folios;
  	}
+ data_copy:
+-	*err = mext_page_mkuptodate(pagep[0], from, from + replaced_size);
++	*err = mext_page_mkuptodate(&folio[0]->page, from, from + replaced_size);
+ 	if (*err)
+-		goto unlock_pages;
++		goto unlock_folios;
  
--	if (pcp)
--		pcp_spin_unlock_irqrestore(pcp, flags);
-+	if (pcp) {
-+		pcp_spin_unlock(pcp);
-+		pcp_trylock_finish(UP_flags);
-+	}
+ 	/* At this point all buffers in range are uptodate, old mapping layout
+ 	 * is no longer required, try to drop it now. */
+-	if ((page_has_private(pagep[0]) && !try_to_release_page(pagep[0], 0)) ||
+-	    (page_has_private(pagep[1]) && !try_to_release_page(pagep[1], 0))) {
++	if ((folio_has_private(folio[0]) &&
++		!filemap_release_folio(folio[0], 0)) ||
++	    (folio_has_private(folio[1]) &&
++		!filemap_release_folio(folio[1], 0))) {
+ 		*err = -EBUSY;
+-		goto unlock_pages;
++		goto unlock_folios;
+ 	}
+ 	ext4_double_down_write_data_sem(orig_inode, donor_inode);
+ 	replaced_count = ext4_swap_extents(handle, orig_inode, donor_inode,
+@@ -369,13 +379,13 @@ data_copy:
+ 			replaced_size =
+ 				block_len_in_page << orig_inode->i_blkbits;
+ 		} else
+-			goto unlock_pages;
++			goto unlock_folios;
+ 	}
+ 	/* Perform all necessary steps similar write_begin()/write_end()
+ 	 * but keeping in mind that i_size will not change */
+-	if (!page_has_buffers(pagep[0]))
+-		create_empty_buffers(pagep[0], 1 << orig_inode->i_blkbits, 0);
+-	bh = page_buffers(pagep[0]);
++	if (!folio_buffers(folio[0]))
++		create_empty_buffers(&folio[0]->page, 1 << orig_inode->i_blkbits, 0);
++	bh = folio_buffers(folio[0]);
+ 	for (i = 0; i < data_offset_in_page; i++)
+ 		bh = bh->b_this_page;
+ 	for (i = 0; i < block_len_in_page; i++) {
+@@ -385,7 +395,7 @@ data_copy:
+ 		bh = bh->b_this_page;
+ 	}
+ 	if (!*err)
+-		*err = block_commit_write(pagep[0], from, from + replaced_size);
++		*err = block_commit_write(&folio[0]->page, from, from + replaced_size);
+ 
+ 	if (unlikely(*err < 0))
+ 		goto repair_branches;
+@@ -395,11 +405,11 @@ data_copy:
+ 	*err = ext4_jbd2_inode_add_write(handle, orig_inode,
+ 			(loff_t)orig_page_offset << PAGE_SHIFT, replaced_size);
+ 
+-unlock_pages:
+-	unlock_page(pagep[0]);
+-	put_page(pagep[0]);
+-	unlock_page(pagep[1]);
+-	put_page(pagep[1]);
++unlock_folios:
++	folio_unlock(folio[0]);
++	folio_put(folio[0]);
++	folio_unlock(folio[1]);
++	folio_put(folio[1]);
+ stop_journal:
+ 	ext4_journal_stop(handle);
+ 	if (*err == -ENOSPC &&
+@@ -430,7 +440,7 @@ repair_branches:
+ 		*err = -EIO;
+ 	}
+ 	replaced_count = 0;
+-	goto unlock_pages;
++	goto unlock_folios;
  }
  
- /*
-@@ -3788,15 +3777,11 @@ static struct page *rmqueue_pcplist(stru
- 	struct per_cpu_pages *pcp;
- 	struct list_head *list;
- 	struct page *page;
--	unsigned long flags;
- 	unsigned long __maybe_unused UP_flags;
- 
--	/*
--	 * spin_trylock may fail due to a parallel drain. In the future, the
--	 * trylock will also protect against IRQ reentrancy.
--	 */
-+	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
- 	pcp_trylock_prepare(UP_flags);
--	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (!pcp) {
- 		pcp_trylock_finish(UP_flags);
- 		return NULL;
-@@ -3810,7 +3795,7 @@ static struct page *rmqueue_pcplist(stru
- 	pcp->free_factor >>= 1;
- 	list = &pcp->lists[order_to_pindex(migratetype, order)];
- 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
--	pcp_spin_unlock_irqrestore(pcp, flags);
-+	pcp_spin_unlock(pcp);
- 	pcp_trylock_finish(UP_flags);
- 	if (page) {
- 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
-@@ -5381,7 +5366,6 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 			struct page **page_array)
- {
- 	struct page *page;
--	unsigned long flags;
- 	unsigned long __maybe_unused UP_flags;
- 	struct zone *zone;
- 	struct zoneref *z;
-@@ -5463,9 +5447,9 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	if (unlikely(!zone))
- 		goto failed;
- 
--	/* Is a parallel drain in progress? */
-+	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
- 	pcp_trylock_prepare(UP_flags);
--	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (!pcp)
- 		goto failed_irq;
- 
-@@ -5484,7 +5468,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		if (unlikely(!page)) {
- 			/* Try and allocate at least one page */
- 			if (!nr_account) {
--				pcp_spin_unlock_irqrestore(pcp, flags);
-+				pcp_spin_unlock(pcp);
- 				goto failed_irq;
- 			}
- 			break;
-@@ -5499,7 +5483,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		nr_populated++;
- 	}
- 
--	pcp_spin_unlock_irqrestore(pcp, flags);
-+	pcp_spin_unlock(pcp);
- 	pcp_trylock_finish(UP_flags);
- 
- 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
+ /**
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
+filemap-convert-replace_page_cache_page-to-replace_page_cache_folio.patch
+fuse-convert-fuse_try_move_page-to-use-folios.patch
+userfualtfd-replace-lru_cache-functions-with-folio_add-functions.patch
+khugepage-replace-lru_cache_add-with-folio_add_lru.patch
+folio-compat-remove-lru_cache_add.patch
 
