@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6273BC4708E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:06:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EC61C352A1
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:06:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230241AbiLAAGr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:06:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47558 "EHLO
+        id S230240AbiLAAGs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:06:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230312AbiLAAEi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:04:38 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BB8390776
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:10 -0800 (PST)
+        with ESMTP id S230233AbiLAAEk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:04:40 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06AD591C11
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:13 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 47124B81D86
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E12D7C433D6;
-        Thu,  1 Dec 2022 00:02:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id ADCE5B81D84
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FFFBC433D7;
+        Thu,  1 Dec 2022 00:02:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852928;
-        bh=uDS6w5CiYvz9XEzBjM4rdYo74iAvpINGsj/fPxlHveM=;
+        s=korg; t=1669852930;
+        bh=j1EN3SytkNOpwtRwzJUkte07G8EQrYyJ/FInMLz4ZtI=;
         h=Date:To:From:Subject:From;
-        b=Bpeu4PCNNpgqcfOvifMnnEAXNk0Estu89/0lByDmOTPPRgeJmPAlHxRUdzEB7nuHq
-         +DzyklYrEYWnbScniYrrXy97NvXFGQgmrm74Sfhle4yzhhYqX8N8Q/C0nHGuyA5Pzp
-         YNsGGxuQojNnuPZBHFLcYHT7LYokysm6D8NtFCHM=
-Date:   Wed, 30 Nov 2022 16:02:07 -0800
+        b=bNNKNQqOlcL2/tGH5uOAEwkRz8avAZtOFvsK+7tWp89y0l1IIYmmfdqEUDm5RHXf0
+         OgFpjsJYSz0zOMLsYRzXJP4zxY+ls70k3wNVVa3tBDiP7BwQ0FqQWCSbwR+Ki4S3e3
+         YjJGC1ew03Tw7qqOQ35h7N41nooltaK3yTIWh/OA=
+Date:   Wed, 30 Nov 2022 16:02:09 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-early-fault_flag_write-consistency-checks.patch removed from -mm tree
-Message-Id: <20221201000207.E12D7C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-dont-call-vm_ops-huge_fault-in-wp_huge_pmd-wp_huge_pud-for-private-mappings.patch removed from -mm tree
+Message-Id: <20221201000210.5FFFBC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,59 +41,88 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add early FAULT_FLAG_WRITE consistency checks
+     Subject: mm: don't call vm_ops->huge_fault() in wp_huge_pmd()/wp_huge_pud() for private mappings
 has been removed from the -mm tree.  Its filename was
-     mm-add-early-fault_flag_write-consistency-checks.patch
+     mm-dont-call-vm_ops-huge_fault-in-wp_huge_pmd-wp_huge_pud-for-private-mappings.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: add early FAULT_FLAG_WRITE consistency checks
-Date: Wed, 16 Nov 2022 11:26:44 +0100
+Subject: mm: don't call vm_ops->huge_fault() in wp_huge_pmd()/wp_huge_pud() for private mappings
+Date: Wed, 16 Nov 2022 11:26:46 +0100
 
-Let's catch abuse of FAULT_FLAG_WRITE early, such that we don't have to
-care in all other handlers and might get "surprises" if we forget to do
-so.
+If we already have a PMD/PUD mapped write-protected in a private mapping
+and we want to break COW either due to FAULT_FLAG_WRITE or
+FAULT_FLAG_UNSHARE, there is no need to inform the file system just like on
+the PTE path.
 
-Write faults without VM_MAYWRITE don't make any sense, and our
-maybe_mkwrite() logic could have hidden such abuse for now.
+Let's just split (->zap) + fallback in that case.
 
-Write faults without VM_WRITE on something that is not a COW mapping is
-similarly broken, and e.g., do_wp_page() could end up placing an
-anonymous page into a shared mapping, which would be bad.
+This is a preparation for more generic FAULT_FLAG_UNSHARE support in
+COW mappings.
 
-This is a preparation for reliable R/O long-term pinning of pages in
-private mappings, whereby we want to make sure that we will never break
-COW in a read-only private mapping.
-
-Link: https://lkml.kernel.org/r/20221116102659.70287-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20221116102659.70287-8-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/memory.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
---- a/mm/memory.c~mm-add-early-fault_flag_write-consistency-checks
+--- a/mm/memory.c~mm-dont-call-vm_ops-huge_fault-in-wp_huge_pmd-wp_huge_pud-for-private-mappings
 +++ a/mm/memory.c
-@@ -5170,6 +5170,14 @@ static vm_fault_t sanitize_fault_flags(s
- 		 */
- 		if (!is_cow_mapping(vma->vm_flags))
- 			*flags &= ~FAULT_FLAG_UNSHARE;
-+	} else if (*flags & FAULT_FLAG_WRITE) {
-+		/* Write faults on read-only mappings are impossible ... */
-+		if (WARN_ON_ONCE(!(vma->vm_flags & VM_MAYWRITE)))
-+			return VM_FAULT_SIGSEGV;
-+		/* ... and FOLL_FORCE only applies to COW mappings. */
-+		if (WARN_ON_ONCE(!(vma->vm_flags & VM_WRITE) &&
-+				 !is_cow_mapping(vma->vm_flags)))
-+			return VM_FAULT_SIGSEGV;
+@@ -4802,6 +4802,7 @@ static inline vm_fault_t create_huge_pmd
+ static inline vm_fault_t wp_huge_pmd(struct vm_fault *vmf)
+ {
+ 	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
++	vm_fault_t ret;
+ 
+ 	if (vma_is_anonymous(vmf->vma)) {
+ 		if (likely(!unshare) &&
+@@ -4809,11 +4810,13 @@ static inline vm_fault_t wp_huge_pmd(str
+ 			return handle_userfault(vmf, VM_UFFD_WP);
+ 		return do_huge_pmd_wp_page(vmf);
  	}
- 	return 0;
- }
+-	if (vmf->vma->vm_ops->huge_fault) {
+-		vm_fault_t ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PMD);
+ 
+-		if (!(ret & VM_FAULT_FALLBACK))
+-			return ret;
++	if (vmf->vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
++		if (vmf->vma->vm_ops->huge_fault) {
++			ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PMD);
++			if (!(ret & VM_FAULT_FALLBACK))
++				return ret;
++		}
+ 	}
+ 
+ 	/* COW or write-notify handled on pte level: split pmd. */
+@@ -4839,14 +4842,17 @@ static vm_fault_t wp_huge_pud(struct vm_
+ {
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) &&			\
+ 	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
++	vm_fault_t ret;
++
+ 	/* No support for anonymous transparent PUD pages yet */
+ 	if (vma_is_anonymous(vmf->vma))
+ 		goto split;
+-	if (vmf->vma->vm_ops->huge_fault) {
+-		vm_fault_t ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
+-
+-		if (!(ret & VM_FAULT_FALLBACK))
+-			return ret;
++	if (vmf->vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
++		if (vmf->vma->vm_ops->huge_fault) {
++			ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
++			if (!(ret & VM_FAULT_FALLBACK))
++				return ret;
++		}
+ 	}
+ split:
+ 	/* COW or write-notify not handled on PUD level: split pud.*/
 _
 
 Patches currently in -mm which might be from david@redhat.com are
