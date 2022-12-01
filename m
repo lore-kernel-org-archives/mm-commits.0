@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63C24C4708E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:06:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35070C352A1
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:06:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230221AbiLAAGm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:06:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47476 "EHLO
+        id S230334AbiLAAGo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:06:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230334AbiLAAEi (ORCPT
+        with ESMTP id S230308AbiLAAEi (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:04:38 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6086890768
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:08 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 813A990774
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C52B0B81D83
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68AC4C43470;
-        Thu,  1 Dec 2022 00:02:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 19EE06176C
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40846C4314B;
+        Thu,  1 Dec 2022 00:02:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852925;
-        bh=Wcz3FeTf3e2/y9WqTzJHrJ189hlqS8+/whKm3s6WOiA=;
+        s=korg; t=1669852929;
+        bh=dfaLJUGPPwYMqQy11MBUG2TkgUo6pl5j4Sv/r/6zQ1s=;
         h=Date:To:From:Subject:From;
-        b=gDlW7+WGJaVGDg0jBYldxT14Ga+h9g4ti2qtUO7YvgNVJbTreeprA2A0jXhz6YFt4
-         aYX9Sbe0XUPNUDuInIFuic2HU81WmWkU4KkKtR0uIXhdphGlbO+dnsuVtAwblDtafh
-         CRFu9t+ZnaweFWvge73x0CspsNdzTA1xgEybCQnw=
-Date:   Wed, 30 Nov 2022 16:02:04 -0800
-To:     mm-commits@vger.kernel.org, david@redhat.com,
+        b=jnqWb47b0oxjpbglPmmXA3B7UNbqD7FXF2QXFshhYPKw4CXezY2oatb9UcddJyn6g
+         AvVd6/eBgl49OVsoiE34/3+H/tt20/FhTAgN5ienL2MU/5WYz5yL+n3bi7jUldGIc3
+         i1sx2/9jFeZXwWarQz5e5y+cS7z0q18XlHV3QVyo=
+Date:   Wed, 30 Nov 2022 16:02:08 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-cow-r-o-long-term-pinning-reliability-tests-for-non-anon-pages.patch removed from -mm tree
-Message-Id: <20221201000205.68AC4C43470@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings.patch removed from -mm tree
+Message-Id: <20221201000209.40846C4314B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,126 +41,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: cow: R/O long-term pinning reliability tests for non-anon pages
+     Subject: mm: rework handling in do_wp_page() based on private vs. shared mappings
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-cow-r-o-long-term-pinning-reliability-tests-for-non-anon-pages.patch
+     mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/vm: cow: R/O long-term pinning reliability tests for non-anon pages
-Date: Wed, 16 Nov 2022 11:26:42 +0100
+Subject: mm: rework handling in do_wp_page() based on private vs. shared mappings
+Date: Wed, 16 Nov 2022 11:26:45 +0100
 
-Let's test whether R/O long-term pinning is reliable for non-anonymous
-memory: when R/O long-term pinning a page, the expectation is that we
-break COW early before pinning, such that actual write access via the
-page tables won't break COW later and end up replacing the R/O-pinned
-page in the page table.
+We want to extent FAULT_FLAG_UNSHARE support to anything mapped into a
+COW mapping (pagecache page, zeropage, PFN, ...), not just anonymous pages.
+Let's prepare for that by handling shared mappings first such that we can
+handle private mappings last.
 
-Consequently, R/O long-term pinning in private mappings would only target
-exclusive anonymous pages.
+While at it, use folio-based functions instead of page-based functions
+where we touch the code either way.
 
-For now, all tests fail:
-	# [RUN] R/O longterm GUP pin ... with shared zeropage
-	not ok 151 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP pin ... with memfd
-	not ok 152 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP pin ... with tmpfile
-	not ok 153 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP pin ... with huge zeropage
-	not ok 154 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP pin ... with memfd hugetlb (2048 kB)
-	not ok 155 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP pin ... with memfd hugetlb (1048576 kB)
-	not ok 156 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with shared zeropage
-	not ok 157 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with memfd
-	not ok 158 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with tmpfile
-	not ok 159 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with huge zeropage
-	not ok 160 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with memfd hugetlb (2048 kB)
-	not ok 161 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with memfd hugetlb (1048576 kB)
-	not ok 162 Longterm R/O pin is reliable
-
-Link: https://lkml.kernel.org/r/20221116102659.70287-4-david@redhat.com
+Link: https://lkml.kernel.org/r/20221116102659.70287-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/cow.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ mm/memory.c |   38 +++++++++++++++++---------------------
+ 1 file changed, 17 insertions(+), 21 deletions(-)
 
---- a/tools/testing/selftests/vm/cow.c~selftests-vm-cow-r-o-long-term-pinning-reliability-tests-for-non-anon-pages
-+++ a/tools/testing/selftests/vm/cow.c
-@@ -561,6 +561,7 @@ static void test_iouring_fork(char *mem,
- #endif /* LOCAL_CONFIG_HAVE_LIBURING */
+--- a/mm/memory.c~mm-rework-handling-in-do_wp_page-based-on-private-vs-shared-mappings
++++ a/mm/memory.c
+@@ -3341,7 +3341,7 @@ static vm_fault_t do_wp_page(struct vm_f
+ {
+ 	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct folio *folio;
++	struct folio *folio = NULL;
  
- enum ro_pin_test {
-+	RO_PIN_TEST,
- 	RO_PIN_TEST_SHARED,
- 	RO_PIN_TEST_PREVIOUSLY_SHARED,
- 	RO_PIN_TEST_RO_EXCLUSIVE,
-@@ -593,6 +594,8 @@ static void do_test_ro_pin(char *mem, si
+ 	if (likely(!unshare)) {
+ 		if (userfaultfd_pte_wp(vma, *vmf->pte)) {
+@@ -3359,13 +3359,12 @@ static vm_fault_t do_wp_page(struct vm_f
  	}
  
- 	switch (test) {
-+	case RO_PIN_TEST:
-+		break;
- 	case RO_PIN_TEST_SHARED:
- 	case RO_PIN_TEST_PREVIOUSLY_SHARED:
- 		/*
-@@ -1193,6 +1196,16 @@ static void test_cow(char *mem, const ch
- 	free(old);
- }
+ 	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
+-	if (!vmf->page) {
+-		if (unlikely(unshare)) {
+-			/* No anonymous page -> nothing to do. */
+-			pte_unmap_unlock(vmf->pte, vmf->ptl);
+-			return 0;
+-		}
  
-+static void test_ro_pin(char *mem, const char *smem, size_t size)
-+{
-+	do_test_ro_pin(mem, size, RO_PIN_TEST, false);
-+}
-+
-+static void test_ro_fast_pin(char *mem, const char *smem, size_t size)
-+{
-+	do_test_ro_pin(mem, size, RO_PIN_TEST, true);
-+}
-+
- static void run_with_zeropage(non_anon_test_fn fn, const char *desc)
- {
- 	char *mem, *smem, tmp;
-@@ -1433,7 +1446,7 @@ struct non_anon_test_case {
- };
- 
- /*
-- * Test cases that target any pages in private mappings that are non anonymous:
-+ * Test cases that target any pages in private mappings that are not anonymous:
-  * pages that may get shared via COW ndependent of fork(). This includes
-  * the shared zeropage(s), pagecache pages, ...
-  */
-@@ -1446,6 +1459,19 @@ static const struct non_anon_test_case n
- 		"Basic COW",
- 		test_cow,
- 	},
 +	/*
-+	 * Take a R/O longterm pin. When modifying the page via the page table,
-+	 * the page content change must be visible via the pin.
++	 * Shared mapping: we are guaranteed to have VM_WRITE and
++	 * FAULT_FLAG_WRITE set at this point.
 +	 */
-+	{
-+		"R/O longterm GUP pin",
-+		test_ro_pin,
-+	},
-+	/* Same as above, but using GUP-fast. */
-+	{
-+		"R/O longterm GUP-fast pin",
-+		test_ro_fast_pin,
-+	},
- };
++	if (vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
+ 		/*
+ 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
+ 		 * VM_PFNMAP VMA.
+@@ -3373,20 +3372,19 @@ static vm_fault_t do_wp_page(struct vm_f
+ 		 * We should not cow pages in a shared writeable mapping.
+ 		 * Just mark the pages writable and/or call ops->pfn_mkwrite.
+ 		 */
+-		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+-				     (VM_WRITE|VM_SHARED))
++		if (!vmf->page)
+ 			return wp_pfn_shared(vmf);
+-
+-		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		return wp_page_copy(vmf);
++		return wp_page_shared(vmf);
+ 	}
  
- static void run_non_anon_test_case(struct non_anon_test_case const *test_case)
++	if (vmf->page)
++		folio = page_folio(vmf->page);
++
+ 	/*
+-	 * Take out anonymous pages first, anonymous shared vmas are
+-	 * not dirty accountable.
++	 * Private mapping: create an exclusive anonymous page copy if reuse
++	 * is impossible. We might miss VM_WRITE for FOLL_FORCE handling.
+ 	 */
+-	folio = page_folio(vmf->page);
+-	if (folio_test_anon(folio)) {
++	if (folio && folio_test_anon(folio)) {
+ 		/*
+ 		 * If the page is exclusive to this process we must reuse the
+ 		 * page without further checks.
+@@ -3437,19 +3435,17 @@ reuse:
+ 		/* No anonymous page -> nothing to do. */
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 		return 0;
+-	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+-					(VM_WRITE|VM_SHARED))) {
+-		return wp_page_shared(vmf);
+ 	}
+ copy:
+ 	/*
+ 	 * Ok, we need to copy. Oh, well..
+ 	 */
+-	get_page(vmf->page);
++	if (folio)
++		folio_get(folio);
+ 
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ #ifdef CONFIG_KSM
+-	if (PageKsm(vmf->page))
++	if (folio && folio_test_ksm(folio))
+ 		count_vm_event(COW_KSM);
+ #endif
+ 	return wp_page_copy(vmf);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
