@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 728B0C4708D
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:02:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DCE7C47088
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:02:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229831AbiLAACd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:02:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47422 "EHLO
+        id S229675AbiLAACh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:02:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46522 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229675AbiLAABN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:01:13 -0500
+        with ESMTP id S230038AbiLAABO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:01:14 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D76558930C
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:00:53 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DDDF8930F
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:00:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 867C0B81AD6
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:00:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3033CC433D7;
-        Thu,  1 Dec 2022 00:00:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E0253B81D83
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:00:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89021C43470;
+        Thu,  1 Dec 2022 00:00:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852851;
-        bh=mE7cYLvNvvVM93QU5D6rHa/D+JMfLeV8cJvCcc9lF0w=;
+        s=korg; t=1669852852;
+        bh=xlkLBRzPY72yLeROMXGRyW1fFaSAV+xIdEVZvmga0JI=;
         h=Date:To:From:Subject:From;
-        b=lpazKGy/eMUaVnxxD0r+F79MWN57CX0wtUzWQxSZ5tsIp2rbl6edVfl/tP2AhROho
-         V+rVCwvafDO1E60dz/fICqr+2v3npvaUVczsPxWP24gLjge+7AYFbymi/PbBqiKKFb
-         8OmpnNpTHlJOCa+EIOp8FkpncGitijox3T3+wbJY=
-Date:   Wed, 30 Nov 2022 16:00:50 -0800
-To:     mm-commits@vger.kernel.org, riel@surriel.com,
-        oliver.sang@intel.com, david@redhat.com, mike.kravetz@oracle.com,
-        akpm@linux-foundation.org
+        b=AOEq2XOLJHrAbx47yIgM76v5JRhfiz7EP8z9lpH2LcLYC8MEPkSOpcCCRRRakveV7
+         QD7yvseKsJFSXpk18BBxd1WTzvzDrY7qUU1RvUwm4DxPfMYjbM1TzfZHVE9tMUgYph
+         mufDkfP+f8WLMND1ejvK+LlzCXxj1n9xIlUgTodo=
+Date:   Wed, 30 Nov 2022 16:00:51 -0800
+To:     mm-commits@vger.kernel.org, zokeefe@google.com,
+        willy@infradead.org, vbabka@suse.cz, songmuchun@bytedance.com,
+        sidhartha.kumar@oracle.com, shy828301@gmail.com, peterx@redhat.com,
+        naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
+        linmiaohe@huawei.com, kirill.shutemov@linux.intel.com,
+        jthoughton@google.com, jhubbard@nvidia.com, david@redhat.com,
+        almasrymina@google.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-update-hugetlb-madvise.patch removed from -mm tree
-Message-Id: <20221201000051.3033CC433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mmhugetlb-use-folio-fields-in-second-tail-page.patch removed from -mm tree
+Message-Id: <20221201000052.89021C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,63 +46,357 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: update hugetlb madvise
+     Subject: mm,hugetlb: use folio fields in second tail page
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-update-hugetlb-madvise.patch
+     mmhugetlb-use-folio-fields-in-second-tail-page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: selftests/vm: update hugetlb madvise
-Date: Thu, 3 Nov 2022 18:16:32 -0700
+From: Hugh Dickins <hughd@google.com>
+Subject: mm,hugetlb: use folio fields in second tail page
+Date: Wed, 2 Nov 2022 18:48:45 -0700 (PDT)
 
-Commit 8ebe0a5eaaeb ("mm,madvise,hugetlb: fix unexpected data loss with
-MADV_DONTNEED on hugetlbfs") changed how the passed length was interpreted
-for hugetlb mappings.  It was changed from align up to align down.  The
-hugetlb-madvise test explicitly tests this behavior.  Change test to
-expect new behavior.
+Patch series "mm,huge,rmap: unify and speed up compound mapcounts".
 
-Link: https://lkml.kernel.org/r/20221104011632.357049-1-mike.kravetz@oracle.com
-Link: https://lore.kernel.org/oe-lkp/202211040619.2ec447d7-oliver.sang@intel.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
+
+This patch (of 3):
+
+We want to declare one more int in the first tail of a compound page: that
+first tail page being valuable property, since every compound page has a
+first tail, but perhaps no more than that.
+
+No problem on 64-bit: there is already space for it.  No problem with
+32-bit THPs: 5.18 commit 5232c63f46fd ("mm: Make compound_pincount always
+available") kindly cleared the space for it, apparently not realizing that
+only 64-bit architectures enable CONFIG_THP_SWAP (whose use of tail
+page->private might conflict) - but make sure of that in its Kconfig.
+
+But hugetlb pages use tail page->private of the first tail page for a
+subpool pointer, which will conflict; and they also use page->private of
+the 2nd, 3rd and 4th tails.
+
+Undo "mm: add private field of first tail to struct page and struct
+folio"'s recent addition of private_1 to the folio tail: instead add
+hugetlb_subpool, hugetlb_cgroup, hugetlb_cgroup_rsvd, hugetlb_hwpoison to
+a second tail page of the folio: THP has long been using several fields of
+that tail, so make better use of it for hugetlb too.  This is not how a
+generic folio should be declared in future, but it is an effective
+transitional way to make use of it.
+
+Delete the SUBPAGE_INDEX stuff, but keep __NR_USED_SUBPAGE: now 3.
+
+[hughd@google.com: prefix folio's page_1 and page_2 with double underscore,
+  give folio's _flags_2 and _head_2 a line documentation each]
+  Link: https://lkml.kernel.org/r/9e2cb6b-5b58-d3f2-b5ee-5f8a14e8f10@google.com
+Link: https://lkml.kernel.org/r/5f52de70-975-e94f-f141-543765736181@google.com
+Link: https://lkml.kernel.org/r/3818cc9a-9999-d064-d778-9c94c5911e6@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hugetlb-madvise.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h        |   23 ++-------
+ include/linux/hugetlb_cgroup.h |   31 +++---------
+ include/linux/mm_types.h       |   74 ++++++++++++++++++++-----------
+ mm/Kconfig                     |    2 
+ mm/memory-failure.c            |    5 --
+ 5 files changed, 67 insertions(+), 68 deletions(-)
 
---- a/tools/testing/selftests/vm/hugetlb-madvise.c~selftests-vm-update-hugetlb-madvise
-+++ a/tools/testing/selftests/vm/hugetlb-madvise.c
-@@ -195,7 +195,7 @@ int main(int argc, char **argv)
- 			exit(1);
- 	}
+--- a/include/linux/hugetlb_cgroup.h~mmhugetlb-use-folio-fields-in-second-tail-page
++++ a/include/linux/hugetlb_cgroup.h
+@@ -24,12 +24,10 @@ struct file_region;
+ #ifdef CONFIG_CGROUP_HUGETLB
+ /*
+  * Minimum page order trackable by hugetlb cgroup.
+- * At least 4 pages are necessary for all the tracking information.
+- * The second tail page (hpage[SUBPAGE_INDEX_CGROUP]) is the fault
+- * usage cgroup. The third tail page (hpage[SUBPAGE_INDEX_CGROUP_RSVD])
+- * is the reservation usage cgroup.
++ * At least 3 pages are necessary for all the tracking information.
++ * The second tail page contains all of the hugetlb-specific fields.
+  */
+-#define HUGETLB_CGROUP_MIN_ORDER order_base_2(__MAX_CGROUP_SUBPAGE_INDEX + 1)
++#define HUGETLB_CGROUP_MIN_ORDER order_base_2(__NR_USED_SUBPAGE)
  
--	/* addr + length should be aligned up to huge page size */
-+	/* addr + length should be aligned down to huge page size */
- 	if (madvise(addr,
- 			((NR_HUGE_PAGES - 1) * huge_page_size) + base_page_size,
- 			MADV_DONTNEED)) {
-@@ -203,10 +203,11 @@ int main(int argc, char **argv)
- 		exit(1);
- 	}
+ enum hugetlb_memory_event {
+ 	HUGETLB_MAX,
+@@ -69,21 +67,13 @@ struct hugetlb_cgroup {
+ static inline struct hugetlb_cgroup *
+ __hugetlb_cgroup_from_folio(struct folio *folio, bool rsvd)
+ {
+-	struct page *tail;
+-
+ 	VM_BUG_ON_FOLIO(!folio_test_hugetlb(folio), folio);
+ 	if (folio_order(folio) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return NULL;
+-
+-	if (rsvd) {
+-		tail = folio_page(folio, SUBPAGE_INDEX_CGROUP_RSVD);
+-		return (void *)page_private(tail);
+-	}
+-
+-	else {
+-		tail = folio_page(folio, SUBPAGE_INDEX_CGROUP);
+-		return (void *)page_private(tail);
+-	}
++	if (rsvd)
++		return folio->_hugetlb_cgroup_rsvd;
++	else
++		return folio->_hugetlb_cgroup;
+ }
  
--	/* should free all pages in mapping */
--	validate_free_pages(free_hugepages);
-+	/* should free all but last page in mapping */
-+	validate_free_pages(free_hugepages - 1);
+ static inline struct hugetlb_cgroup *hugetlb_cgroup_from_folio(struct folio *folio)
+@@ -101,15 +91,12 @@ static inline void __set_hugetlb_cgroup(
+ 				       struct hugetlb_cgroup *h_cg, bool rsvd)
+ {
+ 	VM_BUG_ON_FOLIO(!folio_test_hugetlb(folio), folio);
+-
+ 	if (folio_order(folio) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return;
+ 	if (rsvd)
+-		set_page_private(folio_page(folio, SUBPAGE_INDEX_CGROUP_RSVD),
+-				 (unsigned long)h_cg);
++		folio->_hugetlb_cgroup_rsvd = h_cg;
+ 	else
+-		set_page_private(folio_page(folio, SUBPAGE_INDEX_CGROUP),
+-				 (unsigned long)h_cg);
++		folio->_hugetlb_cgroup = h_cg;
+ }
  
- 	(void)munmap(addr, NR_HUGE_PAGES * huge_page_size);
-+	validate_free_pages(free_hugepages);
+ static inline void set_hugetlb_cgroup(struct folio *folio,
+--- a/include/linux/hugetlb.h~mmhugetlb-use-folio-fields-in-second-tail-page
++++ a/include/linux/hugetlb.h
+@@ -33,22 +33,9 @@ typedef struct { unsigned long pd; } hug
+ /*
+  * For HugeTLB page, there are more metadata to save in the struct page. But
+  * the head struct page cannot meet our needs, so we have to abuse other tail
+- * struct page to store the metadata. In order to avoid conflicts caused by
+- * subsequent use of more tail struct pages, we gather these discrete indexes
+- * of tail struct page here.
++ * struct page to store the metadata.
+  */
+-enum {
+-	SUBPAGE_INDEX_SUBPOOL = 1,	/* reuse page->private */
+-#ifdef CONFIG_CGROUP_HUGETLB
+-	SUBPAGE_INDEX_CGROUP,		/* reuse page->private */
+-	SUBPAGE_INDEX_CGROUP_RSVD,	/* reuse page->private */
+-	__MAX_CGROUP_SUBPAGE_INDEX = SUBPAGE_INDEX_CGROUP_RSVD,
+-#endif
+-#ifdef CONFIG_MEMORY_FAILURE
+-	SUBPAGE_INDEX_HWPOISON,
+-#endif
+-	__NR_USED_SUBPAGE,
+-};
++#define __NR_USED_SUBPAGE 3
  
- 	/*
- 	 * Test MADV_DONTNEED on anonymous private mapping
+ struct hugepage_subpool {
+ 	spinlock_t lock;
+@@ -722,11 +709,11 @@ extern unsigned int default_hstate_idx;
+ 
+ static inline struct hugepage_subpool *hugetlb_folio_subpool(struct folio *folio)
+ {
+-	return (void *)folio_get_private_1(folio);
++	return folio->_hugetlb_subpool;
+ }
+ 
+ /*
+- * hugetlb page subpool pointer located in hpage[1].private
++ * hugetlb page subpool pointer located in hpage[2].hugetlb_subpool
+  */
+ static inline struct hugepage_subpool *hugetlb_page_subpool(struct page *hpage)
+ {
+@@ -736,7 +723,7 @@ static inline struct hugepage_subpool *h
+ static inline void hugetlb_set_folio_subpool(struct folio *folio,
+ 					struct hugepage_subpool *subpool)
+ {
+-	folio_set_private_1(folio, (unsigned long)subpool);
++	folio->_hugetlb_subpool = subpool;
+ }
+ 
+ static inline void hugetlb_set_page_subpool(struct page *hpage,
+--- a/include/linux/mm_types.h~mmhugetlb-use-folio-fields-in-second-tail-page
++++ a/include/linux/mm_types.h
+@@ -145,15 +145,22 @@ struct page {
+ 			atomic_t compound_pincount;
+ #ifdef CONFIG_64BIT
+ 			unsigned int compound_nr; /* 1 << compound_order */
+-			unsigned long _private_1;
+ #endif
+ 		};
+-		struct {	/* Second tail page of compound page */
++		struct {	/* Second tail page of transparent huge page */
+ 			unsigned long _compound_pad_1;	/* compound_head */
+ 			unsigned long _compound_pad_2;
+ 			/* For both global and memcg */
+ 			struct list_head deferred_list;
+ 		};
++		struct {	/* Second tail page of hugetlb page */
++			unsigned long _hugetlb_pad_1;	/* compound_head */
++			void *hugetlb_subpool;
++			void *hugetlb_cgroup;
++			void *hugetlb_cgroup_rsvd;
++			void *hugetlb_hwpoison;
++			/* No more space on 32-bit: use third tail if more */
++		};
+ 		struct {	/* Page table pages */
+ 			unsigned long _pt_pad_1;	/* compound_head */
+ 			pgtable_t pmd_huge_pte; /* protected by page->ptl */
+@@ -260,13 +267,18 @@ struct page {
+  *    to find how many references there are to this folio.
+  * @memcg_data: Memory Control Group data.
+  * @_flags_1: For large folios, additional page flags.
+- * @__head: Points to the folio.  Do not use.
++ * @_head_1: Points to the folio.  Do not use.
+  * @_folio_dtor: Which destructor to use for this folio.
+  * @_folio_order: Do not use directly, call folio_order().
+  * @_total_mapcount: Do not use directly, call folio_entire_mapcount().
+  * @_pincount: Do not use directly, call folio_maybe_dma_pinned().
+  * @_folio_nr_pages: Do not use directly, call folio_nr_pages().
+- * @_private_1: Do not use directly, call folio_get_private_1().
++ * @_flags_2: For alignment.  Do not use.
++ * @_head_2: Points to the folio.  Do not use.
++ * @_hugetlb_subpool: Do not use directly, use accessor in hugetlb.h.
++ * @_hugetlb_cgroup: Do not use directly, use accessor in hugetlb_cgroup.h.
++ * @_hugetlb_cgroup_rsvd: Do not use directly, use accessor in hugetlb_cgroup.h.
++ * @_hugetlb_hwpoison: Do not use directly, call raw_hwp_list_head().
+  *
+  * A folio is a physically, virtually and logically contiguous set
+  * of bytes.  It is a power-of-two in size, and it is aligned to that
+@@ -305,16 +317,31 @@ struct folio {
+ 		};
+ 		struct page page;
+ 	};
+-	unsigned long _flags_1;
+-	unsigned long __head;
+-	unsigned char _folio_dtor;
+-	unsigned char _folio_order;
+-	atomic_t _total_mapcount;
+-	atomic_t _pincount;
++	union {
++		struct {
++			unsigned long _flags_1;
++			unsigned long _head_1;
++			unsigned char _folio_dtor;
++			unsigned char _folio_order;
++			atomic_t _total_mapcount;
++			atomic_t _pincount;
+ #ifdef CONFIG_64BIT
+-	unsigned int _folio_nr_pages;
++			unsigned int _folio_nr_pages;
+ #endif
+-	unsigned long _private_1;
++		};
++		struct page __page_1;
++	};
++	union {
++		struct {
++			unsigned long _flags_2;
++			unsigned long _head_2;
++			void *_hugetlb_subpool;
++			void *_hugetlb_cgroup;
++			void *_hugetlb_cgroup_rsvd;
++			void *_hugetlb_hwpoison;
++		};
++		struct page __page_2;
++	};
+ };
+ 
+ #define FOLIO_MATCH(pg, fl)						\
+@@ -335,16 +362,25 @@ FOLIO_MATCH(memcg_data, memcg_data);
+ 	static_assert(offsetof(struct folio, fl) ==			\
+ 			offsetof(struct page, pg) + sizeof(struct page))
+ FOLIO_MATCH(flags, _flags_1);
+-FOLIO_MATCH(compound_head, __head);
++FOLIO_MATCH(compound_head, _head_1);
+ FOLIO_MATCH(compound_dtor, _folio_dtor);
+ FOLIO_MATCH(compound_order, _folio_order);
+ FOLIO_MATCH(compound_mapcount, _total_mapcount);
+ FOLIO_MATCH(compound_pincount, _pincount);
+ #ifdef CONFIG_64BIT
+ FOLIO_MATCH(compound_nr, _folio_nr_pages);
+-FOLIO_MATCH(_private_1, _private_1);
+ #endif
+ #undef FOLIO_MATCH
++#define FOLIO_MATCH(pg, fl)						\
++	static_assert(offsetof(struct folio, fl) ==			\
++			offsetof(struct page, pg) + 2 * sizeof(struct page))
++FOLIO_MATCH(flags, _flags_2);
++FOLIO_MATCH(compound_head, _head_2);
++FOLIO_MATCH(hugetlb_subpool, _hugetlb_subpool);
++FOLIO_MATCH(hugetlb_cgroup, _hugetlb_cgroup);
++FOLIO_MATCH(hugetlb_cgroup_rsvd, _hugetlb_cgroup_rsvd);
++FOLIO_MATCH(hugetlb_hwpoison, _hugetlb_hwpoison);
++#undef FOLIO_MATCH
+ 
+ static inline atomic_t *folio_mapcount_ptr(struct folio *folio)
+ {
+@@ -388,16 +424,6 @@ static inline void *folio_get_private(st
+ 	return folio->private;
+ }
+ 
+-static inline void folio_set_private_1(struct folio *folio, unsigned long private)
+-{
+-	folio->_private_1 = private;
+-}
+-
+-static inline unsigned long folio_get_private_1(struct folio *folio)
+-{
+-	return folio->_private_1;
+-}
+-
+ struct page_frag_cache {
+ 	void * va;
+ #if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
+--- a/mm/Kconfig~mmhugetlb-use-folio-fields-in-second-tail-page
++++ a/mm/Kconfig
+@@ -775,7 +775,7 @@ endchoice
+ 
+ config THP_SWAP
+ 	def_bool y
+-	depends on TRANSPARENT_HUGEPAGE && ARCH_WANTS_THP_SWAP && SWAP
++	depends on TRANSPARENT_HUGEPAGE && ARCH_WANTS_THP_SWAP && SWAP && 64BIT
+ 	help
+ 	  Swap transparent huge pages in one piece, without splitting.
+ 	  XXX: For now, swap cluster backing transparent huge page
+--- a/mm/memory-failure.c~mmhugetlb-use-folio-fields-in-second-tail-page
++++ a/mm/memory-failure.c
+@@ -1687,8 +1687,7 @@ EXPORT_SYMBOL_GPL(mf_dax_kill_procs);
+ #ifdef CONFIG_HUGETLB_PAGE
+ /*
+  * Struct raw_hwp_page represents information about "raw error page",
+- * constructing singly linked list originated from ->private field of
+- * SUBPAGE_INDEX_HWPOISON-th tail page.
++ * constructing singly linked list from ->_hugetlb_hwpoison field of folio.
+  */
+ struct raw_hwp_page {
+ 	struct llist_node node;
+@@ -1697,7 +1696,7 @@ struct raw_hwp_page {
+ 
+ static inline struct llist_head *raw_hwp_list_head(struct page *hpage)
+ {
+-	return (struct llist_head *)&page_private(hpage + SUBPAGE_INDEX_HWPOISON);
++	return (struct llist_head *)&page_folio(hpage)->_hugetlb_hwpoison;
+ }
+ 
+ static unsigned long __free_raw_hwp_pages(struct page *hpage, bool move_flag)
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 
