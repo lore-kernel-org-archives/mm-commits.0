@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6173BC352A1
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:15:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67EF4C4708D
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:15:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229708AbiLAAP4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:15:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33558 "EHLO
+        id S229682AbiLAAP5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:15:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229682AbiLAAP3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:15:29 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A14EBA6077
+        with ESMTP id S229901AbiLAAPa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:15:30 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8FF9A6078
         for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:09:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3BA1861378
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:09:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A0EDC433D6;
-        Thu,  1 Dec 2022 00:09:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 47715B81D95
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:09:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBF0CC433C1;
+        Thu,  1 Dec 2022 00:09:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669853377;
-        bh=QfEgi+eLUPkWiC6MQcVjJcShwRc5jC5nU+AZyynHUFU=;
+        s=korg; t=1669853376;
+        bh=D2RN5S8oaTsLgpg3oYHtG26M+3ef0KVNqdfqkdTCaMY=;
         h=Date:To:From:Subject:From;
-        b=AWO2XJ+kUoVPNpa7Q2xsQ1c/Eb1WowaEraSKZwS8F54NedBogD2vcsZ4AWk2vnwEl
-         D7PGSPNwbIXHMc308G6W5Mv3G6I5i3NgnfbtYujv/DfGZekAdqdv1ztANk6XE4Nj5e
-         /6b4CIuRaj5A+hYWTW+czAfqsrFfG2HFC5hPTock=
-Date:   Wed, 30 Nov 2022 16:09:36 -0800
+        b=xWC6pEmvUvIJvE8jzq22icT+spLfziRnHOaG+fZ76Wz2241RPp8Raqiy9qyDUn0xD
+         3pzJ/dkRHKy6trWBFZ2CtLzTE2K3Ax4LVwY/1+6tT7zBoQuTcQMuEz5W8Ic/6JCy5q
+         qwXRilYxHazBJ4ooMwUuFBYxQq714POhpJNATMrg=
+Date:   Wed, 30 Nov 2022 16:09:35 -0800
 To:     mm-commits@vger.kernel.org, sander@svanheule.net,
         rostedt@goodmis.org, peterz@infradead.org,
         naveen.n.rao@linux.ibm.com, mhiramat@kernel.org,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, sander@svanheule.net,
         dan.j.williams@intel.com, anil.s.keshavamurthy@intel.com,
         wuqiang.matt@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kprobes-freelisth-removed.patch removed from -mm tree
-Message-Id: <20221201000937.5A0EDC433D6@smtp.kernel.org>
+Subject: [to-be-updated] kprobes-kretprobe-scalability-improvement-with-objpool.patch removed from -mm tree
+Message-Id: <20221201000935.EBF0CC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,21 +45,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kprobes: freelist.h removed
+     Subject: kprobes: kretprobe scalability improvement with objpool
 has been removed from the -mm tree.  Its filename was
-     kprobes-freelisth-removed.patch
+     kprobes-kretprobe-scalability-improvement-with-objpool.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: wuqiang <wuqiang.matt@bytedance.com>
-Subject: kprobes: freelist.h removed
-Date: Tue, 8 Nov 2022 15:14:43 +0800
+Subject: kprobes: kretprobe scalability improvement with objpool
+Date: Tue, 8 Nov 2022 15:14:42 +0800
 
-This patch will remove freelist.h from kernel source tree, since the only
-use cases (kretprobe and rethook) are converted to objpool.
+kretprobe is using freelist to manage return-instances, but freelist, as
+LIFO queue based on singly linked list, scales badly and reduces the
+overall throughput of kretprobed routines, especially for high contention
+scenarios.
 
-Link: https://lkml.kernel.org/r/20221108071443.258794-5-wuqiang.matt@bytedance.com
+Here's a typical throughput test of sys_flock (counts in 10 seconds,
+measured with perf stat -a -I 10000 -e syscalls:sys_enter_flock):
+
+OS: Debian 10 X86_64, Linux 6.1rc2
+HW: XEON 8336C x 2, 64 cores/128 threads, DDR4 3200MT/s
+
+      1X       2X       4X       6X       8X      12X      16X
+34762430 36546920 17949900 13101899 12569595 12646601 14729195
+     24X      32X      48X      64X      72X      96X     128X
+19263546 10102064  8985418 11936495 11493980  7127789  9330985
+
+This patch introduces objpool to kretprobe and rethook, with orginal
+freelist replaced and brings near-linear scalability to kretprobed
+routines. Tests of kretprobe throughput show the biggest ratio as
+333.9x of the original freelist. Here's the comparison:
+
+                  1X         2X         4X         8X        16X
+freelist:   34762430   36546920   17949900   12569595   14729195
+objpool:    35627544   72182095  144068494  287564688  576903916
+                 32X        48X        64X        96X       128X
+freelist:   10102064    8985418   11936495    7127789    9330985
+objpool:  1158876372 1737828164 2324371724 2380310472 2463182819
+
+Tests on 96-core ARM64 system output similarly, but with the biggest
+ratio up to 642.2x:
+
+OS: Debian 10 AARCH64, Linux 6.1rc2
+HW: Kunpeng-920 96 cores/2 sockets/4 NUMA nodes, DDR4 2933 MT/s
+
+                  1X         2X         4X         8X        16X
+freelist:   17498299   10887037   10224710    8499132    6421751
+objpool:    18715726   35549845   71615884  144258971  283707220
+                 24X        32X        48X        64X        96X
+freelist:    5339868    4819116    3593919    3121575    2687167
+objpool:   419830913  571609748  877456139 1143316315 1725668029
+
+Link: https://lkml.kernel.org/r/20221108071443.258794-4-wuqiang.matt@bytedance.com
 Signed-off-by: wuqiang <wuqiang.matt@bytedance.com>
 Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -74,143 +112,454 @@ Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freelist.h |  129 -------------------------------------
- 1 file changed, 129 deletions(-)
+ include/linux/kprobes.h |    9 +--
+ include/linux/rethook.h |   15 ++----
+ kernel/kprobes.c        |   95 +++++++++++++++++---------------------
+ kernel/trace/fprobe.c   |   15 +-----
+ kernel/trace/rethook.c  |   80 ++++++++++++++++----------------
+ 5 files changed, 94 insertions(+), 120 deletions(-)
 
---- a/include/linux/freelist.h
-+++ /dev/null
-@@ -1,129 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause */
--#ifndef FREELIST_H
--#define FREELIST_H
+--- a/include/linux/kprobes.h~kprobes-kretprobe-scalability-improvement-with-objpool
++++ a/include/linux/kprobes.h
+@@ -27,7 +27,7 @@
+ #include <linux/mutex.h>
+ #include <linux/ftrace.h>
+ #include <linux/refcount.h>
+-#include <linux/freelist.h>
++#include <linux/objpool.h>
+ #include <linux/rethook.h>
+ #include <asm/kprobes.h>
+ 
+@@ -141,6 +141,7 @@ static inline bool kprobe_ftrace(struct
+  */
+ struct kretprobe_holder {
+ 	struct kretprobe	*rp;
++	struct objpool_head	oh;
+ 	refcount_t		ref;
+ };
+ 
+@@ -154,7 +155,6 @@ struct kretprobe {
+ #ifdef CONFIG_KRETPROBE_ON_RETHOOK
+ 	struct rethook *rh;
+ #else
+-	struct freelist_head freelist;
+ 	struct kretprobe_holder *rph;
+ #endif
+ };
+@@ -165,10 +165,7 @@ struct kretprobe_instance {
+ #ifdef CONFIG_KRETPROBE_ON_RETHOOK
+ 	struct rethook_node node;
+ #else
+-	union {
+-		struct freelist_node freelist;
+-		struct rcu_head rcu;
+-	};
++	struct rcu_head rcu;
+ 	struct llist_node llist;
+ 	struct kretprobe_holder *rph;
+ 	kprobe_opcode_t *ret_addr;
+--- a/include/linux/rethook.h~kprobes-kretprobe-scalability-improvement-with-objpool
++++ a/include/linux/rethook.h
+@@ -6,7 +6,7 @@
+ #define _LINUX_RETHOOK_H
+ 
+ #include <linux/compiler.h>
+-#include <linux/freelist.h>
++#include <linux/objpool.h>
+ #include <linux/kallsyms.h>
+ #include <linux/llist.h>
+ #include <linux/rcupdate.h>
+@@ -30,14 +30,14 @@ typedef void (*rethook_handler_t) (struc
+ struct rethook {
+ 	void			*data;
+ 	rethook_handler_t	handler;
+-	struct freelist_head	pool;
++	struct objpool_head	pool;
+ 	refcount_t		ref;
+ 	struct rcu_head		rcu;
+ };
+ 
+ /**
+  * struct rethook_node - The rethook shadow-stack entry node.
+- * @freelist: The freelist, linked to struct rethook::pool.
++ * @nod: The objpool node, linked to struct rethook::pool.
+  * @rcu: The rcu_head for deferred freeing.
+  * @llist: The llist, linked to a struct task_struct::rethooks.
+  * @rethook: The pointer to the struct rethook.
+@@ -48,19 +48,15 @@ struct rethook {
+  * on each entry of the shadow stack.
+  */
+ struct rethook_node {
+-	union {
+-		struct freelist_node freelist;
+-		struct rcu_head      rcu;
+-	};
++	struct rcu_head		rcu;
+ 	struct llist_node	llist;
+ 	struct rethook		*rethook;
+ 	unsigned long		ret_addr;
+ 	unsigned long		frame;
+ };
+ 
+-struct rethook *rethook_alloc(void *data, rethook_handler_t handler);
++struct rethook *rethook_alloc(void *data, rethook_handler_t handler, gfp_t gfp, int size, int max);
+ void rethook_free(struct rethook *rh);
+-void rethook_add_node(struct rethook *rh, struct rethook_node *node);
+ struct rethook_node *rethook_try_get(struct rethook *rh);
+ void rethook_recycle(struct rethook_node *node);
+ void rethook_hook(struct rethook_node *node, struct pt_regs *regs, bool mcount);
+@@ -97,4 +93,3 @@ void rethook_flush_task(struct task_stru
+ #endif
+ 
+ #endif
 -
--#include <linux/atomic.h>
+--- a/kernel/kprobes.c~kprobes-kretprobe-scalability-improvement-with-objpool
++++ a/kernel/kprobes.c
+@@ -1865,10 +1865,12 @@ static struct notifier_block kprobe_exce
+ static void free_rp_inst_rcu(struct rcu_head *head)
+ {
+ 	struct kretprobe_instance *ri = container_of(head, struct kretprobe_instance, rcu);
++	struct kretprobe_holder *rph = ri->rph;
+ 
+-	if (refcount_dec_and_test(&ri->rph->ref))
+-		kfree(ri->rph);
+-	kfree(ri);
++	if (refcount_dec_and_test(&rph->ref)) {
++		objpool_fini(&rph->oh);
++		kfree(rph);
++	}
+ }
+ NOKPROBE_SYMBOL(free_rp_inst_rcu);
+ 
+@@ -1877,7 +1879,7 @@ static void recycle_rp_inst(struct kretp
+ 	struct kretprobe *rp = get_kretprobe(ri);
+ 
+ 	if (likely(rp))
+-		freelist_add(&ri->freelist, &rp->freelist);
++		objpool_push(ri, &rp->rph->oh);
+ 	else
+ 		call_rcu(&ri->rcu, free_rp_inst_rcu);
+ }
+@@ -1914,23 +1916,19 @@ NOKPROBE_SYMBOL(kprobe_flush_task);
+ 
+ static inline void free_rp_inst(struct kretprobe *rp)
+ {
+-	struct kretprobe_instance *ri;
+-	struct freelist_node *node;
+-	int count = 0;
 -
--/*
-- * Copyright: cameron@moodycamel.com
+-	node = rp->freelist.head;
+-	while (node) {
+-		ri = container_of(node, struct kretprobe_instance, freelist);
+-		node = node->next;
+-
+-		kfree(ri);
+-		count++;
+-	}
++	struct kretprobe_holder *rph = rp->rph;
++	void *nod;
+ 
+-	if (refcount_sub_and_test(count, &rp->rph->ref)) {
+-		kfree(rp->rph);
+-		rp->rph = NULL;
+-	}
++	rp->rph = NULL;
++	do {
++		nod = objpool_pop(&rph->oh);
++		/* deref anyway since we've one extra ref grabbed */
++		if (refcount_dec_and_test(&rph->ref)) {
++			objpool_fini(&rph->oh);
++			kfree(rph);
++			break;
++		}
++	} while (nod);
+ }
+ 
+ /* This assumes the 'tsk' is the current task or the is not running. */
+@@ -2072,19 +2070,17 @@ NOKPROBE_SYMBOL(__kretprobe_trampoline_h
+ static int pre_handler_kretprobe(struct kprobe *p, struct pt_regs *regs)
+ {
+ 	struct kretprobe *rp = container_of(p, struct kretprobe, kp);
++	struct kretprobe_holder *rph = rp->rph;
+ 	struct kretprobe_instance *ri;
+-	struct freelist_node *fn;
+ 
+-	fn = freelist_try_get(&rp->freelist);
+-	if (!fn) {
++	ri = objpool_pop(&rph->oh);
++	if (!ri) {
+ 		rp->nmissed++;
+ 		return 0;
+ 	}
+ 
+-	ri = container_of(fn, struct kretprobe_instance, freelist);
+-
+ 	if (rp->entry_handler && rp->entry_handler(ri, regs)) {
+-		freelist_add(&ri->freelist, &rp->freelist);
++		objpool_push(ri, &rph->oh);
+ 		return 0;
+ 	}
+ 
+@@ -2174,10 +2170,19 @@ int kprobe_on_func_entry(kprobe_opcode_t
+ 	return 0;
+ }
+ 
++#ifndef CONFIG_KRETPROBE_ON_RETHOOK
++static int kretprobe_init_inst(void *context, void *nod)
++{
++	struct kretprobe_instance *ri = nod;
++
++	ri->rph = context;
++	return 0;
++}
++#endif
++
+ int register_kretprobe(struct kretprobe *rp)
+ {
+ 	int ret;
+-	struct kretprobe_instance *inst;
+ 	int i;
+ 	void *addr;
+ 
+@@ -2215,20 +2220,12 @@ int register_kretprobe(struct kretprobe
+ #endif
+ 	}
+ #ifdef CONFIG_KRETPROBE_ON_RETHOOK
+-	rp->rh = rethook_alloc((void *)rp, kretprobe_rethook_handler);
++	rp->rh = rethook_alloc((void *)rp, kretprobe_rethook_handler, GFP_KERNEL,
++				sizeof(struct kretprobe_instance) + rp->data_size,
++				rp->maxactive);
+ 	if (!rp->rh)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < rp->maxactive; i++) {
+-		inst = kzalloc(sizeof(struct kretprobe_instance) +
+-			       rp->data_size, GFP_KERNEL);
+-		if (inst == NULL) {
+-			rethook_free(rp->rh);
+-			rp->rh = NULL;
+-			return -ENOMEM;
+-		}
+-		rethook_add_node(rp->rh, &inst->node);
+-	}
+ 	rp->nmissed = 0;
+ 	/* Establish function entry probe point */
+ 	ret = register_kprobe(&rp->kp);
+@@ -2237,25 +2234,19 @@ int register_kretprobe(struct kretprobe
+ 		rp->rh = NULL;
+ 	}
+ #else	/* !CONFIG_KRETPROBE_ON_RETHOOK */
+-	rp->freelist.head = NULL;
+ 	rp->rph = kzalloc(sizeof(struct kretprobe_holder), GFP_KERNEL);
+ 	if (!rp->rph)
+ 		return -ENOMEM;
+ 
+-	rp->rph->rp = rp;
+-	for (i = 0; i < rp->maxactive; i++) {
+-		inst = kzalloc(sizeof(struct kretprobe_instance) +
+-			       rp->data_size, GFP_KERNEL);
+-		if (inst == NULL) {
+-			refcount_set(&rp->rph->ref, i);
+-			free_rp_inst(rp);
+-			return -ENOMEM;
+-		}
+-		inst->rph = rp->rph;
+-		freelist_add(&inst->freelist, &rp->freelist);
++	if (objpool_init(&rp->rph->oh, rp->maxactive, rp->maxactive,
++			  rp->data_size + sizeof(struct kretprobe_instance),
++			  GFP_KERNEL, rp->rph, kretprobe_init_inst, NULL)) {
++		kfree(rp->rph);
++		rp->rph = NULL;
++		return -ENOMEM;
+ 	}
+-	refcount_set(&rp->rph->ref, i);
+-
++	refcount_set(&rp->rph->ref, rp->maxactive + 1);
++	rp->rph->rp = rp;
+ 	rp->nmissed = 0;
+ 	/* Establish function entry probe point */
+ 	ret = register_kprobe(&rp->kp);
+--- a/kernel/trace/fprobe.c~kprobes-kretprobe-scalability-improvement-with-objpool
++++ a/kernel/trace/fprobe.c
+@@ -125,7 +125,7 @@ static void fprobe_init(struct fprobe *f
+ 
+ static int fprobe_init_rethook(struct fprobe *fp, int num)
+ {
+-	int i, size;
++	int size;
+ 
+ 	if (num < 0)
+ 		return -EINVAL;
+@@ -140,20 +140,11 @@ static int fprobe_init_rethook(struct fp
+ 	if (size < 0)
+ 		return -E2BIG;
+ 
+-	fp->rethook = rethook_alloc((void *)fp, fprobe_exit_handler);
++	fp->rethook = rethook_alloc((void *)fp, fprobe_exit_handler, GFP_KERNEL,
++				sizeof(struct fprobe_rethook_node), size);
+ 	if (!fp->rethook)
+ 		return -ENOMEM;
+-	for (i = 0; i < size; i++) {
+-		struct fprobe_rethook_node *node;
+ 
+-		node = kzalloc(sizeof(*node), GFP_KERNEL);
+-		if (!node) {
+-			rethook_free(fp->rethook);
+-			fp->rethook = NULL;
+-			return -ENOMEM;
+-		}
+-		rethook_add_node(fp->rethook, &node->node);
+-	}
+ 	return 0;
+ }
+ 
+--- a/kernel/trace/rethook.c~kprobes-kretprobe-scalability-improvement-with-objpool
++++ a/kernel/trace/rethook.c
+@@ -36,21 +36,17 @@ void rethook_flush_task(struct task_stru
+ static void rethook_free_rcu(struct rcu_head *head)
+ {
+ 	struct rethook *rh = container_of(head, struct rethook, rcu);
+-	struct rethook_node *rhn;
+-	struct freelist_node *node;
+-	int count = 1;
+-
+-	node = rh->pool.head;
+-	while (node) {
+-		rhn = container_of(node, struct rethook_node, freelist);
+-		node = node->next;
+-		kfree(rhn);
+-		count++;
+-	}
++	struct rethook_node *nod;
+ 
+-	/* The rh->ref is the number of pooled node + 1 */
+-	if (refcount_sub_and_test(count, &rh->ref))
+-		kfree(rh);
++	do {
++		nod = objpool_pop(&rh->pool);
++		/* deref anyway since we've one extra ref grabbed */
++		if (refcount_dec_and_test(&rh->ref)) {
++			objpool_fini(&rh->pool);
++			kfree(rh);
++			break;
++		}
++	} while (nod);
+ }
+ 
+ /**
+@@ -70,16 +66,28 @@ void rethook_free(struct rethook *rh)
+ 	call_rcu(&rh->rcu, rethook_free_rcu);
+ }
+ 
++static int rethook_init_node(void *context, void *nod)
++{
++	struct rethook_node *node = nod;
++
++	node->rethook = context;
++	return 0;
++}
++
+ /**
+  * rethook_alloc() - Allocate struct rethook.
+  * @data: a data to pass the @handler when hooking the return.
+  * @handler: the return hook callback function.
++ * @gfp: default gfp for objpool allocation
++ * @size: rethook node size
++ * @max: number of rethook nodes to be preallocated
+  *
+  * Allocate and initialize a new rethook with @data and @handler.
+  * Return NULL if memory allocation fails or @handler is NULL.
+  * Note that @handler == NULL means this rethook is going to be freed.
+  */
+-struct rethook *rethook_alloc(void *data, rethook_handler_t handler)
++struct rethook *rethook_alloc(void *data, rethook_handler_t handler, gfp_t gfp,
++			      int size, int max)
+ {
+ 	struct rethook *rh = kzalloc(sizeof(struct rethook), GFP_KERNEL);
+ 
+@@ -88,34 +96,26 @@ struct rethook *rethook_alloc(void *data
+ 
+ 	rh->data = data;
+ 	rh->handler = handler;
+-	rh->pool.head = NULL;
+-	refcount_set(&rh->ref, 1);
+ 
++	/* initialize the objpool for rethook nodes */
++	if (objpool_init(&rh->pool, max, max, size, gfp, rh, rethook_init_node,
++			NULL)) {
++		kfree(rh);
++		return NULL;
++	}
++	refcount_set(&rh->ref, max + 1);
+ 	return rh;
+ }
+ 
+-/**
+- * rethook_add_node() - Add a new node to the rethook.
+- * @rh: the struct rethook.
+- * @node: the struct rethook_node to be added.
 - *
-- * A simple CAS-based lock-free free list. Not the fastest thing in the world
-- * under heavy contention, but simple and correct (assuming nodes are never
-- * freed until after the free list is destroyed), and fairly speedy under low
-- * contention.
-- *
-- * Adapted from: https://moodycamel.com/blog/2014/solving-the-aba-problem-for-lock-free-free-lists
+- * Add @node to @rh. User must allocate @node (as a part of user's
+- * data structure.) The @node fields are initialized in this function.
 - */
--
--struct freelist_node {
--	atomic_t		refs;
--	struct freelist_node	*next;
--};
--
--struct freelist_head {
--	struct freelist_node	*head;
--};
--
--#define REFS_ON_FREELIST 0x80000000
--#define REFS_MASK	 0x7FFFFFFF
--
--static inline void __freelist_add(struct freelist_node *node, struct freelist_head *list)
+-void rethook_add_node(struct rethook *rh, struct rethook_node *node)
 -{
--	/*
--	 * Since the refcount is zero, and nobody can increase it once it's
--	 * zero (except us, and we run only one copy of this method per node at
--	 * a time, i.e. the single thread case), then we know we can safely
--	 * change the next pointer of the node; however, once the refcount is
--	 * back above zero, then other threads could increase it (happens under
--	 * heavy contention, when the refcount goes to zero in between a load
--	 * and a refcount increment of a node in try_get, then back up to
--	 * something non-zero, then the refcount increment is done by the other
--	 * thread) -- so if the CAS to add the node to the actual list fails,
--	 * decrese the refcount and leave the add operation to the next thread
--	 * who puts the refcount back to zero (which could be us, hence the
--	 * loop).
--	 */
--	struct freelist_node *head = READ_ONCE(list->head);
--
--	for (;;) {
--		WRITE_ONCE(node->next, head);
--		atomic_set_release(&node->refs, 1);
--
--		if (!try_cmpxchg_release(&list->head, &head, node)) {
--			/*
--			 * Hmm, the add failed, but we can only try again when
--			 * the refcount goes back to zero.
--			 */
--			if (atomic_fetch_add_release(REFS_ON_FREELIST - 1, &node->refs) == 1)
--				continue;
--		}
--		return;
--	}
+-	node->rethook = rh;
+-	freelist_add(&node->freelist, &rh->pool);
+-	refcount_inc(&rh->ref);
 -}
 -
--static inline void freelist_add(struct freelist_node *node, struct freelist_head *list)
--{
--	/*
--	 * We know that the should-be-on-freelist bit is 0 at this point, so
--	 * it's safe to set it using a fetch_add.
--	 */
--	if (!atomic_fetch_add_release(REFS_ON_FREELIST, &node->refs)) {
--		/*
--		 * Oh look! We were the last ones referencing this node, and we
--		 * know we want to add it to the free list, so let's do it!
--		 */
--		__freelist_add(node, list);
--	}
--}
--
--static inline struct freelist_node *freelist_try_get(struct freelist_head *list)
--{
--	struct freelist_node *prev, *next, *head = smp_load_acquire(&list->head);
--	unsigned int refs;
--
--	while (head) {
--		prev = head;
--		refs = atomic_read(&head->refs);
--		if ((refs & REFS_MASK) == 0 ||
--		    !atomic_try_cmpxchg_acquire(&head->refs, &refs, refs+1)) {
--			head = smp_load_acquire(&list->head);
--			continue;
--		}
--
--		/*
--		 * Good, reference count has been incremented (it wasn't at
--		 * zero), which means we can read the next and not worry about
--		 * it changing between now and the time we do the CAS.
--		 */
--		next = READ_ONCE(head->next);
--		if (try_cmpxchg_acquire(&list->head, &head, next)) {
--			/*
--			 * Yay, got the node. This means it was on the list,
--			 * which means should-be-on-freelist must be false no
--			 * matter the refcount (because nobody else knows it's
--			 * been taken off yet, it can't have been put back on).
--			 */
--			WARN_ON_ONCE(atomic_read(&head->refs) & REFS_ON_FREELIST);
--
--			/*
--			 * Decrease refcount twice, once for our ref, and once
--			 * for the list's ref.
--			 */
--			atomic_fetch_add(-2, &head->refs);
--
--			return head;
--		}
--
--		/*
--		 * OK, the head must have changed on us, but we still need to decrement
--		 * the refcount we increased.
--		 */
--		refs = atomic_fetch_add(-1, &prev->refs);
--		if (refs == REFS_ON_FREELIST + 1)
--			__freelist_add(prev, list);
--	}
--
--	return NULL;
--}
--
--#endif /* FREELIST_H */
+ static void free_rethook_node_rcu(struct rcu_head *head)
+ {
+ 	struct rethook_node *node = container_of(head, struct rethook_node, rcu);
++	struct rethook *rh = node->rethook;
+ 
+-	if (refcount_dec_and_test(&node->rethook->ref))
+-		kfree(node->rethook);
+-	kfree(node);
++	if (refcount_dec_and_test(&rh->ref)) {
++		objpool_fini(&rh->pool);
++		kfree(rh);
++	}
+ }
+ 
+ /**
+@@ -130,7 +130,7 @@ void rethook_recycle(struct rethook_node
+ 	lockdep_assert_preemption_disabled();
+ 
+ 	if (likely(READ_ONCE(node->rethook->handler)))
+-		freelist_add(&node->freelist, &node->rethook->pool);
++		objpool_push(node, &node->rethook->pool);
+ 	else
+ 		call_rcu(&node->rcu, free_rethook_node_rcu);
+ }
+@@ -146,7 +146,7 @@ NOKPROBE_SYMBOL(rethook_recycle);
+ struct rethook_node *rethook_try_get(struct rethook *rh)
+ {
+ 	rethook_handler_t handler = READ_ONCE(rh->handler);
+-	struct freelist_node *fn;
++	struct rethook_node *nod;
+ 
+ 	lockdep_assert_preemption_disabled();
+ 
+@@ -163,11 +163,11 @@ struct rethook_node *rethook_try_get(str
+ 	if (unlikely(!rcu_is_watching()))
+ 		return NULL;
+ 
+-	fn = freelist_try_get(&rh->pool);
+-	if (!fn)
++	nod = (struct rethook_node *)objpool_pop(&rh->pool);
++	if (!nod)
+ 		return NULL;
+ 
+-	return container_of(fn, struct rethook_node, freelist);
++	return nod;
+ }
+ NOKPROBE_SYMBOL(rethook_try_get);
+ 
 _
 
 Patches currently in -mm which might be from wuqiang.matt@bytedance.com are
 
+kprobes-freelisth-removed.patch
 
