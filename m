@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9F9EC4321E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C8BCC4708E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229943AbiLAAIh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:08:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53270 "EHLO
+        id S230462AbiLAAIm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:08:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230269AbiLAAGg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:36 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DE1CE0A
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:35 -0800 (PST)
+        with ESMTP id S230400AbiLAAGk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:06:40 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 164455F95
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:41 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CED71B81D84
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 731D5C433D6;
-        Thu,  1 Dec 2022 00:02:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9EE2461E5B
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E376FC4347C;
+        Thu,  1 Dec 2022 00:02:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852952;
-        bh=jgQbE7ebSSY1Zn9wSrCPdwdiUdqV2coZW2uezcOTARU=;
+        s=korg; t=1669852960;
+        bh=6yFn51elkrXcL3F9oNQpcKKJP2MwlFfIARvnq0A5qxc=;
         h=Date:To:From:Subject:From;
-        b=Gh3j9VT+IpRs6tNkdM3tSOXsZG4JwaBAzGevup3NtFb3Suh5igRUwLJTbLL+g+wf/
-         bIPNE4F7LO/1zrRzljv4P6cdlK63e/+GyX62hYsMuK1MOpOou1wIM+UF1pijwmKBzy
-         Vg54dpZGCbW0bq7Kv/JW6MYw4wVUF+2nvyeXTqi8=
-Date:   Wed, 30 Nov 2022 16:02:31 -0800
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, vbabka@suse.cz,
-        mtosatti@redhat.com, m.szyprowski@samsung.com, mhocko@kernel.org,
-        hughd@google.com, mgorman@techsingularity.net,
+        b=xzfVgMO6p4zJdKm356W6l9XgzkfzNslHxdAz6JBLnR3BMGyKEiD0KOKOov2WLkPiZ
+         +fxUFsNzkawFQ+/yd5uF0SNGyuodzQwArjPWx1J8X5overnyIGUDlBo15n5Dx6DMZw
+         FIRMAeDuw+R1naKNUc1BhrB0KxqdVgl7Y3oUY0Hs=
+Date:   Wed, 30 Nov 2022 16:02:39 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
+        naoya.horiguchi@nec.com, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-always-remove-pages-from-temporary-list.patch removed from -mm tree
-Message-Id: <20221201000232.731D5C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] folio-compat-remove-try_to_release_page.patch removed from -mm tree
+Message-Id: <20221201000239.E376FC4347C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,61 +42,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: always remove pages from temporary list
+     Subject: folio-compat: remove try_to_release_page()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-always-remove-pages-from-temporary-list.patch
+     folio-compat-remove-try_to_release_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: always remove pages from temporary list
-Date: Fri, 18 Nov 2022 10:17:13 +0000
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: folio-compat: remove try_to_release_page()
+Date: Thu, 17 Nov 2022 23:30:55 -0800
 
-Patch series "Leave IRQs enabled for per-cpu page allocations", v3.
+There are no more callers of try_to_release_page(), so remove it.  This
+saves 85 bytes of kernel text.
 
-
-This patch (of 2):
-
-free_unref_page_list() has neglected to remove pages properly from the
-list of pages to free since forever.  It works by coincidence because
-list_add happened to do the right thing adding the pages to just the PCP
-lists.  However, a later patch added pages to either the PCP list or the
-zone list but only properly deleted the page from the list in one path
-leading to list corruption and a subsequent failure.  As a preparation
-patch, always delete the pages from one list properly before adding to
-another.  On its own, this fixes nothing although it adds a fractional
-amount of overhead but is critical to the next patch.
-
-Link: https://lkml.kernel.org/r/20221118101714.19590-1-mgorman@techsingularity.net
-Link: https://lkml.kernel.org/r/20221118101714.19590-2-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20221118073055.55694-5-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/pagemap.h |    1 -
+ mm/folio-compat.c       |    6 ------
+ 2 files changed, 7 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-always-remove-pages-from-temporary-list
-+++ a/mm/page_alloc.c
-@@ -3553,6 +3553,8 @@ void free_unref_page_list(struct list_he
- 	list_for_each_entry_safe(page, next, list, lru) {
- 		struct zone *zone = page_zone(page);
+--- a/include/linux/pagemap.h~folio-compat-remove-try_to_release_page
++++ a/include/linux/pagemap.h
+@@ -1105,7 +1105,6 @@ void __filemap_remove_folio(struct folio
+ void replace_page_cache_page(struct page *old, struct page *new);
+ void delete_from_page_cache_batch(struct address_space *mapping,
+ 				  struct folio_batch *fbatch);
+-int try_to_release_page(struct page *page, gfp_t gfp);
+ bool filemap_release_folio(struct folio *folio, gfp_t gfp);
+ loff_t mapping_seek_hole_data(struct address_space *, loff_t start, loff_t end,
+ 		int whence);
+--- a/mm/folio-compat.c~folio-compat-remove-try_to_release_page
++++ a/mm/folio-compat.c
+@@ -118,12 +118,6 @@ struct page *grab_cache_page_write_begin
+ }
+ EXPORT_SYMBOL(grab_cache_page_write_begin);
  
-+		list_del(&page->lru);
-+
- 		/* Different zone, different pcp lock. */
- 		if (zone != locked_zone) {
- 			if (pcp)
+-int try_to_release_page(struct page *page, gfp_t gfp)
+-{
+-	return filemap_release_folio(page_folio(page), gfp);
+-}
+-EXPORT_SYMBOL(try_to_release_page);
+-
+ int isolate_lru_page(struct page *page)
+ {
+ 	if (WARN_RATELIMIT(PageTail(page), "trying to isolate tail page"))
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
+filemap-convert-replace_page_cache_page-to-replace_page_cache_folio.patch
+fuse-convert-fuse_try_move_page-to-use-folios.patch
+userfualtfd-replace-lru_cache-functions-with-folio_add-functions.patch
+khugepage-replace-lru_cache_add-with-folio_add_lru.patch
+folio-compat-remove-lru_cache_add.patch
 
