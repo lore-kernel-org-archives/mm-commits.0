@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06480C4321E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:05:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BA25C47089
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:05:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230299AbiLAAFe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:05:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47844 "EHLO
+        id S230247AbiLAAFh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:05:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230245AbiLAADe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:03:34 -0500
+        with ESMTP id S230167AbiLAADn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:03:43 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D4728EE4C
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:01:40 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 312658EE53
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:01:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D4E896176C
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:01:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26B54C433D7;
-        Thu,  1 Dec 2022 00:01:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 453A561E6B
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:01:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FD10C433D6;
+        Thu,  1 Dec 2022 00:01:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852899;
-        bh=LK1Ms0G1h8ncPxD1ys7LweNZVHxpTpO9+n9hvMDiWgk=;
+        s=korg; t=1669852901;
+        bh=NM4ZewpNZNUw9Ed+I+UntDeNbZ/X3z42ohiXYyVR+Rw=;
         h=Date:To:From:Subject:From;
-        b=Bh/fKDerz3dBM1kOaviWf0dAb5YiVDRehvAjKquA1JZGhc9j/l+j2mj+OqDUMtztF
-         aFXMhvqHASkUYtquCuI7cm/rUdkv7VJhdFHyxNuBR7rf/nxhbNFsedOt5RmgiPmuUz
-         5dbQtS0sBelb1z7SOSP8PThjyKJlSlGPZaEiy1o8=
-Date:   Wed, 30 Nov 2022 16:01:38 -0800
-To:     mm-commits@vger.kernel.org, suleiman@google.com, nphamcs@gmail.com,
-        ngupta@vflare.org, minchan@kernel.org, avromanov@sberdevices.ru,
-        senozhatsky@chromium.org, akpm@linux-foundation.org
+        b=A+TA7Gdi+HeVgS5Z38cgpOB+Lj/622Y/gk8zsaInFwyY9rCDdICBLoK9zLChqJReH
+         7IXKxWBNHYux87B3rzAzBji4fSNXpDOeYEvV6Q+V9RiQr6ZGe0I2tQSE/nT7W1Qtno
+         qAevHQiUse7EPWUCpvN5wbMaurYCDuXcMrntzqj4=
+Date:   Wed, 30 Nov 2022 16:01:40 -0800
+To:     mm-commits@vger.kernel.org, peterz@infradead.org,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        quic_pkondeti@quicinc.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-add-incompressible-flag-to-read_block_state.patch removed from -mm tree
-Message-Id: <20221201000139.26B54C433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kfence-remove-hung_task-cruft.patch removed from -mm tree
+Message-Id: <20221201000141.6FD10C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,87 +42,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zram: add incompressible flag to read_block_state()
+     Subject: mm/kfence: remove hung_task cruft
 has been removed from the -mm tree.  Its filename was
-     zram-add-incompressible-flag-to-read_block_state.patch
+     mm-kfence-remove-hung_task-cruft.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add incompressible flag to read_block_state()
-Date: Wed, 9 Nov 2022 20:50:47 +0900
+From: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
+Subject: mm/kfence: remove hung_task cruft
+Date: Wed, 9 Nov 2022 14:56:46 +0530
 
-Add a new flag to zram block state that shows if the page is
-incompressible: that none of the algorithm (including secondary ones)
-could compress it.
+commit fdf756f71271 ("sched: Fix more TASK_state comparisons") makes
+hung_task not to monitor TASK_IDLE tasks.  The special handling to
+workaround hung_task warnings is not required anymore.
 
-Link: https://lkml.kernel.org/r/20221109115047.2921851-14-senozhatsky@chromium.org
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Alexey Romanov <avromanov@sberdevices.ru>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Suleiman Souhlal <suleiman@google.com>
+Link: https://lkml.kernel.org/r/1667986006-25420-1-git-send-email-quic_pkondeti@quicinc.com
+Signed-off-by: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |   11 +++++++----
- drivers/block/zram/zram_drv.c               |    6 ++++--
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ mm/kfence/core.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-add-incompressible-flag-to-read_block_state
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -497,10 +497,11 @@ pages of the process with*pagemap.
- If you enable the feature, you could see block state via
- /sys/kernel/debug/zram/zram0/block_state". The output is as follows::
+--- a/mm/kfence/core.c~mm-kfence-remove-hung_task-cruft
++++ a/mm/kfence/core.c
+@@ -26,7 +26,6 @@
+ #include <linux/random.h>
+ #include <linux/rcupdate.h>
+ #include <linux/sched/clock.h>
+-#include <linux/sched/sysctl.h>
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+@@ -799,16 +798,7 @@ static void toggle_allocation_gate(struc
+ 	/* Enable static key, and await allocation to happen. */
+ 	static_branch_enable(&kfence_allocation_key);
  
--	  300    75.033841 .wh..
--	  301    63.806904 s....
--	  302    63.806919 ..hi.
--	  303    62.801919 ....r
-+	  300    75.033841 .wh...
-+	  301    63.806904 s.....
-+	  302    63.806919 ..hi..
-+	  303    62.801919 ....r.
-+	  304   146.781902 ..hi.n
+-	if (sysctl_hung_task_timeout_secs) {
+-		/*
+-		 * During low activity with no allocations we might wait a
+-		 * while; let's avoid the hung task warning.
+-		 */
+-		wait_event_idle_timeout(allocation_wait, atomic_read(&kfence_allocation_gate),
+-					sysctl_hung_task_timeout_secs * HZ / 2);
+-	} else {
+-		wait_event_idle(allocation_wait, atomic_read(&kfence_allocation_gate));
+-	}
++	wait_event_idle(allocation_wait, atomic_read(&kfence_allocation_gate));
  
- First column
- 	zram's block index.
-@@ -519,6 +520,8 @@ Third column
- 		idle page
- 	r:
- 		recompressed page (secondary compression algorithm)
-+	n:
-+		none (including secondary) of algorithms could compress it
- 
- First line of above example says 300th block is accessed at 75.033841sec
- and the block's state is huge so it is written back to the backing
---- a/drivers/block/zram/zram_drv.c~zram-add-incompressible-flag-to-read_block_state
-+++ a/drivers/block/zram/zram_drv.c
-@@ -946,14 +946,16 @@ static ssize_t read_block_state(struct f
- 
- 		ts = ktime_to_timespec64(zram->table[index].ac_time);
- 		copied = snprintf(kbuf + written, count,
--			"%12zd %12lld.%06lu %c%c%c%c%c\n",
-+			"%12zd %12lld.%06lu %c%c%c%c%c%c\n",
- 			index, (s64)ts.tv_sec,
- 			ts.tv_nsec / NSEC_PER_USEC,
- 			zram_test_flag(zram, index, ZRAM_SAME) ? 's' : '.',
- 			zram_test_flag(zram, index, ZRAM_WB) ? 'w' : '.',
- 			zram_test_flag(zram, index, ZRAM_HUGE) ? 'h' : '.',
- 			zram_test_flag(zram, index, ZRAM_IDLE) ? 'i' : '.',
--			zram_get_priority(zram, index) ? 'r' : '.');
-+			zram_get_priority(zram, index) ? 'r' : '.',
-+			zram_test_flag(zram, index,
-+				       ZRAM_INCOMPRESSIBLE) ? 'n' : '.');
- 
- 		if (count <= copied) {
- 			zram_slot_unlock(zram, index);
+ 	/* Disable static key and reset timer. */
+ 	static_branch_disable(&kfence_allocation_key);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from quic_pkondeti@quicinc.com are
 
+mm-madvise-fix-madvise_pageout-for-private-file-mappings.patch
 
