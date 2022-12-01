@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2EC8C47089
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:06:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6273BC4708E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:06:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230270AbiLAAGl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:06:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46578 "EHLO
+        id S230241AbiLAAGr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:06:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230221AbiLAAEh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:04:37 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C4109075D
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:06 -0800 (PST)
+        with ESMTP id S230312AbiLAAEi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:04:38 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BB8390776
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 99486B81D81
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39913C433B5;
-        Thu,  1 Dec 2022 00:02:04 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 47124B81D86
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E12D7C433D6;
+        Thu,  1 Dec 2022 00:02:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852924;
-        bh=M9rwfgd9RyykPulUaXzA5cnetpnkOhIIGYzVxBuU+Rs=;
+        s=korg; t=1669852928;
+        bh=uDS6w5CiYvz9XEzBjM4rdYo74iAvpINGsj/fPxlHveM=;
         h=Date:To:From:Subject:From;
-        b=fnSmK43/T4oAgQjC792+cZmUZGOCdOu1eYrgvF0I+ijKJxN7ptSXyBkBzj7YShD9c
-         vA0KkI4jBimkkBNTIwPVpQqPrgnt9Pi+uNQJ06F+ZBfG+J/svJICypGWc1E6SHENwx
-         96QT/e+L0xcBTdcJrIEAa6+F7QfykyffP1C2+Os0=
-Date:   Wed, 30 Nov 2022 16:02:03 -0800
-To:     mm-commits@vger.kernel.org, david@redhat.com,
+        b=Bpeu4PCNNpgqcfOvifMnnEAXNk0Estu89/0lByDmOTPPRgeJmPAlHxRUdzEB7nuHq
+         +DzyklYrEYWnbScniYrrXy97NvXFGQgmrm74Sfhle4yzhhYqX8N8Q/C0nHGuyA5Pzp
+         YNsGGxuQojNnuPZBHFLcYHT7LYokysm6D8NtFCHM=
+Date:   Wed, 30 Nov 2022 16:02:07 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-cow-basic-cow-tests-for-non-anonymous-pages.patch removed from -mm tree
-Message-Id: <20221201000204.39913C433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-early-fault_flag_write-consistency-checks.patch removed from -mm tree
+Message-Id: <20221201000207.E12D7C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,422 +41,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: cow: basic COW tests for non-anonymous pages
+     Subject: mm: add early FAULT_FLAG_WRITE consistency checks
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-cow-basic-cow-tests-for-non-anonymous-pages.patch
+     mm-add-early-fault_flag_write-consistency-checks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/vm: cow: basic COW tests for non-anonymous pages
-Date: Wed, 16 Nov 2022 11:26:41 +0100
+Subject: mm: add early FAULT_FLAG_WRITE consistency checks
+Date: Wed, 16 Nov 2022 11:26:44 +0100
 
-Let's add basic tests for COW with non-anonymous pages in private
-mappings: write access should properly trigger COW and result in the
-private changes not being visible through other page mappings.
+Let's catch abuse of FAULT_FLAG_WRITE early, such that we don't have to
+care in all other handlers and might get "surprises" if we forget to do
+so.
 
-Especially, add tests for:
-* Zeropage
-* Huge zeropage
-* Ordinary pagecache pages via memfd and tmpfile()
-* Hugetlb pages via memfd
+Write faults without VM_MAYWRITE don't make any sense, and our
+maybe_mkwrite() logic could have hidden such abuse for now.
 
-Fortunately, all tests pass.
+Write faults without VM_WRITE on something that is not a COW mapping is
+similarly broken, and e.g., do_wp_page() could end up placing an
+anonymous page into a shared mapping, which would be bad.
 
-Link: https://lkml.kernel.org/r/20221116102659.70287-3-david@redhat.com
+This is a preparation for reliable R/O long-term pinning of pages in
+private mappings, whereby we want to make sure that we will never break
+COW in a read-only private mapping.
+
+Link: https://lkml.kernel.org/r/20221116102659.70287-6-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/cow.c |  338 ++++++++++++++++++++++++++++-
- 1 file changed, 337 insertions(+), 1 deletion(-)
+ mm/memory.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/tools/testing/selftests/vm/cow.c~selftests-vm-cow-basic-cow-tests-for-non-anonymous-pages
-+++ a/tools/testing/selftests/vm/cow.c
-@@ -19,6 +19,7 @@
- #include <sys/mman.h>
- #include <sys/ioctl.h>
- #include <sys/wait.h>
-+#include <linux/memfd.h>
- 
- #include "local_config.h"
- #ifdef LOCAL_CONFIG_HAVE_LIBURING
-@@ -35,6 +36,7 @@ static size_t thpsize;
- static int nr_hugetlbsizes;
- static size_t hugetlbsizes[10];
- static int gup_fd;
-+static bool has_huge_zeropage;
- 
- static void detect_thpsize(void)
- {
-@@ -64,6 +66,31 @@ static void detect_thpsize(void)
- 	close(fd);
+--- a/mm/memory.c~mm-add-early-fault_flag_write-consistency-checks
++++ a/mm/memory.c
+@@ -5170,6 +5170,14 @@ static vm_fault_t sanitize_fault_flags(s
+ 		 */
+ 		if (!is_cow_mapping(vma->vm_flags))
+ 			*flags &= ~FAULT_FLAG_UNSHARE;
++	} else if (*flags & FAULT_FLAG_WRITE) {
++		/* Write faults on read-only mappings are impossible ... */
++		if (WARN_ON_ONCE(!(vma->vm_flags & VM_MAYWRITE)))
++			return VM_FAULT_SIGSEGV;
++		/* ... and FOLL_FORCE only applies to COW mappings. */
++		if (WARN_ON_ONCE(!(vma->vm_flags & VM_WRITE) &&
++				 !is_cow_mapping(vma->vm_flags)))
++			return VM_FAULT_SIGSEGV;
+ 	}
+ 	return 0;
  }
- 
-+static void detect_huge_zeropage(void)
-+{
-+	int fd = open("/sys/kernel/mm/transparent_hugepage/use_zero_page",
-+		      O_RDONLY);
-+	size_t enabled = 0;
-+	char buf[15];
-+	int ret;
-+
-+	if (fd < 0)
-+		return;
-+
-+	ret = pread(fd, buf, sizeof(buf), 0);
-+	if (ret > 0 && ret < sizeof(buf)) {
-+		buf[ret] = 0;
-+
-+		enabled = strtoul(buf, NULL, 10);
-+		if (enabled == 1) {
-+			has_huge_zeropage = true;
-+			ksft_print_msg("[INFO] huge zeropage is enabled\n");
-+		}
-+	}
-+
-+	close(fd);
-+}
-+
- static void detect_hugetlbsizes(void)
- {
- 	DIR *dir = opendir("/sys/kernel/mm/hugepages/");
-@@ -1148,6 +1175,312 @@ static int tests_per_anon_test_case(void
- 	return tests;
- }
- 
-+typedef void (*non_anon_test_fn)(char *mem, const char *smem, size_t size);
-+
-+static void test_cow(char *mem, const char *smem, size_t size)
-+{
-+	char *old = malloc(size);
-+
-+	/* Backup the original content. */
-+	memcpy(old, smem, size);
-+
-+	/* Modify the page. */
-+	memset(mem, 0xff, size);
-+
-+	/* See if we still read the old values via the other mapping. */
-+	ksft_test_result(!memcmp(smem, old, size),
-+			 "Other mapping not modified\n");
-+	free(old);
-+}
-+
-+static void run_with_zeropage(non_anon_test_fn fn, const char *desc)
-+{
-+	char *mem, *smem, tmp;
-+
-+	ksft_print_msg("[RUN] %s ... with shared zeropage\n", desc);
-+
-+	mem = mmap(NULL, pagesize, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (mem == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		return;
-+	}
-+
-+	smem = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANON, -1, 0);
-+	if (mem == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		goto munmap;
-+	}
-+
-+	/* Read from the page to populate the shared zeropage. */
-+	tmp = *mem + *smem;
-+	asm volatile("" : "+r" (tmp));
-+
-+	fn(mem, smem, pagesize);
-+munmap:
-+	munmap(mem, pagesize);
-+	if (smem != MAP_FAILED)
-+		munmap(smem, pagesize);
-+}
-+
-+static void run_with_huge_zeropage(non_anon_test_fn fn, const char *desc)
-+{
-+	char *mem, *smem, *mmap_mem, *mmap_smem, tmp;
-+	size_t mmap_size;
-+	int ret;
-+
-+	ksft_print_msg("[RUN] %s ... with huge zeropage\n", desc);
-+
-+	if (!has_huge_zeropage) {
-+		ksft_test_result_skip("Huge zeropage not enabled\n");
-+		return;
-+	}
-+
-+	/* For alignment purposes, we need twice the thp size. */
-+	mmap_size = 2 * thpsize;
-+	mmap_mem = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
-+			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (mmap_mem == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		return;
-+	}
-+	mmap_smem = mmap(NULL, mmap_size, PROT_READ,
-+			 MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (mmap_smem == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		goto munmap;
-+	}
-+
-+	/* We need a THP-aligned memory area. */
-+	mem = (char *)(((uintptr_t)mmap_mem + thpsize) & ~(thpsize - 1));
-+	smem = (char *)(((uintptr_t)mmap_smem + thpsize) & ~(thpsize - 1));
-+
-+	ret = madvise(mem, thpsize, MADV_HUGEPAGE);
-+	ret |= madvise(smem, thpsize, MADV_HUGEPAGE);
-+	if (ret) {
-+		ksft_test_result_fail("MADV_HUGEPAGE failed\n");
-+		goto munmap;
-+	}
-+
-+	/*
-+	 * Read from the memory to populate the huge shared zeropage. Read from
-+	 * the first sub-page and test if we get another sub-page populated
-+	 * automatically.
-+	 */
-+	tmp = *mem + *smem;
-+	asm volatile("" : "+r" (tmp));
-+	if (!pagemap_is_populated(pagemap_fd, mem + pagesize) ||
-+	    !pagemap_is_populated(pagemap_fd, smem + pagesize)) {
-+		ksft_test_result_skip("Did not get THPs populated\n");
-+		goto munmap;
-+	}
-+
-+	fn(mem, smem, thpsize);
-+munmap:
-+	munmap(mmap_mem, mmap_size);
-+	if (mmap_smem != MAP_FAILED)
-+		munmap(mmap_smem, mmap_size);
-+}
-+
-+static void run_with_memfd(non_anon_test_fn fn, const char *desc)
-+{
-+	char *mem, *smem, tmp;
-+	int fd;
-+
-+	ksft_print_msg("[RUN] %s ... with memfd\n", desc);
-+
-+	fd = memfd_create("test", 0);
-+	if (fd < 0) {
-+		ksft_test_result_fail("memfd_create() failed\n");
-+		return;
-+	}
-+
-+	/* File consists of a single page filled with zeroes. */
-+	if (fallocate(fd, 0, 0, pagesize)) {
-+		ksft_test_result_fail("fallocate() failed\n");
-+		goto close;
-+	}
-+
-+	/* Create a private mapping of the memfd. */
-+	mem = mmap(NULL, pagesize, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		goto close;
-+	}
-+	smem = mmap(NULL, pagesize, PROT_READ, MAP_SHARED, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		goto munmap;
-+	}
-+
-+	/* Fault the page in. */
-+	tmp = *mem + *smem;
-+	asm volatile("" : "+r" (tmp));
-+
-+	fn(mem, smem, pagesize);
-+munmap:
-+	munmap(mem, pagesize);
-+	if (smem != MAP_FAILED)
-+		munmap(smem, pagesize);
-+close:
-+	close(fd);
-+}
-+
-+static void run_with_tmpfile(non_anon_test_fn fn, const char *desc)
-+{
-+	char *mem, *smem, tmp;
-+	FILE *file;
-+	int fd;
-+
-+	ksft_print_msg("[RUN] %s ... with tmpfile\n", desc);
-+
-+	file = tmpfile();
-+	if (!file) {
-+		ksft_test_result_fail("tmpfile() failed\n");
-+		return;
-+	}
-+
-+	fd = fileno(file);
-+	if (fd < 0) {
-+		ksft_test_result_skip("fileno() failed\n");
-+		return;
-+	}
-+
-+	/* File consists of a single page filled with zeroes. */
-+	if (fallocate(fd, 0, 0, pagesize)) {
-+		ksft_test_result_fail("fallocate() failed\n");
-+		goto close;
-+	}
-+
-+	/* Create a private mapping of the memfd. */
-+	mem = mmap(NULL, pagesize, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		goto close;
-+	}
-+	smem = mmap(NULL, pagesize, PROT_READ, MAP_SHARED, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		goto munmap;
-+	}
-+
-+	/* Fault the page in. */
-+	tmp = *mem + *smem;
-+	asm volatile("" : "+r" (tmp));
-+
-+	fn(mem, smem, pagesize);
-+munmap:
-+	munmap(mem, pagesize);
-+	if (smem != MAP_FAILED)
-+		munmap(smem, pagesize);
-+close:
-+	fclose(file);
-+}
-+
-+static void run_with_memfd_hugetlb(non_anon_test_fn fn, const char *desc,
-+				   size_t hugetlbsize)
-+{
-+	int flags = MFD_HUGETLB;
-+	char *mem, *smem, tmp;
-+	int fd;
-+
-+	ksft_print_msg("[RUN] %s ... with memfd hugetlb (%zu kB)\n", desc,
-+		       hugetlbsize / 1024);
-+
-+	flags |= __builtin_ctzll(hugetlbsize) << MFD_HUGE_SHIFT;
-+
-+	fd = memfd_create("test", flags);
-+	if (fd < 0) {
-+		ksft_test_result_skip("memfd_create() failed\n");
-+		return;
-+	}
-+
-+	/* File consists of a single page filled with zeroes. */
-+	if (fallocate(fd, 0, 0, hugetlbsize)) {
-+		ksft_test_result_skip("need more free huge pages\n");
-+		goto close;
-+	}
-+
-+	/* Create a private mapping of the memfd. */
-+	mem = mmap(NULL, hugetlbsize, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd,
-+		   0);
-+	if (mem == MAP_FAILED) {
-+		ksft_test_result_skip("need more free huge pages\n");
-+		goto close;
-+	}
-+	smem = mmap(NULL, hugetlbsize, PROT_READ, MAP_SHARED, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		ksft_test_result_fail("mmap() failed\n");
-+		goto munmap;
-+	}
-+
-+	/* Fault the page in. */
-+	tmp = *mem + *smem;
-+	asm volatile("" : "+r" (tmp));
-+
-+	fn(mem, smem, hugetlbsize);
-+munmap:
-+	munmap(mem, hugetlbsize);
-+	if (mem != MAP_FAILED)
-+		munmap(smem, hugetlbsize);
-+close:
-+	close(fd);
-+}
-+
-+struct non_anon_test_case {
-+	const char *desc;
-+	non_anon_test_fn fn;
-+};
-+
-+/*
-+ * Test cases that target any pages in private mappings that are non anonymous:
-+ * pages that may get shared via COW ndependent of fork(). This includes
-+ * the shared zeropage(s), pagecache pages, ...
-+ */
-+static const struct non_anon_test_case non_anon_test_cases[] = {
-+	/*
-+	 * Basic COW test without any GUP. If we miss to break COW, changes are
-+	 * visible via other private/shared mappings.
-+	 */
-+	{
-+		"Basic COW",
-+		test_cow,
-+	},
-+};
-+
-+static void run_non_anon_test_case(struct non_anon_test_case const *test_case)
-+{
-+	int i;
-+
-+	run_with_zeropage(test_case->fn, test_case->desc);
-+	run_with_memfd(test_case->fn, test_case->desc);
-+	run_with_tmpfile(test_case->fn, test_case->desc);
-+	if (thpsize)
-+		run_with_huge_zeropage(test_case->fn, test_case->desc);
-+	for (i = 0; i < nr_hugetlbsizes; i++)
-+		run_with_memfd_hugetlb(test_case->fn, test_case->desc,
-+				       hugetlbsizes[i]);
-+}
-+
-+static void run_non_anon_test_cases(void)
-+{
-+	int i;
-+
-+	ksft_print_msg("[RUN] Non-anonymous memory tests in private mappings\n");
-+
-+	for (i = 0; i < ARRAY_SIZE(non_anon_test_cases); i++)
-+		run_non_anon_test_case(&non_anon_test_cases[i]);
-+}
-+
-+static int tests_per_non_anon_test_case(void)
-+{
-+	int tests = 3 + nr_hugetlbsizes;
-+
-+	if (thpsize)
-+		tests += 1;
-+	return tests;
-+}
-+
- int main(int argc, char **argv)
- {
- 	int err;
-@@ -1155,9 +1488,11 @@ int main(int argc, char **argv)
- 	pagesize = getpagesize();
- 	detect_thpsize();
- 	detect_hugetlbsizes();
-+	detect_huge_zeropage();
- 
- 	ksft_print_header();
--	ksft_set_plan(ARRAY_SIZE(anon_test_cases) * tests_per_anon_test_case());
-+	ksft_set_plan(ARRAY_SIZE(anon_test_cases) * tests_per_anon_test_case() +
-+		      ARRAY_SIZE(non_anon_test_cases) * tests_per_non_anon_test_case());
- 
- 	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
- 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-@@ -1165,6 +1500,7 @@ int main(int argc, char **argv)
- 		ksft_exit_fail_msg("opening pagemap failed\n");
- 
- 	run_anon_test_cases();
-+	run_non_anon_test_cases();
- 
- 	err = ksft_get_fail_cnt();
- 	if (err)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
