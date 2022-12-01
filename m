@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD78AC4708D
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB916C4321E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:08:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230228AbiLAAIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Nov 2022 19:08:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54038 "EHLO
+        id S230312AbiLAAIt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Nov 2022 19:08:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230307AbiLAAHO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:07:14 -0500
+        with ESMTP id S230223AbiLAAHd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:07:33 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9E071B9F6
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:47 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B08110054
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:02:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 67F25B81D84
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1355BC43146;
-        Thu,  1 Dec 2022 00:02:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 33692B81D6A
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:02:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1B78C433B5;
+        Thu,  1 Dec 2022 00:02:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852965;
-        bh=VZgMnyS5ewyoDMvHjUEyuURX1OBdy3j3GJmQGy4QaWg=;
+        s=korg; t=1669852964;
+        bh=lvRm1ZW5PpfSOFPV6rSC3cweZRBh1lzYsZzulhmkfiw=;
         h=Date:To:From:Subject:From;
-        b=F3jNBMyvwBZnaDkZs9RrUx7p6qDuvn+CKsoCRO06vlaUY4l0frBowlARXHPo+kGTw
-         McJxuk7cGl0hN8aS6OOgW7gUCITgFbvh7+Ko2onQRi67JGXWMWcJV//+0Z54tyw7ZV
-         QbQ+P9wQQc3BESKDdJOyniCZmPx9IGlRExq2cg+4=
-Date:   Wed, 30 Nov 2022 16:02:44 -0800
+        b=1glxsJBD6huiNjEgj/NrBO2k5YtsRsKFJi8EGdLbMxxSPfuG+PNjdNhmGBt2oHQLt
+         cqpLIM2U0z+NeF8MOjeY7BR8tpNpzTCZedA3znBQSUVrfSycJUtnG59tGOnTDlYZ9M
+         Jn96/gSoMm0HAEV2KyhbZ2pHTsa+Y4eJJ3/XwWm0=
+Date:   Wed, 30 Nov 2022 16:02:43 -0800
 To:     mm-commits@vger.kernel.org, clm@meta.com, axboe@kernel.dk,
         shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-knob-sys-class-bdi-bdi-strict_limit.patch removed from -mm tree
-Message-Id: <20221201000245.1355BC43146@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-bdi_set_strict_limit-function.patch removed from -mm tree
+Message-Id: <20221201000243.E1B78C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,75 +41,112 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add knob /sys/class/bdi/<bdi>/strict_limit
+     Subject: mm: add bdi_set_strict_limit() function
 has been removed from the -mm tree.  Its filename was
-     mm-add-knob-sys-class-bdi-bdi-strict_limit.patch
+     mm-add-bdi_set_strict_limit-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: add knob /sys/class/bdi/<bdi>/strict_limit
-Date: Fri, 18 Nov 2022 16:51:57 -0800
+Subject: mm: add bdi_set_strict_limit() function
+Date: Fri, 18 Nov 2022 16:51:56 -0800
 
-Add a new knob to /sys/class/bdi/<bdi>/strict_limit. This new knob
-allows to set/unset the flag BDI_CAP_STRICTLIMIT in the bdi
-capabilities.
+Patch series "mm/block: add bdi sysfs knobs", v4.
 
-Link: https://lkml.kernel.org/r/20221119005215.3052436-3-shr@devkernel.io
+At meta network block devices (nbd) are used to implement remote block
+storage.  In testing and during production it has been observed that these
+network block devices can consume a huge portion of the dirty writeback
+cache and writeback can take a considerable time.
+
+To be able to give stricter limits, I'm proposing the following changes:
+
+1) introduce strictlimit knob
+
+  Currently the max_ratio knob exists to limit the dirty_memory. However
+  this knob only applies once (dirty_ratio + dirty_background_ratio) / 2
+  has been reached.
+  With the BDI_CAP_STRICTLIMIT flag, the max_ratio can be applied without
+  reaching that limit. This change exposes that knob.
+
+  This knob can also be useful for NFS, fuse filesystems and USB devices.
+
+2) Use part of 1000000 internal calculation
+
+  The max_ratio is based on percentage. With the current machine sizes
+  percentage values can be very high (1% of a 256GB main memory is already
+  2.5GB). This change uses part of 1000000 instead of percentages for the
+  internal calculations.
+
+3) Introduce two new sysfs knobs: min_bytes and max_bytes.
+
+  Currently all calculations are based on ratio, but for a user it often
+  more convenient to specify a limit in bytes. The new knobs will not
+  store bytes values, instead they will translate the byte value to a
+  corresponding ratio. As the internal values are now part of 1000, the
+  ratio is closer to the specified value. However the value should be more
+  seen as an approximation as it can fluctuate over time.
+
+
+3) Introduce two new sysfs knobs: min_ratio_fine and max_ratio_fine.
+
+  The granularity for the existing sysfs bdi knobs min_ratio and max_ratio
+  is based on percentage values. The new sysfs bdi knobs min_ratio_fine
+  and max_ratio_fine allow to specify the ratio as part of 1 million.
+
+
+This patch (of 20):
+
+This adds the bdi_set_strict_limit function to be able to set/unset the
+BDI_CAP_STRICTLIMIT flag.
+
+Link: https://lkml.kernel.org/r/20221119005215.3052436-1-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20221119005215.3052436-2-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Cc: Chris Mason <clm@meta.com>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Chris Mason <clm@meta.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ include/linux/backing-dev.h |    1 +
+ mm/page-writeback.c         |   15 +++++++++++++++
+ 2 files changed, 16 insertions(+)
 
---- a/mm/backing-dev.c~mm-add-knob-sys-class-bdi-bdi-strict_limit
-+++ a/mm/backing-dev.c
-@@ -209,11 +209,40 @@ static ssize_t stable_pages_required_sho
- }
- static DEVICE_ATTR_RO(stable_pages_required);
+--- a/include/linux/backing-dev.h~mm-add-bdi_set_strict_limit-function
++++ a/include/linux/backing-dev.h
+@@ -104,6 +104,7 @@ static inline unsigned long wb_stat_erro
  
-+static ssize_t strict_limit_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t count)
+ int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio);
+ int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio);
++int bdi_set_strict_limit(struct backing_dev_info *bdi, unsigned int strict_limit);
+ 
+ /*
+  * Flags in backing_dev_info::capability
+--- a/mm/page-writeback.c~mm-add-bdi_set_strict_limit-function
++++ a/mm/page-writeback.c
+@@ -698,6 +698,21 @@ int bdi_set_max_ratio(struct backing_dev
+ }
+ EXPORT_SYMBOL(bdi_set_max_ratio);
+ 
++int bdi_set_strict_limit(struct backing_dev_info *bdi, unsigned int strict_limit)
 +{
-+	struct backing_dev_info *bdi = dev_get_drvdata(dev);
-+	unsigned int strict_limit;
-+	ssize_t ret;
++	if (strict_limit > 1)
++		return -EINVAL;
 +
-+	ret = kstrtouint(buf, 10, &strict_limit);
-+	if (ret < 0)
-+		return ret;
++	spin_lock_bh(&bdi_lock);
++	if (strict_limit)
++		bdi->capabilities |= BDI_CAP_STRICTLIMIT;
++	else
++		bdi->capabilities &= ~BDI_CAP_STRICTLIMIT;
++	spin_unlock_bh(&bdi_lock);
 +
-+	ret = bdi_set_strict_limit(bdi, strict_limit);
-+	if (!ret)
-+		ret = count;
-+
-+	return ret;
++	return 0;
 +}
 +
-+static ssize_t strict_limit_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct backing_dev_info *bdi = dev_get_drvdata(dev);
-+
-+	return sysfs_emit(buf, "%d\n",
-+			!!(bdi->capabilities & BDI_CAP_STRICTLIMIT));
-+}
-+static DEVICE_ATTR_RW(strict_limit);
-+
- static struct attribute *bdi_dev_attrs[] = {
- 	&dev_attr_read_ahead_kb.attr,
- 	&dev_attr_min_ratio.attr,
- 	&dev_attr_max_ratio.attr,
- 	&dev_attr_stable_pages_required.attr,
-+	&dev_attr_strict_limit.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(bdi_dev);
+ static unsigned long dirty_freerun_ceiling(unsigned long thresh,
+ 					   unsigned long bg_thresh)
+ {
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
