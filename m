@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A175C47088
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:05:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D7EC352A1
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Dec 2022 00:05:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230254AbiLAAFs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230258AbiLAAFs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 30 Nov 2022 19:05:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48298 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229593AbiLAADv (ORCPT
+        with ESMTP id S229743AbiLAADv (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2022 19:03:51 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A11C787CBA
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:01:46 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19ED48EE5E
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2022 16:01:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2717D61E69
-        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:01:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B55CC43470;
-        Thu,  1 Dec 2022 00:01:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C1D26176C
+        for <mm-commits@vger.kernel.org>; Thu,  1 Dec 2022 00:01:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6A9EC433D6;
+        Thu,  1 Dec 2022 00:01:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1669852905;
-        bh=CivWiDPk6b+Geb50MR9zKyvpOxgKzsh2eGEVcMo0xpg=;
+        s=korg; t=1669852906;
+        bh=DrXIY7DufZJmK2jS+GYp2s5NxA1lp8NUE2CeZewklKY=;
         h=Date:To:From:Subject:From;
-        b=SzMQY7jWI+VxSQRg06SDN8iWvcFm09OaFl95EDYsGLx6PndrXLy1Rk23wFA+ikH3N
-         EKHTC262ZIZMUszQKLo3sMLnGwmHb3knpAFK7eHyhHnI+exEOt+l8RIcBc9ylaQ25K
-         o9seHpQENq6z2deWdcSh66WEw2QZkhHN2YpSDgoM=
-Date:   Wed, 30 Nov 2022 16:01:44 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
-        shy828301@gmail.com, osalvador@suse.de,
-        baolin.wang@linux.alibaba.com, ying.huang@intel.com,
+        b=0sAIItgbrD3SfTgfn3g3iz4gpWtWnS3iquafH1+IbygUnnOcCVdW9VagbwaJ63pCB
+         yLkybJiWjbS5cOJsABmtGaqRWck/VulagNr10yojo1SfUlwi3xoWnjGp/2n+PIJpr7
+         E3JegQ7U/KB8tSsY09rZR3Y2hY3uPW09lJqQS/N8=
+Date:   Wed, 30 Nov 2022 16:01:46 -0800
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        weixugc@google.com, aneesh.kumar@linux.ibm.com, linmq006@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] migrate-convert-migrate_pages-to-use-folios.patch removed from -mm tree
-Message-Id: <20221201000145.5B55CC43470@smtp.kernel.org>
+Subject: [merged mm-stable] mm-demotion-fix-null-vs-is_err-checking-in-memory_tier_init.patch removed from -mm tree
+Message-Id: <20221201000146.B6A9EC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,385 +42,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: migrate: convert migrate_pages() to use folios
+     Subject: mm/demotion: fix NULL vs IS_ERR checking in memory_tier_init
 has been removed from the -mm tree.  Its filename was
-     migrate-convert-migrate_pages-to-use-folios.patch
+     mm-demotion-fix-null-vs-is_err-checking-in-memory_tier_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: migrate: convert migrate_pages() to use folios
-Date: Wed, 9 Nov 2022 09:23:48 +0800
+From: Miaoqian Lin <linmq006@gmail.com>
+Subject: mm/demotion: fix NULL vs IS_ERR checking in memory_tier_init
+Date: Thu, 10 Nov 2022 07:07:51 +0400
 
-Quite straightforward, the page functions are converted to corresponding
-folio functions.  Same for comments.
+alloc_memory_type() returns error pointers on error instead of NULL.  Use
+IS_ERR() to check the return value to fix this.
 
-THP specific code are converted to be large folio.
-
-Link: https://lkml.kernel.org/r/20221109012348.93849-3-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20221110030751.1627266-1-linmq006@gmail.com
+Fixes: 7b88bda3761b ("mm/demotion/dax/kmem: set node's abstract distance to MEMTIER_DEFAULT_DAX_ADISTANCE")
+Signed-off-by: Miaoqian Lin <linmq006@gmail.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |  210 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 112 insertions(+), 98 deletions(-)
+ mm/memory-tiers.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/migrate.c~migrate-convert-migrate_pages-to-use-folios
-+++ a/mm/migrate.c
-@@ -1373,231 +1373,245 @@ out:
- 	return rc;
- }
- 
--static inline int try_split_thp(struct page *page, struct list_head *split_pages)
-+static inline int try_split_folio(struct folio *folio, struct list_head *split_folios)
- {
- 	int rc;
- 
--	lock_page(page);
--	rc = split_huge_page_to_list(page, split_pages);
--	unlock_page(page);
-+	folio_lock(folio);
-+	rc = split_folio_to_list(folio, split_folios);
-+	folio_unlock(folio);
- 	if (!rc)
--		list_move_tail(&page->lru, split_pages);
-+		list_move_tail(&folio->lru, split_folios);
- 
- 	return rc;
- }
- 
- /*
-- * migrate_pages - migrate the pages specified in a list, to the free pages
-+ * migrate_pages - migrate the folios specified in a list, to the free folios
-  *		   supplied as the target for the page migration
-  *
-- * @from:		The list of pages to be migrated.
-- * @get_new_page:	The function used to allocate free pages to be used
-- *			as the target of the page migration.
-- * @put_new_page:	The function used to free target pages if migration
-+ * @from:		The list of folios to be migrated.
-+ * @get_new_page:	The function used to allocate free folios to be used
-+ *			as the target of the folio migration.
-+ * @put_new_page:	The function used to free target folios if migration
-  *			fails, or NULL if no special handling is necessary.
-  * @private:		Private data to be passed on to get_new_page()
-  * @mode:		The migration mode that specifies the constraints for
-- *			page migration, if any.
-- * @reason:		The reason for page migration.
-- * @ret_succeeded:	Set to the number of normal pages migrated successfully if
-+ *			folio migration, if any.
-+ * @reason:		The reason for folio migration.
-+ * @ret_succeeded:	Set to the number of folios migrated successfully if
-  *			the caller passes a non-NULL pointer.
-  *
-- * The function returns after 10 attempts or if no pages are movable any more
-- * because the list has become empty or no retryable pages exist any more.
-- * It is caller's responsibility to call putback_movable_pages() to return pages
-+ * The function returns after 10 attempts or if no folios are movable any more
-+ * because the list has become empty or no retryable folios exist any more.
-+ * It is caller's responsibility to call putback_movable_pages() to return folios
-  * to the LRU or free list only if ret != 0.
-  *
-- * Returns the number of {normal page, THP, hugetlb} that were not migrated, or
-- * an error code. The number of THP splits will be considered as the number of
-- * non-migrated THP, no matter how many subpages of the THP are migrated successfully.
-+ * Returns the number of {normal folio, large folio, hugetlb} that were not
-+ * migrated, or an error code. The number of large folio splits will be
-+ * considered as the number of non-migrated large folio, no matter how many
-+ * split folios of the large folio are migrated successfully.
-  */
- int migrate_pages(struct list_head *from, new_page_t get_new_page,
- 		free_page_t put_new_page, unsigned long private,
- 		enum migrate_mode mode, int reason, unsigned int *ret_succeeded)
- {
- 	int retry = 1;
-+	int large_retry = 1;
- 	int thp_retry = 1;
- 	int nr_failed = 0;
- 	int nr_failed_pages = 0;
- 	int nr_retry_pages = 0;
- 	int nr_succeeded = 0;
- 	int nr_thp_succeeded = 0;
-+	int nr_large_failed = 0;
- 	int nr_thp_failed = 0;
- 	int nr_thp_split = 0;
- 	int pass = 0;
-+	bool is_large = false;
- 	bool is_thp = false;
--	struct page *page;
--	struct page *page2;
--	int rc, nr_subpages;
--	LIST_HEAD(ret_pages);
--	LIST_HEAD(thp_split_pages);
-+	struct folio *folio, *folio2;
-+	int rc, nr_pages;
-+	LIST_HEAD(ret_folios);
-+	LIST_HEAD(split_folios);
- 	bool nosplit = (reason == MR_NUMA_MISPLACED);
--	bool no_subpage_counting = false;
-+	bool no_split_folio_counting = false;
- 
- 	trace_mm_migrate_pages_start(mode, reason);
- 
--thp_subpage_migration:
--	for (pass = 0; pass < 10 && (retry || thp_retry); pass++) {
-+split_folio_migration:
-+	for (pass = 0; pass < 10 && (retry || large_retry); pass++) {
- 		retry = 0;
-+		large_retry = 0;
- 		thp_retry = 0;
- 		nr_retry_pages = 0;
- 
--		list_for_each_entry_safe(page, page2, from, lru) {
-+		list_for_each_entry_safe(folio, folio2, from, lru) {
- 			/*
--			 * THP statistics is based on the source huge page.
--			 * Capture required information that might get lost
--			 * during migration.
-+			 * Large folio statistics is based on the source large
-+			 * folio. Capture required information that might get
-+			 * lost during migration.
- 			 */
--			is_thp = PageTransHuge(page) && !PageHuge(page);
--			nr_subpages = compound_nr(page);
-+			is_large = folio_test_large(folio) && !folio_test_hugetlb(folio);
-+			is_thp = is_large && folio_test_pmd_mappable(folio);
-+			nr_pages = folio_nr_pages(folio);
- 			cond_resched();
- 
--			if (PageHuge(page))
-+			if (folio_test_hugetlb(folio))
- 				rc = unmap_and_move_huge_page(get_new_page,
--						put_new_page, private, page,
--						pass > 2, mode, reason,
--						&ret_pages);
-+						put_new_page, private,
-+						&folio->page, pass > 2, mode,
-+						reason,
-+						&ret_folios);
- 			else
- 				rc = unmap_and_move(get_new_page, put_new_page,
--						private, page_folio(page), pass > 2, mode,
--						reason, &ret_pages);
-+						private, folio, pass > 2, mode,
-+						reason, &ret_folios);
- 			/*
- 			 * The rules are:
--			 *	Success: non hugetlb page will be freed, hugetlb
--			 *		 page will be put back
-+			 *	Success: non hugetlb folio will be freed, hugetlb
-+			 *		 folio will be put back
- 			 *	-EAGAIN: stay on the from list
- 			 *	-ENOMEM: stay on the from list
- 			 *	-ENOSYS: stay on the from list
--			 *	Other errno: put on ret_pages list then splice to
-+			 *	Other errno: put on ret_folios list then splice to
- 			 *		     from list
- 			 */
- 			switch(rc) {
- 			/*
--			 * THP migration might be unsupported or the
--			 * allocation could've failed so we should
--			 * retry on the same page with the THP split
--			 * to base pages.
-+			 * Large folio migration might be unsupported or
-+			 * the allocation could've failed so we should retry
-+			 * on the same folio with the large folio split
-+			 * to normal folios.
- 			 *
--			 * Sub-pages are put in thp_split_pages, and
-+			 * Split folios are put in split_folios, and
- 			 * we will migrate them after the rest of the
- 			 * list is processed.
- 			 */
- 			case -ENOSYS:
--				/* THP migration is unsupported */
--				if (is_thp) {
--					nr_thp_failed++;
--					if (!try_split_thp(page, &thp_split_pages)) {
--						nr_thp_split++;
-+				/* Large folio migration is unsupported */
-+				if (is_large) {
-+					nr_large_failed++;
-+					nr_thp_failed += is_thp;
-+					if (!try_split_folio(folio, &split_folios)) {
-+						nr_thp_split += is_thp;
- 						break;
- 					}
- 				/* Hugetlb migration is unsupported */
--				} else if (!no_subpage_counting) {
-+				} else if (!no_split_folio_counting) {
- 					nr_failed++;
- 				}
- 
--				nr_failed_pages += nr_subpages;
--				list_move_tail(&page->lru, &ret_pages);
-+				nr_failed_pages += nr_pages;
-+				list_move_tail(&folio->lru, &ret_folios);
- 				break;
- 			case -ENOMEM:
- 				/*
- 				 * When memory is low, don't bother to try to migrate
--				 * other pages, just exit.
-+				 * other folios, just exit.
- 				 */
--				if (is_thp) {
--					nr_thp_failed++;
--					/* THP NUMA faulting doesn't split THP to retry. */
-+				if (is_large) {
-+					nr_large_failed++;
-+					nr_thp_failed += is_thp;
-+					/* Large folio NUMA faulting doesn't split to retry. */
- 					if (!nosplit) {
--						int ret = try_split_thp(page, &thp_split_pages);
-+						int ret = try_split_folio(folio, &split_folios);
- 
- 						if (!ret) {
--							nr_thp_split++;
-+							nr_thp_split += is_thp;
- 							break;
- 						} else if (reason == MR_LONGTERM_PIN &&
- 							   ret == -EAGAIN) {
- 							/*
--							 * Try again to split THP to mitigate
--							 * the failure of longterm pinning.
-+							 * Try again to split large folio to
-+							 * mitigate the failure of longterm pinning.
- 							 */
--							thp_retry++;
--							nr_retry_pages += nr_subpages;
-+							large_retry++;
-+							thp_retry += is_thp;
-+							nr_retry_pages += nr_pages;
- 							break;
- 						}
- 					}
--				} else if (!no_subpage_counting) {
-+				} else if (!no_split_folio_counting) {
- 					nr_failed++;
- 				}
- 
--				nr_failed_pages += nr_subpages + nr_retry_pages;
-+				nr_failed_pages += nr_pages + nr_retry_pages;
- 				/*
--				 * There might be some subpages of fail-to-migrate THPs
--				 * left in thp_split_pages list. Move them back to migration
-+				 * There might be some split folios of fail-to-migrate large
-+				 * folios left in split_folios list. Move them back to migration
- 				 * list so that they could be put back to the right list by
--				 * the caller otherwise the page refcnt will be leaked.
-+				 * the caller otherwise the folio refcnt will be leaked.
- 				 */
--				list_splice_init(&thp_split_pages, from);
-+				list_splice_init(&split_folios, from);
- 				/* nr_failed isn't updated for not used */
-+				nr_large_failed += large_retry;
- 				nr_thp_failed += thp_retry;
- 				goto out;
- 			case -EAGAIN:
--				if (is_thp)
--					thp_retry++;
--				else if (!no_subpage_counting)
-+				if (is_large) {
-+					large_retry++;
-+					thp_retry += is_thp;
-+				} else if (!no_split_folio_counting) {
- 					retry++;
--				nr_retry_pages += nr_subpages;
-+				}
-+				nr_retry_pages += nr_pages;
- 				break;
- 			case MIGRATEPAGE_SUCCESS:
--				nr_succeeded += nr_subpages;
--				if (is_thp)
--					nr_thp_succeeded++;
-+				nr_succeeded += nr_pages;
-+				nr_thp_succeeded += is_thp;
- 				break;
- 			default:
- 				/*
- 				 * Permanent failure (-EBUSY, etc.):
--				 * unlike -EAGAIN case, the failed page is
--				 * removed from migration page list and not
-+				 * unlike -EAGAIN case, the failed folio is
-+				 * removed from migration folio list and not
- 				 * retried in the next outer loop.
- 				 */
--				if (is_thp)
--					nr_thp_failed++;
--				else if (!no_subpage_counting)
-+				if (is_large) {
-+					nr_large_failed++;
-+					nr_thp_failed += is_thp;
-+				} else if (!no_split_folio_counting) {
- 					nr_failed++;
-+				}
- 
--				nr_failed_pages += nr_subpages;
-+				nr_failed_pages += nr_pages;
- 				break;
- 			}
- 		}
- 	}
- 	nr_failed += retry;
-+	nr_large_failed += large_retry;
- 	nr_thp_failed += thp_retry;
- 	nr_failed_pages += nr_retry_pages;
- 	/*
--	 * Try to migrate subpages of fail-to-migrate THPs, no nr_failed
--	 * counting in this round, since all subpages of a THP is counted
--	 * as 1 failure in the first round.
-+	 * Try to migrate split folios of fail-to-migrate large folios, no
-+	 * nr_failed counting in this round, since all split folios of a
-+	 * large folio is counted as 1 failure in the first round.
+--- a/mm/memory-tiers.c~mm-demotion-fix-null-vs-is_err-checking-in-memory_tier_init
++++ a/mm/memory-tiers.c
+@@ -645,7 +645,7 @@ static int __init memory_tier_init(void)
+ 	 * than default DRAM tier.
  	 */
--	if (!list_empty(&thp_split_pages)) {
-+	if (!list_empty(&split_folios)) {
- 		/*
--		 * Move non-migrated pages (after 10 retries) to ret_pages
-+		 * Move non-migrated folios (after 10 retries) to ret_folios
- 		 * to avoid migrating them again.
- 		 */
--		list_splice_init(from, &ret_pages);
--		list_splice_init(&thp_split_pages, from);
--		no_subpage_counting = true;
-+		list_splice_init(from, &ret_folios);
-+		list_splice_init(&split_folios, from);
-+		no_split_folio_counting = true;
- 		retry = 1;
--		goto thp_subpage_migration;
-+		goto split_folio_migration;
- 	}
- 
--	rc = nr_failed + nr_thp_failed;
-+	rc = nr_failed + nr_large_failed;
- out:
- 	/*
--	 * Put the permanent failure page back to migration list, they
-+	 * Put the permanent failure folio back to migration list, they
- 	 * will be put back to the right list by the caller.
- 	 */
--	list_splice(&ret_pages, from);
-+	list_splice(&ret_folios, from);
+ 	default_dram_type = alloc_memory_type(MEMTIER_ADISTANCE_DRAM);
+-	if (!default_dram_type)
++	if (IS_ERR(default_dram_type))
+ 		panic("%s() failed to allocate default DRAM tier\n", __func__);
  
  	/*
--	 * Return 0 in case all subpages of fail-to-migrate THPs are
--	 * migrated successfully.
-+	 * Return 0 in case all split folios of fail-to-migrate large folios
-+	 * are migrated successfully.
- 	 */
- 	if (list_empty(from))
- 		rc = 0;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from linmq006@gmail.com are
 
 
