@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F633C4321E
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Dec 2022 20:02:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1A93C4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Dec 2022 20:33:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231888AbiLEUCO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Dec 2022 15:02:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43372 "EHLO
+        id S230036AbiLEUd5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Dec 2022 15:33:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232589AbiLEUCH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Dec 2022 15:02:07 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8975465B7
-        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 12:02:06 -0800 (PST)
+        with ESMTP id S230332AbiLEUd4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Dec 2022 15:33:56 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22C5BBC2F
+        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 12:33:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2766E6136A
-        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 20:02:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F549C433C1;
-        Mon,  5 Dec 2022 20:02:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 91C8161389
+        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 20:33:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6E6CC433C1;
+        Mon,  5 Dec 2022 20:33:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670270525;
-        bh=HSLFSqjUg+C95No3xlxci1t6pMM13MUdYaQUqs/xy9U=;
+        s=korg; t=1670272434;
+        bh=PrfkGun+kyliDHDJUqI4moikhNN/R3PMBA2JyA+MQWM=;
         h=Date:To:From:Subject:From;
-        b=bALhe1wDhYmSS5cQmrc1N0BKinnr9I99vyTCHF5KVPdIdllD0osAtYTCyJa1nIMKc
-         3bZ/qSOdLmDZyPnkeafYCV9UN2GcYJho9LtnbDH70RIfNnjHtq97J+JGNxJDNhC01d
-         93aKM21fYMksY81oo35CqeVMGA18jXGpYJOkB07Q=
-Date:   Mon, 05 Dec 2022 12:02:04 -0800
-To:     mm-commits@vger.kernel.org, yang.lee@linux.alibaba.com,
-        shuah@kernel.org, david@redhat.com, akpm@linux-foundation.org
+        b=zmzj7wHzrkWzxuWOLkJy9Ajg9CpGCxXVvFIRRy28UekDchWG5V/L73EQIxwFMf85f
+         Nh02KhcFdWrCjzA+QuJ0xyR7UnJmb0X9q09LuLa86jiWf8AmaKFEtf1d8a1yW8e9tE
+         5XYfBt44/QXq1Vk2XG6C2wtLglBkTRpLDG9CEvUI=
+Date:   Mon, 05 Dec 2022 12:33:53 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        vbabka@suse.cz, sj@kernel.org, Liam.Howlett@oracle.com,
+        Jason@zx2c4.com, jannh@google.com, liam.howlett@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-cow-fix-compile-warning-on-32bit.patch added to mm-unstable branch
-Message-Id: <20221205200205.7F549C433C1@smtp.kernel.org>
+Subject: + mmap-fix-do_brk_flags-modifying-obviously-incorrect-vmas.patch added to mm-unstable branch
+Message-Id: <20221205203353.E6E6CC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: cow: fix compile warning on 32bit
+     Subject: mmap: fix do_brk_flags() modifying obviously incorrect VMAs
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-cow-fix-compile-warning-on-32bit.patch
+     mmap-fix-do_brk_flags-modifying-obviously-incorrect-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-cow-fix-compile-warning-on-32bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmap-fix-do_brk_flags-modifying-obviously-incorrect-vmas.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,60 +66,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: selftests/vm: cow: fix compile warning on 32bit
-Date: Mon, 5 Dec 2022 20:37:15 +0100
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: mmap: fix do_brk_flags() modifying obviously incorrect VMAs
+Date: Mon, 5 Dec 2022 19:23:17 +0000
 
-The compiler complains about the conversion of a pointer to an int of
-different width.
+Add more sanity checks to the VMA that do_brk_flags() will expand.  Ensure
+the VMA matches basic merge requirements within the function before
+calling can_vma_merge_after().
 
-Link: https://lkml.kernel.org/r/20221205193716.276024-4-david@redhat.com
-Fixes: 6f1405efc61b ("selftests/vm: anon_cow: add R/O longterm tests via gup_test")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Yang Li <yang.lee@linux.alibaba.com>
+Drop the duplicate checks from vm_brk_flags() since they will be enforced
+later.
+
+Link: https://lkml.kernel.org/r/20221205192304.1957418-1-Liam.Howlett@oracle.com
+Fixes: 2e7ce7d354f2 ("mm/mmap: change do_brk_flags() to expand existing VMA and add do_brk_munmap()")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Suggested-by: Jann Horn <jannh@google.com>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/cow.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mmap.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/vm/cow.c~selftests-vm-cow-fix-compile-warning-on-32bit
-+++ a/tools/testing/selftests/vm/cow.c
-@@ -650,7 +650,7 @@ static void do_test_ro_pin(char *mem, si
- 	}
- 
- 	/* Take a R/O pin. This should trigger unsharing. */
--	args.addr = (__u64)mem;
-+	args.addr = (__u64)(uintptr_t)mem;
- 	args.size = size;
- 	args.flags = fast ? PIN_LONGTERM_TEST_FLAG_USE_FAST : 0;
- 	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_START, &args);
-@@ -669,7 +669,7 @@ static void do_test_ro_pin(char *mem, si
- 	 * Read back the content via the pin to the temporary buffer and
- 	 * test if we observed the modification.
+--- a/mm/mmap.c~mmap-fix-do_brk_flags-modifying-obviously-incorrect-vmas
++++ a/mm/mmap.c
+@@ -2945,9 +2945,9 @@ static int do_brk_flags(struct ma_state
+ 	 * Expand the existing vma if possible; Note that singular lists do not
+ 	 * occur after forking, so the expand will only happen on new VMAs.
  	 */
--	tmp_val = (__u64)tmp;
-+	tmp_val = (__u64)(uintptr_t)tmp;
- 	ret = ioctl(gup_fd, PIN_LONGTERM_TEST_READ, &tmp_val);
- 	if (ret)
- 		ksft_test_result_fail("PIN_LONGTERM_TEST_READ failed\n");
+-	if (vma &&
+-	    (!vma->anon_vma || list_is_singular(&vma->anon_vma_chain)) &&
+-	    ((vma->vm_flags & ~VM_SOFTDIRTY) == flags)) {
++	if (vma && vma->vm_end == addr && !vma_policy(vma) &&
++	    can_vma_merge_after(vma, flags, NULL, NULL,
++				addr >> PAGE_SHIFT, NULL_VM_UFFD_CTX, NULL)) {
+ 		mas_set_range(mas, vma->vm_start, addr + len - 1);
+ 		if (mas_preallocate(mas, vma, GFP_KERNEL))
+ 			goto unacct_fail;
+@@ -3034,11 +3034,6 @@ int vm_brk_flags(unsigned long addr, uns
+ 		goto munmap_failed;
+ 
+ 	vma = mas_prev(&mas, 0);
+-	if (!vma || vma->vm_end != addr || vma_policy(vma) ||
+-	    !can_vma_merge_after(vma, flags, NULL, NULL,
+-				 addr >> PAGE_SHIFT, NULL_VM_UFFD_CTX, NULL))
+-		vma = NULL;
+-
+ 	ret = do_brk_flags(&mas, vma, addr, len, flags);
+ 	populate = ((mm->def_flags & VM_LOCKED) != 0);
+ 	mmap_write_unlock(mm);
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit.patch
-selftests-vm-add-ksm-unmerge-tests.patch
-mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma.patch
-selftests-vm-add-test-to-measure-madv_unmergeable-performance.patch
-mm-ksm-simplify-break_ksm-to-not-rely-on-vm_fault_write.patch
-mm-remove-vm_fault_write.patch
-mm-ksm-fix-ksm-cow-breaking-with-userfaultfd-wp-via-fault_flag_unshare.patch
-mm-pagewalk-add-walk_page_range_vma.patch
-mm-ksm-convert-break_ksm-to-use-walk_page_range_vma.patch
-mm-gup-remove-foll_migration.patch
-mm-gup_test-fix-pin_longterm_test_read-with-highmem.patch
-selftests-vm-madv_populate-fix-missing-madv_populate_readwrite-definitions.patch
-selftests-vm-cow-fix-compile-warning-on-32bit.patch
-selftests-vm-ksm_functional_tests-fixes-for-32bit.patch
+mmap-fix-do_brk_flags-modifying-obviously-incorrect-vmas.patch
+maple_tree-fix-mas_find_rev-comment.patch
+maple_tree-update-copyright-dates-for-test-code.patch
 
