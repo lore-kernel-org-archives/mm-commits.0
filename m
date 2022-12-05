@@ -2,44 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80D77C4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Dec 2022 02:13:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47F14C4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Dec 2022 19:59:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230488AbiLECNR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 4 Dec 2022 21:13:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56072 "EHLO
+        id S231906AbiLET7R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Dec 2022 14:59:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229479AbiLECNQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 4 Dec 2022 21:13:16 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11D4B2643
-        for <mm-commits@vger.kernel.org>; Sun,  4 Dec 2022 18:13:15 -0800 (PST)
+        with ESMTP id S232492AbiLET6v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Dec 2022 14:58:51 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E52D9585
+        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 11:58:49 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A07D560EA1
-        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 02:13:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECE58C433D6;
-        Mon,  5 Dec 2022 02:13:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D340FB8120C
+        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 19:58:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A138C433D6;
+        Mon,  5 Dec 2022 19:58:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670206394;
-        bh=DmnLCvr4WWrXUzJ0ujcRmS6qJZQPLVWAzTnZGxYLzJ4=;
+        s=korg; t=1670270326;
+        bh=iS+vgkWayKby381F8BfBW4FZeEAA63qayDoNSAGPrN8=;
         h=Date:To:From:Subject:From;
-        b=fQM7jGkcRAmbGquZbpt61cUFSKTrnIzEa5dhxP6AtVXJbd0wMalhs6mrompO56CsI
-         JZoNPd5Far3zXnyaGrA8uLLEEKHCXBsAjvI+ABUClL5tSaM3gkCk0bXu+W8Ho6dinR
-         zgI7Wh8+XPtrygNOCdHaUJBBQ8S8wRt9BMQgEw5M=
-Date:   Sun, 04 Dec 2022 18:13:13 -0800
-To:     mm-commits@vger.kernel.org, zokeefe@google.com,
-        willy@infradead.org, vbabka@suse.cz, torvalds@linux-foundation.org,
-        songmuchun@bytedance.com, sidhartha.kumar@oracle.com,
-        shy828301@gmail.com, peterx@redhat.com, naoya.horiguchi@linux.dev,
-        mike.kravetz@oracle.com, linmiaohe@huawei.com,
-        kirill@shutemov.name, jthoughton@google.com, jhubbard@nvidia.com,
-        hannes@cmpxchg.org, david@redhat.com, almasrymina@google.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=VTqxv++dP+Bh3+cNx4nb9q7SzVDJZaYLiwrEE3lvHxW9VHPisJecGXQ5YjGHTjQhR
+         dSeakpN6Y3igPcpdT/gWV4kWrGulru7lalSMT9lRYFjtZIlkJ47ZUsfi7cFI5CPGxA
+         ogrwmGKxwZYhUo/Mw04CV/bdmYIjSKlYRD4NNQ+w=
+Date:   Mon, 05 Dec 2022 11:58:45 -0800
+To:     mm-commits@vger.kernel.org, shy828301@gmail.com, peterx@redhat.com,
+        hughd@google.com, aarcange@redhat.com, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmthprmap-fix-races-between-updates-of-subpages_mapcount.patch added to mm-unstable branch
-Message-Id: <20221205021313.ECE58C433D6@smtp.kernel.org>
+Subject: + mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221205195846.8A138C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,thp,rmap: fix races between updates of subpages_mapcount
-has been added to the -mm mm-unstable branch.  Its filename is
-     mmthprmap-fix-races-between-updates-of-subpages_mapcount.patch
+     Subject: mm/swap: fix SWP_PFN_BITS with CONFIG_PHYS_ADDR_T_64BIT on 32bit
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmthprmap-fix-races-between-updates-of-subpages_mapcount.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -70,162 +65,119 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm,thp,rmap: fix races between updates of subpages_mapcount
-Date: Sun, 4 Dec 2022 17:57:07 -0800 (PST)
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/swap: fix SWP_PFN_BITS with CONFIG_PHYS_ADDR_T_64BIT on 32bit
+Date: Mon, 5 Dec 2022 16:08:57 +0100
 
-Commit 4b51634cd16a, introducing the COMPOUND_MAPPED bit, paid attention
-to the impossibility of subpages_mapcount ever appearing negative; but did
-not attend to those races in which it can momentarily appear larger than
-thought possible.
+We use "unsigned long" to store a PFN in the kernel and phys_addr_t to
+store a physical address.
 
-These arise from how page_remove_rmap() first decrements page->_mapcount
-or compound_mapcount, then, if that transition goes negative (logical 0),
-decrements subpages_mapcount.  The initial decrement lets a racing
-page_add_*_rmap() reincrement _mapcount or compound_mapcount immediately,
-and then in rare cases its corresponding increment of subpages_mapcount
-may be completed before page_remove_rmap()'s decrement.  There could even
-(with increasing unlikelihood) be a series of increments intermixed with
-the decrements.
+On a 64bit system, both are 64bit wide. However, on a 32bit system, the
+latter might be 64bit wide. This is, for example, the case on x86 with
+PAE: phys_addr_t and PTEs are 64bit wide, while "unsigned long" only
+spans 32bit.
 
-In practice, checking subpages_mapcount with a temporary WARN on range,
-has caught values of 0x1000000 (2*COMPOUND_MAPPED, when move_pages() was
-using remove_migration_pmd()) and 0x800201 (do_huge_pmd_wp_page() using
-__split_huge_pmd()): page_add_anon_rmap() racing page_remove_rmap(), as
-predicted.
+The current definition of SWP_PFN_BITS without MAX_PHYSMEM_BITS misses
+that case, and assumes that the maximum PFN is limited by a 32bit
+phys_addr_t.  This implies, that SWP_PFN_BITS will currently only be able
+to cover 4 GiB - 1 on any 32bit system, which is wrong.  We can end up
+masking off valid PFN bits from the swap offset.
 
-I certainly found it harder to reason about than when bit_spin_locked, but
-the easy case gives a clue to how to handle the harder case.  The easy
-case being the three !(nr & COMPOUND_MAPPED) checks, which should
-obviously be replaced by (nr < COMPOUND_MAPPED) checks - to count a page
-as compound mapped, even while the bit in that position is 0.
+Ideally, we'd use something like "sizeof(phys_addr_t) * 8 - PAGE_SHIFT",
+however, we might exceed SWP_TYPE_SHIFT and make the BUILD_BUG_ON() in
+is_pfn_swap_entry() unhappy.  Note that swp_entry_t is effectively an
+unsigned long.
 
-The harder case is when trying to decide how many subpages are newly
-covered or uncovered, when compound map is first added or last removed:
-not knowing all that racily happened between first and second atomic ops.
+Consequently, simply rely on SWP_TYPE_SHIFT in case we're on 32bit and
+CONFIG_PHYS_ADDR_T_64BIT is defined.
 
-But the easy way to handle that, is again to count the page as compound
-mapped all the while that its subpages_mapcount indicates so - ignoring
-the _mapcount or compound_mapcount transition while it is on the way to
-being reversed.
+For example, on an 8 GiB x86 PAE system, we currently fail removing
+migration entries (remove_migration_ptes()) that target PFNs above 4 GiB,
+because mm/page_vma_mapped.c:check_pte() will fail to identify a PFN match
+as swp_offset_pfn() wrongly masks off valid PFN bits.
 
-Link: https://lkml.kernel.org/r/4388158-3092-a960-ff2d-55f2b0fe4ef8@google.com
-Fixes: 4b51634cd16a ("mm,thp,rmap: subpages_mapcount COMPOUND_MAPPED if PMD-mapped")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+With THP, split_huge_page_to_list()->...->remap_page() will leave
+migration entries in place and continue to unlock the page, which is
+wrong.  Later, when we stumble over these migration entries (e.g., via
+/proc/self/pagemap), pfn_swap_entry_to_page() will BUG_ON() because these
+migration entries shouldn't exist anymore and the page was unlocked.
+
+[   33.067591] kernel BUG at include/linux/swapops.h:497!
+[   33.067597] invalid opcode: 0000 [#1] PREEMPT SMP NOPTI
+[   33.067602] CPU: 3 PID: 742 Comm: cow Tainted: G            E      6.1.0-rc8+ #16
+[   33.067605] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.0-1.fc36 04/01/2014
+[   33.067606] EIP: pagemap_pmd_range+0x644/0x650
+[   33.067612] Code: 00 00 00 00 66 90 89 ce b9 00 f0 ff ff e9 ff fb ...
+[   33.067615] EAX: ee394000 EBX: 00000002 ECX: ee394000 EDX: 00000000
+[   33.067617] ESI: c1b0ded4 EDI: 00024a00 EBP: c1b0ddb4 ESP: c1b0dd68
+[   33.067619] DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068 EFLAGS: 00010246
+[   33.067624] CR0: 80050033 CR2: b7a00000 CR3: 01bbbd20 CR4: 00350ef0
+[   33.067625] Call Trace:
+[   33.067628]  ? madvise_free_pte_range+0x720/0x720
+[   33.067632]  ? smaps_pte_range+0x4b0/0x4b0
+[   33.067634]  walk_pgd_range+0x325/0x720
+[   33.067637]  ? mt_find+0x1d6/0x3a0
+[   33.067641]  ? mt_find+0x1d6/0x3a0
+[   33.067643]  __walk_page_range+0x164/0x170
+[   33.067646]  walk_page_range+0xf9/0x170
+[   33.067648]  ? __kmem_cache_alloc_node+0x2a8/0x340
+[   33.067653]  pagemap_read+0x124/0x280
+[   33.067658]  ? default_llseek+0x101/0x160
+[   33.067662]  ? smaps_account+0x1d0/0x1d0
+[   33.067664]  vfs_read+0x90/0x290
+[   33.067667]  ? do_madvise.part.0+0x24b/0x390
+[   33.067669]  ? debug_smp_processor_id+0x12/0x20
+[   33.067673]  ksys_pread64+0x58/0x90
+[   33.067675]  __ia32_sys_ia32_pread64+0x1b/0x20
+[   33.067680]  __do_fast_syscall_32+0x4c/0xc0
+[   33.067683]  do_fast_syscall_32+0x29/0x60
+[   33.067686]  do_SYSENTER_32+0x15/0x20
+[   33.067689]  entry_SYSENTER_32+0x98/0xf1
+
+Link: https://lkml.kernel.org/r/20221205150857.167583-1-david@redhat.com
+Fixes: 0d206b5d2e0d ("mm/swap: add swp_offset_pfn() to fetch PFN from swap entry")
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   42 +++++++++++++++++++++++++++++++++---------
- 1 file changed, 33 insertions(+), 9 deletions(-)
+ include/linux/swapops.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/rmap.c~mmthprmap-fix-races-between-updates-of-subpages_mapcount
-+++ a/mm/rmap.c
-@@ -1232,7 +1232,7 @@ void page_add_anon_rmap(struct page *pag
- 		if (first && PageCompound(page)) {
- 			mapped = subpages_mapcount_ptr(compound_head(page));
- 			nr = atomic_inc_return_relaxed(mapped);
--			nr = !(nr & COMPOUND_MAPPED);
-+			nr = (nr < COMPOUND_MAPPED);
- 		}
- 	} else if (PageTransHuge(page)) {
- 		/* That test is redundant: it's for safety or to optimize out */
-@@ -1241,8 +1241,16 @@ void page_add_anon_rmap(struct page *pag
- 		if (first) {
- 			mapped = subpages_mapcount_ptr(page);
- 			nr = atomic_add_return_relaxed(COMPOUND_MAPPED, mapped);
--			nr_pmdmapped = thp_nr_pages(page);
--			nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
-+			if (likely(nr < COMPOUND_MAPPED + COMPOUND_MAPPED)) {
-+				nr_pmdmapped = thp_nr_pages(page);
-+				nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
-+				/* Raced ahead of a remove and another add? */
-+				if (unlikely(nr < 0))
-+					nr = 0;
-+			} else {
-+				/* Raced ahead of a remove of COMPOUND_MAPPED */
-+				nr = 0;
-+			}
- 		}
- 	}
+--- a/include/linux/swapops.h~mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit
++++ a/include/linux/swapops.h
+@@ -32,11 +32,13 @@
+  * store PFN, we only need SWP_PFN_BITS bits.  Each of the pfn swap entries
+  * can use the extra bits to store other information besides PFN.
+  */
+-#ifdef MAX_PHYSMEM_BITS
++#if defined(MAX_PHYSMEM_BITS)
+ #define SWP_PFN_BITS			(MAX_PHYSMEM_BITS - PAGE_SHIFT)
+-#else  /* MAX_PHYSMEM_BITS */
++#elif !defined(CONFIG_64BIT) && defined(CONFIG_PHYS_ADDR_T_64BIT)
++#define SWP_PFN_BITS			SWP_TYPE_SHIFT
++#else
+ #define SWP_PFN_BITS			(BITS_PER_LONG - PAGE_SHIFT)
+-#endif	/* MAX_PHYSMEM_BITS */
++#endif	/* defined(MAX_PHYSMEM_BITS) */
+ #define SWP_PFN_MASK			(BIT(SWP_PFN_BITS) - 1)
  
-@@ -1330,7 +1338,7 @@ void page_add_file_rmap(struct page *pag
- 		if (first && PageCompound(page)) {
- 			mapped = subpages_mapcount_ptr(compound_head(page));
- 			nr = atomic_inc_return_relaxed(mapped);
--			nr = !(nr & COMPOUND_MAPPED);
-+			nr = (nr < COMPOUND_MAPPED);
- 		}
- 	} else if (PageTransHuge(page)) {
- 		/* That test is redundant: it's for safety or to optimize out */
-@@ -1339,8 +1347,16 @@ void page_add_file_rmap(struct page *pag
- 		if (first) {
- 			mapped = subpages_mapcount_ptr(page);
- 			nr = atomic_add_return_relaxed(COMPOUND_MAPPED, mapped);
--			nr_pmdmapped = thp_nr_pages(page);
--			nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
-+			if (likely(nr < COMPOUND_MAPPED + COMPOUND_MAPPED)) {
-+				nr_pmdmapped = thp_nr_pages(page);
-+				nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
-+				/* Raced ahead of a remove and another add? */
-+				if (unlikely(nr < 0))
-+					nr = 0;
-+			} else {
-+				/* Raced ahead of a remove of COMPOUND_MAPPED */
-+				nr = 0;
-+			}
- 		}
- 	}
- 
-@@ -1387,7 +1403,7 @@ void page_remove_rmap(struct page *page,
- 		if (last && PageCompound(page)) {
- 			mapped = subpages_mapcount_ptr(compound_head(page));
- 			nr = atomic_dec_return_relaxed(mapped);
--			nr = !(nr & COMPOUND_MAPPED);
-+			nr = (nr < COMPOUND_MAPPED);
- 		}
- 	} else if (PageTransHuge(page)) {
- 		/* That test is redundant: it's for safety or to optimize out */
-@@ -1396,8 +1412,16 @@ void page_remove_rmap(struct page *page,
- 		if (last) {
- 			mapped = subpages_mapcount_ptr(page);
- 			nr = atomic_sub_return_relaxed(COMPOUND_MAPPED, mapped);
--			nr_pmdmapped = thp_nr_pages(page);
--			nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
-+			if (likely(nr < COMPOUND_MAPPED)) {
-+				nr_pmdmapped = thp_nr_pages(page);
-+				nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
-+				/* Raced ahead of another remove and an add? */
-+				if (unlikely(nr < 0))
-+					nr = 0;
-+			} else {
-+				/* An add of COMPOUND_MAPPED raced ahead */
-+				nr = 0;
-+			}
- 		}
- 	}
- 
+ /**
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-tmpfs-fix-data-loss-from-failed-fallocate.patch
-mm-memcg-fix-swapcached-stat-accounting.patch
-mmthprmap-fix-races-between-updates-of-subpages_mapcount.patch
+mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit.patch
+selftests-vm-add-ksm-unmerge-tests.patch
+mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma.patch
+selftests-vm-add-test-to-measure-madv_unmergeable-performance.patch
+mm-ksm-simplify-break_ksm-to-not-rely-on-vm_fault_write.patch
+mm-remove-vm_fault_write.patch
+mm-ksm-fix-ksm-cow-breaking-with-userfaultfd-wp-via-fault_flag_unshare.patch
+mm-pagewalk-add-walk_page_range_vma.patch
+mm-ksm-convert-break_ksm-to-use-walk_page_range_vma.patch
+mm-gup-remove-foll_migration.patch
 
