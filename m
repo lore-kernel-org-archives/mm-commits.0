@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF77C47089
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Dec 2022 21:06:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C4BCC4321E
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Dec 2022 21:07:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233149AbiLEVGS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Dec 2022 16:06:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33620 "EHLO
+        id S233145AbiLEVHq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Dec 2022 16:07:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233317AbiLEVFx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Dec 2022 16:05:53 -0500
+        with ESMTP id S233500AbiLEVH0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Dec 2022 16:07:26 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21F822B603
-        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 13:05:24 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 261D123EAD
+        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 13:06:43 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5DC446141B
-        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 21:05:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B733CC433D7;
-        Mon,  5 Dec 2022 21:05:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B59A661416
+        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 21:06:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13E8AC433D7;
+        Mon,  5 Dec 2022 21:06:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670274323;
-        bh=tM2Zv3o8B9HJizyEILWK8BJvVFd1BwN9v4FXiX1uhHY=;
+        s=korg; t=1670274402;
+        bh=LD4AsnxItjcXFvYqDMrv7vHRyL/Fhrjka4jLGnOA16A=;
         h=Date:To:From:Subject:From;
-        b=lnyY5FrX5Q2CKFAj56+PhPboMzH264lxcRZAG+iOHuU/R/h1wJLyOIbqhdfk9UeEW
-         I8qZYLARLRM8LgIBN3+2f7xNlK9iUYJje+2rjx0ywbJMohYGgLZ50PIICquMIYgr7a
-         xaWXsD0oQmfd7Q4stKtEjv2TXv7EZB9NuiJM/x0g=
-Date:   Mon, 05 Dec 2022 13:05:22 -0800
-To:     mm-commits@vger.kernel.org, shli@fusionio.com, riel@redhat.com,
-        hughd@google.com, wangkefeng.wang@huawei.com,
-        akpm@linux-foundation.org
+        b=GM5zVhBCMH9/eM3cf2Q9Nf+G9Rz0/7kQYqqIpYD/wqJ+pHyXvyby61qGFQ+BfGTeC
+         9qMLTsK8qR8y5ti6KN5YENJ0z/e1qvbaHyBZYmORwyOIX/l/o6md23O/GXMTO3gSx6
+         gT4u8RBksdUhFLKHbhrkwVaG3S8nan+UBah0z2M0=
+Date:   Mon, 05 Dec 2022 13:06:41 -0800
+To:     mm-commits@vger.kernel.org, elver@google.com, dvyukov@google.com,
+        glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-cond_resched-in-swapin_walk_pmd_entry.patch added to mm-unstable branch
-Message-Id: <20221205210523.B733CC433D7@smtp.kernel.org>
+Subject: + kmsan-fix-memcpy-tests.patch added to mm-unstable branch
+Message-Id: <20221205210642.13E8AC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add cond_resched() in swapin_walk_pmd_entry()
+     Subject: kmsan: fix memcpy tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-cond_resched-in-swapin_walk_pmd_entry.patch
+     kmsan-fix-memcpy-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-cond_resched-in-swapin_walk_pmd_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-fix-memcpy-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,39 +64,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: add cond_resched() in swapin_walk_pmd_entry()
-Date: Mon, 5 Dec 2022 22:03:27 +0800
+From: Alexander Potapenko <glider@google.com>
+Subject: kmsan: fix memcpy tests
+Date: Mon, 5 Dec 2022 15:57:40 +0100
 
-When handling MADV_WILLNEED in madvise(), a soflockup may occurr in
-swapin_walk_pmd_entry() if swapping in lots of memory on a slow device. 
-Add a cond_resched() to avoid the possible softlockup.
+Recent Clang changes may cause it to delete calls of memcpy(), if the
+source is an uninitialized volatile local.  This happens because passing a
+pointer to a volatile local into memcpy() discards the volatile qualifier,
+giving the compiler a free hand to optimize the memcpy() call away.
 
-Link: https://lkml.kernel.org/r/20221205140327.72304-1-wangkefeng.wang@huawei.com
-Fixes: 1998cc048901 ("mm: make madvise(MADV_WILLNEED) support swap file prefetch")
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Shaohua Li <shli@fusionio.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Use OPTIMIZER_HIDE_VAR() to hide the uninitialized var from the too-smart
+compiler.
+
+Link: https://lkml.kernel.org/r/20221205145740.694038-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Suggested-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kmsan/kmsan_test.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/madvise.c~mm-add-cond_resched-in-swapin_walk_pmd_entry
-+++ a/mm/madvise.c
-@@ -223,6 +223,7 @@ static int swapin_walk_pmd_entry(pmd_t *
- 			put_page(page);
- 	}
- 	swap_read_unplug(splug);
-+	cond_resched();
- 
- 	return 0;
- }
+--- a/mm/kmsan/kmsan_test.c~kmsan-fix-memcpy-tests
++++ a/mm/kmsan/kmsan_test.c
+@@ -419,6 +419,7 @@ static void test_memcpy_aligned_to_align
+ 	kunit_info(
+ 		test,
+ 		"memcpy()ing aligned uninit src to aligned dst (UMR report)\n");
++	OPTIMIZER_HIDE_VAR(uninit_src);
+ 	memcpy((void *)&dst, (void *)&uninit_src, sizeof(uninit_src));
+ 	kmsan_check_memory((void *)&dst, sizeof(dst));
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+@@ -441,6 +442,7 @@ static void test_memcpy_aligned_to_unali
+ 	kunit_info(
+ 		test,
+ 		"memcpy()ing aligned uninit src to unaligned dst (UMR report)\n");
++	OPTIMIZER_HIDE_VAR(uninit_src);
+ 	memcpy((void *)&dst[1], (void *)&uninit_src, sizeof(uninit_src));
+ 	kmsan_check_memory((void *)dst, 4);
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+@@ -464,6 +466,7 @@ static void test_memcpy_aligned_to_unali
+ 	kunit_info(
+ 		test,
+ 		"memcpy()ing aligned uninit src to unaligned dst - part 2 (UMR report)\n");
++	OPTIMIZER_HIDE_VAR(uninit_src);
+ 	memcpy((void *)&dst[1], (void *)&uninit_src, sizeof(uninit_src));
+ 	kmsan_check_memory((void *)&dst[4], sizeof(uninit_src));
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from glider@google.com are
 
-mm-add-cond_resched-in-swapin_walk_pmd_entry.patch
+lockdep-allow-instrumenting-lockdepc-with-kmsan.patch
+kmsan-allow-using-__msan_instrument_asm_store-inside-runtime.patch
+kmsan-fix-memcpy-tests.patch
 
