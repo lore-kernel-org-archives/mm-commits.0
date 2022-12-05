@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22793C3A5A7
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Dec 2022 01:41:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30936C4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Dec 2022 01:43:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231296AbiLEBl6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 4 Dec 2022 20:41:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34604 "EHLO
+        id S231241AbiLEBn4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 4 Dec 2022 20:43:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231244AbiLEBl5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 4 Dec 2022 20:41:57 -0500
+        with ESMTP id S231292AbiLEBnz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 4 Dec 2022 20:43:55 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19E8910FDB;
-        Sun,  4 Dec 2022 17:41:56 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 461B412D12
+        for <mm-commits@vger.kernel.org>; Sun,  4 Dec 2022 17:43:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B6B8660F21;
-        Mon,  5 Dec 2022 01:41:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11144C433D7;
-        Mon,  5 Dec 2022 01:41:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D81C460F43
+        for <mm-commits@vger.kernel.org>; Mon,  5 Dec 2022 01:43:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39829C433D7;
+        Mon,  5 Dec 2022 01:43:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670204515;
-        bh=pVEtoNB3nEJ9xracHQkOSfDu1vYY/E6hcJ7XPkUIit4=;
+        s=korg; t=1670204634;
+        bh=ZspARiB4pMvfwYI+ahpbCtAhWqJjvApLI52noAu9JBk=;
         h=Date:To:From:Subject:From;
-        b=urBAoY58shUNLCSXXza8AiyCfDz/+vslngGznsHE3NFkK49FkYdOxS57TR+x7TzY7
-         eCCwwakUKSKWvneWazR62LE2S4g84LV2QPc4SJpnS4zshFxnxIXuNGoNisoGhfDx0H
-         92KLWyO8XlLIV74IfaIl8Pf46mIYp/jvlN+dJY8E=
-Date:   Sun, 04 Dec 2022 17:41:54 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.moola@gmail.com, stable@vger.kernel.org, kernel@hev.cc,
-        chenhuacai@loongson.cn, chenguoqic@163.com, hughd@google.com,
-        akpm@linux-foundation.org
+        b=HO9TV/7rc1s8Vie++xuffNi4QBgBvF7l0inRcd7Ml4UVufNN7C0qBlZFur9B2T2kd
+         +Dop8rVBBzA0t1LmMPXIJ4E6OJ/4Ldeq5H+N1KVJzQ+ea94U/Q0GPcM9c7Qz0U80nL
+         C2vcn3Qabi639sw9yBTezzCzt7jOSHu+bqHQQ9co=
+Date:   Sun, 04 Dec 2022 17:43:53 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
+        hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tmpfs-fix-data-loss-from-failed-fallocate.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221205014155.11144C433D7@smtp.kernel.org>
+Subject: + mm-memcg-fix-swapcached-stat-accounting.patch added to mm-unstable branch
+Message-Id: <20221205014354.39829C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: fix data loss from failed fallocate
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     tmpfs-fix-data-loss-from-failed-fallocate.patch
+     Subject: mm: memcg: fix swapcached stat accounting
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcg-fix-swapcached-stat-accounting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tmpfs-fix-data-loss-from-failed-fallocate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-fix-swapcached-stat-accounting.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,67 +66,78 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: fix data loss from failed fallocate
-Date: Sun, 4 Dec 2022 16:51:50 -0800 (PST)
+Subject: mm: memcg: fix swapcached stat accounting
+Date: Sun, 4 Dec 2022 17:01:03 -0800 (PST)
 
-Fix tmpfs data loss when the fallocate system call is interrupted by a
-signal, or fails for some other reason.  The partial folio handling in
-shmem_undo_range() forgot to consider this unfalloc case, and was liable
-to erase or truncate out data which had already been committed earlier.
+I'd been worried by high "swapcached" counts in memcg OOM reports, thought
+we had a problem freeing swapcache, but it was just the accounting that
+was wrong.
 
-It turns out that none of the partial folio handling there is appropriate
-for the unfalloc case, which just wants to proceed to removal of whole
-folios: which find_get_entries() provides, even when partially covered.
+Two issues:
 
-Original patch by Rui Wang.
+1.  When __remove_mapping() removes swapcache,
+   __delete_from_swap_cache() relies on memcg_data for the right counts to
+   be updated; but that had already been reset by mem_cgroup_swapout(). 
+   Swap those calls around - mem_cgroup_swapout() does not require the
+   swapcached flag to be set.
 
-Link: https://lore.kernel.org/linux-mm/33b85d82.7764.1842e9ab207.Coremail.chenguoqic@163.com/
-Link: https://lkml.kernel.org/r/a5dac112-cf4b-7af-a33-f386e347fd38@google.com
-Fixes: b9a8a4195c7d ("truncate,shmem: Handle truncates that split large folios")
+   6.1 commit ac35a4902374 ("mm: multi-gen LRU: minimal
+   implementation") already made a similar swap for workingset_eviction(),
+   but not for this.
+
+2.  memcg's "swapcached" count was added for memcg v2 stats, but
+   displayed on OOM even for memcg v1: so mem_cgroup_move_account() ought
+   to move it.
+
+Link: https://lkml.kernel.org/r/b8b96ee0-1e1e-85f8-df97-c82a11d7cd14@google.com
+Fixes: b6038942480e ("mm: memcg: add swapcache stat for memcg v2")
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Guoqi Chen <chenguoqic@163.com>
-  Link: https://lore.kernel.org/all/20221101032248.819360-1-kernel@hev.cc/
-Cc: Rui Wang <kernel@hev.cc>
-Cc: Huacai Chen <chenhuacai@loongson.cn>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: <stable@vger.kernel.org>	[5.17+]
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/memcontrol.c |    6 ++++++
+ mm/vmscan.c     |    3 +--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/shmem.c~tmpfs-fix-data-loss-from-failed-fallocate
-+++ a/mm/shmem.c
-@@ -948,6 +948,15 @@ static void shmem_undo_range(struct inod
- 		index++;
+--- a/mm/memcontrol.c~mm-memcg-fix-swapcached-stat-accounting
++++ a/mm/memcontrol.c
+@@ -5756,6 +5756,12 @@ static int mem_cgroup_move_account(struc
+ 		}
  	}
  
-+	/*
-+	 * When undoing a failed fallocate, we want none of the partial folio
-+	 * zeroing and splitting below, but shall want to truncate the whole
-+	 * folio when !uptodate indicates that it was added by this fallocate,
-+	 * even when [lstart, lend] covers only a part of the folio.
-+	 */
-+	if (unfalloc)
-+		goto whole_folios;
-+
- 	same_folio = (lstart >> PAGE_SHIFT) == (lend >> PAGE_SHIFT);
- 	folio = shmem_get_partial_folio(inode, lstart >> PAGE_SHIFT);
- 	if (folio) {
-@@ -973,6 +982,8 @@ static void shmem_undo_range(struct inod
- 		folio_put(folio);
- 	}
++#ifdef CONFIG_SWAP
++	if (folio_test_swapcache(folio)) {
++		__mod_lruvec_state(from_vec, NR_SWAPCACHE, -nr_pages);
++		__mod_lruvec_state(to_vec, NR_SWAPCACHE, nr_pages);
++	}
++#endif
+ 	if (folio_test_writeback(folio)) {
+ 		__mod_lruvec_state(from_vec, NR_WRITEBACK, -nr_pages);
+ 		__mod_lruvec_state(to_vec, NR_WRITEBACK, nr_pages);
+--- a/mm/vmscan.c~mm-memcg-fix-swapcached-stat-accounting
++++ a/mm/vmscan.c
+@@ -1368,11 +1368,10 @@ static int __remove_mapping(struct addre
+ 	if (folio_test_swapcache(folio)) {
+ 		swp_entry_t swap = folio_swap_entry(folio);
  
-+whole_folios:
-+
- 	index = start;
- 	while (index < end) {
- 		cond_resched();
+-		/* get a shadow entry before mem_cgroup_swapout() clears folio_memcg() */
+ 		if (reclaimed && !mapping_exiting(mapping))
+ 			shadow = workingset_eviction(folio, target_memcg);
+-		mem_cgroup_swapout(folio, swap);
+ 		__delete_from_swap_cache(folio, swap, shadow);
++		mem_cgroup_swapout(folio, swap);
+ 		xa_unlock_irq(&mapping->i_pages);
+ 		put_swap_folio(folio, swap);
+ 	} else {
 _
 
 Patches currently in -mm which might be from hughd@google.com are
 
 tmpfs-fix-data-loss-from-failed-fallocate.patch
+mm-memcg-fix-swapcached-stat-accounting.patch
 
