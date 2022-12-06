@@ -2,125 +2,127 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 674B5C352A1
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Dec 2022 22:06:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 432B1C3A5A7
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Dec 2022 23:31:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229523AbiLFWGN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Dec 2022 17:06:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50564 "EHLO
+        id S229806AbiLFXbu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Dec 2022 18:31:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229843AbiLFWGM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2022 17:06:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6726E490BF
-        for <mm-commits@vger.kernel.org>; Tue,  6 Dec 2022 14:06:10 -0800 (PST)
+        with ESMTP id S229775AbiLFXbq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2022 18:31:46 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF72143AFA
+        for <mm-commits@vger.kernel.org>; Tue,  6 Dec 2022 15:31:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0D8B061909
-        for <mm-commits@vger.kernel.org>; Tue,  6 Dec 2022 22:06:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59E87C433C1;
-        Tue,  6 Dec 2022 22:06:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 55BE961961
+        for <mm-commits@vger.kernel.org>; Tue,  6 Dec 2022 23:31:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A33D2C433C1;
+        Tue,  6 Dec 2022 23:31:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670364369;
-        bh=d9gohToNxYajWekFXaGDaDJrV92dXMfJPWOKs6gXSmQ=;
+        s=korg; t=1670369493;
+        bh=spQN0Q+8kx2rpVtiQxI/Qo9hBSBSV/YQRtAYcSOq9TI=;
         h=Date:To:From:Subject:From;
-        b=rh2fdRR+XqZlPp+YCp0mUqOTAih9CWziSIi1NPgm9CAYqCQNf993LSNmy+Mhdo6ge
-         fwDI/Y6UCoHjvWRlt28AEmbvcToiFI9yuoH0mXTGKbrgfftiyoaqhrC3bK1ckwVQKf
-         FiFd+FB0T91+smNWC31a4rv4c5MIe23td5uZiIuI=
-Date:   Tue, 06 Dec 2022 14:06:08 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, slava@dubeyko.com, keescook@chromium.org,
-        ira.weiny@intel.com, bvanassche@acm.org, axboe@kernel.dk,
-        gargaditya08@live.com, akpm@linux-foundation.org
+        b=bnqVXJS48d1jO1IR3sB4XXTcqVkGJ0f3zco03e5qFnu7urqRWFBloWAUkkHY3qdDl
+         B/WM9H5lnZPMftOvet2tyYumJBDTWGzlqOP9HpvjJipS2280mYvNJsOcyqbH8D4kqU
+         omM5OisYLMwUJVq0KNH2Q46Uc7KRyBnZ7SngKLlw=
+Date:   Tue, 06 Dec 2022 15:31:32 -0800
+To:     mm-commits@vger.kernel.org, shy828301@gmail.com, peterx@redhat.com,
+        hughd@google.com, aarcange@redhat.com, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] hfsplus-fix-bug-causing-custom-uid-and-gid-being-unable-to-be-assigned-with-mount.patch removed from -mm tree
-Message-Id: <20221206220609.59E87C433C1@smtp.kernel.org>
+Subject: + mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit-v2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221206233133.A33D2C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: hfsplus: fix bug causing custom uid and gid being unable to be assigned with mount
-has been removed from the -mm tree.  Its filename was
-     hfsplus-fix-bug-causing-custom-uid-and-gid-being-unable-to-be-assigned-with-mount.patch
+The patch titled
+     Subject: mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit-v2
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit-v2.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Aditya Garg <gargaditya08@live.com>
-Subject: hfsplus: fix bug causing custom uid and gid being unable to be assigned with mount
-Date: Fri, 2 Dec 2022 15:39:36 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit-v2
+Date: Tue, 6 Dec 2022 11:57:37 +0100
 
-Despite specifying UID and GID in mount command, the specified UID and GID
-were not being assigned.  This patch fixes this issue.
+rely on sizeof(phys_addr_t) and min_t() instead
 
-Link: https://lkml.kernel.org/r/93F5197D-2B61-4129-B5D4-771934F70577@live.com
-Signed-off-by: Aditya Garg <gargaditya08@live.com>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Viacheslav Dubeyko <slava@dubeyko.com>
+Link: https://lkml.kernel.org/r/20221206105737.69478-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/hfsplus_fs.h |    2 ++
- fs/hfsplus/inode.c      |    4 ++--
- fs/hfsplus/options.c    |    2 ++
- 3 files changed, 6 insertions(+), 2 deletions(-)
 
---- a/fs/hfsplus/hfsplus_fs.h~hfsplus-fix-bug-causing-custom-uid-and-gid-being-unable-to-be-assigned-with-mount
-+++ a/fs/hfsplus/hfsplus_fs.h
-@@ -198,6 +198,8 @@ struct hfsplus_sb_info {
- #define HFSPLUS_SB_HFSX		3
- #define HFSPLUS_SB_CASEFOLD	4
- #define HFSPLUS_SB_NOBARRIER	5
-+#define HFSPLUS_SB_UID		6
-+#define HFSPLUS_SB_GID		7
+--- a/include/linux/swapops.h~mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit-v2
++++ a/include/linux/swapops.h
+@@ -32,14 +32,14 @@
+  * store PFN, we only need SWP_PFN_BITS bits.  Each of the pfn swap entries
+  * can use the extra bits to store other information besides PFN.
+  */
+-#if defined(MAX_PHYSMEM_BITS)
+-#define SWP_PFN_BITS			(MAX_PHYSMEM_BITS - PAGE_SHIFT)
+-#elif !defined(CONFIG_64BIT) && defined(CONFIG_PHYS_ADDR_T_64BIT)
+-#define SWP_PFN_BITS			SWP_TYPE_SHIFT
+-#else
+-#define SWP_PFN_BITS			(BITS_PER_LONG - PAGE_SHIFT)
+-#endif	/* defined(MAX_PHYSMEM_BITS) */
+-#define SWP_PFN_MASK			(BIT(SWP_PFN_BITS) - 1)
++#ifdef MAX_PHYSMEM_BITS
++#define SWP_PFN_BITS		(MAX_PHYSMEM_BITS - PAGE_SHIFT)
++#else  /* MAX_PHYSMEM_BITS */
++#define SWP_PFN_BITS		min_t(phys_addr_t, \
++				      sizeof(phys_addr_t) * 8 - PAGE_SHIFT, \
++				      SWP_TYPE_SHIFT)
++#endif	/* MAX_PHYSMEM_BITS */
++#define SWP_PFN_MASK		(BIT(SWP_PFN_BITS) - 1)
  
- static inline struct hfsplus_sb_info *HFSPLUS_SB(struct super_block *sb)
- {
---- a/fs/hfsplus/inode.c~hfsplus-fix-bug-causing-custom-uid-and-gid-being-unable-to-be-assigned-with-mount
-+++ a/fs/hfsplus/inode.c
-@@ -192,11 +192,11 @@ static void hfsplus_get_perms(struct ino
- 	mode = be16_to_cpu(perms->mode);
- 
- 	i_uid_write(inode, be32_to_cpu(perms->owner));
--	if (!i_uid_read(inode) && !mode)
-+	if (test_bit(HFSPLUS_SB_UID, &sbi->flags))
- 		inode->i_uid = sbi->uid;
- 
- 	i_gid_write(inode, be32_to_cpu(perms->group));
--	if (!i_gid_read(inode) && !mode)
-+	if (test_bit(HFSPLUS_SB_GID, &sbi->flags))
- 		inode->i_gid = sbi->gid;
- 
- 	if (dir) {
---- a/fs/hfsplus/options.c~hfsplus-fix-bug-causing-custom-uid-and-gid-being-unable-to-be-assigned-with-mount
-+++ a/fs/hfsplus/options.c
-@@ -137,6 +137,7 @@ int hfsplus_parse_options(char *input, s
- 				return 0;
- 			}
- 			sbi->uid = make_kuid(current_user_ns(), (uid_t)tmp);
-+			set_bit(HFSPLUS_SB_UID, &sbi->flags);
- 			if (!uid_valid(sbi->uid)) {
- 				pr_err("invalid uid specified\n");
- 				return 0;
-@@ -148,6 +149,7 @@ int hfsplus_parse_options(char *input, s
- 				return 0;
- 			}
- 			sbi->gid = make_kgid(current_user_ns(), (gid_t)tmp);
-+			set_bit(HFSPLUS_SB_GID, &sbi->flags);
- 			if (!gid_valid(sbi->gid)) {
- 				pr_err("invalid gid specified\n");
- 				return 0;
+ /**
+  * Migration swap entry specific bitfield definitions.  Layout:
 _
 
-Patches currently in -mm which might be from gargaditya08@live.com are
+Patches currently in -mm which might be from david@redhat.com are
 
+mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit.patch
+mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit-v2.patch
+selftests-vm-add-ksm-unmerge-tests.patch
+mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma.patch
+selftests-vm-add-test-to-measure-madv_unmergeable-performance.patch
+mm-ksm-simplify-break_ksm-to-not-rely-on-vm_fault_write.patch
+mm-remove-vm_fault_write.patch
+mm-ksm-fix-ksm-cow-breaking-with-userfaultfd-wp-via-fault_flag_unshare.patch
+mm-pagewalk-add-walk_page_range_vma.patch
+mm-ksm-convert-break_ksm-to-use-walk_page_range_vma.patch
+mm-gup-remove-foll_migration.patch
+mm-gup_test-fix-pin_longterm_test_read-with-highmem.patch
+selftests-vm-madv_populate-fix-missing-madv_populate_readwrite-definitions.patch
+selftests-vm-cow-fix-compile-warning-on-32bit.patch
+selftests-vm-ksm_functional_tests-fixes-for-32bit.patch
 
