@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD68AC63703
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Dec 2022 23:17:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43B94C4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Dec 2022 22:59:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230085AbiLGXRw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Dec 2022 18:17:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34392 "EHLO
+        id S229463AbiLHW7R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Dec 2022 17:59:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229470AbiLGXRu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2022 18:17:50 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B016A2AC41
-        for <mm-commits@vger.kernel.org>; Wed,  7 Dec 2022 15:17:46 -0800 (PST)
+        with ESMTP id S230097AbiLHW7M (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Dec 2022 17:59:12 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2043E78BA6
+        for <mm-commits@vger.kernel.org>; Thu,  8 Dec 2022 14:59:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3D920B82190
-        for <mm-commits@vger.kernel.org>; Wed,  7 Dec 2022 23:17:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D20DEC433D6;
-        Wed,  7 Dec 2022 23:17:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A9F9D6209B
+        for <mm-commits@vger.kernel.org>; Thu,  8 Dec 2022 22:59:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09497C433EF;
+        Thu,  8 Dec 2022 22:59:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670455063;
-        bh=q4TUolIPD1RWZH7wtRYZzayWzrG8UQ4LDT6353qC9QM=;
+        s=korg; t=1670540350;
+        bh=5Dadym5AP3IBIPZNeix1Ff7rTwd5+gFRE3LgY/8xZds=;
         h=Date:To:From:Subject:From;
-        b=v7pZr4ebokNCSk9pM4zfGGsh81z//nCHnMtMeBXNXU0/KzYG0sCcX6w+4oIAttk/g
-         ot20u0nq5/mQG4CA0Kcjm2yF6ozOgsSJmbiLggd+S2vyOS1/SgVYPY/qrYF39cjVQw
-         g1DhcXlR1fGbYuJ9u+QPzeL57ylCnJEVgWaOi0GA=
-Date:   Wed, 07 Dec 2022 15:17:43 -0800
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de, rppt@linux.ibm.com,
-        ira.weiny@intel.com, corbet@lwn.net, bigeasy@linutronix.de,
-        a.p.zijlstra@chello.nl, fmdefrancesco@gmail.com,
+        b=DyFIwBgy3hrHkzsRWuc5KMZtAJCb2IZbdfFJjsLVnCphW5+trBBZnxTwVNEIUy9SK
+         KD+sNYYtelmtwMFVrgxT73PxNY1+XSah9mbGk9Y01PW9KnwwcOJRh/Y1X0ttDTO0OZ
+         85p0tmQAttKCkwHXeXKiq5yO2eutqkUJg6AB7Hqc=
+Date:   Thu, 08 Dec 2022 14:59:09 -0800
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-highmem-add-notes-about-conversions-from-kmap_atomic.patch added to mm-unstable branch
-Message-Id: <20221207231743.D20DEC433D6@smtp.kernel.org>
+Subject: + maintainers-update-muchun-songs-email.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221208225910.09497C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/highmem: add notes about conversions from kmap{,_atomic}()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-highmem-add-notes-about-conversions-from-kmap_atomic.patch
+     Subject: MAINTAINERS: update Muchun Song's email
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-update-muchun-songs-email.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-highmem-add-notes-about-conversions-from-kmap_atomic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-muchun-songs-email.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,104 +64,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-Subject: mm/highmem: add notes about conversions from kmap{,_atomic}()
-Date: Wed, 7 Dec 2022 23:53:08 +0100
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: MAINTAINERS: update Muchun Song's email
+Date: Thu, 8 Dec 2022 19:55:48 +0800
 
-kmap() and kmap_atomic() have been deprecated.  kmap_local_page() should
-always be used in new code and the call sites of the two deprecated
-functions should be converted.  This latter task can lead to errors if it
-is not carried out with the necessary attention to the context around and
-between the maps and unmaps.
+I'm moving to the @linux.dev account.  Map my old addresses and update it
+to my new address.
 
-Therefore, add further information to the Highmem's documentation for the
-purpose to make it clearer that (1) kmap() and kmap_atomic() must not any
-longer be called in new code and (2) developers doing conversions from
-kmap() amd kmap_atomic() are expected to take care of the context around
-and between the maps and unmaps, in order to not break the code.
-
-Relevant parts of this patch have been taken from messages exchanged
-privately with Ira Weiny (thanks!).
-
-Link: https://lkml.kernel.org/r/20221207225308.8290-1-fmdefrancesco@gmail.com
-Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20221208115548.85244-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/mm/highmem.rst~mm-highmem-add-notes-about-conversions-from-kmap_atomic
-+++ a/Documentation/mm/highmem.rst
-@@ -57,7 +57,8 @@ list shows them in order of preference o
-   It can be invoked from any context (including interrupts) but the mappings
-   can only be used in the context which acquired them.
+--- a/.mailmap~maintainers-update-muchun-songs-email
++++ a/.mailmap
+@@ -373,6 +373,8 @@ Ricardo Ribalda <ribalda@kernel.org> <ri
+ Roman Gushchin <roman.gushchin@linux.dev> <guro@fb.com>
+ Roman Gushchin <roman.gushchin@linux.dev> <guroan@gmail.com>
+ Roman Gushchin <roman.gushchin@linux.dev> <klamm@yandex-team.ru>
++Muchun Song <muchun.song@linux.dev> <songmuchun@bytedance.com>
++Muchun Song <muchun.song@linux.dev> <smuchun@gmail.com>
+ Ross Zwisler <zwisler@kernel.org> <ross.zwisler@linux.intel.com>
+ Rudolf Marek <R.Marek@sh.cvut.cz>
+ Rui Saraiva <rmps@joel.ist.utl.pt>
+--- a/MAINTAINERS~maintainers-update-muchun-songs-email
++++ a/MAINTAINERS
+@@ -5299,7 +5299,7 @@ M:	Johannes Weiner <hannes@cmpxchg.org>
+ M:	Michal Hocko <mhocko@kernel.org>
+ M:	Roman Gushchin <roman.gushchin@linux.dev>
+ M:	Shakeel Butt <shakeelb@google.com>
+-R:	Muchun Song <songmuchun@bytedance.com>
++R:	Muchun Song <muchun.song@linux.dev>
+ L:	cgroups@vger.kernel.org
+ L:	linux-mm@kvack.org
+ S:	Maintained
+@@ -9443,7 +9443,7 @@ F:	drivers/net/ethernet/huawei/hinic/
  
--  This function should be preferred, where feasible, over all the others.
-+  This function should always be used. kmap_atomic() and kmap() have been
-+  deprecated.
- 
-   These mappings are thread-local and CPU-local, meaning that the mapping
-   can only be accessed from within this thread and the thread is bound to the
-@@ -100,10 +101,21 @@ list shows them in order of preference o
-   (included in the "Functions" section) for details on how to manage nested
-   mappings.
- 
--* kmap_atomic().  This permits a very short duration mapping of a single
--  page.  Since the mapping is restricted to the CPU that issued it, it
--  performs well, but the issuing task is therefore required to stay on that
--  CPU until it has finished, lest some other task displace its mappings.
-+* kmap_atomic(). This function has been deprecated; use kmap_local_page().
-+
-+  NOTE: Conversions to kmap_local_page() must take care to follow the mapping
-+  restrictions imposed on kmap_local_page(). Furthermore, the code between
-+  calls to kmap_atomic() and kunmap_atomic() may implicitly depend on the side
-+  effects of atomic mappings, i.e. disabling page faults or preemption, or both.
-+  In that case, explicit calls to pagefault_disable() or preempt_disable() or
-+  both must be made in conjunction with the use of kmap_local_page().
-+
-+  [Legacy documentation]
-+
-+  This permits a very short duration mapping of a single page.  Since the
-+  mapping is restricted to the CPU that issued it, it performs well, but
-+  the issuing task is therefore required to stay on that CPU until it has
-+  finished, lest some other task displace its mappings.
- 
-   kmap_atomic() may also be used by interrupt contexts, since it does not
-   sleep and the callers too may not sleep until after kunmap_atomic() is
-@@ -115,11 +127,20 @@ list shows them in order of preference o
- 
-   It is assumed that k[un]map_atomic() won't fail.
- 
--* kmap().  This should be used to make short duration mapping of a single
--  page with no restrictions on preemption or migration. It comes with an
--  overhead as mapping space is restricted and protected by a global lock
--  for synchronization. When mapping is no longer needed, the address that
--  the page was mapped to must be released with kunmap().
-+* kmap(). This function has been deprecated; use kmap_local_page().
-+
-+  NOTE: Conversions to kmap_local_page() must take care to follow the mapping
-+  restrictions imposed on kmap_local_page(). In particular, it is necessary to
-+  make sure that the kernel virtual memory pointer is only valid in the thread
-+  that obtained it.
-+
-+  [Legacy documentation]
-+
-+  This should be used to make short duration mapping of a single page with no
-+  restrictions on preemption or migration. It comes with an overhead as mapping
-+  space is restricted and protected by a global lock for synchronization. When
-+  mapping is no longer needed, the address that the page was mapped to must be
-+  released with kunmap().
- 
-   Mapping changes must be propagated across all the CPUs. kmap() also
-   requires global TLB invalidation when the kmap's pool wraps and it might
+ HUGETLB SUBSYSTEM
+ M:	Mike Kravetz <mike.kravetz@oracle.com>
+-M:	Muchun Song <songmuchun@bytedance.com>
++M:	Muchun Song <muchun.song@linux.dev>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-hugepages
 _
 
-Patches currently in -mm which might be from fmdefrancesco@gmail.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-highmem-add-notes-about-conversions-from-kmap_atomic.patch
+maintainers-update-muchun-songs-email.patch
 
