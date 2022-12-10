@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63C57C4332F
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Dec 2022 00:10:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD4F9C4332F
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Dec 2022 00:44:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229521AbiLJAKR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Dec 2022 19:10:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55342 "EHLO
+        id S229814AbiLJAo0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Dec 2022 19:44:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229470AbiLJAKR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2022 19:10:17 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5923C12D01
-        for <mm-commits@vger.kernel.org>; Fri,  9 Dec 2022 16:10:16 -0800 (PST)
+        with ESMTP id S229468AbiLJAoZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2022 19:44:25 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B27F86F48B;
+        Fri,  9 Dec 2022 16:44:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BD88960C12
-        for <mm-commits@vger.kernel.org>; Sat, 10 Dec 2022 00:10:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1121BC433D2;
-        Sat, 10 Dec 2022 00:10:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3894262343;
+        Sat, 10 Dec 2022 00:44:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94D4FC433D2;
+        Sat, 10 Dec 2022 00:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670631015;
-        bh=hVDPpVtK19wCzHNn8UgTUbXW7SehasQn5YwyvLl3Mfs=;
+        s=korg; t=1670633063;
+        bh=sxHZadGjABtclYEkRKPebRbqmMM4q2jnIzJAH1kU+1k=;
         h=Date:To:From:Subject:From;
-        b=TJugf4bNly3wIQn+P+ughuMe57JHMUr0EAzl701sTFQnY4Wv+/QMIEIsVCIL+dzeE
-         JeGlAtgEpQZPyJ1VczWo5pqw6rKrRwHefVtsBO3x7HS9yhPTnsJnXP1/KwHQKHlZL7
-         HUzOVM4YKVQmVHlfQvNtoJOEJ0uf1I70gCdbM8BI=
-Date:   Fri, 09 Dec 2022 16:10:14 -0800
-To:     mm-commits@vger.kernel.org, yuzhe@nfschina.com,
-        yuehaibing@huawei.com, weiyongjun1@huawei.com,
-        songmuchun@bytedance.com, roman.gushchin@linux.dev,
-        manfred@colorfullife.com, longman@redhat.com, legion@kernel.org,
-        jingyuwang_vip@163.com, ebiederm@xmission.com, dave@stgolabs.net,
-        shaozhengchao@huawei.com, akpm@linux-foundation.org
+        b=q7zW4c8QzlCfeZvtokAp9wvnV3CVQ0YMSShq4/CBLPiNpCdugWS1r6m33ufUMXjaz
+         3PZZfqD5TPBolLsPlPnQ0v7CX0sE2a11cllOzne/lo/AdRHbiviE0nqgfU4LWTGHie
+         B2fVFP6G5Aid1wzxnoaaX+akgGnP1vTNlfxv3dPA=
+Date:   Fri, 09 Dec 2022 16:44:22 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        rppt@linux.vnet.ibm.com, peterx@redhat.com, nadav.amit@gmail.com,
+        ives@codesandbox.io, hughd@google.com, apopple@nvidia.com,
+        aarcange@redhat.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-fix-memory-leak-in-init_mqueue_fs.patch added to mm-nonmm-unstable branch
-Message-Id: <20221210001015.1121BC433D2@smtp.kernel.org>
+Subject: + mm-userfaultfd-enable-writenotify-while-userfaultfd-wp-is-enabled-for-a-vma.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221210004423.94D4FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: fix memory leak in init_mqueue_fs()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-fix-memory-leak-in-init_mqueue_fs.patch
+     Subject: mm/userfaultfd: enable writenotify while userfaultfd-wp is enabled for a VMA
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-userfaultfd-enable-writenotify-while-userfaultfd-wp-is-enabled-for-a-vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-fix-memory-leak-in-init_mqueue_fs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-enable-writenotify-while-userfaultfd-wp-is-enabled-for-a-vma.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,59 +66,189 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhengchao Shao <shaozhengchao@huawei.com>
-Subject: ipc: fix memory leak in init_mqueue_fs()
-Date: Fri, 9 Dec 2022 17:29:29 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/userfaultfd: enable writenotify while userfaultfd-wp is enabled for a VMA
+Date: Fri, 9 Dec 2022 09:09:12 +0100
 
-When setup_mq_sysctls() failed in init_mqueue_fs(), mqueue_inode_cachep is
-not released.  In order to fix this issue, the release path is reordered.
+Currently, we don't enable writenotify when enabling userfaultfd-wp on a
+shared writable mapping (for now only shmem and hugetlb).  The consequence
+is that vma->vm_page_prot will still include write permissions, to be set
+as default for all PTEs that get remapped (e.g., mprotect(), NUMA hinting,
+page migration, ...).
 
-Link: https://lkml.kernel.org/r/20221209092929.1978875-1-shaozhengchao@huawei.com
-Fixes: dc55e35f9e81 ("ipc: Store mqueue sysctls in the ipc namespace")
-Signed-off-by: Zhengchao Shao <shaozhengchao@huawei.com>
-Cc: Alexey Gladkov <legion@kernel.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Jingyu Wang <jingyuwang_vip@163.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>
-Cc: YueHaibing <yuehaibing@huawei.com>
-Cc: Yu Zhe <yuzhe@nfschina.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+So far, vma->vm_page_prot is assumed to be a safe default, meaning that we
+only add permissions (e.g., mkwrite) but not remove permissions (e.g.,
+wrprotect).  For example, when enabling softdirty tracking, we enable
+writenotify.  With uffd-wp on shared mappings, that changed.  More details
+on vma->vm_page_prot semantics were summarized in [1].
+
+This is problematic for uffd-wp: we'd have to manually check for a uffd-wp
+PTEs/PMDs and manually write-protect PTEs/PMDs, which is error prone. 
+Prone to such issues is any code that uses vma->vm_page_prot to set PTE
+permissions: primarily pte_modify() and mk_pte().
+
+Instead, let's enable writenotify such that PTEs/PMDs/...  will be mapped
+write-protected as default and we will only allow selected PTEs that are
+definitely safe to be mapped without write-protection (see
+can_change_pte_writable()) to be writable.  In the future, we might want
+to enable write-bit recovery -- e.g., can_change_pte_writable() -- at more
+locations, for example, also when removing uffd-wp protection.
+
+This fixes two known cases:
+
+(a) remove_migration_pte() mapping uffd-wp'ed PTEs writable, resulting
+    in uffd-wp not triggering on write access.
+(b) do_numa_page() / do_huge_pmd_numa_page() mapping uffd-wp'ed PTEs/PMDs
+    writable, resulting in uffd-wp not triggering on write access.
+
+Note that do_numa_page() / do_huge_pmd_numa_page() can be reached even
+without NUMA hinting (which currently doesn't seem to be applicable to
+shmem), for example, by using uffd-wp with a PROT_WRITE shmem VMA.  On
+such a VMA, userfaultfd-wp is currently non-functional.
+
+Note that when enabling userfaultfd-wp, there is no need to walk page
+tables to enforce the new default protection for the PTEs: we know that
+they cannot be uffd-wp'ed yet, because that can only happen after enabling
+uffd-wp for the VMA in general.
+
+Also note that this makes mprotect() on ranges with uffd-wp'ed PTEs not
+accidentally set the write bit -- which would result in uffd-wp not
+triggering on later write access.  This commit makes uffd-wp on shmem
+behave just like uffd-wp on anonymous memory in that regard, even though,
+mixing mprotect with uffd-wp is controversial.
+
+[1] https://lkml.kernel.org/r/92173bad-caa3-6b43-9d1e-9a471fdbc184@redhat.com
+
+Link: https://lkml.kernel.org/r/20221209080912.7968-1-david@redhat.com
+Fixes: b1f9e876862d ("mm/uffd: enable write protection for shmem & hugetlbfs")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Ives van Hoorne <ives@codesandbox.io>
+Debugged-by: Peter Xu <peterx@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/userfaultfd.c |   28 ++++++++++++++++++++++------
+ mm/mmap.c        |    4 ++++
+ 2 files changed, 26 insertions(+), 6 deletions(-)
 
---- a/ipc/mqueue.c~ipc-fix-memory-leak-in-init_mqueue_fs
-+++ a/ipc/mqueue.c
-@@ -1726,7 +1726,8 @@ static int __init init_mqueue_fs(void)
- 
- 	if (!setup_mq_sysctls(&init_ipc_ns)) {
- 		pr_warn("sysctl registration failed\n");
--		return -ENOMEM;
-+		error = -ENOMEM;
-+		goto out_kmem;
- 	}
- 
- 	error = register_filesystem(&mqueue_fs_type);
-@@ -1744,8 +1745,9 @@ static int __init init_mqueue_fs(void)
- out_filesystem:
- 	unregister_filesystem(&mqueue_fs_type);
- out_sysctl:
--	kmem_cache_destroy(mqueue_inode_cachep);
- 	retire_mq_sysctls(&init_ipc_ns);
-+out_kmem:
-+	kmem_cache_destroy(mqueue_inode_cachep);
- 	return error;
+--- a/fs/userfaultfd.c~mm-userfaultfd-enable-writenotify-while-userfaultfd-wp-is-enabled-for-a-vma
++++ a/fs/userfaultfd.c
+@@ -108,6 +108,21 @@ static bool userfaultfd_is_initialized(s
+ 	return ctx->features & UFFD_FEATURE_INITIALIZED;
  }
  
++static void userfaultfd_set_vm_flags(struct vm_area_struct *vma,
++				     vm_flags_t flags)
++{
++	const bool uffd_wp_changed = (vma->vm_flags ^ flags) & VM_UFFD_WP;
++
++	vma->vm_flags = flags;
++	/*
++	 * For shared mappings, we want to enable writenotify while
++	 * userfaultfd-wp is enabled (see vma_wants_writenotify()). We'll simply
++	 * recalculate vma->vm_page_prot whenever userfaultfd-wp changes.
++	 */
++	if ((vma->vm_flags & VM_SHARED) && uffd_wp_changed)
++		vma_set_page_prot(vma);
++}
++
+ static int userfaultfd_wake_function(wait_queue_entry_t *wq, unsigned mode,
+ 				     int wake_flags, void *key)
+ {
+@@ -618,7 +633,8 @@ static void userfaultfd_event_wait_compl
+ 		for_each_vma(vmi, vma) {
+ 			if (vma->vm_userfaultfd_ctx.ctx == release_new_ctx) {
+ 				vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-				vma->vm_flags &= ~__VM_UFFD_FLAGS;
++				userfaultfd_set_vm_flags(vma,
++							 vma->vm_flags & ~__VM_UFFD_FLAGS);
+ 			}
+ 		}
+ 		mmap_write_unlock(mm);
+@@ -652,7 +668,7 @@ int dup_userfaultfd(struct vm_area_struc
+ 	octx = vma->vm_userfaultfd_ctx.ctx;
+ 	if (!octx || !(octx->features & UFFD_FEATURE_EVENT_FORK)) {
+ 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-		vma->vm_flags &= ~__VM_UFFD_FLAGS;
++		userfaultfd_set_vm_flags(vma, vma->vm_flags & ~__VM_UFFD_FLAGS);
+ 		return 0;
+ 	}
+ 
+@@ -733,7 +749,7 @@ void mremap_userfaultfd_prep(struct vm_a
+ 	} else {
+ 		/* Drop uffd context if remap feature not enabled */
+ 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+-		vma->vm_flags &= ~__VM_UFFD_FLAGS;
++		userfaultfd_set_vm_flags(vma, vma->vm_flags & ~__VM_UFFD_FLAGS);
+ 	}
+ }
+ 
+@@ -895,7 +911,7 @@ static int userfaultfd_release(struct in
+ 			prev = vma;
+ 		}
+ 
+-		vma->vm_flags = new_flags;
++		userfaultfd_set_vm_flags(vma, new_flags);
+ 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+ 	}
+ 	mmap_write_unlock(mm);
+@@ -1463,7 +1479,7 @@ static int userfaultfd_register(struct u
+ 		 * the next vma was merged into the current one and
+ 		 * the current one has not been updated yet.
+ 		 */
+-		vma->vm_flags = new_flags;
++		userfaultfd_set_vm_flags(vma, new_flags);
+ 		vma->vm_userfaultfd_ctx.ctx = ctx;
+ 
+ 		if (is_vm_hugetlb_page(vma) && uffd_disable_huge_pmd_share(vma))
+@@ -1648,7 +1664,7 @@ static int userfaultfd_unregister(struct
+ 		 * the next vma was merged into the current one and
+ 		 * the current one has not been updated yet.
+ 		 */
+-		vma->vm_flags = new_flags;
++		userfaultfd_set_vm_flags(vma, new_flags);
+ 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+ 
+ 	skip:
+--- a/mm/mmap.c~mm-userfaultfd-enable-writenotify-while-userfaultfd-wp-is-enabled-for-a-vma
++++ a/mm/mmap.c
+@@ -1524,6 +1524,10 @@ int vma_wants_writenotify(struct vm_area
+ 	if (vma_soft_dirty_enabled(vma) && !is_vm_hugetlb_page(vma))
+ 		return 1;
+ 
++	/* Do we need write faults for uffd-wp tracking? */
++	if (userfaultfd_wp(vma))
++		return 1;
++
+ 	/* Specialty mapping? */
+ 	if (vm_flags & VM_PFNMAP)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from shaozhengchao@huawei.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-ipc-fix-memory-leak-in-init_mqueue_fs.patch
+mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit.patch
+mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit-v2.patch
+mm-swap-fix-swp_pfn_bits-with-config_phys_addr_t_64bit-on-32bit-fix.patch
+mm-userfaultfd-enable-writenotify-while-userfaultfd-wp-is-enabled-for-a-vma.patch
+selftests-vm-add-ksm-unmerge-tests.patch
+mm-pagewalk-dont-trigger-test_walk-in-walk_page_vma.patch
+selftests-vm-add-test-to-measure-madv_unmergeable-performance.patch
+mm-ksm-simplify-break_ksm-to-not-rely-on-vm_fault_write.patch
+mm-remove-vm_fault_write.patch
+mm-ksm-fix-ksm-cow-breaking-with-userfaultfd-wp-via-fault_flag_unshare.patch
+mm-pagewalk-add-walk_page_range_vma.patch
+mm-ksm-convert-break_ksm-to-use-walk_page_range_vma.patch
+mm-gup-remove-foll_migration.patch
+mm-gup_test-fix-pin_longterm_test_read-with-highmem.patch
+selftests-vm-madv_populate-fix-missing-madv_populate_readwrite-definitions.patch
+selftests-vm-cow-fix-compile-warning-on-32bit.patch
+selftests-vm-ksm_functional_tests-fixes-for-32bit.patch
 
