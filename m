@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89F3BC4167B
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Dec 2022 23:06:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63C57C4332F
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Dec 2022 00:10:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229996AbiLHXGM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Dec 2022 18:06:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49802 "EHLO
+        id S229521AbiLJAKR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Dec 2022 19:10:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55342 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229950AbiLHXGK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Dec 2022 18:06:10 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC1C898EB1;
-        Thu,  8 Dec 2022 15:05:57 -0800 (PST)
+        with ESMTP id S229470AbiLJAKR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2022 19:10:17 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5923C12D01
+        for <mm-commits@vger.kernel.org>; Fri,  9 Dec 2022 16:10:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 736EFB82664;
-        Thu,  8 Dec 2022 23:05:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AE75C433D2;
-        Thu,  8 Dec 2022 23:05:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BD88960C12
+        for <mm-commits@vger.kernel.org>; Sat, 10 Dec 2022 00:10:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1121BC433D2;
+        Sat, 10 Dec 2022 00:10:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670540755;
-        bh=dmPOv76KkvnxepE7k7KJGDs0L6fyPRiQij0kVYrhW/o=;
+        s=korg; t=1670631015;
+        bh=hVDPpVtK19wCzHNn8UgTUbXW7SehasQn5YwyvLl3Mfs=;
         h=Date:To:From:Subject:From;
-        b=JRZHEgVA5XDytsZQvoi3F3qvdfNlYbLH5noAvT3tbVZTAXOOCifi1Q8B6eyu/mewU
-         dpsIrt6mvMuETelwo+SScILgz9lYfWiGuS/fHdetR4mJI7XH4cxMOyKLgCr/Fh2Ivj
-         x3WgNhs0yY5prd0W5UmcgIgWDOWcOTW0nXVlPAEg=
-Date:   Thu, 08 Dec 2022 15:05:52 -0800
-To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        stable@vger.kernel.org, songmuchun@bytedance.com,
-        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@kernel.org,
-        jannh@google.com, hannes@cmpxchg.org, tj@kernel.org,
-        akpm@linux-foundation.org
+        b=TJugf4bNly3wIQn+P+ughuMe57JHMUr0EAzl701sTFQnY4Wv+/QMIEIsVCIL+dzeE
+         JeGlAtgEpQZPyJ1VczWo5pqw6rKrRwHefVtsBO3x7HS9yhPTnsJnXP1/KwHQKHlZL7
+         HUzOVM4YKVQmVHlfQvNtoJOEJ0uf1I70gCdbM8BI=
+Date:   Fri, 09 Dec 2022 16:10:14 -0800
+To:     mm-commits@vger.kernel.org, yuzhe@nfschina.com,
+        yuehaibing@huawei.com, weiyongjun1@huawei.com,
+        songmuchun@bytedance.com, roman.gushchin@linux.dev,
+        manfred@colorfullife.com, longman@redhat.com, legion@kernel.org,
+        jingyuwang_vip@163.com, ebiederm@xmission.com, dave@stgolabs.net,
+        shaozhengchao@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-fix-possible-use-after-free-in-memcg_write_event_control.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221208230555.0AE75C433D2@smtp.kernel.org>
+Subject: + ipc-fix-memory-leak-in-init_mqueue_fs.patch added to mm-nonmm-unstable branch
+Message-Id: <20221210001015.1121BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix possible use-after-free in memcg_write_event_control()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     memcg-fix-possible-use-after-free-in-memcg_write_event_control.patch
+     Subject: ipc: fix memory leak in init_mqueue_fs()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ipc-fix-memory-leak-in-init_mqueue_fs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-fix-possible-use-after-free-in-memcg_write_event_control.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-fix-memory-leak-in-init_mqueue_fs.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,112 +68,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: memcg: fix possible use-after-free in memcg_write_event_control()
-Date: Wed, 7 Dec 2022 16:53:15 -1000
+From: Zhengchao Shao <shaozhengchao@huawei.com>
+Subject: ipc: fix memory leak in init_mqueue_fs()
+Date: Fri, 9 Dec 2022 17:29:29 +0800
 
-memcg_write_event_control() accesses the dentry->d_name of the specified
-control fd to route the write call.  As a cgroup interface file can't be
-renamed, it's safe to access d_name as long as the specified file is a
-regular cgroup file.  Also, as these cgroup interface files can't be
-removed before the directory, it's safe to access the parent too.
+When setup_mq_sysctls() failed in init_mqueue_fs(), mqueue_inode_cachep is
+not released.  In order to fix this issue, the release path is reordered.
 
-Prior to 347c4a874710 ("memcg: remove cgroup_event->cft"), there was a
-call to __file_cft() which verified that the specified file is a regular
-cgroupfs file before further accesses.  The cftype pointer returned from
-__file_cft() was no longer necessary and the commit inadvertently dropped
-the file type check with it allowing any file to slip through.  With the
-invarients broken, the d_name and parent accesses can now race against
-renames and removals of arbitrary files and cause use-after-free's.
-
-Fix the bug by resurrecting the file type check in __file_cft().  Now that
-cgroupfs is implemented through kernfs, checking the file operations needs
-to go through a layer of indirection.  Instead, let's check the superblock
-and dentry type.
-
-Link: https://lkml.kernel.org/r/Y5FRm/cfcKPGzWwl@slm.duckdns.org
-Fixes: 347c4a874710 ("memcg: remove cgroup_event->cft")
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Jann Horn <jannh@google.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: https://lkml.kernel.org/r/20221209092929.1978875-1-shaozhengchao@huawei.com
+Fixes: dc55e35f9e81 ("ipc: Store mqueue sysctls in the ipc namespace")
+Signed-off-by: Zhengchao Shao <shaozhengchao@huawei.com>
+Cc: Alexey Gladkov <legion@kernel.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Jingyu Wang <jingyuwang_vip@163.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: <stable@vger.kernel.org>	[3.14+]
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>
+Cc: YueHaibing <yuehaibing@huawei.com>
+Cc: Yu Zhe <yuzhe@nfschina.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ ipc/mqueue.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/cgroup.h~memcg-fix-possible-use-after-free-in-memcg_write_event_control
-+++ a/include/linux/cgroup.h
-@@ -68,6 +68,7 @@ struct css_task_iter {
- 	struct list_head		iters_node;	/* css_set->task_iters */
- };
+--- a/ipc/mqueue.c~ipc-fix-memory-leak-in-init_mqueue_fs
++++ a/ipc/mqueue.c
+@@ -1726,7 +1726,8 @@ static int __init init_mqueue_fs(void)
  
-+extern struct file_system_type cgroup_fs_type;
- extern struct cgroup_root cgrp_dfl_root;
- extern struct css_set init_css_set;
+ 	if (!setup_mq_sysctls(&init_ipc_ns)) {
+ 		pr_warn("sysctl registration failed\n");
+-		return -ENOMEM;
++		error = -ENOMEM;
++		goto out_kmem;
+ 	}
  
---- a/kernel/cgroup/cgroup-internal.h~memcg-fix-possible-use-after-free-in-memcg_write_event_control
-+++ a/kernel/cgroup/cgroup-internal.h
-@@ -167,7 +167,6 @@ struct cgroup_mgctx {
- extern spinlock_t css_set_lock;
- extern struct cgroup_subsys *cgroup_subsys[];
- extern struct list_head cgroup_roots;
--extern struct file_system_type cgroup_fs_type;
+ 	error = register_filesystem(&mqueue_fs_type);
+@@ -1744,8 +1745,9 @@ static int __init init_mqueue_fs(void)
+ out_filesystem:
+ 	unregister_filesystem(&mqueue_fs_type);
+ out_sysctl:
+-	kmem_cache_destroy(mqueue_inode_cachep);
+ 	retire_mq_sysctls(&init_ipc_ns);
++out_kmem:
++	kmem_cache_destroy(mqueue_inode_cachep);
+ 	return error;
+ }
  
- /* iterate across the hierarchies */
- #define for_each_root(root)						\
---- a/mm/memcontrol.c~memcg-fix-possible-use-after-free-in-memcg_write_event_control
-+++ a/mm/memcontrol.c
-@@ -4832,6 +4832,7 @@ static ssize_t memcg_write_event_control
- 	unsigned int efd, cfd;
- 	struct fd efile;
- 	struct fd cfile;
-+	struct dentry *cdentry;
- 	const char *name;
- 	char *endp;
- 	int ret;
-@@ -4886,6 +4887,16 @@ static ssize_t memcg_write_event_control
- 		goto out_put_cfile;
- 
- 	/*
-+	 * The control file must be a regular cgroup1 file. As a regular cgroup
-+	 * file can't be renamed, it's safe to access its name afterwards.
-+	 */
-+	cdentry = cfile.file->f_path.dentry;
-+	if (cdentry->d_sb->s_type != &cgroup_fs_type || !d_is_reg(cdentry)) {
-+		ret = -EINVAL;
-+		goto out_put_cfile;
-+	}
-+
-+	/*
- 	 * Determine the event callbacks and set them in @event.  This used
- 	 * to be done via struct cftype but cgroup core no longer knows
- 	 * about these events.  The following is crude but the whole thing
-@@ -4893,7 +4904,7 @@ static ssize_t memcg_write_event_control
- 	 *
- 	 * DO NOT ADD NEW FILES.
- 	 */
--	name = cfile.file->f_path.dentry->d_name.name;
-+	name = cdentry->d_name.name;
- 
- 	if (!strcmp(name, "memory.usage_in_bytes")) {
- 		event->register_event = mem_cgroup_usage_register_event;
-@@ -4917,7 +4928,7 @@ static ssize_t memcg_write_event_control
- 	 * automatically removed on cgroup destruction but the removal is
- 	 * asynchronous, so take an extra ref on @css.
- 	 */
--	cfile_css = css_tryget_online_from_dir(cfile.file->f_path.dentry->d_parent,
-+	cfile_css = css_tryget_online_from_dir(cdentry->d_parent,
- 					       &memory_cgrp_subsys);
- 	ret = -EINVAL;
- 	if (IS_ERR(cfile_css))
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from shaozhengchao@huawei.com are
 
-memcg-fix-possible-use-after-free-in-memcg_write_event_control.patch
+ipc-fix-memory-leak-in-init_mqueue_fs.patch
 
