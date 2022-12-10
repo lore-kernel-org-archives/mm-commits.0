@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60570C4332F
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Dec 2022 02:42:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82933C04FDE
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Dec 2022 02:42:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229685AbiLJCl6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Dec 2022 21:41:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48062 "EHLO
+        id S229760AbiLJCmF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Dec 2022 21:42:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229628AbiLJCl5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2022 21:41:57 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3504079C86
-        for <mm-commits@vger.kernel.org>; Fri,  9 Dec 2022 18:41:55 -0800 (PST)
+        with ESMTP id S229703AbiLJCl6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2022 21:41:58 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A1FC79C83;
+        Fri,  9 Dec 2022 18:41:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 68CB7623D8
-        for <mm-commits@vger.kernel.org>; Sat, 10 Dec 2022 02:41:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8E9AC433D2;
-        Sat, 10 Dec 2022 02:41:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9DDF6623D5;
+        Sat, 10 Dec 2022 02:41:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0162DC433EF;
+        Sat, 10 Dec 2022 02:41:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670640114;
-        bh=q4BUOhlyF7qSD7i/Z706dKs7XflQvMPwl0caembp9UM=;
+        s=korg; t=1670640116;
+        bh=MnNnpbDc60oGThknKn8tFqyUgyumrCLe0lY4t4SomaU=;
         h=Date:To:From:Subject:From;
-        b=z9Ugniiw7weJc5875wTefSJth7Y6tf1FjI2Bm5KFSxA3sqQtSXHSWuIIuDNEnW0D7
-         mqLtL4Y4luNhLi4Gb9sux1Lx4QfbkPiJckFAR9MGmoeiqTGXymn3oGgSJJJVRWxfs4
-         XcFqzv4OF6/khdk/Mtmz+zk2mimRclyVHpRoG+0w=
-Date:   Fri, 09 Dec 2022 18:41:54 -0800
-To:     mm-commits@vger.kernel.org, yujie.liu@intel.com,
-        songmuchun@bytedance.com, soheil@google.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, mkoutny@suse.com, hannes@cmpxchg.org,
-        feng.tang@intel.com, edumazet@google.com, mhocko@suse.com,
+        b=JQL68w5e1c1Q7e1PxdpvDLS7Th/K9Yh1TME3sPRAbXQ6jkiuje5ea9fMBWOrQI4vX
+         xP6scuIznGkt9KsI8Yvd9PAfditKPfPnwm3jPRdoZ5NSInmgq7jmWZXvYkJ4NQvlA0
+         hQoH9XgN50ZEw08x413JqBk6/8+3PLixOKyhbmWY=
+Date:   Fri, 09 Dec 2022 18:41:55 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        vishal.moola@gmail.com, stable@vger.kernel.org, kernel@hev.cc,
+        chenhuacai@loongson.cn, chenguoqic@163.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kselftests-cgroup-update-kmem-test-precision-tolerance.patch removed from -mm tree
-Message-Id: <20221210024154.B8E9AC433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] tmpfs-fix-data-loss-from-failed-fallocate.patch removed from -mm tree
+Message-Id: <20221210024156.0162DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,67 +43,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kselftests: cgroup: update kmem test precision tolerance
+     Subject: tmpfs: fix data loss from failed fallocate
 has been removed from the -mm tree.  Its filename was
-     kselftests-cgroup-update-kmem-test-precision-tolerance.patch
+     tmpfs-fix-data-loss-from-failed-fallocate.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: kselftests: cgroup: update kmem test precision tolerance
-Date: Fri, 2 Dec 2022 09:50:26 +0100
+From: Hugh Dickins <hughd@google.com>
+Subject: tmpfs: fix data loss from failed fallocate
+Date: Sun, 4 Dec 2022 16:51:50 -0800 (PST)
 
-1813e51eece0 ("memcg: increase MEMCG_CHARGE_BATCH to 64") has changed
-the batch size while this test case has been left behind. This has led
-to a test failure reported by test bot:
-not ok 2 selftests: cgroup: test_kmem # exit=1
+Fix tmpfs data loss when the fallocate system call is interrupted by a
+signal, or fails for some other reason.  The partial folio handling in
+shmem_undo_range() forgot to consider this unfalloc case, and was liable
+to erase or truncate out data which had already been committed earlier.
 
-Update the tolerance for the pcp charges to reflect the
-MEMCG_CHARGE_BATCH change to fix this.
+It turns out that none of the partial folio handling there is appropriate
+for the unfalloc case, which just wants to proceed to removal of whole
+folios: which find_get_entries() provides, even when partially covered.
 
-[akpm@linux-foundation.org: update comments, per Roman]
-Link: https://lkml.kernel.org/r/Y4m8Unt6FhWKC6IH@dhcp22.suse.cz
-Fixes: 1813e51eece0a ("memcg: increase MEMCG_CHARGE_BATCH to 64")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: kernel test robot <yujie.liu@intel.com>
-  Link: https://lore.kernel.org/oe-lkp/202212010958.c1053bd3-yujie.liu@intel.com
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Tested-by: Yujie Liu <yujie.liu@intel.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Michal Koutný" <mkoutny@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Soheil Hassas Yeganeh <soheil@google.com>
+Original patch by Rui Wang.
+
+Link: https://lore.kernel.org/linux-mm/33b85d82.7764.1842e9ab207.Coremail.chenguoqic@163.com/
+Link: https://lkml.kernel.org/r/a5dac112-cf4b-7af-a33-f386e347fd38@google.com
+Fixes: b9a8a4195c7d ("truncate,shmem: Handle truncates that split large folios")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Guoqi Chen <chenguoqic@163.com>
+  Link: https://lore.kernel.org/all/20221101032248.819360-1-kernel@hev.cc/
+Cc: Rui Wang <kernel@hev.cc>
+Cc: Huacai Chen <chenhuacai@loongson.cn>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: <stable@vger.kernel.org>	[5.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_kmem.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/shmem.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/tools/testing/selftests/cgroup/test_kmem.c~kselftests-cgroup-update-kmem-test-precision-tolerance
-+++ a/tools/testing/selftests/cgroup/test_kmem.c
-@@ -19,12 +19,12 @@
+--- a/mm/shmem.c~tmpfs-fix-data-loss-from-failed-fallocate
++++ a/mm/shmem.c
+@@ -948,6 +948,15 @@ static void shmem_undo_range(struct inod
+ 		index++;
+ 	}
  
++	/*
++	 * When undoing a failed fallocate, we want none of the partial folio
++	 * zeroing and splitting below, but shall want to truncate the whole
++	 * folio when !uptodate indicates that it was added by this fallocate,
++	 * even when [lstart, lend] covers only a part of the folio.
++	 */
++	if (unfalloc)
++		goto whole_folios;
++
+ 	same_folio = (lstart >> PAGE_SHIFT) == (lend >> PAGE_SHIFT);
+ 	folio = shmem_get_partial_folio(inode, lstart >> PAGE_SHIFT);
+ 	if (folio) {
+@@ -973,6 +982,8 @@ static void shmem_undo_range(struct inod
+ 		folio_put(folio);
+ 	}
  
- /*
-- * Memory cgroup charging is performed using percpu batches 32 pages
-+ * Memory cgroup charging is performed using percpu batches 64 pages
-  * big (look at MEMCG_CHARGE_BATCH), whereas memory.stat is exact. So
-  * the maximum discrepancy between charge and vmstat entries is number
-- * of cpus multiplied by 32 pages.
-+ * of cpus multiplied by 64 pages.
-  */
--#define MAX_VMSTAT_ERROR (4096 * 32 * get_nprocs())
-+#define MAX_VMSTAT_ERROR (4096 * 64 * get_nprocs())
- 
- 
- static int alloc_dcache(const char *cgroup, void *arg)
++whole_folios:
++
+ 	index = start;
+ 	while (index < end) {
+ 		cond_resched();
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from hughd@google.com are
 
+mm-memcg-fix-swapcached-stat-accounting.patch
+mmthprmap-fix-races-between-updates-of-subpages_mapcount.patch
 
