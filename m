@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E2C1C4332F
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Dec 2022 01:57:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18670C4332F
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Dec 2022 02:41:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229538AbiLJB5Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Dec 2022 20:57:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35198 "EHLO
+        id S229554AbiLJCly (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Dec 2022 21:41:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229798AbiLJB5Y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2022 20:57:24 -0500
+        with ESMTP id S229545AbiLJClx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2022 21:41:53 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54653941B2
-        for <mm-commits@vger.kernel.org>; Fri,  9 Dec 2022 17:57:23 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C49DE79C85
+        for <mm-commits@vger.kernel.org>; Fri,  9 Dec 2022 18:41:52 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E532F622AA
-        for <mm-commits@vger.kernel.org>; Sat, 10 Dec 2022 01:57:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4182AC433D2;
-        Sat, 10 Dec 2022 01:57:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 51C94623D6
+        for <mm-commits@vger.kernel.org>; Sat, 10 Dec 2022 02:41:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D0DAC433D2;
+        Sat, 10 Dec 2022 02:41:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670637442;
-        bh=2gJ07OKkA+zaZzD6aKfgZpQroSc26tyYxBx3Rncgjec=;
+        s=korg; t=1670640111;
+        bh=CQqAOGU0rpfF65p8go3NgDLEmSCF2CS8QepWcHCkrs0=;
         h=Date:To:From:Subject:From;
-        b=sWl7l02LaSdaszYLN8mYuZdTxUL+5wg0Z/p+/4nXlFAZGk6EqdcbuuO2jsNisEWZj
-         4m+XuwTsnjvsPg1c9C7IqhL2ug6Z8YFCU5y0wvLkoQaT4eF4kAaR/YfAdfIkwCzRq5
-         p37CDBgdDp6VVIacAUOnxmlqy5LPGY9paX8GZto0=
-Date:   Fri, 09 Dec 2022 17:57:21 -0800
-To:     mm-commits@vger.kernel.org, zhengjun.xing@linux.intel.com,
-        yujie.liu@intel.com, ying.huang@intel.com, willy@infradead.org,
-        shy828301@gmail.com, riel@surriel.com, regressions@leemhuis.info,
-        nathan@kernel.org, fengwei.yin@intel.com, feng.tang@intel.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=Mt0pck5NiuCJnyzdj5l70ltM/JF+In0qyXeQbx65f12fI6bY6PkelSwZ8Nh6AlTgX
+         TLuKx33IbyNEvELWYvSlql4ENw9pnrt9XwXDoCX8Il8VFwCR93eINneIbGd6vuARHA
+         9W60t/G3KOWFgXvujvk6HTm4tZFRneRW5t8GMPXk=
+Date:   Fri, 09 Dec 2022 18:41:50 -0800
+To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tkhai@ya.ru,
+        qyousef@layalina.io, krzysztof.kozlowski@linaro.org,
+        colin.i.king@gmail.com, bwidawsk@kernel.org, brauner@kernel.org,
+        baolin.wang@linux.alibaba.com, atishp@atishpatra.org,
+        arnd@arndb.de, anup@brainfault.org, andersson@kernel.org,
+        mazziesaccount@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] revert-mm-align-larger-anonymous-mappings-on-thp-boundaries.patch removed from -mm tree
-Message-Id: <20221210015722.4182AC433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mailmap-update-matti-vaittinens-email-address.patch removed from -mm tree
+Message-Id: <20221210024151.8D0DAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,59 +45,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: revert "mm: align larger anonymous mappings on THP boundaries"
+     Subject: mailmap: update Matti Vaittinen's email address
 has been removed from the -mm tree.  Its filename was
-     revert-mm-align-larger-anonymous-mappings-on-thp-boundaries.patch
+     mailmap-update-matti-vaittinens-email-address.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "mm: align larger anonymous mappings on THP boundaries"
-Date: Thu Dec  1 01:22:56 PM PST 2022
+From: Matti Vaittinen <mazziesaccount@gmail.com>
+Subject: mailmap: update Matti Vaittinen's email address
+Date: Thu, 1 Dec 2022 18:45:40 +0200
 
-Several testers are seeing large slowdowns from this commit.  The reasons
-for this are unclear.  Revert it from 6.1-rcX so this can be better
-examined.
+The email backend used by ROHM keeps labeling patches as spam.  This can
+result in missing the patches.
 
-Fixes: f35b5d7d676e ("mm: align larger anonymous mappings on THP boundaries")
-Reported-by: kernel test robot <yujie.liu@intel.com>
-  Link: https://lkml.kernel.org/r/202210181535.7144dd15-yujie.liu@intel.com
-Reported-by: Nathan Chancellor <nathan@kernel.org>
-  Link: https://lkml.kernel.org/r/Y1DNQaoPWxE+rGce@dev-arch.thelio-3990X
-Reported-by: Thorsten Leemhuis <regressions@leemhuis.info>
-  Link: https://lkml.kernel.org/r/e919e5a3-1118-043e-8bbd-5ee35f2ab411@leemhuis.info
-Acked-by: Yang Shi <shy828301@gmail.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Xing Zhengjun <zhengjun.xing@linux.intel.com>
-Cc: "Yin, Fengwei" <fengwei.yin@intel.com>
-Cc: Yujie Liu <yujie.liu@intel.com>
+Switch my mail address from a company mail to a personal one.
+
+Link: https://lkml.kernel.org/r/8f4498b66fedcbded37b3b87e0c516e659f8f583.1669912977.git.mazziesaccount@gmail.com
+Signed-off-by: Matti Vaittinen <mazziesaccount@gmail.com>
+Suggested-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Cc: Anup Patel <anup@brainfault.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Atish Patra <atishp@atishpatra.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Ben Widawsky <bwidawsk@kernel.org>
+Cc: Bjorn Andersson <andersson@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Qais Yousef <qyousef@layalina.io>
+Cc: Vasily Averin <vasily.averin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 ---
- 1 file changed, 3 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/mmap.c~revert-mm-align-larger-anonymous-mappings-on-thp-boundaries
-+++ a/mm/mmap.c
-@@ -1779,9 +1779,6 @@ get_unmapped_area(struct file *file, uns
- 		 */
- 		pgoff = 0;
- 		get_area = shmem_get_unmapped_area;
--	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
--		/* Ensures that larger anonymous mappings are THP aligned. */
--		get_area = thp_get_unmapped_area;
- 	}
- 
- 	addr = get_area(file, addr, len, pgoff, flags);
+--- a/.mailmap~mailmap-update-matti-vaittinens-email-address
++++ a/.mailmap
+@@ -287,6 +287,7 @@ Matthew Wilcox <willy@infradead.org> <wi
+ Matthew Wilcox <willy@infradead.org> <willy@parisc-linux.org>
+ Matthias Fuchs <socketcan@esd.eu> <matthias.fuchs@esd.eu>
+ Matthieu CASTET <castet.matthieu@free.fr>
++Matti Vaittinen <mazziesaccount@gmail.com> <matti.vaittinen@fi.rohmeurope.com>
+ Matt Ranostay <matt.ranostay@konsulko.com> <matt@ranostay.consulting>
+ Matt Ranostay <mranostay@gmail.com> Matthew Ranostay <mranostay@embeddedalley.com>
+ Matt Ranostay <mranostay@gmail.com> <matt.ranostay@intel.com>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mazziesaccount@gmail.com are
 
-mm-gup-remove-foll_migration-fix.patch
-fsdax-zero-the-edges-if-source-is-hole-or-unwritten-fix.patch
-mm-disable-top-tier-fallback-to-reclaim-on-proactive-reclaim-fix.patch
 
