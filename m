@@ -2,105 +2,80 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39FA5C4332F
-	for <mm-commits@archiver.kernel.org>; Sun, 11 Dec 2022 01:03:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 892BBC4332F
+	for <mm-commits@archiver.kernel.org>; Sun, 11 Dec 2022 01:15:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229568AbiLKBDV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 10 Dec 2022 20:03:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48018 "EHLO
+        id S229529AbiLKBP2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 10 Dec 2022 20:15:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229475AbiLKBDU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 10 Dec 2022 20:03:20 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6790BCE36;
-        Sat, 10 Dec 2022 17:03:19 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F135360CE8;
-        Sun, 11 Dec 2022 01:03:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C309C433EF;
-        Sun, 11 Dec 2022 01:03:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670720598;
-        bh=1HK76CNmfvt/mEiTJAF2A1tnfVtfZqywZPbIbOXOt9g=;
-        h=Date:From:To:Cc:Subject:From;
-        b=SdNVNdcN+UTgrtIsZvrOIvpMlukY30CLr1+R8JhovblmrfOca+Nh2vkj1nImD2Wzh
-         zydG/Rzq7WseiBdEOlTEpttl/AvhuXOVYyeacaJXWPXlGtzpIFyn3UA+N4XZEBU6YB
-         0Oh6qPo+/hPDDZ/v9HehPOWqMLKRHGv+qBCfRI6I=
-Date:   Sat, 10 Dec 2022 17:03:17 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
+        with ESMTP id S229475AbiLKBP1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 10 Dec 2022 20:15:27 -0500
+Received: from mail-qt1-x82e.google.com (mail-qt1-x82e.google.com [IPv6:2607:f8b0:4864:20::82e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02F9B13CE9
+        for <mm-commits@vger.kernel.org>; Sat, 10 Dec 2022 17:15:27 -0800 (PST)
+Received: by mail-qt1-x82e.google.com with SMTP id c15so6488413qtw.8
+        for <mm-commits@vger.kernel.org>; Sat, 10 Dec 2022 17:15:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=q8wxfaikdFYvVtdWG+RjLvFSxS3wMPNKgsWLeD6RevA=;
+        b=PnRfvDH2GYJEcZVZ7MuoIVohSMSURlQA5ojSh/eZy9+le5NfiH7p47dDLE+nTmTif3
+         A3A3nWJAkwjNYD1MedUAGzaA0jICqz4q+LZslug0aUKQj+spGveC6L6B+nfCrZie5sJM
+         yCsPek51vqZssxsmyJaSiQW4mkRjcmJyi8vP8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=q8wxfaikdFYvVtdWG+RjLvFSxS3wMPNKgsWLeD6RevA=;
+        b=nEtP5GkX0L1U+agOD9XSJikZ7yr0PIolLHFU5bSY09cNmJuzmJaUbrmuXHcLAzZS5F
+         Il7AHbOBKhvfO1+/xcdC0xa2j7jz8JPRDkKLO2Kf5JMgAN5OLadANGNytaz72ehcTnmm
+         +MLpr/RZw+8ONQVcCKqxx/GfowLAVR7opRs1J+jXa2MN86D0Kc0VOMeGrejQPgkGIpfG
+         ZzEA3/LNa1ATVgI3sSF6Bwv/g+HVy1eANvIgagVRXFiJOY8nXTYcBdFcspGWY4gPxJrS
+         NYDBUlJRqUUY8X//UlkdUPKI+W4BMjS0AYTy5F0oNBtqZ1Sn4X2PA4aJirlEp1d5Uh7j
+         v4pA==
+X-Gm-Message-State: ANoB5pnWHWIJ+FPGBzZs/7RzOpaNYsdZ+JgCOkmbu+456dHiFvooEzye
+        sT99xruB0j8TLjhX/7SJM0JFuS5b6ryoaT6c
+X-Google-Smtp-Source: AA0mqf6OKjxMIe+1BD5OguX5DvBsAJM3bTQRRQpp4+7Er0j8vhKLQEAUTabYp6IxocCugRLwl+fd0g==
+X-Received: by 2002:ac8:4996:0:b0:3a8:1299:6d3c with SMTP id f22-20020ac84996000000b003a812996d3cmr649607qtq.51.1670721325731;
+        Sat, 10 Dec 2022 17:15:25 -0800 (PST)
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com. [209.85.160.170])
+        by smtp.gmail.com with ESMTPSA id dm20-20020a05620a1d5400b006fca1691425sm3012766qkb.63.2022.12.10.17.15.25
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 10 Dec 2022 17:15:25 -0800 (PST)
+Received: by mail-qt1-f170.google.com with SMTP id jr11so5879455qtb.7
+        for <mm-commits@vger.kernel.org>; Sat, 10 Dec 2022 17:15:25 -0800 (PST)
+X-Received: by 2002:ac8:688:0:b0:3a5:122:fb79 with SMTP id f8-20020ac80688000000b003a50122fb79mr76107362qth.452.1670721324812;
+ Sat, 10 Dec 2022 17:15:24 -0800 (PST)
+MIME-Version: 1.0
+References: <20221210170317.130e7dbfc0e78de6067c4012@linux-foundation.org>
+In-Reply-To: <20221210170317.130e7dbfc0e78de6067c4012@linux-foundation.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Sat, 10 Dec 2022 17:15:08 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wgrapQ=pf0Btr9_0bso99E5Mq6FgANKLbN0mkdohfB4qQ@mail.gmail.com>
+Message-ID: <CAHk-=wgrapQ=pf0Btr9_0bso99E5Mq6FgANKLbN0mkdohfB4qQ@mail.gmail.com>
+Subject: Re: [GIT PULL] hotfixes for 6.1 final
+To:     Andrew Morton <akpm@linux-foundation.org>
 Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.1 final
-Message-Id: <20221210170317.130e7dbfc0e78de6067c4012@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Sat, Dec 10, 2022 at 5:03 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> Tejun Heo (1):
+>       memcg: fix possible use-after-free in memcg_write_event_control()
 
-Linus, please merge this final batch of hotfixes for 6.1, thanks.
+Heh. Apparently your scripts to notice that some patch already made it
+upstream didn't notice that I took this one directly already when it
+was posted, so now it's duplicated.
 
+Not a big deal.
 
-The following changes since commit 1d351f1894342c378b96bb9ed89f8debb1e24e9f:
-
-  revert "kbuild: fix -Wimplicit-function-declaration in license_is_gpl_compatible" (2022-11-30 14:49:42 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-12-10-1
-
-for you to fetch changes up to 4a7ba45b1a435e7097ca0f79a847d0949d0eb088:
-
-  memcg: fix possible use-after-free in memcg_write_event_control() (2022-12-09 18:41:17 -0800)
-
-----------------------------------------------------------------
-9 hotfixes.  6 for MM, 3 for other areas.  Four of these patches address
-post-6.0 issues.
-
-----------------------------------------------------------------
-David Hildenbrand (1):
-      mm/swap: fix SWP_PFN_BITS with CONFIG_PHYS_ADDR_T_64BIT on 32bit
-
-Hugh Dickins (1):
-      tmpfs: fix data loss from failed fallocate
-
-Jason A. Donenfeld (1):
-      mm: do not BUG_ON missing brk mapping, because userspace can unmap it
-
-John Starks (1):
-      mm/gup: fix gup_pud_range() for dax
-
-Liam Howlett (1):
-      mmap: fix do_brk_flags() modifying obviously incorrect VMAs
-
-Matti Vaittinen (1):
-      mailmap: update Matti Vaittinen's email address
-
-Michal Hocko (1):
-      kselftests: cgroup: update kmem test precision tolerance
-
-Muchun Song (1):
-      MAINTAINERS: update Muchun Song's email
-
-Tejun Heo (1):
-      memcg: fix possible use-after-free in memcg_write_event_control()
-
- .mailmap                                   |  3 +++
- MAINTAINERS                                |  4 ++--
- include/linux/cgroup.h                     |  1 +
- include/linux/swapops.h                    |  8 +++++---
- kernel/cgroup/cgroup-internal.h            |  1 -
- mm/gup.c                                   |  2 +-
- mm/memcontrol.c                            | 15 +++++++++++++--
- mm/mmap.c                                  | 14 ++++----------
- mm/shmem.c                                 | 11 +++++++++++
- tools/testing/selftests/cgroup/test_kmem.c |  6 +++---
- 10 files changed, 43 insertions(+), 22 deletions(-)
-
+           Linus
