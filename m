@@ -2,39 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D67FC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:14:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AF6DC4167B
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:14:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231328AbiLLCOq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:14:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41372 "EHLO
+        id S231286AbiLLCOv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:14:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231285AbiLLCOJ (ORCPT
+        with ESMTP id S231255AbiLLCOJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:14:09 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 452F7DECB
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A88C5A19C
         for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:05 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id B25DFCE0CEB
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E91D2C433EF;
-        Mon, 12 Dec 2022 02:14:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 44CB460EC6
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99BBEC433D2;
+        Mon, 12 Dec 2022 02:14:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811242;
-        bh=udJ514cYbViqImmmrYZQbvI2NbTsaAgHabSdYTc+GXY=;
+        s=korg; t=1670811244;
+        bh=VWqS0FFtmmS+c1GkeN54m98DmAWEd0ECiUMmBJokIFI=;
         h=Date:To:From:Subject:From;
-        b=Nq4cRzti69KIi15dRf87Y98Q81AEj1tVft0W5UVcyeYxhCuxjktQxu1tYaNc33xCe
-         VAbxxbfV4XPdQTBvGe4kLScXsWuFqnZGSS+uioor5O6F/TRCHm69eZWrims+Q0v/Jb
-         WqOpLyDTTmvyC6BEMi6RDvh+4nLkFotWaZ7TP+To=
-Date:   Sun, 11 Dec 2022 18:14:01 -0800
-To:     mm-commits@vger.kernel.org, will@kernel.org, peterz@infradead.org,
-        mingo@redhat.com, elver@google.com, ebiggers@kernel.org,
-        dvyukov@google.com, glider@google.com, akpm@linux-foundation.org
+        b=QcGactSatPejzHCmq8EgftHD6+ag7jBxKVuNdwwNSRAmulswu9RHwJOH8TIUfy/eo
+         JiSfd5M6MgIn9l5d4NmPWuWM5m7CUb5eLx9tQRzmuOX51vYu6k47V3utcip6QJ0j/2
+         D3kdEzGEX/soMaqFxfnSLY01M4NgXmSEd5YJRgLU=
+Date:   Sun, 11 Dec 2022 18:14:03 -0800
+To:     mm-commits@vger.kernel.org, zhoumin@loongson.cn, will@kernel.org,
+        tsbogend@alpha.franken.de, songmuchun@bytedance.com,
+        philmd@linaro.org, peterz@infradead.org, luto@kernel.org,
+        lixuefeng@loongson.cn, kernel@xen0n.name, jiaxun.yang@flygoat.com,
+        guoren@kernel.org, dinguyen@kernel.org,
+        dave.hansen@linux.intel.com, chenhuacai@loongson.cn,
+        catalin.marinas@arm.com, arnd@arndb.de, chenfeiyang@loongson.cn,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kmsan-allow-using-__msan_instrument_asm_store-inside-runtime.patch removed from -mm tree
-Message-Id: <20221212021401.E91D2C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] loongarch-add-sparse-memory-vmemmap-support.patch removed from -mm tree
+Message-Id: <20221212021404.99BBEC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,74 +47,264 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kmsan: allow using __msan_instrument_asm_store() inside runtime
+     Subject: LoongArch: add sparse memory vmemmap support
 has been removed from the -mm tree.  Its filename was
-     kmsan-allow-using-__msan_instrument_asm_store-inside-runtime.patch
+     loongarch-add-sparse-memory-vmemmap-support.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: allow using __msan_instrument_asm_store() inside runtime
-Date: Mon, 28 Nov 2022 10:45:41 +0100
+From: Feiyang Chen <chenfeiyang@loongson.cn>
+Subject: LoongArch: add sparse memory vmemmap support
+Date: Thu, 27 Oct 2022 20:52:51 +0800
 
-In certain cases (e.g.  when handling a softirq)
-__msan_instrument_asm_store(&var, sizeof(var)) may be called with from
-within KMSAN runtime, but later the value of @var is used with
-!kmsan_in_runtime(), leading to false positives.
+Add sparse memory vmemmap support for LoongArch.  SPARSEMEM_VMEMMAP uses a
+virtually mapped memmap to optimise pfn_to_page and page_to_pfn
+operations.  This is the most efficient option when sufficient kernel
+resources are available.
 
-Because kmsan_internal_unpoison_memory() doesn't take locks, it should be
-fine to call it without kmsan_in_runtime() checks, which fixes the
-mentioned false positives.
-
-Link: https://lkml.kernel.org/r/20221128094541.2645890-2-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Eric Biggers <ebiggers@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/20221027125253.3458989-3-chenhuacai@loongson.cn
+Signed-off-by: Min Zhou <zhoumin@loongson.cn>
+Signed-off-by: Feiyang Chen <chenfeiyang@loongson.cn>
+Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Philippe Mathieu-Daudé <philmd@linaro.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Will Deacon <will@kernel.org>
+Cc: Xuefeng Li <lixuefeng@loongson.cn>
+Cc: Xuerui Wang <kernel@xen0n.name>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/instrumentation.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ arch/loongarch/Kconfig                 |    1 
+ arch/loongarch/include/asm/pgtable.h   |    7 +-
+ arch/loongarch/include/asm/sparsemem.h |    8 ++
+ arch/loongarch/mm/init.c               |   72 ++++++++++++++++++++++-
+ include/linux/mm.h                     |    2 
+ mm/sparse-vmemmap.c                    |   10 +++
+ 6 files changed, 96 insertions(+), 4 deletions(-)
 
---- a/mm/kmsan/instrumentation.c~kmsan-allow-using-__msan_instrument_asm_store-inside-runtime
-+++ a/mm/kmsan/instrumentation.c
-@@ -81,12 +81,16 @@ DECLARE_METADATA_PTR_GETTER(8);
-  * Handle a memory store performed by inline assembly. KMSAN conservatively
-  * attempts to unpoison the outputs of asm() directives to prevent false
-  * positives caused by missed stores.
-+ *
-+ * __msan_instrument_asm_store() may be called for inline assembly code when
-+ * entering or leaving IRQ. We omit the check for kmsan_in_runtime() to ensure
-+ * the memory written to in these cases is also marked as initialized.
-  */
- void __msan_instrument_asm_store(void *addr, uintptr_t size)
+--- a/arch/loongarch/include/asm/pgtable.h~loongarch-add-sparse-memory-vmemmap-support
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -11,6 +11,7 @@
+ 
+ #include <linux/compiler.h>
+ #include <asm/addrspace.h>
++#include <asm/page.h>
+ #include <asm/pgtable-bits.h>
+ 
+ #if CONFIG_PGTABLE_LEVELS == 2
+@@ -59,6 +60,7 @@
+ #include <linux/mm_types.h>
+ #include <linux/mmzone.h>
+ #include <asm/fixmap.h>
++#include <asm/sparsemem.h>
+ 
+ struct mm_struct;
+ struct vm_area_struct;
+@@ -86,7 +88,10 @@ extern unsigned long zero_page_mask;
+ #define VMALLOC_START	MODULES_END
+ #define VMALLOC_END	\
+ 	(vm_map_base +	\
+-	 min(PTRS_PER_PGD * PTRS_PER_PUD * PTRS_PER_PMD * PTRS_PER_PTE * PAGE_SIZE, (1UL << cpu_vabits)) - PMD_SIZE)
++	 min(PTRS_PER_PGD * PTRS_PER_PUD * PTRS_PER_PMD * PTRS_PER_PTE * PAGE_SIZE, (1UL << cpu_vabits)) - PMD_SIZE - VMEMMAP_SIZE)
++
++#define vmemmap		((struct page *)((VMALLOC_END + PMD_SIZE) & PMD_MASK))
++#define VMEMMAP_END	((unsigned long)vmemmap + VMEMMAP_SIZE - 1)
+ 
+ #define pte_ERROR(e) \
+ 	pr_err("%s:%d: bad pte %016lx.\n", __FILE__, __LINE__, pte_val(e))
+--- a/arch/loongarch/include/asm/sparsemem.h~loongarch-add-sparse-memory-vmemmap-support
++++ a/arch/loongarch/include/asm/sparsemem.h
+@@ -11,8 +11,16 @@
+ #define SECTION_SIZE_BITS	29 /* 2^29 = Largest Huge Page Size */
+ #define MAX_PHYSMEM_BITS	48
+ 
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++#define VMEMMAP_SIZE	(sizeof(struct page) * (1UL << (cpu_pabits + 1 - PAGE_SHIFT)))
++#endif
++
+ #endif /* CONFIG_SPARSEMEM */
+ 
++#ifndef VMEMMAP_SIZE
++#define VMEMMAP_SIZE	0	/* 1, For FLATMEM; 2, For SPARSEMEM without VMEMMAP. */
++#endif
++
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ int memory_add_physaddr_to_nid(u64 addr);
+ #define memory_add_physaddr_to_nid memory_add_physaddr_to_nid
+--- a/arch/loongarch/Kconfig~loongarch-add-sparse-memory-vmemmap-support
++++ a/arch/loongarch/Kconfig
+@@ -487,6 +487,7 @@ config ARCH_FLATMEM_ENABLE
+ 
+ config ARCH_SPARSEMEM_ENABLE
+ 	def_bool y
++	select SPARSEMEM_VMEMMAP_ENABLE
+ 	help
+ 	  Say Y to support efficient handling of sparse physical memory,
+ 	  for architectures which are either NUMA (Non-Uniform Memory Access)
+--- a/arch/loongarch/mm/init.c~loongarch-add-sparse-memory-vmemmap-support
++++ a/arch/loongarch/mm/init.c
+@@ -22,7 +22,7 @@
+ #include <linux/pfn.h>
+ #include <linux/hardirq.h>
+ #include <linux/gfp.h>
+-#include <linux/initrd.h>
++#include <linux/hugetlb.h>
+ #include <linux/mmzone.h>
+ 
+ #include <asm/asm-offsets.h>
+@@ -152,6 +152,72 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
+ #endif
+ #endif
+ 
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++static int __meminit vmemmap_populate_hugepages(unsigned long start, unsigned long end,
++						int node, struct vmem_altmap *altmap)
++{
++	unsigned long addr = start;
++	unsigned long next;
++	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++
++	for (addr = start; addr < end; addr = next) {
++		next = pmd_addr_end(addr, end);
++
++		pgd = vmemmap_pgd_populate(addr, node);
++		if (!pgd)
++			return -ENOMEM;
++		p4d = vmemmap_p4d_populate(pgd, addr, node);
++		if (!p4d)
++			return -ENOMEM;
++		pud = vmemmap_pud_populate(p4d, addr, node);
++		if (!pud)
++			return -ENOMEM;
++
++		pmd = pmd_offset(pud, addr);
++		if (pmd_none(*pmd)) {
++			void *p = NULL;
++
++			p = vmemmap_alloc_block_buf(PMD_SIZE, node, NULL);
++			if (p) {
++				pmd_t entry;
++
++				entry = pfn_pmd(virt_to_pfn(p), PAGE_KERNEL);
++				pmd_val(entry) |= _PAGE_HUGE | _PAGE_HGLOBAL;
++				set_pmd_at(&init_mm, addr, pmd, entry);
++
++				continue;
++			}
++		} else if (pmd_val(*pmd) & _PAGE_HUGE) {
++			vmemmap_verify((pte_t *)pmd, node, addr, next);
++			continue;
++		}
++		if (vmemmap_populate_basepages(addr, next, node, NULL))
++			return -ENOMEM;
++	}
++
++	return 0;
++}
++
++int __meminit vmemmap_populate(unsigned long start, unsigned long end,
++			       int node, struct vmem_altmap *altmap)
++{
++#if CONFIG_PGTABLE_LEVELS == 2
++	return vmemmap_populate_basepages(start, end, node, NULL);
++#else
++	return vmemmap_populate_hugepages(start, end, node, NULL);
++#endif
++}
++
++#ifdef CONFIG_MEMORY_HOTPLUG
++void vmemmap_free(unsigned long start, unsigned long end, struct vmem_altmap *altmap)
++{
++}
++#endif
++#endif
++
+ static pte_t *fixmap_pte(unsigned long addr)
  {
- 	unsigned long ua_flags;
- 
--	if (!kmsan_enabled || kmsan_in_runtime())
-+	if (!kmsan_enabled)
- 		return;
- 
- 	ua_flags = user_access_save();
-@@ -103,10 +107,8 @@ void __msan_instrument_asm_store(void *a
- 		user_access_restore(ua_flags);
- 		return;
+ 	pgd_t *pgd;
+@@ -168,7 +234,7 @@ static pte_t *fixmap_pte(unsigned long a
+ 		new = memblock_alloc_low(PAGE_SIZE, PAGE_SIZE);
+ 		pgd_populate(&init_mm, pgd, new);
+ #ifndef __PAGETABLE_PUD_FOLDED
+-		pud_init((unsigned long)new, (unsigned long)invalid_pmd_table);
++		pud_init(new);
+ #endif
  	}
--	kmsan_enter_runtime();
- 	/* Unpoisoning the memory on best effort. */
- 	kmsan_internal_unpoison_memory(addr, size, /*checked*/ false);
--	kmsan_leave_runtime();
- 	user_access_restore(ua_flags);
+ 
+@@ -179,7 +245,7 @@ static pte_t *fixmap_pte(unsigned long a
+ 		new = memblock_alloc_low(PAGE_SIZE, PAGE_SIZE);
+ 		pud_populate(&init_mm, pud, new);
+ #ifndef __PAGETABLE_PMD_FOLDED
+-		pmd_init((unsigned long)new, (unsigned long)invalid_pte_table);
++		pmd_init(new);
+ #endif
+ 	}
+ 
+--- a/include/linux/mm.h~loongarch-add-sparse-memory-vmemmap-support
++++ a/include/linux/mm.h
+@@ -3360,6 +3360,8 @@ void *sparse_buffer_alloc(unsigned long
+ struct page * __populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap);
++void pmd_init(void *addr);
++void pud_init(void *addr);
+ pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
+ p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
+ pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+--- a/mm/sparse-vmemmap.c~loongarch-add-sparse-memory-vmemmap-support
++++ a/mm/sparse-vmemmap.c
+@@ -196,6 +196,10 @@ pmd_t * __meminit vmemmap_pmd_populate(p
+ 	return pmd;
  }
- EXPORT_SYMBOL(__msan_instrument_asm_store);
+ 
++void __weak __meminit pmd_init(void *addr)
++{
++}
++
+ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+ {
+ 	pud_t *pud = pud_offset(p4d, addr);
+@@ -203,11 +207,16 @@ pud_t * __meminit vmemmap_pud_populate(p
+ 		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
++		pmd_init(p);
+ 		pud_populate(&init_mm, pud, p);
+ 	}
+ 	return pud;
+ }
+ 
++void __weak __meminit pud_init(void *addr)
++{
++}
++
+ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ {
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
+@@ -215,6 +224,7 @@ p4d_t * __meminit vmemmap_p4d_populate(p
+ 		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
++		pud_init(p);
+ 		p4d_populate(&init_mm, p4d, p);
+ 	}
+ 	return p4d;
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from chenfeiyang@loongson.cn are
 
 
