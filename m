@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 899F7C10F1E
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:17:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A212CC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:17:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231244AbiLLCRP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:17:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42006 "EHLO
+        id S231246AbiLLCRQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:17:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231302AbiLLCPy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:15:54 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F311BDFB4
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:50 -0800 (PST)
+        with ESMTP id S231346AbiLLCQE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:16:04 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 929F0DEEC
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B0D56B80B67
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 691D2C433D2;
-        Mon, 12 Dec 2022 02:14:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2ED2C60EC3
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87C38C433F1;
+        Mon, 12 Dec 2022 02:14:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811288;
-        bh=uaE8Tef3k0k8knMzVh26JCcYTkA5mVb4KTNXJIyAhwo=;
+        s=korg; t=1670811292;
+        bh=+f4bTi8dqlTgskmD6nNLGc/Bogm4EZizL1FRy1R9fWk=;
         h=Date:To:From:Subject:From;
-        b=auHBfAiFEIANnoUeZJLnz+VudAN+v/i4mlTey0txI+7gjpn4G0ZTmdvXez6qMspVc
-         fMuc3erivT77DoXFx6FjYcV5Lk/coJLVdiLpkGeEkqm2UxMih/gmC1mQOvJMzCd+kj
-         RLB9RAAFR+/2KpI66ivV5y9QPR0B9Jow3nj6Q8Qo=
-Date:   Sun, 11 Dec 2022 18:14:47 -0800
-To:     mm-commits@vger.kernel.org, me@bobcopeland.com, hannes@cmpxchg.org,
-        hch@lst.de, akpm@linux-foundation.org
+        b=MIvHAUbirwl9v+/2Dmcdri4+Sy5yfBHeYpro9JX5k+ppN8xB1ZQyBHEvI1LgItwYS
+         HeVoap6Qq92QVEkoA3+NWjetwLxDxxkX4QdMsTrL3jcX3q4yet+P1LuV7gOGymftQw
+         uLifRvqX9PfleC+gJ3Rqq6pMYCvJ+DjESgIL3nmI=
+Date:   Sun, 11 Dec 2022 18:14:51 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        vbabka@suse.cz, vasily.averin@linux.dev, tj@kernel.org,
+        songmuchun@bytedance.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, rientjes@google.com, mhocko@suse.com,
+        hannes@cmpxchg.org, chris@chrisdown.name, yosryahmed@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] omfs-remove-writepage.patch removed from -mm tree
-Message-Id: <20221212021448.691D2C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-cgroup-refactor-proactive-reclaim-code-to-reclaim_until.patch removed from -mm tree
+Message-Id: <20221212021452.87C38C433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,63 +45,154 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: omfs: remove ->writepage
+     Subject: selftests: cgroup: refactor proactive reclaim code to reclaim_until()
 has been removed from the -mm tree.  Its filename was
-     omfs-remove-writepage.patch
+     selftests-cgroup-refactor-proactive-reclaim-code-to-reclaim_until.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: omfs: remove ->writepage
-Date: Fri, 2 Dec 2022 11:26:44 +0100
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: selftests: cgroup: refactor proactive reclaim code to reclaim_until()
+Date: Fri, 2 Dec 2022 03:15:11 +0000
 
-->writepage is a very inefficient method to write back data, and only
-used through write_cache_pages or a a fallback when no ->migrate_folio
-method is present.
+Refactor the code that drives writing to memory.reclaim (retrying, error
+handling, etc) from test_memcg_reclaim() to a helper called
+reclaim_until(), which proactively reclaims from a memcg until its usage
+reaches a certain value.
 
-Set ->migrate_folio to the generic buffer_head based helper, and remove
-the ->writepage implementation.
+While we are at it, refactor and simplify the reclaim loop.
 
-Link: https://lkml.kernel.org/r/20221202102644.770505-8-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Bob Copeland <me@bobcopeland.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+This will be used in a following patch in another test.
+
+Link: https://lkml.kernel.org/r/20221202031512.1365483-3-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Suggested-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vasily Averin <vasily.averin@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/omfs/file.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |   80 +++++++------
+ 1 file changed, 44 insertions(+), 36 deletions(-)
 
---- a/fs/omfs/file.c~omfs-remove-writepage
-+++ a/fs/omfs/file.c
-@@ -294,11 +294,6 @@ static void omfs_readahead(struct readah
- 	mpage_readahead(rac, omfs_get_block);
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-cgroup-refactor-proactive-reclaim-code-to-reclaim_until
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -646,6 +646,48 @@ cleanup:
  }
  
--static int omfs_writepage(struct page *page, struct writeback_control *wbc)
--{
--	return block_write_full_page(page, omfs_get_block, wbc);
--}
--
- static int
- omfs_writepages(struct address_space *mapping, struct writeback_control *wbc)
+ /*
++ * Reclaim from @memcg until usage reaches @goal by writing to
++ * memory.reclaim.
++ *
++ * This function will return false if the usage is already below the
++ * goal.
++ *
++ * This function assumes that writing to memory.reclaim is the only
++ * source of change in memory.current (no concurrent allocations or
++ * reclaim).
++ *
++ * This function makes sure memory.reclaim is sane. It will return
++ * false if memory.reclaim's error codes do not make sense, even if
++ * the usage goal was satisfied.
++ */
++static bool reclaim_until(const char *memcg, long goal)
++{
++	char buf[64];
++	int retries, err;
++	long current, to_reclaim;
++	bool reclaimed = false;
++
++	for (retries = 5; retries > 0; retries--) {
++		current = cg_read_long(memcg, "memory.current");
++
++		if (current < goal || values_close(current, goal, 3))
++			break;
++		/* Did memory.reclaim return 0 incorrectly? */
++		else if (reclaimed)
++			return false;
++
++		to_reclaim = current - goal;
++		snprintf(buf, sizeof(buf), "%ld", to_reclaim);
++		err = cg_write(memcg, "memory.reclaim", buf);
++		if (!err)
++			reclaimed = true;
++		else if (err != -EAGAIN)
++			return false;
++	}
++	return reclaimed;
++}
++
++/*
+  * This test checks that memory.reclaim reclaims the given
+  * amount of memory (from both anon and file, if possible).
+  */
+@@ -653,8 +695,7 @@ static int test_memcg_reclaim(const char
  {
-@@ -375,10 +370,10 @@ const struct address_space_operations om
- 	.invalidate_folio = block_invalidate_folio,
- 	.read_folio = omfs_read_folio,
- 	.readahead = omfs_readahead,
--	.writepage = omfs_writepage,
- 	.writepages = omfs_writepages,
- 	.write_begin = omfs_write_begin,
- 	.write_end = generic_write_end,
- 	.bmap = omfs_bmap,
-+	.migrate_folio = buffer_migrate_folio,
- };
+ 	int ret = KSFT_FAIL, fd, retries;
+ 	char *memcg;
+-	long current, expected_usage, to_reclaim;
+-	char buf[64];
++	long current, expected_usage;
  
+ 	memcg = cg_name(root, "memcg_test");
+ 	if (!memcg)
+@@ -705,41 +746,8 @@ static int test_memcg_reclaim(const char
+ 	 * Reclaim until current reaches 30M, this makes sure we hit both anon
+ 	 * and file if swap is enabled.
+ 	 */
+-	retries = 5;
+-	while (true) {
+-		int err;
+-
+-		current = cg_read_long(memcg, "memory.current");
+-		to_reclaim = current - MB(30);
+-
+-		/*
+-		 * We only keep looping if we get EAGAIN, which means we could
+-		 * not reclaim the full amount.
+-		 */
+-		if (to_reclaim <= 0)
+-			goto cleanup;
+-
+-
+-		snprintf(buf, sizeof(buf), "%ld", to_reclaim);
+-		err = cg_write(memcg, "memory.reclaim", buf);
+-		if (!err) {
+-			/*
+-			 * If writing succeeds, then the written amount should have been
+-			 * fully reclaimed (and maybe more).
+-			 */
+-			current = cg_read_long(memcg, "memory.current");
+-			if (!values_close(current, MB(30), 3) && current > MB(30))
+-				goto cleanup;
+-			break;
+-		}
+-
+-		/* The kernel could not reclaim the full amount, try again. */
+-		if (err == -EAGAIN && retries--)
+-			continue;
+-
+-		/* We got an unexpected error or ran out of retries. */
++	if (!reclaim_until(memcg, MB(30)))
+ 		goto cleanup;
+-	}
+ 
+ 	ret = KSFT_PASS;
+ cleanup:
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
 
