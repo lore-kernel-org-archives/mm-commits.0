@@ -2,39 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AA68C4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:15:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE3F8C4167B
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:15:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231294AbiLLCO7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:14:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41186 "EHLO
+        id S230420AbiLLCPA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:15:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230420AbiLLCOQ (ORCPT
+        with ESMTP id S231139AbiLLCOQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:14:16 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9302ADED6
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D374963CA
         for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 25C8860EC5
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7ACCBC433D2;
-        Mon, 12 Dec 2022 02:14:08 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 82926B80B6F
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43DCBC433EF;
+        Mon, 12 Dec 2022 02:14:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811248;
-        bh=MNtWeTuYzs51p5HvDXaaJO7x0m4EEHy1+G1H6miDQ6Y=;
+        s=korg; t=1670811247;
+        bh=Uq5rbHEmoNe/N27GoLyYCDeS2PxH2e7qpQkgHbypsNs=;
         h=Date:To:From:Subject:From;
-        b=Mh9DJ3qdxXNZpOSQLyQ4ZVzqnz82OZr5zd8gsmm2x3R3Jh2JJbCXVw9SjBD5CZNX4
-         JU3Z5Zs3EhFdQKKyMHpHlhM7FT4L3oEu+uK341u36nKPkJLhb1vSJUoF2+wpKHJ10w
-         E/xY0sEIEbHslms0pY9hurNLH0sjOMj7hvnBx5xs=
-Date:   Sun, 11 Dec 2022 18:14:07 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        mszeredi@redhat.com, mike.kravetz@oracle.com,
-        vishal.moola@gmail.com, akpm@linux-foundation.org
+        b=dyRHAKK9WxjVIba2efrZsBPBe9WkCr+0m7nDXfm9yF92wPv7wL0EEeMdDpquoxmMK
+         Gvg11dI65y/gD5BHOEJYy7FTNJG6Pbn7fe51Vn+9428uwo+iA4CLbPI/rYO8103t6b
+         pEEgIOHHMTSeFiAIS0Gn+rgV55hET3MINubYu9Vc=
+Date:   Sun, 11 Dec 2022 18:14:06 -0800
+To:     mm-commits@vger.kernel.org, zhoumin@loongson.cn, will@kernel.org,
+        tsbogend@alpha.franken.de, songmuchun@bytedance.com,
+        philmd@linaro.org, peterz@infradead.org, luto@kernel.org,
+        lixuefeng@loongson.cn, kernel@xen0n.name, jiaxun.yang@flygoat.com,
+        guoren@kernel.org, dinguyen@kernel.org,
+        dave.hansen@linux.intel.com, chenhuacai@loongson.cn,
+        catalin.marinas@arm.com, arnd@arndb.de, chenfeiyang@loongson.cn,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] filemap-convert-replace_page_cache_page-to-replace_page_cache_folio.patch removed from -mm tree
-Message-Id: <20221212021408.7ACCBC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] loongarch-enable-arch_want_hugetlb_page_optimize_vmemmap.patch removed from -mm tree
+Message-Id: <20221212021407.43DCBC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,150 +47,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: filemap: convert replace_page_cache_page() to replace_page_cache_folio()
+     Subject: LoongArch: enable ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
 has been removed from the -mm tree.  Its filename was
-     filemap-convert-replace_page_cache_page-to-replace_page_cache_folio.patch
+     loongarch-enable-arch_want_hugetlb_page_optimize_vmemmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: filemap: convert replace_page_cache_page() to replace_page_cache_folio()
-Date: Tue, 1 Nov 2022 10:53:22 -0700
+From: Feiyang Chen <chenfeiyang@loongson.cn>
+Subject: LoongArch: enable ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+Date: Thu, 27 Oct 2022 20:52:53 +0800
 
-Patch series "Removing the lru_cache_add() wrapper".
+The feature of minimizing overhead of struct page associated with each
+HugeTLB page is implemented on x86_64.  However, the infrastructure of
+this feature is already there, so just select ARCH_WANT_HUGETLB_PAGE_
+OPTIMIZE_VMEMMAP is enough to enable this feature for LoongArch.
 
-This patchset replaces all calls of lru_cache_add() with the folio
-equivalent: folio_add_lru().  This is allows us to get rid of the wrapper
-The series passes xfstests and the userfaultfd selftests.
-
-
-This patch (of 5):
-
-Eliminates 7 calls to compound_head().
-
-Link: https://lkml.kernel.org/r/20221101175326.13265-1-vishal.moola@gmail.com
-Link: https://lkml.kernel.org/r/20221101175326.13265-2-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
+Link: https://lkml.kernel.org/r/20221027125253.3458989-5-chenhuacai@loongson.cn
+Signed-off-by: Feiyang Chen <chenfeiyang@loongson.cn>
+Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Reviewed-by: Philippe Mathieu-Daudé <philmd@linaro.org>
+Acked-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: Min Zhou <zhoumin@loongson.cn>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: Xuefeng Li <lixuefeng@loongson.cn>
+Cc: Xuerui Wang <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c           |    2 -
- include/linux/pagemap.h |    2 -
- mm/filemap.c            |   50 ++++++++++++++++++--------------------
- 3 files changed, 26 insertions(+), 28 deletions(-)
+ arch/loongarch/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/fuse/dev.c~filemap-convert-replace_page_cache_page-to-replace_page_cache_folio
-+++ a/fs/fuse/dev.c
-@@ -837,7 +837,7 @@ static int fuse_try_move_page(struct fus
- 	if (WARN_ON(PageMlocked(oldpage)))
- 		goto out_fallback_unlock;
- 
--	replace_page_cache_page(oldpage, newpage);
-+	replace_page_cache_folio(page_folio(oldpage), page_folio(newpage));
- 
- 	get_page(newpage);
- 
---- a/include/linux/pagemap.h~filemap-convert-replace_page_cache_page-to-replace_page_cache_folio
-+++ a/include/linux/pagemap.h
-@@ -1102,7 +1102,7 @@ int filemap_add_folio(struct address_spa
- 		pgoff_t index, gfp_t gfp);
- void filemap_remove_folio(struct folio *folio);
- void __filemap_remove_folio(struct folio *folio, void *shadow);
--void replace_page_cache_page(struct page *old, struct page *new);
-+void replace_page_cache_folio(struct folio *old, struct folio *new);
- void delete_from_page_cache_batch(struct address_space *mapping,
- 				  struct folio_batch *fbatch);
- bool filemap_release_folio(struct folio *folio, gfp_t gfp);
---- a/mm/filemap.c~filemap-convert-replace_page_cache_page-to-replace_page_cache_folio
-+++ a/mm/filemap.c
-@@ -788,56 +788,54 @@ int file_write_and_wait_range(struct fil
- EXPORT_SYMBOL(file_write_and_wait_range);
- 
- /**
-- * replace_page_cache_page - replace a pagecache page with a new one
-- * @old:	page to be replaced
-- * @new:	page to replace with
-+ * replace_page_cache_folio - replace a pagecache folio with a new one
-+ * @old:	folio to be replaced
-+ * @new:	folio to replace with
-  *
-- * This function replaces a page in the pagecache with a new one.  On
-- * success it acquires the pagecache reference for the new page and
-- * drops it for the old page.  Both the old and new pages must be
-- * locked.  This function does not add the new page to the LRU, the
-+ * This function replaces a folio in the pagecache with a new one.  On
-+ * success it acquires the pagecache reference for the new folio and
-+ * drops it for the old folio.  Both the old and new folios must be
-+ * locked.  This function does not add the new folio to the LRU, the
-  * caller must do that.
-  *
-  * The remove + add is atomic.  This function cannot fail.
-  */
--void replace_page_cache_page(struct page *old, struct page *new)
-+void replace_page_cache_folio(struct folio *old, struct folio *new)
- {
--	struct folio *fold = page_folio(old);
--	struct folio *fnew = page_folio(new);
- 	struct address_space *mapping = old->mapping;
- 	void (*free_folio)(struct folio *) = mapping->a_ops->free_folio;
- 	pgoff_t offset = old->index;
- 	XA_STATE(xas, &mapping->i_pages, offset);
- 
--	VM_BUG_ON_PAGE(!PageLocked(old), old);
--	VM_BUG_ON_PAGE(!PageLocked(new), new);
--	VM_BUG_ON_PAGE(new->mapping, new);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(old), old);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(new), new);
-+	VM_BUG_ON_FOLIO(new->mapping, new);
- 
--	get_page(new);
-+	folio_get(new);
- 	new->mapping = mapping;
- 	new->index = offset;
- 
--	mem_cgroup_migrate(fold, fnew);
-+	mem_cgroup_migrate(old, new);
- 
- 	xas_lock_irq(&xas);
- 	xas_store(&xas, new);
- 
- 	old->mapping = NULL;
- 	/* hugetlb pages do not participate in page cache accounting. */
--	if (!PageHuge(old))
--		__dec_lruvec_page_state(old, NR_FILE_PAGES);
--	if (!PageHuge(new))
--		__inc_lruvec_page_state(new, NR_FILE_PAGES);
--	if (PageSwapBacked(old))
--		__dec_lruvec_page_state(old, NR_SHMEM);
--	if (PageSwapBacked(new))
--		__inc_lruvec_page_state(new, NR_SHMEM);
-+	if (!folio_test_hugetlb(old))
-+		__lruvec_stat_sub_folio(old, NR_FILE_PAGES);
-+	if (!folio_test_hugetlb(new))
-+		__lruvec_stat_add_folio(new, NR_FILE_PAGES);
-+	if (folio_test_swapbacked(old))
-+		__lruvec_stat_sub_folio(old, NR_SHMEM);
-+	if (folio_test_swapbacked(new))
-+		__lruvec_stat_add_folio(new, NR_SHMEM);
- 	xas_unlock_irq(&xas);
- 	if (free_folio)
--		free_folio(fold);
--	folio_put(fold);
-+		free_folio(old);
-+	folio_put(old);
- }
--EXPORT_SYMBOL_GPL(replace_page_cache_page);
-+EXPORT_SYMBOL_GPL(replace_page_cache_folio);
- 
- noinline int __filemap_add_folio(struct address_space *mapping,
- 		struct folio *folio, pgoff_t index, gfp_t gfp, void **shadowp)
+--- a/arch/loongarch/Kconfig~loongarch-enable-arch_want_hugetlb_page_optimize_vmemmap
++++ a/arch/loongarch/Kconfig
+@@ -52,6 +52,7 @@ config LOONGARCH
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+ 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT
++	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	select ARCH_WANT_LD_ORPHAN_WARN
+ 	select ARCH_WANTS_NO_INSTR
+ 	select BUILDTIME_TABLE_SORT
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from chenfeiyang@loongson.cn are
 
 
