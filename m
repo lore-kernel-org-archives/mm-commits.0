@@ -2,44 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE3F8C4167B
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:15:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62A5DC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:15:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230420AbiLLCPA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:15:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41848 "EHLO
+        id S231266AbiLLCPP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:15:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41396 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231139AbiLLCOQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:14:16 -0500
+        with ESMTP id S230378AbiLLCOc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:14:32 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D374963CA
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:09 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51F32DF05
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 82926B80B6F
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43DCBC433EF;
-        Mon, 12 Dec 2022 02:14:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 05319B80A1F
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FD6CC433EF;
+        Mon, 12 Dec 2022 02:14:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811247;
-        bh=Uq5rbHEmoNe/N27GoLyYCDeS2PxH2e7qpQkgHbypsNs=;
+        s=korg; t=1670811249;
+        bh=DPOrs9ys9MWhXsIbCcDjKUdtgl8DUZ0v1mRhH7fdno4=;
         h=Date:To:From:Subject:From;
-        b=dyRHAKK9WxjVIba2efrZsBPBe9WkCr+0m7nDXfm9yF92wPv7wL0EEeMdDpquoxmMK
-         Gvg11dI65y/gD5BHOEJYy7FTNJG6Pbn7fe51Vn+9428uwo+iA4CLbPI/rYO8103t6b
-         pEEgIOHHMTSeFiAIS0Gn+rgV55hET3MINubYu9Vc=
-Date:   Sun, 11 Dec 2022 18:14:06 -0800
-To:     mm-commits@vger.kernel.org, zhoumin@loongson.cn, will@kernel.org,
-        tsbogend@alpha.franken.de, songmuchun@bytedance.com,
-        philmd@linaro.org, peterz@infradead.org, luto@kernel.org,
-        lixuefeng@loongson.cn, kernel@xen0n.name, jiaxun.yang@flygoat.com,
-        guoren@kernel.org, dinguyen@kernel.org,
-        dave.hansen@linux.intel.com, chenhuacai@loongson.cn,
-        catalin.marinas@arm.com, arnd@arndb.de, chenfeiyang@loongson.cn,
-        akpm@linux-foundation.org
+        b=ppt6/YMyDP+eWBGU3BjbyKvnH/lfV6MaQ3WixiZYtnVrnka7GapZYtQTzGfN2WEiC
+         e8mCrvJkrg85wvZUuB7ox/UyhBPf/yOSCmo5TQCBcV/hoCYuLLK3FUkR0LT/PLFFTj
+         f7zLPAeUom5g496SShCxYtFSXAj04BNJXzuXg0q8=
+Date:   Sun, 11 Dec 2022 18:14:08 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        mszeredi@redhat.com, mike.kravetz@oracle.com,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] loongarch-enable-arch_want_hugetlb_page_optimize_vmemmap.patch removed from -mm tree
-Message-Id: <20221212021407.43DCBC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] fuse-convert-fuse_try_move_page-to-use-folios.patch removed from -mm tree
+Message-Id: <20221212021409.9FD6CC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,59 +42,162 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: LoongArch: enable ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+     Subject: fuse: convert fuse_try_move_page() to use folios
 has been removed from the -mm tree.  Its filename was
-     loongarch-enable-arch_want_hugetlb_page_optimize_vmemmap.patch
+     fuse-convert-fuse_try_move_page-to-use-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Feiyang Chen <chenfeiyang@loongson.cn>
-Subject: LoongArch: enable ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
-Date: Thu, 27 Oct 2022 20:52:53 +0800
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: fuse: convert fuse_try_move_page() to use folios
+Date: Tue, 1 Nov 2022 10:53:23 -0700
 
-The feature of minimizing overhead of struct page associated with each
-HugeTLB page is implemented on x86_64.  However, the infrastructure of
-this feature is already there, so just select ARCH_WANT_HUGETLB_PAGE_
-OPTIMIZE_VMEMMAP is enough to enable this feature for LoongArch.
+Converts the function to try to move folios instead of pages. Also
+converts fuse_check_page() to fuse_get_folio() since this is its only
+caller. This change removes 15 calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20221027125253.3458989-5-chenhuacai@loongson.cn
-Signed-off-by: Feiyang Chen <chenfeiyang@loongson.cn>
-Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
-Reviewed-by: Philippe Mathieu-Daudé <philmd@linaro.org>
-Acked-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: Min Zhou <zhoumin@loongson.cn>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Xuefeng Li <lixuefeng@loongson.cn>
-Cc: Xuerui Wang <kernel@xen0n.name>
+Link: https://lkml.kernel.org/r/20221101175326.13265-3-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Acked-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/fuse/dev.c |   55 ++++++++++++++++++++++++------------------------
+ 1 file changed, 28 insertions(+), 27 deletions(-)
 
---- a/arch/loongarch/Kconfig~loongarch-enable-arch_want_hugetlb_page_optimize_vmemmap
-+++ a/arch/loongarch/Kconfig
-@@ -52,6 +52,7 @@ config LOONGARCH
- 	select ARCH_USE_QUEUED_RWLOCKS
- 	select ARCH_USE_QUEUED_SPINLOCKS
- 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT
-+	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 	select ARCH_WANT_LD_ORPHAN_WARN
- 	select ARCH_WANTS_NO_INSTR
- 	select BUILDTIME_TABLE_SORT
+--- a/fs/fuse/dev.c~fuse-convert-fuse_try_move_page-to-use-folios
++++ a/fs/fuse/dev.c
+@@ -764,11 +764,11 @@ static int fuse_copy_do(struct fuse_copy
+ 	return ncpy;
+ }
+ 
+-static int fuse_check_page(struct page *page)
++static int fuse_check_folio(struct folio *folio)
+ {
+-	if (page_mapcount(page) ||
+-	    page->mapping != NULL ||
+-	    (page->flags & PAGE_FLAGS_CHECK_AT_PREP &
++	if (folio_mapped(folio) ||
++	    folio->mapping != NULL ||
++	    (folio->flags & PAGE_FLAGS_CHECK_AT_PREP &
+ 	     ~(1 << PG_locked |
+ 	       1 << PG_referenced |
+ 	       1 << PG_uptodate |
+@@ -778,7 +778,7 @@ static int fuse_check_page(struct page *
+ 	       1 << PG_reclaim |
+ 	       1 << PG_waiters |
+ 	       LRU_GEN_MASK | LRU_REFS_MASK))) {
+-		dump_page(page, "fuse: trying to steal weird page");
++		dump_page(&folio->page, "fuse: trying to steal weird page");
+ 		return 1;
+ 	}
+ 	return 0;
+@@ -787,11 +787,11 @@ static int fuse_check_page(struct page *
+ static int fuse_try_move_page(struct fuse_copy_state *cs, struct page **pagep)
+ {
+ 	int err;
+-	struct page *oldpage = *pagep;
+-	struct page *newpage;
++	struct folio *oldfolio = page_folio(*pagep);
++	struct folio *newfolio;
+ 	struct pipe_buffer *buf = cs->pipebufs;
+ 
+-	get_page(oldpage);
++	folio_get(oldfolio);
+ 	err = unlock_request(cs->req);
+ 	if (err)
+ 		goto out_put_old;
+@@ -814,35 +814,36 @@ static int fuse_try_move_page(struct fus
+ 	if (!pipe_buf_try_steal(cs->pipe, buf))
+ 		goto out_fallback;
+ 
+-	newpage = buf->page;
++	newfolio = page_folio(buf->page);
+ 
+-	if (!PageUptodate(newpage))
+-		SetPageUptodate(newpage);
++	if (!folio_test_uptodate(newfolio))
++		folio_mark_uptodate(newfolio);
+ 
+-	ClearPageMappedToDisk(newpage);
++	folio_clear_mappedtodisk(newfolio);
+ 
+-	if (fuse_check_page(newpage) != 0)
++	if (fuse_check_folio(newfolio) != 0)
+ 		goto out_fallback_unlock;
+ 
+ 	/*
+ 	 * This is a new and locked page, it shouldn't be mapped or
+ 	 * have any special flags on it
+ 	 */
+-	if (WARN_ON(page_mapped(oldpage)))
++	if (WARN_ON(folio_mapped(oldfolio)))
+ 		goto out_fallback_unlock;
+-	if (WARN_ON(page_has_private(oldpage)))
++	if (WARN_ON(folio_has_private(oldfolio)))
+ 		goto out_fallback_unlock;
+-	if (WARN_ON(PageDirty(oldpage) || PageWriteback(oldpage)))
++	if (WARN_ON(folio_test_dirty(oldfolio) ||
++				folio_test_writeback(oldfolio)))
+ 		goto out_fallback_unlock;
+-	if (WARN_ON(PageMlocked(oldpage)))
++	if (WARN_ON(folio_test_mlocked(oldfolio)))
+ 		goto out_fallback_unlock;
+ 
+-	replace_page_cache_folio(page_folio(oldpage), page_folio(newpage));
++	replace_page_cache_folio(oldfolio, newfolio);
+ 
+-	get_page(newpage);
++	folio_get(newfolio);
+ 
+ 	if (!(buf->flags & PIPE_BUF_FLAG_LRU))
+-		lru_cache_add(newpage);
++		folio_add_lru(newfolio);
+ 
+ 	/*
+ 	 * Release while we have extra ref on stolen page.  Otherwise
+@@ -855,28 +856,28 @@ static int fuse_try_move_page(struct fus
+ 	if (test_bit(FR_ABORTED, &cs->req->flags))
+ 		err = -ENOENT;
+ 	else
+-		*pagep = newpage;
++		*pagep = &newfolio->page;
+ 	spin_unlock(&cs->req->waitq.lock);
+ 
+ 	if (err) {
+-		unlock_page(newpage);
+-		put_page(newpage);
++		folio_unlock(newfolio);
++		folio_put(newfolio);
+ 		goto out_put_old;
+ 	}
+ 
+-	unlock_page(oldpage);
++	folio_unlock(oldfolio);
+ 	/* Drop ref for ap->pages[] array */
+-	put_page(oldpage);
++	folio_put(oldfolio);
+ 	cs->len = 0;
+ 
+ 	err = 0;
+ out_put_old:
+ 	/* Drop ref obtained in this function */
+-	put_page(oldpage);
++	folio_put(oldfolio);
+ 	return err;
+ 
+ out_fallback_unlock:
+-	unlock_page(newpage);
++	folio_unlock(newfolio);
+ out_fallback:
+ 	cs->pg = buf->page;
+ 	cs->offset = buf->offset;
 _
 
-Patches currently in -mm which might be from chenfeiyang@loongson.cn are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
 
