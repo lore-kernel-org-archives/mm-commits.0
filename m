@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2D45C4167B
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:16:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3C2DC10F1E
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:16:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231324AbiLLCQ1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:16:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42042 "EHLO
+        id S231357AbiLLCQ2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:16:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231321AbiLLCOh (ORCPT
+        with ESMTP id S231325AbiLLCOh (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:14:37 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DC20DF50
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:29 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59366DF52
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 17F64B80B67
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD44BC433D2;
-        Mon, 12 Dec 2022 02:14:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EE1C060EC5
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54C37C433D2;
+        Mon, 12 Dec 2022 02:14:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811266;
-        bh=R9yTfMW853rDW8/IlK6UK6wOeA/6tv3H45sqH4ZQ7Nw=;
+        s=korg; t=1670811269;
+        bh=TiRxxn4EYEBlGlw943ma3+2hvQSN0ChsxGPlGnUn9vI=;
         h=Date:To:From:Subject:From;
-        b=LusBZy4YqPx4cnf+yD+sEBGAPVOvvBYj5dpODaW4HRM4vbLQkPqLGgajuAKecyJ7y
-         Ofq392OxiJp2h8GW1VI2b60LLPZC8r5t+wpsVu/jTz3/PTIEI5KUEq2pEF5kzIa0EH
-         hsqESWQIxU6gbFm3AQDjzX1KgDZsmNFgQ8/1ZAK0=
-Date:   Sun, 11 Dec 2022 18:14:26 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        tsahu@linux.ibm.com, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, linux@rasmusvillemoes.dk,
-        linmiaohe@huawei.com, jhubbard@nvidia.com,
-        harperchen1110@gmail.com, david@redhat.com, almasrymina@google.com,
-        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
+        b=X/Or4pQlzBC4J9ISWVPiAZ652HyfnAjLYesWXzOKuQDqGeKvrclJkvETkqZtRhpEi
+         ojt+XcUp3NZxXWHBphrOfs8kD40WC6S7xT1Y204wrdK2UbwZgREpw445nvzRvW36Q5
+         mvxHCp7Dn7qMlEX2h9ejtzS6If9BZkbQ/ykqNuQE=
+Date:   Sun, 11 Dec 2022 18:14:28 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-change-hugetlb-allocation-functions-to-return-a-folio.patch removed from -mm tree
-Message-Id: <20221212021426.AD44BC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-test-removed-scheme-sysfs-dir-access-bug.patch removed from -mm tree
+Message-Id: <20221212021429.54C37C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,415 +41,110 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: change hugetlb allocation functions to return a folio
+     Subject: selftests/damon: test removed scheme sysfs dir access bug
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-change-hugetlb-allocation-functions-to-return-a-folio.patch
+     selftests-damon-test-removed-scheme-sysfs-dir-access-bug.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: change hugetlb allocation functions to return a folio
-Date: Tue, 29 Nov 2022 14:50:39 -0800
+From: SeongJae Park <sj@kernel.org>
+Subject: selftests/damon: test removed scheme sysfs dir access bug
+Date: Thu, 1 Dec 2022 17:08:34 +0000
 
-Many hugetlb allocation helper functions have now been converting to
-folios, update their higher level callers to be compatible with folios. 
-alloc_pool_huge_page is reorganized to avoid a smatch warning reporting
-the folio variable is uninitialized.
+A DAMON sysfs user could start DAMON with a scheme, remove the sysfs
+directory for the scheme, and then ask stats or schemes tried regions
+update.  The related logic were not aware of the already removed directory
+situation, so it was able to results in invalid memory accesses.  The fix
+has made with commit 8468b486612c ("mm/damon/sysfs-schemes: skip stats
+update if the scheme directory is removed"), though.  Add a selftest to
+prevent such kinds of bugs from being introduced again.
 
-[sidhartha.kumar@oracle.com: update alloc_and_dissolve_hugetlb_folio comments]
-  Link: https://lkml.kernel.org/r/20221206233512.146535-1-sidhartha.kumar@oracle.com
-Link: https://lkml.kernel.org/r/20221129225039.82257-11-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reported-by: Wei Chen <harperchen1110@gmail.com>
-Suggested-by: John Hubbard <jhubbard@nvidia.com>
-Suggested-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Tarun Sahu <tsahu@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20221201170834.62823-1-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  134 +++++++++++++++++++++++--------------------------
- 1 file changed, 64 insertions(+), 70 deletions(-)
+ tools/testing/selftests/damon/Makefile                           |    2 
+ tools/testing/selftests/damon/sysfs_update_removed_scheme_dir.sh |   58 ++++++++++
+ 2 files changed, 59 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-change-hugetlb-allocation-functions-to-return-a-folio
-+++ a/mm/hugetlb.c
-@@ -1378,23 +1378,23 @@ static void free_gigantic_folio(struct f
- }
+--- a/tools/testing/selftests/damon/Makefile~selftests-damon-test-removed-scheme-sysfs-dir-access-bug
++++ a/tools/testing/selftests/damon/Makefile
+@@ -8,7 +8,7 @@ TEST_PROGS = debugfs_attrs.sh debugfs_sc
+ TEST_PROGS += debugfs_empty_targets.sh debugfs_huge_count_read_write.sh
+ TEST_PROGS += debugfs_duplicate_context_creation.sh
+ TEST_PROGS += debugfs_rm_non_contexts.sh
+-TEST_PROGS += sysfs.sh
++TEST_PROGS += sysfs.sh sysfs_update_removed_scheme_dir.sh
+ TEST_PROGS += reclaim.sh lru_sort.sh
  
- #ifdef CONFIG_CONTIG_ALLOC
--static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
-+static struct folio *alloc_gigantic_folio(struct hstate *h, gfp_t gfp_mask,
- 		int nid, nodemask_t *nodemask)
- {
-+	struct page *page;
- 	unsigned long nr_pages = pages_per_huge_page(h);
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
- 
- #ifdef CONFIG_CMA
- 	{
--		struct page *page;
- 		int node;
- 
- 		if (hugetlb_cma[nid]) {
- 			page = cma_alloc(hugetlb_cma[nid], nr_pages,
- 					huge_page_order(h), true);
- 			if (page)
--				return page;
-+				return page_folio(page);
- 		}
- 
- 		if (!(gfp_mask & __GFP_THISNODE)) {
-@@ -1405,17 +1405,18 @@ static struct page *alloc_gigantic_page(
- 				page = cma_alloc(hugetlb_cma[node], nr_pages,
- 						huge_page_order(h), true);
- 				if (page)
--					return page;
-+					return page_folio(page);
- 			}
- 		}
- 	}
- #endif
- 
--	return alloc_contig_pages(nr_pages, gfp_mask, nid, nodemask);
-+	page = alloc_contig_pages(nr_pages, gfp_mask, nid, nodemask);
-+	return page ? page_folio(page) : NULL;
- }
- 
- #else /* !CONFIG_CONTIG_ALLOC */
--static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
-+static struct folio *alloc_gigantic_folio(struct hstate *h, gfp_t gfp_mask,
- 					int nid, nodemask_t *nodemask)
- {
- 	return NULL;
-@@ -1423,7 +1424,7 @@ static struct page *alloc_gigantic_page(
- #endif /* CONFIG_CONTIG_ALLOC */
- 
- #else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
--static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
-+static struct folio *alloc_gigantic_folio(struct hstate *h, gfp_t gfp_mask,
- 					int nid, nodemask_t *nodemask)
- {
- 	return NULL;
-@@ -1950,7 +1951,7 @@ pgoff_t hugetlb_basepage_index(struct pa
- 	return (index << compound_order(page_head)) + compound_idx;
- }
- 
--static struct page *alloc_buddy_huge_page(struct hstate *h,
-+static struct folio *alloc_buddy_hugetlb_folio(struct hstate *h,
- 		gfp_t gfp_mask, int nid, nodemask_t *nmask,
- 		nodemask_t *node_alloc_noretry)
- {
-@@ -1988,11 +1989,6 @@ retry:
- 		page = NULL;
- 	}
- 
--	if (page)
--		__count_vm_event(HTLB_BUDDY_PGALLOC);
--	else
--		__count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
--
- 	/*
- 	 * If we did not specify __GFP_RETRY_MAYFAIL, but still got a page this
- 	 * indicates an overall state change.  Clear bit so that we resume
-@@ -2009,7 +2005,13 @@ retry:
- 	if (node_alloc_noretry && !page && alloc_try_hard)
- 		node_set(nid, *node_alloc_noretry);
- 
--	return page;
-+	if (!page) {
-+		__count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
-+		return NULL;
-+	}
+ include ../lib.mk
+--- /dev/null
++++ a/tools/testing/selftests/damon/sysfs_update_removed_scheme_dir.sh
+@@ -0,0 +1,58 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
 +
-+	__count_vm_event(HTLB_BUDDY_PGALLOC);
-+	return page_folio(page);
- }
- 
- /*
-@@ -2019,23 +2021,21 @@ retry:
-  * Note that returned page is 'frozen':  ref count of head page and all tail
-  * pages is zero.
-  */
--static struct page *alloc_fresh_huge_page(struct hstate *h,
-+static struct folio *alloc_fresh_hugetlb_folio(struct hstate *h,
- 		gfp_t gfp_mask, int nid, nodemask_t *nmask,
- 		nodemask_t *node_alloc_noretry)
- {
--	struct page *page;
- 	struct folio *folio;
- 	bool retry = false;
- 
- retry:
- 	if (hstate_is_gigantic(h))
--		page = alloc_gigantic_page(h, gfp_mask, nid, nmask);
-+		folio = alloc_gigantic_folio(h, gfp_mask, nid, nmask);
- 	else
--		page = alloc_buddy_huge_page(h, gfp_mask,
-+		folio = alloc_buddy_hugetlb_folio(h, gfp_mask,
- 				nid, nmask, node_alloc_noretry);
--	if (!page)
-+	if (!folio)
- 		return NULL;
--	folio = page_folio(page);
- 	if (hstate_is_gigantic(h)) {
- 		if (!prep_compound_gigantic_folio(folio, huge_page_order(h))) {
- 			/*
-@@ -2052,7 +2052,7 @@ retry:
- 	}
- 	prep_new_hugetlb_folio(h, folio, folio_nid(folio));
- 
--	return page;
-+	return folio;
- }
- 
- /*
-@@ -2062,23 +2062,20 @@ retry:
- static int alloc_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed,
- 				nodemask_t *node_alloc_noretry)
- {
--	struct page *page;
-+	struct folio *folio;
- 	int nr_nodes, node;
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
- 
- 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
--		page = alloc_fresh_huge_page(h, gfp_mask, node, nodes_allowed,
--						node_alloc_noretry);
--		if (page)
--			break;
-+		folio = alloc_fresh_hugetlb_folio(h, gfp_mask, node,
-+					nodes_allowed, node_alloc_noretry);
-+		if (folio) {
-+			free_huge_page(&folio->page); /* free it into the hugepage allocator */
-+			return 1;
-+		}
- 	}
- 
--	if (!page)
--		return 0;
--
--	free_huge_page(page); /* free it into the hugepage allocator */
--
--	return 1;
-+	return 0;
- }
- 
- /*
-@@ -2237,7 +2234,7 @@ int dissolve_free_huge_pages(unsigned lo
- static struct page *alloc_surplus_huge_page(struct hstate *h, gfp_t gfp_mask,
- 						int nid, nodemask_t *nmask)
- {
--	struct page *page = NULL;
-+	struct folio *folio = NULL;
- 
- 	if (hstate_is_gigantic(h))
- 		return NULL;
-@@ -2247,8 +2244,8 @@ static struct page *alloc_surplus_huge_p
- 		goto out_unlock;
- 	spin_unlock_irq(&hugetlb_lock);
- 
--	page = alloc_fresh_huge_page(h, gfp_mask, nid, nmask, NULL);
--	if (!page)
-+	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
-+	if (!folio)
- 		return NULL;
- 
- 	spin_lock_irq(&hugetlb_lock);
-@@ -2260,43 +2257,42 @@ static struct page *alloc_surplus_huge_p
- 	 * codeflow
- 	 */
- 	if (h->surplus_huge_pages >= h->nr_overcommit_huge_pages) {
--		SetHPageTemporary(page);
-+		folio_set_hugetlb_temporary(folio);
- 		spin_unlock_irq(&hugetlb_lock);
--		free_huge_page(page);
-+		free_huge_page(&folio->page);
- 		return NULL;
- 	}
- 
- 	h->surplus_huge_pages++;
--	h->surplus_huge_pages_node[page_to_nid(page)]++;
-+	h->surplus_huge_pages_node[folio_nid(folio)]++;
- 
- out_unlock:
- 	spin_unlock_irq(&hugetlb_lock);
- 
--	return page;
-+	return &folio->page;
- }
- 
- static struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
- 				     int nid, nodemask_t *nmask)
- {
--	struct page *page;
-+	struct folio *folio;
- 
- 	if (hstate_is_gigantic(h))
- 		return NULL;
- 
--	page = alloc_fresh_huge_page(h, gfp_mask, nid, nmask, NULL);
--	if (!page)
-+	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
-+	if (!folio)
- 		return NULL;
- 
- 	/* fresh huge pages are frozen */
--	set_page_refcounted(page);
--
-+	folio_ref_unfreeze(folio, 1);
- 	/*
- 	 * We do not account these pages as surplus because they are only
- 	 * temporary and will be released properly on the last reference
- 	 */
--	SetHPageTemporary(page);
-+	folio_set_hugetlb_temporary(folio);
- 
--	return page;
-+	return &folio->page;
- }
- 
- /*
-@@ -2745,54 +2741,52 @@ void restore_reserve_on_error(struct hst
- }
- 
- /*
-- * alloc_and_dissolve_huge_page - Allocate a new page and dissolve the old one
-+ * alloc_and_dissolve_hugetlb_folio - Allocate a new folio and dissolve
-+ * the old one
-  * @h: struct hstate old page belongs to
-- * @old_page: Old page to dissolve
-+ * @old_folio: Old folio to dissolve
-  * @list: List to isolate the page in case we need to
-  * Returns 0 on success, otherwise negated error.
-  */
--static int alloc_and_dissolve_huge_page(struct hstate *h, struct page *old_page,
--					struct list_head *list)
-+static int alloc_and_dissolve_hugetlb_folio(struct hstate *h,
-+			struct folio *old_folio, struct list_head *list)
- {
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
--	struct folio *old_folio = page_folio(old_page);
- 	int nid = folio_nid(old_folio);
--	struct page *new_page;
- 	struct folio *new_folio;
- 	int ret = 0;
- 
- 	/*
--	 * Before dissolving the page, we need to allocate a new one for the
--	 * pool to remain stable.  Here, we allocate the page and 'prep' it
-+	 * Before dissolving the folio, we need to allocate a new one for the
-+	 * pool to remain stable.  Here, we allocate the folio and 'prep' it
- 	 * by doing everything but actually updating counters and adding to
- 	 * the pool.  This simplifies and let us do most of the processing
- 	 * under the lock.
- 	 */
--	new_page = alloc_buddy_huge_page(h, gfp_mask, nid, NULL, NULL);
--	if (!new_page)
-+	new_folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid, NULL, NULL);
-+	if (!new_folio)
- 		return -ENOMEM;
--	new_folio = page_folio(new_page);
- 	__prep_new_hugetlb_folio(h, new_folio);
- 
- retry:
- 	spin_lock_irq(&hugetlb_lock);
- 	if (!folio_test_hugetlb(old_folio)) {
- 		/*
--		 * Freed from under us. Drop new_page too.
-+		 * Freed from under us. Drop new_folio too.
- 		 */
- 		goto free_new;
- 	} else if (folio_ref_count(old_folio)) {
- 		/*
--		 * Someone has grabbed the page, try to isolate it here.
-+		 * Someone has grabbed the folio, try to isolate it here.
- 		 * Fail with -EBUSY if not possible.
- 		 */
- 		spin_unlock_irq(&hugetlb_lock);
--		ret = isolate_hugetlb(old_page, list);
-+		ret = isolate_hugetlb(&old_folio->page, list);
- 		spin_lock_irq(&hugetlb_lock);
- 		goto free_new;
- 	} else if (!folio_test_hugetlb_freed(old_folio)) {
- 		/*
--		 * Page's refcount is 0 but it has not been enqueued in the
-+		 * Folio's refcount is 0 but it has not been enqueued in the
- 		 * freelist yet. Race window is small, so we can succeed here if
- 		 * we retry.
- 		 */
-@@ -2801,7 +2795,7 @@ retry:
- 		goto retry;
- 	} else {
- 		/*
--		 * Ok, old_page is still a genuine free hugepage. Remove it from
-+		 * Ok, old_folio is still a genuine free hugepage. Remove it from
- 		 * the freelist and decrease the counters. These will be
- 		 * incremented again when calling __prep_account_new_huge_page()
- 		 * and enqueue_hugetlb_folio() for new_folio. The counters will
-@@ -2810,14 +2804,14 @@ retry:
- 		remove_hugetlb_folio(h, old_folio, false);
- 
- 		/*
--		 * Ref count on new page is already zero as it was dropped
-+		 * Ref count on new_folio is already zero as it was dropped
- 		 * earlier.  It can be directly added to the pool free list.
- 		 */
- 		__prep_account_new_huge_page(h, nid);
- 		enqueue_hugetlb_folio(h, new_folio);
- 
- 		/*
--		 * Pages have been replaced, we can safely free the old one.
-+		 * Folio has been replaced, we can safely free the old one.
- 		 */
- 		spin_unlock_irq(&hugetlb_lock);
- 		update_and_free_hugetlb_folio(h, old_folio, false);
-@@ -2827,7 +2821,7 @@ retry:
- 
- free_new:
- 	spin_unlock_irq(&hugetlb_lock);
--	/* Page has a zero ref count, but needs a ref to be freed */
-+	/* Folio has a zero ref count, but needs a ref to be freed */
- 	folio_ref_unfreeze(new_folio, 1);
- 	update_and_free_hugetlb_folio(h, new_folio, false);
- 
-@@ -2865,7 +2859,7 @@ int isolate_or_dissolve_huge_page(struct
- 	if (folio_ref_count(folio) && !isolate_hugetlb(&folio->page, list))
- 		ret = 0;
- 	else if (!folio_ref_count(folio))
--		ret = alloc_and_dissolve_huge_page(h, &folio->page, list);
-+		ret = alloc_and_dissolve_hugetlb_folio(h, folio, list);
- 
- 	return ret;
- }
-@@ -3083,14 +3077,14 @@ static void __init hugetlb_hstate_alloc_
- 			if (!alloc_bootmem_huge_page(h, nid))
- 				break;
- 		} else {
--			struct page *page;
-+			struct folio *folio;
- 			gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
- 
--			page = alloc_fresh_huge_page(h, gfp_mask, nid,
-+			folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
- 					&node_states[N_MEMORY], NULL);
--			if (!page)
-+			if (!folio)
- 				break;
--			free_huge_page(page); /* free it into the hugepage allocator */
-+			free_huge_page(&folio->page); /* free it into the hugepage allocator */
- 		}
- 		cond_resched();
- 	}
++# Kselftest framework requirement - SKIP code is 4.
++ksft_skip=4
++
++if [ $EUID -ne 0 ]
++then
++	echo "Run as root"
++	exit $ksft_skip
++fi
++
++damon_sysfs="/sys/kernel/mm/damon/admin"
++if [ ! -d "$damon_sysfs" ]
++then
++	echo "damon sysfs not found"
++	exit $ksft_skip
++fi
++
++# clear log
++dmesg -C
++
++# start DAMON with a scheme
++echo 1 > "$damon_sysfs/kdamonds/nr_kdamonds"
++echo 1 > "$damon_sysfs/kdamonds/0/contexts/nr_contexts"
++echo "vaddr" > "$damon_sysfs/kdamonds/0/contexts/0/operations"
++echo 1 > "$damon_sysfs/kdamonds/0/contexts/0/targets/nr_targets"
++echo $$ > "$damon_sysfs/kdamonds/0/contexts/0/targets/0/pid_target"
++echo 1 > "$damon_sysfs/kdamonds/0/contexts/0/schemes/nr_schemes"
++scheme_dir="$damon_sysfs/kdamonds/0/contexts/0/schemes/0"
++echo 4096000 > "$scheme_dir/access_pattern/sz/max"
++echo 20 > "$scheme_dir/access_pattern/nr_accesses/max"
++echo 1024 > "$scheme_dir/access_pattern/age/max"
++echo "on" > "$damon_sysfs/kdamonds/0/state"
++sleep 0.3
++
++# remove scheme sysfs dir
++echo 0 > "$damon_sysfs/kdamonds/0/contexts/0/schemes/nr_schemes"
++
++# try to update stat of already removed scheme sysfs dir
++echo "update_schemes_stats" > "$damon_sysfs/kdamonds/0/state"
++if dmesg | grep -q BUG
++then
++	echo "update_schemes_stats triggers a kernel bug"
++	dmesg
++	exit 1
++fi
++
++# try to update tried regions of already removed scheme sysfs dir
++echo "update_schemes_tried_regions" > "$damon_sysfs/kdamonds/0/state"
++if dmesg | grep -q BUG
++then
++	echo "update_schemes_tried_regions triggers a kernel bug"
++	dmesg
++	exit 1
++fi
++
++echo "off" > "$damon_sysfs/kdamonds/0/state"
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
