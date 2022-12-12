@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8195AC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 03:31:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 581AAC4167B
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 03:31:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231180AbiLLDbk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 22:31:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33750 "EHLO
+        id S231200AbiLLDbl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 22:31:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230506AbiLLDb1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 22:31:27 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4645EDE8F
+        with ESMTP id S230520AbiLLDb2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 22:31:28 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA017D137
         for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 19:31:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D81BC60ED1
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5CA89B80A1F
         for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 03:31:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E425C433F0;
-        Mon, 12 Dec 2022 03:31:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F10A3C433EF;
+        Mon, 12 Dec 2022 03:31:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670815878;
-        bh=Lw2vInf7T7/PvZJ6V8WRZgJonNSktXgxIk+nN7rtGCU=;
+        s=korg; t=1670815877;
+        bh=hmIeVLFbGpUzwsU4nWP82n2AS3XCxWno1EaC0EaLq8A=;
         h=Date:To:From:Subject:From;
-        b=n/x45SXT6RSlrMDTn9UFn3WBB1+dklLtSy60TtIAGxShT1yJF6pBZha8MJ+J/prQc
-         iY5qdVWj0TERnzOmBZ/Hnucfypz0yeH5wY1I1gO2INp+khqf4Rgne4yGu4ANKp5Peq
-         +5n8ZByYZNpEOKv/uFWeqAQmE84ROvMM8lwa6Jvs=
-Date:   Sun, 11 Dec 2022 19:31:17 -0800
-To:     mm-commits@vger.kernel.org,
-        syzbot+dc3b1cf9111ab5fe98e7@syzkaller.appspotmail.com,
-        slava@dubeyko.com, zhangpeng362@huawei.com,
-        akpm@linux-foundation.org
+        b=qi6ebjOyMjs1WDwevp3GPGDFdXooLChS+kBp5VNoHc/DPdein6GDkmmclCdDintWJ
+         fQUYXBpeQc0zS5+6u48P8skxC4/HvyuBMRKw/rWRb87t6/VrOtzfR4DOvSq7g8rKEu
+         EmdlngA6CRxGYOMcfR/qW+yQFjZvygZCTEQR7qo0=
+Date:   Sun, 11 Dec 2022 19:31:16 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        wangkefeng.wang@huawei.com,
+        syzbot+e836ff7133ac02be825f@syzkaller.appspotmail.com,
+        sunnanyong@huawei.com, slava@dubeyko.com, jlayton@kernel.org,
+        ira.weiny@intel.com, damien.lemoal@opensource.wdc.com,
+        zhangpeng362@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] hfs-fix-oob-write-in-hfs_asc2mac.patch removed from -mm tree
-Message-Id: <20221212033118.3E425C433F0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] hfs-fix-oob-read-in-__hfs_brec_find.patch removed from -mm tree
+Message-Id: <20221212033116.F10A3C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,26 +45,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hfs: Fix OOB Write in hfs_asc2mac
+     Subject: hfs: fix OOB Read in __hfs_brec_find
 has been removed from the -mm tree.  Its filename was
-     hfs-fix-oob-write-in-hfs_asc2mac.patch
+     hfs-fix-oob-read-in-__hfs_brec_find.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: hfs: Fix OOB Write in hfs_asc2mac
-Date: Fri, 2 Dec 2022 03:00:38 +0000
+Subject: hfs: fix OOB Read in __hfs_brec_find
+Date: Wed, 30 Nov 2022 06:59:59 +0000
 
-Syzbot reported a OOB Write bug:
+Syzbot reported a OOB read bug:
 
-loop0: detected capacity change from 0 to 64
 ==================================================================
-BUG: KASAN: slab-out-of-bounds in hfs_asc2mac+0x467/0x9a0
-fs/hfs/trans.c:133
-Write of size 1 at addr ffff88801848314e by task syz-executor391/3632
-
+BUG: KASAN: slab-out-of-bounds in hfs_strcmp+0x117/0x190
+fs/hfs/string.c:84
+Read of size 1 at addr ffff88807eb62c4e by task kworker/u4:1/11
+CPU: 1 PID: 11 Comm: kworker/u4:1 Not tainted
+6.1.0-rc6-syzkaller-00308-g644e9524388a #0
+Workqueue: writeback wb_workfn (flush-7:0)
 Call Trace:
  <TASK>
  __dump_stack lib/dump_stack.c:88 [inline]
@@ -70,43 +73,57 @@ Call Trace:
  print_address_description+0x74/0x340 mm/kasan/report.c:284
  print_report+0x107/0x1f0 mm/kasan/report.c:395
  kasan_report+0xcd/0x100 mm/kasan/report.c:495
- hfs_asc2mac+0x467/0x9a0 fs/hfs/trans.c:133
- hfs_cat_build_key+0x92/0x170 fs/hfs/catalog.c:28
- hfs_lookup+0x1ab/0x2c0 fs/hfs/dir.c:31
- lookup_open fs/namei.c:3391 [inline]
- open_last_lookups fs/namei.c:3481 [inline]
- path_openat+0x10e6/0x2df0 fs/namei.c:3710
- do_filp_open+0x264/0x4f0 fs/namei.c:3740
+ hfs_strcmp+0x117/0x190 fs/hfs/string.c:84
+ __hfs_brec_find+0x213/0x5c0 fs/hfs/bfind.c:75
+ hfs_brec_find+0x276/0x520 fs/hfs/bfind.c:138
+ hfs_write_inode+0x34c/0xb40 fs/hfs/inode.c:462
+ write_inode fs/fs-writeback.c:1440 [inline]
 
-If in->len is much larger than HFS_NAMELEN(31) which is the maximum
-length of an HFS filename, a OOB write could occur in hfs_asc2mac(). In
-that case, when the dst reaches the boundary, the srclen is still
-greater than 0, which causes a OOB write.
-Fix this by adding a check on dstlen in while() before writing to dst
-address.
+If the input inode of hfs_write_inode() is incorrect:
+struct inode
+  struct hfs_inode_info
+    struct hfs_cat_key
+      struct hfs_name
+        u8 len # len is greater than HFS_NAMELEN(31) which is the
+maximum length of an HFS filename
 
-Link: https://lkml.kernel.org/r/20221202030038.1391945-1-zhangpeng362@huawei.com
-Fixes: 328b92278650 ("[PATCH] hfs: NLS support")
+OOB read occurred:
+hfs_write_inode()
+  hfs_brec_find()
+    __hfs_brec_find()
+      hfs_cat_keycmp()
+        hfs_strcmp() # OOB read occurred due to len is too large
+
+Fix this by adding a Check on len in hfs_write_inode() before calling
+hfs_brec_find().
+
+Link: https://lkml.kernel.org/r/20221130065959.2168236-1-zhangpeng362@huawei.com
 Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Viacheslav Dubeyko <slava@dubeyko.com>
-Reported-by: <syzbot+dc3b1cf9111ab5fe98e7@syzkaller.appspotmail.com>
+Reported-by: <syzbot+e836ff7133ac02be825f@syzkaller.appspotmail.com>
+Cc: Damien Le Moal <damien.lemoal@opensource.wdc.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Viacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/trans.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hfs/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/hfs/trans.c~hfs-fix-oob-write-in-hfs_asc2mac
-+++ a/fs/hfs/trans.c
-@@ -109,7 +109,7 @@ void hfs_asc2mac(struct super_block *sb,
- 	if (nls_io) {
- 		wchar_t ch;
+--- a/fs/hfs/inode.c~hfs-fix-oob-read-in-__hfs_brec_find
++++ a/fs/hfs/inode.c
+@@ -458,6 +458,8 @@ int hfs_write_inode(struct inode *inode,
+ 		/* panic? */
+ 		return -EIO;
  
--		while (srclen > 0) {
-+		while (srclen > 0 && dstlen > 0) {
- 			size = nls_io->char2uni(src, srclen, &ch);
- 			if (size < 0) {
- 				ch = '?';
++	if (HFS_I(main_inode)->cat_key.CName.len > HFS_NAMELEN)
++		return -EIO;
+ 	fd.search_key->cat = HFS_I(main_inode)->cat_key;
+ 	if (hfs_brec_find(&fd))
+ 		/* panic? */
 _
 
 Patches currently in -mm which might be from zhangpeng362@huawei.com are
