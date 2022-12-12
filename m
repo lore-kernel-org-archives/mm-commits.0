@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BF8DC2D0CB
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:17:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79987C001B2
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:17:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231263AbiLLCRR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:17:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41478 "EHLO
+        id S231264AbiLLCRS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:17:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231311AbiLLCQR (ORCPT
+        with ESMTP id S231312AbiLLCQR (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:16:17 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18AB2DFAD
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79B73DFBB
         for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A373060EC9
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2DB0DB80B6A
         for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 069F1C433F2;
-        Mon, 12 Dec 2022 02:14:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFE24C433EF;
+        Mon, 12 Dec 2022 02:14:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811295;
-        bh=6XHwhXznO0/JNp+g5nLxLi54GaZdx5lRqJMF7SQVPYI=;
+        s=korg; t=1670811293;
+        bh=A+99Wj1ViaCqvVoE+O+NI/adea7jkfgFt0K4L5GXhxQ=;
         h=Date:To:From:Subject:From;
-        b=Xb5y9k3G6MQ1DLP4JcRTF7mBo4a5/Ft3FHd2ZtNUlVq0fDFLes0SZ5nHZsdUJg+zm
-         RFL45JLYvAVLbsl3ibrBQv2Su3pL71rmLcaAPX68KPqp7NXKpi0uwjxY6Q9TI8igNl
-         REYHEqkZnGGD4mlXR4k8fQeChcPQYr5XPqbG5ZCM=
-Date:   Sun, 11 Dec 2022 18:14:54 -0800
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        ying.huang@intel.com, weixugc@google.com,
-        tim.c.chen@linux.intel.com, shy828301@gmail.com,
-        shakeelb@google.com, gthelen@google.com, almasrymina@google.com,
+        b=hTCqcfB5pg9kW5gjs0R4Z9u7J0G37NRIlgKJ65X7xKBt94yVeyDd75fLZXpmA3x8o
+         ODFMuitbmeNX2ytGiL2XY96qCJgMUk5aO9wlcYvgEWUkvqS16spSa2RekqTzl2WPyY
+         Ris3TKlZFqqnmlfwayf2STfM6HUVUto7gZOlooug=
+Date:   Sun, 11 Dec 2022 18:14:53 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        vbabka@suse.cz, vasily.averin@linux.dev, tj@kernel.org,
+        songmuchun@bytedance.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, rientjes@google.com, mhocko@suse.com,
+        hannes@cmpxchg.org, chris@chrisdown.name, yosryahmed@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-disable-top-tier-fallback-to-reclaim-on-proactive-reclaim.patch removed from -mm tree
-Message-Id: <20221212021455.069F1C433F2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-cgroup-make-sure-reclaim-target-memcg-is-unprotected.patch removed from -mm tree
+Message-Id: <20221212021453.CFE24C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,87 +45,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: disable top-tier fallback to reclaim on proactive reclaim
+     Subject: selftests: cgroup: make sure reclaim target memcg is unprotected
 has been removed from the -mm tree.  Its filename was
-     mm-disable-top-tier-fallback-to-reclaim-on-proactive-reclaim.patch
+     selftests-cgroup-make-sure-reclaim-target-memcg-is-unprotected.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mina Almasry <almasrymina@google.com>
-Subject: mm: disable top-tier fallback to reclaim on proactive reclaim
-Date: Thu, 1 Dec 2022 15:33:17 -0800
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: selftests: cgroup: make sure reclaim target memcg is unprotected
+Date: Fri, 2 Dec 2022 03:15:12 +0000
 
-Reclaiming directly from top tier nodes breaks the aging pipeline of
-memory tiers.  If we have a RAM -> CXL -> storage hierarchy, we should
-demote from RAM to CXL and from CXL to storage.  If we reclaim a page from
-RAM, it means we 'demote' it directly from RAM to storage, bypassing
-potentially a huge amount of pages colder than it in CXL.
+Make sure that we ignore protection of a memcg that is the target of memcg
+reclaim.
 
-However disabling reclaim from top tier nodes entirely would cause ooms in
-edge scenarios where lower tier memory is unreclaimable for whatever
-reason, e.g.  memory being mlocked() or too hot to reclaim.  In these
-cases we would rather the job run with a performance regression rather
-than it oom altogether.
-
-However, we can disable reclaim from top tier nodes for proactive reclaim.
-That reclaim is not real memory pressure, and we don't have any cause to
-be breaking the aging pipeline.
-
-[akpm@linux-foundation.org: restore comment layout, per Ying Huang]
-Link: https://lkml.kernel.org/r/20221201233317.1394958-1-almasrymina@google.com
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Greg Thelen <gthelen@google.com>
+Link: https://lkml.kernel.org/r/20221202031512.1365483-4-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vasily Averin <vasily.averin@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/mm/vmscan.c~mm-disable-top-tier-fallback-to-reclaim-on-proactive-reclaim
-+++ a/mm/vmscan.c
-@@ -2088,10 +2088,29 @@ keep:
- 	nr_reclaimed += demote_folio_list(&demote_folios, pgdat);
- 	/* Folios that could not be demoted are still in @demote_folios */
- 	if (!list_empty(&demote_folios)) {
--		/* Folios which weren't demoted go back on @folio_list for retry: */
-+		/* Folios which weren't demoted go back on @folio_list */
- 		list_splice_init(&demote_folios, folio_list);
--		do_demote_pass = false;
--		goto retry;
-+
-+		/*
-+		 * goto retry to reclaim the undemoted folios in folio_list if
-+		 * desired.
-+		 *
-+		 * Reclaiming directly from top tier nodes is not often desired
-+		 * due to it breaking the LRU ordering: in general memory
-+		 * should be reclaimed from lower tier nodes and demoted from
-+		 * top tier nodes.
-+		 *
-+		 * However, disabling reclaim from top tier nodes entirely
-+		 * would cause ooms in edge scenarios where lower tier memory
-+		 * is unreclaimable for whatever reason, eg memory being
-+		 * mlocked or too hot to reclaim. We can disable reclaim
-+		 * from top tier nodes in proactive reclaim though as that is
-+		 * not real memory pressure.
-+		 */
-+		if (!sc->proactive) {
-+			do_demote_pass = false;
-+			goto retry;
-+		}
- 	}
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-cgroup-make-sure-reclaim-target-memcg-is-unprotected
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -238,6 +238,8 @@ static int cg_test_proc_killed(const cha
+ 	return -1;
+ }
  
- 	pgactivate = stat->nr_activate[0] + stat->nr_activate[1];
++static bool reclaim_until(const char *memcg, long goal);
++
+ /*
+  * First, this test creates the following hierarchy:
+  * A       memory.min = 0,    memory.max = 200M
+@@ -266,6 +268,12 @@ static int cg_test_proc_killed(const cha
+  * unprotected memory in A available, and checks that:
+  * a) memory.min protects pagecache even in this case,
+  * b) memory.low allows reclaiming page cache with low events.
++ *
++ * Then we try to reclaim from A/B/C using memory.reclaim until its
++ * usage reaches 10M.
++ * This makes sure that:
++ * (a) We ignore the protection of the reclaim target memcg.
++ * (b) The previously calculated emin value (~29M) should be dismissed.
+  */
+ static int test_memcg_protection(const char *root, bool min)
+ {
+@@ -385,6 +393,9 @@ static int test_memcg_protection(const c
+ 	if (!values_close(cg_read_long(parent[1], "memory.current"), MB(50), 3))
+ 		goto cleanup;
+ 
++	if (!reclaim_until(children[0], MB(10)))
++		goto cleanup;
++
+ 	if (min) {
+ 		ret = KSFT_PASS;
+ 		goto cleanup;
 _
 
-Patches currently in -mm which might be from almasrymina@google.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
 
