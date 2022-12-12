@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D071FC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 03:31:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8195AC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 03:31:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230393AbiLLDba (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 22:31:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33742 "EHLO
+        id S231180AbiLLDbk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 22:31:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230457AbiLLDb0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 22:31:26 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0000AD2EF
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 19:31:16 -0800 (PST)
+        with ESMTP id S230506AbiLLDb1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 22:31:27 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4645EDE8F
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 19:31:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9CE1EB80B74
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 03:31:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30B3BC433EF;
-        Mon, 12 Dec 2022 03:31:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D81BC60ED1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 03:31:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E425C433F0;
+        Mon, 12 Dec 2022 03:31:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670815874;
-        bh=jBYDlIt6Jxdl4TQQ9IS2pbBFN06W1jndvq0lsvGEyrY=;
+        s=korg; t=1670815878;
+        bh=Lw2vInf7T7/PvZJ6V8WRZgJonNSktXgxIk+nN7rtGCU=;
         h=Date:To:From:Subject:From;
-        b=rMVbN+DQpwTAwwd5ChY2Xpm0hmqkoMrk/7Zu9nubWhgyQRLUzSxnAEihAI+gzOOol
-         xSlFpJqRdMTu/5CvxRWzWbOYeTRLEXeLCq66r3ESeOKG09gsKpq+/cFfiHg5SQzBHf
-         Myvjy327FCqjmu6fX32+Uw9tU6dCCYOy+w1ORgjU=
-Date:   Sun, 11 Dec 2022 19:31:13 -0800
-To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
-        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
-        alex@alex-at.net, akpm@linux-foundation.org
+        b=n/x45SXT6RSlrMDTn9UFn3WBB1+dklLtSy60TtIAGxShT1yJF6pBZha8MJ+J/prQc
+         iY5qdVWj0TERnzOmBZ/Hnucfypz0yeH5wY1I1gO2INp+khqf4Rgne4yGu4ANKp5Peq
+         +5n8ZByYZNpEOKv/uFWeqAQmE84ROvMM8lwa6Jvs=
+Date:   Sun, 11 Dec 2022 19:31:17 -0800
+To:     mm-commits@vger.kernel.org,
+        syzbot+dc3b1cf9111ab5fe98e7@syzkaller.appspotmail.com,
+        slava@dubeyko.com, zhangpeng362@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-always-read-both-high-and-low-parts-of-dinode-link-count.patch removed from -mm tree
-Message-Id: <20221212033114.30B3BC433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] hfs-fix-oob-write-in-hfs_asc2mac.patch removed from -mm tree
+Message-Id: <20221212033118.3E425C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,57 +43,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ocfs2: always read both high and low parts of dinode link count
+     Subject: hfs: Fix OOB Write in hfs_asc2mac
 has been removed from the -mm tree.  Its filename was
-     ocfs2-always-read-both-high-and-low-parts-of-dinode-link-count.patch
+     hfs-fix-oob-write-in-hfs_asc2mac.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Asemov <alex@alex-at.net>
-Subject: ocfs2: always read both high and low parts of dinode link count
-Date: Sun, 27 Nov 2022 09:46:38 +0300
+From: ZhangPeng <zhangpeng362@huawei.com>
+Subject: hfs: Fix OOB Write in hfs_asc2mac
+Date: Fri, 2 Dec 2022 03:00:38 +0000
 
-When filesystem is using indexed-dirs feature, maximum link count values
-can spill over to i_links_count_hi, up to OCFS2_DX_LINK_MAX links. 
-ocfs2_read_links_count() checks for OCFS2_INDEXED_DIR_FL flag in dinode,
-but this flag is only valid for directories so for files the check causes
-high part of the link count not being read back from file dinodes
-resulting in wrong link count value when file has >65535 links.
+Syzbot reported a OOB Write bug:
 
-As ocfs2_set_links_count() always writes both high and low parts of link
-count, the flag check on reading may be removed.
+loop0: detected capacity change from 0 to 64
+==================================================================
+BUG: KASAN: slab-out-of-bounds in hfs_asc2mac+0x467/0x9a0
+fs/hfs/trans.c:133
+Write of size 1 at addr ffff88801848314e by task syz-executor391/3632
 
-Link: https://lkml.kernel.org/r/cbfca02b-b39f-89de-e1a8-904a6c60407e@alex-at.net
-Signed-off-by: Alexey Asemov <alex@alex-at.net>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1b1/0x28e lib/dump_stack.c:106
+ print_address_description+0x74/0x340 mm/kasan/report.c:284
+ print_report+0x107/0x1f0 mm/kasan/report.c:395
+ kasan_report+0xcd/0x100 mm/kasan/report.c:495
+ hfs_asc2mac+0x467/0x9a0 fs/hfs/trans.c:133
+ hfs_cat_build_key+0x92/0x170 fs/hfs/catalog.c:28
+ hfs_lookup+0x1ab/0x2c0 fs/hfs/dir.c:31
+ lookup_open fs/namei.c:3391 [inline]
+ open_last_lookups fs/namei.c:3481 [inline]
+ path_openat+0x10e6/0x2df0 fs/namei.c:3710
+ do_filp_open+0x264/0x4f0 fs/namei.c:3740
+
+If in->len is much larger than HFS_NAMELEN(31) which is the maximum
+length of an HFS filename, a OOB write could occur in hfs_asc2mac(). In
+that case, when the dst reaches the boundary, the srclen is still
+greater than 0, which causes a OOB write.
+Fix this by adding a check on dstlen in while() before writing to dst
+address.
+
+Link: https://lkml.kernel.org/r/20221202030038.1391945-1-zhangpeng362@huawei.com
+Fixes: 328b92278650 ("[PATCH] hfs: NLS support")
+Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
+Reviewed-by: Viacheslav Dubeyko <slava@dubeyko.com>
+Reported-by: <syzbot+dc3b1cf9111ab5fe98e7@syzkaller.appspotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/hfs/trans.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/ocfs2.h~ocfs2-always-read-both-high-and-low-parts-of-dinode-link-count
-+++ a/fs/ocfs2/ocfs2.h
-@@ -560,8 +560,7 @@ static inline unsigned int ocfs2_read_li
- 	u32 nlink = le16_to_cpu(di->i_links_count);
- 	u32 hi = le16_to_cpu(di->i_links_count_hi);
+--- a/fs/hfs/trans.c~hfs-fix-oob-write-in-hfs_asc2mac
++++ a/fs/hfs/trans.c
+@@ -109,7 +109,7 @@ void hfs_asc2mac(struct super_block *sb,
+ 	if (nls_io) {
+ 		wchar_t ch;
  
--	if (di->i_dyn_features & cpu_to_le16(OCFS2_INDEXED_DIR_FL))
--		nlink |= (hi << OCFS2_LINKS_HI_SHIFT);
-+	nlink |= (hi << OCFS2_LINKS_HI_SHIFT);
- 
- 	return nlink;
- }
+-		while (srclen > 0) {
++		while (srclen > 0 && dstlen > 0) {
+ 			size = nls_io->char2uni(src, srclen, &ch);
+ 			if (size < 0) {
+ 				ch = '?';
 _
 
-Patches currently in -mm which might be from alex@alex-at.net are
+Patches currently in -mm which might be from zhangpeng362@huawei.com are
 
 
