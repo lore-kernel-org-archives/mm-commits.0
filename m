@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B87EC001B2
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:16:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3046C4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:16:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231131AbiLLCQb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:16:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41648 "EHLO
+        id S231274AbiLLCQc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:16:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231274AbiLLCOj (ORCPT
+        with ESMTP id S231277AbiLLCOj (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:14:39 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C3DADF02
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:33 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC298DAC
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 14EBFB80A1F
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E9F8C433EF;
-        Mon, 12 Dec 2022 02:14:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 58E8960EC3
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3217C433D2;
+        Mon, 12 Dec 2022 02:14:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811270;
-        bh=+GszjAQssPcpbfXo/Dwnb6KjFWe5zuikV8K15c9yHbE=;
+        s=korg; t=1670811274;
+        bh=GdTp9kpzV92GRdLRA4Fl2/lyQIMkijX6b/+VXjeDuTo=;
         h=Date:To:From:Subject:From;
-        b=Y3dKiMByE5kNvPjJnoIcYDVIjD86+eip+5fIKCGwrHJdSUomZbechxDrgHpdav/6B
-         /5Gt3q6dCFbgbWvlwmSKzWXEDGh3mxCkH473T/K8EAk4TfpbLx7RlI2gtR+HjFI6jB
-         5rwFPNNIkLPB2q1djIYZw2TFEGbXOtmuOSszoef0=
-Date:   Sun, 11 Dec 2022 18:14:29 -0800
+        b=zQsoMhBpWygg3GcYA7z9dgXn4la1WVpcco5Efmsucm9o/OKb21ZvKmSXjb5wafFyA
+         MN7QgqRGQzHkO8x1H9fQolTpuYB6IA6XKqSUfhjmDFLgfDRKjsrC0qF7i8L7XcONuP
+         xiE1ozEHXwWlLsdQhhuqdIo+sfx7oBgSdg1PU2NQ=
+Date:   Sun, 11 Dec 2022 18:14:34 -0800
 To:     mm-commits@vger.kernel.org, jhubbard@nvidia.com, jgg@nvidia.com,
         djwong@kernel.org, david@fromorbit.com, dan.j.williams@intel.com,
-        apopple@nvidia.com, allison.henderson@oracle.com,
-        ruansy.fnst@fujitsu.com, akpm@linux-foundation.org
+        apopple@nvidia.com, ruansy.fnst@fujitsu.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fsdax-introduce-page-share-for-fsdax-in-reflink-mode.patch removed from -mm tree
-Message-Id: <20221212021430.9E9F8C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] fsdaxxfs-set-the-shared-flag-when-file-extent-is-shared.patch removed from -mm tree
+Message-Id: <20221212021434.B3217C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,212 +43,105 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fsdax: introduce page->share for fsdax in reflink mode
+     Subject: fsdax,xfs: set the shared flag when file extent is shared
 has been removed from the -mm tree.  Its filename was
-     fsdax-introduce-page-share-for-fsdax-in-reflink-mode.patch
+     fsdaxxfs-set-the-shared-flag-when-file-extent-is-shared.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Subject: fsdax: introduce page->share for fsdax in reflink mode
-Date: Thu, 1 Dec 2022 15:28:51 +0000
+Subject: fsdax,xfs: set the shared flag when file extent is shared
+Date: Thu, 1 Dec 2022 15:28:54 +0000
 
-Patch series "fsdax,xfs: fix warning messages", v2.
+If a dax page is shared, mapread at different offsets can also trigger
+page fault on same dax page.  So, change the flag from "cow" to "shared". 
+And get the shared flag from filesystem when read.
 
-Many testcases failed in dax+reflink mode with warning message in dmesg.
-Such as generic/051,075,127.  The warning message is like this:
-[  775.509337] ------------[ cut here ]------------
-[  775.509636] WARNING: CPU: 1 PID: 16815 at fs/dax.c:386 dax_insert_entry.cold+0x2e/0x69
-[  775.510151] Modules linked in: auth_rpcgss oid_registry nfsv4 algif_hash af_alg af_packet nft_reject_inet nf_reject_ipv4 nf_reject_ipv6 nft_reject nft_ct nft_chain_nat iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 ip_set nf_tables nfnetlink ip6table_filter ip6_tables iptable_filter ip_tables x_tables dax_pmem nd_pmem nd_btt sch_fq_codel configfs xfs libcrc32c fuse
-[  775.524288] CPU: 1 PID: 16815 Comm: fsx Kdump: loaded Tainted: G        W          6.1.0-rc4+ #164 eb34e4ee4200c7cbbb47de2b1892c5a3e027fd6d
-[  775.524904] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS Arch Linux 1.16.0-3-3 04/01/2014
-[  775.525460] RIP: 0010:dax_insert_entry.cold+0x2e/0x69
-[  775.525797] Code: c7 c7 18 eb e0 81 48 89 4c 24 20 48 89 54 24 10 e8 73 6d ff ff 48 83 7d 18 00 48 8b 54 24 10 48 8b 4c 24 20 0f 84 e3 e9 b9 ff <0f> 0b e9 dc e9 b9 ff 48 c7 c6 a0 20 c3 81 48 c7 c7 f0 ea e0 81 48
-[  775.526708] RSP: 0000:ffffc90001d57b30 EFLAGS: 00010082
-[  775.527042] RAX: 000000000000002a RBX: 0000000000000000 RCX: 0000000000000042
-[  775.527396] RDX: ffffea000a0f6c80 RSI: ffffffff81dfab1b RDI: 00000000ffffffff
-[  775.527819] RBP: ffffea000a0f6c40 R08: 0000000000000000 R09: ffffffff820625e0
-[  775.528241] R10: ffffc90001d579d8 R11: ffffffff820d2628 R12: ffff88815fc98320
-[  775.528598] R13: ffffc90001d57c18 R14: 0000000000000000 R15: 0000000000000001
-[  775.528997] FS:  00007f39fc75d740(0000) GS:ffff88817bc80000(0000) knlGS:0000000000000000
-[  775.529474] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  775.529800] CR2: 00007f39fc772040 CR3: 0000000107eb6001 CR4: 00000000003706e0
-[  775.530214] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[  775.530592] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[  775.531002] Call Trace:
-[  775.531230]  <TASK>
-[  775.531444]  dax_fault_iter+0x267/0x6c0
-[  775.531719]  dax_iomap_pte_fault+0x198/0x3d0
-[  775.532002]  __xfs_filemap_fault+0x24a/0x2d0 [xfs aa8d25411432b306d9554da38096f4ebb86bdfe7]
-[  775.532603]  __do_fault+0x30/0x1e0
-[  775.532903]  do_fault+0x314/0x6c0
-[  775.533166]  __handle_mm_fault+0x646/0x1250
-[  775.533480]  handle_mm_fault+0xc1/0x230
-[  775.533810]  do_user_addr_fault+0x1ac/0x610
-[  775.534110]  exc_page_fault+0x63/0x140
-[  775.534389]  asm_exc_page_fault+0x22/0x30
-[  775.534678] RIP: 0033:0x7f39fc55820a
-[  775.534950] Code: 00 01 00 00 00 74 99 83 f9 c0 0f 87 7b fe ff ff c5 fe 6f 4e 20 48 29 fe 48 83 c7 3f 49 8d 0c 10 48 83 e7 c0 48 01 fe 48 29 f9 <f3> a4 c4 c1 7e 7f 00 c4 c1 7e 7f 48 20 c5 f8 77 c3 0f 1f 44 00 00
-[  775.535839] RSP: 002b:00007ffc66a08118 EFLAGS: 00010202
-[  775.536157] RAX: 00007f39fc772001 RBX: 0000000000042001 RCX: 00000000000063c1
-[  775.536537] RDX: 0000000000006400 RSI: 00007f39fac42050 RDI: 00007f39fc772040
-[  775.536919] RBP: 0000000000006400 R08: 00007f39fc772001 R09: 0000000000042000
-[  775.537304] R10: 0000000000000001 R11: 0000000000000246 R12: 0000000000000001
-[  775.537694] R13: 00007f39fc772000 R14: 0000000000006401 R15: 0000000000000003
-[  775.538086]  </TASK>
-[  775.538333] ---[ end trace 0000000000000000 ]---
-
-This also affects dax+noreflink mode if we run the test after a
-dax+reflink test.  So, the most urgent thing is solving the warning
-messages.
-
-With these fixes, most warning messages in dax_associate_entry() are gone.
-But honestly, generic/388 will randomly failed with the warning.  The
-case shutdown the xfs when fsstress is running, and do it for many times. 
-I think the reason is that dax pages in use are not able to be invalidated
-in time when fs is shutdown.  The next time dax page to be associated, it
-still remains the mapping value set last time.  I'll keep on solving it.
-
-The warning message in dax_writeback_one() can also be fixed because of
-the dax unshare.
-
-
-This patch (of 8):
-
-fsdax page is used not only when CoW, but also mapread.  To make the it
-easily understood, use 'share' to indicate that the dax page is shared by
-more than one extent.  And add helper functions to use it.
-
-Also, the flag needs to be renamed to PAGE_MAPPING_DAX_SHARED.
-
-[ruansy.fnst@fujitsu.com: rename several functions]
-  Link: https://lkml.kernel.org/r/1669972991-246-1-git-send-email-ruansy.fnst@fujitsu.com
-[ruansy.fnst@fujitsu.com: v2.2]
-  Link: https://lkml.kernel.org/r/1670381359-53-1-git-send-email-ruansy.fnst@fujitsu.com
-Link: https://lkml.kernel.org/r/1669908538-55-1-git-send-email-ruansy.fnst@fujitsu.com
-Link: https://lkml.kernel.org/r/1669908538-55-2-git-send-email-ruansy.fnst@fujitsu.com
+Link: https://lkml.kernel.org/r/1669908538-55-5-git-send-email-ruansy.fnst@fujitsu.com
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Reviewed-by: Allison Henderson <allison.henderson@oracle.com>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                   |   38 ++++++++++++++++++++---------------
- include/linux/mm_types.h   |    5 +++-
- include/linux/page-flags.h |    2 -
- 3 files changed, 27 insertions(+), 18 deletions(-)
+ fs/dax.c           |   19 +++++++------------
+ fs/xfs/xfs_iomap.c |    2 +-
+ 2 files changed, 8 insertions(+), 13 deletions(-)
 
---- a/fs/dax.c~fsdax-introduce-page-share-for-fsdax-in-reflink-mode
+--- a/fs/dax.c~fsdaxxfs-set-the-shared-flag-when-file-extent-is-shared
 +++ a/fs/dax.c
-@@ -334,35 +334,41 @@ static unsigned long dax_end_pfn(void *e
- 	for (pfn = dax_to_pfn(entry); \
- 			pfn < dax_end_pfn(entry); pfn++)
- 
--static inline bool dax_mapping_is_cow(struct address_space *mapping)
-+static inline bool dax_page_is_shared(struct page *page)
- {
--	return (unsigned long)mapping == PAGE_MAPPING_DAX_COW;
-+	return page->mapping == PAGE_MAPPING_DAX_SHARED;
+@@ -846,12 +846,6 @@ static bool dax_fault_is_synchronous(con
+ 		(iter->iomap.flags & IOMAP_F_DIRTY);
  }
  
+-static bool dax_fault_is_cow(const struct iomap_iter *iter)
+-{
+-	return (iter->flags & IOMAP_WRITE) &&
+-		(iter->iomap.flags & IOMAP_F_SHARED);
+-}
+-
  /*
-- * Set the page->mapping with FS_DAX_MAPPING_COW flag, increase the refcount.
-+ * Set the page->mapping with PAGE_MAPPING_DAX_SHARED flag, increase the
-+ * refcount.
-  */
--static inline void dax_mapping_set_cow(struct page *page)
-+static inline void dax_page_share_get(struct page *page)
+  * By this point grab_mapping_entry() has ensured that we have a locked entry
+  * of the appropriate size so we don't have to worry about downgrading PMDs to
+@@ -865,13 +859,14 @@ static void *dax_insert_entry(struct xa_
  {
--	if ((uintptr_t)page->mapping != PAGE_MAPPING_DAX_COW) {
-+	if (page->mapping != PAGE_MAPPING_DAX_SHARED) {
+ 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+ 	void *new_entry = dax_make_entry(pfn, flags);
+-	bool dirty = !dax_fault_is_synchronous(iter, vmf->vma);
+-	bool cow = dax_fault_is_cow(iter);
++	bool write = iter->flags & IOMAP_WRITE;
++	bool dirty = write && !dax_fault_is_synchronous(iter, vmf->vma);
++	bool shared = iter->iomap.flags & IOMAP_F_SHARED;
+ 
+ 	if (dirty)
+ 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ 
+-	if (cow || (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE))) {
++	if (shared || (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE))) {
+ 		unsigned long index = xas->xa_index;
+ 		/* we are replacing a zero page with block mapping */
+ 		if (dax_is_pmd_entry(entry))
+@@ -883,12 +878,12 @@ static void *dax_insert_entry(struct xa_
+ 
+ 	xas_reset(xas);
+ 	xas_lock_irq(xas);
+-	if (cow || dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
++	if (shared || dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+ 		void *old;
+ 
+ 		dax_disassociate_entry(entry, mapping, false);
+ 		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address,
+-				cow);
++				shared);
  		/*
- 		 * Reset the index if the page was already mapped
- 		 * regularly before.
- 		 */
- 		if (page->mapping)
--			page->index = 1;
--		page->mapping = (void *)PAGE_MAPPING_DAX_COW;
-+			page->share = 1;
-+		page->mapping = PAGE_MAPPING_DAX_SHARED;
- 	}
--	page->index++;
-+	page->share++;
-+}
-+
-+static inline unsigned long dax_page_share_put(struct page *page)
-+{
-+	return --page->share;
- }
+ 		 * Only swap our new entry into the page cache if the current
+ 		 * entry is a zero page or an empty entry.  If a normal PTE or
+@@ -908,7 +903,7 @@ static void *dax_insert_entry(struct xa_
+ 	if (dirty)
+ 		xas_set_mark(xas, PAGECACHE_TAG_DIRTY);
  
- /*
-- * When it is called in dax_insert_entry(), the cow flag will indicate that
-+ * When it is called in dax_insert_entry(), the shared flag will indicate that
-  * whether this entry is shared by multiple files.  If so, set the page->mapping
-- * FS_DAX_MAPPING_COW, and use page->index as refcount.
-+ * PAGE_MAPPING_DAX_SHARED, and use page->share as refcount.
-  */
- static void dax_associate_entry(void *entry, struct address_space *mapping,
--		struct vm_area_struct *vma, unsigned long address, bool cow)
-+		struct vm_area_struct *vma, unsigned long address, bool shared)
- {
- 	unsigned long size = dax_entry_size(entry), pfn, index;
- 	int i = 0;
-@@ -374,8 +380,8 @@ static void dax_associate_entry(void *en
- 	for_each_mapped_pfn(entry, pfn) {
- 		struct page *page = pfn_to_page(pfn);
+-	if (cow)
++	if (write && shared)
+ 		xas_set_mark(xas, PAGECACHE_TAG_TOWRITE);
  
--		if (cow) {
--			dax_mapping_set_cow(page);
-+		if (shared) {
-+			dax_page_share_get(page);
- 		} else {
- 			WARN_ON_ONCE(page->mapping);
- 			page->mapping = mapping;
-@@ -396,9 +402,9 @@ static void dax_disassociate_entry(void
- 		struct page *page = pfn_to_page(pfn);
+ 	xas_unlock_irq(xas);
+--- a/fs/xfs/xfs_iomap.c~fsdaxxfs-set-the-shared-flag-when-file-extent-is-shared
++++ a/fs/xfs/xfs_iomap.c
+@@ -1215,7 +1215,7 @@ xfs_read_iomap_begin(
+ 		return error;
+ 	error = xfs_bmapi_read(ip, offset_fsb, end_fsb - offset_fsb, &imap,
+ 			       &nimaps, 0);
+-	if (!error && (flags & IOMAP_REPORT))
++	if (!error && ((flags & IOMAP_REPORT) || IS_DAX(inode)))
+ 		error = xfs_reflink_trim_around_shared(ip, &imap, &shared);
+ 	xfs_iunlock(ip, lockmode);
  
- 		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
--		if (dax_mapping_is_cow(page->mapping)) {
--			/* keep the CoW flag if this page is still shared */
--			if (page->index-- > 0)
-+		if (dax_page_is_shared(page)) {
-+			/* keep the shared flag if this page is still shared */
-+			if (dax_page_share_put(page) > 0)
- 				continue;
- 		} else
- 			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
---- a/include/linux/mm_types.h~fsdax-introduce-page-share-for-fsdax-in-reflink-mode
-+++ a/include/linux/mm_types.h
-@@ -104,7 +104,10 @@ struct page {
- 			};
- 			/* See page-flags.h for PAGE_MAPPING_FLAGS */
- 			struct address_space *mapping;
--			pgoff_t index;		/* Our offset within mapping. */
-+			union {
-+				pgoff_t index;		/* Our offset within mapping. */
-+				unsigned long share;	/* share count for fsdax */
-+			};
- 			/**
- 			 * @private: Mapping-private opaque data.
- 			 * Usually used for buffer_heads if PagePrivate.
---- a/include/linux/page-flags.h~fsdax-introduce-page-share-for-fsdax-in-reflink-mode
-+++ a/include/linux/page-flags.h
-@@ -638,7 +638,7 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
-  * Different with flags above, this flag is used only for fsdax mode.  It
-  * indicates that this page->mapping is now under reflink case.
-  */
--#define PAGE_MAPPING_DAX_COW	0x1
-+#define PAGE_MAPPING_DAX_SHARED	((void *)0x1)
- 
- static __always_inline bool folio_mapping_flags(struct folio *folio)
- {
 _
 
 Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
