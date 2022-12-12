@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DDE5C4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:17:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF73EC001B2
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:17:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231309AbiLLCRg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:17:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41366 "EHLO
+        id S231312AbiLLCRh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:17:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231356AbiLLCQ2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:16:28 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC02FDFD1
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:15:02 -0800 (PST)
+        with ESMTP id S231249AbiLLCQf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:16:35 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FAE9DFD7
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:15:03 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4764F60EC6
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:15:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E69FC433EF;
-        Mon, 12 Dec 2022 02:15:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D2B98B80B69
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:15:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EC58C433F0;
+        Mon, 12 Dec 2022 02:15:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811301;
-        bh=dX8cIkIuDeHC5JnRhfhl2TTPIKzQkQI4ZUE1RXj22aw=;
+        s=korg; t=1670811300;
+        bh=fIUOiKbiqrsGr2QuS7oW6OS8BkjjBV0MNKQfyStSemo=;
         h=Date:To:From:Subject:From;
-        b=R+zrYgfLnO2K2m93VpH3L9r6lrzPxAhyFeb2IjtHbOGq0Og7T0dnJWQolc+/F8j/d
-         jIi+YNrZt8sieLYJ9LyynAO///lXcwtNxv3ZcCpe3z4nDJoiBj8Z1qVzGGcSBDECuX
-         4YIX7y82gSYZmStSwIJXYTbKnZt3wH8rMKeYYkgk=
-Date:   Sun, 11 Dec 2022 18:15:00 -0800
+        b=r68q9+GCioVdhilBB7wAgdRn0FV6ZbUWxdTO7TmoOksSGyS7IvYcgC/x95ci7/7CD
+         ZXFCkoDbxfYGUkYkRDL3JbmRVycOYoHbkTSaPXrCVtvP3zLz8aP/kCbQkKJo61USfl
+         ioFK5pZVbBTb1Q599diTOXiT99xEPuL8UnFVShRI=
+Date:   Sun, 11 Dec 2022 18:14:59 -0800
 To:     mm-commits@vger.kernel.org, yang.lee@linux.alibaba.com,
         shuah@kernel.org, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-madv_populate-fix-missing-madv_populate_readwrite-definitions.patch removed from -mm tree
-Message-Id: <20221212021501.9E69FC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup_test-fix-pin_longterm_test_read-with-highmem.patch removed from -mm tree
+Message-Id: <20221212021500.7EC58C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,49 +41,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: madv_populate: fix missing MADV_POPULATE_(READ|WRITE) definitions
+     Subject: mm/gup_test: fix PIN_LONGTERM_TEST_READ with highmem
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-madv_populate-fix-missing-madv_populate_readwrite-definitions.patch
+     mm-gup_test-fix-pin_longterm_test_read-with-highmem.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/vm: madv_populate: fix missing MADV_POPULATE_(READ|WRITE) definitions
-Date: Mon, 5 Dec 2022 20:37:14 +0100
+Subject: mm/gup_test: fix PIN_LONGTERM_TEST_READ with highmem
+Date: Mon, 5 Dec 2022 20:37:13 +0100
 
-The tests fail to compile in some environments (e.g., Debian 11.5 on x86).
-Let's simply conditionally define MADV_POPULATE_(READ|WRITE) if not
-already defined, similar to how the khugepaged.c test handles it.
+Patch series "selftests/vm: fix some tests on 32bit".
 
-Link: https://lkml.kernel.org/r/20221205193716.276024-3-david@redhat.com
-Fixes: 39b2e5cae43d ("selftests/vm: make MADV_POPULATE_(READ|WRITE) use in-tree headers")
+I finally had the time to run some of the selftests written by me
+(especially "cow") on x86 PAE.  I found some unexpected "surprises" :)
+
+With these changes, and with [1] on top of mm-unstable, the "cow" tests
+and the "ksm_functional_tests" compile and pass as expected (expected
+failures with hugetlb in the "cow" tests).  "madv_populate" has one
+expected test failure -- x86 does not support softdirty tracking.
+
+#1-#3 fix commits with stable commit ids.  #4 fixes a test that is not in
+mm-stable yet.
+
+A note that there are many other compile errors/warnings when compiling on
+32bit and with older Linux headers ...  something for another day.
+
+[1] https://lkml.kernel.org/r/20221205150857.167583-1-david@redhat.com
+
+
+This patch (of 4):
+
+...  we have to kmap()/kunmap(), otherwise this won't work as expected
+with highmem.
+
+Link: https://lkml.kernel.org/r/20221205193716.276024-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20221205193716.276024-2-david@redhat.com
+Fixes: c77369b437f9 ("mm/gup_test: start/stop/read functionality for PIN LONGTERM test")
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>,
 Cc: Yang Li <yang.lee@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/madv_populate.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/gup_test.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/vm/madv_populate.c~selftests-vm-madv_populate-fix-missing-madv_populate_readwrite-definitions
-+++ a/tools/testing/selftests/vm/madv_populate.c
-@@ -20,6 +20,13 @@
- #include "../kselftest.h"
- #include "vm_util.h"
+--- a/mm/gup_test.c~mm-gup_test-fix-pin_longterm_test_read-with-highmem
++++ a/mm/gup_test.c
+@@ -4,6 +4,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/ktime.h>
+ #include <linux/debugfs.h>
++#include <linux/highmem.h>
+ #include "gup_test.h"
  
-+#ifndef MADV_POPULATE_READ
-+#define MADV_POPULATE_READ	22
-+#endif /* MADV_POPULATE_READ */
-+#ifndef MADV_POPULATE_WRITE
-+#define MADV_POPULATE_WRITE	23
-+#endif /* MADV_POPULATE_WRITE */
-+
- /*
-  * For now, we're using 2 MiB of private anonymous memory for all tests.
-  */
+ static void put_back_pages(unsigned int cmd, struct page **pages,
+@@ -297,10 +298,13 @@ static inline int pin_longterm_test_read
+ 		return -EFAULT;
+ 
+ 	for (i = 0; i < pin_longterm_test_nr_pages; i++) {
+-		void *addr = page_to_virt(pin_longterm_test_pages[i]);
++		void *addr = kmap_local_page(pin_longterm_test_pages[i]);
++		unsigned long ret;
+ 
+-		if (copy_to_user((void __user *)(unsigned long)user_addr, addr,
+-				 PAGE_SIZE))
++		ret = copy_to_user((void __user *)(unsigned long)user_addr, addr,
++				   PAGE_SIZE);
++		kunmap_local(addr);
++		if (ret)
+ 			return -EFAULT;
+ 		user_addr += PAGE_SIZE;
+ 	}
 _
 
 Patches currently in -mm which might be from david@redhat.com are
