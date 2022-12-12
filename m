@@ -2,44 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4843DC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:14:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AA68C4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:15:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230105AbiLLCOz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:14:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41842 "EHLO
+        id S231294AbiLLCO7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:14:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231261AbiLLCOP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:14:15 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABB1ABF5E
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:08 -0800 (PST)
+        with ESMTP id S230420AbiLLCOQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:14:16 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9302ADED6
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:14:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 32ED2B80B3C
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1E91C433F0;
-        Mon, 12 Dec 2022 02:14:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 25C8860EC5
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:14:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7ACCBC433D2;
+        Mon, 12 Dec 2022 02:14:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811246;
-        bh=W5EBEDMspT84KZKzGVWWx2x0uZVhPVB6Ov0DRF2giy8=;
+        s=korg; t=1670811248;
+        bh=MNtWeTuYzs51p5HvDXaaJO7x0m4EEHy1+G1H6miDQ6Y=;
         h=Date:To:From:Subject:From;
-        b=iQ2/RE4igueVDcNIM/+vqfa3f0Lr1fSiZILxKFaw0Eb9GfpkTNUx5xpTcWG4DTVg4
-         oErKzNRJc6VtWi8Y9jmni78ex7QeJW015A63zlFI3wxoiejeNM5pi69kT8uIzyWrdn
-         VygjqGY5LSaXvCrEec02Ff9sVD1DMA2L1H5Xx5bk=
-Date:   Sun, 11 Dec 2022 18:14:05 -0800
-To:     mm-commits@vger.kernel.org, zhoumin@loongson.cn, will@kernel.org,
-        tsbogend@alpha.franken.de, songmuchun@bytedance.com,
-        philmd@linaro.org, peterz@infradead.org, luto@kernel.org,
-        lixuefeng@loongson.cn, kernel@xen0n.name, jiaxun.yang@flygoat.com,
-        guoren@kernel.org, dinguyen@kernel.org,
-        dave.hansen@linux.intel.com, chenhuacai@loongson.cn,
-        catalin.marinas@arm.com, arnd@arndb.de, chenfeiyang@loongson.cn,
-        akpm@linux-foundation.org
+        b=Mh9DJ3qdxXNZpOSQLyQ4ZVzqnz82OZr5zd8gsmm2x3R3Jh2JJbCXVw9SjBD5CZNX4
+         JU3Z5Zs3EhFdQKKyMHpHlhM7FT4L3oEu+uK341u36nKPkJLhb1vSJUoF2+wpKHJ10w
+         E/xY0sEIEbHslms0pY9hurNLH0sjOMj7hvnBx5xs=
+Date:   Sun, 11 Dec 2022 18:14:07 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        mszeredi@redhat.com, mike.kravetz@oracle.com,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages.patch removed from -mm tree
-Message-Id: <20221212021405.E1E91C433F0@smtp.kernel.org>
+Subject: [merged mm-stable] filemap-convert-replace_page_cache_page-to-replace_page_cache_folio.patch removed from -mm tree
+Message-Id: <20221212021408.7ACCBC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,394 +42,150 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap: generalise vmemmap_populate_hugepages()
+     Subject: filemap: convert replace_page_cache_page() to replace_page_cache_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages.patch
+     filemap-convert-replace_page_cache_page-to-replace_page_cache_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Feiyang Chen <chenfeiyang@loongson.cn>
-Subject: mm/sparse-vmemmap: generalise vmemmap_populate_hugepages()
-Date: Thu, 27 Oct 2022 20:52:52 +0800
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: filemap: convert replace_page_cache_page() to replace_page_cache_folio()
+Date: Tue, 1 Nov 2022 10:53:22 -0700
 
-Generalise vmemmap_populate_hugepages() so ARM64 & X86 & LoongArch can
-share its implementation.
+Patch series "Removing the lru_cache_add() wrapper".
 
-Link: https://lkml.kernel.org/r/20221027125253.3458989-4-chenhuacai@loongson.cn
-Signed-off-by: Feiyang Chen <chenfeiyang@loongson.cn>
-Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
-Acked-by: Will Deacon <will@kernel.org>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: Min Zhou <zhoumin@loongson.cn>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Philippe Mathieu-Daudé <philmd@linaro.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Xuefeng Li <lixuefeng@loongson.cn>
-Cc: Xuerui Wang <kernel@xen0n.name>
-Cc: Muchun Song <songmuchun@bytedance.com>
+This patchset replaces all calls of lru_cache_add() with the folio
+equivalent: folio_add_lru().  This is allows us to get rid of the wrapper
+The series passes xfstests and the userfaultfd selftests.
+
+
+This patch (of 5):
+
+Eliminates 7 calls to compound_head().
+
+Link: https://lkml.kernel.org/r/20221101175326.13265-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20221101175326.13265-2-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c      |   55 +++++---------------
- arch/loongarch/mm/init.c |   61 ++++++----------------
- arch/x86/mm/init_64.c    |  100 +++++++++++++------------------------
- include/linux/mm.h       |    6 ++
- mm/sparse-vmemmap.c      |   63 +++++++++++++++++++++++
- 5 files changed, 137 insertions(+), 148 deletions(-)
+ fs/fuse/dev.c           |    2 -
+ include/linux/pagemap.h |    2 -
+ mm/filemap.c            |   50 ++++++++++++++++++--------------------
+ 3 files changed, 26 insertions(+), 28 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages
-+++ a/arch/arm64/mm/mmu.c
-@@ -1137,53 +1137,28 @@ static void free_empty_tables(unsigned l
- }
- #endif
+--- a/fs/fuse/dev.c~filemap-convert-replace_page_cache_page-to-replace_page_cache_folio
++++ a/fs/fuse/dev.c
+@@ -837,7 +837,7 @@ static int fuse_try_move_page(struct fus
+ 	if (WARN_ON(PageMlocked(oldpage)))
+ 		goto out_fallback_unlock;
  
-+void __meminit vmemmap_set_pmd(pmd_t *pmdp, void *p, int node,
-+			       unsigned long addr, unsigned long next)
-+{
-+	pmd_set_huge(pmdp, __pa(p), __pgprot(PROT_SECT_NORMAL));
-+}
-+
-+int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
-+				unsigned long addr, unsigned long next)
-+{
-+	vmemmap_verify((pte_t *)pmdp, node, addr, next);
-+	return 1;
-+}
-+
- int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
- 		struct vmem_altmap *altmap)
+-	replace_page_cache_page(oldpage, newpage);
++	replace_page_cache_folio(page_folio(oldpage), page_folio(newpage));
+ 
+ 	get_page(newpage);
+ 
+--- a/include/linux/pagemap.h~filemap-convert-replace_page_cache_page-to-replace_page_cache_folio
++++ a/include/linux/pagemap.h
+@@ -1102,7 +1102,7 @@ int filemap_add_folio(struct address_spa
+ 		pgoff_t index, gfp_t gfp);
+ void filemap_remove_folio(struct folio *folio);
+ void __filemap_remove_folio(struct folio *folio, void *shadow);
+-void replace_page_cache_page(struct page *old, struct page *new);
++void replace_page_cache_folio(struct folio *old, struct folio *new);
+ void delete_from_page_cache_batch(struct address_space *mapping,
+ 				  struct folio_batch *fbatch);
+ bool filemap_release_folio(struct folio *folio, gfp_t gfp);
+--- a/mm/filemap.c~filemap-convert-replace_page_cache_page-to-replace_page_cache_folio
++++ a/mm/filemap.c
+@@ -788,56 +788,54 @@ int file_write_and_wait_range(struct fil
+ EXPORT_SYMBOL(file_write_and_wait_range);
+ 
+ /**
+- * replace_page_cache_page - replace a pagecache page with a new one
+- * @old:	page to be replaced
+- * @new:	page to replace with
++ * replace_page_cache_folio - replace a pagecache folio with a new one
++ * @old:	folio to be replaced
++ * @new:	folio to replace with
+  *
+- * This function replaces a page in the pagecache with a new one.  On
+- * success it acquires the pagecache reference for the new page and
+- * drops it for the old page.  Both the old and new pages must be
+- * locked.  This function does not add the new page to the LRU, the
++ * This function replaces a folio in the pagecache with a new one.  On
++ * success it acquires the pagecache reference for the new folio and
++ * drops it for the old folio.  Both the old and new folios must be
++ * locked.  This function does not add the new folio to the LRU, the
+  * caller must do that.
+  *
+  * The remove + add is atomic.  This function cannot fail.
+  */
+-void replace_page_cache_page(struct page *old, struct page *new)
++void replace_page_cache_folio(struct folio *old, struct folio *new)
  {
--	unsigned long addr = start;
--	unsigned long next;
--	pgd_t *pgdp;
--	p4d_t *p4dp;
--	pud_t *pudp;
--	pmd_t *pmdp;
--
- 	WARN_ON((start < VMEMMAP_START) || (end > VMEMMAP_END));
+-	struct folio *fold = page_folio(old);
+-	struct folio *fnew = page_folio(new);
+ 	struct address_space *mapping = old->mapping;
+ 	void (*free_folio)(struct folio *) = mapping->a_ops->free_folio;
+ 	pgoff_t offset = old->index;
+ 	XA_STATE(xas, &mapping->i_pages, offset);
  
- 	if (!ARM64_KERNEL_USES_PMD_MAPS)
- 		return vmemmap_populate_basepages(start, end, node, altmap);
--
--	do {
--		next = pmd_addr_end(addr, end);
--
--		pgdp = vmemmap_pgd_populate(addr, node);
--		if (!pgdp)
--			return -ENOMEM;
--
--		p4dp = vmemmap_p4d_populate(pgdp, addr, node);
--		if (!p4dp)
--			return -ENOMEM;
--
--		pudp = vmemmap_pud_populate(p4dp, addr, node);
--		if (!pudp)
--			return -ENOMEM;
--
--		pmdp = pmd_offset(pudp, addr);
--		if (pmd_none(READ_ONCE(*pmdp))) {
--			void *p = NULL;
--
--			p = vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
--			if (!p) {
--				if (vmemmap_populate_basepages(addr, next, node, altmap))
--					return -ENOMEM;
--				continue;
--			}
--
--			pmd_set_huge(pmdp, __pa(p), __pgprot(PROT_SECT_NORMAL));
--		} else
--			vmemmap_verify((pte_t *)pmdp, node, addr, next);
--	} while (addr = next, addr != end);
--
--	return 0;
-+	else
-+		return vmemmap_populate_hugepages(start, end, node, altmap);
+-	VM_BUG_ON_PAGE(!PageLocked(old), old);
+-	VM_BUG_ON_PAGE(!PageLocked(new), new);
+-	VM_BUG_ON_PAGE(new->mapping, new);
++	VM_BUG_ON_FOLIO(!folio_test_locked(old), old);
++	VM_BUG_ON_FOLIO(!folio_test_locked(new), new);
++	VM_BUG_ON_FOLIO(new->mapping, new);
+ 
+-	get_page(new);
++	folio_get(new);
+ 	new->mapping = mapping;
+ 	new->index = offset;
+ 
+-	mem_cgroup_migrate(fold, fnew);
++	mem_cgroup_migrate(old, new);
+ 
+ 	xas_lock_irq(&xas);
+ 	xas_store(&xas, new);
+ 
+ 	old->mapping = NULL;
+ 	/* hugetlb pages do not participate in page cache accounting. */
+-	if (!PageHuge(old))
+-		__dec_lruvec_page_state(old, NR_FILE_PAGES);
+-	if (!PageHuge(new))
+-		__inc_lruvec_page_state(new, NR_FILE_PAGES);
+-	if (PageSwapBacked(old))
+-		__dec_lruvec_page_state(old, NR_SHMEM);
+-	if (PageSwapBacked(new))
+-		__inc_lruvec_page_state(new, NR_SHMEM);
++	if (!folio_test_hugetlb(old))
++		__lruvec_stat_sub_folio(old, NR_FILE_PAGES);
++	if (!folio_test_hugetlb(new))
++		__lruvec_stat_add_folio(new, NR_FILE_PAGES);
++	if (folio_test_swapbacked(old))
++		__lruvec_stat_sub_folio(old, NR_SHMEM);
++	if (folio_test_swapbacked(new))
++		__lruvec_stat_add_folio(new, NR_SHMEM);
+ 	xas_unlock_irq(&xas);
+ 	if (free_folio)
+-		free_folio(fold);
+-	folio_put(fold);
++		free_folio(old);
++	folio_put(old);
  }
+-EXPORT_SYMBOL_GPL(replace_page_cache_page);
++EXPORT_SYMBOL_GPL(replace_page_cache_folio);
  
- #ifdef CONFIG_MEMORY_HOTPLUG
---- a/arch/loongarch/mm/init.c~mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages
-+++ a/arch/loongarch/mm/init.c
-@@ -153,52 +153,25 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
- #endif
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--static int __meminit vmemmap_populate_hugepages(unsigned long start, unsigned long end,
--						int node, struct vmem_altmap *altmap)
-+void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
-+			       unsigned long addr, unsigned long next)
- {
--	unsigned long addr = start;
--	unsigned long next;
--	pgd_t *pgd;
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--
--	for (addr = start; addr < end; addr = next) {
--		next = pmd_addr_end(addr, end);
--
--		pgd = vmemmap_pgd_populate(addr, node);
--		if (!pgd)
--			return -ENOMEM;
--		p4d = vmemmap_p4d_populate(pgd, addr, node);
--		if (!p4d)
--			return -ENOMEM;
--		pud = vmemmap_pud_populate(p4d, addr, node);
--		if (!pud)
--			return -ENOMEM;
--
--		pmd = pmd_offset(pud, addr);
--		if (pmd_none(*pmd)) {
--			void *p = NULL;
--
--			p = vmemmap_alloc_block_buf(PMD_SIZE, node, NULL);
--			if (p) {
--				pmd_t entry;
--
--				entry = pfn_pmd(virt_to_pfn(p), PAGE_KERNEL);
--				pmd_val(entry) |= _PAGE_HUGE | _PAGE_HGLOBAL;
--				set_pmd_at(&init_mm, addr, pmd, entry);
--
--				continue;
--			}
--		} else if (pmd_val(*pmd) & _PAGE_HUGE) {
--			vmemmap_verify((pte_t *)pmd, node, addr, next);
--			continue;
--		}
--		if (vmemmap_populate_basepages(addr, next, node, NULL))
--			return -ENOMEM;
--	}
-+	pmd_t entry;
- 
--	return 0;
-+	entry = pfn_pmd(virt_to_pfn(p), PAGE_KERNEL);
-+	pmd_val(entry) |= _PAGE_HUGE | _PAGE_HGLOBAL;
-+	set_pmd_at(&init_mm, addr, pmd, entry);
-+}
-+
-+int __meminit vmemmap_check_pmd(pmd_t *pmd, int node,
-+				unsigned long addr, unsigned long next)
-+{
-+	int huge = pmd_val(*pmd) & _PAGE_HUGE;
-+
-+	if (huge)
-+		vmemmap_verify((pte_t *)pmd, node, addr, next);
-+
-+	return huge;
- }
- 
- int __meminit vmemmap_populate(unsigned long start, unsigned long end,
---- a/arch/x86/mm/init_64.c~mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages
-+++ a/arch/x86/mm/init_64.c
-@@ -1492,72 +1492,44 @@ static long __meminitdata addr_start, ad
- static void __meminitdata *p_start, *p_end;
- static int __meminitdata node_start;
- 
--static int __meminit vmemmap_populate_hugepages(unsigned long start,
--		unsigned long end, int node, struct vmem_altmap *altmap)
-+void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
-+			       unsigned long addr, unsigned long next)
- {
--	unsigned long addr;
--	unsigned long next;
--	pgd_t *pgd;
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--
--	for (addr = start; addr < end; addr = next) {
--		next = pmd_addr_end(addr, end);
--
--		pgd = vmemmap_pgd_populate(addr, node);
--		if (!pgd)
--			return -ENOMEM;
--
--		p4d = vmemmap_p4d_populate(pgd, addr, node);
--		if (!p4d)
--			return -ENOMEM;
--
--		pud = vmemmap_pud_populate(p4d, addr, node);
--		if (!pud)
--			return -ENOMEM;
--
--		pmd = pmd_offset(pud, addr);
--		if (pmd_none(*pmd)) {
--			void *p;
--
--			p = vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
--			if (p) {
--				pte_t entry;
--
--				entry = pfn_pte(__pa(p) >> PAGE_SHIFT,
--						PAGE_KERNEL_LARGE);
--				set_pmd(pmd, __pmd(pte_val(entry)));
--
--				/* check to see if we have contiguous blocks */
--				if (p_end != p || node_start != node) {
--					if (p_start)
--						pr_debug(" [%lx-%lx] PMD -> [%p-%p] on node %d\n",
--						       addr_start, addr_end-1, p_start, p_end-1, node_start);
--					addr_start = addr;
--					node_start = node;
--					p_start = p;
--				}
--
--				addr_end = addr + PMD_SIZE;
--				p_end = p + PMD_SIZE;
--
--				if (!IS_ALIGNED(addr, PMD_SIZE) ||
--				    !IS_ALIGNED(next, PMD_SIZE))
--					vmemmap_use_new_sub_pmd(addr, next);
--
--				continue;
--			} else if (altmap)
--				return -ENOMEM; /* no fallback */
--		} else if (pmd_large(*pmd)) {
--			vmemmap_verify((pte_t *)pmd, node, addr, next);
--			vmemmap_use_sub_pmd(addr, next);
--			continue;
--		}
--		if (vmemmap_populate_basepages(addr, next, node, NULL))
--			return -ENOMEM;
-+	pte_t entry;
-+
-+	entry = pfn_pte(__pa(p) >> PAGE_SHIFT,
-+			PAGE_KERNEL_LARGE);
-+	set_pmd(pmd, __pmd(pte_val(entry)));
-+
-+	/* check to see if we have contiguous blocks */
-+	if (p_end != p || node_start != node) {
-+		if (p_start)
-+			pr_debug(" [%lx-%lx] PMD -> [%p-%p] on node %d\n",
-+				addr_start, addr_end-1, p_start, p_end-1, node_start);
-+		addr_start = addr;
-+		node_start = node;
-+		p_start = p;
- 	}
--	return 0;
-+
-+	addr_end = addr + PMD_SIZE;
-+	p_end = p + PMD_SIZE;
-+
-+	if (!IS_ALIGNED(addr, PMD_SIZE) ||
-+		!IS_ALIGNED(next, PMD_SIZE))
-+		vmemmap_use_new_sub_pmd(addr, next);
-+}
-+
-+int __meminit vmemmap_check_pmd(pmd_t *pmd, int node,
-+				unsigned long addr, unsigned long next)
-+{
-+	int large = pmd_large(*pmd);
-+
-+	if (pmd_large(*pmd)) {
-+		vmemmap_verify((pte_t *)pmd, node, addr, next);
-+		vmemmap_use_sub_pmd(addr, next);
-+	}
-+
-+	return large;
- }
- 
- int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
---- a/include/linux/mm.h~mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages
-+++ a/include/linux/mm.h
-@@ -3373,8 +3373,14 @@ struct vmem_altmap;
- void *vmemmap_alloc_block_buf(unsigned long size, int node,
- 			      struct vmem_altmap *altmap);
- void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
-+void vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
-+		     unsigned long addr, unsigned long next);
-+int vmemmap_check_pmd(pmd_t *pmd, int node,
-+		      unsigned long addr, unsigned long next);
- int vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 			       int node, struct vmem_altmap *altmap);
-+int vmemmap_populate_hugepages(unsigned long start, unsigned long end,
-+			       int node, struct vmem_altmap *altmap);
- int vmemmap_populate(unsigned long start, unsigned long end, int node,
- 		struct vmem_altmap *altmap);
- void vmemmap_populate_print_last(void);
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-generalise-vmemmap_populate_hugepages
-+++ a/mm/sparse-vmemmap.c
-@@ -295,6 +295,69 @@ int __meminit vmemmap_populate_basepages
- 	return vmemmap_populate_range(start, end, node, altmap, NULL);
- }
- 
-+void __weak __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
-+				      unsigned long addr, unsigned long next)
-+{
-+}
-+
-+int __weak __meminit vmemmap_check_pmd(pmd_t *pmd, int node,
-+				       unsigned long addr, unsigned long next)
-+{
-+	return 0;
-+}
-+
-+int __meminit vmemmap_populate_hugepages(unsigned long start, unsigned long end,
-+					 int node, struct vmem_altmap *altmap)
-+{
-+	unsigned long addr;
-+	unsigned long next;
-+	pgd_t *pgd;
-+	p4d_t *p4d;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+
-+	for (addr = start; addr < end; addr = next) {
-+		next = pmd_addr_end(addr, end);
-+
-+		pgd = vmemmap_pgd_populate(addr, node);
-+		if (!pgd)
-+			return -ENOMEM;
-+
-+		p4d = vmemmap_p4d_populate(pgd, addr, node);
-+		if (!p4d)
-+			return -ENOMEM;
-+
-+		pud = vmemmap_pud_populate(p4d, addr, node);
-+		if (!pud)
-+			return -ENOMEM;
-+
-+		pmd = pmd_offset(pud, addr);
-+		if (pmd_none(READ_ONCE(*pmd))) {
-+			void *p;
-+
-+			p = vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
-+			if (p) {
-+				vmemmap_set_pmd(pmd, p, node, addr, next);
-+				continue;
-+			} else if (altmap) {
-+				/*
-+				 * No fallback: In any case we care about, the
-+				 * altmap should be reasonably sized and aligned
-+				 * such that vmemmap_alloc_block_buf() will always
-+				 * succeed. For consistency with the PTE case,
-+				 * return an error here as failure could indicate
-+				 * a configuration issue with the size of the altmap.
-+				 */
-+				return -ENOMEM;
-+			}
-+		} else if (vmemmap_check_pmd(pmd, node, addr, next))
-+			continue;
-+		if (vmemmap_populate_basepages(addr, next, node, altmap))
-+			return -ENOMEM;
-+	}
-+	return 0;
-+}
-+
- /*
-  * For compound pages bigger than section size (e.g. x86 1G compound
-  * pages with 2M subsection size) fill the rest of sections as tail
+ noinline int __filemap_add_folio(struct address_space *mapping,
+ 		struct folio *folio, pgoff_t index, gfp_t gfp, void **shadowp)
 _
 
-Patches currently in -mm which might be from chenfeiyang@loongson.cn are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
 
