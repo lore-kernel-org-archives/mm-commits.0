@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 581AAC4167B
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 03:31:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F747C10F1D
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 03:31:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231200AbiLLDbl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230520AbiLLDbl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 11 Dec 2022 22:31:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33668 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33766 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230520AbiLLDb2 (ORCPT
+        with ESMTP id S230474AbiLLDb2 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 22:31:28 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA017D137
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 19:31:19 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6984FDE90
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 19:31:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5CA89B80A1F
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 03:31:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F10A3C433EF;
-        Mon, 12 Dec 2022 03:31:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 01A2E60EA4
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 03:31:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DED4C433F0;
+        Mon, 12 Dec 2022 03:31:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670815877;
-        bh=hmIeVLFbGpUzwsU4nWP82n2AS3XCxWno1EaC0EaLq8A=;
+        s=korg; t=1670815879;
+        bh=zjrmqPLhZaouyeURoqKWlImOZyR5dp5GhYyHTNJeHdY=;
         h=Date:To:From:Subject:From;
-        b=qi6ebjOyMjs1WDwevp3GPGDFdXooLChS+kBp5VNoHc/DPdein6GDkmmclCdDintWJ
-         fQUYXBpeQc0zS5+6u48P8skxC4/HvyuBMRKw/rWRb87t6/VrOtzfR4DOvSq7g8rKEu
-         EmdlngA6CRxGYOMcfR/qW+yQFjZvygZCTEQR7qo0=
-Date:   Sun, 11 Dec 2022 19:31:16 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com,
-        syzbot+e836ff7133ac02be825f@syzkaller.appspotmail.com,
-        sunnanyong@huawei.com, slava@dubeyko.com, jlayton@kernel.org,
-        ira.weiny@intel.com, damien.lemoal@opensource.wdc.com,
-        zhangpeng362@huawei.com, akpm@linux-foundation.org
+        b=z4Aztkha49/fPj6C1d6uxLkujFrQg8kdyKWf0hYnB2LS+bQ2Q4msBHB2RHx97uLaL
+         rEuiyKFZxCoasEq/2eb2rC7QOxS8xpeEnfm16vf6s6sEhnoduUCFBargv+RoHguFUV
+         SIzirSBDESYfZhpuqIXfO1ibtz16P7X4kb/8YgdE=
+Date:   Sun, 11 Dec 2022 19:31:18 -0800
+To:     mm-commits@vger.kernel.org, dvyukov@google.com,
+        andreyknvl@gmail.com, rongtao@cestc.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] hfs-fix-oob-read-in-__hfs_brec_find.patch removed from -mm tree
-Message-Id: <20221212033116.F10A3C433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kcov-fix-spelling-typos-in-comments.patch removed from -mm tree
+Message-Id: <20221212033119.5DED4C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,87 +41,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hfs: fix OOB Read in __hfs_brec_find
+     Subject: kcov: fix spelling typos in comments
 has been removed from the -mm tree.  Its filename was
-     hfs-fix-oob-read-in-__hfs_brec_find.patch
+     kcov-fix-spelling-typos-in-comments.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: hfs: fix OOB Read in __hfs_brec_find
-Date: Wed, 30 Nov 2022 06:59:59 +0000
+From: Rong Tao <rongtao@cestc.cn>
+Subject: kcov: fix spelling typos in comments
+Date: Sat, 3 Dec 2022 18:25:21 +0800
 
-Syzbot reported a OOB read bug:
+Fix the typo of 'suport' in kcov.h
 
-==================================================================
-BUG: KASAN: slab-out-of-bounds in hfs_strcmp+0x117/0x190
-fs/hfs/string.c:84
-Read of size 1 at addr ffff88807eb62c4e by task kworker/u4:1/11
-CPU: 1 PID: 11 Comm: kworker/u4:1 Not tainted
-6.1.0-rc6-syzkaller-00308-g644e9524388a #0
-Workqueue: writeback wb_workfn (flush-7:0)
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:88 [inline]
- dump_stack_lvl+0x1b1/0x28e lib/dump_stack.c:106
- print_address_description+0x74/0x340 mm/kasan/report.c:284
- print_report+0x107/0x1f0 mm/kasan/report.c:395
- kasan_report+0xcd/0x100 mm/kasan/report.c:495
- hfs_strcmp+0x117/0x190 fs/hfs/string.c:84
- __hfs_brec_find+0x213/0x5c0 fs/hfs/bfind.c:75
- hfs_brec_find+0x276/0x520 fs/hfs/bfind.c:138
- hfs_write_inode+0x34c/0xb40 fs/hfs/inode.c:462
- write_inode fs/fs-writeback.c:1440 [inline]
-
-If the input inode of hfs_write_inode() is incorrect:
-struct inode
-  struct hfs_inode_info
-    struct hfs_cat_key
-      struct hfs_name
-        u8 len # len is greater than HFS_NAMELEN(31) which is the
-maximum length of an HFS filename
-
-OOB read occurred:
-hfs_write_inode()
-  hfs_brec_find()
-    __hfs_brec_find()
-      hfs_cat_keycmp()
-        hfs_strcmp() # OOB read occurred due to len is too large
-
-Fix this by adding a Check on len in hfs_write_inode() before calling
-hfs_brec_find().
-
-Link: https://lkml.kernel.org/r/20221130065959.2168236-1-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reported-by: <syzbot+e836ff7133ac02be825f@syzkaller.appspotmail.com>
-Cc: Damien Le Moal <damien.lemoal@opensource.wdc.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Viacheslav Dubeyko <slava@dubeyko.com>
+Link: https://lkml.kernel.org/r/tencent_922CA94B789587D79FD154445D035AA19E07@qq.com
+Signed-off-by: Rong Tao <rongtao@cestc.cn>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/inode.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/kcov.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/hfs/inode.c~hfs-fix-oob-read-in-__hfs_brec_find
-+++ a/fs/hfs/inode.c
-@@ -458,6 +458,8 @@ int hfs_write_inode(struct inode *inode,
- 		/* panic? */
- 		return -EIO;
+--- a/include/linux/kcov.h~kcov-fix-spelling-typos-in-comments
++++ a/include/linux/kcov.h
+@@ -56,7 +56,7 @@ static inline void kcov_remote_start_usb
+ /*
+  * The softirq flavor of kcov_remote_*() functions is introduced as a temporary
+  * work around for kcov's lack of nested remote coverage sections support in
+- * task context. Adding suport for nested sections is tracked in:
++ * task context. Adding support for nested sections is tracked in:
+  * https://bugzilla.kernel.org/show_bug.cgi?id=210337
+  */
  
-+	if (HFS_I(main_inode)->cat_key.CName.len > HFS_NAMELEN)
-+		return -EIO;
- 	fd.search_key->cat = HFS_I(main_inode)->cat_key;
- 	if (hfs_brec_find(&fd))
- 		/* panic? */
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from rongtao@cestc.cn are
 
 
