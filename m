@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 597DFC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:13:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A9A0C4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:13:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230457AbiLLCNc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:13:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41066 "EHLO
+        id S231225AbiLLCNi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:13:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229475AbiLLCNc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:13:32 -0500
+        with ESMTP id S229475AbiLLCNd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:13:33 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9420E6584
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:13:30 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00DB12ED
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:13:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3235560E77
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:13:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 779BAC433D2;
-        Mon, 12 Dec 2022 02:13:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9102760EC3
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:13:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2D56C433F2;
+        Mon, 12 Dec 2022 02:13:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811209;
-        bh=GJwQIbliEWIW78zLfKtUGmRUaGUz0+NV1UxoVc1+vaU=;
+        s=korg; t=1670811211;
+        bh=elTdgdn6pMkA/TMwNPWDT33GdOHLZYiI9Z/LkbFllgs=;
         h=Date:To:From:Subject:From;
-        b=tB/WYAsSevbTlVeWHmjKVEZ9KqfJbfl8BTegCwFZIkAwOOCrE9eKzKoAkJlUgCj+f
-         tNA6BWjuiX3qXBl0+/qhYGNbCbw3S7QF+p3to+NVy4uSkWftPjQncB5NsivC9yGo9S
-         qVATk3oyWWs1btz5Z8EaXzDowk0qn6+ILP6SoiqA=
-Date:   Sun, 11 Dec 2022 18:13:28 -0800
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, npache@redhat.com,
-        jsavitz@redhat.com, akpm@linux-foundation.org
+        b=0R1l32HI5QSeLI83NEy0OUMHiQfLhuP7I+nyf1A8avJsKtvF9VzvXAfCUzg51195o
+         wzBV3j47xuC6PsLmlESmTsGLXORK/K/yWo2gNTClhPDWMXxiLE/kDcsZcoIgl4I59u
+         h7RrTy6ebFfFQ2eTiK+WjduCF5+G/j0o+U9sJWrk=
+Date:   Sun, 11 Dec 2022 18:13:30 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        shuah@kernel.org, peterx@redhat.com, jhubbard@nvidia.com,
+        jgg@nvidia.com, hughd@google.com, aarcange@redhat.com,
+        david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-enable-running-select-groups-of-tests.patch removed from -mm tree
-Message-Id: <20221212021329.779BAC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-add-ksm-unmerge-tests.patch removed from -mm tree
+Message-Id: <20221212021330.E2D56C433F2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,406 +43,416 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: enable running select groups of tests
+     Subject: selftests/vm: add KSM unmerge tests
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-enable-running-select-groups-of-tests.patch
+     selftests-vm-add-ksm-unmerge-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joel Savitz <jsavitz@redhat.com>
-Subject: selftests/vm: enable running select groups of tests
-Date: Tue, 18 Oct 2022 19:12:22 -0400
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/vm: add KSM unmerge tests
+Date: Fri, 21 Oct 2022 12:11:36 +0200
 
-Our memory management kernel CI testing at Red Hat uses the VM
-selftests and we have run into two problems:
+Patch series "mm/ksm: break_ksm() cleanups and fixes", v2.
 
-First, our LTP tests overlap with the VM selftests.
+This series cleans up and fixes break_ksm().  In summary, we no longer use
+fake write faults to break COW but instead FAULT_FLAG_UNSHARE.  Further,
+we move away from using follow_page() --- that we can hopefully remove
+completely at one point --- and use new walk_page_range_vma() instead.
 
-We want to avoid unhelpful redundancy in our testing practices.
+Fortunately, we can get rid of VM_FAULT_WRITE and FOLL_MIGRATION in common
+code now.
 
-Second, we have observed the current run_vmtests.sh to report overall
-failure/ambiguous results in the case that a machine lacks the necessary
-hardware to perform one or more of the tests. E.g. ksm tests that
-require more than one numa node.
+Extend the existing ksm tests by an unmerge benchmark, and a some new
+unmerge tests.
 
-We want to be able to run the vm selftests suitable to particular hardware.
+Also, add a selftest to measure MADV_UNMERGEABLE performance.  In my setup
+(AMD Ryzen 9 3900X), running the KSM selftest to test unmerge performance
+on 2 GiB (taskset 0x8 ./ksm_tests -D -s 2048), this results in a
+performance degradation of ~6% -- 7% (old: ~5250 MiB/s, new: ~4900 MiB/s).
+I don't think we particularly care for now, but it's good to be aware of
+the implication.
 
-Add the ability to run one or more groups of vm tests via run_vmtests.sh
-instead of simply all-or-none in order to solve these problems.
 
-Preserve existing default behavior of running all tests when the script
-is invoked with no arguments.
+This patch (of 9):
 
-Documentation of test groups is included in the patch as follows:
+Let's add three unmerge tests (MADV_UNMERGEABLE unmerging all pages in the
+range).
 
-    # ./run_vmtests.sh [ -h || --help ]
+test_unmerge(): basic unmerge tests
+test_unmerge_discarded(): have some pte_none() entries in the range
+test_unmerge_uffd_wp(): protect the merged pages using uffd-wp
 
-    usage: ./tools/testing/selftests/vm/run_vmtests.sh [ -h | -t "<categories>"]
-      -t: specify specific categories to tests to run
-      -h: display this message
+ksm_tests.c currently contains a mixture of benchmarks and tests, whereby
+each test is carried out by executing the ksm_tests binary with specific
+parameters.  Let's add new ksm_functional_tests.c that performs multiple,
+smaller functional tests all at once.
 
-    The default behavior is to run all tests.
-
-    Alternatively, specific groups tests can be run by passing a string
-    to the -t argument containing one or more of the following categories
-    separated by spaces:
-    - mmap
-	    tests for mmap(2)
-    - gup_test
-	    tests for gup using gup_test interface
-    - userfaultfd
-	    tests for  userfaultfd(2)
-    - compaction
-	    a test for the patch "Allow compaction of unevictable pages"
-    - mlock
-	    tests for mlock(2)
-    - mremap
-	    tests for mremap(2)
-    - hugevm
-	    tests for very large virtual address space
-    - vmalloc
-	    vmalloc smoke tests
-    - hmm
-	    hmm smoke tests
-    - madv_populate
-	    test memadvise(2) MADV_POPULATE_{READ,WRITE} options
-    - memfd_secret
-	    test memfd_secret(2)
-    - process_mrelease
-	    test process_mrelease(2)
-    - ksm
-	    ksm tests that do not require >=2 NUMA nodes
-    - ksm_numa
-	    ksm tests that require >=2 NUMA nodes
-    - pkey
-	    memory protection key tests
-    - soft_dirty
-    	    test soft dirty page bit semantics
-    - anon_cow
-            test anonymous copy-on-write semantics
-    example: ./run_vmtests.sh -t "hmm mmap ksm"
-
-Link: https://lkml.kernel.org/r/20221018231222.1884715-1-jsavitz@redhat.com
-Signed-off-by: Joel Savitz <jsavitz@redhat.com>
-Cc: Joel Savitz <jsavitz@redhat.com>
-Cc: Nico Pache <npache@redhat.com>
+Link: https://lkml.kernel.org/r/20221021101141.84170-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20221021101141.84170-5-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/run_vmtests.sh |  209 +++++++++++++-------
- 1 file changed, 145 insertions(+), 64 deletions(-)
+ tools/testing/selftests/vm/Makefile               |    2 
+ tools/testing/selftests/vm/ksm_functional_tests.c |  279 ++++++++++++
+ tools/testing/selftests/vm/run_vmtests.sh         |    2 
+ tools/testing/selftests/vm/vm_util.c              |   10 
+ tools/testing/selftests/vm/vm_util.h              |    1 
+ 5 files changed, 294 insertions(+)
 
---- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-enable-running-select-groups-of-tests
+--- /dev/null
++++ a/tools/testing/selftests/vm/ksm_functional_tests.c
+@@ -0,0 +1,279 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * KSM functional tests
++ *
++ * Copyright 2022, Red Hat, Inc.
++ *
++ * Author(s): David Hildenbrand <david@redhat.com>
++ */
++#define _GNU_SOURCE
++#include <stdlib.h>
++#include <string.h>
++#include <stdbool.h>
++#include <stdint.h>
++#include <unistd.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++#include <sys/ioctl.h>
++#include <linux/userfaultfd.h>
++
++#include "../kselftest.h"
++#include "vm_util.h"
++
++#define KiB 1024u
++#define MiB (1024 * KiB)
++
++static int ksm_fd;
++static int ksm_full_scans_fd;
++static int pagemap_fd;
++static size_t pagesize;
++
++static bool range_maps_duplicates(char *addr, unsigned long size)
++{
++	unsigned long offs_a, offs_b, pfn_a, pfn_b;
++
++	/*
++	 * There is no easy way to check if there are KSM pages mapped into
++	 * this range. We only check that the range does not map the same PFN
++	 * twice by comaring each pair of mapped pages.
++	 */
++	for (offs_a = 0; offs_a < size; offs_a += pagesize) {
++		pfn_a = pagemap_get_pfn(pagemap_fd, addr + offs_a);
++		/* Page not present or PFN not exposed by the kernel. */
++		if (pfn_a == -1ull || !pfn_a)
++			continue;
++
++		for (offs_b = offs_a + pagesize; offs_b < size;
++		     offs_b += pagesize) {
++			pfn_b = pagemap_get_pfn(pagemap_fd, addr + offs_b);
++			if (pfn_b == -1ull || !pfn_b)
++				continue;
++			if (pfn_a == pfn_b)
++				return true;
++		}
++	}
++	return false;
++}
++
++static long ksm_get_full_scans(void)
++{
++	char buf[10];
++	ssize_t ret;
++
++	ret = pread(ksm_full_scans_fd, buf, sizeof(buf) - 1, 0);
++	if (ret <= 0)
++		return -errno;
++	buf[ret] = 0;
++
++	return strtol(buf, NULL, 10);
++}
++
++static int ksm_merge(void)
++{
++	long start_scans, end_scans;
++
++	/* Wait for two full scans such that any possible merging happened. */
++	start_scans = ksm_get_full_scans();
++	if (start_scans < 0)
++		return start_scans;
++	if (write(ksm_fd, "1", 1) != 1)
++		return -errno;
++	do {
++		end_scans = ksm_get_full_scans();
++		if (end_scans < 0)
++			return end_scans;
++	} while (end_scans < start_scans + 2);
++
++	return 0;
++}
++
++static char *mmap_and_merge_range(char val, unsigned long size)
++{
++	char *map;
++
++	map = mmap(NULL, size, PROT_READ|PROT_WRITE,
++		   MAP_PRIVATE|MAP_ANON, -1, 0);
++	if (map == MAP_FAILED) {
++		ksft_test_result_fail("mmap() failed\n");
++		return MAP_FAILED;
++	}
++
++	/* Don't use THP. Ignore if THP are not around on a kernel. */
++	if (madvise(map, size, MADV_NOHUGEPAGE) && errno != EINVAL) {
++		ksft_test_result_fail("MADV_NOHUGEPAGE failed\n");
++		goto unmap;
++	}
++
++	/* Make sure each page contains the same values to merge them. */
++	memset(map, val, size);
++	if (madvise(map, size, MADV_MERGEABLE)) {
++		ksft_test_result_fail("MADV_MERGEABLE failed\n");
++		goto unmap;
++	}
++
++	/* Run KSM to trigger merging and wait. */
++	if (ksm_merge()) {
++		ksft_test_result_fail("Running KSM failed\n");
++		goto unmap;
++	}
++	return map;
++unmap:
++	munmap(map, size);
++	return MAP_FAILED;
++}
++
++static void test_unmerge(void)
++{
++	const unsigned int size = 2 * MiB;
++	char *map;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	map = mmap_and_merge_range(0xcf, size);
++	if (map == MAP_FAILED)
++		return;
++
++	if (madvise(map, size, MADV_UNMERGEABLE)) {
++		ksft_test_result_fail("MADV_UNMERGEABLE failed\n");
++		goto unmap;
++	}
++
++	ksft_test_result(!range_maps_duplicates(map, size),
++			 "Pages were unmerged\n");
++unmap:
++	munmap(map, size);
++}
++
++static void test_unmerge_discarded(void)
++{
++	const unsigned int size = 2 * MiB;
++	char *map;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	map = mmap_and_merge_range(0xcf, size);
++	if (map == MAP_FAILED)
++		return;
++
++	/* Discard half of all mapped pages so we have pte_none() entries. */
++	if (madvise(map, size / 2, MADV_DONTNEED)) {
++		ksft_test_result_fail("MADV_DONTNEED failed\n");
++		goto unmap;
++	}
++
++	if (madvise(map, size, MADV_UNMERGEABLE)) {
++		ksft_test_result_fail("MADV_UNMERGEABLE failed\n");
++		goto unmap;
++	}
++
++	ksft_test_result(!range_maps_duplicates(map, size),
++			 "Pages were unmerged\n");
++unmap:
++	munmap(map, size);
++}
++
++#ifdef __NR_userfaultfd
++static void test_unmerge_uffd_wp(void)
++{
++	struct uffdio_writeprotect uffd_writeprotect;
++	struct uffdio_register uffdio_register;
++	const unsigned int size = 2 * MiB;
++	struct uffdio_api uffdio_api;
++	char *map;
++	int uffd;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	map = mmap_and_merge_range(0xcf, size);
++	if (map == MAP_FAILED)
++		return;
++
++	/* See if UFFD is around. */
++	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
++	if (uffd < 0) {
++		ksft_test_result_skip("__NR_userfaultfd failed\n");
++		goto unmap;
++	}
++
++	/* See if UFFD-WP is around. */
++	uffdio_api.api = UFFD_API;
++	uffdio_api.features = UFFD_FEATURE_PAGEFAULT_FLAG_WP;
++	if (ioctl(uffd, UFFDIO_API, &uffdio_api) < 0) {
++		ksft_test_result_fail("UFFDIO_API failed\n");
++		goto close_uffd;
++	}
++	if (!(uffdio_api.features & UFFD_FEATURE_PAGEFAULT_FLAG_WP)) {
++		ksft_test_result_skip("UFFD_FEATURE_PAGEFAULT_FLAG_WP not available\n");
++		goto close_uffd;
++	}
++
++	/* Register UFFD-WP, no need for an actual handler. */
++	uffdio_register.range.start = (unsigned long) map;
++	uffdio_register.range.len = size;
++	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
++	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) < 0) {
++		ksft_test_result_fail("UFFDIO_REGISTER_MODE_WP failed\n");
++		goto close_uffd;
++	}
++
++	/* Write-protect the range using UFFD-WP. */
++	uffd_writeprotect.range.start = (unsigned long) map;
++	uffd_writeprotect.range.len = size;
++	uffd_writeprotect.mode = UFFDIO_WRITEPROTECT_MODE_WP;
++	if (ioctl(uffd, UFFDIO_WRITEPROTECT, &uffd_writeprotect)) {
++		ksft_test_result_fail("UFFDIO_WRITEPROTECT failed\n");
++		goto close_uffd;
++	}
++
++	if (madvise(map, size, MADV_UNMERGEABLE)) {
++		ksft_test_result_fail("MADV_UNMERGEABLE failed\n");
++		goto close_uffd;
++	}
++
++	ksft_test_result(!range_maps_duplicates(map, size),
++			 "Pages were unmerged\n");
++close_uffd:
++	close(uffd);
++unmap:
++	munmap(map, size);
++}
++#endif
++
++int main(int argc, char **argv)
++{
++	unsigned int tests = 2;
++	int err;
++
++#ifdef __NR_userfaultfd
++	tests++;
++#endif
++
++	ksft_print_header();
++	ksft_set_plan(tests);
++
++	pagesize = getpagesize();
++
++	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
++	if (ksm_fd < 0)
++		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/run\") failed\n");
++	ksm_full_scans_fd = open("/sys/kernel/mm/ksm/full_scans", O_RDONLY);
++	if (ksm_full_scans_fd < 0)
++		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/full_scans\") failed\n");
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		ksft_exit_skip("open(\"/proc/self/pagemap\") failed\n");
++
++	test_unmerge();
++	test_unmerge_discarded();
++#ifdef __NR_userfaultfd
++	test_unmerge_uffd_wp();
++#endif
++
++	err = ksft_get_fail_cnt();
++	if (err)
++		ksft_exit_fail_msg("%d out of %d tests failed\n",
++				   err, ksft_test_num());
++	return ksft_exit_pass();
++}
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-ksm-unmerge-tests
++++ a/tools/testing/selftests/vm/Makefile
+@@ -55,6 +55,7 @@ TEST_GEN_FILES += userfaultfd
+ TEST_GEN_PROGS += soft-dirty
+ TEST_GEN_PROGS += split_huge_page_test
+ TEST_GEN_FILES += ksm_tests
++TEST_GEN_PROGS += ksm_functional_tests
+ 
+ ifeq ($(MACHINE),x86_64)
+ CAN_BUILD_I386 := $(shell ./../x86/check_cc.sh "$(CC)" ../x86/trivial_32bit_program.c -m32)
+@@ -100,6 +101,7 @@ include ../lib.mk
+ 
+ $(OUTPUT)/cow: vm_util.c
+ $(OUTPUT)/khugepaged: vm_util.c
++$(OUTPUT)/ksm_functional_tests: vm_util.c
+ $(OUTPUT)/madv_populate: vm_util.c
+ $(OUTPUT)/soft-dirty: vm_util.c
+ $(OUTPUT)/split_huge_page_test: vm_util.c
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-ksm-unmerge-tests
 +++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -1,13 +1,88 @@
- #!/bin/bash
- # SPDX-License-Identifier: GPL-2.0
--#please run as root
-+# Please run as root
+@@ -253,6 +253,8 @@ CATEGORY="ksm_numa" run_test ./ksm_tests
  
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
+ CATEGORY="ksm" run_test ./ksm_functional_tests
  
- exitcode=0
- 
--#get huge pagesize and freepages from /proc/meminfo
-+usage() {
-+	cat <<EOF
-+usage: ${BASH_SOURCE[0]:-$0} [ -h | -t "<categories>"]
-+  -t: specify specific categories to tests to run
-+  -h: display this message
++run_test ./ksm_functional_tests
 +
-+The default behavior is to run all tests.
-+
-+Alternatively, specific groups tests can be run by passing a string
-+to the -t argument containing one or more of the following categories
-+separated by spaces:
-+- mmap
-+	tests for mmap(2)
-+- gup_test
-+	tests for gup using gup_test interface
-+- userfaultfd
-+	tests for  userfaultfd(2)
-+- compaction
-+	a test for the patch "Allow compaction of unevictable pages"
-+- mlock
-+	tests for mlock(2)
-+- mremap
-+	tests for mremap(2)
-+- hugevm
-+	tests for very large virtual address space
-+- vmalloc
-+	vmalloc smoke tests
-+- hmm
-+	hmm smoke tests
-+- madv_populate
-+	test memadvise(2) MADV_POPULATE_{READ,WRITE} options
-+- memfd_secret
-+	test memfd_secret(2)
-+- process_mrelease
-+	test process_mrelease(2)
-+- ksm
-+	ksm tests that do not require >=2 NUMA nodes
-+- ksm_numa
-+	ksm tests that require >=2 NUMA nodes
-+- pkey
-+	memory protection key tests
-+- soft_dirty
-+	test soft dirty page bit semantics
-+- cow
-+	test copy-on-write semantics
-+example: ./run_vmtests.sh -t "hmm mmap ksm"
-+EOF
-+	exit 0
-+}
-+
-+
-+while getopts "ht:" OPT; do
-+	case ${OPT} in
-+		"h") usage ;;
-+		"t") VM_SELFTEST_ITEMS=${OPTARG} ;;
-+	esac
-+done
-+shift $((OPTIND -1))
-+
-+# default behavior: run all tests
-+VM_SELFTEST_ITEMS=${VM_SELFTEST_ITEMS:-default}
-+
-+test_selected() {
-+	if [ "$VM_SELFTEST_ITEMS" == "default" ]; then
-+		# If no VM_SELFTEST_ITEMS are specified, run all tests
-+		return 0
-+	fi
-+	# If test selected argument is one of the test items
-+	if [[ " ${VM_SELFTEST_ITEMS[*]} " =~ " ${1} " ]]; then
-+	        return 0
-+	else
-+	        return 1
-+	fi
-+}
-+
-+# get huge pagesize and freepages from /proc/meminfo
- while read -r name size unit; do
- 	if [ "$name" = "HugePages_Free:" ]; then
- 		freepgs="$size"
-@@ -27,7 +102,7 @@ hpgsize_MB=$((hpgsize_KB / 1024))
- half_ufd_size_MB=$((((nr_cpus * hpgsize_MB + 127) / 128) * 128))
- needmem_KB=$((half_ufd_size_MB * 2 * 1024))
- 
--#set proper nr_hugepages
-+# set proper nr_hugepages
- if [ -n "$freepgs" ] && [ -n "$hpgsize_KB" ]; then
- 	nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
- 	needpgs=$((needmem_KB / hpgsize_KB))
-@@ -56,136 +131,142 @@ else
- 	exit 1
- fi
- 
--#filter 64bit architectures
-+# filter 64bit architectures
- ARCH64STR="arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sh64 sparc64 x86_64"
- if [ -z "$ARCH" ]; then
- 	ARCH=$(uname -m 2>/dev/null | sed -e 's/aarch64.*/arm64/')
- fi
- VADDR64=0
--echo "$ARCH64STR" | grep "$ARCH" && VADDR64=1
-+echo "$ARCH64STR" | grep "$ARCH" &>/dev/null && VADDR64=1
- 
- # Usage: run_test [test binary] [arbitrary test arguments...]
- run_test() {
--	local title="running $*"
--	local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
--	printf "%s\n%s\n%s\n" "$sep" "$title" "$sep"
--
--	"$@"
--	local ret=$?
--	if [ $ret -eq 0 ]; then
--		echo "[PASS]"
--	elif [ $ret -eq $ksft_skip ]; then
--		echo "[SKIP]"
--		exitcode=$ksft_skip
--	else
--		echo "[FAIL]"
--		exitcode=1
--	fi
-+	if test_selected ${CATEGORY}; then
-+		local title="running $*"
-+		local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
-+		printf "%s\n%s\n%s\n" "$sep" "$title" "$sep"
-+
-+		"$@"
-+		local ret=$?
-+		if [ $ret -eq 0 ]; then
-+			echo "[PASS]"
-+		elif [ $ret -eq $ksft_skip ]; then
-+			echo "[SKIP]"
-+			exitcode=$ksft_skip
-+		else
-+			echo "[FAIL]"
-+			exitcode=1
-+		fi
-+	fi # test_selected
- }
- 
--run_test ./hugepage-mmap
-+CATEGORY="hugetlb" run_test ./hugepage-mmap
- 
- shmmax=$(cat /proc/sys/kernel/shmmax)
- shmall=$(cat /proc/sys/kernel/shmall)
- echo 268435456 > /proc/sys/kernel/shmmax
- echo 4194304 > /proc/sys/kernel/shmall
--run_test ./hugepage-shm
-+CATEGORY="hugetlb" run_test ./hugepage-shm
- echo "$shmmax" > /proc/sys/kernel/shmmax
- echo "$shmall" > /proc/sys/kernel/shmall
- 
--run_test ./map_hugetlb
--run_test ./hugepage-mremap
--run_test ./hugepage-vmemmap
--run_test ./hugetlb-madvise
--
--echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
--echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
--echo "      hugetlb regression testing."
-+CATEGORY="hugetlb" run_test ./map_hugetlb
-+CATEGORY="hugetlb" run_test ./hugepage-mremap
-+CATEGORY="hugetlb" run_test ./hugepage-vmemmap
-+CATEGORY="hugetlb" run_test ./hugetlb-madvise
-+
-+if test_selected "hugetlb"; then
-+	echo "NOTE: These hugetlb tests provide minimal coverage.  Use"
-+	echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
-+	echo "      hugetlb regression testing."
-+fi
- 
--run_test ./map_fixed_noreplace
-+CATEGORY="mmap" run_test ./map_fixed_noreplace
- 
- # get_user_pages_fast() benchmark
--run_test ./gup_test -u
-+CATEGORY="gup_test" run_test ./gup_test -u
- # pin_user_pages_fast() benchmark
--run_test ./gup_test -a
-+CATEGORY="gup_test" run_test ./gup_test -a
- # Dump pages 0, 19, and 4096, using pin_user_pages:
--run_test ./gup_test -ct -F 0x1 0 19 0x1000
-+CATEGORY="gup_test" run_test ./gup_test -ct -F 0x1 0 19 0x1000
- 
- uffd_mods=("" ":dev")
- for mod in "${uffd_mods[@]}"; do
--	run_test ./userfaultfd anon${mod} 20 16
-+	CATEGORY="userfaultfd" run_test ./userfaultfd anon${mod} 20 16
- 	# Hugetlb tests require source and destination huge pages. Pass in half
- 	# the size ($half_ufd_size_MB), which is used for *each*.
--	run_test ./userfaultfd hugetlb${mod} "$half_ufd_size_MB" 32
--	run_test ./userfaultfd hugetlb_shared${mod} "$half_ufd_size_MB" 32
--	run_test ./userfaultfd shmem${mod} 20 16
-+	CATEGORY="userfaultfd" run_test ./userfaultfd hugetlb${mod} "$half_ufd_size_MB" 32
-+	CATEGORY="userfaultfd" run_test ./userfaultfd hugetlb_shared${mod} "$half_ufd_size_MB" 32
-+	CATEGORY="userfaultfd" run_test ./userfaultfd shmem${mod} 20 16
- done
- 
- #cleanup
- echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
- 
--run_test ./compaction_test
-+CATEGORY="compaction" run_test ./compaction_test
- 
--run_test sudo -u nobody ./on-fault-limit
-+CATEGORY="mlock" run_test sudo -u nobody ./on-fault-limit
- 
--run_test ./map_populate
-+CATEGORY="mmap" run_test ./map_populate
- 
--run_test ./mlock-random-test
-+CATEGORY="mlock" run_test ./mlock-random-test
- 
--run_test ./mlock2-tests
-+CATEGORY="mlock" run_test ./mlock2-tests
- 
--run_test ./mrelease_test
-+CATEGORY="process_mrelease" run_test ./mrelease_test
- 
--run_test ./mremap_test
-+CATEGORY="mremap" run_test ./mremap_test
- 
--run_test ./thuge-gen
-+CATEGORY="hugetlb" run_test ./thuge-gen
- 
- if [ $VADDR64 -ne 0 ]; then
--	run_test ./virtual_address_range
-+	CATEGORY="hugevm" run_test ./virtual_address_range
- 
- 	# virtual address 128TB switch test
--	run_test ./va_128TBswitch.sh
-+	CATEGORY="hugevm" run_test ./va_128TBswitch.sh
- fi # VADDR64
- 
- # vmalloc stability smoke test
--run_test ./test_vmalloc.sh smoke
-+CATEGORY="vmalloc" run_test ./test_vmalloc.sh smoke
- 
--run_test ./mremap_dontunmap
-+CATEGORY="mremap" run_test ./mremap_dontunmap
- 
--run_test ./test_hmm.sh smoke
-+CATEGORY="hmm" run_test ./test_hmm.sh smoke
- 
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
--run_test ./madv_populate
-+CATEGORY="madv_populate" run_test ./madv_populate
- 
--run_test ./memfd_secret
-+CATEGORY="memfd_secret" run_test ./memfd_secret
- 
- # KSM MADV_MERGEABLE test with 10 identical pages
--run_test ./ksm_tests -M -p 10
-+CATEGORY="ksm" run_test ./ksm_tests -M -p 10
- # KSM unmerge test
--run_test ./ksm_tests -U
-+CATEGORY="ksm" run_test ./ksm_tests -U
- # KSM test with 10 zero pages and use_zero_pages = 0
--run_test ./ksm_tests -Z -p 10 -z 0
-+CATEGORY="ksm" run_test ./ksm_tests -Z -p 10 -z 0
- # KSM test with 10 zero pages and use_zero_pages = 1
--run_test ./ksm_tests -Z -p 10 -z 1
-+CATEGORY="ksm" run_test ./ksm_tests -Z -p 10 -z 1
- # KSM test with 2 NUMA nodes and merge_across_nodes = 1
--run_test ./ksm_tests -N -m 1
-+CATEGORY="ksm_numa" run_test ./ksm_tests -N -m 1
- # KSM test with 2 NUMA nodes and merge_across_nodes = 0
--run_test ./ksm_tests -N -m 0
-+CATEGORY="ksm_numa" run_test ./ksm_tests -N -m 0
-+
-+CATEGORY="ksm" run_test ./ksm_functional_tests
- 
  # protection_keys tests
  if [ -x ./protection_keys_32 ]
  then
--	run_test ./protection_keys_32
-+	CATEGORY="pkey" run_test ./protection_keys_32
- fi
+--- a/tools/testing/selftests/vm/vm_util.c~selftests-vm-add-ksm-unmerge-tests
++++ a/tools/testing/selftests/vm/vm_util.c
+@@ -43,6 +43,16 @@ bool pagemap_is_populated(int fd, char *
+ 	return entry & 0xc000000000000000ull;
+ }
  
- if [ -x ./protection_keys_64 ]
- then
--	run_test ./protection_keys_64
-+	CATEGORY="pkey" run_test ./protection_keys_64
- fi
- 
--run_test ./soft-dirty
-+CATEGORY="soft_dirty" run_test ./soft-dirty
- 
--# COW tests for anonymous memory
--run_test ./cow
-+# COW tests
-+CATEGORY="cow" run_test ./cow
- 
- exit $exitcode
++unsigned long pagemap_get_pfn(int fd, char *start)
++{
++	uint64_t entry = pagemap_get_entry(fd, start);
++
++	/* If present (63th bit), PFN is at bit 0 -- 54. */
++	if (entry & 0x8000000000000000ull)
++		return entry & 0x007fffffffffffffull;
++	return -1ull;
++}
++
+ void clear_softdirty(void)
+ {
+ 	int ret;
+--- a/tools/testing/selftests/vm/vm_util.h~selftests-vm-add-ksm-unmerge-tests
++++ a/tools/testing/selftests/vm/vm_util.h
+@@ -6,6 +6,7 @@ uint64_t pagemap_get_entry(int fd, char
+ bool pagemap_is_softdirty(int fd, char *start);
+ bool pagemap_is_swapped(int fd, char *start);
+ bool pagemap_is_populated(int fd, char *start);
++unsigned long pagemap_get_pfn(int fd, char *start);
+ void clear_softdirty(void);
+ bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
+ uint64_t read_pmd_pagesize(void);
 _
 
-Patches currently in -mm which might be from jsavitz@redhat.com are
+Patches currently in -mm which might be from david@redhat.com are
 
 
