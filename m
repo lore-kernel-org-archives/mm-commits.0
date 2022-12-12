@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A795C4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 03:31:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36BCEC4167B
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 03:31:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230522AbiLLDb2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 22:31:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33614 "EHLO
+        id S231160AbiLLDb3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 22:31:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230461AbiLLDbP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 22:31:15 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F9E6D13A
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 19:31:14 -0800 (PST)
+        with ESMTP id S230393AbiLLDbV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 22:31:21 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3B97DE88
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 19:31:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2375CB80A1F
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 03:31:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCA8CC433EF;
-        Mon, 12 Dec 2022 03:31:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4F43660ECD
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 03:31:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6852C433D2;
+        Mon, 12 Dec 2022 03:31:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670815871;
-        bh=7bOOyJxhFnblpY9cXZ78fgmVWSepRk8ooZlsGUCW0eg=;
+        s=korg; t=1670815875;
+        bh=mqmdL6IG4HXSl/rKolWvDx1G155jFQTLxUTS3bCVsjk=;
         h=Date:To:From:Subject:From;
-        b=ET0ic31WYIPstrj+gZY8P119v3tz+Ec38KwORLfqZKoW+ZCTOmAc0sz0TwiwnIVIQ
-         HdPys4jd/h1CfaBL87FaJfPNia/mXiqkF7mSuXG78dm0Qtl0riAU+K9CMwrZ9gwENK
-         AZlm0/0XUAk8H+GSb8rqH2yhkWTK6/GkeA8Sa0YY=
-Date:   Sun, 11 Dec 2022 19:31:11 -0800
-To:     mm-commits@vger.kernel.org, keescook@chromium.org, Jason@zx2c4.com,
-        elver@google.com, davidgow@google.com, arnd@arndb.de,
-        anders.roxell@linaro.org, akpm@linux-foundation.org
+        b=rN1ebQBSMQ3w5JZKOXxBGzU2aDp3m92rRbmjewxFOkO/CoXcu7vBPc38ia8qEqs+K
+         4l7JHPRfnFPg3Y14Rk+kKz5w8V48U5mMr1JakygqEaMY+c9kJYTGg1z7aNDOOKv2hz
+         RXmRD2xDseNckezLIFyq8h49Q1ACjNkOapRIRdyo=
+Date:   Sun, 11 Dec 2022 19:31:14 -0800
+To:     mm-commits@vger.kernel.org, wuchi.zero@gmail.com,
+        colin.i.king@gmail.com, axboe@kernel.dk, Ilia.Gavrilov@infotecs.ru,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-kcsan-kcsan_test-build-without-structleak-plugin.patch removed from -mm tree
-Message-Id: <20221212033111.CCA8CC433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf.patch removed from -mm tree
+Message-Id: <20221212033115.A6852C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,49 +42,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kernel: kcsan: kcsan_test: build without structleak plugin
+     Subject: relay: fix type mismatch when allocating memory in relay_create_buf()
 has been removed from the -mm tree.  Its filename was
-     kernel-kcsan-kcsan_test-build-without-structleak-plugin.patch
+     relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Anders Roxell <anders.roxell@linaro.org>
-Subject: kernel: kcsan: kcsan_test: build without structleak plugin
-Date: Mon, 28 Nov 2022 11:43:58 +0100
+From: Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
+Subject: relay: fix type mismatch when allocating memory in relay_create_buf()
+Date: Tue, 29 Nov 2022 09:23:38 +0000
 
-Building kcsan_test with structleak plugin enabled makes the stack frame
-size to grow.
+The 'padding' field of the 'rchan_buf' structure is an array of 'size_t'
+elements, but the memory is allocated for an array of 'size_t *' elements.
 
-kernel/kcsan/kcsan_test.c:704:1: error: the frame size of 3296 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
 
-Turn off the structleak plugin checks for kcsan_test.
-
-Link: https://lkml.kernel.org/r/20221128104358.2660634-1-anders.roxell@linaro.org
-Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Gow <davidgow@google.com>
-Cc: Jason A. Donenfeld <Jason@zx2c4.com>
-Cc: Kees Cook <keescook@chromium.org>
+Link: https://lkml.kernel.org/r/20221129092002.3538384-1-Ilia.Gavrilov@infotecs.ru
+Fixes: b86ff981a825 ("[PATCH] relay: migrate from relayfs to a generic relay API")
+Signed-off-by: Ilia.Gavrilov <Ilia.Gavrilov@infotecs.ru>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: wuchi <wuchi.zero@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcsan/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/relay.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/kcsan/Makefile~kernel-kcsan-kcsan_test-build-without-structleak-plugin
-+++ a/kernel/kcsan/Makefile
-@@ -17,4 +17,5 @@ KCSAN_INSTRUMENT_BARRIERS_selftest.o :=
- obj-$(CONFIG_KCSAN_SELFTEST) += selftest.o
+--- a/kernel/relay.c~relay-fix-type-mismatch-when-allocating-memory-in-relay_create_buf
++++ a/kernel/relay.c
+@@ -148,13 +148,13 @@ static struct rchan_buf *relay_create_bu
+ {
+ 	struct rchan_buf *buf;
  
- CFLAGS_kcsan_test.o := $(CFLAGS_KCSAN) -g -fno-omit-frame-pointer
-+CFLAGS_kcsan_test.o += $(DISABLE_STRUCTLEAK_PLUGIN)
- obj-$(CONFIG_KCSAN_KUNIT_TEST) += kcsan_test.o
+-	if (chan->n_subbufs > KMALLOC_MAX_SIZE / sizeof(size_t *))
++	if (chan->n_subbufs > KMALLOC_MAX_SIZE / sizeof(size_t))
+ 		return NULL;
+ 
+ 	buf = kzalloc(sizeof(struct rchan_buf), GFP_KERNEL);
+ 	if (!buf)
+ 		return NULL;
+-	buf->padding = kmalloc_array(chan->n_subbufs, sizeof(size_t *),
++	buf->padding = kmalloc_array(chan->n_subbufs, sizeof(size_t),
+ 				     GFP_KERNEL);
+ 	if (!buf->padding)
+ 		goto free_buf;
 _
 
-Patches currently in -mm which might be from anders.roxell@linaro.org are
+Patches currently in -mm which might be from Ilia.Gavrilov@infotecs.ru are
 
 
