@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E71FDC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:14:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B470C4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Dec 2022 02:14:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231296AbiLLCON (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 11 Dec 2022 21:14:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41136 "EHLO
+        id S231260AbiLLCOR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 11 Dec 2022 21:14:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231261AbiLLCNx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:13:53 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1988FDF0B
-        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:13:50 -0800 (PST)
+        with ESMTP id S231265AbiLLCNy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 11 Dec 2022 21:13:54 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FE60DF0C
+        for <mm-commits@vger.kernel.org>; Sun, 11 Dec 2022 18:13:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B93F0B80B67
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:13:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58E46C433D2;
-        Mon, 12 Dec 2022 02:13:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C0F0760EB9
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2022 02:13:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BB6CC433EF;
+        Mon, 12 Dec 2022 02:13:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1670811227;
-        bh=PdrX5g9757Id/xI1UZF0Xz38urj9WDCeWNwbXNcJYc8=;
+        s=korg; t=1670811230;
+        bh=ZnNSQp4+F4Ju20noaMz8ltSUfd15gnbxRYBEe35wnoE=;
         h=Date:To:From:Subject:From;
-        b=d2aNZfz8qQHfbBWQRZRbeVK3Lcfmn0au8ts4RhcUqQp0s3sB3odPedAVE7Nrkqt6q
-         1TXU1t4EC50swu3/nI7K5zJSMgl0/5yjnFB3F0disvBadjBW6lmiylBDI/vjAy7DkV
-         ntnr63IqXLzLFZH8+Mo3bnv+lZxPMHt9qDrJKhao=
-Date:   Sun, 11 Dec 2022 18:13:44 -0800
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        quic_charante@quicinc.com, minchan@kernel.org, david@redhat.com,
-        quic_pkondeti@quicinc.com, akpm@linux-foundation.org
+        b=APs7kr8xn0MXUyF0RAawv5JPG48zeaJSujMLnG4PnuXfyoW0BEYrc/kys7XjYYKlQ
+         ZXv2413St+VZndrmXaLRJemy7+6F6nQheZaOzj2H3/cph5zP4q/tYWuFKPJXdOtqDV
+         WyL7+RoXbRiaZRdoJefvd9WnZirULgFlfbfCzm/c=
+Date:   Sun, 11 Dec 2022 18:13:49 -0800
+To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
+        sjenning@redhat.com, senozhatsky@chromium.org, nphamcs@gmail.com,
+        ngupta@vflare.org, minchan@kernel.org, ddstreet@ieee.org,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-fix-madvise_pageout-for-private-file-mappings.patch removed from -mm tree
-Message-Id: <20221212021347.58E46C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] zpool-clean-out-dead-code.patch removed from -mm tree
+Message-Id: <20221212021350.1BB6CC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,153 +43,303 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/madvise: fix madvise_pageout for private file mappings
+     Subject: zpool: clean out dead code
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-fix-madvise_pageout-for-private-file-mappings.patch
+     zpool-clean-out-dead-code.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
-Subject: mm/madvise: fix madvise_pageout for private file mappings
-Date: Wed, 9 Nov 2022 10:48:36 +0530
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: zpool: clean out dead code
+Date: Mon, 28 Nov 2022 11:16:11 -0800
 
-When MADV_PAGEOUT is called on a private file mapping VMA region, we bail
-out early if the process is neither owner nor write capable of the file. 
-However, this VMA may have both private/shared clean pages and private
-dirty pages.  The opportunity of paging out the private dirty pages (Anon
-pages) is missed.  Fix this behavior by allowing private file mappings
-pageout further and perform the file access check along with PageAnon()
-during page walk.
+There is a lot of provision for flexibility that isn't actually needed or
+used.  Zswap (the only zpool user) always passes zpool_ops with an .evict
+method set.  The backends who reclaim only do so for zswap, so they can
+also directly call zpool_ops without indirection or checks.
 
-We observe ~10% improvement in zram usage, thus leaving more available
-memory on a 4GB RAM system running Android.
+Finally, there is no need to check the retries parameters and bail with
+-EINVAL in the reclaim function, when that's called just a few lines below
+with a hard-coded 8.  There is no need to duplicate the evictable and
+sleep_mapped attrs from the driver in zpool_ops.
 
-[quic_pkondeti@quicinc.com: v2]
-  Link: https://lkml.kernel.org/r/1669962597-27724-1-git-send-email-quic_pkondeti@quicinc.com
-Link: https://lkml.kernel.org/r/1667971116-12900-1-git-send-email-quic_pkondeti@quicinc.com
-Signed-off-by: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
-Cc: Charan Teja Kalla <quic_charante@quicinc.com>
+Link: https://lkml.kernel.org/r/20221128191616.1261026-3-nphamcs@gmail.com
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   53 ++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 35 insertions(+), 18 deletions(-)
+ mm/z3fold.c |   36 +++++-------------------------------
+ mm/zbud.c   |   32 +++++---------------------------
+ mm/zpool.c  |   10 ++--------
+ 3 files changed, 12 insertions(+), 66 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-fix-madvise_pageout-for-private-file-mappings
-+++ a/mm/madvise.c
-@@ -318,6 +318,21 @@ static long madvise_willneed(struct vm_a
- 	return 0;
- }
+--- a/mm/z3fold.c~zpool-clean-out-dead-code
++++ a/mm/z3fold.c
+@@ -68,9 +68,6 @@
+  * Structures
+ *****************/
+ struct z3fold_pool;
+-struct z3fold_ops {
+-	int (*evict)(struct z3fold_pool *pool, unsigned long handle);
+-};
  
-+static inline bool can_do_file_pageout(struct vm_area_struct *vma)
-+{
-+	if (!vma->vm_file)
-+		return false;
-+	/*
-+	 * paging out pagecache only for non-anonymous mappings that correspond
-+	 * to the files the calling process could (if tried) open for writing;
-+	 * otherwise we'd be including shared non-exclusive mappings, which
-+	 * opens a side channel.
-+	 */
-+	return inode_owner_or_capable(&init_user_ns,
-+				      file_inode(vma->vm_file)) ||
-+	       file_permission(vma->vm_file, MAY_WRITE) == 0;
-+}
-+
- static int madvise_cold_or_pageout_pte_range(pmd_t *pmd,
- 				unsigned long addr, unsigned long end,
- 				struct mm_walk *walk)
-@@ -331,10 +346,14 @@ static int madvise_cold_or_pageout_pte_r
- 	spinlock_t *ptl;
- 	struct page *page = NULL;
- 	LIST_HEAD(page_list);
-+	bool pageout_anon_only_filter;
+ enum buddy {
+ 	HEADLESS = 0,
+@@ -138,8 +135,6 @@ struct z3fold_header {
+  * @stale:	list of pages marked for freeing
+  * @pages_nr:	number of z3fold pages in the pool.
+  * @c_handle:	cache for z3fold_buddy_slots allocation
+- * @ops:	pointer to a structure of user defined operations specified at
+- *		pool creation time.
+  * @zpool:	zpool driver
+  * @zpool_ops:	zpool operations structure with an evict callback
+  * @compact_wq:	workqueue for page layout background optimization
+@@ -158,7 +153,6 @@ struct z3fold_pool {
+ 	struct list_head stale;
+ 	atomic64_t pages_nr;
+ 	struct kmem_cache *c_handle;
+-	const struct z3fold_ops *ops;
+ 	struct zpool *zpool;
+ 	const struct zpool_ops *zpool_ops;
+ 	struct workqueue_struct *compact_wq;
+@@ -907,13 +901,11 @@ out_fail:
+  * z3fold_create_pool() - create a new z3fold pool
+  * @name:	pool name
+  * @gfp:	gfp flags when allocating the z3fold pool structure
+- * @ops:	user-defined operations for the z3fold pool
+  *
+  * Return: pointer to the new z3fold pool or NULL if the metadata allocation
+  * failed.
+  */
+-static struct z3fold_pool *z3fold_create_pool(const char *name, gfp_t gfp,
+-		const struct z3fold_ops *ops)
++static struct z3fold_pool *z3fold_create_pool(const char *name, gfp_t gfp)
+ {
+ 	struct z3fold_pool *pool = NULL;
+ 	int i, cpu;
+@@ -949,7 +941,6 @@ static struct z3fold_pool *z3fold_create
+ 	if (!pool->release_wq)
+ 		goto out_wq;
+ 	INIT_WORK(&pool->work, free_pages_work);
+-	pool->ops = ops;
+ 	return pool;
  
- 	if (fatal_signal_pending(current))
- 		return -EINTR;
+ out_wq:
+@@ -1230,10 +1221,6 @@ static int z3fold_reclaim_page(struct z3
+ 	slots.pool = (unsigned long)pool | (1 << HANDLES_NOFREE);
  
-+	pageout_anon_only_filter = pageout && !vma_is_anonymous(vma) &&
-+					!can_do_file_pageout(vma);
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (pmd_trans_huge(*pmd)) {
- 		pmd_t orig_pmd;
-@@ -361,6 +380,9 @@ static int madvise_cold_or_pageout_pte_r
- 		if (page_mapcount(page) != 1)
- 			goto huge_unlock;
+ 	spin_lock(&pool->lock);
+-	if (!pool->ops || !pool->ops->evict || retries == 0) {
+-		spin_unlock(&pool->lock);
+-		return -EINVAL;
+-	}
+ 	for (i = 0; i < retries; i++) {
+ 		if (list_empty(&pool->lru)) {
+ 			spin_unlock(&pool->lock);
+@@ -1319,17 +1306,17 @@ static int z3fold_reclaim_page(struct z3
+ 		}
+ 		/* Issue the eviction callback(s) */
+ 		if (middle_handle) {
+-			ret = pool->ops->evict(pool, middle_handle);
++			ret = pool->zpool_ops->evict(pool->zpool, middle_handle);
+ 			if (ret)
+ 				goto next;
+ 		}
+ 		if (first_handle) {
+-			ret = pool->ops->evict(pool, first_handle);
++			ret = pool->zpool_ops->evict(pool->zpool, first_handle);
+ 			if (ret)
+ 				goto next;
+ 		}
+ 		if (last_handle) {
+-			ret = pool->ops->evict(pool, last_handle);
++			ret = pool->zpool_ops->evict(pool->zpool, last_handle);
+ 			if (ret)
+ 				goto next;
+ 		}
+@@ -1593,26 +1580,13 @@ static const struct movable_operations z
+  * zpool
+  ****************/
  
-+		if (pageout_anon_only_filter && !PageAnon(page))
-+			goto huge_unlock;
-+
- 		if (next - addr != HPAGE_PMD_SIZE) {
- 			int err;
- 
-@@ -429,6 +451,8 @@ regular_page:
- 		if (PageTransCompound(page)) {
- 			if (page_mapcount(page) != 1)
- 				break;
-+			if (pageout_anon_only_filter && !PageAnon(page))
-+				break;
- 			get_page(page);
- 			if (!trylock_page(page)) {
- 				put_page(page);
-@@ -456,6 +480,9 @@ regular_page:
- 		if (!PageLRU(page) || page_mapcount(page) != 1)
- 			continue;
- 
-+		if (pageout_anon_only_filter && !PageAnon(page))
-+			continue;
-+
- 		VM_BUG_ON_PAGE(PageTransCompound(page), page);
- 
- 		if (pte_young(ptent)) {
-@@ -550,23 +577,6 @@ static void madvise_pageout_page_range(s
- 	tlb_end_vma(tlb, vma);
- }
- 
--static inline bool can_do_pageout(struct vm_area_struct *vma)
+-static int z3fold_zpool_evict(struct z3fold_pool *pool, unsigned long handle)
 -{
--	if (vma_is_anonymous(vma))
--		return true;
--	if (!vma->vm_file)
--		return false;
--	/*
--	 * paging out pagecache only for non-anonymous mappings that correspond
--	 * to the files the calling process could (if tried) open for writing;
--	 * otherwise we'd be including shared non-exclusive mappings, which
--	 * opens a side channel.
--	 */
--	return inode_owner_or_capable(&init_user_ns,
--				      file_inode(vma->vm_file)) ||
--	       file_permission(vma->vm_file, MAY_WRITE) == 0;
+-	if (pool->zpool && pool->zpool_ops && pool->zpool_ops->evict)
+-		return pool->zpool_ops->evict(pool->zpool, handle);
+-	else
+-		return -ENOENT;
 -}
 -
- static long madvise_pageout(struct vm_area_struct *vma,
- 			struct vm_area_struct **prev,
- 			unsigned long start_addr, unsigned long end_addr)
-@@ -578,7 +588,14 @@ static long madvise_pageout(struct vm_ar
- 	if (!can_madv_lru_vma(vma))
+-static const struct z3fold_ops z3fold_zpool_ops = {
+-	.evict =	z3fold_zpool_evict
+-};
+-
+ static void *z3fold_zpool_create(const char *name, gfp_t gfp,
+ 			       const struct zpool_ops *zpool_ops,
+ 			       struct zpool *zpool)
+ {
+ 	struct z3fold_pool *pool;
+ 
+-	pool = z3fold_create_pool(name, gfp,
+-				zpool_ops ? &z3fold_zpool_ops : NULL);
++	pool = z3fold_create_pool(name, gfp);
+ 	if (pool) {
+ 		pool->zpool = zpool;
+ 		pool->zpool_ops = zpool_ops;
+--- a/mm/zbud.c~zpool-clean-out-dead-code
++++ a/mm/zbud.c
+@@ -74,10 +74,6 @@
+ 
+ struct zbud_pool;
+ 
+-struct zbud_ops {
+-	int (*evict)(struct zbud_pool *pool, unsigned long handle);
+-};
+-
+ /**
+  * struct zbud_pool - stores metadata for each zbud pool
+  * @lock:	protects all pool fields and first|last_chunk fields of any
+@@ -90,8 +86,6 @@ struct zbud_ops {
+  * @lru:	list tracking the zbud pages in LRU order by most recently
+  *		added buddy.
+  * @pages_nr:	number of zbud pages in the pool.
+- * @ops:	pointer to a structure of user defined operations specified at
+- *		pool creation time.
+  * @zpool:	zpool driver
+  * @zpool_ops:	zpool operations structure with an evict callback
+  *
+@@ -110,7 +104,6 @@ struct zbud_pool {
+ 	};
+ 	struct list_head lru;
+ 	u64 pages_nr;
+-	const struct zbud_ops *ops;
+ 	struct zpool *zpool;
+ 	const struct zpool_ops *zpool_ops;
+ };
+@@ -212,12 +205,11 @@ static int num_free_chunks(struct zbud_h
+ /**
+  * zbud_create_pool() - create a new zbud pool
+  * @gfp:	gfp flags when allocating the zbud pool structure
+- * @ops:	user-defined operations for the zbud pool
+  *
+  * Return: pointer to the new zbud pool or NULL if the metadata allocation
+  * failed.
+  */
+-static struct zbud_pool *zbud_create_pool(gfp_t gfp, const struct zbud_ops *ops)
++static struct zbud_pool *zbud_create_pool(gfp_t gfp)
+ {
+ 	struct zbud_pool *pool;
+ 	int i;
+@@ -231,7 +223,6 @@ static struct zbud_pool *zbud_create_poo
+ 	INIT_LIST_HEAD(&pool->buddied);
+ 	INIT_LIST_HEAD(&pool->lru);
+ 	pool->pages_nr = 0;
+-	pool->ops = ops;
+ 	return pool;
+ }
+ 
+@@ -419,8 +410,7 @@ static int zbud_reclaim_page(struct zbud
+ 	unsigned long first_handle = 0, last_handle = 0;
+ 
+ 	spin_lock(&pool->lock);
+-	if (!pool->ops || !pool->ops->evict || list_empty(&pool->lru) ||
+-			retries == 0) {
++	if (list_empty(&pool->lru)) {
+ 		spin_unlock(&pool->lock);
  		return -EINVAL;
+ 	}
+@@ -444,12 +434,12 @@ static int zbud_reclaim_page(struct zbud
  
--	if (!can_do_pageout(vma))
-+	/*
-+	 * If the VMA belongs to a private file mapping, there can be private
-+	 * dirty pages which can be paged out if even this process is neither
-+	 * owner nor write capable of the file. We allow private file mappings
-+	 * further to pageout dirty anon pages.
-+	 */
-+	if (!vma_is_anonymous(vma) && (!can_do_file_pageout(vma) &&
-+				(vma->vm_flags & VM_MAYSHARE)))
- 		return 0;
+ 		/* Issue the eviction callback(s) */
+ 		if (first_handle) {
+-			ret = pool->ops->evict(pool, first_handle);
++			ret = pool->zpool_ops->evict(pool->zpool, first_handle);
+ 			if (ret)
+ 				goto next;
+ 		}
+ 		if (last_handle) {
+-			ret = pool->ops->evict(pool, last_handle);
++			ret = pool->zpool_ops->evict(pool->zpool, last_handle);
+ 			if (ret)
+ 				goto next;
+ 		}
+@@ -524,25 +514,13 @@ static u64 zbud_get_pool_size(struct zbu
+  * zpool
+  ****************/
  
- 	lru_add_drain();
+-static int zbud_zpool_evict(struct zbud_pool *pool, unsigned long handle)
+-{
+-	if (pool->zpool && pool->zpool_ops && pool->zpool_ops->evict)
+-		return pool->zpool_ops->evict(pool->zpool, handle);
+-	else
+-		return -ENOENT;
+-}
+-
+-static const struct zbud_ops zbud_zpool_ops = {
+-	.evict =	zbud_zpool_evict
+-};
+-
+ static void *zbud_zpool_create(const char *name, gfp_t gfp,
+ 			       const struct zpool_ops *zpool_ops,
+ 			       struct zpool *zpool)
+ {
+ 	struct zbud_pool *pool;
+ 
+-	pool = zbud_create_pool(gfp, zpool_ops ? &zbud_zpool_ops : NULL);
++	pool = zbud_create_pool(gfp);
+ 	if (pool) {
+ 		pool->zpool = zpool;
+ 		pool->zpool_ops = zpool_ops;
+--- a/mm/zpool.c~zpool-clean-out-dead-code
++++ a/mm/zpool.c
+@@ -21,9 +21,6 @@
+ struct zpool {
+ 	struct zpool_driver *driver;
+ 	void *pool;
+-	const struct zpool_ops *ops;
+-	bool evictable;
+-	bool can_sleep_mapped;
+ };
+ 
+ static LIST_HEAD(drivers_head);
+@@ -177,9 +174,6 @@ struct zpool *zpool_create_pool(const ch
+ 
+ 	zpool->driver = driver;
+ 	zpool->pool = driver->create(name, gfp, ops, zpool);
+-	zpool->ops = ops;
+-	zpool->evictable = driver->shrink && ops && ops->evict;
+-	zpool->can_sleep_mapped = driver->sleep_mapped;
+ 
+ 	if (!zpool->pool) {
+ 		pr_err("couldn't create %s pool\n", type);
+@@ -380,7 +374,7 @@ u64 zpool_get_total_size(struct zpool *z
+  */
+ bool zpool_evictable(struct zpool *zpool)
+ {
+-	return zpool->evictable;
++	return zpool->driver->shrink;
+ }
+ 
+ /**
+@@ -398,7 +392,7 @@ bool zpool_evictable(struct zpool *zpool
+  */
+ bool zpool_can_sleep_mapped(struct zpool *zpool)
+ {
+-	return zpool->can_sleep_mapped;
++	return zpool->driver->sleep_mapped;
+ }
+ 
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from quic_pkondeti@quicinc.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 
