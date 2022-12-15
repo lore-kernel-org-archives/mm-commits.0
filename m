@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA326C4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Dec 2022 22:05:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3165BC4332F
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Dec 2022 22:24:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229471AbiLOWFZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Dec 2022 17:05:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52130 "EHLO
+        id S229661AbiLOWYz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Dec 2022 17:24:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229453AbiLOWFY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 17:05:24 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BB304A062
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 14:05:22 -0800 (PST)
+        with ESMTP id S229517AbiLOWYy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 17:24:54 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43C1457B47
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 14:24:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A4437B81C95
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 22:05:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E787C433D2;
-        Thu, 15 Dec 2022 22:05:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DCB6CB81CC8
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 22:24:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76AEAC433EF;
+        Thu, 15 Dec 2022 22:24:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671141919;
-        bh=WVPgi/mvNKs6g7tG1fwmcGEWMnv2ZEBsfEv6Ba5g2gs=;
+        s=korg; t=1671143090;
+        bh=d44tSfV999aS5NBHO7jC79y87g8x3b9v5e85OQmkX7s=;
         h=Date:To:From:Subject:From;
-        b=HvUNii4bglPIc+XMhlbJwcuEoF8dg3bCMcSGjnJN3ajRXJ5mA4MVcM9ETDa0v7f1N
-         uEBycCom9hDkkNmK0edQkmxGvZ4b+wq/UUJ3AvAmEiyJ4e9ove+V389Rqmd1WgORWC
-         334+hN9JQCyfFEXhM3uHW3t66fPDqcpxR6X3udxE=
-Date:   Thu, 15 Dec 2022 14:05:18 -0800
-To:     mm-commits@vger.kernel.org, nadav.amit@gmail.com,
-        mike.kravetz@oracle.com, ives@codesandbox.io, hughd@google.com,
-        david@redhat.com, aarcange@redhat.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=xCX4VVkl3AezZjF5przEewQrnudM42L9hQz6+hyS7UjZEoWguJ0uAxjoaXbYIFtD/
+         Ds/Wl7Zu0HIVrr43yuPI1QHPENaHdWTol0TA6JFJkSW9tgUc14DejpC0v+m3nHuD59
+         gZczdea71jEYOtJKWGfo9SVi5Lw2Zr9kqNt3WMvw=
+Date:   Thu, 15 Dec 2022 14:24:49 -0800
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        ngupta@vflare.org, minchan@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp.patch added to mm-unstable branch
-Message-Id: <20221215220519.4E787C433D2@smtp.kernel.org>
+Subject: + maintainers-zram-zsmalloc-add-an-additional-co-maintainer.patch added to mm-unstable branch
+Message-Id: <20221215222450.76AEAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/uffd: always wr-protect pte in pte|pmd_mkuffd_wp()
+     Subject: MAINTAINERS: zram: zsmalloc: Add an additional co-maintainer
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp.patch
+     maintainers-zram-zsmalloc-add-an-additional-co-maintainer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-zram-zsmalloc-add-an-additional-co-maintainer.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,301 +64,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/uffd: always wr-protect pte in pte|pmd_mkuffd_wp()
-Date: Wed, 14 Dec 2022 15:15:33 -0500
+From: Minchan Kim <minchan@kernel.org>
+Subject: MAINTAINERS: zram: zsmalloc: Add an additional co-maintainer
+Date: Tue, 13 Dec 2022 09:07:31 -0800
 
-This patch is a cleanup to always wr-protect pte/pmd in mkuffd_wp paths.
+Move Sergey to co-maintainer for zram/zsmalloc since he has helped to
+contribute/review those areas actively for eight years, which is quite
+helpful.  Since Nitin has been inactive for several years, it's time to
+move his name into CREDITS.
 
-The reasons I still think this patch is worthwhile, are:
-
-  (1) It is a cleanup already; diffstat tells.
-
-  (2) It just feels natural after I thought about this, if the pte is uffd
-      protected, let's remove the write bit no matter what it was.
-
-  (2) Since x86 is the only arch that supports uffd-wp, it also redefines
-      pte|pmd_mkuffd_wp() in that it should always contain removals of
-      write bits.  It means any future arch that want to implement uffd-wp
-      should naturally follow this rule too.  It's good to make it a
-      default, even if with vm_page_prot changes on VM_UFFD_WP.
-
-  (3) It covers more than vm_page_prot.  So no chance of any potential
-      future "accident" (like pte_mkdirty() sparc64 or loongarch, even
-      though it just got its pte_mkdirty fixed <1 month ago).  It'll be
-      fairly clear when reading the code too that we don't worry anything
-      before a pte_mkuffd_wp() on uncertainty of the write bit.
-
-We may call pte_wrprotect() one more time in some paths (e.g.  thp split),
-but that should be fully local bitop instruction so the overhead should be
-negligible.
-
-Although this patch should logically also fix all the known issues on
-uffd-wp too recently on page migration (not for numa hint recovery - that
-may need another explcit pte_wrprotect), but this is not the plan for that
-fix.  So no fixes, and stable doesn't need this.
-
-Link: https://lkml.kernel.org/r/20221214201533.1774616-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ives van Hoorne <ives@codesandbox.io>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
+Link: https://lkml.kernel.org/r/20221213170731.796121-1-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |   24 ++++++++++++------------
- include/asm-generic/hugetlb.h  |   16 ++++++++--------
- mm/huge_memory.c               |    8 +++-----
- mm/hugetlb.c                   |    4 ++--
- mm/memory.c                    |    8 +++-----
- mm/mprotect.c                  |    6 ++----
- mm/userfaultfd.c               |   18 ++----------------
- 7 files changed, 32 insertions(+), 52 deletions(-)
+ CREDITS     |    4 ++++
+ MAINTAINERS |    6 ++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/arch/x86/include/asm/pgtable.h~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -289,6 +289,11 @@ static inline pte_t pte_clear_flags(pte_
- 	return native_make_pte(v & ~clear);
- }
+--- a/CREDITS~maintainers-zram-zsmalloc-add-an-additional-co-maintainer
++++ a/CREDITS
+@@ -1439,6 +1439,10 @@ N: Justin Guyett
+ E: jguyett@andrew.cmu.edu
+ D: via-rhine net driver hacking
  
-+static inline pte_t pte_wrprotect(pte_t pte)
-+{
-+	return pte_clear_flags(pte, _PAGE_RW);
-+}
++N: Nitin Gupta
++E: ngupta@vflare.org
++D: zsmalloc memory allocator and zram block device driver
 +
- #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
- static inline int pte_uffd_wp(pte_t pte)
- {
-@@ -313,7 +318,7 @@ static inline int pte_uffd_wp(pte_t pte)
+ N: Danny ter Haar
+ E: dth@cistron.nl
+ D: /proc/cpuinfo, reboot on panic , kernel pre-patch tester ;)
+--- a/MAINTAINERS~maintainers-zram-zsmalloc-add-an-additional-co-maintainer
++++ a/MAINTAINERS
+@@ -23002,8 +23002,7 @@ F:	drivers/media/pci/zoran/
  
- static inline pte_t pte_mkuffd_wp(pte_t pte)
- {
--	return pte_set_flags(pte, _PAGE_UFFD_WP);
-+	return pte_wrprotect(pte_set_flags(pte, _PAGE_UFFD_WP));
- }
+ ZRAM COMPRESSED RAM BLOCK DEVICE DRVIER
+ M:	Minchan Kim <minchan@kernel.org>
+-M:	Nitin Gupta <ngupta@vflare.org>
+-R:	Sergey Senozhatsky <senozhatsky@chromium.org>
++M:	Sergey Senozhatsky <senozhatsky@chromium.org>
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/admin-guide/blockdev/zram.rst
+@@ -23016,8 +23015,7 @@ F:	drivers/tty/serial/zs.*
  
- static inline pte_t pte_clear_uffd_wp(pte_t pte)
-@@ -332,11 +337,6 @@ static inline pte_t pte_mkold(pte_t pte)
- 	return pte_clear_flags(pte, _PAGE_ACCESSED);
- }
- 
--static inline pte_t pte_wrprotect(pte_t pte)
--{
--	return pte_clear_flags(pte, _PAGE_RW);
--}
--
- static inline pte_t pte_mkexec(pte_t pte)
- {
- 	return pte_clear_flags(pte, _PAGE_NX);
-@@ -401,6 +401,11 @@ static inline pmd_t pmd_clear_flags(pmd_
- 	return native_make_pmd(v & ~clear);
- }
- 
-+static inline pmd_t pmd_wrprotect(pmd_t pmd)
-+{
-+	return pmd_clear_flags(pmd, _PAGE_RW);
-+}
-+
- #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
- static inline int pmd_uffd_wp(pmd_t pmd)
- {
-@@ -409,7 +414,7 @@ static inline int pmd_uffd_wp(pmd_t pmd)
- 
- static inline pmd_t pmd_mkuffd_wp(pmd_t pmd)
- {
--	return pmd_set_flags(pmd, _PAGE_UFFD_WP);
-+	return pmd_wrprotect(pmd_set_flags(pmd, _PAGE_UFFD_WP));
- }
- 
- static inline pmd_t pmd_clear_uffd_wp(pmd_t pmd)
-@@ -428,11 +433,6 @@ static inline pmd_t pmd_mkclean(pmd_t pm
- 	return pmd_clear_flags(pmd, _PAGE_DIRTY);
- }
- 
--static inline pmd_t pmd_wrprotect(pmd_t pmd)
--{
--	return pmd_clear_flags(pmd, _PAGE_RW);
--}
--
- static inline pmd_t pmd_mkdirty(pmd_t pmd)
- {
- 	return pmd_set_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
---- a/include/asm-generic/hugetlb.h~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/include/asm-generic/hugetlb.h
-@@ -25,6 +25,13 @@ static inline pte_t huge_pte_mkwrite(pte
- 	return pte_mkwrite(pte);
- }
- 
-+#ifndef __HAVE_ARCH_HUGE_PTE_WRPROTECT
-+static inline pte_t huge_pte_wrprotect(pte_t pte)
-+{
-+	return pte_wrprotect(pte);
-+}
-+#endif
-+
- static inline pte_t huge_pte_mkdirty(pte_t pte)
- {
- 	return pte_mkdirty(pte);
-@@ -37,7 +44,7 @@ static inline pte_t huge_pte_modify(pte_
- 
- static inline pte_t huge_pte_mkuffd_wp(pte_t pte)
- {
--	return pte_mkuffd_wp(pte);
-+	return huge_pte_wrprotect(pte_mkuffd_wp(pte));
- }
- 
- static inline pte_t huge_pte_clear_uffd_wp(pte_t pte)
-@@ -104,13 +111,6 @@ static inline int huge_pte_none_mostly(p
- 	return huge_pte_none(pte) || is_pte_marker(pte);
- }
- 
--#ifndef __HAVE_ARCH_HUGE_PTE_WRPROTECT
--static inline pte_t huge_pte_wrprotect(pte_t pte)
--{
--	return pte_wrprotect(pte);
--}
--#endif
--
- #ifndef __HAVE_ARCH_PREPARE_HUGEPAGE_RANGE
- static inline int prepare_hugepage_range(struct file *file,
- 		unsigned long addr, unsigned long len)
---- a/mm/huge_memory.c~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/mm/huge_memory.c
-@@ -1920,17 +1920,15 @@ int change_huge_pmd(struct mmu_gather *t
- 	oldpmd = pmdp_invalidate_ad(vma, addr, pmd);
- 
- 	entry = pmd_modify(oldpmd, newprot);
--	if (uffd_wp) {
--		entry = pmd_wrprotect(entry);
-+	if (uffd_wp)
- 		entry = pmd_mkuffd_wp(entry);
--	} else if (uffd_wp_resolve) {
-+	else if (uffd_wp_resolve)
- 		/*
- 		 * Leave the write bit to be handled by PF interrupt
- 		 * handler, then things like COW could be properly
- 		 * handled.
- 		 */
- 		entry = pmd_clear_uffd_wp(entry);
--	}
- 
- 	/* See change_pte_range(). */
- 	if ((cp_flags & MM_CP_TRY_CHANGE_WRITABLE) && !pmd_write(entry) &&
-@@ -3275,7 +3273,7 @@ void remove_migration_pmd(struct page_vm
- 	if (is_writable_migration_entry(entry))
- 		pmde = maybe_pmd_mkwrite(pmde, vma);
- 	if (pmd_swp_uffd_wp(*pvmw->pmd))
--		pmde = pmd_wrprotect(pmd_mkuffd_wp(pmde));
-+		pmde = pmd_mkuffd_wp(pmde);
- 	if (!is_migration_entry_young(entry))
- 		pmde = pmd_mkold(pmde);
- 	/* NOTE: this may contain setting soft-dirty on some archs */
---- a/mm/hugetlb.c~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/mm/hugetlb.c
-@@ -5752,7 +5752,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	 * if populated.
- 	 */
- 	if (unlikely(pte_marker_uffd_wp(old_pte)))
--		new_pte = huge_pte_wrprotect(huge_pte_mkuffd_wp(new_pte));
-+		new_pte = huge_pte_mkuffd_wp(new_pte);
- 	set_huge_pte_at(mm, haddr, ptep, new_pte);
- 
- 	hugetlb_count_add(pages_per_huge_page(h), mm);
-@@ -6558,7 +6558,7 @@ unsigned long hugetlb_change_protection(
- 			pte = huge_pte_modify(old_pte, newprot);
- 			pte = arch_make_huge_pte(pte, shift, vma->vm_flags);
- 			if (uffd_wp)
--				pte = huge_pte_mkuffd_wp(huge_pte_wrprotect(pte));
-+				pte = huge_pte_mkuffd_wp(pte);
- 			else if (uffd_wp_resolve)
- 				pte = huge_pte_clear_uffd_wp(pte);
- 			huge_ptep_modify_prot_commit(vma, address, ptep, old_pte, pte);
---- a/mm/memory.c~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/mm/memory.c
-@@ -878,7 +878,7 @@ copy_present_page(struct vm_area_struct
- 	pte = maybe_mkwrite(pte_mkdirty(pte), dst_vma);
- 	if (userfaultfd_pte_wp(dst_vma, *src_pte))
- 		/* Uffd-wp needs to be delivered to dest pte as well */
--		pte = pte_wrprotect(pte_mkuffd_wp(pte));
-+		pte = pte_mkuffd_wp(pte);
- 	set_pte_at(dst_vma->vm_mm, addr, dst_pte, pte);
- 	return 0;
- }
-@@ -3953,10 +3953,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 	flush_icache_page(vma, page);
- 	if (pte_swp_soft_dirty(vmf->orig_pte))
- 		pte = pte_mksoft_dirty(pte);
--	if (pte_swp_uffd_wp(vmf->orig_pte)) {
-+	if (pte_swp_uffd_wp(vmf->orig_pte))
- 		pte = pte_mkuffd_wp(pte);
--		pte = pte_wrprotect(pte);
--	}
- 	vmf->orig_pte = pte;
- 
- 	/* ksm created a completely new copy */
-@@ -4299,7 +4297,7 @@ void do_set_pte(struct vm_fault *vmf, st
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 	if (unlikely(uffd_wp))
--		entry = pte_mkuffd_wp(pte_wrprotect(entry));
-+		entry = pte_mkuffd_wp(entry);
- 	/* copy-on-write page */
- 	if (write && !(vma->vm_flags & VM_SHARED)) {
- 		inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
---- a/mm/mprotect.c~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/mm/mprotect.c
-@@ -177,12 +177,10 @@ static unsigned long change_pte_range(st
- 			oldpte = ptep_modify_prot_start(vma, addr, pte);
- 			ptent = pte_modify(oldpte, newprot);
- 
--			if (uffd_wp) {
--				ptent = pte_wrprotect(ptent);
-+			if (uffd_wp)
- 				ptent = pte_mkuffd_wp(ptent);
--			} else if (uffd_wp_resolve) {
-+			else if (uffd_wp_resolve)
- 				ptent = pte_clear_uffd_wp(ptent);
--			}
- 
- 			/*
- 			 * In some writable, shared mappings, we might want
---- a/mm/userfaultfd.c~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/mm/userfaultfd.c
-@@ -74,24 +74,10 @@ int mfill_atomic_install_pte(struct mm_s
- 	_dst_pte = pte_mkdirty(_dst_pte);
- 	if (page_in_cache && !vm_shared)
- 		writable = false;
--
--	/*
--	 * Always mark a PTE as write-protected when needed, regardless of
--	 * VM_WRITE, which the user might change.
--	 */
--	if (wp_copy) {
--		_dst_pte = pte_mkuffd_wp(_dst_pte);
--		writable = false;
--	}
--
- 	if (writable)
- 		_dst_pte = pte_mkwrite(_dst_pte);
--	else
--		/*
--		 * We need this to make sure write bit removed; as mk_pte()
--		 * could return a pte with write bit set.
--		 */
--		_dst_pte = pte_wrprotect(_dst_pte);
-+	if (wp_copy)
-+		_dst_pte = pte_mkuffd_wp(_dst_pte);
- 
- 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
- 
+ ZSMALLOC COMPRESSED SLAB MEMORY ALLOCATOR
+ M:	Minchan Kim <minchan@kernel.org>
+-M:	Nitin Gupta <ngupta@vflare.org>
+-R:	Sergey Senozhatsky <senozhatsky@chromium.org>
++M:	Sergey Senozhatsky <senozhatsky@chromium.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/mm/zsmalloc.rst
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-uffd-fix-pte-marker-when-fork-without-fork-event.patch
-mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker.patch
-mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp.patch
+maintainers-zram-zsmalloc-add-an-additional-co-maintainer.patch
 
