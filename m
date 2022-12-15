@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C426C10F1E
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Dec 2022 21:47:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 235D4C46467
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Dec 2022 21:47:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229731AbiLOVrl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Dec 2022 16:47:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44800 "EHLO
+        id S229730AbiLOVrn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Dec 2022 16:47:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229838AbiLOVrf (ORCPT
+        with ESMTP id S229841AbiLOVrf (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 16:47:35 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7E3747305
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 13:47:33 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC2A645ECF
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 13:47:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 59F73B81BAD
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 21:47:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0837CC433D2;
-        Thu, 15 Dec 2022 21:47:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7890261F5B
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 21:47:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3EBFC433D2;
+        Thu, 15 Dec 2022 21:47:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671140851;
-        bh=ldFoIr94dHIV4R7DWL3dC6IV4Q4p5RSWckBdnQspCgY=;
+        s=korg; t=1671140853;
+        bh=2964JWYKE1u1NfA5eVKc/Mf6mRjxuvTftBkkQm0XMNo=;
         h=Date:To:From:Subject:From;
-        b=DHjFhtaWmmYS30bYLv2kh5I42bXWH2zKa/j7UT1/9Pjiyc46jahF4BtVA4++CSyiQ
-         Ar/C96gGJFCAfS6hbfWO0kP0ZedMdytjjOYJ46/FanRNIytHhmhcyVuAJu975QJp3A
-         o9y8rlxWxfywZ+5jayApmCl3RuzIFBvBUFutAp6k=
-Date:   Thu, 15 Dec 2022 13:47:30 -0800
+        b=pOMUP5ix35oea/y7OwgZLGDWSFrwjofqWnH2oyXW6FIzr4TodRfUvPIf56izYkvWz
+         uWrBMGVp11//wUC1+hfRrn596RnYSBLoxKhQVz408D+ObPC31CYg2goXuy8zkW3e5J
+         4vWdNThhsB8Y6mWQfnl6oV1H4dPnM3h00Ex1n7GU=
+Date:   Thu, 15 Dec 2022 13:47:33 -0800
 To:     mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
         lkp@intel.com, keescook@chromium.org, jorgelo@chromium.org,
         jannh@google.com, hughd@google.com, dverkamp@chromium.org,
         dmitry.torokhov@gmail.com, dh.herrmann@gmail.com,
         jeffxu@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd-add-mfd_noexec_seal-and-mfd_exec.patch added to mm-unstable branch
-Message-Id: <20221215214731.0837CC433D2@smtp.kernel.org>
+Subject: + mm-memfd-add-write-seals-when-apply-seal_exec-to-executable-memfd.patch added to mm-unstable branch
+Message-Id: <20221215214733.D3EBFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memfd: add MFD_NOEXEC_SEAL and MFD_EXEC
+     Subject: mm/memfd: Add write seals when apply SEAL_EXEC to executable memfd
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memfd-add-mfd_noexec_seal-and-mfd_exec.patch
+     mm-memfd-add-write-seals-when-apply-seal_exec-to-executable-memfd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-add-mfd_noexec_seal-and-mfd_exec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-add-write-seals-when-apply-seal_exec-to-executable-memfd.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,276 +68,55 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jeff Xu <jeffxu@google.com>
-Subject: mm/memfd: add MFD_NOEXEC_SEAL and MFD_EXEC
-Date: Thu, 15 Dec 2022 00:12:03 +0000
+Subject: mm/memfd: Add write seals when apply SEAL_EXEC to executable memfd
+Date: Thu, 15 Dec 2022 00:12:04 +0000
 
-The new MFD_NOEXEC_SEAL and MFD_EXEC flags allows application to set
-executable bit at creation time (memfd_create).
+In order to avoid WX mappings, add F_SEAL_WRITE when apply F_SEAL_EXEC to
+an executable memfd, so W^X from start.
 
-When MFD_NOEXEC_SEAL is set, memfd is created without executable bit
-(mode:0666), and sealed with F_SEAL_EXEC, so it can't be chmod to be
-executable (mode: 0777) after creation.
+This implys application need to fill the content of the memfd first, after
+F_SEAL_EXEC is applied, application can no longer modify the content of
+the memfd.
 
-when MFD_EXEC flag is set, memfd is created with executable bit
-(mode:0777), this is the same as the old behavior of memfd_create.
+Typically, application seals the memfd right after writing to it.
+For example:
+1. memfd_create(MFD_EXEC).
+2. write() code to the memfd.
+3. fcntl(F_ADD_SEALS, F_SEAL_EXEC) to convert the memfd to W^X.
+4. call exec() on the memfd.
 
-The new pid namespaced sysctl vm.memfd_noexec has 3 values:
-0: memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL acts like
-        MFD_EXEC was set.
-1: memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL acts like
-        MFD_NOEXEC_SEAL was set.
-2: memfd_create() without MFD_NOEXEC_SEAL will be rejected.
-
-The sysctl allows finer control of memfd_create for old-software that
-doesn't set the executable bit, for example, a container with
-vm.memfd_noexec=1 means the old-software will create non-executable memfd
-by default.  Also, the value of memfd_noexec is passed to child namespace
-at creation time.  For example, if the init namespace has
-vm.memfd_noexec=2, all its children namespaces will be created with 2.
-
-Link: https://lkml.kernel.org/r/20221215001205.51969-4-jeffxu@google.com
+Link: https://lkml.kernel.org/r/20221215001205.51969-5-jeffxu@google.com
 Signed-off-by: Jeff Xu <jeffxu@google.com>
-Co-developed-by: Daniel Verkamp <dverkamp@chromium.org>
-Signed-off-by: Daniel Verkamp <dverkamp@chromium.org>
-Reported-by: kernel test robot <lkp@intel.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
 Cc: David Herrmann <dh.herrmann@gmail.com>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid_namespace.h |   19 ++++++++++
- include/uapi/linux/memfd.h    |    4 ++
- kernel/pid_namespace.c        |    5 ++
- kernel/pid_sysctl.h           |   59 ++++++++++++++++++++++++++++++++
- mm/memfd.c                    |   48 ++++++++++++++++++++++++--
- 5 files changed, 133 insertions(+), 2 deletions(-)
+ mm/memfd.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/pid_namespace.h~mm-memfd-add-mfd_noexec_seal-and-mfd_exec
-+++ a/include/linux/pid_namespace.h
-@@ -16,6 +16,21 @@
- 
- struct fs_pin;
- 
-+#if defined(CONFIG_SYSCTL) && defined(CONFIG_MEMFD_CREATE)
-+/*
-+ * sysctl for vm.memfd_noexec
-+ * 0: memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL
-+ *	acts like MFD_EXEC was set.
-+ * 1: memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL
-+ *	acts like MFD_NOEXEC_SEAL was set.
-+ * 2: memfd_create() without MFD_NOEXEC_SEAL will be
-+ *	rejected.
-+ */
-+#define MEMFD_NOEXEC_SCOPE_EXEC			0
-+#define MEMFD_NOEXEC_SCOPE_NOEXEC_SEAL		1
-+#define MEMFD_NOEXEC_SCOPE_NOEXEC_ENFORCED	2
-+#endif
-+
- struct pid_namespace {
- 	struct idr idr;
- 	struct rcu_head rcu;
-@@ -31,6 +46,10 @@ struct pid_namespace {
- 	struct ucounts *ucounts;
- 	int reboot;	/* group exit code if this pidns was rebooted */
- 	struct ns_common ns;
-+#if defined(CONFIG_SYSCTL) && defined(CONFIG_MEMFD_CREATE)
-+	/* sysctl for vm.memfd_noexec */
-+	int memfd_noexec_scope;
-+#endif
- } __randomize_layout;
- 
- extern struct pid_namespace init_pid_ns;
---- a/include/uapi/linux/memfd.h~mm-memfd-add-mfd_noexec_seal-and-mfd_exec
-+++ a/include/uapi/linux/memfd.h
-@@ -8,6 +8,10 @@
- #define MFD_CLOEXEC		0x0001U
- #define MFD_ALLOW_SEALING	0x0002U
- #define MFD_HUGETLB		0x0004U
-+/* not executable and sealed to prevent changing to executable. */
-+#define MFD_NOEXEC_SEAL		0x0008U
-+/* executable */
-+#define MFD_EXEC		0x0010U
- 
- /*
-  * Huge page size encoding when MFD_HUGETLB is specified, and a huge page
---- a/kernel/pid_namespace.c~mm-memfd-add-mfd_noexec_seal-and-mfd_exec
-+++ a/kernel/pid_namespace.c
-@@ -23,6 +23,7 @@
- #include <linux/sched/task.h>
- #include <linux/sched/signal.h>
- #include <linux/idr.h>
-+#include "pid_sysctl.h"
- 
- static DEFINE_MUTEX(pid_caches_mutex);
- static struct kmem_cache *pid_ns_cachep;
-@@ -110,6 +111,8 @@ static struct pid_namespace *create_pid_
- 	ns->ucounts = ucounts;
- 	ns->pid_allocated = PIDNS_ADDING;
- 
-+	initialize_memfd_noexec_scope(ns);
-+
- 	return ns;
- 
- out_free_idr:
-@@ -455,6 +458,8 @@ static __init int pid_namespaces_init(vo
- #ifdef CONFIG_CHECKPOINT_RESTORE
- 	register_sysctl_paths(kern_path, pid_ns_ctl_table);
- #endif
-+
-+	register_pid_ns_sysctl_table_vm();
- 	return 0;
- }
- 
---- /dev/null
-+++ a/kernel/pid_sysctl.h
-@@ -0,0 +1,59 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef LINUX_PID_SYSCTL_H
-+#define LINUX_PID_SYSCTL_H
-+
-+#include <linux/pid_namespace.h>
-+
-+#if defined(CONFIG_SYSCTL) && defined(CONFIG_MEMFD_CREATE)
-+static inline void initialize_memfd_noexec_scope(struct pid_namespace *ns)
-+{
-+	ns->memfd_noexec_scope =
-+		task_active_pid_ns(current)->memfd_noexec_scope;
-+}
-+
-+static int pid_mfd_noexec_dointvec_minmax(struct ctl_table *table,
-+	int write, void *buf, size_t *lenp, loff_t *ppos)
-+{
-+	struct pid_namespace *ns = task_active_pid_ns(current);
-+	struct ctl_table table_copy;
-+
-+	if (write && !ns_capable(ns->user_ns, CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	table_copy = *table;
-+	if (ns != &init_pid_ns)
-+		table_copy.data = &ns->memfd_noexec_scope;
-+
-+	/*
-+	 * set minimum to current value, the effect is only bigger
-+	 * value is accepted.
-+	 */
-+	if (*(int *)table_copy.data > *(int *)table_copy.extra1)
-+		table_copy.extra1 = table_copy.data;
-+
-+	return proc_dointvec_minmax(&table_copy, write, buf, lenp, ppos);
-+}
-+
-+static struct ctl_table pid_ns_ctl_table_vm[] = {
-+	{
-+		.procname	= "memfd_noexec",
-+		.data		= &init_pid_ns.memfd_noexec_scope,
-+		.maxlen		= sizeof(init_pid_ns.memfd_noexec_scope),
-+		.mode		= 0644,
-+		.proc_handler	= pid_mfd_noexec_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_TWO,
-+	},
-+	{ }
-+};
-+static struct ctl_path vm_path[] = { { .procname = "vm", }, { } };
-+static inline void register_pid_ns_sysctl_table_vm(void)
-+{
-+	register_sysctl_paths(vm_path, pid_ns_ctl_table_vm);
-+}
-+#else
-+static inline void set_memfd_noexec_scope(struct pid_namespace *ns) {}
-+static inline void register_pid_ns_ctl_table_vm(void) {}
-+#endif
-+
-+#endif /* LINUX_PID_SYSCTL_H */
---- a/mm/memfd.c~mm-memfd-add-mfd_noexec_seal-and-mfd_exec
+--- a/mm/memfd.c~mm-memfd-add-write-seals-when-apply-seal_exec-to-executable-memfd
 +++ a/mm/memfd.c
-@@ -18,6 +18,7 @@
- #include <linux/hugetlb.h>
- #include <linux/shmem_fs.h>
- #include <linux/memfd.h>
-+#include <linux/pid_namespace.h>
- #include <uapi/linux/memfd.h>
- 
- /*
-@@ -263,12 +264,14 @@ long memfd_fcntl(struct file *file, unsi
- #define MFD_NAME_PREFIX_LEN (sizeof(MFD_NAME_PREFIX) - 1)
- #define MFD_NAME_MAX_LEN (NAME_MAX - MFD_NAME_PREFIX_LEN)
- 
--#define MFD_ALL_FLAGS (MFD_CLOEXEC | MFD_ALLOW_SEALING | MFD_HUGETLB)
-+#define MFD_ALL_FLAGS (MFD_CLOEXEC | MFD_ALLOW_SEALING | MFD_HUGETLB | MFD_NOEXEC_SEAL | MFD_EXEC)
- 
- SYSCALL_DEFINE2(memfd_create,
- 		const char __user *, uname,
- 		unsigned int, flags)
- {
-+	char comm[TASK_COMM_LEN];
-+	struct pid_namespace *ns;
- 	unsigned int *file_seals;
- 	struct file *file;
- 	int fd, error;
-@@ -285,6 +288,39 @@ SYSCALL_DEFINE2(memfd_create,
- 			return -EINVAL;
+@@ -222,6 +222,12 @@ static int memfd_add_seals(struct file *
+ 		}
  	}
  
-+	/* Invalid if both EXEC and NOEXEC_SEAL are set.*/
-+	if ((flags & MFD_EXEC) && (flags & MFD_NOEXEC_SEAL))
-+		return -EINVAL;
++	/*
++	 * SEAL_EXEC implys SEAL_WRITE, making W^X from the start.
++	 */
++	if (seals & F_SEAL_EXEC && inode->i_mode & 0111)
++		seals |= F_SEAL_SHRINK|F_SEAL_GROW|F_SEAL_WRITE|F_SEAL_FUTURE_WRITE;
 +
-+	if (!(flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
-+#ifdef CONFIG_SYSCTL
-+		int sysctl = MEMFD_NOEXEC_SCOPE_EXEC;
-+
-+		ns = task_active_pid_ns(current);
-+		if (ns)
-+			sysctl = ns->memfd_noexec_scope;
-+
-+		switch (sysctl) {
-+		case MEMFD_NOEXEC_SCOPE_EXEC:
-+			flags |= MFD_EXEC;
-+			break;
-+		case MEMFD_NOEXEC_SCOPE_NOEXEC_SEAL:
-+			flags |= MFD_NOEXEC_SEAL;
-+			break;
-+		default:
-+			pr_warn_ratelimited(
-+				"memfd_create(): MFD_NOEXEC_SEAL is enforced, pid=%d '%s'\n",
-+				task_pid_nr(current), get_task_comm(comm, current));
-+			return -EINVAL;
-+		}
-+#else
-+		flags |= MFD_EXEC;
-+#endif
-+		pr_warn_ratelimited(
-+			"memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL, pid=%d '%s'\n",
-+			task_pid_nr(current), get_task_comm(comm, current));
-+	}
-+
- 	/* length includes terminating zero */
- 	len = strnlen_user(uname, MFD_NAME_MAX_LEN + 1);
- 	if (len <= 0)
-@@ -328,7 +364,15 @@ SYSCALL_DEFINE2(memfd_create,
- 	file->f_mode |= FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
- 	file->f_flags |= O_LARGEFILE;
+ 	*file_seals |= seals;
+ 	error = 0;
  
--	if (flags & MFD_ALLOW_SEALING) {
-+	if (flags & MFD_NOEXEC_SEAL) {
-+		struct inode *inode = file_inode(file);
-+
-+		inode->i_mode &= ~0111;
-+		file_seals = memfd_file_seals_ptr(file);
-+		*file_seals &= ~F_SEAL_SEAL;
-+		*file_seals |= F_SEAL_EXEC;
-+	} else if (flags & MFD_ALLOW_SEALING) {
-+		/* MFD_EXEC and MFD_ALLOW_SEALING are set */
- 		file_seals = memfd_file_seals_ptr(file);
- 		*file_seals &= ~F_SEAL_SEAL;
- 	}
 _
 
 Patches currently in -mm which might be from jeffxu@google.com are
