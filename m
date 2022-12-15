@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B105BC46467
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C66DC4167B
 	for <mm-commits@archiver.kernel.org>; Thu, 15 Dec 2022 23:10:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229696AbiLOXKZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230040AbiLOXKZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 15 Dec 2022 18:10:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50148 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230133AbiLOXJo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 18:09:44 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC15F5D6B9
+        with ESMTP id S230057AbiLOXJn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 18:09:43 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F4764A07B
         for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 15:09:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 78ED161F88
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 23:09:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD9B3C433D2;
-        Thu, 15 Dec 2022 23:09:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 33489B81CD8
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 23:09:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD24FC433D2;
+        Thu, 15 Dec 2022 23:09:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671145781;
-        bh=USgTFHMgOSlBoEYpSYy/Onw1ITQyjVf4q/n94vP+Hdg=;
+        s=korg; t=1671145779;
+        bh=YvasGuTxP+DwLH337JD0Fyo6C68R1ovldz0nzL/boa4=;
         h=Date:To:From:Subject:From;
-        b=JdaY2mco/Xw+flMx/jqxDxpzdThWt2D2DMrtDd91f2jUtsMwHQpe457b5hd8f+53r
-         xIYcLuvSg7749srlz99/TPvi247LkPYxYY/MLBPwldE3r/mFrXNnD0c7QTMx6EpcnH
-         fJ1Yc0O8aKKYaXPJPwDOlSW47VMzEVEXSKVhaihw=
-Date:   Thu, 15 Dec 2022 15:09:41 -0800
+        b=myIPhHSadD3+mh4jFrOnAUKitJ++yR8s0lMt3g515Ws0eEGLXMxhN7JrjdYS7SvcQ
+         M7YCs8iifl4Mlja2Q7WcP4+LEs43GYC+cs8OpsDsDrPnZ75sHcOQSVWtIDts6qY5MC
+         XBNxmYm4+jKwNHK7FYq9cYPmMZlqbhOOHlsx6yUI=
+Date:   Thu, 15 Dec 2022 15:09:39 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-replace-obvious-uses-of-b_page-with-b_folio.patch added to mm-unstable branch
-Message-Id: <20221215230941.CD9B3C433D2@smtp.kernel.org>
+Subject: + jbd2-replace-obvious-uses-of-b_page-with-b_folio.patch added to mm-unstable branch
+Message-Id: <20221215230939.CD24FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: replace obvious uses of b_page with b_folio
+     Subject: jbd2: replace obvious uses of b_page with b_folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     nilfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
+     jbd2-replace-obvious-uses-of-b_page-with-b_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/jbd2-replace-obvious-uses-of-b_page-with-b_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,88 +65,61 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: replace obvious uses of b_page with b_folio
-Date: Thu, 15 Dec 2022 21:44:00 +0000
+Subject: jbd2: replace obvious uses of b_page with b_folio
+Date: Thu, 15 Dec 2022 21:43:59 +0000
 
-These places just use b_page to get to the buffer's address_space or the
-index of the page the buffer is in.
+These places just use b_page to get to the buffer's address_space or have
+already been converted to folio.
 
-Link: https://lkml.kernel.org/r/20221215214402.3522366-11-willy@infradead.org
+Link: https://lkml.kernel.org/r/20221215214402.3522366-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btnode.c  |    2 +-
- fs/nilfs2/btree.c   |    2 +-
- fs/nilfs2/gcinode.c |    2 +-
- fs/nilfs2/mdt.c     |    4 ++--
- fs/nilfs2/segment.c |    2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ fs/jbd2/commit.c  |    8 ++------
+ fs/jbd2/journal.c |    2 +-
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
---- a/fs/nilfs2/btnode.c~nilfs2-replace-obvious-uses-of-b_page-with-b_folio
-+++ a/fs/nilfs2/btnode.c
-@@ -188,7 +188,7 @@ int nilfs_btnode_prepare_change_key(stru
- 		struct page *opage = obh->b_page;
- 		lock_page(opage);
- retry:
--		/* BUG_ON(oldkey != obh->b_page->index); */
-+		/* BUG_ON(oldkey != obh->b_folio->index); */
- 		if (unlikely(oldkey != opage->index))
- 			NILFS_PAGE_BUG(opage,
- 				       "invalid oldkey %lld (newkey=%lld)",
---- a/fs/nilfs2/btree.c~nilfs2-replace-obvious-uses-of-b_page-with-b_folio
-+++ a/fs/nilfs2/btree.c
-@@ -398,7 +398,7 @@ int nilfs_btree_broken_node_block(struct
- 	if (buffer_nilfs_checked(bh))
- 		return 0;
- 
--	inode = bh->b_page->mapping->host;
-+	inode = bh->b_folio->mapping->host;
- 	ret = nilfs_btree_node_broken((struct nilfs_btree_node *)bh->b_data,
- 				      bh->b_size, inode, bh->b_blocknr);
- 	if (likely(!ret))
---- a/fs/nilfs2/gcinode.c~nilfs2-replace-obvious-uses-of-b_page-with-b_folio
-+++ a/fs/nilfs2/gcinode.c
-@@ -140,7 +140,7 @@ int nilfs_gccache_wait_and_mark_dirty(st
+--- a/fs/jbd2/commit.c~jbd2-replace-obvious-uses-of-b_page-with-b_folio
++++ a/fs/jbd2/commit.c
+@@ -63,16 +63,12 @@ static void journal_end_buffer_io_sync(s
+ static void release_buffer_page(struct buffer_head *bh)
  {
- 	wait_on_buffer(bh);
- 	if (!buffer_uptodate(bh)) {
--		struct inode *inode = bh->b_page->mapping->host;
-+		struct inode *inode = bh->b_folio->mapping->host;
+ 	struct folio *folio;
+-	struct page *page;
  
- 		nilfs_err(inode->i_sb,
- 			  "I/O error reading %s block for GC (ino=%lu, vblocknr=%llu)",
---- a/fs/nilfs2/mdt.c~nilfs2-replace-obvious-uses-of-b_page-with-b_folio
-+++ a/fs/nilfs2/mdt.c
-@@ -563,7 +563,7 @@ int nilfs_mdt_freeze_buffer(struct inode
- 	struct page *page;
- 	int blkbits = inode->i_blkbits;
+ 	if (buffer_dirty(bh))
+ 		goto nope;
+ 	if (atomic_read(&bh->b_count) != 1)
+ 		goto nope;
+-	page = bh->b_page;
+-	if (!page)
+-		goto nope;
+-	folio = page_folio(page);
++	folio = bh->b_folio;
+ 	if (folio->mapping)
+ 		goto nope;
  
--	page = grab_cache_page(shadow->inode->i_mapping, bh->b_page->index);
-+	page = grab_cache_page(shadow->inode->i_mapping, bh->b_folio->index);
- 	if (!page)
- 		return -ENOMEM;
+@@ -1040,7 +1036,7 @@ restart_loop:
+ 			 * already detached from the mapping and buffers cannot
+ 			 * get reused.
+ 			 */
+-			mapping = READ_ONCE(bh->b_page->mapping);
++			mapping = READ_ONCE(bh->b_folio->mapping);
+ 			if (mapping && !sb_is_blkdev_sb(mapping->host->i_sb)) {
+ 				clear_buffer_mapped(bh);
+ 				clear_buffer_new(bh);
+--- a/fs/jbd2/journal.c~jbd2-replace-obvious-uses-of-b_page-with-b_folio
++++ a/fs/jbd2/journal.c
+@@ -2938,7 +2938,7 @@ repeat:
+ 	} else {
+ 		J_ASSERT_BH(bh,
+ 			(atomic_read(&bh->b_count) > 0) ||
+-			(bh->b_page && bh->b_page->mapping));
++			(bh->b_folio && bh->b_folio->mapping));
  
-@@ -595,7 +595,7 @@ nilfs_mdt_get_frozen_buffer(struct inode
- 	struct page *page;
- 	int n;
- 
--	page = find_lock_page(shadow->inode->i_mapping, bh->b_page->index);
-+	page = find_lock_page(shadow->inode->i_mapping, bh->b_folio->index);
- 	if (page) {
- 		if (page_has_buffers(page)) {
- 			n = bh_offset(bh) >> inode->i_blkbits;
---- a/fs/nilfs2/segment.c~nilfs2-replace-obvious-uses-of-b_page-with-b_folio
-+++ a/fs/nilfs2/segment.c
-@@ -1581,7 +1581,7 @@ nilfs_segctor_update_payload_blocknr(str
- 			nblocks = le32_to_cpu(finfo->fi_nblocks);
- 			ndatablk = le32_to_cpu(finfo->fi_ndatablk);
- 
--			inode = bh->b_page->mapping->host;
-+			inode = bh->b_folio->mapping->host;
- 
- 			if (mode == SC_LSEG_DSYNC)
- 				sc_op = &nilfs_sc_dsync_ops;
+ 		if (!new_jh) {
+ 			jbd_unlock_bh_journal_head(bh);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
