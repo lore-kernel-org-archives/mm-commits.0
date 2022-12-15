@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52084C4167B
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Dec 2022 20:59:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1527FC4332F
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Dec 2022 21:05:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229904AbiLOU7m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Dec 2022 15:59:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46448 "EHLO
+        id S229655AbiLOVFW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Dec 2022 16:05:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229675AbiLOU7l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 15:59:41 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A51CF54364;
-        Thu, 15 Dec 2022 12:59:40 -0800 (PST)
+        with ESMTP id S229547AbiLOVFV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 16:05:21 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7D66528AF
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 13:05:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 170E561F20;
-        Thu, 15 Dec 2022 20:59:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72051C433EF;
-        Thu, 15 Dec 2022 20:59:39 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1DC83B81BA1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 21:05:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A84A6C433EF;
+        Thu, 15 Dec 2022 21:05:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671137979;
-        bh=aaj88OBy6RA6IAm2Gbs7UT8naRH5VZXH1KM9oreYnP4=;
+        s=korg; t=1671138316;
+        bh=qSDthJLbcYalDcJD+U4zbFO041uHy+PYpicVOV+oqBg=;
         h=Date:To:From:Subject:From;
-        b=VIbMOApoBQqb73tFwFTJjvKN/Q1gw+cNivWg3MnXMkC46sFOJIxSZgonPEFoJjIVn
-         hHVnuIvSmRHb6mLSAUZ8zSCwxZr2yV09cP3+IhIpd9wy/eFiB7DpcQRhSktpvB5cyQ
-         KWQ7m6DUsYsjJO65qjpoAhdVA/E37MEgFMdein1Q=
-Date:   Thu, 15 Dec 2022 12:59:38 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        arnd@arndb.de, akpm@linux-foundation.org
+        b=wVYbRyyfs2LiMypUN2z+iVVdpkzms75jHZ2voQGl7BsWJNdaUM26XS+xWO1bxdn+1
+         i9yPKB9gF0TlWNMYpiXsF58FJ2Yd8RI418EEivUPaCRu9b05L4dtZnMkgo2oFDTH8O
+         BMIHT6Rmlv5UutbqfRgiaZ1LF0TitytQwv0ldICA=
+Date:   Thu, 15 Dec 2022 13:05:16 -0800
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        catalin.marinas@arm.com, longman@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-export-kmsan_handle_urb.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221215205939.72051C433EF@smtp.kernel.org>
+Subject: + mm-kmemleak-simplify-kmemleak_cond_resched-usage.patch added to mm-unstable branch
+Message-Id: <20221215210516.A84A6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: export kmsan_handle_urb
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kmsan-export-kmsan_handle_urb.patch
+     Subject: mm/kmemleak: simplify kmemleak_cond_resched() usage
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-kmemleak-simplify-kmemleak_cond_resched-usage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-export-kmsan_handle_urb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-simplify-kmemleak_cond_resched-usage.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,44 +65,156 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kmsan: export kmsan_handle_urb
-Date: Thu, 15 Dec 2022 17:26:57 +0100
+From: Waiman Long <longman@redhat.com>
+Subject: mm/kmemleak: simplify kmemleak_cond_resched() usage
+Date: Thu, 15 Dec 2022 11:02:58 -0500
 
-USB support can be in a loadable module, and this causes a link failure
-with KMSAN:
+Patch series "mm/kmemleak: Simplify kmemleak_cond_resched() & fix UAF",
+v2.
 
-ERROR: modpost: "kmsan_handle_urb" [drivers/usb/core/usbcore.ko] undefined!
+It was found that a KASAN use-after-free error was reported in
+kmemleak_scan().  After further examination, it is believed that even
+though a reference is taken from the current object, it does not prevent
+the object pointed to by the next pointer from going away after a
+cond_resched().
 
-Export the symbol so it can be used by this module.
+To fix that, additional flags are added to make sure that the current
+object won't be removed from the object_list during the duration of
+the cond_resched() to ensure the validity of the next pointer.
 
-Link: https://lkml.kernel.org/r/20221215162710.3802378-1-arnd@kernel.org
-Fixes: 553a80188a5d ("kmsan: handle memory sent to/from USB")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: <stable@vger.kernel.org>
+While making the change, I also simplified the current usage of
+kmemleak_cond_resched() to make it easier to understand.
+
+
+
+The presence of a pinned argument and the 64k loop count make
+kmemleak_cond_resched() a bit more complex to read.  The pinned argument
+is used only by first kmemleak_scan() loop.
+
+Simplify the usage of kmemleak_cond_resched() by removing the pinned
+argument and always do a get_object()/put_object() sequence.  In addition,
+the 64k loop is removed by using need_resched() to decide if
+kmemleak_cond_resched() should be called.
+
+Link: https://lkml.kernel.org/r/20221215160259.261136-1-longman@redhat.com
+Link: https://lkml.kernel.org/r/20221215160259.261136-2-longman@redhat.com
+Fixes: 6edda04ccc7c ("mm/kmemleak: prevent soft lockup in first object iteration loop of kmemleak_scan()")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/hooks.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kmemleak.c |   48 ++++++++++++------------------------------------
+ 1 file changed, 12 insertions(+), 36 deletions(-)
 
---- a/mm/kmsan/hooks.c~kmsan-export-kmsan_handle_urb
-+++ a/mm/kmsan/hooks.c
-@@ -260,6 +260,7 @@ void kmsan_handle_urb(const struct urb *
- 					       urb->transfer_buffer_length,
- 					       /*checked*/ false);
- }
-+EXPORT_SYMBOL_GPL(kmsan_handle_urb);
+--- a/mm/kmemleak.c~mm-kmemleak-simplify-kmemleak_cond_resched-usage
++++ a/mm/kmemleak.c
+@@ -1472,22 +1472,17 @@ static void scan_gray_list(void)
+ /*
+  * Conditionally call resched() in an object iteration loop while making sure
+  * that the given object won't go away without RCU read lock by performing a
+- * get_object() if !pinned.
+- *
+- * Return: false if can't do a cond_resched() due to get_object() failure
+- *	   true otherwise
++ * get_object() if necessaary.
+  */
+-static bool kmemleak_cond_resched(struct kmemleak_object *object, bool pinned)
++static void kmemleak_cond_resched(struct kmemleak_object *object)
+ {
+-	if (!pinned && !get_object(object))
+-		return false;
++	if (!get_object(object))
++		return;	/* Try next object */
  
- static void kmsan_handle_dma_page(const void *addr, size_t size,
- 				  enum dma_data_direction dir)
+ 	rcu_read_unlock();
+ 	cond_resched();
+ 	rcu_read_lock();
+-	if (!pinned)
+-		put_object(object);
+-	return true;
++	put_object(object);
+ }
+ 
+ /*
+@@ -1501,15 +1496,12 @@ static void kmemleak_scan(void)
+ 	struct zone *zone;
+ 	int __maybe_unused i;
+ 	int new_leaks = 0;
+-	int loop_cnt = 0;
+ 
+ 	jiffies_last_scan = jiffies;
+ 
+ 	/* prepare the kmemleak_object's */
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
+-		bool obj_pinned = false;
+-
+ 		raw_spin_lock_irq(&object->lock);
+ #ifdef DEBUG
+ 		/*
+@@ -1535,19 +1527,13 @@ static void kmemleak_scan(void)
+ 
+ 		/* reset the reference count (whiten the object) */
+ 		object->count = 0;
+-		if (color_gray(object) && get_object(object)) {
++		if (color_gray(object) && get_object(object))
+ 			list_add_tail(&object->gray_list, &gray_list);
+-			obj_pinned = true;
+-		}
+ 
+ 		raw_spin_unlock_irq(&object->lock);
+ 
+-		/*
+-		 * Do a cond_resched() every 64k objects to avoid soft lockup.
+-		 */
+-		if (!(++loop_cnt & 0xffff) &&
+-		    !kmemleak_cond_resched(object, obj_pinned))
+-			loop_cnt--; /* Try again on next object */
++		if (need_resched())
++			kmemleak_cond_resched(object);
+ 	}
+ 	rcu_read_unlock();
+ 
+@@ -1614,14 +1600,9 @@ static void kmemleak_scan(void)
+ 	 * scan and color them gray until the next scan.
+ 	 */
+ 	rcu_read_lock();
+-	loop_cnt = 0;
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
+-		/*
+-		 * Do a cond_resched() every 64k objects to avoid soft lockup.
+-		 */
+-		if (!(++loop_cnt & 0xffff) &&
+-		    !kmemleak_cond_resched(object, false))
+-			loop_cnt--;	/* Try again on next object */
++		if (need_resched())
++			kmemleak_cond_resched(object);
+ 
+ 		/*
+ 		 * This is racy but we can save the overhead of lock/unlock
+@@ -1656,14 +1637,9 @@ static void kmemleak_scan(void)
+ 	 * Scanning result reporting.
+ 	 */
+ 	rcu_read_lock();
+-	loop_cnt = 0;
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
+-		/*
+-		 * Do a cond_resched() every 64k objects to avoid soft lockup.
+-		 */
+-		if (!(++loop_cnt & 0xffff) &&
+-		    !kmemleak_cond_resched(object, false))
+-			loop_cnt--;	/* Try again on next object */
++		if (need_resched())
++			kmemleak_cond_resched(object);
+ 
+ 		/*
+ 		 * This is racy but we can save the overhead of lock/unlock
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from longman@redhat.com are
 
-kmsan-include-linux-vmalloch.patch
-kmsan-export-kmsan_handle_urb.patch
+mm-kmemleak-simplify-kmemleak_cond_resched-usage.patch
+mm-kmemleak-fix-uaf-bug-in-kmemleak_scan.patch
 
