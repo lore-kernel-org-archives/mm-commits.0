@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7758C4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Dec 2022 21:47:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5217CC10F1E
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Dec 2022 21:52:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229754AbiLOVrn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Dec 2022 16:47:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44810 "EHLO
+        id S229786AbiLOVwF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Dec 2022 16:52:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229846AbiLOVrj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 16:47:39 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EA8A2DA8A
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 13:47:38 -0800 (PST)
+        with ESMTP id S229874AbiLOVwD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 16:52:03 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D6D645ED6
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 13:52:02 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 28BF5B81BAD
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 21:47:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4A02C433EF;
-        Thu, 15 Dec 2022 21:47:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A018761F60
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 21:52:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04F27C433EF;
+        Thu, 15 Dec 2022 21:52:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671140855;
-        bh=/Z9C3dOkphd2ODOIyItQzYuZ5Hnvgu6DR7MW+jUTbjE=;
+        s=korg; t=1671141121;
+        bh=TO3z2aRink5LOA01Zrvsz/A+6ZaiiefZgNHBVcS49CI=;
         h=Date:To:From:Subject:From;
-        b=AxEn1acEdSkbEqK+F1Gddb+bnorboL9e+gHbJsl5tDT9pQIvfCIKhiSecv6SkPVVr
-         wsNx1dmRdNtDqs8M+ZUJc9Fq4vj94da+0Hw8I3Kz6SO8bs3NbewtQFLxG4xOB5d1lz
-         g30x1RHzyDHAMAUFMV1ZMe7Qb8t2EBRqOyQRz7ms=
-Date:   Thu, 15 Dec 2022 13:47:35 -0800
-To:     mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
-        lkp@intel.com, keescook@chromium.org, jorgelo@chromium.org,
-        jannh@google.com, hughd@google.com, dverkamp@chromium.org,
-        dmitry.torokhov@gmail.com, dh.herrmann@gmail.com,
-        jeffxu@google.com, akpm@linux-foundation.org
+        b=XBSED/yYdEaJMHcRnLi1iI/5MAqANKh1smgeX/EXjFdLAdXGdf/0+LSvF3XmJgF++
+         rM6fVcZth03isuCIjD6TcKblc//x6gG8up3yvHwDYbPvFKghGlu4TUNVo2Fd9sZUeo
+         SU3iw/eLEAjkfXVoiUJWZqJbmvqATNkVQ/rnyKyw=
+Date:   Thu, 15 Dec 2022 13:52:00 -0800
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        pengfei.xu@intel.com, nadav.amit@gmail.com, linmiaohe@huawei.com,
+        david@redhat.com, aarcange@redhat.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-memfd-add-tests-for-mfd_noexec_seal-mfd_exec.patch added to mm-unstable branch
-Message-Id: <20221215214735.D4A02C433EF@smtp.kernel.org>
+Subject: + mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221215215201.04F27C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/memfd: add tests for MFD_NOEXEC_SEAL MFD_EXEC
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-memfd-add-tests-for-mfd_noexec_seal-mfd_exec.patch
+     Subject: mm: fix a few rare cases of using swapin error pte marker
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memfd-add-tests-for-mfd_noexec_seal-mfd_exec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,346 +66,119 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@google.com>
-Subject: selftests/memfd: add tests for MFD_NOEXEC_SEAL MFD_EXEC
-Date: Thu, 15 Dec 2022 00:12:05 +0000
+From: Peter Xu <peterx@redhat.com>
+Subject: mm: fix a few rare cases of using swapin error pte marker
+Date: Wed, 14 Dec 2022 15:04:53 -0500
 
-Tests to verify MFD_NOEXEC, MFD_EXEC and vm.memfd_noexec sysctl.
+This patch should harden commit 15520a3f0469 ("mm: use pte markers for
+swap errors") on using pte markers for swapin errors on a few corner
+cases.
 
-Link: https://lkml.kernel.org/r/20221215001205.51969-6-jeffxu@google.com
-Signed-off-by: Jeff Xu <jeffxu@google.com>
-Co-developed-by: Daniel Verkamp <dverkamp@chromium.org>
-Signed-off-by: Daniel Verkamp <dverkamp@chromium.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: David Herrmann <dh.herrmann@gmail.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+1. Propagate swapin errors across fork()s: if there're swapin errors in
+   the parent mm, after fork()s the child should sigbus too when an error
+   page is accessed.
+
+2. Fix a rare condition race in pte_marker_clear() where a uffd-wp pte
+   marker can be quickly switched to a swapin error.
+
+3. Explicitly ignore swapin error pte markers in change_protection().
+
+I mostly don't worry on (2) or (3) at all, but we should still have them. 
+Case (1) is special because it can potentially cause silent data corrupt
+on child when parent has swapin error triggered with swapoff, but since
+swapin error is rare itself already it's probably not easy to trigger
+either.
+
+Currently there is a priority difference between the uffd-wp bit and the
+swapin error entry, in which the swapin error always has higher priority
+(e.g.  we don't need to wr-protect a swapin error pte marker).
+
+If there will be a 3rd bit introduced, we'll probably need to consider a
+more involved approach so we may need to start operate on the bits.  Let's
+leave that for later.
+
+This patch is tested with case (1) explicitly where we'll get corrupted
+data before in the child if there's existing swapin error pte markers, and
+after patch applied the child can be rightfully killed.
+
+We don't need to copy stable for this one since 15520a3f0469 just landed
+as part of v6.2-rc1, only "Fixes" applied.
+
+Link: https://lkml.kernel.org/r/20221214200453.1772655-3-peterx@redhat.com
+Fixes: 15520a3f0469 ("mm: use pte markers for swap errors")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Pengfei Xu <pengfei.xu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/fuse_test.c  |    1 
- tools/testing/selftests/memfd/memfd_test.c |  228 ++++++++++++++++++-
- 2 files changed, 224 insertions(+), 5 deletions(-)
+ mm/hugetlb.c  |    3 +++
+ mm/memory.c   |    8 ++++++--
+ mm/mprotect.c |    8 +++++++-
+ 3 files changed, 16 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/memfd/fuse_test.c~selftests-memfd-add-tests-for-mfd_noexec_seal-mfd_exec
-+++ a/tools/testing/selftests/memfd/fuse_test.c
-@@ -22,6 +22,7 @@
- #include <linux/falloc.h>
- #include <fcntl.h>
- #include <linux/memfd.h>
-+#include <linux/types.h>
- #include <sched.h>
- #include <stdio.h>
- #include <stdlib.h>
---- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-add-tests-for-mfd_noexec_seal-mfd_exec
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -30,6 +30,14 @@
- 
- #define F_SEAL_EXEC	0x0020
- 
-+#define F_WX_SEALS (F_SEAL_SHRINK | \
-+		    F_SEAL_GROW | \
-+		    F_SEAL_WRITE | \
-+		    F_SEAL_FUTURE_WRITE | \
-+		    F_SEAL_EXEC)
-+
-+#define MFD_NOEXEC_SEAL	0x0008U
-+
- /*
-  * Default is not to test hugetlbfs
-  */
-@@ -80,6 +88,37 @@ static int mfd_assert_new(const char *na
- 	return fd;
- }
- 
-+static void sysctl_assert_write(const char *val)
-+{
-+	int fd = open("/proc/sys/vm/memfd_noexec", O_WRONLY | O_CLOEXEC);
-+
-+	if (fd < 0) {
-+		printf("open sysctl failed\n");
-+		abort();
-+	}
-+
-+	if (write(fd, val, strlen(val)) < 0) {
-+		printf("write sysctl failed\n");
-+		abort();
-+	}
-+}
-+
-+static void sysctl_fail_write(const char *val)
-+{
-+	int fd = open("/proc/sys/vm/memfd_noexec", O_WRONLY | O_CLOEXEC);
-+
-+	if (fd < 0) {
-+		printf("open sysctl failed\n");
-+		abort();
-+	}
-+
-+	if (write(fd, val, strlen(val)) >= 0) {
-+		printf("write sysctl %s succeeded, but failure expected\n",
-+				val);
-+		abort();
-+	}
-+}
-+
- static int mfd_assert_reopen_fd(int fd_in)
- {
- 	int fd;
-@@ -758,6 +797,9 @@ static void test_create(void)
- 	mfd_fail_new("", ~0);
- 	mfd_fail_new("", 0x80000000U);
- 
-+	/* verify EXEC and NOEXEC_SEAL can't both be set */
-+	mfd_fail_new("", MFD_EXEC | MFD_NOEXEC_SEAL);
-+
- 	/* verify MFD_CLOEXEC is allowed */
- 	fd = mfd_assert_new("", 0, MFD_CLOEXEC);
- 	close(fd);
-@@ -969,20 +1011,21 @@ static void test_seal_resize(void)
- 
- /*
-  * Test SEAL_EXEC
-- * Test that chmod() cannot change x bits after sealing
-+ * Test fd is created with exec and allow sealing.
-+ * chmod() cannot change x bits after sealing.
-  */
--static void test_seal_exec(void)
-+static void test_exec_seal(void)
- {
- 	int fd;
- 
- 	printf("%s SEAL-EXEC\n", memfd_str);
- 
-+	printf("%s	Apply SEAL_EXEC\n", memfd_str);
- 	fd = mfd_assert_new("kern_memfd_seal_exec",
- 			    mfd_def_size,
--			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING | MFD_EXEC);
- 
- 	mfd_assert_mode(fd, 0777);
--
- 	mfd_assert_chmod(fd, 0644);
- 
- 	mfd_assert_has_seals(fd, 0);
-@@ -996,11 +1039,182 @@ static void test_seal_exec(void)
- 	mfd_fail_chmod(fd, 0700);
- 	mfd_fail_chmod(fd, 0100);
- 	mfd_assert_chmod(fd, 0666);
-+	mfd_assert_write(fd);
-+	close(fd);
-+
-+	printf("%s	Apply ALL_SEALS\n", memfd_str);
-+	fd = mfd_assert_new("kern_memfd_seal_exec",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING | MFD_EXEC);
-+
-+	mfd_assert_mode(fd, 0777);
-+	mfd_assert_chmod(fd, 0700);
-+
-+	mfd_assert_has_seals(fd, 0);
-+	mfd_assert_add_seals(fd, F_SEAL_EXEC);
-+	mfd_assert_has_seals(fd, F_WX_SEALS);
- 
-+	mfd_fail_chmod(fd, 0711);
-+	mfd_fail_chmod(fd, 0600);
-+	mfd_fail_write(fd);
-+	close(fd);
-+}
-+
-+/*
-+ * Test EXEC_NO_SEAL
-+ * Test fd is created with exec and not allow sealing.
-+ */
-+static void test_exec_no_seal(void)
-+{
-+	int fd;
-+
-+	printf("%s EXEC_NO_SEAL\n", memfd_str);
-+
-+	/* Create with EXEC but without ALLOW_SEALING */
-+	fd = mfd_assert_new("kern_memfd_exec_no_sealing",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC | MFD_EXEC);
-+	mfd_assert_mode(fd, 0777);
-+	mfd_assert_has_seals(fd, F_SEAL_SEAL);
-+	mfd_assert_chmod(fd, 0666);
- 	close(fd);
- }
- 
- /*
-+ * Test memfd_create with MFD_NOEXEC flag
-+ */
-+static void test_noexec_seal(void)
-+{
-+	int fd;
-+
-+	printf("%s NOEXEC_SEAL\n", memfd_str);
-+
-+	/* Create with NOEXEC and ALLOW_SEALING */
-+	fd = mfd_assert_new("kern_memfd_noexec",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING | MFD_NOEXEC_SEAL);
-+	mfd_assert_mode(fd, 0666);
-+	mfd_assert_has_seals(fd, F_SEAL_EXEC);
-+	mfd_fail_chmod(fd, 0777);
-+	close(fd);
-+
-+	/* Create with NOEXEC but without ALLOW_SEALING */
-+	fd = mfd_assert_new("kern_memfd_noexec",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC | MFD_NOEXEC_SEAL);
-+	mfd_assert_mode(fd, 0666);
-+	mfd_assert_has_seals(fd, F_SEAL_EXEC);
-+	mfd_fail_chmod(fd, 0777);
-+	close(fd);
-+}
-+
-+static void test_sysctl_child(void)
-+{
-+	int fd;
-+
-+	printf("%s sysctl 0\n", memfd_str);
-+	sysctl_assert_write("0");
-+	fd = mfd_assert_new("kern_memfd_sysctl_0",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+
-+	mfd_assert_mode(fd, 0777);
-+	mfd_assert_has_seals(fd, 0);
-+	mfd_assert_chmod(fd, 0644);
-+	close(fd);
-+
-+	printf("%s sysctl 1\n", memfd_str);
-+	sysctl_assert_write("1");
-+	fd = mfd_assert_new("kern_memfd_sysctl_1",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+
-+	mfd_assert_mode(fd, 0666);
-+	mfd_assert_has_seals(fd, F_SEAL_EXEC);
-+	mfd_fail_chmod(fd, 0777);
-+	sysctl_fail_write("0");
-+	close(fd);
-+
-+	printf("%s sysctl 2\n", memfd_str);
-+	sysctl_assert_write("2");
-+	mfd_fail_new("kern_memfd_sysctl_2",
-+		MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	sysctl_fail_write("0");
-+	sysctl_fail_write("1");
-+}
-+
-+static int newpid_thread_fn(void *arg)
-+{
-+	test_sysctl_child();
-+	return 0;
-+}
-+
-+static void test_sysctl_child2(void)
-+{
-+	int fd;
-+
-+	sysctl_fail_write("0");
-+	fd = mfd_assert_new("kern_memfd_sysctl_1",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+
-+	mfd_assert_mode(fd, 0666);
-+	mfd_assert_has_seals(fd, F_SEAL_EXEC);
-+	mfd_fail_chmod(fd, 0777);
-+	close(fd);
-+}
-+
-+static int newpid_thread_fn2(void *arg)
-+{
-+	test_sysctl_child2();
-+	return 0;
-+}
-+static pid_t spawn_newpid_thread(unsigned int flags, int (*fn)(void *))
-+{
-+	uint8_t *stack;
-+	pid_t pid;
-+
-+	stack = malloc(STACK_SIZE);
-+	if (!stack) {
-+		printf("malloc(STACK_SIZE) failed: %m\n");
-+		abort();
-+	}
-+
-+	pid = clone(fn,
-+		    stack + STACK_SIZE,
-+		    SIGCHLD | flags,
-+		    NULL);
-+	if (pid < 0) {
-+		printf("clone() failed: %m\n");
-+		abort();
-+	}
-+
-+	return pid;
-+}
-+
-+static void join_newpid_thread(pid_t pid)
-+{
-+	waitpid(pid, NULL, 0);
-+}
-+
-+/*
-+ * Test sysctl
-+ * A very basic sealing test to see whether setting/retrieving seals works.
-+ */
-+static void test_sysctl(void)
-+{
-+	int pid = spawn_newpid_thread(CLONE_NEWPID, newpid_thread_fn);
-+
-+	join_newpid_thread(pid);
-+
-+	printf("%s child ns\n", memfd_str);
-+	sysctl_assert_write("1");
-+
-+	pid = spawn_newpid_thread(CLONE_NEWPID, newpid_thread_fn2);
-+	join_newpid_thread(pid);
-+}
-+
-+/*
-  * Test sharing via dup()
-  * Test that seals are shared between dupped FDs and they're all equal.
-  */
-@@ -1173,13 +1387,15 @@ int main(int argc, char **argv)
- 
- 	test_create();
- 	test_basic();
-+	test_exec_seal();
-+	test_exec_no_seal();
-+	test_noexec_seal();
- 
- 	test_seal_write();
- 	test_seal_future_write();
- 	test_seal_shrink();
- 	test_seal_grow();
- 	test_seal_resize();
--	test_seal_exec();
- 
- 	test_share_dup("SHARE-DUP", "");
- 	test_share_mmap("SHARE-MMAP", "");
-@@ -1195,6 +1411,8 @@ int main(int argc, char **argv)
- 	test_share_fork("SHARE-FORK", SHARED_FT_STR);
- 	join_idle_thread(pid);
- 
-+	test_sysctl();
-+
- 	printf("memfd: DONE\n");
- 
+--- a/mm/hugetlb.c~mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker
++++ a/mm/hugetlb.c
+@@ -4884,6 +4884,9 @@ again:
+ 				entry = huge_pte_clear_uffd_wp(entry);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+ 		} else if (unlikely(is_pte_marker(entry))) {
++			/* No swap on hugetlb */
++			WARN_ON_ONCE(
++			    is_swapin_error_entry(pte_to_swp_entry(entry)));
+ 			/*
+ 			 * We copy the pte marker only if the dst vma has
+ 			 * uffd-wp enabled.
+--- a/mm/memory.c~mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker
++++ a/mm/memory.c
+@@ -828,7 +828,7 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 			return -EBUSY;
+ 		return -ENOENT;
+ 	} else if (is_pte_marker_entry(entry)) {
+-		if (userfaultfd_wp(dst_vma))
++		if (is_swapin_error_entry(entry) || userfaultfd_wp(dst_vma))
+ 			set_pte_at(dst_mm, addr, dst_pte, pte);
+ 		return 0;
+ 	}
+@@ -3625,8 +3625,12 @@ static vm_fault_t pte_marker_clear(struc
+ 	/*
+ 	 * Be careful so that we will only recover a special uffd-wp pte into a
+ 	 * none pte.  Otherwise it means the pte could have changed, so retry.
++	 *
++	 * This should also cover the case where e.g. the pte changed
++	 * quickly from a PTE_MARKER_UFFD_WP into PTE_MARKER_SWAPIN_ERROR.
++	 * So is_pte_marker() check is not enough to safely drop the pte.
+ 	 */
+-	if (is_pte_marker(*vmf->pte))
++	if (pte_same(vmf->orig_pte, *vmf->pte))
+ 		pte_clear(vmf->vma->vm_mm, vmf->address, vmf->pte);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
  	return 0;
+--- a/mm/mprotect.c~mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker
++++ a/mm/mprotect.c
+@@ -245,7 +245,13 @@ static unsigned long change_pte_range(st
+ 					newpte = pte_swp_mksoft_dirty(newpte);
+ 				if (pte_swp_uffd_wp(oldpte))
+ 					newpte = pte_swp_mkuffd_wp(newpte);
+-			} else if (pte_marker_entry_uffd_wp(entry)) {
++			} else if (is_pte_marker_entry(entry)) {
++				/*
++				 * Ignore swapin errors unconditionally,
++				 * because any access should sigbus anyway.
++				 */
++				if (is_swapin_error_entry(entry))
++					continue;
+ 				/*
+ 				 * If this is uffd-wp pte marker and we'd like
+ 				 * to unprotect it, drop it; the next page
 _
 
-Patches currently in -mm which might be from jeffxu@google.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-memfd-add-mfd_noexec_seal-and-mfd_exec.patch
-mm-memfd-add-write-seals-when-apply-seal_exec-to-executable-memfd.patch
-selftests-memfd-add-tests-for-mfd_noexec_seal-mfd_exec.patch
+mm-uffd-fix-pte-marker-when-fork-without-fork-event.patch
+mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker.patch
 
