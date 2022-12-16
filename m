@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B8FCC10F1E
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Dec 2022 23:10:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ACD0C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 00:36:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229868AbiLOXK1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Dec 2022 18:10:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49526 "EHLO
+        id S229460AbiLPAgH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Dec 2022 19:36:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229897AbiLOXJr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 18:09:47 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E4D74AF13
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 15:09:47 -0800 (PST)
+        with ESMTP id S229854AbiLPAgD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 19:36:03 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0AE65E0A6
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 16:35:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B343461E4E
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 23:09:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16F7DC433D2;
-        Thu, 15 Dec 2022 23:09:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A77B61FB9
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 00:35:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E23B3C433EF;
+        Fri, 16 Dec 2022 00:35:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671145786;
-        bh=J55ZBA5gprLioLPhEiYOPI102fJy73ds2CaxgOee5z4=;
+        s=korg; t=1671150959;
+        bh=XX9HCg+zeWJnA43GNJDhiBF/KmtaGRnLj/483jCaW+s=;
         h=Date:To:From:Subject:From;
-        b=nYJQ+p8XZ85dzUpimfeM3Wbbd99XcczSGY3+in+Z1E57LbEs4fJkYlYTrdhv5tJID
-         Sv5JbHVF6Uiys2Kep1gd5lWxwZSN7+0ActuSUBpjg1wc+o58Lnaiv7jicxtcQbzaM5
-         sUv37cy/gw/RLaC/Jevi5c+IAP8SoaZ9poT7d1no=
-Date:   Thu, 15 Dec 2022 15:09:45 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        b=UD1L0y0/rolv22fSnFuTMgBvPgX+WYBW4pFQ1NrcM26yJ+BfmalAH8ARBQpffXhpw
+         Z8++aYjZWHS21OktjEwd6kOoCOGLxV2HLJelT2ZDlF/mirBK4ZlwwTHprAeIMGbTGq
+         sp0JFDCuj4qH4HEDICfAQO9NXMTsW4K5pZuZe0mQ=
+Date:   Thu, 15 Dec 2022 16:35:58 -0800
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        mhiramat@kernel.org, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mpage-use-b_folio-in-do_mpage_readpage.patch added to mm-unstable branch
-Message-Id: <20221215230946.16F7DC433D2@smtp.kernel.org>
+Subject: + error-injection-remove-ei_etype_none-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20221216003558.E23B3C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mpage: use b_folio in do_mpage_readpage()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mpage-use-b_folio-in-do_mpage_readpage.patch
+     Subject: error-injection-remove-ei_etype_none-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     error-injection-remove-ei_etype_none-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-use-b_folio-in-do_mpage_readpage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/error-injection-remove-ei_etype_none-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,45 +65,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mpage: use b_folio in do_mpage_readpage()
-Date: Thu, 15 Dec 2022 21:44:02 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: error-injection-remove-ei_etype_none-fix
+Date: Thu Dec 15 04:33:32 PM PST 2022
 
-Remove this conversion of a folio back to a page.
+include/linux/error-injection.h needs errno.h
+lib/error-inject.c
 
-Link: https://lkml.kernel.org/r/20221215214402.3522366-13-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/error-injection.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/mpage.c~mpage-use-b_folio-in-do_mpage_readpage
-+++ a/fs/mpage.c
-@@ -198,7 +198,7 @@ static struct bio *do_mpage_readpage(str
- 	/*
- 	 * Then do more get_blocks calls until we are done with this folio.
- 	 */
--	map_bh->b_page = &folio->page;
-+	map_bh->b_folio = folio;
- 	while (page_block < blocks_per_page) {
- 		map_bh->b_state = 0;
- 		map_bh->b_size = 0;
+--- a/include/linux/error-injection.h~error-injection-remove-ei_etype_none-fix
++++ a/include/linux/error-injection.h
+@@ -4,6 +4,7 @@
+ 
+ #include <linux/compiler.h>
+ #include <asm-generic/error-injection.h>
++#include <linux/errno.h>
+ 
+ #ifdef CONFIG_FUNCTION_ERROR_INJECTION
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-buffer-add-b_folio-as-an-alias-of-b_page.patch
-buffer-replace-obvious-uses-of-b_page-with-b_folio.patch
-buffer-use-b_folio-in-touch_buffer.patch
-buffer-use-b_folio-in-end_buffer_async_read.patch
-buffer-use-b_folio-in-end_buffer_async_write.patch
-page_io-remove-buffer_head-include.patch
-buffer-use-b_folio-in-mark_buffer_dirty.patch
-gfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
-jbd2-replace-obvious-uses-of-b_page-with-b_folio.patch
-nilfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
-reiserfs-replace-obvious-uses-of-b_page-with-b_folio.patch
-mpage-use-b_folio-in-do_mpage_readpage.patch
+error-injection-remove-ei_etype_none-fix.patch
 
