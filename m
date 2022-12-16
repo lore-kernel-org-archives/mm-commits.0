@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F67EC10F1E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB4D0C4332F
 	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 00:39:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229787AbiLPAjF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Dec 2022 19:39:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55900 "EHLO
+        id S229680AbiLPAjG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Dec 2022 19:39:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55902 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229680AbiLPAjD (ORCPT
+        with ESMTP id S229742AbiLPAjD (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 19:39:03 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FFCD5215B
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7003C5D6B8
         for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 16:39:02 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 9F6E3CE1D6D
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 00:39:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A28AFC433EF;
-        Fri, 16 Dec 2022 00:38:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D8AD261FB9
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 00:39:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 392D4C433EF;
+        Fri, 16 Dec 2022 00:39:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671151138;
-        bh=lp32JH/kVVvNrmGC5hsX1FlOOUSZDSqI+e+m6dRoF1M=;
+        s=korg; t=1671151141;
+        bh=4GdF3q9kQzxpo8ROcZM4G2y2/tIUIJSy0ejn6XcNKcw=;
         h=Date:To:From:Subject:From;
-        b=1VU/qjv/Y7Labq9XUZGYwnsuZT/4ry69Z5E+NQn+oscznCNjmL1WXH60J7SRfHJW7
-         KOlc57h65IMu8Pkh1RDtlmjkTk/EIaq3nwoEblc8SQikQ4qX34+Dql0dVMgsQNklxP
-         pdn2vt9Cmonv+LtQgjr5ikVm73ESNKGLvkmcdLA4=
-Date:   Thu, 15 Dec 2022 16:38:57 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        Liam.Howlett@oracle.com, joe@perches.com, liam.howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=Rw+kL2Y9XJi9cgaBN9HBvq60kJmsRNa3Cf+aoYIot6jef5I3XaEgnBDsGJoUy4k72
+         6Dbo1NWRrBNXOd29iofMw3jyw3Tpug/eGFZxbjMsr6H1vqiS6RSvkUIk9brz0yWybp
+         owqlw0TT9Vfq42JwZEChujQveBZxgp9EOPNCTrn0=
+Date:   Thu, 15 Dec 2022 16:39:00 -0800
+To:     mm-commits@vger.kernel.org, thomas.petazzoni@bootlin.com,
+        catalin.marinas@arm.com, alexandre.belloni@bootlin.com,
+        clement.leger@bootlin.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-update-copyright-dates-for-test-code.patch removed from -mm tree
-Message-Id: <20221216003858.A28AFC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-use-%pk-to-display-kernel-pointers-in-backtrace.patch removed from -mm tree
+Message-Id: <20221216003901.392D4C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,45 +42,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: update copyright dates for test code
+     Subject: mm/kmemleak: use %pK to display kernel pointers in backtrace
 has been removed from the -mm tree.  Its filename was
-     maple_tree-update-copyright-dates-for-test-code.patch
+     mm-kmemleak-use-%pk-to-display-kernel-pointers-in-backtrace.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: maple_tree: update copyright dates for test code
-Date: Tue, 25 Oct 2022 17:37:23 +0000
+From: Clément Léger <clement.leger@bootlin.com>
+Subject: mm/kmemleak: use %pK to display kernel pointers in backtrace
+Date: Tue, 8 Nov 2022 10:43:22 +0100
 
-Add the span to the year of the development.
+Currently, %p is used to display kernel pointers in backtrace which result
+in a hashed value that is not usable to correlate the address for debug. 
+Use %pK which will respect the kptr_restrict configuration value and thus
+allow to extract meaningful information from the backtrace.
 
-Link: https://lkml.kernel.org/r/20221025173709.2718725-1-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/20221108094322.73492-1-clement.leger@bootlin.com
+Signed-off-by: Clément Léger <clement.leger@bootlin.com>
+Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/maple.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/kmemleak.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/radix-tree/maple.c~maple_tree-update-copyright-dates-for-test-code
-+++ a/tools/testing/radix-tree/maple.c
-@@ -1,7 +1,8 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * maple_tree.c: Userspace shim for maple tree test-suite
-- * Copyright (c) 2018 Liam R. Howlett <Liam.Howlett@Oracle.com>
-+ * maple_tree.c: Userspace testing for maple tree test-suite
-+ * Copyright (c) 2018-2022 Oracle Corporation
-+ * Author: Liam R. Howlett <Liam.Howlett@Oracle.com>
-  *
-  * Any tests that require internal knowledge of the tree or threads and other
-  * difficult to handle in kernel tests.
+--- a/mm/kmemleak.c~mm-kmemleak-use-%pk-to-display-kernel-pointers-in-backtrace
++++ a/mm/kmemleak.c
+@@ -361,7 +361,7 @@ static void print_unreferenced(struct se
+ 
+ 	for (i = 0; i < nr_entries; i++) {
+ 		void *ptr = (void *)entries[i];
+-		warn_or_seq_printf(seq, "    [<%p>] %pS\n", ptr, ptr);
++		warn_or_seq_printf(seq, "    [<%pK>] %pS\n", ptr, ptr);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from clement.leger@bootlin.com are
 
 
