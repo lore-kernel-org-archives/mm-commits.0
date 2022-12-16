@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAEB7C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 17:20:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B15DC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 18:04:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230248AbiLPRUU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Dec 2022 12:20:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38900 "EHLO
+        id S230451AbiLPSEs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Dec 2022 13:04:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230089AbiLPRUT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2022 12:20:19 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D76B429CAE
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 09:20:18 -0800 (PST)
+        with ESMTP id S229863AbiLPSEr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2022 13:04:47 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A17069A8F
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 10:04:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 2E126CE1EB8
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 17:20:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45242C433D2;
-        Fri, 16 Dec 2022 17:20:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EF123621B8
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 18:04:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C4AFC433D2;
+        Fri, 16 Dec 2022 18:04:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671211215;
-        bh=vbXL04wrJaeXv7E4+50CIq0J0CCwp5ZJwrddBBQbRi4=;
+        s=korg; t=1671213885;
+        bh=2NOMTGXmMTIJ4ukAUzGXrOYdieHEgKBdnmx6mOsPxks=;
         h=Date:To:From:Subject:From;
-        b=HDdm2sHzn0akdjzg/pT7x8i05A3unH1YE0WFhzAsGdg57V7Da7DxFBqOkD3xzoQbi
-         n7QyH/uyrEJtgvmbZea0PLCTVsRMTF2NAy/ft8mRV/ihNYddWK7wiOztOii0gdWpuk
-         RFOfLt9X8nOI0GjKgiDz2H97RNAeWlqIBRxaq7og=
-Date:   Fri, 16 Dec 2022 09:20:14 -0800
-To:     mm-commits@vger.kernel.org, peterx@redhat.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=NjmSS72XSn80NVsLp2ZmBj021UMXJTtodwceipBRdZMiWWzweIpjB/8h75xGk5L0Q
+         NeOZa2vb2L3ClNyrwbZvp0BBK1mVUn/zYsrzu//b5BEZkF8LzrpOodUFeiV+MgESqv
+         8P9ee3CnIXmR8Y2OoD6USAJTxJ4lIk0l5qfgznpc=
+Date:   Fri, 16 Dec 2022 10:04:44 -0800
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
+        jiebin.sun@intel.com, alexander.sverdlin@siemens.com,
+        1vier1@web.de, manfred@colorfullife.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch added to mm-unstable branch
-Message-Id: <20221216172015.45242C433D2@smtp.kernel.org>
+Subject: + lib-percpu_counter-percpu_counter_add_batch-overflow-underflow.patch added to mm-nonmm-unstable branch
+Message-Id: <20221216180445.4C4AFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch
+     Subject: lib/percpu_counter: percpu_counter_add_batch() overflow/underflow
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-percpu_counter-percpu_counter_add_batch-overflow-underflow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-percpu_counter-percpu_counter_add_batch-overflow-underflow.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,64 +65,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes
-Date: Fri Dec 16 09:19:24 AM PST 2022
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: lib/percpu_counter: percpu_counter_add_batch() overflow/underflow
+Date: Fri, 16 Dec 2022 16:04:39 +0100
 
-ERROR: code indent should use tabs where possible
-#267: FILE: mm/page_vma_mapped.c:172:
-+                 * All callers that get here will already hold the$
+Patch series "various irq handling fixes/docu updates".
 
-ERROR: code indent should use tabs where possible
-#268: FILE: mm/page_vma_mapped.c:173:
-+                 * i_mmap_rwsem.  Therefore, no additional locks need to be$
+If an interrupt happens between __this_cpu_read(*fbc->counters) and
+this_cpu_add(*fbc->counters, amount), and that interrupt modifies the
+per_cpu_counter, then the this_cpu_add() after the interrupt returns may
+under/overflow.
 
-ERROR: code indent should use tabs where possible
-#269: FILE: mm/page_vma_mapped.c:174:
-+                 * taken before calling hugetlb_walk().$
-
-total: 3 errors, 0 warnings, 211 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/mm-hugetlb-introduce-hugetlb_walk.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20221216150155.200389-1-manfred@colorfullife.com
+Link: https://lkml.kernel.org/r/20221216150441.200533-1-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: "Sun, Jiebin" <jiebin.sun@intel.com>
+Cc: <1vier1@web.de>
+Cc: Alexander Sverdlin <alexander.sverdlin@siemens.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/percpu_counter.c |   25 +++++++++++++++----------
+ 1 file changed, 15 insertions(+), 10 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes
-+++ a/mm/page_vma_mapped.c
-@@ -169,9 +169,9 @@ bool page_vma_mapped_walk(struct page_vm
- 		if (pvmw->pte)
- 			return not_found(pvmw);
- 		/*
--                 * All callers that get here will already hold the
--                 * i_mmap_rwsem.  Therefore, no additional locks need to be
--                 * taken before calling hugetlb_walk().
-+		 * All callers that get here will already hold the
-+		 * i_mmap_rwsem.  Therefore, no additional locks need to be
-+		 * taken before calling hugetlb_walk().
- 		 */
- 		pvmw->pte = hugetlb_walk(vma, pvmw->address, size);
- 		if (!pvmw->pte)
+--- a/lib/percpu_counter.c~lib-percpu_counter-percpu_counter_add_batch-overflow-underflow
++++ a/lib/percpu_counter.c
+@@ -73,28 +73,33 @@ void percpu_counter_set(struct percpu_co
+ EXPORT_SYMBOL(percpu_counter_set);
+ 
+ /*
+- * This function is both preempt and irq safe. The former is due to explicit
+- * preemption disable. The latter is guaranteed by the fact that the slow path
+- * is explicitly protected by an irq-safe spinlock whereas the fast patch uses
+- * this_cpu_add which is irq-safe by definition. Hence there is no need muck
+- * with irq state before calling this one
++ * local_irq_save() is needed to make the function irq safe:
++ * - The slow path would be ok as protected by an irq-safe spinlock.
++ * - this_cpu_add would be ok as it is irq-safe by definition.
++ * But:
++ * The decision slow path/fast path and the actual update must be atomic, too.
++ * Otherwise a call in process context could check the current values and
++ * decide that the fast path can be used. If now an interrupt occurs before
++ * the this_cpu_add(), and the interrupt updates this_cpu(*fbc->counters),
++ * then the this_cpu_add() that is executed after the interrupt has completed
++ * can produce values larger than "batch" or even overflows.
+  */
+ void percpu_counter_add_batch(struct percpu_counter *fbc, s64 amount, s32 batch)
+ {
+ 	s64 count;
++	unsigned long flags;
+ 
+-	preempt_disable();
++	local_irq_save(flags);
+ 	count = __this_cpu_read(*fbc->counters) + amount;
+ 	if (abs(count) >= batch) {
+-		unsigned long flags;
+-		raw_spin_lock_irqsave(&fbc->lock, flags);
++		raw_spin_lock(&fbc->lock);
+ 		fbc->count += count;
+ 		__this_cpu_sub(*fbc->counters, count - amount);
+-		raw_spin_unlock_irqrestore(&fbc->lock, flags);
++		raw_spin_unlock(&fbc->lock);
+ 	} else {
+ 		this_cpu_add(*fbc->counters, amount);
+ 	}
+-	preempt_enable();
++	local_irq_restore(flags);
+ }
+ EXPORT_SYMBOL(percpu_counter_add_batch);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix.patch
-mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch
-error-injection-remove-ei_etype_none-fix.patch
+lib-percpu_counter-percpu_counter_add_batch-overflow-underflow.patch
+include-linux-percpu_counterh-race-in-uniprocessor-percpu_counter_add.patch
+kernel-irq-managec-disable_irq-might-sleep.patch
 
