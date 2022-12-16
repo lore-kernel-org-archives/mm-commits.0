@@ -2,106 +2,88 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D442EC4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 23:07:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A61EFC3DA6E
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 23:11:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229674AbiLPXHb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Dec 2022 18:07:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37686 "EHLO
+        id S229991AbiLPXLG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Dec 2022 18:11:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229495AbiLPXHa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2022 18:07:30 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8956163D3A
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 15:07:29 -0800 (PST)
+        with ESMTP id S230124AbiLPXJ5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2022 18:09:57 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C30D7260F
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 15:09:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EA11762250
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 23:07:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47549C433D2;
-        Fri, 16 Dec 2022 23:07:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 511C6B81E3C
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 23:09:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03742C433F1;
+        Fri, 16 Dec 2022 23:09:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671232048;
-        bh=kLEGHv9Zqf4JCcvrRnja34v+3YxNXzPYQMuTYOD1u8g=;
+        s=korg; t=1671232188;
+        bh=JMJqVE8MEgorlQV9NJGDJ941bXb5TrvNndpQyi5kKOM=;
         h=Date:To:From:Subject:From;
-        b=eyibYyPCruxTzD1hq/zczG2AhJv34gp8hPAwsVySAt9E05epoDDCZU+fL8IQxgb7W
-         l1b/j7U3hHkJs2lY5SXMtnuoLaGnRxXw/apRvKbfbJBvoKhRQze46RUfj//twcRmul
-         /4bG57NQLOjKcJqxMF/cXFx5euzGWQCV8lNOMkeU=
-Date:   Fri, 16 Dec 2022 15:07:27 -0800
-To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        b=tehWwkY1GZDc+4zyZ8ezDla+wylv7wxyj5JOl5Kr0lf0ctmUwdF6e6b6QsRrEbio4
+         JeikkViEI6Eoi4HUeJ+GmUrMn+gMKCk+2dlmxT5N3qQs8vpUmDvStQIeBe+n+lMJLe
+         5UJuc6M0vGWqeLs/cpEdjh/wQ5zYnIhFiXlkCNSg=
+Date:   Fri, 16 Dec 2022 15:09:47 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        songmuchun@bytedance.com, mike.kravetz@oracle.com,
+        jhubbard@nvidia.com, sidhartha.kumar@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-initialize-variable-to-avoid-compiler-warning.patch added to mm-unstable branch
-Message-Id: <20221216230728.47549C433D2@smtp.kernel.org>
+Subject: [obsolete] mm-move-folio_set_compound_order-to-mm-internalh-update.patch removed from -mm tree
+Message-Id: <20221216230948.03742C433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: hugetlb: initialize variable to avoid compiler warning
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-initialize-variable-to-avoid-compiler-warning.patch
+The quilt patch titled
+     Subject: mm-move-folio_set_compound_order-to-mm-internalh-update
+has been removed from the -mm tree.  Its filename was
+     mm-move-folio_set_compound_order-to-mm-internalh-update.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-initialize-variable-to-avoid-compiler-warning.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: initialize variable to avoid compiler warning
-Date: Fri, 16 Dec 2022 14:45:07 -0800
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm-move-folio_set_compound_order-to-mm-internalh-update
+Date: Tue, 13 Dec 2022 13:20:53 -0800
 
-With the gcc 'maybe-uninitialized' warning enabled, gcc will produce:
+alter the folio_set_order() warning
 
-  mm/hugetlb.c:6896:20: warning: `chg' may be used uninitialized
-
-This is a false positive, but may be difficult for the compiler to
-determine.  maybe-uninitialized is disabled by default, but this gets
-flagged as a 0-DAY build regression.
-
-Initialize the variable to silence the warning.
-
-Link: https://lkml.kernel.org/r/20221216224507.106789-1-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: Muchun Song <songmuchun@bytedance.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Suggested-by: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/internal.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-initialize-variable-to-avoid-compiler-warning
-+++ a/mm/hugetlb.c
-@@ -6736,7 +6736,7 @@ bool hugetlb_reserve_pages(struct inode
- 					struct vm_area_struct *vma,
- 					vm_flags_t vm_flags)
+--- a/mm/internal.h~mm-move-folio_set_compound_order-to-mm-internalh-update
++++ a/mm/internal.h
+@@ -384,8 +384,10 @@ int split_free_page(struct page *free_pa
+  */
+ static inline void folio_set_order(struct folio *folio, unsigned int order)
  {
--	long chg, add = -1;
-+	long chg = -1, add = -1;
- 	struct hstate *h = hstate_inode(inode);
- 	struct hugepage_subpool *spool = subpool_inode(inode);
- 	struct resv_map *resv_map;
+-	if (WARN_ON_ONCE(!folio_test_large(folio)))
++	if (!folio_test_large(folio)) {
++		WARN_ON_ONCE(order);
+ 		return;
++	}
+ 
+ 	folio->_folio_order = order;
+ #ifdef CONFIG_64BIT
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-hugetlb-really-allocate-vma-lock-for-all-sharable-vmas.patch
-hugetlb-update-vma-flag-check-for-hugetlb-vma-lock.patch
-hugetlb-initialize-variable-to-avoid-compiler-warning.patch
+mm-move-folio_set_compound_order-to-mm-internalh.patch
 
