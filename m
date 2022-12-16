@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 459AAC4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 23:06:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D442EC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 23:07:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229806AbiLPXGQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Dec 2022 18:06:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37564 "EHLO
+        id S229674AbiLPXHb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Dec 2022 18:07:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229495AbiLPXGO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2022 18:06:14 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69F5D18B11
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 15:06:10 -0800 (PST)
+        with ESMTP id S229495AbiLPXHa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2022 18:07:30 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8956163D3A
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 15:07:29 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 010A9B81DA5
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 23:06:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86770C433EF;
-        Fri, 16 Dec 2022 23:06:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EA11762250
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 23:07:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47549C433D2;
+        Fri, 16 Dec 2022 23:07:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671231967;
-        bh=KdCqG4zZNDngiKjV3BZVubUxknvmqcOS6PqsTJU+u3k=;
+        s=korg; t=1671232048;
+        bh=kLEGHv9Zqf4JCcvrRnja34v+3YxNXzPYQMuTYOD1u8g=;
         h=Date:To:From:Subject:From;
-        b=RPjvJ+tt9Q3nF/Qjlgd+dPgqaXruzEdv/Lg0/h0nDWTAi4qJDcQ//iggxcleytRa3
-         EwF84AEmfyUM84qKLDTtpaGSGq2IJQr9oZ7VuV/6+eE/ip8x71Z8wUsCWTw1+CEiMp
-         EY05kUt47Knl7rfB1dtmCl5+WYrLGgR4i2Geos0A=
-Date:   Fri, 16 Dec 2022 15:06:06 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.moola@gmail.com, wangkefeng.wang@huawei.com,
+        b=eyibYyPCruxTzD1hq/zczG2AhJv34gp8hPAwsVySAt9E05epoDDCZU+fL8IQxgb7W
+         l1b/j7U3hHkJs2lY5SXMtnuoLaGnRxXw/apRvKbfbJBvoKhRQze46RUfj//twcRmul
+         /4bG57NQLOjKcJqxMF/cXFx5euzGWQCV8lNOMkeU=
+Date:   Fri, 16 Dec 2022 15:07:27 -0800
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-convert-madvise_free_huge_pmd-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20221216230607.86770C433EF@smtp.kernel.org>
+Subject: + hugetlb-initialize-variable-to-avoid-compiler-warning.patch added to mm-unstable branch
+Message-Id: <20221216230728.47549C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: huge_memory: convert madvise_free_huge_pmd to use a folio
+     Subject: hugetlb: initialize variable to avoid compiler warning
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-convert-madvise_free_huge_pmd-to-use-a-folio.patch
+     hugetlb-initialize-variable-to-avoid-compiler-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-convert-madvise_free_huge_pmd-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-initialize-variable-to-avoid-compiler-warning.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,94 +64,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: huge_memory: convert madvise_free_huge_pmd to use a folio
-Date: Wed, 7 Dec 2022 10:34:30 +0800
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: initialize variable to avoid compiler warning
+Date: Fri, 16 Dec 2022 14:45:07 -0800
 
-Using folios instead of pages removes several calls to compound_head(),
+With the gcc 'maybe-uninitialized' warning enabled, gcc will produce:
 
-Link: https://lkml.kernel.org/r/20221207023431.151008-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+  mm/hugetlb.c:6896:20: warning: `chg' may be used uninitialized
+
+This is a false positive, but may be difficult for the compiler to
+determine.  maybe-uninitialized is disabled by default, but this gets
+flagged as a 0-DAY build regression.
+
+Initialize the variable to silence the warning.
+
+Link: https://lkml.kernel.org/r/20221216224507.106789-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-convert-madvise_free_huge_pmd-to-use-a-folio
-+++ a/mm/huge_memory.c
-@@ -1603,7 +1603,7 @@ bool madvise_free_huge_pmd(struct mmu_ga
+--- a/mm/hugetlb.c~hugetlb-initialize-variable-to-avoid-compiler-warning
++++ a/mm/hugetlb.c
+@@ -6736,7 +6736,7 @@ bool hugetlb_reserve_pages(struct inode
+ 					struct vm_area_struct *vma,
+ 					vm_flags_t vm_flags)
  {
- 	spinlock_t *ptl;
- 	pmd_t orig_pmd;
--	struct page *page;
-+	struct folio *folio;
- 	struct mm_struct *mm = tlb->mm;
- 	bool ret = false;
- 
-@@ -1623,15 +1623,15 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 		goto out;
- 	}
- 
--	page = pmd_page(orig_pmd);
-+	folio = pfn_folio(pmd_pfn(orig_pmd));
- 	/*
--	 * If other processes are mapping this page, we couldn't discard
--	 * the page unless they all do MADV_FREE so let's skip the page.
-+	 * If other processes are mapping this folio, we couldn't discard
-+	 * the folio unless they all do MADV_FREE so let's skip the folio.
- 	 */
--	if (total_mapcount(page) != 1)
-+	if (folio_mapcount(folio) != 1)
- 		goto out;
- 
--	if (!trylock_page(page))
-+	if (!folio_trylock(folio))
- 		goto out;
- 
- 	/*
-@@ -1639,17 +1639,17 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 	 * will deactivate only them.
- 	 */
- 	if (next - addr != HPAGE_PMD_SIZE) {
--		get_page(page);
-+		folio_get(folio);
- 		spin_unlock(ptl);
--		split_huge_page(page);
--		unlock_page(page);
--		put_page(page);
-+		split_folio(folio);
-+		folio_unlock(folio);
-+		folio_put(folio);
- 		goto out_unlocked;
- 	}
- 
--	if (PageDirty(page))
--		ClearPageDirty(page);
--	unlock_page(page);
-+	if (folio_test_dirty(folio))
-+		folio_clear_dirty(folio);
-+	folio_unlock(folio);
- 
- 	if (pmd_young(orig_pmd) || pmd_dirty(orig_pmd)) {
- 		pmdp_invalidate(vma, addr, pmd);
-@@ -1660,7 +1660,7 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
- 	}
- 
--	mark_page_lazyfree(page);
-+	mark_page_lazyfree(&folio->page);
- 	ret = true;
- out:
- 	spin_unlock(ptl);
+-	long chg, add = -1;
++	long chg = -1, add = -1;
+ 	struct hstate *h = hstate_inode(inode);
+ 	struct hugepage_subpool *spool = subpool_inode(inode);
+ 	struct resv_map *resv_map;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-hwposion-support-recovery-from-ksm_might_need_to_copy.patch
-mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v3.patch
-mm-huge_memory-convert-madvise_free_huge_pmd-to-use-a-folio.patch
-mm-swap-convert-mark_page_lazyfree-to-folio_mark_lazyfree.patch
+hugetlb-really-allocate-vma-lock-for-all-sharable-vmas.patch
+hugetlb-update-vma-flag-check-for-hugetlb-vma-lock.patch
+hugetlb-initialize-variable-to-avoid-compiler-warning.patch
 
