@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2250C4167B
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 00:39:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7681FC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 00:41:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229742AbiLPAjI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Dec 2022 19:39:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55916 "EHLO
+        id S229453AbiLPAlP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Dec 2022 19:41:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56570 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229770AbiLPAjE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 19:39:04 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AB3C3722A
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 16:39:03 -0800 (PST)
+        with ESMTP id S229625AbiLPAlP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 19:41:15 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F47C32BA9
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 16:41:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id C7885CE1CEA
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 00:39:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E065EC433D2;
-        Fri, 16 Dec 2022 00:38:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 18DEC61FC6
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 00:41:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69E5EC433EF;
+        Fri, 16 Dec 2022 00:41:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671151140;
-        bh=LTIa1+xSFPn7rp+VvBSRLeHGIgsY9s3IDdA2DEk5wgo=;
+        s=korg; t=1671151273;
+        bh=9FL82KnjjyMKkvHGnuT4P7Meto1DPM0btU26U/X9CjE=;
         h=Date:To:From:Subject:From;
-        b=1/GvwiFrUQd8P4XGWt2O2yUX800DVGup5suYzGDx0OGgswcH3mwXqKKRXJZVwFTBn
-         7l7QEwBM/izV7nikx1EACQX3vlrkTFxz7p0L1chYzQUoALpEPg79yVZGTqZDjfIZTd
-         tf9wiqHopt03lrLowtGZugS68bg3vw29kpHXxC70=
-Date:   Thu, 15 Dec 2022 16:38:59 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        ke.wang@unisoc.com, huangzhaoyang@gmail.com,
-        catalin.marinas@arm.com, zhaoyang.huang@unisoc.com,
-        akpm@linux-foundation.org
+        b=Vca4J0HJEdrevjFFqo92DZgVLvZRL7lXHwMFS82CjB6MMYyJrk0ILCsRXhXw48M43
+         TEweidZClKwQ1xE2obFXjXGQDmlZszorfZ9Jlebw+6IA1lvArd19fW2lbGGTrqRUng
+         3VgCYikkWnd0G/nlhmlPWM1pI0fbxyRQW6IwP0QY=
+Date:   Thu, 15 Dec 2022 16:41:12 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, peterz@infradead.org,
+        ojeda@kernel.org, ndesaulniers@google.com, nathan@kernel.org,
+        linux@rasmusvillemoes.dk, keescook@chromium.org,
+        jpoimboe@kernel.org, isabbasso@riseup.net,
+        dan.j.williams@intel.com, akinobu.mita@gmail.com,
+        weiyongjun1@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-use-stack_depot-for-recording-kmemleaks-backtrace.patch removed from -mm tree
-Message-Id: <20221216003859.E065EC433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fault-injection-allow-stacktrace-filter-for-x86-64.patch removed from -mm tree
+Message-Id: <20221216004113.69E5EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,177 +45,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: use stack_depot for recording kmemleak's backtrace
+     Subject: fault-injection: allow stacktrace filter for x86-64
 has been removed from the -mm tree.  Its filename was
-     mm-use-stack_depot-for-recording-kmemleaks-backtrace.patch
+     fault-injection-allow-stacktrace-filter-for-x86-64.patch
 
-This patch was dropped because it was merged into the mm-stable branch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Subject: mm: use stack_depot for recording kmemleak's backtrace
-Date: Thu, 27 Oct 2022 17:50:24 +0800
+From: Wei Yongjun <weiyongjun1@huawei.com>
+Subject: fault-injection: allow stacktrace filter for x86-64
+Date: Wed, 17 Aug 2022 08:03:29 +0000
 
-Using stack_depot to record kmemleak's backtrace which has been
-implemented on slub for reducing redundant information.
+This patchset allow fault injection to run on x86_64 and makes stacktrace
+filter work as expected.  With this, we can test a device driver module
+with fault injection more easily.
 
-[akpm@linux-foundation.org: fix build - remove now-unused __save_stack_trace()]
-[zhaoyang.huang@unisoc.com: v3]
-  Link: https://lkml.kernel.org/r/1667101354-4669-1-git-send-email-zhaoyang.huang@unisoc.com
-[akpm@linux-foundation.org: fix v3 layout oddities]
-[akpm@linux-foundation.org: coding-style cleanups]
-Link: https://lkml.kernel.org/r/1666864224-27541-1-git-send-email-zhaoyang.huang@unisoc.com
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: ke.wang <ke.wang@unisoc.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+
+This patch (of 4):
+
+FAULT_INJECTION_STACKTRACE_FILTER option was apparently disallowed on
+x86_64 because of problems with the stack unwinder:
+
+    commit 6d690dcac92a84f98fd774862628ff871b713660
+    Author: Akinobu Mita <akinobu.mita@gmail.com>
+    Date:   Sat May 12 10:36:53 2007 -0700
+
+        fault injection: disable stacktrace filter for x86-64
+
+However, there is no problems whatsoever with this today. Let's allow
+it again.
+
+Link: https://lkml.kernel.org/r/20220817080332.1052710-1-weiyongjun1@huawei.com
+Link: https://lkml.kernel.org/r/20220817080332.1052710-2-weiyongjun1@huawei.com
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Isabella Basso <isabbasso@riseup.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhaoyang Huang <huangzhaoyang@gmail.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 
- mm/kmemleak.c     |   46 ++++++++++++++++++++++++++------------------
- 2 files changed, 29 insertions(+), 18 deletions(-)
+ lib/Kconfig.debug |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/lib/Kconfig.debug~mm-use-stack_depot-for-recording-kmemleaks-backtrace
+--- a/lib/Kconfig.debug~fault-injection-allow-stacktrace-filter-for-x86-64
 +++ a/lib/Kconfig.debug
-@@ -728,6 +728,7 @@ config DEBUG_KMEMLEAK
- 	select STACKTRACE if STACKTRACE_SUPPORT
- 	select KALLSYMS
- 	select CRC32
-+	select STACKDEPOT
+@@ -1982,7 +1982,6 @@ config FAIL_SUNRPC
+ config FAULT_INJECTION_STACKTRACE_FILTER
+ 	bool "stacktrace filter for fault-injection capabilities"
+ 	depends on FAULT_INJECTION_DEBUG_FS && STACKTRACE_SUPPORT
+-	depends on !X86_64
+ 	select STACKTRACE
+ 	depends on FRAME_POINTER || MIPS || PPC || S390 || MICROBLAZE || ARM || ARC || X86
  	help
- 	  Say Y here if you want to enable the memory leak
- 	  detector. The memory allocation/freeing is traced in a way
---- a/mm/kmemleak.c~mm-use-stack_depot-for-recording-kmemleaks-backtrace
-+++ a/mm/kmemleak.c
-@@ -79,6 +79,7 @@
- #include <linux/mutex.h>
- #include <linux/rcupdate.h>
- #include <linux/stacktrace.h>
-+#include <linux/stackdepot.h>
- #include <linux/cache.h>
- #include <linux/percpu.h>
- #include <linux/memblock.h>
-@@ -159,8 +160,7 @@ struct kmemleak_object {
- 	u32 checksum;
- 	/* memory ranges to be scanned inside an object (empty for all) */
- 	struct hlist_head area_list;
--	unsigned long trace[MAX_TRACE];
--	unsigned int trace_len;
-+	depot_stack_handle_t trace_handle;
- 	unsigned long jiffies;		/* creation timestamp */
- 	pid_t pid;			/* pid of the current task */
- 	char comm[TASK_COMM_LEN];	/* executable name */
-@@ -346,18 +346,21 @@ static void print_unreferenced(struct se
- 			       struct kmemleak_object *object)
- {
- 	int i;
-+	unsigned long *entries;
-+	unsigned int nr_entries;
- 	unsigned int msecs_age = jiffies_to_msecs(jiffies - object->jiffies);
- 
-+	nr_entries = stack_depot_fetch(object->trace_handle, &entries);
- 	warn_or_seq_printf(seq, "unreferenced object 0x%08lx (size %zu):\n",
--		   object->pointer, object->size);
-+			  object->pointer, object->size);
- 	warn_or_seq_printf(seq, "  comm \"%s\", pid %d, jiffies %lu (age %d.%03ds)\n",
--		   object->comm, object->pid, object->jiffies,
--		   msecs_age / 1000, msecs_age % 1000);
-+			   object->comm, object->pid, object->jiffies,
-+			   msecs_age / 1000, msecs_age % 1000);
- 	hex_dump_object(seq, object);
- 	warn_or_seq_printf(seq, "  backtrace:\n");
- 
--	for (i = 0; i < object->trace_len; i++) {
--		void *ptr = (void *)object->trace[i];
-+	for (i = 0; i < nr_entries; i++) {
-+		void *ptr = (void *)entries[i];
- 		warn_or_seq_printf(seq, "    [<%p>] %pS\n", ptr, ptr);
- 	}
- }
-@@ -370,15 +373,16 @@ static void print_unreferenced(struct se
- static void dump_object_info(struct kmemleak_object *object)
- {
- 	pr_notice("Object 0x%08lx (size %zu):\n",
--		  object->pointer, object->size);
-+			object->pointer, object->size);
- 	pr_notice("  comm \"%s\", pid %d, jiffies %lu\n",
--		  object->comm, object->pid, object->jiffies);
-+			object->comm, object->pid, object->jiffies);
- 	pr_notice("  min_count = %d\n", object->min_count);
- 	pr_notice("  count = %d\n", object->count);
- 	pr_notice("  flags = 0x%x\n", object->flags);
- 	pr_notice("  checksum = %u\n", object->checksum);
- 	pr_notice("  backtrace:\n");
--	stack_trace_print(object->trace, object->trace_len, 4);
-+	if (object->trace_handle)
-+		stack_depot_print(object->trace_handle);
- }
- 
- /*
-@@ -591,12 +595,18 @@ static struct kmemleak_object *find_and_
- 	return object;
- }
- 
--/*
-- * Save stack trace to the given array of MAX_TRACE size.
-- */
--static int __save_stack_trace(unsigned long *trace)
-+static noinline depot_stack_handle_t set_track_prepare(void)
- {
--	return stack_trace_save(trace, MAX_TRACE, 2);
-+	depot_stack_handle_t trace_handle;
-+	unsigned long entries[MAX_TRACE];
-+	unsigned int nr_entries;
-+
-+	if (!kmemleak_initialized)
-+		return 0;
-+	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 3);
-+	trace_handle = stack_depot_save(entries, nr_entries, GFP_NOWAIT);
-+
-+	return trace_handle;
- }
- 
- /*
-@@ -653,7 +663,7 @@ static void __create_object(unsigned lon
- 	}
- 
- 	/* kernel backtrace */
--	object->trace_len = __save_stack_trace(object->trace);
-+	object->trace_handle = set_track_prepare();
- 
- 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
- 
-@@ -692,7 +702,6 @@ static void __create_object(unsigned lon
- 	rb_link_node(&object->rb_node, rb_parent, link);
- 	rb_insert_color(&object->rb_node, is_phys ? &object_phys_tree_root :
- 					  &object_tree_root);
--
- 	list_add_tail_rcu(&object->object_list, &object_list);
- out:
- 	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
-@@ -1091,7 +1100,7 @@ void __ref kmemleak_update_trace(const v
- 	}
- 
- 	raw_spin_lock_irqsave(&object->lock, flags);
--	object->trace_len = __save_stack_trace(object->trace);
-+	object->trace_handle = set_track_prepare();
- 	raw_spin_unlock_irqrestore(&object->lock, flags);
- 
- 	put_object(object);
-@@ -2084,6 +2093,7 @@ void __init kmemleak_init(void)
- 	if (kmemleak_error)
- 		return;
- 
-+	stack_depot_init();
- 	jiffies_min_age = msecs_to_jiffies(MSECS_MIN_AGE);
- 	jiffies_scan_wait = msecs_to_jiffies(SECS_SCAN_WAIT * 1000);
- 
 _
 
-Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
+Patches currently in -mm which might be from weiyongjun1@huawei.com are
 
 
