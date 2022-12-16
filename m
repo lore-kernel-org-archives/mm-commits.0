@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB4D0C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 00:39:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AECFC3DA79
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 00:39:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229680AbiLPAjG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Dec 2022 19:39:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55902 "EHLO
+        id S229728AbiLPAjH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Dec 2022 19:39:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229742AbiLPAjD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 19:39:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7003C5D6B8
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 16:39:02 -0800 (PST)
+        with ESMTP id S229797AbiLPAjF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2022 19:39:05 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C0A74AF2C
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2022 16:39:05 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D8AD261FB9
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 00:39:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 392D4C433EF;
-        Fri, 16 Dec 2022 00:39:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A52B5B81CD5
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 00:39:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6109DC433D2;
+        Fri, 16 Dec 2022 00:39:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671151141;
-        bh=4GdF3q9kQzxpo8ROcZM4G2y2/tIUIJSy0ejn6XcNKcw=;
+        s=korg; t=1671151142;
+        bh=wf7RMcfs8HX+0Z7Dp/WsMx250LYtkrlpbYPWPcT+eIw=;
         h=Date:To:From:Subject:From;
-        b=Rw+kL2Y9XJi9cgaBN9HBvq60kJmsRNa3Cf+aoYIot6jef5I3XaEgnBDsGJoUy4k72
-         6Dbo1NWRrBNXOd29iofMw3jyw3Tpug/eGFZxbjMsr6H1vqiS6RSvkUIk9brz0yWybp
-         owqlw0TT9Vfq42JwZEChujQveBZxgp9EOPNCTrn0=
-Date:   Thu, 15 Dec 2022 16:39:00 -0800
-To:     mm-commits@vger.kernel.org, thomas.petazzoni@bootlin.com,
-        catalin.marinas@arm.com, alexandre.belloni@bootlin.com,
-        clement.leger@bootlin.com, akpm@linux-foundation.org
+        b=OuhIjAxG2qrBtc/nkgC5/MKU9EeefxY9HAWIa7nd1QZRLs98jd3GSBfn1tpt1ah8D
+         8wYiqstRcZJvo3P3F8s/T/F5dRQm4VKpze3czFAJTpH+ACKYB8k8IdKeDk8jXnuC+t
+         jZF27MkjKS4+2OxYbT4JI++XiNSg90VTcvEe113k=
+Date:   Thu, 15 Dec 2022 16:39:01 -0800
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        ngupta@vflare.org, minchan@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kmemleak-use-%pk-to-display-kernel-pointers-in-backtrace.patch removed from -mm tree
-Message-Id: <20221216003901.392D4C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-zram-zsmalloc-add-an-additional-co-maintainer.patch removed from -mm tree
+Message-Id: <20221216003902.6109DC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,47 +41,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/kmemleak: use %pK to display kernel pointers in backtrace
+     Subject: MAINTAINERS: zram: zsmalloc: Add an additional co-maintainer
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-use-%pk-to-display-kernel-pointers-in-backtrace.patch
+     maintainers-zram-zsmalloc-add-an-additional-co-maintainer.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Clément Léger <clement.leger@bootlin.com>
-Subject: mm/kmemleak: use %pK to display kernel pointers in backtrace
-Date: Tue, 8 Nov 2022 10:43:22 +0100
+From: Minchan Kim <minchan@kernel.org>
+Subject: MAINTAINERS: zram: zsmalloc: Add an additional co-maintainer
+Date: Tue, 13 Dec 2022 09:07:31 -0800
 
-Currently, %p is used to display kernel pointers in backtrace which result
-in a hashed value that is not usable to correlate the address for debug. 
-Use %pK which will respect the kptr_restrict configuration value and thus
-allow to extract meaningful information from the backtrace.
+Move Sergey to co-maintainer for zram/zsmalloc since he has helped to
+contribute/review those areas actively for eight years, which is quite
+helpful.  Since Nitin has been inactive for several years, it's time to
+move his name into CREDITS.
 
-Link: https://lkml.kernel.org/r/20221108094322.73492-1-clement.leger@bootlin.com
-Signed-off-by: Clément Léger <clement.leger@bootlin.com>
-Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Link: https://lkml.kernel.org/r/20221213170731.796121-1-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ CREDITS     |    4 ++++
+ MAINTAINERS |    6 ++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-use-%pk-to-display-kernel-pointers-in-backtrace
-+++ a/mm/kmemleak.c
-@@ -361,7 +361,7 @@ static void print_unreferenced(struct se
+--- a/CREDITS~maintainers-zram-zsmalloc-add-an-additional-co-maintainer
++++ a/CREDITS
+@@ -1439,6 +1439,10 @@ N: Justin Guyett
+ E: jguyett@andrew.cmu.edu
+ D: via-rhine net driver hacking
  
- 	for (i = 0; i < nr_entries; i++) {
- 		void *ptr = (void *)entries[i];
--		warn_or_seq_printf(seq, "    [<%p>] %pS\n", ptr, ptr);
-+		warn_or_seq_printf(seq, "    [<%pK>] %pS\n", ptr, ptr);
- 	}
- }
++N: Nitin Gupta
++E: ngupta@vflare.org
++D: zsmalloc memory allocator and zram block device driver
++
+ N: Danny ter Haar
+ E: dth@cistron.nl
+ D: /proc/cpuinfo, reboot on panic , kernel pre-patch tester ;)
+--- a/MAINTAINERS~maintainers-zram-zsmalloc-add-an-additional-co-maintainer
++++ a/MAINTAINERS
+@@ -23002,8 +23002,7 @@ F:	drivers/media/pci/zoran/
  
+ ZRAM COMPRESSED RAM BLOCK DEVICE DRVIER
+ M:	Minchan Kim <minchan@kernel.org>
+-M:	Nitin Gupta <ngupta@vflare.org>
+-R:	Sergey Senozhatsky <senozhatsky@chromium.org>
++M:	Sergey Senozhatsky <senozhatsky@chromium.org>
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/admin-guide/blockdev/zram.rst
+@@ -23016,8 +23015,7 @@ F:	drivers/tty/serial/zs.*
+ 
+ ZSMALLOC COMPRESSED SLAB MEMORY ALLOCATOR
+ M:	Minchan Kim <minchan@kernel.org>
+-M:	Nitin Gupta <ngupta@vflare.org>
+-R:	Sergey Senozhatsky <senozhatsky@chromium.org>
++M:	Sergey Senozhatsky <senozhatsky@chromium.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/mm/zsmalloc.rst
 _
 
-Patches currently in -mm which might be from clement.leger@bootlin.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 
