@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08D1EC4167B
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Dec 2022 23:59:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3C78C4332F
+	for <mm-commits@archiver.kernel.org>; Sat, 17 Dec 2022 00:00:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230269AbiLPX7z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Dec 2022 18:59:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39756 "EHLO
+        id S229926AbiLQAAE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Dec 2022 19:00:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230097AbiLPX7o (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2022 18:59:44 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9C3C73B05
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 15:59:41 -0800 (PST)
+        with ESMTP id S230264AbiLPX7r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2022 18:59:47 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA3C97260C
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 15:59:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 66D9F621C4
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 23:59:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD884C433EF;
-        Fri, 16 Dec 2022 23:59:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 57C4BB81E4B
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 23:59:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDDB5C433EF;
+        Fri, 16 Dec 2022 23:59:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671235180;
-        bh=P3KfmZa1OlmJl1oOWUYTQyGx5eHe21vwEWvqnLyGndU=;
+        s=korg; t=1671235183;
+        bh=QKLJTQr9XI3nOEdvfXyERegx3qUwB3dC8gBUrI/Ct68=;
         h=Date:To:From:Subject:From;
-        b=QETPja5mZoZ4RSuGTNZ3y8/Sjc2A5OlKnkjkSuNlKKJHSHruO3/8kdPmhFtCagnBS
-         WM9bodO2wXl1Enpc2JtFk/b0rl8eXuI0DWPWY4vE824IDyqyevYOJ0xyCAe1Brfnh0
-         swJXt2fgJU9jdaLqE6PuMig6qnPvz9t8gG7sSh3Q=
-Date:   Fri, 16 Dec 2022 15:59:40 -0800
+        b=cQv8cqWPoMUMPyWVWTABPpvSgHJ1drRS1++jIMb6pZhr+FKeUqj2Aq6O6FRFObvz6
+         LQ3ZNyCfqjMVACMYJegl0OL87Pyb40Io0IOJbtW4OlgkjY8AXsUVlNZFWCMzPGwYVL
+         /QtvCc8cw/JmiNGStcaJWNVsCZ9QY+KV4yy67jUc=
+Date:   Fri, 16 Dec 2022 15:59:42 -0800
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
         sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-implement-filter-directory.patch added to mm-unstable branch
-Message-Id: <20221216235940.AD884C433EF@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-connect-filter-directory-and-filters-directory.patch added to mm-unstable branch
+Message-Id: <20221216235942.DDDB5C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: implement filter directory
+     Subject: mm/damon/sysfs-schemes: connect filter directory and filters directory
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-implement-filter-directory.patch
+     mm-damon-sysfs-schemes-connect-filter-directory-and-filters-directory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-filter-directory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-connect-filter-directory-and-filters-directory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,163 +65,135 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: implement filter directory
-Date: Mon, 5 Dec 2022 23:08:25 +0000
+Subject: mm/damon/sysfs-schemes: connect filter directory and filters directory
+Date: Mon, 5 Dec 2022 23:08:26 +0000
 
-Implement DAMOS filter directory which will be located under the filters
-directory.  The directory provides three files, namely type, matching, and
-memcg_path.  'type' and 'matching' will be directly connected to the
-fields of 'struct damos_filter' having same name.  'memcg_path' will
-receive the path of the memory cgroup of the interest and later converted
-to memcg id when it's committed.
+Implement 'nr_filters' file under 'filters' directory, which will be used
+to populate specific number of 'filter' directory under the directory,
+similar to other 'nr_*' files in DAMON sysfs interface.
 
-Link: https://lkml.kernel.org/r/20221205230830.144349-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20221205230830.144349-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |  128 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 128 insertions(+)
+ mm/damon/sysfs-schemes.c |   68 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-filter-directory
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-connect-filter-directory-and-filters-directory
 +++ a/mm/damon/sysfs-schemes.c
-@@ -259,6 +259,134 @@ static struct kobj_type damon_sysfs_stat
+@@ -269,6 +269,11 @@ struct damon_sysfs_scheme_filter {
+ 	char *memcg_path;
  };
  
- /*
-+ * filter directory
-+ */
-+
-+struct damon_sysfs_scheme_filter {
-+	struct kobject kobj;
-+	enum damos_filter_type type;
-+	bool matching;
-+	char *memcg_path;
-+};
-+
-+/* Should match with enum damos_filter_type */
-+static const char * const damon_sysfs_scheme_filter_type_strs[] = {
-+	"anon",
-+	"memcg",
-+};
-+
-+static ssize_t type_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
++static struct damon_sysfs_scheme_filter *damon_sysfs_scheme_filter_alloc(void)
 +{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+
-+	return sysfs_emit(buf, "%s\n",
-+			damon_sysfs_scheme_filter_type_strs[filter->type]);
++	return kzalloc(sizeof(struct damon_sysfs_scheme_filter), GFP_KERNEL);
 +}
 +
-+static ssize_t type_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
+ /* Should match with enum damos_filter_type */
+ static const char * const damon_sysfs_scheme_filter_type_strs[] = {
+ 	"anon",
+@@ -392,6 +397,7 @@ static struct kobj_type damon_sysfs_sche
+ 
+ struct damon_sysfs_scheme_filters {
+ 	struct kobject kobj;
++	struct damon_sysfs_scheme_filter **filters_arr;
+ 	int nr;
+ };
+ 
+@@ -401,6 +407,57 @@ damon_sysfs_scheme_filters_alloc(void)
+ 	return kzalloc(sizeof(struct damon_sysfs_scheme_filters), GFP_KERNEL);
+ }
+ 
++static void damon_sysfs_scheme_filters_rm_dirs(
++		struct damon_sysfs_scheme_filters *filters)
 +{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+	enum damos_filter_type type;
-+	ssize_t ret = -EINVAL;
++	struct damon_sysfs_scheme_filter **filters_arr = filters->filters_arr;
++	int i;
 +
-+	for (type = 0; type < NR_DAMOS_FILTER_TYPES; type++) {
-+		if (sysfs_streq(buf, damon_sysfs_scheme_filter_type_strs[
-+					type])) {
-+			filter->type = type;
-+			ret = count;
-+			break;
++	for (i = 0; i < filters->nr; i++)
++		kobject_put(&filters_arr[i]->kobj);
++	filters->nr = 0;
++	kfree(filters_arr);
++	filters->filters_arr = NULL;
++}
++
++static int damon_sysfs_scheme_filters_add_dirs(
++		struct damon_sysfs_scheme_filters *filters, int nr_filters)
++{
++	struct damon_sysfs_scheme_filter **filters_arr, *filter;
++	int err, i;
++
++	damon_sysfs_scheme_filters_rm_dirs(filters);
++	if (!nr_filters)
++		return 0;
++
++	filters_arr = kmalloc_array(nr_filters, sizeof(*filters_arr),
++			GFP_KERNEL | __GFP_NOWARN);
++	if (!filters_arr)
++		return -ENOMEM;
++	filters->filters_arr = filters_arr;
++
++	for (i = 0; i < nr_filters; i++) {
++		filter = damon_sysfs_scheme_filter_alloc();
++		if (!filter) {
++			damon_sysfs_scheme_filters_rm_dirs(filters);
++			return -ENOMEM;
 +		}
++
++		err = kobject_init_and_add(&filter->kobj,
++				&damon_sysfs_scheme_filter_ktype,
++				&filters->kobj, "%d", i);
++		if (err) {
++			kobject_put(&filter->kobj);
++			damon_sysfs_scheme_filters_rm_dirs(filters);
++			return err;
++		}
++
++		filters_arr[i] = filter;
++		filters->nr++;
 +	}
-+	return ret;
++	return 0;
 +}
 +
-+static ssize_t matching_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
+ static ssize_t nr_filters_show(struct kobject *kobj,
+ 		struct kobj_attribute *attr, char *buf)
+ {
+@@ -413,6 +470,7 @@ static ssize_t nr_filters_show(struct ko
+ static ssize_t nr_filters_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
+ {
++	struct damon_sysfs_scheme_filters *filters;
+ 	int nr, err = kstrtoint(buf, 0, &nr);
+ 
+ 	if (err)
+@@ -420,6 +478,15 @@ static ssize_t nr_filters_store(struct k
+ 	if (nr < 0)
+ 		return -EINVAL;
+ 
++	filters = container_of(kobj, struct damon_sysfs_scheme_filters, kobj);
 +
-+	return sysfs_emit(buf, "%c\n", filter->matching ? 'Y' : 'N');
-+}
-+
-+static ssize_t matching_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+	bool matching;
-+	int err = kstrtobool(buf, &matching);
-+
++	if (!mutex_trylock(&damon_sysfs_lock))
++		return -EBUSY;
++	err = damon_sysfs_scheme_filters_add_dirs(filters, nr);
++	mutex_unlock(&damon_sysfs_lock);
 +	if (err)
 +		return err;
 +
-+	filter->matching = matching;
-+	return count;
-+}
-+
-+static ssize_t memcg_path_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+
-+	return sysfs_emit(buf, "%s\n",
-+			filter->memcg_path ? filter->memcg_path : "");
-+}
-+
-+static ssize_t memcg_path_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+	char *path = kmalloc(sizeof(*path) * (count + 1), GFP_KERNEL);
-+
-+	if (!path)
-+		return -ENOMEM;
-+
-+	strncpy(path, buf, count);
-+	path[count] = '\0';
-+	filter->memcg_path = path;
-+	return count;
-+}
-+
-+static void damon_sysfs_scheme_filter_release(struct kobject *kobj)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+
-+	kfree(filter->memcg_path);
-+	kfree(filter);
-+}
-+
-+static struct kobj_attribute damon_sysfs_scheme_filter_type_attr =
-+		__ATTR_RW_MODE(type, 0600);
-+
-+static struct kobj_attribute damon_sysfs_scheme_filter_matching_attr =
-+		__ATTR_RW_MODE(matching, 0600);
-+
-+static struct kobj_attribute damon_sysfs_scheme_filter_memcg_path_attr =
-+		__ATTR_RW_MODE(memcg_path, 0600);
-+
-+static struct attribute *damon_sysfs_scheme_filter_attrs[] = {
-+	&damon_sysfs_scheme_filter_type_attr.attr,
-+	&damon_sysfs_scheme_filter_matching_attr.attr,
-+	&damon_sysfs_scheme_filter_memcg_path_attr.attr,
-+	NULL,
-+};
-+ATTRIBUTE_GROUPS(damon_sysfs_scheme_filter);
-+
-+static struct kobj_type damon_sysfs_scheme_filter_ktype = {
-+	.release = damon_sysfs_scheme_filter_release,
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_groups = damon_sysfs_scheme_filter_groups,
-+};
-+
-+/*
-  * filters directory
-  */
+ 	return count;
+ }
  
+@@ -1166,6 +1233,7 @@ static void damon_sysfs_scheme_rm_dirs(s
+ 	damon_sysfs_quotas_rm_dirs(scheme->quotas);
+ 	kobject_put(&scheme->quotas->kobj);
+ 	kobject_put(&scheme->watermarks->kobj);
++	damon_sysfs_scheme_filters_rm_dirs(scheme->filters);
+ 	kobject_put(&scheme->filters->kobj);
+ 	kobject_put(&scheme->stats->kobj);
+ 	damon_sysfs_scheme_regions_rm_dirs(scheme->tried_regions);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
