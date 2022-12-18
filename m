@@ -2,66 +2,50 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6042EC4332F
-	for <mm-commits@archiver.kernel.org>; Sat, 17 Dec 2022 00:39:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 869F9C4332F
+	for <mm-commits@archiver.kernel.org>; Sun, 18 Dec 2022 00:16:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229549AbiLQAj2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Dec 2022 19:39:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35522 "EHLO
+        id S229537AbiLRAQN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 17 Dec 2022 19:16:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229453AbiLQAj0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2022 19:39:26 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 010021F2E4
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2022 16:39:26 -0800 (PST)
+        with ESMTP id S229506AbiLRAQL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 17 Dec 2022 19:16:11 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19B4626C5
+        for <mm-commits@vger.kernel.org>; Sat, 17 Dec 2022 16:16:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AF895B81DC6
-        for <mm-commits@vger.kernel.org>; Sat, 17 Dec 2022 00:39:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 475D9C433EF;
-        Sat, 17 Dec 2022 00:39:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4812060C50
+        for <mm-commits@vger.kernel.org>; Sun, 18 Dec 2022 00:16:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95AF0C433F0;
+        Sun, 18 Dec 2022 00:16:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671237563;
-        bh=YUirzEm36WBDzPtmRr5/qovsefLg+vIiRtsF6T7sfmw=;
+        s=korg; t=1671322568;
+        bh=AkmMinGJ7xaUTpv2OqaatDnvN+SLUTFxrV52xzQQqWk=;
         h=Date:To:From:Subject:From;
-        b=VEBHkcELquCAgPw2KEiN61MjKQRliB2sUcwdcTzblWifMf7bpj7VSMizPAT6z3Q/x
-         dy1dBSI1uHWSMcRODLNyeMO3q9BAGHoai4NI/wcna6ucni91N18GEXLO6bTyR18gym
-         21rGizAB7Co0UhDWLEUyNn9TJ+VDary5/L4VXDgc=
-Date:   Fri, 16 Dec 2022 16:39:22 -0800
+        b=vnVdYbTE9vBVnzTgzaSehYXXzAihU290X6fggsrUzph0XJCqchHsbWBkv7SHl7s7V
+         D+V+Dax8otAi8oAISQP2TYxVxrXF1k0DvAcBJ8OL5xIAG9zVaRaE7qxgnGkzGVufay
+         YmHr+6A0hUyGlvmVmEKIfLtkW/4f0pYsw0flC1T0=
+Date:   Sat, 17 Dec 2022 16:16:07 -0800
 To:     mm-commits@vger.kernel.org, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-unused-alloc_pages_bulk_list.patch added to mm-unstable branch
-Message-Id: <20221217003923.475D9C433EF@smtp.kernel.org>
+Subject: [obsolete] mm-remove-unused-alloc_pages_bulk_list.patch removed from -mm tree
+Message-Id: <20221218001608.95AF0C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
+The quilt patch titled
      Subject: mm: remove unused alloc_pages_bulk_list()
-has been added to the -mm mm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-remove-unused-alloc_pages_bulk_list.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unused-alloc_pages_bulk_list.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
@@ -100,5 +84,4 @@ Patches currently in -mm which might be from lstoakes@gmail.com are
 
 selftest-vm-add-mremap-expand-merge-offset-test.patch
 mm-vmalloc-correct-use-of-__gfp_nowarn-mask-in-__vmalloc_area_node.patch
-mm-remove-unused-alloc_pages_bulk_list.patch
 
