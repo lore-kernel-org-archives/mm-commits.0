@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13A25C001B2
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Dec 2022 22:54:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24D72C4167B
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Dec 2022 20:42:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229515AbiLSWyo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Dec 2022 17:54:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51304 "EHLO
+        id S229720AbiLTUms (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Dec 2022 15:42:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230091AbiLSWyn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2022 17:54:43 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F5B612A99;
-        Mon, 19 Dec 2022 14:54:41 -0800 (PST)
+        with ESMTP id S233910AbiLTUmi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2022 15:42:38 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C16261B9D1;
+        Tue, 20 Dec 2022 12:42:36 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 14356B81041;
-        Mon, 19 Dec 2022 22:54:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B86B6C433EF;
-        Mon, 19 Dec 2022 22:54:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 652C0615B9;
+        Tue, 20 Dec 2022 20:42:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5BD3C433EF;
+        Tue, 20 Dec 2022 20:42:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671490478;
-        bh=56zPAhXWjjrQVaeIzfV2LiLrLyHiDNRWM2KQd62kxg8=;
+        s=korg; t=1671568955;
+        bh=PGrG0md7K7FotQmq+2NMgclYpNmSdsE77lXRX6WCrUU=;
         h=Date:To:From:Subject:From;
-        b=PCfa14NCYRy2ITzD7/AVVHsGMtztpg1kkeCjAcxxERNdMIFB1IXcUlPveKrHO3XcT
-         4+g/kH5JJhNaPr+kDM5Fr0kFvKSIv00fhVHTkifQk9koj3udRIMKGs3ngUBmDS7/2W
-         zTwc0eDIJkcHAHGBwCSMgz6DvKOuPZc/7v+10/l4=
-Date:   Mon, 19 Dec 2022 14:54:37 -0800
+        b=T1ysSKxNNmL4f1d5zWa0nAt7zfOyl6EapnzmPdtqcl4YG2iyuiO48VYe9HMSd0ZJN
+         LZjyWmkurosn94p57mwe5gzH+BC0OFNBOjJkcToJ2vvH7/O6crVfC7yr5B6VNUjyei
+         O4sTKODyIeo5v7n2DMrdW9dRtmLMZ3obzIusebho=
+Date:   Tue, 20 Dec 2022 12:42:34 -0800
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        songmuchun@bytedance.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@suse.com, hughd@google.com,
-        hannes@cmpxchg.org, akpm@linux-foundation.org
+        oberpar@linux.ibm.com, mliska@suse.cz, rickaran@axis.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-deprecate-charge-moving.patch added to mm-unstable branch
-Message-Id: <20221219225438.B86B6C433EF@smtp.kernel.org>
+Subject: + gcov-add-support-for-checksum-field.patch added to mm-hotfixes-unstable branch
+Message-Id: <20221220204235.B5BD3C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: deprecate charge moving
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcontrol-deprecate-charge-moving.patch
+     Subject: gcov: add support for checksum field
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     gcov-add-support-for-checksum-field.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-deprecate-charge-moving.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gcov-add-support-for-checksum-field.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,105 +65,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: deprecate charge moving
-Date: Wed, 7 Dec 2022 14:00:39 +0100
+From: Rickard x Andersson <rickaran@axis.com>
+Subject: gcov: add support for checksum field
+Date: Tue, 20 Dec 2022 11:23:18 +0100
 
-Charge moving mode in cgroup1 allows memory to follow tasks as they
-migrate between cgroups.  This is, and always has been, a questionable
-thing to do - for several reasons.
+In GCC version 12.1 a checksum field was added.
 
-First, it's expensive.  Pages need to be identified, locked and isolated
-from various MM operations, and reassigned, one by one.
+This patch fixes a kernel crash occurring during boot when using
+gcov-kernel with GCC version 12.2.  The crash occurred on a system running
+on i.MX6SX.
 
-Second, it's unreliable.  Once pages are charged to a cgroup, there isn't
-always a clear owner task anymore.  Cache isn't moved at all, for example.
-Mapped memory is moved - but if trylocking or isolating a page fails,
-it's arbitrarily left behind.  Frequent moving between domains may leave a
-task's memory scattered all over the place.
-
-Third, it isn't really needed.  Launcher tasks can kick off workload tasks
-directly in their target cgroup.  Using dedicated per-workload groups
-allows fine-grained policy adjustments - no need to move tasks and their
-physical pages between control domains.  The feature was never
-forward-ported to cgroup2, and it hasn't been missed.
-
-Despite it being a niche usecase, the maintenance overhead of supporting
-it is enormous.  Because pages are moved while they are live and subject
-to various MM operations, the synchronization rules are complicated. 
-There are lock_page_memcg() in MM and FS code, which non-cgroup people
-don't understand.  In some cases we've been able to shift code and cgroup
-API calls around such that we can rely on native locking as much as
-possible.  But that's fragile, and sometimes we need to hold MM locks for
-longer than we otherwise would (pte lock e.g.).
-
-Mark the feature deprecated. Hopefully we can remove it soon.
-
-And backport into -stable kernels so that people who develop against
-earlier kernels are warned about this deprecation as early as possible.
-
-Link: https://lkml.kernel.org/r/Y5COd+qXwk/S+n8N@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Link: https://lkml.kernel.org/r/20221220102318.3418501-1-rickaran@axis.com
+Fixes: 977ef30a7d88 ("gcov: support GCC 12.1 and newer compilers")
+Signed-off-by: Rickard x Andersson <rickaran@axis.com>
+Reviewed-by: Peter Oberparleiter <oberpar@linux.ibm.com>
+Tested-by: Peter Oberparleiter <oberpar@linux.ibm.com>
+Reviewed-By: Martin Liska <mliska@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memory.rst |   11 ++++++++++-
- mm/memcontrol.c                                |    4 ++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ kernel/gcov/gcc_4_7.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~mm-memcontrol-deprecate-charge-moving
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -86,6 +86,8 @@ Brief summary of control files.
-  memory.swappiness		     set/show swappiness parameter of vmscan
- 				     (See sysctl's vm.swappiness)
-  memory.move_charge_at_immigrate     set/show controls of moving charges
-+                                     This knob is deprecated and shouldn't be
-+                                     used.
-  memory.oom_control		     set/show oom controls.
-  memory.numa_stat		     show the number of memory usage per numa
- 				     node
-@@ -717,9 +719,16 @@ NOTE2:
-        It is recommended to set the soft limit always below the hard limit,
-        otherwise the hard limit will take precedence.
- 
--8. Move charges at task migration
-+8. Move charges at task migration (DEPRECATED!)
- =================================
- 
-+THIS IS DEPRECATED!
-+
-+It's expensive and unreliable! It's better practice to launch workload
-+tasks directly from inside their target cgroup. Use dedicated workload
-+cgroups to allow fine-grained policy adjustments without having to
-+move physical pages between control domains.
-+
- Users can move charges associated with a task along with task migration, that
- is, uncharge task's pages from the old cgroup and charge them to the new cgroup.
- This feature is not supported in !CONFIG_MMU environments because of lack of
---- a/mm/memcontrol.c~mm-memcontrol-deprecate-charge-moving
-+++ a/mm/memcontrol.c
-@@ -3919,6 +3919,10 @@ static int mem_cgroup_move_charge_write(
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
- 
-+	pr_warn_once("Cgroup memory moving (move_charge_at_immigrate) is deprecated. "
-+		     "Please report your usecase to linux-mm@kvack.org if you "
-+		     "depend on this functionality.\n");
-+
- 	if (val & ~MOVE_MASK)
- 		return -EINVAL;
- 
+--- a/kernel/gcov/gcc_4_7.c~gcov-add-support-for-checksum-field
++++ a/kernel/gcov/gcc_4_7.c
+@@ -82,6 +82,7 @@ struct gcov_fn_info {
+  * @version: gcov version magic indicating the gcc version used for compilation
+  * @next: list head for a singly-linked list
+  * @stamp: uniquifying time stamp
++ * @checksum: unique object checksum
+  * @filename: name of the associated gcov data file
+  * @merge: merge functions (null for unused counter type)
+  * @n_functions: number of instrumented functions
+@@ -94,6 +95,10 @@ struct gcov_info {
+ 	unsigned int version;
+ 	struct gcov_info *next;
+ 	unsigned int stamp;
++ /* Since GCC 12.1 a checksum field is added. */
++#if (__GNUC__ >= 12)
++	unsigned int checksum;
++#endif
+ 	const char *filename;
+ 	void (*merge[GCOV_COUNTERS])(gcov_type *, unsigned int);
+ 	unsigned int n_functions;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from rickaran@axis.com are
 
-mm-memcontrol-skip-moving-non-present-pages-that-are-mapped-elsewhere.patch
-mm-rmap-remove-lock_page_memcg.patch
-mm-memcontrol-deprecate-charge-moving.patch
+gcov-add-support-for-checksum-field.patch
 
