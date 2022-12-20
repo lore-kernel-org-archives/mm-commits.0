@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24D72C4167B
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Dec 2022 20:42:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40DF2C3DA7A
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Dec 2022 22:08:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229720AbiLTUms (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Dec 2022 15:42:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36044 "EHLO
+        id S234186AbiLTWIV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Dec 2022 17:08:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233910AbiLTUmi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2022 15:42:38 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C16261B9D1;
-        Tue, 20 Dec 2022 12:42:36 -0800 (PST)
+        with ESMTP id S234095AbiLTWIU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2022 17:08:20 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5395CB54
+        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2022 14:08:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 652C0615B9;
-        Tue, 20 Dec 2022 20:42:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5BD3C433EF;
-        Tue, 20 Dec 2022 20:42:35 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0E098B81A21
+        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2022 22:08:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC003C433D2;
+        Tue, 20 Dec 2022 22:08:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671568955;
-        bh=PGrG0md7K7FotQmq+2NMgclYpNmSdsE77lXRX6WCrUU=;
+        s=korg; t=1671574096;
+        bh=Fk2QY4V+RFIOrTXnjfYCW5+JYkveL/1siiRt8rqbrvw=;
         h=Date:To:From:Subject:From;
-        b=T1ysSKxNNmL4f1d5zWa0nAt7zfOyl6EapnzmPdtqcl4YG2iyuiO48VYe9HMSd0ZJN
-         LZjyWmkurosn94p57mwe5gzH+BC0OFNBOjJkcToJ2vvH7/O6crVfC7yr5B6VNUjyei
-         O4sTKODyIeo5v7n2DMrdW9dRtmLMZ3obzIusebho=
-Date:   Tue, 20 Dec 2022 12:42:34 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        oberpar@linux.ibm.com, mliska@suse.cz, rickaran@axis.com,
-        akpm@linux-foundation.org
+        b=09G1oJcAOVyNe2zpHzzASU9hTqxm0u7XW5mcsG9/R7DtGP7hb/dymUAqbRcn6JDOL
+         R1sAu+7AMfUk2UX/SHe8USEBQoSbg9r/qXoxd6sjbydzCnm5MUKaIZZWV021kHrc0Z
+         tvySdzAutyKVSD6jekDOkKwcoWQXa1mtSSCZnkbs=
+Date:   Tue, 20 Dec 2022 14:08:15 -0800
+To:     mm-commits@vger.kernel.org, lkp@intel.com, jeffxu@google.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + gcov-add-support-for-checksum-field.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221220204235.B5BD3C433EF@smtp.kernel.org>
+Subject: + mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch added to mm-unstable branch
+Message-Id: <20221220220816.BC003C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gcov: add support for checksum field
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     gcov-add-support-for-checksum-field.patch
+     Subject: mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gcov-add-support-for-checksum-field.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,53 +64,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Rickard x Andersson <rickaran@axis.com>
-Subject: gcov: add support for checksum field
-Date: Tue, 20 Dec 2022 11:23:18 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix
+Date: Tue Dec 20 02:06:58 PM PST 2022
 
-In GCC version 12.1 a checksum field was added.
+fix CONFIG_SYSCTL=n warning
 
-This patch fixes a kernel crash occurring during boot when using
-gcov-kernel with GCC version 12.2.  The crash occurred on a system running
-on i.MX6SX.
-
-Link: https://lkml.kernel.org/r/20221220102318.3418501-1-rickaran@axis.com
-Fixes: 977ef30a7d88 ("gcov: support GCC 12.1 and newer compilers")
-Signed-off-by: Rickard x Andersson <rickaran@axis.com>
-Reviewed-by: Peter Oberparleiter <oberpar@linux.ibm.com>
-Tested-by: Peter Oberparleiter <oberpar@linux.ibm.com>
-Reviewed-By: Martin Liska <mliska@suse.cz>
-Cc: <stable@vger.kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Jeff Xu <jeffxu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/gcc_4_7.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/memfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/gcov/gcc_4_7.c~gcov-add-support-for-checksum-field
-+++ a/kernel/gcov/gcc_4_7.c
-@@ -82,6 +82,7 @@ struct gcov_fn_info {
-  * @version: gcov version magic indicating the gcc version used for compilation
-  * @next: list head for a singly-linked list
-  * @stamp: uniquifying time stamp
-+ * @checksum: unique object checksum
-  * @filename: name of the associated gcov data file
-  * @merge: merge functions (null for unused counter type)
-  * @n_functions: number of instrumented functions
-@@ -94,6 +95,10 @@ struct gcov_info {
- 	unsigned int version;
- 	struct gcov_info *next;
- 	unsigned int stamp;
-+ /* Since GCC 12.1 a checksum field is added. */
-+#if (__GNUC__ >= 12)
-+	unsigned int checksum;
-+#endif
- 	const char *filename;
- 	void (*merge[GCOV_COUNTERS])(gcov_type *, unsigned int);
- 	unsigned int n_functions;
+--- a/mm/memfd.c~mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix
++++ a/mm/memfd.c
+@@ -271,7 +271,6 @@ SYSCALL_DEFINE2(memfd_create,
+ 		unsigned int, flags)
+ {
+ 	char comm[TASK_COMM_LEN];
+-	struct pid_namespace *ns;
+ 	unsigned int *file_seals;
+ 	struct file *file;
+ 	int fd, error;
+@@ -295,6 +294,7 @@ SYSCALL_DEFINE2(memfd_create,
+ 	if (!(flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
+ #ifdef CONFIG_SYSCTL
+ 		int sysctl = MEMFD_NOEXEC_SCOPE_EXEC;
++		struct pid_namespace *ns;
+ 
+ 		ns = task_active_pid_ns(current);
+ 		if (ns)
 _
 
-Patches currently in -mm which might be from rickaran@axis.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-gcov-add-support-for-checksum-field.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-fix.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
+mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch
+mm-memcontrol-deprecate-charge-moving-fix.patch
+error-injection-remove-ei_etype_none-fix.patch
 
