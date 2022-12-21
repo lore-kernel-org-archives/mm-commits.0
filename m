@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEA4EC4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Dec 2022 21:20:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 102EDC4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Dec 2022 21:23:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229601AbiLUVUs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Dec 2022 16:20:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51066 "EHLO
+        id S230395AbiLUVXo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Dec 2022 16:23:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230395AbiLUVUp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2022 16:20:45 -0500
+        with ESMTP id S234471AbiLUVXm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2022 16:23:42 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5120F24D
-        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 13:20:40 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 965F123167
+        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 13:23:41 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C7DA0B81C5A
-        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 21:20:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 738ABC433EF;
-        Wed, 21 Dec 2022 21:20:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 14E97B8122F
+        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 21:23:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B761FC433D2;
+        Wed, 21 Dec 2022 21:23:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671657637;
-        bh=6hGxcsawpwIfvtXHoR27EeQ1pSIGv9nyf/4A6kzgrXk=;
+        s=korg; t=1671657818;
+        bh=5rMYzdxjFK43Cn1F8xRbvN704KPCx1d4gcGNLXxMzo4=;
         h=Date:To:From:Subject:From;
-        b=NvmaUYcKdIeb5GLeXzyEjHggTrK5rlIXiobW83ttStsLL/XaOqlfXMbhbAmBF78Om
-         8W/RACsdmmHv++uKqScRZw9TeBnddElbOMVC11s8Qngqorf47LYDfWp75SBZz9P84m
-         R34XtJETG8kE8XIq8zsG0VHXOW3JkQRhqtkmZPBQ=
-Date:   Wed, 21 Dec 2022 13:20:36 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, sj@kernel.org,
-        vishal.moola@gmail.com, akpm@linux-foundation.org
+        b=SEJFcsAW61s2khDOdcqp/2P4mT5QqFvdb0zOChKp/Mdx+OhFeatQ4fBXftw/r36cg
+         TWs/TdRh/dnJy1fBsNyBeRe9xIg72C6/5MpefIyUVHar4ImNyTbNYUTaJvDth6+zHA
+         oFjvd37lwNgrgo7F04xWTJaLd1CUp4JLL1L2KoLQ=
+Date:   Wed, 21 Dec 2022 13:23:38 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        roman.gushchin@linux.dev, oleksiy.avramchenko@sony.com,
+        npiggin@gmail.com, lstoakes@gmail.com, hch@infradead.org,
+        bhe@redhat.com, urezki@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-convert-deactivate_page-to-folio_deactivate.patch added to mm-unstable branch
-Message-Id: <20221221212037.738ABC433EF@smtp.kernel.org>
+Subject: + mm-vmalloc-avoid-of-calling-__find_vmap_area-twise-in-__vunmap.patch added to mm-unstable branch
+Message-Id: <20221221212338.B761FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: convert deactivate_page() to folio_deactivate()
+     Subject: mm: vmalloc: avoid calling __find_vmap_area() twise in __vunmap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-convert-deactivate_page-to-folio_deactivate.patch
+     mm-vmalloc-avoid-of-calling-__find_vmap_area-twise-in-__vunmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-deactivate_page-to-folio_deactivate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-avoid-of-calling-__find_vmap_area-twise-in-__vunmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,102 +66,211 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/swap: convert deactivate_page() to folio_deactivate()
-Date: Wed, 21 Dec 2022 10:08:48 -0800
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm: vmalloc: avoid calling __find_vmap_area() twise in __vunmap()
+Date: Wed, 21 Dec 2022 18:44:52 +0100
 
-Deactivate_page() has already been converted to use folios, this change
-converts it to take in a folio argument instead of calling page_folio(). 
-It also renames the function folio_deactivate() to be more consistent with
-other folio functions.
+Patch series "mm: vmalloc: Avoid of calling __find_vmap_area() twise in
+__vunmap()", v2.
 
-Link: https://lkml.kernel.org/r/20221221180848.20774-5-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+
+This patch (of 3):
+
+Currently __vunmap() path calls __find_vmap_area() two times. One on
+entry to check that area exists, second time inside remove_vm_area()
+function that also performs a new search of VA.
+
+In order to improvie it from a performance point of view we split
+remove_vm_area() into two new parts:
+  - find_unlink_vmap_area() that does a search and unlink from tree;
+  - __remove_vm_area() that does a removing but without searching.
+
+In this case there is no any functional change for remove_vm_area()
+whereas vm_remove_mappings(), where a second search happens, switches
+to the __remove_vm_area() variant where already detached VA is passed
+as a parameter, so there is no need to find it again.
+
+Performance wise, i use test_vmalloc.sh with 32 threads doing alloc
+free on a 64-CPUs-x86_64-box:
+
+perf without this patch:
+-   31.41%     0.50%  vmalloc_test/10  [kernel.vmlinux]    [k] __vunmap
+   - 30.92% __vunmap
+      - 17.67% _raw_spin_lock
+           native_queued_spin_lock_slowpath
+      - 12.33% remove_vm_area
+         - 11.79% free_vmap_area_noflush
+            - 11.18% _raw_spin_lock
+                 native_queued_spin_lock_slowpath
+        0.76% free_unref_page
+
+perf with this patch:
+-   11.35%     0.13%  vmalloc_test/14  [kernel.vmlinux]    [k] __vunmap
+   - 11.23% __vunmap
+      - 8.28% find_unlink_vmap_area
+         - 7.95% _raw_spin_lock
+              7.44% native_queued_spin_lock_slowpath
+      - 1.93% free_vmap_area_noflush
+         - 0.56% _raw_spin_lock
+              0.53% native_queued_spin_lock_slowpath
+        0.60% __vunmap_range_noflush
+
+__vunmap() consumes around ~20% less CPU cycles on this test.
+
+Link: https://lkml.kernel.org/r/20221221174454.1085130-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reported-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
- mm/damon/paddr.c     |    2 +-
- mm/madvise.c         |    4 ++--
- mm/swap.c            |   14 ++++++--------
- 4 files changed, 10 insertions(+), 12 deletions(-)
+ mm/vmalloc.c |   66 +++++++++++++++++++++++++++++++------------------
+ 1 file changed, 42 insertions(+), 24 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-convert-deactivate_page-to-folio_deactivate
-+++ a/include/linux/swap.h
-@@ -401,7 +401,7 @@ extern void lru_add_drain(void);
- extern void lru_add_drain_cpu(int cpu);
- extern void lru_add_drain_cpu_zone(struct zone *zone);
- extern void lru_add_drain_all(void);
--extern void deactivate_page(struct page *page);
-+void folio_deactivate(struct folio *folio);
- void folio_mark_lazyfree(struct folio *folio);
- extern void swap_setup(void);
+--- a/mm/vmalloc.c~mm-vmalloc-avoid-of-calling-__find_vmap_area-twise-in-__vunmap
++++ a/mm/vmalloc.c
+@@ -1825,9 +1825,11 @@ static void free_vmap_area_noflush(struc
+ 	unsigned long va_start = va->va_start;
+ 	unsigned long nr_lazy;
  
---- a/mm/damon/paddr.c~mm-swap-convert-deactivate_page-to-folio_deactivate
-+++ a/mm/damon/paddr.c
-@@ -297,7 +297,7 @@ static inline unsigned long damon_pa_mar
- 		if (mark_accessed)
- 			folio_mark_accessed(folio);
- 		else
--			deactivate_page(&folio->page);
-+			folio_deactivate(folio);
- 		folio_put(folio);
- 		applied += folio_nr_pages(folio);
- 	}
---- a/mm/madvise.c~mm-swap-convert-deactivate_page-to-folio_deactivate
-+++ a/mm/madvise.c
-@@ -416,7 +416,7 @@ static int madvise_cold_or_pageout_pte_r
- 					list_add(&folio->lru, &folio_list);
- 			}
- 		} else
--			deactivate_page(&folio->page);
-+			folio_deactivate(folio);
- huge_unlock:
- 		spin_unlock(ptl);
- 		if (pageout)
-@@ -510,7 +510,7 @@ regular_folio:
- 					list_add(&folio->lru, &folio_list);
- 			}
- 		} else
--			deactivate_page(&folio->page);
-+			folio_deactivate(folio);
- 	}
+-	spin_lock(&vmap_area_lock);
+-	unlink_va(va, &vmap_area_root);
+-	spin_unlock(&vmap_area_lock);
++	if (!list_empty(&va->list)) {
++		spin_lock(&vmap_area_lock);
++		unlink_va(va, &vmap_area_root);
++		spin_unlock(&vmap_area_lock);
++	}
  
- 	arch_leave_lazy_mmu_mode();
---- a/mm/swap.c~mm-swap-convert-deactivate_page-to-folio_deactivate
-+++ a/mm/swap.c
-@@ -733,17 +733,15 @@ void deactivate_file_folio(struct folio
+ 	nr_lazy = atomic_long_add_return((va->va_end - va->va_start) >>
+ 				PAGE_SHIFT, &vmap_lazy_nr);
+@@ -1871,6 +1873,19 @@ struct vmap_area *find_vmap_area(unsigne
+ 	return va;
  }
  
++static struct vmap_area *find_unlink_vmap_area(unsigned long addr)
++{
++	struct vmap_area *va;
++
++	spin_lock(&vmap_area_lock);
++	va = __find_vmap_area(addr, &vmap_area_root);
++	if (va)
++		unlink_va(va, &vmap_area_root);
++	spin_unlock(&vmap_area_lock);
++
++	return va;
++}
++
+ /*** Per cpu kva allocator ***/
+ 
  /*
-- * deactivate_page - deactivate a page
-- * @page: page to deactivate
-+ * folio_deactivate - deactivate a folio
-+ * @folio: folio to deactivate
-  *
-- * deactivate_page() moves @page to the inactive list if @page was on the active
-- * list and was not an unevictable page.  This is done to accelerate the reclaim
-- * of @page.
-+ * folio_deactivate() moves @folio to the inactive list if @folio was on the
-+ * active list and was not unevictable. This is done to accelerate the
-+ * reclaim of @folio.
-  */
--void deactivate_page(struct page *page)
-+void folio_deactivate(struct folio *folio)
- {
--	struct folio *folio = page_folio(page);
+@@ -2591,6 +2606,20 @@ struct vm_struct *find_vm_area(const voi
+ 	return va->vm;
+ }
+ 
++static struct vm_struct *__remove_vm_area(struct vmap_area *va)
++{
++	struct vm_struct *vm;
++
++	if (!va || !va->vm)
++		return NULL;
++
++	vm = va->vm;
++	kasan_free_module_shadow(vm);
++	free_unmap_vmap_area(va);
++
++	return vm;
++}
++
+ /**
+  * remove_vm_area - find and remove a continuous kernel virtual area
+  * @addr:	    base address
+@@ -2607,22 +2636,8 @@ struct vm_struct *remove_vm_area(const v
+ 
+ 	might_sleep();
+ 
+-	spin_lock(&vmap_area_lock);
+-	va = __find_vmap_area((unsigned long)addr, &vmap_area_root);
+-	if (va && va->vm) {
+-		struct vm_struct *vm = va->vm;
 -
- 	if (folio_test_lru(folio) && !folio_test_unevictable(folio) &&
- 	    (folio_test_active(folio) || lru_gen_enabled())) {
- 		struct folio_batch *fbatch;
+-		va->vm = NULL;
+-		spin_unlock(&vmap_area_lock);
+-
+-		kasan_free_module_shadow(vm);
+-		free_unmap_vmap_area(va);
+-
+-		return vm;
+-	}
+-
+-	spin_unlock(&vmap_area_lock);
+-	return NULL;
++	va = find_unlink_vmap_area((unsigned long) addr);
++	return __remove_vm_area(va);
+ }
+ 
+ static inline void set_area_direct_map(const struct vm_struct *area,
+@@ -2637,15 +2652,16 @@ static inline void set_area_direct_map(c
+ }
+ 
+ /* Handle removing and resetting vm mappings related to the vm_struct. */
+-static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
++static void vm_remove_mappings(struct vmap_area *va, int deallocate_pages)
+ {
++	struct vm_struct *area = va->vm;
+ 	unsigned long start = ULONG_MAX, end = 0;
+ 	unsigned int page_order = vm_area_page_order(area);
+ 	int flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
+ 	int flush_dmap = 0;
+ 	int i;
+ 
+-	remove_vm_area(area->addr);
++	__remove_vm_area(va);
+ 
+ 	/* If this is not VM_FLUSH_RESET_PERMS memory, no need for the below. */
+ 	if (!flush_reset)
+@@ -2690,6 +2706,7 @@ static void vm_remove_mappings(struct vm
+ static void __vunmap(const void *addr, int deallocate_pages)
+ {
+ 	struct vm_struct *area;
++	struct vmap_area *va;
+ 
+ 	if (!addr)
+ 		return;
+@@ -2698,19 +2715,20 @@ static void __vunmap(const void *addr, i
+ 			addr))
+ 		return;
+ 
+-	area = find_vm_area(addr);
+-	if (unlikely(!area)) {
++	va = find_unlink_vmap_area((unsigned long)addr);
++	if (unlikely(!va)) {
+ 		WARN(1, KERN_ERR "Trying to vfree() nonexistent vm area (%p)\n",
+ 				addr);
+ 		return;
+ 	}
+ 
++	area = va->vm;
+ 	debug_check_no_locks_freed(area->addr, get_vm_area_size(area));
+ 	debug_check_no_obj_freed(area->addr, get_vm_area_size(area));
+ 
+ 	kasan_poison_vmalloc(area->addr, get_vm_area_size(area));
+ 
+-	vm_remove_mappings(area, deallocate_pages);
++	vm_remove_mappings(va, deallocate_pages);
+ 
+ 	if (deallocate_pages) {
+ 		int i;
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-mm-memory-add-vm_normal_folio.patch
-madvise-convert-madvise_cold_or_pageout_pte_range-to-use-folios.patch
-mm-damon-convert-damon_pa_mark_accessed_or_deactivate-to-use-folios.patch
-mm-swap-convert-deactivate_page-to-folio_deactivate.patch
+mm-vmalloc-avoid-of-calling-__find_vmap_area-twise-in-__vunmap.patch
+mm-vmalloc-switch-to-find_unlink_vmap_area-in-vm_unmap_ram.patch
+mm-vmalloc-replace-bug_on-by-warn_on_once.patch
 
