@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6D94C4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Dec 2022 21:14:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF30AC10F1B
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Dec 2022 21:14:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234879AbiLUVOc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234883AbiLUVOc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 21 Dec 2022 16:14:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49728 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234901AbiLUVOP (ORCPT
+        with ESMTP id S234903AbiLUVOP (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2022 16:14:15 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CA6AF53
-        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 13:14:13 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A74F5F14
+        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 13:14:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9FEDB61773
-        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 21:14:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04EF0C433EF;
-        Wed, 21 Dec 2022 21:14:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 63EB6B81C58
+        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 21:14:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EA0FC433EF;
+        Wed, 21 Dec 2022 21:14:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671657252;
-        bh=hjFxcXtxndQquZoCdh6GcuvwYKK8L5dWYWWFVwdH+I0=;
+        s=korg; t=1671657250;
+        bh=PWJ0709dz+9vXNmjYNAP3y1RpWLbP6XDrDAaHmwSkuo=;
         h=Date:To:From:Subject:From;
-        b=v4aQ2ZqgWhEU+3TMnuxVv04nhncOoNtVnR3E2Tx0Em0pgxxruImvK4JTI7gzg7ZtQ
-         T9vnjhd9oqr0vT858Y9Jk9l9OApR4IDMkKMUy3cXI7pO3NxMS9U0032Z29QcFQF3yV
-         80H0kRQcFNrVlzSGDsDVKWYUJ6nhaMEb9xTEGL6w=
-Date:   Wed, 21 Dec 2022 13:14:11 -0800
+        b=A0GWAlGT6jWNPK9yWbgAUt8xoZJJgzzCx7uQRKPx2+Op9xdNRieJG/1iXCtVTp9w6
+         GHL5V8j7USDP7DMS/uwzgckJ7eeMeAB3XpRiUnskbj4rppF5GwwHra6TbL4yow9yge
+         MBXXU/KeuGrLiFc9ET8ZhHd3S4Nspe3UHrWYLL8w=
+Date:   Wed, 21 Dec 2022 13:14:09 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         vernon2gm@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-refine-ma_state-init-from-mas_start.patch added to mm-unstable branch
-Message-Id: <20221221211412.04EF0C433EF@smtp.kernel.org>
+Subject: + maple_tree-remove-the-redundant-code.patch added to mm-unstable branch
+Message-Id: <20221221211410.1EA0FC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: refine ma_state init from mas_start()
+     Subject: maple_tree: remove the redundant code
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-refine-ma_state-init-from-mas_start.patch
+     maple_tree-remove-the-redundant-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-refine-ma_state-init-from-mas_start.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-the-redundant-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,61 +65,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Vernon Yang <vernon2gm@gmail.com>
-Subject: maple_tree: refine ma_state init from mas_start()
-Date: Wed, 21 Dec 2022 14:00:57 +0800
+Subject: maple_tree: remove the redundant code
+Date: Wed, 21 Dec 2022 14:00:56 +0800
 
-If mas->node is an MAS_START, there are three cases, and they all assign
-different values to mas->node and mas->offset.  So there is no need to set
-them to a default value before updating.
+The macros CONFIG_DEBUG_MAPLE_TREE_VERBOSE no one uses, functions
+mas_dup_tree() and mas_dup_store() are not implemented, just function
+declaration, so drop it.
 
-Update them directly to make them easier to understand and for better
-readability.
-
-Link: https://lkml.kernel.org/r/20221221060058.609003-7-vernon2gm@gmail.com
+Link: https://lkml.kernel.org/r/20221221060058.609003-6-vernon2gm@gmail.com
 Signed-off-by: Vernon Yang <vernon2gm@gmail.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/maple_tree.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-refine-ma_state-init-from-mas_start
-+++ a/lib/maple_tree.c
-@@ -1329,7 +1329,7 @@ static void mas_node_count(struct ma_sta
-  * mas_start() - Sets up maple state for operations.
-  * @mas: The maple state.
-  *
-- * If mas->node == MAS_START, then set the min, max, depth, and offset to
-+ * If mas->node == MAS_START, then set the min, max and depth to
-  * defaults.
-  *
-  * Return:
-@@ -1343,22 +1343,22 @@ static inline struct maple_enode *mas_st
- 	if (likely(mas_is_start(mas))) {
- 		struct maple_enode *root;
+--- a/include/linux/maple_tree.h~maple_tree-remove-the-redundant-code
++++ a/include/linux/maple_tree.h
+@@ -12,7 +12,6 @@
+ #include <linux/rcupdate.h>
+ #include <linux/spinlock.h>
+ /* #define CONFIG_MAPLE_RCU_DISABLED */
+-/* #define CONFIG_DEBUG_MAPLE_TREE_VERBOSE */
  
--		mas->node = MAS_NONE;
- 		mas->min = 0;
- 		mas->max = ULONG_MAX;
- 		mas->depth = 0;
--		mas->offset = 0;
+ /*
+  * Allocated nodes are mutable until they have been inserted into the tree,
+@@ -483,9 +482,6 @@ static inline bool mas_is_paused(struct
+ 	return mas->node == MAS_PAUSE;
+ }
  
- 		root = mas_root(mas);
- 		/* Tree with nodes */
- 		if (likely(xa_is_node(root))) {
- 			mas->depth = 1;
- 			mas->node = mte_safe_root(root);
-+			mas->offset = 0;
- 			return NULL;
- 		}
- 
- 		/* empty tree */
- 		if (unlikely(!root)) {
-+			mas->node = MAS_NONE;
- 			mas->offset = MAPLE_NODE_SLOTS;
- 			return NULL;
- 		}
+-void mas_dup_tree(struct ma_state *oldmas, struct ma_state *mas);
+-void mas_dup_store(struct ma_state *mas, void *entry);
+-
+ /*
+  * This finds an empty area from the highest address to the lowest.
+  * AKA "Topdown" version,
 _
 
 Patches currently in -mm which might be from vernon2gm@gmail.com are
