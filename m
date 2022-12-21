@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA99FC4708D
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Dec 2022 22:32:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2941C4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Dec 2022 22:33:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234988AbiLUWco (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Dec 2022 17:32:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44868 "EHLO
+        id S235055AbiLUWdA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Dec 2022 17:33:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235000AbiLUWck (ORCPT
+        with ESMTP id S235001AbiLUWck (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2022 17:32:40 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CDEB111E;
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF7132DE2;
         Wed, 21 Dec 2022 14:32:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EEE3161965;
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6C95EB81B05;
         Wed, 21 Dec 2022 22:32:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BC23C433F0;
-        Wed, 21 Dec 2022 22:32:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F8B4C433D2;
+        Wed, 21 Dec 2022 22:32:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671661956;
-        bh=Qls6VaXvM9hwrp2/ufd/C4QxrNAtLR7c2Hcr8t4602A=;
+        s=korg; t=1671661955;
+        bh=o4IqpQNFoUcl/W0xGIxhzJjxDtYQA/JCv2l+lu7j8hE=;
         h=Date:To:From:Subject:From;
-        b=QqndkipV/OSrcQyQBaeAUx0vka101ZMj8Stz0eGHuE1x3jfTZBd8Gk/LPUTCh4aMz
-         nOsQqFTZbtFO0IfEBfKhHjNCAEeDwu6PVZmbsQpNoHkXE+eyz8LHKh9yUIlOSfiY7e
-         DNx2oZ9n3HvmQWS2QyTrcJj6SOsoIgiMUr4NoUs4=
-Date:   Wed, 21 Dec 2022 14:32:35 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        oberpar@linux.ibm.com, mliska@suse.cz, rickaran@axis.com,
+        b=zNu+AcWlFAgWB6O1us5DLcKgzWJiLrcwiX2mYw0aYDzWoRwAvY8BiayTOtr38b18r
+         S7rXnsrc4l6sPvy0oI53GCfyzHXgBUxfO4yC9HbNaa8if2CVye16h4oYThCXktYR3x
+         T1wNNhYJiC8DxYIqTL6eBi+8vS035XM2cA5QBCOc=
+Date:   Wed, 21 Dec 2022 14:32:34 -0800
+To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
+        stable@vger.kernel.org, rppt@kernel.org, Liam.Howlett@oracle.com,
+        avagin@gmail.com, liam.howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] gcov-add-support-for-checksum-field.patch removed from -mm tree
-Message-Id: <20221221223236.4BC23C433F0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] test_maple_tree-add-test-for-mas_spanning_rebalance-on-insufficient-data.patch removed from -mm tree
+Message-Id: <20221221223235.0F8B4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,60 +43,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: gcov: add support for checksum field
+     Subject: test_maple_tree: add test for mas_spanning_rebalance() on insufficient data
 has been removed from the -mm tree.  Its filename was
-     gcov-add-support-for-checksum-field.patch
+     test_maple_tree-add-test-for-mas_spanning_rebalance-on-insufficient-data.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Rickard x Andersson <rickaran@axis.com>
-Subject: gcov: add support for checksum field
-Date: Tue, 20 Dec 2022 11:23:18 +0100
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: test_maple_tree: add test for mas_spanning_rebalance() on insufficient data
+Date: Mon, 19 Dec 2022 16:20:15 +0000
 
-In GCC version 12.1 a checksum field was added.
+Add a test to the maple tree test suite for the spanning rebalance
+insufficient node issue does not go undetected again.
 
-This patch fixes a kernel crash occurring during boot when using
-gcov-kernel with GCC version 12.2.  The crash occurred on a system running
-on i.MX6SX.
-
-Link: https://lkml.kernel.org/r/20221220102318.3418501-1-rickaran@axis.com
-Fixes: 977ef30a7d88 ("gcov: support GCC 12.1 and newer compilers")
-Signed-off-by: Rickard x Andersson <rickaran@axis.com>
-Reviewed-by: Peter Oberparleiter <oberpar@linux.ibm.com>
-Tested-by: Peter Oberparleiter <oberpar@linux.ibm.com>
-Reviewed-by: Martin Liska <mliska@suse.cz>
+Link: https://lkml.kernel.org/r/20221219161922.2708732-3-Liam.Howlett@oracle.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/gcc_4_7.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ lib/test_maple_tree.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
---- a/kernel/gcov/gcc_4_7.c~gcov-add-support-for-checksum-field
-+++ a/kernel/gcov/gcc_4_7.c
-@@ -82,6 +82,7 @@ struct gcov_fn_info {
-  * @version: gcov version magic indicating the gcc version used for compilation
-  * @next: list head for a singly-linked list
-  * @stamp: uniquifying time stamp
-+ * @checksum: unique object checksum
-  * @filename: name of the associated gcov data file
-  * @merge: merge functions (null for unused counter type)
-  * @n_functions: number of instrumented functions
-@@ -94,6 +95,10 @@ struct gcov_info {
- 	unsigned int version;
- 	struct gcov_info *next;
- 	unsigned int stamp;
-+ /* Since GCC 12.1 a checksum field is added. */
-+#if (__GNUC__ >= 12)
-+	unsigned int checksum;
-+#endif
- 	const char *filename;
- 	void (*merge[GCOV_COUNTERS])(gcov_type *, unsigned int);
- 	unsigned int n_functions;
+--- a/lib/test_maple_tree.c~test_maple_tree-add-test-for-mas_spanning_rebalance-on-insufficient-data
++++ a/lib/test_maple_tree.c
+@@ -2498,6 +2498,25 @@ static noinline void check_dup(struct ma
+ 	}
+ }
+ 
++static noinline void check_bnode_min_spanning(struct maple_tree *mt)
++{
++	int i = 50;
++	MA_STATE(mas, mt, 0, 0);
++
++	mt_set_non_kernel(9999);
++	mas_lock(&mas);
++	do {
++		mas_set_range(&mas, i*10, i*10+9);
++		mas_store(&mas, check_bnode_min_spanning);
++	} while (i--);
++
++	mas_set_range(&mas, 240, 509);
++	mas_store(&mas, NULL);
++	mas_unlock(&mas);
++	mas_destroy(&mas);
++	mt_set_non_kernel(0);
++}
++
+ static DEFINE_MTREE(tree);
+ static int maple_tree_seed(void)
+ {
+@@ -2742,6 +2761,10 @@ static int maple_tree_seed(void)
+ 	check_dup(&tree);
+ 	mtree_destroy(&tree);
+ 
++	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
++	check_bnode_min_spanning(&tree);
++	mtree_destroy(&tree);
++
+ #if defined(BENCH)
+ skip:
+ #endif
 _
 
-Patches currently in -mm which might be from rickaran@axis.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
 
