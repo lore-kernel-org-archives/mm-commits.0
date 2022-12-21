@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21DB8C4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Dec 2022 22:32:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAA13C10F1B
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Dec 2022 22:32:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235004AbiLUWcl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234972AbiLUWcl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 21 Dec 2022 17:32:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44788 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234968AbiLUWcf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2022 17:32:35 -0500
+        with ESMTP id S234978AbiLUWck (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2022 17:32:40 -0500
 Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E1632BCA;
-        Wed, 21 Dec 2022 14:32:34 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2448DAC;
+        Wed, 21 Dec 2022 14:32:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id AD0D0CE18B0;
-        Wed, 21 Dec 2022 22:32:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF7F9C433EF;
-        Wed, 21 Dec 2022 22:32:30 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 22911CE18E0;
+        Wed, 21 Dec 2022 22:32:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0B9CC433EF;
+        Wed, 21 Dec 2022 22:32:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671661951;
-        bh=vpTFTUZoLPL9QqfSnfML4gvTqf7OWx0P7wC6jwby11k=;
+        s=korg; t=1671661953;
+        bh=EPXdbjYGCyigKH+6ptBsZrzj6M2dJrE+nCJDYIV2wKM=;
         h=Date:To:From:Subject:From;
-        b=TnhtidT61gBqmWaiI4X5cbx+eGfPWUlLSGvh2c4OZZz88g2oIHrCfVWW9oVs8w579
-         pO+unP/bZ5iEzALMPo91bmY5TlY7AhGrlxmaxyfYSgx+ntuPonq0Tr4ZsJByk2/rHP
-         6OjzV1LVdOVfPh0MVQwjjTVW4uX/f5oVHnjmiNf8=
-Date:   Wed, 21 Dec 2022 14:32:30 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        arnd@arndb.de, akpm@linux-foundation.org
+        b=0aHQWHYItc0hubKotxoMeSW5AGqKWdISbx0H1Ls9YGCCte6QSFoff4I1lSU+Qe5XD
+         +NIespNApDiP9OaOt5jDeNC1jpYlWBOHdZqWpSqX5C3bMHkoPqNuQ0sXCt5PXP2Zma
+         yNXEKZduG9KT5bt9IjjefmChqHMRYOlu7Lomb/n4=
+Date:   Wed, 21 Dec 2022 14:32:32 -0800
+To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
+        stable@vger.kernel.org, rppt@kernel.org, Liam.Howlett@oracle.com,
+        avagin@gmail.com, liam.howlett@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kmsan-export-kmsan_handle_urb.patch removed from -mm tree
-Message-Id: <20221221223230.DF7F9C433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maple_tree-fix-mas_spanning_rebalance-on-insufficient-data.patch removed from -mm tree
+Message-Id: <20221221223233.A0B9CC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,50 +43,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kmsan: export kmsan_handle_urb
+     Subject: maple_tree: fix mas_spanning_rebalance() on insufficient data
 has been removed from the -mm tree.  Its filename was
-     kmsan-export-kmsan_handle_urb.patch
+     maple_tree-fix-mas_spanning_rebalance-on-insufficient-data.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kmsan: export kmsan_handle_urb
-Date: Thu, 15 Dec 2022 17:26:57 +0100
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: maple_tree: fix mas_spanning_rebalance() on insufficient data
+Date: Mon, 19 Dec 2022 16:20:15 +0000
 
-USB support can be in a loadable module, and this causes a link failure
-with KMSAN:
+Mike Rapoport contacted me off-list with a regression in running criu. 
+Periodic tests fail with an RCU stall during execution.  Although rare, it
+is possible to hit this with other uses so this patch should be backported
+to fix the regression.
 
-ERROR: modpost: "kmsan_handle_urb" [drivers/usb/core/usbcore.ko] undefined!
+This patchset adds the fix and a test case to the maple tree test
+suite.
 
-Export the symbol so it can be used by this module.
 
-Link: https://lkml.kernel.org/r/20221215162710.3802378-1-arnd@kernel.org
-Fixes: 553a80188a5d ("kmsan: handle memory sent to/from USB")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
+This patch (of 2):
+
+An insufficient node was causing an out-of-bounds access on the node in
+mas_leaf_max_gap().  The cause was the faulty detection of the new node
+being a root node when overwriting many entries at the end of the tree.
+
+Fix the detection of a new root and ensure there is sufficient data prior
+to entering the spanning rebalance loop.
+
+Link: https://lkml.kernel.org/r/20221219161922.2708732-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20221219161922.2708732-2-Liam.Howlett@oracle.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Mike Rapoport <rppt@kernel.org>
+Tested-by: Mike Rapoport <rppt@kernel.org>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/hooks.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/maple_tree.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/kmsan/hooks.c~kmsan-export-kmsan_handle_urb
-+++ a/mm/kmsan/hooks.c
-@@ -260,6 +260,7 @@ void kmsan_handle_urb(const struct urb *
- 					       urb->transfer_buffer_length,
- 					       /*checked*/ false);
- }
-+EXPORT_SYMBOL_GPL(kmsan_handle_urb);
+--- a/lib/maple_tree.c~maple_tree-fix-mas_spanning_rebalance-on-insufficient-data
++++ a/lib/maple_tree.c
+@@ -2994,7 +2994,9 @@ static int mas_spanning_rebalance(struct
+ 	mast->free = &free;
+ 	mast->destroy = &destroy;
+ 	l_mas.node = r_mas.node = m_mas.node = MAS_NONE;
+-	if (!(mast->orig_l->min && mast->orig_r->max == ULONG_MAX) &&
++
++	/* Check if this is not root and has sufficient data.  */
++	if (((mast->orig_l->min != 0) || (mast->orig_r->max != ULONG_MAX)) &&
+ 	    unlikely(mast->bn->b_end <= mt_min_slots[mast->bn->type]))
+ 		mast_spanning_rebalance(mast);
  
- static void kmsan_handle_dma_page(const void *addr, size_t size,
- 				  enum dma_data_direction dir)
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
 
