@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEC50C4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Dec 2022 21:30:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69829C4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Dec 2022 21:38:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229620AbiLUVaJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Dec 2022 16:30:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53210 "EHLO
+        id S229578AbiLUViB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Dec 2022 16:38:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230072AbiLUVaH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2022 16:30:07 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B48D824081
-        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 13:30:05 -0800 (PST)
+        with ESMTP id S230072AbiLUViA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2022 16:38:00 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F05F24BF0
+        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 13:37:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5B870B81C56
-        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 21:30:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1AC0C433D2;
-        Wed, 21 Dec 2022 21:30:02 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D4C96B81B9C
+        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2022 21:37:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89DD2C433EF;
+        Wed, 21 Dec 2022 21:37:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671658203;
-        bh=/VYExVtpCUs/4jSePoYe6LTBn27iWxxXqyVinkh3V2I=;
+        s=korg; t=1671658676;
+        bh=BaG7qvt2FNffQ5tP0lplAjshZwdnb0zeQZztJKumfDk=;
         h=Date:To:From:Subject:From;
-        b=FkMDli9dI/mFJ/O70cmZLKzBF2nnjD+ukdrz/jMzwPSGS/juC0p7CCtD1CWcRbD3x
-         HgrH4VhIoZ3BXuyuPPvYH8S+Jia4DsKNVZ2J1TuqtYZ1mLBCqwvaGEBadhKYCrCdcT
-         bTq/Au5McdMfa/T1B71BGJzR8MKqKefYuOxjqGyM=
-Date:   Wed, 21 Dec 2022 13:30:02 -0800
-To:     mm-commits@vger.kernel.org, terrelln@fb.com, serge@hallyn.com,
-        paul@paul-moore.com, john.johansen@canonical.com,
-        jmorris@namei.org, daniel@iogearbox.net, sunhao.th@gmail.com,
-        akpm@linux-foundation.org
+        b=i0m7zOJ/r51HNMin2r3Nka2HCxfMLHIs4Ob62XnbWHEVcsNXaX2tmWcWoD1RLtMMQ
+         nau17yzf6rMpGf+e0bZAEIBl+rJYZy7P9otbFxA1v9zuF9/4CNKoEQIyJbVGIcA3d6
+         o8W79F+sMCArv/m23eZNs/1NC4FO/HpjHeJs3jcQ=
+Date:   Wed, 21 Dec 2022 13:37:55 -0800
+To:     mm-commits@vger.kernel.org, keescook@chromium.org,
+        brauner@kernel.org, akpm@linux-foudation.org,
+        xupengfei@nfschina.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-new-primitive-kvmemdup.patch added to mm-unstable branch
-Message-Id: <20221221213002.F1AC0C433D2@smtp.kernel.org>
+Subject: + hfsplus-remove-unnecessary-variable-initialization.patch added to mm-nonmm-unstable branch
+Message-Id: <20221221213756.89DD2C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: new primitive kvmemdup()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-new-primitive-kvmemdup.patch
+     Subject: hfsplus: remove unnecessary variable initialization
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     hfsplus-remove-unnecessary-variable-initialization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-new-primitive-kvmemdup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hfsplus-remove-unnecessary-variable-initialization.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,111 +65,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hao Sun <sunhao.th@gmail.com>
-Subject: mm: new primitive kvmemdup()
-Date: Wed, 21 Dec 2022 22:42:45 +0800
+From: XU pengfei <xupengfei@nfschina.com>
+Subject: hfsplus: remove unnecessary variable initialization
+Date: Wed, 21 Dec 2022 11:21:20 +0800
 
-Similar to kmemdup(), but support large amount of bytes with kvmalloc()
-and does *not* guarantee that the result will be physically contiguous. 
-Use only in cases where kvmalloc() is needed and free it with kvfree(). 
-Also adapt policy_unpack.c in case someone bisect into this.
+Variables are assigned first and then used. Initialization is not required.
 
-Link: https://lkml.kernel.org/r/20221221144245.27164-1-sunhao.th@gmail.com
-Signed-off-by: Hao Sun <sunhao.th@gmail.com>
-Suggested-by: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Nick Terrell <terrelln@fb.com>
-Cc: John Johansen <john.johansen@canonical.com>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Link: https://lkml.kernel.org/r/20221221032119.10037-1-xupengfei@nfschina.com
+Signed-off-by: XU pengfei <xupengfei@nfschina.com>
+Reviewed-by: Andrew Morton <akpm@linux-foudation.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h            |    1 +
- mm/util.c                         |   24 +++++++++++++++++++++++-
- security/apparmor/policy_unpack.c |   11 +----------
- 3 files changed, 25 insertions(+), 11 deletions(-)
+ fs/hfsplus/xattr.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/include/linux/string.h~mm-new-primitive-kvmemdup
-+++ a/include/linux/string.h
-@@ -177,6 +177,7 @@ extern char *kstrdup(const char *s, gfp_
- extern const char *kstrdup_const(const char *s, gfp_t gfp);
- extern char *kstrndup(const char *s, size_t len, gfp_t gfp);
- extern void *kmemdup(const void *src, size_t len, gfp_t gfp) __realloc_size(2);
-+extern void *kvmemdup(const void *src, size_t len, gfp_t gfp) __realloc_size(2);
- extern char *kmemdup_nul(const char *s, size_t len, gfp_t gfp);
- 
- extern char **argv_split(gfp_t gfp, const char *str, int *argcp);
---- a/mm/util.c~mm-new-primitive-kvmemdup
-+++ a/mm/util.c
-@@ -120,7 +120,8 @@ EXPORT_SYMBOL(kstrndup);
-  * @len: memory region length
-  * @gfp: GFP mask to use
-  *
-- * Return: newly allocated copy of @src or %NULL in case of error
-+ * Return: newly allocated copy of @src or %NULL in case of error,
-+ * result is physically contiguous. Use kfree() to free.
-  */
- void *kmemdup(const void *src, size_t len, gfp_t gfp)
+--- a/fs/hfsplus/xattr.c~hfsplus-remove-unnecessary-variable-initialization
++++ a/fs/hfsplus/xattr.c
+@@ -257,7 +257,7 @@ end_attr_file_creation:
+ int __hfsplus_setxattr(struct inode *inode, const char *name,
+ 			const void *value, size_t size, int flags)
  {
-@@ -134,6 +135,27 @@ void *kmemdup(const void *src, size_t le
- EXPORT_SYMBOL(kmemdup);
+-	int err = 0;
++	int err;
+ 	struct hfs_find_data cat_fd;
+ 	hfsplus_cat_entry entry;
+ 	u16 cat_entry_flags, cat_entry_type;
+@@ -494,7 +494,7 @@ ssize_t __hfsplus_getxattr(struct inode
+ 	__be32 xattr_record_type;
+ 	u32 record_type;
+ 	u16 record_length = 0;
+-	ssize_t res = 0;
++	ssize_t res;
  
- /**
-+ * kvmemdup - duplicate region of memory
-+ *
-+ * @src: memory region to duplicate
-+ * @len: memory region length
-+ * @gfp: GFP mask to use
-+ *
-+ * Return: newly allocated copy of @src or %NULL in case of error,
-+ * result may be not physically contiguous. Use kvfree() to free.
-+ */
-+void *kvmemdup(const void *src, size_t len, gfp_t gfp)
-+{
-+	void *p;
-+
-+	p = kvmalloc(len, gfp);
-+	if (p)
-+		memcpy(p, src, len);
-+	return p;
-+}
-+EXPORT_SYMBOL(kvmemdup);
-+
-+/**
-  * kmemdup_nul - Create a NUL-terminated string from unterminated data
-  * @s: The data to stringify
-  * @len: The size of the data
---- a/security/apparmor/policy_unpack.c~mm-new-primitive-kvmemdup
-+++ a/security/apparmor/policy_unpack.c
-@@ -161,15 +161,6 @@ VISIBLE_IF_KUNIT bool aa_inbounds(struct
- }
- EXPORT_SYMBOL_IF_KUNIT(aa_inbounds);
+ 	if ((!S_ISREG(inode->i_mode) &&
+ 			!S_ISDIR(inode->i_mode)) ||
+@@ -606,7 +606,7 @@ static inline int can_list(const char *x
+ static ssize_t hfsplus_listxattr_finder_info(struct dentry *dentry,
+ 						char *buffer, size_t size)
+ {
+-	ssize_t res = 0;
++	ssize_t res;
+ 	struct inode *inode = d_inode(dentry);
+ 	struct hfs_find_data fd;
+ 	u16 entry_type;
+@@ -674,10 +674,10 @@ end_listxattr_finder_info:
+ ssize_t hfsplus_listxattr(struct dentry *dentry, char *buffer, size_t size)
+ {
+ 	ssize_t err;
+-	ssize_t res = 0;
++	ssize_t res;
+ 	struct inode *inode = d_inode(dentry);
+ 	struct hfs_find_data fd;
+-	u16 key_len = 0;
++	u16 key_len;
+ 	struct hfsplus_attr_key attr_key;
+ 	char *strbuf;
+ 	int xattr_name_len;
+@@ -766,12 +766,12 @@ out:
  
--static void *kvmemdup(const void *src, size_t len)
--{
--	void *p = kvmalloc(len, GFP_KERNEL);
--
--	if (p)
--		memcpy(p, src, len);
--	return p;
--}
--
- /**
-  * aa_unpack_u16_chunk - test and do bounds checking for a u16 size based chunk
-  * @e: serialized data read head (NOT NULL)
-@@ -1027,7 +1018,7 @@ static struct aa_profile *unpack_profile
+ static int hfsplus_removexattr(struct inode *inode, const char *name)
+ {
+-	int err = 0;
++	int err;
+ 	struct hfs_find_data cat_fd;
+ 	u16 flags;
+ 	u16 cat_entry_type;
+-	int is_xattr_acl_deleted = 0;
+-	int is_all_xattrs_deleted = 0;
++	int is_xattr_acl_deleted;
++	int is_all_xattrs_deleted;
  
- 			data->key = key;
- 			data->size = aa_unpack_blob(e, &data->data, NULL);
--			data->data = kvmemdup(data->data, data->size);
-+			data->data = kvmemdup(data->data, data->size, GFP_KERNEL);
- 			if (data->size && !data->data) {
- 				kfree_sensitive(data->key);
- 				kfree_sensitive(data);
+ 	if (!HFSPLUS_SB(inode->i_sb)->attr_tree)
+ 		return -EOPNOTSUPP;
 _
 
-Patches currently in -mm which might be from sunhao.th@gmail.com are
+Patches currently in -mm which might be from xupengfei@nfschina.com are
 
-mm-new-primitive-kvmemdup.patch
+hfsplus-remove-unnecessary-variable-initialization.patch
 
