@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16CC5C4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Dec 2022 21:39:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32C6DC4332F
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Dec 2022 21:43:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229613AbiLVVjH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Dec 2022 16:39:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50198 "EHLO
+        id S230012AbiLVVnk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 22 Dec 2022 16:43:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229797AbiLVVjA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Dec 2022 16:39:00 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1617C23316
-        for <mm-commits@vger.kernel.org>; Thu, 22 Dec 2022 13:39:00 -0800 (PST)
+        with ESMTP id S229659AbiLVVnj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Dec 2022 16:43:39 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C98BA26AE4
+        for <mm-commits@vger.kernel.org>; Thu, 22 Dec 2022 13:43:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 7B6BDCE1BE6
-        for <mm-commits@vger.kernel.org>; Thu, 22 Dec 2022 21:38:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C4B3C433D2;
-        Thu, 22 Dec 2022 21:38:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 530A961DA7
+        for <mm-commits@vger.kernel.org>; Thu, 22 Dec 2022 21:43:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A71DDC433EF;
+        Thu, 22 Dec 2022 21:43:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671745136;
-        bh=fj+BGzAexL8YTrKKrPl16xcfolVrkAO5VZCSMt+TaHY=;
+        s=korg; t=1671745416;
+        bh=/llKQhTVY2ikAybeysS9shKl9t9Bzm4QyqHVDllOyy0=;
         h=Date:To:From:Subject:From;
-        b=BKsNykH/65wGIQ6qnURVii81i7+C2ou+WiHBkgw0BhVsoOEnlT7l1776lwTJ6iZ+z
-         CgoAAo3ySsJfZqb2LPAVTn23Cz/CkfZ8P39O5R/ZVhRxznKl06ncV6Z7HQTVGttVIh
-         nu7pzbq3cwmu6H7kaDeuo4J0aUG/qj8LwjDCsuBY=
-Date:   Thu, 22 Dec 2022 13:38:56 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        roman.gushchin@linux.dev, oleksiy.avramchenko@sony.com,
-        npiggin@gmail.com, lstoakes@gmail.com, hch@lst.de,
-        hch@infradead.org, bhe@redhat.com, urezki@gmail.com,
-        akpm@linux-foundation.org
+        b=dyLxJ/GDfj8ME/9q/rgKN4n3uWfOh0hzZvTmua6G1W3xeR1WQiQ35BrPpgGrYrqW/
+         uQyuVXDt62NeF/etyksc4rv9EUqi2pAlVh3UPhrRLfq15dGIyzhac9Un2dAGL24Agb
+         lVutZMwDohwl74SqjwzT+SwCYqNmOI6hcVN+Dw5Q=
+Date:   Thu, 22 Dec 2022 13:43:36 -0800
+To:     mm-commits@vger.kernel.org, surenb@google.com, rppt@kernel.org,
+        roman.gushchin@linux.dev, Michael@MichaelLarabel.com,
+        mhocko@kernel.org, hannes@cmpxchg.org, corbet@lwn.net,
+        yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-switch-to-find_unlink_vmap_area-in-vm_unmap_ram.patch added to mm-unstable branch
-Message-Id: <20221222213856.8C4B3C433D2@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio.patch added to mm-unstable branch
+Message-Id: <20221222214336.A71DDC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: switch to find_unlink_vmap_area() in vm_unmap_ram()
+     Subject: mm: multi-gen LRU: rename lru_gen_struct to lru_gen_folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-switch-to-find_unlink_vmap_area-in-vm_unmap_ram.patch
+     mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-switch-to-find_unlink_vmap_area-in-vm_unmap_ram.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,44 +66,359 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: switch to find_unlink_vmap_area() in vm_unmap_ram()
-Date: Thu, 22 Dec 2022 20:00:21 +0100
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: multi-gen LRU: rename lru_gen_struct to lru_gen_folio
+Date: Wed, 21 Dec 2022 21:18:59 -0700
 
-Switch from find_vmap_area() to find_unlink_vmap_area() to prevent a
-double access to the vmap_area_lock: one for finding area, second time is
-for unlinking from a tree.
+Patch series "mm: multi-gen LRU: memcg LRU", v3.
 
-Link: https://lkml.kernel.org/r/20221222190022.134380-2-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
+Overview
+========
+
+An memcg LRU is a per-node LRU of memcgs.  It is also an LRU of LRUs,
+since each node and memcg combination has an LRU of folios (see
+mem_cgroup_lruvec()).
+
+Its goal is to improve the scalability of global reclaim, which is
+critical to system-wide memory overcommit in data centers.  Note that
+memcg reclaim is currently out of scope.
+
+Its memory bloat is a pointer to each lruvec and negligible to each
+pglist_data.  In terms of traversing memcgs during global reclaim, it
+improves the best-case complexity from O(n) to O(1) and does not affect
+the worst-case complexity O(n).  Therefore, on average, it has a sublinear
+complexity in contrast to the current linear complexity.
+
+The basic structure of an memcg LRU can be understood by an analogy to
+the active/inactive LRU (of folios):
+1. It has the young and the old (generations), i.e., the counterparts
+   to the active and the inactive;
+2. The increment of max_seq triggers promotion, i.e., the counterpart
+   to activation;
+3. Other events trigger similar operations, e.g., offlining an memcg
+   triggers demotion, i.e., the counterpart to deactivation.
+
+In terms of global reclaim, it has two distinct features:
+1. Sharding, which allows each thread to start at a random memcg (in
+   the old generation) and improves parallelism;
+2. Eventual fairness, which allows direct reclaim to bail out at will
+   and reduces latency without affecting fairness over some time.
+
+The commit message in patch 6 details the workflow:
+https://lore.kernel.org/r/20221222041905.2431096-7-yuzhao@google.com/
+
+The following is a simple test to quickly verify its effectiveness.
+
+  Test design:
+  1. Create multiple memcgs.
+  2. Each memcg contains a job (fio).
+  3. All jobs access the same amount of memory randomly.
+  4. The system does not experience global memory pressure.
+  5. Periodically write to the root memory.reclaim.
+
+  Desired outcome:
+  1. All memcgs have similar pgsteal counts, i.e., stddev(pgsteal)
+     over mean(pgsteal) is close to 0%.
+  2. The total pgsteal is close to the total requested through
+     memory.reclaim, i.e., sum(pgsteal) over sum(requested) is close
+     to 100%.
+
+  Actual outcome [1]:
+                                     MGLRU off    MGLRU on
+  stddev(pgsteal) / mean(pgsteal)    75%          20%
+  sum(pgsteal) / sum(requested)      425%         95%
+
+  ####################################################################
+  MEMCGS=128
+
+  for ((memcg = 0; memcg < $MEMCGS; memcg++)); do
+      mkdir /sys/fs/cgroup/memcg$memcg
+  done
+
+  start() {
+      echo $BASHPID > /sys/fs/cgroup/memcg$memcg/cgroup.procs
+
+      fio -name=memcg$memcg --numjobs=1 --ioengine=mmap \
+          --filename=/dev/zero --size=1920M --rw=randrw \
+          --rate=64m,64m --random_distribution=random \
+          --fadvise_hint=0 --time_based --runtime=10h \
+          --group_reporting --minimal
+  }
+
+  for ((memcg = 0; memcg < $MEMCGS; memcg++)); do
+      start &
+  done
+
+  sleep 600
+
+  for ((i = 0; i < 600; i++)); do
+      echo 256m >/sys/fs/cgroup/memory.reclaim
+      sleep 6
+  done
+
+  for ((memcg = 0; memcg < $MEMCGS; memcg++)); do
+      grep "pgsteal " /sys/fs/cgroup/memcg$memcg/memory.stat
+  done
+  ####################################################################
+
+[1]: This was obtained from running the above script (touches less
+     than 256GB memory) on an EPYC 7B13 with 512GB DRAM for over an
+     hour.
+
+
+This patch (of 8):
+
+The new name lru_gen_folio will be more distinct from the coming
+lru_gen_memcg.
+
+Link: https://lkml.kernel.org/r/20221222041905.2431096-1-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20221222041905.2431096-2-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michael Larabel <Michael@MichaelLarabel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/vmalloc.c~mm-vmalloc-switch-to-find_unlink_vmap_area-in-vm_unmap_ram
-+++ a/mm/vmalloc.c
-@@ -2252,7 +2252,7 @@ void vm_unmap_ram(const void *mem, unsig
- 		return;
+--- a/include/linux/mm_inline.h~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
++++ a/include/linux/mm_inline.h
+@@ -178,7 +178,7 @@ static inline void lru_gen_update_size(s
+ 	int zone = folio_zonenum(folio);
+ 	int delta = folio_nr_pages(folio);
+ 	enum lru_list lru = type * LRU_INACTIVE_FILE;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	VM_WARN_ON_ONCE(old_gen != -1 && old_gen >= MAX_NR_GENS);
+ 	VM_WARN_ON_ONCE(new_gen != -1 && new_gen >= MAX_NR_GENS);
+@@ -224,7 +224,7 @@ static inline bool lru_gen_add_folio(str
+ 	int gen = folio_lru_gen(folio);
+ 	int type = folio_is_file_lru(folio);
+ 	int zone = folio_zonenum(folio);
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(gen != -1, folio);
+ 
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
++++ a/include/linux/mmzone.h
+@@ -404,7 +404,7 @@ enum {
+  * The number of pages in each generation is eventually consistent and therefore
+  * can be transiently negative when reset_batch_size() is pending.
+  */
+-struct lru_gen_struct {
++struct lru_gen_folio {
+ 	/* the aging increments the youngest generation number */
+ 	unsigned long max_seq;
+ 	/* the eviction increments the oldest generation numbers */
+@@ -461,7 +461,7 @@ struct lru_gen_mm_state {
+ struct lru_gen_mm_walk {
+ 	/* the lruvec under reclaim */
+ 	struct lruvec *lruvec;
+-	/* unstable max_seq from lru_gen_struct */
++	/* unstable max_seq from lru_gen_folio */
+ 	unsigned long max_seq;
+ 	/* the next address within an mm to scan */
+ 	unsigned long next_addr;
+@@ -524,7 +524,7 @@ struct lruvec {
+ 	unsigned long			flags;
+ #ifdef CONFIG_LRU_GEN
+ 	/* evictable pages divided into generations */
+-	struct lru_gen_struct		lrugen;
++	struct lru_gen_folio		lrugen;
+ 	/* to concurrently iterate lru_gen_mm_list */
+ 	struct lru_gen_mm_state		mm_state;
+ #endif
+--- a/mm/vmscan.c~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
++++ a/mm/vmscan.c
+@@ -3215,7 +3215,7 @@ static int get_nr_gens(struct lruvec *lr
+ 
+ static bool __maybe_unused seq_is_valid(struct lruvec *lruvec)
+ {
+-	/* see the comment on lru_gen_struct */
++	/* see the comment on lru_gen_folio */
+ 	return get_nr_gens(lruvec, LRU_GEN_FILE) >= MIN_NR_GENS &&
+ 	       get_nr_gens(lruvec, LRU_GEN_FILE) <= get_nr_gens(lruvec, LRU_GEN_ANON) &&
+ 	       get_nr_gens(lruvec, LRU_GEN_ANON) <= MAX_NR_GENS;
+@@ -3612,7 +3612,7 @@ struct ctrl_pos {
+ static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier, int gain,
+ 			  struct ctrl_pos *pos)
+ {
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	int hist = lru_hist_from_seq(lrugen->min_seq[type]);
+ 
+ 	pos->refaulted = lrugen->avg_refaulted[type][tier] +
+@@ -3627,7 +3627,7 @@ static void read_ctrl_pos(struct lruvec
+ static void reset_ctrl_pos(struct lruvec *lruvec, int type, bool carryover)
+ {
+ 	int hist, tier;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	bool clear = carryover ? NR_HIST_GENS == 1 : NR_HIST_GENS > 1;
+ 	unsigned long seq = carryover ? lrugen->min_seq[type] : lrugen->max_seq + 1;
+ 
+@@ -3704,7 +3704,7 @@ static int folio_update_gen(struct folio
+ static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
+ {
+ 	int type = folio_is_file_lru(folio);
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
+ 	unsigned long new_flags, old_flags = READ_ONCE(folio->flags);
+ 
+@@ -3749,7 +3749,7 @@ static void update_batch_size(struct lru
+ static void reset_batch_size(struct lruvec *lruvec, struct lru_gen_mm_walk *walk)
+ {
+ 	int gen, type, zone;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	walk->batched = 0;
+ 
+@@ -4263,7 +4263,7 @@ static bool inc_min_seq(struct lruvec *l
+ {
+ 	int zone;
+ 	int remaining = MAX_LRU_BATCH;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
+ 
+ 	if (type == LRU_GEN_ANON && !can_swap)
+@@ -4299,7 +4299,7 @@ static bool try_to_inc_min_seq(struct lr
+ {
+ 	int gen, type, zone;
+ 	bool success = false;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	DEFINE_MIN_SEQ(lruvec);
+ 
+ 	VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
+@@ -4320,7 +4320,7 @@ next:
+ 		;
  	}
  
--	va = find_vmap_area(addr);
-+	va = find_unlink_vmap_area(addr);
- 	BUG_ON(!va);
- 	debug_check_no_locks_freed((void *)va->va_start,
- 				    (va->va_end - va->va_start));
+-	/* see the comment on lru_gen_struct */
++	/* see the comment on lru_gen_folio */
+ 	if (can_swap) {
+ 		min_seq[LRU_GEN_ANON] = min(min_seq[LRU_GEN_ANON], min_seq[LRU_GEN_FILE]);
+ 		min_seq[LRU_GEN_FILE] = max(min_seq[LRU_GEN_ANON], lrugen->min_seq[LRU_GEN_FILE]);
+@@ -4342,7 +4342,7 @@ static void inc_max_seq(struct lruvec *l
+ {
+ 	int prev, next;
+ 	int type, zone;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	spin_lock_irq(&lruvec->lru_lock);
+ 
+@@ -4400,7 +4400,7 @@ static bool try_to_inc_max_seq(struct lr
+ 	bool success;
+ 	struct lru_gen_mm_walk *walk;
+ 	struct mm_struct *mm = NULL;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	VM_WARN_ON_ONCE(max_seq > READ_ONCE(lrugen->max_seq));
+ 
+@@ -4465,7 +4465,7 @@ static bool should_run_aging(struct lruv
+ 	unsigned long old = 0;
+ 	unsigned long young = 0;
+ 	unsigned long total = 0;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 
+ 	for (type = !can_swap; type < ANON_AND_FILE; type++) {
+@@ -4750,7 +4750,7 @@ static bool sort_folio(struct lruvec *lr
+ 	int delta = folio_nr_pages(folio);
+ 	int refs = folio_lru_refs(folio);
+ 	int tier = lru_tier_from_refs(refs);
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(gen >= MAX_NR_GENS, folio);
+ 
+@@ -4850,7 +4850,7 @@ static int scan_folios(struct lruvec *lr
+ 	int scanned = 0;
+ 	int isolated = 0;
+ 	int remaining = MAX_LRU_BATCH;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 
+ 	VM_WARN_ON_ONCE(!list_empty(list));
+@@ -5251,7 +5251,7 @@ done:
+ 
+ static bool __maybe_unused state_is_valid(struct lruvec *lruvec)
+ {
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	if (lrugen->enabled) {
+ 		enum lru_list lru;
+@@ -5530,7 +5530,7 @@ static void lru_gen_seq_show_full(struct
+ 	int i;
+ 	int type, tier;
+ 	int hist = lru_hist_from_seq(seq);
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	for (tier = 0; tier < MAX_NR_TIERS; tier++) {
+ 		seq_printf(m, "            %10d", tier);
+@@ -5580,7 +5580,7 @@ static int lru_gen_seq_show(struct seq_f
+ 	unsigned long seq;
+ 	bool full = !debugfs_real_fops(m->file)->write;
+ 	struct lruvec *lruvec = v;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	int nid = lruvec_pgdat(lruvec)->node_id;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MAX_SEQ(lruvec);
+@@ -5834,7 +5834,7 @@ void lru_gen_init_lruvec(struct lruvec *
+ {
+ 	int i;
+ 	int gen, type, zone;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	lrugen->max_seq = MIN_NR_GENS + 1;
+ 	lrugen->enabled = lru_gen_enabled();
+--- a/mm/workingset.c~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
++++ a/mm/workingset.c
+@@ -223,7 +223,7 @@ static void *lru_gen_eviction(struct fol
+ 	unsigned long token;
+ 	unsigned long min_seq;
+ 	struct lruvec *lruvec;
+-	struct lru_gen_struct *lrugen;
++	struct lru_gen_folio *lrugen;
+ 	int type = folio_is_file_lru(folio);
+ 	int delta = folio_nr_pages(folio);
+ 	int refs = folio_lru_refs(folio);
+@@ -252,7 +252,7 @@ static void lru_gen_refault(struct folio
+ 	unsigned long token;
+ 	unsigned long min_seq;
+ 	struct lruvec *lruvec;
+-	struct lru_gen_struct *lrugen;
++	struct lru_gen_folio *lrugen;
+ 	struct mem_cgroup *memcg;
+ 	struct pglist_data *pgdat;
+ 	int type = folio_is_file_lru(folio);
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-vmalloc-avoid-calling-__find_vmap_area-twice-in-__vunmap.patch
-mm-vmalloc-switch-to-find_unlink_vmap_area-in-vm_unmap_ram.patch
-mm-vmalloc-replace-bug_on-by-warn_on_once.patch
+mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio.patch
+mm-multi-gen-lru-rename-lrugen-lists-to-lrugen-folios.patch
+mm-multi-gen-lru-remove-eviction-fairness-safeguard.patch
+mm-multi-gen-lru-remove-aging-fairness-safeguard.patch
+mm-multi-gen-lru-shuffle-should_run_aging.patch
+mm-multi-gen-lru-per-node-lru_gen_folio-lists.patch
+mm-multi-gen-lru-clarify-scan_control-flags.patch
+mm-multi-gen-lru-simplify-arch_has_hw_pte_young-check.patch
 
