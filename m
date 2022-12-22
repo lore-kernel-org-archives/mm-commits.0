@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AB0AC4167B
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Dec 2022 21:32:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34812C3DA7A
+	for <mm-commits@archiver.kernel.org>; Thu, 22 Dec 2022 21:39:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229743AbiLVVcJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Dec 2022 16:32:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47742 "EHLO
+        id S229524AbiLVVjA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 22 Dec 2022 16:39:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229785AbiLVVcB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Dec 2022 16:32:01 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AEDD23162
-        for <mm-commits@vger.kernel.org>; Thu, 22 Dec 2022 13:32:00 -0800 (PST)
+        with ESMTP id S229613AbiLVVi7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Dec 2022 16:38:59 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 437CB2331A
+        for <mm-commits@vger.kernel.org>; Thu, 22 Dec 2022 13:38:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C9BD7B81F77
-        for <mm-commits@vger.kernel.org>; Thu, 22 Dec 2022 21:31:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 701C6C433EF;
-        Thu, 22 Dec 2022 21:31:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D4F0061DA3
+        for <mm-commits@vger.kernel.org>; Thu, 22 Dec 2022 21:38:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F43C433F0;
+        Thu, 22 Dec 2022 21:38:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671744717;
-        bh=QbOWTzwicpQwtCaW1020dTayfqoPtGzThw2zeEfn0G8=;
+        s=korg; t=1671745138;
+        bh=tyoY5RwNpApUJgcgfNjLMs+/4YIu6uR4+8qyX/tXlYI=;
         h=Date:To:From:Subject:From;
-        b=Q2AtCigBz279wSDFBcLvdFR07n6I91IevPl/skAP+JPxS9IdrljaQcqjkffzXBri/
-         CEVDq2eSRxpQ6BSal+g6y+OVJm3uS/D4SXysfrqQkx9h/Pd5gDtK44fSwmPHTWWkaL
-         5CH8BO4arZare7PHODAOPLQyrcxlZtMxhBysi6C4=
-Date:   Thu, 22 Dec 2022 13:31:56 -0800
+        b=G2ZM4TkxXoxK5S2ihJlVd7zNh/mmiGYXXBtlDMYQ0+rUqBpvWczOyXf4ZX2Md460J
+         DojL+mZfIxpmoVXMFY2OZ2iu0GIC4z97fCxfomZz7E/dJH/sfP6tG+8hQ0Spdc2GOS
+         KXD0WuY3P8CJVfO9fKoqt9ErLeKulrDwXMY7YHF0=
+Date:   Thu, 22 Dec 2022 13:38:57 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        william.kucharski@oracle.com, vbabka@suse.cz, rppt@kernel.org,
-        liam.howlett@oracle.com, joel@joelfernandes.org, hughd@google.com,
-        corbet@lwn.net, brauner@kernel.org, lstoakes@gmail.com,
+        roman.gushchin@linux.dev, oleksiy.avramchenko@sony.com,
+        npiggin@gmail.com, lstoakes@gmail.com, hch@lst.de,
+        hch@infradead.org, bhe@redhat.com, urezki@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-mm-update-references-to-__mlock_page-to-_folio.patch added to mm-unstable branch
-Message-Id: <20221222213157.701C6C433EF@smtp.kernel.org>
+Subject: + mm-vmalloc-replace-bug_on-by-warn_on_once.patch added to mm-unstable branch
+Message-Id: <20221222213858.30F43C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/mm: Update references to __m[un]lock_page() to *_folio()
+     Subject: mm: vmalloc: replace BUG_ON() by WARN_ON_ONCE()
 has been added to the -mm mm-unstable branch.  Its filename is
-     documentation-mm-update-references-to-__mlock_page-to-_folio.patch
+     mm-vmalloc-replace-bug_on-by-warn_on_once.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-mm-update-references-to-__mlock_page-to-_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-replace-bug_on-by-warn_on_once.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,70 +67,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: Documentation/mm: Update references to __m[un]lock_page() to *_folio()
-Date: Thu, 22 Dec 2022 19:48:33 +0000
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm: vmalloc: replace BUG_ON() by WARN_ON_ONCE()
+Date: Thu, 22 Dec 2022 20:00:22 +0100
 
-We now pass folios to these functions, so update the documentation
-accordingly.
+Currently a vm_unmap_ram() functions triggers a BUG() if an area is not
+found.  Replace it by the WARN_ON_ONCE() error message and keep machine
+alive instead of stopping it.
 
-Additionally, correct the outdated reference to __pagevec_lru_add_fn(), the
-referenced action occurs in __munlock_folio() directly now.
+The worst case is a memory leaking.
 
-Link: https://lkml.kernel.org/r/c0d134f9ef47d803d27c08e347e5133227ca07bf.1671738120.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20221222190022.134380-3-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/mm/unevictable-lru.rst~documentation-mm-update-references-to-__mlock_page-to-_folio
-+++ a/Documentation/mm/unevictable-lru.rst
-@@ -308,22 +308,22 @@ do end up getting faulted into this VM_L
- fault path - which is also how mlock2()'s MLOCK_ONFAULT areas are handled.
+--- a/mm/vmalloc.c~mm-vmalloc-replace-bug_on-by-warn_on_once
++++ a/mm/vmalloc.c
+@@ -2253,7 +2253,9 @@ void vm_unmap_ram(const void *mem, unsig
+ 	}
  
- For each PTE (or PMD) being faulted into a VMA, the page add rmap function
--calls mlock_vma_page(), which calls mlock_page() when the VMA is VM_LOCKED
-+calls mlock_vma_page(), which calls mlock_folio() when the VMA is VM_LOCKED
- (unless it is a PTE mapping of a part of a transparent huge page).  Or when
- it is a newly allocated anonymous page, lru_cache_add_inactive_or_unevictable()
--calls mlock_new_page() instead: similar to mlock_page(), but can make better
-+calls mlock_new_folio() instead: similar to mlock_folio(), but can make better
- judgments, since this page is held exclusively and known not to be on LRU yet.
- 
--mlock_page() sets PageMlocked immediately, then places the page on the CPU's
--mlock pagevec, to batch up the rest of the work to be done under lru_lock by
--__mlock_page().  __mlock_page() sets PageUnevictable, initializes mlock_count
-+mlock_folio() sets PageMlocked immediately, then places the page on the CPU's
-+mlock folio batch, to batch up the rest of the work to be done under lru_lock by
-+__mlock_folio().  __mlock_folio() sets PageUnevictable, initializes mlock_count
- and moves the page to unevictable state ("the unevictable LRU", but with
- mlock_count in place of LRU threading).  Or if the page was already PageLRU
- and PageUnevictable and PageMlocked, it simply increments the mlock_count.
- 
- But in practice that may not work ideally: the page may not yet be on an LRU, or
- it may have been temporarily isolated from LRU.  In such cases the mlock_count
--field cannot be touched, but will be set to 0 later when __pagevec_lru_add_fn()
-+field cannot be touched, but will be set to 0 later when __munlock_folio()
- returns the page to "LRU".  Races prohibit mlock_count from being set to 1 then:
- rather than risk stranding a page indefinitely as unevictable, always err with
- mlock_count on the low side, so that when munlocked the page will be rescued to
+ 	va = find_unlink_vmap_area(addr);
+-	BUG_ON(!va);
++	if (WARN_ON_ONCE(!va))
++		return;
++
+ 	debug_check_no_locks_freed((void *)va->va_start,
+ 				    (va->va_end - va->va_start));
+ 	free_unmap_vmap_area(va);
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-selftest-vm-add-mremap-expand-merge-offset-test.patch
-mm-vmalloc-correct-use-of-__gfp_nowarn-mask-in-__vmalloc_area_node.patch
-mm-pagevec-add-folio_batch_reinit.patch
-mm-mlock-use-folios-and-a-folio-batch-internally.patch
-mm-mlock-update-the-interface-to-use-folios.patch
-documentation-mm-update-references-to-__mlock_page-to-_folio.patch
+mm-vmalloc-avoid-calling-__find_vmap_area-twice-in-__vunmap.patch
+mm-vmalloc-switch-to-find_unlink_vmap_area-in-vm_unmap_ram.patch
+mm-vmalloc-replace-bug_on-by-warn_on_once.patch
 
