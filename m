@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFD76C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Dec 2022 17:51:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08BC4C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Dec 2022 17:59:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231415AbiLWRv4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Dec 2022 12:51:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45034 "EHLO
+        id S231546AbiLWR7L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Dec 2022 12:59:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230366AbiLWRvy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Dec 2022 12:51:54 -0500
+        with ESMTP id S230489AbiLWR7K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Dec 2022 12:59:10 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 680CD11464
-        for <mm-commits@vger.kernel.org>; Fri, 23 Dec 2022 09:51:52 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EEA713D12
+        for <mm-commits@vger.kernel.org>; Fri, 23 Dec 2022 09:59:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 288C8B820F4
-        for <mm-commits@vger.kernel.org>; Fri, 23 Dec 2022 17:51:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B410BC433D2;
-        Fri, 23 Dec 2022 17:51:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EF8B3B80315
+        for <mm-commits@vger.kernel.org>; Fri, 23 Dec 2022 17:59:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84F86C433D2;
+        Fri, 23 Dec 2022 17:59:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671817909;
-        bh=mhR/Pl4tOqlg6c1BSQnECUs3SgyuLjEicbnzwroD36M=;
+        s=korg; t=1671818346;
+        bh=paXGwzLZocE6sYyFShWqdC8Kx1weo5g0028WmDq+Lqg=;
         h=Date:To:From:Subject:From;
-        b=a+OFFooqpQoPQiJAnFFyuqJDvFfJs26aVu7GAYuLTvT3VneJ2apP/0HRkVzxvm3ce
-         CFGBMpC83JWn3qIO84JNUKw2ZjOyyvapKACtcz0Yat8lgJ6D8BfGZ+7cLEMvGzmS+0
-         MLVoKjGlEusW3N/zosVjX0Gbg1sJhMXyRNSR3+Tw=
-Date:   Fri, 23 Dec 2022 09:51:48 -0800
-To:     mm-commits@vger.kernel.org, xupengfei@nfschina.com,
-        keescook@chromium.org, brauner@kernel.org,
-        akpm@linux-foudation.org, akpm@linux-foundation.org,
+        b=eFt6zJO/LLi22bxKm128Q0jVn/L67J3DpXwgdfl/89cCIRegJgDiHVKsrWW4agG/P
+         u6dqX6cLl70cmEb5nSW4r1wNDikxXrTPPGtv/vdLkPy8CuD9J91UzKOAzGbAAxRQAL
+         XdVTCpDXm4NH+vK8UZNYUlUvzul6vkrs+c5L0EoA=
+Date:   Fri, 23 Dec 2022 09:59:05 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        vishal.moola@gmail.com, sj@kernel.org, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hfsplus-remove-unnecessary-variable-initialization-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20221223175149.B410BC433D2@smtp.kernel.org>
+Subject: + mm-swap-convert-deactivate_page-to-folio_deactivate-fix.patch added to mm-unstable branch
+Message-Id: <20221223175906.84F86C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfsplus-remove-unnecessary-variable-initialization-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hfsplus-remove-unnecessary-variable-initialization-fix.patch
+     Subject: mm-swap-convert-deactivate_page-to-folio_deactivate-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-convert-deactivate_page-to-folio_deactivate-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hfsplus-remove-unnecessary-variable-initialization-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-deactivate_page-to-folio_deactivate-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,41 +66,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hfsplus-remove-unnecessary-variable-initialization-fix
-Date: Wed Dec 21 01:32:43 PM PST 2022
+Subject: mm-swap-convert-deactivate_page-to-folio_deactivate-fix
+Date: Fri Dec 23 09:52:24 AM PST 2022
 
-give hfsplus_listxattr:key_len narrower scope
+fix left-over comments, per Yu Zhao
 
-Cc: XU pengfei <xupengfei@nfschina.com>
-Cc: Andrew Morton <akpm@linux-foudation.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/xattr.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/hfsplus/xattr.c~hfsplus-remove-unnecessary-variable-initialization-fix
-+++ a/fs/hfsplus/xattr.c
-@@ -677,7 +677,6 @@ ssize_t hfsplus_listxattr(struct dentry
- 	ssize_t res;
- 	struct inode *inode = d_inode(dentry);
- 	struct hfs_find_data fd;
--	u16 key_len;
- 	struct hfsplus_attr_key attr_key;
- 	char *strbuf;
- 	int xattr_name_len;
-@@ -719,7 +718,8 @@ ssize_t hfsplus_listxattr(struct dentry
- 	}
+--- a/mm/page-writeback.c~mm-swap-convert-deactivate_page-to-folio_deactivate-fix
++++ a/mm/page-writeback.c
+@@ -2846,11 +2846,11 @@ bool folio_mark_dirty(struct folio *foli
  
- 	for (;;) {
--		key_len = hfs_bnode_read_u16(fd.bnode, fd.keyoffset);
-+		u16 key_len = hfs_bnode_read_u16(fd.bnode, fd.keyoffset);
-+
- 		if (key_len == 0 || key_len > fd.tree->max_key_len) {
- 			pr_err("invalid xattr key length: %d\n", key_len);
- 			res = -EIO;
+ 	if (likely(mapping)) {
+ 		/*
+-		 * readahead/lru_deactivate_page could remain
++		 * readahead/folio_deactivate could remain
+ 		 * PG_readahead/PG_reclaim due to race with folio_end_writeback
+ 		 * About readahead, if the folio is written, the flags would be
+ 		 * reset. So no problem.
+-		 * About lru_deactivate_page, if the folio is redirtied,
++		 * About folio_deactivate, if the folio is redirtied,
+ 		 * the flag will be reset. So no problem. but if the
+ 		 * folio is used by readahead it will confuse readahead
+ 		 * and make it restart the size rampup process. But it's
+--- a/mm/vmscan.c~mm-swap-convert-deactivate_page-to-folio_deactivate-fix
++++ a/mm/vmscan.c
+@@ -1920,7 +1920,7 @@ retry:
+ 			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
+ 				/*
+ 				 * Immediately reclaim when written back.
+-				 * Similar in principle to deactivate_page()
++				 * Similar in principle to folio_deactivate()
+ 				 * except we already have the folio isolated
+ 				 * and know it's dirty
+ 				 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +116,7 @@ mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3.patch
 mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
 mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch
 mm-memcontrol-deprecate-charge-moving-fix.patch
+mm-swap-convert-deactivate_page-to-folio_deactivate-fix.patch
 error-injection-remove-ei_etype_none-fix.patch
 hfsplus-remove-unnecessary-variable-initialization-fix.patch
 
