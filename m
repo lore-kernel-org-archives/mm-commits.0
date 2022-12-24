@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8DD4C4332F
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Dec 2022 22:18:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFCDBC4332F
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Dec 2022 22:20:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229499AbiLXWSz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 24 Dec 2022 17:18:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33698 "EHLO
+        id S230019AbiLXWUS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 24 Dec 2022 17:20:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230019AbiLXWSx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 24 Dec 2022 17:18:53 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E4689FFD;
-        Sat, 24 Dec 2022 14:18:51 -0800 (PST)
+        with ESMTP id S229570AbiLXWUR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 24 Dec 2022 17:20:17 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99F5A9FC7
+        for <mm-commits@vger.kernel.org>; Sat, 24 Dec 2022 14:20:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 34D4A60B0D;
-        Sat, 24 Dec 2022 22:18:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84F2CC433EF;
-        Sat, 24 Dec 2022 22:18:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 45585B802C3
+        for <mm-commits@vger.kernel.org>; Sat, 24 Dec 2022 22:20:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D315CC433D2;
+        Sat, 24 Dec 2022 22:20:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671920330;
-        bh=a8sbHrjzFWKIpszR2VatqyiutB7CKA6Flq4QIUvYTNE=;
+        s=korg; t=1671920413;
+        bh=cCwZctiYy1YuhScRvuquXRIo9XV9fKHnkH2jHCHJZcE=;
         h=Date:To:From:Subject:From;
-        b=qPENd+LUIaI2kB1KD062h0zuoIaK3Fs7rVTf/zUDRsZzmI5cFCIdeEoBIVPv5JSPK
-         T4Iq8r7fZ2GGPm9uBfwINtf7qajMcySVK7O91W4vvgcMIrrWDXDjCQ1m38fC/RJk2N
-         dbMecYpGAWyNGKSOE6CvbOuZLiHt1I37GIzS1lkc=
-Date:   Sat, 24 Dec 2022 14:18:49 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        shy828301@gmail.com, hughd@google.com, zokeefe@google.com,
+        b=WDy547rrX7qQBuLkwJc/Q5C85uS8jEyos6B0GeGNY36ZQkLusg8b8yZWx985mgJVf
+         o3+KD5/QpnjQucuk++9/x4xiQfDOvwgfO86VNOEdFCRVPNRpSPBX2+FKU9o3pL9S87
+         E05L5cwXrc1zww75gUnnSyCITvGDrw4m4rbkzQig=
+Date:   Sat, 24 Dec 2022 14:20:10 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        vbabka@suse.cz, peterx@redhat.com, pasha.tatashin@soleen.com,
+        liam.howlett@oracle.com, hughd@google.com, david@redhat.com,
+        ccross@google.com, arnd@arndb.de, kele.huang@columbia.edu,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-restore-shmem_huge_deny-precedence-over-madv_collapse.patch added to mm-hotfixes-unstable branch
-Message-Id: <20221224221850.84F2CC433EF@smtp.kernel.org>
+Subject: + mm-fix-comment-of-page-table-counter.patch added to mm-unstable branch
+Message-Id: <20221224222013.D315CC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: restore SHMEM_HUGE_DENY precedence over MADV_COLLAPSE
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shmem-restore-shmem_huge_deny-precedence-over-madv_collapse.patch
+     Subject: mm: fix comment of page table counter
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fix-comment-of-page-table-counter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-restore-shmem_huge_deny-precedence-over-madv_collapse.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-comment-of-page-table-counter.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,49 +67,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/shmem: restore SHMEM_HUGE_DENY precedence over MADV_COLLAPSE
-Date: Sat, 24 Dec 2022 00:20:35 -0800
+From: Kele Huang <kele.huang@columbia.edu>
+Subject: mm: fix comment of page table counter
+Date: Sat, 24 Dec 2022 01:02:33 -0500
 
-SHMEM_HUGE_DENY is for emergency use by the admin, to disable allocation
-of shmem huge pages if, for example, a dangerous bug is found in their
-usage: see "deny" in Documentation/mm/transhuge.rst.  An app using
-madvise(,,MADV_COLLAPSE) should not be allowed to override it: restore its
-precedence over shmem_huge_force.
+Commit af5b0f6a09e42 ("mm: consolidate page table accounting")
+consolidates page table accounting to a single counter in struct mm_struct
+{} as mm->pgtables_bytes.  So the meanning of this counter should be the
+size of all page tables now.
 
-Restore SHMEM_HUGE_DENY precedence over MADV_COLLAPSE.
-
-Link: https://lkml.kernel.org/r/20221224082035.3197140-2-zokeefe@google.com
-Fixes: 7c6c6cc4d3a2 ("mm/shmem: add flag to enforce shmem THP in hugepage_vma_check()")
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20221224060233.417827-1-kele.huang@columbia.edu
+Signed-off-by: Kele Huang <kele.huang@columbia.edu>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Colin Cross <ccross@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/shmem.c~mm-shmem-restore-shmem_huge_deny-precedence-over-madv_collapse
-+++ a/mm/shmem.c
-@@ -478,12 +478,10 @@ bool shmem_is_huge(struct vm_area_struct
- 	if (vma && ((vma->vm_flags & VM_NOHUGEPAGE) ||
- 	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags)))
- 		return false;
--	if (shmem_huge_force)
--		return true;
--	if (shmem_huge == SHMEM_HUGE_FORCE)
--		return true;
- 	if (shmem_huge == SHMEM_HUGE_DENY)
- 		return false;
-+	if (shmem_huge_force || shmem_huge == SHMEM_HUGE_FORCE)
-+		return true;
+--- a/include/linux/mm_types.h~mm-fix-comment-of-page-table-counter
++++ a/include/linux/mm_types.h
+@@ -647,7 +647,7 @@ struct mm_struct {
+ 		atomic_t mm_count;
  
- 	switch (SHMEM_SB(inode->i_sb)->huge) {
- 	case SHMEM_HUGE_ALWAYS:
+ #ifdef CONFIG_MMU
+-		atomic_long_t pgtables_bytes;	/* PTE page table pages */
++		atomic_long_t pgtables_bytes;	/* size of all page tables */
+ #endif
+ 		int map_count;			/* number of VMAs */
+ 
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from kele.huang@columbia.edu are
 
-mm-madv_collapse-dont-expand-collapse-when-vm_end-is-past-requested-end.patch
-mm-shmem-restore-shmem_huge_deny-precedence-over-madv_collapse.patch
+mm-fix-comment-of-page-table-counter.patch
 
