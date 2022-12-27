@@ -2,110 +2,135 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFCDBC4332F
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Dec 2022 22:20:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D182CC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Dec 2022 13:45:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230019AbiLXWUS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 24 Dec 2022 17:20:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33818 "EHLO
+        id S229452AbiL0NpN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Dec 2022 08:45:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229570AbiLXWUR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 24 Dec 2022 17:20:17 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99F5A9FC7
-        for <mm-commits@vger.kernel.org>; Sat, 24 Dec 2022 14:20:16 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 45585B802C3
-        for <mm-commits@vger.kernel.org>; Sat, 24 Dec 2022 22:20:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D315CC433D2;
-        Sat, 24 Dec 2022 22:20:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1671920413;
-        bh=cCwZctiYy1YuhScRvuquXRIo9XV9fKHnkH2jHCHJZcE=;
-        h=Date:To:From:Subject:From;
-        b=WDy547rrX7qQBuLkwJc/Q5C85uS8jEyos6B0GeGNY36ZQkLusg8b8yZWx985mgJVf
-         o3+KD5/QpnjQucuk++9/x4xiQfDOvwgfO86VNOEdFCRVPNRpSPBX2+FKU9o3pL9S87
-         E05L5cwXrc1zww75gUnnSyCITvGDrw4m4rbkzQig=
-Date:   Sat, 24 Dec 2022 14:20:10 -0800
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        vbabka@suse.cz, peterx@redhat.com, pasha.tatashin@soleen.com,
-        liam.howlett@oracle.com, hughd@google.com, david@redhat.com,
-        ccross@google.com, arnd@arndb.de, kele.huang@columbia.edu,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-comment-of-page-table-counter.patch added to mm-unstable branch
-Message-Id: <20221224222013.D315CC433D2@smtp.kernel.org>
+        with ESMTP id S231417AbiL0NpN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Dec 2022 08:45:13 -0500
+Received: from mail-pl1-x62b.google.com (mail-pl1-x62b.google.com [IPv6:2607:f8b0:4864:20::62b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50554DD4
+        for <mm-commits@vger.kernel.org>; Tue, 27 Dec 2022 05:45:12 -0800 (PST)
+Received: by mail-pl1-x62b.google.com with SMTP id s7so13276352plk.5
+        for <mm-commits@vger.kernel.org>; Tue, 27 Dec 2022 05:45:12 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=LLOaP6oZQVFqrGvrn6qUtbOqvisbvz7LL3tUHhmBYAA=;
+        b=OHZZbpc/rNe+pPC8/wUGJqEOtcL45H9OZMtRqrw6BkkCxOKcZ1ssg+GD+3/ojZpu7g
+         4us86mXUHST/c8fP4GSabkc9WlCrRrM6l725dRXEWkdY7BuUN7zgn/YMIN7kZ6IAkBuX
+         a9WlVvtPpvSbvKMI647KF8E7H82DoYR3m5oZ8BlnD8iXwyEnJm7Gv6HAgtYiAylRJ+eS
+         0YLFstgYnC8tZ4woz+dXsWsdGvoLKd0xgplRucg0c+S7QaiIzPNcI49FS13R+LywV7h9
+         TepjHhsdrhu0eKqo+WMea3nz/0q0IQsXrTs6rZQKKa029puxieq4fTkWIpE/sRFmGF0j
+         o68w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=LLOaP6oZQVFqrGvrn6qUtbOqvisbvz7LL3tUHhmBYAA=;
+        b=IpSj23Zrpk0S+f2zfQZscbbFbRliEcp2jQwO9GoVlB4MtUSWJ8UuIYLym/JTWUz9/j
+         xCnnaVOfOVmk1G/gx3qgxRipiFoC+q7jpSCUDpfufve0fVmUVRGL4VZhj2jj2/yXHj+0
+         bQLaw5MIKJN7eZz1YSHSgrSQobytawh2qcTaKGBD+AqywuZIIEC6YoTPL8RGgvSLVdZN
+         MDeh9XugQqv4s4asL1343cuF3rc7j8iI+g5707g8hsWjFIp3q+3A3/2JcLIMGIL9BoSu
+         meZw8an1VTNgItEJ2X4U4RHRV18muF050XCttM1iUaOXMeN8fuOhCE4pys+TqW2+VEAe
+         w4gw==
+X-Gm-Message-State: AFqh2krgOSEdaTYXCEn2SAe6yY3djFPzP2+lmneE+FeIIcuACe5y2u1/
+        ixGisiymP+AhgmT9OoAJJMOpY6TghxdImB+6u02AGDHmfTOywg==
+X-Google-Smtp-Source: AMrXdXtmkTchj0JicKIG9lRGF4mrHLoMlFGAPkh7XOY9GRBY4lVMnoQoFYsHYMYQDM+2fribMIL72sg+chAinVCwAFY=
+X-Received: by 2002:a17:902:f2ca:b0:189:894c:6b58 with SMTP id
+ h10-20020a170902f2ca00b00189894c6b58mr1026804plc.172.1672148711493; Tue, 27
+ Dec 2022 05:45:11 -0800 (PST)
+MIME-Version: 1.0
+References: <20221220220816.BC003C433D2@smtp.kernel.org>
+In-Reply-To: <20221220220816.BC003C433D2@smtp.kernel.org>
+From:   Jeff Xu <jeffxu@google.com>
+Date:   Tue, 27 Dec 2022 05:44:34 -0800
+Message-ID: <CALmYWFtXNW50tAJhPg6YoN13Xjd4npwK+9kxziX=kxNSVYXLRw@mail.gmail.com>
+Subject: Re: + mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch added
+ to mm-unstable branch
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, lkp@intel.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Thanks!
 
-The patch titled
-     Subject: mm: fix comment of page table counter
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-comment-of-page-table-counter.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-comment-of-page-table-counter.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Kele Huang <kele.huang@columbia.edu>
-Subject: mm: fix comment of page table counter
-Date: Sat, 24 Dec 2022 01:02:33 -0500
-
-Commit af5b0f6a09e42 ("mm: consolidate page table accounting")
-consolidates page table accounting to a single counter in struct mm_struct
-{} as mm->pgtables_bytes.  So the meanning of this counter should be the
-size of all page tables now.
-
-Link: https://lkml.kernel.org/r/20221224060233.417827-1-kele.huang@columbia.edu
-Signed-off-by: Kele Huang <kele.huang@columbia.edu>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Colin Cross <ccross@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yu Zhao <yuzhao@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
-
---- a/include/linux/mm_types.h~mm-fix-comment-of-page-table-counter
-+++ a/include/linux/mm_types.h
-@@ -647,7 +647,7 @@ struct mm_struct {
- 		atomic_t mm_count;
- 
- #ifdef CONFIG_MMU
--		atomic_long_t pgtables_bytes;	/* PTE page table pages */
-+		atomic_long_t pgtables_bytes;	/* size of all page tables */
- #endif
- 		int map_count;			/* number of VMAs */
- 
-_
-
-Patches currently in -mm which might be from kele.huang@columbia.edu are
-
-mm-fix-comment-of-page-table-counter.patch
-
+On Tue, Dec 20, 2022 at 2:08 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+>
+> The patch titled
+>      Subject: mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
+>
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
+>
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+>
+> ------------------------------------------------------
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix
+> Date: Tue Dec 20 02:06:58 PM PST 2022
+>
+> fix CONFIG_SYSCTL=n warning
+>
+> Reported-by: kernel test robot <lkp@intel.com>
+> Cc: Jeff Xu <jeffxu@google.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  mm/memfd.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> --- a/mm/memfd.c~mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix
+> +++ a/mm/memfd.c
+> @@ -271,7 +271,6 @@ SYSCALL_DEFINE2(memfd_create,
+>                 unsigned int, flags)
+>  {
+>         char comm[TASK_COMM_LEN];
+> -       struct pid_namespace *ns;
+>         unsigned int *file_seals;
+>         struct file *file;
+>         int fd, error;
+> @@ -295,6 +294,7 @@ SYSCALL_DEFINE2(memfd_create,
+>         if (!(flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
+>  #ifdef CONFIG_SYSCTL
+>                 int sysctl = MEMFD_NOEXEC_SCOPE_EXEC;
+> +               struct pid_namespace *ns;
+>
+>                 ns = task_active_pid_ns(current);
+>                 if (ns)
+> _
+>
+> Patches currently in -mm which might be from akpm@linux-foundation.org are
+>
+> mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix.patch
+> mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-fix.patch
+> mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3.patch
+> mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
+> mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch
+> mm-memcontrol-deprecate-charge-moving-fix.patch
+> error-injection-remove-ei_etype_none-fix.patch
+>
