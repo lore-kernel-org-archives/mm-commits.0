@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A458FC4708E
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Dec 2022 23:23:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D144C53210
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Dec 2022 23:23:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231327AbiL1XXf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Dec 2022 18:23:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38198 "EHLO
+        id S231338AbiL1XXg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Dec 2022 18:23:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231338AbiL1XX1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2022 18:23:27 -0500
+        with ESMTP id S231415AbiL1XXa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2022 18:23:30 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E848013EB6
-        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 15:23:25 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 961B213E91
+        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 15:23:29 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 81EDF615FF
-        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 23:23:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6CF1C433D2;
-        Wed, 28 Dec 2022 23:23:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2EA27615FF
+        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 23:23:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B282C433F0;
+        Wed, 28 Dec 2022 23:23:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672269804;
-        bh=n5y+fzB6TziFfV55UgmmFlGgl46Aku2WkE19Cf78NqI=;
+        s=korg; t=1672269808;
+        bh=c3SrQWxw+WtWgdgDbpog2VRSNDLXdMKqLnguwZ7+0Hg=;
         h=Date:To:From:Subject:From;
-        b=XMYjgAuXwmItf7iMz1JXTy6ZVEzCofDxPlDenePk2GvBFgYyHM4/1ybNQquJekiH0
-         fDUxzCY5CIY65gFQqVJS+4WpownNEh0MVsWhBduL6JHTZb0zI9RCRPdOgNaE42xUhg
-         vj3FNKbiU+GHKSxdp6YseyXHWHPypuanYboNJVh8=
-Date:   Wed, 28 Dec 2022 15:23:24 -0800
+        b=su3f0dstjWE9+NUWQCbdqrT8RqZP2DJkaRUd9r+QdHai5zuuHC52FmdH830rjH6R0
+         JdbtGsQWVME2QHxpgBNo22ZoMuiwmBRFnA7egq67EyK7gyNXPcu20xOxDl36XaCs1V
+         xtV65JZ8xZq7WUobmmCZsbnxXv6HOgqBjhXVwqoM=
+Date:   Wed, 28 Dec 2022 15:23:27 -0800
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
         willy@infradead.org, shy828301@gmail.com, osalvador@suse.de,
         mgorman@techsingularity.net, bharata@amd.com,
         baolin.wang@linux.alibaba.com, apopple@nvidia.com,
         ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + migrate_pages-move-migrate_folio_done-and-migrate_folio_unmap.patch added to mm-unstable branch
-Message-Id: <20221228232324.D6CF1C433D2@smtp.kernel.org>
+Subject: + migrate_pages-batch-flushing-tlb.patch added to mm-unstable branch
+Message-Id: <20221228232328.7B282C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: migrate_pages: move migrate_folio_done() and migrate_folio_unmap()
+     Subject: migrate_pages: batch flushing TLB
 has been added to the -mm mm-unstable branch.  Its filename is
-     migrate_pages-move-migrate_folio_done-and-migrate_folio_unmap.patch
+     migrate_pages-batch-flushing-tlb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate_pages-move-migrate_folio_done-and-migrate_folio_unmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate_pages-batch-flushing-tlb.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,14 +68,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: migrate_pages: move migrate_folio_done() and migrate_folio_unmap()
-Date: Tue, 27 Dec 2022 08:28:57 +0800
+Subject: migrate_pages: batch flushing TLB
+Date: Tue, 27 Dec 2022 08:28:59 +0800
 
-Just move the position of 2 functions.  There's no any functionality
-change.  This is to make it easier to review the next patch via putting
-code near its position in the next patch.
+The TLB flushing will cost quite some CPU cycles during the folio
+migration in some situations.  For example, when migrate a folio of a
+process with multiple active threads that run on multiple CPUs.  After
+batching the _unmap and _move in migrate_pages(), the TLB flushing can be
+batched easily with the existing TLB flush batching mechanism.  This patch
+implements that.
 
-Link: https://lkml.kernel.org/r/20221227002859.27740-7-ying.huang@intel.com
+We use the following test case to test the patch.
+
+On a 2-socket Intel server,
+
+- Run pmbench memory accessing benchmark
+
+- Run `migratepages` to migrate pages of pmbench between node 0 and
+  node 1 back and forth.
+
+With the patch, the TLB flushing IPI reduces 99.1% during the test and
+the number of pages migrated successfully per second increases 291.7%.
+
+Link: https://lkml.kernel.org/r/20221227002859.27740-9-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Yang Shi <shy828301@gmail.com>
@@ -90,165 +105,64 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/migrate.c~migrate_pages-move-migrate_folio_done-and-migrate_folio_unmap
+--- a/mm/migrate.c~migrate_pages-batch-flushing-tlb
 +++ a/mm/migrate.c
-@@ -1068,6 +1068,23 @@ static void migrate_folio_undo_dst(struc
- 		folio_put(dst);
- }
+@@ -1232,7 +1232,7 @@ static int migrate_folio_unmap(new_page_
+ 		/* Establish migration ptes */
+ 		VM_BUG_ON_FOLIO(folio_test_anon(src) &&
+ 			       !folio_test_ksm(src) && !anon_vma, src);
+-		try_to_migrate(src, 0);
++		try_to_migrate(src, TTU_BATCH_FLUSH);
+ 		page_was_mapped = 1;
+ 	}
  
-+static void migrate_folio_done(struct folio *src,
-+			       enum migrate_reason reason)
-+{
-+	/*
-+	 * Compaction can migrate also non-LRU pages which are
-+	 * not accounted to NR_ISOLATED_*. They can be recognized
-+	 * as __PageMovable
-+	 */
-+	if (likely(!__folio_test_movable(src)))
-+		mod_node_page_state(folio_pgdat(src), NR_ISOLATED_ANON +
-+				    folio_is_file_lru(src), -folio_nr_pages(src));
+@@ -1749,6 +1749,8 @@ retry:
+ 	stats->nr_thp_failed += thp_retry;
+ 	stats->nr_failed_pages += nr_retry_pages;
+ move:
++	try_to_unmap_flush();
 +
-+	if (reason != MR_MEMORY_FAILURE)
-+		/* We release the page in page_handle_poison. */
-+		folio_put(src);
-+}
+ 	retry = 1;
+ 	for (pass = 0; pass < 10 && (retry || large_retry); pass++) {
+ 		retry = 0;
+--- a/mm/rmap.c~migrate_pages-batch-flushing-tlb
++++ a/mm/rmap.c
+@@ -1966,7 +1966,21 @@ static bool try_to_migrate_one(struct fo
+ 		} else {
+ 			flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
+ 			/* Nuke the page table entry. */
+-			pteval = ptep_clear_flush(vma, address, pvmw.pte);
++			if (should_defer_flush(mm, flags)) {
++				/*
++				 * We clear the PTE but do not flush so potentially
++				 * a remote CPU could still be writing to the folio.
++				 * If the entry was previously clean then the
++				 * architecture must guarantee that a clear->dirty
++				 * transition on a cached TLB entry is written through
++				 * and traps if the PTE is unmapped.
++				 */
++				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
 +
- static int __migrate_folio_unmap(struct folio *src, struct folio *dst,
- 				 int force, bool force_lock, enum migrate_mode mode)
- {
-@@ -1203,6 +1220,57 @@ out:
- 	return rc;
- }
++				set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
++			} else {
++				pteval = ptep_clear_flush(vma, address, pvmw.pte);
++			}
+ 		}
  
-+/* Obtain the lock on page, remove all ptes. */
-+static int migrate_folio_unmap(new_page_t get_new_page, free_page_t put_new_page,
-+			       unsigned long private, struct folio *src,
-+			       struct folio **dstp, int force, bool force_lock,
-+			       enum migrate_mode mode, enum migrate_reason reason,
-+			       struct list_head *ret)
-+{
-+	struct folio *dst;
-+	int rc = MIGRATEPAGE_UNMAP;
-+	struct page *newpage = NULL;
-+
-+	if (!thp_migration_supported() && folio_test_transhuge(src))
-+		return -ENOSYS;
-+
-+	if (folio_ref_count(src) == 1) {
-+		/* Folio was freed from under us. So we are done. */
-+		folio_clear_active(src);
-+		folio_clear_unevictable(src);
-+		/* free_pages_prepare() will clear PG_isolated. */
-+		list_del(&src->lru);
-+		migrate_folio_done(src, reason);
-+		return MIGRATEPAGE_SUCCESS;
-+	}
-+
-+	newpage = get_new_page(&src->page, private);
-+	if (!newpage)
-+		return -ENOMEM;
-+	dst = page_folio(newpage);
-+	*dstp = dst;
-+
-+	dst->private = NULL;
-+	rc = __migrate_folio_unmap(src, dst, force, force_lock, mode);
-+	if (rc == MIGRATEPAGE_UNMAP)
-+		return rc;
-+
-+	/*
-+	 * A page that has not been migrated will have kept its
-+	 * references and be restored.
-+	 */
-+	/* restore the folio to right list. */
-+	if (rc != -EAGAIN && rc != -EDEADLOCK)
-+		list_move_tail(&src->lru, ret);
-+
-+	if (put_new_page)
-+		put_new_page(&dst->page, private);
-+	else
-+		folio_put(dst);
-+
-+	return rc;
-+}
-+
- static int __migrate_folio_move(struct folio *src, struct folio *dst,
- 				enum migrate_mode mode)
- {
-@@ -1254,74 +1322,6 @@ static int __migrate_folio_move(struct f
- 		folio_put(dst);
+ 		/* Set the dirty flag on the folio now the pte is gone. */
+@@ -2138,10 +2152,10 @@ void try_to_migrate(struct folio *folio,
  
- 	return rc;
--}
--
--static void migrate_folio_done(struct folio *src,
--			       enum migrate_reason reason)
--{
--	/*
--	 * Compaction can migrate also non-LRU pages which are
--	 * not accounted to NR_ISOLATED_*. They can be recognized
--	 * as __PageMovable
--	 */
--	if (likely(!__folio_test_movable(src)))
--		mod_node_page_state(folio_pgdat(src), NR_ISOLATED_ANON +
--				    folio_is_file_lru(src), -folio_nr_pages(src));
--
--	if (reason != MR_MEMORY_FAILURE)
--		/* We release the page in page_handle_poison. */
--		folio_put(src);
--}
--
--/* Obtain the lock on page, remove all ptes. */
--static int migrate_folio_unmap(new_page_t get_new_page, free_page_t put_new_page,
--			       unsigned long private, struct folio *src,
--			       struct folio **dstp, int force, bool force_lock,
--			       enum migrate_mode mode, enum migrate_reason reason,
--			       struct list_head *ret)
--{
--	struct folio *dst;
--	int rc = MIGRATEPAGE_UNMAP;
--	struct page *newpage = NULL;
--
--	if (!thp_migration_supported() && folio_test_transhuge(src))
--		return -ENOSYS;
--
--	if (folio_ref_count(src) == 1) {
--		/* Folio was freed from under us. So we are done. */
--		folio_clear_active(src);
--		folio_clear_unevictable(src);
--		/* free_pages_prepare() will clear PG_isolated. */
--		list_del(&src->lru);
--		migrate_folio_done(src, reason);
--		return MIGRATEPAGE_SUCCESS;
--	}
--
--	newpage = get_new_page(&src->page, private);
--	if (!newpage)
--		return -ENOMEM;
--	dst = page_folio(newpage);
--	*dstp = dst;
--
--	dst->private = NULL;
--	rc = __migrate_folio_unmap(src, dst, force, force_lock, mode);
--	if (rc == MIGRATEPAGE_UNMAP)
--		return rc;
--
--	/*
--	 * A page that has not been migrated will have kept its
--	 * references and be restored.
--	 */
--	/* restore the folio to right list. */
--	if (rc != -EAGAIN && rc != -EDEADLOCK)
--		list_move_tail(&src->lru, ret);
--
--	if (put_new_page)
--		put_new_page(&dst->page, private);
--	else
--		folio_put(dst);
--
--	return rc;
- }
+ 	/*
+ 	 * Migration always ignores mlock and only supports TTU_RMAP_LOCKED and
+-	 * TTU_SPLIT_HUGE_PMD and TTU_SYNC flags.
++	 * TTU_SPLIT_HUGE_PMD, TTU_SYNC, and TTU_BATCH_FLUSH flags.
+ 	 */
+ 	if (WARN_ON_ONCE(flags & ~(TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD |
+-					TTU_SYNC)))
++					TTU_SYNC | TTU_BATCH_FLUSH)))
+ 		return;
  
- /* Migrate the folio to the newly allocated folio in dst. */
+ 	if (folio_is_zone_device(folio) &&
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
