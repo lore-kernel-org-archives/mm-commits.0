@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB82BC3DA7A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2B5DC4332F
 	for <mm-commits@archiver.kernel.org>; Wed, 28 Dec 2022 22:11:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232871AbiL1WKq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Dec 2022 17:10:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47958 "EHLO
+        id S231577AbiL1WKp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Dec 2022 17:10:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232910AbiL1WJu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2022 17:09:50 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5D7F167CE
-        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 14:09:42 -0800 (PST)
+        with ESMTP id S231666AbiL1WJm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2022 17:09:42 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61AC515FD8
+        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 14:09:41 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A491EB81908
-        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 22:09:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 447FAC433F0;
-        Wed, 28 Dec 2022 22:09:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 078AFB81907
+        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 22:09:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E3E7C433EF;
+        Wed, 28 Dec 2022 22:09:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672265380;
-        bh=nGnAT9qlTgZQf8hDXUq16ke5FWPeEazdcRf7PGoAay4=;
+        s=korg; t=1672265378;
+        bh=n4OsBEkMhlYft/GrzskAy0xDIjr9PuJv+zTbspR6Gn8=;
         h=Date:To:From:Subject:From;
-        b=kBfOfDGrNewPozFppPPaHWpg2QfbbH1Bt+CUIopTyZQVKggtjBYGd6n2sD2ZB7k0j
-         urS0RHmhIrsTcKcu5QCuiJGCd2FsunqdpkJj5OZzQjJwu0elk7UpDh5Y3BWfIOYywo
-         9Chq9cLIT3Z4eCAweWwARnc4PjtMIUXi41BQs86k=
-Date:   Wed, 28 Dec 2022 14:09:39 -0800
+        b=e4c/eh2VVA2oOW88KPb0iivVPQFSAatUuuEKmaKKq2Jf5HXybL9tTOzzxVs6nI5PO
+         eR191qdHwmqX5uBXSwKGTunfb0ftg+odorzHhkS1GsnS7cy9dHSz+bOh3SylG6hM3H
+         gTWiEO5EjCeV5kgLXw0W4g/3TaIZQP4jtal5PnTY=
+Date:   Wed, 28 Dec 2022 14:09:36 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, sj@kernel.org, david@redhat.com,
         wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-introduce-damon_get_folio.patch added to mm-unstable branch
-Message-Id: <20221228220940.447FAC433F0@smtp.kernel.org>
+Subject: + mm-page_idle-convert-page-idle-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20221228220938.7E3E7C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: introduce damon_get_folio()
+     Subject: mm: page_idle: convert page idle to use folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-introduce-damon_get_folio.patch
+     mm-page_idle-convert-page-idle-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-introduce-damon_get_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_idle-convert-page-idle-to-use-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,40 +66,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm/damon: introduce damon_get_folio()
-Date: Wed, 28 Dec 2022 19:34:08 +0800
+Subject: mm: page_idle: convert page idle to use folios
+Date: Wed, 28 Dec 2022 19:34:07 +0800
 
-Introduce damon_get_folio(), and the temporary wrapper function
-damon_get_page(), which help us to convert damon related functions to use
-folios, and it will be dropped once the conversion is completed.
+Patch series "mm: convert page_idle/damon to use folios", v3.
 
-Link: https://lkml.kernel.org/r/20221228113413.10329-3-wangkefeng.wang@huawei.com
+
+This patch (of 7):
+
+Firstly, make page_idle_get_page() return a folio, also rename it to
+page_idle_get_folio(), then, use it to convert page_idle_bitmap_read() and
+page_idle_bitmap_write() functions.
+
+Link: https://lkml.kernel.org/r/20221228113413.10329-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20221228113413.10329-2-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: SeongJae Park <sj@kernel.org>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/damon/ops-common.c~mm-damon-introduce-damon_get_folio
-+++ a/mm/damon/ops-common.c
-@@ -16,21 +16,25 @@
-  * Get an online page for a pfn if it's in the LRU list.  Otherwise, returns
-  * NULL.
+--- a/mm/page_idle.c~mm-page_idle-convert-page-idle-to-use-folios
++++ a/mm/page_idle.c
+@@ -31,19 +31,22 @@
   *
-- * The body of this function is stolen from the 'page_idle_get_page()'.  We
-+ * The body of this function is stolen from the 'page_idle_get_folio()'.  We
-  * steal rather than reuse it because the code is quite simple.
+  * This function tries to get a user memory page by pfn as described above.
   */
--struct page *damon_get_page(unsigned long pfn)
-+struct folio *damon_get_folio(unsigned long pfn)
+-static struct page *page_idle_get_page(unsigned long pfn)
++static struct folio *page_idle_get_folio(unsigned long pfn)
  {
  	struct page *page = pfn_to_online_page(pfn);
 +	struct folio *folio;
  
--	if (!page || !PageLRU(page) || !get_page_unless_zero(page))
+-	if (!page || !PageLRU(page) ||
+-	    !get_page_unless_zero(page))
 +	if (!page || PageTail(page))
  		return NULL;
  
@@ -117,25 +120,80 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	return folio;
  }
  
- void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm, unsigned long addr)
---- a/mm/damon/ops-common.h~mm-damon-introduce-damon_get_folio
-+++ a/mm/damon/ops-common.h
-@@ -7,7 +7,14 @@
+ static bool page_idle_clear_pte_refs_one(struct folio *folio,
+@@ -83,10 +86,8 @@ static bool page_idle_clear_pte_refs_one
+ 	return true;
+ }
  
- #include <linux/damon.h>
+-static void page_idle_clear_pte_refs(struct page *page)
++static void page_idle_clear_pte_refs(struct folio *folio)
+ {
+-	struct folio *folio = page_folio(page);
+-
+ 	/*
+ 	 * Since rwc.try_lock is unused, rwc is effectively immutable, so we
+ 	 * can make it static to save some cycles and stack.
+@@ -115,7 +116,7 @@ static ssize_t page_idle_bitmap_read(str
+ 				     loff_t pos, size_t count)
+ {
+ 	u64 *out = (u64 *)buf;
+-	struct page *page;
++	struct folio *folio;
+ 	unsigned long pfn, end_pfn;
+ 	int bit;
  
--struct page *damon_get_page(unsigned long pfn);
-+struct folio *damon_get_folio(unsigned long pfn);
-+static inline struct page *damon_get_page(unsigned long pfn)
-+{
-+	struct folio *folio = damon_get_folio(pfn);
-+
-+	/* when folio is NULL, return &(0->page) mean return NULL */
-+	return &folio->page;
-+}
+@@ -134,19 +135,19 @@ static ssize_t page_idle_bitmap_read(str
+ 		bit = pfn % BITMAP_CHUNK_BITS;
+ 		if (!bit)
+ 			*out = 0ULL;
+-		page = page_idle_get_page(pfn);
+-		if (page) {
+-			if (page_is_idle(page)) {
++		folio = page_idle_get_folio(pfn);
++		if (folio) {
++			if (folio_test_idle(folio)) {
+ 				/*
+ 				 * The page might have been referenced via a
+ 				 * pte, in which case it is not idle. Clear
+ 				 * refs and recheck.
+ 				 */
+-				page_idle_clear_pte_refs(page);
+-				if (page_is_idle(page))
++				page_idle_clear_pte_refs(folio);
++				if (folio_test_idle(folio))
+ 					*out |= 1ULL << bit;
+ 			}
+-			put_page(page);
++			folio_put(folio);
+ 		}
+ 		if (bit == BITMAP_CHUNK_BITS - 1)
+ 			out++;
+@@ -160,7 +161,7 @@ static ssize_t page_idle_bitmap_write(st
+ 				      loff_t pos, size_t count)
+ {
+ 	const u64 *in = (u64 *)buf;
+-	struct page *page;
++	struct folio *folio;
+ 	unsigned long pfn, end_pfn;
+ 	int bit;
  
- void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm, unsigned long addr);
- void damon_pmdp_mkold(pmd_t *pmd, struct mm_struct *mm, unsigned long addr);
+@@ -178,11 +179,11 @@ static ssize_t page_idle_bitmap_write(st
+ 	for (; pfn < end_pfn; pfn++) {
+ 		bit = pfn % BITMAP_CHUNK_BITS;
+ 		if ((*in >> bit) & 1) {
+-			page = page_idle_get_page(pfn);
+-			if (page) {
+-				page_idle_clear_pte_refs(page);
+-				set_page_idle(page);
+-				put_page(page);
++			folio = page_idle_get_folio(pfn);
++			if (folio) {
++				page_idle_clear_pte_refs(folio);
++				folio_set_idle(folio);
++				folio_put(folio);
+ 			}
+ 		}
+ 		if (bit == BITMAP_CHUNK_BITS - 1)
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
