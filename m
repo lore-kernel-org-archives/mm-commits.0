@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C3C9C4167B
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Dec 2022 22:11:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49AD1C4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Dec 2022 23:23:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230254AbiL1WLR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Dec 2022 17:11:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48172 "EHLO
+        id S231584AbiL1XXb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Dec 2022 18:23:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232602AbiL1WKZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2022 17:10:25 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEEB017895
-        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 14:09:54 -0800 (PST)
+        with ESMTP id S230050AbiL1XXR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2022 18:23:17 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A91C13E91
+        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 15:23:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 5C724CE13CD
-        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 22:09:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F79EC433EF;
-        Wed, 28 Dec 2022 22:09:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 351DC615FF
+        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2022 23:23:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A2CCC433D2;
+        Wed, 28 Dec 2022 23:23:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672265390;
-        bh=qFggAxtr7IqNeYANtrygyoXAp8D31YkJYP9PAKKimJg=;
+        s=korg; t=1672269795;
+        bh=N/3hFgLefXvsMIIuZU4ddFkL8KHt1QOQLe7r/WgHYVU=;
         h=Date:To:From:Subject:From;
-        b=cAvBF9TN6qFU/SLr8E7hyQfOLu7vVLWGdGFJ7jBgMp8wmfv8Xlnl2IDicPzlD5MZc
-         Xs2mAfhC8Yf/bbpccdiZDbjPPYp4hZoDz2517eNg5tkXi1AgHhuWiDouUc+EYvogRp
-         +dcTzlnkpiwKDnR/BGw/s2pS/gHRk1E9R9/vFGU4=
-Date:   Wed, 28 Dec 2022 14:09:47 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.moola@gmail.com, sj@kernel.org, david@redhat.com,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=DoZA6kJkgPJXdbmXI13S9u9Q1GJ0F6kufQ7Y3WLWzLb+Uvc/rNOj6Ynumnxpz5GFl
+         23Q82y4LOwvK80x49bgEBKz2VLuFG8WkonhkvSKhHagTS9XUqJD6KmO20+j5wJMVlv
+         4SjblEjbUkYMK/cZYj6/rAhKJub/iUJCHRPuj2hA=
+Date:   Wed, 28 Dec 2022 15:23:14 -0800
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
+        willy@infradead.org, shy828301@gmail.com, osalvador@suse.de,
+        mgorman@techsingularity.net, bharata@amd.com,
+        baolin.wang@linux.alibaba.com, apopple@nvidia.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-vaddr-convert-hugetlb-related-function-to-use-folios.patch added to mm-unstable branch
-Message-Id: <20221228220950.5F79EC433EF@smtp.kernel.org>
+Subject: + migrate_pages-organize-stats-with-struct-migrate_pages_stats.patch added to mm-unstable branch
+Message-Id: <20221228232315.8A2CCC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/vaddr: convert hugetlb related functions to use folios
+     Subject: migrate_pages: organize stats with struct migrate_pages_stats
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-vaddr-convert-hugetlb-related-function-to-use-folios.patch
+     migrate_pages-organize-stats-with-struct-migrate_pages_stats.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-convert-hugetlb-related-function-to-use-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate_pages-organize-stats-with-struct-migrate_pages_stats.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,94 +67,257 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm/damon/vaddr: convert hugetlb related functions to use folios
-Date: Wed, 28 Dec 2022 19:34:13 +0800
+From: Huang Ying <ying.huang@intel.com>
+Subject: migrate_pages: organize stats with struct migrate_pages_stats
+Date: Tue, 27 Dec 2022 08:28:52 +0800
 
-Convert damon_hugetlb_mkold() and damon_young_hugetlb_entry() to use
-folios.
+Patch series "migrate_pages(): batch TLB flushing".
 
-Link: https://lkml.kernel.org/r/20221228113413.10329-8-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
+Now, migrate_pages() migrate folios one by one, like the fake code as
+follows,
+
+  for each folio
+    unmap
+    flush TLB
+    copy
+    restore map
+
+If multiple folios are passed to migrate_pages(), there are
+opportunities to batch the TLB flushing and copying.  That is, we can
+change the code to something as follows,
+
+  for each folio
+    unmap
+  for each folio
+    flush TLB
+  for each folio
+    copy
+  for each folio
+    restore map
+
+The total number of TLB flushing IPI can be reduced considerably.  And
+we may use some hardware accelerator such as DSA to accelerate the
+folio copying.
+
+So in this patch, we refactor the migrate_pages() implementation and
+implement the TLB flushing batching.  Base on this, hardware
+accelerated folio copying can be implemented.
+
+If too many folios are passed to migrate_pages(), in the naive batched
+implementation, we may unmap too many folios at the same time.  The
+possibility for a task to wait for the migrated folios to be mapped
+again increases.  So the latency may be hurt.  To deal with this
+issue, the max number of folios be unmapped in batch is restricted to
+no more than HPAGE_PMD_NR in the unit of page.  That is, the influence
+is at the same level of THP migration.
+
+We use the following test to measure the performance impact of the
+patchset,
+
+On a 2-socket Intel server,
+
+ - Run pmbench memory accessing benchmark
+
+ - Run `migratepages` to migrate pages of pmbench between node 0 and
+   node 1 back and forth.
+
+With the patch, the TLB flushing IPI reduces 99.1% during the test and
+the number of pages migrated successfully per second increases 291.7%.
+
+
+This patch (of 8):
+
+Define struct migrate_pages_stats to organize the various statistics in
+migrate_pages().  This makes it easier to collect and consume the
+statistics in multiple functions.  This will be needed in the following
+patches in the series.
+
+Link: https://lkml.kernel.org/r/20221227002859.27740-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20221227002859.27740-2-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Xin Hao <xhao@linux.alibaba.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-convert-hugetlb-related-function-to-use-folios
-+++ a/mm/damon/vaddr.c
-@@ -335,9 +335,9 @@ static void damon_hugetlb_mkold(pte_t *p
- {
- 	bool referenced = false;
- 	pte_t entry = huge_ptep_get(pte);
--	struct page *page = pte_page(entry);
-+	struct folio *folio = pfn_folio(pte_pfn(entry));
- 
--	get_page(page);
-+	folio_get(folio);
- 
- 	if (pte_young(entry)) {
- 		referenced = true;
-@@ -352,10 +352,10 @@ static void damon_hugetlb_mkold(pte_t *p
- #endif /* CONFIG_MMU_NOTIFIER */
- 
- 	if (referenced)
--		set_page_young(page);
-+		folio_set_young(folio);
- 
--	set_page_idle(page);
--	put_page(page);
-+	folio_set_idle(folio);
-+	folio_put(folio);
+--- a/mm/migrate.c~migrate_pages-organize-stats-with-struct-migrate_pages_stats
++++ a/mm/migrate.c
+@@ -1413,6 +1413,14 @@ static inline int try_split_folio(struct
+ 	return rc;
  }
  
- static int damon_mkold_hugetlb_entry(pte_t *pte, unsigned long hmask,
-@@ -490,7 +490,7 @@ static int damon_young_hugetlb_entry(pte
- {
- 	struct damon_young_walk_private *priv = walk->private;
- 	struct hstate *h = hstate_vma(walk->vma);
--	struct page *page;
-+	struct folio *folio;
- 	spinlock_t *ptl;
- 	pte_t entry;
++struct migrate_pages_stats {
++	int nr_succeeded;
++	int nr_failed_pages;
++	int nr_thp_succeeded;
++	int nr_thp_failed;
++	int nr_thp_split;
++};
++
+ /*
+  * migrate_pages - migrate the folios specified in a list, to the free folios
+  *		   supplied as the target for the page migration
+@@ -1447,13 +1455,8 @@ int migrate_pages(struct list_head *from
+ 	int large_retry = 1;
+ 	int thp_retry = 1;
+ 	int nr_failed = 0;
+-	int nr_failed_pages = 0;
+ 	int nr_retry_pages = 0;
+-	int nr_succeeded = 0;
+-	int nr_thp_succeeded = 0;
+ 	int nr_large_failed = 0;
+-	int nr_thp_failed = 0;
+-	int nr_thp_split = 0;
+ 	int pass = 0;
+ 	bool is_large = false;
+ 	bool is_thp = false;
+@@ -1463,9 +1466,11 @@ int migrate_pages(struct list_head *from
+ 	LIST_HEAD(split_folios);
+ 	bool nosplit = (reason == MR_NUMA_MISPLACED);
+ 	bool no_split_folio_counting = false;
++	struct migrate_pages_stats stats;
  
-@@ -499,16 +499,16 @@ static int damon_young_hugetlb_entry(pte
- 	if (!pte_present(entry))
- 		goto out;
+ 	trace_mm_migrate_pages_start(mode, reason);
  
--	page = pte_page(entry);
--	get_page(page);
-+	folio = pfn_folio(pte_pfn(entry));
-+	folio_get(folio);
++	memset(&stats, 0, sizeof(stats));
+ split_folio_migration:
+ 	for (pass = 0; pass < 10 && (retry || large_retry); pass++) {
+ 		retry = 0;
+@@ -1519,9 +1524,9 @@ split_folio_migration:
+ 				/* Large folio migration is unsupported */
+ 				if (is_large) {
+ 					nr_large_failed++;
+-					nr_thp_failed += is_thp;
++					stats.nr_thp_failed += is_thp;
+ 					if (!try_split_folio(folio, &split_folios)) {
+-						nr_thp_split += is_thp;
++						stats.nr_thp_split += is_thp;
+ 						break;
+ 					}
+ 				/* Hugetlb migration is unsupported */
+@@ -1529,7 +1534,7 @@ split_folio_migration:
+ 					nr_failed++;
+ 				}
  
--	if (pte_young(entry) || !page_is_idle(page) ||
-+	if (pte_young(entry) || !folio_test_idle(folio) ||
- 	    mmu_notifier_test_young(walk->mm, addr)) {
- 		*priv->page_sz = huge_page_size(h);
- 		priv->young = true;
+-				nr_failed_pages += nr_pages;
++				stats.nr_failed_pages += nr_pages;
+ 				list_move_tail(&folio->lru, &ret_folios);
+ 				break;
+ 			case -ENOMEM:
+@@ -1539,13 +1544,13 @@ split_folio_migration:
+ 				 */
+ 				if (is_large) {
+ 					nr_large_failed++;
+-					nr_thp_failed += is_thp;
++					stats.nr_thp_failed += is_thp;
+ 					/* Large folio NUMA faulting doesn't split to retry. */
+ 					if (!nosplit) {
+ 						int ret = try_split_folio(folio, &split_folios);
+ 
+ 						if (!ret) {
+-							nr_thp_split += is_thp;
++							stats.nr_thp_split += is_thp;
+ 							break;
+ 						} else if (reason == MR_LONGTERM_PIN &&
+ 							   ret == -EAGAIN) {
+@@ -1563,7 +1568,7 @@ split_folio_migration:
+ 					nr_failed++;
+ 				}
+ 
+-				nr_failed_pages += nr_pages + nr_retry_pages;
++				stats.nr_failed_pages += nr_pages + nr_retry_pages;
+ 				/*
+ 				 * There might be some split folios of fail-to-migrate large
+ 				 * folios left in split_folios list. Move them back to migration
+@@ -1573,7 +1578,7 @@ split_folio_migration:
+ 				list_splice_init(&split_folios, from);
+ 				/* nr_failed isn't updated for not used */
+ 				nr_large_failed += large_retry;
+-				nr_thp_failed += thp_retry;
++				stats.nr_thp_failed += thp_retry;
+ 				goto out;
+ 			case -EAGAIN:
+ 				if (is_large) {
+@@ -1585,8 +1590,8 @@ split_folio_migration:
+ 				nr_retry_pages += nr_pages;
+ 				break;
+ 			case MIGRATEPAGE_SUCCESS:
+-				nr_succeeded += nr_pages;
+-				nr_thp_succeeded += is_thp;
++				stats.nr_succeeded += nr_pages;
++				stats.nr_thp_succeeded += is_thp;
+ 				break;
+ 			default:
+ 				/*
+@@ -1597,20 +1602,20 @@ split_folio_migration:
+ 				 */
+ 				if (is_large) {
+ 					nr_large_failed++;
+-					nr_thp_failed += is_thp;
++					stats.nr_thp_failed += is_thp;
+ 				} else if (!no_split_folio_counting) {
+ 					nr_failed++;
+ 				}
+ 
+-				nr_failed_pages += nr_pages;
++				stats.nr_failed_pages += nr_pages;
+ 				break;
+ 			}
+ 		}
  	}
+ 	nr_failed += retry;
+ 	nr_large_failed += large_retry;
+-	nr_thp_failed += thp_retry;
+-	nr_failed_pages += nr_retry_pages;
++	stats.nr_thp_failed += thp_retry;
++	stats.nr_failed_pages += nr_retry_pages;
+ 	/*
+ 	 * Try to migrate split folios of fail-to-migrate large folios, no
+ 	 * nr_failed counting in this round, since all split folios of a
+@@ -1643,16 +1648,17 @@ out:
+ 	if (list_empty(from))
+ 		rc = 0;
  
--	put_page(page);
-+	folio_put(folio);
+-	count_vm_events(PGMIGRATE_SUCCESS, nr_succeeded);
+-	count_vm_events(PGMIGRATE_FAIL, nr_failed_pages);
+-	count_vm_events(THP_MIGRATION_SUCCESS, nr_thp_succeeded);
+-	count_vm_events(THP_MIGRATION_FAIL, nr_thp_failed);
+-	count_vm_events(THP_MIGRATION_SPLIT, nr_thp_split);
+-	trace_mm_migrate_pages(nr_succeeded, nr_failed_pages, nr_thp_succeeded,
+-			       nr_thp_failed, nr_thp_split, mode, reason);
++	count_vm_events(PGMIGRATE_SUCCESS, stats.nr_succeeded);
++	count_vm_events(PGMIGRATE_FAIL, stats.nr_failed_pages);
++	count_vm_events(THP_MIGRATION_SUCCESS, stats.nr_thp_succeeded);
++	count_vm_events(THP_MIGRATION_FAIL, stats.nr_thp_failed);
++	count_vm_events(THP_MIGRATION_SPLIT, stats.nr_thp_split);
++	trace_mm_migrate_pages(stats.nr_succeeded, stats.nr_failed_pages,
++			       stats.nr_thp_succeeded, stats.nr_thp_failed,
++			       stats.nr_thp_split, mode, reason);
  
- out:
- 	spin_unlock(ptl);
+ 	if (ret_succeeded)
+-		*ret_succeeded = nr_succeeded;
++		*ret_succeeded = stats.nr_succeeded;
+ 
+ 	return rc;
+ }
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-hwposion-support-recovery-from-ksm_might_need_to_copy.patch
-mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v3.patch
-mm-huge_memory-convert-madvise_free_huge_pmd-to-use-a-folio.patch
-mm-swap-convert-mark_page_lazyfree-to-folio_mark_lazyfree.patch
-mm-page_idle-convert-page-idle-to-use-folios.patch
-mm-damon-introduce-damon_get_folio.patch
-mm-damon-convert-damon_ptep-pmdp_mkold-to-use-folios.patch
-mm-damon-paddr-convert-damon_pa_-to-use-folios.patch
-mm-damon-vaddr-convert-damon_young_pmd_entry-to-use-folio.patch
-mm-damon-remove-unneed-damon_get_page.patch
-mm-damon-vaddr-convert-hugetlb-related-function-to-use-folios.patch
+migrate_pages-organize-stats-with-struct-migrate_pages_stats.patch
+migrate_pages-separate-hugetlb-folios-migration.patch
+migrate_pages-restrict-number-of-pages-to-migrate-in-batch.patch
+migrate_pages-split-unmap_and_move-to-_unmap-and-_move.patch
+migrate_pages-batch-_unmap-and-_move.patch
+migrate_pages-move-migrate_folio_done-and-migrate_folio_unmap.patch
+migrate_pages-share-more-code-between-_unmap-and-_move.patch
+migrate_pages-batch-flushing-tlb.patch
 
