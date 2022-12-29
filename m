@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF9CC3DA79
-	for <mm-commits@archiver.kernel.org>; Thu, 29 Dec 2022 19:55:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30C3DC3DA7D
+	for <mm-commits@archiver.kernel.org>; Thu, 29 Dec 2022 19:55:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233746AbiL2TzP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 29 Dec 2022 14:55:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43792 "EHLO
+        id S231261AbiL2TzQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 29 Dec 2022 14:55:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231261AbiL2TzH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Dec 2022 14:55:07 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD317FADE
-        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2022 11:55:06 -0800 (PST)
+        with ESMTP id S233718AbiL2TzI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Dec 2022 14:55:08 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 222B716596
+        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2022 11:55:07 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 74D8C6179E
-        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2022 19:55:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6583C433D2;
-        Thu, 29 Dec 2022 19:55:05 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C8F84B81A23
+        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2022 19:55:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B8FCC433EF;
+        Thu, 29 Dec 2022 19:55:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672343705;
-        bh=xBo9tQYplk+UFa7RvCAhnwV0XvNHvrSOtmUaIqwk6HY=;
+        s=korg; t=1672343704;
+        bh=i62W1TbJKfopCVxF1pxI+VaYEZ6by2WX5WKiCzIBZTU=;
         h=Date:To:From:Subject:From;
-        b=zL/lpnKqYlKcTymNQrYmQLrHPB7laTyOO6KueFseGRHwkLf82v9+BssUpYyUcNCL5
-         fuEJdt/1iakv6QAetnUM7A3xdH2J6RzlfkuNVsS+l/ckv02U7Xa1uEAhqumPnpPBgM
-         vrVfTbwxlxGPNdPm5mfp96YMgDRHmCXippmH6xR0=
-Date:   Thu, 29 Dec 2022 11:55:05 -0800
+        b=uLO1+dYuD/FC4uoV68GdIpr6M+wRFHbfXdbgwSfT/AbACIWzEDPQ6y2gbdc4JWBb4
+         uO0rbOFvuDzZyolRG88xEM57ezR+YBmXvUyORNRR1OHIKxbUzW2ovXIBOUvsj5Gj70
+         ms3asIZ+DP7Ky6d0NfZ+ErMRdc0VoBaMkqg01iaM=
+Date:   Thu, 29 Dec 2022 11:55:03 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
         mark@fasheh.com, joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
         jack@suse.com, almaz.alexandrovich@paragon-software.com,
         hch@lst.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2.patch added to mm-unstable branch
-Message-Id: <20221229195505.C6583C433D2@smtp.kernel.org>
+Subject: + ntfs3-remove-writepage.patch added to mm-unstable branch
+Message-Id: <20221229195504.6B8FCC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: jbd2,ocfs2: move jbd2_journal_submit_inode_data_buffers to ocfs2
+     Subject: ntfs3: remove ->writepage
 has been added to the -mm mm-unstable branch.  Its filename is
-     jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2.patch
+     ntfs3-remove-writepage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs3-remove-writepage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: jbd2,ocfs2: move jbd2_journal_submit_inode_data_buffers to ocfs2
-Date: Thu, 29 Dec 2022 06:10:29 -1000
+Subject: ntfs3: remove ->writepage
+Date: Thu, 29 Dec 2022 06:10:28 -1000
 
-jbd2_journal_submit_inode_data_buffers is only used by ocfs2, so move it
-there to prepare for removing generic_writepages.
+->writepage is a very inefficient method to write back data, and only used
+through write_cache_pages or a a fallback when no ->migrate_folio method
+is present.
 
-Link: https://lkml.kernel.org/r/20221229161031.391878-5-hch@lst.de
+Set ->migrate_folio to the generic buffer_head based helper, and remove
+the ->writepage implementation.
+
+Link: https://lkml.kernel.org/r/20221229161031.391878-4-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Jan Kara <jack@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -86,100 +90,50 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/jbd2/commit.c~jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2
-+++ a/fs/jbd2/commit.c
-@@ -177,31 +177,6 @@ static int journal_wait_on_commit_record
- 	return ret;
+--- a/fs/ntfs3/inode.c~ntfs3-remove-writepage
++++ a/fs/ntfs3/inode.c
+@@ -826,26 +826,6 @@ out:
+ 	return err;
  }
  
--/*
-- * write the filemap data using writepage() address_space_operations.
-- * We don't do block allocation here even for delalloc. We don't
-- * use writepages() because with delayed allocation we may be doing
-- * block allocation in writepages().
-- */
--int jbd2_journal_submit_inode_data_buffers(struct jbd2_inode *jinode)
+-static int ntfs_writepage(struct page *page, struct writeback_control *wbc)
 -{
--	struct address_space *mapping = jinode->i_vfs_inode->i_mapping;
--	struct writeback_control wbc = {
--		.sync_mode =  WB_SYNC_ALL,
--		.nr_to_write = mapping->nrpages * 2,
--		.range_start = jinode->i_dirty_start,
--		.range_end = jinode->i_dirty_end,
--	};
+-	struct address_space *mapping = page->mapping;
+-	struct inode *inode = mapping->host;
+-	struct ntfs_inode *ni = ntfs_i(inode);
+-	int err;
 -
--	/*
--	 * submit the inode data buffers. We use writepage
--	 * instead of writepages. Because writepages can do
--	 * block allocation with delalloc. We need to write
--	 * only allocated blocks here.
--	 */
--	return generic_writepages(mapping, &wbc);
+-	if (is_resident(ni)) {
+-		ni_lock(ni);
+-		err = attr_data_write_resident(ni, page);
+-		ni_unlock(ni);
+-		if (err != E_NTFS_NONRESIDENT) {
+-			unlock_page(page);
+-			return err;
+-		}
+-	}
+-
+-	return block_write_full_page(page, ntfs_get_block, wbc);
 -}
 -
- /* Send all the data buffers related to an inode */
- int jbd2_submit_inode_data(journal_t *journal, struct jbd2_inode *jinode)
+ static int ntfs_resident_writepage(struct page *page,
+ 		struct writeback_control *wbc, void *data)
  {
---- a/fs/jbd2/journal.c~jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2
-+++ a/fs/jbd2/journal.c
-@@ -89,7 +89,6 @@ EXPORT_SYMBOL(jbd2_journal_try_to_free_b
- EXPORT_SYMBOL(jbd2_journal_force_commit);
- EXPORT_SYMBOL(jbd2_journal_inode_ranged_write);
- EXPORT_SYMBOL(jbd2_journal_inode_ranged_wait);
--EXPORT_SYMBOL(jbd2_journal_submit_inode_data_buffers);
- EXPORT_SYMBOL(jbd2_journal_finish_inode_data_buffers);
- EXPORT_SYMBOL(jbd2_journal_init_jbd_inode);
- EXPORT_SYMBOL(jbd2_journal_release_jbd_inode);
---- a/fs/ocfs2/journal.c~jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2
-+++ a/fs/ocfs2/journal.c
-@@ -15,6 +15,7 @@
- #include <linux/time.h>
- #include <linux/random.h>
- #include <linux/delay.h>
-+#include <linux/writeback.h>
+@@ -1946,13 +1926,13 @@ const struct inode_operations ntfs_link_
+ const struct address_space_operations ntfs_aops = {
+ 	.read_folio	= ntfs_read_folio,
+ 	.readahead	= ntfs_readahead,
+-	.writepage	= ntfs_writepage,
+ 	.writepages	= ntfs_writepages,
+ 	.write_begin	= ntfs_write_begin,
+ 	.write_end	= ntfs_write_end,
+ 	.direct_IO	= ntfs_direct_IO,
+ 	.bmap		= ntfs_bmap,
+ 	.dirty_folio	= block_dirty_folio,
++	.migrate_folio	= buffer_migrate_folio,
+ 	.invalidate_folio = block_invalidate_folio,
+ };
  
- #include <cluster/masklog.h>
- 
-@@ -841,6 +842,19 @@ bail:
- 	return status;
- }
- 
-+static int ocfs2_journal_submit_inode_data_buffers(struct jbd2_inode *jinode)
-+{
-+	struct address_space *mapping = jinode->i_vfs_inode->i_mapping;
-+	struct writeback_control wbc = {
-+		.sync_mode =  WB_SYNC_ALL,
-+		.nr_to_write = mapping->nrpages * 2,
-+		.range_start = jinode->i_dirty_start,
-+		.range_end = jinode->i_dirty_end,
-+	};
-+
-+	return generic_writepages(mapping, &wbc);
-+}
-+
- int ocfs2_journal_init(struct ocfs2_super *osb, int *dirty)
- {
- 	int status = -1;
-@@ -910,7 +924,7 @@ int ocfs2_journal_init(struct ocfs2_supe
- 
- 	journal->j_journal = j_journal;
- 	journal->j_journal->j_submit_inode_data_buffers =
--		jbd2_journal_submit_inode_data_buffers;
-+		ocfs2_journal_submit_inode_data_buffers;
- 	journal->j_journal->j_finish_inode_data_buffers =
- 		jbd2_journal_finish_inode_data_buffers;
- 	journal->j_inode = inode;
---- a/include/linux/jbd2.h~jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2
-+++ a/include/linux/jbd2.h
-@@ -1570,8 +1570,6 @@ extern int	   jbd2_journal_inode_ranged_
- extern int	   jbd2_journal_inode_ranged_wait(handle_t *handle,
- 			struct jbd2_inode *inode, loff_t start_byte,
- 			loff_t length);
--extern int	   jbd2_journal_submit_inode_data_buffers(
--			struct jbd2_inode *jinode);
- extern int	   jbd2_journal_finish_inode_data_buffers(
- 			struct jbd2_inode *jinode);
- extern int	   jbd2_journal_begin_ordered_truncate(journal_t *journal,
 _
 
 Patches currently in -mm which might be from hch@lst.de are
