@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4249FC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE27AC10F1B
 	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 21:52:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235498AbiL3Vwt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235424AbiL3Vwt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 30 Dec 2022 16:52:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43654 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235424AbiL3Vwm (ORCPT
+        with ESMTP id S235436AbiL3Vwm (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Dec 2022 16:52:42 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12AA01CFE1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 13:52:42 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A19C11838F
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 13:52:41 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A6C1561BCE
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 21:52:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A8D8C433EF;
-        Fri, 30 Dec 2022 21:52:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5E282B81D96
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 21:52:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1994EC433F1;
+        Fri, 30 Dec 2022 21:52:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672437161;
-        bh=rochAGGfALj4Clw8dLrqojxHFSO2oczqmnj/E6lPntI=;
+        s=korg; t=1672437159;
+        bh=oa8wXtSSa4mL4Odq9HwHQPIQIYfuIOFVeWBLea1F4+M=;
         h=Date:To:From:Subject:From;
-        b=2eqYAlsP/bIdL+JCk2uKVWwujofHPAPwiDF+mCWcxnAnXQOM0oGMe3WswTzmkyQ7z
-         YRD38X8gEjw0ySw0Xq+3ymlcoA0sCAtSmUv6Yz6wGp0UFpeMUuXiha8MG/R8y/lGku
-         25oJYIQFPD/UPJaOXnJzfd/m24xV7SSTrHWiDaJc=
-Date:   Fri, 30 Dec 2022 13:52:40 -0800
+        b=N0vFhQgiO/itxfeMFivTWfRqpbOUrg2kQDoSovJ08l36VNarYfzMfCzkeDk0S1EGV
+         SCiYYQpQmVE+4PwkjLEg2LpzMw3GKsFdb7C0yNNwq0Zme0+/MA2E2l1biwm7yLOZk5
+         MKj2IOuKnb9Q6Rc0+9gi4L6A6lZ/6Zsftc5Purdg=
+Date:   Fri, 30 Dec 2022 13:52:38 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, sj@kernel.org, david@redhat.com,
         wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-convert-damon_ptep-pmdp_mkold-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20221230215241.0A8D8C433EF@smtp.kernel.org>
+Subject: + mm-damon-introduce-damon_get_folio.patch added to mm-unstable branch
+Message-Id: <20221230215239.1994EC433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: convert damon_ptep/pmdp_mkold() to use a folio
+     Subject: mm/damon: introduce damon_get_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-convert-damon_ptep-pmdp_mkold-to-use-a-folio.patch
+     mm-damon-introduce-damon_get_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-convert-damon_ptep-pmdp_mkold-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-introduce-damon_get_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,13 +66,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm/damon: convert damon_ptep/pmdp_mkold() to use a folio
-Date: Fri, 30 Dec 2022 15:08:45 +0800
+Subject: mm/damon: introduce damon_get_folio()
+Date: Fri, 30 Dec 2022 15:08:44 +0800
 
-With damon_get_folio(), let's convert damon_ptep_mkold() and
-damon_pmdp_mkold() to use a folio.
+Introduce damon_get_folio(), and the temporary wrapper function
+damon_get_page(), which help us to convert damon related functions to use
+folios, and it will be dropped once the conversion is completed.
 
-Link: https://lkml.kernel.org/r/20221230070849.63358-5-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20221230070849.63358-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -82,59 +83,59 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/damon/ops-common.c~mm-damon-convert-damon_ptep-pmdp_mkold-to-use-a-folio
+--- a/mm/damon/ops-common.c~mm-damon-introduce-damon_get_folio
 +++ a/mm/damon/ops-common.c
-@@ -40,9 +40,9 @@ struct folio *damon_get_folio(unsigned l
+@@ -16,21 +16,25 @@
+  * Get an online page for a pfn if it's in the LRU list.  Otherwise, returns
+  * NULL.
+  *
+- * The body of this function is stolen from the 'page_idle_get_page()'.  We
++ * The body of this function is stolen from the 'page_idle_get_folio()'.  We
+  * steal rather than reuse it because the code is quite simple.
+  */
+-struct page *damon_get_page(unsigned long pfn)
++struct folio *damon_get_folio(unsigned long pfn)
+ {
+ 	struct page *page = pfn_to_online_page(pfn);
++	struct folio *folio;
+ 
+-	if (!page || !PageLRU(page) || !get_page_unless_zero(page))
++	if (!page || PageTail(page))
+ 		return NULL;
+ 
+-	if (unlikely(!PageLRU(page))) {
+-		put_page(page);
+-		page = NULL;
++	folio = page_folio(page);
++	if (!folio_test_lru(folio) || !folio_try_get(folio))
++		return NULL;
++	if (unlikely(page_folio(page) != folio || !folio_test_lru(folio))) {
++		folio_put(folio);
++		folio = NULL;
+ 	}
+-	return page;
++	return folio;
+ }
+ 
  void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm, unsigned long addr)
- {
- 	bool referenced = false;
--	struct page *page = damon_get_page(pte_pfn(*pte));
-+	struct folio *folio = damon_get_folio(pte_pfn(*pte));
+--- a/mm/damon/ops-common.h~mm-damon-introduce-damon_get_folio
++++ a/mm/damon/ops-common.h
+@@ -7,7 +7,14 @@
  
--	if (!page)
-+	if (!folio)
- 		return;
+ #include <linux/damon.h>
  
- 	if (pte_young(*pte)) {
-@@ -56,19 +56,19 @@ void damon_ptep_mkold(pte_t *pte, struct
- #endif /* CONFIG_MMU_NOTIFIER */
+-struct page *damon_get_page(unsigned long pfn);
++struct folio *damon_get_folio(unsigned long pfn);
++static inline struct page *damon_get_page(unsigned long pfn)
++{
++	struct folio *folio = damon_get_folio(pfn);
++
++	/* when folio is NULL, return &(0->page) mean return NULL */
++	return &folio->page;
++}
  
- 	if (referenced)
--		set_page_young(page);
-+		folio_set_young(folio);
- 
--	set_page_idle(page);
--	put_page(page);
-+	folio_set_idle(folio);
-+	folio_put(folio);
- }
- 
- void damon_pmdp_mkold(pmd_t *pmd, struct mm_struct *mm, unsigned long addr)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	bool referenced = false;
--	struct page *page = damon_get_page(pmd_pfn(*pmd));
-+	struct folio *folio = damon_get_folio(pmd_pfn(*pmd));
- 
--	if (!page)
-+	if (!folio)
- 		return;
- 
- 	if (pmd_young(*pmd)) {
-@@ -82,10 +82,10 @@ void damon_pmdp_mkold(pmd_t *pmd, struct
- #endif /* CONFIG_MMU_NOTIFIER */
- 
- 	if (referenced)
--		set_page_young(page);
-+		folio_set_young(folio);
- 
--	set_page_idle(page);
--	put_page(page);
-+	folio_set_idle(folio);
-+	folio_put(folio);
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- }
- 
+ void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm, unsigned long addr);
+ void damon_pmdp_mkold(pmd_t *pmd, struct mm_struct *mm, unsigned long addr);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
