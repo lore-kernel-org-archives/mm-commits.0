@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D97C6C3DA7A
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 01:00:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22B82C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 21:35:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229794AbiL3BAA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 29 Dec 2022 20:00:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59998 "EHLO
+        id S231174AbiL3Vfx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Dec 2022 16:35:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229534AbiL3A77 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Dec 2022 19:59:59 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCC1613F91
-        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2022 16:59:58 -0800 (PST)
+        with ESMTP id S229519AbiL3Vfw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Dec 2022 16:35:52 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB7BD659F
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 13:35:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5983361983
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 00:59:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B11D2C433EF;
-        Fri, 30 Dec 2022 00:59:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 735C461BCE
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 21:35:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC653C433D2;
+        Fri, 30 Dec 2022 21:35:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672361997;
-        bh=zalDJTrmGhEJkag3JCOK5y9xYzu/ILXHw1eIc4aizmo=;
+        s=korg; t=1672436149;
+        bh=zxfjdPlbPw1MN9ZmJFZvy/uO7se8J7UxeH1PUXqbNS4=;
         h=Date:To:From:Subject:From;
-        b=YtOgzQ8Gv5FZinC5fFDB+EySKP6bLY0en3PBJL2Zdkjl9l0TRkh0xPoxcNVFYI77G
-         rqQUS/lhX3o1572R/wsLzG/xuaYfwFvtTJco4ashcAa1O/SQqPdLXo8YIhzfGhLaHK
-         oey7AqcRN31UdTDXrIX8+SCgbUrBTgzsdPeIIbiY=
-Date:   Thu, 29 Dec 2022 16:59:56 -0800
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        jhs2.lee@samsung.com, akpm@linux-foundation.org
+        b=hjh3kJ+Fq4DO6ayXYL5RLbyT/L5nIvD0ss/fF6FQ0y7q/WwxoWMy27LGE//Cqj4+T
+         ZwGTWJkqMuA8oVqCWiQKhDSDQPMI5pGaOM10YhVlsGjvx+5bPn9Bkey6hK1Oy0nbsh
+         gu5zFPOsv5QyCUSw+hTCn51Sk+aqCcRd0Uv9oo3Y=
+Date:   Fri, 30 Dec 2022 13:35:48 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mingo@redhat.com,
+        kbingham@kernel.org, jan.kiszka@siemens.com,
+        gregkh@linuxfoundation.org, dmitrii.bundin.a@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-fix-typos-in-comments.patch added to mm-unstable branch
-Message-Id: <20221230005957.B11D2C433EF@smtp.kernel.org>
+Subject: + scripts-gdb-add-mm-introspection-utils.patch added to mm-nonmm-unstable branch
+Message-Id: <20221230213549.BC653C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: fix typos in comments
-has been added to the -mm mm-unstable branch.  Its filename is
-     zram-fix-typos-in-comments.patch
+     Subject: scripts/gdb: add mm introspection utils
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-add-mm-introspection-utils.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-typos-in-comments.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-add-mm-introspection-utils.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,43 +66,315 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: JeongHyeon Lee <jhs2.lee@samsung.com>
-Subject: zram: fix typos in comments
-Date: Fri, 23 Dec 2022 13:03:31 +0900
+From: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
+Subject: scripts/gdb: add mm introspection utils
+Date: Fri, 30 Dec 2022 19:35:12 +0300
 
-- The double `range` is duplicated in comment, remove one.
- - change `syfs` to `sysfs`
+This command provides a way to traverse the entire page hierarchy by a
+given virtual address.  In addition to qemu's commands info tlb/info mem
+it provides the complete information about the paging structure for an
+arbitrary virtual address.  It supports 4Kb/2MB/1GB and 5 level paging.
 
-Link: https://lkml.kernel.org/r/20221223040331.4194-1-jhs2.lee@samsung.com
-Signed-off-by: JeongHyeon Lee <jhs2.lee@samsung.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Here is an example output for 2MB success translation:
+
+CR3:
+    CR3 BINARY DATA: 0x10c1d2002
+    NEXT ENTRY PHYSICALL ADDRESS: 0x10c1d2000
+    ---
+    PAGE LEVEL WRITE THROUGH(bit 3): False
+    PAGE LEVEL CACHE DISABLED(bit 4): False
+LEVEL 4:
+    ENTRY ADDRESS: 0xffff88810c1d27f0
+    PAGE ENTRY BINARY DATA: 0x8000000105dca067
+    NEXT ENTRY PHYSICALL ADDRESS: 0x105dca000
+    ---
+    ENTRY PRESENT(bit 0):      True
+    READ/WRITE ACCESS ALLOWED(bit 1): True
+    USER ACCESS ALLOWED(bit 2): True
+    PAGE LEVEL WRITE THROUGH(bit 3): False
+    PAGE LEVEL CACHE DISABLED(bit 4): False
+    ENTRY HAS BEEN ACCESSED(bit 5): True
+    PAGE SIZE(bit 7): False
+    RESTART TO ORDINARY(bit 11): False
+    EXECUTE DISABLE(bit 63): True
+LEVEL 3:
+    ENTRY ADDRESS: 0xffff888105dca9d0
+    PAGE ENTRY BINARY DATA: 0x105c87067
+    NEXT ENTRY PHYSICALL ADDRESS: 0x105c87000
+    ---
+    ENTRY PRESENT(bit 0):      True
+    READ/WRITE ACCESS ALLOWED(bit 1): True
+    USER ACCESS ALLOWED(bit 2): True
+    PAGE LEVEL WRITE THROUGH(bit 3): False
+    PAGE LEVEL CACHE DISABLED(bit 4): False
+    ENTRY HAS BEEN ACCESSED(bit 5): True
+    PAGE SIZE(bit 7): False
+    RESTART TO ORDINARY(bit 11): False
+    EXECUTE DISABLE(bit 63): False
+LEVEL 2:
+    ENTRY ADDRESS: 0xffff888105c87698
+    PAGE ENTRY BINARY DATA: 0x80000001622008e7
+    PAGE SIZE: 2MB
+    PAGE PHYSICALL ADDRESS: 0x162200000
+    ---
+    ENTRY PRESENT(bit 0):      True
+    READ/WRITE ACCESS ALLOWED(bit 1): True
+    USER ACCESS ALLOWED(bit 2): True
+    PAGE LEVEL WRITE THROUGH(bit 3): False
+    PAGE LEVEL CACHE DISABLED(bit 4): False
+    ENTRY HAS BEEN ACCESSED(bit 5): True
+    PAGE DIRTY(bit 6): True
+    PAGE SIZE(bit 7): True
+    GLOBAL TRANSLATION(bit 8): False
+    RESTART TO ORDINARY(bit 11): True
+    PAT(bit 12): False
+    PROTECTION KEY(bits (62, 59)): 0
+    EXECUTE DISABLE(bit 63): True
+
+Link: https://lkml.kernel.org/r/20221230163512.23736-1-dmitrii.bundin.a@gmail.com
+Signed-off-by: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-typos-in-comments
-+++ a/drivers/block/zram/zram_drv.c
-@@ -190,7 +190,7 @@ static inline bool valid_io_request(stru
- 
- 	end = start + (size >> SECTOR_SHIFT);
- 	bound = zram->disksize >> SECTOR_SHIFT;
--	/* out of range range */
-+	/* out of range */
- 	if (unlikely(start >= bound || end > bound || start > end))
- 		return false;
- 
-@@ -2385,7 +2385,7 @@ static int zram_add(void)
- 	zram->disk->private_data = zram;
- 	snprintf(zram->disk->disk_name, 16, "zram%d", device_id);
- 
--	/* Actual capacity set using syfs (/sys/block/zram<id>/disksize */
-+	/* Actual capacity set using sysfs (/sys/block/zram<id>/disksize */
- 	set_capacity(zram->disk, 0);
- 	/* zram devices sort of resembles non-rotational disks */
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, zram->disk->queue);
+--- /dev/null
++++ a/scripts/gdb/linux/mm.py
+@@ -0,0 +1,220 @@
++#
++# gdb helper commands and functions for Linux kernel debugging
++#
++#  routines to introspect virtual memory
++#
++# Authors:
++#  Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
++#
++# This work is licensed under the terms of the GNU GPL version 2.
++#
++
++import gdb
++
++from linux import utils
++
++PHYSICAL_ADDRESS_MASK = gdb.parse_and_eval('0xfffffffffffff')
++
++
++def page_mask(level=1):
++    # 4KB
++    if level == 1:
++        return gdb.parse_and_eval('(u64) ~0xfff')
++    # 2MB
++    elif level == 2:
++        return gdb.parse_and_eval('(u64) ~0x1fffff')
++    # 1GB
++    elif level == 3:
++        return gdb.parse_and_eval('(u64) ~0x3fffffff')
++    else:
++        raise Exception(f'Unknown page level: {level}')
++
++
++def _page_offset_base():
++    pob_symbol = gdb.lookup_global_symbol('page_offset_base')
++    pob = pob_symbol.name if pob_symbol else '0xffff888000000000'
++    return gdb.parse_and_eval(pob)
++
++
++def is_bit_defined_tupled(data, offset):
++    return offset, bool(data >> offset & 1)
++
++def content_tupled(data, bit_start, bit_end):
++    return (bit_end, bit_start), data >> bit_start & ((1 << (1 + bit_end - bit_start)) - 1)
++
++def entry_va(level, phys_addr, translating_va):
++        def start_bit(level):
++            if level == 5:
++                return 48
++            elif level == 4:
++                return 39
++            elif level == 3:
++                return 30
++            elif level == 2:
++                return 21
++            elif level == 1:
++                return 12
++            else:
++                raise Exception(f'Unknown level {level}')
++
++        entry_offset =  ((translating_va >> start_bit(level)) & 511) * 8
++        entry_va = _page_offset_base() + phys_addr + entry_offset
++        return entry_va
++
++class Cr3():
++    def __init__(self, cr3, page_levels):
++        self.cr3 = cr3
++        self.page_levels = page_levels
++        self.page_level_write_through = is_bit_defined_tupled(cr3, 3)
++        self.page_level_cache_disabled = is_bit_defined_tupled(cr3, 4)
++        self.next_entry_physical_address = cr3 & PHYSICAL_ADDRESS_MASK & page_mask()
++
++    def next_entry(self, va):
++        next_level = self.page_levels
++        return PageHierarchyEntry(entry_va(next_level, self.next_entry_physical_address, va), next_level)
++
++    def mk_string(self):
++            return f"""\
++CR3:
++    CR3 BINARY DATA: {hex(self.cr3)}
++    NEXT ENTRY PHYSICALL ADDRESS: {hex(self.next_entry_physical_address)}
++    ---
++    PAGE LEVEL WRITE THROUGH(bit {self.page_level_write_through[0]}): {self.page_level_write_through[1]}
++    PAGE LEVEL CACHE DISABLED(bit {self.page_level_cache_disabled[0]}): {self.page_level_cache_disabled[1]}
++"""
++
++
++class PageHierarchyEntry():
++    def __init__(self, address, level):
++        data = int.from_bytes(
++            memoryview(gdb.selected_inferior().read_memory(address, 8)),
++            "little"
++        )
++        if level == 1:
++            self.is_page = True
++            self.entry_present = is_bit_defined_tupled(data, 0)
++            self.read_write = is_bit_defined_tupled(data, 1)
++            self.user_access_allowed = is_bit_defined_tupled(data, 2)
++            self.page_level_write_through = is_bit_defined_tupled(data, 3)
++            self.page_level_cache_disabled = is_bit_defined_tupled(data, 4)
++            self.entry_was_accessed = is_bit_defined_tupled(data, 5)
++            self.dirty = is_bit_defined_tupled(data, 6)
++            self.pat = is_bit_defined_tupled(data, 7)
++            self.global_translation = is_bit_defined_tupled(data, 8)
++            self.page_physical_address = data & PHYSICAL_ADDRESS_MASK & page_mask(level)
++            self.next_entry_physical_address = None
++            self.hlat_restart_with_ordinary = is_bit_defined_tupled(data, 11)
++            self.protection_key = content_tupled(data, 59, 62)
++            self.executed_disable = is_bit_defined_tupled(data, 63)
++        else:
++            page_size = is_bit_defined_tupled(data, 7)
++            page_size_bit = page_size[1]
++            self.is_page = page_size_bit
++            self.entry_present = is_bit_defined_tupled(data, 0)
++            self.read_write = is_bit_defined_tupled(data, 1)
++            self.user_access_allowed = is_bit_defined_tupled(data, 2)
++            self.page_level_write_through = is_bit_defined_tupled(data, 3)
++            self.page_level_cache_disabled = is_bit_defined_tupled(data, 4)
++            self.entry_was_accessed = is_bit_defined_tupled(data, 5)
++            self.page_size = page_size
++            self.dirty = is_bit_defined_tupled(
++                data, 6) if page_size_bit else None
++            self.global_translation = is_bit_defined_tupled(
++                data, 8) if page_size_bit else None
++            self.pat = is_bit_defined_tupled(
++                data, 12) if page_size_bit else None
++            self.page_physical_address = data & PHYSICAL_ADDRESS_MASK & page_mask(level) if page_size_bit else None
++            self.next_entry_physical_address = None if page_size_bit else data & PHYSICAL_ADDRESS_MASK & page_mask()
++            self.hlat_restart_with_ordinary = is_bit_defined_tupled(data, 11)
++            self.protection_key = content_tupled(data, 59, 62) if page_size_bit else None
++            self.executed_disable = is_bit_defined_tupled(data, 63)
++        self.address = address
++        self.page_entry_binary_data = data
++        self.page_hierarchy_level = level
++
++    def next_entry(self, va):
++        if self.is_page or not self.entry_present[1]:
++            return None
++
++        next_level = self.page_hierarchy_level - 1
++        return PageHierarchyEntry(entry_va(next_level, self.next_entry_physical_address, va), next_level)
++
++
++    def mk_string(self):
++        if not self.entry_present[1]:
++            return f"""\
++LEVEL {self.page_hierarchy_level}:
++    ENTRY ADDRESS: {hex(self.address)}
++    PAGE ENTRY BINARY DATA: {hex(self.page_entry_binary_data)}
++    ---
++    PAGE ENTRY IS NOT PRESENT!
++"""
++        elif self.is_page:
++            return f"""\
++LEVEL {self.page_hierarchy_level}:
++    ENTRY ADDRESS: {hex(self.address)}
++    PAGE ENTRY BINARY DATA: {hex(self.page_entry_binary_data)}
++    PAGE SIZE: {'1GB' if self.page_hierarchy_level == 3 else '2MB' if self.page_hierarchy_level == 2 else '4KB' if self.page_hierarchy_level == 1 else 'Unknown page size for level:' + self.page_hierarchy_level}
++    PAGE PHYSICALL ADDRESS: {hex(self.page_physical_address)}
++    ---
++    ENTRY PRESENT(bit {self.entry_present[0]}):      {self.entry_present[1]}
++    READ/WRITE ACCESS ALLOWED(bit {self.read_write[0]}): {self.read_write[1]}
++    USER ACCESS ALLOWED(bit {self.user_access_allowed[0]}): {self.user_access_allowed[1]}
++    PAGE LEVEL WRITE THROUGH(bit {self.page_level_write_through[0]}): {self.page_level_write_through[1]}
++    PAGE LEVEL CACHE DISABLED(bit {self.page_level_cache_disabled[0]}): {self.page_level_cache_disabled[1]}
++    ENTRY HAS BEEN ACCESSED(bit {self.entry_was_accessed[0]}): {self.entry_was_accessed[1]}
++    PAGE DIRTY(bit {self.dirty[0]}): {self.dirty[1]}
++    """ + \
++    ("" if self.page_hierarchy_level == 1 else f"""PAGE SIZE(bit {self.page_size[0]}): {self.page_size[1]}
++    """) + \
++    f"""GLOBAL TRANSLATION(bit {self.global_translation[0]}): {self.global_translation[1]}
++    RESTART TO ORDINARY(bit {self.hlat_restart_with_ordinary[0]}): {self.hlat_restart_with_ordinary[1]}
++    PAT(bit {self.pat[0]}): {self.pat[1]}
++    PROTECTION KEY(bits {self.protection_key[0]}): {self.protection_key[1]}
++    EXECUTE DISABLE(bit {self.executed_disable[0]}): {self.executed_disable[1]}
++"""
++        else:
++            return f"""\
++LEVEL {self.page_hierarchy_level}:
++    ENTRY ADDRESS: {hex(self.address)}
++    PAGE ENTRY BINARY DATA: {hex(self.page_entry_binary_data)}
++    NEXT ENTRY PHYSICALL ADDRESS: {hex(self.next_entry_physical_address)}
++    ---
++    ENTRY PRESENT(bit {self.entry_present[0]}):      {self.entry_present[1]}
++    READ/WRITE ACCESS ALLOWED(bit {self.read_write[0]}): {self.read_write[1]}
++    USER ACCESS ALLOWED(bit {self.user_access_allowed[0]}): {self.user_access_allowed[1]}
++    PAGE LEVEL WRITE THROUGH(bit {self.page_level_write_through[0]}): {self.page_level_write_through[1]}
++    PAGE LEVEL CACHE DISABLED(bit {self.page_level_cache_disabled[0]}): {self.page_level_cache_disabled[1]}
++    ENTRY HAS BEEN ACCESSED(bit {self.entry_was_accessed[0]}): {self.entry_was_accessed[1]}
++    PAGE SIZE(bit {self.page_size[0]}): {self.page_size[1]}
++    RESTART TO ORDINARY(bit {self.hlat_restart_with_ordinary[0]}): {self.hlat_restart_with_ordinary[1]}
++    EXECUTE DISABLE(bit {self.executed_disable[0]}): {self.executed_disable[1]}
++"""
++
++
++class TranslateVM(gdb.Command):
++    """Prints the entire paging structure used to translate a given virtual address.
++
++Having an address space of the currently executed process translates the virtual address
++and prints detailed information of all paging structure levels used for the transaltion."""
++
++    def __init__(self):
++        super(TranslateVM, self).__init__('translate-vm', gdb.COMMAND_USER)
++
++    def invoke(self, arg, from_tty):
++        if utils.is_target_arch("x86"):
++            vm_address = gdb.parse_and_eval(f'{arg}')
++            cr3_data = gdb.parse_and_eval('$cr3')
++            cr4 = gdb.parse_and_eval('$cr4')
++            page_levels = 5 if cr4 & (1 << 12) else 4
++            page_entry = Cr3(cr3_data, page_levels)
++            while page_entry:
++                gdb.write(page_entry.mk_string())
++                page_entry = page_entry.next_entry(vm_address)
++        else:
++            gdb.GdbError("Virtual address translation is not"
++                         "supported for this arch")
++
++
++
++TranslateVM()
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-mm-introspection-utils
++++ a/scripts/gdb/vmlinux-gdb.py
+@@ -37,3 +37,4 @@ else:
+     import linux.clk
+     import linux.genpd
+     import linux.device
++    import linux.mm
 _
 
-Patches currently in -mm which might be from jhs2.lee@samsung.com are
+Patches currently in -mm which might be from dmitrii.bundin.a@gmail.com are
 
-zram-fix-typos-in-comments.patch
+scripts-gdb-add-mm-introspection-utils.patch
 
