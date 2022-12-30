@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EBC6C10F1B
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 21:52:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4249FC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 21:52:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235266AbiL3Vwm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Dec 2022 16:52:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43640 "EHLO
+        id S235498AbiL3Vwt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Dec 2022 16:52:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234991AbiL3Vwl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Dec 2022 16:52:41 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A98F1CFE1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 13:52:40 -0800 (PST)
+        with ESMTP id S235424AbiL3Vwm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Dec 2022 16:52:42 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12AA01CFE1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 13:52:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0608EB81D94
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 21:52:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97F09C433D2;
-        Fri, 30 Dec 2022 21:52:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A6C1561BCE
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 21:52:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A8D8C433EF;
+        Fri, 30 Dec 2022 21:52:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672437157;
-        bh=JjxJeH3veBajJXqGHah7zAgzRIMQwIX5B3k3falEziY=;
+        s=korg; t=1672437161;
+        bh=rochAGGfALj4Clw8dLrqojxHFSO2oczqmnj/E6lPntI=;
         h=Date:To:From:Subject:From;
-        b=Bftgp8cL5gcZqnvuPv99ys4qpQqHofnpgW4AjhYVfJUNdTCSsv7j5QFSl8Vy8DAIX
-         sS6gi8vVBXdyAlo4EPQYWjMvLks5Nxix4ghZ88J8bp6e/wb0yQXGzGcP/JXbYu6csH
-         rPqDbT4ojC445uuR3EHGTZa6rldN9LzPJnD+0Zdg=
-Date:   Fri, 30 Dec 2022 13:52:37 -0800
+        b=2eqYAlsP/bIdL+JCk2uKVWwujofHPAPwiDF+mCWcxnAnXQOM0oGMe3WswTzmkyQ7z
+         YRD38X8gEjw0ySw0Xq+3ymlcoA0sCAtSmUv6Yz6wGp0UFpeMUuXiha8MG/R8y/lGku
+         25oJYIQFPD/UPJaOXnJzfd/m24xV7SSTrHWiDaJc=
+Date:   Fri, 30 Dec 2022 13:52:40 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, sj@kernel.org, david@redhat.com,
         wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_idle-convert-page-idle-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20221230215237.97F09C433D2@smtp.kernel.org>
+Subject: + mm-damon-convert-damon_ptep-pmdp_mkold-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20221230215241.0A8D8C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_idle: convert page idle to use a folio
+     Subject: mm/damon: convert damon_ptep/pmdp_mkold() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_idle-convert-page-idle-to-use-a-folio.patch
+     mm-damon-convert-damon_ptep-pmdp_mkold-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_idle-convert-page-idle-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-convert-damon_ptep-pmdp_mkold-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,14 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: page_idle: convert page idle to use a folio
-Date: Fri, 30 Dec 2022 15:08:43 +0800
+Subject: mm/damon: convert damon_ptep/pmdp_mkold() to use a folio
+Date: Fri, 30 Dec 2022 15:08:45 +0800
 
-Firstly, make page_idle_get_page() return a folio, also rename it to
-page_idle_get_folio(), then, use it to convert page_idle_bitmap_read() and
-page_idle_bitmap_write() functions.
+With damon_get_folio(), let's convert damon_ptep_mkold() and
+damon_pmdp_mkold() to use a folio.
 
-Link: https://lkml.kernel.org/r/20221230070849.63358-3-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20221230070849.63358-5-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -83,111 +82,59 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/page_idle.c~mm-page_idle-convert-page-idle-to-use-a-folio
-+++ a/mm/page_idle.c
-@@ -31,19 +31,22 @@
-  *
-  * This function tries to get a user memory page by pfn as described above.
-  */
--static struct page *page_idle_get_page(unsigned long pfn)
-+static struct folio *page_idle_get_folio(unsigned long pfn)
+--- a/mm/damon/ops-common.c~mm-damon-convert-damon_ptep-pmdp_mkold-to-use-a-folio
++++ a/mm/damon/ops-common.c
+@@ -40,9 +40,9 @@ struct folio *damon_get_folio(unsigned l
+ void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm, unsigned long addr)
  {
- 	struct page *page = pfn_to_online_page(pfn);
-+	struct folio *folio;
+ 	bool referenced = false;
+-	struct page *page = damon_get_page(pte_pfn(*pte));
++	struct folio *folio = damon_get_folio(pte_pfn(*pte));
  
--	if (!page || !PageLRU(page) ||
--	    !get_page_unless_zero(page))
-+	if (!page || PageTail(page))
- 		return NULL;
+-	if (!page)
++	if (!folio)
+ 		return;
  
--	if (unlikely(!PageLRU(page))) {
--		put_page(page);
--		page = NULL;
-+	folio = page_folio(page);
-+	if (!folio_test_lru(folio) || !folio_try_get(folio))
-+		return NULL;
-+	if (unlikely(page_folio(page) != folio || !folio_test_lru(folio))) {
-+		folio_put(folio);
-+		folio = NULL;
- 	}
--	return page;
-+	return folio;
+ 	if (pte_young(*pte)) {
+@@ -56,19 +56,19 @@ void damon_ptep_mkold(pte_t *pte, struct
+ #endif /* CONFIG_MMU_NOTIFIER */
+ 
+ 	if (referenced)
+-		set_page_young(page);
++		folio_set_young(folio);
+ 
+-	set_page_idle(page);
+-	put_page(page);
++	folio_set_idle(folio);
++	folio_put(folio);
  }
  
- static bool page_idle_clear_pte_refs_one(struct folio *folio,
-@@ -83,10 +86,8 @@ static bool page_idle_clear_pte_refs_one
- 	return true;
+ void damon_pmdp_mkold(pmd_t *pmd, struct mm_struct *mm, unsigned long addr)
+ {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	bool referenced = false;
+-	struct page *page = damon_get_page(pmd_pfn(*pmd));
++	struct folio *folio = damon_get_folio(pmd_pfn(*pmd));
+ 
+-	if (!page)
++	if (!folio)
+ 		return;
+ 
+ 	if (pmd_young(*pmd)) {
+@@ -82,10 +82,10 @@ void damon_pmdp_mkold(pmd_t *pmd, struct
+ #endif /* CONFIG_MMU_NOTIFIER */
+ 
+ 	if (referenced)
+-		set_page_young(page);
++		folio_set_young(folio);
+ 
+-	set_page_idle(page);
+-	put_page(page);
++	folio_set_idle(folio);
++	folio_put(folio);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  }
  
--static void page_idle_clear_pte_refs(struct page *page)
-+static void page_idle_clear_pte_refs(struct folio *folio)
- {
--	struct folio *folio = page_folio(page);
--
- 	/*
- 	 * Since rwc.try_lock is unused, rwc is effectively immutable, so we
- 	 * can make it static to save some cycles and stack.
-@@ -115,7 +116,7 @@ static ssize_t page_idle_bitmap_read(str
- 				     loff_t pos, size_t count)
- {
- 	u64 *out = (u64 *)buf;
--	struct page *page;
-+	struct folio *folio;
- 	unsigned long pfn, end_pfn;
- 	int bit;
- 
-@@ -134,19 +135,19 @@ static ssize_t page_idle_bitmap_read(str
- 		bit = pfn % BITMAP_CHUNK_BITS;
- 		if (!bit)
- 			*out = 0ULL;
--		page = page_idle_get_page(pfn);
--		if (page) {
--			if (page_is_idle(page)) {
-+		folio = page_idle_get_folio(pfn);
-+		if (folio) {
-+			if (folio_test_idle(folio)) {
- 				/*
- 				 * The page might have been referenced via a
- 				 * pte, in which case it is not idle. Clear
- 				 * refs and recheck.
- 				 */
--				page_idle_clear_pte_refs(page);
--				if (page_is_idle(page))
-+				page_idle_clear_pte_refs(folio);
-+				if (folio_test_idle(folio))
- 					*out |= 1ULL << bit;
- 			}
--			put_page(page);
-+			folio_put(folio);
- 		}
- 		if (bit == BITMAP_CHUNK_BITS - 1)
- 			out++;
-@@ -160,7 +161,7 @@ static ssize_t page_idle_bitmap_write(st
- 				      loff_t pos, size_t count)
- {
- 	const u64 *in = (u64 *)buf;
--	struct page *page;
-+	struct folio *folio;
- 	unsigned long pfn, end_pfn;
- 	int bit;
- 
-@@ -178,11 +179,11 @@ static ssize_t page_idle_bitmap_write(st
- 	for (; pfn < end_pfn; pfn++) {
- 		bit = pfn % BITMAP_CHUNK_BITS;
- 		if ((*in >> bit) & 1) {
--			page = page_idle_get_page(pfn);
--			if (page) {
--				page_idle_clear_pte_refs(page);
--				set_page_idle(page);
--				put_page(page);
-+			folio = page_idle_get_folio(pfn);
-+			if (folio) {
-+				page_idle_clear_pte_refs(folio);
-+				folio_set_idle(folio);
-+				folio_put(folio);
- 			}
- 		}
- 		if (bit == BITMAP_CHUNK_BITS - 1)
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
