@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9199C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 22:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3615FC10F1B
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 22:01:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229551AbiL3WBz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Dec 2022 17:01:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46950 "EHLO
+        id S230093AbiL3WB5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Dec 2022 17:01:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235700AbiL3WBp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Dec 2022 17:01:45 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2BB717E2C
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 14:01:38 -0800 (PST)
+        with ESMTP id S235711AbiL3WBq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Dec 2022 17:01:46 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 651CA1D0CF
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 14:01:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 68629B81D93
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 22:01:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20981C433EF;
-        Fri, 30 Dec 2022 22:01:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1A83BB81D94
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 22:01:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC3C1C433EF;
+        Fri, 30 Dec 2022 22:01:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672437696;
-        bh=ajOs26CsGXoQ5yNyZlWbVs9DxPclZ3+EVmed4LJ+LF4=;
+        s=korg; t=1672437702;
+        bh=RxgW1DXnwstfbp0WNB0sV+i6f49syJZjW0q+NF3gD9s=;
         h=Date:To:From:Subject:From;
-        b=FhwBsdOR9zXcVqO5ropT/2uOvRpjOvZ1mBATR9B7CxIE4oltZXMr5orlFZ0jkJfNZ
-         MAUOibhr0b7d3U0mFCgUYP1gIG9/QmnmzSpsYKPiNZAGlwYbM66LmDTglwqT8WcO3n
-         21ou14lMoa3+ovHg1Y3XCFzxlxujHPs1rYMj9/qc=
-Date:   Fri, 30 Dec 2022 14:01:35 -0800
+        b=uIKHZwXGn9Fk9SKDVVRbHV/a0JEOoY3MhNcshR9vPZFYciWPTGJY2to4acEuWogEa
+         sQ5/23x/sPSnJy7J8PZBzLQDdRLOVewl8UdyjEpimiXoIpUBheSDummjfvc8SdBQwE
+         RyWUiEUz9aWy1eO1ZixNrZIgv0gDrxxH2X85kMYU=
+Date:   Fri, 30 Dec 2022 14:01:42 -0800
 To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
         ran.xiaokai@zte.com.cn, jiang.xuexin@zte.com.cn,
         imbrenda@linux.ibm.com, david@redhat.com, xu.xin16@zte.com.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ksm-abstract-the-function-try_to_get_old_rmap_item.patch added to mm-unstable branch
-Message-Id: <20221230220136.20981C433EF@smtp.kernel.org>
+Subject: + ksm-add-zero_pages_sharing-documentation.patch added to mm-unstable branch
+Message-Id: <20221230220142.BC3C1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: abstract the function try_to_get_old_rmap_item
+     Subject: ksm: add zero_pages_sharing documentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     ksm-abstract-the-function-try_to_get_old_rmap_item.patch
+     ksm-add-zero_pages_sharing-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-abstract-the-function-try_to_get_old_rmap_item.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-add-zero_pages_sharing-documentation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,119 +67,40 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: xu xin <xu.xin16@zte.com.cn>
-Subject: ksm: abstract the function try_to_get_old_rmap_item
-Date: Fri, 30 Dec 2022 09:12:44 +0800 (CST)
+Subject: ksm: add zero_pages_sharing documentation
+Date: Fri, 30 Dec 2022 09:17:28 +0800 (CST)
 
-Patch series "ksm: support tracking KSM-placed zero-pages", v5.
+When enabling use_zero_pages, pages_sharing cannot represent how much
+memory saved indeed.  zero_pages_sharing + pages_sharing does.  add the
+description of zero_pages_sharing.
 
-The core idea of this patch set is to enable users to perceive the number
-of any pages merged by KSM, regardless of whether use_zero_page switch has
-been turned on, so that users can know how much free memory increase is
-really due to their madvise(MERGEABLE) actions.  But the problem is, when
-enabling use_zero_pages, all empty pages will be merged with kernel zero
-pages instead of with each other as use_zero_pages is disabled, and then
-these zero-pages are no longer monitored by KSM.
-
-The motivations for me to do this contains three points:
-
-1) MADV_UNMERGEABLE and other ways to trigger unsharing will *not*
-   unshare the shared zeropage as placed by KSM (which is against the 
-   MADV_UNMERGEABLE documentation at least); see the link:
-   https://lore.kernel.org/lkml/4a3daba6-18f9-d252-697c-197f65578c44@redhat.com/
-
-2) We cannot know how many pages are zero pages placed by KSM when
-   enabling use_zero_pages, which hides the critical information about
-   how much actual memory are really saved by KSM. Knowing how many
-   ksm-placed zero pages are helpful for user to use the policy of madvise
-   (MERGEABLE) better because they can see the actual profit brought by KSM.
-
-3) The zero pages placed-by KSM are different from those initial empty page
-   (filled with zeros) which are never touched by applications. The former
-   is active-merged by KSM while the later have never consume actual memory.
-
-use_zero_pages is useful, not only because of cache colouring as described
-in doc, but also because use_zero_pages can accelerate merging empty pages
-when there are plenty of empty pages (full of zeros) as the time of
-page-by-page comparisons (unstable_tree_search_insert) is saved.  So we
-hope to implement the support for ksm zero page tracking without affecting
-the feature of use_zero_pages.
-
-Zero pages may be the most common merged pages in actual environment(not
-only VM but also including other application like containers).  Enabling
-use_zero_pages in the environment with plenty of empty pages(full of
-zeros) will be very useful.  Users and app developer can also benefit from
-knowing the proportion of zero pages in all merged pages to optimize
-applications.
-
-With the patch series, we can both unshare zero-pages(KSM-placed)
-accurately and count ksm zero pages with enabling use_zero_pages.
-
-
-This patch (of 6):
-
-A new function try_to_get_old_rmap_item is abstracted from
-get_next_rmap_item.  This function will be reused by the subsequent
-patches about counting ksm_zero_pages.
-
-The patch improves the readability and reusability of KSM code.
-
-Link: https://lkml.kernel.org/r/202212300911327101708@zte.com.cn
-Link: https://lkml.kernel.org/r/202212300912449061763@zte.com.cn
+Link: https://lkml.kernel.org/r/202212300917284911971@zte.com.cn
 Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Reviewed-by: Xiaokai Ran <ran.xiaokai@zte.com.cn>
-Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: Xiaokai Ran <ran.xiaokai@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
+Cc: Jiang Xuexin <jiang.xuexin@zte.com.cn>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Xuexin Jiang <jiang.xuexin@zte.com.cn>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/ksm.c~ksm-abstract-the-function-try_to_get_old_rmap_item
-+++ a/mm/ksm.c
-@@ -2214,23 +2214,36 @@ static void cmp_and_merge_page(struct pa
- 	}
- }
+--- a/Documentation/admin-guide/mm/ksm.rst~ksm-add-zero_pages_sharing-documentation
++++ a/Documentation/admin-guide/mm/ksm.rst
+@@ -173,6 +173,13 @@ stable_node_chains
+         the number of KSM pages that hit the ``max_page_sharing`` limit
+ stable_node_dups
+         number of duplicated KSM pages
++zero_pages_sharing
++        how many empty pages are sharing kernel zero page(s) instead of
++        with each other as it would happen normally. Only effective when
++        enabling ``use_zero_pages`` knob.
++
++When enabling ``use_zero_pages``, the sum of ``pages_sharing`` +
++``zero_pages_sharing`` represents how much really saved by KSM.
  
--static struct ksm_rmap_item *get_next_rmap_item(struct ksm_mm_slot *mm_slot,
--					    struct ksm_rmap_item **rmap_list,
--					    unsigned long addr)
-+static struct ksm_rmap_item *try_to_get_old_rmap_item(unsigned long addr,
-+					 struct ksm_rmap_item **rmap_list)
- {
--	struct ksm_rmap_item *rmap_item;
--
- 	while (*rmap_list) {
--		rmap_item = *rmap_list;
-+		struct ksm_rmap_item *rmap_item = *rmap_list;
- 		if ((rmap_item->address & PAGE_MASK) == addr)
- 			return rmap_item;
- 		if (rmap_item->address > addr)
- 			break;
- 		*rmap_list = rmap_item->rmap_list;
-+		/* Running here indicates it's vma has been UNMERGEABLE */
- 		remove_rmap_item_from_tree(rmap_item);
- 		free_rmap_item(rmap_item);
- 	}
- 
-+	return NULL;
-+}
-+
-+static struct ksm_rmap_item *get_next_rmap_item(struct ksm_mm_slot *mm_slot,
-+					    struct ksm_rmap_item **rmap_list,
-+					    unsigned long addr)
-+{
-+	struct ksm_rmap_item *rmap_item;
-+
-+	/* lookup if we have a old rmap_item matching the addr*/
-+	rmap_item = try_to_get_old_rmap_item(addr, rmap_list);
-+	if (rmap_item)
-+		return rmap_item;
-+
-+	/* Need to allocate a new rmap_item */
- 	rmap_item = alloc_rmap_item();
- 	if (rmap_item) {
- 		/* It has already been zeroed */
+ A high ratio of ``pages_sharing`` to ``pages_shared`` indicates good
+ sharing, but a high ratio of ``pages_unshared`` to ``pages_sharing``
 _
 
 Patches currently in -mm which might be from xu.xin16@zte.com.cn are
