@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6352C3DA7C
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 22:02:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 341B1C10F1B
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 22:02:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235506AbiL3WCA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Dec 2022 17:02:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47240 "EHLO
+        id S235567AbiL3WCB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Dec 2022 17:02:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235715AbiL3WBr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Dec 2022 17:01:47 -0500
+        with ESMTP id S235701AbiL3WBp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Dec 2022 17:01:45 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4600A19C37
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 14:01:45 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D9EF1CFFB
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 14:01:39 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D50E961C2E
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 22:01:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36817C433D2;
-        Fri, 30 Dec 2022 22:01:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9ECC261C18
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 22:01:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEAC6C433EF;
+        Fri, 30 Dec 2022 22:01:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672437704;
-        bh=+2TxSWeYappoOxaJut4GkbemvzvFJoEOIEKgWFAxWFA=;
+        s=korg; t=1672437698;
+        bh=xOQvza4/1IoPZNJFQkHkEEc4qzeFaDkglJ4SxFG12PA=;
         h=Date:To:From:Subject:From;
-        b=o5WMdCTf2PGquQd3BwpTReBGgfDQvamRi3kA7nKg+Fe6F5fysFL7+ASIBMPiP+Epk
-         m1rCJkdgKPGhA6J0YSzoaHkcFGrYJK+vfCvoYnz1xyVeboMGxwv4hCC0qxEsvkghc3
-         MGkKa5zlrd4NNmbAMiXufCh3p52CI9EpStKHhIig=
-Date:   Fri, 30 Dec 2022 14:01:43 -0800
+        b=IHOQvOqs4aUlVyiLzQd1o/Y6QuzcNzLWO2I0MO5YBm40LMPaXaU+cDP+EKvakdnf2
+         0NtBRGwoj9p5chEq36i1AtZuH54qlLpSvAiz5EfFt+MIcVlZ4l1z45RmkVXvOTqGca
+         cod7+UuOR+zURJaKs1p7aWi2twnko+w61JZ/mcSg=
+Date:   Fri, 30 Dec 2022 14:01:37 -0800
 To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
         ran.xiaokai@zte.com.cn, jiang.xuexin@zte.com.cn,
         imbrenda@linux.ibm.com, david@redhat.com, xu.xin16@zte.com.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-add-testing-unsharing-and-counting-ksm-zero-page.patch added to mm-unstable branch
-Message-Id: <20221230220144.36817C433D2@smtp.kernel.org>
+Subject: + ksm-support-unsharing-zero-pages-placed-by-ksm.patch added to mm-unstable branch
+Message-Id: <20221230220137.EEAC6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest: add testing unsharing and counting ksm zero page
+     Subject: ksm: support unsharing zero pages placed by KSM
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftest-add-testing-unsharing-and-counting-ksm-zero-page.patch
+     ksm-support-unsharing-zero-pages-placed-by-ksm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-add-testing-unsharing-and-counting-ksm-zero-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-support-unsharing-zero-pages-placed-by-ksm.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,187 +67,309 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: xu xin <xu.xin16@zte.com.cn>
-Subject: selftest: add testing unsharing and counting ksm zero page
-Date: Fri, 30 Dec 2022 09:18:47 +0800 (CST)
+Subject: ksm: support unsharing zero pages placed by KSM
+Date: Fri, 30 Dec 2022 09:13:57 +0800 (CST)
 
-Add a function test_unmerge_zero_page() to test the functionality on
-unsharing and counting ksm-placed zero pages and counting of this patch
-series.
+use_zero_pages may be very useful, not just because of cache colouring as
+described in doc, but also because use_zero_pages can accelerate merging
+empty pages when there are plenty of empty pages (full of zeros) as the
+time of page-by-page comparisons (unstable_tree_search_insert) is saved.
 
-test_unmerge_zero_page() actually contains three subjct test objects:
-	1) whether the count of ksm zero page can react correctly to cow
-	   (copy on write);
-	2) whether the count of ksm zero page can react correctly to unmerge;
-	3) whether ksm zero pages are really unmerged.
+But when enabling use_zero_pages, madvise(addr, len, MADV_UNMERGEABLE) and
+other ways (like write 2 to /sys/kernel/mm/ksm/run) to trigger unsharing
+will *not* actually unshare the shared zeropage as placed by KSM (which is
+against the MADV_UNMERGEABLE documentation).  As these KSM-placed zero
+pages are out of the control of KSM, the related counts of ksm pages don't
+expose how many zero pages are placed by KSM (these special zero pages are
+different from those initially mapped zero pages, because the zero pages
+mapped to MADV_UNMERGEABLE areas are expected to be a complete and
+unshared page)
 
-Link: https://lkml.kernel.org/r/202212300918477352037@zte.com.cn
+To not blindly unshare all shared zero_pages in applicable VMAs, the patch
+introduces a dedicated flag ZERO_PAGE_FLAG to mark the rmap_items of those
+shared zero_pages.  and guarantee that these rmap_items will be not freed
+during the time of zero_pages not being writing, so we can only unshare
+the *KSM-placed* zero_pages.
+
+The patch will not degrade the performance of use_zero_pages as it doesn't
+change the way of merging empty pages in use_zero_pages's feature.
+
+Link: https://lkml.kernel.org/r/202212300913573751808@zte.com.cn
 Signed-off-by: xu xin <xu.xin16@zte.com.cn>
 Reviewed-by: Xiaokai Ran <ran.xiaokai@zte.com.cn>
 Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
+Reported-by: David Hildenbrand <david@redhat.com>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Xuexin Jiang <jiang.xuexin@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/tools/testing/selftests/vm/ksm_functional_tests.c~selftest-add-testing-unsharing-and-counting-ksm-zero-page
-+++ a/tools/testing/selftests/vm/ksm_functional_tests.c
-@@ -27,6 +27,8 @@
+--- a/mm/ksm.c~ksm-support-unsharing-zero-pages-placed-by-ksm
++++ a/mm/ksm.c
+@@ -214,6 +214,7 @@ struct ksm_rmap_item {
+ #define SEQNR_MASK	0x0ff	/* low bits of unstable tree seqnr */
+ #define UNSTABLE_FLAG	0x100	/* is a node of the unstable tree */
+ #define STABLE_FLAG	0x200	/* is listed from the stable tree */
++#define ZERO_PAGE_FLAG 0x400 /* is zero page placed by KSM */
  
- static int ksm_fd;
- static int ksm_full_scans_fd;
-+static int ksm_zero_pages_fd;
-+static int ksm_use_zero_pages_fd;
- static int pagemap_fd;
- static size_t pagesize;
- 
-@@ -57,6 +59,22 @@ static bool range_maps_duplicates(char *
- 	return false;
+ /* The stable and unstable tree heads */
+ static struct rb_root one_stable_tree[1] = { RB_ROOT };
+@@ -420,6 +421,11 @@ static inline bool ksm_test_exit(struct
+ 	return atomic_read(&mm->mm_users) == 0;
  }
  
-+static bool check_ksm_zero_pages_count(unsigned long zero_size)
-+{
-+	unsigned long pages_expected = zero_size / (4 * KiB);
-+	char buf[20];
-+	ssize_t read_size;
-+	unsigned long ksm_zero_pages;
++enum break_ksm_pmd_entry_return_flag {
++	HAVE_KSM_PAGE = 1,
++	HAVE_ZERO_PAGE
++};
 +
-+	read_size = pread(ksm_zero_pages_fd, buf, sizeof(buf) - 1, 0);
-+	if (read_size < 0)
-+		return -errno;
-+	buf[read_size] = 0;
-+	ksm_zero_pages = strtol(buf, NULL, 10);
-+
-+	return ksm_zero_pages == pages_expected;
-+}
-+
- static long ksm_get_full_scans(void)
+ static int break_ksm_pmd_entry(pmd_t *pmd, unsigned long addr, unsigned long next,
+ 			struct mm_walk *walk)
  {
- 	char buf[10];
-@@ -70,15 +88,12 @@ static long ksm_get_full_scans(void)
- 	return strtol(buf, NULL, 10);
+@@ -427,6 +433,7 @@ static int break_ksm_pmd_entry(pmd_t *pm
+ 	spinlock_t *ptl;
+ 	pte_t *pte;
+ 	int ret;
++	bool is_zero_page = false;
+ 
+ 	if (pmd_leaf(*pmd) || !pmd_present(*pmd))
+ 		return 0;
+@@ -434,6 +441,8 @@ static int break_ksm_pmd_entry(pmd_t *pm
+ 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+ 	if (pte_present(*pte)) {
+ 		page = vm_normal_page(walk->vma, addr, *pte);
++		if (!page)
++			is_zero_page = is_zero_pfn(pte_pfn(*pte));
+ 	} else if (!pte_none(*pte)) {
+ 		swp_entry_t entry = pte_to_swp_entry(*pte);
+ 
+@@ -444,7 +453,14 @@ static int break_ksm_pmd_entry(pmd_t *pm
+ 		if (is_migration_entry(entry))
+ 			page = pfn_swap_entry_to_page(entry);
+ 	}
+-	ret = page && PageKsm(page);
++
++	if (page && PageKsm(page))
++		ret = HAVE_KSM_PAGE;
++	else if (is_zero_page)
++		ret = HAVE_ZERO_PAGE;
++	else
++		ret = 0;
++
+ 	pte_unmap_unlock(pte, ptl);
+ 	return ret;
  }
- 
--static int ksm_merge(void)
-+static int wait_two_full_scans(void)
+@@ -466,19 +482,22 @@ static const struct mm_walk_ops break_ks
+  * of the process that owns 'vma'.  We also do not want to enforce
+  * protection keys here anyway.
+  */
+-static int break_ksm(struct vm_area_struct *vma, unsigned long addr)
++static int break_ksm(struct vm_area_struct *vma, unsigned long addr,
++				     bool unshare_zero_page)
  {
- 	long start_scans, end_scans;
+ 	vm_fault_t ret = 0;
  
--	/* Wait for two full scans such that any possible merging happened. */
- 	start_scans = ksm_get_full_scans();
- 	if (start_scans < 0)
--		return start_scans;
--	if (write(ksm_fd, "1", 1) != 1)
- 		return -errno;
  	do {
- 		end_scans = ksm_get_full_scans();
-@@ -89,6 +104,34 @@ static int ksm_merge(void)
- 	return 0;
+-		int ksm_page;
++		int walk_result;
+ 
+ 		cond_resched();
+-		ksm_page = walk_page_range_vma(vma, addr, addr + 1,
++		walk_result = walk_page_range_vma(vma, addr, addr + 1,
+ 					       &break_ksm_ops, NULL);
+-		if (WARN_ON_ONCE(ksm_page < 0))
+-			return ksm_page;
+-		if (!ksm_page)
++		if (WARN_ON_ONCE(walk_result < 0))
++			return walk_result;
++		if (!walk_result)
++			return 0;
++		if (walk_result == HAVE_ZERO_PAGE && !unshare_zero_page)
+ 			return 0;
+ 		ret = handle_mm_fault(vma, addr,
+ 				      FAULT_FLAG_UNSHARE | FAULT_FLAG_REMOTE,
+@@ -539,7 +558,7 @@ static void break_cow(struct ksm_rmap_it
+ 	mmap_read_lock(mm);
+ 	vma = find_mergeable_vma(mm, addr);
+ 	if (vma)
+-		break_ksm(vma, addr);
++		break_ksm(vma, addr, false);
+ 	mmap_read_unlock(mm);
  }
  
-+static inline int ksm_merge(void)
-+{
-+	/* Wait for two full scans such that any possible merging happened. */
-+	if (write(ksm_fd, "1", 1) != 1)
-+		return -errno;
-+	return wait_two_full_scans();
-+}
-+
-+static inline int make_cow(char *map, char val, unsigned long size)
-+{
-+
-+	memset(map, val, size);
-+	return wait_two_full_scans();
-+}
-+
-+static int unmerge_zero_page(char *start, unsigned long size)
-+{
-+	int ret;
-+
-+	ret = madvise(start, size, MADV_UNMERGEABLE);
-+	if (ret) {
-+		ksft_test_result_fail("MADV_UNMERGEABLE failed\n");
-+		return ret;
-+	}
-+
-+	return wait_two_full_scans();
-+}
-+
- static char *mmap_and_merge_range(char val, unsigned long size)
- {
- 	char *map;
-@@ -146,6 +189,56 @@ unmap:
- 	munmap(map, size);
+@@ -765,6 +784,30 @@ stale:
  }
  
-+static void test_unmerge_zero_pages(void)
+ /*
++ * Cleaning the rmap_item's ZERO_PAGE_FLAG
++ * This function will be called when unshare or writing on zero pages.
++ */
++static inline void clean_rmap_item_zero_flag(struct ksm_rmap_item *rmap_item)
 +{
-+	const unsigned int size = 2 * MiB;
-+	char *map;
-+
-+	ksft_print_msg("[RUN] %s\n", __func__);
-+
-+	/* Confirm the interfaces*/
-+	ksm_zero_pages_fd = open("/sys/kernel/mm/ksm/zero_pages_sharing", O_RDONLY);
-+	if (ksm_zero_pages_fd < 0) {
-+		ksft_test_result_skip("open(\"/sys/kernel/mm/ksm/zero_pages_sharing\") failed\n");
-+		return;
-+	}
-+	ksm_use_zero_pages_fd = open("/sys/kernel/mm/ksm/use_zero_pages", O_RDWR);
-+	if (ksm_use_zero_pages_fd < 0) {
-+		ksft_test_result_skip("open \"/sys/kernel/mm/ksm/use_zero_pages\" failed\n");
-+		return;
-+	}
-+	if (write(ksm_use_zero_pages_fd, "1", 1) != 1) {
-+		ksft_test_result_skip("write \"/sys/kernel/mm/ksm/use_zero_pages\" failed\n");
-+		return;
-+	}
-+
-+	/* Mmap zero pages*/
-+	map = mmap_and_merge_range(0x00, size);
-+
-+	/* Case 1: make Writing on ksm zero pages (COW) */
-+	if (make_cow(map, 0xcf, size / 2)) {
-+		ksft_test_result_fail("COW failed\n");
-+		goto unmap;
-+	}
-+	ksft_test_result(check_ksm_zero_pages_count(size / 2),
-+						"zero page count react to cow\n");
-+
-+	/* Case 2: Call madvise(xxx, MADV_UNMERGEABLE)*/
-+	if (unmerge_zero_page(map + size / 2, size / 4)) {
-+		ksft_test_result_fail("unmerge_zero_page failed\n");
-+		goto unmap;
-+	}
-+	ksft_test_result(check_ksm_zero_pages_count(size / 4),
-+						"zero page count react to unmerge\n");
-+
-+	/*Check if ksm pages are really unmerged */
-+	ksft_test_result(!range_maps_duplicates(map + size / 2, size / 4),
-+						"KSM zero pages were unmerged\n");
-+
-+unmap:
-+	munmap(map, size);
++	if (rmap_item->address & ZERO_PAGE_FLAG)
++		rmap_item->address &= PAGE_MASK;
 +}
 +
- static void test_unmerge_discarded(void)
- {
- 	const unsigned int size = 2 * MiB;
-@@ -261,11 +354,13 @@ int main(int argc, char **argv)
- 	ksm_full_scans_fd = open("/sys/kernel/mm/ksm/full_scans", O_RDONLY);
- 	if (ksm_full_scans_fd < 0)
- 		ksft_exit_skip("open(\"/sys/kernel/mm/ksm/full_scans\") failed\n");
++/* Only called when rmap_item is going to be freed */
++static inline void unshare_zero_pages(struct ksm_rmap_item *rmap_item)
++{
++	struct vm_area_struct *vma;
 +
- 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
- 	if (pagemap_fd < 0)
- 		ksft_exit_skip("open(\"/proc/self/pagemap\") failed\n");
++	if (rmap_item->address & ZERO_PAGE_FLAG) {
++		vma = vma_lookup(rmap_item->mm, rmap_item->address);
++		if (vma && !ksm_test_exit(rmap_item->mm))
++			break_ksm(vma, rmap_item->address, true);
++	}
++	/* Put at last. */
++	clean_rmap_item_zero_flag(rmap_item);
++}
++
++/*
+  * Removing rmap_item from stable or unstable tree.
+  * This function will clean the information from the stable/unstable tree.
+  */
+@@ -824,6 +867,7 @@ static void remove_trailing_rmap_items(s
+ 		struct ksm_rmap_item *rmap_item = *rmap_list;
+ 		*rmap_list = rmap_item->rmap_list;
+ 		remove_rmap_item_from_tree(rmap_item);
++		unshare_zero_pages(rmap_item);
+ 		free_rmap_item(rmap_item);
+ 	}
+ }
+@@ -853,7 +897,7 @@ static int unmerge_ksm_pages(struct vm_a
+ 		if (signal_pending(current))
+ 			err = -ERESTARTSYS;
+ 		else
+-			err = break_ksm(vma, addr);
++			err = break_ksm(vma, addr, false);
+ 	}
+ 	return err;
+ }
+@@ -2044,6 +2088,39 @@ static void stable_tree_append(struct ks
+ 	rmap_item->mm->ksm_merging_pages++;
+ }
  
- 	test_unmerge();
-+	test_unmerge_zero_pages();
- 	test_unmerge_discarded();
- #ifdef __NR_userfaultfd
- 	test_unmerge_uffd_wp();
++static int try_to_merge_with_kernel_zero_page(struct ksm_rmap_item *rmap_item,
++									struct page *page)
++{
++	struct mm_struct *mm = rmap_item->mm;
++	int err = 0;
++
++	/*
++	 * It should not take ZERO_PAGE_FLAG because on one hand,
++	 * get_next_rmap_item don't return zero pages' rmap_item.
++	 * On the other hand, even if zero page was writen as
++	 * anonymous page, rmap_item has been cleaned after
++	 * stable_tree_search
++	 */
++	if (!WARN_ON_ONCE(rmap_item->address & ZERO_PAGE_FLAG)) {
++		struct vm_area_struct *vma;
++
++		mmap_read_lock(mm);
++		vma = find_mergeable_vma(mm, rmap_item->address);
++		if (vma) {
++			err = try_to_merge_one_page(vma, page,
++						ZERO_PAGE(rmap_item->address));
++			if (!err)
++				rmap_item->address |= ZERO_PAGE_FLAG;
++		} else {
++			/* If the vma is out of date, we do not need to continue. */
++			err = 0;
++		}
++		mmap_read_unlock(mm);
++	}
++
++	return err;
++}
++
+ /*
+  * cmp_and_merge_page - first see if page can be merged into the stable tree;
+  * if not, compare checksum to previous and if it's the same, see if page can
+@@ -2055,7 +2132,6 @@ static void stable_tree_append(struct ks
+  */
+ static void cmp_and_merge_page(struct page *page, struct ksm_rmap_item *rmap_item)
+ {
+-	struct mm_struct *mm = rmap_item->mm;
+ 	struct ksm_rmap_item *tree_rmap_item;
+ 	struct page *tree_page = NULL;
+ 	struct ksm_stable_node *stable_node;
+@@ -2092,6 +2168,7 @@ static void cmp_and_merge_page(struct pa
+ 	}
+ 
+ 	remove_rmap_item_from_tree(rmap_item);
++	clean_rmap_item_zero_flag(rmap_item);
+ 
+ 	if (kpage) {
+ 		if (PTR_ERR(kpage) == -EBUSY)
+@@ -2128,29 +2205,16 @@ static void cmp_and_merge_page(struct pa
+ 	 * Same checksum as an empty page. We attempt to merge it with the
+ 	 * appropriate zero page if the user enabled this via sysfs.
+ 	 */
+-	if (ksm_use_zero_pages && (checksum == zero_checksum)) {
+-		struct vm_area_struct *vma;
+-
+-		mmap_read_lock(mm);
+-		vma = find_mergeable_vma(mm, rmap_item->address);
+-		if (vma) {
+-			err = try_to_merge_one_page(vma, page,
+-					ZERO_PAGE(rmap_item->address));
+-		} else {
++	if (ksm_use_zero_pages) {
++		if (checksum == zero_checksum)
+ 			/*
+-			 * If the vma is out of date, we do not need to
+-			 * continue.
++			 * In case of failure, the page was not really empty, so we
++			 * need to continue. Otherwise we're done.
+ 			 */
+-			err = 0;
+-		}
+-		mmap_read_unlock(mm);
+-		/*
+-		 * In case of failure, the page was not really empty, so we
+-		 * need to continue. Otherwise we're done.
+-		 */
+-		if (!err)
+-			return;
++			if (!try_to_merge_with_kernel_zero_page(rmap_item, page))
++				return;
+ 	}
++
+ 	tree_rmap_item =
+ 		unstable_tree_search_insert(rmap_item, page, &tree_page);
+ 	if (tree_rmap_item) {
+@@ -2226,6 +2290,7 @@ static struct ksm_rmap_item *try_to_get_
+ 		*rmap_list = rmap_item->rmap_list;
+ 		/* Running here indicates it's vma has been UNMERGEABLE */
+ 		remove_rmap_item_from_tree(rmap_item);
++		unshare_zero_pages(rmap_item);
+ 		free_rmap_item(rmap_item);
+ 	}
+ 
+@@ -2350,6 +2415,22 @@ next_mm:
+ 			}
+ 			if (is_zone_device_page(*page))
+ 				goto next_page;
++			if (is_zero_pfn(page_to_pfn(*page))) {
++				/*
++				 * To monitor ksm zero pages which becomes non-anonymous,
++				 * we have to save each rmap_item of zero pages by
++				 * try_to_get_old_rmap_item() walking on
++				 * ksm_scan.rmap_list, otherwise their rmap_items will be
++				 * freed by the next turn of get_next_rmap_item(). The
++				 * function get_next_rmap_item() will free all "skipped"
++				 * rmap_items because it thinks its areas as UNMERGEABLE.
++				 */
++				rmap_item = try_to_get_old_rmap_item(ksm_scan.address,
++									ksm_scan.rmap_list);
++				if (rmap_item && (rmap_item->address & ZERO_PAGE_FLAG))
++					ksm_scan.rmap_list = &rmap_item->rmap_list;
++				goto next_page;
++			}
+ 			if (PageAnon(*page)) {
+ 				flush_anon_page(vma, *page, ksm_scan.address);
+ 				flush_dcache_page(*page);
 _
 
 Patches currently in -mm which might be from xu.xin16@zte.com.cn are
