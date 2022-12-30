@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9BABC4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 21:52:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C1C7C3DA7D
+	for <mm-commits@archiver.kernel.org>; Fri, 30 Dec 2022 21:52:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235391AbiL3Vwv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 30 Dec 2022 16:52:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43678 "EHLO
+        id S229527AbiL3Vww (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 30 Dec 2022 16:52:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235478AbiL3Vwr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Dec 2022 16:52:47 -0500
+        with ESMTP id S235497AbiL3Vws (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Dec 2022 16:52:48 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AB871CFE5
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 13:52:46 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 213AD1CFE6
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 13:52:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3589561C27
-        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 21:52:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BB05C433EF;
-        Fri, 30 Dec 2022 21:52:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AECD461C27
+        for <mm-commits@vger.kernel.org>; Fri, 30 Dec 2022 21:52:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12D12C433D2;
+        Fri, 30 Dec 2022 21:52:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672437165;
-        bh=K4ovvTA+qaJi22wbtSodzktkYHASaR0jOGCQNyDXusE=;
+        s=korg; t=1672437167;
+        bh=yhFB3ezoMbLtPIspM/L57ngDyMqv5vLdkontaHdyVIY=;
         h=Date:To:From:Subject:From;
-        b=un0oXMctABgCAHxZ7oVQU8LardgMfBOoIk9psYf2WvYwIoGYYXO2Jyl9S8sppjoxq
-         R3Q4IXHMPc/zVQkf2IbKSeHwyFOwhXSeCZ/qy5yYnF9MwW1FY+nCpIUcEDYK8HpL2I
-         C93Fl8wUsT0Fo4yzTwwVwF/Tj9yoQlpbgezvuZcU=
-Date:   Fri, 30 Dec 2022 13:52:44 -0800
+        b=N7CJOk0sVa3yTadx4r1NSXKfRUHOZMTfWqD9yeZz8RYqyrgKhjGP1GApd6ylK75lU
+         j6HT5Yksp3hLcyvRPiQf02Vy6TbObCb2MHbjFNsYx25d86TOALkZ8Q8JdAvYnbDs/K
+         FXMDLIxLg4LXT0iXvLPcVkjNWr0eECBD1xpm6Ahg=
+Date:   Fri, 30 Dec 2022 13:52:46 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, sj@kernel.org, david@redhat.com,
         wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-remove-unneeded-damon_get_page.patch added to mm-unstable branch
-Message-Id: <20221230215245.8BB05C433EF@smtp.kernel.org>
+Subject: + mm-damon-vaddr-convert-hugetlb-related-functions-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20221230215247.12D12C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: remove unneeded damon_get_page()
+     Subject: mm/damon/vaddr: convert hugetlb related functions to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-remove-unneeded-damon_get_page.patch
+     mm-damon-vaddr-convert-hugetlb-related-functions-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-unneeded-damon_get_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-convert-hugetlb-related-functions-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,13 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm/damon: remove unneeded damon_get_page()
-Date: Fri, 30 Dec 2022 15:08:48 +0800
+Subject: mm/damon/vaddr: convert hugetlb related functions to use a folio
+Date: Fri, 30 Dec 2022 15:08:49 +0800
 
-After all damon_get_page() callers are converted to damon_get_folio(),
-remove unneeded wrapper damon_get_page().
+Convert damon_hugetlb_mkold() and damon_young_hugetlb_entry() to
+use a folio.
 
-Link: https://lkml.kernel.org/r/20221230070849.63358-8-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20221230070849.63358-9-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -82,22 +82,64 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/damon/ops-common.h~mm-damon-remove-unneeded-damon_get_page
-+++ a/mm/damon/ops-common.h
-@@ -8,13 +8,6 @@
- #include <linux/damon.h>
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-convert-hugetlb-related-functions-to-use-a-folio
++++ a/mm/damon/vaddr.c
+@@ -335,9 +335,9 @@ static void damon_hugetlb_mkold(pte_t *p
+ {
+ 	bool referenced = false;
+ 	pte_t entry = huge_ptep_get(pte);
+-	struct page *page = pte_page(entry);
++	struct folio *folio = pfn_folio(pte_pfn(entry));
  
- struct folio *damon_get_folio(unsigned long pfn);
--static inline struct page *damon_get_page(unsigned long pfn)
--{
--	struct folio *folio = damon_get_folio(pfn);
--
--	/* when folio is NULL, return &(0->page) mean return NULL */
--	return &folio->page;
--}
+-	get_page(page);
++	folio_get(folio);
  
- void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm, unsigned long addr);
- void damon_pmdp_mkold(pmd_t *pmd, struct mm_struct *mm, unsigned long addr);
+ 	if (pte_young(entry)) {
+ 		referenced = true;
+@@ -352,10 +352,10 @@ static void damon_hugetlb_mkold(pte_t *p
+ #endif /* CONFIG_MMU_NOTIFIER */
+ 
+ 	if (referenced)
+-		set_page_young(page);
++		folio_set_young(folio);
+ 
+-	set_page_idle(page);
+-	put_page(page);
++	folio_set_idle(folio);
++	folio_put(folio);
+ }
+ 
+ static int damon_mkold_hugetlb_entry(pte_t *pte, unsigned long hmask,
+@@ -490,7 +490,7 @@ static int damon_young_hugetlb_entry(pte
+ {
+ 	struct damon_young_walk_private *priv = walk->private;
+ 	struct hstate *h = hstate_vma(walk->vma);
+-	struct page *page;
++	struct folio *folio;
+ 	spinlock_t *ptl;
+ 	pte_t entry;
+ 
+@@ -499,16 +499,16 @@ static int damon_young_hugetlb_entry(pte
+ 	if (!pte_present(entry))
+ 		goto out;
+ 
+-	page = pte_page(entry);
+-	get_page(page);
++	folio = pfn_folio(pte_pfn(entry));
++	folio_get(folio);
+ 
+-	if (pte_young(entry) || !page_is_idle(page) ||
++	if (pte_young(entry) || !folio_test_idle(folio) ||
+ 	    mmu_notifier_test_young(walk->mm, addr)) {
+ 		*priv->page_sz = huge_page_size(h);
+ 		priv->young = true;
+ 	}
+ 
+-	put_page(page);
++	folio_put(folio);
+ 
+ out:
+ 	spin_unlock(ptl);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
