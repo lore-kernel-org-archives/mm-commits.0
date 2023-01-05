@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FAD1C46467
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Jan 2023 01:39:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11E58C54E76
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Jan 2023 01:47:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229688AbjAEBjM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Jan 2023 20:39:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60346 "EHLO
+        id S229447AbjAEBrT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Jan 2023 20:47:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229660AbjAEBjI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2023 20:39:08 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F6B12011;
-        Wed,  4 Jan 2023 17:39:07 -0800 (PST)
+        with ESMTP id S229787AbjAEBqy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2023 20:46:54 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E7BD2F786
+        for <mm-commits@vger.kernel.org>; Wed,  4 Jan 2023 17:46:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CD074618BB;
-        Thu,  5 Jan 2023 01:39:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3183EC433D2;
-        Thu,  5 Jan 2023 01:39:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2AD7C618BB
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 01:46:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C908C433F0;
+        Thu,  5 Jan 2023 01:46:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672882746;
-        bh=BSTAnrWPIkm/Pe5UI9idcxx0FoqY/+2cqEy5WZiN3B4=;
+        s=korg; t=1672883212;
+        bh=oacNmnBnhNdb6kxTgCIOvvet4EFRozABT4VV+ArIKu4=;
         h=Date:To:From:Subject:From;
-        b=M4R34xrTH9oUApyb9hit4JgYy8zgxKBRwAgQ30a7OCjXOGnpS3a69mpPMo6Bmj2WI
-         mcfSAqsQ4EebBfmReW+XOoLkiu+ZfWxLBZhLgpYQg+2i5GVa+6qym5MqiDVD/L5WeB
-         pJwEatD+ympBfZzjFNfdgSaNVcg0PtZ0FKDMiZQY=
-Date:   Wed, 04 Jan 2023 17:39:05 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        pasha.tatashin@soleen.com, hughd@google.com, david@redhat.com,
-        surenb@google.com, akpm@linux-foundation.org
+        b=AsGE52LAwpGASg6oCzz624jb3qoVHH/VOIqxQsaywMSrmH05nxW0h/MPF3TbOlz17
+         lbvmHmNCFIQ0Gz7dbxovxF52SW7alL0HAo+LmiVEFblSZ49RA1LzGyY4ZWCBu2CYNV
+         9QOvXghLB4PEweJ4AbtWcH7EOcbciNnYoSgTbjfQ=
+Date:   Wed, 04 Jan 2023 17:46:51 -0800
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        peterx@redhat.com, mike.kravetz@oracle.com,
+        axelrasmussen@google.com, jthoughton@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-vma-anon_name-memory-leak-for-anonymous-shmem-vmas.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230105013906.3183EC433D2@smtp.kernel.org>
+Subject: + hugetlb-unshare-some-pmds-when-splitting-vmas.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230105014652.7C908C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix vma->anon_name memory leak for anonymous shmem VMAs
+     Subject: hugetlb: unshare some PMDs when splitting VMAs
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-vma-anon_name-memory-leak-for-anonymous-shmem-vmas.patch
+     hugetlb-unshare-some-pmds-when-splitting-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-vma-anon_name-memory-leak-for-anonymous-shmem-vmas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-unshare-some-pmds-when-splitting-vmas.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,45 +66,126 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: fix vma->anon_name memory leak for anonymous shmem VMAs
-Date: Wed, 4 Jan 2023 16:02:40 -0800
+From: James Houghton <jthoughton@google.com>
+Subject: hugetlb: unshare some PMDs when splitting VMAs
+Date: Wed, 4 Jan 2023 23:19:10 +0000
 
-free_anon_vma_name() is missing a check for anonymous shmem VMA which
-leads to a memory leak due to refcount not being dropped.  Fix this by
-calling anon_vma_name_put() unconditionally.  It will free vma->anon_name
-whenever it's non-NULL.
+PMD sharing can only be done in PUD_SIZE-aligned pieces of VMAs; however,
+it is possible that HugeTLB VMAs are split without unsharing the PMDs
+first.
 
-Link: https://lkml.kernel.org/r/20230105000241.1450843-1-surenb@google.com
-Fixes: d09e8ca6cb93 ("mm: anonymous shared memory naming")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reported-by: syzbot+91edf9178386a07d06a7@syzkaller.appspotmail.com
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: <stable@vger.kernel.org>
+Without this fix, it is possible to hit the uffd-wp-related WARN_ON_ONCE
+in hugetlb_change_protection [1].  The key there is that
+hugetlb_unshare_all_pmds will not attempt to unshare PMDs in
+non-PUD_SIZE-aligned sections of the VMA.
+
+It might seem ideal to unshare in hugetlb_vm_op_open, but we need to
+unshare in both the new and old VMAs, so unsharing in hugetlb_vm_op_split
+seems natural.
+
+[1]: https://lore.kernel.org/linux-mm/CADrL8HVeOkj0QH5VZZbRzybNE8CG-tEGFshnA+bG9nMgcWtBSg@mail.gmail.com/
+
+Link: https://lkml.kernel.org/r/20230104231910.1464197-1-jthoughton@google.com
+Fixes: 6dfeaff93be1 ("hugetlb/userfaultfd: unshare all pmds for hugetlbfs when register wp")
+Signed-off-by: James Houghton <jthoughton@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/hugetlb.c |   44 +++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 35 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-fix-vma-anon_name-memory-leak-for-anonymous-shmem-vmas
-+++ a/include/linux/mm_inline.h
-@@ -413,8 +413,7 @@ static inline void free_anon_vma_name(st
- 	 * Not using anon_vma_name because it generates a warning if mmap_lock
- 	 * is not held, which might be the case here.
- 	 */
--	if (!vma->vm_file)
--		anon_vma_name_put(vma->anon_name);
-+	anon_vma_name_put(vma->anon_name);
+--- a/mm/hugetlb.c~hugetlb-unshare-some-pmds-when-splitting-vmas
++++ a/mm/hugetlb.c
+@@ -94,6 +94,8 @@ static int hugetlb_acct_memory(struct hs
+ static void hugetlb_vma_lock_free(struct vm_area_struct *vma);
+ static void hugetlb_vma_lock_alloc(struct vm_area_struct *vma);
+ static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma);
++static void hugetlb_unshare_pmds(struct vm_area_struct *vma,
++		unsigned long start, unsigned long end);
+ 
+ static inline bool subpool_is_free(struct hugepage_subpool *spool)
+ {
+@@ -4834,6 +4836,25 @@ static int hugetlb_vm_op_split(struct vm
+ {
+ 	if (addr & ~(huge_page_mask(hstate_vma(vma))))
+ 		return -EINVAL;
++
++	/*
++	 * PMD sharing is only possible for PUD_SIZE-aligned address ranges
++	 * in HugeTLB VMAs. If we will lose PUD_SIZE alignment due to this
++	 * split, unshare PMDs in the PUD_SIZE interval surrounding addr now.
++	 */
++	if (addr & ~PUD_MASK) {
++		/*
++		 * hugetlb_vm_op_split is called right before we attempt to
++		 * split the VMA. We will need to unshare PMDs in the old and
++		 * new VMAs, so let's unshare before we split.
++		 */
++		unsigned long floor = addr & PUD_MASK;
++		unsigned long ceil = floor + PUD_SIZE;
++
++		if (floor >= vma->vm_start && ceil <= vma->vm_end)
++			hugetlb_unshare_pmds(vma, floor, ceil);
++	}
++
+ 	return 0;
  }
  
- static inline bool anon_vma_name_eq(struct anon_vma_name *anon_name1,
+@@ -7322,26 +7343,21 @@ void move_hugetlb_state(struct folio *ol
+ 	}
+ }
+ 
+-/*
+- * This function will unconditionally remove all the shared pmd pgtable entries
+- * within the specific vma for a hugetlbfs memory range.
+- */
+-void hugetlb_unshare_all_pmds(struct vm_area_struct *vma)
++static void hugetlb_unshare_pmds(struct vm_area_struct *vma,
++				   unsigned long start,
++				   unsigned long end)
+ {
+ 	struct hstate *h = hstate_vma(vma);
+ 	unsigned long sz = huge_page_size(h);
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct mmu_notifier_range range;
+-	unsigned long address, start, end;
++	unsigned long address;
+ 	spinlock_t *ptl;
+ 	pte_t *ptep;
+ 
+ 	if (!(vma->vm_flags & VM_MAYSHARE))
+ 		return;
+ 
+-	start = ALIGN(vma->vm_start, PUD_SIZE);
+-	end = ALIGN_DOWN(vma->vm_end, PUD_SIZE);
+-
+ 	if (start >= end)
+ 		return;
+ 
+@@ -7373,6 +7389,16 @@ void hugetlb_unshare_all_pmds(struct vm_
+ 	mmu_notifier_invalidate_range_end(&range);
+ }
+ 
++/*
++ * This function will unconditionally remove all the shared pmd pgtable entries
++ * within the specific vma for a hugetlbfs memory range.
++ */
++void hugetlb_unshare_all_pmds(struct vm_area_struct *vma)
++{
++	hugetlb_unshare_pmds(vma, ALIGN(vma->vm_start, PUD_SIZE),
++			ALIGN_DOWN(vma->vm_end, PUD_SIZE));
++}
++
+ #ifdef CONFIG_CMA
+ static bool cma_reserve_called __initdata;
+ 
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from jthoughton@google.com are
 
-mm-fix-vma-anon_name-memory-leak-for-anonymous-shmem-vmas.patch
+hugetlb-unshare-some-pmds-when-splitting-vmas.patch
 
