@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BB9EC53210
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Jan 2023 01:52:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57BBEC46467
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Jan 2023 01:57:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229812AbjAEBwP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Jan 2023 20:52:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38072 "EHLO
+        id S229508AbjAEB4a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Jan 2023 20:56:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40096 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229872AbjAEBwJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2023 20:52:09 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45FAD1DDF2
-        for <mm-commits@vger.kernel.org>; Wed,  4 Jan 2023 17:52:07 -0800 (PST)
+        with ESMTP id S229888AbjAEB4O (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2023 20:56:14 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8940F2F798
+        for <mm-commits@vger.kernel.org>; Wed,  4 Jan 2023 17:56:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D69E8618A6
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 01:52:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39900C433EF;
-        Thu,  5 Jan 2023 01:52:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 40117B81716
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 01:56:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E93F4C433D2;
+        Thu,  5 Jan 2023 01:56:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672883526;
-        bh=xnv3S0iLmAsku+N6gE6cA2GHMJmum8hOEVEQ9SEsL1c=;
+        s=korg; t=1672883770;
+        bh=8PaZlN3y0vVGlvplNN853Nclm/HH8ocs+icgt9/OO48=;
         h=Date:To:From:Subject:From;
-        b=vtK4/4P4TvgVBKM4R4Izda0guwyKtV4/8LmAXIQocvOLoSNXfqFl/utt/FT5M4DMb
-         p8mTZ7DROjBOuNiwvPEF8zkQSqvnt0DQpcn+V6a8Ko6HBfmO/m+849vag/tXiBPZS6
-         uNnkCxQr5wySIiDV/uSeuX2PqcJtmhxQUMwBpRaM=
-Date:   Wed, 04 Jan 2023 17:52:05 -0800
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        nadav.amit@gmail.com, mike.kravetz@oracle.com,
-        jthoughton@google.com, david@redhat.com, axelrasmussen@google.com,
-        aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
+        b=zru8uhvazeL68HwkZ7+qGOIbI5ra34l85h6RBk1qUjiGyqN1AvZ9MM57YsOBrILeH
+         LcpfSwnXogLcp9SXrhX2I0VCnkVpr7cMtovV1EFPJa686PqiMGgbGDDJwi+N6DUCYS
+         m1DGJTaQHML7pIppDT9QYh5mO3HF9kAFaiHdcko8=
+Date:   Wed, 04 Jan 2023 17:56:09 -0800
+To:     mm-commits@vger.kernel.org, peterx@redhat.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-uffd-detect-pgtable-allocation-failures.patch added to mm-unstable branch
-Message-Id: <20230105015206.39900C433EF@smtp.kernel.org>
+Subject: + mm-uffd-detect-pgtable-allocation-failures-checkpatch-fixes.patch added to mm-unstable branch
+Message-Id: <20230105015609.E93F4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/uffd: detect pgtable allocation failures
+     Subject: mm-uffd-detect-pgtable-allocation-failures-checkpatch-fixes
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-uffd-detect-pgtable-allocation-failures.patch
+     mm-uffd-detect-pgtable-allocation-failures-checkpatch-fixes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uffd-detect-pgtable-allocation-failures.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uffd-detect-pgtable-allocation-failures-checkpatch-fixes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,310 +64,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/uffd: detect pgtable allocation failures
-Date: Wed, 4 Jan 2023 17:52:07 -0500
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-uffd-detect-pgtable-allocation-failures-checkpatch-fixes
+Date: Wed Jan  4 05:54:55 PM PST 2023
 
-Before this patch, when there's any pgtable allocation issues happened
-during change_protection(), the error will be ignored from the syscall. 
-For shmem, there will be an error dumped into the host dmesg.  Two issues
-with that:
+WARNING: Statements should start on a tabstop
+#127: FILE: mm/mprotect.c:353:
++		  long err = 0;						\
 
-  (1) Doing a trace dump when allocation fails is not anything close to
-      grace..
+WARNING: Statements should start on a tabstop
+#128: FILE: mm/mprotect.c:354:
++		  if (unlikely(uffd_wp_protect_file(vma, cp_flags))) {	\
 
-  (2) The user should be notified with any kind of such error, so the user
-      can trap it and decide what to do next, either by retrying, or stop
-      the process properly, or anything else.
+WARNING: suspect code indent for conditional statements (18, 26)
+#128: FILE: mm/mprotect.c:354:
++		  if (unlikely(uffd_wp_protect_file(vma, cp_flags))) {	\
++			  low##_t *p = low##_alloc(vma->vm_mm, high, addr); \
 
-For userfault users, this will change the API of UFFDIO_WRITEPROTECT when
-pgtable allocation failure happened.  It should not normally break anyone,
-though.  If it breaks, then in good ways.
+ERROR: need consistent spacing around '*' (ctx:WxV)
+#129: FILE: mm/mprotect.c:355:
++			  low##_t *p = low##_alloc(vma->vm_mm, high, addr); \
+ 			          ^
 
-One man-page update will be on the way to introduce the new -ENOMEM for
-UFFDIO_WRITEPROTECT.  Not marking stable so we keep the old behavior on
-the 5.19-till-now kernels.
+WARNING: Statements should start on a tabstop
+#130: FILE: mm/mprotect.c:356:
++			  if (p == NULL)				\
 
-Link: https://lkml.kernel.org/r/20230104225207.1066932-4-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: James Houghton <jthoughton@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
+WARNING: suspect code indent for conditional statements (26, 34)
+#130: FILE: mm/mprotect.c:356:
++			  if (p == NULL)				\
++				  err = -ENOMEM;			\
+
+total: 1 errors, 5 warnings, 219 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-uffd-detect-pgtable-allocation-failures.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/userfaultfd_k.h |    2 
- mm/hugetlb.c                  |    6 +-
- mm/mempolicy.c                |    2 
- mm/mprotect.c                 |   69 ++++++++++++++++++++------------
- mm/userfaultfd.c              |   16 +++++--
- 5 files changed, 62 insertions(+), 33 deletions(-)
+ mm/mprotect.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/include/linux/userfaultfd_k.h~mm-uffd-detect-pgtable-allocation-failures
-+++ a/include/linux/userfaultfd_k.h
-@@ -73,7 +73,7 @@ extern ssize_t mcopy_continue(struct mm_
- extern int mwriteprotect_range(struct mm_struct *dst_mm,
- 			       unsigned long start, unsigned long len,
- 			       bool enable_wp, atomic_t *mmap_changing);
--extern void uffd_wp_range(struct mm_struct *dst_mm, struct vm_area_struct *vma,
-+extern long uffd_wp_range(struct mm_struct *dst_mm, struct vm_area_struct *vma,
- 			  unsigned long start, unsigned long len, bool enable_wp);
- 
- /* mm helpers */
---- a/mm/hugetlb.c~mm-uffd-detect-pgtable-allocation-failures
-+++ a/mm/hugetlb.c
-@@ -6660,8 +6660,10 @@ long hugetlb_change_protection(struct vm
- 			 * pre-allocations to install pte markers.
- 			 */
- 			ptep = huge_pte_alloc(mm, vma, address, psize);
--			if (!ptep)
-+			if (!ptep) {
-+				pages = -ENOMEM;
- 				break;
-+			}
- 		}
- 		ptl = huge_pte_lock(h, mm, ptep);
- 		if (huge_pmd_unshare(mm, vma, address, ptep)) {
-@@ -6751,7 +6753,7 @@ long hugetlb_change_protection(struct vm
- 	hugetlb_vma_unlock_write(vma);
- 	mmu_notifier_invalidate_range_end(&range);
- 
--	return pages << h->order;
-+	return pages > 0 ? (pages << h->order) : pages;
- }
- 
- /* Return true if reservation was successful, false otherwise.  */
---- a/mm/mempolicy.c~mm-uffd-detect-pgtable-allocation-failures
-+++ a/mm/mempolicy.c
-@@ -636,7 +636,7 @@ unsigned long change_prot_numa(struct vm
- 	tlb_gather_mmu(&tlb, vma->vm_mm);
- 
- 	nr_updated = change_protection(&tlb, vma, addr, end, MM_CP_PROT_NUMA);
--	if (nr_updated)
-+	if (nr_updated > 0)
- 		count_vm_numa_events(NUMA_PTE_UPDATES, nr_updated);
- 
- 	tlb_finish_mmu(&tlb);
---- a/mm/mprotect.c~mm-uffd-detect-pgtable-allocation-failures
+--- a/mm/mprotect.c~mm-uffd-detect-pgtable-allocation-failures-checkpatch-fixes
 +++ a/mm/mprotect.c
-@@ -330,28 +330,34 @@ uffd_wp_protect_file(struct vm_area_stru
- /*
-  * If wr-protecting the range for file-backed, populate pgtable for the case
-  * when pgtable is empty but page cache exists.  When {pte|pmd|...}_alloc()
-- * failed it means no memory, we don't have a better option but stop.
-+ * failed we treat it the same way as pgtable allocation failures during
-+ * page faults by kicking OOM and returning error.
-  */
- #define  change_pmd_prepare(vma, pmd, cp_flags)				\
--	do {								\
-+	({								\
-+		long err = 0;						\
- 		if (unlikely(uffd_wp_protect_file(vma, cp_flags))) {	\
--			if (WARN_ON_ONCE(pte_alloc(vma->vm_mm, pmd)))	\
--				break;					\
-+			if (pte_alloc(vma->vm_mm, pmd))			\
-+				err = -ENOMEM;				\
- 		}							\
--	} while (0)
-+		err;							\
-+	})
-+
- /*
-  * This is the general pud/p4d/pgd version of change_pmd_prepare(). We need to
-  * have separate change_pmd_prepare() because pte_alloc() returns 0 on success,
-  * while {pmd|pud|p4d}_alloc() returns the valid pointer on success.
+@@ -350,14 +350,14 @@ uffd_wp_protect_file(struct vm_area_stru
   */
  #define  change_prepare(vma, high, low, addr, cp_flags)			\
--	do {								\
--		if (unlikely(uffd_wp_protect_file(vma, cp_flags))) {	\
--			low##_t *p = low##_alloc(vma->vm_mm, high, addr); \
--			if (WARN_ON_ONCE(p == NULL))			\
--				break;					\
--		}							\
--	} while (0)
-+	  ({								\
-+		  long err = 0;						\
-+		  if (unlikely(uffd_wp_protect_file(vma, cp_flags))) {	\
-+			  low##_t *p = low##_alloc(vma->vm_mm, high, addr); \
-+			  if (p == NULL)				\
-+				  err = -ENOMEM;			\
-+		  }							\
-+		  err;							\
-+	  })
+ 	  ({								\
+-		  long err = 0;						\
+-		  if (unlikely(uffd_wp_protect_file(vma, cp_flags))) {	\
+-			  low##_t *p = low##_alloc(vma->vm_mm, high, addr); \
+-			  if (p == NULL)				\
+-				  err = -ENOMEM;			\
+-		  }							\
+-		  err;							\
+-	  })
++		long err = 0;						\
++		if (unlikely(uffd_wp_protect_file(vma, cp_flags))) {	\
++			low##_t *p = low##_alloc(vma->vm_mm, high, addr); \
++			if (p == NULL)					\
++				err = -ENOMEM;				\
++		}							\
++		err;							\
++	})
  
  static inline long change_pmd_range(struct mmu_gather *tlb,
  		struct vm_area_struct *vma, pud_t *pud, unsigned long addr,
-@@ -367,11 +373,15 @@ static inline long change_pmd_range(stru
- 
- 	pmd = pmd_offset(pud, addr);
- 	do {
--		long this_pages;
-+		long ret;
- 
- 		next = pmd_addr_end(addr, end);
- 
--		change_pmd_prepare(vma, pmd, cp_flags);
-+		ret = change_pmd_prepare(vma, pmd, cp_flags);
-+		if (ret) {
-+			pages = ret;
-+			break;
-+		}
- 		/*
- 		 * Automatic NUMA balancing walks the tables with mmap_lock
- 		 * held for read. It's possible a parallel update to occur
-@@ -401,7 +411,11 @@ static inline long change_pmd_range(stru
- 				 * cleared; make sure pmd populated if
- 				 * necessary, then fall-through to pte level.
- 				 */
--				change_pmd_prepare(vma, pmd, cp_flags);
-+				ret = change_pmd_prepare(vma, pmd, cp_flags);
-+				if (ret) {
-+					pages = ret;
-+					break;
-+				}
- 			} else {
- 				/*
- 				 * change_huge_pmd() does not defer TLB flushes,
-@@ -422,9 +436,8 @@ static inline long change_pmd_range(stru
- 			}
- 			/* fall through, the trans huge pmd just split */
- 		}
--		this_pages = change_pte_range(tlb, vma, pmd, addr, next,
--					      newprot, cp_flags);
--		pages += this_pages;
-+		pages += change_pte_range(tlb, vma, pmd, addr, next,
-+					  newprot, cp_flags);
- next:
- 		cond_resched();
- 	} while (pmd++, addr = next, addr != end);
-@@ -443,12 +456,14 @@ static inline long change_pud_range(stru
- {
- 	pud_t *pud;
- 	unsigned long next;
--	long pages = 0;
-+	long pages = 0, ret;
- 
- 	pud = pud_offset(p4d, addr);
- 	do {
- 		next = pud_addr_end(addr, end);
--		change_prepare(vma, pud, pmd, addr, cp_flags);
-+		ret = change_prepare(vma, pud, pmd, addr, cp_flags);
-+		if (ret)
-+			return ret;
- 		if (pud_none_or_clear_bad(pud))
- 			continue;
- 		pages += change_pmd_range(tlb, vma, pud, addr, next, newprot,
-@@ -464,12 +479,14 @@ static inline long change_p4d_range(stru
- {
- 	p4d_t *p4d;
- 	unsigned long next;
--	long pages = 0;
-+	long pages = 0, ret;
- 
- 	p4d = p4d_offset(pgd, addr);
- 	do {
- 		next = p4d_addr_end(addr, end);
--		change_prepare(vma, p4d, pud, addr, cp_flags);
-+		ret = change_prepare(vma, p4d, pud, addr, cp_flags);
-+		if (ret)
-+			return ret;
- 		if (p4d_none_or_clear_bad(p4d))
- 			continue;
- 		pages += change_pud_range(tlb, vma, p4d, addr, next, newprot,
-@@ -486,14 +503,18 @@ static long change_protection_range(stru
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgd_t *pgd;
- 	unsigned long next;
--	long pages = 0;
-+	long pages = 0, ret;
- 
- 	BUG_ON(addr >= end);
- 	pgd = pgd_offset(mm, addr);
- 	tlb_start_vma(tlb, vma);
- 	do {
- 		next = pgd_addr_end(addr, end);
--		change_prepare(vma, pgd, p4d, addr, cp_flags);
-+		ret = change_prepare(vma, pgd, p4d, addr, cp_flags);
-+		if (ret) {
-+			pages = ret;
-+			break;
-+		}
- 		if (pgd_none_or_clear_bad(pgd))
- 			continue;
- 		pages += change_p4d_range(tlb, vma, pgd, addr, next, newprot,
---- a/mm/userfaultfd.c~mm-uffd-detect-pgtable-allocation-failures
-+++ a/mm/userfaultfd.c
-@@ -710,11 +710,12 @@ ssize_t mcopy_continue(struct mm_struct
- 			      mmap_changing, 0);
- }
- 
--void uffd_wp_range(struct mm_struct *dst_mm, struct vm_area_struct *dst_vma,
-+long uffd_wp_range(struct mm_struct *dst_mm, struct vm_area_struct *dst_vma,
- 		   unsigned long start, unsigned long len, bool enable_wp)
- {
- 	unsigned int mm_cp_flags;
- 	struct mmu_gather tlb;
-+	long ret;
- 
- 	if (enable_wp)
- 		mm_cp_flags = MM_CP_UFFD_WP;
-@@ -730,8 +731,10 @@ void uffd_wp_range(struct mm_struct *dst
- 	if (!enable_wp && vma_wants_manual_pte_write_upgrade(dst_vma))
- 		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
- 	tlb_gather_mmu(&tlb, dst_mm);
--	change_protection(&tlb, dst_vma, start, start + len, mm_cp_flags);
-+	ret = change_protection(&tlb, dst_vma, start, start + len, mm_cp_flags);
- 	tlb_finish_mmu(&tlb);
-+
-+	return ret;
- }
- 
- int mwriteprotect_range(struct mm_struct *dst_mm, unsigned long start,
-@@ -740,7 +743,7 @@ int mwriteprotect_range(struct mm_struct
- {
- 	struct vm_area_struct *dst_vma;
- 	unsigned long page_mask;
--	int err;
-+	long err;
- 
- 	/*
- 	 * Sanitize the command parameters:
-@@ -779,9 +782,12 @@ int mwriteprotect_range(struct mm_struct
- 			goto out_unlock;
- 	}
- 
--	uffd_wp_range(dst_mm, dst_vma, start, len, enable_wp);
-+	err = uffd_wp_range(dst_mm, dst_vma, start, len, enable_wp);
-+
-+	/* Return 0 on success, <0 on failures */
-+	if (err > 0)
-+		err = 0;
- 
--	err = 0;
- out_unlock:
- 	mmap_read_unlock(dst_mm);
- 	return err;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-pre-allocate-pgtable-pages-for-uffd-wr-protects.patch
-mm-uffd-fix-pte-marker-when-fork-without-fork-event.patch
-mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker.patch
-mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp.patch
-mm-hugetlb-let-vma_offset_start-to-return-start.patch
-mm-hugetlb-dont-wait-for-migration-entry-during-follow-page.patch
-mm-hugetlb-document-huge_pte_offset-usage.patch
-mm-hugetlb-move-swap-entry-handling-into-vma-lock-when-faulted.patch
-mm-hugetlb-make-userfaultfd_huge_must_wait-safe-to-pmd-unshare.patch
-mm-hugetlb-make-hugetlb_follow_page_mask-safe-to-pmd-unshare.patch
-mm-hugetlb-make-follow_hugetlb_page-safe-to-pmd-unshare.patch
-mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare.patch
-mm-hugetlb-introduce-hugetlb_walk.patch
-mm-mprotect-use-long-for-page-accountings-and-retval.patch
-mm-uffd-detect-pgtable-allocation-failures.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-fix.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
+mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch
+mm-memcontrol-deprecate-charge-moving-fix.patch
+mm-swap-convert-deactivate_page-to-folio_deactivate-fix.patch
+mm-uffd-detect-pgtable-allocation-failures-checkpatch-fixes.patch
+error-injection-remove-ei_etype_none-fix.patch
+hfsplus-remove-unnecessary-variable-initialization-fix.patch
 
