@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B152CC3DA7A
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 03:43:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC018C4708D
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 04:01:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231839AbjAFDnl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 22:43:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44284 "EHLO
+        id S230391AbjAFEBs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 23:01:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231876AbjAFDm7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 22:42:59 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E80F76ADBF
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 19:42:30 -0800 (PST)
+        with ESMTP id S229451AbjAFEBr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 23:01:47 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4B3F58823
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 20:01:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5AB3EB81BF2
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 03:42:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9FE5C433EF;
-        Fri,  6 Jan 2023 03:42:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 140BEB81BF2
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 04:01:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0003C433EF;
+        Fri,  6 Jan 2023 04:01:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672976548;
-        bh=fbdqHo5rkS2x4qliqd2DlmQ7g+aXyPB/X6PRBfRXDP4=;
+        s=korg; t=1672977702;
+        bh=7zSic2DGIWJrj3nEVeQolG37z5vgL/uWIN4VclkJKxs=;
         h=Date:To:From:Subject:From;
-        b=CB+K3+yj/QAVgsMEgL9LlJNzEWsTcTViAQFMcS8rPATdBzCpMraq8gcV6Bb7zjSnN
-         Mj/UOpSYxuBYoj5s1oGUgzbaW8m8nX5gaWhfdpUvUX2oF0MOkfQLmneFH6fNEvwScQ
-         IW2wjlaFIC+6wvSYlbhZX081vJtAopfakZ2Okui4=
-Date:   Thu, 05 Jan 2023 19:42:27 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mingo@redhat.com,
-        kbingham@kernel.org, jan.kiszka@siemens.com,
-        gregkh@linuxfoundation.org, dmitrii.bundin.a@gmail.com,
+        b=sPtfupKVP7QuLG4IuLVrxCUgZYbLdgcREwcG3M29EV9ZD4LAJfXZAhFrvOzFvgE+j
+         Hw8zQCw8HdEK8WmVvXea4T4iJiNvfUfTI1nEDG+ja8BG28GBP+NQ0o18zQ/dJdWNQN
+         iOpXS1Sl970AE/6EmQ2xcu62Yk/BVTpgm5z1gexI=
+Date:   Thu, 05 Jan 2023 20:01:41 -0800
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        Michael@MichaelLarabel.com, hannes@cmpxchg.org,
+        andrea.righi@canonical.com, yuzhao@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-add-mm-introspection-utils.patch added to mm-nonmm-unstable branch
-Message-Id: <20230106034227.E9FE5C433EF@smtp.kernel.org>
+Subject: + mm-add-vma_has_recency.patch added to mm-unstable branch
+Message-Id: <20230106040142.B0003C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add mm introspection utils
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-add-mm-introspection-utils.patch
+     Subject: mm: add vma_has_recency()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-vma_has_recency.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-add-mm-introspection-utils.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-vma_has_recency.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,324 +66,205 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
-Subject: scripts/gdb: add mm introspection utils
-Date: Mon, 2 Jan 2023 20:10:14 +0300
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: add vma_has_recency()
+Date: Fri, 30 Dec 2022 14:52:51 -0700
 
-This command provides a way to traverse the entire page hierarchy by a
-given virtual address on x86.  In addition to qemu's commands info
-tlb/info mem it provides the complete information about the paging
-structure for an arbitrary virtual address.  It supports 4KB/2MB/1GB and 5
-level paging.
+Add vma_has_recency() to indicate whether a VMA may exhibit temporal
+locality that the LRU algorithm relies on.
 
-Here is an example output for 2MB success translation:
+This function returns false for VMAs marked by VM_SEQ_READ or
+VM_RAND_READ.  While the former flag indicates linear access, i.e., a
+special case of spatial locality, both flags indicate a lack of temporal
+locality, i.e., the reuse of an area within a relatively small duration.
 
-(gdb) translate-vm address
-cr3:
-    cr3 binary data                0x10a1f8004
-    next entry physicall address   0x10a1f8000
-    ---
-    bit  3          page level write through       False
-    bit  4          page level cache disabled      False
-level 4:
-    entry address                  0xffff88810a1f87f0
-    page entry binary data         0x8000000109042067
-    next entry physicall address   0x109042000
-    ---
-    bit  0          entry present                  True
-    bit  1          read/write access allowed      True
-    bit  2          user access allowed            True
-    bit  3          page level write through       False
-    bit  4          page level cache disabled      False
-    bit  5          entry has been accessed        True
-    bit  7          page size                      False
-    bit  11         restart to ordinary            False
-    bit  63         execute disable                True
-level 3:
-    entry address                  0xffff888109042e40
-    page entry binary data         0x10ec93067
-    next entry physicall address   0x10ec93000
-    ---
-    bit  0          entry present                  True
-    bit  1          read/write access allowed      True
-    bit  2          user access allowed            True
-    bit  3          page level write through       False
-    bit  4          page level cache disabled      False
-    bit  5          entry has been accessed        True
-    bit  7          page size                      False
-    bit  11         restart to ordinary            False
-    bit  63         execute disable                False
-level 2:
-    entry address                  0xffff88810ec939a8
-    page entry binary data         0x800000012b6008e7
-    page size                      2MB
-    page physicall address         0x12b600000
-    ---
-    bit  0          entry present                  True
-    bit  1          read/write access allowed      True
-    bit  2          user access allowed            True
-    bit  3          page level write through       False
-    bit  4          page level cache disabled      False
-    bit  5          entry has been accessed        True
-    bit  6          page dirty                     True
-    bit  7          page size                      True
-    bit  8          global translation             False
-    bit  11         restart to ordinary            True
-    bit  12         pat                            False
-    bits (59, 62)   protection key                 0
-    bit  63         execute disable                True
+"Recency" is chosen over "locality" to avoid confusion between temporal
+and spatial localities.
 
-Link: https://lkml.kernel.org/r/20230102171014.31408-1-dmitrii.bundin.a@gmail.com
-Signed-off-by: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
-Acked by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Before this patch, the active/inactive LRU only ignored the accessed bit
+from VMAs marked by VM_SEQ_READ.  After this patch, the active/inactive
+LRU and MGLRU share the same logic: they both ignore the accessed bit if
+vma_has_recency() returns false.
+
+For the active/inactive LRU, the following fio test showed a [6, 8]%
+increase in IOPS when randomly accessing mapped files under memory
+pressure.
+
+  kb=$(awk '/MemTotal/ { print $2 }' /proc/meminfo)
+  kb=$((kb - 8*1024*1024))
+
+  modprobe brd rd_nr=1 rd_size=$kb
+  dd if=/dev/zero of=/dev/ram0 bs=1M
+
+  mkfs.ext4 /dev/ram0
+  mount /dev/ram0 /mnt/
+  swapoff -a
+
+  fio --name=test --directory=/mnt/ --ioengine=mmap --numjobs=8 \
+      --size=8G --rw=randrw --time_based --runtime=10m \
+      --group_reporting
+
+The discussion that led to this patch is here [1].  Additional test
+results are available in that thread.
+
+[1] https://lore.kernel.org/r/Y31s%2FK8T85jh05wH@google.com/
+
+Link: https://lkml.kernel.org/r/20221230215252.2628425-1-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Righi <andrea.righi@canonical.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michael Larabel <Michael@MichaelLarabel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/mm.py    |  223 +++++++++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py |    1 
- 2 files changed, 224 insertions(+)
+ include/linux/mm_inline.h |    8 ++++++
+ mm/memory.c               |    7 ++----
+ mm/rmap.c                 |   42 +++++++++++++++---------------------
+ mm/vmscan.c               |    5 +++-
+ 4 files changed, 33 insertions(+), 29 deletions(-)
 
---- /dev/null
-+++ a/scripts/gdb/linux/mm.py
-@@ -0,0 +1,223 @@
-+#
-+# gdb helper commands and functions for Linux kernel debugging
-+#
-+#  routines to introspect page table
-+#
-+# Authors:
-+#  Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
-+#
-+# This work is licensed under the terms of the GNU GPL version 2.
-+#
+--- a/include/linux/mm_inline.h~mm-add-vma_has_recency
++++ a/include/linux/mm_inline.h
+@@ -594,4 +594,12 @@ pte_install_uffd_wp_if_needed(struct vm_
+ #endif
+ }
+ 
++static inline bool vma_has_recency(struct vm_area_struct *vma)
++{
++	if (vma->vm_flags & (VM_SEQ_READ | VM_RAND_READ))
++		return false;
 +
-+import gdb
++	return true;
++}
 +
-+from linux import utils
+ #endif
+--- a/mm/memory.c~mm-add-vma_has_recency
++++ a/mm/memory.c
+@@ -1402,8 +1402,7 @@ again:
+ 						force_flush = 1;
+ 					}
+ 				}
+-				if (pte_young(ptent) &&
+-				    likely(!(vma->vm_flags & VM_SEQ_READ)))
++				if (pte_young(ptent) && likely(vma_has_recency(vma)))
+ 					mark_page_accessed(page);
+ 			}
+ 			rss[mm_counter(page)]--;
+@@ -5118,8 +5117,8 @@ static inline void mm_account_fault(stru
+ #ifdef CONFIG_LRU_GEN
+ static void lru_gen_enter_fault(struct vm_area_struct *vma)
+ {
+-	/* the LRU algorithm doesn't apply to sequential or random reads */
+-	current->in_lru_fault = !(vma->vm_flags & (VM_SEQ_READ | VM_RAND_READ));
++	/* the LRU algorithm only applies to accesses with recency */
++	current->in_lru_fault = vma_has_recency(vma);
+ }
+ 
+ static void lru_gen_exit_fault(void)
+--- a/mm/rmap.c~mm-add-vma_has_recency
++++ a/mm/rmap.c
+@@ -824,25 +824,14 @@ static bool folio_referenced_one(struct
+ 		}
+ 
+ 		if (pvmw.pte) {
+-			if (lru_gen_enabled() && pte_young(*pvmw.pte) &&
+-			    !(vma->vm_flags & (VM_SEQ_READ | VM_RAND_READ))) {
++			if (lru_gen_enabled() && pte_young(*pvmw.pte)) {
+ 				lru_gen_look_around(&pvmw);
+ 				referenced++;
+ 			}
+ 
+ 			if (ptep_clear_flush_young_notify(vma, address,
+-						pvmw.pte)) {
+-				/*
+-				 * Don't treat a reference through
+-				 * a sequentially read mapping as such.
+-				 * If the folio has been used in another mapping,
+-				 * we will catch it; if this other mapping is
+-				 * already gone, the unmap path will have set
+-				 * the referenced flag or activated the folio.
+-				 */
+-				if (likely(!(vma->vm_flags & VM_SEQ_READ)))
+-					referenced++;
+-			}
++						pvmw.pte))
++				referenced++;
+ 		} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
+ 			if (pmdp_clear_flush_young_notify(vma, address,
+ 						pvmw.pmd))
+@@ -876,7 +865,20 @@ static bool invalid_folio_referenced_vma
+ 	struct folio_referenced_arg *pra = arg;
+ 	struct mem_cgroup *memcg = pra->memcg;
+ 
+-	if (!mm_match_cgroup(vma->vm_mm, memcg))
++	/*
++	 * Ignore references from this mapping if it has no recency. If the
++	 * folio has been used in another mapping, we will catch it; if this
++	 * other mapping is already gone, the unmap path will have set the
++	 * referenced flag or activated the folio in zap_pte_range().
++	 */
++	if (!vma_has_recency(vma))
++		return true;
 +
-+PHYSICAL_ADDRESS_MASK = gdb.parse_and_eval('0xfffffffffffff')
++	/*
++	 * If we are reclaiming on behalf of a cgroup, skip counting on behalf
++	 * of references from different cgroups.
++	 */
++	if (memcg && !mm_match_cgroup(vma->vm_mm, memcg))
+ 		return true;
+ 
+ 	return false;
+@@ -907,6 +909,7 @@ int folio_referenced(struct folio *folio
+ 		.arg = (void *)&pra,
+ 		.anon_lock = folio_lock_anon_vma_read,
+ 		.try_lock = true,
++		.invalid_vma = invalid_folio_referenced_vma,
+ 	};
+ 
+ 	*vm_flags = 0;
+@@ -922,15 +925,6 @@ int folio_referenced(struct folio *folio
+ 			return 1;
+ 	}
+ 
+-	/*
+-	 * If we are reclaiming on behalf of a cgroup, skip
+-	 * counting on behalf of references from different
+-	 * cgroups
+-	 */
+-	if (memcg) {
+-		rwc.invalid_vma = invalid_folio_referenced_vma;
+-	}
+-
+ 	rmap_walk(folio, &rwc);
+ 	*vm_flags = pra.vm_flags;
+ 
+--- a/mm/vmscan.c~mm-add-vma_has_recency
++++ a/mm/vmscan.c
+@@ -3794,7 +3794,10 @@ static int should_skip_vma(unsigned long
+ 	if (is_vm_hugetlb_page(vma))
+ 		return true;
+ 
+-	if (vma->vm_flags & (VM_LOCKED | VM_SPECIAL | VM_SEQ_READ | VM_RAND_READ))
++	if (!vma_has_recency(vma))
++		return true;
 +
-+
-+def page_mask(level=1):
-+    # 4KB
-+    if level == 1:
-+        return gdb.parse_and_eval('(u64) ~0xfff')
-+    # 2MB
-+    elif level == 2:
-+        return gdb.parse_and_eval('(u64) ~0x1fffff')
-+    # 1GB
-+    elif level == 3:
-+        return gdb.parse_and_eval('(u64) ~0x3fffffff')
-+    else:
-+        raise Exception(f'Unknown page level: {level}')
-+
-+
-+#page_offset_base in case CONFIG_DYNAMIC_MEMORY_LAYOUT is disabled
-+POB_NO_DYNAMIC_MEM_LAYOUT = '0xffff888000000000'
-+def _page_offset_base():
-+    pob_symbol = gdb.lookup_global_symbol('page_offset_base')
-+    pob = pob_symbol.name if pob_symbol else POB_NO_DYNAMIC_MEM_LAYOUT
-+    return gdb.parse_and_eval(pob)
-+
-+
-+def is_bit_defined_tupled(data, offset):
-+    return offset, bool(data >> offset & 1)
-+
-+def content_tupled(data, bit_start, bit_end):
-+    return (bit_start, bit_end), data >> bit_start & ((1 << (1 + bit_end - bit_start)) - 1)
-+
-+def entry_va(level, phys_addr, translating_va):
-+        def start_bit(level):
-+            if level == 5:
-+                return 48
-+            elif level == 4:
-+                return 39
-+            elif level == 3:
-+                return 30
-+            elif level == 2:
-+                return 21
-+            elif level == 1:
-+                return 12
-+            else:
-+                raise Exception(f'Unknown level {level}')
-+
-+        entry_offset =  ((translating_va >> start_bit(level)) & 511) * 8
-+        entry_va = _page_offset_base() + phys_addr + entry_offset
-+        return entry_va
-+
-+class Cr3():
-+    def __init__(self, cr3, page_levels):
-+        self.cr3 = cr3
-+        self.page_levels = page_levels
-+        self.page_level_write_through = is_bit_defined_tupled(cr3, 3)
-+        self.page_level_cache_disabled = is_bit_defined_tupled(cr3, 4)
-+        self.next_entry_physical_address = cr3 & PHYSICAL_ADDRESS_MASK & page_mask()
-+
-+    def next_entry(self, va):
-+        next_level = self.page_levels
-+        return PageHierarchyEntry(entry_va(next_level, self.next_entry_physical_address, va), next_level)
-+
-+    def mk_string(self):
-+            return f"""\
-+cr3:
-+    {'cr3 binary data': <30} {hex(self.cr3)}
-+    {'next entry physicall address': <30} {hex(self.next_entry_physical_address)}
-+    ---
-+    {'bit' : <4} {self.page_level_write_through[0]: <10} {'page level write through': <30} {self.page_level_write_through[1]}
-+    {'bit' : <4} {self.page_level_cache_disabled[0]: <10} {'page level cache disabled': <30} {self.page_level_cache_disabled[1]}
-+"""
-+
-+
-+class PageHierarchyEntry():
-+    def __init__(self, address, level):
-+        data = int.from_bytes(
-+            memoryview(gdb.selected_inferior().read_memory(address, 8)),
-+            "little"
-+        )
-+        if level == 1:
-+            self.is_page = True
-+            self.entry_present = is_bit_defined_tupled(data, 0)
-+            self.read_write = is_bit_defined_tupled(data, 1)
-+            self.user_access_allowed = is_bit_defined_tupled(data, 2)
-+            self.page_level_write_through = is_bit_defined_tupled(data, 3)
-+            self.page_level_cache_disabled = is_bit_defined_tupled(data, 4)
-+            self.entry_was_accessed = is_bit_defined_tupled(data, 5)
-+            self.dirty = is_bit_defined_tupled(data, 6)
-+            self.pat = is_bit_defined_tupled(data, 7)
-+            self.global_translation = is_bit_defined_tupled(data, 8)
-+            self.page_physical_address = data & PHYSICAL_ADDRESS_MASK & page_mask(level)
-+            self.next_entry_physical_address = None
-+            self.hlat_restart_with_ordinary = is_bit_defined_tupled(data, 11)
-+            self.protection_key = content_tupled(data, 59, 62)
-+            self.executed_disable = is_bit_defined_tupled(data, 63)
-+        else:
-+            page_size = is_bit_defined_tupled(data, 7)
-+            page_size_bit = page_size[1]
-+            self.is_page = page_size_bit
-+            self.entry_present = is_bit_defined_tupled(data, 0)
-+            self.read_write = is_bit_defined_tupled(data, 1)
-+            self.user_access_allowed = is_bit_defined_tupled(data, 2)
-+            self.page_level_write_through = is_bit_defined_tupled(data, 3)
-+            self.page_level_cache_disabled = is_bit_defined_tupled(data, 4)
-+            self.entry_was_accessed = is_bit_defined_tupled(data, 5)
-+            self.page_size = page_size
-+            self.dirty = is_bit_defined_tupled(
-+                data, 6) if page_size_bit else None
-+            self.global_translation = is_bit_defined_tupled(
-+                data, 8) if page_size_bit else None
-+            self.pat = is_bit_defined_tupled(
-+                data, 12) if page_size_bit else None
-+            self.page_physical_address = data & PHYSICAL_ADDRESS_MASK & page_mask(level) if page_size_bit else None
-+            self.next_entry_physical_address = None if page_size_bit else data & PHYSICAL_ADDRESS_MASK & page_mask()
-+            self.hlat_restart_with_ordinary = is_bit_defined_tupled(data, 11)
-+            self.protection_key = content_tupled(data, 59, 62) if page_size_bit else None
-+            self.executed_disable = is_bit_defined_tupled(data, 63)
-+        self.address = address
-+        self.page_entry_binary_data = data
-+        self.page_hierarchy_level = level
-+
-+    def next_entry(self, va):
-+        if self.is_page or not self.entry_present[1]:
-+            return None
-+
-+        next_level = self.page_hierarchy_level - 1
-+        return PageHierarchyEntry(entry_va(next_level, self.next_entry_physical_address, va), next_level)
-+
-+
-+    def mk_string(self):
-+        if not self.entry_present[1]:
-+            return f"""\
-+level {self.page_hierarchy_level}:
-+    {'entry address': <30} {hex(self.address)}
-+    {'page entry binary data': <30} {hex(self.page_entry_binary_data)}
-+    ---
-+    PAGE ENTRY IS NOT PRESENT!
-+"""
-+        elif self.is_page:
-+            def page_size_line(ps_bit, ps, level):
-+                return "" if level == 1 else f"{'bit': <3} {ps_bit: <5} {'page size': <30} {ps}"
-+
-+            return f"""\
-+level {self.page_hierarchy_level}:
-+    {'entry address': <30} {hex(self.address)}
-+    {'page entry binary data': <30} {hex(self.page_entry_binary_data)}
-+    {'page size': <30} {'1GB' if self.page_hierarchy_level == 3 else '2MB' if self.page_hierarchy_level == 2 else '4KB' if self.page_hierarchy_level == 1 else 'Unknown page size for level:' + self.page_hierarchy_level}
-+    {'page physicall address': <30} {hex(self.page_physical_address)}
-+    ---
-+    {'bit': <4} {self.entry_present[0]: <10} {'entry present': <30} {self.entry_present[1]}
-+    {'bit': <4} {self.read_write[0]: <10} {'read/write access allowed': <30} {self.read_write[1]}
-+    {'bit': <4} {self.user_access_allowed[0]: <10} {'user access allowed': <30} {self.user_access_allowed[1]}
-+    {'bit': <4} {self.page_level_write_through[0]: <10} {'page level write through': <30} {self.page_level_write_through[1]}
-+    {'bit': <4} {self.page_level_cache_disabled[0]: <10} {'page level cache disabled': <30} {self.page_level_cache_disabled[1]}
-+    {'bit': <4} {self.entry_was_accessed[0]: <10} {'entry has been accessed': <30} {self.entry_was_accessed[1]}
-+    {"" if self.page_hierarchy_level == 1 else f"{'bit': <4} {self.page_size[0]: <10} {'page size': <30} {self.page_size[1]}"}
-+    {'bit': <4} {self.dirty[0]: <10} {'page dirty': <30} {self.dirty[1]}
-+    {'bit': <4} {self.global_translation[0]: <10} {'global translation': <30} {self.global_translation[1]}
-+    {'bit': <4} {self.hlat_restart_with_ordinary[0]: <10} {'restart to ordinary': <30} {self.hlat_restart_with_ordinary[1]}
-+    {'bit': <4} {self.pat[0]: <10} {'pat': <30} {self.pat[1]}
-+    {'bits': <4} {str(self.protection_key[0]): <10} {'protection key': <30} {self.protection_key[1]}
-+    {'bit': <4} {self.executed_disable[0]: <10} {'execute disable': <30} {self.executed_disable[1]}
-+"""
-+        else:
-+            return f"""\
-+level {self.page_hierarchy_level}:
-+    {'entry address': <30} {hex(self.address)}
-+    {'page entry binary data': <30} {hex(self.page_entry_binary_data)}
-+    {'next entry physicall address': <30} {hex(self.next_entry_physical_address)}
-+    ---
-+    {'bit': <4} {self.entry_present[0]: <10} {'entry present': <30} {self.entry_present[1]}
-+    {'bit': <4} {self.read_write[0]: <10} {'read/write access allowed': <30} {self.read_write[1]}
-+    {'bit': <4} {self.user_access_allowed[0]: <10} {'user access allowed': <30} {self.user_access_allowed[1]}
-+    {'bit': <4} {self.page_level_write_through[0]: <10} {'page level write through': <30} {self.page_level_write_through[1]}
-+    {'bit': <4} {self.page_level_cache_disabled[0]: <10} {'page level cache disabled': <30} {self.page_level_cache_disabled[1]}
-+    {'bit': <4} {self.entry_was_accessed[0]: <10} {'entry has been accessed': <30} {self.entry_was_accessed[1]}
-+    {'bit': <4} {self.page_size[0]: <10} {'page size': <30} {self.page_size[1]}
-+    {'bit': <4} {self.hlat_restart_with_ordinary[0]: <10} {'restart to ordinary': <30} {self.hlat_restart_with_ordinary[1]}
-+    {'bit': <4} {self.executed_disable[0]: <10} {'execute disable': <30} {self.executed_disable[1]}
-+"""
-+
-+
-+class TranslateVM(gdb.Command):
-+    """Prints the entire paging structure used to translate a given virtual address.
-+
-+Having an address space of the currently executed process translates the virtual address
-+and prints detailed information of all paging structure levels used for the transaltion.
-+Currently supported arch: x86"""
-+
-+    def __init__(self):
-+        super(TranslateVM, self).__init__('translate-vm', gdb.COMMAND_USER)
-+
-+    def invoke(self, arg, from_tty):
-+        if utils.is_target_arch("x86"):
-+            vm_address = gdb.parse_and_eval(f'{arg}')
-+            cr3_data = gdb.parse_and_eval('$cr3')
-+            cr4 = gdb.parse_and_eval('$cr4')
-+            page_levels = 5 if cr4 & (1 << 12) else 4
-+            page_entry = Cr3(cr3_data, page_levels)
-+            while page_entry:
-+                gdb.write(page_entry.mk_string())
-+                page_entry = page_entry.next_entry(vm_address)
-+        else:
-+            gdb.GdbError("Virtual address translation is not"
-+                         "supported for this arch")
-+
-+
-+TranslateVM()
---- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-mm-introspection-utils
-+++ a/scripts/gdb/vmlinux-gdb.py
-@@ -37,3 +37,4 @@ else:
-     import linux.clk
-     import linux.genpd
-     import linux.device
-+    import linux.mm
++	if (vma->vm_flags & (VM_LOCKED | VM_SPECIAL))
+ 		return true;
+ 
+ 	if (vma == get_gate_vma(vma->vm_mm))
 _
 
-Patches currently in -mm which might be from dmitrii.bundin.a@gmail.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-scripts-gdb-add-mm-introspection-utils.patch
+mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio.patch
+mm-multi-gen-lru-rename-lrugen-lists-to-lrugen-folios.patch
+mm-multi-gen-lru-remove-eviction-fairness-safeguard.patch
+mm-multi-gen-lru-remove-aging-fairness-safeguard.patch
+mm-multi-gen-lru-shuffle-should_run_aging.patch
+mm-multi-gen-lru-per-node-lru_gen_folio-lists.patch
+mm-multi-gen-lru-clarify-scan_control-flags.patch
+mm-multi-gen-lru-simplify-arch_has_hw_pte_young-check.patch
+mm-add-vma_has_recency.patch
+mm-support-posix_fadv_noreuse.patch
 
