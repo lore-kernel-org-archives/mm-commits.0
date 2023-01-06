@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EC8AC3DA7A
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 02:43:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 203F3C3DA7A
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 02:45:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230481AbjAFCnR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 21:43:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47912 "EHLO
+        id S230379AbjAFCpa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 21:45:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229486AbjAFCnM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 21:43:12 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C00B671B3
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 18:43:12 -0800 (PST)
+        with ESMTP id S230370AbjAFCp2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 21:45:28 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C6B265AFB
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 18:45:27 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C1DE8B81B32
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 02:43:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66067C433D2;
-        Fri,  6 Jan 2023 02:43:09 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id BB15CCE1BDA
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 02:45:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF354C433D2;
+        Fri,  6 Jan 2023 02:45:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672972989;
-        bh=353pFthTlWZGls1EHC7ZIrznyUGSVMt9P3pGBtYkSNg=;
+        s=korg; t=1672973124;
+        bh=AmkWQAtURXrvDeClX0RoE9oTbSOFWbpapanh1w51zAc=;
         h=Date:To:From:Subject:From;
-        b=g4zzAt2fQcpuyfRsCGCEGgR5JwXbJyZNdA0bRBVZR7Ds9/gHu2zmPUCUt4UbqFsZl
-         RZRFCjlv2tRYlxvY6mSj7Bzk1DhSeCt3rkvGw8wMiZs/nqQB4RJa/YR0lHhefOYYSN
-         8JUFJZc7xa4qL/TxeFGl9JpJrwVtHahIC98YtTlI=
-Date:   Thu, 05 Jan 2023 18:43:08 -0800
-To:     mm-commits@vger.kernel.org, andriy.shevchenko@linux.intel.com,
+        b=oVH9oQKATShd9oWMDLuEYWdPsDInohzXYUnq+TleUDFTnKi2zAYDWVdD1eqt6en+m
+         KXhEW1993fQ9VsM4jFvUrOqKPlnCY7M6LfZ5i9spgay/Ky0RfKKMq1T6fkc8/p2IEK
+         9FU0TYpAx3R2oCvV7l1vfcdYKw81kuUcMBc3mi5E=
+Date:   Thu, 05 Jan 2023 18:45:23 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, hch@infradead.org, jack@suse.cz,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + util_macrosh-add-missing-insclusion.patch added to mm-nonmm-unstable branch
-Message-Id: <20230106024309.66067C433D2@smtp.kernel.org>
+Subject: + fs-dont-allocate-blocks-beyond-eof-from-__mpage_writepage.patch added to mm-unstable branch
+Message-Id: <20230106024523.EF354C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: util_macros.h: add missing insclusion
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     util_macrosh-add-missing-insclusion.patch
+     Subject: fs: don't allocate blocks beyond EOF from __mpage_writepage
+has been added to the -mm mm-unstable branch.  Its filename is
+     fs-dont-allocate-blocks-beyond-eof-from-__mpage_writepage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/util_macrosh-add-missing-insclusion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-dont-allocate-blocks-beyond-eof-from-__mpage_writepage.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,34 +65,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: util_macros.h: add missing insclusion
-Date: Tue, 3 Jan 2023 14:19:37 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: fs: don't allocate blocks beyond EOF from __mpage_writepage
+Date: Tue, 3 Jan 2023 11:44:30 +0100
 
-The header is the direct user of definitions from the math.h, include it.
+When __mpage_writepage() is called for a page beyond EOF, it will go and
+allocate all blocks underlying the page.  This is not only unnecessary but
+this way blocks can get leaked (e.g.  if a page beyond EOF is marked dirty
+but in the end write fails and i_size is not extended).
 
-Link: https://lkml.kernel.org/r/20230103121937.32085-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Link: https://lkml.kernel.org/r/20230103104430.27749-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/util_macros.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/mpage.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/util_macros.h~util_macrosh-add-missing-insclusion
-+++ a/include/linux/util_macros.h
-@@ -2,6 +2,8 @@
- #ifndef _LINUX_HELPER_MACROS_H_
- #define _LINUX_HELPER_MACROS_H_
- 
-+#include <linux/math.h>
-+
- #define __find_closest(x, a, as, op)					\
- ({									\
- 	typeof(as) __fc_i, __fc_as = (as) - 1;				\
+--- a/fs/mpage.c~fs-dont-allocate-blocks-beyond-eof-from-__mpage_writepage
++++ a/fs/mpage.c
+@@ -524,6 +524,12 @@ static int __mpage_writepage(struct page
+ 	 */
+ 	BUG_ON(!PageUptodate(page));
+ 	block_in_file = (sector_t)page->index << (PAGE_SHIFT - blkbits);
++	/*
++	 * Whole page beyond EOF? Skip allocating blocks to avoid leaking
++	 * space.
++	 */
++	if (block_in_file >= (i_size + (1 << blkbits) - 1) >> blkbits)
++		goto page_is_mapped;
+ 	last_block = (i_size - 1) >> blkbits;
+ 	map_bh.b_page = page;
+ 	for (page_block = 0; page_block < blocks_per_page; ) {
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-util_macrosh-add-missing-insclusion.patch
+fs-dont-allocate-blocks-beyond-eof-from-__mpage_writepage.patch
 
