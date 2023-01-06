@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F41CC3DA7A
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:38:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07D99C53210
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:38:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235701AbjAFAh7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 19:37:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48250 "EHLO
+        id S235532AbjAFAiA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 19:38:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235532AbjAFAgk (ORCPT
+        with ESMTP id S235796AbjAFAgk (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:36:40 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74DAC6319D
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:36:23 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E448C631B5
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:36:25 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 115AA61BC8
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:36:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64672C433EF;
-        Fri,  6 Jan 2023 00:36:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8366C61C2A
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:36:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF01DC433EF;
+        Fri,  6 Jan 2023 00:36:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672965382;
-        bh=ejFVmazFjk/tiDIpw5CNXbmpYyHuvsYLWdpOVqRnT5A=;
+        s=korg; t=1672965385;
+        bh=SU3YyXQ/ATCy4J1A6gqHUmvvZe1ht8slVyDITkTSGVs=;
         h=Date:To:From:Subject:From;
-        b=KEV3RYNQZ81t69TQicorPpd5lEl+IKq5N1DrUJiZ4b/alRuZtGVf+EVwvxC3MKMCN
-         PppdWid7Z6zPpvpSUGM+tai4xXjM9jRnPjJ6d5WvUAzzFUbfbRw3uPMd4ECFK111UT
-         Iz/iAvUV3YO6C6qblHA1aKENnWuI5hXnEreHtKAY=
-Date:   Thu, 05 Jan 2023 16:36:21 -0800
+        b=GGuUWvpomdGRE/lyxcfqHKF5anI63jmjfeUTD5ej4WAC1Wx4vGLLUSa/gXio6snKw
+         sXI9XS62yAxf39FLkNTA8R/sLIetsUtZiFbdGH0W/ZNTAuUfzbBMhQQuu9ykbpGWQS
+         Iix7Q6Rw0a+5hZH5yRO8Yv03EhN/uXo54Iv5xsB4=
+Date:   Thu, 05 Jan 2023 16:36:24 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-dont-use-__vma_adjust-in-shift_arg_pages.patch added to mm-unstable branch
-Message-Id: <20230106003622.64672C433EF@smtp.kernel.org>
+Subject: + mm-mmap-introduce-dup_vma_anon-helper.patch added to mm-unstable branch
+Message-Id: <20230106003624.DF01DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: don't use __vma_adjust() in shift_arg_pages()
+     Subject: mm/mmap: introduce dup_vma_anon() helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-dont-use-__vma_adjust-in-shift_arg_pages.patch
+     mm-mmap-introduce-dup_vma_anon-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-dont-use-__vma_adjust-in-shift_arg_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-introduce-dup_vma_anon-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,157 +65,147 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mmap: don't use __vma_adjust() in shift_arg_pages()
-Date: Thu, 5 Jan 2023 19:16:04 +0000
+Subject: mm/mmap: introduce dup_vma_anon() helper
+Date: Thu, 5 Jan 2023 19:16:05 +0000
 
-Introduce shrink_vma() which uses the vma_prepare() and vma_complete()
-functions to reduce the vma coverage.
+Create a helper for duplicating the anon vma when adjusting the vma.
+This simplifies the logic of __vma_adjust().
 
-Convert shift_arg_pages() to use expand_vma() and the new shrink_vma()
-function.  Remove support from __vma_adjust() to reduce a vma size since
-shift_arg_pages() is the only user that shrinks a VMA in this way.
-
-Link: https://lkml.kernel.org/r/20230105191517.3099082-41-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230105191517.3099082-42-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c          |    4 +-
- include/linux/mm.h |   13 +++------
- mm/mmap.c          |   59 +++++++++++++++++++++++++++++++++----------
- 3 files changed, 53 insertions(+), 23 deletions(-)
+ mm/mmap.c |   74 ++++++++++++++++++++++++++++------------------------
+ 1 file changed, 40 insertions(+), 34 deletions(-)
 
---- a/fs/exec.c~mm-mmap-dont-use-__vma_adjust-in-shift_arg_pages
-+++ a/fs/exec.c
-@@ -699,7 +699,7 @@ static int shift_arg_pages(struct vm_are
- 	/*
- 	 * cover the whole range: [new_start, old_end)
- 	 */
--	if (vma_adjust(&vmi, vma, new_start, old_end, vma->vm_pgoff))
-+	if (vma_expand(&vmi, vma, new_start, old_end, vma->vm_pgoff, NULL))
- 		return -ENOMEM;
- 
- 	/*
-@@ -733,7 +733,7 @@ static int shift_arg_pages(struct vm_are
- 
- 	vma_prev(&vmi);
- 	/* Shrink the vma to just the new range */
--	return vma_adjust(&vmi, vma, new_start, new_end, vma->vm_pgoff);
-+	return vma_shrink(&vmi, vma, new_start, new_end, vma->vm_pgoff);
+--- a/mm/mmap.c~mm-mmap-introduce-dup_vma_anon-helper
++++ a/mm/mmap.c
+@@ -680,6 +680,29 @@ again:
  }
  
  /*
---- a/include/linux/mm.h~mm-mmap-dont-use-__vma_adjust-in-shift_arg_pages
-+++ a/include/linux/mm.h
-@@ -2807,14 +2807,11 @@ void anon_vma_interval_tree_verify(struc
- 
- /* mmap.c */
- extern int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin);
--extern int __vma_adjust(struct vma_iterator *vmi, struct vm_area_struct *vma, unsigned long start,
--	unsigned long end, pgoff_t pgoff, struct vm_area_struct *expand);
--static inline int vma_adjust(struct vma_iterator *vmi,
--	struct vm_area_struct *vma, unsigned long start, unsigned long end,
--	pgoff_t pgoff)
--{
--	return __vma_adjust(vmi, vma, start, end, pgoff, NULL);
--}
-+extern int vma_expand(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+		      unsigned long start, unsigned long end, pgoff_t pgoff,
-+		      struct vm_area_struct *next);
-+extern int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+		       unsigned long start, unsigned long end, pgoff_t pgoff);
- extern struct vm_area_struct *vma_merge(struct vma_iterator *vmi,
- 	struct mm_struct *, struct vm_area_struct *prev, unsigned long addr,
- 	unsigned long end, unsigned long vm_flags, struct anon_vma *,
---- a/mm/mmap.c~mm-mmap-dont-use-__vma_adjust-in-shift_arg_pages
-+++ a/mm/mmap.c
-@@ -696,10 +696,9 @@ again:
-  *
-  * Returns: 0 on success
-  */
--inline int vma_expand(struct vma_iterator *vmi, struct vm_area_struct *vma,
--		      unsigned long start, unsigned long end, pgoff_t pgoff,
--		      struct vm_area_struct *next)
--
-+int vma_expand(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+	       unsigned long start, unsigned long end, pgoff_t pgoff,
-+	       struct vm_area_struct *next)
- {
- 	bool remove_next = false;
- 	struct vma_prepare vp;
-@@ -745,6 +744,44 @@ inline int vma_expand(struct vma_iterato
- nomem:
- 	return -ENOMEM;
- }
-+
-+/*
-+ * vma_shrink() - Reduce an existing VMAs memory area
-+ * @vmi: The vma iterator
-+ * @vma: The VMA to modify
-+ * @start: The new start
-+ * @end: The new end
++ * dup_anon_vma() - Helper function to duplicate anon_vma
++ * @dst: The destination VMA
++ * @src: The source VMA
 + *
-+ * Returns: 0 on success, -ENOMEM otherwise
++ * Returns: 0 on success.
 + */
-+int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+	       unsigned long start, unsigned long end, pgoff_t pgoff)
++static inline int dup_anon_vma(struct vm_area_struct *dst,
++			       struct vm_area_struct *src)
 +{
-+	struct vma_prepare vp;
++	/*
++	 * Easily overlooked: when mprotect shifts the boundary, make sure the
++	 * expanding vma has anon_vma set if the shrinking vma had, to cover any
++	 * anon pages imported.
++	 */
++	if (src->anon_vma && !dst->anon_vma) {
++		dst->anon_vma = src->anon_vma;
++		return anon_vma_clone(dst, src);
++	}
 +
-+	WARN_ON((vma->vm_start != start) && (vma->vm_end != end));
-+
-+	if (vma_iter_prealloc(vmi, vma))
-+		return -ENOMEM;
-+
-+	init_vma_prep(&vp, vma);
-+	vma_adjust_trans_huge(vma, start, end, 0);
-+	vma_prepare(&vp);
-+
-+	if (vma->vm_start < start)
-+		vma_iter_clear(vmi, vma->vm_start, start);
-+
-+	if (vma->vm_end > end)
-+		vma_iter_clear(vmi, end, vma->vm_end);
-+
-+	vma->vm_start = start;
-+	vma->vm_end = end;
-+	vma->vm_pgoff = pgoff;
-+	vma_complete(&vp, vmi, vma->vm_mm);
-+	validate_mm(vma->vm_mm);
 +	return 0;
 +}
 +
- /*
-  * We cannot adjust vm_start, vm_end, vm_pgoff fields of a vma that
-  * is already present in an i_mmap tree without adjusting the tree.
-@@ -860,14 +897,7 @@ int __vma_adjust(struct vma_iterator *vm
++/*
+  * vma_expand - Expand an existing VMA
+  *
+  * @vmi: The vma iterator
+@@ -704,15 +727,12 @@ int vma_expand(struct vma_iterator *vmi,
+ 	struct vma_prepare vp;
  
- 	vma_prepare(&vma_prep);
+ 	if (next && (vma != next) && (end == next->vm_end)) {
+-		remove_next = true;
+-		if (next->anon_vma && !vma->anon_vma) {
+-			int error;
++		int ret;
  
--	if (vma->vm_start < start)
--		vma_iter_clear(vmi, vma->vm_start, start);
--	else if (start != vma->vm_start)
--		vma_changed = true;
--
--	if (vma->vm_end > end)
--		vma_iter_clear(vmi, end, vma->vm_end);
--	else if (end != vma->vm_end)
-+	if (start < vma->vm_start || end > vma->vm_end)
- 		vma_changed = true;
- 
- 	vma->vm_start = start;
-@@ -880,7 +910,10 @@ int __vma_adjust(struct vma_iterator *vm
- 	if (adjust_next) {
- 		next->vm_start += adjust_next;
- 		next->vm_pgoff += adjust_next >> PAGE_SHIFT;
--		vma_iter_store(vmi, next);
-+		if (adjust_next < 0) {
-+			WARN_ON_ONCE(vma_changed);
-+			vma_iter_store(vmi, next);
-+		}
+-			vma->anon_vma = next->anon_vma;
+-			error = anon_vma_clone(vma, next);
+-			if (error)
+-				return error;
+-		}
++		remove_next = true;
++		ret = dup_anon_vma(vma, next);
++		if (ret)
++			return ret;
  	}
  
- 	vma_complete(&vma_prep, vmi, mm);
+ 	init_multi_vma_prep(&vp, vma, NULL, remove_next ? next : NULL, NULL);
+@@ -801,10 +821,11 @@ int __vma_adjust(struct vma_iterator *vm
+ 	struct file *file = vma->vm_file;
+ 	bool vma_changed = false;
+ 	long adjust_next = 0;
+-	struct vm_area_struct *exporter = NULL, *importer = NULL;
+ 	struct vma_prepare vma_prep;
+ 
+ 	if (next) {
++		int error = 0;
++
+ 		if (end >= next->vm_end) {
+ 			/*
+ 			 * vma expands, overlapping all the next, and
+@@ -839,15 +860,14 @@ int __vma_adjust(struct vma_iterator *vm
+ 					   end != remove2->vm_end);
+ 			}
+ 
+-			exporter = next;
+-			importer = vma;
+-
+ 			/*
+ 			 * If next doesn't have anon_vma, import from vma after
+ 			 * next, if the vma overlaps with it.
+ 			 */
+-			if (remove2 != NULL && !next->anon_vma)
+-				exporter = remove2;
++			if (remove != NULL && !next->anon_vma)
++				error = dup_anon_vma(vma, remove2);
++			else
++				error = dup_anon_vma(vma, remove);
+ 
+ 		} else if (end > next->vm_start) {
+ 			/*
+@@ -855,9 +875,8 @@ int __vma_adjust(struct vma_iterator *vm
+ 			 * mprotect case 5 shifting the boundary up.
+ 			 */
+ 			adjust_next = (end - next->vm_start);
+-			exporter = next;
+-			importer = vma;
+-			VM_WARN_ON(expand != importer);
++			VM_WARN_ON(expand != vma);
++			error = dup_anon_vma(vma, next);
+ 		} else if (end < vma->vm_end) {
+ 			/*
+ 			 * vma shrinks, and !insert tells it's not
+@@ -865,24 +884,11 @@ int __vma_adjust(struct vma_iterator *vm
+ 			 * mprotect case 4 shifting the boundary down.
+ 			 */
+ 			adjust_next = -(vma->vm_end - end);
+-			exporter = vma;
+-			importer = next;
+-			VM_WARN_ON(expand != importer);
+-		}
+-
+-		/*
+-		 * Easily overlooked: when mprotect shifts the boundary,
+-		 * make sure the expanding vma has anon_vma set if the
+-		 * shrinking vma had, to cover any anon pages imported.
+-		 */
+-		if (exporter && exporter->anon_vma && !importer->anon_vma) {
+-			int error;
+-
+-			importer->anon_vma = exporter->anon_vma;
+-			error = anon_vma_clone(importer, exporter);
+-			if (error)
+-				return error;
++			VM_WARN_ON(expand != next);
++			error = dup_anon_vma(next, vma);
+ 		}
++		if (error)
++			return error;
+ 	}
+ 
+ 	if (vma_iter_prealloc(vmi, vma))
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
