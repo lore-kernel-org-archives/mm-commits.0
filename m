@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3DFBC53210
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:35:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C463EC4708E
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:35:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235500AbjAFAfG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 19:35:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47362 "EHLO
+        id S232288AbjAFAfH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 19:35:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232288AbjAFAfF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:35:05 -0500
+        with ESMTP id S235327AbjAFAfG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:35:06 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C19A44FD75
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:02 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF7F550F4A
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 649B5B81C1B
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E01FC433F0;
-        Fri,  6 Jan 2023 00:35:00 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7480CB81B07
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 048B5C433EF;
+        Fri,  6 Jan 2023 00:35:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672965300;
-        bh=PHAcmXLGA9wPJPFwCq+agxN2yDaaVjbNLyv92o6CX2s=;
+        s=korg; t=1672965302;
+        bh=AOQAPZKx1Z3oWwrplq0iRYRxLZqJhxdeT4bV2Su05l8=;
         h=Date:To:From:Subject:From;
-        b=FsUS5tAlmUPDcj0rSW9M7i9Y04DgSQSmGjHVnezu/5yNRpm51h50Vg3WqLULZ7BQL
-         4vdd3iFPBtlRGJuYtwPgMDnz6R2MQKlyU1ximMC12WvQjTvS9JhB/I9eYfCStAhMZq
-         gM1MorcnGxFZ0Td00psNYCG7ZJOhsTK/aOCcBG0A=
-Date:   Thu, 05 Jan 2023 16:34:59 -0800
+        b=snUdHqAQoAHbmUWFtdwsYriR/lvb1WmfE50o1T0QxrpAf2sAZI6aTx8HgHnMrRutp
+         ufcq0Fa/2WqqtWIWaV1ieu0/Kmda2rf4JBLj5qlvdil09qzkoFMXWkcFDHxluk2gig
+         LTYT5Qa6FLrNQM5Wx/hxK0VmaePPUNjEelLyuncs=
+Date:   Thu, 05 Jan 2023 16:35:01 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-fix-potential-rcu-issue.patch added to mm-unstable branch
-Message-Id: <20230106003500.0E01FC433F0@smtp.kernel.org>
+Subject: + maple_tree-reduce-user-error-potential.patch added to mm-unstable branch
+Message-Id: <20230106003502.048B5C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: fix potential rcu issue
+     Subject: maple_tree: reduce user error potential
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-fix-potential-rcu-issue.patch
+     maple_tree-reduce-user-error-potential.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-potential-rcu-issue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-reduce-user-error-potential.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,36 +65,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: maple_tree: fix potential rcu issue
-Date: Thu, 5 Jan 2023 19:15:52 +0000
+Subject: maple_tree: reduce user error potential
+Date: Thu, 5 Jan 2023 19:15:53 +0000
 
-Ensure the node isn't dead after reading the node end.
+When iterating, a user may operate on the tree and cause the maple state
+to be altered and left in an unintuitive state.  Detect this scenario
+and correct it by setting to the limit and invalidating the state.
 
-Link: https://lkml.kernel.org/r/20230105191517.3099082-3-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230105191517.3099082-4-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/maple_tree.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/lib/maple_tree.c~maple_tree-fix-potential-rcu-issue
+--- a/lib/maple_tree.c~maple_tree-reduce-user-error-potential
 +++ a/lib/maple_tree.c
-@@ -4655,13 +4655,13 @@ static inline void *mas_next_nentry(stru
- 	pivots = ma_pivots(node, type);
- 	slots = ma_slots(node, type);
- 	mas->index = mas_safe_min(mas, pivots, mas->offset);
-+	count = ma_data_end(node, type, pivots, mas->max);
- 	if (ma_dead_node(node))
- 		return NULL;
+@@ -4732,6 +4732,11 @@ static inline void *mas_next_entry(struc
+ 	unsigned long last;
+ 	enum maple_type mt;
  
- 	if (mas->index > max)
- 		return NULL;
++	if (mas->index > limit) {
++		mas->index = mas->last = limit;
++		mas_pause(mas);
++		return NULL;
++	}
+ 	last = mas->last;
+ retry:
+ 	offset = mas->offset;
+@@ -4838,6 +4843,11 @@ static inline void *mas_prev_entry(struc
+ {
+ 	void *entry;
  
--	count = ma_data_end(node, type, pivots, mas->max);
- 	if (mas->offset > count)
- 		return NULL;
- 
++	if (mas->index < min) {
++		mas->index = mas->last = min;
++		mas_pause(mas);
++		return NULL;
++	}
+ retry:
+ 	while (likely(!mas_is_none(mas))) {
+ 		entry = mas_prev_nentry(mas, min, mas->index);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
