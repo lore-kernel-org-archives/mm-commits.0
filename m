@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C495C4708E
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:35:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F1E6C53210
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:35:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236457AbjAFAfi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 19:35:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47490 "EHLO
+        id S235658AbjAFAfj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 19:35:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236225AbjAFAfQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:35:16 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66BB153734
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:15 -0800 (PST)
+        with ESMTP id S236176AbjAFAfV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:35:21 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4758454D87
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 23B10B81C0C
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A49A9C433EF;
-        Fri,  6 Jan 2023 00:35:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EE3E3B81C10
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 960A7C433F1;
+        Fri,  6 Jan 2023 00:35:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672965312;
-        bh=nhxOdReNnsS1CIspWQ2i6LAAXRnZdINw7UovmdTA3iU=;
+        s=korg; t=1672965314;
+        bh=AhBavwymFQDjPs1kRHzXBMR+Zcepr2KW/OngmfI8UQs=;
         h=Date:To:From:Subject:From;
-        b=gcbF9R2j1d1MYPTQ9m0eqHfH/JhWJy15AxvLtMOmmoUn2ap+uZO9/LcnMJL6rICoR
-         G8Hr+55cmYMMNV+qis5GND7wW+VDyavtQNsfk2z+KPjuwA/SeP56zk9eX13M4zmcz2
-         AYeEQj8IX0tmE+5zI/d7GWO8CPQTbCo+pgm181A0=
-Date:   Thu, 05 Jan 2023 16:35:11 -0800
+        b=w1fH34puWOox1Uj5vVLT8qBZnH0bqXSTzEARve+BzL8MoKvrLYLARwxhT71e+fOOK
+         06rKZla3zAlZNAf+Y50JSAvMamui+6eyG+f5uelX+YvS7O/575lBL+OKcJvTAVM3tO
+         PE067y4tS/R1uloOTGkLbOJZSv227Ptg0QDsooX8=
+Date:   Thu, 05 Jan 2023 16:35:13 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmap-convert-vma_link-vma-iterator.patch added to mm-unstable branch
-Message-Id: <20230106003512.A49A9C433EF@smtp.kernel.org>
+Subject: + mm-mmap-remove-preallocation-from-do_mas_align_munmap.patch added to mm-unstable branch
+Message-Id: <20230106003514.960A7C433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap: convert vma_link() vma iterator
+     Subject: mm/mmap: remove preallocation from do_mas_align_munmap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmap-convert-vma_link-vma-iterator.patch
+     mm-mmap-remove-preallocation-from-do_mas_align_munmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmap-convert-vma_link-vma-iterator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-remove-preallocation-from-do_mas_align_munmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,43 +65,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mmap: convert vma_link() vma iterator
-Date: Thu, 5 Jan 2023 19:15:54 +0000
+Subject: mm/mmap: remove preallocation from do_mas_align_munmap()
+Date: Thu, 5 Jan 2023 19:15:55 +0000
 
-Avoid using the maple tree interface directly.
+In preparation for passing the vma state through split, the pre-allocation
+that occurs before the split has to be moved to after.  Since the
+preallocation would then live right next to the store, just call store
+instead of preallocating.  This effectively restores the potential error
+path of splitting and not munmap'ing which pre-dates the maple tree.
 
-Link: https://lkml.kernel.org/r/20230105191517.3099082-9-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230105191517.3099082-10-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/mmap.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
---- a/mm/mmap.c~mmap-convert-vma_link-vma-iterator
+--- a/mm/mmap.c~mm-mmap-remove-preallocation-from-do_mas_align_munmap
 +++ a/mm/mmap.c
-@@ -546,10 +546,10 @@ static inline void vma_mas_szero(struct
+@@ -2388,9 +2388,6 @@ do_mas_align_munmap(struct ma_state *mas
+ 	mt_init_flags(&mt_detach, MT_FLAGS_LOCK_EXTERN);
+ 	mt_set_external_lock(&mt_detach, &mm->mmap_lock);
  
- static int vma_link(struct mm_struct *mm, struct vm_area_struct *vma)
- {
--	MA_STATE(mas, &mm->mm_mt, 0, 0);
-+	VMA_ITERATOR(vmi, mm, 0);
- 	struct address_space *mapping = NULL;
- 
--	if (mas_preallocate(&mas, vma, GFP_KERNEL))
-+	if (vma_iter_prealloc(&vmi, vma))
- 		return -ENOMEM;
- 
- 	if (vma->vm_file) {
-@@ -557,7 +557,7 @@ static int vma_link(struct mm_struct *mm
- 		i_mmap_lock_write(mapping);
+-	if (mas_preallocate(mas, vma, GFP_KERNEL))
+-		return -ENOMEM;
+-
+ 	mas->last = end - 1;
+ 	/*
+ 	 * If we need to split any vma, do it now to save pain later.
+@@ -2481,8 +2478,6 @@ do_mas_align_munmap(struct ma_state *mas
+ 			goto userfaultfd_error;
  	}
  
--	vma_mas_store(vma, &mas);
-+	vma_iter_store(&vmi, vma);
+-	/* Point of no return */
+-	mas_set_range(mas, start, end - 1);
+ #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
+ 	/* Make sure no VMAs are about to be lost. */
+ 	{
+@@ -2490,6 +2485,7 @@ do_mas_align_munmap(struct ma_state *mas
+ 		struct vm_area_struct *vma_mas, *vma_test;
+ 		int test_count = 0;
  
- 	if (mapping) {
- 		__vma_link_file(vma, mapping);
++		mas_set_range(mas, start, end - 1);
+ 		rcu_read_lock();
+ 		vma_test = mas_find(&test, end - 1);
+ 		mas_for_each(mas, vma_mas, end - 1) {
+@@ -2499,10 +2495,13 @@ do_mas_align_munmap(struct ma_state *mas
+ 		}
+ 		rcu_read_unlock();
+ 		BUG_ON(count != test_count);
+-		mas_set_range(mas, start, end - 1);
+ 	}
+ #endif
+-	mas_store_prealloc(mas, NULL);
++	/* Point of no return */
++	mas_set_range(mas, start, end - 1);
++	if (mas_store_gfp(mas, NULL, GFP_KERNEL))
++		return -ENOMEM;
++
+ 	mm->map_count -= count;
+ 	/*
+ 	 * Do not downgrade mmap_lock if we are next to VM_GROWSDOWN or
+@@ -2534,7 +2533,6 @@ end_split_failed:
+ 	__mt_destroy(&mt_detach);
+ start_split_failed:
+ map_count_exceeded:
+-	mas_destroy(mas);
+ 	return error;
+ }
+ 
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
