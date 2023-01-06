@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12DD4C3DA7A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3DFBC53210
 	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:35:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232449AbjAFAfF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 19:35:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47360 "EHLO
+        id S235500AbjAFAfG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 19:35:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47362 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232331AbjAFAfF (ORCPT
+        with ESMTP id S232288AbjAFAfF (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:35:05 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC8564F12B
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:00 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C19A44FD75
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:02 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 88766B81C0C
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:34:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EB35C433EF;
-        Fri,  6 Jan 2023 00:34:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 649B5B81C1B
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E01FC433F0;
+        Fri,  6 Jan 2023 00:35:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672965298;
-        bh=F4jJbdyvcQuH7ewBRPljEpt2QIKwtUyZ/Vzt5QC778Q=;
+        s=korg; t=1672965300;
+        bh=PHAcmXLGA9wPJPFwCq+agxN2yDaaVjbNLyv92o6CX2s=;
         h=Date:To:From:Subject:From;
-        b=n6hp5cDIpwbdQbb1fS8EjRNWki1Zd3vylFzIQ4y+hB1OJJELY2+Eqzcn3y7z3is7y
-         1UWGjpcLbrKsW+jMZaQcAF+npv1Au65sp4SRxiWEk1go2uvNpxJl5qa+KKj8YRv490
-         mHyiOLbPmFEilLK/QASPiE7f6FkoUMrW+PkRjXfU=
-Date:   Thu, 05 Jan 2023 16:34:57 -0800
+        b=FsUS5tAlmUPDcj0rSW9M7i9Y04DgSQSmGjHVnezu/5yNRpm51h50Vg3WqLULZ7BQL
+         4vdd3iFPBtlRGJuYtwPgMDnz6R2MQKlyU1ximMC12WvQjTvS9JhB/I9eYfCStAhMZq
+         gM1MorcnGxFZ0Td00psNYCG7ZJOhsTK/aOCcBG0A=
+Date:   Thu, 05 Jan 2023 16:34:59 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-mas_init-function.patch added to mm-unstable branch
-Message-Id: <20230106003458.1EB35C433EF@smtp.kernel.org>
+Subject: + maple_tree-fix-potential-rcu-issue.patch added to mm-unstable branch
+Message-Id: <20230106003500.0E01FC433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: add mas_init() function
+     Subject: maple_tree: fix potential rcu issue
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-add-mas_init-function.patch
+     maple_tree-fix-potential-rcu-issue.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-mas_init-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-potential-rcu-issue.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,78 +65,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: maple_tree: add mas_init() function
+Subject: maple_tree: fix potential rcu issue
 Date: Thu, 5 Jan 2023 19:15:52 +0000
 
-Patch series "VMA tree type safety and remove __vma_adjust()", v2.
+Ensure the node isn't dead after reading the node end.
 
-This patchset does two things: 1.  Clean up, including removal of
-__vma_adjust() and 2.  Extends the VMA iterator API to provide type safety
-to the VMA operations using the maple tree, as requested by Linus [1].
-
-It also addresses another issue of usability brought up by Linus about
-needing to modify the maple state within the loops.  The maple state has
-been replaced by the VMA iterator and the iterator is now modified within
-the MM code so the caller should not need to worry about doing the work
-themselves when tree modifications occur.
-
-This brought up a potential inconsistency of the iterator state and what
-the user expects, so the inconsistency is addressed to keep the VMA
-iterator safe for use after the looping over a VMA range.  This is
-addressed in patch 3 ("maple_tree: Reduce user error potential") and 4
-("test_maple_tree: Test modifications while iterating").
-
-While cleaning up the state, the duplicate locking code in mm/mmap.c
-introduced by the maple tree has been addressed by abstracting it to two
-functions: vma_prepare() and vma_complete().  These abstractions allowed
-for a much simpler __vma_adjust(), which eventually leads to the removal
-of the __vma_adjust() function by placing the logic into the vma_merge()
-function itself.
-
-1. https://lore.kernel.org/linux-mm/CAHk-=wg9WQXBGkNdKD2bqocnN73rDswuWsavBB7T-tekykEn_A@mail.gmail.com/
-
-
-This patch (of 44):
-
-Add a function that will zero out the maple state struct and set some
-basic defaults.
-
-Link: https://lkml.kernel.org/r/20230105191517.3099082-1-Liam.Howlett@oracle.com
-Link: https://lkml.kernel.org/r/20230105191517.3099082-2-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230105191517.3099082-3-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/maple_tree.h~maple_tree-add-mas_init-function
-+++ a/include/linux/maple_tree.h
-@@ -432,6 +432,7 @@ struct ma_wr_state {
- 		.min = 0,						\
- 		.max = ULONG_MAX,					\
- 		.alloc = NULL,						\
-+		.mas_flags = 0,						\
- 	}
+--- a/lib/maple_tree.c~maple_tree-fix-potential-rcu-issue
++++ a/lib/maple_tree.c
+@@ -4655,13 +4655,13 @@ static inline void *mas_next_nentry(stru
+ 	pivots = ma_pivots(node, type);
+ 	slots = ma_slots(node, type);
+ 	mas->index = mas_safe_min(mas, pivots, mas->offset);
++	count = ma_data_end(node, type, pivots, mas->max);
+ 	if (ma_dead_node(node))
+ 		return NULL;
  
- #define MA_WR_STATE(name, ma_state, wr_entry)				\
-@@ -470,6 +471,16 @@ void *mas_next(struct ma_state *mas, uns
- int mas_empty_area(struct ma_state *mas, unsigned long min, unsigned long max,
- 		   unsigned long size);
+ 	if (mas->index > max)
+ 		return NULL;
  
-+static inline void mas_init(struct ma_state *mas, struct maple_tree *tree,
-+			    unsigned long addr)
-+{
-+	memset(mas, 0, sizeof(struct ma_state));
-+	mas->tree = tree;
-+	mas->index = mas->last = addr;
-+	mas->max = ULONG_MAX;
-+	mas->node = MAS_START;
-+}
-+
- /* Checks if a mas has not found anything */
- static inline bool mas_is_none(struct ma_state *mas)
- {
+-	count = ma_data_end(node, type, pivots, mas->max);
+ 	if (mas->offset > count)
+ 		return NULL;
+ 
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
