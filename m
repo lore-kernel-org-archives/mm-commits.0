@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E3FFC54EBE
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:35:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79BF6C54E76
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:35:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235919AbjAFAfl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 19:35:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47462 "EHLO
+        id S234360AbjAFAfk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 19:35:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236308AbjAFAfV (ORCPT
+        with ESMTP id S236271AbjAFAfV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:35:21 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F16454D84
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:20 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBD3F54D8F
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E029C60DFA
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44FDAC433D2;
-        Fri,  6 Jan 2023 00:35:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4C1F360DFA
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1303C433EF;
+        Fri,  6 Jan 2023 00:35:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672965319;
-        bh=ExctsmAphETGGjLGoLVcaZ2CIxfE1oeCt8b9smljOcA=;
+        s=korg; t=1672965316;
+        bh=Whx/151ge0gBditsC/K9CcfRKTxtb/0sNjFSa98mrFI=;
         h=Date:To:From:Subject:From;
-        b=CznlKTb4HInx10TYM7BwhekrsfremnxaJz+CZCITpDsHSrFv/V2pcnhNDJvxutMkl
-         yP1mD1hvT2Wmjug+BJazQ9ktGlxRSjkotxu0HIDtcVga69l169uq+IjplWa4A1wYMU
-         0+IHJUqRNJA7QxXZ0ip+DA+osN/UVDyXmlpuTB/M=
-Date:   Thu, 05 Jan 2023 16:35:18 -0800
+        b=jP5TCvmXCfs3JG9aXMXkFNncKiJR/1QaSUMKC0MMJIR3kR/HQV6FjwB44pdlvoRR/
+         sg8x1dHe6ysT4hb4/quuslplWJ94sh8hEumd8/8dDMvzqfWL/tcfjjfJupJmKlsG1f
+         y7KsytzAvmmiBklMCuNGmtZNRd+bW38g8gKZXDnw=
+Date:   Thu, 05 Jan 2023 16:35:15 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmap-convert-vma_expand-to-use-vma-iterator.patch added to mm-unstable branch
-Message-Id: <20230106003519.44FDAC433D2@smtp.kernel.org>
+Subject: + mmap-change-do_mas_munmap-and-do_mas_aligned_munmap-to-use-vma-iterator.patch added to mm-unstable branch
+Message-Id: <20230106003516.A1303C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap: convert vma_expand() to use vma iterator
+     Subject: mmap: change do_mas_munmap and do_mas_aligned_munmap() to use vma iterator
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmap-convert-vma_expand-to-use-vma-iterator.patch
+     mmap-change-do_mas_munmap-and-do_mas_aligned_munmap-to-use-vma-iterator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmap-convert-vma_expand-to-use-vma-iterator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmap-change-do_mas_munmap-and-do_mas_aligned_munmap-to-use-vma-iterator.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,59 +65,319 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mmap: convert vma_expand() to use vma iterator
+Subject: mmap: change do_mas_munmap and do_mas_aligned_munmap() to use vma iterator
 Date: Thu, 5 Jan 2023 19:15:55 +0000
 
-Use the vma iterator instead of the maple state for type safety and for
-consistency through the mm code.
+Start passing the vma iterator through the mm code.  This will allow for
+reuse of the state and cleaner invalidation if necessary.
 
-Link: https://lkml.kernel.org/r/20230105191517.3099082-12-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230105191517.3099082-11-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/mm.h |    2 -
+ mm/mmap.c          |   77 +++++++++++++++++++------------------------
+ mm/mremap.c        |    6 +--
+ 3 files changed, 39 insertions(+), 46 deletions(-)
 
---- a/mm/mmap.c~mmap-convert-vma_expand-to-use-vma-iterator
+--- a/include/linux/mm.h~mmap-change-do_mas_munmap-and-do_mas_aligned_munmap-to-use-vma-iterator
++++ a/include/linux/mm.h
+@@ -2881,7 +2881,7 @@ extern unsigned long mmap_region(struct
+ extern unsigned long do_mmap(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot, unsigned long flags,
+ 	unsigned long pgoff, unsigned long *populate, struct list_head *uf);
+-extern int do_mas_munmap(struct ma_state *mas, struct mm_struct *mm,
++extern int do_vmi_munmap(struct vma_iterator *vmi, struct mm_struct *mm,
+ 			 unsigned long start, size_t len, struct list_head *uf,
+ 			 bool downgrade);
+ extern int do_munmap(struct mm_struct *, unsigned long, size_t,
+--- a/mm/mmap.c~mmap-change-do_mas_munmap-and-do_mas_aligned_munmap-to-use-vma-iterator
 +++ a/mm/mmap.c
-@@ -586,7 +586,7 @@ static int vma_link(struct mm_struct *mm
-  *
-  * Returns: 0 on success
+@@ -2364,8 +2364,8 @@ static inline int munmap_sidetree(struct
+ }
+ 
+ /*
+- * do_mas_align_munmap() - munmap the aligned region from @start to @end.
+- * @mas: The maple_state, ideally set up to alter the correct tree location.
++ * do_vmi_align_munmap() - munmap the aligned region from @start to @end.
++ * @vmi: The vma iterator
+  * @vma: The starting vm_area_struct
+  * @mm: The mm_struct
+  * @start: The aligned start address to munmap.
+@@ -2376,7 +2376,7 @@ static inline int munmap_sidetree(struct
+  * If @downgrade is true, check return code for potential release of the lock.
   */
--inline int vma_expand(struct ma_state *mas, struct vm_area_struct *vma,
-+inline int vma_expand(struct vma_iterator *vmi, struct vm_area_struct *vma,
- 		      unsigned long start, unsigned long end, pgoff_t pgoff,
- 		      struct vm_area_struct *next)
+ static int
+-do_mas_align_munmap(struct ma_state *mas, struct vm_area_struct *vma,
++do_vmi_align_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 		    struct mm_struct *mm, unsigned long start,
+ 		    unsigned long end, struct list_head *uf, bool downgrade)
  {
-@@ -615,7 +615,7 @@ inline int vma_expand(struct ma_state *m
- 	/* Only handles expanding */
- 	VM_BUG_ON(vma->vm_start < start || vma->vm_end > end);
+@@ -2388,7 +2388,6 @@ do_mas_align_munmap(struct ma_state *mas
+ 	mt_init_flags(&mt_detach, MT_FLAGS_LOCK_EXTERN);
+ 	mt_set_external_lock(&mt_detach, &mm->mmap_lock);
  
--	if (mas_preallocate(mas, vma, GFP_KERNEL))
-+	if (vma_iter_prealloc(vmi, vma))
- 		goto nomem;
+-	mas->last = end - 1;
+ 	/*
+ 	 * If we need to split any vma, do it now to save pain later.
+ 	 *
+@@ -2408,27 +2407,23 @@ do_mas_align_munmap(struct ma_state *mas
+ 		if (end < vma->vm_end && mm->map_count >= sysctl_max_map_count)
+ 			goto map_count_exceeded;
  
- 	vma_adjust_trans_huge(vma, start, end, 0);
-@@ -640,8 +640,7 @@ inline int vma_expand(struct ma_state *m
- 	vma->vm_start = start;
- 	vma->vm_end = end;
- 	vma->vm_pgoff = pgoff;
--	/* Note: mas must be pointing to the expanding VMA */
--	vma_mas_store(vma, mas);
-+	vma_iter_store(vmi, vma);
+-		/*
+-		 * mas_pause() is not needed since mas->index needs to be set
+-		 * differently than vma->vm_end anyways.
+-		 */
+ 		error = __split_vma(mm, vma, start, 0);
+ 		if (error)
+ 			goto start_split_failed;
  
- 	if (file) {
- 		vma_interval_tree_insert(vma, root);
-@@ -2659,7 +2658,7 @@ unsigned long mmap_region(struct file *f
+-		mas_set(mas, start);
+-		vma = mas_walk(mas);
++		vma_iter_set(vmi, start);
++		vma = vma_find(vmi, end);
+ 	}
+ 
+-	prev = mas_prev(mas, 0);
++	prev = vma_prev(vmi);
+ 	if (unlikely((!prev)))
+-		mas_set(mas, start);
++		vma_iter_set(vmi, start);
+ 
+ 	/*
+ 	 * Detach a range of VMAs from the mm. Using next as a temp variable as
+ 	 * it is always overwritten.
+ 	 */
+-	mas_for_each(mas, next, end - 1) {
++	for_each_vma_range(*vmi, next, end) {
+ 		/* Does it split the end? */
+ 		if (next->vm_end > end) {
+ 			struct vm_area_struct *split;
+@@ -2437,8 +2432,8 @@ do_mas_align_munmap(struct ma_state *mas
+ 			if (error)
+ 				goto end_split_failed;
+ 
+-			mas_set(mas, end);
+-			split = mas_prev(mas, 0);
++			vma_iter_set(vmi, end);
++			split = vma_prev(vmi);
+ 			error = munmap_sidetree(split, &mas_detach);
+ 			if (error)
+ 				goto munmap_sidetree_failed;
+@@ -2460,7 +2455,7 @@ do_mas_align_munmap(struct ma_state *mas
+ 	}
+ 
+ 	if (!next)
+-		next = mas_next(mas, ULONG_MAX);
++		next = vma_next(vmi);
+ 
+ 	if (unlikely(uf)) {
+ 		/*
+@@ -2485,10 +2480,10 @@ do_mas_align_munmap(struct ma_state *mas
+ 		struct vm_area_struct *vma_mas, *vma_test;
+ 		int test_count = 0;
+ 
+-		mas_set_range(mas, start, end - 1);
++		vma_iter_set(vmi, start);
+ 		rcu_read_lock();
+ 		vma_test = mas_find(&test, end - 1);
+-		mas_for_each(mas, vma_mas, end - 1) {
++		for_each_vma_range(*vmi, vma_mas, end) {
+ 			BUG_ON(vma_mas != vma_test);
+ 			test_count++;
+ 			vma_test = mas_next(&test, end - 1);
+@@ -2498,8 +2493,8 @@ do_mas_align_munmap(struct ma_state *mas
+ 	}
+ #endif
+ 	/* Point of no return */
+-	mas_set_range(mas, start, end - 1);
+-	if (mas_store_gfp(mas, NULL, GFP_KERNEL))
++	vma_iter_set(vmi, start);
++	if (vma_iter_clear_gfp(vmi, start, end, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+ 	mm->map_count -= count;
+@@ -2537,8 +2532,8 @@ map_count_exceeded:
+ }
+ 
+ /*
+- * do_mas_munmap() - munmap a given range.
+- * @mas: The maple state
++ * do_vmi_munmap() - munmap a given range.
++ * @vmi: The vma iterator
+  * @mm: The mm_struct
+  * @start: The start address to munmap
+  * @len: The length of the range to munmap
+@@ -2552,7 +2547,7 @@ map_count_exceeded:
+  *
+  * Returns: -EINVAL on failure, 1 on success and unlock, 0 otherwise.
+  */
+-int do_mas_munmap(struct ma_state *mas, struct mm_struct *mm,
++int do_vmi_munmap(struct vma_iterator *vmi, struct mm_struct *mm,
+ 		  unsigned long start, size_t len, struct list_head *uf,
+ 		  bool downgrade)
+ {
+@@ -2570,11 +2565,11 @@ int do_mas_munmap(struct ma_state *mas,
+ 	arch_unmap(mm, start, end);
+ 
+ 	/* Find the first overlapping VMA */
+-	vma = mas_find(mas, end - 1);
++	vma = vma_find(vmi, end);
+ 	if (!vma)
+ 		return 0;
+ 
+-	return do_mas_align_munmap(mas, vma, mm, start, end, uf, downgrade);
++	return do_vmi_align_munmap(vmi, vma, mm, start, end, uf, downgrade);
+ }
+ 
+ /* do_munmap() - Wrapper function for non-maple tree aware do_munmap() calls.
+@@ -2586,9 +2581,9 @@ int do_mas_munmap(struct ma_state *mas,
+ int do_munmap(struct mm_struct *mm, unsigned long start, size_t len,
+ 	      struct list_head *uf)
+ {
+-	MA_STATE(mas, &mm->mm_mt, start, start);
++	VMA_ITERATOR(vmi, mm, start);
+ 
+-	return do_mas_munmap(&mas, mm, start, len, uf, false);
++	return do_vmi_munmap(&vmi, mm, start, len, uf, false);
+ }
+ 
+ unsigned long mmap_region(struct file *file, unsigned long addr,
+@@ -2604,7 +2599,7 @@ unsigned long mmap_region(struct file *f
+ 	unsigned long merge_start = addr, merge_end = end;
+ 	pgoff_t vm_pgoff;
+ 	int error;
+-	MA_STATE(mas, &mm->mm_mt, addr, end - 1);
++	VMA_ITERATOR(vmi, mm, addr);
+ 
+ 	/* Check against address space limit. */
+ 	if (!may_expand_vm(mm, vm_flags, len >> PAGE_SHIFT)) {
+@@ -2622,7 +2617,7 @@ unsigned long mmap_region(struct file *f
+ 	}
+ 
+ 	/* Unmap any existing mapping in the area */
+-	if (do_mas_munmap(&mas, mm, addr, len, uf, false))
++	if (do_vmi_munmap(&vmi, mm, addr, len, uf, false))
+ 		return -ENOMEM;
+ 
+ 	/*
+@@ -2635,8 +2630,8 @@ unsigned long mmap_region(struct file *f
+ 		vm_flags |= VM_ACCOUNT;
+ 	}
+ 
+-	next = mas_next(&mas, ULONG_MAX);
+-	prev = mas_prev(&mas, 0);
++	next = vma_next(&vmi);
++	prev = vma_prev(&vmi);
+ 	if (vm_flags & VM_SPECIAL)
+ 		goto cannot_expand;
+ 
+@@ -2664,13 +2659,11 @@ unsigned long mmap_region(struct file *f
  
  	/* Actually expand, if possible */
  	if (vma &&
--	    !vma_expand(&vmi.mas, vma, merge_start, merge_end, vm_pgoff, next)) {
-+	    !vma_expand(&vmi, vma, merge_start, merge_end, vm_pgoff, next)) {
+-	    !vma_expand(&mas, vma, merge_start, merge_end, vm_pgoff, next)) {
++	    !vma_expand(&vmi.mas, vma, merge_start, merge_end, vm_pgoff, next)) {
  		khugepaged_enter_vma(vma, vm_flags);
  		goto expanded;
  	}
+ 
+-	mas.index = addr;
+-	mas.last = end - 1;
+ cannot_expand:
+ 	/*
+ 	 * Determine the object being mapped and call the appropriate
+@@ -2709,7 +2702,7 @@ cannot_expand:
+ 			error = -EINVAL;
+ 			goto close_and_free_vma;
+ 		}
+-		mas_reset(&mas);
++		vma_iter_set(&vmi, addr);
+ 
+ 		/*
+ 		 * If vm_flags changed after call_mmap(), we should try merge
+@@ -2755,7 +2748,7 @@ cannot_expand:
+ 			goto free_vma;
+ 	}
+ 
+-	if (mas_preallocate(&mas, vma, GFP_KERNEL)) {
++	if (vma_iter_prealloc(&vmi, vma)) {
+ 		error = -ENOMEM;
+ 		if (file)
+ 			goto close_and_free_vma;
+@@ -2768,7 +2761,7 @@ cannot_expand:
+ 	if (vma->vm_file)
+ 		i_mmap_lock_write(vma->vm_file->f_mapping);
+ 
+-	vma_mas_store(vma, &mas);
++	vma_iter_store(&vmi, vma);
+ 	mm->map_count++;
+ 	if (vma->vm_file) {
+ 		if (vma->vm_flags & VM_SHARED)
+@@ -2829,7 +2822,7 @@ unmap_and_free_vma:
+ 	vma->vm_file = NULL;
+ 
+ 	/* Undo any partial mapping done by a device driver. */
+-	unmap_region(mm, mas.tree, vma, prev, next, vma->vm_start, vma->vm_end);
++	unmap_region(mm, &mm->mm_mt, vma, prev, next, vma->vm_start, vma->vm_end);
+ 	if (file && (vm_flags & VM_SHARED))
+ 		mapping_unmap_writable(file->f_mapping);
+ free_vma:
+@@ -2846,12 +2839,12 @@ static int __vm_munmap(unsigned long sta
+ 	int ret;
+ 	struct mm_struct *mm = current->mm;
+ 	LIST_HEAD(uf);
+-	MA_STATE(mas, &mm->mm_mt, start, start);
++	VMA_ITERATOR(vmi, mm, start);
+ 
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
+ 
+-	ret = do_mas_munmap(&mas, mm, start, len, &uf, downgrade);
++	ret = do_vmi_munmap(&vmi, mm, start, len, &uf, downgrade);
+ 	/*
+ 	 * Returning 1 indicates mmap_lock is downgraded.
+ 	 * But 1 is not legal return value of vm_munmap() and munmap(), reset
+@@ -2983,7 +2976,7 @@ static int do_brk_munmap(struct vma_iter
+ 	int ret;
+ 
+ 	arch_unmap(mm, newbrk, oldbrk);
+-	ret = do_mas_align_munmap(&vmi->mas, vma, mm, newbrk, oldbrk, uf, true);
++	ret = do_vmi_align_munmap(vmi, vma, mm, newbrk, oldbrk, uf, true);
+ 	validate_mm_mt(mm);
+ 	return ret;
+ }
+@@ -3107,7 +3100,7 @@ int vm_brk_flags(unsigned long addr, uns
+ 	if (ret)
+ 		goto limits_failed;
+ 
+-	ret = do_mas_munmap(&vmi.mas, mm, addr, len, &uf, 0);
++	ret = do_vmi_munmap(&vmi, mm, addr, len, &uf, 0);
+ 	if (ret)
+ 		goto munmap_failed;
+ 
+--- a/mm/mremap.c~mmap-change-do_mas_munmap-and-do_mas_aligned_munmap-to-use-vma-iterator
++++ a/mm/mremap.c
+@@ -978,14 +978,14 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	/*
+ 	 * Always allow a shrinking remap: that just unmaps
+ 	 * the unnecessary pages..
+-	 * do_mas_munmap does all the needed commit accounting, and
++	 * do_vmi_munmap does all the needed commit accounting, and
+ 	 * downgrades mmap_lock to read if so directed.
+ 	 */
+ 	if (old_len >= new_len) {
+ 		int retval;
+-		MA_STATE(mas, &mm->mm_mt, addr + new_len, addr + new_len);
++		VMA_ITERATOR(vmi, mm, addr + new_len);
+ 
+-		retval = do_mas_munmap(&mas, mm, addr + new_len,
++		retval = do_vmi_munmap(&vmi, mm, addr + new_len,
+ 				       old_len - new_len, &uf_unmap, true);
+ 		/* Returning 1 indicates mmap_lock is downgraded to read. */
+ 		if (retval == 1) {
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
