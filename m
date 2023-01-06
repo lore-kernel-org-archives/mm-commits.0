@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FC80C3DA7A
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:54:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 136FBC53210
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 01:56:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235969AbjAFAym (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 19:54:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54552 "EHLO
+        id S229554AbjAFB4q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 20:56:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232474AbjAFAyl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:54:41 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D443761465;
-        Thu,  5 Jan 2023 16:54:39 -0800 (PST)
+        with ESMTP id S229455AbjAFB4q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 20:56:46 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B916FD2
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 17:56:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 3027ECE1A9B;
-        Fri,  6 Jan 2023 00:54:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69F5AC433F0;
-        Fri,  6 Jan 2023 00:54:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 36F3FB81C3C
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 01:56:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2497C433EF;
+        Fri,  6 Jan 2023 01:56:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672966476;
-        bh=eZ4A+aE0xg05cjLBQa5jTTE5R7V+5B3pW6jxritMlM4=;
+        s=korg; t=1672970192;
+        bh=Q1r0QU2p76WL35+wLlErvbI8sPVMeZFTfELmbQjit8I=;
         h=Date:To:From:Subject:From;
-        b=Tdi/mc6OtHCvss+st6gjCjbxrO5lTzBLnPM+ZRiSR7oOfIUH7EN5LfxSL5vYvferI
-         q4i11mwXvTyZcQi3O6pTIz+CdZuBPGdqQcjPvM1sXDC0MoHlzJRAoKtpTqol+jF/1M
-         7MFQQdxLbEepLPA6MaUcb75ftjsvJH3C8YXRX4Uo=
-Date:   Thu, 05 Jan 2023 16:54:35 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=a/+GwPROxdu6SUdWRrD0byuSvxO7KqwBgM1gUR3Q/wbJCKt8cXOi2lzS4GwmacmHA
+         O9PVznrMxLALHgW8kUFTxPvLdDwKpxkS5xrygY9Rl3jfSqVhSYIQdZWwctTcy/Sw7f
+         CesJ6thEg/k2eANtRDBVBkw9GYCC+VflILyZ4zds=
+Date:   Thu, 05 Jan 2023 17:56:31 -0800
+To:     mm-commits@vger.kernel.org, zokeefe@google.com, vbabka@suse.cz,
+        shuah@kernel.org, peterx@redhat.com, nadav.amit@gmail.com,
+        hughd@google.com, aarcange@redhat.com, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-general-protection-fault-in-nilfs_btree_insert.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230106005436.69F5AC433F0@smtp.kernel.org>
+Subject: + selftests-vm-cow-add-cow-tests-for-collapsing-of-pte-mapped-anon-thp.patch added to mm-unstable branch
+Message-Id: <20230106015632.B2497C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix general protection fault in nilfs_btree_insert()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-fix-general-protection-fault-in-nilfs_btree_insert.patch
+     Subject: selftests/vm: cow: add COW tests for collapsing of PTE-mapped anon THP
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-vm-cow-add-cow-tests-for-collapsing-of-pte-mapped-anon-thp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-general-protection-fault-in-nilfs_btree_insert.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-cow-add-cow-tests-for-collapsing-of-pte-mapped-anon-thp.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,106 +66,342 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix general protection fault in nilfs_btree_insert()
-Date: Thu, 5 Jan 2023 14:53:56 +0900
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/vm: cow: add COW tests for collapsing of PTE-mapped anon THP
+Date: Wed, 4 Jan 2023 15:49:05 +0100
 
-If nilfs2 reads a corrupted disk image and tries to reads a b-tree node
-block by calling __nilfs_btree_get_block() against an invalid virtual
-block address, it returns -ENOENT because conversion of the virtual block
-address to a disk block address fails.  However, this return value is the
-same as the internal code that b-tree lookup routines return to indicate
-that the block being searched does not exist, so functions that operate on
-that b-tree may misbehave.
+Currently, anonymous PTE-mapped THPs cannot be collapsed in-place:
+collapsing (e.g., via MADV_COLLAPSE) implies allocating a fresh THP and
+mapping that new THP via a PMD: as it's a fresh anon THP, it will get the
+exclusive flag set on the head page and everybody is happy.
 
-When nilfs_btree_insert() receives this spurious 'not found' code from
-nilfs_btree_do_lookup(), it misunderstands that the 'not found' check was
-successful and continues the insert operation using incomplete lookup path
-data, causing the following crash:
+However, if the kernel would ever support in-place collapse of anonymous
+THPs (replacing a page table mapping each sub-page of a THP via PTEs with
+a single PMD mapping the complete THP), exclusivity information stored for
+each sub-page would have to be collapsed accordingly:
 
- general protection fault, probably for non-canonical address
- 0xdffffc0000000005: 0000 [#1] PREEMPT SMP KASAN
- KASAN: null-ptr-deref in range [0x0000000000000028-0x000000000000002f]
- ...
- RIP: 0010:nilfs_btree_get_nonroot_node fs/nilfs2/btree.c:418 [inline]
- RIP: 0010:nilfs_btree_prepare_insert fs/nilfs2/btree.c:1077 [inline]
- RIP: 0010:nilfs_btree_insert+0x6d3/0x1c10 fs/nilfs2/btree.c:1238
- Code: bc 24 80 00 00 00 4c 89 f8 48 c1 e8 03 42 80 3c 28 00 74 08 4c 89
- ff e8 4b 02 92 fe 4d 8b 3f 49 83 c7 28 4c 89 f8 48 c1 e8 03 <42> 80 3c
- 28 00 74 08 4c 89 ff e8 2e 02 92 fe 4d 8b 3f 49 83 c7 02
- ...
- Call Trace:
- <TASK>
-  nilfs_bmap_do_insert fs/nilfs2/bmap.c:121 [inline]
-  nilfs_bmap_insert+0x20d/0x360 fs/nilfs2/bmap.c:147
-  nilfs_get_block+0x414/0x8d0 fs/nilfs2/inode.c:101
-  __block_write_begin_int+0x54c/0x1a80 fs/buffer.c:1991
-  __block_write_begin fs/buffer.c:2041 [inline]
-  block_write_begin+0x93/0x1e0 fs/buffer.c:2102
-  nilfs_write_begin+0x9c/0x110 fs/nilfs2/inode.c:261
-  generic_perform_write+0x2e4/0x5e0 mm/filemap.c:3772
-  __generic_file_write_iter+0x176/0x400 mm/filemap.c:3900
-  generic_file_write_iter+0xab/0x310 mm/filemap.c:3932
-  call_write_iter include/linux/fs.h:2186 [inline]
-  new_sync_write fs/read_write.c:491 [inline]
-  vfs_write+0x7dc/0xc50 fs/read_write.c:584
-  ksys_write+0x177/0x2a0 fs/read_write.c:637
-  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
-  do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
-  entry_SYSCALL_64_after_hwframe+0x63/0xcd
- ...
- </TASK>
+(1) All PTEs map !exclusive anon sub-pages: the in-place collapsed THP
+    must not not have the exclusive flag set on the head page mapped by
+    the PMD. This is the easiest case to handle ("simply don't set any
+    exclusive flags").
 
-This patch fixes the root cause of this problem by replacing the error
-code that __nilfs_btree_get_block() returns on block address conversion
-failure from -ENOENT to another internal code -EINVAL which means that the
-b-tree metadata is corrupted.
+(2) All PTEs map exclusive anon sub-pages: when collapsing, we have to
+    clear the exclusive flag from all tail pages and only leave the
+    exclusive flag set for the head page. Otherwise, fork() after
+    collapse would not clear the exclusive flags from the tail pages
+    and we'd be in trouble once PTE-mapping the shared THP when writing
+    to shared tail pages that still have the exclusive flag set. This
+    would effectively revert what the PTE-mapping code does when
+    propagating the exclusive flag to all sub-pages.
 
-By returning -EINVAL, it propagates without glitches, and for all relevant
-b-tree operations, functions in the upper bmap layer output an error
-message indicating corrupted b-tree metadata via
-nilfs_bmap_convert_error(), and code -EIO will be eventually returned as
-it should be.
+(3) PTEs map a mixture of exclusive and !exclusive anon sub-pages (can
+    happen e.g., due to MADV_DONTFORK before fork()). We must not
+    collapse the THP in-place, otherwise bad things may happen:
+    the exclusive flags of sub-pages would get ignored and the
+    exclusive flag of the head page would get used instead.
 
-Link: https://lkml.kernel.org/r/000000000000bd89e205f0e38355@google.com
-Link: https://lkml.kernel.org/r/20230105055356.8811-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+ede796cecd5296353515@syzkaller.appspotmail.com
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>
+Now that we have MADV_COLLAPSE in place to trigger collapsing a THP, let's
+add some test cases that would bail out early, if we'd
+voluntarily/accidantially unlock in-place collapse for anon THPs and
+forget about taking proper care of exclusive flags.
+
+Running the test on a kernel with MADV_COLLAPSE support:
+  # [INFO] Anonymous THP tests
+  # [RUN] Basic COW after fork() when collapsing before fork()
+  ok 169 No leak from parent into child
+  # [RUN] Basic COW after fork() when collapsing after fork() (fully shared)
+  ok 170 # SKIP MADV_COLLAPSE failed: Invalid argument
+  # [RUN] Basic COW after fork() when collapsing after fork() (lower shared)
+  ok 171 No leak from parent into child
+  # [RUN] Basic COW after fork() when collapsing after fork() (upper shared)
+  ok 172 No leak from parent into child
+
+For now, MADV_COLLAPSE always seems to fail if all PTEs map shared
+sub-pages.
+
+Link: https://lkml.kernel.org/r/20230104144905.460075-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btree.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/cow.c |  228 +++++++++++++++++++++++++++++
+ 1 file changed, 228 insertions(+)
 
---- a/fs/nilfs2/btree.c~nilfs2-fix-general-protection-fault-in-nilfs_btree_insert
-+++ a/fs/nilfs2/btree.c
-@@ -480,9 +480,18 @@ static int __nilfs_btree_get_block(const
- 	ret = nilfs_btnode_submit_block(btnc, ptr, 0, REQ_OP_READ, &bh,
- 					&submit_ptr);
- 	if (ret) {
--		if (ret != -EEXIST)
--			return ret;
--		goto out_check;
-+		if (likely(ret == -EEXIST))
-+			goto out_check;
-+		if (ret == -ENOENT) {
-+			/*
-+			 * Block address translation failed due to invalid
-+			 * value of 'ptr'.  In this case, return internal code
-+			 * -EINVAL (broken bmap) to notify bmap layer of fatal
-+			 * metadata corruption.
-+			 */
-+			ret = -EINVAL;
-+		}
-+		return ret;
- 	}
+--- a/tools/testing/selftests/vm/cow.c~selftests-vm-cow-add-cow-tests-for-collapsing-of-pte-mapped-anon-thp
++++ a/tools/testing/selftests/vm/cow.c
+@@ -30,6 +30,10 @@
+ #include "../kselftest.h"
+ #include "vm_util.h"
  
- 	if (ra) {
++#ifndef MADV_COLLAPSE
++#define MADV_COLLAPSE 25
++#endif
++
+ static size_t pagesize;
+ static int pagemap_fd;
+ static size_t thpsize;
+@@ -1178,6 +1182,228 @@ static int tests_per_anon_test_case(void
+ 	return tests;
+ }
+ 
++enum anon_thp_collapse_test {
++	ANON_THP_COLLAPSE_UNSHARED,
++	ANON_THP_COLLAPSE_FULLY_SHARED,
++	ANON_THP_COLLAPSE_LOWER_SHARED,
++	ANON_THP_COLLAPSE_UPPER_SHARED,
++};
++
++static void do_test_anon_thp_collapse(char *mem, size_t size,
++				      enum anon_thp_collapse_test test)
++{
++	struct comm_pipes comm_pipes;
++	char buf;
++	int ret;
++
++	ret = setup_comm_pipes(&comm_pipes);
++	if (ret) {
++		ksft_test_result_fail("pipe() failed\n");
++		return;
++	}
++
++	/*
++	 * Trigger PTE-mapping the THP by temporarily mapping a single subpage
++	 * R/O, such that we can try collapsing it later.
++	 */
++	ret = mprotect(mem + pagesize, pagesize, PROT_READ);
++	if (ret) {
++		ksft_test_result_fail("mprotect() failed\n");
++		goto close_comm_pipes;
++	}
++	ret = mprotect(mem + pagesize, pagesize, PROT_READ | PROT_WRITE);
++	if (ret) {
++		ksft_test_result_fail("mprotect() failed\n");
++		goto close_comm_pipes;
++	}
++
++	switch (test) {
++	case ANON_THP_COLLAPSE_UNSHARED:
++		/* Collapse before actually COW-sharing the page. */
++		ret = madvise(mem, size, MADV_COLLAPSE);
++		if (ret) {
++			ksft_test_result_skip("MADV_COLLAPSE failed: %s\n",
++					      strerror(errno));
++			goto close_comm_pipes;
++		}
++		break;
++	case ANON_THP_COLLAPSE_FULLY_SHARED:
++		/* COW-share the full PTE-mapped THP. */
++		break;
++	case ANON_THP_COLLAPSE_LOWER_SHARED:
++		/* Don't COW-share the upper part of the THP. */
++		ret = madvise(mem + size / 2, size / 2, MADV_DONTFORK);
++		if (ret) {
++			ksft_test_result_fail("MADV_DONTFORK failed\n");
++			goto close_comm_pipes;
++		}
++		break;
++	case ANON_THP_COLLAPSE_UPPER_SHARED:
++		/* Don't COW-share the lower part of the THP. */
++		ret = madvise(mem, size / 2, MADV_DONTFORK);
++		if (ret) {
++			ksft_test_result_fail("MADV_DONTFORK failed\n");
++			goto close_comm_pipes;
++		}
++		break;
++	default:
++		assert(false);
++	}
++
++	ret = fork();
++	if (ret < 0) {
++		ksft_test_result_fail("fork() failed\n");
++		goto close_comm_pipes;
++	} else if (!ret) {
++		switch (test) {
++		case ANON_THP_COLLAPSE_UNSHARED:
++		case ANON_THP_COLLAPSE_FULLY_SHARED:
++			exit(child_memcmp_fn(mem, size, &comm_pipes));
++			break;
++		case ANON_THP_COLLAPSE_LOWER_SHARED:
++			exit(child_memcmp_fn(mem, size / 2, &comm_pipes));
++			break;
++		case ANON_THP_COLLAPSE_UPPER_SHARED:
++			exit(child_memcmp_fn(mem + size / 2, size / 2,
++					     &comm_pipes));
++			break;
++		default:
++			assert(false);
++		}
++	}
++
++	while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
++		;
++
++	switch (test) {
++	case ANON_THP_COLLAPSE_UNSHARED:
++		break;
++	case ANON_THP_COLLAPSE_UPPER_SHARED:
++	case ANON_THP_COLLAPSE_LOWER_SHARED:
++		/*
++		 * Revert MADV_DONTFORK such that we merge the VMAs and are
++		 * able to actually collapse.
++		 */
++		ret = madvise(mem, size, MADV_DOFORK);
++		if (ret) {
++			ksft_test_result_fail("MADV_DOFORK failed\n");
++			write(comm_pipes.parent_ready[1], "0", 1);
++			wait(&ret);
++			goto close_comm_pipes;
++		}
++		/* FALLTHROUGH */
++	case ANON_THP_COLLAPSE_FULLY_SHARED:
++		/* Collapse before anyone modified the COW-shared page. */
++		ret = madvise(mem, size, MADV_COLLAPSE);
++		if (ret) {
++			ksft_test_result_skip("MADV_COLLAPSE failed: %s\n",
++					      strerror(errno));
++			write(comm_pipes.parent_ready[1], "0", 1);
++			wait(&ret);
++			goto close_comm_pipes;
++		}
++		break;
++	default:
++		assert(false);
++	}
++
++	/* Modify the page. */
++	memset(mem, 0xff, size);
++	write(comm_pipes.parent_ready[1], "0", 1);
++
++	wait(&ret);
++	if (WIFEXITED(ret))
++		ret = WEXITSTATUS(ret);
++	else
++		ret = -EINVAL;
++
++	ksft_test_result(!ret, "No leak from parent into child\n");
++close_comm_pipes:
++	close_comm_pipes(&comm_pipes);
++}
++
++static void test_anon_thp_collapse_unshared(char *mem, size_t size)
++{
++	do_test_anon_thp_collapse(mem, size, ANON_THP_COLLAPSE_UNSHARED);
++}
++
++static void test_anon_thp_collapse_fully_shared(char *mem, size_t size)
++{
++	do_test_anon_thp_collapse(mem, size, ANON_THP_COLLAPSE_FULLY_SHARED);
++}
++
++static void test_anon_thp_collapse_lower_shared(char *mem, size_t size)
++{
++	do_test_anon_thp_collapse(mem, size, ANON_THP_COLLAPSE_LOWER_SHARED);
++}
++
++static void test_anon_thp_collapse_upper_shared(char *mem, size_t size)
++{
++	do_test_anon_thp_collapse(mem, size, ANON_THP_COLLAPSE_UPPER_SHARED);
++}
++
++/*
++ * Test cases that are specific to anonymous THP: pages in private mappings
++ * that may get shared via COW during fork().
++ */
++static const struct test_case anon_thp_test_cases[] = {
++	/*
++	 * Basic COW test for fork() without any GUP when collapsing a THP
++	 * before fork().
++	 *
++	 * Re-mapping a PTE-mapped anon THP using a single PMD ("in-place
++	 * collapse") might easily get COW handling wrong when not collapsing
++	 * exclusivity information properly.
++	 */
++	{
++		"Basic COW after fork() when collapsing before fork()",
++		test_anon_thp_collapse_unshared,
++	},
++	/* Basic COW test, but collapse after COW-sharing a full THP. */
++	{
++		"Basic COW after fork() when collapsing after fork() (fully shared)",
++		test_anon_thp_collapse_fully_shared,
++	},
++	/*
++	 * Basic COW test, but collapse after COW-sharing the lower half of a
++	 * THP.
++	 */
++	{
++		"Basic COW after fork() when collapsing after fork() (lower shared)",
++		test_anon_thp_collapse_lower_shared,
++	},
++	/*
++	 * Basic COW test, but collapse after COW-sharing the upper half of a
++	 * THP.
++	 */
++	{
++		"Basic COW after fork() when collapsing after fork() (upper shared)",
++		test_anon_thp_collapse_upper_shared,
++	},
++};
++
++static void run_anon_thp_test_cases(void)
++{
++	int i;
++
++	if (!thpsize)
++		return;
++
++	ksft_print_msg("[INFO] Anonymous THP tests\n");
++
++	for (i = 0; i < ARRAY_SIZE(anon_thp_test_cases); i++) {
++		struct test_case const *test_case = &anon_thp_test_cases[i];
++
++		ksft_print_msg("[RUN] %s\n", test_case->desc);
++		do_run_with_thp(test_case->fn, THP_RUN_PMD);
++	}
++}
++
++static int tests_per_anon_thp_test_case(void)
++{
++	return thpsize ? 1 : 0;
++}
++
+ typedef void (*non_anon_test_fn)(char *mem, const char *smem, size_t size);
+ 
+ static void test_cow(char *mem, const char *smem, size_t size)
+@@ -1518,6 +1744,7 @@ int main(int argc, char **argv)
+ 
+ 	ksft_print_header();
+ 	ksft_set_plan(ARRAY_SIZE(anon_test_cases) * tests_per_anon_test_case() +
++		      ARRAY_SIZE(anon_thp_test_cases) * tests_per_anon_thp_test_case() +
+ 		      ARRAY_SIZE(non_anon_test_cases) * tests_per_non_anon_test_case());
+ 
+ 	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
+@@ -1526,6 +1753,7 @@ int main(int argc, char **argv)
+ 		ksft_exit_fail_msg("opening pagemap failed\n");
+ 
+ 	run_anon_test_cases();
++	run_anon_thp_test_cases();
+ 	run_non_anon_test_cases();
+ 
+ 	err = ksft_get_fail_cnt();
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-nilfs2-fix-general-protection-fault-in-nilfs_btree_insert.patch
+mm-hugetlb-fix-pte-marker-handling-in-hugetlb_change_protection.patch
+mm-hugetlb-fix-uffd-wp-handling-for-migration-entries-in-hugetlb_change_protection.patch
+mm-userfaultfd-enable-writenotify-while-userfaultfd-wp-is-enabled-for-a-vma.patch
+mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range.patch
+mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range-fix.patch
+mm-mprotect-drop-pgprot_t-parameter-from-change_protection.patch
+mm-mprotect-drop-pgprot_t-parameter-from-change_protection-fix.patch
+selftests-vm-cow-add-cow-tests-for-collapsing-of-pte-mapped-anon-thp.patch
 
