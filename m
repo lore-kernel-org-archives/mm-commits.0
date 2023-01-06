@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF72BC5479D
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 23:33:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13624C5479D
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 23:35:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230270AbjAFXdm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Jan 2023 18:33:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47774 "EHLO
+        id S229542AbjAFXfN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Jan 2023 18:35:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48346 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbjAFXdm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jan 2023 18:33:42 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60FC344C63
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 15:33:39 -0800 (PST)
+        with ESMTP id S230439AbjAFXfL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jan 2023 18:35:11 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63D5A73E3A
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 15:35:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 20C47B81EF2
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 23:33:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6EAEC433D2;
-        Fri,  6 Jan 2023 23:33:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 03A57B81E44
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 23:35:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98C64C433D2;
+        Fri,  6 Jan 2023 23:35:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673048016;
-        bh=khFQEzVMOq70J9O7KXJxxRbKYkFylVcGN0S5qpBtFBw=;
+        s=korg; t=1673048107;
+        bh=Yiz9Ripo016iMZwnjznO6pQTT5VGKegFrHCmeayl1Yw=;
         h=Date:To:From:Subject:From;
-        b=wwo4/DlF3R4PBZ8K66CoLKADvpOT3etP/JRpiarvycYGtufmMUpNx371/g0MGKr9B
-         4P21vcq2YdT5WtUJAcaINwIsSlElvZ1mHi/rqtkDLfvZaFZOQ5gvL2ljYdg8lo9qUv
-         74IkhBGxOjtQK1pkenQ3kTjERtjYo8ICPCimYzAM=
-Date:   Fri, 06 Jan 2023 15:33:35 -0800
-To:     mm-commits@vger.kernel.org, liam.howlett@oracle.com, sj@kernel.org,
+        b=Yw138VwRA7nHMujSicJZBksJpWhfWXcL0AMF+43/hfn8zIjh1mFgkpfIFAuUAdVXp
+         AZqEy/7SFG3tfu/tMeMxAW5AZCCf9FmpbI2I303pJ5UMQJRJnAaC6abEWkztOazXJI
+         w0sLmgByWXxTXu7uFYSyMkwu4MJI5qsKpuPEr2lM=
+Date:   Fri, 06 Jan 2023 15:35:06 -0800
+To:     mm-commits@vger.kernel.org, lkp@intel.com, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator-fix.patch added to mm-unstable branch
-Message-Id: <20230106233336.A6EAEC433D2@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-numaperf-increase-depth-of-subsections-fix.patch added to mm-unstable branch
+Message-Id: <20230106233507.98C64C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/mm: declare different type of split_vma() for !CONFIG_MMU
+     Subject: Docs/admin-guide/mm/numaperf: change title to fix duplicate label warning
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator-fix.patch
+     docs-admin-guide-mm-numaperf-increase-depth-of-subsections-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-numaperf-increase-depth-of-subsections-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,51 +65,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: include/linux/mm: declare different type of split_vma() for !CONFIG_MMU
-Date: Fri, 6 Jan 2023 17:18:57 +0000
+Subject: Docs/admin-guide/mm/numaperf: change title to fix duplicate label warning
+Date: Fri, 6 Jan 2023 19:49:27 +0000
 
-Commit 95000286ff79 ("mm: switch vma_merge(), split_vma(), and __split_vma
-to vma iterator") on mm-unstable didn't make the change to nommu.c, but
-the declaration change was applied to !CONFIG_MMU, too.  It causes below
-build failure.
+Commit 1564fac284b1 ("Docs/admin-guide/mm/numaperf: increase depth of
+subsections") in mm-unstable titled numaperf.rst as 'NUMA Performance'. 
+The name overlaps with an existing subsection title of the document, so
+sphinx makes below warning.
 
-    linux/mm/nommu.c:1347:5: error: conflicting types for 'split_vma'
-     1347 | int split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
-          |     ^~~~~~~~~
-    In file included from linux/mm/nommu.c:20:
-    linux/include/linux/mm.h:2846:12: note: previous declaration of 'split_vma' was here
-     2846 | extern int split_vma(struct vma_iterator *vmi, struct vm_area_struct *,
-          |            ^~~~~~~~~
+    linux/Documentation/admin-guide/mm/numaperf.rst:68: WARNING: duplicate label admin-guide/mm/numaperf:numa performance, other instance in linux/Documentation/admin-guide/mm/numaperf.rst
 
-Fix the build failure by adding the split_vma() declaration for
-!CONFIG_MMU case.
+Fix the warning by changing the title of the document to 'NUMA Memory
+Performance'.  It may look more consistent with its sibling document,
+'NUMA Memory Policy'.
 
-Link: https://lkml.kernel.org/r/20230106171857.149918-1-sj@kernel.org
-Fixes: 95000286ff79 ("mm: switch vma_merge(), split_vma(), and __split_vma to vma iterator")
+Link: https://lkml.kernel.org/r/20230106194927.152663-1-sj@kernel.org
+Fixes: 1564fac284b1 ("Docs/admin-guide/mm/numaperf: increase depth of subsections") in mm-unstable
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/admin-guide/mm/numaperf.rst |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator-fix
-+++ a/include/linux/mm.h
-@@ -2823,8 +2823,13 @@ extern struct vm_area_struct *vma_merge(
- extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
- extern int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *,
- 		       unsigned long addr, int new_below);
-+#ifdef CONFIG_MMU
- extern int split_vma(struct vma_iterator *vmi, struct vm_area_struct *,
- 			 unsigned long addr, int new_below);
-+#else
-+extern int split_vma(struct mm_struct *, struct vm_area_struct *,
-+			 unsigned long addr, int new_below);
-+#endif	/* CONFIG_MMU */
- extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
- extern void unlink_file_vma(struct vm_area_struct *);
- extern struct vm_area_struct *copy_vma(struct vm_area_struct **,
+--- a/Documentation/admin-guide/mm/numaperf.rst~docs-admin-guide-mm-numaperf-increase-depth-of-subsections-fix
++++ a/Documentation/admin-guide/mm/numaperf.rst
+@@ -1,8 +1,8 @@
+ .. _numaperf:
+ 
+-================
+-NUMA Performance
+-================
++=======================
++NUMA Memory Performance
++=======================
+ 
+ NUMA Locality
+ =============
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
@@ -134,5 +127,6 @@ maintainers-memory-management-add-tools-vm-as-managed-files.patch
 tools-vm-rename-tools-vm-to-tools-mm.patch
 selftests-vm-rename-selftets-vm-to-selftests-mm.patch
 docs-admin-guide-mm-numaperf-increase-depth-of-subsections.patch
+docs-admin-guide-mm-numaperf-increase-depth-of-subsections-fix.patch
 scripts-spelling-add-a-few-more-typos.patch
 
