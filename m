@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC105C4708E
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:51:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FC80C3DA7A
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:54:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235888AbjAFAvN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 19:51:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53378 "EHLO
+        id S235969AbjAFAym (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 19:54:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235969AbjAFAvM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:51:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B94A193
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:51:11 -0800 (PST)
+        with ESMTP id S232474AbjAFAyl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:54:41 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D443761465;
+        Thu,  5 Jan 2023 16:54:39 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5447B61C01
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:51:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A94F8C433D2;
-        Fri,  6 Jan 2023 00:51:10 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 3027ECE1A9B;
+        Fri,  6 Jan 2023 00:54:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69F5AC433F0;
+        Fri,  6 Jan 2023 00:54:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672966270;
-        bh=mD/HAcp0IVnRBXZhHaXq2w2hJWsp1Bv2gKbgyWk+Bos=;
+        s=korg; t=1672966476;
+        bh=eZ4A+aE0xg05cjLBQa5jTTE5R7V+5B3pW6jxritMlM4=;
         h=Date:To:From:Subject:From;
-        b=qNkrdXSMHox2n90WQO25J2xX/tF2mafVtzvPFAOj1Im46CKI4KI0b8Qg58lM3sJ1q
-         XBWjNNUKZpmlweaSbWIB+7vtzAB0Rn2jgoAF0MdOGfVuaLNiUUySVAHFtKqwj5jOHU
-         RrPZY7zMUrEyp/y9K27Q7mGBo/q0iisVQTh0jxjk=
-Date:   Thu, 05 Jan 2023 16:51:09 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        ira.weiny@intel.com, fmdefrancesco@gmail.com,
-        akpm@linux-foundation.org
+        b=Tdi/mc6OtHCvss+st6gjCjbxrO5lTzBLnPM+ZRiSR7oOfIUH7EN5LfxSL5vYvferI
+         q4i11mwXvTyZcQi3O6pTIz+CdZuBPGdqQcjPvM1sXDC0MoHlzJRAoKtpTqol+jF/1M
+         7MFQQdxLbEepLPA6MaUcb75ftjsvJH3C8YXRX4Uo=
+Date:   Thu, 05 Jan 2023 16:54:35 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-an-ambiguous-sentence-from-kmap_local_folio-kdocs.patch added to mm-unstable branch
-Message-Id: <20230106005110.A94F8C433D2@smtp.kernel.org>
+Subject: + nilfs2-fix-general-protection-fault-in-nilfs_btree_insert.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230106005436.69F5AC433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove an ambiguous sentence from kmap_local_folio() kdocs
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-an-ambiguous-sentence-from-kmap_local_folio-kdocs.patch
+     Subject: nilfs2: fix general protection fault in nilfs_btree_insert()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     nilfs2-fix-general-protection-fault-in-nilfs_btree_insert.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-an-ambiguous-sentence-from-kmap_local_folio-kdocs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-general-protection-fault-in-nilfs_btree_insert.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,48 +64,106 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-Subject: mm: remove an ambiguous sentence from kmap_local_folio() kdocs
-Date: Thu, 5 Jan 2023 13:04:24 +0100
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix general protection fault in nilfs_btree_insert()
+Date: Thu, 5 Jan 2023 14:53:56 +0900
 
-In the kdocs of kmap_local_folio() there is a an ambiguous sentence which
-suggests to use this API "only when really necessary".
+If nilfs2 reads a corrupted disk image and tries to reads a b-tree node
+block by calling __nilfs_btree_get_block() against an invalid virtual
+block address, it returns -ENOENT because conversion of the virtual block
+address to a disk block address fails.  However, this return value is the
+same as the internal code that b-tree lookup routines return to indicate
+that the block being searched does not exist, so functions that operate on
+that b-tree may misbehave.
 
-On the contrary, since kmap() and kmap_atomic() are deprecated, both
-kmap_local_folio(), as well as kmap_local_page(), must be preferred to the
-previous ones.
+When nilfs_btree_insert() receives this spurious 'not found' code from
+nilfs_btree_do_lookup(), it misunderstands that the 'not found' check was
+successful and continues the insert operation using incomplete lookup path
+data, causing the following crash:
 
-Therefore, remove the above-mentioned sentence exactly how it has
-previously been done for the kmap_local_page() kdocs in commit
-72f1c55adf70 ("highmem: delete a sentence from kmap_local_page() kdocs").
+ general protection fault, probably for non-canonical address
+ 0xdffffc0000000005: 0000 [#1] PREEMPT SMP KASAN
+ KASAN: null-ptr-deref in range [0x0000000000000028-0x000000000000002f]
+ ...
+ RIP: 0010:nilfs_btree_get_nonroot_node fs/nilfs2/btree.c:418 [inline]
+ RIP: 0010:nilfs_btree_prepare_insert fs/nilfs2/btree.c:1077 [inline]
+ RIP: 0010:nilfs_btree_insert+0x6d3/0x1c10 fs/nilfs2/btree.c:1238
+ Code: bc 24 80 00 00 00 4c 89 f8 48 c1 e8 03 42 80 3c 28 00 74 08 4c 89
+ ff e8 4b 02 92 fe 4d 8b 3f 49 83 c7 28 4c 89 f8 48 c1 e8 03 <42> 80 3c
+ 28 00 74 08 4c 89 ff e8 2e 02 92 fe 4d 8b 3f 49 83 c7 02
+ ...
+ Call Trace:
+ <TASK>
+  nilfs_bmap_do_insert fs/nilfs2/bmap.c:121 [inline]
+  nilfs_bmap_insert+0x20d/0x360 fs/nilfs2/bmap.c:147
+  nilfs_get_block+0x414/0x8d0 fs/nilfs2/inode.c:101
+  __block_write_begin_int+0x54c/0x1a80 fs/buffer.c:1991
+  __block_write_begin fs/buffer.c:2041 [inline]
+  block_write_begin+0x93/0x1e0 fs/buffer.c:2102
+  nilfs_write_begin+0x9c/0x110 fs/nilfs2/inode.c:261
+  generic_perform_write+0x2e4/0x5e0 mm/filemap.c:3772
+  __generic_file_write_iter+0x176/0x400 mm/filemap.c:3900
+  generic_file_write_iter+0xab/0x310 mm/filemap.c:3932
+  call_write_iter include/linux/fs.h:2186 [inline]
+  new_sync_write fs/read_write.c:491 [inline]
+  vfs_write+0x7dc/0xc50 fs/read_write.c:584
+  ksys_write+0x177/0x2a0 fs/read_write.c:637
+  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+  do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+  entry_SYSCALL_64_after_hwframe+0x63/0xcd
+ ...
+ </TASK>
 
-Link: https://lkml.kernel.org/r/20230105120424.30055-1-fmdefrancesco@gmail.com
-Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+This patch fixes the root cause of this problem by replacing the error
+code that __nilfs_btree_get_block() returns on block address conversion
+failure from -ENOENT to another internal code -EINVAL which means that the
+b-tree metadata is corrupted.
+
+By returning -EINVAL, it propagates without glitches, and for all relevant
+b-tree operations, functions in the upper bmap layer output an error
+message indicating corrupted b-tree metadata via
+nilfs_bmap_convert_error(), and code -EIO will be eventually returned as
+it should be.
+
+Link: https://lkml.kernel.org/r/000000000000bd89e205f0e38355@google.com
+Link: https://lkml.kernel.org/r/20230105055356.8811-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+ede796cecd5296353515@syzkaller.appspotmail.com
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/nilfs2/btree.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
---- a/include/linux/highmem.h~mm-remove-an-ambiguous-sentence-from-kmap_local_folio-kdocs
-+++ a/include/linux/highmem.h
-@@ -120,8 +120,7 @@ static inline void *kmap_local_page(stru
-  * temporarily mapped.
-  *
-  * While it is significantly faster than kmap() for the higmem case it
-- * comes with restrictions about the pointer validity. Only use when really
-- * necessary.
-+ * comes with restrictions about the pointer validity.
-  *
-  * On HIGHMEM enabled systems mapping a highmem page has the side effect of
-  * disabling migration in order to keep the virtual address stable across
+--- a/fs/nilfs2/btree.c~nilfs2-fix-general-protection-fault-in-nilfs_btree_insert
++++ a/fs/nilfs2/btree.c
+@@ -480,9 +480,18 @@ static int __nilfs_btree_get_block(const
+ 	ret = nilfs_btnode_submit_block(btnc, ptr, 0, REQ_OP_READ, &bh,
+ 					&submit_ptr);
+ 	if (ret) {
+-		if (ret != -EEXIST)
+-			return ret;
+-		goto out_check;
++		if (likely(ret == -EEXIST))
++			goto out_check;
++		if (ret == -ENOENT) {
++			/*
++			 * Block address translation failed due to invalid
++			 * value of 'ptr'.  In this case, return internal code
++			 * -EINVAL (broken bmap) to notify bmap layer of fatal
++			 * metadata corruption.
++			 */
++			ret = -EINVAL;
++		}
++		return ret;
+ 	}
+ 
+ 	if (ra) {
 _
 
-Patches currently in -mm which might be from fmdefrancesco@gmail.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-mm-highmem-add-notes-about-conversions-from-kmap_atomic.patch
-mm-remove-an-ambiguous-sentence-from-kmap_local_folio-kdocs.patch
-mm-fix-two-spelling-mistakes-in-highmemh.patch
+nilfs2-fix-general-protection-fault-in-nilfs_btree_insert.patch
 
