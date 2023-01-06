@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C06DC3DA7A
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:36:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35202C4708E
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:36:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236343AbjAFAgj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 19:36:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47732 "EHLO
+        id S236525AbjAFAgk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 19:36:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235532AbjAFAgF (ORCPT
+        with ESMTP id S235681AbjAFAgF (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:36:05 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6815B5F4A7
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C163E5F4A8
         for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 25DB9B81C1B
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2D38C433D2;
-        Fri,  6 Jan 2023 00:35:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4C7BB61C39
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0088C433EF;
+        Fri,  6 Jan 2023 00:35:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672965343;
-        bh=Z4xUnKRSp1Wl3+n5P6W3K5zete3OxN8efHEXvU8CUo8=;
+        s=korg; t=1672965345;
+        bh=xTPo+WVRmq0OwEe/7uhok8DABkHAt//yahMgKW3QzCA=;
         h=Date:To:From:Subject:From;
-        b=slHlg+yaaIDXnbeQEEDE7rmFA4DzDz9NmYwkkxIyQRyvkL4smhfmaai+VzBFMC0x+
-         TTOm8gt0AiJvKJPNsBN2aHqcbJ9Ths6OOPQPVujEbcQ7Kt1pbbgwmcjSZ07+hhn040
-         FKSuaP5HKUHOC6h2ekTwFNNejhY4dDrLm/4onUss=
-Date:   Thu, 05 Jan 2023 16:35:43 -0800
+        b=cCqZd4/HbeY2pT2yXgiDnMAgwgt2fa7tk43aH3yIAgXAM4nBDbdeQ1DtFZNPauwaA
+         K3sQNWagLO5b/+1uDO+C8skFVZSzXsZncuB7yPJkKGKj8A+Hq3HIzMX1p7i7Rbt3BI
+         OqbFKPsKMtM28ZyookTL06EaYiPgrfqsZCXYs/ck=
+Date:   Thu, 05 Jan 2023 16:35:44 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmap-use-vmi-version-of-vma_merge.patch added to mm-unstable branch
-Message-Id: <20230106003543.B2D38C433D2@smtp.kernel.org>
+Subject: + mm-mremap-use-vmi-version-of-vma_merge.patch added to mm-unstable branch
+Message-Id: <20230106003545.A0088C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap: use vmi version of vma_merge()
+     Subject: mm/mremap: use vmi version of vma_merge()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmap-use-vmi-version-of-vma_merge.patch
+     mm-mremap-use-vmi-version-of-vma_merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmap-use-vmi-version-of-vma_merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-use-vmi-version-of-vma_merge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,51 +65,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mmap: use vmi version of vma_merge()
+Subject: mm/mremap: use vmi version of vma_merge()
 Date: Thu, 5 Jan 2023 19:15:59 +0000
 
 Use the vma iterator so that the iterator can be invalidated or updated
 to avoid each caller doing so.
 
-Link: https://lkml.kernel.org/r/20230105191517.3099082-24-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230105191517.3099082-25-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/mremap.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/mmap.c~mmap-use-vmi-version-of-vma_merge
-+++ a/mm/mmap.c
-@@ -2752,8 +2752,9 @@ cannot_expand:
- 		 * vma again as we may succeed this time.
- 		 */
- 		if (unlikely(vm_flags != vma->vm_flags && prev)) {
--			merge = vma_merge(mm, prev, vma->vm_start, vma->vm_end, vma->vm_flags,
--				NULL, vma->vm_file, vma->vm_pgoff, NULL, NULL_VM_UFFD_CTX, NULL);
-+			merge = vmi_vma_merge(&vmi, mm, prev, vma->vm_start,
-+				vma->vm_end, vma->vm_flags, NULL, vma->vm_file,
-+				vma->vm_pgoff, NULL, NULL_VM_UFFD_CTX, NULL);
- 			if (merge) {
- 				/*
- 				 * ->mmap() can change vma->vm_file and fput
-@@ -3284,6 +3285,7 @@ struct vm_area_struct *copy_vma(struct v
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct vm_area_struct *new_vma, *prev;
- 	bool faulted_in_anon_vma = true;
-+	VMA_ITERATOR(vmi, mm, addr);
+--- a/mm/mremap.c~mm-mremap-use-vmi-version-of-vma_merge
++++ a/mm/mremap.c
+@@ -1018,6 +1018,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 			unsigned long extension_end = addr + new_len;
+ 			pgoff_t extension_pgoff = vma->vm_pgoff +
+ 				((extension_start - vma->vm_start) >> PAGE_SHIFT);
++			VMA_ITERATOR(vmi, mm, extension_start);
  
- 	validate_mm_mt(mm);
- 	/*
-@@ -3299,7 +3301,7 @@ struct vm_area_struct *copy_vma(struct v
- 	if (new_vma && new_vma->vm_start < addr + len)
- 		return NULL;	/* should never get here */
- 
--	new_vma = vma_merge(mm, prev, addr, addr + len, vma->vm_flags,
-+	new_vma = vmi_vma_merge(&vmi, mm, prev, addr, addr + len, vma->vm_flags,
- 			    vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
- 			    vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 	if (new_vma) {
+ 			if (vma->vm_flags & VM_ACCOUNT) {
+ 				if (security_vm_enough_memory_mm(mm, pages)) {
+@@ -1033,10 +1034,10 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 			 * with the next vma if it becomes adjacent to the expanded vma and
+ 			 * otherwise compatible.
+ 			 */
+-			vma = vma_merge(mm, vma, extension_start, extension_end,
+-					vma->vm_flags, vma->anon_vma, vma->vm_file,
+-					extension_pgoff, vma_policy(vma),
+-					vma->vm_userfaultfd_ctx, anon_vma_name(vma));
++			vma = vmi_vma_merge(&vmi, mm, vma, extension_start,
++				extension_end, vma->vm_flags, vma->anon_vma,
++				vma->vm_file, extension_pgoff, vma_policy(vma),
++				vma->vm_userfaultfd_ctx, anon_vma_name(vma));
+ 			if (!vma) {
+ 				vm_unacct_memory(pages);
+ 				ret = -ENOMEM;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
