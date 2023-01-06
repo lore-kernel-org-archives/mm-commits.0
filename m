@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75DD1C4708E
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 03:18:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41BB6C4708E
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 03:22:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231485AbjAFDS0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 22:18:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37184 "EHLO
+        id S229554AbjAFDWv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 22:22:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229956AbjAFDSZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 22:18:25 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B05C625CB
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 19:18:24 -0800 (PST)
+        with ESMTP id S229516AbjAFDWv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 22:22:51 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEA5563386
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 19:22:49 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BA9AB61CCC
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 03:18:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F4B9C433D2;
-        Fri,  6 Jan 2023 03:18:23 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3D168B81C3D
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 03:22:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2239C433F1;
+        Fri,  6 Jan 2023 03:22:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672975103;
-        bh=V5IW0E32IkUTAMPxmPJB3zeQOmyrgF90aTq9ha9y5Jc=;
+        s=korg; t=1672975366;
+        bh=z7RlFl4xYs8PVBS5p7yXPG818rSt6JmG2nnKoMdXXuQ=;
         h=Date:To:From:Subject:From;
-        b=WInCT/4wxdRFlmfESiCAMGZPyoVyTYdLfrm8Lclg4X0/F4sVydi7OUThCQrJnHw9J
-         Avkn59Kh8Pr8vf+mOUx54zBHQhQHttxDFObdeBGzQWDKgvDHCbR03Y0STc6WEYb9R0
-         azq6EMdybblzugF8bbSZmhwkhD5EiK7lqgJyt6Qg=
-Date:   Thu, 05 Jan 2023 19:18:22 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        shuah@kernel.org, mhocko@kernel.org, mgorman@techsingularity.net,
-        matenajakub@gmail.com, david@redhat.com, lstoakes@gmail.com,
+        b=agwxhUV/0l9h7QgTsDHKBQyULJVoXOCAyGhn5TfMfqJwoUVqpRtVIQRjHPxomVCFe
+         mcGOOBXIVQM4G52phr/IT0THz1W/SRVeWbjEWvhYxALk9lwW6XZFS1Kxhe6Etfp7xs
+         0ds3laW+Wv7fw71jhM2fYB23CoMLOOasonJ4TGck=
+Date:   Thu, 05 Jan 2023 19:22:45 -0800
+To:     mm-commits@vger.kernel.org, nico@fluxnic.net,
+        gregkh@linuxfoundation.org, axboe@kernel.dk,
+        asml.silence@gmail.com, arnd@arndb.de, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-vm-add-mremap-expand-merge-offset-test.patch added to mm-unstable branch
-Message-Id: <20230106031823.0F4B9C433D2@smtp.kernel.org>
+Subject: + mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping.patch added to mm-unstable branch
+Message-Id: <20230106032246.B2239C433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest/vm: add mremap expand merge offset test
+     Subject: mm/nommu: factor out check for NOMMU shared mappings into is_nommu_shared_mapping()
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftest-vm-add-mremap-expand-merge-offset-test.patch
+     mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-vm-add-mremap-expand-merge-offset-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,206 +66,208 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: selftest/vm: add mremap expand merge offset test
-Date: Mon, 2 Jan 2023 16:11:26 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/nommu: factor out check for NOMMU shared mappings into is_nommu_shared_mapping()
+Date: Mon, 2 Jan 2023 17:08:54 +0100
 
-Add a test to assert that we can mremap() and expand a mapping starting
-from an offset within an existing mapping.  We unmap the last page in a 3
-page mapping to ensure that the remap should always succeed, before
-remapping from the 2nd page.
+Patch series "mm/nommu: don't use VM_MAYSHARE for MAP_PRIVATE mappings".
 
-This is additionally a regression test for the issue solved in "mm,
-mremap: fix mremap() expanding vma with addr inside vma" and confirmed to
-fail prior to the change and pass after it.
+Trying to reduce the confusion around VM_SHARED and VM_MAYSHARE first
+requires !CONFIG_MMU to stop using VM_MAYSHARE for MAP_PRIVATE mappings. 
+CONFIG_MMU only sets VM_MAYSHARE for MAP_SHARED mappings.
 
-Finally, this patch updates the existing mremap expand merge test to check
-error conditions and reduce code duplication between the two tests.
+This paves the way for further VM_MAYSHARE and VM_SHARED cleanups: for
+example, renaming VM_MAYSHARED to VM_MAP_SHARED to make it cleaner what is
+actually means.
 
-Link: https://lkml.kernel.org/r/02b117a8ffd52acc01dc66c2fb39754f08d92c0e.1672675824.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Jakub Matěna <matenajakub@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Let's first get the weird case out of the way and not use VM_MAYSHARE in
+MAP_PRIVATE mappings, using a new VM_MAYOVERLAY flag instead.
+
+
+This patch (of 3):
+
+We want to stop using VM_MAYSHARE in private mappings to pave the way for
+clarifying the semantics of VM_MAYSHARE vs.  VM_SHARED and reduce the
+confusion.  While CONFIG_MMU uses VM_MAYSHARE to represent MAP_SHARED,
+!CONFIG_MMU also sets VM_MAYSHARE for selected R/O private file mappings
+that are an effective overlay of a file mapping.
+
+Let's factor out all relevant VM_MAYSHARE checks in !CONFIG_MMU code into
+is_nommu_shared_mapping() first.
+
+Note that whenever VM_SHARED is set, VM_MAYSHARE must be set as well
+(unless there is a serious BUG).  So there is not need to test for
+VM_SHARED manually.
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20230102160856.500584-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20230102160856.500584-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Nicolas Pitre <nico@fluxnic.net>
+Cc: Pavel Begunkov <asml.silence@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |  117 +++++++++++++++++----
- 1 file changed, 95 insertions(+), 22 deletions(-)
+ drivers/char/mem.c    |    2 +-
+ fs/cramfs/inode.c     |    2 +-
+ fs/proc/task_nommu.c  |    2 +-
+ fs/ramfs/file-nommu.c |    2 +-
+ fs/romfs/mmap-nommu.c |    2 +-
+ include/linux/mm.h    |   15 +++++++++++++++
+ io_uring/io_uring.c   |    2 +-
+ mm/nommu.c            |   11 ++++++-----
+ 8 files changed, 27 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_test.c~selftest-vm-add-mremap-expand-merge-offset-test
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -119,47 +119,109 @@ static unsigned long long get_mmap_min_a
- }
- 
- /*
-- * This test validates that merge is called when expanding a mapping.
-- * Mapping containing three pages is created, middle page is unmapped
-- * and then the mapping containing the first page is expanded so that
-- * it fills the created hole. The two parts should merge creating
-- * single mapping with three pages.
-+ * Using /proc/self/maps, assert that the specified address range is contained
-+ * within a single mapping.
-  */
--static void mremap_expand_merge(unsigned long page_size)
-+static bool is_range_mapped(FILE *maps_fp, void *start, void *end)
+--- a/drivers/char/mem.c~mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping
++++ a/drivers/char/mem.c
+@@ -343,7 +343,7 @@ static unsigned zero_mmap_capabilities(s
+ /* can't do an in-place private mapping if there's no MMU */
+ static inline int private_mapping_ok(struct vm_area_struct *vma)
  {
--	char *test_name = "mremap expand merge";
--	FILE *fp;
- 	char *line = NULL;
- 	size_t len = 0;
- 	bool success = false;
--	char *start = mmap(NULL, 3 * page_size, PROT_READ | PROT_WRITE,
--			   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
--
--	munmap(start + page_size, page_size);
--	mremap(start, page_size, 2 * page_size, 0);
+-	return vma->vm_flags & VM_MAYSHARE;
++	return is_nommu_shared_mapping(vma->vm_flags);
+ }
+ #else
  
--	fp = fopen("/proc/self/maps", "r");
--	if (fp == NULL) {
--		ksft_test_result_fail("%s\n", test_name);
--		return;
--	}
-+	rewind(maps_fp);
+--- a/fs/cramfs/inode.c~mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping
++++ a/fs/cramfs/inode.c
+@@ -437,7 +437,7 @@ bailout:
  
--	while (getline(&line, &len, fp) != -1) {
-+	while (getline(&line, &len, maps_fp) != -1) {
- 		char *first = strtok(line, "- ");
- 		void *first_val = (void *)strtol(first, NULL, 16);
- 		char *second = strtok(NULL, "- ");
- 		void *second_val = (void *) strtol(second, NULL, 16);
- 
--		if (first_val == start && second_val == start + 3 * page_size) {
-+		if (first_val <= start && second_val >= end) {
- 			success = true;
- 			break;
- 		}
- 	}
-+
-+	return success;
-+}
-+
-+/*
-+ * This test validates that merge is called when expanding a mapping.
-+ * Mapping containing three pages is created, middle page is unmapped
-+ * and then the mapping containing the first page is expanded so that
-+ * it fills the created hole. The two parts should merge creating
-+ * single mapping with three pages.
-+ */
-+static void mremap_expand_merge(FILE *maps_fp, unsigned long page_size)
-+{
-+	char *test_name = "mremap expand merge";
-+	bool success = false;
-+	char *remap, *start;
-+
-+	start = mmap(NULL, 3 * page_size, PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+
-+	if (start == MAP_FAILED) {
-+		ksft_print_msg("mmap failed: %s\n", strerror(errno));
-+		goto out;
-+	}
-+
-+	munmap(start + page_size, page_size);
-+	remap = mremap(start, page_size, 2 * page_size, 0);
-+	if (remap == MAP_FAILED) {
-+		ksft_print_msg("mremap failed: %s\n", strerror(errno));
-+		munmap(start, page_size);
-+		munmap(start + 2 * page_size, page_size);
-+		goto out;
-+	}
-+
-+	success = is_range_mapped(maps_fp, start, start + 3 * page_size);
-+	munmap(start, 3 * page_size);
-+
-+out:
-+	if (success)
-+		ksft_test_result_pass("%s\n", test_name);
-+	else
-+		ksft_test_result_fail("%s\n", test_name);
-+}
-+
-+/*
-+ * Similar to mremap_expand_merge() except instead of removing the middle page,
-+ * we remove the last then attempt to remap offset from the second page. This
-+ * should result in the mapping being restored to its former state.
-+ */
-+static void mremap_expand_merge_offset(FILE *maps_fp, unsigned long page_size)
-+{
-+
-+	char *test_name = "mremap expand merge offset";
-+	bool success = false;
-+	char *remap, *start;
-+
-+	start = mmap(NULL, 3 * page_size, PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+
-+	if (start == MAP_FAILED) {
-+		ksft_print_msg("mmap failed: %s\n", strerror(errno));
-+		goto out;
-+	}
-+
-+	/* Unmap final page to ensure we have space to expand. */
-+	munmap(start + 2 * page_size, page_size);
-+	remap = mremap(start + page_size, page_size, 2 * page_size, 0);
-+	if (remap == MAP_FAILED) {
-+		ksft_print_msg("mremap failed: %s\n", strerror(errno));
-+		munmap(start, 2 * page_size);
-+		goto out;
-+	}
-+
-+	success = is_range_mapped(maps_fp, start, start + 3 * page_size);
-+	munmap(start, 3 * page_size);
-+
-+out:
- 	if (success)
- 		ksft_test_result_pass("%s\n", test_name);
- 	else
- 		ksft_test_result_fail("%s\n", test_name);
--	fclose(fp);
+ static int cramfs_physmem_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	return vma->vm_flags & (VM_SHARED | VM_MAYSHARE) ? 0 : -ENOSYS;
++	return is_nommu_shared_mapping(vma->vm_flags) ? 0 : -ENOSYS;
  }
  
- /*
-@@ -385,6 +447,7 @@ int main(int argc, char **argv)
- 	struct test perf_test_cases[MAX_PERF_TEST];
- 	int page_size;
- 	time_t t;
-+	FILE *maps_fp;
+ static unsigned long cramfs_physmem_get_unmapped_area(struct file *file,
+--- a/fs/proc/task_nommu.c~mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping
++++ a/fs/proc/task_nommu.c
+@@ -38,7 +38,7 @@ void task_mem(struct seq_file *m, struct
+ 		}
  
- 	pattern_seed = (unsigned int) time(&t);
+ 		if (atomic_read(&mm->mm_count) > 1 ||
+-		    vma->vm_flags & VM_MAYSHARE) {
++		    is_nommu_shared_mapping(vma->vm_flags)) {
+ 			sbytes += size;
+ 		} else {
+ 			bytes += size;
+--- a/fs/ramfs/file-nommu.c~mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping
++++ a/fs/ramfs/file-nommu.c
+@@ -264,7 +264,7 @@ out:
+  */
+ static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	if (!(vma->vm_flags & (VM_SHARED | VM_MAYSHARE)))
++	if (!is_nommu_shared_mapping(vma->vm_flags))
+ 		return -ENOSYS;
  
-@@ -458,7 +521,17 @@ int main(int argc, char **argv)
- 		run_mremap_test_case(test_cases[i], &failures, threshold_mb,
- 				     pattern_seed);
+ 	file_accessed(file);
+--- a/fs/romfs/mmap-nommu.c~mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping
++++ a/fs/romfs/mmap-nommu.c
+@@ -63,7 +63,7 @@ static unsigned long romfs_get_unmapped_
+  */
+ static int romfs_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	return vma->vm_flags & (VM_SHARED | VM_MAYSHARE) ? 0 : -ENOSYS;
++	return is_nommu_shared_mapping(vma->vm_flags) ? 0 : -ENOSYS;
+ }
  
--	mremap_expand_merge(page_size);
-+	maps_fp = fopen("/proc/self/maps", "r");
+ static unsigned romfs_mmap_capabilities(struct file *file)
+--- a/include/linux/mm.h~mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping
++++ a/include/linux/mm.h
+@@ -1385,6 +1385,21 @@ static inline bool is_cow_mapping(vm_fla
+ 	return (flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
+ }
+ 
++#ifndef CONFIG_MMU
++static inline bool is_nommu_shared_mapping(vm_flags_t flags)
++{
++	/*
++	 * NOMMU shared mappings are ordinary MAP_SHARED mappings and selected
++	 * R/O MAP_PRIVATE file mappings that are an effective R/O overlay of
++	 * a file mapping. R/O MAP_PRIVATE mappings might still modify
++	 * underlying memory if ptrace is active, so this is only possible if
++	 * ptrace does not apply. Note that there is no mprotect() to upgrade
++	 * write permissions later.
++	 */
++	return flags & VM_MAYSHARE;
++}
++#endif
 +
-+	if (maps_fp == NULL) {
-+		ksft_print_msg("Failed to read /proc/self/maps: %s\n", strerror(errno));
-+		exit(KSFT_FAIL);
-+	}
-+
-+	mremap_expand_merge(maps_fp, page_size);
-+	mremap_expand_merge_offset(maps_fp, page_size);
-+
-+	fclose(maps_fp);
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define SECTION_IN_PAGE_FLAGS
+ #endif
+--- a/io_uring/io_uring.c~mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping
++++ a/io_uring/io_uring.c
+@@ -3194,7 +3194,7 @@ static __cold int io_uring_mmap(struct f
  
- 	if (run_perf_tests) {
- 		ksft_print_msg("\n%s\n",
+ static int io_uring_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	return vma->vm_flags & (VM_SHARED | VM_MAYSHARE) ? 0 : -EINVAL;
++	return is_nommu_shared_mapping(vma->vm_flags) ? 0 : -EINVAL;
+ }
+ 
+ static unsigned int io_uring_nommu_mmap_capabilities(struct file *file)
+--- a/mm/nommu.c~mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping
++++ a/mm/nommu.c
+@@ -958,9 +958,10 @@ static int do_mmap_private(struct vm_are
+ 	 */
+ 	if (capabilities & NOMMU_MAP_DIRECT) {
+ 		ret = call_mmap(vma->vm_file, vma);
++		/* shouldn't return success if we're not sharing */
++		if (WARN_ON_ONCE(!is_nommu_shared_mapping(vma->vm_flags)))
++			ret = -ENOSYS;
+ 		if (ret == 0) {
+-			/* shouldn't return success if we're not sharing */
+-			BUG_ON(!(vma->vm_flags & VM_MAYSHARE));
+ 			vma->vm_region->vm_top = vma->vm_region->vm_end;
+ 			return 0;
+ 		}
+@@ -1106,7 +1107,7 @@ unsigned long do_mmap(struct file *file,
+ 	 *   these cases, sharing is handled in the driver or filesystem rather
+ 	 *   than here
+ 	 */
+-	if (vm_flags & VM_MAYSHARE) {
++	if (is_nommu_shared_mapping(vm_flags)) {
+ 		struct vm_region *pregion;
+ 		unsigned long pglen, rpglen, pgend, rpgend, start;
+ 
+@@ -1116,7 +1117,7 @@ unsigned long do_mmap(struct file *file,
+ 		for (rb = rb_first(&nommu_region_tree); rb; rb = rb_next(rb)) {
+ 			pregion = rb_entry(rb, struct vm_region, vm_rb);
+ 
+-			if (!(pregion->vm_flags & VM_MAYSHARE))
++			if (!is_nommu_shared_mapping(pregion->vm_flags))
+ 				continue;
+ 
+ 			/* search for overlapping mappings on the same file */
+@@ -1597,7 +1598,7 @@ static unsigned long do_mremap(unsigned
+ 	if (vma->vm_end != vma->vm_start + old_len)
+ 		return (unsigned long) -EFAULT;
+ 
+-	if (vma->vm_flags & VM_MAYSHARE)
++	if (is_nommu_shared_mapping(vma->vm_flags))
+ 		return (unsigned long) -EPERM;
+ 
+ 	if (new_len > vma->vm_region->vm_end - vma->vm_region->vm_start)
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-vmalloc-correct-use-of-__gfp_nowarn-mask-in-__vmalloc_area_node.patch
-mm-pagevec-add-folio_batch_reinit.patch
-mm-mlock-use-folios-and-a-folio-batch-internally.patch
-m68k-mm-motorola-specify-pmd_page-type.patch
-mm-mlock-update-the-interface-to-use-folios.patch
-documentation-mm-update-references-to-__mlock_page-to-_folio.patch
-selftest-vm-add-mremap-expand-merge-offset-test.patch
+mm-hugetlb-fix-pte-marker-handling-in-hugetlb_change_protection.patch
+mm-hugetlb-fix-uffd-wp-handling-for-migration-entries-in-hugetlb_change_protection.patch
+mm-userfaultfd-enable-writenotify-while-userfaultfd-wp-is-enabled-for-a-vma.patch
+mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range.patch
+mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range-fix.patch
+mm-mprotect-drop-pgprot_t-parameter-from-change_protection.patch
+mm-mprotect-drop-pgprot_t-parameter-from-change_protection-fix.patch
+selftests-vm-cow-add-cow-tests-for-collapsing-of-pte-mapped-anon-thp.patch
+mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping.patch
+mm-nommu-dont-use-vm_mayshare-for-map_private-mappings.patch
+drivers-misc-open-dice-dont-touch-vm_mayshare.patch
 
