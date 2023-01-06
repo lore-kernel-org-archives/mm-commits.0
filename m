@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E09FC54E76
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:35:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C495C4708E
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Jan 2023 00:35:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232331AbjAFAfW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Jan 2023 19:35:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47462 "EHLO
+        id S236457AbjAFAfi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Jan 2023 19:35:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234263AbjAFAfM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:35:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C66224F12B
-        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:11 -0800 (PST)
+        with ESMTP id S236225AbjAFAfQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2023 19:35:16 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66BB153734
+        for <mm-commits@vger.kernel.org>; Thu,  5 Jan 2023 16:35:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 61C7261C83
-        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2AB3C433EF;
-        Fri,  6 Jan 2023 00:35:10 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 23B10B81C0C
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 00:35:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A49A9C433EF;
+        Fri,  6 Jan 2023 00:35:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1672965310;
-        bh=M+Ms5SeIqNTJoOg1wlmWBGcq1rE4Nejjl+kLRD0VShQ=;
+        s=korg; t=1672965312;
+        bh=nhxOdReNnsS1CIspWQ2i6LAAXRnZdINw7UovmdTA3iU=;
         h=Date:To:From:Subject:From;
-        b=koD0QG7LYHYZy8cTUfkwHuwNfdPvDHl6bcYBaC3R3TUcm9VlJW/qHknxcVo6isZk7
-         GsaCTQoHhnJEcftrPLPoP0MeaWq4kjhVKX+DlIer13tm4tLGR7JMh0hTXr5Ue6drLE
-         QVn8EdWERo/nlaCQZp5njeM+9kECc5et2r1w9Nho=
-Date:   Thu, 05 Jan 2023 16:35:10 -0800
+        b=gcbF9R2j1d1MYPTQ9m0eqHfH/JhWJy15AxvLtMOmmoUn2ap+uZO9/LcnMJL6rICoR
+         G8Hr+55cmYMMNV+qis5GND7wW+VDyavtQNsfk2z+KPjuwA/SeP56zk9eX13M4zmcz2
+         AYeEQj8IX0tmE+5zI/d7GWO8CPQTbCo+pgm181A0=
+Date:   Thu, 05 Jan 2023 16:35:11 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-fork-convert-forking-to-using-the-vmi-iterator.patch added to mm-unstable branch
-Message-Id: <20230106003510.B2AB3C433EF@smtp.kernel.org>
+Subject: + mmap-convert-vma_link-vma-iterator.patch added to mm-unstable branch
+Message-Id: <20230106003512.A49A9C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/fork: convert forking to using the vmi iterator
+     Subject: mmap: convert vma_link() vma iterator
 has been added to the -mm mm-unstable branch.  Its filename is
-     kernel-fork-convert-forking-to-using-the-vmi-iterator.patch
+     mmap-convert-vma_link-vma-iterator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-convert-forking-to-using-the-vmi-iterator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmap-convert-vma_link-vma-iterator.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,78 +65,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: kernel/fork: convert forking to using the vmi iterator
+Subject: mmap: convert vma_link() vma iterator
 Date: Thu, 5 Jan 2023 19:15:54 +0000
 
-Avoid using the maple tree interface directly.  This gains type safety.
+Avoid using the maple tree interface directly.
 
-Link: https://lkml.kernel.org/r/20230105191517.3099082-8-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230105191517.3099082-9-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ mm/mmap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/fork.c~kernel-fork-convert-forking-to-using-the-vmi-iterator
-+++ a/kernel/fork.c
-@@ -585,8 +585,8 @@ static __latent_entropy int dup_mmap(str
- 	int retval;
- 	unsigned long charge = 0;
- 	LIST_HEAD(uf);
--	MA_STATE(old_mas, &oldmm->mm_mt, 0, 0);
+--- a/mm/mmap.c~mmap-convert-vma_link-vma-iterator
++++ a/mm/mmap.c
+@@ -546,10 +546,10 @@ static inline void vma_mas_szero(struct
+ 
+ static int vma_link(struct mm_struct *mm, struct vm_area_struct *vma)
+ {
 -	MA_STATE(mas, &mm->mm_mt, 0, 0);
-+	VMA_ITERATOR(old_vmi, oldmm, 0);
 +	VMA_ITERATOR(vmi, mm, 0);
+ 	struct address_space *mapping = NULL;
  
- 	uprobe_start_dup_mmap();
- 	if (mmap_write_lock_killable(oldmm)) {
-@@ -613,11 +613,11 @@ static __latent_entropy int dup_mmap(str
- 		goto out;
- 	khugepaged_fork(mm, oldmm);
+-	if (mas_preallocate(&mas, vma, GFP_KERNEL))
++	if (vma_iter_prealloc(&vmi, vma))
+ 		return -ENOMEM;
  
--	retval = mas_expected_entries(&mas, oldmm->map_count);
-+	retval = vma_iter_bulk_alloc(&vmi, oldmm->map_count);
- 	if (retval)
- 		goto out;
+ 	if (vma->vm_file) {
+@@ -557,7 +557,7 @@ static int vma_link(struct mm_struct *mm
+ 		i_mmap_lock_write(mapping);
+ 	}
  
--	mas_for_each(&old_mas, mpnt, ULONG_MAX) {
-+	for_each_vma(old_vmi, mpnt) {
- 		struct file *file;
+-	vma_mas_store(vma, &mas);
++	vma_iter_store(&vmi, vma);
  
- 		if (mpnt->vm_flags & VM_DONTCOPY) {
-@@ -683,11 +683,8 @@ static __latent_entropy int dup_mmap(str
- 			hugetlb_dup_vma_private(tmp);
- 
- 		/* Link the vma into the MT */
--		mas.index = tmp->vm_start;
--		mas.last = tmp->vm_end - 1;
--		mas_store(&mas, tmp);
--		if (mas_is_err(&mas))
--			goto fail_nomem_mas_store;
-+		if (vma_iter_bulk_store(&vmi, tmp))
-+			goto fail_nomem_vmi_store;
- 
- 		mm->map_count++;
- 		if (!(tmp->vm_flags & VM_WIPEONFORK))
-@@ -702,7 +699,7 @@ static __latent_entropy int dup_mmap(str
- 	/* a new mm has just been created */
- 	retval = arch_dup_mmap(oldmm, mm);
- loop_out:
--	mas_destroy(&mas);
-+	vma_iter_free(&vmi);
- out:
- 	mmap_write_unlock(mm);
- 	flush_tlb_mm(oldmm);
-@@ -712,7 +709,7 @@ fail_uprobe_end:
- 	uprobe_end_dup_mmap();
- 	return retval;
- 
--fail_nomem_mas_store:
-+fail_nomem_vmi_store:
- 	unlink_anon_vmas(tmp);
- fail_nomem_anon_vma_fork:
- 	mpol_put(vma_policy(tmp));
+ 	if (mapping) {
+ 		__vma_link_file(vma, mapping);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
