@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 878F2C54EBE
-	for <mm-commits@archiver.kernel.org>; Sat,  7 Jan 2023 00:43:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B36FC5479D
+	for <mm-commits@archiver.kernel.org>; Sat,  7 Jan 2023 00:54:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236566AbjAGAnU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Jan 2023 19:43:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49902 "EHLO
+        id S229780AbjAGAy3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Jan 2023 19:54:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236537AbjAGAnT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jan 2023 19:43:19 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2174B6B5F9;
-        Fri,  6 Jan 2023 16:43:16 -0800 (PST)
+        with ESMTP id S229751AbjAGAy2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jan 2023 19:54:28 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0A9713E80
+        for <mm-commits@vger.kernel.org>; Fri,  6 Jan 2023 16:54:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 629C661EE7;
-        Sat,  7 Jan 2023 00:43:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0BBCC433F0;
-        Sat,  7 Jan 2023 00:43:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9F035B81F44
+        for <mm-commits@vger.kernel.org>; Sat,  7 Jan 2023 00:54:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20608C433F0;
+        Sat,  7 Jan 2023 00:54:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673052195;
-        bh=eHFEk2ziQcEX+0onC2cK7Pczr3ZCinAZ5OSr+1rci68=;
+        s=korg; t=1673052864;
+        bh=NPTbXmUaiVkxo5172GjlAhIxUBgdMIxiU6LXk83fO38=;
         h=Date:To:From:Subject:From;
-        b=iGMkTAYEOXLE4TO5upFoXC29TkZ2SIV19qSWPogzG+UC3s9iO/9QLLDcC1X82mfpw
-         orRoyfHpr3uEffrmWOgHM0Nf9c+32ShCTeXEcXiFJl5rQ5Qrp7rrrpulUbLnspSXZ3
-         /l6v/fWy0a5zr9KXEq9gBrXz+zzVZCt2M98sT2nA=
-Date:   Fri, 06 Jan 2023 16:43:14 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        mirsad.todorovac@alu.unizg.hr, adobriyan@gmail.com,
-        akpm@linux-foundation.org
+        b=YAa/KkuzL8c7fpDgzxKwq2Eu/Wwk6bJuRmXBqdIeYyBDeOpOzN2ZWf3iVH2SaHAEk
+         ZfvMZ5PdmXYzwrBnOn3jJXFcXxXZlg4RwNLcJNbIh4xtauw3deaNHdcmjp9ebmc8C7
+         Cz/EFDEvrn69zfCjvVvODz6Oqlsr3kamaDhuah2w=
+Date:   Fri, 06 Jan 2023 16:54:23 -0800
+To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tkhai@ya.ru,
+        rfoss@kernel.org, qyousef@layalina.io, kvalo@kernel.org,
+        colin.i.king@gmail.com, baolin.wang@linux.alibaba.com,
+        arnd@arndb.de, robert.foss@linaro.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-fix-pie-proc-empty-vm-proc-pid-vm-tests.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230107004315.B0BBCC433F0@smtp.kernel.org>
+Subject: + maintainers-update-robert-foss-email-address.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230107005424.20608C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: fix PIE proc-empty-vm, proc-pid-vm tests
+     Subject: MAINTAINERS: update Robert Foss' email address
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     proc-fix-pie-proc-empty-vm-proc-pid-vm-tests.patch
+     maintainers-update-robert-foss-email-address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-fix-pie-proc-empty-vm-proc-pid-vm-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-robert-foss-email-address.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,115 +66,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: fix PIE proc-empty-vm, proc-pid-vm tests
-Date: Fri, 6 Jan 2023 22:30:14 +0300
+From: Robert Foss <robert.foss@linaro.org>
+Subject: MAINTAINERS: update Robert Foss' email address
+Date: Fri, 6 Jan 2023 16:21:51 +0100
 
-vsyscall detection code uses direct call to the beginning of
-the vsyscall page:
+Update the email address for Robert's maintainer entries and fill in
+.mailmap accordingly.
 
-	asm ("call %P0" :: "i" (0xffffffffff600000))
-
-It generates "call rel32" instruction but it is not relocated if binary
-is PIE, so binary segfaults into random userspace address and vsyscall
-page status is detected incorrectly.
-
-Do more direct:
-
-	asm ("call *%rax")
-
-which doesn't do need any relocaltions.
-
-Mark g_vsyscall as volatile for a good measure, I didn't find instruction
-setting it to 0. Now the code is obviously correct:
-
-	xor	eax, eax
-	mov	rdi, rbp
-	mov	rsi, rbp
-	mov	DWORD PTR [rip+0x2d15], eax      # g_vsyscall = 0
-	mov	rax, 0xffffffffff600000
-	call	rax
-	mov	DWORD PTR [rip+0x2d02], 1        # g_vsyscall = 1
-	mov	eax, DWORD PTR ds:0xffffffffff600000
-	mov	DWORD PTR [rip+0x2cf1], 2        # g_vsyscall = 2
-	mov	edi, [rip+0x2ceb]                # exit(g_vsyscall)
-	call	exit
-
-Note: fixed proc-empty-vm test oopses 5.19.0-28-generic kernel
-	but this is separate story.
-
-Link: https://lkml.kernel.org/r/Y7h2xvzKLg36DSq8@p183
-Fixes: 5bc73bb3451b9 ("proc: test how it holds up with mapping'less process")
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Reported-by: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
-Tested-by: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230106152151.115648-1-robert.foss@linaro.org
+Signed-off-by: Robert Foss <rfoss@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Kalle Valo <kvalo@kernel.org>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Qais Yousef <qyousef@layalina.io>
+Cc: Vasily Averin <vasily.averin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/proc-empty-vm.c |   12 +++++++-----
- tools/testing/selftests/proc/proc-pid-vm.c   |    9 +++++----
- 2 files changed, 12 insertions(+), 9 deletions(-)
+ .mailmap    |    1 +
+ MAINTAINERS |    6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/proc/proc-empty-vm.c~proc-fix-pie-proc-empty-vm-proc-pid-vm-tests
-+++ a/tools/testing/selftests/proc/proc-empty-vm.c
-@@ -25,6 +25,7 @@
- #undef NDEBUG
- #include <assert.h>
- #include <errno.h>
-+#include <stdint.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-@@ -41,7 +42,7 @@
-  * 1: vsyscall VMA is --xp		vsyscall=xonly
-  * 2: vsyscall VMA is r-xp		vsyscall=emulate
-  */
--static int g_vsyscall;
-+static volatile int g_vsyscall;
- static const char *g_proc_pid_maps_vsyscall;
- static const char *g_proc_pid_smaps_vsyscall;
+--- a/.mailmap~maintainers-update-robert-foss-email-address
++++ a/.mailmap
+@@ -371,6 +371,7 @@ Rémi Denis-Courmont <rdenis@simphalempi
+ Ricardo Ribalda <ribalda@kernel.org> <ricardo@ribalda.com>
+ Ricardo Ribalda <ribalda@kernel.org> Ricardo Ribalda Delgado <ribalda@kernel.org>
+ Ricardo Ribalda <ribalda@kernel.org> <ricardo.ribalda@gmail.com>
++Robert Foss <rfoss@kernel.org> <robert.foss@linaro.org>
+ Roman Gushchin <roman.gushchin@linux.dev> <guro@fb.com>
+ Roman Gushchin <roman.gushchin@linux.dev> <guroan@gmail.com>
+ Roman Gushchin <roman.gushchin@linux.dev> <klamm@yandex-team.ru>
+--- a/MAINTAINERS~maintainers-update-robert-foss-email-address
++++ a/MAINTAINERS
+@@ -6948,7 +6948,7 @@ F:	drivers/gpu/drm/atmel-hlcdc/
+ DRM DRIVERS FOR BRIDGE CHIPS
+ M:	Andrzej Hajda <andrzej.hajda@intel.com>
+ M:	Neil Armstrong <neil.armstrong@linaro.org>
+-M:	Robert Foss <robert.foss@linaro.org>
++M:	Robert Foss <rfoss@kernel.org>
+ R:	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
+ R:	Jonas Karlman <jonas@kwiboo.se>
+ R:	Jernej Skrabec <jernej.skrabec@gmail.com>
+@@ -17229,7 +17229,7 @@ F:	Documentation/devicetree/bindings/net
+ F:	drivers/net/wwan/qcom_bam_dmux.c
  
-@@ -147,11 +148,12 @@ static void vsyscall(void)
+ QUALCOMM CAMERA SUBSYSTEM DRIVER
+-M:	Robert Foss <robert.foss@linaro.org>
++M:	Robert Foss <rfoss@kernel.org>
+ M:	Todor Tomov <todor.too@gmail.com>
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+@@ -17309,7 +17309,7 @@ F:	drivers/dma/qcom/hidma*
  
- 		g_vsyscall = 0;
- 		/* gettimeofday(NULL, NULL); */
-+		uint64_t rax = 0xffffffffff600000;
- 		asm volatile (
--			"call %P0"
--			:
--			: "i" (0xffffffffff600000), "D" (NULL), "S" (NULL)
--			: "rax", "rcx", "r11"
-+			"call *%[rax]"
-+			: [rax] "+a" (rax)
-+			: "D" (NULL), "S" (NULL)
-+			: "rcx", "r11"
- 		);
- 
- 		g_vsyscall = 1;
---- a/tools/testing/selftests/proc/proc-pid-vm.c~proc-fix-pie-proc-empty-vm-proc-pid-vm-tests
-+++ a/tools/testing/selftests/proc/proc-pid-vm.c
-@@ -257,11 +257,12 @@ static void vsyscall(void)
- 
- 		g_vsyscall = 0;
- 		/* gettimeofday(NULL, NULL); */
-+		uint64_t rax = 0xffffffffff600000;
- 		asm volatile (
--			"call %P0"
--			:
--			: "i" (0xffffffffff600000), "D" (NULL), "S" (NULL)
--			: "rax", "rcx", "r11"
-+			"call *%[rax]"
-+			: [rax] "+a" (rax)
-+			: "D" (NULL), "S" (NULL)
-+			: "rcx", "r11"
- 		);
- 
- 		g_vsyscall = 1;
+ QUALCOMM I2C CCI DRIVER
+ M:	Loic Poulain <loic.poulain@linaro.org>
+-M:	Robert Foss <robert.foss@linaro.org>
++M:	Robert Foss <rfoss@kernel.org>
+ L:	linux-i2c@vger.kernel.org
+ L:	linux-arm-msm@vger.kernel.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from robert.foss@linaro.org are
 
-proc-fix-pie-proc-empty-vm-proc-pid-vm-tests.patch
-proc-mark-proc-cmdline-as-permanent.patch
+maintainers-update-robert-foss-email-address.patch
 
