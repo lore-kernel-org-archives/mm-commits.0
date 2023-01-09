@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D528C54EBE
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Jan 2023 22:13:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A088C63797
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Jan 2023 22:13:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237605AbjAIWNq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Jan 2023 17:13:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43828 "EHLO
+        id S229616AbjAIWNp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Jan 2023 17:13:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43774 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237885AbjAIWNm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 17:13:42 -0500
+        with ESMTP id S237848AbjAIWNg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 17:13:36 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F159B1707F
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 14:13:38 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36B57BB7
+        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 14:13:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B9F7612C5
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 22:13:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7E44C433EF;
-        Mon,  9 Jan 2023 22:13:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BCD19612C5
+        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 22:13:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D975DC433EF;
+        Mon,  9 Jan 2023 22:13:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673302417;
-        bh=FmVDKy8JWjjdB41w9pmQ4Fiq8w+ryfnsDlqUYe0o5+U=;
+        s=korg; t=1673302413;
+        bh=u886iseQjHzWC+BGX/NuGwzEJLY0vjEiNGH2yEkduGM=;
         h=Date:To:From:Subject:From;
-        b=k2p8HW1T81GenrYcpdCYKzIBxb1nGEKfLb1q6IJa0lSj6DV/bPmkMIT5LuLMT86Uu
-         omDBx4FG6xWYmjv9n0xQ4OVYm5GIGMNp2c3hxVn9UqBVbnfUzka02lQ/eanyxG0wOA
-         gXlqUO0YYG8cd9y+d/GwDJS0rxobfKN6hUcSfWmk=
-Date:   Mon, 09 Jan 2023 14:13:37 -0800
+        b=BumWxztRym8DU9eMpGjZ4BzI5y7YihbK5tQhcnulBEnRCVz8J/eKwjb0jRD7vGyL5
+         qKeode5Ln+JJGsHmvaO5rmaQx2X0SF9033qc8QwdAmW98FD50wbMLC1p2G5xGKGQVv
+         JEeszpHJZWTFRZ3k3AAdhVGsck2Zobrf7Kq3PQPE=
+Date:   Mon, 09 Jan 2023 14:13:33 -0800
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-rename-damon_pa_access_chk_result-page_sz-to-folio_sz.patch added to mm-unstable branch
-Message-Id: <20230109221337.B7E44C433EF@smtp.kernel.org>
+Subject: + mm-damon-vaddr-support-folio-of-neither-hpage_pmd_size-nor-page_size.patch added to mm-unstable branch
+Message-Id: <20230109221333.D975DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/paddr: rename 'damon_pa_access_chk_result->page_sz' to 'folio_sz'
+     Subject: mm/damon/vaddr: support folio of neither HPAGE_PMD_SIZE nor PAGE_SIZE
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-paddr-rename-damon_pa_access_chk_result-page_sz-to-folio_sz.patch
+     mm-damon-vaddr-support-folio-of-neither-hpage_pmd_size-nor-page_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-rename-damon_pa_access_chk_result-page_sz-to-folio_sz.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-support-folio-of-neither-hpage_pmd_size-nor-page_size.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,95 +65,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: rename 'damon_pa_access_chk_result->page_sz' to 'folio_sz'
-Date: Mon, 9 Jan 2023 21:33:33 +0000
+Subject: mm/damon/vaddr: support folio of neither HPAGE_PMD_SIZE nor PAGE_SIZE
+Date: Mon, 9 Jan 2023 21:33:31 +0000
 
-DAMON's physical address space monitoring operations set is using folio
-now.  Rename 'damon_pa_access_chk_result->page_sz' to reflect the fact.
+DAMON virtual address space monitoring operations set treats folios having
+non-HPAGE_PMD_SIZE size as having PAGE_SIZE size.  Use the exact size of
+the folio.
 
-Link: https://lkml.kernel.org/r/20230109213335.62525-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230109213335.62525-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ mm/damon/vaddr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-rename-damon_pa_access_chk_result-page_sz-to-folio_sz
-+++ a/mm/damon/paddr.c
-@@ -80,7 +80,8 @@ static void damon_pa_prepare_access_chec
- }
- 
- struct damon_pa_access_chk_result {
--	unsigned long page_sz;
-+	/* size of the folio for the access checked physical memory address */
-+	unsigned long folio_sz;
- 	bool accessed;
- };
- 
-@@ -91,7 +92,7 @@ static bool __damon_pa_young(struct foli
- 	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, addr, 0);
- 
- 	result->accessed = false;
--	result->page_sz = PAGE_SIZE;
-+	result->folio_sz = PAGE_SIZE;
- 	while (page_vma_mapped_walk(&pvmw)) {
- 		addr = pvmw.address;
- 		if (pvmw.pte) {
-@@ -103,7 +104,7 @@ static bool __damon_pa_young(struct foli
- 			result->accessed = pmd_young(*pvmw.pmd) ||
- 				!folio_test_idle(folio) ||
- 				mmu_notifier_test_young(vma->vm_mm, addr);
--			result->page_sz = HPAGE_PMD_SIZE;
-+			result->folio_sz = HPAGE_PMD_SIZE;
- #else
- 			WARN_ON_ONCE(1);
- #endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
-@@ -118,11 +119,11 @@ static bool __damon_pa_young(struct foli
- 	return !result->accessed;
- }
- 
--static bool damon_pa_young(unsigned long paddr, unsigned long *page_sz)
-+static bool damon_pa_young(unsigned long paddr, unsigned long *folio_sz)
- {
- 	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
- 	struct damon_pa_access_chk_result result = {
--		.page_sz = PAGE_SIZE,
-+		.folio_sz = PAGE_SIZE,
- 		.accessed = false,
- 	};
- 	struct rmap_walk_control rwc = {
-@@ -157,25 +158,25 @@ static bool damon_pa_young(unsigned long
- 	folio_put(folio);
- 
- out:
--	*page_sz = result.page_sz;
-+	*folio_sz = result.folio_sz;
- 	return result.accessed;
- }
- 
- static void __damon_pa_check_access(struct damon_region *r)
- {
- 	static unsigned long last_addr;
--	static unsigned long last_page_sz = PAGE_SIZE;
-+	static unsigned long last_folio_sz = PAGE_SIZE;
- 	static bool last_accessed;
- 
- 	/* If the region is in the last checked page, reuse the result */
--	if (ALIGN_DOWN(last_addr, last_page_sz) ==
--				ALIGN_DOWN(r->sampling_addr, last_page_sz)) {
-+	if (ALIGN_DOWN(last_addr, last_folio_sz) ==
-+				ALIGN_DOWN(r->sampling_addr, last_folio_sz)) {
- 		if (last_accessed)
- 			r->nr_accesses++;
- 		return;
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-support-folio-of-neither-hpage_pmd_size-nor-page_size
++++ a/mm/damon/vaddr.c
+@@ -475,7 +475,7 @@ regular_page:
+ 		goto out;
+ 	if (pte_young(*pte) || !folio_test_idle(folio) ||
+ 			mmu_notifier_test_young(walk->mm, addr)) {
+-		*priv->folio_sz = PAGE_SIZE;
++		*priv->folio_sz = folio_size(folio);
+ 		priv->young = true;
  	}
- 
--	last_accessed = damon_pa_young(r->sampling_addr, &last_page_sz);
-+	last_accessed = damon_pa_young(r->sampling_addr, &last_folio_sz);
- 	if (last_accessed)
- 		r->nr_accesses++;
- 
+ 	folio_put(folio);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
