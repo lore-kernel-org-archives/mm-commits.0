@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C1B0C5479D
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Jan 2023 23:52:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81CFEC5479D
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Jan 2023 23:54:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235128AbjAIXwj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Jan 2023 18:52:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44464 "EHLO
+        id S229571AbjAIXyW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Jan 2023 18:54:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45208 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235189AbjAIXwi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 18:52:38 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2D971CFEC
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 15:52:37 -0800 (PST)
+        with ESMTP id S234368AbjAIXyT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 18:54:19 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EDE6DFCC
+        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 15:54:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 63C22B810AB
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 23:52:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0516FC433D2;
-        Mon,  9 Jan 2023 23:52:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 40FDBB80AD5
+        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 23:54:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA96BC433D2;
+        Mon,  9 Jan 2023 23:54:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673308355;
-        bh=LgbyDYBGzTZB+wt66WsPr0y1wei9/l9o01uwfTCobvU=;
+        s=korg; t=1673308455;
+        bh=/9FusseJV5hEARijy2jXasQKFSNdYjBa/NQfhWug3Ys=;
         h=Date:To:From:Subject:From;
-        b=qCfyJN6IYfZOIKbINt3Q5/9h8n+XV2/PfgTe+XDBxm/B/5qHgPW0KWz9NJ3zXM05o
-         RZeRExK9AjU/umxWjMMPGMK+Ng66etDjUNkTDg11S6TQZL8jyK0Kogs1U4csFFdnHN
-         wfB8RTAMoq5+F/bux++lpGRv4gA6mbFufvz+/c08=
-Date:   Mon, 09 Jan 2023 15:52:34 -0800
-To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn, sj@kernel.org,
-        xu.panda@zte.com.cn, akpm@linux-foundation.org
+        b=VLt/24De6lGFkv5/hzaX2Ump+aEZJuR2hiMCBwSdsR3m7U+M2CnWUIw67gTt0jlCO
+         GoBo3i0iN2QbUKGHP4872F6/lgRJXCSsI+2UNu0kwcqWC6MXIbamCo23jpJrOsH/5U
+         P0rJlCenJeamNaWBlDR6y+AGxtO/0+FQuKlLJ96Q=
+Date:   Mon, 09 Jan 2023 15:54:15 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, bjorn@rivosinc.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-use-strscpy-to-instead-of-strncpy.patch added to mm-unstable branch
-Message-Id: <20230109235235.0516FC433D2@smtp.kernel.org>
+Subject: + selftests-vm-enable-cross-compilation.patch added to mm-nonmm-unstable branch
+Message-Id: <20230109235415.CA96BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: use strscpy() to instead of strncpy()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-use-strscpy-to-instead-of-strncpy.patch
+     Subject: selftests: vm: Enable cross-compilation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-vm-enable-cross-compilation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-use-strscpy-to-instead-of-strncpy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-enable-cross-compilation.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,39 +64,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xu Panda <xu.panda@zte.com.cn>
-Subject: mm/damon/sysfs-schemes: use strscpy() to instead of strncpy()
-Date: Mon, 9 Jan 2023 19:46:55 +0800 (CST)
+From: Björn Töpel <bjorn@rivosinc.com>
+Subject: selftests: vm: Enable cross-compilation
+Date: Mon, 9 Jan 2023 12:42:51 +0100
 
-The implementation of strscpy() is more robust and safer.
-That's now the recommended way to copy NUL-terminated strings.
+Selftests vm builds break when doing cross-compilation.  The Makefile
+MACHINE variable incorrectly picks upp the host machine architecture.
 
-Link: https://lkml.kernel.org/r/202301091946553770006@zte.com.cn
-Signed-off-by: Xu Panda <xu.panda@zte.com.cn>
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+If the CROSS_COMPILE variable is set, dig out the target host architecture
+from CROSS_COMPILE, instead of calling uname.
+
+Link: https://lkml.kernel.org/r/20230109114251.3349638-1-bjorn@kernel.org
+Signed-off-by: Björn Töpel <bjorn@rivosinc.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ tools/testing/selftests/mm/Makefile |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-use-strscpy-to-instead-of-strncpy
-+++ a/mm/damon/sysfs-schemes.c
-@@ -353,8 +353,7 @@ static ssize_t memcg_path_store(struct k
- 	if (!path)
- 		return -ENOMEM;
+--- a/tools/testing/selftests/mm/Makefile~selftests-vm-enable-cross-compilation
++++ a/tools/testing/selftests/mm/Makefile
+@@ -5,7 +5,11 @@ LOCAL_HDRS += $(selfdir)/vm/local_config
  
--	strncpy(path, buf, count);
--	path[count] = '\0';
-+	strscpy(path, buf, count + 1);
- 	filter->memcg_path = path;
- 	return count;
- }
+ include local_config.mk
+ 
++ifeq ($(CROSS_COMPILE),)
+ uname_M := $(shell uname -m 2>/dev/null || echo not)
++else
++uname_M := $(shell echo $(CROSS_COMPILE) | grep -o '^[a-z0-9]\+')
++endif
+ MACHINE ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/ppc64/')
+ 
+ # Without this, failed build products remain, with up-to-date timestamps,
 _
 
-Patches currently in -mm which might be from xu.panda@zte.com.cn are
+Patches currently in -mm which might be from bjorn@rivosinc.com are
 
-selftests-vm-ksm_functional_tests-fix-a-typo-in-comment.patch
-mm-damon-sysfs-schemes-use-strscpy-to-instead-of-strncpy.patch
+selftests-vm-enable-cross-compilation.patch
 
