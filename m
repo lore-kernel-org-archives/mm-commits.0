@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C9C9C54EBE
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Jan 2023 22:19:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7152AC5479D
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Jan 2023 22:48:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233468AbjAIWTd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Jan 2023 17:19:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46218 "EHLO
+        id S233142AbjAIWsH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Jan 2023 17:48:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237505AbjAIWTH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 17:19:07 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42B3313EB1
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 14:19:06 -0800 (PST)
+        with ESMTP id S237525AbjAIWr5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 17:47:57 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1BDE1C138
+        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 14:47:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D9E6EB8105D
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 22:19:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70D97C433EF;
-        Mon,  9 Jan 2023 22:19:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5DAB46147B
+        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 22:47:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 737DAC433EF;
+        Mon,  9 Jan 2023 22:47:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673302743;
-        bh=8W7eMxw3VSGJ625p6OU86kpH94PEV++NhLwA4Tt31bc=;
+        s=korg; t=1673304475;
+        bh=7FrJOPu0b//vybCzL8FlHCYU2vTCZrZj6UwKmRWi1Ks=;
         h=Date:To:From:Subject:From;
-        b=1XFSdTCA73E1qSQgnwLAWr0gSjEEWOi39r1zQv++rc3e+uMczMF6iN+vRCJ53trx5
-         Luzc77w5S8Q2cAMu+5xKBNzL54gLwSVlF3ikVUQ6kCSEakxpG3G8F1Pwduyq3tf51B
-         KHF48epQ1Cop/n2z1YWt1eE1AyhWEkfVYHJdL+yk=
-Date:   Mon, 09 Jan 2023 14:19:02 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org, Liam.Howlett@oracle.com,
-        liam.howlett@oracle.com, akpm@linux-foundation.org
+        b=NVg9RZsZa9mQsdKM1GATyelRjvZg6ngDCQV03BOFrB7OSNfOqIkgJ2pkCCPVaL3kj
+         cZ4SLjiQd/M1S6EHWzYMKcJgbWDattDCRsCRxGnPZtjHr8UroYpFtA5QjAsBssNM4a
+         VUVbyKqB+nEaM4CEMw7K2xfzRIHMWcROKuyShfVo=
+Date:   Mon, 09 Jan 2023 14:47:54 -0800
+To:     mm-commits@vger.kernel.org, ndesaulniers@google.com,
+        masahiroy@kernel.org, eliasfleckenstein@web.de,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma-fix.patch added to mm-unstable branch
-Message-Id: <20230109221903.70D97C433EF@smtp.kernel.org>
+Subject: + kconfig-fix-typo-usafe-unsafe.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230109224755.737DAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm.h: fix "mm: Add temporary vma iterator versions of vma_merge(), split_vma(), and __split_vma()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma-fix.patch
+     Subject: kconfig: fix typo (usafe -> unsafe)
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kconfig-fix-typo-usafe-unsafe.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kconfig-fix-typo-usafe-unsafe.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,40 +65,36 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm.h: fix "mm: Add temporary vma iterator versions of vma_merge(), split_vma(), and __split_vma()
-Date: Mon, 9 Jan 2023 20:53:22 +0000
+From: Lizzy Fleckenstein <eliasfleckenstein@web.de>
+Subject: kconfig: fix typo (usafe -> unsafe)
+Date: Mon, 9 Jan 2023 21:18:37 +0100
 
-The extern definition of __split_vma() was removed too early.  Re-add it
-and remove it once the users are all converted.
+Fix the help text for the PRINTK_SAFE_LOG_BUF_SHIFT setting.
 
-Link: https://lkml.kernel.org/r/20230109205300.955019-1-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20230109201837.23873-1-eliasfleckenstein@web.de
+Signed-off-by: Lizzy Fleckenstein <eliasfleckenstein@web.de>
+Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- 1 file changed, 2 insertions(+)
+ init/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma-fix
-+++ a/include/linux/mm.h
-@@ -2825,6 +2825,8 @@ extern struct vm_area_struct *vmi_vma_me
- 	struct file *, pgoff_t, struct mempolicy *, struct vm_userfaultfd_ctx,
- 	struct anon_vma_name *);
- extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
-+extern int __split_vma(struct mm_struct *, struct vm_area_struct *,
-+			       unsigned long addr, int new_below);
- extern int vmi__split_vma(struct vma_iterator *vmi, struct mm_struct *,
- 	struct vm_area_struct *, unsigned long addr, int new_below);
- extern int split_vma(struct mm_struct *, struct vm_area_struct *,
+--- a/init/Kconfig~kconfig-fix-typo-usafe-unsafe
++++ a/init/Kconfig
+@@ -776,7 +776,7 @@ config PRINTK_SAFE_LOG_BUF_SHIFT
+ 	depends on PRINTK
+ 	help
+ 	  Select the size of an alternate printk per-CPU buffer where messages
+-	  printed from usafe contexts are temporary stored. One example would
++	  printed from unsafe contexts are temporary stored. One example would
+ 	  be NMI messages, another one - printk recursion. The messages are
+ 	  copied to the main log buffer in a safe context to avoid a deadlock.
+ 	  The value defines the size as a power of 2.
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from eliasfleckenstein@web.de are
 
-nommu-fix-memory-leak-in-do_mmap-error-path.patch
-nommu-fix-do_munmap-error-path.patch
-nommu-fix-split_vma-map_count-error.patch
-mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma-fix.patch
-maple_tree-remove-gfp_zero-from-kmem_cache_alloc-and-kmem_cache_alloc_bulk.patch
+kconfig-fix-typo-usafe-unsafe.patch
 
