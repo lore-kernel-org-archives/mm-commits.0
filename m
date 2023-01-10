@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A58CDC46467
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 22:46:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34019C677F1
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 22:46:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234449AbjAJWq0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Jan 2023 17:46:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49934 "EHLO
+        id S231874AbjAJWq2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Jan 2023 17:46:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49954 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234453AbjAJWlh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 17:41:37 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50AA25F4B2
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 14:41:35 -0800 (PST)
+        with ESMTP id S234664AbjAJWlm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 17:41:42 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9F965EC02
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 14:41:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E1EAD61921
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 22:41:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41FC2C433D2;
-        Tue, 10 Jan 2023 22:41:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 587B0B819AB
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 22:41:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF6A0C433F0;
+        Tue, 10 Jan 2023 22:41:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673390494;
-        bh=eFg0ipQC28yuhKyLm4laO4NxpBD6yt60tZD/g1vREjc=;
+        s=korg; t=1673390498;
+        bh=cR5ZS31/6GpuA11j3UIopZKjGV3whiaTeXYQ4JhV3bw=;
         h=Date:To:From:Subject:From;
-        b=R+xCGy7b6Wnh28/Q5pSKz1N7gxr3lSEZXZTGfDPxT54hzFZMUVoRmBYaidmbnyf8Q
-         RhDFpBL71e50CozohFwEzEksAAY6+LE2O5/swf7fByqM5EWdjOs3gLieVJPmHMY4JN
-         W3ALFTKi3FIvJVubJTnkV8Yupas3V/TABsFNbKEM=
-Date:   Tue, 10 Jan 2023 14:41:33 -0800
+        b=rW6V9GXVtmCRrlDjZ3rSX2Wk41hZHrh7IQZ9JvnpLumPFsYTajV6zQKJpuWCRt2xW
+         zcLxA9kha49cIPYR8rgfm7F30caLMmqNmOgr2LG5ZgzHW/hqvd2lWUD1qyTgQraImd
+         Uwz4F/FJ+tzA63ZIcXMAv6fFmFG380KO2puII3SY=
+Date:   Tue, 10 Jan 2023 14:41:37 -0800
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
         sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-damon-link-maintainer-profile-git-trees-and-website.patch added to mm-unstable branch
-Message-Id: <20230110224134.41FC2C433D2@smtp.kernel.org>
+Subject: + selftests-damon-debugfs_rm_non_contexts-hide-expected-write-error-messages.patch added to mm-unstable branch
+Message-Id: <20230110224137.EF6A0C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS/DAMON: link maintainer profile, git trees, and website
+     Subject: selftests/damon/debugfs_rm_non_contexts: hide expected write error messages
 has been added to the -mm mm-unstable branch.  Its filename is
-     maintainers-damon-link-maintainer-profile-git-trees-and-website.patch
+     selftests-damon-debugfs_rm_non_contexts-hide-expected-write-error-messages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-damon-link-maintainer-profile-git-trees-and-website.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-debugfs_rm_non_contexts-hide-expected-write-error-messages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,40 +65,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: MAINTAINERS/DAMON: link maintainer profile, git trees, and website
-Date: Tue, 10 Jan 2023 19:03:58 +0000
+Subject: selftests/damon/debugfs_rm_non_contexts: hide expected write error messages
+Date: Tue, 10 Jan 2023 19:04:00 +0000
 
-Add links to below DAMON development related resource to DAMON section in
-MAINTAINERS file.
+A selftest case for DAMON debugfs interface has a test for expected
+failure.  To make the test output clean, hide the expected failure error
+message.
 
-- The basic policies and expectations of DAMON development,
-- DAMON development trees, and
-- DAMON introduction website.
-
-Link: https://lkml.kernel.org/r/20230110190400.119388-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230110190400.119388-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++++
- 1 file changed, 5 insertions(+)
+ tools/testing/selftests/damon/debugfs_rm_non_contexts.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-damon-link-maintainer-profile-git-trees-and-website
-+++ a/MAINTAINERS
-@@ -5790,6 +5790,11 @@ M:	SeongJae Park <sj@kernel.org>
- L:	damon@lists.linux.dev
- L:	linux-mm@kvack.org
- S:	Maintained
-+W:	https://damonitor.github.io
-+P:	Documentation/mm/damon/maintainer-profile.rst
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+T:	quilt git://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sj/linux.git damon/next
- F:	Documentation/ABI/testing/sysfs-kernel-mm-damon
- F:	Documentation/admin-guide/mm/damon/
- F:	Documentation/mm/damon/
+--- a/tools/testing/selftests/damon/debugfs_rm_non_contexts.sh~selftests-damon-debugfs_rm_non_contexts-hide-expected-write-error-messages
++++ a/tools/testing/selftests/damon/debugfs_rm_non_contexts.sh
+@@ -10,7 +10,7 @@ dmesg -C
+ 
+ for file in "$DBGFS/"*
+ do
+-	echo "$(basename "$f")" > "$DBGFS/rm_contexts"
++	(echo "$(basename "$f")" > "$DBGFS/rm_contexts") &> /dev/null
+ 	if dmesg | grep -q BUG
+ 	then
+ 		dmesg
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
