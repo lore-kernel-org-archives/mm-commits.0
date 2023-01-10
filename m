@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD31BC54EBD
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 00:59:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A5A7C54EBD
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 01:00:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229683AbjAJA7g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Jan 2023 19:59:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44080 "EHLO
+        id S229963AbjAJBAT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Jan 2023 20:00:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229747AbjAJA7f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 19:59:35 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECE1640852
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 16:59:34 -0800 (PST)
+        with ESMTP id S234513AbjAJBAL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 20:00:11 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C99F542E0F
+        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 17:00:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 4C96BCE1147
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 00:59:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EB8FC433D2;
-        Tue, 10 Jan 2023 00:59:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 487A8614AD
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 01:00:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 608B4C433EF;
+        Tue, 10 Jan 2023 01:00:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673312371;
-        bh=X0gzYLrtB1g7DK8F2fEI07kPFtT2Osj08C5SDzbh008=;
+        s=korg; t=1673312409;
+        bh=ASVwvVho/gZJikC76C8dQyFbdlpVr1y+/13rAA3gVlc=;
         h=Date:To:From:Subject:From;
-        b=ZE0k9+IeoUuLGhheC3C+1tVBvFTAC5rJ4K3mLU3ZkGAy6EKqsFAQjM48ejkpLv9q9
-         +MotcgXod7L/glrXhzrv3n7WHnq3qYuW+m/BF+my79QWJrwsGNfp5ie1ZXGcQg+E2m
-         GxRHPGe6+Q5Zi+dydoGZS62hVMQIWUrLgZMdTfi0=
-Date:   Mon, 09 Jan 2023 16:59:30 -0800
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, rcampbell@nvidia.com,
-        mike.kravetz@oracle.com, jhubbard@nvidia.com, jglisse@redhat.com,
-        jgg@nvidia.com, ira.weiny@intel.com, hch@lst.de,
-        apopple@nvidia.com, akpm@linux-foundation.org
+        b=e2muIvelqasHZZG3KhXhiCtqZ+ow+1MUzMp7xr8x1Vq19KaxdX2Chm7eHdKy8Qzj1
+         VJIxodApSo1QNlDGwYc0e+jpsY7Ptd8AVioubOqjKWllj0GC4qwKKyb60qg4q9RvhM
+         UT9BXgWM96r4ms8Eaq8HWzfUZNh1ralpx/uoYTyU=
+Date:   Mon, 09 Jan 2023 17:00:08 -0800
+To:     mm-commits@vger.kernel.org, anton@tuxera.com,
+        rdunlap@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export.patch added to mm-unstable branch
-Message-Id: <20230110005931.2EB8FC433D2@smtp.kernel.org>
+Subject: + ntfs-fix-multiple-kernel-doc-warnings.patch added to mm-nonmm-unstable branch
+Message-Id: <20230110010009.608B4C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmu_notifier: remove unused mmu_notifier_range_update_to_read_only export
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export.patch
+     Subject: ntfs: fix multiple kernel-doc warnings
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ntfs-fix-multiple-kernel-doc-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs-fix-multiple-kernel-doc-warnings.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,71 +64,245 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/mmu_notifier: remove unused mmu_notifier_range_update_to_read_only export
-Date: Mon, 9 Jan 2023 12:22:07 +1100
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: ntfs: fix multiple kernel-doc warnings
+Date: Sun, 8 Jan 2023 17:00:41 -0800
 
-mmu_notifier_range_update_to_read_only() was originally introduced in
-commit c6d23413f81b ("mm/mmu_notifier:
-mmu_notifier_range_update_to_read_only() helper") as an optimisation for
-device drivers that know a range has only been mapped read-only.  However
-there are no users of this feature so remove it.  As it is the only user
-of the struct mmu_notifier_range.vma field remove that also.
+Fix many W=1 kernel-doc warnings in fs/ntfs/:
 
-Link: https://lkml.kernel.org/r/20230109012207.79457-1-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+fs/ntfs/aops.c:30: warning: Incorrect use of kernel-doc format:  * ntfs_end_buffer_async_read - async io completion for reading attributes
+fs/ntfs/aops.c:46: warning: expecting prototype for aops.c(). Prototype was for ntfs_end_buffer_async_read() instead
+fs/ntfs/aops.c:1655: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_normal_aops = '
+fs/ntfs/aops.c:1670: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_compressed_aops = '
+fs/ntfs/aops.c:1685: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_mst_aops = '
+fs/ntfs/compress.c:22: warning: Incorrect use of kernel-doc format:  * ntfs_compression_constants - enum of constants used in the compression code
+fs/ntfs/compress.c:24: warning: cannot understand function prototype: 'typedef enum '
+fs/ntfs/compress.c:47: warning: cannot understand function prototype: 'u8 *ntfs_compression_buffer; '
+fs/ntfs/compress.c:52: warning: expecting prototype for ntfs_cb_lock(). Prototype was for DEFINE_SPINLOCK() instead
+fs/ntfs/dir.c:21: warning: Incorrect use of kernel-doc format:  * The little endian Unicode string $I30 as a global constant.
+fs/ntfs/dir.c:23: warning: cannot understand function prototype: 'ntfschar I30[5] = '
+fs/ntfs/inode.c:31: warning: Incorrect use of kernel-doc format:  * ntfs_test_inode - compare two (possibly fake) inodes for equality
+fs/ntfs/inode.c:47: warning: expecting prototype for inode.c(). Prototype was for ntfs_test_inode() instead
+fs/ntfs/inode.c:2956: warning: expecting prototype for ntfs_write_inode(). Prototype was for __ntfs_write_inode() instead
+fs/ntfs/mft.c:24: warning: expecting prototype for mft.c - NTFS kernel mft record operations. Part of the Linux(). Prototype was for MAX_BHS() instead
+fs/ntfs/namei.c:263: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
+ * Inode operations for directories.
+fs/ntfs/namei.c:368: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
+ * Export operations allowing NFS exporting of mounted NTFS partitions.
+fs/ntfs/runlist.c:16: warning: Incorrect use of kernel-doc format:  * ntfs_rl_mm - runlist memmove
+fs/ntfs/runlist.c:22: warning: expecting prototype for runlist.c - NTFS runlist handling code.  Part of the Linux(). Prototype was for ntfs_rl_mm() instead
+fs/ntfs/super.c:61: warning: missing initial short description on line:
+ * simple_getbool -
+fs/ntfs/super.c:2661: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
+ * The complete super operations.
+
+Link: https://lkml.kernel.org/r/20230109010041.21442-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Anton Altaparmakov <anton@tuxera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |    2 --
- mm/mmu_notifier.c            |   10 ----------
- 2 files changed, 12 deletions(-)
+ fs/ntfs/aops.c     |   10 +++++-----
+ fs/ntfs/aops.h     |    2 +-
+ fs/ntfs/compress.c |    6 +++---
+ fs/ntfs/dir.c      |    4 ++--
+ fs/ntfs/inode.c    |    6 +++---
+ fs/ntfs/mft.c      |    2 +-
+ fs/ntfs/namei.c    |    4 ++--
+ fs/ntfs/runlist.c  |    2 +-
+ fs/ntfs/super.c    |   12 ++++++++++--
+ 9 files changed, 28 insertions(+), 20 deletions(-)
 
---- a/include/linux/mmu_notifier.h~mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export
-+++ a/include/linux/mmu_notifier.h
-@@ -269,7 +269,6 @@ extern struct lockdep_map __mmu_notifier
+--- a/fs/ntfs/aops.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/aops.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * aops.c - NTFS kernel address space operations and page cache handling.
+  *
+  * Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.
+@@ -1646,7 +1646,7 @@ hole:
+ 	return block;
+ }
+ 
+-/**
++/*
+  * ntfs_normal_aops - address space operations for normal inodes and attributes
+  *
+  * Note these are not used for compressed or mst protected inodes and
+@@ -1664,7 +1664,7 @@ const struct address_space_operations nt
+ 	.error_remove_page = generic_error_remove_page,
+ };
+ 
+-/**
++/*
+  * ntfs_compressed_aops - address space operations for compressed inodes
+  */
+ const struct address_space_operations ntfs_compressed_aops = {
+@@ -1678,9 +1678,9 @@ const struct address_space_operations nt
+ 	.error_remove_page = generic_error_remove_page,
+ };
+ 
+-/**
++/*
+  * ntfs_mst_aops - general address space operations for mst protecteed inodes
+- *		   and attributes
++ *			  and attributes
+  */
+ const struct address_space_operations ntfs_mst_aops = {
+ 	.read_folio	= ntfs_read_folio,	/* Fill page with data. */
+--- a/fs/ntfs/aops.h~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/aops.h
+@@ -1,5 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0-or-later */
+-/**
++/*
+  * aops.h - Defines for NTFS kernel address space operations and page cache
+  *	    handling.  Part of the Linux-NTFS project.
+  *
+--- a/fs/ntfs/compress.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/compress.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * compress.c - NTFS kernel compressed attributes handling.
+  *		Part of the Linux-NTFS project.
+  *
+@@ -41,12 +41,12 @@ typedef enum {
+ 	NTFS_MAX_CB_SIZE	= 64 * 1024,
+ } ntfs_compression_constants;
+ 
+-/**
++/*
+  * ntfs_compression_buffer - one buffer for the decompression engine
+  */
+ static u8 *ntfs_compression_buffer;
+ 
+-/**
++/*
+  * ntfs_cb_lock - spinlock which protects ntfs_compression_buffer
+  */
+ static DEFINE_SPINLOCK(ntfs_cb_lock);
+--- a/fs/ntfs/dir.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/dir.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * dir.c - NTFS kernel directory operations. Part of the Linux-NTFS project.
+  *
+  * Copyright (c) 2001-2007 Anton Altaparmakov
+@@ -17,7 +17,7 @@
+ #include "debug.h"
+ #include "ntfs.h"
+ 
+-/**
++/*
+  * The little endian Unicode string $I30 as a global constant.
+  */
+ ntfschar I30[5] = { cpu_to_le16('$'), cpu_to_le16('I'),
+--- a/fs/ntfs/inode.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/inode.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * inode.c - NTFS kernel inode handling.
+  *
+  * Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.
+@@ -2935,7 +2935,7 @@ out:
+ }
+ 
+ /**
+- * ntfs_write_inode - write out a dirty inode
++ * __ntfs_write_inode - write out a dirty inode
+  * @vi:		inode to write out
+  * @sync:	if true, write out synchronously
+  *
+@@ -3033,7 +3033,7 @@ int __ntfs_write_inode(struct inode *vi,
+ 	 * might not need to be written out.
+ 	 * NOTE: It is not a problem when the inode for $MFT itself is being
+ 	 * written out as mark_ntfs_record_dirty() will only set I_DIRTY_PAGES
+-	 * on the $MFT inode and hence ntfs_write_inode() will not be
++	 * on the $MFT inode and hence __ntfs_write_inode() will not be
+ 	 * re-invoked because of it which in turn is ok since the dirtied mft
+ 	 * record will be cleaned and written out to disk below, i.e. before
+ 	 * this function returns.
+--- a/fs/ntfs/mft.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/mft.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * mft.c - NTFS kernel mft record operations. Part of the Linux-NTFS project.
+  *
+  * Copyright (c) 2001-2012 Anton Altaparmakov and Tuxera Inc.
+--- a/fs/ntfs/namei.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/namei.c
+@@ -259,7 +259,7 @@ err_out:
+    }
+ }
+ 
+-/**
++/*
+  * Inode operations for directories.
+  */
+ const struct inode_operations ntfs_dir_inode_ops = {
+@@ -364,7 +364,7 @@ static struct dentry *ntfs_fh_to_parent(
+ 				    ntfs_nfs_get_inode);
+ }
+ 
+-/**
++/*
+  * Export operations allowing NFS exporting of mounted NTFS partitions.
+  *
+  * We use the default ->encode_fh() for now.  Note that they
+--- a/fs/ntfs/runlist.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/runlist.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * runlist.c - NTFS runlist handling code.  Part of the Linux-NTFS project.
+  *
+  * Copyright (c) 2001-2007 Anton Altaparmakov
+--- a/fs/ntfs/super.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/super.c
+@@ -58,9 +58,17 @@ const option_t on_errors_arr[] = {
+ };
+ 
+ /**
+- * simple_getbool -
++ * simple_getbool - convert input string to a boolean value
++ * @s: input string to convert
++ * @setval: where to store the output boolean value
+  *
+  * Copied from old ntfs driver (which copied from vfat driver).
++ *
++ * "1", "yes", "true", or an empty string are converted to %true.
++ * "0", "no", and "false" are converted to %false.
++ *
++ * Return: %1 if the string is converted or was empty and *setval contains it;
++ *	   %0 if the string was not valid.
+  */
+ static int simple_getbool(char *s, bool *setval)
+ {
+@@ -2657,7 +2665,7 @@ static int ntfs_write_inode(struct inode
+ }
  #endif
  
- struct mmu_notifier_range {
--	struct vm_area_struct *vma;
- 	struct mm_struct *mm;
- 	unsigned long start;
- 	unsigned long end;
-@@ -519,7 +518,6 @@ static inline void mmu_notifier_range_in
- 					   unsigned long start,
- 					   unsigned long end)
- {
--	range->vma = vma;
- 	range->event = event;
- 	range->mm = mm;
- 	range->start = start;
---- a/mm/mmu_notifier.c~mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export
-+++ a/mm/mmu_notifier.c
-@@ -1120,13 +1120,3 @@ void mmu_notifier_synchronize(void)
- 	synchronize_srcu(&srcu);
- }
- EXPORT_SYMBOL_GPL(mmu_notifier_synchronize);
--
--bool
--mmu_notifier_range_update_to_read_only(const struct mmu_notifier_range *range)
--{
--	if (!range->vma || range->event != MMU_NOTIFY_PROTECTION_VMA)
--		return false;
--	/* Return true if the vma still have the read flag set. */
--	return range->vma->vm_flags & VM_READ;
--}
--EXPORT_SYMBOL_GPL(mmu_notifier_range_update_to_read_only);
+-/**
++/*
+  * The complete super operations.
+  */
+ static const struct super_operations ntfs_sops = {
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export.patch
+lib-win_minmax-use-notation-for-regular-comments.patch
+freevxfs-fix-kernel-doc-warnings.patch
+ntfs-fix-multiple-kernel-doc-warnings.patch
 
