@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C451C61DB3
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 22:41:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A9ECC54EBC
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 22:41:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234010AbjAJWlo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Jan 2023 17:41:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49852 "EHLO
+        id S233346AbjAJWlp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Jan 2023 17:41:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233346AbjAJWla (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 17:41:30 -0500
+        with ESMTP id S233973AbjAJWld (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 17:41:33 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5E835F4B2
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 14:41:28 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A43ED60CED
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 14:41:32 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 92453B819AB
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 22:41:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3713EC433D2;
-        Tue, 10 Jan 2023 22:41:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 56C0BB81982
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 22:41:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0FEEC433EF;
+        Tue, 10 Jan 2023 22:41:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673390486;
-        bh=XxCPSnkbtATVd6ujiXR5Y6w6OEFNfVkXkEkcb1kHZQQ=;
+        s=korg; t=1673390490;
+        bh=jOmxC6Wy/69mDplP5/+qRjRfzCqQ8+Nbn3lRkqCX+Ek=;
         h=Date:To:From:Subject:From;
-        b=ovAmgvhWiSCHSsJaSsBfoeTMbjA0tuNaKrsVXazmGhHiw8a5FFKH9hlm3tb8biibW
-         8/evj4mJnn7ySWLxXFi2y8kN2uRl30aq1oZjGWHeplFCO2u5DN605xDMntuYRLOYPN
-         jAStd1pyVmLnFWXTD9zY7w/kVVvyDIIWrMIBa5tE=
-Date:   Tue, 10 Jan 2023 14:41:25 -0800
+        b=vrrLRmzcoZTnJumvUw6HpdXLaGODHV2phVrWwFeIs7K4ru3actienKC9bDxNeYKVI
+         sM60q9CzJVBktwFRe3Un/r1AsUe93HpKICpBsoeOrJL6v/IQ6lJVwo3pXrV2lu8Fby
+         oVdoeY/B3Smlh6v0u4LwvKLQbOatMaXZ69GqrAPQ=
+Date:   Tue, 10 Jan 2023 14:41:29 -0800
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
         sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-update-kernel-doc-comments-for-damos-filters-supports-of-each-damon-operations-set.patch added to mm-unstable branch
-Message-Id: <20230110224126.3713EC433D2@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-update-damos-actions-filters-supports-of-each-damon-operations-set.patch added to mm-unstable branch
+Message-Id: <20230110224129.F0FEEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: update kernel-doc comments for DAMOS filters supports of each DAMON operations set
+     Subject: Docs/admin-guide/mm/damon/usage: update DAMOS actions/filters supports of each DAMON operations set
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-update-kernel-doc-comments-for-damos-filters-supports-of-each-damon-operations-set.patch
+     docs-admin-guide-mm-damon-usage-update-damos-actions-filters-supports-of-each-damon-operations-set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-update-kernel-doc-comments-for-damos-filters-supports-of-each-damon-operations-set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-damos-actions-filters-supports-of-each-damon-operations-set.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,37 +65,89 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: update kernel-doc comments for DAMOS filters supports of each DAMON operations set
-Date: Tue, 10 Jan 2023 19:03:54 +0000
+Subject: Docs/admin-guide/mm/damon/usage: update DAMOS actions/filters supports of each DAMON operations set
+Date: Tue, 10 Jan 2023 19:03:56 +0000
 
-Supports of each DAMOS filter type are up to DAMON operations set
-implementation in use, but not well mentioned on the kernel-doc comments. 
-Add the comment.
+Supports of each DAMOS action and filters are up to DAMON operations set
+implementation, but it's not mentioned in detail on the documentation. 
+Update the information on the usage document.
 
-Link: https://lkml.kernel.org/r/20230110190400.119388-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230110190400.119388-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   41 +++++++++++------
+ 1 file changed, 28 insertions(+), 13 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-update-kernel-doc-comments-for-damos-filters-supports-of-each-damon-operations-set
-+++ a/include/linux/damon.h
-@@ -227,6 +227,11 @@ struct damos_stat {
-  * @DAMOS_FILTER_TYPE_ANON:	Anonymous pages.
-  * @DAMOS_FILTER_TYPE_MEMCG:	Specific memcg's pages.
-  * @NR_DAMOS_FILTER_TYPES:	Number of filter types.
-+ *
-+ * The support of each filter type is up to running &struct damon_operations.
-+ * &enum DAMON_OPS_PADDR is supporting all filter types, while
-+ * &enum DAMON_OPS_VADDR and &enum DAMON_OPS_FVADDR are not supporting any
-+ * filter types.
-  */
- enum damos_filter_type {
- 	DAMOS_FILTER_TYPE_ANON,
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-damos-actions-filters-supports-of-each-damon-operations-set
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -279,14 +279,25 @@ The ``action`` file is for setting and g
+ memory regions having specific access pattern of the interest.  The keywords
+ that can be written to and read from the file and their meaning are as below.
+ 
+- - ``willneed``: Call ``madvise()`` for the region with ``MADV_WILLNEED``
+- - ``cold``: Call ``madvise()`` for the region with ``MADV_COLD``
+- - ``pageout``: Call ``madvise()`` for the region with ``MADV_PAGEOUT``
+- - ``hugepage``: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``
+- - ``nohugepage``: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``
++Note that support of each action depends on the running DAMON operations set
++`implementation <sysfs_contexts>`.
++
++ - ``willneed``: Call ``madvise()`` for the region with ``MADV_WILLNEED``.
++   Supported by ``vaddr`` and ``fvaddr`` operations set.
++ - ``cold``: Call ``madvise()`` for the region with ``MADV_COLD``.
++   Supported by ``vaddr`` and ``fvaddr`` operations set.
++ - ``pageout``: Call ``madvise()`` for the region with ``MADV_PAGEOUT``.
++   Supported by ``vaddr``, ``fvaddr`` and ``paddr`` operations set.
++ - ``hugepage``: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``.
++   Supported by ``vaddr`` and ``fvaddr`` operations set.
++ - ``nohugepage``: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``.
++   Supported by ``vaddr`` and ``fvaddr`` operations set.
+  - ``lru_prio``: Prioritize the region on its LRU lists.
++   Supported by ``paddr`` operations set.
+  - ``lru_deprio``: Deprioritize the region on its LRU lists.
+- - ``stat``: Do nothing but count the statistics
++   Supported by ``paddr`` operations set.
++ - ``stat``: Do nothing but count the statistics.
++   Supported by all operations sets.
+ 
+ schemes/<N>/access_pattern/
+ ---------------------------
+@@ -388,8 +399,8 @@ pages of all memory cgroups except ``/ha
+     echo /having_care_already > 1/memcg_path
+     echo N > 1/matching
+ 
+-Note that filters could be ignored depend on the running DAMON operations set
+-`implementation <sysfs_contexts>`.
++Note that filters are currently supported only when ``paddr``
++`implementation <sysfs_contexts>` is being used.
+ 
+ .. _sysfs_schemes_stats:
+ 
+@@ -618,11 +629,15 @@ The ``<action>`` is a predefined integer
+ DAMON will apply to the regions having the target access pattern.  The
+ supported numbers and their meanings are as below.
+ 
+- - 0: Call ``madvise()`` for the region with ``MADV_WILLNEED``
+- - 1: Call ``madvise()`` for the region with ``MADV_COLD``
+- - 2: Call ``madvise()`` for the region with ``MADV_PAGEOUT``
+- - 3: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``
+- - 4: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``
++ - 0: Call ``madvise()`` for the region with ``MADV_WILLNEED``.  Ignored if
++   ``target`` is ``paddr``.
++ - 1: Call ``madvise()`` for the region with ``MADV_COLD``.  Ignored if
++   ``target`` is ``paddr``.
++ - 2: Call ``madvise()`` for the region with ``MADV_PAGEOUT``.
++ - 3: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``.  Ignored if
++   ``target`` is ``paddr``.
++ - 4: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``.  Ignored if
++   ``target`` is ``paddr``.
+  - 5: Do nothing but count the statistics
+ 
+ Quota
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
