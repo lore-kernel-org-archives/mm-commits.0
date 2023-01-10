@@ -2,165 +2,237 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B8FCC54EBD
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 01:07:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10CCCC54EBC
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 11:01:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229545AbjAJBHX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Jan 2023 20:07:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45772 "EHLO
+        id S229457AbjAJLBX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Jan 2023 06:01:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229733AbjAJBHW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 20:07:22 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED74BB0E
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 17:07:20 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8399161489
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 01:07:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB6F6C433F2;
-        Tue, 10 Jan 2023 01:07:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673312839;
-        bh=U/70A5f9kD2drN3rLVWVcTO7Uwj90Iv5dtFufN429Qo=;
-        h=Date:To:From:Subject:From;
-        b=uDDLsOKilPau/V6F2wrdrQOfXQxm9fE5sfyAQ3eIvoKFftWAMDCzYXjzcWnf++/Nc
-         z0varQCE7xl/LkpB9caNyrKYZqwA/86piL7733i5OxIgZfnIgsXtxwZc8g13fhDBqC
-         4XVuMXHYar2KSFUJIv8thIx7FwoxJ6pl9siv934s=
-Date:   Mon, 09 Jan 2023 17:07:18 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-rename-selftets-vm-to-selftests-mm-fix.patch added to mm-unstable branch
-Message-Id: <20230110010719.AB6F6C433F2@smtp.kernel.org>
+        with ESMTP id S232023AbjAJLBL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 06:01:11 -0500
+Received: from domac.alu.hr (domac.alu.unizg.hr [161.53.235.3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76A34E52
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 03:01:04 -0800 (PST)
+Received: from localhost (localhost [127.0.0.1])
+        by domac.alu.hr (Postfix) with ESMTP id 57876604F1;
+        Tue, 10 Jan 2023 12:01:01 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=alu.unizg.hr; s=mail;
+        t=1673348461; bh=sr3BWTs+8ftDVgFrsof/jeU+kn0GfcVYSd/BQMaVdvE=;
+        h=Date:Subject:To:References:From:In-Reply-To:From;
+        b=sHkTeATpGkbdMKUcLt3Iv/nPtTiUk9G/SfeXc0H3oluLujQBbyhaIFPWc6m5lzuOd
+         k+ASsx1SwZ7409VSPnbAvl5dzrFOEJtNYU7u/QyuWgMq9ik1jRCDs/WKwpIiiRcO83
+         9oed1vgWXIaF88kM2HfVE0zhvVq8UKr/UjrKRRWxEa23DmwLVH1nDi/HwbYz3d5mz7
+         dSfFrY+qSf7q6uuFWiaSZyPsX+KuZgF2UjrNvu8pWAND5ukqYY/cXIn7ny1fF3cDTG
+         8n2dUNHVvIsJnDqTTP7iP1TOT66sxe7CwP64fZ0VAg022742iu6AIFCCK8NiuOQEWk
+         q+FVrnECpFX0w==
+X-Virus-Scanned: Debian amavisd-new at domac.alu.hr
+Received: from domac.alu.hr ([127.0.0.1])
+        by localhost (domac.alu.hr [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id ZbBWr_zX-If0; Tue, 10 Jan 2023 12:00:58 +0100 (CET)
+Received: from [193.198.186.200] (pc-mtodorov.slava.alu.hr [193.198.186.200])
+        by domac.alu.hr (Postfix) with ESMTPSA id 79F4B604F0;
+        Tue, 10 Jan 2023 12:00:58 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=alu.unizg.hr; s=mail;
+        t=1673348458; bh=sr3BWTs+8ftDVgFrsof/jeU+kn0GfcVYSd/BQMaVdvE=;
+        h=Date:Subject:To:References:From:In-Reply-To:From;
+        b=aVn5mlxTNuLtOx89hsTHQpdkYnLywTIfYtB8zHoaUrjY0/CspODfibBK0A3UVaMsN
+         GPinKc6MRAJ9rGcEo925gHG08jjE9//+6gEs/l4Jw+BoBcvvCXrJ5vYwMWuS0bqHxb
+         HiO/Ul4k63nYZJmFr/9zwMPn+RPnMn/1Bmp6WFo66CSjFRjsGZWJGtLPun3Ev+j7y8
+         nuWO1G+NTOuEPAX7DGEbCYus7xd2b54r/7NC+k25gkiXbjpBfDWt7ifKTpzZSyoRMa
+         7oaiYbFv90vL+EIH5kFRD81X3ptV72BAKrGC9YSwVrPJ1arQbTOZBfEW3r5oh2H8kz
+         6T+PCK6y+7dhQ==
+Message-ID: <cb32e13b-2edd-8a4d-dfc1-779d03a1ff67@alu.unizg.hr>
+Date:   Tue, 10 Jan 2023 12:00:58 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.0
+Subject: Re: +
+ selftests-mm-define-madv_pageout-to-fix-compilation-issues.patch added to
+ mm-unstable branch
+Content-Language: en-US, hr
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        mm-commits@vger.kernel.org, shuah@kernel.org, david@redhat.com
+References: <20230109233601.C4082C433EF@smtp.kernel.org>
+From:   Mirsad Todorovac <mirsad.todorovac@alu.unizg.hr>
+In-Reply-To: <20230109233601.C4082C433EF@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Hi,
 
-The patch titled
-     Subject: selftests/mm: convert missing vm->mm changes
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-rename-selftets-vm-to-selftests-mm-fix.patch
+On 1/10/23 00:36, Andrew Morton wrote:
+> The patch titled
+>       Subject: selftests/mm: define MADV_PAGEOUT to fix compilation issues
+> has been added to the -mm mm-unstable branch.  Its filename is
+>       selftests-mm-define-madv_pageout-to-fix-compilation-issues.patch
+> 
+> This patch will shortly appear at
+>       https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-define-madv_pageout-to-fix-compilation-issues.patch
+> 
+> This patch will later appear in the mm-unstable branch at
+>      git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>     a) Consider who else should be cc'ed
+>     b) Prefer to cc a suitable mailing list as well
+>     c) Ideally: find the original patch on the mailing list and do a
+>        reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: David Hildenbrand <david@redhat.com>
+> Subject: selftests/mm: define MADV_PAGEOUT to fix compilation issues
+> Date: Mon, 9 Jan 2023 18:12:55 +0100
+> 
+> If MADV_PAGEOUT is not defined (e.g., on AlmaLinux 8), compilation will
+> fail.  Let's fix that like khugepaged.c does by conditionally defining
+> MADV_PAGEOUT.
+> 
+> Link: https://lkml.kernel.org/r/20230109171255.488749-1-david@redhat.com
+> Fixes: 69c66add5663 ("selftests/vm: anon_cow: test COW handling of anonymous memory")
+> Signed-off-by: David Hildenbrand <david@redhat.com>
+> Reported-by: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
+> Cc: Shuah Khan <shuah@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>   tools/testing/selftests/mm/cow.c |    3 +++
+>   1 file changed, 3 insertions(+)
+> 
+> --- a/tools/testing/selftests/mm/cow.c~selftests-mm-define-madv_pageout-to-fix-compilation-issues
+> +++ a/tools/testing/selftests/mm/cow.c
+> @@ -30,6 +30,9 @@
+>   #include "../kselftest.h"
+>   #include "vm_util.h"
+>   
+> +#ifndef MADV_PAGEOUT
+> +#define MADV_PAGEOUT 21
+> +#endif
+>   #ifndef MADV_COLLAPSE
+>   #define MADV_COLLAPSE 25
+>   #endif
+> _
+> 
+> Patches currently in -mm which might be from david@redhat.com are
+> 
+> mm-hugetlb-fix-pte-marker-handling-in-hugetlb_change_protection.patch
+> mm-hugetlb-fix-uffd-wp-handling-for-migration-entries-in-hugetlb_change_protection.patch
+> mm-userfaultfd-enable-writenotify-while-userfaultfd-wp-is-enabled-for-a-vma.patch
+> mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range.patch
+> mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range-fix.patch
+> mm-mprotect-drop-pgprot_t-parameter-from-change_protection.patch
+> mm-mprotect-drop-pgprot_t-parameter-from-change_protection-fix.patch
+> selftests-vm-cow-add-cow-tests-for-collapsing-of-pte-mapped-anon-thp.patch
+> mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping.patch
+> mm-nommu-dont-use-vm_mayshare-for-map_private-mappings.patch
+> drivers-misc-open-dice-dont-touch-vm_mayshare.patch
+> selftests-mm-define-madv_pageout-to-fix-compilation-issues.patch
+Please consider alternative patch instead. I am submitting it for a
+review.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-rename-selftets-vm-to-selftests-mm-fix.patch
+It would give the referential integrity to the source of the selftest/vm
+subtree.
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+#ifdef ... #endif encapsulation around `#define __USE_GNU` eliminates a
+warning.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+RATIONALE:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+Though it is ulikely that the values of MADV_PAGEOUT,
+MADV_POPULATE_READ and MADV_COLLAPSE will change, the source integrity
+would benefit from having it changed in only one place,
+.../usr/include/asm-generic/mman-common.h, included by
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+#include <linux/mman.h>
 
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftests/mm: convert missing vm->mm changes
-Date: Sat, 7 Jan 2023 23:06:43 +0000
+rather than in three places: mman-common.h, vm/cow.c and vm/khugepaged.c.
 
-Commit 6b380799d251 ("selftests/vm: rename selftests/vm to selftests/mm")
-in mm-unstable is missing some files that need to be updated for the
-renaming.  This commit adds the changes.
+This can potentially lead to hard-to-find bugs, as three sources may
+disagree about the value of MADV_PAGEOUT, MADV_POPULATE_READ and
+MADV_COLLAPSE macro defines.
 
-Link: https://lkml.kernel.org/r/20230107230643.252273-1-sj@kernel.org
-Fixes: 6b380799d251 ("selftests/vm: rename selftests/vm to selftests/mm") in mm-unstable
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Thank you very much for your time and consideration.
 
- tools/testing/selftests/Makefile          |    2 +-
- tools/testing/selftests/kselftest_deps.sh |    6 +++---
- tools/testing/selftests/mm/Makefile       |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+Regards,
+Mirsad
 
---- a/tools/testing/selftests/kselftest_deps.sh~selftests-vm-rename-selftets-vm-to-selftests-mm-fix
-+++ a/tools/testing/selftests/kselftest_deps.sh
-@@ -12,9 +12,9 @@ usage()
- 
- echo -e "Usage: $0 -[p] <compiler> [test_name]\n"
- echo -e "\tkselftest_deps.sh [-p] gcc"
--echo -e "\tkselftest_deps.sh [-p] gcc vm"
-+echo -e "\tkselftest_deps.sh [-p] gcc mm"
- echo -e "\tkselftest_deps.sh [-p] aarch64-linux-gnu-gcc"
--echo -e "\tkselftest_deps.sh [-p] aarch64-linux-gnu-gcc vm\n"
-+echo -e "\tkselftest_deps.sh [-p] aarch64-linux-gnu-gcc mm\n"
- echo "- Should be run in selftests directory in the kernel repo."
- echo "- Checks if Kselftests can be built/cross-built on a system."
- echo "- Parses all test/sub-test Makefile to find library dependencies."
-@@ -120,7 +120,7 @@ l1_tests=$(grep -r --include=Makefile "^
- # Level 2
- # Some tests have multiple valid LDLIBS lines for individual sub-tests
- # that need dependency checks. Find them and append them to the tests
--# e.g: vm/Makefile:$(OUTPUT)/userfaultfd: LDLIBS += -lpthread
-+# e.g: mm/Makefile:$(OUTPUT)/userfaultfd: LDLIBS += -lpthread
- # Filter out VAR_LDLIBS to discard the following:
- # 	memfd/Makefile:$(OUTPUT)/fuse_mnt: LDLIBS += $(VAR_LDLIBS)
- # Append space at the end of the list to append more tests.
---- a/tools/testing/selftests/Makefile~selftests-vm-rename-selftets-vm-to-selftests-mm-fix
-+++ a/tools/testing/selftests/Makefile
-@@ -85,7 +85,7 @@ TARGETS += tmpfs
- TARGETS += tpm2
- TARGETS += user
- TARGETS += vDSO
--TARGETS += vm
-+TARGETS += mm
- TARGETS += x86
- TARGETS += zram
- #Please keep the TARGETS list alphabetically sorted
---- a/tools/testing/selftests/mm/Makefile~selftests-vm-rename-selftets-vm-to-selftests-mm-fix
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -1,7 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
--# Makefile for vm selftests
-+# Makefile for mm selftests
- 
--LOCAL_HDRS += $(selfdir)/vm/local_config.h $(top_srcdir)/mm/gup_test.h
-+LOCAL_HDRS += $(selfdir)/mm/local_config.h $(top_srcdir)/mm/gup_test.h
- 
- include local_config.mk
- 
-_
+----------------------------------------------------------------------------------------------------------
+  tools/testing/selftests/vm/cow.c             |  1 +
+  tools/testing/selftests/vm/hugetlb-madvise.c |  2 ++
+  tools/testing/selftests/vm/khugepaged.c      | 11 +----------
+  3 files changed, 4 insertions(+), 10 deletions(-)
 
-Patches currently in -mm which might be from sj@kernel.org are
+diff --git a/tools/testing/selftests/vm/cow.c 
+b/tools/testing/selftests/vm/cow.c
+index 26f6ea3079e2..7707b97e3ff4 100644
+--- a/tools/testing/selftests/vm/cow.c
++++ b/tools/testing/selftests/vm/cow.c
+@@ -20,6 +20,7 @@
+  #include <sys/ioctl.h>
+  #include <sys/wait.h>
+  #include <linux/memfd.h>
++#include <linux/mman.h>
 
-include-linux-mm-fix-release_pages_arg-kernel-doc-comment.patch
-mm-damon-core-implement-damos-filter.patch
-mm-damon-paddr-support-damos-filters.patch
-mm-damon-reclaim-add-a-parameter-called-skip_anon-for-avoiding-anonymous-pages-reclamation.patch
-docs-admin-guide-damon-reclaim-document-skip_anon-parameter.patch
-mm-damon-sysfs-schemes-implement-filters-directory.patch
-mm-damon-sysfs-schemes-implement-filter-directory.patch
-mm-damon-sysfs-schemes-connect-filter-directory-and-filters-directory.patch
-mm-damon-sysfs-schemes-implement-scheme-filters.patch
-mm-damon-sysfs-schemes-implement-scheme-filters-fix.patch
-mm-damon-sysfs-schemes-implement-scheme-filters-fix-fix-2.patch
-selftests-damon-sysfs-test-filters-directory.patch
-docs-admin-guide-mm-damon-usage-document-damos-filters-of-sysfs.patch
-docs-abi-damon-document-scheme-filters-files.patch
-mm-page_reporting-replace-rcu_access_pointer-with-rcu_dereference_protected.patch
-mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator-fix.patch
-maintainers-add-types-to-akpm-mm-git-trees-entries.patch
-maintainers-memory-management-add-tools-vm-as-managed-files.patch
-tools-vm-rename-tools-vm-to-tools-mm.patch
-selftests-vm-rename-selftets-vm-to-selftests-mm.patch
-selftests-vm-rename-selftets-vm-to-selftests-mm-fix.patch
-docs-admin-guide-mm-numaperf-increase-depth-of-subsections.patch
-docs-admin-guide-mm-numaperf-increase-depth-of-subsections-fix.patch
-mm-damon-vaddr-rename-damon_young_walk_private-page_sz-to-folio_sz.patch
-mm-damon-vaddr-support-folio-of-neither-hpage_pmd_size-nor-page_size.patch
-mm-damon-vaddr-record-appropriate-folio-size-when-the-access-is-not-found.patch
-mm-damon-paddr-rename-damon_pa_access_chk_result-page_sz-to-folio_sz.patch
-mm-damon-paddr-remove-folio_sz-field-from-damon_pa_access_chk_result.patch
-mm-damon-paddr-remove-damon_pa_access_chk_result-struct.patch
-scripts-spelling-add-a-few-more-typos.patch
+  #include "local_config.h"
+  #ifdef LOCAL_CONFIG_HAVE_LIBURING
+diff --git a/tools/testing/selftests/vm/hugetlb-madvise.c 
+b/tools/testing/selftests/vm/hugetlb-madvise.c
+index a634f47d1e56..163dafe759d4 100644
+--- a/tools/testing/selftests/vm/hugetlb-madvise.c
++++ b/tools/testing/selftests/vm/hugetlb-madvise.c
+@@ -17,7 +17,9 @@
+  #include <stdio.h>
+  #include <unistd.h>
+  #include <sys/mman.h>
++#ifndef __USE_GNU
+  #define __USE_GNU
++#endif
+  #include <fcntl.h>
 
+  #define MIN_FREE_PAGES 20
+diff --git a/tools/testing/selftests/vm/khugepaged.c 
+b/tools/testing/selftests/vm/khugepaged.c
+index 64126c8cd561..6302de1ab0d0 100644
+--- a/tools/testing/selftests/vm/khugepaged.c
++++ b/tools/testing/selftests/vm/khugepaged.c
+@@ -19,19 +19,10 @@
+  #include <sys/vfs.h>
+
+  #include "linux/magic.h"
++#include "linux/mman.h"
+
+  #include "vm_util.h"
+
+-#ifndef MADV_PAGEOUT
+-#define MADV_PAGEOUT 21
+-#endif
+-#ifndef MADV_POPULATE_READ
+-#define MADV_POPULATE_READ 22
+-#endif
+-#ifndef MADV_COLLAPSE
+-#define MADV_COLLAPSE 25
+-#endif
+-
+  #define BASE_ADDR ((void *)(1UL << 30))
+  static unsigned long hpage_pmd_size;
+  static unsigned long page_size;
+
+-- 
+Mirsad Goran Todorovac
+Sistem inženjer
+Grafički fakultet | Akademija likovnih umjetnosti
+Sveučilište u Zagrebu
+
+System engineer
+Faculty of Graphic Arts | Academy of Fine Arts
+University of Zagreb, Republic of Croatia
