@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDE21C54EBD
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 00:56:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD31BC54EBD
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 00:59:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235360AbjAJA4s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Jan 2023 19:56:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43620 "EHLO
+        id S229683AbjAJA7g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Jan 2023 19:59:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235410AbjAJA4r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 19:56:47 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 843833FCAB
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 16:56:46 -0800 (PST)
+        with ESMTP id S229747AbjAJA7f (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 19:59:35 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECE1640852
+        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 16:59:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B9A1614AC
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 00:56:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44773C433F0;
-        Tue, 10 Jan 2023 00:56:45 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 4C96BCE1147
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 00:59:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EB8FC433D2;
+        Tue, 10 Jan 2023 00:59:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673312205;
-        bh=x44o/NEuMTYQ3dl8cMwywkLgJGTaxD/xdaL5rrPQ/EM=;
+        s=korg; t=1673312371;
+        bh=X0gzYLrtB1g7DK8F2fEI07kPFtT2Osj08C5SDzbh008=;
         h=Date:To:From:Subject:From;
-        b=to4L2eqSN5hMbldszPtlwfCnVBafBXkFmfqO8DePYIrKgpPO4SlwOakJY1n/sJgwZ
-         bdig7/EclUNOIR9x77MRwXnnHDIN+RTIije0TEuGQxHoY7u0l8z9KJ0KribLPE6nZl
-         GAGLGc/TOSZk55n+2c5eC1lN2VMHTilnxrCuw9D8=
-Date:   Mon, 09 Jan 2023 16:56:44 -0800
-To:     mm-commits@vger.kernel.org, hch@infradead.org,
-        gregkh@linuxfoundation.org, rdunlap@infradead.org,
-        akpm@linux-foundation.org
+        b=ZE0k9+IeoUuLGhheC3C+1tVBvFTAC5rJ4K3mLU3ZkGAy6EKqsFAQjM48ejkpLv9q9
+         +MotcgXod7L/glrXhzrv3n7WHnq3qYuW+m/BF+my79QWJrwsGNfp5ie1ZXGcQg+E2m
+         GxRHPGe6+Q5Zi+dydoGZS62hVMQIWUrLgZMdTfi0=
+Date:   Mon, 09 Jan 2023 16:59:30 -0800
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, rcampbell@nvidia.com,
+        mike.kravetz@oracle.com, jhubbard@nvidia.com, jglisse@redhat.com,
+        jgg@nvidia.com, ira.weiny@intel.com, hch@lst.de,
+        apopple@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + freevxfs-fix-kernel-doc-warnings.patch added to mm-nonmm-unstable branch
-Message-Id: <20230110005645.44773C433F0@smtp.kernel.org>
+Subject: + mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export.patch added to mm-unstable branch
+Message-Id: <20230110005931.2EB8FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: freevxfs: fix kernel-doc warnings
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     freevxfs-fix-kernel-doc-warnings.patch
+     Subject: mm/mmu_notifier: remove unused mmu_notifier_range_update_to_read_only export
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/freevxfs-fix-kernel-doc-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,72 +66,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: freevxfs: fix kernel-doc warnings
-Date: Sun, 8 Jan 2023 18:29:15 -0800
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/mmu_notifier: remove unused mmu_notifier_range_update_to_read_only export
+Date: Mon, 9 Jan 2023 12:22:07 +1100
 
-Fix multiple kernel-doc warnings in freevxfs:
+mmu_notifier_range_update_to_read_only() was originally introduced in
+commit c6d23413f81b ("mm/mmu_notifier:
+mmu_notifier_range_update_to_read_only() helper") as an optimisation for
+device drivers that know a range has only been mapped read-only.  However
+there are no users of this feature so remove it.  As it is the only user
+of the struct mmu_notifier_range.vma field remove that also.
 
-fs/freevxfs/vxfs_subr.c:45: warning: Function parameter or member 'mapping' not described in 'vxfs_get_page'
-fs/freevxfs/vxfs_subr.c:45: warning: Excess function parameter 'ip' description in 'vxfs_get_page'
-2 warnings
-fs/freevxfs/vxfs_subr.c:101: warning: expecting prototype for vxfs_get_block(). Prototype was for vxfs_getblk() instead
-fs/freevxfs/vxfs_super.c:184: warning: expecting prototype for vxfs_read_super(). Prototype was for vxfs_fill_super() instead
-
-Link: https://lkml.kernel.org/r/20230109022915.17504-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20230109012207.79457-1-apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/freevxfs/vxfs_subr.c  |    6 +++---
- fs/freevxfs/vxfs_super.c |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/mmu_notifier.h |    2 --
+ mm/mmu_notifier.c            |   10 ----------
+ 2 files changed, 12 deletions(-)
 
---- a/fs/freevxfs/vxfs_subr.c~freevxfs-fix-kernel-doc-warnings
-+++ a/fs/freevxfs/vxfs_subr.c
-@@ -31,7 +31,7 @@ vxfs_put_page(struct page *pp)
+--- a/include/linux/mmu_notifier.h~mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export
++++ a/include/linux/mmu_notifier.h
+@@ -269,7 +269,6 @@ extern struct lockdep_map __mmu_notifier
+ #endif
  
- /**
-  * vxfs_get_page - read a page into memory.
-- * @ip:		inode to read from
-+ * @mapping:	mapping to read from
-  * @n:		page number
-  *
-  * Description:
-@@ -81,14 +81,14 @@ vxfs_bread(struct inode *ip, int block)
+ struct mmu_notifier_range {
+-	struct vm_area_struct *vma;
+ 	struct mm_struct *mm;
+ 	unsigned long start;
+ 	unsigned long end;
+@@ -519,7 +518,6 @@ static inline void mmu_notifier_range_in
+ 					   unsigned long start,
+ 					   unsigned long end)
+ {
+-	range->vma = vma;
+ 	range->event = event;
+ 	range->mm = mm;
+ 	range->start = start;
+--- a/mm/mmu_notifier.c~mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export
++++ a/mm/mmu_notifier.c
+@@ -1120,13 +1120,3 @@ void mmu_notifier_synchronize(void)
+ 	synchronize_srcu(&srcu);
  }
- 
- /**
-- * vxfs_get_block - locate buffer for given inode,block tuple 
-+ * vxfs_getblk - locate buffer for given inode,block tuple
-  * @ip:		inode
-  * @iblock:	logical block
-  * @bp:		buffer skeleton
-  * @create:	%TRUE if blocks may be newly allocated.
-  *
-  * Description:
-- *   The vxfs_get_block function fills @bp with the right physical
-+ *   The vxfs_getblk function fills @bp with the right physical
-  *   block and device number to perform a lowlevel read/write on
-  *   it.
-  *
---- a/fs/freevxfs/vxfs_super.c~freevxfs-fix-kernel-doc-warnings
-+++ a/fs/freevxfs/vxfs_super.c
-@@ -165,7 +165,7 @@ static int vxfs_try_sb_magic(struct supe
- }
- 
- /**
-- * vxfs_read_super - read superblock into memory and initialize filesystem
-+ * vxfs_fill_super - read superblock into memory and initialize filesystem
-  * @sbp:		VFS superblock (to fill)
-  * @dp:			fs private mount data
-  * @silent:		do not complain loudly when sth is wrong
+ EXPORT_SYMBOL_GPL(mmu_notifier_synchronize);
+-
+-bool
+-mmu_notifier_range_update_to_read_only(const struct mmu_notifier_range *range)
+-{
+-	if (!range->vma || range->event != MMU_NOTIFY_PROTECTION_VMA)
+-		return false;
+-	/* Return true if the vma still have the read flag set. */
+-	return range->vma->vm_flags & VM_READ;
+-}
+-EXPORT_SYMBOL_GPL(mmu_notifier_range_update_to_read_only);
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-lib-win_minmax-use-notation-for-regular-comments.patch
-freevxfs-fix-kernel-doc-warnings.patch
+mm-mmu_notifier-remove-unused-mmu_notifier_range_update_to_read_only-export.patch
 
