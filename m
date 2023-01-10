@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 604EBC61DB3
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 22:41:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28EE7C54EBC
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 22:46:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233973AbjAJWlq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Jan 2023 17:41:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49854 "EHLO
+        id S233103AbjAJWqZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Jan 2023 17:46:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232977AbjAJWla (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 17:41:30 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 305CF5F900
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 14:41:29 -0800 (PST)
+        with ESMTP id S234634AbjAJWll (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 17:41:41 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F1975EC04
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 14:41:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BF52A617D0
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 22:41:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CEA0C433D2;
-        Tue, 10 Jan 2023 22:41:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 76C06B81889
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 22:41:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25D1FC433EF;
+        Tue, 10 Jan 2023 22:41:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673390488;
-        bh=oixvn2PCiX4LFvYY/V6tv8hUFObcIHpxatCozWt7aJo=;
+        s=korg; t=1673390496;
+        bh=VtCk6i2v3MQI+4fS4igQ2ThYWhxk5rBWP0WEpqS8y48=;
         h=Date:To:From:Subject:From;
-        b=AeH3so5FEntohK71P/t2RvvVlcTVWP7WTukgFPvW8jVkFgEzEp20ouxKCd4oIdVha
-         /h8LpC47kHbPfA9EpFtRlr8UBNt5UcOxjD4oV3NdTjV+Zfc6Fj4P/oAluXvnITZ6sK
-         Mqay9o1QoaLDG9r+4+3usegomBh0vhY/yYeUIHGc=
-Date:   Tue, 10 Jan 2023 14:41:27 -0800
+        b=abXI2vU8fEI94Nju2lHgmd3tsLT+yReeykcn6bHsKIqE8F+NUjfJ5ybrahnEo4hh6
+         Gn14SXKqndtq/Uq37G1BivWG9i3UMWQkfMwpECMZCmylaJJgospy6V9eJtCWWM9j1P
+         ygWqNKgoBOykKfyfy2xgq0nC8L7QSfU9cS7qM2Mk=
+Date:   Tue, 10 Jan 2023 14:41:35 -0800
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
         sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-index-mention-damos-on-the-intro.patch added to mm-unstable branch
-Message-Id: <20230110224128.1CEA0C433D2@smtp.kernel.org>
+Subject: + selftests-damon-sysfs-hide-expected-write-failures.patch added to mm-unstable branch
+Message-Id: <20230110224136.25D1FC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/mm/damon/index: mention DAMOS on the intro
+     Subject: selftests/damon/sysfs: hide expected write failures
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-index-mention-damos-on-the-intro.patch
+     selftests-damon-sysfs-hide-expected-write-failures.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-index-mention-damos-on-the-intro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfs-hide-expected-write-failures.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,61 +65,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/index: mention DAMOS on the intro
-Date: Tue, 10 Jan 2023 19:03:55 +0000
+Subject: selftests/damon/sysfs: hide expected write failures
+Date: Tue, 10 Jan 2023 19:03:59 +0000
 
-What DAMON aims to do is not only access monitoring but efficient and
-effective access-aware system operations.  And DAMon-based Operation
-Schemes (DAMOS) is the important feature of DAMON for the goal.  Make the
-intro of DAMON documentation to emphasize the goal and mention DAMOS.
+DAMON selftests for sysfs (sysfs.sh) tests if some writes to DAMON sysfs
+interface files fails as expected.  It makes the test results noisy with
+the failure error message because it tests a number of such failures. 
+Redirect the expected failure error messages to /dev/null to make the
+results clean.
 
-Link: https://lkml.kernel.org/r/20230110190400.119388-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230110190400.119388-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/index.rst |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ tools/testing/selftests/damon/sysfs.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/index.rst~docs-mm-damon-index-mention-damos-on-the-intro
-+++ a/Documentation/mm/damon/index.rst
-@@ -4,8 +4,9 @@
- DAMON: Data Access MONitor
- ==========================
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfs-hide-expected-write-failures
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -24,7 +24,7 @@ ensure_write_fail()
+ 	content=$2
+ 	reason=$3
  
--DAMON is a data access monitoring framework subsystem for the Linux kernel.
--The core mechanisms of DAMON (refer to :doc:`design` for the detail) make it
-+DAMON is a Linux kernel subsystem that provides a framework for data access
-+monitoring and the monitoring results based system operations.  The core
-+monitoring mechanisms of DAMON (refer to :doc:`design` for the detail) make it
- 
-  - *accurate* (the monitoring output is useful enough for DRAM level memory
-    management; It might not appropriate for CPU Cache levels, though),
-@@ -14,12 +15,16 @@ The core mechanisms of DAMON (refer to :
-  - *scalable* (the upper-bound of the overhead is in constant range regardless
-    of the size of target workloads).
- 
--Using this framework, therefore, the kernel's memory management mechanisms can
--make advanced decisions.  Experimental memory management optimization works
--that incurring high data accesses monitoring overhead could implemented again.
--In user space, meanwhile, users who have some special workloads can write
--personalized applications for better understanding and optimizations of their
--workloads and systems.
-+Using this framework, therefore, the kernel can operate system in an
-+access-aware fashion.  Because the features are also exposed to the user space,
-+users who have special information about their workloads can write personalized
-+applications for better understanding and optimizations of their workloads and
-+systems.
-+
-+For easier development of such systems, DAMON provides a feature called DAMOS
-+(DAMon-based Operation Schemes) in addition to the monitoring.  Using the
-+feature, DAMON users in both kernel and user spaces can do access-aware system
-+operations with no code but simple configurations.
- 
- .. toctree::
-    :maxdepth: 2
+-	if echo "$content" > "$file"
++	if (echo "$content" > "$file") 2> /dev/null
+ 	then
+ 		echo "writing $content to $file succeed ($fail_reason)"
+ 		echo "expected failure because $reason"
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
