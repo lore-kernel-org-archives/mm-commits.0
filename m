@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A9ECC54EBC
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 22:41:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 604EBC61DB3
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 22:41:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233346AbjAJWlp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Jan 2023 17:41:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49900 "EHLO
+        id S233973AbjAJWlq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Jan 2023 17:41:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233973AbjAJWld (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 17:41:33 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A43ED60CED
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 14:41:32 -0800 (PST)
+        with ESMTP id S232977AbjAJWla (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 17:41:30 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 305CF5F900
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 14:41:29 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 56C0BB81982
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 22:41:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0FEEC433EF;
-        Tue, 10 Jan 2023 22:41:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BF52A617D0
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 22:41:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CEA0C433D2;
+        Tue, 10 Jan 2023 22:41:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673390490;
-        bh=jOmxC6Wy/69mDplP5/+qRjRfzCqQ8+Nbn3lRkqCX+Ek=;
+        s=korg; t=1673390488;
+        bh=oixvn2PCiX4LFvYY/V6tv8hUFObcIHpxatCozWt7aJo=;
         h=Date:To:From:Subject:From;
-        b=vrrLRmzcoZTnJumvUw6HpdXLaGODHV2phVrWwFeIs7K4ru3actienKC9bDxNeYKVI
-         sM60q9CzJVBktwFRe3Un/r1AsUe93HpKICpBsoeOrJL6v/IQ6lJVwo3pXrV2lu8Fby
-         oVdoeY/B3Smlh6v0u4LwvKLQbOatMaXZ69GqrAPQ=
-Date:   Tue, 10 Jan 2023 14:41:29 -0800
+        b=AeH3so5FEntohK71P/t2RvvVlcTVWP7WTukgFPvW8jVkFgEzEp20ouxKCd4oIdVha
+         /h8LpC47kHbPfA9EpFtRlr8UBNt5UcOxjD4oV3NdTjV+Zfc6Fj4P/oAluXvnITZ6sK
+         Mqay9o1QoaLDG9r+4+3usegomBh0vhY/yYeUIHGc=
+Date:   Tue, 10 Jan 2023 14:41:27 -0800
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
         sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-update-damos-actions-filters-supports-of-each-damon-operations-set.patch added to mm-unstable branch
-Message-Id: <20230110224129.F0FEEC433EF@smtp.kernel.org>
+Subject: + docs-mm-damon-index-mention-damos-on-the-intro.patch added to mm-unstable branch
+Message-Id: <20230110224128.1CEA0C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: update DAMOS actions/filters supports of each DAMON operations set
+     Subject: Docs/mm/damon/index: mention DAMOS on the intro
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-update-damos-actions-filters-supports-of-each-damon-operations-set.patch
+     docs-mm-damon-index-mention-damos-on-the-intro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-damos-actions-filters-supports-of-each-damon-operations-set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-index-mention-damos-on-the-intro.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,89 +65,61 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update DAMOS actions/filters supports of each DAMON operations set
-Date: Tue, 10 Jan 2023 19:03:56 +0000
+Subject: Docs/mm/damon/index: mention DAMOS on the intro
+Date: Tue, 10 Jan 2023 19:03:55 +0000
 
-Supports of each DAMOS action and filters are up to DAMON operations set
-implementation, but it's not mentioned in detail on the documentation. 
-Update the information on the usage document.
+What DAMON aims to do is not only access monitoring but efficient and
+effective access-aware system operations.  And DAMon-based Operation
+Schemes (DAMOS) is the important feature of DAMON for the goal.  Make the
+intro of DAMON documentation to emphasize the goal and mention DAMOS.
 
-Link: https://lkml.kernel.org/r/20230110190400.119388-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230110190400.119388-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   41 +++++++++++------
- 1 file changed, 28 insertions(+), 13 deletions(-)
+ Documentation/mm/damon/index.rst |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-damos-actions-filters-supports-of-each-damon-operations-set
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -279,14 +279,25 @@ The ``action`` file is for setting and g
- memory regions having specific access pattern of the interest.  The keywords
- that can be written to and read from the file and their meaning are as below.
+--- a/Documentation/mm/damon/index.rst~docs-mm-damon-index-mention-damos-on-the-intro
++++ a/Documentation/mm/damon/index.rst
+@@ -4,8 +4,9 @@
+ DAMON: Data Access MONitor
+ ==========================
  
-- - ``willneed``: Call ``madvise()`` for the region with ``MADV_WILLNEED``
-- - ``cold``: Call ``madvise()`` for the region with ``MADV_COLD``
-- - ``pageout``: Call ``madvise()`` for the region with ``MADV_PAGEOUT``
-- - ``hugepage``: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``
-- - ``nohugepage``: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``
-+Note that support of each action depends on the running DAMON operations set
-+`implementation <sysfs_contexts>`.
+-DAMON is a data access monitoring framework subsystem for the Linux kernel.
+-The core mechanisms of DAMON (refer to :doc:`design` for the detail) make it
++DAMON is a Linux kernel subsystem that provides a framework for data access
++monitoring and the monitoring results based system operations.  The core
++monitoring mechanisms of DAMON (refer to :doc:`design` for the detail) make it
+ 
+  - *accurate* (the monitoring output is useful enough for DRAM level memory
+    management; It might not appropriate for CPU Cache levels, though),
+@@ -14,12 +15,16 @@ The core mechanisms of DAMON (refer to :
+  - *scalable* (the upper-bound of the overhead is in constant range regardless
+    of the size of target workloads).
+ 
+-Using this framework, therefore, the kernel's memory management mechanisms can
+-make advanced decisions.  Experimental memory management optimization works
+-that incurring high data accesses monitoring overhead could implemented again.
+-In user space, meanwhile, users who have some special workloads can write
+-personalized applications for better understanding and optimizations of their
+-workloads and systems.
++Using this framework, therefore, the kernel can operate system in an
++access-aware fashion.  Because the features are also exposed to the user space,
++users who have special information about their workloads can write personalized
++applications for better understanding and optimizations of their workloads and
++systems.
 +
-+ - ``willneed``: Call ``madvise()`` for the region with ``MADV_WILLNEED``.
-+   Supported by ``vaddr`` and ``fvaddr`` operations set.
-+ - ``cold``: Call ``madvise()`` for the region with ``MADV_COLD``.
-+   Supported by ``vaddr`` and ``fvaddr`` operations set.
-+ - ``pageout``: Call ``madvise()`` for the region with ``MADV_PAGEOUT``.
-+   Supported by ``vaddr``, ``fvaddr`` and ``paddr`` operations set.
-+ - ``hugepage``: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``.
-+   Supported by ``vaddr`` and ``fvaddr`` operations set.
-+ - ``nohugepage``: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``.
-+   Supported by ``vaddr`` and ``fvaddr`` operations set.
-  - ``lru_prio``: Prioritize the region on its LRU lists.
-+   Supported by ``paddr`` operations set.
-  - ``lru_deprio``: Deprioritize the region on its LRU lists.
-- - ``stat``: Do nothing but count the statistics
-+   Supported by ``paddr`` operations set.
-+ - ``stat``: Do nothing but count the statistics.
-+   Supported by all operations sets.
++For easier development of such systems, DAMON provides a feature called DAMOS
++(DAMon-based Operation Schemes) in addition to the monitoring.  Using the
++feature, DAMON users in both kernel and user spaces can do access-aware system
++operations with no code but simple configurations.
  
- schemes/<N>/access_pattern/
- ---------------------------
-@@ -388,8 +399,8 @@ pages of all memory cgroups except ``/ha
-     echo /having_care_already > 1/memcg_path
-     echo N > 1/matching
- 
--Note that filters could be ignored depend on the running DAMON operations set
--`implementation <sysfs_contexts>`.
-+Note that filters are currently supported only when ``paddr``
-+`implementation <sysfs_contexts>` is being used.
- 
- .. _sysfs_schemes_stats:
- 
-@@ -618,11 +629,15 @@ The ``<action>`` is a predefined integer
- DAMON will apply to the regions having the target access pattern.  The
- supported numbers and their meanings are as below.
- 
-- - 0: Call ``madvise()`` for the region with ``MADV_WILLNEED``
-- - 1: Call ``madvise()`` for the region with ``MADV_COLD``
-- - 2: Call ``madvise()`` for the region with ``MADV_PAGEOUT``
-- - 3: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``
-- - 4: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``
-+ - 0: Call ``madvise()`` for the region with ``MADV_WILLNEED``.  Ignored if
-+   ``target`` is ``paddr``.
-+ - 1: Call ``madvise()`` for the region with ``MADV_COLD``.  Ignored if
-+   ``target`` is ``paddr``.
-+ - 2: Call ``madvise()`` for the region with ``MADV_PAGEOUT``.
-+ - 3: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``.  Ignored if
-+   ``target`` is ``paddr``.
-+ - 4: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``.  Ignored if
-+   ``target`` is ``paddr``.
-  - 5: Do nothing but count the statistics
- 
- Quota
+ .. toctree::
+    :maxdepth: 2
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
