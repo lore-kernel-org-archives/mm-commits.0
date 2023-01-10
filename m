@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81CFEC5479D
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Jan 2023 23:54:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24CE5C54EBD
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 00:53:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229571AbjAIXyW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Jan 2023 18:54:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45208 "EHLO
+        id S237729AbjAJAxv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Jan 2023 19:53:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234368AbjAIXyT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 18:54:19 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EDE6DFCC
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 15:54:18 -0800 (PST)
+        with ESMTP id S230312AbjAJAxt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 19:53:49 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 252EE1D0EA;
+        Mon,  9 Jan 2023 16:53:49 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 40FDBB80AD5
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 23:54:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA96BC433D2;
-        Mon,  9 Jan 2023 23:54:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AF6C2614AC;
+        Tue, 10 Jan 2023 00:53:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5682C433EF;
+        Tue, 10 Jan 2023 00:53:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673308455;
-        bh=/9FusseJV5hEARijy2jXasQKFSNdYjBa/NQfhWug3Ys=;
+        s=korg; t=1673312027;
+        bh=+hoosqHoVwfWOHeYONLgy7PnYKLjR/ahMvksZsAEcJk=;
         h=Date:To:From:Subject:From;
-        b=VLt/24De6lGFkv5/hzaX2Ump+aEZJuR2hiMCBwSdsR3m7U+M2CnWUIw67gTt0jlCO
-         GoBo3i0iN2QbUKGHP4872F6/lgRJXCSsI+2UNu0kwcqWC6MXIbamCo23jpJrOsH/5U
-         P0rJlCenJeamNaWBlDR6y+AGxtO/0+FQuKlLJ96Q=
-Date:   Mon, 09 Jan 2023 15:54:15 -0800
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, bjorn@rivosinc.com,
+        b=YRdEPrfChHYnOXHGntNDc3Q1iEQQN9HmPfxV42XrOpxDTT8lY1lUqrWm1aMBiAa0z
+         pKeRIjoOhtVLvQnWF2L3CKo1MqrQbwPAD+WIasQn8JQfUB48esPeARz6Z+KAX447rn
+         wnp2XMSxGl8xTjj4f0Uu9TD0VEmcnz7gIpKe/lGc=
+Date:   Mon, 09 Jan 2023 16:53:47 -0800
+To:     mm-commits@vger.kernel.org, surenb@google.com,
+        stable@vger.kernel.org, saravanak@google.com,
+        catalin.marinas@arm.com, isaacmanjarres@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-enable-cross-compilation.patch added to mm-nonmm-unstable branch
-Message-Id: <20230109235415.CA96BC433D2@smtp.kernel.org>
+Subject: + mm-cmac-make-kmemleak-aware-of-all-cma-regions.patch added to mm-unstable branch
+Message-Id: <20230110005347.D5682C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: Enable cross-compilation
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-vm-enable-cross-compilation.patch
+     Subject: mm/cma.c: make kmemleak aware of all CMA regions
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-cmac-make-kmemleak-aware-of-all-cma-regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-enable-cross-compilation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cmac-make-kmemleak-aware-of-all-cma-regions.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,42 +66,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Björn Töpel <bjorn@rivosinc.com>
-Subject: selftests: vm: Enable cross-compilation
-Date: Mon, 9 Jan 2023 12:42:51 +0100
+From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
+Subject: mm/cma.c: make kmemleak aware of all CMA regions
+Date: Mon, 9 Jan 2023 14:16:22 -0800
 
-Selftests vm builds break when doing cross-compilation.  The Makefile
-MACHINE variable incorrectly picks upp the host machine architecture.
+Patch series "Fixes for kmemleak tracking with CMA regions".
 
-If the CROSS_COMPILE variable is set, dig out the target host architecture
-from CROSS_COMPILE, instead of calling uname.
+When trying to boot a device with an ARM64 kernel with the following
+config options enabled:
 
-Link: https://lkml.kernel.org/r/20230109114251.3349638-1-bjorn@kernel.org
-Signed-off-by: Björn Töpel <bjorn@rivosinc.com>
-Cc: Shuah Khan <shuah@kernel.org>
+CONFIG_DEBUG_PAGEALLOC=y
+CONFIG_DEBUG_PAGEALLOC_ENABLE_DEFAULT=y
+CONFIG_DEBUG_KMEMLEAK=y
+
+a page-fault is encountered when kmemleak starts to scan the list of gray
+or allocated objects that it maintains.  Upon closer inspection, it was
+observed that these page-faults always occurred when kmemleak attempted to
+scan a CMA region.
+
+At the moment, kmemleak is made aware of CMA regions that are specified
+through the devicetree to be created at specific memory addresses or
+dynamically allocated within a range of addresses.  However, if the CMA
+region is constrained to a certain range of addresses through the command
+line, the region is reserved through the memblock_reserve() function, but
+kmemleak_alloc_phys() is not invoked.  Furthermore, kmemleak is never
+informed about CMA regions being freed to buddy at boot, which is
+problematic when CONFIG_DEBUG_PAGEALLOC is enabled, as all CMA regions are
+unmapped from the kernel's address space, and subsequently causes a
+page-fault when kmemleak attempts to scan any of them.
+
+This series makes it so that kmemleak is aware of every CMA region before
+they are freed to the buddy allocator, so that at that time, kmemleak can
+be informed that each region is about to be freed, and thus it should not
+attempt to scan those regions.
+
+
+This patch (of 2):
+
+Currently, kmemleak tracks CMA regions that are specified through the
+devicetree.  However, if the global CMA region is specified through the
+commandline, kmemleak will be unaware of the CMA region because
+kmemleak_alloc_phys() is not invoked after memblock_reserve().  Add the
+missing call to kmemleak_alloc_phys() so that all CMA regions are tracked
+by kmemleak before they are freed to the page allocator in
+cma_activate_area().
+
+Link: https://lkml.kernel.org/r/20230109221624.592315-1-isaacmanjarres@google.com
+Link: https://lkml.kernel.org/r/20230109221624.592315-2-isaacmanjarres@google.com
+Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
+Cc: <stable@vger.kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Saravana Kannan <saravanak@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/cma.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-vm-enable-cross-compilation
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -5,7 +5,11 @@ LOCAL_HDRS += $(selfdir)/vm/local_config
+--- a/mm/cma.c~mm-cmac-make-kmemleak-aware-of-all-cma-regions
++++ a/mm/cma.c
+@@ -318,6 +318,8 @@ int __init cma_declare_contiguous_nid(ph
+ 			ret = -EBUSY;
+ 			goto err;
+ 		}
++
++		kmemleak_alloc_phys(base, size, 0);
+ 	} else {
+ 		phys_addr_t addr = 0;
  
- include local_config.mk
- 
-+ifeq ($(CROSS_COMPILE),)
- uname_M := $(shell uname -m 2>/dev/null || echo not)
-+else
-+uname_M := $(shell echo $(CROSS_COMPILE) | grep -o '^[a-z0-9]\+')
-+endif
- MACHINE ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/ppc64/')
- 
- # Without this, failed build products remain, with up-to-date timestamps,
 _
 
-Patches currently in -mm which might be from bjorn@rivosinc.com are
+Patches currently in -mm which might be from isaacmanjarres@google.com are
 
-selftests-vm-enable-cross-compilation.patch
+mm-cmac-make-kmemleak-aware-of-all-cma-regions.patch
+mm-cmac-delete-kmemleak-objects-when-freeing-cma-areas-to-buddy-at-boot.patch
 
