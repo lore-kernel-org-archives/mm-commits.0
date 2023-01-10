@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A5A7C54EBD
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 01:00:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA35EC54EBD
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Jan 2023 01:03:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229963AbjAJBAT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Jan 2023 20:00:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44236 "EHLO
+        id S229747AbjAJBD5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Jan 2023 20:03:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234513AbjAJBAL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 20:00:11 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C99F542E0F
-        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 17:00:10 -0800 (PST)
+        with ESMTP id S230001AbjAJBD4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2023 20:03:56 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF41F3FCB1
+        for <mm-commits@vger.kernel.org>; Mon,  9 Jan 2023 17:03:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 487A8614AD
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 01:00:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 608B4C433EF;
-        Tue, 10 Jan 2023 01:00:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3BBA6614B0
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 01:03:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D856C433D2;
+        Tue, 10 Jan 2023 01:03:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673312409;
-        bh=ASVwvVho/gZJikC76C8dQyFbdlpVr1y+/13rAA3gVlc=;
+        s=korg; t=1673312634;
+        bh=ns18sj9r4qQcU/REqA1vkMXgq/Jy+bYjJbySbbn/ZdI=;
         h=Date:To:From:Subject:From;
-        b=e2muIvelqasHZZG3KhXhiCtqZ+ow+1MUzMp7xr8x1Vq19KaxdX2Chm7eHdKy8Qzj1
-         VJIxodApSo1QNlDGwYc0e+jpsY7Ptd8AVioubOqjKWllj0GC4qwKKyb60qg4q9RvhM
-         UT9BXgWM96r4ms8Eaq8HWzfUZNh1ralpx/uoYTyU=
-Date:   Mon, 09 Jan 2023 17:00:08 -0800
-To:     mm-commits@vger.kernel.org, anton@tuxera.com,
-        rdunlap@infradead.org, akpm@linux-foundation.org
+        b=2qQ2vOKtImfpV7/ed2GR9ePn0sFtYh+rB79psOWiuhuQAEovN2NgkE/O6QlteoJWL
+         TSIlC7oyK1AwL2FOV/6tegJpOM6KSZ0tDtGBu4HVWxL4Hhk6tFFKLjMOUlVR78POz+
+         ng73G9EXhkaAVRIiaLVgJUjHvpUK7akNkgb3ctT0=
+Date:   Mon, 09 Jan 2023 17:03:53 -0800
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
+        xhao@linux.alibaba.com, willy@infradead.org, shy828301@gmail.com,
+        osalvador@suse.de, nathan@kernel.org, mgorman@techsingularity.net,
+        bharata@amd.com, baolin.wang@linux.alibaba.com, apopple@nvidia.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ntfs-fix-multiple-kernel-doc-warnings.patch added to mm-nonmm-unstable branch
-Message-Id: <20230110010009.608B4C433EF@smtp.kernel.org>
+Subject: + migrate_pages-split-unmap_and_move-to-_unmap-and-_move-fix.patch added to mm-unstable branch
+Message-Id: <20230110010354.5D856C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs: fix multiple kernel-doc warnings
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ntfs-fix-multiple-kernel-doc-warnings.patch
+     Subject: migrate_pages-split-unmap_and_move-to-_unmap-and-_move-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     migrate_pages-split-unmap_and_move-to-_unmap-and-_move-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs-fix-multiple-kernel-doc-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate_pages-split-unmap_and_move-to-_unmap-and-_move-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,245 +67,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: ntfs: fix multiple kernel-doc warnings
-Date: Sun, 8 Jan 2023 17:00:41 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: migrate_pages-split-unmap_and_move-to-_unmap-and-_move-fix
+Date: Mon Jan  9 05:00:53 PM PST 2023
 
-Fix many W=1 kernel-doc warnings in fs/ntfs/:
+use void* cast on page->mapping, per Kees
 
-fs/ntfs/aops.c:30: warning: Incorrect use of kernel-doc format:  * ntfs_end_buffer_async_read - async io completion for reading attributes
-fs/ntfs/aops.c:46: warning: expecting prototype for aops.c(). Prototype was for ntfs_end_buffer_async_read() instead
-fs/ntfs/aops.c:1655: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_normal_aops = '
-fs/ntfs/aops.c:1670: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_compressed_aops = '
-fs/ntfs/aops.c:1685: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_mst_aops = '
-fs/ntfs/compress.c:22: warning: Incorrect use of kernel-doc format:  * ntfs_compression_constants - enum of constants used in the compression code
-fs/ntfs/compress.c:24: warning: cannot understand function prototype: 'typedef enum '
-fs/ntfs/compress.c:47: warning: cannot understand function prototype: 'u8 *ntfs_compression_buffer; '
-fs/ntfs/compress.c:52: warning: expecting prototype for ntfs_cb_lock(). Prototype was for DEFINE_SPINLOCK() instead
-fs/ntfs/dir.c:21: warning: Incorrect use of kernel-doc format:  * The little endian Unicode string $I30 as a global constant.
-fs/ntfs/dir.c:23: warning: cannot understand function prototype: 'ntfschar I30[5] = '
-fs/ntfs/inode.c:31: warning: Incorrect use of kernel-doc format:  * ntfs_test_inode - compare two (possibly fake) inodes for equality
-fs/ntfs/inode.c:47: warning: expecting prototype for inode.c(). Prototype was for ntfs_test_inode() instead
-fs/ntfs/inode.c:2956: warning: expecting prototype for ntfs_write_inode(). Prototype was for __ntfs_write_inode() instead
-fs/ntfs/mft.c:24: warning: expecting prototype for mft.c - NTFS kernel mft record operations. Part of the Linux(). Prototype was for MAX_BHS() instead
-fs/ntfs/namei.c:263: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
- * Inode operations for directories.
-fs/ntfs/namei.c:368: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
- * Export operations allowing NFS exporting of mounted NTFS partitions.
-fs/ntfs/runlist.c:16: warning: Incorrect use of kernel-doc format:  * ntfs_rl_mm - runlist memmove
-fs/ntfs/runlist.c:22: warning: expecting prototype for runlist.c - NTFS runlist handling code.  Part of the Linux(). Prototype was for ntfs_rl_mm() instead
-fs/ntfs/super.c:61: warning: missing initial short description on line:
- * simple_getbool -
-fs/ntfs/super.c:2661: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
- * The complete super operations.
-
-Link: https://lkml.kernel.org/r/20230109010041.21442-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Anton Altaparmakov <anton@tuxera.com>
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+  Link: https://lkml.kernel.org/r/87pmbo7g9y.fsf@yhuang6-desk2.ccr.corp.intel.com
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: haoxin <xhao@linux.alibaba.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/aops.c     |   10 +++++-----
- fs/ntfs/aops.h     |    2 +-
- fs/ntfs/compress.c |    6 +++---
- fs/ntfs/dir.c      |    4 ++--
- fs/ntfs/inode.c    |    6 +++---
- fs/ntfs/mft.c      |    2 +-
- fs/ntfs/namei.c    |    4 ++--
- fs/ntfs/runlist.c  |    2 +-
- fs/ntfs/super.c    |   12 ++++++++++--
- 9 files changed, 28 insertions(+), 20 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ntfs/aops.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/aops.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * aops.c - NTFS kernel address space operations and page cache handling.
-  *
-  * Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.
-@@ -1646,7 +1646,7 @@ hole:
- 	return block;
- }
- 
--/**
-+/*
-  * ntfs_normal_aops - address space operations for normal inodes and attributes
-  *
-  * Note these are not used for compressed or mst protected inodes and
-@@ -1664,7 +1664,7 @@ const struct address_space_operations nt
- 	.error_remove_page = generic_error_remove_page,
- };
- 
--/**
-+/*
-  * ntfs_compressed_aops - address space operations for compressed inodes
-  */
- const struct address_space_operations ntfs_compressed_aops = {
-@@ -1678,9 +1678,9 @@ const struct address_space_operations nt
- 	.error_remove_page = generic_error_remove_page,
- };
- 
--/**
-+/*
-  * ntfs_mst_aops - general address space operations for mst protecteed inodes
-- *		   and attributes
-+ *			  and attributes
-  */
- const struct address_space_operations ntfs_mst_aops = {
- 	.read_folio	= ntfs_read_folio,	/* Fill page with data. */
---- a/fs/ntfs/aops.h~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/aops.h
-@@ -1,5 +1,5 @@
- /* SPDX-License-Identifier: GPL-2.0-or-later */
--/**
-+/*
-  * aops.h - Defines for NTFS kernel address space operations and page cache
-  *	    handling.  Part of the Linux-NTFS project.
-  *
---- a/fs/ntfs/compress.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/compress.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * compress.c - NTFS kernel compressed attributes handling.
-  *		Part of the Linux-NTFS project.
-  *
-@@ -41,12 +41,12 @@ typedef enum {
- 	NTFS_MAX_CB_SIZE	= 64 * 1024,
- } ntfs_compression_constants;
- 
--/**
-+/*
-  * ntfs_compression_buffer - one buffer for the decompression engine
-  */
- static u8 *ntfs_compression_buffer;
- 
--/**
-+/*
-  * ntfs_cb_lock - spinlock which protects ntfs_compression_buffer
-  */
- static DEFINE_SPINLOCK(ntfs_cb_lock);
---- a/fs/ntfs/dir.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/dir.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * dir.c - NTFS kernel directory operations. Part of the Linux-NTFS project.
-  *
-  * Copyright (c) 2001-2007 Anton Altaparmakov
-@@ -17,7 +17,7 @@
- #include "debug.h"
- #include "ntfs.h"
- 
--/**
-+/*
-  * The little endian Unicode string $I30 as a global constant.
-  */
- ntfschar I30[5] = { cpu_to_le16('$'), cpu_to_le16('I'),
---- a/fs/ntfs/inode.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/inode.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * inode.c - NTFS kernel inode handling.
-  *
-  * Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.
-@@ -2935,7 +2935,7 @@ out:
- }
- 
- /**
-- * ntfs_write_inode - write out a dirty inode
-+ * __ntfs_write_inode - write out a dirty inode
-  * @vi:		inode to write out
-  * @sync:	if true, write out synchronously
-  *
-@@ -3033,7 +3033,7 @@ int __ntfs_write_inode(struct inode *vi,
- 	 * might not need to be written out.
- 	 * NOTE: It is not a problem when the inode for $MFT itself is being
- 	 * written out as mark_ntfs_record_dirty() will only set I_DIRTY_PAGES
--	 * on the $MFT inode and hence ntfs_write_inode() will not be
-+	 * on the $MFT inode and hence __ntfs_write_inode() will not be
- 	 * re-invoked because of it which in turn is ok since the dirtied mft
- 	 * record will be cleaned and written out to disk below, i.e. before
- 	 * this function returns.
---- a/fs/ntfs/mft.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/mft.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * mft.c - NTFS kernel mft record operations. Part of the Linux-NTFS project.
-  *
-  * Copyright (c) 2001-2012 Anton Altaparmakov and Tuxera Inc.
---- a/fs/ntfs/namei.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/namei.c
-@@ -259,7 +259,7 @@ err_out:
-    }
- }
- 
--/**
-+/*
-  * Inode operations for directories.
-  */
- const struct inode_operations ntfs_dir_inode_ops = {
-@@ -364,7 +364,7 @@ static struct dentry *ntfs_fh_to_parent(
- 				    ntfs_nfs_get_inode);
- }
- 
--/**
-+/*
-  * Export operations allowing NFS exporting of mounted NTFS partitions.
-  *
-  * We use the default ->encode_fh() for now.  Note that they
---- a/fs/ntfs/runlist.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/runlist.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * runlist.c - NTFS runlist handling code.  Part of the Linux-NTFS project.
-  *
-  * Copyright (c) 2001-2007 Anton Altaparmakov
---- a/fs/ntfs/super.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/super.c
-@@ -58,9 +58,17 @@ const option_t on_errors_arr[] = {
- };
- 
- /**
-- * simple_getbool -
-+ * simple_getbool - convert input string to a boolean value
-+ * @s: input string to convert
-+ * @setval: where to store the output boolean value
-  *
-  * Copied from old ntfs driver (which copied from vfat driver).
-+ *
-+ * "1", "yes", "true", or an empty string are converted to %true.
-+ * "0", "no", and "false" are converted to %false.
-+ *
-+ * Return: %1 if the string is converted or was empty and *setval contains it;
-+ *	   %0 if the string was not valid.
-  */
- static int simple_getbool(char *s, bool *setval)
+--- a/mm/migrate.c~migrate_pages-split-unmap_and_move-to-_unmap-and-_move-fix
++++ a/mm/migrate.c
+@@ -1038,7 +1038,7 @@ static void __migrate_folio_extract(stru
+ 				   int *page_was_mappedp,
+ 				   struct anon_vma **anon_vmap)
  {
-@@ -2657,7 +2665,7 @@ static int ntfs_write_inode(struct inode
- }
- #endif
- 
--/**
-+/*
-  * The complete super operations.
-  */
- static const struct super_operations ntfs_sops = {
+-	*anon_vmap = (struct anon_vma *)dst->mapping;
++	*anon_vmap = (void *)dst->mapping;
+ 	*page_was_mappedp = (unsigned long)dst->private;
+ 	dst->mapping = NULL;
+ 	dst->private = NULL;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-win_minmax-use-notation-for-regular-comments.patch
-freevxfs-fix-kernel-doc-warnings.patch
-ntfs-fix-multiple-kernel-doc-warnings.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-fix.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3.patch
+mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
+mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch
+mm-memcontrol-deprecate-charge-moving-fix.patch
+mm-swap-convert-deactivate_page-to-folio_deactivate-fix.patch
+migrate_pages-split-unmap_and_move-to-_unmap-and-_move-fix.patch
+mm-uffd-detect-pgtable-allocation-failures-checkpatch-fixes.patch
+mmap-convert-__vma_adjust-to-use-vma-iterator-fix.patch
+error-injection-remove-ei_etype_none-fix.patch
+hfsplus-remove-unnecessary-variable-initialization-fix.patch
 
