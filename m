@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C857C67871
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ACD9C678D6
 	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 21:00:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233358AbjAKU7I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 15:59:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57130 "EHLO
+        id S235619AbjAKU7K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 15:59:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234506AbjAKU6n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:58:43 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 440391DF1C
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:40 -0800 (PST)
+        with ESMTP id S234975AbjAKU6s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:58:48 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD0F91DF14
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 919D2CE1D07
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF81EC433EF;
-        Wed, 11 Jan 2023 20:58:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 78E5B61E5D
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDC7DC433EF;
+        Wed, 11 Jan 2023 20:58:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673470716;
-        bh=gsvO8j12aFP50yg9LJ8aVZf6PyXGIJsMHRha2rvDJXo=;
+        s=korg; t=1673470725;
+        bh=q7iawHUoQAPMykST8CO6jzlmX6AmjLpT9Xek6GYoaWc=;
         h=Date:To:From:Subject:From;
-        b=oxxvOik8E5vLZOC6ykIEctw5sLx6es3zkm7A4wb40vpdoS9gHGepXSygW/7qroE7g
-         M+YYiXcYe/NvxMwiW37NTmVux4ew+kdOFlXHs9aYWaR3YJyUx0b+TVPjLa5Qa4vpr9
-         fyeiBM6hsRvquvg3XqXO62fZms3pYUBGqFyvmsbY=
-Date:   Wed, 11 Jan 2023 12:58:36 -0800
+        b=iZ1HBNP4EpaGJn+ZVrXvDds5n4/mTBafgf2jeB1EegqRxwXKwLGIZFmx4aAJU4K1p
+         AR6ESu01SiXu9seGdNfXkR4jGFAaxL4z7fVAtiXqPiRpibCFAJukm+MylyhMOFF0V7
+         ZVLYcf2r78LN4kLe0/Jm+2jeUfr4PmfBVjgseIoI=
+Date:   Wed, 11 Jan 2023 12:58:45 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-page_add_file_rmap-to-use-a-folio-internally.patch added to mm-unstable branch
-Message-Id: <20230111205836.AF81EC433EF@smtp.kernel.org>
+Subject: + mm-debug-remove-call-to-head_compound_mapcount.patch added to mm-unstable branch
+Message-Id: <20230111205845.CDC7DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert page_add_file_rmap() to use a folio internally
+     Subject: mm/debug: remove call to head_compound_mapcount()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-page_add_file_rmap-to-use-a-folio-internally.patch
+     mm-debug-remove-call-to-head_compound_mapcount.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-page_add_file_rmap-to-use-a-folio-internally.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug-remove-call-to-head_compound_mapcount.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,77 +65,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert page_add_file_rmap() to use a folio internally
-Date: Wed, 11 Jan 2023 14:28:53 +0000
+Subject: mm/debug: remove call to head_compound_mapcount()
+Date: Wed, 11 Jan 2023 14:28:58 +0000
 
-The API for page_add_file_rmap() needs to be page-based, because we can
-add mappings of individual pages.  But inside the function, we want to
-only call compound_head() once and then use the folio APIs instead of the
-page APIs that each call compound_head().
+Call folio_entire_mapcount() instead.
 
-Link: https://lkml.kernel.org/r/20230111142915.1001531-8-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230111142915.1001531-13-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ mm/debug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/rmap.c~mm-convert-page_add_file_rmap-to-use-a-folio-internally
-+++ a/mm/rmap.c
-@@ -1309,10 +1309,11 @@ void page_add_new_anon_rmap(struct page
-  *
-  * The caller needs to hold the pte lock.
-  */
--void page_add_file_rmap(struct page *page,
--	struct vm_area_struct *vma, bool compound)
-+void page_add_file_rmap(struct page *page, struct vm_area_struct *vma,
-+		bool compound)
- {
--	atomic_t *mapped;
-+	struct folio *folio = page_folio(page);
-+	atomic_t *mapped = &folio->_nr_pages_mapped;
- 	int nr = 0, nr_pmdmapped = 0;
- 	bool first;
- 
-@@ -1322,20 +1323,18 @@ void page_add_file_rmap(struct page *pag
- 	if (likely(!compound)) {
- 		first = atomic_inc_and_test(&page->_mapcount);
- 		nr = first;
--		if (first && PageCompound(page)) {
--			mapped = subpages_mapcount_ptr(compound_head(page));
-+		if (first && folio_test_large(folio)) {
- 			nr = atomic_inc_return_relaxed(mapped);
- 			nr = (nr < COMPOUND_MAPPED);
- 		}
--	} else if (PageTransHuge(page)) {
-+	} else if (folio_test_pmd_mappable(folio)) {
- 		/* That test is redundant: it's for safety or to optimize out */
- 
--		first = atomic_inc_and_test(compound_mapcount_ptr(page));
-+		first = atomic_inc_and_test(&folio->_entire_mapcount);
- 		if (first) {
--			mapped = subpages_mapcount_ptr(page);
- 			nr = atomic_add_return_relaxed(COMPOUND_MAPPED, mapped);
- 			if (likely(nr < COMPOUND_MAPPED + COMPOUND_MAPPED)) {
--				nr_pmdmapped = thp_nr_pages(page);
-+				nr_pmdmapped = folio_nr_pages(folio);
- 				nr = nr_pmdmapped - (nr & FOLIO_PAGES_MAPPED);
- 				/* Raced ahead of a remove and another add? */
- 				if (unlikely(nr < 0))
-@@ -1348,10 +1347,10 @@ void page_add_file_rmap(struct page *pag
+--- a/mm/debug.c~mm-debug-remove-call-to-head_compound_mapcount
++++ a/mm/debug.c
+@@ -94,9 +94,9 @@ static void __dump_page(struct page *pag
+ 			page, page_ref_count(head), mapcount, mapping,
+ 			page_to_pgoff(page), page_to_pfn(page));
+ 	if (compound) {
+-		pr_warn("head:%p order:%u compound_mapcount:%d nr_pages_mapped:%d pincount:%d\n",
++		pr_warn("head:%p order:%u entire_mapcount:%d nr_pages_mapped:%d pincount:%d\n",
+ 				head, compound_order(head),
+-				head_compound_mapcount(head),
++				folio_entire_mapcount(folio),
+ 				folio_nr_pages_mapped(folio),
+ 				atomic_read(&folio->_pincount));
  	}
- 
- 	if (nr_pmdmapped)
--		__mod_lruvec_page_state(page, PageSwapBacked(page) ?
-+		__lruvec_stat_mod_folio(folio, folio_test_swapbacked(folio) ?
- 			NR_SHMEM_PMDMAPPED : NR_FILE_PMDMAPPED, nr_pmdmapped);
- 	if (nr)
--		__mod_lruvec_page_state(page, NR_FILE_MAPPED, nr);
-+		__lruvec_stat_mod_folio(folio, NR_FILE_MAPPED, nr);
- 
- 	mlock_vma_page(page, vma, compound);
- }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
