@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF88C54EBC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C981C678D5
 	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 21:00:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235562AbjAKU7J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235607AbjAKU7J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 11 Jan 2023 15:59:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57154 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57128 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234950AbjAKU6q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:58:46 -0500
+        with ESMTP id S235030AbjAKU6v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:58:51 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 039DE1DF0C
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:45 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38D091DF1C
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A875AB81D2A
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EFD7C433D2;
-        Wed, 11 Jan 2023 20:58:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DFD0EB81CD2
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FC14C433D2;
+        Wed, 11 Jan 2023 20:58:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673470722;
-        bh=5Nxg2U3ck0PJ4WU1Cy7FjDIc7P+ERTeSTmqhg3vzc0g=;
+        s=korg; t=1673470727;
+        bh=bg6IgQgcIhiR5Yw7Iu0ImbeRh93s69AX05gN8TKV9Fw=;
         h=Date:To:From:Subject:From;
-        b=KkceaJxgAjaHIebxVgNy6W7wa3c9qS7OyZ+ae4Eu52T/NQZaa2SnOwa+nNJkX00z0
-         sU9Hijtvnto47dot/lDROYx0VRIjo5zts8++vBfoWbVMGdELs9CHKASAFO81Bsb9zK
-         WR8GCNE/INrxxWKwELgkwov9vp7FpnCWsxgBXUU4=
-Date:   Wed, 11 Jan 2023 12:58:41 -0800
+        b=LIM5fuD1y7HU0cO/MqhSVJMvJc6cGeXs6TgC87bbJkP634P5Tt56tRa240myx25r+
+         N/tCbTBEH3zXwmvpm9xDZ/VUb7uQAD7pMU1gjlMrFjeD8W6ujtmDYKLIzRZV2DLd+Q
+         DQWSt30lADWPspfp04Lj/qYqsHb7pJyKXR23gYbc=
+Date:   Wed, 11 Jan 2023 12:58:47 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-a-folio-in-hugepage_add_anon_rmap-and-hugepage_add_new_anon_rmap.patch added to mm-unstable branch
-Message-Id: <20230111205842.4EFD7C433D2@smtp.kernel.org>
+Subject: + hugetlb-remove-uses-of-folio_mapcount_ptr.patch added to mm-unstable branch
+Message-Id: <20230111205847.8FC14C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use a folio in hugepage_add_anon_rmap() and hugepage_add_new_anon_rmap()
+     Subject: hugetlb: remove uses of folio_mapcount_ptr
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-a-folio-in-hugepage_add_anon_rmap-and-hugepage_add_new_anon_rmap.patch
+     hugetlb-remove-uses-of-folio_mapcount_ptr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-a-folio-in-hugepage_add_anon_rmap-and-hugepage_add_new_anon_rmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-remove-uses-of-folio_mapcount_ptr.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,53 +65,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use a folio in hugepage_add_anon_rmap() and hugepage_add_new_anon_rmap()
-Date: Wed, 11 Jan 2023 14:28:56 +0000
+Subject: hugetlb: remove uses of folio_mapcount_ptr
+Date: Wed, 11 Jan 2023 14:28:59 +0000
 
-Remove uses of compound_mapcount_ptr()
+Use the entire_mapcount field directly.
 
-Link: https://lkml.kernel.org/r/20230111142915.1001531-11-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230111142915.1001531-14-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/rmap.c~mm-use-a-folio-in-hugepage_add_anon_rmap-and-hugepage_add_new_anon_rmap
-+++ a/mm/rmap.c
-@@ -2542,13 +2542,14 @@ void rmap_walk_locked(struct folio *foli
- void hugepage_add_anon_rmap(struct page *page, struct vm_area_struct *vma,
- 			    unsigned long address, rmap_t flags)
- {
-+	struct folio *folio = page_folio(page);
- 	struct anon_vma *anon_vma = vma->anon_vma;
- 	int first;
+--- a/mm/hugetlb.c~hugetlb-remove-uses-of-folio_mapcount_ptr
++++ a/mm/hugetlb.c
+@@ -1474,7 +1474,7 @@ static void __destroy_compound_gigantic_
+ 	int nr_pages = 1 << order;
+ 	struct page *p;
  
--	BUG_ON(!PageLocked(page));
-+	BUG_ON(!folio_test_locked(folio));
- 	BUG_ON(!anon_vma);
- 	/* address might be in next vma when migration races vma_adjust */
--	first = atomic_inc_and_test(compound_mapcount_ptr(page));
-+	first = atomic_inc_and_test(&folio->_entire_mapcount);
- 	VM_BUG_ON_PAGE(!first && (flags & RMAP_EXCLUSIVE), page);
- 	VM_BUG_ON_PAGE(!first && PageAnonExclusive(page), page);
- 	if (first)
-@@ -2559,10 +2560,12 @@ void hugepage_add_anon_rmap(struct page
- void hugepage_add_new_anon_rmap(struct page *page,
- 			struct vm_area_struct *vma, unsigned long address)
- {
-+	struct folio *folio = page_folio(page);
-+
- 	BUG_ON(address < vma->vm_start || address >= vma->vm_end);
- 	/* increment count (starts at -1) */
--	atomic_set(compound_mapcount_ptr(page), 0);
--	ClearHPageRestoreReserve(page);
+-	atomic_set(folio_mapcount_ptr(folio), 0);
 +	atomic_set(&folio->_entire_mapcount, 0);
-+	folio_clear_hugetlb_restore_reserve(folio);
- 	__page_set_anon_rmap(page, vma, address, 1);
- }
- #endif /* CONFIG_HUGETLB_PAGE */
+ 	atomic_set(&folio->_nr_pages_mapped, 0);
+ 	atomic_set(&folio->_pincount, 0);
+ 
+@@ -1996,7 +1996,7 @@ static bool __prep_compound_gigantic_fol
+ 		if (i != 0)
+ 			set_compound_head(p, &folio->page);
+ 	}
+-	atomic_set(folio_mapcount_ptr(folio), -1);
++	atomic_set(&folio->_entire_mapcount, -1);
+ 	atomic_set(&folio->_nr_pages_mapped, 0);
+ 	atomic_set(&folio->_pincount, 0);
+ 	return true;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
