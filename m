@@ -2,167 +2,89 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74FB5C61DB3
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 00:19:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AB95C54EBC
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 01:11:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234020AbjAKAT3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Jan 2023 19:19:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41242 "EHLO
+        id S234881AbjAKBLO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Jan 2023 20:11:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235577AbjAKATJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 19:19:09 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 759DEBF6F
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 16:19:07 -0800 (PST)
+        with ESMTP id S234969AbjAKBLN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2023 20:11:13 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6DA4B44
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2023 17:11:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2B5E1B81A1F
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 00:19:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDEADC433D2;
-        Wed, 11 Jan 2023 00:19:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A5D4619B0
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 01:11:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B698BC433A8;
+        Wed, 11 Jan 2023 01:11:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673396344;
-        bh=NB+RAYeiz2dECbhoFXofinXROuQ6WPcLmYtVzPWh2eE=;
+        s=korg; t=1673399470;
+        bh=ajIKrprKzsVOKGyCk/gzDI+wqdMa6C4vicnG/gUXP20=;
         h=Date:To:From:Subject:From;
-        b=H54dS3cDoStDdJBkzJUd259nOhcCLITn8M3Uu6mI2znq7C5bvFGsQTtj4A7UFe0Hv
-         7SK8ZpnhHuXm+c85x8z3yL1fRZ9eBedCnsGLr1Tc1sreXlEXCoMxXCa1PWGUzICHpK
-         U2vhqslDzHMFi5i9NhJaU0Z3bTcvnWqoRexWdIhU=
-Date:   Tue, 10 Jan 2023 16:19:04 -0800
-To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
-        senozhatsky@chromium.org, rostedt@goodmis.org, prudo@redhat.com,
-        joel@joelfernandes.org, gpiccoli@igalia.com, ebiederm@xmission.com,
-        corbet@lwn.net, bhe@redhat.com, bagasdotme@gmail.com,
-        ribalda@chromium.org, akpm@linux-foundation.org
+        b=ps0U358ExGTRVm6epSi/3e1XW1RPatDcu/ftCLqGRr4loXCveqIYDkLuTI2hr/L2w
+         rSMJTVdYNvDdLFf+gzPgPlQoTx70Q5CEQ2AA0btgsKbTlttPhKqOBgLuAHPGjDKY3C
+         C1mTxVxO2yRCk7Dpdvsj2IjZNfTmwy04NRTOLv/Y=
+Date:   Tue, 10 Jan 2023 17:11:09 -0800
+To:     mm-commits@vger.kernel.org, sj@kernel.org, Liam.Howlett@oracle.com,
+        liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-factor-out-kexec_load_permitted.patch added to mm-nonmm-unstable branch
-Message-Id: <20230111001904.BDEADC433D2@smtp.kernel.org>
+Subject: [alternative-merged] maple_tree-fix-handle-of-invalidated-state-in-mas_wr_store_setup.patch removed from -mm tree
+Message-Id: <20230111011110.B698BC433A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: kexec: factor out kexec_load_permitted
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec-factor-out-kexec_load_permitted.patch
+The quilt patch titled
+     Subject: maple_tree: fix handle of invalidated state in mas_wr_store_setup()
+has been removed from the -mm tree.  Its filename was
+     maple_tree-fix-handle-of-invalidated-state-in-mas_wr_store_setup.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-factor-out-kexec_load_permitted.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
-From: Ricardo Ribalda <ribalda@chromium.org>
-Subject: kexec: factor out kexec_load_permitted
-Date: Wed, 04 Jan 2023 15:38:47 +0100
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: maple_tree: fix handle of invalidated state in mas_wr_store_setup()
+Date: Mon, 9 Jan 2023 16:55:42 +0000
 
-Both syscalls (kexec and kexec_file) do the same check, let's factor it
-out.
+If an invalidated maple state is encountered during write, reset the maple
+state to MAS_START.  This will result in a re-walk of the tree to the
+correct location for the write.
 
-Link: https://lkml.kernel.org/r/20221114-disable-kexec-reset-v6-2-6a8531a09b9a@chromium.org
-Signed-off-by: Ricardo Ribalda <ribalda@chromium.org>
-Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Guilherme G. Piccoli <gpiccoli@igalia.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Philipp Rudo <prudo@redhat.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lore.kernel.org/all/20230107020126.1627-1-sj@kernel.org/
+Link: https://lkml.kernel.org/r/20230109165455.647400-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: SeongJae Park <sj@kernel.org>
+Tested-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    3 ++-
- kernel/kexec.c        |    2 +-
- kernel/kexec_core.c   |   11 ++++++++++-
- kernel/kexec_file.c   |    2 +-
- 4 files changed, 14 insertions(+), 4 deletions(-)
+ lib/maple_tree.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/kexec.h~kexec-factor-out-kexec_load_permitted
-+++ a/include/linux/kexec.h
-@@ -403,7 +403,8 @@ extern int kimage_crash_copy_vmcoreinfo(
+--- a/lib/maple_tree.c~maple_tree-fix-handle-of-invalidated-state-in-mas_wr_store_setup
++++ a/lib/maple_tree.c
+@@ -5610,6 +5610,9 @@ static inline void mte_destroy_walk(stru
  
- extern struct kimage *kexec_image;
- extern struct kimage *kexec_crash_image;
--extern int kexec_load_disabled;
+ static void mas_wr_store_setup(struct ma_wr_state *wr_mas)
+ {
++	if (unlikely(mas_is_paused(wr_mas->mas)))
++		mas_reset(wr_mas->mas);
 +
-+bool kexec_load_permitted(void);
- 
- #ifndef kexec_flush_icache_page
- #define kexec_flush_icache_page(page)
---- a/kernel/kexec.c~kexec-factor-out-kexec_load_permitted
-+++ a/kernel/kexec.c
-@@ -193,7 +193,7 @@ static inline int kexec_load_check(unsig
- 	int result;
- 
- 	/* We only trust the superuser with rebooting the system. */
--	if (!capable(CAP_SYS_BOOT) || kexec_load_disabled)
-+	if (!kexec_load_permitted())
- 		return -EPERM;
- 
- 	/* Permit LSMs and IMA to fail the kexec */
---- a/kernel/kexec_core.c~kexec-factor-out-kexec_load_permitted
-+++ a/kernel/kexec_core.c
-@@ -922,7 +922,7 @@ int kimage_load_segment(struct kimage *i
- 
- struct kimage *kexec_image;
- struct kimage *kexec_crash_image;
--int kexec_load_disabled;
-+static int kexec_load_disabled;
- #ifdef CONFIG_SYSCTL
- static struct ctl_table kexec_core_sysctls[] = {
- 	{
-@@ -946,6 +946,15 @@ static int __init kexec_core_sysctl_init
- late_initcall(kexec_core_sysctl_init);
- #endif
- 
-+bool kexec_load_permitted(void)
-+{
-+	/*
-+	 * Only the superuser can use the kexec syscall and if it has not
-+	 * been disabled.
-+	 */
-+	return capable(CAP_SYS_BOOT) && !kexec_load_disabled;
-+}
-+
- /*
-  * No panic_cpu check version of crash_kexec().  This function is called
-  * only when panic_cpu holds the current CPU number; this is the only CPU
---- a/kernel/kexec_file.c~kexec-factor-out-kexec_load_permitted
-+++ a/kernel/kexec_file.c
-@@ -330,7 +330,7 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
- 	struct kimage **dest_image, *image;
- 
- 	/* We only trust the superuser with rebooting the system. */
--	if (!capable(CAP_SYS_BOOT) || kexec_load_disabled)
-+	if (!kexec_load_permitted())
- 		return -EPERM;
- 
- 	/* Make sure we have a legal set of flags */
+ 	if (!mas_is_start(wr_mas->mas)) {
+ 		if (mas_is_none(wr_mas->mas)) {
+ 			mas_reset(wr_mas->mas);
 _
 
-Patches currently in -mm which might be from ribalda@chromium.org are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-scripts-spellingtxt-add-permitted.patch
-kvm-x86-fix-trivial-typo.patch
-documentation-sysctl-correct-kexec_load_disabled.patch
-kexec-factor-out-kexec_load_permitted.patch
-kexec-introduce-sysctl-parameters-kexec_load_limit_.patch
+nommu-fix-memory-leak-in-do_mmap-error-path.patch
+nommu-fix-do_munmap-error-path.patch
+nommu-fix-split_vma-map_count-error.patch
+maple_tree-remove-gfp_zero-from-kmem_cache_alloc-and-kmem_cache_alloc_bulk.patch
 
