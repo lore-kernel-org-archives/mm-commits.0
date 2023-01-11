@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 818C6C67871
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:59:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD348C678D5
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:59:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232976AbjAKU7N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 15:59:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57196 "EHLO
+        id S233689AbjAKU7O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 15:59:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57208 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235256AbjAKU66 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:58:58 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59A97C11
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:57 -0800 (PST)
+        with ESMTP id S235353AbjAKU7A (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:59:00 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C8241DF0C
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 18297B81D2A
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B320BC433D2;
-        Wed, 11 Jan 2023 20:58:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CD304B81CD2
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DD78C433EF;
+        Wed, 11 Jan 2023 20:58:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673470734;
-        bh=lbr7Wcg3037bbxF7mvzK4IQK5T5/7KYg04W0Z/8Tq+w=;
+        s=korg; t=1673470736;
+        bh=LToO+0s2tosZL2b8EDJLo/gKY4kqcseaBAtIc8icKBo=;
         h=Date:To:From:Subject:From;
-        b=1aYWkYT0z0s4aEZFDfkmWzFhacX1JG0jd9cd65gU2WDwxL7Fz3VvYP73zPIiWeDhd
-         ySHwApN2N9ywfKhT+WRsy3zA6VLEhJtP0+dxH+0k/3Oi4ufSflUSW9EtxrUCBC8CPP
-         DYAfBjZQOsD2NTm///6L8BIAt0JnM/9eS5SiZlf0=
-Date:   Wed, 11 Jan 2023 12:58:54 -0800
+        b=yUGBOejjze5TVRSswXh9WqgGDJKkVfz89Sq3rqQk6Hm7DvmyCQJj06P0spmvu/w6+
+         QjWx8oIxV8IOAIgkgJf0SW1oBlxuggVI+XcOhne5W/h/Nk9HTb+Ct5bZ1Hy4F5BmsX
+         XMISma8g8c7buHNgQrfbLQesvMFXmXbxMV7/JmrQ=
+Date:   Wed, 11 Jan 2023 12:58:56 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-reimplement-compound_nr.patch added to mm-unstable branch
-Message-Id: <20230111205854.B320BC433D2@smtp.kernel.org>
+Subject: + mm-convert-set_compound_page_dtor-and-set_compound_order-to-folios.patch added to mm-unstable branch
+Message-Id: <20230111205856.7DD78C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: reimplement compound_nr()
+     Subject: mm: convert set_compound_page_dtor() and set_compound_order() to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-reimplement-compound_nr.patch
+     mm-convert-set_compound_page_dtor-and-set_compound_order-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-reimplement-compound_nr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-set_compound_page_dtor-and-set_compound_order-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,84 +65,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: reimplement compound_nr()
-Date: Wed, 11 Jan 2023 14:29:03 +0000
+Subject: mm: convert set_compound_page_dtor() and set_compound_order() to folios
+Date: Wed, 11 Jan 2023 14:29:04 +0000
 
-Turn compound_nr() into a wrapper around folio_nr_pages().  Similarly to
-compound_order(), casting the struct page directly to struct folio
-preserves the existing behaviour, while calling page_folio() would change
-the behaviour.  Move thp_nr_pages() down in the file so that compound_nr()
-can be after folio_nr_pages().
+Replace uses of compound_dtor, compound_order and compound_nr by their
+folio equivalents.
 
-Link: https://lkml.kernel.org/r/20230111142915.1001531-18-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230111142915.1001531-19-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   38 ++++++++++++++++----------------------
- 1 file changed, 16 insertions(+), 22 deletions(-)
+ include/linux/mm.h |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-reimplement-compound_nr
+--- a/include/linux/mm.h~mm-convert-set_compound_page_dtor-and-set_compound_order-to-folios
 +++ a/include/linux/mm.h
-@@ -1005,18 +1005,6 @@ static inline void set_compound_order(st
- #endif
- }
- 
--/* Returns the number of pages in this potentially compound page. */
--static inline unsigned long compound_nr(struct page *page)
--{
--	if (!PageHead(page))
--		return 1;
--#ifdef CONFIG_64BIT
--	return page[1].compound_nr;
--#else
--	return 1UL << compound_order(page);
--#endif
--}
--
- /* Returns the number of bytes in this potentially compound page. */
- static inline unsigned long page_size(struct page *page)
+@@ -984,8 +984,11 @@ extern compound_page_dtor * const compou
+ static inline void set_compound_page_dtor(struct page *page,
+ 		enum compound_dtor_id compound_dtor)
  {
-@@ -1040,16 +1028,6 @@ static inline unsigned int thp_order(str
++	struct folio *folio = (struct folio *)page;
++
+ 	VM_BUG_ON_PAGE(compound_dtor >= NR_COMPOUND_DTORS, page);
+-	page[1].compound_dtor = compound_dtor;
++	VM_BUG_ON_PAGE(!PageHead(page), page);
++	folio->_folio_dtor = compound_dtor;
  }
  
- /**
-- * thp_nr_pages - The number of regular pages in this huge page.
-- * @page: The head page of a huge page.
-- */
--static inline int thp_nr_pages(struct page *page)
--{
--	VM_BUG_ON_PGFLAGS(PageTail(page), page);
--	return compound_nr(page);
--}
--
--/**
-  * thp_size - Size of a transparent huge page.
-  * @page: Head page of a transparent huge page.
-  *
-@@ -1758,6 +1736,22 @@ static inline long folio_nr_pages(struct
+ static inline void folio_set_compound_dtor(struct folio *folio,
+@@ -999,9 +1002,11 @@ void destroy_large_folio(struct folio *f
+ 
+ static inline void set_compound_order(struct page *page, unsigned int order)
+ {
+-	page[1].compound_order = order;
++	struct folio *folio = (struct folio *)page;
++
++	folio->_folio_order = order;
+ #ifdef CONFIG_64BIT
+-	page[1].compound_nr = 1U << order;
++	folio->_folio_nr_pages = 1U << order;
  #endif
  }
  
-+/* Returns the number of pages in this potentially compound page. */
-+static inline unsigned long compound_nr(struct page *page)
-+{
-+	return folio_nr_pages((struct folio *)page);
-+}
-+
-+/**
-+ * thp_nr_pages - The number of regular pages in this huge page.
-+ * @page: The head page of a huge page.
-+ */
-+static inline int thp_nr_pages(struct page *page)
-+{
-+	VM_BUG_ON_PGFLAGS(PageTail(page), page);
-+	return compound_nr(page);
-+}
-+
- /**
-  * folio_next - Move to the next physical folio.
-  * @folio: The folio we're currently operating on.
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
