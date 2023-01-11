@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AE70C46467
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:59:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E34BC678D8
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:59:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232580AbjAKU7R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 15:59:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57220 "EHLO
+        id S234506AbjAKU7T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 15:59:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235452AbjAKU7C (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:59:02 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BC16C11
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:59:01 -0800 (PST)
+        with ESMTP id S235496AbjAKU7D (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:59:03 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBDB3C16
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:59:02 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B2497B81D2A
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59A4FC433D2;
-        Wed, 11 Jan 2023 20:58:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 67FBF61E0B
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:59:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4D10C433D2;
+        Wed, 11 Jan 2023 20:59:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673470738;
-        bh=Qx51e5Ny0Ej+2I5KYrlFCfFrG5jyuX1lCOefoQ0MnK8=;
+        s=korg; t=1673470741;
+        bh=TRVXvUSvXSnb9SmLn7k9Nm9n3DaueO17eNk3sx41T9A=;
         h=Date:To:From:Subject:From;
-        b=MSR55zeFntu2KV8KKs1TsQbHj79mEgFd9IdHWsDEkELY1S78Kfq8Zwwqeglof1QHe
-         PJ0k8X6Ue2NsPvcGI0EOSKr+bAbUPKMiJbQ+4MTO2a7QFzNrkrVnVhaY76kd11jzqm
-         Pz0aL0IPy9PuaR1+EpaNbiTInqQht4QgoD67hXB8=
-Date:   Wed, 11 Jan 2023 12:58:57 -0800
+        b=Lg1NwzUdRYwWzyB/Pk3M3FLF4H2Sw5TOG3t/iTk1+rzFr8glqWtIsFFk8OZgEWGCx
+         ubsJhHAMThD3KqwhTcuzp6qAFZWQ70pXZ0U1prteLb3Fs8eqVWfzKAo2XsVGAwcLUT
+         8iAscE0daarNHehYGxb861tz21ZuPnM78SfFbMnU=
+Date:   Wed, 11 Jan 2023 12:59:01 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-is_transparent_hugepage-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20230111205858.59A4FC433D2@smtp.kernel.org>
+Subject: + hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch added to mm-unstable branch
+Message-Id: <20230111205901.C4D10C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert is_transparent_hugepage() to use a folio
+     Subject: hugetlb: remove uses of compound_dtor and compound_nr
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-is_transparent_hugepage-to-use-a-folio.patch
+     hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-is_transparent_hugepage-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,39 +65,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert is_transparent_hugepage() to use a folio
-Date: Wed, 11 Jan 2023 14:29:05 +0000
+Subject: hugetlb: remove uses of compound_dtor and compound_nr
+Date: Wed, 11 Jan 2023 14:29:07 +0000
 
-Replace a use of page->compound_dtor with its folio equivalent.
+Convert the entire file to use the folio equivalents.
 
-Link: https://lkml.kernel.org/r/20230111142915.1001531-20-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230111142915.1001531-22-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/huge_memory.c~mm-convert-is_transparent_hugepage-to-use-a-folio
-+++ a/mm/huge_memory.c
-@@ -591,12 +591,14 @@ void prep_transhuge_page(struct page *pa
- 
- static inline bool is_transparent_hugepage(struct page *page)
+--- a/mm/hugetlb.c~hugetlb-remove-uses-of-compound_dtor-and-compound_nr
++++ a/mm/hugetlb.c
+@@ -2038,11 +2038,12 @@ static bool prep_compound_gigantic_folio
+  */
+ int PageHuge(struct page *page)
  {
 +	struct folio *folio;
 +
  	if (!PageCompound(page))
- 		return false;
- 
+ 		return 0;
+-
 -	page = compound_head(page);
--	return is_huge_zero_page(page) ||
--	       page[1].compound_dtor == TRANSHUGE_PAGE_DTOR;
+-	return page[1].compound_dtor == HUGETLB_PAGE_DTOR;
 +	folio = page_folio(page);
-+	return is_huge_zero_page(&folio->page) ||
-+	       folio->_folio_dtor == TRANSHUGE_PAGE_DTOR;
++	return folio->_folio_dtor == HUGETLB_PAGE_DTOR;
  }
+ EXPORT_SYMBOL_GPL(PageHuge);
  
- static unsigned long __thp_get_unmapped_area(struct file *filp,
+@@ -2052,10 +2053,11 @@ EXPORT_SYMBOL_GPL(PageHuge);
+  */
+ int PageHeadHuge(struct page *page_head)
+ {
+-	if (!PageHead(page_head))
++	struct folio *folio = (struct folio *)page_head;
++	if (!folio_test_large(folio))
+ 		return 0;
+ 
+-	return page_head[1].compound_dtor == HUGETLB_PAGE_DTOR;
++	return folio->_folio_dtor == HUGETLB_PAGE_DTOR;
+ }
+ EXPORT_SYMBOL_GPL(PageHeadHuge);
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
