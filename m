@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50756C46467
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:58:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8847C5479D
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:59:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232920AbjAKU63 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 15:58:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57064 "EHLO
+        id S230197AbjAKU6a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 15:58:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57070 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232291AbjAKU61 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:58:27 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 673BFC16
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:26 -0800 (PST)
+        with ESMTP id S230055AbjAKU63 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:58:29 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE479C11
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:27 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 25CAAB81CD2
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B936FC433EF;
-        Wed, 11 Jan 2023 20:58:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7DF0E61E5D
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0FA3C433EF;
+        Wed, 11 Jan 2023 20:58:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673470703;
-        bh=keHGjQYfqtCbrt3Kez/98vzVXW8NwBqeHrveEb+e0gs=;
+        s=korg; t=1673470706;
+        bh=EFB1arfkJwB20rUdnPOkXYk5GFhQk6h2iQNihaRRRyk=;
         h=Date:To:From:Subject:From;
-        b=ZuW1rf7YWPwHxGeEG3SE6yzyXDl3qMbD03dPeHrIENLmYegzmwpQLp+g6Smo1ryaY
-         oEYeVdXLUVqGAndaWzrDqgvNcQxH2KWym33n2hcn0Dm5IKPEusIGmfZu2i43EPQ25o
-         X6qeAHUvuFQMcpW6q1sa1fsn4CdGzk4iLGHlzwmU=
-Date:   Wed, 11 Jan 2023 12:58:23 -0800
+        b=Eu4ti2Z/U7p3IenBSXcm86kyQaoewGyo9jEi7yigkEgdYv9rRtgpgeZPybIo6z3Aw
+         vtM9fK43jSj/8R74E2CM8AHDd2m3nxyE6zJzVxRoO4j926SrZU7PFk7Ai79gjmOt09
+         TE0bLN6OK2mDsdtBs6UcVdcP2EPiXG26UN6iz0v0=
+Date:   Wed, 11 Jan 2023 12:58:26 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch added to mm-unstable branch
-Message-Id: <20230111205823.B936FC433EF@smtp.kernel.org>
+Subject: + mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped.patch added to mm-unstable branch
+Message-Id: <20230111205826.D0FA3C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove folio_pincount_ptr() and head_compound_pincount()
+     Subject: mm: convert head_subpages_mapcount() into folio_nr_pages_mapped()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
+     mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,253 +65,217 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove folio_pincount_ptr() and head_compound_pincount()
-Date: Wed, 11 Jan 2023 14:28:47 +0000
+Subject: mm: convert head_subpages_mapcount() into folio_nr_pages_mapped()
+Date: Wed, 11 Jan 2023 14:28:48 +0000
 
-We can use folio->_pincount directly, since all users are guarded by tests
-of compound/large.
+Calling this 'mapcount' is confusing since mapcount is usually the number
+of times something is mapped; instead this is the number of mapped pages. 
+It's also better to enforce that this is a folio rather than a head page.
 
-Link: https://lkml.kernel.org/r/20230111142915.1001531-2-willy@infradead.org
+Move folio_nr_pages_mapped() into mm/internal.h since this is not
+something we want device drivers or filesystems poking at.  Get rid of
+folio_subpages_mapcount_ptr() and use folio->_nr_pages_mapped directly.
+
+Link: https://lkml.kernel.org/r/20230111142915.1001531-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |   27 +++++++++-----------
- include/linux/mm.h                        |   14 +---------
- include/linux/mm_types.h                  |    5 ---
- mm/debug.c                                |    4 +-
- mm/gup.c                                  |    8 ++---
- mm/huge_memory.c                          |    4 +-
- mm/hugetlb.c                              |    4 +-
- mm/page_alloc.c                           |    9 ++++--
- 8 files changed, 31 insertions(+), 44 deletions(-)
+ include/linux/mm.h       |   22 ++--------------------
+ include/linux/mm_types.h |   12 +++---------
+ mm/debug.c               |    4 ++--
+ mm/hugetlb.c             |    4 ++--
+ mm/internal.h            |   18 ++++++++++++++++++
+ mm/rmap.c                |    9 +++++----
+ 6 files changed, 32 insertions(+), 37 deletions(-)
 
---- a/Documentation/core-api/pin_user_pages.rst~mm-remove-folio_pincount_ptr-and-head_compound_pincount
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -55,18 +55,17 @@ flags the caller provides. The caller is
- pages* array, and the function then pins pages by incrementing each by a special
- value: GUP_PIN_COUNTING_BIAS.
- 
--For compound pages, the GUP_PIN_COUNTING_BIAS scheme is not used. Instead,
--an exact form of pin counting is achieved, by using the 2nd struct page
--in the compound page. A new struct page field, compound_pincount, has
--been added in order to support this.
--
--This approach for compound pages avoids the counting upper limit problems that
--are discussed below. Those limitations would have been aggravated severely by
--huge pages, because each tail page adds a refcount to the head page. And in
--fact, testing revealed that, without a separate compound_pincount field,
--page overflows were seen in some huge page stress tests.
-+For large folios, the GUP_PIN_COUNTING_BIAS scheme is not used. Instead,
-+the extra space available in the struct folio is used to store the
-+pincount directly.
-+
-+This approach for large folios avoids the counting upper limit problems
-+that are discussed below. Those limitations would have been aggravated
-+severely by huge pages, because each tail page adds a refcount to the
-+head page. And in fact, testing revealed that, without a separate pincount
-+field, refcount overflows were seen in some huge page stress tests.
- 
--This also means that huge pages and compound pages do not suffer
-+This also means that huge pages and large folios do not suffer
- from the false positives problem that is mentioned below.::
- 
-  Function
-@@ -264,9 +263,9 @@ place.)
- Other diagnostics
- =================
- 
--dump_page() has been enhanced slightly, to handle these new counting
--fields, and to better report on compound pages in general. Specifically,
--for compound pages, the exact (compound_pincount) pincount is reported.
-+dump_page() has been enhanced slightly to handle these new counting
-+fields, and to better report on large folios in general.  Specifically,
-+for large folios, the exact pincount is reported.
- 
- References
- ==========
---- a/include/linux/mm.h~mm-remove-folio_pincount_ptr-and-head_compound_pincount
+--- a/include/linux/mm.h~mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped
 +++ a/include/linux/mm.h
-@@ -1011,11 +1011,6 @@ static inline void folio_set_compound_dt
- 
- void destroy_large_folio(struct folio *folio);
- 
--static inline int head_compound_pincount(struct page *head)
--{
--	return atomic_read(compound_pincount_ptr(head));
--}
--
- static inline void set_compound_order(struct page *page, unsigned int order)
- {
- 	page[1].compound_order = order;
-@@ -1641,11 +1636,6 @@ static inline struct folio *pfn_folio(un
- 	return page_folio(pfn_to_page(pfn));
+@@ -844,24 +844,6 @@ static inline int head_compound_mapcount
  }
  
--static inline atomic_t *folio_pincount_ptr(struct folio *folio)
--{
--	return &folio_page(folio, 1)->compound_pincount;
--}
--
- /**
-  * folio_maybe_dma_pinned - Report if a folio may be pinned for DMA.
-  * @folio: The folio.
-@@ -1663,7 +1653,7 @@ static inline atomic_t *folio_pincount_p
-  * expected to be able to deal gracefully with a false positive.
-  *
-  * For large folios, the result will be exactly correct. That's because
-- * we have more tracking data available: the compound_pincount is used
-+ * we have more tracking data available: the _pincount field is used
-  * instead of the GUP_PIN_COUNTING_BIAS scheme.
-  *
-  * For more information, please see Documentation/core-api/pin_user_pages.rst.
-@@ -1674,7 +1664,7 @@ static inline atomic_t *folio_pincount_p
- static inline bool folio_maybe_dma_pinned(struct folio *folio)
- {
- 	if (folio_test_large(folio))
--		return atomic_read(folio_pincount_ptr(folio)) > 0;
-+		return atomic_read(&folio->_pincount) > 0;
- 
- 	/*
- 	 * folio_ref_count() is signed. If that refcount overflows, then
---- a/include/linux/mm_types.h~mm-remove-folio_pincount_ptr-and-head_compound_pincount
-+++ a/include/linux/mm_types.h
-@@ -443,11 +443,6 @@ static inline atomic_t *subpages_mapcoun
- 	return &page[1].subpages_mapcount;
- }
- 
--static inline atomic_t *compound_pincount_ptr(struct page *page)
--{
--	return &page[1].compound_pincount;
--}
--
  /*
-  * Used for sizing the vmemmap region on some architectures
-  */
---- a/mm/debug.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
+- * If a 16GB hugetlb page were mapped by PTEs of all of its 4kB sub-pages,
+- * its subpages_mapcount would be 0x400000: choose the COMPOUND_MAPPED bit
+- * above that range, instead of 2*(PMD_SIZE/PAGE_SIZE).  Hugetlb currently
+- * leaves subpages_mapcount at 0, but avoid surprise if it participates later.
+- */
+-#define COMPOUND_MAPPED	0x800000
+-#define SUBPAGES_MAPPED	(COMPOUND_MAPPED - 1)
+-
+-/*
+- * Number of sub-pages mapped by PTE, does not include compound mapcount.
+- * Must be called only on head of compound page.
+- */
+-static inline int head_subpages_mapcount(struct page *head)
+-{
+-	return atomic_read(subpages_mapcount_ptr(head)) & SUBPAGES_MAPPED;
+-}
+-
+-/*
+  * The atomic page->_mapcount, starts from -1: so that transitions
+  * both from it and to it can be tracked, using atomic_inc_and_test
+  * and atomic_add_negative(-1).
+@@ -920,9 +902,9 @@ static inline bool folio_large_is_mapped
+ {
+ 	/*
+ 	 * Reading folio_mapcount_ptr() below could be omitted if hugetlb
+-	 * participated in incrementing subpages_mapcount when compound mapped.
++	 * participated in incrementing nr_pages_mapped when compound mapped.
+ 	 */
+-	return atomic_read(folio_subpages_mapcount_ptr(folio)) > 0 ||
++	return atomic_read(&folio->_nr_pages_mapped) > 0 ||
+ 		atomic_read(folio_mapcount_ptr(folio)) >= 0;
+ }
+ 
+--- a/include/linux/mm_types.h~mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped
++++ a/include/linux/mm_types.h
+@@ -307,7 +307,7 @@ static inline struct page *encoded_page_
+  * @_folio_dtor: Which destructor to use for this folio.
+  * @_folio_order: Do not use directly, call folio_order().
+  * @_compound_mapcount: Do not use directly, call folio_entire_mapcount().
+- * @_subpages_mapcount: Do not use directly, call folio_mapcount().
++ * @_nr_pages_mapped: Do not use directly, call folio_mapcount().
+  * @_pincount: Do not use directly, call folio_maybe_dma_pinned().
+  * @_folio_nr_pages: Do not use directly, call folio_nr_pages().
+  * @_flags_2: For alignment.  Do not use.
+@@ -361,7 +361,7 @@ struct folio {
+ 			unsigned char _folio_dtor;
+ 			unsigned char _folio_order;
+ 			atomic_t _compound_mapcount;
+-			atomic_t _subpages_mapcount;
++			atomic_t _nr_pages_mapped;
+ 			atomic_t _pincount;
+ #ifdef CONFIG_64BIT
+ 			unsigned int _folio_nr_pages;
+@@ -404,7 +404,7 @@ FOLIO_MATCH(compound_head, _head_1);
+ FOLIO_MATCH(compound_dtor, _folio_dtor);
+ FOLIO_MATCH(compound_order, _folio_order);
+ FOLIO_MATCH(compound_mapcount, _compound_mapcount);
+-FOLIO_MATCH(subpages_mapcount, _subpages_mapcount);
++FOLIO_MATCH(subpages_mapcount, _nr_pages_mapped);
+ FOLIO_MATCH(compound_pincount, _pincount);
+ #ifdef CONFIG_64BIT
+ FOLIO_MATCH(compound_nr, _folio_nr_pages);
+@@ -427,12 +427,6 @@ static inline atomic_t *folio_mapcount_p
+ 	return &tail->compound_mapcount;
+ }
+ 
+-static inline atomic_t *folio_subpages_mapcount_ptr(struct folio *folio)
+-{
+-	struct page *tail = &folio->page + 1;
+-	return &tail->subpages_mapcount;
+-}
+-
+ static inline atomic_t *compound_mapcount_ptr(struct page *page)
+ {
+ 	return &page[1].compound_mapcount;
+--- a/mm/debug.c~mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped
 +++ a/mm/debug.c
-@@ -94,11 +94,11 @@ static void __dump_page(struct page *pag
+@@ -94,10 +94,10 @@ static void __dump_page(struct page *pag
  			page, page_ref_count(head), mapcount, mapping,
  			page_to_pgoff(page), page_to_pfn(page));
  	if (compound) {
--		pr_warn("head:%p order:%u compound_mapcount:%d subpages_mapcount:%d compound_pincount:%d\n",
-+		pr_warn("head:%p order:%u compound_mapcount:%d subpages_mapcount:%d pincount:%d\n",
+-		pr_warn("head:%p order:%u compound_mapcount:%d subpages_mapcount:%d pincount:%d\n",
++		pr_warn("head:%p order:%u compound_mapcount:%d nr_pages_mapped:%d pincount:%d\n",
  				head, compound_order(head),
  				head_compound_mapcount(head),
- 				head_subpages_mapcount(head),
--				head_compound_pincount(head));
-+				atomic_read(&folio->_pincount));
+-				head_subpages_mapcount(head),
++				folio_nr_pages_mapped(folio),
+ 				atomic_read(&folio->_pincount));
  	}
  
- #ifdef CONFIG_MEMCG
---- a/mm/gup.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
-+++ a/mm/gup.c
-@@ -111,7 +111,7 @@ retry:
-  *    FOLL_GET: folio's refcount will be incremented by @refs.
-  *
-  *    FOLL_PIN on large folios: folio's refcount will be incremented by
-- *    @refs, and its compound_pincount will be incremented by @refs.
-+ *    @refs, and its pincount will be incremented by @refs.
-  *
-  *    FOLL_PIN on single-page folios: folio's refcount will be incremented by
-  *    @refs * GUP_PIN_COUNTING_BIAS.
-@@ -157,7 +157,7 @@ struct folio *try_grab_folio(struct page
- 		 * try_get_folio() is left intact.
- 		 */
- 		if (folio_test_large(folio))
--			atomic_add(refs, folio_pincount_ptr(folio));
-+			atomic_add(refs, &folio->_pincount);
- 		else
- 			folio_ref_add(folio,
- 					refs * (GUP_PIN_COUNTING_BIAS - 1));
-@@ -182,7 +182,7 @@ static void gup_put_folio(struct folio *
- 	if (flags & FOLL_PIN) {
- 		node_stat_mod_folio(folio, NR_FOLL_PIN_RELEASED, refs);
- 		if (folio_test_large(folio))
--			atomic_sub(refs, folio_pincount_ptr(folio));
-+			atomic_sub(refs, &folio->_pincount);
- 		else
- 			refs *= GUP_PIN_COUNTING_BIAS;
- 	}
-@@ -232,7 +232,7 @@ int __must_check try_grab_page(struct pa
- 		 */
- 		if (folio_test_large(folio)) {
- 			folio_ref_add(folio, 1);
--			atomic_add(1, folio_pincount_ptr(folio));
-+			atomic_add(1, &folio->_pincount);
- 		} else {
- 			folio_ref_add(folio, GUP_PIN_COUNTING_BIAS);
- 		}
---- a/mm/huge_memory.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
-+++ a/mm/huge_memory.c
-@@ -2477,9 +2477,9 @@ static void __split_huge_page_tail(struc
- 	 * of swap cache pages that store the swp_entry_t in tail pages.
- 	 * Fix up and warn once if private is unexpectedly set.
- 	 *
--	 * What of 32-bit systems, on which head[1].compound_pincount overlays
-+	 * What of 32-bit systems, on which folio->_pincount overlays
- 	 * head[1].private?  No problem: THP_SWAP is not enabled on 32-bit, and
--	 * compound_pincount must be 0 for folio_ref_freeze() to have succeeded.
-+	 * pincount must be 0 for folio_ref_freeze() to have succeeded.
- 	 */
- 	if (!folio_test_swapcache(page_folio(head))) {
- 		VM_WARN_ON_ONCE_PAGE(page_tail->private != 0, page_tail);
---- a/mm/hugetlb.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
+--- a/mm/hugetlb.c~mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped
 +++ a/mm/hugetlb.c
-@@ -1476,7 +1476,7 @@ static void __destroy_compound_gigantic_
+@@ -1475,7 +1475,7 @@ static void __destroy_compound_gigantic_
+ 	struct page *p;
  
  	atomic_set(folio_mapcount_ptr(folio), 0);
- 	atomic_set(folio_subpages_mapcount_ptr(folio), 0);
--	atomic_set(folio_pincount_ptr(folio), 0);
-+	atomic_set(&folio->_pincount, 0);
+-	atomic_set(folio_subpages_mapcount_ptr(folio), 0);
++	atomic_set(&folio->_nr_pages_mapped, 0);
+ 	atomic_set(&folio->_pincount, 0);
  
  	for (i = 1; i < nr_pages; i++) {
- 		p = folio_page(folio, i);
-@@ -1998,7 +1998,7 @@ static bool __prep_compound_gigantic_fol
+@@ -1997,7 +1997,7 @@ static bool __prep_compound_gigantic_fol
+ 			set_compound_head(p, &folio->page);
  	}
  	atomic_set(folio_mapcount_ptr(folio), -1);
- 	atomic_set(folio_subpages_mapcount_ptr(folio), 0);
--	atomic_set(folio_pincount_ptr(folio), 0);
-+	atomic_set(&folio->_pincount, 0);
+-	atomic_set(folio_subpages_mapcount_ptr(folio), 0);
++	atomic_set(&folio->_nr_pages_mapped, 0);
+ 	atomic_set(&folio->_pincount, 0);
  	return true;
  
- out_error:
---- a/mm/page_alloc.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
-+++ a/mm/page_alloc.c
-@@ -775,11 +775,13 @@ void free_compound_page(struct page *pag
+--- a/mm/internal.h~mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped
++++ a/mm/internal.h
+@@ -52,6 +52,24 @@ struct folio_batch;
  
- static void prep_compound_head(struct page *page, unsigned int order)
- {
-+	struct folio *folio = (struct folio *)page;
+ void page_writeback_init(void);
+ 
++/*
++ * If a 16GB hugetlb folio were mapped by PTEs of all of its 4kB pages,
++ * its nr_pages_mapped would be 0x400000: choose the COMPOUND_MAPPED bit
++ * above that range, instead of 2*(PMD_SIZE/PAGE_SIZE).  Hugetlb currently
++ * leaves nr_pages_mapped at 0, but avoid surprise if it participates later.
++ */
++#define COMPOUND_MAPPED		0x800000
++#define FOLIO_PAGES_MAPPED	(COMPOUND_MAPPED - 1)
 +
- 	set_compound_page_dtor(page, COMPOUND_PAGE_DTOR);
- 	set_compound_order(page, order);
- 	atomic_set(compound_mapcount_ptr(page), -1);
- 	atomic_set(subpages_mapcount_ptr(page), 0);
--	atomic_set(compound_pincount_ptr(page), 0);
-+	atomic_set(&folio->_pincount, 0);
- }
- 
- static void prep_compound_tail(struct page *head, int tail_idx)
-@@ -1291,6 +1293,7 @@ static inline bool free_page_is_bad(stru
- 
- static int free_tail_pages_check(struct page *head_page, struct page *page)
++/*
++ * How many individual pages have an elevated _mapcount.  Excludes
++ * the folio's entire_mapcount.
++ */
++static inline int folio_nr_pages_mapped(struct folio *folio)
++{
++	return atomic_read(&folio->_nr_pages_mapped) & FOLIO_PAGES_MAPPED;
++}
++
+ static inline void *folio_raw_mapping(struct folio *folio)
  {
-+	struct folio *folio = (struct folio *)head_page;
- 	int ret = 1;
+ 	unsigned long mapping = (unsigned long)folio->mapping;
+--- a/mm/rmap.c~mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped
++++ a/mm/rmap.c
+@@ -1080,12 +1080,13 @@ int pfn_mkclean_range(unsigned long pfn,
  
+ int total_compound_mapcount(struct page *head)
+ {
++	struct folio *folio = (struct folio *)head;
+ 	int mapcount = head_compound_mapcount(head);
+ 	int nr_subpages;
+ 	int i;
+ 
+ 	/* In the common case, avoid the loop when no subpages mapped by PTE */
+-	if (head_subpages_mapcount(head) == 0)
++	if (folio_nr_pages_mapped(folio) == 0)
+ 		return mapcount;
  	/*
-@@ -1314,8 +1317,8 @@ static int free_tail_pages_check(struct
- 			bad_page(page, "nonzero subpages_mapcount");
- 			goto out;
- 		}
--		if (unlikely(head_compound_pincount(head_page))) {
--			bad_page(page, "nonzero compound_pincount");
-+		if (unlikely(atomic_read(&folio->_pincount))) {
-+			bad_page(page, "nonzero pincount");
- 			goto out;
- 		}
- 		break;
+ 	 * Add all the PTE mappings of those subpages mapped by PTE.
+@@ -1233,7 +1234,7 @@ void page_add_anon_rmap(struct page *pag
+ 			nr = atomic_add_return_relaxed(COMPOUND_MAPPED, mapped);
+ 			if (likely(nr < COMPOUND_MAPPED + COMPOUND_MAPPED)) {
+ 				nr_pmdmapped = thp_nr_pages(page);
+-				nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
++				nr = nr_pmdmapped - (nr & FOLIO_PAGES_MAPPED);
+ 				/* Raced ahead of a remove and another add? */
+ 				if (unlikely(nr < 0))
+ 					nr = 0;
+@@ -1337,7 +1338,7 @@ void page_add_file_rmap(struct page *pag
+ 			nr = atomic_add_return_relaxed(COMPOUND_MAPPED, mapped);
+ 			if (likely(nr < COMPOUND_MAPPED + COMPOUND_MAPPED)) {
+ 				nr_pmdmapped = thp_nr_pages(page);
+-				nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
++				nr = nr_pmdmapped - (nr & FOLIO_PAGES_MAPPED);
+ 				/* Raced ahead of a remove and another add? */
+ 				if (unlikely(nr < 0))
+ 					nr = 0;
+@@ -1399,7 +1400,7 @@ void page_remove_rmap(struct page *page,
+ 			nr = atomic_sub_return_relaxed(COMPOUND_MAPPED, mapped);
+ 			if (likely(nr < COMPOUND_MAPPED)) {
+ 				nr_pmdmapped = thp_nr_pages(page);
+-				nr = nr_pmdmapped - (nr & SUBPAGES_MAPPED);
++				nr = nr_pmdmapped - (nr & FOLIO_PAGES_MAPPED);
+ 				/* Raced ahead of another remove and an add? */
+ 				if (unlikely(nr < 0))
+ 					nr = 0;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
