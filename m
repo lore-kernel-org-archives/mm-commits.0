@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 725A8C46467
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 818C6C67871
 	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:59:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235692AbjAKU7M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 15:59:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57186 "EHLO
+        id S232976AbjAKU7N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 15:59:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57196 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235196AbjAKU6y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:58:54 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03DE4C11
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:54 -0800 (PST)
+        with ESMTP id S235256AbjAKU66 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:58:58 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59A97C11
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 975A161E5D
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3BD4C433EF;
-        Wed, 11 Jan 2023 20:58:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 18297B81D2A
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B320BC433D2;
+        Wed, 11 Jan 2023 20:58:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673470733;
-        bh=hzp70C7hT5moYI4g6K1K4hoME6jGuxHrniOiYakm4jQ=;
+        s=korg; t=1673470734;
+        bh=lbr7Wcg3037bbxF7mvzK4IQK5T5/7KYg04W0Z/8Tq+w=;
         h=Date:To:From:Subject:From;
-        b=qoy3kIx3SjUvOEbEbDhESZo3Nh22KJdm7D9mRpPn0OB+S/RPTFqaa4FjxRd7MwK/C
-         Zbr2uWJz3J72vZhxheVneaw1yzzyc9WpyYyNGhI9KuBJeGCCgzXzrnORZcus6JMULC
-         c9ON/9NxEMsmTL1b3tsfJ+jMCqKiFtFGjWBGyKgQ=
-Date:   Wed, 11 Jan 2023 12:58:52 -0800
+        b=1aYWkYT0z0s4aEZFDfkmWzFhacX1JG0jd9cd65gU2WDwxL7Fz3VvYP73zPIiWeDhd
+         ySHwApN2N9ywfKhT+WRsy3zA6VLEhJtP0+dxH+0k/3Oi4ufSflUSW9EtxrUCBC8CPP
+         DYAfBjZQOsD2NTm///6L8BIAt0JnM/9eS5SiZlf0=
+Date:   Wed, 11 Jan 2023 12:58:54 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-reimplement-compound_order.patch added to mm-unstable branch
-Message-Id: <20230111205852.F3BD4C433EF@smtp.kernel.org>
+Subject: + mm-reimplement-compound_nr.patch added to mm-unstable branch
+Message-Id: <20230111205854.B320BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: reimplement compound_order()
+     Subject: mm: reimplement compound_nr()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-reimplement-compound_order.patch
+     mm-reimplement-compound_nr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-reimplement-compound_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-reimplement-compound_nr.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,46 +65,84 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: reimplement compound_order()
-Date: Wed, 11 Jan 2023 14:29:02 +0000
+Subject: mm: reimplement compound_nr()
+Date: Wed, 11 Jan 2023 14:29:03 +0000
 
-Make compound_order() use struct folio.  It can't be turned into a wrapper
-around folio_order() as a page can be turned into a tail page between a
-check in compound_order() and the assertion in folio_test_large().
+Turn compound_nr() into a wrapper around folio_nr_pages().  Similarly to
+compound_order(), casting the struct page directly to struct folio
+preserves the existing behaviour, while calling page_folio() would change
+the behaviour.  Move thp_nr_pages() down in the file so that compound_nr()
+can be after folio_nr_pages().
 
-Link: https://lkml.kernel.org/r/20230111142915.1001531-17-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230111142915.1001531-18-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ include/linux/mm.h |   38 ++++++++++++++++----------------------
+ 1 file changed, 16 insertions(+), 22 deletions(-)
 
---- a/include/linux/mm.h~mm-reimplement-compound_order
+--- a/include/linux/mm.h~mm-reimplement-compound_nr
 +++ a/include/linux/mm.h
-@@ -719,11 +719,20 @@ int vma_is_stack_for_current(struct vm_a
- struct mmu_gather;
- struct inode;
+@@ -1005,18 +1005,6 @@ static inline void set_compound_order(st
+ #endif
+ }
  
-+/*
-+ * compound_order() can be called without holding a reference, which means
-+ * that niceties like page_folio() don't work.  These callers should be
-+ * prepared to handle wild return values.  For example, PG_head may be
-+ * set before _folio_order is initialised, or this may be a tail page.
-+ * See compaction.c for some good examples.
-+ */
- static inline unsigned int compound_order(struct page *page)
- {
+-/* Returns the number of pages in this potentially compound page. */
+-static inline unsigned long compound_nr(struct page *page)
+-{
 -	if (!PageHead(page))
-+	struct folio *folio = (struct folio *)page;
-+
-+	if (!test_bit(PG_head, &folio->flags))
- 		return 0;
--	return page[1].compound_order;
-+	return folio->_folio_order;
+-		return 1;
+-#ifdef CONFIG_64BIT
+-	return page[1].compound_nr;
+-#else
+-	return 1UL << compound_order(page);
+-#endif
+-}
+-
+ /* Returns the number of bytes in this potentially compound page. */
+ static inline unsigned long page_size(struct page *page)
+ {
+@@ -1040,16 +1028,6 @@ static inline unsigned int thp_order(str
  }
  
  /**
+- * thp_nr_pages - The number of regular pages in this huge page.
+- * @page: The head page of a huge page.
+- */
+-static inline int thp_nr_pages(struct page *page)
+-{
+-	VM_BUG_ON_PGFLAGS(PageTail(page), page);
+-	return compound_nr(page);
+-}
+-
+-/**
+  * thp_size - Size of a transparent huge page.
+  * @page: Head page of a transparent huge page.
+  *
+@@ -1758,6 +1736,22 @@ static inline long folio_nr_pages(struct
+ #endif
+ }
+ 
++/* Returns the number of pages in this potentially compound page. */
++static inline unsigned long compound_nr(struct page *page)
++{
++	return folio_nr_pages((struct folio *)page);
++}
++
++/**
++ * thp_nr_pages - The number of regular pages in this huge page.
++ * @page: The head page of a huge page.
++ */
++static inline int thp_nr_pages(struct page *page)
++{
++	VM_BUG_ON_PGFLAGS(PageTail(page), page);
++	return compound_nr(page);
++}
++
+ /**
+  * folio_next - Move to the next physical folio.
+  * @folio: The folio we're currently operating on.
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
