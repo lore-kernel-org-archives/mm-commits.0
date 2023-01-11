@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E34BC678D8
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:59:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB37DC46467
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:59:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234506AbjAKU7T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 15:59:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57232 "EHLO
+        id S234950AbjAKU7c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 15:59:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235496AbjAKU7D (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:59:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBDB3C16
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:59:02 -0800 (PST)
+        with ESMTP id S235706AbjAKU7N (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:59:13 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10B38C11
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:59:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 67FBF61E0B
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:59:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4D10C433D2;
-        Wed, 11 Jan 2023 20:59:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A1A4561E4F
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:59:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09E0EC433F0;
+        Wed, 11 Jan 2023 20:59:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673470741;
-        bh=TRVXvUSvXSnb9SmLn7k9Nm9n3DaueO17eNk3sx41T9A=;
+        s=korg; t=1673470751;
+        bh=BhNZCVbZCA77M0uTglQ0VOEIoVtyhoKgAdLwloeAaNA=;
         h=Date:To:From:Subject:From;
-        b=Lg1NwzUdRYwWzyB/Pk3M3FLF4H2Sw5TOG3t/iTk1+rzFr8glqWtIsFFk8OZgEWGCx
-         ubsJhHAMThD3KqwhTcuzp6qAFZWQ70pXZ0U1prteLb3Fs8eqVWfzKAo2XsVGAwcLUT
-         8iAscE0daarNHehYGxb861tz21ZuPnM78SfFbMnU=
-Date:   Wed, 11 Jan 2023 12:59:01 -0800
+        b=hwP9YzE1XVsuf/7sMNR3Zx8wh9g0jDBaw3hvG3EIQ88nQYmQf/S0g4ZSj6FuxmIvI
+         DhwKMfN9SY3dYsV5SXufNQcX3uCjaP6XeWIRFnzxRzEXh34Nm1phtHD67da/tXSpzL
+         Xn+GC5/LfWY8fX9ILmAcIUTCrl/WlTviWo+F1Yac=
+Date:   Wed, 11 Jan 2023 12:59:10 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch added to mm-unstable branch
-Message-Id: <20230111205901.C4D10C433D2@smtp.kernel.org>
+Subject: + mm-huge_memory-convert-get_deferred_split_queue-to-take-a-folio.patch added to mm-unstable branch
+Message-Id: <20230111205911.09E0EC433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: remove uses of compound_dtor and compound_nr
+     Subject: mm/huge_memory: convert get_deferred_split_queue() to take a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch
+     mm-huge_memory-convert-get_deferred_split_queue-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-convert-get_deferred_split_queue-to-take-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,51 +65,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: hugetlb: remove uses of compound_dtor and compound_nr
-Date: Wed, 11 Jan 2023 14:29:07 +0000
+Subject: mm/huge_memory: convert get_deferred_split_queue() to take a folio
+Date: Wed, 11 Jan 2023 14:29:12 +0000
 
-Convert the entire file to use the folio equivalents.
+Removes a few calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20230111142915.1001531-22-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230111142915.1001531-27-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-remove-uses-of-compound_dtor-and-compound_nr
-+++ a/mm/hugetlb.c
-@@ -2038,11 +2038,12 @@ static bool prep_compound_gigantic_folio
-  */
- int PageHuge(struct page *page)
- {
-+	struct folio *folio;
-+
- 	if (!PageCompound(page))
- 		return 0;
--
--	page = compound_head(page);
--	return page[1].compound_dtor == HUGETLB_PAGE_DTOR;
-+	folio = page_folio(page);
-+	return folio->_folio_dtor == HUGETLB_PAGE_DTOR;
+--- a/mm/huge_memory.c~mm-huge_memory-convert-get_deferred_split_queue-to-take-a-folio
++++ a/mm/huge_memory.c
+@@ -559,10 +559,11 @@ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struc
  }
- EXPORT_SYMBOL_GPL(PageHuge);
  
-@@ -2052,10 +2053,11 @@ EXPORT_SYMBOL_GPL(PageHuge);
-  */
- int PageHeadHuge(struct page *page_head)
+ #ifdef CONFIG_MEMCG
+-static inline struct deferred_split *get_deferred_split_queue(struct page *page)
++static inline
++struct deferred_split *get_deferred_split_queue(struct folio *folio)
  {
--	if (!PageHead(page_head))
-+	struct folio *folio = (struct folio *)page_head;
-+	if (!folio_test_large(folio))
- 		return 0;
+-	struct mem_cgroup *memcg = page_memcg(compound_head(page));
+-	struct pglist_data *pgdat = NODE_DATA(page_to_nid(page));
++	struct mem_cgroup *memcg = folio_memcg(folio);
++	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
  
--	return page_head[1].compound_dtor == HUGETLB_PAGE_DTOR;
-+	return folio->_folio_dtor == HUGETLB_PAGE_DTOR;
+ 	if (memcg)
+ 		return &memcg->deferred_split_queue;
+@@ -570,9 +571,10 @@ static inline struct deferred_split *get
+ 		return &pgdat->deferred_split_queue;
  }
- EXPORT_SYMBOL_GPL(PageHeadHuge);
+ #else
+-static inline struct deferred_split *get_deferred_split_queue(struct page *page)
++static inline
++struct deferred_split *get_deferred_split_queue(struct folio *folio)
+ {
+-	struct pglist_data *pgdat = NODE_DATA(page_to_nid(page));
++	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
  
+ 	return &pgdat->deferred_split_queue;
+ }
+@@ -2650,7 +2652,7 @@ bool can_split_folio(struct folio *folio
+ int split_huge_page_to_list(struct page *page, struct list_head *list)
+ {
+ 	struct folio *folio = page_folio(page);
+-	struct deferred_split *ds_queue = get_deferred_split_queue(&folio->page);
++	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
+ 	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct address_space *mapping = NULL;
+@@ -2801,7 +2803,7 @@ out:
+ void free_transhuge_page(struct page *page)
+ {
+ 	struct folio *folio = (struct folio *)page;
+-	struct deferred_split *ds_queue = get_deferred_split_queue(page);
++	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
+@@ -2816,7 +2818,7 @@ void free_transhuge_page(struct page *pa
+ void deferred_split_huge_page(struct page *page)
+ {
+ 	struct folio *folio = page_folio(page);
+-	struct deferred_split *ds_queue = get_deferred_split_queue(page);
++	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
+ #ifdef CONFIG_MEMCG
+ 	struct mem_cgroup *memcg = folio_memcg(folio);
+ #endif
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
