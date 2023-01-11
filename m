@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09EBBC46467
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:44:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50756C46467
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:58:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229833AbjAKUoB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 15:44:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51258 "EHLO
+        id S232920AbjAKU63 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 15:58:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233787AbjAKUnk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:43:40 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF0B53D1D9;
-        Wed, 11 Jan 2023 12:43:32 -0800 (PST)
+        with ESMTP id S232291AbjAKU61 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:58:27 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 673BFC16
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:58:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A74261E61;
-        Wed, 11 Jan 2023 20:43:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9D88C433D2;
-        Wed, 11 Jan 2023 20:43:31 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 25CAAB81CD2
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:58:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B936FC433EF;
+        Wed, 11 Jan 2023 20:58:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673469811;
-        bh=HKoy0XQNF0dxKkjQVKXkVMgiOLxYtrrNnhv2VpKfZ2g=;
+        s=korg; t=1673470703;
+        bh=keHGjQYfqtCbrt3Kez/98vzVXW8NwBqeHrveEb+e0gs=;
         h=Date:To:From:Subject:From;
-        b=kRCHL/cJwmbdzFG1+ExNEpUqEJF+fZoAF3DI4Ehia+hi+WjZmaxVnr6ngstXTD0rA
-         wp9+RBfjT3sW3k6OJDEWpHVKSZf2YwXwVLxT4Zp0HWuVUYuRD2cxYrVGTXsE18LBAJ
-         Vx/sKa27fruzkIV/Y9zI2WMmwnSqH02zO68ZXVS4=
-Date:   Wed, 11 Jan 2023 12:43:31 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        Liam.Howlett@oracle.com, amanieu@gmail.com,
-        liam.howlett@oracle.com, akpm@linux-foundation.org
+        b=ZuW1rf7YWPwHxGeEG3SE6yzyXDl3qMbD03dPeHrIENLmYegzmwpQLp+g6Smo1ryaY
+         oEYeVdXLUVqGAndaWzrDqgvNcQxH2KWym33n2hcn0Dm5IKPEusIGmfZu2i43EPQ25o
+         X6qeAHUvuFQMcpW6q1sa1fsn4CdGzk4iLGHlzwmU=
+Date:   Wed, 11 Jan 2023 12:58:23 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-fix-mas_empty_area_rev-lower-bound-validation.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230111204331.A9D88C433D2@smtp.kernel.org>
+Subject: + mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch added to mm-unstable branch
+Message-Id: <20230111205823.B936FC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: fix mas_empty_area_rev() lower bound validation
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maple_tree-fix-mas_empty_area_rev-lower-bound-validation.patch
+     Subject: mm: remove folio_pincount_ptr() and head_compound_pincount()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-mas_empty_area_rev-lower-bound-validation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,193 +64,296 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: maple_tree: fix mas_empty_area_rev() lower bound validation
-Date: Wed, 11 Jan 2023 20:02:07 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: remove folio_pincount_ptr() and head_compound_pincount()
+Date: Wed, 11 Jan 2023 14:28:47 +0000
 
-mas_empty_area_rev() was not correctly validating the start of a gap
-against the lower limit.  This could lead to the range starting lower than
-the requested minimum.
+We can use folio->_pincount directly, since all users are guarded by tests
+of compound/large.
 
-Fix the issue by better validating a gap once one is found.
-
-This commit also adds tests to the maple tree test suite for this issue
-and tests the mas_empty_area() function for similar bound checking.
-
-Link: https://lkml.kernel.org/r/20230111200136.1851322-1-Liam.Howlett@oracle.com
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=216911
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: <amanieu@gmail.com>
-  Link: https://lore.kernel.org/linux-mm/0b9f5425-08d4-8013-aa4c-e620c3b10bb2@leemhuis.info/
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230111142915.1001531-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c      |   17 +++----
- lib/test_maple_tree.c |   89 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 97 insertions(+), 9 deletions(-)
+ Documentation/core-api/pin_user_pages.rst |   27 +++++++++-----------
+ include/linux/mm.h                        |   14 +---------
+ include/linux/mm_types.h                  |    5 ---
+ mm/debug.c                                |    4 +-
+ mm/gup.c                                  |    8 ++---
+ mm/huge_memory.c                          |    4 +-
+ mm/hugetlb.c                              |    4 +-
+ mm/page_alloc.c                           |    9 ++++--
+ 8 files changed, 31 insertions(+), 44 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-fix-mas_empty_area_rev-lower-bound-validation
-+++ a/lib/maple_tree.c
-@@ -4887,7 +4887,7 @@ static bool mas_rev_awalk(struct ma_stat
- 	unsigned long *pivots, *gaps;
- 	void __rcu **slots;
- 	unsigned long gap = 0;
--	unsigned long max, min, index;
-+	unsigned long max, min;
- 	unsigned char offset;
+--- a/Documentation/core-api/pin_user_pages.rst~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/Documentation/core-api/pin_user_pages.rst
+@@ -55,18 +55,17 @@ flags the caller provides. The caller is
+ pages* array, and the function then pins pages by incrementing each by a special
+ value: GUP_PIN_COUNTING_BIAS.
  
- 	if (unlikely(mas_is_err(mas)))
-@@ -4909,8 +4909,7 @@ static bool mas_rev_awalk(struct ma_stat
- 		min = mas_safe_min(mas, pivots, --offset);
+-For compound pages, the GUP_PIN_COUNTING_BIAS scheme is not used. Instead,
+-an exact form of pin counting is achieved, by using the 2nd struct page
+-in the compound page. A new struct page field, compound_pincount, has
+-been added in order to support this.
+-
+-This approach for compound pages avoids the counting upper limit problems that
+-are discussed below. Those limitations would have been aggravated severely by
+-huge pages, because each tail page adds a refcount to the head page. And in
+-fact, testing revealed that, without a separate compound_pincount field,
+-page overflows were seen in some huge page stress tests.
++For large folios, the GUP_PIN_COUNTING_BIAS scheme is not used. Instead,
++the extra space available in the struct folio is used to store the
++pincount directly.
++
++This approach for large folios avoids the counting upper limit problems
++that are discussed below. Those limitations would have been aggravated
++severely by huge pages, because each tail page adds a refcount to the
++head page. And in fact, testing revealed that, without a separate pincount
++field, refcount overflows were seen in some huge page stress tests.
  
- 	max = mas_safe_pivot(mas, pivots, offset, type);
--	index = mas->index;
--	while (index <= max) {
-+	while (mas->index <= max) {
- 		gap = 0;
- 		if (gaps)
- 			gap = gaps[offset];
-@@ -4941,10 +4940,8 @@ static bool mas_rev_awalk(struct ma_stat
- 		min = mas_safe_min(mas, pivots, offset);
+-This also means that huge pages and compound pages do not suffer
++This also means that huge pages and large folios do not suffer
+ from the false positives problem that is mentioned below.::
+ 
+  Function
+@@ -264,9 +263,9 @@ place.)
+ Other diagnostics
+ =================
+ 
+-dump_page() has been enhanced slightly, to handle these new counting
+-fields, and to better report on compound pages in general. Specifically,
+-for compound pages, the exact (compound_pincount) pincount is reported.
++dump_page() has been enhanced slightly to handle these new counting
++fields, and to better report on large folios in general.  Specifically,
++for large folios, the exact pincount is reported.
+ 
+ References
+ ==========
+--- a/include/linux/mm.h~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/include/linux/mm.h
+@@ -1011,11 +1011,6 @@ static inline void folio_set_compound_dt
+ 
+ void destroy_large_folio(struct folio *folio);
+ 
+-static inline int head_compound_pincount(struct page *head)
+-{
+-	return atomic_read(compound_pincount_ptr(head));
+-}
+-
+ static inline void set_compound_order(struct page *page, unsigned int order)
+ {
+ 	page[1].compound_order = order;
+@@ -1641,11 +1636,6 @@ static inline struct folio *pfn_folio(un
+ 	return page_folio(pfn_to_page(pfn));
+ }
+ 
+-static inline atomic_t *folio_pincount_ptr(struct folio *folio)
+-{
+-	return &folio_page(folio, 1)->compound_pincount;
+-}
+-
+ /**
+  * folio_maybe_dma_pinned - Report if a folio may be pinned for DMA.
+  * @folio: The folio.
+@@ -1663,7 +1653,7 @@ static inline atomic_t *folio_pincount_p
+  * expected to be able to deal gracefully with a false positive.
+  *
+  * For large folios, the result will be exactly correct. That's because
+- * we have more tracking data available: the compound_pincount is used
++ * we have more tracking data available: the _pincount field is used
+  * instead of the GUP_PIN_COUNTING_BIAS scheme.
+  *
+  * For more information, please see Documentation/core-api/pin_user_pages.rst.
+@@ -1674,7 +1664,7 @@ static inline atomic_t *folio_pincount_p
+ static inline bool folio_maybe_dma_pinned(struct folio *folio)
+ {
+ 	if (folio_test_large(folio))
+-		return atomic_read(folio_pincount_ptr(folio)) > 0;
++		return atomic_read(&folio->_pincount) > 0;
+ 
+ 	/*
+ 	 * folio_ref_count() is signed. If that refcount overflows, then
+--- a/include/linux/mm_types.h~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/include/linux/mm_types.h
+@@ -443,11 +443,6 @@ static inline atomic_t *subpages_mapcoun
+ 	return &page[1].subpages_mapcount;
+ }
+ 
+-static inline atomic_t *compound_pincount_ptr(struct page *page)
+-{
+-	return &page[1].compound_pincount;
+-}
+-
+ /*
+  * Used for sizing the vmemmap region on some architectures
+  */
+--- a/mm/debug.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/mm/debug.c
+@@ -94,11 +94,11 @@ static void __dump_page(struct page *pag
+ 			page, page_ref_count(head), mapcount, mapping,
+ 			page_to_pgoff(page), page_to_pfn(page));
+ 	if (compound) {
+-		pr_warn("head:%p order:%u compound_mapcount:%d subpages_mapcount:%d compound_pincount:%d\n",
++		pr_warn("head:%p order:%u compound_mapcount:%d subpages_mapcount:%d pincount:%d\n",
+ 				head, compound_order(head),
+ 				head_compound_mapcount(head),
+ 				head_subpages_mapcount(head),
+-				head_compound_pincount(head));
++				atomic_read(&folio->_pincount));
  	}
  
--	if (unlikely(index > max)) {
--		mas_set_err(mas, -EBUSY);
--		return false;
--	}
-+	if (unlikely((mas->index > max) || (size - 1 > max - mas->index)))
-+		goto no_space;
+ #ifdef CONFIG_MEMCG
+--- a/mm/gup.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/mm/gup.c
+@@ -111,7 +111,7 @@ retry:
+  *    FOLL_GET: folio's refcount will be incremented by @refs.
+  *
+  *    FOLL_PIN on large folios: folio's refcount will be incremented by
+- *    @refs, and its compound_pincount will be incremented by @refs.
++ *    @refs, and its pincount will be incremented by @refs.
+  *
+  *    FOLL_PIN on single-page folios: folio's refcount will be incremented by
+  *    @refs * GUP_PIN_COUNTING_BIAS.
+@@ -157,7 +157,7 @@ struct folio *try_grab_folio(struct page
+ 		 * try_get_folio() is left intact.
+ 		 */
+ 		if (folio_test_large(folio))
+-			atomic_add(refs, folio_pincount_ptr(folio));
++			atomic_add(refs, &folio->_pincount);
+ 		else
+ 			folio_ref_add(folio,
+ 					refs * (GUP_PIN_COUNTING_BIAS - 1));
+@@ -182,7 +182,7 @@ static void gup_put_folio(struct folio *
+ 	if (flags & FOLL_PIN) {
+ 		node_stat_mod_folio(folio, NR_FOLL_PIN_RELEASED, refs);
+ 		if (folio_test_large(folio))
+-			atomic_sub(refs, folio_pincount_ptr(folio));
++			atomic_sub(refs, &folio->_pincount);
+ 		else
+ 			refs *= GUP_PIN_COUNTING_BIAS;
+ 	}
+@@ -232,7 +232,7 @@ int __must_check try_grab_page(struct pa
+ 		 */
+ 		if (folio_test_large(folio)) {
+ 			folio_ref_add(folio, 1);
+-			atomic_add(1, folio_pincount_ptr(folio));
++			atomic_add(1, &folio->_pincount);
+ 		} else {
+ 			folio_ref_add(folio, GUP_PIN_COUNTING_BIAS);
+ 		}
+--- a/mm/huge_memory.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/mm/huge_memory.c
+@@ -2477,9 +2477,9 @@ static void __split_huge_page_tail(struc
+ 	 * of swap cache pages that store the swp_entry_t in tail pages.
+ 	 * Fix up and warn once if private is unexpectedly set.
+ 	 *
+-	 * What of 32-bit systems, on which head[1].compound_pincount overlays
++	 * What of 32-bit systems, on which folio->_pincount overlays
+ 	 * head[1].private?  No problem: THP_SWAP is not enabled on 32-bit, and
+-	 * compound_pincount must be 0 for folio_ref_freeze() to have succeeded.
++	 * pincount must be 0 for folio_ref_freeze() to have succeeded.
+ 	 */
+ 	if (!folio_test_swapcache(page_folio(head))) {
+ 		VM_WARN_ON_ONCE_PAGE(page_tail->private != 0, page_tail);
+--- a/mm/hugetlb.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/mm/hugetlb.c
+@@ -1476,7 +1476,7 @@ static void __destroy_compound_gigantic_
  
- 	if (unlikely(ma_is_leaf(type))) {
- 		mas->offset = offset;
-@@ -4961,9 +4958,11 @@ static bool mas_rev_awalk(struct ma_stat
- 	return false;
+ 	atomic_set(folio_mapcount_ptr(folio), 0);
+ 	atomic_set(folio_subpages_mapcount_ptr(folio), 0);
+-	atomic_set(folio_pincount_ptr(folio), 0);
++	atomic_set(&folio->_pincount, 0);
  
- ascend:
--	if (mte_is_root(mas->node))
--		mas_set_err(mas, -EBUSY);
-+	if (!mte_is_root(mas->node))
-+		return false;
+ 	for (i = 1; i < nr_pages; i++) {
+ 		p = folio_page(folio, i);
+@@ -1998,7 +1998,7 @@ static bool __prep_compound_gigantic_fol
+ 	}
+ 	atomic_set(folio_mapcount_ptr(folio), -1);
+ 	atomic_set(folio_subpages_mapcount_ptr(folio), 0);
+-	atomic_set(folio_pincount_ptr(folio), 0);
++	atomic_set(&folio->_pincount, 0);
+ 	return true;
  
-+no_space:
-+	mas_set_err(mas, -EBUSY);
- 	return false;
- }
+ out_error:
+--- a/mm/page_alloc.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/mm/page_alloc.c
+@@ -775,11 +775,13 @@ void free_compound_page(struct page *pag
  
---- a/lib/test_maple_tree.c~maple_tree-fix-mas_empty_area_rev-lower-bound-validation
-+++ a/lib/test_maple_tree.c
-@@ -2517,6 +2517,91 @@ static noinline void check_bnode_min_spa
- 	mt_set_non_kernel(0);
- }
- 
-+static noinline void check_empty_area_window(struct maple_tree *mt)
-+{
-+	unsigned long i, nr_entries = 20;
-+	MA_STATE(mas, mt, 0, 0);
-+
-+	for (i = 1; i <= nr_entries; i++)
-+		mtree_store_range(mt, i*10, i*10 + 9,
-+				  xa_mk_value(i), GFP_KERNEL);
-+
-+	/* Create another hole besides the one at 0 */
-+	mtree_store_range(mt, 160, 169, NULL, GFP_KERNEL);
-+
-+	/* Check lower bounds that don't fit */
-+	rcu_read_lock();
-+	MT_BUG_ON(mt, mas_empty_area_rev(&mas, 5, 90, 10) != -EBUSY);
-+
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area_rev(&mas, 6, 90, 5) != -EBUSY);
-+
-+	/* Check lower bound that does fit */
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area_rev(&mas, 5, 90, 5) != 0);
-+	MT_BUG_ON(mt, mas.index != 5);
-+	MT_BUG_ON(mt, mas.last != 9);
-+	rcu_read_unlock();
-+
-+	/* Check one gap that doesn't fit and one that does */
-+	rcu_read_lock();
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area_rev(&mas, 5, 217, 9) != 0);
-+	MT_BUG_ON(mt, mas.index != 161);
-+	MT_BUG_ON(mt, mas.last != 169);
-+
-+	/* Check one gap that does fit above the min */
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area_rev(&mas, 100, 218, 3) != 0);
-+	MT_BUG_ON(mt, mas.index != 216);
-+	MT_BUG_ON(mt, mas.last != 218);
-+
-+	/* Check size that doesn't fit any gap */
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area_rev(&mas, 100, 218, 16) != -EBUSY);
-+
-+	/*
-+	 * Check size that doesn't fit the lower end of the window but
-+	 * does fit the gap
-+	 */
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area_rev(&mas, 167, 200, 4) != -EBUSY);
-+
-+	/*
-+	 * Check size that doesn't fit the upper end of the window but
-+	 * does fit the gap
-+	 */
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area_rev(&mas, 100, 162, 4) != -EBUSY);
-+
-+	/* Check mas_empty_area forward */
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area(&mas, 0, 100, 9) != 0);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != 8);
-+
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area(&mas, 0, 100, 4) != 0);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != 3);
-+
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area(&mas, 0, 100, 11) != -EBUSY);
-+
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area(&mas, 5, 100, 6) != -EBUSY);
-+
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area(&mas, 0, 8, 10) != -EBUSY);
-+
-+	mas_reset(&mas);
-+	mas_empty_area(&mas, 100, 165, 3);
-+
-+	mas_reset(&mas);
-+	MT_BUG_ON(mt, mas_empty_area(&mas, 100, 163, 6) != -EBUSY);
-+	rcu_read_unlock();
-+}
-+
- static DEFINE_MTREE(tree);
- static int maple_tree_seed(void)
+ static void prep_compound_head(struct page *page, unsigned int order)
  {
-@@ -2765,6 +2850,10 @@ static int maple_tree_seed(void)
- 	check_bnode_min_spanning(&tree);
- 	mtree_destroy(&tree);
- 
-+	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
-+	check_empty_area_window(&tree);
-+	mtree_destroy(&tree);
++	struct folio *folio = (struct folio *)page;
 +
- #if defined(BENCH)
- skip:
- #endif
+ 	set_compound_page_dtor(page, COMPOUND_PAGE_DTOR);
+ 	set_compound_order(page, order);
+ 	atomic_set(compound_mapcount_ptr(page), -1);
+ 	atomic_set(subpages_mapcount_ptr(page), 0);
+-	atomic_set(compound_pincount_ptr(page), 0);
++	atomic_set(&folio->_pincount, 0);
+ }
+ 
+ static void prep_compound_tail(struct page *head, int tail_idx)
+@@ -1291,6 +1293,7 @@ static inline bool free_page_is_bad(stru
+ 
+ static int free_tail_pages_check(struct page *head_page, struct page *page)
+ {
++	struct folio *folio = (struct folio *)head_page;
+ 	int ret = 1;
+ 
+ 	/*
+@@ -1314,8 +1317,8 @@ static int free_tail_pages_check(struct
+ 			bad_page(page, "nonzero subpages_mapcount");
+ 			goto out;
+ 		}
+-		if (unlikely(head_compound_pincount(head_page))) {
+-			bad_page(page, "nonzero compound_pincount");
++		if (unlikely(atomic_read(&folio->_pincount))) {
++			bad_page(page, "nonzero pincount");
+ 			goto out;
+ 		}
+ 		break;
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-nommu-fix-memory-leak-in-do_mmap-error-path.patch
-nommu-fix-do_munmap-error-path.patch
-nommu-fix-split_vma-map_count-error.patch
-maple_tree-fix-mas_empty_area_rev-lower-bound-validation.patch
-maple_tree-remove-gfp_zero-from-kmem_cache_alloc-and-kmem_cache_alloc_bulk.patch
+buffer-add-b_folio-as-an-alias-of-b_page.patch
+buffer-replace-obvious-uses-of-b_page-with-b_folio.patch
+buffer-use-b_folio-in-touch_buffer.patch
+buffer-use-b_folio-in-end_buffer_async_read.patch
+buffer-use-b_folio-in-end_buffer_async_write.patch
+page_io-remove-buffer_head-include.patch
+buffer-use-b_folio-in-mark_buffer_dirty.patch
+gfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
+jbd2-replace-obvious-uses-of-b_page-with-b_folio.patch
+nilfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
+reiserfs-replace-obvious-uses-of-b_page-with-b_folio.patch
+mpage-use-b_folio-in-do_mpage_readpage.patch
+mm-memcg-add-folio_memcg_check.patch
+mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
+mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped.patch
+doc-clarify-refcount-section-by-referring-to-folios-pages.patch
+mm-convert-total_compound_mapcount-to-folio_total_mapcount.patch
+mm-convert-page_remove_rmap-to-use-a-folio-internally.patch
+mm-convert-page_add_anon_rmap-to-use-a-folio-internally.patch
+mm-convert-page_add_file_rmap-to-use-a-folio-internally.patch
+mm-add-folio_add_new_anon_rmap.patch
+page_alloc-use-folio-fields-directly.patch
+mm-use-a-folio-in-hugepage_add_anon_rmap-and-hugepage_add_new_anon_rmap.patch
+mm-use-entire_mapcount-in-__page_dup_rmap.patch
+mm-debug-remove-call-to-head_compound_mapcount.patch
+hugetlb-remove-uses-of-folio_mapcount_ptr.patch
+mm-convert-page_mapcount-to-use-folio_entire_mapcount.patch
+mm-remove-head_compound_mapcount-and-_ptr-functions.patch
+mm-reimplement-compound_order.patch
+mm-reimplement-compound_nr.patch
+mm-convert-set_compound_page_dtor-and-set_compound_order-to-folios.patch
+mm-convert-is_transparent_hugepage-to-use-a-folio.patch
+mm-convert-destroy_large_folio-to-use-folio_dtor.patch
+hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch
+mm-remove-first-tail-page-members-from-struct-page.patch
+doc-correct-struct-folio-kernel-doc.patch
+mm-move-page-deferred_list-to-folio-_deferred_list.patch
+mm-huge_memory-remove-page_deferred_list.patch
+mm-huge_memory-convert-get_deferred_split_queue-to-take-a-folio.patch
+mm-convert-deferred_split_huge_page-to-deferred_split_folio.patch
 
