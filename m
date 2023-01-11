@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBCE2C54EBC
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:59:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24D3AC5479D
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Jan 2023 20:59:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232233AbjAKU7e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 15:59:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57286 "EHLO
+        id S234997AbjAKU7j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 15:59:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234213AbjAKU7P (ORCPT
+        with ESMTP id S234387AbjAKU7P (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 15:59:15 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D919E1DF0C
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:59:12 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA62060DC
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 12:59:13 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id F068FCE1CFA
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:59:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F180C433D2;
-        Wed, 11 Jan 2023 20:59:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 67FD461DD9
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 20:59:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4578C433EF;
+        Wed, 11 Jan 2023 20:59:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673470749;
-        bh=60aRBQW3sQDHTBgyLsoc76dw0Ol1QN4apbeH/oOhIw4=;
+        s=korg; t=1673470752;
+        bh=d87/+jm0FaycsVtii2dfkyq2OJQotNBzIRJIYAW8ItA=;
         h=Date:To:From:Subject:From;
-        b=qtMxGEyLx+eSRIBtN3gHoQ4l25FIfkrJ4oD51rQTrzJRG0OowDLBXdmEHAVKQqmiz
-         tjqXd4jyE5PKwfcZ0psCZGDjNtgvkcDOLcUZUvjUzBeyWXHyliAf06mf+cGb89r4Vz
-         ni1LnCaoFp6qxgEbT35RL4ujTX1Z7+6yZ5mkQN8k=
-Date:   Wed, 11 Jan 2023 12:59:08 -0800
+        b=U61im9QqNOQDk/4WdgWp+8xJNKShSWkxs+cueGCIVTH4bBOE6x9T7RBNK4jbWSJcM
+         nkZrPzydr223eCIqdg0jSZ0bYhXZ5kZQx54EuoHe5L5gax8Zf9bAo5HeOMoFzWEU1k
+         ONqGypqMTerrrTqrUbDKLU8PJ4/Yl/cx4qyBl5FY=
+Date:   Wed, 11 Jan 2023 12:59:12 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-remove-page_deferred_list.patch added to mm-unstable branch
-Message-Id: <20230111205909.1F180C433D2@smtp.kernel.org>
+Subject: + mm-convert-deferred_split_huge_page-to-deferred_split_folio.patch added to mm-unstable branch
+Message-Id: <20230111205912.C4578C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory: remove page_deferred_list()
+     Subject: mm: convert deferred_split_huge_page() to deferred_split_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-remove-page_deferred_list.patch
+     mm-convert-deferred_split_huge_page-to-deferred_split_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-remove-page_deferred_list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-deferred_split_huge_page-to-deferred_split_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,122 +65,88 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/huge_memory: remove page_deferred_list()
-Date: Wed, 11 Jan 2023 14:29:11 +0000
+Subject: mm: convert deferred_split_huge_page() to deferred_split_folio()
+Date: Wed, 11 Jan 2023 14:29:13 +0000
 
-Use folio->_deferred_list directly.
+Now that both callers use a folio, pass the folio in and save a call to
+compound_head().
 
-Link: https://lkml.kernel.org/r/20230111142915.1001531-26-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230111142915.1001531-28-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    8 --------
- mm/huge_memory.c        |   34 +++++++++++++++++-----------------
- 2 files changed, 17 insertions(+), 25 deletions(-)
+ Documentation/mm/transhuge.rst |    6 +++---
+ include/linux/huge_mm.h        |    4 ++--
+ mm/huge_memory.c               |    3 +--
+ mm/rmap.c                      |    2 +-
+ 4 files changed, 7 insertions(+), 8 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-remove-page_deferred_list
+--- a/Documentation/mm/transhuge.rst~mm-convert-deferred_split_huge_page-to-deferred_split_folio
++++ a/Documentation/mm/transhuge.rst
+@@ -153,8 +153,8 @@ clear where references should go after s
+ Note that split_huge_pmd() doesn't have any limitations on refcounting:
+ pmd can be split at any point and never fails.
+ 
+-Partial unmap and deferred_split_huge_page()
+-============================================
++Partial unmap and deferred_split_folio()
++========================================
+ 
+ Unmapping part of THP (with munmap() or other way) is not going to free
+ memory immediately. Instead, we detect that a subpage of THP is not in use
+@@ -166,6 +166,6 @@ the place where we can detect partial un
+ counterproductive since in many cases partial unmap happens during exit(2) if
+ a THP crosses a VMA boundary.
+ 
+-The function deferred_split_huge_page() is used to queue a page for splitting.
++The function deferred_split_folio() is used to queue a folio for splitting.
+ The splitting itself will happen when we get memory pressure via shrinker
+ interface.
+--- a/include/linux/huge_mm.h~mm-convert-deferred_split_huge_page-to-deferred_split_folio
 +++ a/include/linux/huge_mm.h
-@@ -293,14 +293,6 @@ static inline bool thp_migration_support
- 	return IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION);
+@@ -187,7 +187,7 @@ static inline int split_huge_page(struct
+ {
+ 	return split_huge_page_to_list(page, NULL);
  }
+-void deferred_split_huge_page(struct page *page);
++void deferred_split_folio(struct folio *folio);
  
--static inline struct list_head *page_deferred_list(struct page *page)
--{
--	struct folio *folio = (struct folio *)page;
--
--	VM_BUG_ON_FOLIO(folio_order(folio) < 2, folio);
--	return &folio->_deferred_list;
--}
--
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
- #define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
---- a/mm/huge_memory.c~mm-huge_memory-remove-page_deferred_list
+ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long address, bool freeze, struct folio *folio);
+@@ -340,7 +340,7 @@ static inline int split_huge_page(struct
+ {
+ 	return 0;
+ }
+-static inline void deferred_split_huge_page(struct page *page) {}
++static inline void deferred_split_folio(struct folio *folio) {}
+ #define split_huge_pmd(__vma, __pmd, __address)	\
+ 	do { } while (0)
+ 
+--- a/mm/huge_memory.c~mm-convert-deferred_split_huge_page-to-deferred_split_folio
 +++ a/mm/huge_memory.c
-@@ -580,12 +580,10 @@ static inline struct deferred_split *get
- 
- void prep_transhuge_page(struct page *page)
- {
--	/*
--	 * we use page->mapping and page->index in second tail page
--	 * as list_head: assuming THP order >= 2
--	 */
-+	struct folio *folio = (struct folio *)page;
- 
--	INIT_LIST_HEAD(page_deferred_list(page));
-+	VM_BUG_ON_FOLIO(folio_order(folio) < 2, folio);
-+	INIT_LIST_HEAD(&folio->_deferred_list);
- 	set_compound_page_dtor(page, TRANSHUGE_PAGE_DTOR);
+@@ -2815,9 +2815,8 @@ void free_transhuge_page(struct page *pa
+ 	free_compound_page(page);
  }
  
-@@ -2802,13 +2800,14 @@ out:
- 
- void free_transhuge_page(struct page *page)
+-void deferred_split_huge_page(struct page *page)
++void deferred_split_folio(struct folio *folio)
  {
-+	struct folio *folio = (struct folio *)page;
- 	struct deferred_split *ds_queue = get_deferred_split_queue(page);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
--	if (!list_empty(page_deferred_list(page))) {
-+	if (!list_empty(&folio->_deferred_list)) {
- 		ds_queue->split_queue_len--;
--		list_del(page_deferred_list(page));
-+		list_del(&folio->_deferred_list);
- 	}
- 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
- 	free_compound_page(page);
-@@ -2816,38 +2815,39 @@ void free_transhuge_page(struct page *pa
- 
- void deferred_split_huge_page(struct page *page)
- {
-+	struct folio *folio = page_folio(page);
- 	struct deferred_split *ds_queue = get_deferred_split_queue(page);
+-	struct folio *folio = page_folio(page);
+ 	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
  #ifdef CONFIG_MEMCG
--	struct mem_cgroup *memcg = page_memcg(compound_head(page));
-+	struct mem_cgroup *memcg = folio_memcg(folio);
- #endif
- 	unsigned long flags;
- 
--	VM_BUG_ON_PAGE(!PageTransHuge(page), page);
-+	VM_BUG_ON_FOLIO(folio_order(folio) < 2, folio);
+ 	struct mem_cgroup *memcg = folio_memcg(folio);
+--- a/mm/rmap.c~mm-convert-deferred_split_huge_page-to-deferred_split_folio
++++ a/mm/rmap.c
+@@ -1427,7 +1427,7 @@ void page_remove_rmap(struct page *page,
+ 		 */
+ 		if (folio_test_pmd_mappable(folio) && folio_test_anon(folio))
+ 			if (!compound || nr < nr_pmdmapped)
+-				deferred_split_huge_page(&folio->page);
++				deferred_split_folio(folio);
+ 	}
  
  	/*
- 	 * The try_to_unmap() in page reclaim path might reach here too,
- 	 * this may cause a race condition to corrupt deferred split queue.
--	 * And, if page reclaim is already handling the same page, it is
-+	 * And, if page reclaim is already handling the same folio, it is
- 	 * unnecessary to handle it again in shrinker.
- 	 *
--	 * Check PageSwapCache to determine if the page is being
--	 * handled by page reclaim since THP swap would add the page into
-+	 * Check the swapcache flag to determine if the folio is being
-+	 * handled by page reclaim since THP swap would add the folio into
- 	 * swap cache before calling try_to_unmap().
- 	 */
--	if (PageSwapCache(page))
-+	if (folio_test_swapcache(folio))
- 		return;
- 
--	if (!list_empty(page_deferred_list(page)))
-+	if (!list_empty(&folio->_deferred_list))
- 		return;
- 
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
--	if (list_empty(page_deferred_list(page))) {
-+	if (list_empty(&folio->_deferred_list)) {
- 		count_vm_event(THP_DEFERRED_SPLIT_PAGE);
--		list_add_tail(page_deferred_list(page), &ds_queue->split_queue);
-+		list_add_tail(&folio->_deferred_list, &ds_queue->split_queue);
- 		ds_queue->split_queue_len++;
- #ifdef CONFIG_MEMCG
- 		if (memcg)
--			set_shrinker_bit(memcg, page_to_nid(page),
-+			set_shrinker_bit(memcg, folio_nid(folio),
- 					 deferred_split_shrinker.id);
- #endif
- 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
