@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86F9DC677F1
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 22:35:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C75C0C54EBE
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 22:35:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232919AbjALWfW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Jan 2023 17:35:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48162 "EHLO
+        id S231911AbjALWfX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Jan 2023 17:35:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48156 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231911AbjALWfQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2023 17:35:16 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07F9D2F8
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 14:35:15 -0800 (PST)
+        with ESMTP id S233136AbjALWfP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2023 17:35:15 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6AF92F6
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 14:35:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E5D6621BF
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 22:35:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8DEFC433EF;
-        Thu, 12 Jan 2023 22:35:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6982BB82036
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 22:35:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B51EC433D2;
+        Thu, 12 Jan 2023 22:35:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673562914;
-        bh=Iav+6BlkgfjrSLBqErnnjg6uZ5wqDyjBuCde7ge6W/k=;
+        s=korg; t=1673562912;
+        bh=g9u0RhnWXdfinlYIectItk8Gwb4T2kpPdlKcHVmaySA=;
         h=Date:To:From:Subject:From;
-        b=LoT0MCzU8KswIJcIYtUy8xbc3Pu2r9NcobEDObwg+Xy6gTOMrYhpE7kFkXh5qHaay
-         A9qu0w1YbgXEQ8AhcwMvldMXd9gLFiDpDcmZmuEHV+wW7/mtT7l+p3DxzcekoCPife
-         fU6NF0YhhNOSUqK0pNjS89OuIf0NHsypMoaebU1M=
-Date:   Thu, 12 Jan 2023 14:35:13 -0800
+        b=HJmcV84V3oq51sf3DoKSnH+3atCwd83kGtzOJVEzUND/igaECeoz0gYjT5xTIDwya
+         RDEsjj5VcpkzcOGxby37leqnJ2HT2kYASm7khT0gaLaTsthaQhxtfKevSUw2RfLgyQ
+         srTlxd4+i3KkjwRD+yPyWGq2mRO89oQO/LUGDwww=
+Date:   Thu, 12 Jan 2023 14:35:11 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-unneeded-cgroup_throttle_swaprate.patch added to mm-unstable branch
-Message-Id: <20230112223513.E8DEFC433EF@smtp.kernel.org>
+Subject: + mm-memory-use-folio_throttle_swaprate-in-do_swap_page.patch added to mm-unstable branch
+Message-Id: <20230112223512.0B51EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: swap: remove unneeded cgroup_throttle_swaprate()
+     Subject: mm: memory: use folio_throttle_swaprate() in do_swap_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-remove-unneeded-cgroup_throttle_swaprate.patch
+     mm-memory-use-folio_throttle_swaprate-in-do_swap_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-unneeded-cgroup_throttle_swaprate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-use-folio_throttle_swaprate-in-do_swap_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,67 +65,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: swap: remove unneeded cgroup_throttle_swaprate()
-Date: Thu, 12 Jan 2023 16:30:06 +0800
+Subject: mm: memory: use folio_throttle_swaprate() in do_swap_page()
+Date: Thu, 12 Jan 2023 16:30:05 +0800
 
-All the callers of cgroup_throttle_swaprate() are converted to
-folio_throttle_swaprate(), so make __cgroup_throttle_swaprate() to take a
-folio, and drop unused cgroup_throttle_swaprate().
+Directly use folio_throttle_swaprate() instead cgroup_throttle_swaprate().
 
-Link: https://lkml.kernel.org/r/20230112083006.163393-8-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20230112083006.163393-7-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   12 ++++--------
- mm/swapfile.c        |    4 ++--
- 2 files changed, 6 insertions(+), 10 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/swap.h~mm-swap-remove-unneeded-cgroup_throttle_swaprate
-+++ a/include/linux/swap.h
-@@ -641,22 +641,18 @@ extern atomic_t zswap_stored_pages;
- #endif
+--- a/mm/memory.c~mm-memory-use-folio_throttle_swaprate-in-do_swap_page
++++ a/mm/memory.c
+@@ -3839,7 +3839,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 			lru_add_drain();
+ 	}
  
- #if defined(CONFIG_SWAP) && defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
--extern void __cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask);
--static inline  void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
-+extern void __cgroup_throttle_swaprate(struct folio *folio, gfp_t gfp_mask);
-+static inline void folio_throttle_swaprate(struct folio *folio, gfp_t gfp_mask)
- {
- 	if (mem_cgroup_disabled())
- 		return;
--	__cgroup_throttle_swaprate(page, gfp_mask);
-+	__cgroup_throttle_swaprate(folio, gfp_mask);
- }
- #else
--static inline void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
-+static inline void folio_throttle_swaprate(struct folio *folio, gfp_t gfp_mask)
- {
- }
- #endif
--static inline void folio_throttle_swaprate(struct folio *folio, gfp_t gfp)
--{
--	cgroup_throttle_swaprate(&folio->page, gfp);
--}
+-	cgroup_throttle_swaprate(page, GFP_KERNEL);
++	folio_throttle_swaprate(folio, GFP_KERNEL);
  
- #if defined(CONFIG_MEMCG) && defined(CONFIG_SWAP)
- void mem_cgroup_swapout(struct folio *folio, swp_entry_t entry);
---- a/mm/swapfile.c~mm-swap-remove-unneeded-cgroup_throttle_swaprate
-+++ a/mm/swapfile.c
-@@ -3636,10 +3636,10 @@ static void free_swap_count_continuation
- }
- 
- #if defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
--void __cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
-+void __cgroup_throttle_swaprate(struct folio *folio, gfp_t gfp_mask)
- {
- 	struct swap_info_struct *si, *next;
--	int nid = page_to_nid(page);
-+	int nid = folio_nid(folio);
- 
- 	if (!(gfp_mask & __GFP_IO))
- 		return;
+ 	/*
+ 	 * Back out if somebody else already faulted in this pte.
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
