@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97045C678D8
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 00:15:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 612A8C678D7
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 00:15:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235088AbjALAPd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 19:15:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49700 "EHLO
+        id S235329AbjALAPe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 19:15:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235329AbjALAPR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 19:15:17 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C76E140AE;
-        Wed, 11 Jan 2023 16:15:14 -0800 (PST)
+        with ESMTP id S235480AbjALAPU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 19:15:20 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A6931C416
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 16:15:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A9EF61F15;
-        Thu, 12 Jan 2023 00:15:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A582C433EF;
-        Thu, 12 Jan 2023 00:15:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2540561781
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 00:15:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AB03C433EF;
+        Thu, 12 Jan 2023 00:15:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673482513;
-        bh=0nW8ef3WKNAoPZdcJFg8ZD/5PjJ/AvfCsX/kvuxnjiQ=;
+        s=korg; t=1673482518;
+        bh=CXMj8j02A4J1+nbU7NYFrJ7JWg6nI+/63kQxu+/ZKE8=;
         h=Date:To:From:Subject:From;
-        b=pOGdYwwvsMyme3/LXkVYARjY+uWYcec+roY4jA1o5WMb+e03vY5HsNRySiQz4dhy/
-         w8evYhOvZHl9Ss68SM9hhjEErF2zCOLUiryl3ufidvhMYl9J+efjF+00ARY0YvlB2H
-         7jRYiDYPAfRulhb9x01xLsChfvIN913anfE+155o=
-Date:   Wed, 11 Jan 2023 16:15:12 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        songmuchun@bytedance.com, nadav.amit@gmail.com,
-        mike.kravetz@oracle.com, jthoughton@google.com, david@redhat.com,
-        axelrasmussen@google.com, aarcange@redhat.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=WeSnNRJoBBYV94bBYk3mymsHmvZ4kc2EwEgelpUwRk0Y6fRu3SNabz06L7dg3v3sQ
+         /73AjWN+apfdPbOCpZ7T0o27iPmk9v/B7odXyrvidyfoRxQjUoNQWtUgjHR0HZJnp4
+         yLjLzd/iI2iZ10li3oTfFzbI2tmIdeGiOvQwS09g=
+Date:   Wed, 11 Jan 2023 16:15:17 -0800
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, lkp@intel.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb-pre-allocate-pgtable-pages-for-uffd-wr-protects.patch removed from -mm tree
-Message-Id: <20230112001513.5A582C433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kasan-mark-kasan_kunit_executing-as-static.patch removed from -mm tree
+Message-Id: <20230112001518.7AB03C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,84 +42,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: pre-allocate pgtable pages for uffd wr-protects
+     Subject: kasan: mark kasan_kunit_executing as static
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-pre-allocate-pgtable-pages-for-uffd-wr-protects.patch
+     kasan-mark-kasan_kunit_executing-as-static.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: pre-allocate pgtable pages for uffd wr-protects
-Date: Wed, 4 Jan 2023 17:52:05 -0500
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: mark kasan_kunit_executing as static
+Date: Wed, 4 Jan 2023 02:09:33 +0100
 
-Userfaultfd-wp uses pte markers to mark wr-protected pages for both shmem
-and hugetlb.  Shmem has pre-allocation ready for markers, but hugetlb path
-was overlooked.
+Mark kasan_kunit_executing as static, as it is only used within
+mm/kasan/report.c.
 
-Doing so by calling huge_pte_alloc() if the initial pgtable walk fails to
-find the huge ptep.  It's possible that huge_pte_alloc() can fail with
-high memory pressure, in that case stop the loop immediately and fail
-silently.  This is not the most ideal solution but it matches with what we
-do with shmem meanwhile it avoids the splat in dmesg.
-
-Link: https://lkml.kernel.org/r/20230104225207.1066932-2-peterx@redhat.com
-Fixes: 60dfaad65aa9 ("mm/hugetlb: allow uffd wr-protect none ptes")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: James Houghton <jthoughton@google.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: James Houghton <jthoughton@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: <stable@vger.kernel.org>	[5.19+]
+Link: https://lkml.kernel.org/r/f64778a4683b16a73bba72576f73bf4a2b45a82f.1672794398.git.andreyknvl@google.com
+Fixes: c8c7016f50c8 ("kasan: fail non-kasan KUnit tests on KASAN reports")
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ mm/kasan/report.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-pre-allocate-pgtable-pages-for-uffd-wr-protects
-+++ a/mm/hugetlb.c
-@@ -6660,8 +6660,17 @@ unsigned long hugetlb_change_protection(
- 		spinlock_t *ptl;
- 		ptep = huge_pte_offset(mm, address, psize);
- 		if (!ptep) {
--			address |= last_addr_mask;
--			continue;
-+			if (!uffd_wp) {
-+				address |= last_addr_mask;
-+				continue;
-+			}
-+			/*
-+			 * Userfaultfd wr-protect requires pgtable
-+			 * pre-allocations to install pte markers.
-+			 */
-+			ptep = huge_pte_alloc(mm, vma, address, psize);
-+			if (!ptep)
-+				break;
- 		}
- 		ptl = huge_pte_lock(h, mm, ptep);
- 		if (huge_pmd_unshare(mm, vma, address, ptep)) {
+--- a/mm/kasan/report.c~kasan-mark-kasan_kunit_executing-as-static
++++ a/mm/kasan/report.c
+@@ -119,7 +119,7 @@ EXPORT_SYMBOL_GPL(kasan_restore_multi_sh
+  * Whether the KASAN KUnit test suite is currently being executed.
+  * Updated in kasan_test.c.
+  */
+-bool kasan_kunit_executing;
++static bool kasan_kunit_executing;
+ 
+ void kasan_kunit_test_suite_start(void)
+ {
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-uffd-fix-pte-marker-when-fork-without-fork-event.patch
-mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker.patch
-mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp.patch
-mm-hugetlb-let-vma_offset_start-to-return-start.patch
-mm-hugetlb-dont-wait-for-migration-entry-during-follow-page.patch
-mm-hugetlb-document-huge_pte_offset-usage.patch
-mm-hugetlb-move-swap-entry-handling-into-vma-lock-when-faulted.patch
-mm-hugetlb-make-userfaultfd_huge_must_wait-safe-to-pmd-unshare.patch
-mm-hugetlb-make-hugetlb_follow_page_mask-safe-to-pmd-unshare.patch
-mm-hugetlb-make-follow_hugetlb_page-safe-to-pmd-unshare.patch
-mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare.patch
-mm-hugetlb-introduce-hugetlb_walk.patch
-mm-mprotect-use-long-for-page-accountings-and-retval.patch
-mm-uffd-detect-pgtable-allocation-failures.patch
+kasan-allow-sampling-page_alloc-allocations-for-hw_tags.patch
 
