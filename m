@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61D61C677F1
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 21:32:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EFE6C61DB3
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 21:32:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232118AbjALVcs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Jan 2023 16:32:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57616 "EHLO
+        id S240547AbjALVct (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Jan 2023 16:32:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56696 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240624AbjALVcF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2023 16:32:05 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22960395C3
+        with ESMTP id S231908AbjALVcI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2023 16:32:08 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88E80395CA
         for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 13:16:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CC06EB82022
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 21:16:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73EA9C433F0;
-        Thu, 12 Jan 2023 21:16:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 242C462198
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 21:16:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AA47C433F0;
+        Thu, 12 Jan 2023 21:16:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673558195;
-        bh=wVua3OWFi55eZFfJ8Qb/1lG7xU9DpmwtC2Z873HrYrU=;
+        s=korg; t=1673558197;
+        bh=bugGfH6D6u7nsg4YgBrrpoaar/8yU3j3ai+9zDdxYro=;
         h=Date:To:From:Subject:From;
-        b=YAZCmCaRU0kosH9Xci5RpqdTv9Cun0iAQjO3e1VJQA/Qbi3oyF/KpLmJyCpQazdEd
-         K5vYzWuH65tVKowEsu0xPbOAUgbXHxEKY3FyQFDcq0uURnQ+jnmYmIgeoxXl5D8stt
-         hP8XPpMFnHpyCf9141L19pVEmEzuQoBkC2tsmV/0=
-Date:   Thu, 12 Jan 2023 13:16:34 -0800
+        b=RPRcqK9dhJmQ9sWdlrIAbEdP1q+WSXRLHpAvAWR7zi7PEF6QyW8LNGvumL6q3wsHh
+         El8P2HKZyvb8VCbmOK0vkau46WppnK76+2S5YOQeto4l25Ee0n9MqVFsYwus/MnE3S
+         2jCM+nnapTnsrVtHmSbhRoKZ5VwWKQGPoOZ7r5fg=
+Date:   Thu, 12 Jan 2023 13:16:36 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         naoya.horiguchi@nec.com, linmiaohe@huawei.com,
         sidhartha.kumar@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-convert-raw_hwp_list_head-to-folios.patch added to mm-unstable branch
-Message-Id: <20230112211635.73EA9C433F0@smtp.kernel.org>
+Subject: + mm-memory-failure-convert-__free_raw_hwp_pages-to-folios.patch added to mm-unstable branch
+Message-Id: <20230112211637.7AA47C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: convert raw_hwp_list_head() to folios
+     Subject: mm/memory-failure: convert __free_raw_hwp_pages() to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-convert-raw_hwp_list_head-to-folios.patch
+     mm-memory-failure-convert-__free_raw_hwp_pages-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-convert-raw_hwp_list_head-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-convert-__free_raw_hwp_pages-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,14 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/memory-failure: convert raw_hwp_list_head() to folios
-Date: Thu, 12 Jan 2023 14:46:05 -0600
+Subject: mm/memory-failure: convert __free_raw_hwp_pages() to folios
+Date: Thu, 12 Jan 2023 14:46:06 -0600
 
-Change raw_hwp_list_head() to take in a folio and modify its callers to
-pass in a folio.  Also converts two users of hugetlb specific page macro
-users to their folio equivalents.
+Change __free_raw_hwp_pages() to __folio_free_raw_hwp() and modify its
+callers to pass in a folio.
 
-Link: https://lkml.kernel.org/r/20230112204608.80136-6-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20230112204608.80136-7-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -81,65 +80,43 @@ Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ mm/memory-failure.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-convert-raw_hwp_list_head-to-folios
+--- a/mm/memory-failure.c~mm-memory-failure-convert-__free_raw_hwp_pages-to-folios
 +++ a/mm/memory-failure.c
-@@ -1695,9 +1695,9 @@ struct raw_hwp_page {
- 	struct page *page;
- };
- 
--static inline struct llist_head *raw_hwp_list_head(struct page *hpage)
-+static inline struct llist_head *raw_hwp_list_head(struct folio *folio)
- {
--	return (struct llist_head *)&page_folio(hpage)->_hugetlb_hwpoison;
-+	return (struct llist_head *)&folio->_hugetlb_hwpoison;
+@@ -1700,12 +1700,11 @@ static inline struct llist_head *raw_hwp
+ 	return (struct llist_head *)&folio->_hugetlb_hwpoison;
  }
  
- static unsigned long __free_raw_hwp_pages(struct page *hpage, bool move_flag)
-@@ -1705,8 +1705,9 @@ static unsigned long __free_raw_hwp_page
+-static unsigned long __free_raw_hwp_pages(struct page *hpage, bool move_flag)
++static unsigned long __folio_free_raw_hwp(struct folio *folio, bool move_flag)
+ {
  	struct llist_head *head;
  	struct llist_node *t, *tnode;
  	unsigned long count = 0;
-+	struct folio *folio = page_folio(hpage);
+-	struct folio *folio = page_folio(hpage);
  
--	head = raw_hwp_list_head(hpage);
-+	head = raw_hwp_list_head(folio);
+ 	head = raw_hwp_list_head(folio);
  	llist_for_each_safe(tnode, t, head->first) {
- 		struct raw_hwp_page *p = container_of(tnode, struct raw_hwp_page, node);
- 
-@@ -1727,15 +1728,16 @@ static int hugetlb_set_page_hwpoison(str
- 	struct raw_hwp_page *raw_hwp;
- 	struct llist_node *t, *tnode;
- 	int ret = TestSetPageHWPoison(hpage) ? -EHWPOISON : 0;
-+	struct folio *folio = page_folio(hpage);
- 
- 	/*
- 	 * Once the hwpoison hugepage has lost reliable raw error info,
- 	 * there is little meaning to keep additional error info precisely,
- 	 * so skip to add additional raw error info.
- 	 */
--	if (HPageRawHwpUnreliable(hpage))
-+	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
- 		return -EHWPOISON;
--	head = raw_hwp_list_head(hpage);
-+	head = raw_hwp_list_head(folio);
- 	llist_for_each_safe(tnode, t, head->first) {
- 		struct raw_hwp_page *p = container_of(tnode, struct raw_hwp_page, node);
- 
-@@ -1756,9 +1758,9 @@ static int hugetlb_set_page_hwpoison(str
- 		 * hwpoisoned subpages, and we need refuse to free/dissolve
- 		 * this hwpoisoned hugepage.
- 		 */
--		SetHPageRawHwpUnreliable(hpage);
-+		folio_set_hugetlb_raw_hwp_unreliable(folio);
- 		/*
--		 * Once HPageRawHwpUnreliable is set, raw_hwp_page is not
-+		 * Once hugetlb_raw_hwp_unreliable is set, raw_hwp_page is not
+@@ -1763,7 +1762,7 @@ static int hugetlb_set_page_hwpoison(str
+ 		 * Once hugetlb_raw_hwp_unreliable is set, raw_hwp_page is not
  		 * used any more, so free it.
  		 */
- 		__free_raw_hwp_pages(hpage, false);
+-		__free_raw_hwp_pages(hpage, false);
++		__folio_free_raw_hwp(folio, false);
+ 	}
+ 	return ret;
+ }
+@@ -1784,7 +1783,7 @@ static unsigned long folio_free_raw_hwp(
+ 	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
+ 		return 0;
+ 
+-	return __free_raw_hwp_pages(&folio->page, move_flag);
++	return __folio_free_raw_hwp(folio, move_flag);
+ }
+ 
+ void folio_clear_hugetlb_hwpoison(struct folio *folio)
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
