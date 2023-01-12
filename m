@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3723DC54EBC
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 00:15:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09FACC5479D
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 00:15:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235518AbjALAPh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 19:15:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49744 "EHLO
+        id S230070AbjALAPg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 19:15:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235511AbjALAPb (ORCPT
+        with ESMTP id S235523AbjALAPb (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 19:15:31 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB1F21C93F
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 16:15:24 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 183BA1CB0B
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 16:15:28 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 915DFB81CDE
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 00:15:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12B7DC433D2;
-        Thu, 12 Jan 2023 00:15:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A661C61ED9
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 00:15:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02D18C433F0;
+        Thu, 12 Jan 2023 00:15:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673482522;
-        bh=FFx1+NUq3FOGRh86kovUKDEdBwA1xADVIKlAarWkNeQ=;
+        s=korg; t=1673482527;
+        bh=7garRkJtwn6+VJD3v2oLntZ7QCDYwb8YSGtYIZW/ZN8=;
         h=Date:To:From:Subject:From;
-        b=0Iai4emMVSS0FsC+vvQjYXrsStfh/ijyGqV476k7IjOTaPcBtwc/+LRNl35ZyeTpM
-         munkZ3xnGiZWd4OjR/OcOFKYC1AAxmwUOLF15tgCwEV3fPjsX3uHCtoIOdmWBapjOh
-         yAlSMxIDsaI95PjvELCDgtEPP5PFwRjpecCRfWnM=
-Date:   Wed, 11 Jan 2023 16:15:21 -0800
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org, sj@kernel.org,
-        akpm@linux-foundation.org
+        b=oDni7+MHkO2pdATJUE+GIbHxU4Zsi7vZm2tb+ByI7vce6RHw/nQE31IGRZpAN5rYo
+         qyj7p84QvdUoh7Ze7RABrRNs9ihTA+pODbfeqQZ1ubj53EfDN66axoY6VRCx/HAl0n
+         14ic4299YIsjvS9bRLXmZdbkWVwLLgSm9PWveN2M=
+Date:   Wed, 11 Jan 2023 16:15:25 -0800
+To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tkhai@ya.ru,
+        rfoss@kernel.org, qyousef@layalina.io, kvalo@kernel.org,
+        colin.i.king@gmail.com, baolin.wang@linux.alibaba.com,
+        arnd@arndb.de, robert.foss@linaro.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] include-linux-mm-fix-release_pages_arg-kernel-doc-comment.patch removed from -mm tree
-Message-Id: <20230112001522.12B7DC433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-update-robert-foss-email-address.patch removed from -mm tree
+Message-Id: <20230112001527.02D18C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,100 +43,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: include/linux/mm: fix release_pages_arg kernel doc comment
+     Subject: MAINTAINERS: update Robert Foss' email address
 has been removed from the -mm tree.  Its filename was
-     include-linux-mm-fix-release_pages_arg-kernel-doc-comment.patch
+     maintainers-update-robert-foss-email-address.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: include/linux/mm: fix release_pages_arg kernel doc comment
-Date: Fri, 6 Jan 2023 20:33:31 +0000
+From: Robert Foss <robert.foss@linaro.org>
+Subject: MAINTAINERS: update Robert Foss' email address
+Date: Fri, 6 Jan 2023 16:21:51 +0100
 
-Commit 449c796768c9 ("mm: teach release_pages() to take an array of
-encoded page pointers too") added the kernel doc comment for
-release_pages() on top of 'union release_pages_arg', so making 'make
-htmldocs' complains as below:
+Update the email address for Robert's maintainer entries and fill in
+.mailmap accordingly.
 
-    ./include/linux/mm.h:1268: warning: cannot understand function prototype: 'typedef union '
-
-The kernel doc comment for the function is already on top of the
-function's definition in mm/swap.c, and the new comment is actually not
-for the function but indeed release_pages_arg.  Fixing the comment to
-reflect the intent would be one option.  But, kernel doc cannot parse
-the union as below due to the attribute.
-
-    ./include/linux/mm.h:1272: error: Cannot parse struct or union!
-
-Modify the comment to reflect the intent but do not mark it as a kernel
-doc comment.
-
-Link: https://lkml.kernel.org/r/20230106203331.127532-1-sj@kernel.org
-Fixes: 449c796768c9 ("mm: teach release_pages() to take an array of encoded page pointers too")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20230106152151.115648-1-robert.foss@linaro.org
+Signed-off-by: Robert Foss <rfoss@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Kalle Valo <kvalo@kernel.org>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Qais Yousef <qyousef@layalina.io>
+Cc: Vasily Averin <vasily.averin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ .mailmap    |    1 +
+ MAINTAINERS |    6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~include-linux-mm-fix-release_pages_arg-kernel-doc-comment
-+++ a/include/linux/mm.h
-@@ -1270,10 +1270,10 @@ static inline void folio_put_refs(struct
- 		__folio_put(folio);
- }
+--- a/.mailmap~maintainers-update-robert-foss-email-address
++++ a/.mailmap
+@@ -371,6 +371,7 @@ Rémi Denis-Courmont <rdenis@simphalempi
+ Ricardo Ribalda <ribalda@kernel.org> <ricardo@ribalda.com>
+ Ricardo Ribalda <ribalda@kernel.org> Ricardo Ribalda Delgado <ribalda@kernel.org>
+ Ricardo Ribalda <ribalda@kernel.org> <ricardo.ribalda@gmail.com>
++Robert Foss <rfoss@kernel.org> <robert.foss@linaro.org>
+ Roman Gushchin <roman.gushchin@linux.dev> <guro@fb.com>
+ Roman Gushchin <roman.gushchin@linux.dev> <guroan@gmail.com>
+ Roman Gushchin <roman.gushchin@linux.dev> <klamm@yandex-team.ru>
+--- a/MAINTAINERS~maintainers-update-robert-foss-email-address
++++ a/MAINTAINERS
+@@ -6948,7 +6948,7 @@ F:	drivers/gpu/drm/atmel-hlcdc/
+ DRM DRIVERS FOR BRIDGE CHIPS
+ M:	Andrzej Hajda <andrzej.hajda@intel.com>
+ M:	Neil Armstrong <neil.armstrong@linaro.org>
+-M:	Robert Foss <robert.foss@linaro.org>
++M:	Robert Foss <rfoss@kernel.org>
+ R:	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
+ R:	Jonas Karlman <jonas@kwiboo.se>
+ R:	Jernej Skrabec <jernej.skrabec@gmail.com>
+@@ -17237,7 +17237,7 @@ F:	Documentation/devicetree/bindings/net
+ F:	drivers/net/wwan/qcom_bam_dmux.c
  
--/**
-- * release_pages - release an array of pages or folios
-+/*
-+ * union release_pages_arg - an array of pages or folios
-  *
-- * This just releases a simple array of multiple pages, and
-+ * release_pages() releases a simple array of multiple pages, and
-  * accepts various different forms of said page array: either
-  * a regular old boring array of pages, an array of folios, or
-  * an array of encoded page pointers.
+ QUALCOMM CAMERA SUBSYSTEM DRIVER
+-M:	Robert Foss <robert.foss@linaro.org>
++M:	Robert Foss <rfoss@kernel.org>
+ M:	Todor Tomov <todor.too@gmail.com>
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+@@ -17317,7 +17317,7 @@ F:	drivers/dma/qcom/hidma*
+ 
+ QUALCOMM I2C CCI DRIVER
+ M:	Loic Poulain <loic.poulain@linaro.org>
+-M:	Robert Foss <robert.foss@linaro.org>
++M:	Robert Foss <rfoss@kernel.org>
+ L:	linux-i2c@vger.kernel.org
+ L:	linux-arm-msm@vger.kernel.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from robert.foss@linaro.org are
 
-mm-damon-core-implement-damos-filter.patch
-mm-damon-paddr-support-damos-filters.patch
-mm-damon-reclaim-add-a-parameter-called-skip_anon-for-avoiding-anonymous-pages-reclamation.patch
-docs-admin-guide-damon-reclaim-document-skip_anon-parameter.patch
-mm-damon-sysfs-schemes-implement-filters-directory.patch
-mm-damon-sysfs-schemes-implement-filter-directory.patch
-mm-damon-sysfs-schemes-connect-filter-directory-and-filters-directory.patch
-mm-damon-sysfs-schemes-implement-scheme-filters.patch
-mm-damon-sysfs-schemes-implement-scheme-filters-fix.patch
-mm-damon-sysfs-schemes-implement-scheme-filters-fix-fix-2.patch
-selftests-damon-sysfs-test-filters-directory.patch
-docs-admin-guide-mm-damon-usage-document-damos-filters-of-sysfs.patch
-docs-abi-damon-document-scheme-filters-files.patch
-mm-page_reporting-replace-rcu_access_pointer-with-rcu_dereference_protected.patch
-maintainers-add-types-to-akpm-mm-git-trees-entries.patch
-maintainers-memory-management-add-tools-vm-as-managed-files.patch
-tools-vm-rename-tools-vm-to-tools-mm.patch
-selftests-vm-rename-selftets-vm-to-selftests-mm.patch
-selftests-vm-rename-selftets-vm-to-selftests-mm-fix.patch
-docs-admin-guide-mm-numaperf-increase-depth-of-subsections.patch
-docs-admin-guide-mm-numaperf-increase-depth-of-subsections-fix.patch
-mm-damon-vaddr-rename-damon_young_walk_private-page_sz-to-folio_sz.patch
-mm-damon-vaddr-support-folio-of-neither-hpage_pmd_size-nor-page_size.patch
-mm-damon-vaddr-record-appropriate-folio-size-when-the-access-is-not-found.patch
-mm-damon-paddr-rename-damon_pa_access_chk_result-page_sz-to-folio_sz.patch
-mm-damon-paddr-remove-folio_sz-field-from-damon_pa_access_chk_result.patch
-mm-damon-paddr-remove-damon_pa_access_chk_result-struct.patch
-mm-damon-core-update-kernel-doc-comments-for-damos-action-supports-of-each-damon-operations-set.patch
-mm-damon-core-update-kernel-doc-comments-for-damos-filters-supports-of-each-damon-operations-set.patch
-docs-mm-damon-index-mention-damos-on-the-intro.patch
-docs-admin-guide-mm-damon-usage-update-damos-actions-filters-supports-of-each-damon-operations-set.patch
-docs-mm-damon-add-a-maintainer-profile-for-damon.patch
-maintainers-damon-link-maintainer-profile-git-trees-and-website.patch
-selftests-damon-sysfs-hide-expected-write-failures.patch
-selftests-damon-debugfs_rm_non_contexts-hide-expected-write-error-messages.patch
-scripts-spelling-add-a-few-more-typos.patch
 
