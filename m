@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 323ABC61DB3
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 22:35:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 053F7C54EBE
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 22:35:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233096AbjALWfI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230230AbjALWfI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 12 Jan 2023 17:35:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48084 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232816AbjALWfG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2023 17:35:06 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70DCA187
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 14:35:05 -0800 (PST)
+        with ESMTP id S232919AbjALWfI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2023 17:35:08 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B9852EF
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 14:35:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B816F621A6
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 22:35:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13607C433D2;
-        Thu, 12 Jan 2023 22:35:04 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7959DB8202F
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 22:35:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F606C433F0;
+        Thu, 12 Jan 2023 22:35:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673562904;
-        bh=QzDd/5fUBgl9kh3LBIRZUA0pd3ye3tIxi7vVMEl/akw=;
+        s=korg; t=1673562902;
+        bh=5gf0JgUgK8QD87VrvHJBT1+ARR0H0UdCCrjd5KW4As0=;
         h=Date:To:From:Subject:From;
-        b=WOxtyeHQre1q4tHNiXsRUoa0v/qeK+CnpM9lITDfY2ewlCZkKzaSWmIXbar49Xl+F
-         uz8TZ0OcTGzpOteoATFBJBoWS1B/oSY7aZeguJ2EypHN3LeSuaMiXvNUqOWoudQe2m
-         48jZ+jLgrrJr41DwQ69uqf7PMKtxmlsVfURNTHAU=
-Date:   Thu, 12 Jan 2023 14:35:03 -0800
+        b=s9lo11rvVSZenp/pM44pbeU6WUkeKJnP7wsG6rN+ihkKTLTbCvhmYbnC3SEbn/a0U
+         63kxnr5pHIRKVHmueA3gfZ9rhptnOxlWAp2np7Lzu/hRoO9qKaGrFy+Do5bh8CAJkD
+         /tniKMxcQel9VvVAVXBJkqCfTvULFuOmTunJciGs=
+Date:   Thu, 12 Jan 2023 14:35:01 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-convert-do_anonymous_page-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20230112223504.13607C433D2@smtp.kernel.org>
+Subject: + mm-huge_memory-make-__do_huge_pmd_anonymous_page-to-take-a-folio.patch added to mm-unstable branch
+Message-Id: <20230112223502.0F606C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory: convert do_anonymous_page() to use a folio
+     Subject: mm: huge_memory: make __do_huge_pmd_anonymous_page() take a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-convert-do_anonymous_page-to-use-a-folio.patch
+     mm-huge_memory-make-__do_huge_pmd_anonymous_page-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-convert-do_anonymous_page-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-make-__do_huge_pmd_anonymous_page-to-take-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,82 +65,112 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory: convert do_anonymous_page() to use a folio
-Date: Thu, 12 Jan 2023 16:30:01 +0800
+Subject: mm: huge_memory: make __do_huge_pmd_anonymous_page() take a folio
+Date: Thu, 12 Jan 2023 16:30:00 +0800
 
-Convert do_anonymous_page() to use a folio and replace related functions
-with folio functions.
+Patch series "mm: remove cgroup_throttle_swaprate() completely".
 
-Link: https://lkml.kernel.org/r/20230112083006.163393-3-wangkefeng.wang@huawei.com
+Convert all the caller functions of cgroup_throttle_swaprate() to use
+folios, and use folio_throttle_swaprate(), which allows us to remove
+cgroup_throttle_swaprate() completely.
+
+
+This patch (of 7):
+
+Make __do_huge_pmd_anonymous_page() take a folio and convert related
+functions to use folios.
+
+Link: https://lkml.kernel.org/r/20230112083006.163393-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20230112083006.163393-2-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
---- a/mm/memory.c~mm-memory-convert-do_anonymous_page-to-use-a-folio
-+++ a/mm/memory.c
-@@ -4002,6 +4002,7 @@ static vm_fault_t do_anonymous_page(stru
+--- a/mm/huge_memory.c~mm-huge_memory-make-__do_huge_pmd_anonymous_page-to-take-a-folio
++++ a/mm/huge_memory.c
+@@ -652,22 +652,23 @@ unsigned long thp_get_unmapped_area(stru
+ EXPORT_SYMBOL_GPL(thp_get_unmapped_area);
+ 
+ static vm_fault_t __do_huge_pmd_anonymous_page(struct vm_fault *vmf,
+-			struct page *page, gfp_t gfp)
++			struct folio *folio, gfp_t gfp)
  {
  	struct vm_area_struct *vma = vmf->vma;
- 	struct page *page;
-+	struct folio *folio;
++	struct page *page = &folio->page;
+ 	pgtable_t pgtable;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
  	vm_fault_t ret = 0;
- 	pte_t entry;
  
-@@ -4055,16 +4056,17 @@ static vm_fault_t do_anonymous_page(stru
- 	if (!page)
- 		goto oom;
+-	VM_BUG_ON_PAGE(!PageCompound(page), page);
++	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
  
--	if (mem_cgroup_charge(page_folio(page), vma->vm_mm, GFP_KERNEL))
-+	folio = page_folio(page);
-+	if (mem_cgroup_charge(folio, vma->vm_mm, GFP_KERNEL))
- 		goto oom_free_page;
--	cgroup_throttle_swaprate(page, GFP_KERNEL);
-+	folio_throttle_swaprate(folio, GFP_KERNEL);
+-	if (mem_cgroup_charge(page_folio(page), vma->vm_mm, gfp)) {
+-		put_page(page);
++	if (mem_cgroup_charge(folio, vma->vm_mm, gfp)) {
++		folio_put(folio);
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		count_vm_event(THP_FAULT_FALLBACK_CHARGE);
+ 		return VM_FAULT_FALLBACK;
+ 	}
+-	cgroup_throttle_swaprate(page, gfp);
++	folio_throttle_swaprate(folio, gfp);
  
+ 	pgtable = pte_alloc_one(vma->vm_mm);
+ 	if (unlikely(!pgtable)) {
+@@ -677,11 +678,11 @@ static vm_fault_t __do_huge_pmd_anonymou
+ 
+ 	clear_huge_page(page, vmf->address, HPAGE_PMD_NR);
  	/*
 -	 * The memory barrier inside __SetPageUptodate makes sure that
 +	 * The memory barrier inside __folio_mark_uptodate makes sure that
- 	 * preceding stores to the page contents become visible before
- 	 * the set_pte_at() write.
+ 	 * clear_huge_page writes become visible before the set_pmd_at()
+ 	 * write.
  	 */
 -	__SetPageUptodate(page);
 +	__folio_mark_uptodate(folio);
  
- 	entry = mk_pte(page, vma->vm_page_prot);
- 	entry = pte_sw_mkyoung(entry);
-@@ -4085,13 +4087,13 @@ static vm_fault_t do_anonymous_page(stru
- 	/* Deliver the page fault to userland, check inside PT lock */
- 	if (userfaultfd_missing(vma)) {
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		put_page(page);
-+		folio_put(folio);
- 		return handle_userfault(vmf, VM_UFFD_MISSING);
- 	}
- 
- 	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
- 	page_add_new_anon_rmap(page, vma, vmf->address);
--	lru_cache_add_inactive_or_unevictable(page, vma);
-+	folio_add_lru_vma(folio, vma);
- setpte:
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, entry);
- 
-@@ -4101,10 +4103,10 @@ unlock:
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	return ret;
+ 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+ 	if (unlikely(!pmd_none(*vmf->pmd))) {
+@@ -696,7 +697,7 @@ static vm_fault_t __do_huge_pmd_anonymou
+ 		/* Deliver the page fault to userland */
+ 		if (userfaultfd_missing(vma)) {
+ 			spin_unlock(vmf->ptl);
+-			put_page(page);
++			folio_put(folio);
+ 			pte_free(vma->vm_mm, pgtable);
+ 			ret = handle_userfault(vmf, VM_UFFD_MISSING);
+ 			VM_BUG_ON(ret & VM_FAULT_FALLBACK);
+@@ -706,7 +707,7 @@ static vm_fault_t __do_huge_pmd_anonymou
+ 		entry = mk_huge_pmd(page, vma->vm_page_prot);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 		page_add_new_anon_rmap(page, vma, haddr);
+-		lru_cache_add_inactive_or_unevictable(page, vma);
++		folio_add_lru_vma(folio, vma);
+ 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
+ 		set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
+ 		update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+@@ -723,7 +724,7 @@ unlock_release:
  release:
+ 	if (pgtable)
+ 		pte_free(vma->vm_mm, pgtable);
 -	put_page(page);
 +	folio_put(folio);
- 	goto unlock;
- oom_free_page:
--	put_page(page);
-+	folio_put(folio);
- oom:
- 	return VM_FAULT_OOM;
+ 	return ret;
+ 
  }
+@@ -836,7 +837,7 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+ 	}
+-	return __do_huge_pmd_anonymous_page(vmf, &folio->page, gfp);
++	return __do_huge_pmd_anonymous_page(vmf, folio, gfp);
+ }
+ 
+ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
