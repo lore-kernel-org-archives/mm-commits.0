@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09FACC5479D
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 00:15:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68E03C67871
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 00:15:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230070AbjALAPg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 19:15:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49746 "EHLO
+        id S231424AbjALAPj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 19:15:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235523AbjALAPb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 19:15:31 -0500
+        with ESMTP id S235566AbjALAPc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 19:15:32 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 183BA1CB0B
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 16:15:28 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ECABD11F;
+        Wed, 11 Jan 2023 16:15:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A661C61ED9
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 00:15:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02D18C433F0;
-        Thu, 12 Jan 2023 00:15:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1AFC161781;
+        Thu, 12 Jan 2023 00:15:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69C99C433EF;
+        Thu, 12 Jan 2023 00:15:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673482527;
-        bh=7garRkJtwn6+VJD3v2oLntZ7QCDYwb8YSGtYIZW/ZN8=;
+        s=korg; t=1673482530;
+        bh=7nWoV/7wgBo2A6supU5tvBTgMYX8nCrmSps4LKH1rNE=;
         h=Date:To:From:Subject:From;
-        b=oDni7+MHkO2pdATJUE+GIbHxU4Zsi7vZm2tb+ByI7vce6RHw/nQE31IGRZpAN5rYo
-         qyj7p84QvdUoh7Ze7RABrRNs9ihTA+pODbfeqQZ1ubj53EfDN66axoY6VRCx/HAl0n
-         14ic4299YIsjvS9bRLXmZdbkWVwLLgSm9PWveN2M=
-Date:   Wed, 11 Jan 2023 16:15:25 -0800
-To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tkhai@ya.ru,
-        rfoss@kernel.org, qyousef@layalina.io, kvalo@kernel.org,
-        colin.i.king@gmail.com, baolin.wang@linux.alibaba.com,
-        arnd@arndb.de, robert.foss@linaro.org, akpm@linux-foundation.org
+        b=FWX5mrv1Bozb2fOwmCXKKS5P/tWc/ZeHWwPNDlqti2pnQudwJy3OipSmMxZDNdocm
+         VFvJ7m68UD0uNUaxiEc4BMMjOmo4Pz6DguLsCvyp8O4aH1kSuYt9fIsxFV94JYtWxr
+         6n5jKb9ZjCtUpc4+54SL4yScAbQ8THtIm0G9WxWg=
+Date:   Wed, 11 Jan 2023 16:15:29 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        vbabka@suse.cz, stable@vger.kernel.org, Liam.Howlett@oracle.com,
+        liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-update-robert-foss-email-address.patch removed from -mm tree
-Message-Id: <20230112001527.02D18C433F0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nommu-fix-do_munmap-error-path.patch removed from -mm tree
+Message-Id: <20230112001530.69C99C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,78 +42,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: update Robert Foss' email address
+     Subject: nommu: fix do_munmap() error path
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-robert-foss-email-address.patch
+     nommu-fix-do_munmap-error-path.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Robert Foss <robert.foss@linaro.org>
-Subject: MAINTAINERS: update Robert Foss' email address
-Date: Fri, 6 Jan 2023 16:21:51 +0100
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: nommu: fix do_munmap() error path
+Date: Mon, 9 Jan 2023 20:57:21 +0000
 
-Update the email address for Robert's maintainer entries and fill in
-.mailmap accordingly.
+When removing a VMA from the tree fails due to no memory, do not free the
+VMA since a reference still exists.
 
-Link: https://lkml.kernel.org/r/20230106152151.115648-1-robert.foss@linaro.org
-Signed-off-by: Robert Foss <rfoss@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Colin Ian King <colin.i.king@gmail.com>
-Cc: Kalle Valo <kvalo@kernel.org>
-Cc: Kirill Tkhai <tkhai@ya.ru>
-Cc: Qais Yousef <qyousef@layalina.io>
-Cc: Vasily Averin <vasily.averin@linux.dev>
+Link: https://lkml.kernel.org/r/20230109205708.956103-1-Liam.Howlett@oracle.com
+Fixes: 8220543df148 ("nommu: remove uses of VMA linked list")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    6 +++---
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/nommu.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/.mailmap~maintainers-update-robert-foss-email-address
-+++ a/.mailmap
-@@ -371,6 +371,7 @@ Rémi Denis-Courmont <rdenis@simphalempi
- Ricardo Ribalda <ribalda@kernel.org> <ricardo@ribalda.com>
- Ricardo Ribalda <ribalda@kernel.org> Ricardo Ribalda Delgado <ribalda@kernel.org>
- Ricardo Ribalda <ribalda@kernel.org> <ricardo.ribalda@gmail.com>
-+Robert Foss <rfoss@kernel.org> <robert.foss@linaro.org>
- Roman Gushchin <roman.gushchin@linux.dev> <guro@fb.com>
- Roman Gushchin <roman.gushchin@linux.dev> <guroan@gmail.com>
- Roman Gushchin <roman.gushchin@linux.dev> <klamm@yandex-team.ru>
---- a/MAINTAINERS~maintainers-update-robert-foss-email-address
-+++ a/MAINTAINERS
-@@ -6948,7 +6948,7 @@ F:	drivers/gpu/drm/atmel-hlcdc/
- DRM DRIVERS FOR BRIDGE CHIPS
- M:	Andrzej Hajda <andrzej.hajda@intel.com>
- M:	Neil Armstrong <neil.armstrong@linaro.org>
--M:	Robert Foss <robert.foss@linaro.org>
-+M:	Robert Foss <rfoss@kernel.org>
- R:	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
- R:	Jonas Karlman <jonas@kwiboo.se>
- R:	Jernej Skrabec <jernej.skrabec@gmail.com>
-@@ -17237,7 +17237,7 @@ F:	Documentation/devicetree/bindings/net
- F:	drivers/net/wwan/qcom_bam_dmux.c
+--- a/mm/nommu.c~nommu-fix-do_munmap-error-path
++++ a/mm/nommu.c
+@@ -1509,7 +1509,8 @@ int do_munmap(struct mm_struct *mm, unsi
+ erase_whole_vma:
+ 	if (delete_vma_from_mm(vma))
+ 		ret = -ENOMEM;
+-	delete_vma(mm, vma);
++	else
++		delete_vma(mm, vma);
+ 	return ret;
+ }
  
- QUALCOMM CAMERA SUBSYSTEM DRIVER
--M:	Robert Foss <robert.foss@linaro.org>
-+M:	Robert Foss <rfoss@kernel.org>
- M:	Todor Tomov <todor.too@gmail.com>
- L:	linux-media@vger.kernel.org
- S:	Maintained
-@@ -17317,7 +17317,7 @@ F:	drivers/dma/qcom/hidma*
- 
- QUALCOMM I2C CCI DRIVER
- M:	Loic Poulain <loic.poulain@linaro.org>
--M:	Robert Foss <robert.foss@linaro.org>
-+M:	Robert Foss <rfoss@kernel.org>
- L:	linux-i2c@vger.kernel.org
- L:	linux-arm-msm@vger.kernel.org
- S:	Maintained
 _
 
-Patches currently in -mm which might be from robert.foss@linaro.org are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
+maple_tree-fix-mas_empty_area_rev-lower-bound-validation.patch
+maple_tree-remove-gfp_zero-from-kmem_cache_alloc-and-kmem_cache_alloc_bulk.patch
 
