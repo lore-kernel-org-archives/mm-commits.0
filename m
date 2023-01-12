@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3D8AC67871
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 00:15:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54235C678D5
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 00:15:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234975AbjALAPc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 19:15:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49702 "EHLO
+        id S233181AbjALAPd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 19:15:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233181AbjALAPR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 19:15:17 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16CA615F12
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2023 16:15:16 -0800 (PST)
+        with ESMTP id S235088AbjALAPU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 19:15:20 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 118C315F1F;
+        Wed, 11 Jan 2023 16:15:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A3A6461EFC
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 00:15:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC207C433D2;
-        Thu, 12 Jan 2023 00:15:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7481E61ED9;
+        Thu, 12 Jan 2023 00:15:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C345DC433EF;
+        Thu, 12 Jan 2023 00:15:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673482515;
-        bh=634jlK4qqpFlfhOmrSdWDS16o4B1jSIHTgU+o5CJ+fc=;
+        s=korg; t=1673482516;
+        bh=5nDP95gB6is1Ij5llfcwKEyn1T45D/P4IbiXMIcoZZA=;
         h=Date:To:From:Subject:From;
-        b=PimaHzZtfu3nsheWJzSGrU/HrwUxoV/2zn+SLsQ8EsBML+WDIsb/7Y14sdFWj3y5z
-         7o/rzW8pY2k/VuQyfF6P7dU251Ol2n5AS3s2XxPK5pYOIizP9tQa6idO6/0NT3s+KT
-         c+nIgHObgtmCu99xNuHDgmBbTt/LfTB+XTTtIUG4=
-Date:   Wed, 11 Jan 2023 16:15:13 -0800
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        linux@weissschuh.net, hannes@cmpxchg.org, corbet@lwn.net,
-        nphamcs@gmail.com, akpm@linux-foundation.org
+        b=nBTpN8OZqinOT7NeA0xa7ZGHr9DQP7/vlTOEoRxHLxrdDvhggRx5wRJMzNpHmjiu9
+         kRL5U+Nezz/ZcjTPh+DSsqhSieVTiL/q+rviaJGrwF5TjqRLYJFOPBTCFExe4PlwNZ
+         U9RabQNUPy+IbFPDUeY6xmRJgEN3cq+Zpx6Wtjr4=
+Date:   Wed, 11 Jan 2023 16:15:15 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] docs-admin-guide-mm-zswap-remove-zsmallocs-lack-of-writeback-warning.patch removed from -mm tree
-Message-Id: <20230112001514.EC207C433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-general-protection-fault-in-nilfs_btree_insert.patch removed from -mm tree
+Message-Id: <20230112001516.C345DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,50 +41,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/zswap: remove zsmalloc's lack of writeback warning
+     Subject: nilfs2: fix general protection fault in nilfs_btree_insert()
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-zswap-remove-zsmallocs-lack-of-writeback-warning.patch
+     nilfs2-fix-general-protection-fault-in-nilfs_btree_insert.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: Docs/admin-guide/mm/zswap: remove zsmalloc's lack of writeback warning
-Date: Fri, 6 Jan 2023 14:00:16 -0800
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix general protection fault in nilfs_btree_insert()
+Date: Thu, 5 Jan 2023 14:53:56 +0900
 
-Writeback has been implemented for zsmalloc, so this warning no longer
-holds.
+If nilfs2 reads a corrupted disk image and tries to reads a b-tree node
+block by calling __nilfs_btree_get_block() against an invalid virtual
+block address, it returns -ENOENT because conversion of the virtual block
+address to a disk block address fails.  However, this return value is the
+same as the internal code that b-tree lookup routines return to indicate
+that the block being searched does not exist, so functions that operate on
+that b-tree may misbehave.
 
-Link: https://lkml.kernel.org/r/20230106220016.172303-1-nphamcs@gmail.com
-Fixes: 9997bc017549a ("zsmalloc: implement writeback mechanism for zsmalloc")
-Suggested-by: Thomas Weißschuh <linux@weissschuh.net>
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+When nilfs_btree_insert() receives this spurious 'not found' code from
+nilfs_btree_do_lookup(), it misunderstands that the 'not found' check was
+successful and continues the insert operation using incomplete lookup path
+data, causing the following crash:
+
+ general protection fault, probably for non-canonical address
+ 0xdffffc0000000005: 0000 [#1] PREEMPT SMP KASAN
+ KASAN: null-ptr-deref in range [0x0000000000000028-0x000000000000002f]
+ ...
+ RIP: 0010:nilfs_btree_get_nonroot_node fs/nilfs2/btree.c:418 [inline]
+ RIP: 0010:nilfs_btree_prepare_insert fs/nilfs2/btree.c:1077 [inline]
+ RIP: 0010:nilfs_btree_insert+0x6d3/0x1c10 fs/nilfs2/btree.c:1238
+ Code: bc 24 80 00 00 00 4c 89 f8 48 c1 e8 03 42 80 3c 28 00 74 08 4c 89
+ ff e8 4b 02 92 fe 4d 8b 3f 49 83 c7 28 4c 89 f8 48 c1 e8 03 <42> 80 3c
+ 28 00 74 08 4c 89 ff e8 2e 02 92 fe 4d 8b 3f 49 83 c7 02
+ ...
+ Call Trace:
+ <TASK>
+  nilfs_bmap_do_insert fs/nilfs2/bmap.c:121 [inline]
+  nilfs_bmap_insert+0x20d/0x360 fs/nilfs2/bmap.c:147
+  nilfs_get_block+0x414/0x8d0 fs/nilfs2/inode.c:101
+  __block_write_begin_int+0x54c/0x1a80 fs/buffer.c:1991
+  __block_write_begin fs/buffer.c:2041 [inline]
+  block_write_begin+0x93/0x1e0 fs/buffer.c:2102
+  nilfs_write_begin+0x9c/0x110 fs/nilfs2/inode.c:261
+  generic_perform_write+0x2e4/0x5e0 mm/filemap.c:3772
+  __generic_file_write_iter+0x176/0x400 mm/filemap.c:3900
+  generic_file_write_iter+0xab/0x310 mm/filemap.c:3932
+  call_write_iter include/linux/fs.h:2186 [inline]
+  new_sync_write fs/read_write.c:491 [inline]
+  vfs_write+0x7dc/0xc50 fs/read_write.c:584
+  ksys_write+0x177/0x2a0 fs/read_write.c:637
+  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+  do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+  entry_SYSCALL_64_after_hwframe+0x63/0xcd
+ ...
+ </TASK>
+
+This patch fixes the root cause of this problem by replacing the error
+code that __nilfs_btree_get_block() returns on block address conversion
+failure from -ENOENT to another internal code -EINVAL which means that the
+b-tree metadata is corrupted.
+
+By returning -EINVAL, it propagates without glitches, and for all relevant
+b-tree operations, functions in the upper bmap layer output an error
+message indicating corrupted b-tree metadata via
+nilfs_bmap_convert_error(), and code -EIO will be eventually returned as
+it should be.
+
+Link: https://lkml.kernel.org/r/000000000000bd89e205f0e38355@google.com
+Link: https://lkml.kernel.org/r/20230105055356.8811-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+ede796cecd5296353515@syzkaller.appspotmail.com
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/zswap.rst |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/nilfs2/btree.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/mm/zswap.rst~docs-admin-guide-mm-zswap-remove-zsmallocs-lack-of-writeback-warning
-+++ a/Documentation/admin-guide/mm/zswap.rst
-@@ -70,9 +70,7 @@ e.g. ``zswap.zpool=zbud``. It can also b
- The zbud type zpool allocates exactly 1 page to store 2 compressed pages, which
- means the compression ratio will always be 2:1 or worse (because of half-full
- zbud pages).  The zsmalloc type zpool has a more complex compressed page
--storage method, and it can achieve greater storage densities.  However,
--zsmalloc does not implement compressed page eviction, so once zswap fills it
--cannot evict the oldest page, it can only reject new pages.
-+storage method, and it can achieve greater storage densities.
+--- a/fs/nilfs2/btree.c~nilfs2-fix-general-protection-fault-in-nilfs_btree_insert
++++ a/fs/nilfs2/btree.c
+@@ -480,9 +480,18 @@ static int __nilfs_btree_get_block(const
+ 	ret = nilfs_btnode_submit_block(btnc, ptr, 0, REQ_OP_READ, &bh,
+ 					&submit_ptr);
+ 	if (ret) {
+-		if (ret != -EEXIST)
+-			return ret;
+-		goto out_check;
++		if (likely(ret == -EEXIST))
++			goto out_check;
++		if (ret == -ENOENT) {
++			/*
++			 * Block address translation failed due to invalid
++			 * value of 'ptr'.  In this case, return internal code
++			 * -EINVAL (broken bmap) to notify bmap layer of fatal
++			 * metadata corruption.
++			 */
++			ret = -EINVAL;
++		}
++		return ret;
+ 	}
  
- When a swap page is passed from frontswap to zswap, zswap maintains a mapping
- of the swap entry, a combination of the swap type and swap offset, to the zpool
+ 	if (ra) {
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-zsmalloc-fix-a-race-with-deferred_handles-storing.patch
 
