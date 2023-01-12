@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DA69C63797
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 21:32:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2296BC54EBE
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 21:49:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230237AbjALVcu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Jan 2023 16:32:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57608 "EHLO
+        id S240500AbjALVtx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Jan 2023 16:49:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233260AbjALVb7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2023 16:31:59 -0500
+        with ESMTP id S240994AbjALVsm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2023 16:48:42 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5D9725ED
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 13:16:27 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ADE7B46
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 13:43:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6E1B462190
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 21:16:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C546AC433EF;
-        Thu, 12 Jan 2023 21:16:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B842062122
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 21:43:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 198B1C433F2;
+        Thu, 12 Jan 2023 21:43:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673558186;
-        bh=kNs7UpJrXbh/NHSZDurw4JekMX2TLhFPlbtjXN/ngOg=;
+        s=korg; t=1673559794;
+        bh=3ZG8Kl37Z3K0/WVnVAIfx6HybjxTgIbsVK0MImlUHLI=;
         h=Date:To:From:Subject:From;
-        b=oXACBkkX+ipSzqG7pdemVbY5bE1u5Cd4gX9Z6UnlivxWkgY6/P+Mp3eFDOeC2i4iX
-         ldRTQsv0X3/Hy/S39Xk+dMUWk3MavzuMW8oTpMf5QH4IF557PV3aA4iLPQtRGGs61w
-         yBnPEkC48wIUJ4qefNJiIJp8gVmij2bArBaFuG30=
-Date:   Thu, 12 Jan 2023 13:16:25 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
-        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
+        b=aJ/qgAlUIhR+7+TTfqIo0wAzgvITeBP3sk671GGT9af0FuiAcOJqB893urhZU+biu
+         wyJ4cBNPFU9ryb0sDvXfINyJjNTsNB+OScLwY0yPm6Goe6p3AASfHe5MK6OETC0jon
+         0TNW2edEwkkL0izQXzIi8VWiKCp7tlLKZmd9Jo68=
+Date:   Thu, 12 Jan 2023 13:43:13 -0800
+To:     mm-commits@vger.kernel.org, william.kucharski@oracle.com,
+        hughd@google.com, willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios.patch added to mm-unstable branch
-Message-Id: <20230112211626.C546AC433EF@smtp.kernel.org>
+Subject: + shmem-convert-shmem_write_end-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20230112214314.198B1C433F2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: convert __get_huge_page_for_hwpoison() to folios
+     Subject: shmem: convert shmem_write_end() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios.patch
+     shmem-convert-shmem_write_end-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-convert-shmem_write_end-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,114 +64,114 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/memory-failure: convert __get_huge_page_for_hwpoison() to folios
-Date: Thu, 12 Jan 2023 14:46:01 -0600
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: shmem: convert shmem_write_end() to use a folio
+Date: Thu, 12 Jan 2023 13:10:31 +0000
 
-Patch series "convert hugepage memory failure functions to folios".
+Use a folio internally to shmem_write_end() which saves a number of calls
+to compound_head() and lets us get rid of the custom code to zero out the
+rest of a THP and supports folios of arbitrary size.
 
-This series contains a 1:1 straightforward page to folio conversion for
-memory failure functions which deal with huge pages.  I renamed a few
-functions to fit with how other folio operating functions are named. 
-These include:
-
-hugetlb_clear_page_hwpoison -> folio_clear_hugetlb_hwpoison
-free_raw_hwp_pages -> folio_free_raw_hwp
-__free_raw_hwp_pages -> __folio_free_raw_hwp
-hugetlb_set_page_hwpoison -> folio_set_hugetlb_hwpoison
-
-The goal of this series was to reduce users of the hugetlb specific page
-flag macros which take in a page so users are protected by the compiler to
-make sure they are operating on a head page.
-
-
-This patch (of 8):
-
-Use a folio throughout the function rather than using a head page.  This
-also reduces the users of the page version of hugetlb specific page flags.
-
-Link: https://lkml.kernel.org/r/20230112204608.80136-2-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20230112131031.1209553-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/shmem.c |   30 ++++++++++--------------------
+ 1 file changed, 10 insertions(+), 20 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios
-+++ a/mm/memory-failure.c
-@@ -1807,20 +1807,20 @@ int __get_huge_page_for_hwpoison(unsigne
- 				 bool *migratable_cleared)
+--- a/mm/shmem.c~shmem-convert-shmem_write_end-to-use-a-folio
++++ a/mm/shmem.c
+@@ -2578,33 +2578,23 @@ shmem_write_end(struct file *file, struc
+ 			loff_t pos, unsigned len, unsigned copied,
+ 			struct page *page, void *fsdata)
  {
- 	struct page *page = pfn_to_page(pfn);
--	struct page *head = compound_head(page);
 +	struct folio *folio = page_folio(page);
- 	int ret = 2;	/* fallback to normal page handling */
- 	bool count_increased = false;
+ 	struct inode *inode = mapping->host;
  
--	if (!PageHeadHuge(head))
-+	if (!folio_test_hugetlb(folio))
- 		goto out;
+ 	if (pos + copied > inode->i_size)
+ 		i_size_write(inode, pos + copied);
  
- 	if (flags & MF_COUNT_INCREASED) {
- 		ret = 1;
- 		count_increased = true;
--	} else if (HPageFreed(head)) {
-+	} else if (folio_test_hugetlb_freed(folio)) {
- 		ret = 0;
--	} else if (HPageMigratable(head)) {
--		ret = get_page_unless_zero(head);
-+	} else if (folio_test_hugetlb_migratable(folio)) {
-+		ret = folio_try_get(folio);
- 		if (ret)
- 			count_increased = true;
- 	} else {
-@@ -1829,24 +1829,24 @@ int __get_huge_page_for_hwpoison(unsigne
- 			goto out;
+-	if (!PageUptodate(page)) {
+-		struct page *head = compound_head(page);
+-		if (PageTransCompound(page)) {
+-			int i;
+-
+-			for (i = 0; i < HPAGE_PMD_NR; i++) {
+-				if (head + i == page)
+-					continue;
+-				clear_highpage(head + i);
+-				flush_dcache_page(head + i);
+-			}
+-		}
+-		if (copied < PAGE_SIZE) {
+-			unsigned from = pos & (PAGE_SIZE - 1);
+-			zero_user_segments(page, 0, from,
+-					from + copied, PAGE_SIZE);
++	if (!folio_test_uptodate(folio)) {
++		if (copied < folio_size(folio)) {
++			size_t from = offset_in_folio(folio, pos);
++			folio_zero_segments(folio, 0, from,
++					from + copied, folio_size(folio));
+ 		}
+-		SetPageUptodate(head);
++		folio_mark_uptodate(folio);
  	}
+-	set_page_dirty(page);
+-	unlock_page(page);
+-	put_page(page);
++	folio_mark_dirty(folio);
++	folio_unlock(folio);
++	folio_put(folio);
  
--	if (hugetlb_set_page_hwpoison(head, page)) {
-+	if (hugetlb_set_page_hwpoison(&folio->page, page)) {
- 		ret = -EHWPOISON;
- 		goto out;
- 	}
- 
- 	/*
--	 * Clearing HPageMigratable for hwpoisoned hugepages to prevent them
-+	 * Clearing hugetlb_migratable for hwpoisoned hugepages to prevent them
- 	 * from being migrated by memory hotremove.
- 	 */
--	if (count_increased && HPageMigratable(head)) {
--		ClearHPageMigratable(head);
-+	if (count_increased && folio_test_hugetlb_migratable(folio)) {
-+		folio_clear_hugetlb_migratable(folio);
- 		*migratable_cleared = true;
- 	}
- 
- 	return ret;
- out:
- 	if (count_increased)
--		put_page(head);
-+		folio_put(folio);
- 	return ret;
+ 	return copied;
  }
- 
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-move-folio_set_compound_order-to-mm-internalh.patch
-mm-introduce-folio_is_pfmemalloc.patch
-mm-remove-the-hugetlb-field-from-struct-page.patch
-mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios.patch
-mm-memory-failure-convert-try_memory_failure_hugetlb-to-folios.patch
-mm-memory-failure-convert-hugetlb_clear_page_hwpoison-to-folios.patch
-mm-memory-failure-convert-free_raw_hwp_pages-to-folios.patch
-mm-memory-failure-convert-raw_hwp_list_head-to-folios.patch
-mm-memory-failure-convert-__free_raw_hwp_pages-to-folios.patch
-mm-memory-failure-convert-hugetlb_set_page_hwpoison-to-folios.patch
-mm-memory-failure-convert-unpoison_memory-to-folios.patch
+buffer-add-b_folio-as-an-alias-of-b_page.patch
+buffer-replace-obvious-uses-of-b_page-with-b_folio.patch
+buffer-use-b_folio-in-touch_buffer.patch
+buffer-use-b_folio-in-end_buffer_async_read.patch
+buffer-use-b_folio-in-end_buffer_async_write.patch
+page_io-remove-buffer_head-include.patch
+buffer-use-b_folio-in-mark_buffer_dirty.patch
+gfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
+jbd2-replace-obvious-uses-of-b_page-with-b_folio.patch
+nilfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
+reiserfs-replace-obvious-uses-of-b_page-with-b_folio.patch
+mpage-use-b_folio-in-do_mpage_readpage.patch
+mm-memcg-add-folio_memcg_check.patch
+mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
+mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped.patch
+doc-clarify-refcount-section-by-referring-to-folios-pages.patch
+mm-convert-total_compound_mapcount-to-folio_total_mapcount.patch
+mm-convert-page_remove_rmap-to-use-a-folio-internally.patch
+mm-convert-page_add_anon_rmap-to-use-a-folio-internally.patch
+mm-convert-page_add_file_rmap-to-use-a-folio-internally.patch
+mm-add-folio_add_new_anon_rmap.patch
+mm-add-folio_add_new_anon_rmap-fix-2.patch
+page_alloc-use-folio-fields-directly.patch
+mm-use-a-folio-in-hugepage_add_anon_rmap-and-hugepage_add_new_anon_rmap.patch
+mm-use-entire_mapcount-in-__page_dup_rmap.patch
+mm-debug-remove-call-to-head_compound_mapcount.patch
+hugetlb-remove-uses-of-folio_mapcount_ptr.patch
+mm-convert-page_mapcount-to-use-folio_entire_mapcount.patch
+mm-remove-head_compound_mapcount-and-_ptr-functions.patch
+mm-reimplement-compound_order.patch
+mm-reimplement-compound_nr.patch
+mm-convert-set_compound_page_dtor-and-set_compound_order-to-folios.patch
+mm-convert-is_transparent_hugepage-to-use-a-folio.patch
+mm-convert-destroy_large_folio-to-use-folio_dtor.patch
+hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch
+mm-remove-first-tail-page-members-from-struct-page.patch
+doc-correct-struct-folio-kernel-doc.patch
+mm-move-page-deferred_list-to-folio-_deferred_list.patch
+mm-huge_memory-remove-page_deferred_list.patch
+mm-huge_memory-convert-get_deferred_split_queue-to-take-a-folio.patch
+mm-convert-deferred_split_huge_page-to-deferred_split_folio.patch
+shmem-convert-shmem_write_end-to-use-a-folio.patch
 
