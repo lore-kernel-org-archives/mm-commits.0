@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD6ECC63797
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 00:15:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3CF0C5479D
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 00:15:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229817AbjALAPk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Jan 2023 19:15:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49750 "EHLO
+        id S235376AbjALAPm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Jan 2023 19:15:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235525AbjALAPb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 19:15:31 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCC8737536;
-        Wed, 11 Jan 2023 16:15:29 -0800 (PST)
+        with ESMTP id S229935AbjALAPf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2023 19:15:35 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2128D11F;
+        Wed, 11 Jan 2023 16:15:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7BD6261EFC;
-        Thu, 12 Jan 2023 00:15:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C96FFC433EF;
-        Thu, 12 Jan 2023 00:15:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 66EE8B81D92;
+        Thu, 12 Jan 2023 00:15:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F570C433EF;
+        Thu, 12 Jan 2023 00:15:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673482528;
-        bh=r7rWJHIb7WZZ9kmEdcYLhQqBp5BbDV4ag9v1yEPvMF4=;
+        s=korg; t=1673482532;
+        bh=nqYnhvCD2FoAX8VHrPhxAzffPwBx05p+cxXvDxTBTIY=;
         h=Date:To:From:Subject:From;
-        b=O+PO3z3KJFqHBtt0OaQLT24sA+K/AApPEUhALPpqy95hbW1GL0VlcRK+gQSGTHss2
-         FTUGu/0zqqd53CFeCzpJ45+6DhYwvEpMHHePyddmlZN3Of5siY9vkAZVcoi09fzRDk
-         sO/CVeMaVqhMX7O5/T9d9LqBoD/V2+ei0ABtCbKg=
-Date:   Wed, 11 Jan 2023 16:15:27 -0800
+        b=dZxCIxtZxm1vP1j2HwaNNydDq8EMrxgEodIpsKLsQ8ValluBDDc2wykFPpiRs6aGn
+         HL6rtwL8A7tVH+ZqyilwBAdbRMQkwopaDCnPDD1e05Y+lxg88+OE/Wr7Hf2BTr5w2O
+         66lMXJTqPg2Q794dwB+J0airchEYRsJEEq5sBrLc=
+Date:   Wed, 11 Jan 2023 16:15:30 -0800
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         vbabka@suse.cz, stable@vger.kernel.org, Liam.Howlett@oracle.com,
         liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nommu-fix-memory-leak-in-do_mmap-error-path.patch removed from -mm tree
-Message-Id: <20230112001528.C96FFC433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nommu-fix-split_vma-map_count-error.patch removed from -mm tree
+Message-Id: <20230112001532.0F570C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,23 +42,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nommu: fix memory leak in do_mmap() error path
+     Subject: nommu: fix split_vma() map_count error
 has been removed from the -mm tree.  Its filename was
-     nommu-fix-memory-leak-in-do_mmap-error-path.patch
+     nommu-fix-split_vma-map_count-error.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: nommu: fix memory leak in do_mmap() error path
-Date: Mon, 9 Jan 2023 20:55:21 +0000
+Subject: nommu: fix split_vma() map_count error
+Date: Mon, 9 Jan 2023 20:58:20 +0000
 
-The preallocation of the maple tree nodes may leak if the error path to
-"error_just_free" is taken.  Fix this by moving the freeing of the maple
-tree nodes to a shared location for all error paths.
+During the maple tree conversion of nommu, an error in counting the VMAs
+was introduced by counting the existing VMA again.  The counting used to
+be decremented by one and incremented by two, but now it only increments
+by two.  Fix the counting error by moving the increment outside the
+setup_vma_to_mm() function to the callers.
 
-Link: https://lkml.kernel.org/r/20230109205507.955577-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230109205809.956325-1-Liam.Howlett@oracle.com
 Fixes: 8220543df148 ("nommu: remove uses of VMA linked list")
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -68,27 +70,43 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/nommu.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/nommu.c~nommu-fix-memory-leak-in-do_mmap-error-path
+--- a/mm/nommu.c~nommu-fix-split_vma-map_count-error
 +++ a/mm/nommu.c
-@@ -1240,6 +1240,7 @@ share:
- error_just_free:
- 	up_write(&nommu_region_sem);
- error:
-+	mas_destroy(&mas);
- 	if (region->vm_file)
- 		fput(region->vm_file);
- 	kmem_cache_free(vm_region_jar, region);
-@@ -1250,7 +1251,6 @@ error:
+@@ -559,7 +559,6 @@ void vma_mas_remove(struct vm_area_struc
  
- sharing_violation:
- 	up_write(&nommu_region_sem);
--	mas_destroy(&mas);
- 	pr_warn("Attempt to share mismatched mappings\n");
- 	ret = -EINVAL;
- 	goto error;
+ static void setup_vma_to_mm(struct vm_area_struct *vma, struct mm_struct *mm)
+ {
+-	mm->map_count++;
+ 	vma->vm_mm = mm;
+ 
+ 	/* add the VMA to the mapping */
+@@ -587,6 +586,7 @@ static void mas_add_vma_to_mm(struct ma_
+ 	BUG_ON(!vma->vm_region);
+ 
+ 	setup_vma_to_mm(vma, mm);
++	mm->map_count++;
+ 
+ 	/* add the VMA to the tree */
+ 	vma_mas_store(vma, mas);
+@@ -1347,6 +1347,7 @@ int split_vma(struct mm_struct *mm, stru
+ 	if (vma->vm_file)
+ 		return -ENOMEM;
+ 
++	mm = vma->vm_mm;
+ 	if (mm->map_count >= sysctl_max_map_count)
+ 		return -ENOMEM;
+ 
+@@ -1398,6 +1399,7 @@ int split_vma(struct mm_struct *mm, stru
+ 	mas_set_range(&mas, vma->vm_start, vma->vm_end - 1);
+ 	mas_store(&mas, vma);
+ 	vma_mas_store(new, &mas);
++	mm->map_count++;
+ 	return 0;
+ 
+ err_mas_preallocate:
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
