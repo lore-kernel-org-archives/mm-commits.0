@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95EDAC3DA78
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 03:45:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93A04C46467
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 03:45:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230040AbjANDpJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Jan 2023 22:45:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35868 "EHLO
+        id S229924AbjANDp0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Jan 2023 22:45:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35896 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229992AbjANDpI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 22:45:08 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04BA18E9BA
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 19:45:06 -0800 (PST)
+        with ESMTP id S230088AbjANDpY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 22:45:24 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AADE8E9BA
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 19:45:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 93A09B822BB
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 03:45:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BB43C433D2;
-        Sat, 14 Jan 2023 03:45:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AF9806239C
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 03:45:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2046C433D2;
+        Sat, 14 Jan 2023 03:45:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673667904;
-        bh=cs6ji+8qzcY8jdozv1lD8V0ZToFCz4oZtJMcbFU8oqI=;
+        s=korg; t=1673667922;
+        bh=fhZR14tWQyRpfMk3ZLk6CYiZfJ8tgsfjKp/nuRHyWkw=;
         h=Date:To:From:Subject:From;
-        b=jcA6XF1rg4Cdnl54zWqLwCqDCO6f1xTGgYGE1mKzYnHyo3WHoRFbCjwRyTsC6T1hB
-         kHDKzf129bPvq5YrdsThiF7fRrFNzpE9jONLvPv+s9I838cIkJsSSNBmyGz0A2O9Yn
-         A7sm2kAXkkM89XG5XwRiaconR1k3/4Dx7CtHB60E=
-Date:   Fri, 13 Jan 2023 19:45:03 -0800
+        b=LlCAHNsTiyurYi8W6pVNrb4UqEU9Vh7D4LrhEfUrAHsXCZaWq2xiZm8PbjtayT1/c
+         hTO5uCgBmb9ap1bCSJGtNqoYoSfhHWI+vuITycq0BaEgn6rdjbail6Yc5LSZqHzEtD
+         GvTkG+pWkbyARFHZaqnb3Rx1Rix1VhuNb0lU72Rk=
+Date:   Fri, 13 Jan 2023 19:45:21 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         mike.kravetz@oracle.com, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page.patch added to mm-unstable branch
-Message-Id: <20230114034504.1BB43C433D2@smtp.kernel.org>
+Subject: + mm-khugepaged-convert-release_pte_pages-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20230114034521.F2046C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: introduce release_pte_folio() to replace release_pte_page()
+     Subject: mm/khugepaged: convert release_pte_pages() to use folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page.patch
+     mm-khugepaged-convert-release_pte_pages-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-convert-release_pte_pages-to-use-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,49 +66,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/khugepaged: introduce release_pte_folio() to replace release_pte_page()
-Date: Fri, 13 Jan 2023 16:15:55 -0800
+Subject: mm/khugepaged: convert release_pte_pages() to use folios
+Date: Fri, 13 Jan 2023 16:15:56 -0800
 
-release_pte_page() is converted to be a wrapper for release_pte_folio() to
-help facilitate the khugepaged conversion to folios.
+Converts release_pte_pages() to use folios instead of pages.
 
-This replaces 3 calls to compound_head() with 1, and saves 85 bytes of
-kernel text.
-
-Link: https://lkml.kernel.org/r/20230114001556.43795-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230114001556.43795-2-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>,
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/khugepaged.c~mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page
+--- a/mm/khugepaged.c~mm-khugepaged-convert-release_pte_pages-to-use-folios
 +++ a/mm/khugepaged.c
-@@ -492,13 +492,18 @@ void __khugepaged_exit(struct mm_struct
+@@ -509,20 +509,20 @@ static void release_pte_page(struct page
+ static void release_pte_pages(pte_t *pte, pte_t *_pte,
+ 		struct list_head *compound_pagelist)
+ {
+-	struct page *page, *tmp;
++	struct folio *folio, *tmp;
+ 
+ 	while (--_pte >= pte) {
+ 		pte_t pteval = *_pte;
+ 
+-		page = pte_page(pteval);
++		folio = pfn_folio(pte_pfn(pteval));
+ 		if (!pte_none(pteval) && !is_zero_pfn(pte_pfn(pteval)) &&
+-				!PageCompound(page))
+-			release_pte_page(page);
++				!folio_test_large(folio))
++			release_pte_folio(folio);
+ 	}
+ 
+-	list_for_each_entry_safe(page, tmp, compound_pagelist, lru) {
+-		list_del(&page->lru);
+-		release_pte_page(page);
++	list_for_each_entry_safe(folio, tmp, compound_pagelist, lru) {
++		list_del(&folio->lru);
++		release_pte_folio(folio);
  	}
  }
  
-+static void release_pte_folio(struct folio *folio)
-+{
-+	node_stat_mod_folio(folio,
-+			NR_ISOLATED_ANON + folio_is_file_lru(folio),
-+			-folio_nr_pages(folio));
-+	folio_unlock(folio);
-+	folio_putback_lru(folio);
-+}
-+
- static void release_pte_page(struct page *page)
- {
--	mod_node_page_state(page_pgdat(page),
--			NR_ISOLATED_ANON + page_is_file_lru(page),
--			-compound_nr(page));
--	unlock_page(page);
--	putback_lru_page(page);
-+	release_pte_folio(page_folio(page));
- }
- 
- static void release_pte_pages(pte_t *pte, pte_t *_pte,
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
