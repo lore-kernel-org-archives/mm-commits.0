@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B58FC6379F
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 03:53:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38013C67871
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 03:53:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229889AbjANDx1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Jan 2023 22:53:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41470 "EHLO
+        id S230252AbjANDx2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Jan 2023 22:53:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231177AbjANDxU (ORCPT
+        with ESMTP id S231143AbjANDxU (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 22:53:20 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2F1060DC
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 19:53:13 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CAD82014
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 19:53:07 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 563FF623B3
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 03:53:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8D41C433F0;
-        Sat, 14 Jan 2023 03:53:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 96C7F623B3
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 03:53:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5030C433D2;
+        Sat, 14 Jan 2023 03:53:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673668392;
-        bh=AbwUK9KDRsQpdlqmmqrhW+fXOelecKVMYPDx0CiqmwQ=;
+        s=korg; t=1673668386;
+        bh=r1j8s7Lh+XToegzVAF709/d5lEPgIO3ijt5lj/JsPaY=;
         h=Date:To:From:Subject:From;
-        b=froL6sKuP6xEL1byDqL+DmXjBHDqjJ+iGBhNRD3P4Cm9iq4K1xokRIMyL+iKL3LSX
-         EYQ/K/V8VfgD+/XNLQ5okOY5T/WOKDTsvExLzANbrJjHkkRK7skFDSJ9UOG0UWSueh
-         QD06HWjUR7BmWUuLQkuoVtq0qkC2IJLRvgAxPU8Q=
-Date:   Fri, 13 Jan 2023 19:53:12 -0800
+        b=exGPz12rnLR8YE9INr0Xa0YpfcLpPptZdkdNFNSK3TOeVp46/rttyrRmdkYht+jl/
+         kOxzfObFt751lIzq0QO4fRLETG7srFi4qXfCeQ4TVTZSSf0qfQFQD2i8bkm55DL74z
+         75AsvObaJ0yaJXG/jHcFXuk8J7FhCcl1pYtOEBlI=
+Date:   Fri, 13 Jan 2023 19:53:04 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         songmuchun@bytedance.com, mike.kravetz@oracle.com,
         jhubbard@nvidia.com, sidhartha.kumar@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-demote_free_huge_page-to-folios.patch added to mm-unstable branch
-Message-Id: <20230114035312.A8D41C433F0@smtp.kernel.org>
+Subject: + mm-hugetlb-increase-use-of-folios-in-alloc_huge_page.patch added to mm-unstable branch
+Message-Id: <20230114035305.D5030C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: convert demote_free_huge_page to folios
+     Subject: mm/hugetlb: increase use of folios in alloc_huge_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-demote_free_huge_page-to-folios.patch
+     mm-hugetlb-increase-use-of-folios-in-alloc_huge_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-demote_free_huge_page-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-increase-use-of-folios-in-alloc_huge_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,108 +67,179 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: convert demote_free_huge_page to folios
-Date: Fri, 13 Jan 2023 16:30:57 -0600
+Subject: mm/hugetlb: increase use of folios in alloc_huge_page()
+Date: Fri, 13 Jan 2023 16:30:54 -0600
 
-Change demote_free_huge_page to demote_free_hugetlb_folio() and change
-demote_pool_huge_page() pass in a folio.
+Change hugetlb_cgroup_commit_charge{,_rsvd}(), dequeue_huge_page_vma() and
+alloc_buddy_huge_page_with_mpol() to use folios so alloc_huge_page() is
+cleaned by operating on folios until its return.
 
-Link: https://lkml.kernel.org/r/20230113223057.173292-9-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20230113223057.173292-6-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/hugetlb.c~mm-hugetlb-convert-demote_free_huge_page-to-folios
-+++ a/mm/hugetlb.c
-@@ -3579,12 +3579,12 @@ out:
- 	return 0;
+--- a/include/linux/hugetlb_cgroup.h~mm-hugetlb-increase-use-of-folios-in-alloc_huge_page
++++ a/include/linux/hugetlb_cgroup.h
+@@ -141,10 +141,10 @@ extern int hugetlb_cgroup_charge_cgroup_
+ 					     struct hugetlb_cgroup **ptr);
+ extern void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
+ 					 struct hugetlb_cgroup *h_cg,
+-					 struct page *page);
++					 struct folio *folio);
+ extern void hugetlb_cgroup_commit_charge_rsvd(int idx, unsigned long nr_pages,
+ 					      struct hugetlb_cgroup *h_cg,
+-					      struct page *page);
++					      struct folio *folio);
+ extern void hugetlb_cgroup_uncharge_folio(int idx, unsigned long nr_pages,
+ 					 struct folio *folio);
+ extern void hugetlb_cgroup_uncharge_folio_rsvd(int idx, unsigned long nr_pages,
+@@ -230,14 +230,14 @@ static inline int hugetlb_cgroup_charge_
+ 
+ static inline void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
+ 						struct hugetlb_cgroup *h_cg,
+-						struct page *page)
++						struct folio *folio)
+ {
  }
  
--static int demote_free_huge_page(struct hstate *h, struct page *page)
-+static int demote_free_hugetlb_folio(struct hstate *h, struct folio *folio)
+ static inline void
+ hugetlb_cgroup_commit_charge_rsvd(int idx, unsigned long nr_pages,
+ 				  struct hugetlb_cgroup *h_cg,
+-				  struct page *page)
++				  struct folio *folio)
  {
--	int i, nid = page_to_nid(page);
-+	int i, nid = folio_nid(folio);
- 	struct hstate *target_hstate;
--	struct folio *folio = page_folio(page);
- 	struct page *subpage;
-+	struct folio *inner_folio;
- 	int rc = 0;
+ }
  
- 	target_hstate = size_to_hstate(PAGE_SIZE << h->demote_order);
-@@ -3592,18 +3592,18 @@ static int demote_free_huge_page(struct
- 	remove_hugetlb_folio_for_demote(h, folio, false);
+--- a/mm/hugetlb.c~mm-hugetlb-increase-use-of-folios-in-alloc_huge_page
++++ a/mm/hugetlb.c
+@@ -1348,7 +1348,7 @@ static unsigned long available_huge_page
+ 	return h->free_huge_pages - h->resv_huge_pages;
+ }
+ 
+-static struct page *dequeue_huge_page_vma(struct hstate *h,
++static struct folio *dequeue_hugetlb_folio_vma(struct hstate *h,
+ 				struct vm_area_struct *vma,
+ 				unsigned long address, int avoid_reserve,
+ 				long chg)
+@@ -1392,7 +1392,7 @@ static struct page *dequeue_huge_page_vm
+ 	}
+ 
+ 	mpol_cond_put(mpol);
+-	return &folio->page;
++	return folio;
+ 
+ err:
+ 	return NULL;
+@@ -2446,7 +2446,7 @@ static struct page *alloc_migrate_huge_p
+  * Use the VMA's mpolicy to allocate a huge page from the buddy.
+  */
+ static
+-struct page *alloc_buddy_huge_page_with_mpol(struct hstate *h,
++struct folio *alloc_buddy_hugetlb_folio_with_mpol(struct hstate *h,
+ 		struct vm_area_struct *vma, unsigned long addr)
+ {
+ 	struct folio *folio = NULL;
+@@ -2469,7 +2469,7 @@ struct page *alloc_buddy_huge_page_with_
+ 	if (!folio)
+ 		folio = alloc_surplus_hugetlb_folio(h, gfp_mask, nid, nodemask);
+ 	mpol_cond_put(mpol);
+-	return &folio->page;
++	return folio;
+ }
+ 
+ /* page migration callback function */
+@@ -3018,7 +3018,6 @@ struct page *alloc_huge_page(struct vm_a
+ {
+ 	struct hugepage_subpool *spool = subpool_vma(vma);
+ 	struct hstate *h = hstate_vma(vma);
+-	struct page *page;
+ 	struct folio *folio;
+ 	long map_chg, map_commit;
+ 	long gbl_chg;
+@@ -3082,34 +3081,34 @@ struct page *alloc_huge_page(struct vm_a
+ 	 * from the global free pool (global change).  gbl_chg == 0 indicates
+ 	 * a reservation exists for the allocation.
+ 	 */
+-	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve, gbl_chg);
+-	if (!page) {
++	folio = dequeue_hugetlb_folio_vma(h, vma, addr, avoid_reserve, gbl_chg);
++	if (!folio) {
+ 		spin_unlock_irq(&hugetlb_lock);
+-		page = alloc_buddy_huge_page_with_mpol(h, vma, addr);
+-		if (!page)
++		folio = alloc_buddy_hugetlb_folio_with_mpol(h, vma, addr);
++		if (!folio)
+ 			goto out_uncharge_cgroup;
+ 		spin_lock_irq(&hugetlb_lock);
+ 		if (!avoid_reserve && vma_has_reserves(vma, gbl_chg)) {
+-			SetHPageRestoreReserve(page);
++			folio_set_hugetlb_restore_reserve(folio);
+ 			h->resv_huge_pages--;
+ 		}
+-		list_add(&page->lru, &h->hugepage_activelist);
+-		set_page_refcounted(page);
++		list_add(&folio->lru, &h->hugepage_activelist);
++		folio_ref_unfreeze(folio, 1);
+ 		/* Fall through */
+ 	}
+-	folio = page_folio(page);
+-	hugetlb_cgroup_commit_charge(idx, pages_per_huge_page(h), h_cg, page);
++
++	hugetlb_cgroup_commit_charge(idx, pages_per_huge_page(h), h_cg, folio);
+ 	/* If allocation is not consuming a reservation, also store the
+ 	 * hugetlb_cgroup pointer on the page.
+ 	 */
+ 	if (deferred_reserve) {
+ 		hugetlb_cgroup_commit_charge_rsvd(idx, pages_per_huge_page(h),
+-						  h_cg, page);
++						  h_cg, folio);
+ 	}
+ 
  	spin_unlock_irq(&hugetlb_lock);
  
--	rc = hugetlb_vmemmap_restore(h, page);
-+	rc = hugetlb_vmemmap_restore(h, &folio->page);
- 	if (rc) {
--		/* Allocation of vmemmmap failed, we can not demote page */
-+		/* Allocation of vmemmmap failed, we can not demote folio */
- 		spin_lock_irq(&hugetlb_lock);
--		set_page_refcounted(page);
--		add_hugetlb_folio(h, page_folio(page), false);
-+		folio_ref_unfreeze(folio, 1);
-+		add_hugetlb_folio(h, folio, false);
- 		return rc;
- 	}
+-	hugetlb_set_page_subpool(page, spool);
++	hugetlb_set_folio_subpool(folio, spool);
  
- 	/*
- 	 * Use destroy_compound_hugetlb_folio_for_demote for all huge page
--	 * sizes as it will not ref count pages.
-+	 * sizes as it will not ref count folios.
- 	 */
- 	destroy_compound_hugetlb_folio_for_demote(folio, huge_page_order(h));
- 
-@@ -3618,15 +3618,15 @@ static int demote_free_huge_page(struct
- 	mutex_lock(&target_hstate->resize_lock);
- 	for (i = 0; i < pages_per_huge_page(h);
- 				i += pages_per_huge_page(target_hstate)) {
--		subpage = nth_page(page, i);
--		folio = page_folio(subpage);
-+		subpage = folio_page(folio, i);
-+		inner_folio = page_folio(subpage);
- 		if (hstate_is_gigantic(target_hstate))
--			prep_compound_gigantic_folio_for_demote(folio,
-+			prep_compound_gigantic_folio_for_demote(inner_folio,
- 							target_hstate->order);
- 		else
- 			prep_compound_page(subpage, target_hstate->order);
--		set_page_private(subpage, 0);
--		prep_new_hugetlb_folio(target_hstate, folio, nid);
-+		folio_change_private(inner_folio, NULL);
-+		prep_new_hugetlb_folio(target_hstate, inner_folio, nid);
- 		free_huge_page(subpage);
+ 	map_commit = vma_commit_reservation(h, vma, addr);
+ 	if (unlikely(map_chg > map_commit)) {
+@@ -3130,7 +3129,7 @@ struct page *alloc_huge_page(struct vm_a
+ 			hugetlb_cgroup_uncharge_folio_rsvd(hstate_index(h),
+ 					pages_per_huge_page(h), folio);
  	}
- 	mutex_unlock(&target_hstate->resize_lock);
-@@ -3648,7 +3648,7 @@ static int demote_pool_huge_page(struct
- 	__must_hold(&hugetlb_lock)
+-	return page;
++	return &folio->page;
+ 
+ out_uncharge_cgroup:
+ 	hugetlb_cgroup_uncharge_cgroup(idx, pages_per_huge_page(h), h_cg);
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb-increase-use-of-folios-in-alloc_huge_page
++++ a/mm/hugetlb_cgroup.c
+@@ -331,19 +331,15 @@ static void __hugetlb_cgroup_commit_char
+ 
+ void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
+ 				  struct hugetlb_cgroup *h_cg,
+-				  struct page *page)
++				  struct folio *folio)
  {
- 	int nr_nodes, node;
--	struct page *page;
-+	struct folio *folio;
- 
- 	lockdep_assert_held(&hugetlb_lock);
- 
-@@ -3659,11 +3659,10 @@ static int demote_pool_huge_page(struct
- 	}
- 
- 	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
--		list_for_each_entry(page, &h->hugepage_freelists[node], lru) {
--			if (PageHWPoison(page))
-+		list_for_each_entry(folio, &h->hugepage_freelists[node], lru) {
-+			if (folio_test_hwpoison(folio))
- 				continue;
+-	struct folio *folio = page_folio(page);
 -
--			return demote_free_huge_page(h, page);
-+			return demote_free_hugetlb_folio(h, folio);
- 		}
- 	}
+ 	__hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, folio, false);
+ }
+ 
+ void hugetlb_cgroup_commit_charge_rsvd(int idx, unsigned long nr_pages,
+ 				       struct hugetlb_cgroup *h_cg,
+-				       struct page *page)
++				       struct folio *folio)
+ {
+-	struct folio *folio = page_folio(page);
+-
+ 	__hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, folio, true);
+ }
  
 _
 
