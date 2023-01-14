@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2027C6379F
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 03:53:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15E2CC46467
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:06:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229992AbjANDxd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Jan 2023 22:53:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41166 "EHLO
+        id S230150AbjANEGr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Jan 2023 23:06:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231201AbjANDxU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 22:53:20 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5EDAE98
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 19:53:05 -0800 (PST)
+        with ESMTP id S229678AbjANEGp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:06:45 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C58AD90
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:06:44 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4BA60623AF
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 03:53:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3B7EC433D2;
-        Sat, 14 Jan 2023 03:53:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 84254B81AA1
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:06:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AD07C433D2;
+        Sat, 14 Jan 2023 04:06:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673668383;
-        bh=pJT04oTd2V7tBgdy4y1ZEOu0WykO4pCfL1O/T16Pu64=;
+        s=korg; t=1673669202;
+        bh=hCmxboOQHur2oP5/VERw1YYp+wyWu71majkRoxMptqc=;
         h=Date:To:From:Subject:From;
-        b=l5H8k5TXHr2BPqbVqLZpubv5EDPrCgVrzDLJTEFdoKaFzseZoeUsvxAs1pH2Ion8S
-         L9JwfRGCJg67gHZdAH/iHvdahuXP2NJq0zdY7P6q8FYiSWFgeSe/LFvHhPTZp1AFjL
-         0ocKBDAvwTLyrP2PbcxzR0qkcQ/+N8BsTWmlsqp0=
-Date:   Fri, 13 Jan 2023 19:53:03 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, mike.kravetz@oracle.com,
-        jhubbard@nvidia.com, sidhartha.kumar@oracle.com,
+        b=wtHU8iijQEKgIcmx2maRLa58jTiYo6f8WGR8HgENLBb+OFs9UZ12WZC/KPbrZZhQF
+         VYl0Zp17VRTABu0Y2/XFNO+wuRLdJk+t4YALs9Li9shTQzHE890Non+//IVVWgOSKU
+         yj60VZ82Ln/Y6YwXBSOBoeMChfRCL6XUwCK0DGfY=
+Date:   Fri, 13 Jan 2023 20:06:41 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@kernel.org,
+        mingo@redhat.com, kbingham@kernel.org, jan.kiszka@siemens.com,
+        gregkh@linuxfoundation.org, dmitrii.bundin.a@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-alloc_surplus_huge_page-to-folios.patch added to mm-unstable branch
-Message-Id: <20230114035303.A3B7EC433D2@smtp.kernel.org>
+Subject: + scripts-gdb-add-mm-introspection-utils-v5.patch added to mm-nonmm-unstable branch
+Message-Id: <20230114040642.2AD07C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: convert alloc_surplus_huge_page() to folios
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-alloc_surplus_huge_page-to-folios.patch
+     Subject: scripts/gdb: add mm introspection utils
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-add-mm-introspection-utils-v5.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-alloc_surplus_huge_page-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-add-mm-introspection-utils-v5.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,139 +66,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: convert alloc_surplus_huge_page() to folios
-Date: Fri, 13 Jan 2023 16:30:53 -0600
+From: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
+Subject: scripts/gdb: add mm introspection utils
+Date: Fri, 13 Jan 2023 20:51:51 +0300
 
-Change alloc_surplus_huge_page() to alloc_surplus_hugetlb_folio() and
-update its callers.
+added SPDX line, other tweaks
 
-Link: https://lkml.kernel.org/r/20230113223057.173292-5-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20230113175151.22278-1-dmitrii.bundin.a@gmail.com
+Signed-off-by: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/hugetlb.c~mm-hugetlb-convert-alloc_surplus_huge_page-to-folios
-+++ a/mm/hugetlb.c
-@@ -2378,8 +2378,8 @@ int dissolve_free_huge_pages(unsigned lo
- /*
-  * Allocates a fresh surplus page from the page allocator.
-  */
--static struct page *alloc_surplus_huge_page(struct hstate *h, gfp_t gfp_mask,
--						int nid, nodemask_t *nmask)
-+static struct folio *alloc_surplus_hugetlb_folio(struct hstate *h,
-+				gfp_t gfp_mask,	int nid, nodemask_t *nmask)
- {
- 	struct folio *folio = NULL;
+--- a/scripts/gdb/linux/mm.py~scripts-gdb-add-mm-introspection-utils-v5
++++ a/scripts/gdb/linux/mm.py
+@@ -1,3 +1,4 @@
++# SPDX-License-Identifier: GPL-2.0-only
+ #
+ # gdb helper commands and functions for Linux kernel debugging
+ #
+@@ -6,8 +7,6 @@
+ # Authors:
+ #  Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
+ #
+-# This work is licensed under the terms of the GNU GPL version 2.
+-#
  
-@@ -2416,7 +2416,7 @@ static struct page *alloc_surplus_huge_p
- out_unlock:
- 	spin_unlock_irq(&hugetlb_lock);
+ import gdb
  
--	return &folio->page;
-+	return folio;
- }
- 
- static struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
-@@ -2449,7 +2449,7 @@ static
- struct page *alloc_buddy_huge_page_with_mpol(struct hstate *h,
- 		struct vm_area_struct *vma, unsigned long addr)
- {
--	struct page *page = NULL;
-+	struct folio *folio = NULL;
- 	struct mempolicy *mpol;
- 	gfp_t gfp_mask = htlb_alloc_mask(h);
- 	int nid;
-@@ -2460,16 +2460,16 @@ struct page *alloc_buddy_huge_page_with_
- 		gfp_t gfp = gfp_mask | __GFP_NOWARN;
- 
- 		gfp &=  ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
--		page = alloc_surplus_huge_page(h, gfp, nid, nodemask);
-+		folio = alloc_surplus_hugetlb_folio(h, gfp, nid, nodemask);
- 
- 		/* Fallback to all nodes if page==NULL */
- 		nodemask = NULL;
- 	}
- 
--	if (!page)
--		page = alloc_surplus_huge_page(h, gfp_mask, nid, nodemask);
-+	if (!folio)
-+		folio = alloc_surplus_hugetlb_folio(h, gfp_mask, nid, nodemask);
- 	mpol_cond_put(mpol);
--	return page;
-+	return &folio->page;
- }
- 
- /* page migration callback function */
-@@ -2518,6 +2518,7 @@ static int gather_surplus_pages(struct h
- 	__must_hold(&hugetlb_lock)
- {
- 	LIST_HEAD(surplus_list);
-+	struct folio *folio;
- 	struct page *page, *tmp;
- 	int ret;
- 	long i;
-@@ -2537,13 +2538,13 @@ static int gather_surplus_pages(struct h
- retry:
- 	spin_unlock_irq(&hugetlb_lock);
- 	for (i = 0; i < needed; i++) {
--		page = alloc_surplus_huge_page(h, htlb_alloc_mask(h),
-+		folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
- 				NUMA_NO_NODE, NULL);
--		if (!page) {
-+		if (!folio) {
- 			alloc_ok = false;
- 			break;
- 		}
--		list_add(&page->lru, &surplus_list);
-+		list_add(&folio->lru, &surplus_list);
- 		cond_resched();
- 	}
- 	allocated += i;
-@@ -3496,7 +3497,7 @@ static int set_max_huge_pages(struct hst
- 	 * First take pages out of surplus state.  Then make up the
- 	 * remaining difference by allocating fresh huge pages.
- 	 *
--	 * We might race with alloc_surplus_huge_page() here and be unable
-+	 * We might race with alloc_surplus_hugetlb_folio() here and be unable
- 	 * to convert a surplus huge page to a normal huge page. That is
- 	 * not critical, though, it just means the overall size of the
- 	 * pool might be one hugepage larger than it needs to be, but
-@@ -3539,7 +3540,7 @@ static int set_max_huge_pages(struct hst
- 	 * By placing pages into the surplus state independent of the
- 	 * overcommit value, we are allowing the surplus pool size to
- 	 * exceed overcommit. There are few sane options here. Since
--	 * alloc_surplus_huge_page() is checking the global counter,
-+	 * alloc_surplus_hugetlb_folio() is checking the global counter,
- 	 * though, we'll note that we're not allowed to exceed surplus
- 	 * and won't grow the pool anywhere else. Not until one of the
- 	 * sysctls are changed, or the surplus pages go out of use.
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-mm-introspection-utils-v5
++++ a/scripts/gdb/vmlinux-gdb.py
+@@ -37,3 +37,4 @@ else:
+     import linux.clk
+     import linux.genpd
+     import linux.device
++    import linux.mm
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from dmitrii.bundin.a@gmail.com are
 
-mm-move-folio_set_compound_order-to-mm-internalh.patch
-mm-introduce-folio_is_pfmemalloc.patch
-mm-remove-the-hugetlb-field-from-struct-page.patch
-mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios.patch
-mm-memory-failure-convert-try_memory_failure_hugetlb-to-folios.patch
-mm-memory-failure-convert-hugetlb_clear_page_hwpoison-to-folios.patch
-mm-memory-failure-convert-free_raw_hwp_pages-to-folios.patch
-mm-memory-failure-convert-raw_hwp_list_head-to-folios.patch
-mm-memory-failure-convert-__free_raw_hwp_pages-to-folios.patch
-mm-memory-failure-convert-hugetlb_set_page_hwpoison-to-folios.patch
-mm-memory-failure-convert-unpoison_memory-to-folios.patch
-mm-hugetlb-convert-isolate_hugetlb-to-folios.patch
-mm-hugetlb-convert-__update_and_free_page-to-folios.patch
-mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios.patch
-mm-hugetlb-convert-alloc_surplus_huge_page-to-folios.patch
-mm-hugetlb-increase-use-of-folios-in-alloc_huge_page.patch
-mm-hugetlb-convert-alloc_migrate_huge_page-to-folios.patch
-mm-hugetlb-convert-restore_reserve_on_error-to-folios.patch
-mm-hugetlb-convert-demote_free_huge_page-to-folios.patch
+scripts-gdb-add-mm-introspection-utils.patch
+scripts-gdb-add-mm-introspection-utils-v5.patch
 
