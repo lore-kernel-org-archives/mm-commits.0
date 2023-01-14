@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7444C46467
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 05:07:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 936B7C3DA78
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 05:07:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229517AbjANFHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Jan 2023 00:07:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55998 "EHLO
+        id S229505AbjANFHf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Jan 2023 00:07:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56058 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229379AbjANFHR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Jan 2023 00:07:17 -0500
+        with ESMTP id S229515AbjANFHe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Jan 2023 00:07:34 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0C993588
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 21:07:15 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E26CC30FB
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 21:07:32 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6EB46B822CC
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 05:07:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C11DC433F0;
-        Sat, 14 Jan 2023 05:07:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9D5C2B822C3
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 05:07:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B109C433EF;
+        Sat, 14 Jan 2023 05:07:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673672833;
-        bh=0+cNMd0ShKqWFEAFtUc5uNUYotu+InyWfw2S8UpU2OM=;
+        s=korg; t=1673672850;
+        bh=kwYHZC5LOxxfuf8syVzMe9qwxl086HrzwBHGnNte+Pc=;
         h=Date:To:From:Subject:From;
-        b=ylD2bDNTdcUwLP9lWaxzTKIoOTKviuD1dqucjTZGNs0CYGwQ0L5YwpvNRnxDg1Bax
-         hE/1yCMVAUgBCqCUtZJWFb0OcNIPJNZbhvSrTYL1oxSork3ihSC9J75R1PGJILW8lT
-         ZmbGTiK3ChSePkOkqO1jumfodRuKxTx1Zsy4cw9g=
-Date:   Fri, 13 Jan 2023 21:07:12 -0800
+        b=S19CLO6+VqW9y/WY/myX+igkNPuiPy+Tiwcb6eqO++wQHWoJxsQcmPWutUlWAffSY
+         0Fbc+Wlv4KprLws+e2D8Ts3sHQHdsxRp/+nvFHNVO5Xe277wTFzXvS5Xie4dxPoWKY
+         sKcWXw+x3GvfIUPRzXp8AELq6UDLYD8q3wHDNGuc=
+Date:   Fri, 13 Jan 2023 21:07:29 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
         stephen.s.brennan@oracle.com, lstoakes@gmail.com,
         hch@infradead.org, bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-mm-set-vm_ioremap-flag-to-the-vmalloc-area.patch added to mm-unstable branch
-Message-Id: <20230114050713.0C11DC433F0@smtp.kernel.org>
+Subject: + mm-vmallocc-add-used_map-into-vmap_block-to-track-space-of-vmap_block.patch added to mm-unstable branch
+Message-Id: <20230114050730.3B109C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: mm: set VM_IOREMAP flag to the vmalloc area
+     Subject: mm/vmalloc.c: add used_map into vmap_block to track space of vmap_block
 has been added to the -mm mm-unstable branch.  Its filename is
-     sh-mm-set-vm_ioremap-flag-to-the-vmalloc-area.patch
+     mm-vmallocc-add-used_map-into-vmap_block-to-track-space-of-vmap_block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-mm-set-vm_ioremap-flag-to-the-vmalloc-area.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmallocc-add-used_map-into-vmap_block-to-track-space-of-vmap_block.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,40 +66,131 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: sh: mm: set VM_IOREMAP flag to the vmalloc area
-Date: Fri, 13 Jan 2023 11:19:21 +0800
+Subject: mm/vmalloc.c: add used_map into vmap_block to track space of vmap_block
+Date: Fri, 13 Jan 2023 11:19:15 +0800
 
-Currently, for vmalloc areas with flag VM_IOREMAP set, except of the
-specific alignment clamping in __get_vm_area_node(), they will be
+Patch series "mm/vmalloc.c: allow vread() to read out vm_map_ram areas",
+v3.
 
-1) Shown as ioremap in /proc/vmallocinfo;
-2) Ignored by /proc/kcore reading via vread()
+Problem:
+***
 
-So for the ioremap in __sq_remap() of sh, we should set VM_IOREMAP
-in flag to make it handled correctly as above.
+Stephen reported vread() will skip vm_map_ram areas when reading out
+/proc/kcore with drgn utility. Please see below link to get more
+details. 
 
-Link: https://lkml.kernel.org/r/20230113031921.64716-8-bhe@redhat.com
+  /proc/kcore reads 0's for vmap_block
+  https://lore.kernel.org/all/87ilk6gos2.fsf@oracle.com/T/#u
+
+Root cause:
+***
+
+The normal vmalloc API uses struct vmap_area to manage the virtual
+kernel area allocated, and associate a vm_struct to store more
+information and pass out. However, area reserved through vm_map_ram()
+interface doesn't allocate vm_struct to associate with. So the current
+code in vread() will skip the vm_map_ram area through 'if (!va->vm)'
+conditional checking.
+
+Solution:
+***
+
+To mark the area reserved through vm_map_ram() interface, add field 'flags'
+into struct vmap_area. Bit 0 indicates this is vm_map_ram area created
+through vm_map_ram() interface, bit 1 marks out the type of vm_map_ram area
+which makes use of vmap_block to manage split regions via vb_alloc/free().
+
+And also add bitmap field 'used_map' into struct vmap_block to mark those
+further subdivided regions being used to differentiate with dirty and free
+regions in vmap_block.
+
+With the help of above vmap_area->flags and vmap_block->used_map, we can
+recognize and handle vm_map_ram areas successfully. All these are done
+in patch 1~3.
+
+Meanwhile, do some improvement on areas related to vm_map_ram areas in
+patch 4, 5. And also change area flag from VM_ALLOC to VM_IOREMAP in
+patch 6, 7 because this will show them as 'ioremap' in /proc/vmallocinfo,
+and exclude them from /proc/kcore.
+
+Testing
+***
+
+Only did the basic testing on kvm guest, and run below command to
+access kcore file to do statistics:
+
+	makedumpfile --mem-usage /proc/kcore
+
+
+
+This patch (of 7):
+
+In one vmap_block area, there could be three types of regions: region
+being used which is allocated through vb_alloc(), dirty region which is
+freed via vb_free() and free region.  Among them, only used region has
+available data.  While there's no way to track those used regions
+currently.
+
+Here, add bitmap field used_map into vmap_block, and set/clear it during
+allocation or freeing regions of vmap_block area.
+
+This is a preparatoin for later use.
+
+Link: https://lkml.kernel.org/r/20230113031921.64716-1-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20230113031921.64716-2-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
+Reported-by: Stephen Brennan <stephen.s.brennan@oracle.com>
+  Link: https://lore.kernel.org/all/87ilk6gos2.fsf@oracle.com/T/#u
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Stephen Brennan <stephen.s.brennan@oracle.com>
 Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/sh/kernel/cpu/sh4/sq.c~sh-mm-set-vm_ioremap-flag-to-the-vmalloc-area
-+++ a/arch/sh/kernel/cpu/sh4/sq.c
-@@ -103,7 +103,7 @@ static int __sq_remap(struct sq_mapping
- #if defined(CONFIG_MMU)
- 	struct vm_struct *vma;
+--- a/mm/vmalloc.c~mm-vmallocc-add-used_map-into-vmap_block-to-track-space-of-vmap_block
++++ a/mm/vmalloc.c
+@@ -1922,6 +1922,7 @@ struct vmap_block {
+ 	spinlock_t lock;
+ 	struct vmap_area *va;
+ 	unsigned long free, dirty;
++	DECLARE_BITMAP(used_map, VMAP_BBMAP_BITS);
+ 	unsigned long dirty_min, dirty_max; /*< dirty range */
+ 	struct list_head free_list;
+ 	struct rcu_head rcu_head;
+@@ -1998,10 +1999,12 @@ static void *new_vmap_block(unsigned int
+ 	vb->va = va;
+ 	/* At least something should be left free */
+ 	BUG_ON(VMAP_BBMAP_BITS <= (1UL << order));
++	bitmap_zero(vb->used_map, VMAP_BBMAP_BITS);
+ 	vb->free = VMAP_BBMAP_BITS - (1UL << order);
+ 	vb->dirty = 0;
+ 	vb->dirty_min = VMAP_BBMAP_BITS;
+ 	vb->dirty_max = 0;
++	bitmap_set(vb->used_map, 0, (1UL << order));
+ 	INIT_LIST_HEAD(&vb->free_list);
  
--	vma = __get_vm_area_caller(map->size, VM_ALLOC, map->sq_addr,
-+	vma = __get_vm_area_caller(map->size, VM_IOREMAP, map->sq_addr,
- 			SQ_ADDRMAX, __builtin_return_address(0));
- 	if (!vma)
- 		return -ENOMEM;
+ 	vb_idx = addr_to_vb_idx(va->va_start);
+@@ -2111,6 +2114,7 @@ static void *vb_alloc(unsigned long size
+ 		pages_off = VMAP_BBMAP_BITS - vb->free;
+ 		vaddr = vmap_block_vaddr(vb->va->va_start, pages_off);
+ 		vb->free -= 1UL << order;
++		bitmap_set(vb->used_map, pages_off, (1UL << order));
+ 		if (vb->free == 0) {
+ 			spin_lock(&vbq->lock);
+ 			list_del_rcu(&vb->free_list);
+@@ -2144,6 +2148,9 @@ static void vb_free(unsigned long addr,
+ 	order = get_order(size);
+ 	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
+ 	vb = xa_load(&vmap_blocks, addr_to_vb_idx(addr));
++	spin_lock(&vb->lock);
++	bitmap_clear(vb->used_map, offset, (1UL << order));
++	spin_unlock(&vb->lock);
+ 
+ 	vunmap_range_noflush(addr, addr + size);
+ 
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
