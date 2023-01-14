@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB28DC46467
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:20:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00EBEC6379F
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:20:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231421AbjANEUm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Jan 2023 23:20:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48930 "EHLO
+        id S231288AbjANEUn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Jan 2023 23:20:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231318AbjANETw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:19:52 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43167A7
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:19:51 -0800 (PST)
+        with ESMTP id S231221AbjANET4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:19:56 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D7BEC0
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:19:54 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D52BF608C3
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:19:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A6F5C433EF;
-        Sat, 14 Jan 2023 04:19:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4F930B800C1
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:19:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA9BBC433D2;
+        Sat, 14 Jan 2023 04:19:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673669990;
-        bh=yRR8dxESsQu61ymTKpiASGRGU0AlstbsK6C7mc2gLG4=;
+        s=korg; t=1673669992;
+        bh=do//wttbtBHNL3e3ZaN8z6Adkwc4Ze3esMVD9PrdeaQ=;
         h=Date:To:From:Subject:From;
-        b=TKV9DunPnVXXDGSECT8L9Ii8jwsPTyml/wkLwSJRmT4cMFvpbFsHfSxDAlWJeckYG
-         AYMin6DUideVM//6ggW83MRVKb9BWCf9qtzDHjkZ4DMia75Gw4GXSh6v1/z6fLFfRz
-         c5G6Gcj7/WSCq88Z1rGd5dlaaOJLsxQEPci/uLIY=
-Date:   Fri, 13 Jan 2023 20:19:49 -0800
-To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
-        dalias@libc.org, david@redhat.com, akpm@linux-foundation.org
+        b=k1N9CLM0yof2H0Be7BxfcCxGGxwhDhnKtxPacPK/CQesre3NBEbwwHsZezIok4Tcc
+         CI3VRVG4dhJIBMmSFPMAOE+zTL4Fm3qqWU2CnWaAZZl0+HZczfdN8imuDrkVdsD0Bn
+         nD4B4qK+LwgrSbVXJuZB9Rx+L3l621UW8dIttPtY=
+Date:   Fri, 13 Jan 2023 20:19:51 -0800
+To:     mm-commits@vger.kernel.org, davem@davemloft.net, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-mm-support-__have_arch_pte_swp_exclusive.patch added to mm-unstable branch
-Message-Id: <20230114041950.3A6F5C433EF@smtp.kernel.org>
+Subject: + sparc-mm-support-__have_arch_pte_swp_exclusive-on-32bit.patch added to mm-unstable branch
+Message-Id: <20230114041951.EA9BBC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+     Subject: sparc/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE on 32bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     sh-mm-support-__have_arch_pte_swp_exclusive.patch
+     sparc-mm-support-__have_arch_pte_swp_exclusive-on-32bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-mm-support-__have_arch_pte_swp_exclusive.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-mm-support-__have_arch_pte_swp_exclusive-on-32bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,115 +65,95 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: sh/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-Date: Fri, 13 Jan 2023 18:10:20 +0100
+Subject: sparc/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE on 32bit
+Date: Fri, 13 Jan 2023 18:10:21 +0100
 
-Let's support __HAVE_ARCH_PTE_SWP_EXCLUSIVE by using bit 6 in the PTE,
-reducing the swap type in the !CONFIG_X2TLB case to 5 bits.  Generic MM
-currently only uses 5 bits for the type (MAX_SWAPFILES_SHIFT), so the
-stolen bit is effectively unused.
+Let's support __HAVE_ARCH_PTE_SWP_EXCLUSIVE by reusing the SRMMU_DIRTY bit
+as that seems to be safe to reuse inside a swap PTE.  This avoids having
+to steal one bit from the swap offset.
 
-Interrestingly, the swap type in the !CONFIG_X2TLB case could currently
-overlap with the _PAGE_PRESENT bit, because there is a sneaky shift by 1
-in __pte_to_swp_entry() and __swp_entry_to_pte().  Bit 0-7 in the
-architecture specific swap PTE would get shifted to bit 1-8 in the PTE. 
-As generic MM uses 5 bits only, this didn't matter so far.
+While at it, relocate the swap PTE layout documentation and use the same
+style now used for most other archs.  Note that the old documentation was
+wrong: we use 20 bit for the offset and the reserved bits were 8 instead
+of 7 bits in the ascii art.
 
-While at it, mask the type in __swp_entry().
-
-Link: https://lkml.kernel.org/r/20230113171026.582290-21-david@redhat.com
+Link: https://lkml.kernel.org/r/20230113171026.582290-22-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/sh/include/asm/pgtable_32.h~sh-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/sh/include/asm/pgtable_32.h
-@@ -423,40 +423,70 @@ static inline unsigned long pmd_page_vad
- #endif
+--- a/arch/sparc/include/asm/pgtable_32.h~sparc-mm-support-__have_arch_pte_swp_exclusive-on-32bit
++++ a/arch/sparc/include/asm/pgtable_32.h
+@@ -323,7 +323,16 @@ void srmmu_mapiorange(unsigned int bus,
+                       unsigned long xva, unsigned int len);
+ void srmmu_unmapiorange(unsigned long virt_addr, unsigned int len);
  
- /*
-- * Encode and de-code a swap entry
+-/* Encode and de-code a swap entry */
++/*
 + * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
 + * are !pte_none() && !pte_present().
-  *
-  * Constraints:
-  *	_PAGE_PRESENT at bit 8
-  *	_PAGE_PROTNONE at bit 9
-  *
-- * For the normal case, we encode the swap type into bits 0:7 and the
-- * swap offset into bits 10:30. For the 64-bit PTE case, we keep the
-- * preserved bits in the low 32-bits and use the upper 32 as the swap
-- * offset (along with a 5-bit type), following the same approach as x86
-- * PAE. This keeps the logic quite simple.
-+ * For the normal case, we encode the swap type and offset into the swap PTE
-+ * such that bits 8 and 9 stay zero. For the 64-bit PTE case, we use the
-+ * upper 32 for the swap offset and swap type, following the same approach as
-+ * x86 PAE. This keeps the logic quite simple.
-  *
-  * As is evident by the Alpha code, if we ever get a 64-bit unsigned
-  * long (swp_entry_t) to match up with the 64-bit PTEs, this all becomes
-  * much cleaner..
-- *
-- * NOTE: We should set ZEROs at the position of _PAGE_PRESENT
-- *       and _PAGE_PROTNONE bits
-  */
-+
- #ifdef CONFIG_X2TLB
-+/*
-+ * Format of swap PTEs:
 + *
-+ *   6 6 6 6 5 5 5 5 5 5 5 5 5 5 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3 3 3
-+ *   3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2
-+ *   <--------------------- offset ----------------------> < type ->
-+ *
-+ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-+ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-+ *   <------------------- zeroes --------------------> E 0 0 0 0 0 0
-+ */
- #define __swp_type(x)			((x).val & 0x1f)
- #define __swp_offset(x)			((x).val >> 5)
--#define __swp_entry(type, offset)	((swp_entry_t){ (type) | (offset) << 5})
-+#define __swp_entry(type, offset)	((swp_entry_t){ ((type) & 0x1f) | (offset) << 5})
- #define __pte_to_swp_entry(pte)		((swp_entry_t){ (pte).pte_high })
- #define __swp_entry_to_pte(x)		((pte_t){ 0, (x).val })
- 
- #else
--#define __swp_type(x)			((x).val & 0xff)
-+/*
 + * Format of swap PTEs:
 + *
 + *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
 + *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-+ *   <--------------- offset ----------------> 0 0 0 0 E < type -> 0
-+ *
-+ *   E is the exclusive marker that is not stored in swap entries.
++ *   <-------------- offset ---------------> < type -> E 0 0 0 0 0 0
 + */
-+#define __swp_type(x)			((x).val & 0x1f)
- #define __swp_offset(x)			((x).val >> 10)
--#define __swp_entry(type, offset)	((swp_entry_t){(type) | (offset) <<10})
-+#define __swp_entry(type, offset)	((swp_entry_t){((type) & 0x1f) | (offset) << 10})
+ static inline unsigned long __swp_type(swp_entry_t entry)
+ {
+ 	return (entry.val >> SRMMU_SWP_TYPE_SHIFT) & SRMMU_SWP_TYPE_MASK;
+@@ -344,6 +353,22 @@ static inline swp_entry_t __swp_entry(un
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
  
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) >> 1 })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val << 1 })
- #endif
- 
-+/* In both cases, we borrow bit 6 to store the exclusive marker in swap PTEs. */
-+#define _PAGE_SWP_EXCLUSIVE	_PAGE_USER
-+
 +#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
 +static inline int pte_swp_exclusive(pte_t pte)
 +{
-+	return pte.pte_low & _PAGE_SWP_EXCLUSIVE;
++	return pte_val(pte) & SRMMU_SWP_EXCLUSIVE;
 +}
 +
-+PTE_BIT_FUNC(low, swp_mkexclusive, |= _PAGE_SWP_EXCLUSIVE);
-+PTE_BIT_FUNC(low, swp_clear_exclusive, &= ~_PAGE_SWP_EXCLUSIVE);
++static inline pte_t pte_swp_mkexclusive(pte_t pte)
++{
++	return __pte(pte_val(pte) | SRMMU_SWP_EXCLUSIVE);
++}
 +
- #endif /* __ASSEMBLY__ */
- #endif /* __ASM_SH_PGTABLE_32_H */
++static inline pte_t pte_swp_clear_exclusive(pte_t pte)
++{
++	return __pte(pte_val(pte) & ~SRMMU_SWP_EXCLUSIVE);
++}
++
+ static inline unsigned long
+ __get_phys (unsigned long addr)
+ {
+--- a/arch/sparc/include/asm/pgtsrmmu.h~sparc-mm-support-__have_arch_pte_swp_exclusive-on-32bit
++++ a/arch/sparc/include/asm/pgtsrmmu.h
+@@ -53,21 +53,13 @@
+ 
+ #define SRMMU_CHG_MASK    (0xffffff00 | SRMMU_REF | SRMMU_DIRTY)
+ 
+-/* SRMMU swap entry encoding
+- *
+- * We use 5 bits for the type and 19 for the offset.  This gives us
+- * 32 swapfiles of 4GB each.  Encoding looks like:
+- *
+- * oooooooooooooooooootttttRRRRRRRR
+- * fedcba9876543210fedcba9876543210
+- *
+- * The bottom 7 bits are reserved for protection and status bits, especially
+- * PRESENT.
+- */
++/* SRMMU swap entry encoding */
+ #define SRMMU_SWP_TYPE_MASK	0x1f
+ #define SRMMU_SWP_TYPE_SHIFT	7
+ #define SRMMU_SWP_OFF_MASK	0xfffff
+ #define SRMMU_SWP_OFF_SHIFT	(SRMMU_SWP_TYPE_SHIFT + 5)
++/* We borrow bit 6 to store the exclusive marker in swap PTEs. */
++#define SRMMU_SWP_EXCLUSIVE	SRMMU_DIRTY
+ 
+ /* Some day I will implement true fine grained access bits for
+  * user pages because the SRMMU gives us the capabilities to
 _
 
 Patches currently in -mm which might be from david@redhat.com are
