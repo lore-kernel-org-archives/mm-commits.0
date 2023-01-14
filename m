@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B58B8C46467
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:19:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 287B0C3DA78
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:19:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230473AbjANETr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Jan 2023 23:19:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48936 "EHLO
+        id S231289AbjANETs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Jan 2023 23:19:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48938 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231190AbjANETb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:19:31 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EB8AAD
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:19:27 -0800 (PST)
+        with ESMTP id S230492AbjANETc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:19:32 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46C2BAE
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:19:29 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E7AF7608C3
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:19:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37942C433EF;
-        Sat, 14 Jan 2023 04:19:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D9C37606A0
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:19:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41088C433EF;
+        Sat, 14 Jan 2023 04:19:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673669966;
-        bh=jiFq+y2q7phokjx6rhJk94B3D1QL4sU7yeWvqoQlAmg=;
+        s=korg; t=1673669968;
+        bh=vUoo+1JvpJTZFPfrHk4Lpd9VMkKhlxksA5hTdSeHjE8=;
         h=Date:To:From:Subject:From;
-        b=RW3yswbHJYS0wqFL0BKAzFH1wMw52hS0Bi+HzMwO/bdSutQZOTIgl1UZjzGld6x72
-         z2OS1MaT+M20lvs9QgeoK8GfPCwA16vJmY1Mj3kDGh/gU3VgauqMBwZeZcuPgDXBVe
-         QIkdIHNPpBrH55XsWTbmYE8FV81RF2VH0qC/zfmU=
-Date:   Fri, 13 Jan 2023 20:19:25 -0800
-To:     mm-commits@vger.kernel.org, kernel@xen0n.name,
-        chenhuacai@kernel.org, david@redhat.com, akpm@linux-foundation.org
+        b=NkRdfrLxHOjzr+42bKeiBgp3b0doPpM2n9v8oIG9gW0h8r2Cc5dR2CVeVWUzILDVY
+         ZZGOTlBziPGaHj80PkU4x44De57EdZ+GVoa3SpYGonZnYFm/IDmW2E+7HYxvzAmdwQ
+         CJIBCSpswQmgjlWZtN53zaoxqE4vQMPpLqYXdbTQ=
+Date:   Fri, 13 Jan 2023 20:19:27 -0800
+To:     mm-commits@vger.kernel.org, gerg@linux-m68k.org,
+        geert@linux-m68k.org, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + loongarch-mm-support-__have_arch_pte_swp_exclusive.patch added to mm-unstable branch
-Message-Id: <20230114041926.37942C433EF@smtp.kernel.org>
+Subject: + m68k-mm-remove-dummy-__swp-definitions-for-nommu.patch added to mm-unstable branch
+Message-Id: <20230114041928.41088C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: loongarch/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+     Subject: m68k/mm: remove dummy __swp definitions for nommu
 has been added to the -mm mm-unstable branch.  Its filename is
-     loongarch-mm-support-__have_arch_pte_swp_exclusive.patch
+     m68k-mm-remove-dummy-__swp-definitions-for-nommu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-mm-support-__have_arch_pte_swp_exclusive.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/m68k-mm-remove-dummy-__swp-definitions-for-nommu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,104 +65,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: loongarch/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-Date: Fri, 13 Jan 2023 18:10:08 +0100
+Subject: m68k/mm: remove dummy __swp definitions for nommu
+Date: Fri, 13 Jan 2023 18:10:09 +0100
 
-Let's support __HAVE_ARCH_PTE_SWP_EXCLUSIVE by stealing one bit from the
-type.  Generic MM currently only uses 5 bits for the type
-(MAX_SWAPFILES_SHIFT), so the stolen bit is effectively unused.
+The definitions are not required, let's remove them.
 
-While at it, also mask the type in mk_swap_pte().
-
-Note that this bit does not conflict with swap PMDs and could also be used
-in swap PMD context later.
-
-Link: https://lkml.kernel.org/r/20230113171026.582290-9-david@redhat.com
+Link: https://lkml.kernel.org/r/20230113171026.582290-10-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/loongarch/include/asm/pgtable-bits.h~loongarch-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/loongarch/include/asm/pgtable-bits.h
-@@ -20,6 +20,7 @@
- #define	_PAGE_SPECIAL_SHIFT	11
- #define	_PAGE_HGLOBAL_SHIFT	12 /* HGlobal is a PMD bit */
- #define	_PAGE_PFN_SHIFT		12
-+#define	_PAGE_SWP_EXCLUSIVE_SHIFT 23
- #define	_PAGE_PFN_END_SHIFT	48
- #define	_PAGE_NO_READ_SHIFT	61
- #define	_PAGE_NO_EXEC_SHIFT	62
-@@ -33,6 +34,9 @@
- #define _PAGE_PROTNONE		(_ULCAST_(1) << _PAGE_PROTNONE_SHIFT)
- #define _PAGE_SPECIAL		(_ULCAST_(1) << _PAGE_SPECIAL_SHIFT)
- 
-+/* We borrow bit 23 to store the exclusive marker in swap PTEs. */
-+#define _PAGE_SWP_EXCLUSIVE	(_ULCAST_(1) << _PAGE_SWP_EXCLUSIVE_SHIFT)
-+
- /* Used by TLB hardware (placed in EntryLo*) */
- #define _PAGE_VALID		(_ULCAST_(1) << _PAGE_VALID_SHIFT)
- #define _PAGE_DIRTY		(_ULCAST_(1) << _PAGE_DIRTY_SHIFT)
---- a/arch/loongarch/include/asm/pgtable.h~loongarch-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/loongarch/include/asm/pgtable.h
-@@ -249,13 +249,26 @@ extern void pud_init(void *addr);
- extern void pmd_init(void *addr);
- 
- /*
-- * Non-present pages:  high 40 bits are offset, next 8 bits type,
-- * low 16 bits zero.
-+ * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
-+ * are !pte_none() && !pte_present().
-+ *
-+ * Format of swap PTEs:
-+ *
-+ *   6 6 6 6 5 5 5 5 5 5 5 5 5 5 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3 3 3
-+ *   3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2
-+ *   <--------------------------- offset ---------------------------
-+ *
-+ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-+ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-+ *   --------------> E <--- type ---> <---------- zeroes ---------->
-+ *
-+ *   E is the exclusive marker that is not stored in swap entries.
-+ *   The zero'ed bits include _PAGE_PRESENT and _PAGE_PROTNONE.
-  */
- static inline pte_t mk_swap_pte(unsigned long type, unsigned long offset)
--{ pte_t pte; pte_val(pte) = (type << 16) | (offset << 24); return pte; }
-+{ pte_t pte; pte_val(pte) = ((type & 0x7f) << 16) | (offset << 24); return pte; }
- 
--#define __swp_type(x)		(((x).val >> 16) & 0xff)
-+#define __swp_type(x)		(((x).val >> 16) & 0x7f)
- #define __swp_offset(x)		((x).val >> 24)
- #define __swp_entry(type, offset) ((swp_entry_t) { pte_val(mk_swap_pte((type), (offset))) })
- #define __pte_to_swp_entry(pte) ((swp_entry_t) { pte_val(pte) })
-@@ -263,6 +276,24 @@ static inline pte_t mk_swap_pte(unsigned
- #define __pmd_to_swp_entry(pmd) ((swp_entry_t) { pmd_val(pmd) })
- #define __swp_entry_to_pmd(x)	((pmd_t) { (x).val | _PAGE_HUGE })
- 
-+#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-+static inline int pte_swp_exclusive(pte_t pte)
-+{
-+	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
-+}
-+
-+static inline pte_t pte_swp_mkexclusive(pte_t pte)
-+{
-+	pte_val(pte) |= _PAGE_SWP_EXCLUSIVE;
-+	return pte;
-+}
-+
-+static inline pte_t pte_swp_clear_exclusive(pte_t pte)
-+{
-+	pte_val(pte) &= ~_PAGE_SWP_EXCLUSIVE;
-+	return pte;
-+}
-+
+--- a/arch/m68k/include/asm/pgtable_no.h~m68k-mm-remove-dummy-__swp-definitions-for-nommu
++++ a/arch/m68k/include/asm/pgtable_no.h
+@@ -31,12 +31,6 @@
  extern void paging_init(void);
+ #define swapper_pg_dir ((pgd_t *) 0)
  
- #define pte_none(pte)		(!(pte_val(pte) & ~_PAGE_GLOBAL))
+-#define __swp_type(x)		(0)
+-#define __swp_offset(x)		(0)
+-#define __swp_entry(typ,off)	((swp_entry_t) { ((typ) | ((off) << 7)) })
+-#define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+-#define __swp_entry_to_pte(x)	((pte_t) { (x).val })
+-
+ /*
+  * ZERO_PAGE is a global shared page that is always zero: used
+  * for zero-mapped memory areas etc..
 _
 
 Patches currently in -mm which might be from david@redhat.com are
