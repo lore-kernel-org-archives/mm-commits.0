@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C720C6379F
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:40:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74890C3DA78
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:48:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229909AbjANEky (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Jan 2023 23:40:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52252 "EHLO
+        id S229447AbjANEr7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Jan 2023 23:47:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230082AbjANEkn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:40:43 -0500
+        with ESMTP id S229455AbjANEr6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:47:58 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23830AC
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:40:42 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A5DC3596
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:47:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A393060018
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:40:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00665C433D2;
-        Sat, 14 Jan 2023 04:40:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CB9DD60244
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:47:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 192CFC433EF;
+        Sat, 14 Jan 2023 04:47:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673671241;
-        bh=lsugdArdV5Vr3Io8BXmPsyeCWqGx+JtfYBRftbgY4oo=;
+        s=korg; t=1673671675;
+        bh=7pPX1r8TQJz+Q8vctP/riZBeFJL944DqUZt6rwXZc4M=;
         h=Date:To:From:Subject:From;
-        b=FMn/Aroudox7yBT3KrKrFZXyzEqNnbloj6AkxfKUWN4exI2wGWp9UET+4pPjA12Re
-         bflbnAJi98klw/UiLq6+EEWZ0t+1ANZn7Mzh7B1cQpT8y/ch2yoys3bcdvcRVK94AW
-         Pp2uYD4D0s/7jPfxgvxj1uDVpF9r74nvXueAxH68=
-Date:   Fri, 13 Jan 2023 20:40:40 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        thierry.reding@gmail.com, mhocko@suse.com,
-        mgorman@techsingularity.net, neilb@suse.de,
+        b=2ZfblxSe2Eu7GDg4j+Y+hStnDZzqFgLsJKq6NR419OeDy+4uqyBfIafA9mUKpjj0t
+         oVuj0QWzRz5qswBC55rZJZkGApBTvTUQXIPI1DYD025/ASAA8wf8NcHPfwtlAV3lvM
+         D2D5A3GYk8wQDlI7JDtZhhbhygMrZzoT3MAr0DcA=
+Date:   Fri, 13 Jan 2023 20:47:54 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        ran.xiaokai@zte.com.cn, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org,
+        bagasdotme@gmail.com, yang.yang29@zte.com.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-discard-__gfp_atomic.patch added to mm-unstable branch
-Message-Id: <20230114044041.00665C433D2@smtp.kernel.org>
+Subject: + swap_state-update-shadow_nodes-for-anonymous-page.patch added to mm-unstable branch
+Message-Id: <20230114044755.192CFC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: discard __GFP_ATOMIC
+     Subject: swap_state: update shadow_nodes for anonymous page
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-discard-__gfp_atomic.patch
+     swap_state-update-shadow_nodes-for-anonymous-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-discard-__gfp_atomic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap_state-update-shadow_nodes-for-anonymous-page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,221 +66,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.de>
-Subject: mm: discard __GFP_ATOMIC
-Date: Fri, 13 Jan 2023 11:12:17 +0000
+From: Yang Yang <yang.yang29@zte.com.cn>
+Subject: swap_state: update shadow_nodes for anonymous page
+Date: Fri, 13 Jan 2023 17:36:45 +0800 (CST)
 
-__GFP_ATOMIC serves little purpose.  Its main effect is to set
-ALLOC_HARDER which adds a few little boosts to increase the chance of an
-allocation succeeding, one of which is to lower the water-mark at which it
-will succeed.
+Shadow_nodes is for handling reclaiming of shadow nodes working set.  It
+is updated during page cache addition and or deletion.  For a long time
+workingset only supported page cache.  But when workingset was changed to
+support anonymous page detection, we failed to update shadow nodes for it.
+This meant that shadow nodes holding anonymous page will never be
+reclaimd by scan_shadow_nodes() even they use much memory and system
+memory is tense.
 
-It is *always* paired with __GFP_HIGH which sets ALLOC_HIGH which also
-adjusts this watermark.  It is probable that other users of __GFP_HIGH
-should benefit from the other little bonuses that __GFP_ATOMIC gets.
+So update shadow_nodes of anonymous page when swap cache is added or
+deleted by calling xas_set_update(..workingset_update_node).
 
-__GFP_ATOMIC also gives a warning if used with __GFP_DIRECT_RECLAIM.
-There is little point to this.  We already get a might_sleep() warning if
-__GFP_DIRECT_RECLAIM is set.
-
-__GFP_ATOMIC allows the "watermark_boost" to be side-stepped.  It is
-probable that testing ALLOC_HARDER is a better fit here.
-
-__GFP_ATOMIC is used by tegra-smmu.c to check if the allocation might
-sleep.  This should test __GFP_DIRECT_RECLAIM instead.
-
-This patch:
- - removes __GFP_ATOMIC
- - allows __GFP_HIGH allocations to ignore watermark boosting as well
-   as GFP_ATOMIC requests.
- - makes other adjustments as suggested by the above.
-
-The net result is not change to GFP_ATOMIC allocations.  Other
-allocations that use __GFP_HIGH will benefit from a few different extra
-privileges.  This affects:
-  xen, dm, md, ntfs3
-  the vermillion frame buffer
-  hibernation
-  ksm
-  swap
-all of which likely produce more benefit than cost if these selected
-allocation are more likely to succeed quickly.
-
-[mgorman: Minor adjustments to rework on top of a series]
-Link: https://lkml.kernel.org/r/163712397076.13692.4727608274002939094@noble.neil.brown.name
-Link: https://lkml.kernel.org/r/20230113111217.14134-7-mgorman@techsingularity.net
-Signed-off-by: NeilBrown <neilb@suse.de>
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/202301131736452546903@zte.com.cn
+Fixes: aae466b0052e ("mm/swap: implement workingset detection for anonymous LRU")
+Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
+Reviewed-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Thierry Reding <thierry.reding@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/mm/balance.rst~mm-discard-__gfp_atomic
-+++ a/Documentation/mm/balance.rst
-@@ -6,7 +6,7 @@ Memory Balancing
- 
- Started Jan 2000 by Kanoj Sarcar <kanoj@sgi.com>
- 
--Memory balancing is needed for !__GFP_ATOMIC and !__GFP_KSWAPD_RECLAIM as
-+Memory balancing is needed for !__GFP_HIGH and !__GFP_KSWAPD_RECLAIM as
- well as for non __GFP_IO allocations.
- 
- The first reason why a caller may avoid reclaim is that the caller can not
---- a/drivers/iommu/tegra-smmu.c~mm-discard-__gfp_atomic
-+++ a/drivers/iommu/tegra-smmu.c
-@@ -671,12 +671,12 @@ static struct page *as_get_pde_page(stru
- 	 * allocate page in a sleeping context if GFP flags permit. Hence
- 	 * spinlock needs to be unlocked and re-locked after allocation.
- 	 */
--	if (!(gfp & __GFP_ATOMIC))
-+	if (gfpflags_allow_blocking(gfp))
- 		spin_unlock_irqrestore(&as->lock, *flags);
- 
- 	page = alloc_page(gfp | __GFP_DMA | __GFP_ZERO);
- 
--	if (!(gfp & __GFP_ATOMIC))
-+	if (gfpflags_allow_blocking(gfp))
- 		spin_lock_irqsave(&as->lock, *flags);
- 
- 	/*
---- a/include/linux/gfp_types.h~mm-discard-__gfp_atomic
-+++ a/include/linux/gfp_types.h
-@@ -31,7 +31,7 @@ typedef unsigned int __bitwise gfp_t;
- #define ___GFP_IO		0x40u
- #define ___GFP_FS		0x80u
- #define ___GFP_ZERO		0x100u
--#define ___GFP_ATOMIC		0x200u
-+/* 0x200u unused */
- #define ___GFP_DIRECT_RECLAIM	0x400u
- #define ___GFP_KSWAPD_RECLAIM	0x800u
- #define ___GFP_WRITE		0x1000u
-@@ -116,11 +116,8 @@ typedef unsigned int __bitwise gfp_t;
+--- a/include/linux/xarray.h~swap_state-update-shadow_nodes-for-anonymous-page
++++ a/include/linux/xarray.h
+@@ -1643,7 +1643,8 @@ static inline void xas_set_order(struct
+  * @update: Function to call when updating a node.
   *
-  * %__GFP_HIGH indicates that the caller is high-priority and that granting
-  * the request is necessary before the system can make forward progress.
-- * For example, creating an IO context to clean pages.
-- *
-- * %__GFP_ATOMIC indicates that the caller cannot reclaim or sleep and is
-- * high priority. Users are typically interrupt handlers. This may be
-- * used in conjunction with %__GFP_HIGH
-+ * For example creating an IO context to clean pages and requests
-+ * from atomic context.
-  *
-  * %__GFP_MEMALLOC allows access to all memory. This should only be used when
-  * the caller guarantees the allocation will allow more memory to be freed
-@@ -135,7 +132,6 @@ typedef unsigned int __bitwise gfp_t;
-  * %__GFP_NOMEMALLOC is used to explicitly forbid access to emergency reserves.
-  * This takes precedence over the %__GFP_MEMALLOC flag if both are set.
+  * The XArray can notify a caller after it has updated an xa_node.
+- * This is advanced functionality and is only needed by the page cache.
++ * This is advanced functionality and is only needed by the page cache
++ * and swap cache.
   */
--#define __GFP_ATOMIC	((__force gfp_t)___GFP_ATOMIC)
- #define __GFP_HIGH	((__force gfp_t)___GFP_HIGH)
- #define __GFP_MEMALLOC	((__force gfp_t)___GFP_MEMALLOC)
- #define __GFP_NOMEMALLOC ((__force gfp_t)___GFP_NOMEMALLOC)
-@@ -329,7 +325,7 @@ typedef unsigned int __bitwise gfp_t;
-  * version does not attempt reclaim/compaction at all and is by default used
-  * in page fault path, while the non-light is used by khugepaged.
-  */
--#define GFP_ATOMIC	(__GFP_HIGH|__GFP_ATOMIC|__GFP_KSWAPD_RECLAIM)
-+#define GFP_ATOMIC	(__GFP_HIGH|__GFP_KSWAPD_RECLAIM)
- #define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
- #define GFP_KERNEL_ACCOUNT (GFP_KERNEL | __GFP_ACCOUNT)
- #define GFP_NOWAIT	(__GFP_KSWAPD_RECLAIM)
---- a/include/trace/events/mmflags.h~mm-discard-__gfp_atomic
-+++ a/include/trace/events/mmflags.h
-@@ -31,7 +31,6 @@
- 	gfpflag_string(__GFP_HIGHMEM),		\
- 	gfpflag_string(GFP_DMA32),		\
- 	gfpflag_string(__GFP_HIGH),		\
--	gfpflag_string(__GFP_ATOMIC),		\
- 	gfpflag_string(__GFP_IO),		\
- 	gfpflag_string(__GFP_FS),		\
- 	gfpflag_string(__GFP_NOWARN),		\
---- a/lib/test_printf.c~mm-discard-__gfp_atomic
-+++ a/lib/test_printf.c
-@@ -674,17 +674,17 @@ flags(void)
- 	gfp = GFP_ATOMIC|__GFP_DMA;
- 	test("GFP_ATOMIC|GFP_DMA", "%pGg", &gfp);
+ static inline void xas_set_update(struct xa_state *xas, xa_update_node_t update)
+ {
+--- a/mm/swap_state.c~swap_state-update-shadow_nodes-for-anonymous-page
++++ a/mm/swap_state.c
+@@ -94,6 +94,8 @@ int add_to_swap_cache(struct folio *foli
+ 	unsigned long i, nr = folio_nr_pages(folio);
+ 	void *old;
  
--	gfp = __GFP_ATOMIC;
--	test("__GFP_ATOMIC", "%pGg", &gfp);
-+	gfp = __GFP_HIGH;
-+	test("__GFP_HIGH", "%pGg", &gfp);
- 
- 	/* Any flags not translated by the table should remain numeric */
- 	gfp = ~__GFP_BITS_MASK;
- 	snprintf(cmp_buffer, BUF_SIZE, "%#lx", (unsigned long) gfp);
- 	test(cmp_buffer, "%pGg", &gfp);
- 
--	snprintf(cmp_buffer, BUF_SIZE, "__GFP_ATOMIC|%#lx",
-+	snprintf(cmp_buffer, BUF_SIZE, "__GFP_HIGH|%#lx",
- 							(unsigned long) gfp);
--	gfp |= __GFP_ATOMIC;
-+	gfp |= __GFP_HIGH;
- 	test(cmp_buffer, "%pGg", &gfp);
- 
- 	kfree(cmp_buffer);
---- a/mm/internal.h~mm-discard-__gfp_atomic
-+++ a/mm/internal.h
-@@ -24,7 +24,7 @@ struct folio_batch;
- #define GFP_RECLAIM_MASK (__GFP_RECLAIM|__GFP_HIGH|__GFP_IO|__GFP_FS|\
- 			__GFP_NOWARN|__GFP_RETRY_MAYFAIL|__GFP_NOFAIL|\
- 			__GFP_NORETRY|__GFP_MEMALLOC|__GFP_NOMEMALLOC|\
--			__GFP_ATOMIC|__GFP_NOLOCKDEP)
-+			__GFP_NOLOCKDEP)
- 
- /* The GFP flags allowed during early boot */
- #define GFP_BOOT_MASK (__GFP_BITS_MASK & ~(__GFP_RECLAIM|__GFP_IO|__GFP_FS))
---- a/mm/page_alloc.c~mm-discard-__gfp_atomic
-+++ a/mm/page_alloc.c
-@@ -4105,13 +4105,14 @@ static inline bool zone_watermark_fast(s
- 	if (__zone_watermark_ok(z, order, mark, highest_zoneidx, alloc_flags,
- 					free_pages))
- 		return true;
++	xas_set_update(&xas, workingset_update_node);
 +
- 	/*
--	 * Ignore watermark boosting for GFP_ATOMIC order-0 allocations
-+	 * Ignore watermark boosting for __GFP_HIGH order-0 allocations
- 	 * when checking the min watermark. The min watermark is the
- 	 * point where boosting is ignored so that kswapd is woken up
- 	 * when below the low watermark.
- 	 */
--	if (unlikely(!order && (gfp_mask & __GFP_ATOMIC) && z->watermark_boost
-+	if (unlikely(!order && (alloc_flags & ALLOC_MIN_RESERVE) && z->watermark_boost
- 		&& ((alloc_flags & ALLOC_WMARK_MASK) == WMARK_MIN))) {
- 		mark = z->_watermark[WMARK_MIN];
- 		return __zone_watermark_ok(z, order, mark, highest_zoneidx,
-@@ -5076,14 +5077,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	unsigned int zonelist_iter_cookie;
- 	int reserve_flags;
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_BUG_ON_FOLIO(folio_test_swapcache(folio), folio);
+ 	VM_BUG_ON_FOLIO(!folio_test_swapbacked(folio), folio);
+@@ -145,6 +147,8 @@ void __delete_from_swap_cache(struct fol
+ 	pgoff_t idx = swp_offset(entry);
+ 	XA_STATE(xas, &address_space->i_pages, idx);
  
--	/*
--	 * We also sanity check to catch abuse of atomic reserves being used by
--	 * callers that are not in atomic context.
--	 */
--	if (WARN_ON_ONCE((gfp_mask & (__GFP_ATOMIC|__GFP_DIRECT_RECLAIM)) ==
--				(__GFP_ATOMIC|__GFP_DIRECT_RECLAIM)))
--		gfp_mask &= ~__GFP_ATOMIC;
--
- restart:
- 	compaction_retries = 0;
- 	no_progress_loops = 0;
---- a/tools/perf/builtin-kmem.c~mm-discard-__gfp_atomic
-+++ a/tools/perf/builtin-kmem.c
-@@ -641,7 +641,6 @@ static const struct {
- 	{ "__GFP_HIGHMEM",		"HM" },
- 	{ "GFP_DMA32",			"D32" },
- 	{ "__GFP_HIGH",			"H" },
--	{ "__GFP_ATOMIC",		"_A" },
- 	{ "__GFP_IO",			"I" },
- 	{ "__GFP_FS",			"F" },
- 	{ "__GFP_NOWARN",		"NWR" },
++	xas_set_update(&xas, workingset_update_node);
++
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_BUG_ON_FOLIO(!folio_test_swapcache(folio), folio);
+ 	VM_BUG_ON_FOLIO(folio_test_writeback(folio), folio);
+@@ -252,6 +256,8 @@ void clear_shadow_from_swap_cache(int ty
+ 		struct address_space *address_space = swap_address_space(entry);
+ 		XA_STATE(xas, &address_space->i_pages, curr);
+ 
++		xas_set_update(&xas, workingset_update_node);
++
+ 		xa_lock_irq(&address_space->i_pages);
+ 		xas_for_each(&xas, old, end) {
+ 			if (!xa_is_value(old))
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from yang.yang29@zte.com.cn are
 
-mm-discard-__gfp_atomic.patch
+swap_state-update-shadow_nodes-for-anonymous-page.patch
 
