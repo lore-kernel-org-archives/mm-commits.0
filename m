@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 936B7C3DA78
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 05:07:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91592C3DA78
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 05:10:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229505AbjANFHf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Jan 2023 00:07:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56058 "EHLO
+        id S229492AbjANFKK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Jan 2023 00:10:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229515AbjANFHe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Jan 2023 00:07:34 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E26CC30FB
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 21:07:32 -0800 (PST)
+        with ESMTP id S229511AbjANFKJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Jan 2023 00:10:09 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6118530F7
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 21:10:08 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9D5C2B822C3
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 05:07:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B109C433EF;
-        Sat, 14 Jan 2023 05:07:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E8C9760AFA
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 05:10:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 492A4C433EF;
+        Sat, 14 Jan 2023 05:10:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673672850;
-        bh=kwYHZC5LOxxfuf8syVzMe9qwxl086HrzwBHGnNte+Pc=;
+        s=korg; t=1673673007;
+        bh=x7US6lq4odkSBXWiuK9RRR493CBZM3xs2pEmESD8vMk=;
         h=Date:To:From:Subject:From;
-        b=S19CLO6+VqW9y/WY/myX+igkNPuiPy+Tiwcb6eqO++wQHWoJxsQcmPWutUlWAffSY
-         0Fbc+Wlv4KprLws+e2D8Ts3sHQHdsxRp/+nvFHNVO5Xe277wTFzXvS5Xie4dxPoWKY
-         sKcWXw+x3GvfIUPRzXp8AELq6UDLYD8q3wHDNGuc=
-Date:   Fri, 13 Jan 2023 21:07:29 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
-        stephen.s.brennan@oracle.com, lstoakes@gmail.com,
-        hch@infradead.org, bhe@redhat.com, akpm@linux-foundation.org
+        b=Iem0NDZUihlSSsguFU5zyQOMt7FHrPi8RMOcubaFu8grZlV/A1XTGch8SrU62NZG9
+         WPgBwn78yUAt5Kv83WnMUqKNa5ylUeNwgp1FfPLJ3BQsBTdNLs2nmUZY486YkTYSHr
+         xN+OXV9kVbKmSNNadr2yXDhloRgyNXmLgzF5jmII=
+Date:   Fri, 13 Jan 2023 21:10:06 -0800
+To:     mm-commits@vger.kernel.org, riel@surriel.com, hughd@google.com,
+        stevensd@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmallocc-add-used_map-into-vmap_block-to-track-space-of-vmap_block.patch added to mm-unstable branch
-Message-Id: <20230114050730.3B109C433EF@smtp.kernel.org>
+Subject: + mm-fix-khugepaged-with-shmem_enabled=advise.patch added to mm-unstable branch
+Message-Id: <20230114051007.492A4C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: add used_map into vmap_block to track space of vmap_block
+     Subject: mm: fix khugepaged with shmem_enabled=advise
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmallocc-add-used_map-into-vmap_block-to-track-space-of-vmap_block.patch
+     mm-fix-khugepaged-with-shmem_enabled=advise.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmallocc-add-used_map-into-vmap_block-to-track-space-of-vmap_block.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-khugepaged-with-shmem_enabled=advise.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,141 +64,125 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/vmalloc.c: add used_map into vmap_block to track space of vmap_block
-Date: Fri, 13 Jan 2023 11:19:15 +0800
+From: David Stevens <stevensd@chromium.org>
+Subject: mm: fix khugepaged with shmem_enabled=advise
+Date: Fri, 13 Jan 2023 11:30:11 +0900
 
-Patch series "mm/vmalloc.c: allow vread() to read out vm_map_ram areas",
-v3.
+Pass vm_flags as a parameter to shmem_is_huge, rather than reading the
+flags from the vm_area_struct in question.  This allows the updated flags
+from hugepage_madvise to be passed to the check, which is necessary
+because madvise does not update the vm_area_struct's flags until after
+hugepage_madvise returns.
 
-Problem:
-***
+This fixes an issue when shmem_enabled=madvise, where MADV_HUGEPAGE on
+shmem was not able to register the mm_struct with khugepaged.  Prior to
+cd89fb065099, the mm_struct was registered by MADV_HUGEPAGE regardless of
+the value of shmem_enabled (which was only checked when scanning vmas).
 
-Stephen reported vread() will skip vm_map_ram areas when reading out
-/proc/kcore with drgn utility. Please see below link to get more
-details. 
-
-  /proc/kcore reads 0's for vmap_block
-  https://lore.kernel.org/all/87ilk6gos2.fsf@oracle.com/T/#u
-
-Root cause:
-***
-
-The normal vmalloc API uses struct vmap_area to manage the virtual
-kernel area allocated, and associate a vm_struct to store more
-information and pass out. However, area reserved through vm_map_ram()
-interface doesn't allocate vm_struct to associate with. So the current
-code in vread() will skip the vm_map_ram area through 'if (!va->vm)'
-conditional checking.
-
-Solution:
-***
-
-To mark the area reserved through vm_map_ram() interface, add field 'flags'
-into struct vmap_area. Bit 0 indicates this is vm_map_ram area created
-through vm_map_ram() interface, bit 1 marks out the type of vm_map_ram area
-which makes use of vmap_block to manage split regions via vb_alloc/free().
-
-And also add bitmap field 'used_map' into struct vmap_block to mark those
-further subdivided regions being used to differentiate with dirty and free
-regions in vmap_block.
-
-With the help of above vmap_area->flags and vmap_block->used_map, we can
-recognize and handle vm_map_ram areas successfully. All these are done
-in patch 1~3.
-
-Meanwhile, do some improvement on areas related to vm_map_ram areas in
-patch 4, 5. And also change area flag from VM_ALLOC to VM_IOREMAP in
-patch 6, 7 because this will show them as 'ioremap' in /proc/vmallocinfo,
-and exclude them from /proc/kcore.
-
-Testing
-***
-
-Only did the basic testing on kvm guest, and run below command to
-access kcore file to do statistics:
-
-	makedumpfile --mem-usage /proc/kcore
-
-
-
-This patch (of 7):
-
-In one vmap_block area, there could be three types of regions: region
-being used which is allocated through vb_alloc(), dirty region which is
-freed via vb_free() and free region.  Among them, only used region has
-available data.  While there's no way to track those used regions
-currently.
-
-Here, add bitmap field used_map into vmap_block, and set/clear it during
-allocation or freeing regions of vmap_block area.
-
-This is a preparatoin for later use.
-
-Link: https://lkml.kernel.org/r/20230113031921.64716-1-bhe@redhat.com
-Link: https://lkml.kernel.org/r/20230113031921.64716-2-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reported-by: Stephen Brennan <stephen.s.brennan@oracle.com>
-  Link: https://lore.kernel.org/all/87ilk6gos2.fsf@oracle.com/T/#u
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20230113023011.1784015-1-stevensd@google.com
+Fixes: cd89fb065099 ("mm,thp,shmem: make khugepaged obey tmpfs mount flags")
+Signed-off-by: David Stevens <stevensd@chromium.org>
+Cc: David Stevens <stevensd@chromium.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/vmalloc.c~mm-vmallocc-add-used_map-into-vmap_block-to-track-space-of-vmap_block
-+++ a/mm/vmalloc.c
-@@ -1922,6 +1922,7 @@ struct vmap_block {
- 	spinlock_t lock;
- 	struct vmap_area *va;
- 	unsigned long free, dirty;
-+	DECLARE_BITMAP(used_map, VMAP_BBMAP_BITS);
- 	unsigned long dirty_min, dirty_max; /*< dirty range */
- 	struct list_head free_list;
- 	struct rcu_head rcu_head;
-@@ -1998,10 +1999,12 @@ static void *new_vmap_block(unsigned int
- 	vb->va = va;
- 	/* At least something should be left free */
- 	BUG_ON(VMAP_BBMAP_BITS <= (1UL << order));
-+	bitmap_zero(vb->used_map, VMAP_BBMAP_BITS);
- 	vb->free = VMAP_BBMAP_BITS - (1UL << order);
- 	vb->dirty = 0;
- 	vb->dirty_min = VMAP_BBMAP_BITS;
- 	vb->dirty_max = 0;
-+	bitmap_set(vb->used_map, 0, (1UL << order));
- 	INIT_LIST_HEAD(&vb->free_list);
+--- a/include/linux/shmem_fs.h~mm-fix-khugepaged-with-shmem_enabled=advise
++++ a/include/linux/shmem_fs.h
+@@ -92,14 +92,8 @@ extern struct page *shmem_read_mapping_p
+ extern void shmem_truncate_range(struct inode *inode, loff_t start, loff_t end);
+ int shmem_unuse(unsigned int type);
  
- 	vb_idx = addr_to_vb_idx(va->va_start);
-@@ -2111,6 +2114,7 @@ static void *vb_alloc(unsigned long size
- 		pages_off = VMAP_BBMAP_BITS - vb->free;
- 		vaddr = vmap_block_vaddr(vb->va->va_start, pages_off);
- 		vb->free -= 1UL << order;
-+		bitmap_set(vb->used_map, pages_off, (1UL << order));
- 		if (vb->free == 0) {
- 			spin_lock(&vbq->lock);
- 			list_del_rcu(&vb->free_list);
-@@ -2144,6 +2148,9 @@ static void vb_free(unsigned long addr,
- 	order = get_order(size);
- 	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
- 	vb = xa_load(&vmap_blocks, addr_to_vb_idx(addr));
-+	spin_lock(&vb->lock);
-+	bitmap_clear(vb->used_map, offset, (1UL << order));
-+	spin_unlock(&vb->lock);
+-extern bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
+-			  pgoff_t index, bool shmem_huge_force);
+-static inline bool shmem_huge_enabled(struct vm_area_struct *vma,
+-				      bool shmem_huge_force)
+-{
+-	return shmem_is_huge(vma, file_inode(vma->vm_file), vma->vm_pgoff,
+-			     shmem_huge_force);
+-}
++extern bool shmem_is_huge(struct inode *inode, pgoff_t index, bool shmem_huge_force,
++			  struct mm_struct *mm, unsigned long vm_flags);
+ extern unsigned long shmem_swap_usage(struct vm_area_struct *vma);
+ extern unsigned long shmem_partial_swap_usage(struct address_space *mapping,
+ 						pgoff_t start, pgoff_t end);
+--- a/mm/huge_memory.c~mm-fix-khugepaged-with-shmem_enabled=advise
++++ a/mm/huge_memory.c
+@@ -119,7 +119,8 @@ bool hugepage_vma_check(struct vm_area_s
+ 	 * own flags.
+ 	 */
+ 	if (!in_pf && shmem_file(vma->vm_file))
+-		return shmem_huge_enabled(vma, !enforce_sysfs);
++		return shmem_is_huge(file_inode(vma->vm_file), vma->vm_pgoff,
++				     !enforce_sysfs, vma->vm_mm, vm_flags);
  
- 	vunmap_range_noflush(addr, addr + size);
+ 	/* Enforce sysfs THP requirements as necessary */
+ 	if (enforce_sysfs &&
+--- a/mm/shmem.c~mm-fix-khugepaged-with-shmem_enabled=advise
++++ a/mm/shmem.c
+@@ -468,15 +468,14 @@ static bool shmem_confirm_swap(struct ad
  
+ static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
+ 
+-bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
+-		   pgoff_t index, bool shmem_huge_force)
++bool shmem_is_huge(struct inode *inode, pgoff_t index, bool shmem_huge_force,
++		   struct mm_struct *mm, unsigned long vm_flags)
+ {
+ 	loff_t i_size;
+ 
+ 	if (!S_ISREG(inode->i_mode))
+ 		return false;
+-	if (vma && ((vma->vm_flags & VM_NOHUGEPAGE) ||
+-	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags)))
++	if (mm && ((vm_flags & VM_NOHUGEPAGE) || test_bit(MMF_DISABLE_THP, &mm->flags)))
+ 		return false;
+ 	if (shmem_huge == SHMEM_HUGE_DENY)
+ 		return false;
+@@ -493,7 +492,7 @@ bool shmem_is_huge(struct vm_area_struct
+ 			return true;
+ 		fallthrough;
+ 	case SHMEM_HUGE_ADVISE:
+-		if (vma && (vma->vm_flags & VM_HUGEPAGE))
++		if (mm && (vm_flags & VM_HUGEPAGE))
+ 			return true;
+ 		fallthrough;
+ 	default:
+@@ -676,8 +675,8 @@ static long shmem_unused_huge_count(stru
+ 
+ #define shmem_huge SHMEM_HUGE_DENY
+ 
+-bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
+-		   pgoff_t index, bool shmem_huge_force)
++bool shmem_is_huge(struct inode *inode, pgoff_t index, bool shmem_huge_force,
++		   struct mm_struct *mm, unsigned long vm_flags)
+ {
+ 	return false;
+ }
+@@ -1068,7 +1067,7 @@ static int shmem_getattr(struct user_nam
+ 			STATX_ATTR_NODUMP);
+ 	generic_fillattr(&init_user_ns, inode, stat);
+ 
+-	if (shmem_is_huge(NULL, inode, 0, false))
++	if (shmem_is_huge(inode, 0, false, NULL, 0))
+ 		stat->blksize = HPAGE_PMD_SIZE;
+ 
+ 	if (request_mask & STATX_BTIME) {
+@@ -1926,7 +1925,8 @@ repeat:
+ 		return 0;
+ 	}
+ 
+-	if (!shmem_is_huge(vma, inode, index, false))
++	if (!shmem_is_huge(inode, index, false,
++			   vma ? vma->vm_mm : NULL, vma ? vma->vm_flags : 0))
+ 		goto alloc_nohuge;
+ 
+ 	huge_gfp = vma_thp_gfp_mask(vma);
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from stevensd@chromium.org are
 
-mm-vmallocc-add-used_map-into-vmap_block-to-track-space-of-vmap_block.patch
-mm-vmallocc-add-flags-to-mark-vm_map_ram-area.patch
-mm-vmallocc-allow-vread-to-read-out-vm_map_ram-areas.patch
-mm-vmalloc-explicitly-identify-vm_map_ram-area-when-shown-in-proc-vmcoreinfo.patch
-mm-vmalloc-skip-the-uninitilized-vmalloc-areas.patch
-powerpc-mm-add-vm_ioremap-flag-to-the-vmalloc-area.patch
-sh-mm-set-vm_ioremap-flag-to-the-vmalloc-area.patch
+mm-fix-khugepaged-with-shmem_enabled=advise.patch
 
