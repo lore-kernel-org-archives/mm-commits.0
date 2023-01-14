@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3503FC54EBE
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Jan 2023 22:37:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95EDAC3DA78
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 03:45:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232733AbjALWhx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Jan 2023 17:37:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50544 "EHLO
+        id S230040AbjANDpJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Jan 2023 22:45:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235985AbjALWhv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2023 17:37:51 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CA4A58F87
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 14:37:50 -0800 (PST)
+        with ESMTP id S229992AbjANDpI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 22:45:08 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04BA18E9BA
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 19:45:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DCCF5621B9
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2023 22:37:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C6D5C433D2;
-        Thu, 12 Jan 2023 22:37:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 93A09B822BB
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 03:45:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BB43C433D2;
+        Sat, 14 Jan 2023 03:45:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673563069;
-        bh=wUYaczB0bkD2jQUEgpQnJqCK3DNVLPX1xiPbtPrRIIw=;
+        s=korg; t=1673667904;
+        bh=cs6ji+8qzcY8jdozv1lD8V0ZToFCz4oZtJMcbFU8oqI=;
         h=Date:To:From:Subject:From;
-        b=VAwO73Cq/bVPdXPJF/lEYFoBdfkh6zdrJS8AC+mgHPyaEtMluoec6djNeGmUy9jOF
-         55GsMJN5Vl+1f5afOyCNxgJygd89wkhrO7INHOcxITp1qiyxDRe2tMHC4KmjF2W1eT
-         6ecOxpNhLCPqV7wGVPRO8bW8hV3E6QQcFlB4+dzQ=
-Date:   Thu, 12 Jan 2023 14:37:48 -0800
-To:     mm-commits@vger.kernel.org, lkp@intel.com,
-        senozhatsky@chromium.org, akpm@linux-foundation.org
+        b=jcA6XF1rg4Cdnl54zWqLwCqDCO6f1xTGgYGE1mKzYnHyo3WHoRFbCjwRyTsC6T1hB
+         kHDKzf129bPvq5YrdsThiF7fRrFNzpE9jONLvPv+s9I838cIkJsSSNBmyGz0A2O9Yn
+         A7sm2kAXkkM89XG5XwRiaconR1k3/4Dx7CtHB60E=
+Date:   Fri, 13 Jan 2023 19:45:03 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        mike.kravetz@oracle.com, vishal.moola@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-make-zspage-chain-size-configurable-fix.patch added to mm-unstable branch
-Message-Id: <20230112223749.3C6D5C433D2@smtp.kernel.org>
+Subject: + mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page.patch added to mm-unstable branch
+Message-Id: <20230114034504.1BB43C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: turn chain size config option into UL constant
+     Subject: mm/khugepaged: introduce release_pte_folio() to replace release_pte_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-make-zspage-chain-size-configurable-fix.patch
+     mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-make-zspage-chain-size-configurable-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,79 +65,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: turn chain size config option into UL constant
-Date: Thu, 12 Jan 2023 16:14:43 +0900
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm/khugepaged: introduce release_pte_folio() to replace release_pte_page()
+Date: Fri, 13 Jan 2023 16:15:55 -0800
 
-This fixes
+release_pte_page() is converted to be a wrapper for release_pte_folio() to
+help facilitate the khugepaged conversion to folios.
 
->> mm/zsmalloc.c:122:59: warning: right shift count >= width of type [-Wshift-count-overflow]
+This replaces 3 calls to compound_head() with 1, and saves 85 bytes of
+kernel text.
 
-and
-
->> mm/zsmalloc.c:224:28: error: variably modified 'size_class' at file scope
-     224 |         struct size_class *size_class[ZS_SIZE_CLASSES];
-
-Link: https://lkml.kernel.org/r/20230112071443.1933880-1-senozhatsky@chromium.org
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/20230114001556.43795-1-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>,
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-make-zspage-chain-size-configurable-fix
-+++ a/mm/zsmalloc.c
-@@ -133,9 +133,12 @@
- #define MAGIC_VAL_BITS	8
+--- a/mm/khugepaged.c~mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page
++++ a/mm/khugepaged.c
+@@ -492,13 +492,18 @@ void __khugepaged_exit(struct mm_struct
+ 	}
+ }
  
- #define MAX(a, b) ((a) >= (b) ? (a) : (b))
++static void release_pte_folio(struct folio *folio)
++{
++	node_stat_mod_folio(folio,
++			NR_ISOLATED_ANON + folio_is_file_lru(folio),
++			-folio_nr_pages(folio));
++	folio_unlock(folio);
++	folio_putback_lru(folio);
++}
 +
-+#define ZS_MAX_PAGES_PER_ZSPAGE	(_AC(CONFIG_ZSMALLOC_CHAIN_SIZE, UL))
-+
- /* ZS_MIN_ALLOC_SIZE must be multiple of ZS_ALIGN */
- #define ZS_MIN_ALLOC_SIZE \
--	MAX(32, (CONFIG_ZSMALLOC_CHAIN_SIZE << PAGE_SHIFT >> OBJ_INDEX_BITS))
-+	MAX(32, (ZS_MAX_PAGES_PER_ZSPAGE << PAGE_SHIFT >> OBJ_INDEX_BITS))
- /* each chunk includes extra space to keep handle */
- #define ZS_MAX_ALLOC_SIZE	PAGE_SIZE
- 
-@@ -1119,7 +1122,7 @@ static struct zspage *alloc_zspage(struc
- 					gfp_t gfp)
+ static void release_pte_page(struct page *page)
  {
- 	int i;
--	struct page *pages[CONFIG_ZSMALLOC_CHAIN_SIZE];
-+	struct page *pages[ZS_MAX_PAGES_PER_ZSPAGE];
- 	struct zspage *zspage = cache_alloc_zspage(pool, gfp);
+-	mod_node_page_state(page_pgdat(page),
+-			NR_ISOLATED_ANON + page_is_file_lru(page),
+-			-compound_nr(page));
+-	unlock_page(page);
+-	putback_lru_page(page);
++	release_pte_folio(page_folio(page));
+ }
  
- 	if (!zspage)
-@@ -1986,7 +1989,7 @@ static void replace_sub_page(struct size
- 				struct page *newpage, struct page *oldpage)
- {
- 	struct page *page;
--	struct page *pages[CONFIG_ZSMALLOC_CHAIN_SIZE] = {NULL, };
-+	struct page *pages[ZS_MAX_PAGES_PER_ZSPAGE] = {NULL, };
- 	int idx = 0;
- 
- 	page = get_first_page(zspage);
-@@ -2366,7 +2369,7 @@ static int calculate_zspage_chain_size(i
- 	if (is_power_of_2(class_size))
- 		return chain_size;
- 
--	for (i = 1; i <= CONFIG_ZSMALLOC_CHAIN_SIZE; i++) {
-+	for (i = 1; i <= ZS_MAX_PAGES_PER_ZSPAGE; i++) {
- 		int waste;
- 
- 		waste = (i * PAGE_SIZE) % class_size;
+ static void release_pte_pages(pte_t *pte, pte_t *_pte,
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
-zram-correctly-handle-all-next_arg-cases.patch
-zsmalloc-rework-zspage-chain-size-selection.patch
-zsmalloc-skip-chain-size-calculation-for-pow_of_2-classes.patch
-zsmalloc-make-zspage-chain-size-configurable.patch
-zsmalloc-make-zspage-chain-size-configurable-fix.patch
-zsmalloc-set-default-zspage-chain-size-to-8.patch
+mm-memory-add-vm_normal_folio.patch
+madvise-convert-madvise_cold_or_pageout_pte_range-to-use-folios.patch
+mm-damon-convert-damon_pa_mark_accessed_or_deactivate-to-use-folios.patch
+mm-swap-convert-deactivate_page-to-folio_deactivate.patch
+ext4-convert-mext_page_double_lock-to-mext_folio_double_lock.patch
+mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page.patch
+mm-khugepaged-convert-release_pte_pages-to-use-folios.patch
 
