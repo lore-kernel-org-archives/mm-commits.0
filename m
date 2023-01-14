@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6735BC46467
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 05:25:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21B14C3DA78
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 05:25:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229531AbjANFZr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Jan 2023 00:25:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57278 "EHLO
+        id S229546AbjANFZs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Jan 2023 00:25:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229546AbjANFZf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Jan 2023 00:25:35 -0500
+        with ESMTP id S229533AbjANFZd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Jan 2023 00:25:33 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E50853A8A
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 21:25:33 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 236EB35BC
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 21:25:32 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7160AB822CC
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 05:25:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3D7BC433D2;
-        Sat, 14 Jan 2023 05:25:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B007AB82206
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 05:25:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56ACCC433F1;
+        Sat, 14 Jan 2023 05:25:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673673931;
-        bh=QsdNBOSOxvUAxSv/3T+kf6GYgyfy5Q+iAWojIKqGz48=;
+        s=korg; t=1673673929;
+        bh=aSoBNFdNrwxlBOIBePufsVshRaJh0jyvnHU9FH5k1+s=;
         h=Date:To:From:Subject:From;
-        b=Y6rdo5Q5riHaemSLIrNU9p2gLjhJ0ly/8bAkrxzIVsP5CN8RsHyJZqWrDINbPUslW
-         TD6G/Sz3fdy/JZNHm4mM7qogHvl1UKltb3re9W3FTS4RlScZoqsZtV33hBVg5tU7GT
-         h1EPDA/LEEVZdUcHv8FgA3/d2LbNbGSYoaLmVdYo=
-Date:   Fri, 13 Jan 2023 21:25:30 -0800
-To:     mm-commits@vger.kernel.org, vishal.moola@gmail.com,
-        akpm@linux-foundation.org
+        b=mtzjoJe7ha8Fh4KnLeyB7NkoaYwxPZYJrbRUBtM5ScVIrCmXGuaSek3BcPxLCPrRH
+         AdOeBNmIxExLdASyJUxdBvSI7l5d2mrzPmkATIw4+SVsxO34Sa+7xerrvwUC+Smy5D
+         Shg1jl1naesg2sHZZgV1Kc+pD3Ln/IXjuDoSVb0U=
+Date:   Fri, 13 Jan 2023 21:25:28 -0800
+To:     mm-commits@vger.kernel.org, tom@talpey.com, pc@cjr.nz,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ext4-convert-mpage_prepare_extent_to_map-to-use-filemap_get_folios_tag.patch added to mm-unstable branch
-Message-Id: <20230114052530.F3D7BC433D2@smtp.kernel.org>
+Subject: + cifs-convert-wdata_alloc_and_fillpages-to-use-filemap_get_folios_tag.patch added to mm-unstable branch
+Message-Id: <20230114052529.56ACCC433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: convert mpage_prepare_extent_to_map() to use filemap_get_folios_tag()
+     Subject: cifs: convert wdata_alloc_and_fillpages() to use filemap_get_folios_tag()
 has been added to the -mm mm-unstable branch.  Its filename is
-     ext4-convert-mpage_prepare_extent_to_map-to-use-filemap_get_folios_tag.patch
+     cifs-convert-wdata_alloc_and_fillpages-to-use-filemap_get_folios_tag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ext4-convert-mpage_prepare_extent_to_map-to-use-filemap_get_folios_tag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cifs-convert-wdata_alloc_and_fillpages-to-use-filemap_get_folios_tag.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,157 +65,71 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: ext4: convert mpage_prepare_extent_to_map() to use filemap_get_folios_tag()
-Date: Wed, 4 Jan 2023 13:14:35 -0800
+Subject: cifs: convert wdata_alloc_and_fillpages() to use filemap_get_folios_tag()
+Date: Wed, 4 Jan 2023 13:14:34 -0800
 
-Convert the function to use folios throughout.  This is in preparation for
-the removal of find_get_pages_range_tag().  Now supports large folios. 
-This change removes 11 calls to compound_head().
+This is in preparation for the removal of find_get_pages_range_tag().  Now
+also supports the use of large folios.
 
-Link: https://lkml.kernel.org/r/20230104211448.4804-11-vishal.moola@gmail.com
+Since tofind might be larger than the max number of folios in a
+folio_batch (15), we loop through filling in wdata->pages pulling more
+batches until we either reach tofind pages or run out of folios.
+
+This function may not return all pages in the last found folio before
+tofind pages are reached.
+
+Link: https://lkml.kernel.org/r/20230104211448.4804-10-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Acked-by: Paulo Alcantara (SUSE) <pc@cjr.nz>
+Cc: Tom Talpey <tom@talpey.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/ext4/inode.c~ext4-convert-mpage_prepare_extent_to_map-to-use-filemap_get_folios_tag
-+++ a/fs/ext4/inode.c
-@@ -2595,8 +2595,8 @@ static bool ext4_page_nomap_can_writeout
- static int mpage_prepare_extent_to_map(struct mpage_da_data *mpd)
+--- a/fs/cifs/file.c~cifs-convert-wdata_alloc_and_fillpages-to-use-filemap_get_folios_tag
++++ a/fs/cifs/file.c
+@@ -2527,14 +2527,40 @@ wdata_alloc_and_fillpages(pgoff_t tofind
+ 			  unsigned int *found_pages)
  {
- 	struct address_space *mapping = mpd->inode->i_mapping;
--	struct pagevec pvec;
--	unsigned int nr_pages;
-+	struct folio_batch fbatch;
-+	unsigned int nr_folios;
- 	long left = mpd->wbc->nr_to_write;
- 	pgoff_t index = mpd->first_page;
- 	pgoff_t end = mpd->last_page;
-@@ -2610,18 +2610,17 @@ static int mpage_prepare_extent_to_map(s
- 		tag = PAGECACHE_TAG_TOWRITE;
- 	else
- 		tag = PAGECACHE_TAG_DIRTY;
+ 	struct cifs_writedata *wdata;
 -
--	pagevec_init(&pvec);
++	struct folio_batch fbatch;
++	unsigned int i, idx, p, nr;
+ 	wdata = cifs_writedata_alloc((unsigned int)tofind,
+ 				     cifs_writev_complete);
+ 	if (!wdata)
+ 		return NULL;
+ 
+-	*found_pages = find_get_pages_range_tag(mapping, index, end,
+-				PAGECACHE_TAG_DIRTY, tofind, wdata->pages);
 +	folio_batch_init(&fbatch);
- 	mpd->map.m_len = 0;
- 	mpd->next_page = index;
- 	while (index <= end) {
--		nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
--				tag);
--		if (nr_pages == 0)
-+		nr_folios = filemap_get_folios_tag(mapping, &index, end,
-+				tag, &fbatch);
-+		if (nr_folios == 0)
- 			break;
- 
--		for (i = 0; i < nr_pages; i++) {
--			struct page *page = pvec.pages[i];
-+		for (i = 0; i < nr_folios; i++) {
-+			struct folio *folio = fbatch.folios[i];
- 
- 			/*
- 			 * Accumulated enough dirty pages? This doesn't apply
-@@ -2635,10 +2634,10 @@ static int mpage_prepare_extent_to_map(s
- 				goto out;
- 
- 			/* If we can't merge this page, we are done. */
--			if (mpd->map.m_len > 0 && mpd->next_page != page->index)
-+			if (mpd->map.m_len > 0 && mpd->next_page != folio->index)
- 				goto out;
- 
--			lock_page(page);
-+			folio_lock(folio);
- 			/*
- 			 * If the page is no longer dirty, or its mapping no
- 			 * longer corresponds to inode we are writing (which
-@@ -2646,16 +2645,16 @@ static int mpage_prepare_extent_to_map(s
- 			 * page is already under writeback and we are not doing
- 			 * a data integrity writeback, skip the page
- 			 */
--			if (!PageDirty(page) ||
--			    (PageWriteback(page) &&
-+			if (!folio_test_dirty(folio) ||
-+			    (folio_test_writeback(folio) &&
- 			     (mpd->wbc->sync_mode == WB_SYNC_NONE)) ||
--			    unlikely(page->mapping != mapping)) {
--				unlock_page(page);
-+			    unlikely(folio->mapping != mapping)) {
-+				folio_unlock(folio);
- 				continue;
- 			}
- 
--			wait_on_page_writeback(page);
--			BUG_ON(PageWriteback(page));
-+			folio_wait_writeback(folio);
-+			BUG_ON(folio_test_writeback(folio));
- 
- 			/*
- 			 * Should never happen but for buggy code in
-@@ -2666,49 +2665,49 @@ static int mpage_prepare_extent_to_map(s
- 			 *
- 			 * [1] https://lore.kernel.org/linux-mm/20180103100430.GE4911@quack2.suse.cz
- 			 */
--			if (!page_has_buffers(page)) {
--				ext4_warning_inode(mpd->inode, "page %lu does not have buffers attached", page->index);
--				ClearPageDirty(page);
--				unlock_page(page);
-+			if (!folio_buffers(folio)) {
-+				ext4_warning_inode(mpd->inode, "page %lu does not have buffers attached", folio->index);
-+				folio_clear_dirty(folio);
-+				folio_unlock(folio);
- 				continue;
- 			}
- 
- 			if (mpd->map.m_len == 0)
--				mpd->first_page = page->index;
--			mpd->next_page = page->index + 1;
-+				mpd->first_page = folio->index;
-+			mpd->next_page = folio->index + folio_nr_pages(folio);
- 			/*
- 			 * Writeout for transaction commit where we cannot
- 			 * modify metadata is simple. Just submit the page.
- 			 */
- 			if (!mpd->can_map) {
--				if (ext4_page_nomap_can_writeout(page)) {
--					err = mpage_submit_page(mpd, page);
-+				if (ext4_page_nomap_can_writeout(&folio->page)) {
-+					err = mpage_submit_page(mpd, &folio->page);
- 					if (err < 0)
- 						goto out;
- 				} else {
--					unlock_page(page);
--					mpd->first_page++;
-+					folio_unlock(folio);
-+					mpd->first_page += folio_nr_pages(folio);
- 				}
- 			} else {
- 				/* Add all dirty buffers to mpd */
--				lblk = ((ext4_lblk_t)page->index) <<
-+				lblk = ((ext4_lblk_t)folio->index) <<
- 					(PAGE_SHIFT - blkbits);
--				head = page_buffers(page);
-+				head = folio_buffers(folio);
- 				err = mpage_process_page_bufs(mpd, head, head,
--							      lblk);
-+						lblk);
- 				if (err <= 0)
- 					goto out;
- 				err = 0;
- 			}
--			left--;
-+			left -= folio_nr_pages(folio);
- 		}
--		pagevec_release(&pvec);
-+		folio_batch_release(&fbatch);
- 		cond_resched();
- 	}
- 	mpd->scanned_until_end = 1;
- 	return 0;
- out:
--	pagevec_release(&pvec);
++	*found_pages = 0;
++
++again:
++	nr = filemap_get_folios_tag(mapping, index, end,
++				PAGECACHE_TAG_DIRTY, &fbatch);
++	if (!nr)
++		goto out; /* No dirty pages left in the range */
++
++	for (i = 0; i < nr; i++) {
++		struct folio *folio = fbatch.folios[i];
++
++		idx = 0;
++		p = folio_nr_pages(folio);
++add_more:
++		wdata->pages[*found_pages] = folio_page(folio, idx);
++		folio_get(folio);
++		if (++*found_pages == tofind) {
++			folio_batch_release(&fbatch);
++			goto out;
++		}
++		if (++idx < p)
++			goto add_more;
++	}
 +	folio_batch_release(&fbatch);
- 	return err;
++	goto again;
++out:
+ 	return wdata;
  }
  
 _
