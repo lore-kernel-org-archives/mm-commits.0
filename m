@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FCC7C3DA78
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4860DC46467
 	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 03:53:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229678AbjANDx2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Jan 2023 22:53:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41102 "EHLO
+        id S230150AbjANDx1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Jan 2023 22:53:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231190AbjANDxU (ORCPT
+        with ESMTP id S231163AbjANDxU (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 22:53:20 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0F0B60DA
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 19:53:13 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 015A6C1A
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 19:53:03 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 536ECB822C0
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 03:53:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DED06C433D2;
-        Sat, 14 Jan 2023 03:53:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8D5DA62397
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 03:53:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0EB8C433EF;
+        Sat, 14 Jan 2023 03:53:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673668391;
-        bh=EUbqu0JN+YaWWBlfyVOdT/Gz72C1TMUJb4YATuIr81Y=;
+        s=korg; t=1673668382;
+        bh=iJAQRA7A40m9nE9ssu4YwcHNBbKPwL2SWLLhlIGHl2M=;
         h=Date:To:From:Subject:From;
-        b=crHS/uEpxvCjzUJ8x76WOaIlEzGzmxJLIQ19Okd6Ozb+uElBi5MWbuNjhCPvqR6rQ
-         6hzlVSJB2csQl+p+3+dvgXm6hzJRzwvrj3yTzBWR69FLbc4e9yggUhYqhMlz3HQLl2
-         V9qQ4u5v+tt7MgQP361Gsf7Abefe8mlmoM1IG33U=
-Date:   Fri, 13 Jan 2023 19:53:10 -0800
+        b=GVs3QBHg/Py/VRrw8ZknmNOdBbUtvEsQjJh93QEvxqeZUf3Kux3gaLjngjvvYfRuZ
+         ipDFY+3gGcgX4Qx0qJivAGp8cBs9ilL6y+h7cHc0xOc52MIK/7wJCVAF0kDnvJY24m
+         VKMfcPYiL4A655f1srwEA3+aSy4UT0tFRYXwCaM0=
+Date:   Fri, 13 Jan 2023 19:53:01 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         songmuchun@bytedance.com, mike.kravetz@oracle.com,
         jhubbard@nvidia.com, sidhartha.kumar@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-restore_reserve_on_error-to-folios.patch added to mm-unstable branch
-Message-Id: <20230114035310.DED06C433D2@smtp.kernel.org>
+Subject: + mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios.patch added to mm-unstable branch
+Message-Id: <20230114035301.E0EB8C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: convert restore_reserve_on_error() to folios
+     Subject: mm/hugetlb: convert dequeue_hugetlb_page functions to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-restore_reserve_on_error-to-folios.patch
+     mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-restore_reserve_on_error-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,95 +67,150 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: convert restore_reserve_on_error() to folios
-Date: Fri, 13 Jan 2023 16:30:56 -0600
+Subject: mm/hugetlb: convert dequeue_hugetlb_page functions to folios
+Date: Fri, 13 Jan 2023 16:30:52 -0600
 
-Use the hugetlb folio flag macros inside restore_reserve_on_error() and
-update the comments to reflect the use of folios.
+dequeue_huge_page_node_exact() is changed to dequeue_hugetlb_folio_node_
+exact() and dequeue_huge_page_nodemask() is changed to dequeue_hugetlb_
+folio_nodemask().  Update their callers to pass in a folio.
 
-Link: https://lkml.kernel.org/r/20230113223057.173292-8-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20230113223057.173292-4-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/hugetlb.c~mm-hugetlb-convert-restore_reserve_on_error-to-folios
+--- a/mm/hugetlb.c~mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios
 +++ a/mm/hugetlb.c
-@@ -2819,22 +2819,23 @@ static long vma_del_reservation(struct h
- void restore_reserve_on_error(struct hstate *h, struct vm_area_struct *vma,
- 			unsigned long address, struct page *page)
- {
-+	struct folio *folio = page_folio(page);
- 	long rc = vma_needs_reservation(h, vma, address);
+@@ -1282,32 +1282,33 @@ static void enqueue_hugetlb_folio(struct
+ 	folio_set_hugetlb_freed(folio);
+ }
  
--	if (HPageRestoreReserve(page)) {
-+	if (folio_test_hugetlb_restore_reserve(folio)) {
- 		if (unlikely(rc < 0))
- 			/*
- 			 * Rare out of memory condition in reserve map
--			 * manipulation.  Clear HPageRestoreReserve so that
--			 * global reserve count will not be incremented
-+			 * manipulation.  Clear hugetlb_restore_reserve so
-+			 * that global reserve count will not be incremented
- 			 * by free_huge_page.  This will make it appear
--			 * as though the reservation for this page was
-+			 * as though the reservation for this folio was
- 			 * consumed.  This may prevent the task from
--			 * faulting in the page at a later time.  This
-+			 * faulting in the folio at a later time.  This
- 			 * is better than inconsistent global huge page
- 			 * accounting of reserve counts.
- 			 */
--			ClearHPageRestoreReserve(page);
-+			folio_clear_hugetlb_restore_reserve(folio);
- 		else if (rc)
- 			(void)vma_add_reservation(h, vma, address);
- 		else
-@@ -2845,7 +2846,7 @@ void restore_reserve_on_error(struct hst
- 			 * This indicates there is an entry in the reserve map
- 			 * not added by alloc_huge_page.  We know it was added
- 			 * before the alloc_huge_page call, otherwise
--			 * HPageRestoreReserve would be set on the page.
-+			 * hugetlb_restore_reserve would be set on the folio.
- 			 * Remove the entry so that a subsequent allocation
- 			 * does not consume a reservation.
- 			 */
-@@ -2854,12 +2855,12 @@ void restore_reserve_on_error(struct hst
- 				/*
- 				 * VERY rare out of memory condition.  Since
- 				 * we can not delete the entry, set
--				 * HPageRestoreReserve so that the reserve
--				 * count will be incremented when the page
-+				 * hugetlb_restore_reserve so that the reserve
-+				 * count will be incremented when the folio
- 				 * is freed.  This reserve will be consumed
- 				 * on a subsequent allocation.
- 				 */
--				SetHPageRestoreReserve(page);
-+				folio_set_hugetlb_restore_reserve(folio);
- 		} else if (rc < 0) {
- 			/*
- 			 * Rare out of memory condition from
-@@ -2875,12 +2876,12 @@ void restore_reserve_on_error(struct hst
- 				/*
- 				 * For private mappings, no entry indicates
- 				 * a reservation is present.  Since we can
--				 * not add an entry, set SetHPageRestoreReserve
--				 * on the page so reserve count will be
-+				 * not add an entry, set hugetlb_restore_reserve
-+				 * on the folio so reserve count will be
- 				 * incremented when freed.  This reserve will
- 				 * be consumed on a subsequent allocation.
- 				 */
--				SetHPageRestoreReserve(page);
-+				folio_set_hugetlb_restore_reserve(folio);
- 		} else
- 			/*
- 			 * No reservation present, do nothing
+-static struct page *dequeue_huge_page_node_exact(struct hstate *h, int nid)
++static struct folio *dequeue_hugetlb_folio_node_exact(struct hstate *h,
++								int nid)
+ {
+-	struct page *page;
++	struct folio *folio;
+ 	bool pin = !!(current->flags & PF_MEMALLOC_PIN);
+ 
+ 	lockdep_assert_held(&hugetlb_lock);
+-	list_for_each_entry(page, &h->hugepage_freelists[nid], lru) {
+-		if (pin && !is_longterm_pinnable_page(page))
++	list_for_each_entry(folio, &h->hugepage_freelists[nid], lru) {
++		if (pin && !folio_is_longterm_pinnable(folio))
+ 			continue;
+ 
+-		if (PageHWPoison(page))
++		if (folio_test_hwpoison(folio))
+ 			continue;
+ 
+-		list_move(&page->lru, &h->hugepage_activelist);
+-		set_page_refcounted(page);
+-		ClearHPageFreed(page);
++		list_move(&folio->lru, &h->hugepage_activelist);
++		folio_ref_unfreeze(folio, 1);
++		folio_clear_hugetlb_freed(folio);
+ 		h->free_huge_pages--;
+ 		h->free_huge_pages_node[nid]--;
+-		return page;
++		return folio;
+ 	}
+ 
+ 	return NULL;
+ }
+ 
+-static struct page *dequeue_huge_page_nodemask(struct hstate *h, gfp_t gfp_mask, int nid,
+-		nodemask_t *nmask)
++static struct folio *dequeue_hugetlb_folio_nodemask(struct hstate *h, gfp_t gfp_mask,
++							int nid, nodemask_t *nmask)
+ {
+ 	unsigned int cpuset_mems_cookie;
+ 	struct zonelist *zonelist;
+@@ -1320,7 +1321,7 @@ static struct page *dequeue_huge_page_no
+ retry_cpuset:
+ 	cpuset_mems_cookie = read_mems_allowed_begin();
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist, gfp_zone(gfp_mask), nmask) {
+-		struct page *page;
++		struct folio *folio;
+ 
+ 		if (!cpuset_zone_allowed(zone, gfp_mask))
+ 			continue;
+@@ -1332,9 +1333,9 @@ retry_cpuset:
+ 			continue;
+ 		node = zone_to_nid(zone);
+ 
+-		page = dequeue_huge_page_node_exact(h, node);
+-		if (page)
+-			return page;
++		folio = dequeue_hugetlb_folio_node_exact(h, node);
++		if (folio)
++			return folio;
+ 	}
+ 	if (unlikely(read_mems_allowed_retry(cpuset_mems_cookie)))
+ 		goto retry_cpuset;
+@@ -1352,7 +1353,7 @@ static struct page *dequeue_huge_page_vm
+ 				unsigned long address, int avoid_reserve,
+ 				long chg)
+ {
+-	struct page *page = NULL;
++	struct folio *folio = NULL;
+ 	struct mempolicy *mpol;
+ 	gfp_t gfp_mask;
+ 	nodemask_t *nodemask;
+@@ -1374,22 +1375,24 @@ static struct page *dequeue_huge_page_vm
+ 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
+ 
+ 	if (mpol_is_preferred_many(mpol)) {
+-		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
++		folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask,
++							nid, nodemask);
+ 
+ 		/* Fallback to all nodes if page==NULL */
+ 		nodemask = NULL;
+ 	}
+ 
+-	if (!page)
+-		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
++	if (!folio)
++		folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask,
++							nid, nodemask);
+ 
+-	if (page && !avoid_reserve && vma_has_reserves(vma, chg)) {
+-		SetHPageRestoreReserve(page);
++	if (folio && !avoid_reserve && vma_has_reserves(vma, chg)) {
++		folio_set_hugetlb_restore_reserve(folio);
+ 		h->resv_huge_pages--;
+ 	}
+ 
+ 	mpol_cond_put(mpol);
+-	return page;
++	return &folio->page;
+ 
+ err:
+ 	return NULL;
+@@ -2475,12 +2478,13 @@ struct page *alloc_huge_page_nodemask(st
+ {
+ 	spin_lock_irq(&hugetlb_lock);
+ 	if (available_huge_pages(h)) {
+-		struct page *page;
++		struct folio *folio;
+ 
+-		page = dequeue_huge_page_nodemask(h, gfp_mask, preferred_nid, nmask);
+-		if (page) {
++		folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask,
++						preferred_nid, nmask);
++		if (folio) {
+ 			spin_unlock_irq(&hugetlb_lock);
+-			return page;
++			return &folio->page;
+ 		}
+ 	}
+ 	spin_unlock_irq(&hugetlb_lock);
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
