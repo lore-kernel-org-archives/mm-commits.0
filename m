@@ -2,129 +2,174 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FFCAC67871
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:34:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B6CC3DA78
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:40:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229531AbjANEes (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Jan 2023 23:34:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51868 "EHLO
+        id S230038AbjANEkg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Jan 2023 23:40:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52208 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230038AbjANEen (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:34:43 -0500
+        with ESMTP id S229968AbjANEkf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:40:35 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AAB5EAC
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:34:36 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8F4F9E
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:40:33 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4BE94B822CE
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:34:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD498C433EF;
-        Sat, 14 Jan 2023 04:34:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 73932B82206
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:40:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 182B0C433D2;
+        Sat, 14 Jan 2023 04:40:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673670874;
-        bh=xWxhMa/F/zvIP7ppieLSIkeg3Cap5gA3+qcBhhTtr6k=;
+        s=korg; t=1673671231;
+        bh=ioGfp7siTfshXPnEfA36B3K9Pfpf7dYWl4+F3Cw1Y7c=;
         h=Date:To:From:Subject:From;
-        b=q7JFnbT8dCtuuYjIfZvGQGh5kUAYNmyFOiXkCgcNM5+hdx1ZuhiWMSuy7ewlfvqBw
-         TA3mlZ9VVbRQht8Z0VCpMS2V0qcJEFBpoPPPCLBGCI+dR9uVoTlZ0zYGJjLih428z4
-         y9pwYnZo6807THrZ/4gJkLZdBAByDBnlIr218XiQ=
-Date:   Fri, 13 Jan 2023 20:34:33 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=m8wAGboN9tK6Q6YCWTJx0GJ6TPr2sDbu9kgLsa8THtJWNTiruf5piEQBZNowfRnv8
+         D/5yoL8L5f0/+cTwYZhzifHWwRg83ZK4vCW2+ZJsLuO5JW1RuUWEDBd6rd7I938NcZ
+         8u+kITfA1xguB0UuaZvzlkIhwbtN3GthR+H8tEMI=
+Date:   Fri, 13 Jan 2023 20:40:30 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        thierry.reding@gmail.com, neilb@suse.de, mhocko@suse.com,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-swap-remove-unneeded-cgroup_throttle_swaprate.patch removed from -mm tree
-Message-Id: <20230114043433.DD498C433EF@smtp.kernel.org>
+Subject: + mm-page_alloc-rename-alloc_high-to-alloc_min_reserve.patch added to mm-unstable branch
+Message-Id: <20230114044031.182B0C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm: swap: remove unneeded cgroup_throttle_swaprate()
-has been removed from the -mm tree.  Its filename was
-     mm-swap-remove-unneeded-cgroup_throttle_swaprate.patch
+The patch titled
+     Subject: mm/page_alloc: rename ALLOC_HIGH to ALLOC_MIN_RESERVE
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-rename-alloc_high-to-alloc_min_reserve.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-rename-alloc_high-to-alloc_min_reserve.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: swap: remove unneeded cgroup_throttle_swaprate()
-Date: Thu, 12 Jan 2023 16:30:06 +0800
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: rename ALLOC_HIGH to ALLOC_MIN_RESERVE
+Date: Fri, 13 Jan 2023 11:12:12 +0000
 
-All the callers of cgroup_throttle_swaprate() are converted to
-folio_throttle_swaprate(), so make __cgroup_throttle_swaprate() to take a
-folio, and drop unused cgroup_throttle_swaprate().
+Patch series "Discard __GFP_ATOMIC", v3.
 
-Link: https://lkml.kernel.org/r/20230112083006.163393-8-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Neil's patch has been residing in mm-unstable as commit 2fafb4fe8f7a ("mm:
+discard __GFP_ATOMIC") for a long time and recently brought up again. 
+Most recently, I was worried that __GFP_HIGH allocations could use
+high-order atomic reserves which is unintentional but there was no
+response so lets revisit -- this series reworks how min reserves are used,
+protects highorder reserves and then finishes with Neil's patch with very
+minor modifications so it fits on top.
+
+There was a review discussion on renaming __GFP_DIRECT_RECLAIM to
+__GFP_ALLOW_BLOCKING but I didn't think it was that big an issue and is
+orthogonal to the removal of __GFP_ATOMIC.
+
+There were some concerns about how the gfp flags affect the min reserves
+but it never reached a solid conclusion so I made my own attempt.
+
+The series tries to iron out some of the details on how reserves are used.
+ALLOC_HIGH becomes ALLOC_MIN_RESERVE and ALLOC_HARDER becomes
+ALLOC_NON_BLOCK and documents how the reserves are affected.  For example,
+ALLOC_NON_BLOCK (no direct reclaim) on its own allows 25% of the min
+reserve.  ALLOC_MIN_RESERVE (__GFP_HIGH) allows 50% and both combined
+allows deeper access again.  ALLOC_OOM allows access to 75%.
+
+High-order atomic allocations are explicitly handled with the caveat that
+no __GFP_ATOMIC flag means that any high-order allocation that specifies
+GFP_HIGH and cannot enter direct reclaim will be treated as if it was
+GFP_ATOMIC.
+
+
+This patch (of 6):
+
+__GFP_HIGH aliases to ALLOC_HIGH but the name does not really hint what it
+means.  As ALLOC_HIGH is internal to the allocator, rename it to
+ALLOC_MIN_RESERVE to document that the min reserves can be depleted.
+
+Link: https://lkml.kernel.org/r/20230113111217.14134-1-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20230113111217.14134-2-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Thierry Reding <thierry.reding@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   12 ++++--------
- mm/swapfile.c        |    4 ++--
- 2 files changed, 6 insertions(+), 10 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-remove-unneeded-cgroup_throttle_swaprate
-+++ a/include/linux/swap.h
-@@ -641,22 +641,18 @@ extern atomic_t zswap_stored_pages;
+--- a/mm/internal.h~mm-page_alloc-rename-alloc_high-to-alloc_min_reserve
++++ a/mm/internal.h
+@@ -779,7 +779,9 @@ unsigned int reclaim_clean_pages_from_li
  #endif
  
- #if defined(CONFIG_SWAP) && defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
--extern void __cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask);
--static inline  void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
-+extern void __cgroup_throttle_swaprate(struct folio *folio, gfp_t gfp_mask);
-+static inline void folio_throttle_swaprate(struct folio *folio, gfp_t gfp_mask)
- {
- 	if (mem_cgroup_disabled())
- 		return;
--	__cgroup_throttle_swaprate(page, gfp_mask);
-+	__cgroup_throttle_swaprate(folio, gfp_mask);
- }
- #else
--static inline void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
-+static inline void folio_throttle_swaprate(struct folio *folio, gfp_t gfp_mask)
- {
- }
- #endif
--static inline void folio_throttle_swaprate(struct folio *folio, gfp_t gfp)
--{
--	cgroup_throttle_swaprate(&folio->page, gfp);
--}
+ #define ALLOC_HARDER		 0x10 /* try to alloc harder */
+-#define ALLOC_HIGH		 0x20 /* __GFP_HIGH set */
++#define ALLOC_MIN_RESERVE	 0x20 /* __GFP_HIGH set. Allow access to 50%
++				       * of the min watermark.
++				       */
+ #define ALLOC_CPUSET		 0x40 /* check for correct cpuset */
+ #define ALLOC_CMA		 0x80 /* allow allocations from CMA areas */
+ #ifdef CONFIG_ZONE_DMA32
+--- a/mm/page_alloc.c~mm-page_alloc-rename-alloc_high-to-alloc_min_reserve
++++ a/mm/page_alloc.c
+@@ -3994,7 +3994,7 @@ bool __zone_watermark_ok(struct zone *z,
+ 	/* free_pages may go negative - that's OK */
+ 	free_pages -= __zone_watermark_unusable_free(z, order, alloc_flags);
  
- #if defined(CONFIG_MEMCG) && defined(CONFIG_SWAP)
- void mem_cgroup_swapout(struct folio *folio, swp_entry_t entry);
---- a/mm/swapfile.c~mm-swap-remove-unneeded-cgroup_throttle_swaprate
-+++ a/mm/swapfile.c
-@@ -3636,10 +3636,10 @@ static void free_swap_count_continuation
- }
+-	if (alloc_flags & ALLOC_HIGH)
++	if (alloc_flags & ALLOC_MIN_RESERVE)
+ 		min -= min / 2;
  
- #if defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
--void __cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
-+void __cgroup_throttle_swaprate(struct folio *folio, gfp_t gfp_mask)
- {
- 	struct swap_info_struct *si, *next;
--	int nid = page_to_nid(page);
-+	int nid = folio_nid(folio);
+ 	if (unlikely(alloc_harder)) {
+@@ -4836,18 +4836,18 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	unsigned int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
  
- 	if (!(gfp_mask & __GFP_IO))
- 		return;
+ 	/*
+-	 * __GFP_HIGH is assumed to be the same as ALLOC_HIGH
++	 * __GFP_HIGH is assumed to be the same as ALLOC_MIN_RESERVE
+ 	 * and __GFP_KSWAPD_RECLAIM is assumed to be the same as ALLOC_KSWAPD
+ 	 * to save two branches.
+ 	 */
+-	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_HIGH);
++	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_MIN_RESERVE);
+ 	BUILD_BUG_ON(__GFP_KSWAPD_RECLAIM != (__force gfp_t) ALLOC_KSWAPD);
+ 
+ 	/*
+ 	 * The caller may dip into page reserves a bit more if the caller
+ 	 * cannot run direct reclaim, or if the caller has realtime scheduling
+ 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
+-	 * set both ALLOC_HARDER (__GFP_ATOMIC) and ALLOC_HIGH (__GFP_HIGH).
++	 * set both ALLOC_HARDER (__GFP_ATOMIC) and ALLOC_MIN_RESERVE(__GFP_HIGH).
+ 	 */
+ 	alloc_flags |= (__force int)
+ 		(gfp_mask & (__GFP_HIGH | __GFP_KSWAPD_RECLAIM));
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-hwposion-support-recovery-from-ksm_might_need_to_copy.patch
-mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v3.patch
-mm-huge_memory-convert-madvise_free_huge_pmd-to-use-a-folio.patch
-mm-swap-convert-mark_page_lazyfree-to-folio_mark_lazyfree.patch
-mm-huge_memory-convert-split_huge_pages_all-to-use-a-folio.patch
-mm-page_idle-convert-page-idle-to-use-a-folio.patch
-mm-damon-introduce-damon_get_folio.patch
-mm-damon-convert-damon_ptep-pmdp_mkold-to-use-a-folio.patch
-mm-damon-paddr-convert-damon_pa_-to-use-a-folio.patch
-mm-damon-vaddr-convert-damon_young_pmd_entry-to-use-a-folio.patch
-mm-damon-remove-unneeded-damon_get_page.patch
-mm-damon-vaddr-convert-hugetlb-related-functions-to-use-a-folio.patch
-mm-madvise-use-vm_normal_folio-in-madvise_free_pte_range.patch
+mm-page_alloc-rename-alloc_high-to-alloc_min_reserve.patch
+mm-page_alloc-treat-rt-tasks-similar-to-__gfp_high.patch
+mm-page_alloc-explicitly-record-high-order-atomic-allocations-in-alloc_flags.patch
+mm-page_alloc-explicitly-define-what-alloc-flags-deplete-min-reserves.patch
+mm-page_alloc-explicitly-define-how-__gfp_high-non-blocking-allocations-accesses-reserves.patch
 
