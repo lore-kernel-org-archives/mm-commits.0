@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74890C3DA78
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:48:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A42CC46467
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 05:07:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229447AbjANEr7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Jan 2023 23:47:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53624 "EHLO
+        id S229504AbjANFHC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Jan 2023 00:07:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229455AbjANEr6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:47:58 -0500
+        with ESMTP id S229489AbjANFHB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Jan 2023 00:07:01 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A5DC3596
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:47:56 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26A8530F7
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 21:07:00 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CB9DD60244
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:47:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 192CFC433EF;
-        Sat, 14 Jan 2023 04:47:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8DCFE60AE6
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 05:06:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBE78C433D2;
+        Sat, 14 Jan 2023 05:06:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673671675;
-        bh=7pPX1r8TQJz+Q8vctP/riZBeFJL944DqUZt6rwXZc4M=;
+        s=korg; t=1673672819;
+        bh=K9rEJTJOQa6qZxFEy34mCSJxKS3krQFav2R1y3eebnU=;
         h=Date:To:From:Subject:From;
-        b=2ZfblxSe2Eu7GDg4j+Y+hStnDZzqFgLsJKq6NR419OeDy+4uqyBfIafA9mUKpjj0t
-         oVuj0QWzRz5qswBC55rZJZkGApBTvTUQXIPI1DYD025/ASAA8wf8NcHPfwtlAV3lvM
-         D2D5A3GYk8wQDlI7JDtZhhbhygMrZzoT3MAr0DcA=
-Date:   Fri, 13 Jan 2023 20:47:54 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        ran.xiaokai@zte.com.cn, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org,
-        bagasdotme@gmail.com, yang.yang29@zte.com.cn,
-        akpm@linux-foundation.org
+        b=zNBcfeJrsQGWAEeOMDafZ1caPfLRduc17OMaCZq5MGwYmS3GVTIvT76GxGql3r0fY
+         cdy7jYTG+KOOE+YXZh5Egu45BKwlNTy7kLwqJGN7FNVmKWzo6wsWiHz6v2tkJIiO+d
+         whE+auVcOklboE7EP8p7NLgG5iaDvqt/tVKSjF5E=
+Date:   Fri, 13 Jan 2023 21:06:58 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
+        stephen.s.brennan@oracle.com, lstoakes@gmail.com,
+        hch@infradead.org, bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + swap_state-update-shadow_nodes-for-anonymous-page.patch added to mm-unstable branch
-Message-Id: <20230114044755.192CFC433EF@smtp.kernel.org>
+Subject: + mm-vmallocc-add-flags-to-mark-vm_map_ram-area.patch added to mm-unstable branch
+Message-Id: <20230114050658.DBE78C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap_state: update shadow_nodes for anonymous page
+     Subject: mm/vmalloc.c: add flags to mark vm_map_ram area
 has been added to the -mm mm-unstable branch.  Its filename is
-     swap_state-update-shadow_nodes-for-anonymous-page.patch
+     mm-vmallocc-add-flags-to-mark-vm_map_ram-area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap_state-update-shadow_nodes-for-anonymous-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmallocc-add-flags-to-mark-vm_map_ram-area.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,77 +65,124 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Yang <yang.yang29@zte.com.cn>
-Subject: swap_state: update shadow_nodes for anonymous page
-Date: Fri, 13 Jan 2023 17:36:45 +0800 (CST)
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/vmalloc.c: add flags to mark vm_map_ram area
+Date: Fri, 13 Jan 2023 11:19:16 +0800
 
-Shadow_nodes is for handling reclaiming of shadow nodes working set.  It
-is updated during page cache addition and or deletion.  For a long time
-workingset only supported page cache.  But when workingset was changed to
-support anonymous page detection, we failed to update shadow nodes for it.
-This meant that shadow nodes holding anonymous page will never be
-reclaimd by scan_shadow_nodes() even they use much memory and system
-memory is tense.
+Through vmalloc API, a virtual kernel area is reserved for physical
+address mapping.  And vmap_area is used to track them, while vm_struct is
+allocated to associate with the vmap_area to store more information and
+passed out.
 
-So update shadow_nodes of anonymous page when swap cache is added or
-deleted by calling xas_set_update(..workingset_update_node).
+However, area reserved via vm_map_ram() is an exception.  It doesn't have
+vm_struct to associate with vmap_area.  And we can't recognize the
+vmap_area with '->vm == NULL' as a vm_map_ram() area because the normal
+freeing path will set va->vm = NULL before unmapping, please see function
+remove_vm_area().
 
-Link: https://lkml.kernel.org/r/202301131736452546903@zte.com.cn
-Fixes: aae466b0052e ("mm/swap: implement workingset detection for anonymous LRU")
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Reviewed-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Meanwhile, there are two kinds of handling for vm_map_ram area.  One is
+the whole vmap_area being reserved and mapped at one time through
+vm_map_area() interface; the other is the whole vmap_area with
+VMAP_BLOCK_SIZE size being reserved, while mapped into split regions with
+smaller size via vb_alloc().
+
+To mark the area reserved through vm_map_ram(), add flags field into
+struct vmap_area.  Bit 0 indicates this is vm_map_ram area created through
+vm_map_ram() interface, while bit 1 marks out the type of vm_map_ram area
+which makes use of vmap_block to manage split regions via vb_alloc/free().
+
+This is a preparation for later use.
+
+Link: https://lkml.kernel.org/r/20230113031921.64716-3-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Stephen Brennan <stephen.s.brennan@oracle.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/xarray.h~swap_state-update-shadow_nodes-for-anonymous-page
-+++ a/include/linux/xarray.h
-@@ -1643,7 +1643,8 @@ static inline void xas_set_order(struct
-  * @update: Function to call when updating a node.
-  *
-  * The XArray can notify a caller after it has updated an xa_node.
-- * This is advanced functionality and is only needed by the page cache.
-+ * This is advanced functionality and is only needed by the page cache
-+ * and swap cache.
-  */
- static inline void xas_set_update(struct xa_state *xas, xa_update_node_t update)
+--- a/include/linux/vmalloc.h~mm-vmallocc-add-flags-to-mark-vm_map_ram-area
++++ a/include/linux/vmalloc.h
+@@ -76,6 +76,7 @@ struct vmap_area {
+ 		unsigned long subtree_max_size; /* in "free" tree */
+ 		struct vm_struct *vm;           /* in "busy" tree */
+ 	};
++	unsigned long flags; /* mark type of vm_map_ram area */
+ };
+ 
+ /* archs that select HAVE_ARCH_HUGE_VMAP should override one or more of these */
+--- a/mm/vmalloc.c~mm-vmallocc-add-flags-to-mark-vm_map_ram-area
++++ a/mm/vmalloc.c
+@@ -1589,7 +1589,8 @@ preload_this_cpu_lock(spinlock_t *lock,
+ static struct vmap_area *alloc_vmap_area(unsigned long size,
+ 				unsigned long align,
+ 				unsigned long vstart, unsigned long vend,
+-				int node, gfp_t gfp_mask)
++				int node, gfp_t gfp_mask,
++				unsigned long va_flags)
  {
---- a/mm/swap_state.c~swap_state-update-shadow_nodes-for-anonymous-page
-+++ a/mm/swap_state.c
-@@ -94,6 +94,8 @@ int add_to_swap_cache(struct folio *foli
- 	unsigned long i, nr = folio_nr_pages(folio);
- 	void *old;
+ 	struct vmap_area *va;
+ 	unsigned long freed;
+@@ -1635,6 +1636,7 @@ retry:
+ 	va->va_start = addr;
+ 	va->va_end = addr + size;
+ 	va->vm = NULL;
++	va->flags = va_flags;
  
-+	xas_set_update(&xas, workingset_update_node);
-+
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 	VM_BUG_ON_FOLIO(folio_test_swapcache(folio), folio);
- 	VM_BUG_ON_FOLIO(!folio_test_swapbacked(folio), folio);
-@@ -145,6 +147,8 @@ void __delete_from_swap_cache(struct fol
- 	pgoff_t idx = swp_offset(entry);
- 	XA_STATE(xas, &address_space->i_pages, idx);
+ 	spin_lock(&vmap_area_lock);
+ 	insert_vmap_area(va, &vmap_area_root, &vmap_area_list);
+@@ -1913,6 +1915,10 @@ static struct vmap_area *find_unlink_vma
  
-+	xas_set_update(&xas, workingset_update_node);
-+
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 	VM_BUG_ON_FOLIO(!folio_test_swapcache(folio), folio);
- 	VM_BUG_ON_FOLIO(folio_test_writeback(folio), folio);
-@@ -252,6 +256,8 @@ void clear_shadow_from_swap_cache(int ty
- 		struct address_space *address_space = swap_address_space(entry);
- 		XA_STATE(xas, &address_space->i_pages, curr);
+ #define VMAP_BLOCK_SIZE		(VMAP_BBMAP_BITS * PAGE_SIZE)
  
-+		xas_set_update(&xas, workingset_update_node);
++#define VMAP_RAM		0x1 /* indicates vm_map_ram area*/
++#define VMAP_BLOCK		0x2 /* mark out the vmap_block sub-type*/
++#define VMAP_FLAGS_MASK		0x3
 +
- 		xa_lock_irq(&address_space->i_pages);
- 		xas_for_each(&xas, old, end) {
- 			if (!xa_is_value(old))
+ struct vmap_block_queue {
+ 	spinlock_t lock;
+ 	struct list_head free;
+@@ -1988,7 +1994,8 @@ static void *new_vmap_block(unsigned int
+ 
+ 	va = alloc_vmap_area(VMAP_BLOCK_SIZE, VMAP_BLOCK_SIZE,
+ 					VMALLOC_START, VMALLOC_END,
+-					node, gfp_mask);
++					node, gfp_mask,
++					VMAP_RAM|VMAP_BLOCK);
+ 	if (IS_ERR(va)) {
+ 		kfree(vb);
+ 		return ERR_CAST(va);
+@@ -2297,7 +2304,8 @@ void *vm_map_ram(struct page **pages, un
+ 	} else {
+ 		struct vmap_area *va;
+ 		va = alloc_vmap_area(size, PAGE_SIZE,
+-				VMALLOC_START, VMALLOC_END, node, GFP_KERNEL);
++				VMALLOC_START, VMALLOC_END,
++				node, GFP_KERNEL, VMAP_RAM);
+ 		if (IS_ERR(va))
+ 			return NULL;
+ 
+@@ -2537,7 +2545,7 @@ static struct vm_struct *__get_vm_area_n
+ 	if (!(flags & VM_NO_GUARD))
+ 		size += PAGE_SIZE;
+ 
+-	va = alloc_vmap_area(size, align, start, end, node, gfp_mask);
++	va = alloc_vmap_area(size, align, start, end, node, gfp_mask, 0);
+ 	if (IS_ERR(va)) {
+ 		kfree(area);
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from yang.yang29@zte.com.cn are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-swap_state-update-shadow_nodes-for-anonymous-page.patch
+mm-vmallocc-add-used_map-into-vmap_block-to-track-space-of-vmap_block.patch
+mm-vmallocc-add-flags-to-mark-vm_map_ram-area.patch
+mm-vmallocc-allow-vread-to-read-out-vm_map_ram-areas.patch
+mm-vmalloc-explicitly-identify-vm_map_ram-area-when-shown-in-proc-vmcoreinfo.patch
+mm-vmalloc-skip-the-uninitilized-vmalloc-areas.patch
+powerpc-mm-add-vm_ioremap-flag-to-the-vmalloc-area.patch
+sh-mm-set-vm_ioremap-flag-to-the-vmalloc-area.patch
 
