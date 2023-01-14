@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C84DC6379F
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 05:25:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 799AEC46467
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 05:25:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229530AbjANFZ0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Jan 2023 00:25:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57180 "EHLO
+        id S229494AbjANFZ1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Jan 2023 00:25:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229531AbjANFZX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Jan 2023 00:25:23 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E087E35BA
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 21:25:21 -0800 (PST)
+        with ESMTP id S229461AbjANFZY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Jan 2023 00:25:24 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86F4635B9
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 21:25:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 93373B822C4
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 05:25:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 254E4C433EF;
-        Sat, 14 Jan 2023 05:25:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2440E60AED
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 05:25:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E34DC433EF;
+        Sat, 14 Jan 2023 05:25:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673673919;
-        bh=dZARkYPWatvDVHXj5kFbbyjEVJAaqFBeeFUHp0CJBtU=;
+        s=korg; t=1673673922;
+        bh=2HCgynv0H64uf2XASt4ERasu38w0CQfiu3SWk/IbCpY=;
         h=Date:To:From:Subject:From;
-        b=Ldmjmwb8NllJSteC87p2vVsKFtNgzbGqALt0K+gTJWU+eYRmr1jMyFW4cqldWUIw5
-         jk+gLyzRM5Q4b9ybM2fWg4iYFO9F+RQmO0YKZ7a/eJWfOooRRE9xtVh2OAwD1sy5BN
-         K8R6v4Pz5snPfBvE/4j0+rtidkn5HTsZ0Dcv7/to=
-Date:   Fri, 13 Jan 2023 21:25:18 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        b=iafhKMOhNQiHeKZDmVL9Dh0g9K5s2Nd6RBd7s7XWk/fz0MG5HU8vais0G82QitQq6
+         6cACPnxHMWAQ5pgOoFuVBSXvNmWD2QXfTDujFpbHjcE4p2+uqMbyJVzrfioqLhi+GV
+         Rpo7atjeDSMbmjeGh0IFBwP1O+kEdTraiFXtz4xg=
+Date:   Fri, 13 Jan 2023 21:25:21 -0800
+To:     mm-commits@vger.kernel.org, dhowells@redhat.com,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-convert-__filemap_fdatawait_range-to-use-filemap_get_folios_tag.patch added to mm-unstable branch
-Message-Id: <20230114052519.254E4C433EF@smtp.kernel.org>
+Subject: + afs-convert-afs_writepages_region-to-use-filemap_get_folios_tag.patch added to mm-unstable branch
+Message-Id: <20230114052522.7E34DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: filemap: convert __filemap_fdatawait_range() to use filemap_get_folios_tag()
+     Subject: afs: convert afs_writepages_region() to use filemap_get_folios_tag()
 has been added to the -mm mm-unstable branch.  Its filename is
-     filemap-convert-__filemap_fdatawait_range-to-use-filemap_get_folios_tag.patch
+     afs-convert-afs_writepages_region-to-use-filemap_get_folios_tag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-convert-__filemap_fdatawait_range-to-use-filemap_get_folios_tag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/afs-convert-afs_writepages_region-to-use-filemap_get_folios_tag.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,61 +65,171 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: filemap: convert __filemap_fdatawait_range() to use filemap_get_folios_tag()
-Date: Wed, 4 Jan 2023 13:14:28 -0800
+Subject: afs: convert afs_writepages_region() to use filemap_get_folios_tag()
+Date: Wed, 4 Jan 2023 13:14:30 -0800
 
-Convert function to use folios.  This is in preparation for the removal of
-find_get_pages_range_tag().  This change removes 2 calls to
-compound_head().
+Convert to use folios throughout.  This function is in preparation to
+remove find_get_pages_range_tag().
 
-Link: https://lkml.kernel.org/r/20230104211448.4804-4-vishal.moola@gmail.com
+Also modify this function to write the whole batch one at a time, rather
+than calling for a new set every single write.
+
+Link: https://lkml.kernel.org/r/20230104211448.4804-6-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Matthew Wilcow (Oracle) <willy@infradead.org>
+Tested-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/filemap.c~filemap-convert-__filemap_fdatawait_range-to-use-filemap_get_folios_tag
-+++ a/mm/filemap.c
-@@ -503,25 +503,27 @@ static void __filemap_fdatawait_range(st
+--- a/fs/afs/write.c~afs-convert-afs_writepages_region-to-use-filemap_get_folios_tag
++++ a/fs/afs/write.c
+@@ -704,85 +704,87 @@ static int afs_writepages_region(struct
+ 				 bool max_one_loop)
  {
- 	pgoff_t index = start_byte >> PAGE_SHIFT;
- 	pgoff_t end = end_byte >> PAGE_SHIFT;
--	struct pagevec pvec;
--	int nr_pages;
+ 	struct folio *folio;
+-	struct page *head_page;
 +	struct folio_batch fbatch;
-+	unsigned nr_folios;
-+
+ 	ssize_t ret;
++	unsigned int i;
+ 	int n, skips = 0;
+ 
+ 	_enter("%llx,%llx,", start, end);
 +	folio_batch_init(&fbatch);
  
--	pagevec_init(&pvec);
- 	while (index <= end) {
- 		unsigned i;
+ 	do {
+ 		pgoff_t index = start / PAGE_SIZE;
  
--		nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index,
--				end, PAGECACHE_TAG_WRITEBACK);
--		if (!nr_pages)
-+		nr_folios = filemap_get_folios_tag(mapping, &index, end,
-+				PAGECACHE_TAG_WRITEBACK, &fbatch);
+-		n = find_get_pages_range_tag(mapping, &index, end / PAGE_SIZE,
+-					     PAGECACHE_TAG_DIRTY, 1, &head_page);
++		n = filemap_get_folios_tag(mapping, &index, end / PAGE_SIZE,
++					PAGECACHE_TAG_DIRTY, &fbatch);
 +
-+		if (!nr_folios)
+ 		if (!n)
  			break;
+-
+-		folio = page_folio(head_page);
+-		start = folio_pos(folio); /* May regress with THPs */
+-
+-		_debug("wback %lx", folio_index(folio));
+-
+-		/* At this point we hold neither the i_pages lock nor the
+-		 * page lock: the page may be truncated or invalidated
+-		 * (changing page->mapping to NULL), or even swizzled
+-		 * back from swapper_space to tmpfs file mapping
+-		 */
+-		if (wbc->sync_mode != WB_SYNC_NONE) {
+-			ret = folio_lock_killable(folio);
+-			if (ret < 0) {
+-				folio_put(folio);
+-				return ret;
+-			}
+-		} else {
+-			if (!folio_trylock(folio)) {
+-				folio_put(folio);
+-				return 0;
++		for (i = 0; i < n; i++) {
++			folio = fbatch.folios[i];
++			start = folio_pos(folio); /* May regress with THPs */
++
++			_debug("wback %lx", folio_index(folio));
++
++			/* At this point we hold neither the i_pages lock nor the
++			 * page lock: the page may be truncated or invalidated
++			 * (changing page->mapping to NULL), or even swizzled
++			 * back from swapper_space to tmpfs file mapping
++			 */
++			if (wbc->sync_mode != WB_SYNC_NONE) {
++				ret = folio_lock_killable(folio);
++				if (ret < 0) {
++					folio_batch_release(&fbatch);
++					return ret;
++				}
++			} else {
++				if (!folio_trylock(folio))
++					continue;
+ 			}
+-		}
  
--		for (i = 0; i < nr_pages; i++) {
--			struct page *page = pvec.pages[i];
-+		for (i = 0; i < nr_folios; i++) {
-+			struct folio *folio = fbatch.folios[i];
+-		if (folio_mapping(folio) != mapping ||
+-		    !folio_test_dirty(folio)) {
+-			start += folio_size(folio);
+-			folio_unlock(folio);
+-			folio_put(folio);
+-			continue;
+-		}
++			if (folio->mapping != mapping ||
++			    !folio_test_dirty(folio)) {
++				start += folio_size(folio);
++				folio_unlock(folio);
++				continue;
++			}
  
--			wait_on_page_writeback(page);
--			ClearPageError(page);
-+			folio_wait_writeback(folio);
-+			folio_clear_error(folio);
+-		if (folio_test_writeback(folio) ||
+-		    folio_test_fscache(folio)) {
+-			folio_unlock(folio);
+-			if (wbc->sync_mode != WB_SYNC_NONE) {
+-				folio_wait_writeback(folio);
++			if (folio_test_writeback(folio) ||
++			    folio_test_fscache(folio)) {
++				folio_unlock(folio);
++				if (wbc->sync_mode != WB_SYNC_NONE) {
++					folio_wait_writeback(folio);
+ #ifdef CONFIG_AFS_FSCACHE
+-				folio_wait_fscache(folio);
++					folio_wait_fscache(folio);
+ #endif
+-			} else {
+-				start += folio_size(folio);
++				} else {
++					start += folio_size(folio);
++				}
++				if (wbc->sync_mode == WB_SYNC_NONE) {
++					if (skips >= 5 || need_resched()) {
++						*_next = start;
++						_leave(" = 0 [%llx]", *_next);
++						return 0;
++					}
++					skips++;
++				}
++				continue;
+ 			}
+-			folio_put(folio);
+-			if (wbc->sync_mode == WB_SYNC_NONE) {
+-				if (skips >= 5 || need_resched())
+-					break;
+-				skips++;
++
++			if (!folio_clear_dirty_for_io(folio))
++				BUG();
++			ret = afs_write_back_from_locked_folio(mapping, wbc,
++					folio, start, end);
++			if (ret < 0) {
++				_leave(" = %zd", ret);
++				folio_batch_release(&fbatch);
++				return ret;
+ 			}
+-			continue;
+-		}
+ 
+-		if (!folio_clear_dirty_for_io(folio))
+-			BUG();
+-		ret = afs_write_back_from_locked_folio(mapping, wbc, folio, start, end);
+-		folio_put(folio);
+-		if (ret < 0) {
+-			_leave(" = %zd", ret);
+-			return ret;
++			start += ret;
  		}
--		pagevec_release(&pvec);
+ 
+-		start += ret;
+-
+-		if (max_one_loop)
+-			break;
+-
 +		folio_batch_release(&fbatch);
  		cond_resched();
- 	}
- }
+ 	} while (wbc->nr_to_write > 0);
+ 
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
