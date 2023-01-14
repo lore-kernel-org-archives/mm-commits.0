@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01597C46467
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:34:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBB74C3DA78
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Jan 2023 04:34:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229714AbjANEed (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 Jan 2023 23:34:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51806 "EHLO
+        id S230105AbjANEeo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 Jan 2023 23:34:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229851AbjANEea (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:34:30 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19368A9
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:34:30 -0800 (PST)
+        with ESMTP id S229578AbjANEed (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2023 23:34:33 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BE989E
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2023 20:34:32 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F0F360A29
-        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:34:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCC46C433F0;
-        Sat, 14 Jan 2023 04:34:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 42494B822B2
+        for <mm-commits@vger.kernel.org>; Sat, 14 Jan 2023 04:34:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D408EC433D2;
+        Sat, 14 Jan 2023 04:34:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
         s=korg; t=1673670869;
-        bh=DRg3ncfmfpkPToFnrICIHyqH+AZFtD7RKQfyEaWVE7Y=;
+        bh=w6O/SLwbVo27rwnQuKkfwiHdf2pYb62frTHblDpkZwk=;
         h=Date:To:From:Subject:From;
-        b=qSC5wJOkwAgpCsI2IgIkza/BZo6to+IzWuADu5/KxXbbGG3yTji6E7Ro1Uw3SsVpm
-         S5IJG8RMxCKUkW5XQSWVWNMnX1bAF9BhERG9F/rlCsQFPlkBFx4bHI9DI8DjIo9J9a
-         l35u/A87ouOFYtmrApHqie+C1fwUUxp19aL+gI4A=
-Date:   Fri, 13 Jan 2023 20:34:28 -0800
+        b=ef7zKAKhm6z8fdaegiPIk6txUXi125cdPF5kSj3EheGJdUUwTwBcfAYFou0hk1pPo
+         W1COonv2WsqVqTyyUaWQxDkwjR30+5WQWToLtZlbwkrPv4We7zZ0w7XD5lSYTWaOto
+         hBH9AHpT0XxlHWJDaZQIUTmYLO7qiVSuBJtYaBeI=
+Date:   Fri, 13 Jan 2023 20:34:29 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memory-convert-do_anonymous_page-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20230114043428.DCC46C433F0@smtp.kernel.org>
+Subject: [to-be-updated] mm-memory-convert-do_cow_fault-to-use-folios.patch removed from -mm tree
+Message-Id: <20230114043429.D408EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,90 +41,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory: convert do_anonymous_page() to use a folio
+     Subject: mm: memory: convert do_cow_fault to use folios
 has been removed from the -mm tree.  Its filename was
-     mm-memory-convert-do_anonymous_page-to-use-a-folio.patch
+     mm-memory-convert-do_cow_fault-to-use-folios.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory: convert do_anonymous_page() to use a folio
-Date: Thu, 12 Jan 2023 16:30:01 +0800
+Subject: mm: memory: convert do_cow_fault to use folios
+Date: Thu, 12 Jan 2023 16:30:02 +0800
 
-Convert do_anonymous_page() to use a folio and replace related functions
-with folio functions.
+The page functions are converted to corresponding folio functions in
+do_cow_fault().
 
-Link: https://lkml.kernel.org/r/20230112083006.163393-3-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20230112083006.163393-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ mm/memory.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
---- a/mm/memory.c~mm-memory-convert-do_anonymous_page-to-use-a-folio
+--- a/mm/memory.c~mm-memory-convert-do_cow_fault-to-use-folios
 +++ a/mm/memory.c
-@@ -4002,6 +4002,7 @@ static vm_fault_t do_anonymous_page(stru
+@@ -4507,22 +4507,24 @@ static vm_fault_t do_read_fault(struct v
+ static vm_fault_t do_cow_fault(struct vm_fault *vmf)
  {
  	struct vm_area_struct *vma = vmf->vma;
- 	struct page *page;
-+	struct folio *folio;
- 	vm_fault_t ret = 0;
- 	pte_t entry;
++	struct folio *cow_folio, *folio;
+ 	vm_fault_t ret;
  
-@@ -4055,16 +4056,17 @@ static vm_fault_t do_anonymous_page(stru
- 	if (!page)
- 		goto oom;
+ 	if (unlikely(anon_vma_prepare(vma)))
+ 		return VM_FAULT_OOM;
  
--	if (mem_cgroup_charge(page_folio(page), vma->vm_mm, GFP_KERNEL))
-+	folio = page_folio(page);
-+	if (mem_cgroup_charge(folio, vma->vm_mm, GFP_KERNEL))
- 		goto oom_free_page;
--	cgroup_throttle_swaprate(page, GFP_KERNEL);
-+	folio_throttle_swaprate(folio, GFP_KERNEL);
+-	vmf->cow_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
+-	if (!vmf->cow_page)
++	cow_folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, vmf->address,
++				    false);
++	if (!cow_folio)
+ 		return VM_FAULT_OOM;
  
- 	/*
--	 * The memory barrier inside __SetPageUptodate makes sure that
-+	 * The memory barrier inside __folio_mark_uptodate makes sure that
- 	 * preceding stores to the page contents become visible before
- 	 * the set_pte_at() write.
- 	 */
--	__SetPageUptodate(page);
-+	__folio_mark_uptodate(folio);
- 
- 	entry = mk_pte(page, vma->vm_page_prot);
- 	entry = pte_sw_mkyoung(entry);
-@@ -4085,13 +4087,13 @@ static vm_fault_t do_anonymous_page(stru
- 	/* Deliver the page fault to userland, check inside PT lock */
- 	if (userfaultfd_missing(vma)) {
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		put_page(page);
-+		folio_put(folio);
- 		return handle_userfault(vmf, VM_UFFD_MISSING);
+-	if (mem_cgroup_charge(page_folio(vmf->cow_page), vma->vm_mm,
+-				GFP_KERNEL)) {
+-		put_page(vmf->cow_page);
++	if (mem_cgroup_charge(cow_folio, vma->vm_mm, GFP_KERNEL)) {
++		folio_put(cow_folio);
+ 		return VM_FAULT_OOM;
  	}
+-	cgroup_throttle_swaprate(vmf->cow_page, GFP_KERNEL);
++	folio_throttle_swaprate(cow_folio, GFP_KERNEL);
  
- 	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
- 	page_add_new_anon_rmap(page, vma, vmf->address);
--	lru_cache_add_inactive_or_unevictable(page, vma);
-+	folio_add_lru_vma(folio, vma);
- setpte:
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, entry);
++	vmf->cow_page = &cow_folio->page;
+ 	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		goto uncharge_out;
+@@ -4530,16 +4532,17 @@ static vm_fault_t do_cow_fault(struct vm
+ 		return ret;
  
-@@ -4101,10 +4103,10 @@ unlock:
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	copy_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma);
+-	__SetPageUptodate(vmf->cow_page);
++	__folio_mark_uptodate(cow_folio);
+ 
+ 	ret |= finish_fault(vmf);
+-	unlock_page(vmf->page);
+-	put_page(vmf->page);
++	folio = page_folio(vmf->page);
++	folio_unlock(folio);
++	folio_put(folio);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		goto uncharge_out;
  	return ret;
- release:
--	put_page(page);
-+	folio_put(folio);
- 	goto unlock;
- oom_free_page:
--	put_page(page);
-+	folio_put(folio);
- oom:
- 	return VM_FAULT_OOM;
+ uncharge_out:
+-	put_page(vmf->cow_page);
++	folio_put(cow_folio);
+ 	return ret;
  }
+ 
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
@@ -142,7 +136,6 @@ mm-damon-vaddr-convert-damon_young_pmd_entry-to-use-a-folio.patch
 mm-damon-remove-unneeded-damon_get_page.patch
 mm-damon-vaddr-convert-hugetlb-related-functions-to-use-a-folio.patch
 mm-madvise-use-vm_normal_folio-in-madvise_free_pte_range.patch
-mm-memory-convert-do_cow_fault-to-use-folios.patch
 mm-memory-convert-page_copy_prealloc-to-use-a-folio.patch
 mm-memory-convert-wp_page_copy-to-use-folios.patch
 mm-memory-use-folio_throttle_swaprate-in-do_swap_page.patch
