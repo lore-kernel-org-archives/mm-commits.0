@@ -2,155 +2,100 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E062C54EBE
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 05:46:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26033C54EBE
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 19:00:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231782AbjAPFqh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Jan 2023 00:46:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41126 "EHLO
+        id S232825AbjAPTA2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Jan 2023 14:00:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231724AbjAPFqg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 00:46:36 -0500
-Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com [209.85.221.54])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D1FD868D;
-        Sun, 15 Jan 2023 21:46:35 -0800 (PST)
-Received: by mail-wr1-f54.google.com with SMTP id t5so21949115wrq.1;
-        Sun, 15 Jan 2023 21:46:35 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ij+Fr1khqSzHk9heKO9nWr6VaTDuNgkAMouf15x4tOs=;
-        b=WYUyuVwRvVVj6qy7ZQnHhY0CHOKCUu/vXHyDWJADCnGbOAOT+MCvVrcCfcuNjKEDfc
-         DFPaFoSn/t+/XUFovDldH93I0dBMgLtXv7vZW0MLu0YBOcNgoQuOc+K+CNedjoFmrqhL
-         HUY+5hMRfrjnHyuEraY2vjDmKhRS3SunqyjqbzjXtBOHCvnbZIPAxq1PAzpFH5V7B+7D
-         HtIE+7FZxIpB/J42chLaLBqILHawdqtZfl7H/vj/xmRxECzAm67V5CA3GED5CrWrncEf
-         lyyGUr6ZGkSjGzv4M+tDZBO3YPs1dzghW0c+AFmID4C75oTHuW7Rv2oc93fEnAgUMfI3
-         E5JA==
-X-Gm-Message-State: AFqh2kp6bNY6+p4/PpSfbUyAuJeFnamKCowLEy7aDDO7KUlxBuoDuZ0n
-        IpQ+iizt5N+H3rWC1UvvQwOYonSTAAo=
-X-Google-Smtp-Source: AMrXdXtiv0rVXISQvtDiWF1IwLUvKhJ/TdveM3E9DZjGRY4vk+Yd/yR7gZS4PgUl44ZBjq3TQwFu4w==
-X-Received: by 2002:a05:6000:408c:b0:2bd:fcd8:c778 with SMTP id da12-20020a056000408c00b002bdfcd8c778mr3879153wrb.31.1673847993845;
-        Sun, 15 Jan 2023 21:46:33 -0800 (PST)
-Received: from ?IPV6:2a0b:e7c0:0:107::aaaa:49? ([2a0b:e7c0:0:107::aaaa:49])
-        by smtp.gmail.com with ESMTPSA id u14-20020adfdd4e000000b002366e3f1497sm25605422wrm.6.2023.01.15.21.46.32
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 15 Jan 2023 21:46:33 -0800 (PST)
-Message-ID: <e518370c-2926-e8ec-d25c-93b2b2304602@kernel.org>
-Date:   Mon, 16 Jan 2023 06:46:32 +0100
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.6.1
-Subject: Re: +
- revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch added to
- mm-hotfixes-unstable branch
-Content-Language: en-US
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, zhouchuyi@bytedance.com,
-        stable@vger.kernel.org, regressions@leemhuis.info,
-        pbonzini@redhat.com, mlevitsk@redhat.com, mhocko@kernel.org,
-        mgorman@techsingularity.net, vbabka@suse.cz
-References: <20230114041117.B372AC43392@smtp.kernel.org>
-From:   Jiri Slaby <jirislaby@kernel.org>
-In-Reply-To: <20230114041117.B372AC43392@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S233400AbjAPTA0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 14:00:26 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43BF0234D5
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 11:00:25 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5557661118
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 19:00:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A22DCC433F0;
+        Mon, 16 Jan 2023 19:00:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1673895623;
+        bh=iUOFAZ6DM+uEb/mkZkpZjcLvVkrsFaQ3iMaHoET7nwQ=;
+        h=Date:To:From:Subject:From;
+        b=OjX7XMbE7dHFRYIZS5w5KVQfaEt9uKZWZF57/hvMpW4snj1D2F6n4ulLgjkwYT/y6
+         zJCNBORW2lpYyhRBU1rG1GrVIfnBbstUwb/EZV+f6OuI0yliGWEhYZ5vzmYyRg8eL+
+         GnnJb9mmVBZFUolJWNFUt3DsMrNfukb41suEnYsM=
+Date:   Mon, 16 Jan 2023 11:00:22 -0800
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
+        peterz@infradead.org, mingo@redhat.com, jiebin.sun@intel.com,
+        hpa@zytor.com, alexander.sverdlin@siemens.com, 1vier1@web.de,
+        manfred@colorfullife.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged] kernel-irq-managec-disable_irq-might-sleep.patch removed from -mm tree
+Message-Id: <20230116190023.A22DCC433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 14. 01. 23, 5:11, Andrew Morton wrote:
-> The patch titled
->       Subject: Revert "mm/compaction: fix set skip in fast_find_migrateblock"
-> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
->       revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch
-> 
-> This patch will shortly appear at
->       https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch
-> 
-> This patch will later appear in the mm-hotfixes-unstable branch at
->      git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->     a) Consider who else should be cc'ed
->     b) Prefer to cc a suitable mailing list as well
->     c) Ideally: find the original patch on the mailing list and do a
->        reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Vlastimil Babka <vbabka@suse.cz>
-> Subject: Revert "mm/compaction: fix set skip in fast_find_migrateblock"
-> Date: Fri, 13 Jan 2023 18:33:45 +0100
-> 
-> This reverts commit 7efc3b7261030da79001c00d92bc3392fd6c664c.
-> 
-> We have got openSUSE reports (Link 1) for 6.1 kernel with khugepaged
-> stalling CPU for long periods of time.  Investigation of tracepoint data
-> shows that compaction is stuck in repeating fast_find_migrateblock() based
-> migrate page isolation, and then fails to migrate all isolated pages.
-> Commit 7efc3b726103 ("mm/compaction: fix set skip in
-> fast_find_migrateblock") was suspected as it was merged in 6.1 and in
-> theory can indeed remove a termination condition for
-> fast_find_migrateblock() under certain conditions, as it removes a place
-> that always marks a scanned pageblock from being re-scanned.  There are
-> other such places, but those can be skipped under certain conditions,
-> which seems to match the tracepoint data.
-> 
-> Testing of revert also appears to have resolved the issue, thus revert the
-> commit until a more robust solution for the original problem is developed.
+
+The quilt patch titled
+     Subject: kernel/irq/manage.c: disable_irq() might sleep.
+has been removed from the -mm tree.  Its filename was
+     kernel-irq-managec-disable_irq-might-sleep.patch
+
+This patch was dropped because it was merged into mainline or a subsystem tree
+
+------------------------------------------------------
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: kernel/irq/manage.c: disable_irq() might sleep.
+Date: Fri, 16 Dec 2022 16:04:41 +0100
+
+With the introduction of threaded interrupt handlers, it is virtually
+never safe to call disable_irq() from non-premptible context.
+
+Thus: Update the documentation, add a might_sleep() to catch any
+offenders.
+
+Link: https://lkml.kernel.org/r/20221216150441.200533-3-manfred@colorfullife.com
+Fixes: 3aa551c9b4c4 ("genirq: add threaded interrupt handler support")
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Sverdlin, Alexander" <alexander.sverdlin@siemens.com>
+Cc: <1vier1@web.de>
+Cc: "Sun, Jiebin" <jiebin.sun@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
 
+--- a/kernel/irq/manage.c~kernel-irq-managec-disable_irq-might-sleep
++++ a/kernel/irq/manage.c
+@@ -723,10 +723,13 @@ EXPORT_SYMBOL(disable_irq_nosync);
+  *	to complete before returning. If you use this function while
+  *	holding a resource the IRQ handler may need you will deadlock.
+  *
+- *	This function may be called - with care - from IRQ context.
++ *	Can only be called from preemptible code as it might sleep when
++ *	an interrupt thread is associated to @irq.
++ *
+  */
+ void disable_irq(unsigned int irq)
+ {
++	might_sleep();
+ 	if (!__disable_irq_nosync(irq))
+ 		synchronize_irq(irq);
+ }
+_
 
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-> It's also likely this will fix qemu stalls with 6.1 kernel reported in
-> Link 2, but that is not yet confirmed.
-
-Preliminary tests suggest this is also fixed:
-Tested-by: Jiri Slaby <jirislaby@kernel.org>
-
-> Link: https://bugzilla.suse.com/show_bug.cgi?id=1206848
-> Link: https://lore.kernel.org/kvm/b8017e09-f336-3035-8344-c549086c2340@kernel.org/
-> Link: https://lkml.kernel.org/r/20230113173345.9692-1-vbabka@suse.cz
-> Fixes: 7efc3b726103 ("mm/compaction: fix set skip in fast_find_migrateblock")
-> Cc: Chuyi Zhou <zhouchuyi@bytedance.com>
-> Cc: Jiri Slaby <jirislaby@kernel.org>
-> Cc: Maxim Levitsky <mlevitsk@redhat.com>
-> Cc: Mel Gorman <mgorman@techsingularity.net>
-> Cc: Michal Hocko <mhocko@kernel.org>
-> Cc: Paolo Bonzini <pbonzini@redhat.com>
-> Cc: Thorsten Leemhuis <regressions@leemhuis.info>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
-> 
-> --- a/mm/compaction.c~revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock
-> +++ a/mm/compaction.c
-> @@ -1839,6 +1839,7 @@ static unsigned long fast_find_migratebl
->   					pfn = cc->zone->zone_start_pfn;
->   				cc->fast_search_fail = 0;
->   				found_block = true;
-> +				set_pageblock_skip(freepage);
->   				break;
->   			}
->   		}
-> _
-> 
-> Patches currently in -mm which might be from vbabka@suse.cz are
-> 
-> revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch
-> 
-
-thanks,
--- 
-js
-suse labs
+lib-percpu_counter-percpu_counter_add_batch-overflow-underflow.patch
+include-linux-percpu_counterh-race-in-uniprocessor-percpu_counter_add.patch
 
