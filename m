@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 996EFC678D4
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 20:05:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77423C67871
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 20:05:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231574AbjAPUF4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Jan 2023 15:05:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57162 "EHLO
+        id S230092AbjAPUFz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Jan 2023 15:05:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231794AbjAPUFx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 15:05:53 -0500
+        with ESMTP id S230132AbjAPUFv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 15:05:51 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EE17234DE
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 12:05:52 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FEFB23DB0
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 12:05:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ABF306111C
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 20:05:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0ECE1C433D2;
-        Mon, 16 Jan 2023 20:05:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 01A6761117
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 20:05:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53BEEC433EF;
+        Mon, 16 Jan 2023 20:05:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673899551;
-        bh=shwVLCBAn2h3xwReKoIWQCJQYuvU7YJAoxgcO8JjFNc=;
+        s=korg; t=1673899549;
+        bh=j4FYeu9CsZxqKd/rfoZ9Nxik+HMlDBJxsD1ko/EOMek=;
         h=Date:To:From:Subject:From;
-        b=lF6dq01z9ADCcU5q63z5ItFWVivdMUprZTnWADDLORF1PooUSLSUFs+T7ShycJiFH
-         DcslcxfMR0bwfFD+7rJUBFvo4OmlAuDsBBm2uusPd0BTvi2PDc2fR1uRldmcOCkL6B
-         pWEeTV3Gnknn9m2Yyic1gazHz9w+VzbrxwYco9fE=
-Date:   Mon, 16 Jan 2023 12:05:50 -0800
+        b=D0Y/ot86OWQNlDCfpn9FR+U09Z3MpkM9nN7X0U5rBjTqSKBAnv8000ZtIprJTF0mE
+         qWWw6wMfbLe20u2AQHHLbJ2gsrrfqjWW6307yFgNZD738+Pk9+IJ4F66ac4Ba8HI6t
+         tjxo0pBtI6hyfzAmlaybp9pmWftLam8F8hnphGng=
+Date:   Mon, 16 Jan 2023 12:05:48 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fs-convert-inode_attach_wb-to-take-a-folio.patch added to mm-unstable branch
-Message-Id: <20230116200551.0ECE1C433D2@smtp.kernel.org>
+Subject: + mm-use-a-folio-in-copy_present_pte.patch added to mm-unstable branch
+Message-Id: <20230116200549.53BEEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/fs: convert inode_attach_wb() to take a folio
+     Subject: mm: use a folio in copy_present_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fs-convert-inode_attach_wb-to-take-a-folio.patch
+     mm-use-a-folio-in-copy_present_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fs-convert-inode_attach_wb-to-take-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-a-folio-in-copy_present_pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,101 +65,64 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/fs: convert inode_attach_wb() to take a folio
-Date: Mon, 16 Jan 2023 19:25:06 +0000
+Subject: mm: use a folio in copy_present_pte()
+Date: Mon, 16 Jan 2023 19:18:13 +0000
 
-Patch series "Writeback folio conversions".
+We still have to keep the page around because we need to know which page
+in the folio we're copying, but we can replace five implict calls to
+compound_head() with one.
 
-Remove more calls to compound_head() by passing folios around instead of
-pages.
-
-
-This patch (of 2):
-
-The only caller of inode_attach_wb() which doesn't pass NULL already has a
-folio, so convert the whole call-chain to take folios.
-
-Link: https://lkml.kernel.org/r/20230116192507.2146150-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20230116192507.2146150-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230116191813.2145215-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/fs-writeback.c~mm-fs-convert-inode_attach_wb-to-take-a-folio
-+++ a/fs/fs-writeback.c
-@@ -237,7 +237,7 @@ void wb_wait_for_completion(struct wb_co
- static atomic_t isw_nr_in_flight = ATOMIC_INIT(0);
- static struct workqueue_struct *isw_wq;
+--- a/mm/memory.c~mm-use-a-folio-in-copy_present_pte
++++ a/mm/memory.c
+@@ -906,25 +906,28 @@ copy_present_pte(struct vm_area_struct *
+ 	unsigned long vm_flags = src_vma->vm_flags;
+ 	pte_t pte = *src_pte;
+ 	struct page *page;
++	struct folio *folio;
  
--void __inode_attach_wb(struct inode *inode, struct page *page)
-+void __inode_attach_wb(struct inode *inode, struct folio *folio)
- {
- 	struct backing_dev_info *bdi = inode_to_bdi(inode);
- 	struct bdi_writeback *wb = NULL;
-@@ -245,8 +245,8 @@ void __inode_attach_wb(struct inode *ino
- 	if (inode_cgwb_enabled(inode)) {
- 		struct cgroup_subsys_state *memcg_css;
+ 	page = vm_normal_page(src_vma, addr, pte);
+-	if (page && PageAnon(page)) {
++	if (page)
++		folio = page_folio(page);
++	if (page && folio_test_anon(folio)) {
+ 		/*
+ 		 * If this page may have been pinned by the parent process,
+ 		 * copy the page immediately for the child so that we'll always
+ 		 * guarantee the pinned page won't be randomly replaced in the
+ 		 * future.
+ 		 */
+-		get_page(page);
++		folio_get(folio);
+ 		if (unlikely(page_try_dup_anon_rmap(page, false, src_vma))) {
+-			/* Page maybe pinned, we have to copy. */
+-			put_page(page);
++			/* Page may be pinned, we have to copy. */
++			folio_put(folio);
+ 			return copy_present_page(dst_vma, src_vma, dst_pte, src_pte,
+ 						 addr, rss, prealloc, page);
+ 		}
+ 		rss[MM_ANONPAGES]++;
+ 	} else if (page) {
+-		get_page(page);
++		folio_get(folio);
+ 		page_dup_file_rmap(page, false);
+ 		rss[mm_counter_file(page)]++;
+ 	}
+@@ -937,7 +940,7 @@ copy_present_pte(struct vm_area_struct *
+ 		ptep_set_wrprotect(src_mm, addr, src_pte);
+ 		pte = pte_wrprotect(pte);
+ 	}
+-	VM_BUG_ON(page && PageAnon(page) && PageAnonExclusive(page));
++	VM_BUG_ON(page && folio_test_anon(folio) && PageAnonExclusive(page));
  
--		if (page) {
--			memcg_css = mem_cgroup_css_from_page(page);
-+		if (folio) {
-+			memcg_css = mem_cgroup_css_from_page(&folio->page);
- 			wb = wb_get_create(bdi, memcg_css, GFP_ATOMIC);
- 		} else {
- 			/* must pin memcg_css, see wb_get_create() */
---- a/include/linux/writeback.h~mm-fs-convert-inode_attach_wb-to-take-a-folio
-+++ a/include/linux/writeback.h
-@@ -207,7 +207,7 @@ static inline void wait_on_inode(struct
- #include <linux/cgroup.h>
- #include <linux/bio.h>
- 
--void __inode_attach_wb(struct inode *inode, struct page *page);
-+void __inode_attach_wb(struct inode *inode, struct folio *folio);
- void wbc_attach_and_unlock_inode(struct writeback_control *wbc,
- 				 struct inode *inode)
- 	__releases(&inode->i_lock);
-@@ -222,16 +222,16 @@ bool cleanup_offline_cgwb(struct bdi_wri
- /**
-  * inode_attach_wb - associate an inode with its wb
-  * @inode: inode of interest
-- * @page: page being dirtied (may be NULL)
-+ * @folio: folio being dirtied (may be NULL)
-  *
-  * If @inode doesn't have its wb, associate it with the wb matching the
-- * memcg of @page or, if @page is NULL, %current.  May be called w/ or w/o
-+ * memcg of @folio or, if @folio is NULL, %current.  May be called w/ or w/o
-  * @inode->i_lock.
-  */
--static inline void inode_attach_wb(struct inode *inode, struct page *page)
-+static inline void inode_attach_wb(struct inode *inode, struct folio *folio)
- {
- 	if (!inode->i_wb)
--		__inode_attach_wb(inode, page);
-+		__inode_attach_wb(inode, folio);
- }
- 
- /**
-@@ -290,7 +290,7 @@ static inline void wbc_init_bio(struct w
- 
- #else	/* CONFIG_CGROUP_WRITEBACK */
- 
--static inline void inode_attach_wb(struct inode *inode, struct page *page)
-+static inline void inode_attach_wb(struct inode *inode, struct folio *folio)
- {
- }
- 
---- a/mm/page-writeback.c~mm-fs-convert-inode_attach_wb-to-take-a-folio
-+++ a/mm/page-writeback.c
-@@ -2652,7 +2652,7 @@ static void folio_account_dirtied(struct
- 		struct bdi_writeback *wb;
- 		long nr = folio_nr_pages(folio);
- 
--		inode_attach_wb(inode, &folio->page);
-+		inode_attach_wb(inode, folio);
- 		wb = inode_to_wb(inode);
- 
- 		__lruvec_stat_mod_folio(folio, NR_FILE_DIRTY, nr);
+ 	/*
+ 	 * If it's a shared mapping, mark it clean in
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
