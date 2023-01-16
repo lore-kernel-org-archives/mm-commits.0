@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBCD8C46467
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 20:06:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59C5FC54EBE
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 20:06:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233470AbjAPUGa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Jan 2023 15:06:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57786 "EHLO
+        id S233203AbjAPUGb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Jan 2023 15:06:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233203AbjAPUGE (ORCPT
+        with ESMTP id S233093AbjAPUGE (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 15:06:04 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42EB959D2
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 12:06:02 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45E62233C4
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 12:06:03 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 27372B810A4
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 20:06:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3B1AC433D2;
-        Mon, 16 Jan 2023 20:05:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D5FBD6111C
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 20:06:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38310C433D2;
+        Mon, 16 Jan 2023 20:06:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673899559;
-        bh=RSN4zDXoKFlE2aRzMt8iyDNZnwMRlfCELwBcKilVNOw=;
+        s=korg; t=1673899562;
+        bh=bBTD5p4qR1ICuGsRwEfVy8aXzkuAWar11Fkp40O6hgA=;
         h=Date:To:From:Subject:From;
-        b=MVhINfxpPiTDP9XGONkcD4HYpiXfj6ygfd7ZHFzrOnczJBiGIlOQas3zJJFtkXdF4
-         lt9wgucMgkAgtmDjQmxUZM0/7wR0gq5oLdohlydAXe87xNFdFG9ItCsGneJeTgqQjn
-         p+2I32gYlnGF/TfAB9oLwkVoslKPIyMjM5/RJYQQ=
-Date:   Mon, 16 Jan 2023 12:05:59 -0800
+        b=Pc7vPARlPuxSyIH+qZwX/YYDa6Ou7qMAXIZtomfVlnYMdZYyoRzCpCOz89TUuDnu5
+         r/62A193ao6fBQupXgHcoFovNjNrBrgSvvP15UtM8vZ4pnRG+u9S5UJfCmGOMFat+Z
+         u9ViBW+ZRWNYGBNPKG90rz5VDhPFFyoAHNHvZks0=
+Date:   Mon, 16 Jan 2023 12:06:01 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-munlock_vma_page.patch added to mm-unstable branch
-Message-Id: <20230116200559.C3B1AC433D2@smtp.kernel.org>
+Subject: + mm-clean-up-mlock_page-munlock_page-references-in-comments.patch added to mm-unstable branch
+Message-Id: <20230116200602.38310C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove munlock_vma_page()
+     Subject: mm: clean up mlock_page / munlock_page references in comments
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-munlock_vma_page.patch
+     mm-clean-up-mlock_page-munlock_page-references-in-comments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-munlock_vma_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-clean-up-mlock_page-munlock_page-references-in-comments.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,102 +65,111 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove munlock_vma_page()
-Date: Mon, 16 Jan 2023 19:28:26 +0000
+Subject: mm: clean up mlock_page / munlock_page references in comments
+Date: Mon, 16 Jan 2023 19:28:27 +0000
 
-All callers now have a folio and can call munlock_vma_folio().  Update the
-documentation to refer to munlock_vma_folio().
+Change documentation and comments that refer to now-renamed functions.
 
-Link: https://lkml.kernel.org/r/20230116192827.2146732-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230116192827.2146732-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/mm/unevictable-lru.rst~mm-remove-munlock_vma_page
+--- a/Documentation/mm/unevictable-lru.rst~mm-clean-up-mlock_page-munlock_page-references-in-comments
 +++ a/Documentation/mm/unevictable-lru.rst
-@@ -486,7 +486,7 @@ Before the unevictable/mlock changes, ml
- way, so unmapping them required no processing.
+@@ -298,7 +298,7 @@ treated as a no-op and mlock_fixup() sim
+ If the VMA passes some filtering as described in "Filtering Special VMAs"
+ below, mlock_fixup() will attempt to merge the VMA with its neighbors or split
+ off a subset of the VMA if the range does not cover the entire VMA.  Any pages
+-already present in the VMA are then marked as mlocked by mlock_page() via
++already present in the VMA are then marked as mlocked by mlock_folio() via
+ mlock_pte_range() via walk_page_range() via mlock_vma_pages_range().
  
- For each PTE (or PMD) being unmapped from a VMA, page_remove_rmap() calls
--munlock_vma_page(), which calls munlock_page() when the VMA is VM_LOCKED
-+munlock_vma_folio(), which calls munlock_folio() when the VMA is VM_LOCKED
+ Before returning from the system call, do_mlock() or mlockall() will call
+@@ -373,20 +373,21 @@ Because of the VMA filtering discussed a
+ any "special" VMAs.  So, those VMAs will be ignored for munlock.
+ 
+ If the VMA is VM_LOCKED, mlock_fixup() again attempts to merge or split off the
+-specified range.  All pages in the VMA are then munlocked by munlock_page() via
++specified range.  All pages in the VMA are then munlocked by munlock_folio() via
+ mlock_pte_range() via walk_page_range() via mlock_vma_pages_range() - the same
+ function used when mlocking a VMA range, with new flags for the VMA indicating
+ that it is munlock() being performed.
+ 
+-munlock_page() uses the mlock pagevec to batch up work to be done under
+-lru_lock by  __munlock_page().  __munlock_page() decrements the page's
+-mlock_count, and when that reaches 0 it clears PG_mlocked and clears
+-PG_unevictable, moving the page from unevictable state to inactive LRU.
++munlock_folio() uses the mlock pagevec to batch up work to be done
++under lru_lock by  __munlock_folio().  __munlock_folio() decrements the
++folio's mlock_count, and when that reaches 0 it clears the mlocked flag
++and clears the unevictable flag, moving the folio from unevictable state
++to the inactive LRU.
+ 
+-But in practice that may not work ideally: the page may not yet have reached
++But in practice that may not work ideally: the folio may not yet have reached
+ "the unevictable LRU", or it may have been temporarily isolated from it.  In
+ those cases its mlock_count field is unusable and must be assumed to be 0: so
+-that the page will be rescued to an evictable LRU, then perhaps be mlocked
++that the folio will be rescued to an evictable LRU, then perhaps be mlocked
+ again later if vmscan finds it in a VM_LOCKED VMA.
+ 
+ 
+@@ -489,15 +490,16 @@ For each PTE (or PMD) being unmapped fro
+ munlock_vma_folio(), which calls munlock_folio() when the VMA is VM_LOCKED
  (unless it was a PTE mapping of a part of a transparent huge page).
  
- munlock_page() uses the mlock pagevec to batch up work to be done under
-@@ -510,7 +510,7 @@ which had been Copied-On-Write from the
+-munlock_page() uses the mlock pagevec to batch up work to be done under
+-lru_lock by  __munlock_page().  __munlock_page() decrements the page's
+-mlock_count, and when that reaches 0 it clears PG_mlocked and clears
+-PG_unevictable, moving the page from unevictable state to inactive LRU.
++munlock_folio() uses the mlock pagevec to batch up work to be done
++under lru_lock by  __munlock_folio().  __munlock_folio() decrements the
++folio's mlock_count, and when that reaches 0 it clears the mlocked flag
++and clears the unevictable flag, moving the folio from unevictable state
++to the inactive LRU.
  
- Mlocked pages can be munlocked and deleted in this way: like with munmap(),
- for each PTE (or PMD) being unmapped from a VMA, page_remove_rmap() calls
--munlock_vma_page(), which calls munlock_page() when the VMA is VM_LOCKED
-+munlock_vma_folio(), which calls munlock_folio() when the VMA is VM_LOCKED
- (unless it was a PTE mapping of a part of a transparent huge page).
+-But in practice that may not work ideally: the page may not yet have reached
++But in practice that may not work ideally: the folio may not yet have reached
+ "the unevictable LRU", or it may have been temporarily isolated from it.  In
+ those cases its mlock_count field is unusable and must be assumed to be 0: so
+-that the page will be rescued to an evictable LRU, then perhaps be mlocked
++that the folio will be rescued to an evictable LRU, then perhaps be mlocked
+ again later if vmscan finds it in a VM_LOCKED VMA.
  
- However, if there is a racing munlock(), since mlock_vma_pages_range() starts
---- a/kernel/events/uprobes.c~mm-remove-munlock_vma_page
-+++ a/kernel/events/uprobes.c
-@@ -22,7 +22,6 @@
- #include <linux/swap.h>		/* folio_free_swap */
- #include <linux/ptrace.h>	/* user_enable_single_step */
- #include <linux/kdebug.h>	/* notifier mechanism */
--#include "../../mm/internal.h"	/* munlock_vma_page */
- #include <linux/percpu-rwsem.h>
- #include <linux/task_work.h>
- #include <linux/shmem_fs.h>
---- a/mm/internal.h~mm-remove-munlock_vma_page
-+++ a/mm/internal.h
-@@ -548,7 +548,6 @@ static inline void mlock_vma_folio(struc
- }
  
- void munlock_folio(struct folio *folio);
--
- static inline void munlock_vma_folio(struct folio *folio,
- 			struct vm_area_struct *vma, bool compound)
- {
-@@ -557,11 +556,6 @@ static inline void munlock_vma_folio(str
- 		munlock_folio(folio);
- }
- 
--static inline void munlock_vma_page(struct page *page,
--			struct vm_area_struct *vma, bool compound)
--{
--	munlock_vma_folio(page_folio(page), vma, compound);
--}
- void mlock_new_folio(struct folio *folio);
- bool need_mlock_drain(int cpu);
- void mlock_drain_local(void);
-@@ -650,8 +644,6 @@ static inline struct file *maybe_unlock_
- }
- #else /* !CONFIG_MMU */
- static inline void unmap_mapping_folio(struct folio *folio) { }
--static inline void munlock_vma_page(struct page *page,
--			struct vm_area_struct *vma, bool compound) { }
- static inline void mlock_new_folio(struct folio *folio) { }
- static inline bool need_mlock_drain(int cpu) { return false; }
- static inline void mlock_drain_local(void) { }
---- a/mm/rmap.c~mm-remove-munlock_vma_page
-+++ a/mm/rmap.c
-@@ -1431,14 +1431,14 @@ void page_remove_rmap(struct page *page,
+--- a/mm/memory-failure.c~mm-clean-up-mlock_page-munlock_page-references-in-comments
++++ a/mm/memory-failure.c
+@@ -2167,7 +2167,7 @@ try_again:
  	}
  
  	/*
--	 * It would be tidy to reset PageAnon mapping when fully unmapped,
--	 * but that might overwrite a racing page_add_anon_rmap
--	 * which increments mapcount after us but sets mapping
--	 * before us: so leave the reset to free_pages_prepare,
--	 * and remember that it's only reliable while mapped.
-+	 * It would be tidy to reset folio_test_anon mapping when fully
-+	 * unmapped, but that might overwrite a racing page_add_anon_rmap
-+	 * which increments mapcount after us but sets mapping before us:
-+	 * so leave the reset to free_pages_prepare, and remember that
-+	 * it's only reliable while mapped.
+-	 * __munlock_pagevec may clear a writeback page's LRU flag without
++	 * __munlock_folio() may clear a writeback page's LRU flag without
+ 	 * page_lock. We need wait writeback completion for this page or it
+ 	 * may trigger vfs BUG while evict inode.
  	 */
- 
--	munlock_vma_page(page, vma, compound);
-+	munlock_vma_folio(folio, vma, compound);
- }
- 
- /*
+--- a/mm/swap.c~mm-clean-up-mlock_page-munlock_page-references-in-comments
++++ a/mm/swap.c
+@@ -201,7 +201,7 @@ static void lru_add_fn(struct lruvec *lr
+ 	 * Is an smp_mb__after_atomic() still required here, before
+ 	 * folio_evictable() tests the mlocked flag, to rule out the possibility
+ 	 * of stranding an evictable folio on an unevictable LRU?  I think
+-	 * not, because __munlock_page() only clears the mlocked flag
++	 * not, because __munlock_folio() only clears the mlocked flag
+ 	 * while the LRU lock is held.
+ 	 *
+ 	 * (That is not true of __page_cache_release(), and not necessarily
+@@ -216,7 +216,7 @@ static void lru_add_fn(struct lruvec *lr
+ 		folio_set_unevictable(folio);
+ 		/*
+ 		 * folio->mlock_count = !!folio_test_mlocked(folio)?
+-		 * But that leaves __mlock_page() in doubt whether another
++		 * But that leaves __mlock_folio() in doubt whether another
+ 		 * actor has already counted the mlock or not.  Err on the
+ 		 * safe side, underestimate, let page reclaim fix it, rather
+ 		 * than leaving a page on the unevictable LRU indefinitely.
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
