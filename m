@@ -2,135 +2,84 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F393BC46467
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 21:38:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08C7BC54EBE
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 21:39:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234061AbjAPVi1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Jan 2023 16:38:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39198 "EHLO
+        id S233953AbjAPVjR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Jan 2023 16:39:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233226AbjAPVi0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 16:38:26 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 735112B63B;
-        Mon, 16 Jan 2023 13:38:25 -0800 (PST)
+        with ESMTP id S234045AbjAPVjQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 16:39:16 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CDC82BED5
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 13:39:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F1EC61154;
-        Mon, 16 Jan 2023 21:38:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 611C3C433EF;
-        Mon, 16 Jan 2023 21:38:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 36F6F6112F
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 21:39:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 830FCC433D2;
+        Mon, 16 Jan 2023 21:39:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673905104;
-        bh=lfcFSFE2VDqDOySKBz1PqbGxLZ1JH545q0AENmjmPs4=;
+        s=korg; t=1673905154;
+        bh=5BvnXYITYg4ZDlZLuJbk0FgdzfRUJQopwZGDbQnmysE=;
         h=Date:To:From:Subject:From;
-        b=dWxepTAPE9L9NcBERtF6fkWR/X+4m78YsFAE2itB4SK6TeEG9MK62UVdmLv8UIhjP
-         PD47NWgjnJ9cyUEKPwpDA0CBtCKcXkLMxyGU3evJwDm5Et3LZ+abKb1Kt2sSfRwftn
-         oBn+znTkUgTi4lGc/SX5OI0MMk6ZarkRLXE/wD80=
-Date:   Mon, 16 Jan 2023 13:38:23 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        msizanoen@qtmlabs.xyz, yuzhao@google.com, akpm@linux-foundation.org
+        b=dmbf8VI1eGf/5EbFwGe6ztSAey4MC8Dn6JUbJNeu0S4A9B+GtepvLAgkiTORzp5a4
+         C1t7SY2d6IG3IjErucwxJqv6NgXic1ljdBDV3vOY/+V6mWHXAgvc1cvRvwJLaY7cd3
+         msRNJzPR1SENZHnOtj1yn8dRFPG7z9UsuxwYWCHQ=
+Date:   Mon, 16 Jan 2023 13:39:13 -0800
+To:     mm-commits@vger.kernel.org, minchan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-multi-gen-lru-fix-crash-during-cgroup-migration.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230116213824.611C3C433EF@smtp.kernel.org>
+Subject: [to-be-updated] zsmalloc-skip-chain-size-calculation-for-pow_of_2-classes.patch removed from -mm tree
+Message-Id: <20230116213914.830FCC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: multi-gen LRU: fix crash during cgroup migration
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-multi-gen-lru-fix-crash-during-cgroup-migration.patch
+The quilt patch titled
+     Subject: zsmalloc: skip chain size calculation for pow_of_2 classes
+has been removed from the -mm tree.  Its filename was
+     zsmalloc-skip-chain-size-calculation-for-pow_of_2-classes.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-fix-crash-during-cgroup-migration.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: fix crash during cgroup migration
-Date: Sun, 15 Jan 2023 20:44:05 -0700
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: skip chain size calculation for pow_of_2 classes
+Date: Mon, 9 Jan 2023 12:38:36 +0900
 
-lru_gen_migrate_mm() assumes lru_gen_add_mm() runs prior to itself.  This
-isn't true for the following scenario:
+If a class size is power of 2 then it wastes no memory and the best
+configuration is 1 physical page per-zspage.
 
-    CPU 1                         CPU 2
-
-  clone()
-    cgroup_can_fork()
-                                cgroup_procs_write()
-    cgroup_post_fork()
-                                  task_lock()
-                                  lru_gen_migrate_mm()
-                                  task_unlock()
-    task_lock()
-    lru_gen_add_mm()
-    task_unlock()
-
-And when the above happens, kernel crashes because of linked list
-corruption (mm_struct->lru_gen.list).
-
-Link: https://lore.kernel.org/r/20230115134651.30028-1-msizanoen@qtmlabs.xyz/
-Link: https://lkml.kernel.org/r/20230116034405.2960276-1-yuzhao@google.com
-Fixes: bd74fdaea146 ("mm: multi-gen LRU: support page table walks")
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: msizanoen <msizanoen@qtmlabs.xyz>
-Tested-by: msizanoen <msizanoen@qtmlabs.xyz>
-Cc: <stable@vger.kernel.org>	[6.1+]
+Link: https://lkml.kernel.org/r/20230109033838.2779902-3-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/vmscan.c~mm-multi-gen-lru-fix-crash-during-cgroup-migration
-+++ a/mm/vmscan.c
-@@ -3323,13 +3323,16 @@ void lru_gen_migrate_mm(struct mm_struct
- 	if (mem_cgroup_disabled())
- 		return;
+--- a/mm/zsmalloc.c~zsmalloc-skip-chain-size-calculation-for-pow_of_2-classes
++++ a/mm/zsmalloc.c
+@@ -2370,6 +2370,9 @@ static int calculate_zspage_chain_size(i
+ 	int i, min_waste = INT_MAX;
+ 	int chain_size = 1;
  
-+	/* migration can happen before addition */
-+	if (!mm->lru_gen.memcg)
-+		return;
++	if (is_power_of_2(class_size))
++		return chain_size;
 +
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_task(task);
- 	rcu_read_unlock();
- 	if (memcg == mm->lru_gen.memcg)
- 		return;
+ 	for (i = 1; i <= ZS_MAX_PAGES_PER_ZSPAGE; i++) {
+ 		int waste;
  
--	VM_WARN_ON_ONCE(!mm->lru_gen.memcg);
- 	VM_WARN_ON_ONCE(list_empty(&mm->lru_gen.list));
- 
- 	lru_gen_del_mm(mm);
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-multi-gen-lru-fix-crash-during-cgroup-migration.patch
-mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio.patch
-mm-multi-gen-lru-rename-lrugen-lists-to-lrugen-folios.patch
-mm-multi-gen-lru-remove-eviction-fairness-safeguard.patch
-mm-multi-gen-lru-remove-aging-fairness-safeguard.patch
-mm-multi-gen-lru-shuffle-should_run_aging.patch
-mm-multi-gen-lru-per-node-lru_gen_folio-lists.patch
-mm-multi-gen-lru-clarify-scan_control-flags.patch
-mm-multi-gen-lru-simplify-arch_has_hw_pte_young-check.patch
-mm-add-vma_has_recency.patch
-mm-support-posix_fadv_noreuse.patch
+zram-correctly-handle-all-next_arg-cases.patch
+zsmalloc-make-zspage-chain-size-configurable.patch
+zsmalloc-make-zspage-chain-size-configurable-fix.patch
+zsmalloc-set-default-zspage-chain-size-to-8.patch
 
