@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D55DC46467
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 20:05:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED498C54EBE
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 20:06:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231794AbjAPUF5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Jan 2023 15:05:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57156 "EHLO
+        id S232833AbjAPUF7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Jan 2023 15:05:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231268AbjAPUFv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 15:05:51 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 708AB2411D
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 12:05:50 -0800 (PST)
+        with ESMTP id S232793AbjAPUF5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 15:05:57 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DED5C23DB0
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 12:05:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1082EB810F2
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 20:05:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2955C433EF;
-        Mon, 16 Jan 2023 20:05:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 99128B8109B
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 20:05:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F315C433D2;
+        Mon, 16 Jan 2023 20:05:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673899547;
-        bh=z1Dtk9z9pwpRn8KNvrKaPSb7Jcg121WQEf9NJRbqaf0=;
+        s=korg; t=1673899553;
+        bh=FsqlV7BckKHv8TdaAe/C9ZyhIeYOq2hqaVH7CiYCAAQ=;
         h=Date:To:From:Subject:From;
-        b=DelN8dRTPgdEBqygPfpuUfPPtyzioy8pM0jDcov8CHgW/Vp/jGJYEmuAFKgS/fEpK
-         HDhKDy79rqvbHwmydvXp+CL3pbSHagk7wL7Fai0JyWK9DhHjChsNbvdByqF3j8vV5b
-         QIyeaCllfU6FGNXryK9V6qzHUaWqkb+kRfXPw7j0=
-Date:   Mon, 16 Jan 2023 12:05:47 -0800
+        b=yYYhNF6KOFrgPr4D3kRtcY8ftktHMBwfXJRz9yXgeb7GuE6PjRt4M3yUkiCk4aRdd
+         OYpzH1xlW+L1OdyuMRFEFlqtJWGLH7eI3esaTjhRHWkzUTJ3QPhJyjuJ0mMs7B0DTW
+         8CECCD0IMIyekRt7hVVKSlPHKK1jPOUHpRJIGVEo=
+Date:   Mon, 16 Jan 2023 12:05:52 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-a-folio-in-copy_pte_range.patch added to mm-unstable branch
-Message-Id: <20230116200547.A2955C433EF@smtp.kernel.org>
+Subject: + mm-convert-mem_cgroup_css_from_page-to-mem_cgroup_css_from_folio.patch added to mm-unstable branch
+Message-Id: <20230116200553.3F315C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use a folio in copy_pte_range()
+     Subject: mm: convert mem_cgroup_css_from_page() to mem_cgroup_css_from_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-a-folio-in-copy_pte_range.patch
+     mm-convert-mem_cgroup_css_from_page-to-mem_cgroup_css_from_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-a-folio-in-copy_pte_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-mem_cgroup_css_from_page-to-mem_cgroup_css_from_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,142 +65,87 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use a folio in copy_pte_range()
-Date: Mon, 16 Jan 2023 19:18:12 +0000
+Subject: mm: convert mem_cgroup_css_from_page() to mem_cgroup_css_from_folio()
+Date: Mon, 16 Jan 2023 19:25:07 +0000
 
-Allocate an order-0 folio instead of a page and pass it all the way down
-the call chain.  Removes dozens of calls to compound_head().
+Only one caller doesn't have a folio, so move the page_folio() call to
+that one caller from mem_cgroup_css_from_folio().
 
-Link: https://lkml.kernel.org/r/20230116191813.2145215-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230116192507.2146150-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memory.c~mm-use-a-folio-in-copy_pte_range
-+++ a/mm/memory.c
-@@ -863,13 +863,13 @@ copy_nonpresent_pte(struct mm_struct *ds
- static inline int
- copy_present_page(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
- 		  pte_t *dst_pte, pte_t *src_pte, unsigned long addr, int *rss,
--		  struct page **prealloc, struct page *page)
-+		  struct folio **prealloc, struct page *page)
+--- a/fs/fs-writeback.c~mm-convert-mem_cgroup_css_from_page-to-mem_cgroup_css_from_folio
++++ a/fs/fs-writeback.c
+@@ -246,7 +246,7 @@ void __inode_attach_wb(struct inode *ino
+ 		struct cgroup_subsys_state *memcg_css;
+ 
+ 		if (folio) {
+-			memcg_css = mem_cgroup_css_from_page(&folio->page);
++			memcg_css = mem_cgroup_css_from_folio(folio);
+ 			wb = wb_get_create(bdi, memcg_css, GFP_ATOMIC);
+ 		} else {
+ 			/* must pin memcg_css, see wb_get_create() */
+@@ -859,6 +859,7 @@ EXPORT_SYMBOL_GPL(wbc_detach_inode);
+ void wbc_account_cgroup_owner(struct writeback_control *wbc, struct page *page,
+ 			      size_t bytes)
  {
--	struct page *new_page;
-+	struct folio *new_folio;
- 	pte_t pte;
++	struct folio *folio;
+ 	struct cgroup_subsys_state *css;
+ 	int id;
  
--	new_page = *prealloc;
--	if (!new_page)
-+	new_folio = *prealloc;
-+	if (!new_folio)
- 		return -EAGAIN;
+@@ -871,7 +872,8 @@ void wbc_account_cgroup_owner(struct wri
+ 	if (!wbc->wb || wbc->no_cgroup_owner)
+ 		return;
  
- 	/*
-@@ -877,14 +877,14 @@ copy_present_page(struct vm_area_struct
- 	 * over and copy the page & arm it.
- 	 */
- 	*prealloc = NULL;
--	copy_user_highpage(new_page, page, addr, src_vma);
--	__SetPageUptodate(new_page);
--	page_add_new_anon_rmap(new_page, dst_vma, addr);
--	lru_cache_add_inactive_or_unevictable(new_page, dst_vma);
--	rss[mm_counter(new_page)]++;
-+	copy_user_highpage(&new_folio->page, page, addr, src_vma);
-+	__folio_mark_uptodate(new_folio);
-+	folio_add_new_anon_rmap(new_folio, dst_vma, addr);
-+	folio_add_lru_vma(new_folio, dst_vma);
-+	rss[MM_ANONPAGES]++;
- 
- 	/* All done, just insert the new page copy in the child */
--	pte = mk_pte(new_page, dst_vma->vm_page_prot);
-+	pte = mk_pte(&new_folio->page, dst_vma->vm_page_prot);
- 	pte = maybe_mkwrite(pte_mkdirty(pte), dst_vma);
- 	if (userfaultfd_pte_wp(dst_vma, *src_pte))
- 		/* Uffd-wp needs to be delivered to dest pte as well */
-@@ -900,7 +900,7 @@ copy_present_page(struct vm_area_struct
- static inline int
- copy_present_pte(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
- 		 pte_t *dst_pte, pte_t *src_pte, unsigned long addr, int *rss,
--		 struct page **prealloc)
-+		 struct folio **prealloc)
- {
- 	struct mm_struct *src_mm = src_vma->vm_mm;
- 	unsigned long vm_flags = src_vma->vm_flags;
-@@ -922,11 +922,11 @@ copy_present_pte(struct vm_area_struct *
- 			return copy_present_page(dst_vma, src_vma, dst_pte, src_pte,
- 						 addr, rss, prealloc, page);
- 		}
--		rss[mm_counter(page)]++;
-+		rss[MM_ANONPAGES]++;
- 	} else if (page) {
- 		get_page(page);
- 		page_dup_file_rmap(page, false);
--		rss[mm_counter(page)]++;
-+		rss[mm_counter_file(page)]++;
- 	}
- 
- 	/*
-@@ -954,23 +954,22 @@ copy_present_pte(struct vm_area_struct *
- 	return 0;
+-	css = mem_cgroup_css_from_page(page);
++	folio = page_folio(page);
++	css = mem_cgroup_css_from_folio(folio);
+ 	/* dead cgroups shouldn't contribute to inode ownership arbitration */
+ 	if (!(css->flags & CSS_ONLINE))
+ 		return;
+--- a/include/linux/memcontrol.h~mm-convert-mem_cgroup_css_from_page-to-mem_cgroup_css_from_folio
++++ a/include/linux/memcontrol.h
+@@ -890,7 +890,7 @@ static inline bool mm_match_cgroup(struc
+ 	return match;
  }
  
--static inline struct page *
--page_copy_prealloc(struct mm_struct *src_mm, struct vm_area_struct *vma,
--		   unsigned long addr)
-+static inline struct folio *page_copy_prealloc(struct mm_struct *src_mm,
-+		struct vm_area_struct *vma, unsigned long addr)
+-struct cgroup_subsys_state *mem_cgroup_css_from_page(struct page *page);
++struct cgroup_subsys_state *mem_cgroup_css_from_folio(struct folio *folio);
+ ino_t page_cgroup_ino(struct page *page);
+ 
+ static inline bool mem_cgroup_online(struct mem_cgroup *memcg)
+--- a/mm/memcontrol.c~mm-convert-mem_cgroup_css_from_page-to-mem_cgroup_css_from_folio
++++ a/mm/memcontrol.c
+@@ -350,21 +350,19 @@ EXPORT_SYMBOL(memcg_kmem_enabled_key);
+ #endif
+ 
+ /**
+- * mem_cgroup_css_from_page - css of the memcg associated with a page
+- * @page: page of interest
++ * mem_cgroup_css_from_folio - css of the memcg associated with a folio
++ * @folio: folio of interest
+  *
+  * If memcg is bound to the default hierarchy, css of the memcg associated
+- * with @page is returned.  The returned css remains associated with @page
++ * with @folio is returned.  The returned css remains associated with @folio
+  * until it is released.
+  *
+  * If memcg is bound to a traditional hierarchy, the css of root_mem_cgroup
+  * is returned.
+  */
+-struct cgroup_subsys_state *mem_cgroup_css_from_page(struct page *page)
++struct cgroup_subsys_state *mem_cgroup_css_from_folio(struct folio *folio)
  {
--	struct page *new_page;
-+	struct folio *new_folio;
+-	struct mem_cgroup *memcg;
+-
+-	memcg = page_memcg(page);
++	struct mem_cgroup *memcg = folio_memcg(folio);
  
--	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, addr);
--	if (!new_page)
-+	new_folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, addr, false);
-+	if (!new_folio)
- 		return NULL;
- 
--	if (mem_cgroup_charge(page_folio(new_page), src_mm, GFP_KERNEL)) {
--		put_page(new_page);
-+	if (mem_cgroup_charge(new_folio, src_mm, GFP_KERNEL)) {
-+		folio_put(new_folio);
- 		return NULL;
- 	}
--	cgroup_throttle_swaprate(new_page, GFP_KERNEL);
-+	cgroup_throttle_swaprate(&new_folio->page, GFP_KERNEL);
- 
--	return new_page;
-+	return new_folio;
- }
- 
- static int
-@@ -986,7 +985,7 @@ copy_pte_range(struct vm_area_struct *ds
- 	int progress, ret = 0;
- 	int rss[NR_MM_COUNTERS];
- 	swp_entry_t entry = (swp_entry_t){0};
--	struct page *prealloc = NULL;
-+	struct folio *prealloc = NULL;
- 
- again:
- 	progress = 0;
-@@ -1056,7 +1055,7 @@ again:
- 			 * will allocate page according to address).  This
- 			 * could only happen if one pinned pte changed.
- 			 */
--			put_page(prealloc);
-+			folio_put(prealloc);
- 			prealloc = NULL;
- 		}
- 		progress += 8;
-@@ -1093,7 +1092,7 @@ again:
- 		goto again;
- out:
- 	if (unlikely(prealloc))
--		put_page(prealloc);
-+		folio_put(prealloc);
- 	return ret;
- }
- 
+ 	if (!memcg || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 		memcg = root_mem_cgroup;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
