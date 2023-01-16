@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA04BC54EBE
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 20:08:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14FA1C46467
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 20:19:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231765AbjAPUIj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Jan 2023 15:08:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58370 "EHLO
+        id S232850AbjAPUTl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Jan 2023 15:19:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232346AbjAPUIh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 15:08:37 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3C8EEE
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 12:08:35 -0800 (PST)
+        with ESMTP id S232305AbjAPUTk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 15:19:40 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FC7515575
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 12:19:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 91A00B810DE
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 20:08:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DF94C433EF;
-        Mon, 16 Jan 2023 20:08:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3CB06B80E1A
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 20:19:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2633C433F1;
+        Mon, 16 Jan 2023 20:19:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673899713;
-        bh=xREbXk0YxdhgiQdZ6QoNKg7tRwXEhiY+9HO27Od5EWc=;
+        s=korg; t=1673900375;
+        bh=/pDy7qo+Um2HufLALJF1AT452Y6MjDWJXOgNNnZstDE=;
         h=Date:To:From:Subject:From;
-        b=B7jtwq7yM/v18TBoj/+Q/0RmwUNat6jg6vMi2G4IXYBagouw1tAcpmGU2SQQ4YOzp
-         X7vPd2bHGkf8i9ReiEl73afL992QL8mw/wASfV6NWHVAAnMcQNqM7LJ0pLkrZ/afqz
-         IzGMhuai/5BFkFHjWk8DYU/ayZpt1StHdy99y/Do=
-Date:   Mon, 16 Jan 2023 12:08:32 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        b=PVC/VcFhwQKth0cRRsuQhzS+ynr0hGawOg9TYMTwdsitOWJKcfxdcdw2NVq3vsRTm
+         gDKo0cXsniU5gBImWPg7Uk0A0V1x2NjTQ2dsGMmDamzhSQn5b4hGW7wIw/aFtnpm6G
+         exE8R54Jj6yPLtZM78EmgxA6ajzsJeeXUiXXcjjQ=
+Date:   Mon, 16 Jan 2023 12:19:35 -0800
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        tony.luck@intel.com, shy828301@gmail.com, rientjes@google.com,
+        naoya.horiguchi@nec.com, jiaqiyan@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + readahead-convert-readahead_expand-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20230116200833.3DF94C433EF@smtp.kernel.org>
+Subject: + mm-memory-failure-add-memory-failure-stats-to-sysfs.patch added to mm-unstable branch
+Message-Id: <20230116201935.D2633C433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: readahead: convert readahead_expand() to use a folio
+     Subject: mm: memory-failure: sdd memory failure stats to sysfs
 has been added to the -mm mm-unstable branch.  Its filename is
-     readahead-convert-readahead_expand-to-use-a-folio.patch
+     mm-memory-failure-add-memory-failure-stats-to-sysfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/readahead-convert-readahead_expand-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-add-memory-failure-stats-to-sysfs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,145 +66,266 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: readahead: convert readahead_expand() to use a folio
-Date: Mon, 16 Jan 2023 19:39:41 +0000
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm: memory-failure: sdd memory failure stats to sysfs
+Date: Mon, 16 Jan 2023 19:39:00 +0000
 
-Replace the uses of page with a folio.  Also add a missing test for
-workingset in the leading edge expansion.
+Patch series "Introduce per NUMA node memory error statistics".
 
-Link: https://lkml.kernel.org/r/20230116193941.2148487-4-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Background
+==========
+
+In the RFC for Kernel Support of Memory Error Detection [1], one advantage
+of software-based scanning over hardware patrol scrubber is the ability to
+make statistics visible to system administrators.  The statistics include
+2 categories:
+
+* Memory error statistics, for example, how many memory error are
+  encountered, how many of them are recovered by the kernel.  Note these
+  memory errors are non-fatal to kernel: during the machine check
+  exception (MCE) handling kernel already classified MCE's severity to be
+  unnecessary to panic (but either action required or optional).
+
+* Scanner statistics, for example how many times the scanner have fully
+  scanned a NUMA node, how many errors are first detected by the scanner.
+
+The memory error statistics are useful to userspace and actually not
+specific to scanner detected memory errors, and are the focus of this RFC.
+
+Motivation
+==========
+
+Memory error stats are important to userspace but insufficient in kernel
+today.  Datacenter administrators can better monitor a machine's memory
+health with the visible stats.  For example, while memory errors are
+inevitable on servers with 10+ TB memory, starting server maintenance when
+there are only 1~2 recovered memory errors could be overreacting; in cloud
+production environment maintenance usually means live migrate all the
+workload running on the server and this usually causes nontrivial
+disruption to the customer.  Providing insight into the scope of memory
+errors on a system helps to determine the appropriate follow-up action. 
+In addition, the kernel's existing memory error stats need to be
+standardized so that userspace can reliably count on their usefulness.
+
+Today kernel provides following memory error info to userspace, but they
+are not sufficient or have disadvantages:
+
+* HardwareCorrupted in /proc/meminfo: number of bytes poisoned in total,
+  not per NUMA node stats though
+
+* ras:memory_failure_event: only available after explicitly enabled
+
+* /dev/mcelog provides many useful info about the MCEs, but doesn't
+  capture how memory_failure recovered memory MCEs
+
+* kernel logs: userspace needs to process log text
+
+Exposing memory error stats is also a good start for the in-kernel memory
+error detector.  Today the data source of memory error stats are either
+direct memory error consumption, or hardware patrol scrubber detection
+(when signaled as UCNA; these signaled as SRAO are not handled by
+memory_failure).  Once in-kernel memory scanner is implemented, it will be
+the main source as it is usually configured to scan memory DIMMs
+constantly and faster than hardware patrol scrubber.
+
+How Implemented
+===============
+
+As Naoya pointed out [2], exposing memory error statistics to userspace is
+useful independent of software or hardware scanner.  Therefore we
+implement the memory error statistics independent of the in-kernel memory
+error detector.  It exposes the following per NUMA node memory error
+counters:
+
+  /sys/devices/system/node/node${X}/memory_failure/pages_poisoned
+  /sys/devices/system/node/node${X}/memory_failure/pages_recovered
+  /sys/devices/system/node/node${X}/memory_failure/pages_ignored
+  /sys/devices/system/node/node${X}/memory_failure/pages_failed
+  /sys/devices/system/node/node${X}/memory_failure/pages_delayed
+
+These counters describe how many raw pages are poisoned and after the
+attempted recoveries by the kernel, their resolutions: how many are
+recovered, ignored, failed, or delayed respectively.  This approach can be
+easier to extend for future use cases than /proc/meminfo, trace event, and
+log.  The following math holds for the statistics:
+
+* pages_poisoned = pages_recovered + pages_ignored + pages_failed +
+  pages_delayed
+
+* pages_poisoned * page_size = /proc/meminfo/HardwareCorrupted These
+  memory error stats are reset during machine boot.
+
+The 1st commit introduces these sysfs entries.  The 2nd commit populates
+memory error stats every time memory_failure finishes memory error
+recovery.  The 3rd commit adds documentations for introduced stats.
+
+[1] https://lore.kernel.org/linux-mm/7E670362-C29E-4626-B546-26530D54F937@gmail.com/T/#mc22959244f5388891c523882e61163c6e4d703af
+[2] https://lore.kernel.org/linux-mm/7E670362-C29E-4626-B546-26530D54F937@gmail.com/T/#m52d8d7a333d8536bd7ce74253298858b1c0c0ac6
+
+
+This patch (of 3):
+
+Today kernel provides following memory error info to userspace, but each
+has its own disadvantage
+
+* HardwareCorrupted in /proc/meminfo: number of bytes poisoned in total,
+  not per NUMA node stats though
+* ras:memory_failure_event: only available after explicitly enabled
+* /dev/mcelog provides many useful info about the MCEs, but
+  doesn't capture how memory_failure recovered memory MCEs
+* kernel logs: userspace needs to process log text
+
+Exposes per NUMA node memory error stats as sysfs entries:
+
+  /sys/devices/system/node/node${X}/memory_failure/pages_poisoned
+  /sys/devices/system/node/node${X}/memory_failure/pages_recovered
+  /sys/devices/system/node/node${X}/memory_failure/pages_ignored
+  /sys/devices/system/node/node${X}/memory_failure/pages_failed
+  /sys/devices/system/node/node${X}/memory_failure/pages_delayed
+
+These counters describe how many raw pages are poisoned and after the
+attempted recoveries by the kernel, their resolutions: how many are
+recovered, ignored, failed, or delayed respectively.
+
+The following math holds for the statistics:
+* pages_poisoned = pages_recovered + pages_ignored + pages_failed +
+                   pages_delayed
+* pages_poisoned * PAGE_SIZE = /proc/meminfo/HardwareCorrupted
+
+Link: https://lkml.kernel.org/r/20230116193902.1315236-1-jiaqiyan@google.com
+Link: https://lkml.kernel.org/r/20230116193902.1315236-2-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/readahead.c~readahead-convert-readahead_expand-to-use-a-folio
-+++ a/mm/readahead.c
-@@ -801,21 +801,25 @@ void readahead_expand(struct readahead_c
- 	/* Expand the leading edge downwards */
- 	while (ractl->_index > new_index) {
- 		unsigned long index = ractl->_index - 1;
--		struct page *page = xa_load(&mapping->i_pages, index);
-+		struct folio *folio = xa_load(&mapping->i_pages, index);
+--- a/drivers/base/node.c~mm-memory-failure-add-memory-failure-stats-to-sysfs
++++ a/drivers/base/node.c
+@@ -587,6 +587,9 @@ static const struct attribute_group *nod
+ #ifdef CONFIG_HAVE_ARCH_NODE_DEV_GROUP
+ 	&arch_node_dev_group,
+ #endif
++#ifdef CONFIG_MEMORY_FAILURE
++	&memory_failure_attr_group,
++#endif
+ 	NULL
+ };
  
--		if (page && !xa_is_value(page))
--			return; /* Page apparently present */
-+		if (folio && !xa_is_value(folio))
-+			return; /* Folio apparently present */
+--- a/include/linux/mm.h~mm-memory-failure-add-memory-failure-stats-to-sysfs
++++ a/include/linux/mm.h
+@@ -3455,6 +3455,11 @@ enum mf_action_page_type {
+ 	MF_MSG_UNKNOWN,
+ };
  
--		page = __page_cache_alloc(gfp_mask);
--		if (!page)
-+		folio = filemap_alloc_folio(gfp_mask, 0);
-+		if (!folio)
- 			return;
--		if (add_to_page_cache_lru(page, mapping, index, gfp_mask) < 0) {
--			put_page(page);
-+		if (filemap_add_folio(mapping, folio, index, gfp_mask) < 0) {
-+			folio_put(folio);
- 			return;
- 		}
--
-+		if (unlikely(folio_test_workingset(folio)) &&
-+				!ractl->_workingset) {
-+			ractl->_workingset = true;
-+			psi_memstall_enter(&ractl->_pflags);
-+		}
- 		ractl->_nr_pages++;
--		ractl->_index = page->index;
-+		ractl->_index = folio->index;
- 	}
++/*
++ * Sysfs entries for memory failure handling statistics.
++ */
++extern const struct attribute_group memory_failure_attr_group;
++
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
+ extern void clear_huge_page(struct page *page,
+ 			    unsigned long addr_hint,
+--- a/include/linux/mmzone.h~mm-memory-failure-add-memory-failure-stats-to-sysfs
++++ a/include/linux/mmzone.h
+@@ -1221,6 +1221,31 @@ struct deferred_split {
+ };
+ #endif
  
- 	new_len += new_start - readahead_pos(ractl);
-@@ -824,19 +828,20 @@ void readahead_expand(struct readahead_c
- 	/* Expand the trailing edge upwards */
- 	while (ractl->_nr_pages < new_nr_pages) {
- 		unsigned long index = ractl->_index + ractl->_nr_pages;
--		struct page *page = xa_load(&mapping->i_pages, index);
-+		struct folio *folio = xa_load(&mapping->i_pages, index);
++#ifdef CONFIG_MEMORY_FAILURE
++/*
++ * Per NUMA node memory failure handling statistics.
++ */
++struct memory_failure_stats {
++	/*
++	 * Number of pages poisoned.
++	 * Cases not accounted: memory outside kernel control, offline page,
++	 * arch-specific memory_failure (SGX), and hwpoison_filter()
++	 * filtered error events.
++	 */
++	unsigned long pages_poisoned;
++	/*
++	 * Recovery results of poisoned pages handled by memory_failure,
++	 * in sync with mf_result.
++	 * pages_poisoned = pages_ignored + pages_failed +
++	 *		    pages_delayed + pages_recovered
++	 */
++	unsigned long pages_ignored;
++	unsigned long pages_failed;
++	unsigned long pages_delayed;
++	unsigned long pages_recovered;
++};
++#endif
++
+ /*
+  * On NUMA machines, each NUMA node would have a pg_data_t to describe
+  * it's memory layout. On UMA machines there is a single pglist_data which
+@@ -1366,6 +1391,9 @@ typedef struct pglist_data {
+ #ifdef CONFIG_NUMA
+ 	struct memory_tier __rcu *memtier;
+ #endif
++#ifdef CONFIG_MEMORY_FAILURE
++	struct memory_failure_stats mf_stats;
++#endif
+ } pg_data_t;
  
--		if (page && !xa_is_value(page))
--			return; /* Page apparently present */
-+		if (folio && !xa_is_value(folio))
-+			return; /* Folio apparently present */
+ #define node_present_pages(nid)	(NODE_DATA(nid)->node_present_pages)
+--- a/mm/memory-failure.c~mm-memory-failure-add-memory-failure-stats-to-sysfs
++++ a/mm/memory-failure.c
+@@ -87,6 +87,41 @@ inline void num_poisoned_pages_sub(unsig
+ 		memblk_nr_poison_sub(pfn, i);
+ }
  
--		page = __page_cache_alloc(gfp_mask);
--		if (!page)
-+		folio = filemap_alloc_folio(gfp_mask, 0);
-+		if (!folio)
- 			return;
--		if (add_to_page_cache_lru(page, mapping, index, gfp_mask) < 0) {
--			put_page(page);
-+		if (filemap_add_folio(mapping, folio, index, gfp_mask) < 0) {
-+			folio_put(folio);
- 			return;
- 		}
--		if (unlikely(PageWorkingset(page)) && !ractl->_workingset) {
-+		if (unlikely(folio_test_workingset(folio)) &&
-+				!ractl->_workingset) {
- 			ractl->_workingset = true;
- 			psi_memstall_enter(&ractl->_pflags);
- 		}
++/**
++ * MF_ATTR_RO - Create sysfs entry for each memory failure statistics.
++ * @_name: name of the file in the per NUMA sysfs directory.
++ */
++#define MF_ATTR_RO(_name)					\
++static ssize_t _name##_show(struct device *dev,		\
++			    struct device_attribute *attr,	\
++			    char *buf)				\
++{								\
++	struct memory_failure_stats *mf_stats =			\
++		&NODE_DATA(dev->id)->mf_stats;			\
++	return sprintf(buf, "%lu\n", mf_stats->_name);		\
++}								\
++static DEVICE_ATTR_RO(_name)
++
++MF_ATTR_RO(pages_poisoned);
++MF_ATTR_RO(pages_ignored);
++MF_ATTR_RO(pages_failed);
++MF_ATTR_RO(pages_delayed);
++MF_ATTR_RO(pages_recovered);
++
++static struct attribute *memory_failure_attr[] = {
++	&dev_attr_pages_poisoned.attr,
++	&dev_attr_pages_ignored.attr,
++	&dev_attr_pages_failed.attr,
++	&dev_attr_pages_delayed.attr,
++	&dev_attr_pages_recovered.attr,
++	NULL,
++};
++
++const struct attribute_group memory_failure_attr_group = {
++	.name = "memory_failure",
++	.attrs = memory_failure_attr,
++};
++
+ /*
+  * Return values:
+  *   1:   the page is dissolved (if needed) and taken off from buddy,
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
-buffer-add-b_folio-as-an-alias-of-b_page.patch
-buffer-replace-obvious-uses-of-b_page-with-b_folio.patch
-buffer-use-b_folio-in-touch_buffer.patch
-buffer-use-b_folio-in-end_buffer_async_read.patch
-buffer-use-b_folio-in-end_buffer_async_write.patch
-page_io-remove-buffer_head-include.patch
-buffer-use-b_folio-in-mark_buffer_dirty.patch
-gfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
-jbd2-replace-obvious-uses-of-b_page-with-b_folio.patch
-nilfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
-reiserfs-replace-obvious-uses-of-b_page-with-b_folio.patch
-mpage-use-b_folio-in-do_mpage_readpage.patch
-mm-memcg-add-folio_memcg_check.patch
-mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
-mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped.patch
-doc-clarify-refcount-section-by-referring-to-folios-pages.patch
-mm-convert-total_compound_mapcount-to-folio_total_mapcount.patch
-mm-convert-page_remove_rmap-to-use-a-folio-internally.patch
-mm-convert-page_add_anon_rmap-to-use-a-folio-internally.patch
-mm-convert-page_add_file_rmap-to-use-a-folio-internally.patch
-mm-add-folio_add_new_anon_rmap.patch
-mm-add-folio_add_new_anon_rmap-fix-2.patch
-page_alloc-use-folio-fields-directly.patch
-mm-use-a-folio-in-hugepage_add_anon_rmap-and-hugepage_add_new_anon_rmap.patch
-mm-use-entire_mapcount-in-__page_dup_rmap.patch
-mm-debug-remove-call-to-head_compound_mapcount.patch
-hugetlb-remove-uses-of-folio_mapcount_ptr.patch
-mm-convert-page_mapcount-to-use-folio_entire_mapcount.patch
-mm-remove-head_compound_mapcount-and-_ptr-functions.patch
-mm-reimplement-compound_order.patch
-mm-reimplement-compound_nr.patch
-mm-reimplement-compound_nr-fix.patch
-mm-convert-set_compound_page_dtor-and-set_compound_order-to-folios.patch
-mm-convert-is_transparent_hugepage-to-use-a-folio.patch
-mm-convert-destroy_large_folio-to-use-folio_dtor.patch
-hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch
-mm-remove-first-tail-page-members-from-struct-page.patch
-doc-correct-struct-folio-kernel-doc.patch
-mm-move-page-deferred_list-to-folio-_deferred_list.patch
-mm-huge_memory-remove-page_deferred_list.patch
-mm-huge_memory-convert-get_deferred_split_queue-to-take-a-folio.patch
-mm-convert-deferred_split_huge_page-to-deferred_split_folio.patch
-shmem-convert-shmem_write_end-to-use-a-folio.patch
-mm-add-vma_alloc_zeroed_movable_folio.patch
-mm-convert-do_anonymous_page-to-use-a-folio.patch
-mm-convert-wp_page_copy-to-use-folios.patch
-mm-use-a-folio-in-copy_pte_range.patch
-mm-use-a-folio-in-copy_present_pte.patch
-mm-fs-convert-inode_attach_wb-to-take-a-folio.patch
-mm-convert-mem_cgroup_css_from_page-to-mem_cgroup_css_from_folio.patch
-mm-remove-page_evictable.patch
-mm-remove-mlock_vma_page.patch
-mm-remove-munlock_vma_page.patch
-mm-clean-up-mlock_page-munlock_page-references-in-comments.patch
-rmap-add-folio-parameter-to-__page_set_anon_rmap.patch
-filemap-convert-filemap_map_pmd-to-take-a-folio.patch
-filemap-convert-filemap_range_has_page-to-use-a-folio.patch
-readahead-convert-readahead_expand-to-use-a-folio.patch
+mm-khugepaged-recover-from-poisoned-anonymous-memory.patch
+mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
+mm-memory-failure-add-memory-failure-stats-to-sysfs.patch
+mm-memory-failure-bump-memory-failure-stats-to-pglist_data.patch
+mm-memory-failure-document-memory-failure-stats.patch
 
