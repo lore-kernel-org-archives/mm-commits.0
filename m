@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FC79C46467
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 21:39:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3059EC54EBE
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 21:39:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234550AbjAPVjS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Jan 2023 16:39:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39286 "EHLO
+        id S234593AbjAPVjX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Jan 2023 16:39:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233226AbjAPVjR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 16:39:17 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29C9D2BED9
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 13:39:16 -0800 (PST)
+        with ESMTP id S233226AbjAPVjT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 16:39:19 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34C862BED5
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 13:39:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DDCA4B81060
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 21:39:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81BF7C433EF;
-        Mon, 16 Jan 2023 21:39:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DA0DFB810F1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 21:39:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E19DC433EF;
+        Mon, 16 Jan 2023 21:39:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673905153;
-        bh=gZyx+YDXG1TOo1ssvz5X68O9DmhywuCb+KCeYni50u0=;
+        s=korg; t=1673905155;
+        bh=itDt0y1vuhzD+kcX+DSExX5ocCRzQi8vJMmzX29OF8k=;
         h=Date:To:From:Subject:From;
-        b=2tqtCFofxY+s+05N9G7BMoyb2vZ9JBGn7Vo7fUJaCFG3TJT4dWHhP388T2h5X478u
-         j2012jcIZM8XJHg+NM1zasnLrSOEufljY78gRDovGPf08MOf4ji8h7TZvEh0X4gBYT
-         78KW3kl7vbyecc+KSAKxjOiDRfB7xS7adwEQSnpU=
-Date:   Mon, 16 Jan 2023 13:39:12 -0800
+        b=wgWeAvKOWODVKbWtgrPBWJJRuu6om7YhsLw9EqOCT06HzoUd1kp4m3OYbOMeNbYiE
+         LB/4tq4gnvVtrYNkf9im5fgEpBOYU5U+LmF4IHxn3l1SFBfQya8w/enJqWRBz98Bwk
+         uAZIdkeE9JTmdbdxZflBHoPCGESLtNt85nD6T0Go=
+Date:   Mon, 16 Jan 2023 13:39:14 -0800
 To:     mm-commits@vger.kernel.org, minchan@kernel.org,
         senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] zsmalloc-rework-zspage-chain-size-selection.patch removed from -mm tree
-Message-Id: <20230116213913.81BF7C433EF@smtp.kernel.org>
+Subject: [to-be-updated] zsmalloc-make-zspage-chain-size-configurable.patch removed from -mm tree
+Message-Id: <20230116213915.7E19DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,137 +41,291 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zsmalloc: rework zspage chain size selection
+     Subject: zsmalloc: make zspage chain size configurable
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-rework-zspage-chain-size-selection.patch
+     zsmalloc-make-zspage-chain-size-configurable.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: rework zspage chain size selection
-Date: Mon, 9 Jan 2023 12:38:35 +0900
+Subject: zsmalloc: make zspage chain size configurable
+Date: Mon, 9 Jan 2023 12:38:37 +0900
 
-Patch series "zsmalloc: make zspage chain size configurable", v2.
+Remove hard coded limit on the maximum number of physical pages
+per-zspage.
 
-This turns the hard coded limit on maximum number of physical pages
-per-zspage into a config option.  It also increases the default limit from
-4 to 8.  
+This will allow tuning of zsmalloc pool as zspage chain size changes
+`pages per-zspage` and `objects per-zspage` characteristics of size
+classes which also affects size classes clustering (the way size classes
+are merged).
 
-
-This patch (of 4):
-
-Computers are bad at division.  We currently decide the best zspage chain
-size (max number of physical pages per-zspage) by looking at a `used
-percentage` value.  This is not enough as we lose precision during usage
-percentage calculations For example, let's look at size class 208:
-
-pages per zspage       wasted bytes         used%
-       1                   144               96
-       2                    80               99
-       3                    16               99
-       4                   160               99
-
-Current algorithm will select 2 page per zspage configuration, as it's the
-first one to reach 99%.  However, 3 pages per zspage waste less memory.
-
-Change algorithm and select zspage configuration that has lowest wasted
-value.
-
-Link: https://lkml.kernel.org/r/20230109033838.2779902-1-senozhatsky@chromium.org
-Link: https://lkml.kernel.org/r/20230109033838.2779902-2-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20230109033838.2779902-4-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/zsmalloc.c~zsmalloc-rework-zspage-chain-size-selection
+--- a/Documentation/mm/zsmalloc.rst~zsmalloc-make-zspage-chain-size-configurable
++++ a/Documentation/mm/zsmalloc.rst
+@@ -80,3 +80,171 @@ Similarly, we assign zspage to:
+ * ZS_ALMOST_FULL  when n > N / f
+ * ZS_EMPTY        when n == 0
+ * ZS_FULL         when n == N
++
++
++Internals
++=========
++
++zsmalloc has 255 size classes, each of which can hold a number of zspages.
++Each zspage can contain up to ZSMALLOC_CHAIN_SIZE physical (0-order) pages.
++The optimal zspage chain size for each size class is calculated during the
++creation of the zsmalloc pool (see calculate_zspage_chain_size()).
++
++As an optimization, zsmalloc merges size classes that have similar
++characteristics in terms of the number of pages per zspage and the number
++of objects that each zspage can store.
++
++For instance, consider the following size classes:::
++
++  class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++  ...
++     94  1536           0            0             0          0          0                3        0
++    100  1632           0            0             0          0          0                2        0
++  ...
++
++
++Size classes #95-99 are merged with size class #100. This means that when we
++need to store an object of size, say, 1568 bytes, we end up using size class
++#100 instead of size class #96. Size class #100 is meant for objects of size
++1632 bytes, so each object of size 1568 bytes wastes 1632-1568=64 bytes.
++
++Size class #100 consists of zspages with 2 physical pages each, which can
++hold a total of 5 objects. If we need to store 13 objects of size 1568, we
++end up allocating three zspages, or 6 physical pages.
++
++However, if we take a closer look at size class #96 (which is meant for
++objects of size 1568 bytes) and trace `calculate_zspage_chain_size()`, we
++find that the most optimal zspage configuration for this class is a chain
++of 5 physical pages:::
++
++    pages per zspage      wasted bytes     used%
++           1                  960           76
++           2                  352           95
++           3                 1312           89
++           4                  704           95
++           5                   96           99
++
++This means that a class #96 configuration with 5 physical pages can store 13
++objects of size 1568 in a single zspage, using a total of 5 physical pages.
++This is more efficient than the class #100 configuration, which would use 6
++physical pages to store the same number of objects.
++
++As the zspage chain size for class #96 increases, its key characteristics
++such as pages per-zspage and objects per-zspage also change. This leads to
++dewer class mergers, resulting in a more compact grouping of classes, which
++reduces memory wastage.
++
++Let's take a closer look at the bottom of `/sys/kernel/debug/zsmalloc/zramX/classes`:::
++
++  class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++  ...
++    202  3264           0            0             0          0          0                4        0
++    254  4096           0            0             0          0          0                1        0
++  ...
++
++Size class #202 stores objects of size 3264 bytes and has a maximum of 4 pages
++per zspage. Any object larger than 3264 bytes is considered huge and belongs
++to size class #254, which stores each object in its own physical page (objects
++in huge classes do not share pages).
++
++Increasing the size of the chain of zspages also results in a higher watermark
++for the huge size class and fewer huge classes overall. This allows for more
++efficient storage of large objects.
++
++For zspage chain size of 8, huge class watermark becomes 3632 bytes:::
++
++  class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++  ...
++    202  3264           0            0             0          0          0                4        0
++    211  3408           0            0             0          0          0                5        0
++    217  3504           0            0             0          0          0                6        0
++    222  3584           0            0             0          0          0                7        0
++    225  3632           0            0             0          0          0                8        0
++    254  4096           0            0             0          0          0                1        0
++  ...
++
++For zspage chain size of 16, huge class watermark becomes 3840 bytes:::
++
++  class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++  ...
++    202  3264           0            0             0          0          0                4        0
++    206  3328           0            0             0          0          0               13        0
++    207  3344           0            0             0          0          0                9        0
++    208  3360           0            0             0          0          0               14        0
++    211  3408           0            0             0          0          0                5        0
++    212  3424           0            0             0          0          0               16        0
++    214  3456           0            0             0          0          0               11        0
++    217  3504           0            0             0          0          0                6        0
++    219  3536           0            0             0          0          0               13        0
++    222  3584           0            0             0          0          0                7        0
++    223  3600           0            0             0          0          0               15        0
++    225  3632           0            0             0          0          0                8        0
++    228  3680           0            0             0          0          0                9        0
++    230  3712           0            0             0          0          0               10        0
++    232  3744           0            0             0          0          0               11        0
++    234  3776           0            0             0          0          0               12        0
++    235  3792           0            0             0          0          0               13        0
++    236  3808           0            0             0          0          0               14        0
++    238  3840           0            0             0          0          0               15        0
++    254  4096           0            0             0          0          0                1        0
++  ...
++
++Overall the combined zspage chain size effect on zsmalloc pool configuration:::
++
++  pages per zspage   number of size classes (clusters)   huge size class watermark
++         4                        69                               3264
++         5                        86                               3408
++         6                        93                               3504
++         7                       112                               3584
++         8                       123                               3632
++         9                       140                               3680
++        10                       143                               3712
++        11                       159                               3744
++        12                       164                               3776
++        13                       180                               3792
++        14                       183                               3808
++        15                       188                               3840
++        16                       191                               3840
++
++
++A synthetic test
++----------------
++
++zram as a build artifacts storage (Linux kernel compilation).
++
++* `CONFIG_ZSMALLOC_CHAIN_SIZE=4`
++
++  zsmalloc classes stats:::
++
++    class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++    ...
++    Total                13           51        413836     412973     159955                         3
++
++  zram mm_stat:::
++
++   1691783168 628083717 655175680        0 655175680       60        0    34048    34049
++
++
++* `CONFIG_ZSMALLOC_CHAIN_SIZE=8`
++
++  zsmalloc classes stats:::
++
++    class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++    ...
++    Total                18           87        414852     412978     156666                         0
++
++  zram mm_stat:::
++
++    1691803648 627793930 641703936        0 641703936       60        0    33591    33591
++
++Using larger zspage chains may result in using fewer physical pages, as seen
++in the example where the number of physical pages used decreased from 159955
++to 156666, at the same time maximum zsmalloc pool memory usage went down from
++655175680 to 641703936 bytes.
++
++However, this advantage may be offset by the potential for increased system
++memory pressure (as some zspages have larger chain sizes) in cases where there
++is heavy internal fragmentation and zspool compaction is unable to relocate
++objects and release zspages. In these cases, it is recommended to decrease
++the limit on the size of the zspage chains (as specified by the
++CONFIG_ZSMALLOC_CHAIN_SIZE option).
+--- a/mm/Kconfig~zsmalloc-make-zspage-chain-size-configurable
++++ a/mm/Kconfig
+@@ -191,6 +191,25 @@ config ZSMALLOC_STAT
+ 	  information to userspace via debugfs.
+ 	  If unsure, say N.
+ 
++config ZSMALLOC_CHAIN_SIZE
++	int "Maximum number of physical pages per-zspage"
++	default 4
++	range 1 16
++	depends on ZSMALLOC
++	help
++	  This option sets the upper limit on the number of physical pages
++	  that a zmalloc page (zspage) can consist of. The optimal zspage
++	  chain size is calculated for each size class during the
++	  initialization of the pool.
++
++	  Changing this option can alter the characteristics of size classes,
++	  such as the number of pages per zspage and the number of objects
++	  per zspage. This can also result in different configurations of
++	  the pool, as zsmalloc merges size classes with similar
++	  characteristics.
++
++	  For more information, see zsmalloc documentation.
++
+ menu "SLAB allocator options"
+ 
+ choice
+--- a/mm/zsmalloc.c~zsmalloc-make-zspage-chain-size-configurable
 +++ a/mm/zsmalloc.c
-@@ -822,42 +822,6 @@ out:
- 	return newfg;
- }
+@@ -73,13 +73,6 @@
+  */
+ #define ZS_ALIGN		8
  
 -/*
-- * We have to decide on how many pages to link together
-- * to form a zspage for each size class. This is important
-- * to reduce wastage due to unusable space left at end of
-- * each zspage which is given as:
-- *     wastage = Zp % class_size
-- *     usage = Zp - wastage
-- * where Zp = zspage size = k * PAGE_SIZE where k = 1, 2, ...
-- *
-- * For example, for size class of 3/8 * PAGE_SIZE, we should
-- * link together 3 PAGE_SIZE sized pages to form a zspage
-- * since then we can perfectly fit in 8 such objects.
+- * A single 'zspage' is composed of up to 2^N discontiguous 0-order (single)
+- * pages. ZS_MAX_ZSPAGE_ORDER defines upper limit on N.
 - */
--static int get_pages_per_zspage(int class_size)
--{
--	int i, max_usedpc = 0;
--	/* zspage order which gives maximum used size per KB */
--	int max_usedpc_order = 1;
+-#define ZS_MAX_ZSPAGE_ORDER 2
+-#define ZS_MAX_PAGES_PER_ZSPAGE (_AC(1, UL) << ZS_MAX_ZSPAGE_ORDER)
 -
--	for (i = 1; i <= ZS_MAX_PAGES_PER_ZSPAGE; i++) {
--		int zspage_size;
--		int waste, usedpc;
--
--		zspage_size = i * PAGE_SIZE;
--		waste = zspage_size % class_size;
--		usedpc = (zspage_size - waste) * 100 / zspage_size;
--
--		if (usedpc > max_usedpc) {
--			max_usedpc = usedpc;
--			max_usedpc_order = i;
--		}
--	}
--
--	return max_usedpc_order;
--}
--
- static struct zspage *get_zspage(struct page *page)
+ #define ZS_HANDLE_SIZE (sizeof(unsigned long))
+ 
+ /*
+@@ -142,7 +135,7 @@
+ #define MAX(a, b) ((a) >= (b) ? (a) : (b))
+ /* ZS_MIN_ALLOC_SIZE must be multiple of ZS_ALIGN */
+ #define ZS_MIN_ALLOC_SIZE \
+-	MAX(32, (ZS_MAX_PAGES_PER_ZSPAGE << PAGE_SHIFT >> OBJ_INDEX_BITS))
++	MAX(32, (CONFIG_ZSMALLOC_CHAIN_SIZE << PAGE_SHIFT >> OBJ_INDEX_BITS))
+ /* each chunk includes extra space to keep handle */
+ #define ZS_MAX_ALLOC_SIZE	PAGE_SIZE
+ 
+@@ -1126,7 +1119,7 @@ static struct zspage *alloc_zspage(struc
+ 					gfp_t gfp)
  {
- 	struct zspage *zspage = (struct zspage *)page_private(page);
-@@ -2401,6 +2365,24 @@ static int zs_register_shrinker(struct z
- 				 pool->name);
- }
+ 	int i;
+-	struct page *pages[ZS_MAX_PAGES_PER_ZSPAGE];
++	struct page *pages[CONFIG_ZSMALLOC_CHAIN_SIZE];
+ 	struct zspage *zspage = cache_alloc_zspage(pool, gfp);
  
-+static int calculate_zspage_chain_size(int class_size)
-+{
-+	int i, min_waste = INT_MAX;
-+	int chain_size = 1;
-+
-+	for (i = 1; i <= ZS_MAX_PAGES_PER_ZSPAGE; i++) {
-+		int waste;
-+
-+		waste = (i * PAGE_SIZE) % class_size;
-+		if (waste < min_waste) {
-+			min_waste = waste;
-+			chain_size = i;
-+		}
-+	}
-+
-+	return chain_size;
-+}
-+
- /**
-  * zs_create_pool - Creates an allocation pool to work from.
-  * @name: pool name to be created
-@@ -2445,7 +2427,7 @@ struct zs_pool *zs_create_pool(const cha
- 		size = ZS_MIN_ALLOC_SIZE + i * ZS_SIZE_CLASS_DELTA;
- 		if (size > ZS_MAX_ALLOC_SIZE)
- 			size = ZS_MAX_ALLOC_SIZE;
--		pages_per_zspage = get_pages_per_zspage(size);
-+		pages_per_zspage = calculate_zspage_chain_size(size);
- 		objs_per_zspage = pages_per_zspage * PAGE_SIZE / size;
+ 	if (!zspage)
+@@ -1993,7 +1986,7 @@ static void replace_sub_page(struct size
+ 				struct page *newpage, struct page *oldpage)
+ {
+ 	struct page *page;
+-	struct page *pages[ZS_MAX_PAGES_PER_ZSPAGE] = {NULL, };
++	struct page *pages[CONFIG_ZSMALLOC_CHAIN_SIZE] = {NULL, };
+ 	int idx = 0;
  
- 		/*
+ 	page = get_first_page(zspage);
+@@ -2373,7 +2366,7 @@ static int calculate_zspage_chain_size(i
+ 	if (is_power_of_2(class_size))
+ 		return chain_size;
+ 
+-	for (i = 1; i <= ZS_MAX_PAGES_PER_ZSPAGE; i++) {
++	for (i = 1; i <= CONFIG_ZSMALLOC_CHAIN_SIZE; i++) {
+ 		int waste;
+ 
+ 		waste = (i * PAGE_SIZE) % class_size;
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
 
 zram-correctly-handle-all-next_arg-cases.patch
-zsmalloc-skip-chain-size-calculation-for-pow_of_2-classes.patch
-zsmalloc-make-zspage-chain-size-configurable.patch
 zsmalloc-make-zspage-chain-size-configurable-fix.patch
 zsmalloc-set-default-zspage-chain-size-to-8.patch
 
