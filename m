@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B80AC678D4
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 21:50:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B87DDC63797
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 21:50:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234089AbjAPVuM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Jan 2023 16:50:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42432 "EHLO
+        id S230420AbjAPVuL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Jan 2023 16:50:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234520AbjAPVuK (ORCPT
+        with ESMTP id S234605AbjAPVuK (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 16:50:10 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78D5C23314
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B2FE23DA4
         for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 13:50:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1400161149
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 21:50:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E8FCC433F0;
-        Mon, 16 Jan 2023 21:50:08 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 17D0CB80E77
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 21:50:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8F01C433D2;
+        Mon, 16 Jan 2023 21:50:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673905808;
-        bh=fkyYq/IQviYWyS/Eo2NByKrT5VAOLJ+KaMvEuCDH0Q0=;
+        s=korg; t=1673905806;
+        bh=pNqe8UtfOsQQhAWRjPThU7ETM7SD0NiaUnAUV/Py3Gc=;
         h=Date:To:From:Subject:From;
-        b=calVP3DJgU7IXHBNYwQj4460U/EESltgL5cjAeNpcJ7jx1sqPQw302vfsFidVdcUF
-         IC7+E/U2IDsid20VZFTB8oRcGfP8qhLg+/H5zD8lHT47XeoFMAFbDSQdf+rBE1l9bY
-         2HudwEFus9ghG0vjSbucPF74iAfsgpOTdFjODlMw=
-Date:   Mon, 16 Jan 2023 13:50:07 -0800
+        b=eUrG6KgMwq3gsqG8GjMqUC5Jh4xbo1zNs23hT002JSN0y5GAZkFS2Hrw1yIRbK/Ih
+         sMnzktA+uyUuw6SI8YSwLUZ5B4oWccCNDkW1SUTqc45HW7iwNwzydDCaM9AC296PvG
+         YyHPgOlXIv2FAI0jvep01ZB2Fo2zE2Cj2z37Jt8U=
+Date:   Mon, 16 Jan 2023 13:50:06 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-a-folio-in-copy_present_pte.patch added to mm-unstable branch
-Message-Id: <20230116215008.6E8FCC433F0@smtp.kernel.org>
+Subject: + mm-use-a-folio-in-copy_pte_range.patch added to mm-unstable branch
+Message-Id: <20230116215006.B8F01C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use a folio in copy_present_pte()
+     Subject: mm: use a folio in copy_pte_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-a-folio-in-copy_present_pte.patch
+     mm-use-a-folio-in-copy_pte_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-a-folio-in-copy_present_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-a-folio-in-copy_pte_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,64 +65,142 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use a folio in copy_present_pte()
-Date: Mon, 16 Jan 2023 19:18:13 +0000
+Subject: mm: use a folio in copy_pte_range()
+Date: Mon, 16 Jan 2023 19:18:12 +0000
 
-We still have to keep the page around because we need to know which page
-in the folio we're copying, but we can replace five implict calls to
-compound_head() with one.
+Allocate an order-0 folio instead of a page and pass it all the way down
+the call chain.  Removes dozens of calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20230116191813.2145215-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230116191813.2145215-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memory.c~mm-use-a-folio-in-copy_present_pte
+--- a/mm/memory.c~mm-use-a-folio-in-copy_pte_range
 +++ a/mm/memory.c
-@@ -906,25 +906,28 @@ copy_present_pte(struct vm_area_struct *
- 	unsigned long vm_flags = src_vma->vm_flags;
- 	pte_t pte = *src_pte;
- 	struct page *page;
-+	struct folio *folio;
+@@ -863,13 +863,13 @@ copy_nonpresent_pte(struct mm_struct *ds
+ static inline int
+ copy_present_page(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
+ 		  pte_t *dst_pte, pte_t *src_pte, unsigned long addr, int *rss,
+-		  struct page **prealloc, struct page *page)
++		  struct folio **prealloc, struct page *page)
+ {
+-	struct page *new_page;
++	struct folio *new_folio;
+ 	pte_t pte;
  
- 	page = vm_normal_page(src_vma, addr, pte);
--	if (page && PageAnon(page)) {
-+	if (page)
-+		folio = page_folio(page);
-+	if (page && folio_test_anon(folio)) {
- 		/*
- 		 * If this page may have been pinned by the parent process,
- 		 * copy the page immediately for the child so that we'll always
- 		 * guarantee the pinned page won't be randomly replaced in the
- 		 * future.
- 		 */
--		get_page(page);
-+		folio_get(folio);
- 		if (unlikely(page_try_dup_anon_rmap(page, false, src_vma))) {
--			/* Page maybe pinned, we have to copy. */
--			put_page(page);
-+			/* Page may be pinned, we have to copy. */
-+			folio_put(folio);
+-	new_page = *prealloc;
+-	if (!new_page)
++	new_folio = *prealloc;
++	if (!new_folio)
+ 		return -EAGAIN;
+ 
+ 	/*
+@@ -877,14 +877,14 @@ copy_present_page(struct vm_area_struct
+ 	 * over and copy the page & arm it.
+ 	 */
+ 	*prealloc = NULL;
+-	copy_user_highpage(new_page, page, addr, src_vma);
+-	__SetPageUptodate(new_page);
+-	page_add_new_anon_rmap(new_page, dst_vma, addr);
+-	lru_cache_add_inactive_or_unevictable(new_page, dst_vma);
+-	rss[mm_counter(new_page)]++;
++	copy_user_highpage(&new_folio->page, page, addr, src_vma);
++	__folio_mark_uptodate(new_folio);
++	folio_add_new_anon_rmap(new_folio, dst_vma, addr);
++	folio_add_lru_vma(new_folio, dst_vma);
++	rss[MM_ANONPAGES]++;
+ 
+ 	/* All done, just insert the new page copy in the child */
+-	pte = mk_pte(new_page, dst_vma->vm_page_prot);
++	pte = mk_pte(&new_folio->page, dst_vma->vm_page_prot);
+ 	pte = maybe_mkwrite(pte_mkdirty(pte), dst_vma);
+ 	if (userfaultfd_pte_wp(dst_vma, *src_pte))
+ 		/* Uffd-wp needs to be delivered to dest pte as well */
+@@ -900,7 +900,7 @@ copy_present_page(struct vm_area_struct
+ static inline int
+ copy_present_pte(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
+ 		 pte_t *dst_pte, pte_t *src_pte, unsigned long addr, int *rss,
+-		 struct page **prealloc)
++		 struct folio **prealloc)
+ {
+ 	struct mm_struct *src_mm = src_vma->vm_mm;
+ 	unsigned long vm_flags = src_vma->vm_flags;
+@@ -922,11 +922,11 @@ copy_present_pte(struct vm_area_struct *
  			return copy_present_page(dst_vma, src_vma, dst_pte, src_pte,
  						 addr, rss, prealloc, page);
  		}
- 		rss[MM_ANONPAGES]++;
+-		rss[mm_counter(page)]++;
++		rss[MM_ANONPAGES]++;
  	} else if (page) {
--		get_page(page);
-+		folio_get(folio);
+ 		get_page(page);
  		page_dup_file_rmap(page, false);
- 		rss[mm_counter_file(page)]++;
+-		rss[mm_counter(page)]++;
++		rss[mm_counter_file(page)]++;
  	}
-@@ -937,7 +940,7 @@ copy_present_pte(struct vm_area_struct *
- 		ptep_set_wrprotect(src_mm, addr, src_pte);
- 		pte = pte_wrprotect(pte);
- 	}
--	VM_BUG_ON(page && PageAnon(page) && PageAnonExclusive(page));
-+	VM_BUG_ON(page && folio_test_anon(folio) && PageAnonExclusive(page));
  
  	/*
- 	 * If it's a shared mapping, mark it clean in
+@@ -954,23 +954,22 @@ copy_present_pte(struct vm_area_struct *
+ 	return 0;
+ }
+ 
+-static inline struct page *
+-page_copy_prealloc(struct mm_struct *src_mm, struct vm_area_struct *vma,
+-		   unsigned long addr)
++static inline struct folio *page_copy_prealloc(struct mm_struct *src_mm,
++		struct vm_area_struct *vma, unsigned long addr)
+ {
+-	struct page *new_page;
++	struct folio *new_folio;
+ 
+-	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, addr);
+-	if (!new_page)
++	new_folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, addr, false);
++	if (!new_folio)
+ 		return NULL;
+ 
+-	if (mem_cgroup_charge(page_folio(new_page), src_mm, GFP_KERNEL)) {
+-		put_page(new_page);
++	if (mem_cgroup_charge(new_folio, src_mm, GFP_KERNEL)) {
++		folio_put(new_folio);
+ 		return NULL;
+ 	}
+-	cgroup_throttle_swaprate(new_page, GFP_KERNEL);
++	cgroup_throttle_swaprate(&new_folio->page, GFP_KERNEL);
+ 
+-	return new_page;
++	return new_folio;
+ }
+ 
+ static int
+@@ -986,7 +985,7 @@ copy_pte_range(struct vm_area_struct *ds
+ 	int progress, ret = 0;
+ 	int rss[NR_MM_COUNTERS];
+ 	swp_entry_t entry = (swp_entry_t){0};
+-	struct page *prealloc = NULL;
++	struct folio *prealloc = NULL;
+ 
+ again:
+ 	progress = 0;
+@@ -1056,7 +1055,7 @@ again:
+ 			 * will allocate page according to address).  This
+ 			 * could only happen if one pinned pte changed.
+ 			 */
+-			put_page(prealloc);
++			folio_put(prealloc);
+ 			prealloc = NULL;
+ 		}
+ 		progress += 8;
+@@ -1093,7 +1092,7 @@ again:
+ 		goto again;
+ out:
+ 	if (unlikely(prealloc))
+-		put_page(prealloc);
++		folio_put(prealloc);
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
