@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AC11C46467
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3080CC54EBE
 	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 21:50:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233936AbjAPVuK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Jan 2023 16:50:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42422 "EHLO
+        id S230040AbjAPVuJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Jan 2023 16:50:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234089AbjAPVuH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 16:50:07 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2434523DB6
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 13:50:06 -0800 (PST)
+        with ESMTP id S233936AbjAPVuF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 16:50:05 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7934D23DAE
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 13:50:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B0DCB6108B
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 21:50:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11693C433EF;
-        Mon, 16 Jan 2023 21:50:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 11A1B61146
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 21:50:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 625D3C433D2;
+        Mon, 16 Jan 2023 21:50:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673905805;
-        bh=uFM3Srv1sj5b7JfIIpnPvnScCdbfFXQmYIVTHZgI5IU=;
+        s=korg; t=1673905803;
+        bh=FYBpbVtCf/SetX9zrcO90zyWqKP/HM/BOYHNoyicwNI=;
         h=Date:To:From:Subject:From;
-        b=oPH819vgumOED1b9Hs/4qoXxBMeqy2ph2wEoekvLa/QV7nsOzuFHBAFDjK5c052Mi
-         GXu45El/9OC6BMe0ck/yluCoIj2B1NE55tT8/5Pik7TdyLcdPNT0F3a8TmliwdzNpB
-         2IC0aQT37TvJ4QkgMmt09+BgWG2Ed7M3sNNyodRQ=
-Date:   Mon, 16 Jan 2023 13:50:04 -0800
+        b=G00bT3pAQyiawPVmPaaCq6xDBeJg0LCXEPCfrPyHVJfw2nYBLz9JojLEpwp55trPJ
+         ZqciEUV/09j50vjhWx8Fb2miUugQNQ5nKdZ6QrBtplXOPrHIMcxiyya2/gevu9+7mV
+         MPNulhy3C8Kyuq6hVmbDLgvHng0AGGmjgMZiDflk=
+Date:   Mon, 16 Jan 2023 13:50:02 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-wp_page_copy-to-use-folios.patch added to mm-unstable branch
-Message-Id: <20230116215005.11693C433EF@smtp.kernel.org>
+Subject: + mm-convert-do_anonymous_page-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20230116215003.625D3C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert wp_page_copy() to use folios
+     Subject: mm: convert do_anonymous_page() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-wp_page_copy-to-use-folios.patch
+     mm-convert-do_anonymous_page-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-wp_page_copy-to-use-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-do_anonymous_page-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,181 +65,81 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert wp_page_copy() to use folios
-Date: Mon, 16 Jan 2023 19:18:11 +0000
+Subject: mm: convert do_anonymous_page() to use a folio
+Date: Mon, 16 Jan 2023 19:18:10 +0000
 
-Use new_folio instead of new_page throughout, because we allocated it
-and know it's an order-0 folio.  Most old_page uses become old_folio,
-but use vmf->page where we need the precise page.
+Removes six calls to compound_head(); some inline and some external.
 
-Link: https://lkml.kernel.org/r/20230116191813.2145215-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230116191813.2145215-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memory.c~mm-convert-wp_page_copy-to-use-folios
+--- a/mm/memory.c~mm-convert-do_anonymous_page-to-use-a-folio
 +++ a/mm/memory.c
-@@ -3043,8 +3043,8 @@ static vm_fault_t wp_page_copy(struct vm
- 	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
+@@ -3999,7 +3999,6 @@ out_release:
+ static vm_fault_t do_anonymous_page(struct vm_fault *vmf)
+ {
  	struct vm_area_struct *vma = vmf->vma;
- 	struct mm_struct *mm = vma->vm_mm;
--	struct page *old_page = vmf->page;
--	struct page *new_page = NULL;
-+	struct folio *old_folio = NULL;
-+	struct folio *new_folio = NULL;
+-	struct page *page;
+ 	struct folio *folio;
+ 	vm_fault_t ret = 0;
  	pte_t entry;
- 	int page_copied = 0;
- 	struct mmu_notifier_range range;
-@@ -3052,23 +3052,22 @@ static vm_fault_t wp_page_copy(struct vm
- 
- 	delayacct_wpcopy_start();
- 
-+	if (vmf->page)
-+		old_folio = page_folio(vmf->page);
- 	if (unlikely(anon_vma_prepare(vma)))
+@@ -4054,19 +4053,18 @@ static vm_fault_t do_anonymous_page(stru
+ 	if (!folio)
  		goto oom;
  
- 	if (is_zero_pfn(pte_pfn(vmf->orig_pte))) {
--		struct folio *new_folio;
--
- 		new_folio = vma_alloc_zeroed_movable_folio(vma, vmf->address);
- 		if (!new_folio)
- 			goto oom;
--		new_page = &new_folio->page;
- 	} else {
--		new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
--				vmf->address);
--		if (!new_page)
-+		new_folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma,
-+				vmf->address, false);
-+		if (!new_folio)
- 			goto oom;
+-	page = &folio->page;
+ 	if (mem_cgroup_charge(folio, vma->vm_mm, GFP_KERNEL))
+ 		goto oom_free_page;
+-	cgroup_throttle_swaprate(page, GFP_KERNEL);
++	cgroup_throttle_swaprate(&folio->page, GFP_KERNEL);
  
--		ret = __wp_page_copy_user(new_page, old_page, vmf);
-+		ret = __wp_page_copy_user(&new_folio->page, vmf->page, vmf);
- 		if (ret) {
- 			/*
- 			 * COW failed, if the fault was solved by other,
-@@ -3077,21 +3076,21 @@ static vm_fault_t wp_page_copy(struct vm
- 			 * from the second attempt.
- 			 * The -EHWPOISON case will not be retried.
- 			 */
--			put_page(new_page);
--			if (old_page)
--				put_page(old_page);
-+			folio_put(new_folio);
-+			if (old_folio)
-+				folio_put(old_folio);
- 
- 			delayacct_wpcopy_end();
- 			return ret == -EHWPOISON ? VM_FAULT_HWPOISON : 0;
- 		}
--		kmsan_copy_page_meta(new_page, old_page);
-+		kmsan_copy_page_meta(&new_folio->page, vmf->page);
- 	}
- 
--	if (mem_cgroup_charge(page_folio(new_page), mm, GFP_KERNEL))
-+	if (mem_cgroup_charge(new_folio, mm, GFP_KERNEL))
- 		goto oom_free_new;
--	cgroup_throttle_swaprate(new_page, GFP_KERNEL);
-+	cgroup_throttle_swaprate(&new_folio->page, GFP_KERNEL);
- 
--	__SetPageUptodate(new_page);
-+	__folio_mark_uptodate(new_folio);
- 
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm,
- 				vmf->address & PAGE_MASK,
-@@ -3103,16 +3102,16 @@ static vm_fault_t wp_page_copy(struct vm
- 	 */
- 	vmf->pte = pte_offset_map_lock(mm, vmf->pmd, vmf->address, &vmf->ptl);
- 	if (likely(pte_same(*vmf->pte, vmf->orig_pte))) {
--		if (old_page) {
--			if (!PageAnon(old_page)) {
--				dec_mm_counter(mm, mm_counter_file(old_page));
-+		if (old_folio) {
-+			if (!folio_test_anon(old_folio)) {
-+				dec_mm_counter(mm, mm_counter_file(&old_folio->page));
- 				inc_mm_counter(mm, MM_ANONPAGES);
- 			}
- 		} else {
- 			inc_mm_counter(mm, MM_ANONPAGES);
- 		}
- 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
--		entry = mk_pte(new_page, vma->vm_page_prot);
-+		entry = mk_pte(&new_folio->page, vma->vm_page_prot);
- 		entry = pte_sw_mkyoung(entry);
- 		if (unlikely(unshare)) {
- 			if (pte_soft_dirty(vmf->orig_pte))
-@@ -3131,8 +3130,8 @@ static vm_fault_t wp_page_copy(struct vm
- 		 * some TLBs while the old PTE remains in others.
- 		 */
- 		ptep_clear_flush_notify(vma, vmf->address, vmf->pte);
--		page_add_new_anon_rmap(new_page, vma, vmf->address);
--		lru_cache_add_inactive_or_unevictable(new_page, vma);
-+		folio_add_new_anon_rmap(new_folio, vma, vmf->address);
-+		folio_add_lru_vma(new_folio, vma);
- 		/*
- 		 * We call the notify macro here because, when using secondary
- 		 * mmu page tables (such as kvm shadow page tables), we want the
-@@ -3141,7 +3140,7 @@ static vm_fault_t wp_page_copy(struct vm
- 		BUG_ON(unshare && pte_write(entry));
- 		set_pte_at_notify(mm, vmf->address, vmf->pte, entry);
- 		update_mmu_cache(vma, vmf->address, vmf->pte);
--		if (old_page) {
-+		if (old_folio) {
- 			/*
- 			 * Only after switching the pte to the new page may
- 			 * we remove the mapcount here. Otherwise another
-@@ -3164,18 +3163,18 @@ static vm_fault_t wp_page_copy(struct vm
- 			 * mapcount is visible. So transitively, TLBs to
- 			 * old page will be flushed before it can be reused.
- 			 */
--			page_remove_rmap(old_page, vma, false);
-+			page_remove_rmap(vmf->page, vma, false);
- 		}
- 
- 		/* Free the old page.. */
--		new_page = old_page;
-+		new_folio = old_folio;
- 		page_copied = 1;
- 	} else {
- 		update_mmu_tlb(vma, vmf->address, vmf->pte);
- 	}
- 
--	if (new_page)
--		put_page(new_page);
-+	if (new_folio)
-+		folio_put(new_folio);
- 
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
  	/*
-@@ -3183,19 +3182,19 @@ static vm_fault_t wp_page_copy(struct vm
- 	 * the above ptep_clear_flush_notify() did already call it.
+-	 * The memory barrier inside __SetPageUptodate makes sure that
++	 * The memory barrier inside __folio_mark_uptodate makes sure that
+ 	 * preceding stores to the page contents become visible before
+ 	 * the set_pte_at() write.
  	 */
- 	mmu_notifier_invalidate_range_only_end(&range);
--	if (old_page) {
-+	if (old_folio) {
- 		if (page_copied)
--			free_swap_cache(old_page);
--		put_page(old_page);
-+			free_swap_cache(&old_folio->page);
-+		folio_put(old_folio);
+-	__SetPageUptodate(page);
++	__folio_mark_uptodate(folio);
+ 
+-	entry = mk_pte(page, vma->vm_page_prot);
++	entry = mk_pte(&folio->page, vma->vm_page_prot);
+ 	entry = pte_sw_mkyoung(entry);
+ 	if (vma->vm_flags & VM_WRITE)
+ 		entry = pte_mkwrite(pte_mkdirty(entry));
+@@ -4085,13 +4083,13 @@ static vm_fault_t do_anonymous_page(stru
+ 	/* Deliver the page fault to userland, check inside PT lock */
+ 	if (userfaultfd_missing(vma)) {
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		put_page(page);
++		folio_put(folio);
+ 		return handle_userfault(vmf, VM_UFFD_MISSING);
  	}
  
- 	delayacct_wpcopy_end();
- 	return 0;
- oom_free_new:
--	put_page(new_page);
-+	folio_put(new_folio);
- oom:
--	if (old_page)
--		put_page(old_page);
-+	if (old_folio)
-+		folio_put(old_folio);
+ 	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
+-	page_add_new_anon_rmap(page, vma, vmf->address);
+-	lru_cache_add_inactive_or_unevictable(page, vma);
++	folio_add_new_anon_rmap(folio, vma, vmf->address);
++	folio_add_lru_vma(folio, vma);
+ setpte:
+ 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, entry);
  
- 	delayacct_wpcopy_end();
+@@ -4101,10 +4099,10 @@ unlock:
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	return ret;
+ release:
+-	put_page(page);
++	folio_put(folio);
+ 	goto unlock;
+ oom_free_page:
+-	put_page(page);
++	folio_put(folio);
+ oom:
  	return VM_FAULT_OOM;
+ }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
