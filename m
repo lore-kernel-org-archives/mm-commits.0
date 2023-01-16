@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 071D2C54EBE
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 21:36:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE556C46467
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Jan 2023 21:37:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232003AbjAPVgx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Jan 2023 16:36:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38712 "EHLO
+        id S230238AbjAPVhW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Jan 2023 16:37:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233953AbjAPVgr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 16:36:47 -0500
+        with ESMTP id S234621AbjAPVhT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jan 2023 16:37:19 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D3782BEDE
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 13:36:46 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C034F2BEDB
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 13:37:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2A08161118
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 21:36:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83475C433EF;
-        Mon, 16 Jan 2023 21:36:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5D5A86114C
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jan 2023 21:37:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2745C433D2;
+        Mon, 16 Jan 2023 21:37:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673905005;
-        bh=7Z9dHZVKjHsnrkoRYHKeZpIdvFwlgsCkkvIbkyE5pp4=;
+        s=korg; t=1673905037;
+        bh=XTfj12IpBzMtGdvmbvbG9oK14t56Sk/XaQSuyNfhi7U=;
         h=Date:To:From:Subject:From;
-        b=mtieXFvU5Vw7GQtxMw8jPr037c3HGfeHAxYR/O8XH3PjFWV32S/EgRWexT1mrUPat
-         PtbFoLHBKhWarL7XDXiiuSqJNiyPYjLnZEGBo8A8jKnYFGWWK2IysTokGWp7OJKF41
-         lIFpA0PlICetlHW7byRGoVb2GE7Qk+mj2yGCg68w=
-Date:   Mon, 16 Jan 2023 13:36:44 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
-        willy@infradead.org, shy828301@gmail.com, osalvador@suse.de,
-        minchan@kernel.org, bharata@amd.com, baolin.wang@linux.alibaba.com,
-        apopple@nvidia.com, ying.huang@intel.com, akpm@linux-foundation.org
+        b=oNFTZCumTuN+hxwTAwaDmanUS10KD8posUZCjpl948vUMyPZEoCPh6QUNKG0KG3bD
+         YtQTe315a2PEshXtBC5ikQYynNqH1nT7TFh6ghoRQLeAvAGFmgO6zfbBvsYRK2sUFP
+         hIR8YyTOEtu7P1hYcp+ZfpKDV8asYi4+YCO87uL4=
+Date:   Mon, 16 Jan 2023 13:37:16 -0800
+To:     mm-commits@vger.kernel.org, sj@kernel.org, huaisheng.ye@intel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code.patch added to mm-unstable branch
-Message-Id: <20230116213645.83475C433EF@smtp.kernel.org>
+Subject: + mm-damon-core-skip-apply-schemes-if-empty.patch added to mm-unstable branch
+Message-Id: <20230116213717.B2745C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: migrate_pages: move THP/hugetlb migration support check to simplify code
+     Subject: mm/damon/core: skip apply schemes if empty
 has been added to the -mm mm-unstable branch.  Its filename is
-     migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code.patch
+     mm-damon-core-skip-apply-schemes-if-empty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-skip-apply-schemes-if-empty.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,173 +64,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: migrate_pages: move THP/hugetlb migration support check to simplify code
-Date: Mon, 16 Jan 2023 14:30:57 +0800
+From: Huaisheng Ye <huaisheng.ye@intel.com>
+Subject: mm/damon/core: skip apply schemes if empty
+Date: Mon, 16 Jan 2023 14:23:47 +0800
 
-This is a code cleanup patch, no functionality change is expected.  After
-the change, the line number reduces especially in the long
-migrate_pages_batch().
+Sometimes there is no scheme in damon's context, for example just use damo
+record to monitor workload's data access pattern.
 
-Link: https://lkml.kernel.org/r/20230116063057.653862-10-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Suggested-by: Alistair Popple <apopple@nvidia.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: haoxin <xhao@linux.alibaba.com>
-Cc: Minchan Kim <minchan@kernel.org>
+If current damon context doesn't have any scheme in the list, kdamond has
+no need to iterate over list of all targets and regions but do nothing.
+
+So, skip apply schemes when ctx->schemes is empty.
+
+Link: https://lkml.kernel.org/r/20230116062347.1148553-1-huaisheng.ye@intel.com
+Signed-off-by: Huaisheng Ye <huaisheng.ye@intel.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/migrate.c~migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code
-+++ a/mm/migrate.c
-@@ -1116,9 +1116,6 @@ static int migrate_folio_unmap(new_page_
- 	bool locked = false;
- 	bool dst_locked = false;
- 
--	if (!thp_migration_supported() && folio_test_transhuge(src))
--		return -ENOSYS;
--
- 	if (folio_ref_count(src) == 1) {
- 		/* Folio was freed from under us. So we are done. */
- 		folio_clear_active(src);
-@@ -1375,16 +1372,6 @@ static int unmap_and_move_huge_page(new_
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
- 
--	/*
--	 * Migratability of hugepages depends on architectures and their size.
--	 * This check is necessary because some callers of hugepage migration
--	 * like soft offline and memory hotremove don't walk through page
--	 * tables or check whether the hugepage is pmd-based or not before
--	 * kicking migration.
--	 */
--	if (!hugepage_migration_supported(page_hstate(hpage)))
--		return -ENOSYS;
--
- 	if (folio_ref_count(src) == 1) {
- 		/* page was freed from under us. So we are done. */
- 		putback_active_hugepage(hpage);
-@@ -1551,6 +1538,20 @@ static int migrate_hugetlbs(struct list_
- 
- 			cond_resched();
- 
-+			/*
-+			 * Migratability of hugepages depends on architectures and
-+			 * their size.  This check is necessary because some callers
-+			 * of hugepage migration like soft offline and memory
-+			 * hotremove don't walk through page tables or check whether
-+			 * the hugepage is pmd-based or not before kicking migration.
-+			 */
-+			if (!hugepage_migration_supported(folio_hstate(folio))) {
-+				nr_failed++;
-+				stats->nr_failed_pages += nr_pages;
-+				list_move_tail(&folio->lru, ret_folios);
-+				continue;
-+			}
-+
- 			rc = unmap_and_move_huge_page(get_new_page,
- 						      put_new_page, private,
- 						      &folio->page, pass > 2, mode,
-@@ -1560,16 +1561,9 @@ static int migrate_hugetlbs(struct list_
- 			 *	Success: hugetlb folio will be put back
- 			 *	-EAGAIN: stay on the from list
- 			 *	-ENOMEM: stay on the from list
--			 *	-ENOSYS: stay on the from list
- 			 *	Other errno: put on ret_folios list
- 			 */
- 			switch(rc) {
--			case -ENOSYS:
--				/* Hugetlb migration is unsupported */
--				nr_failed++;
--				stats->nr_failed_pages += nr_pages;
--				list_move_tail(&folio->lru, ret_folios);
--				break;
- 			case -ENOMEM:
- 				/*
- 				 * When memory is low, don't bother to try to migrate
-@@ -1655,6 +1649,28 @@ retry:
- 
- 			cond_resched();
- 
-+			/*
-+			 * Large folio migration might be unsupported or
-+			 * the allocation might be failed so we should retry
-+			 * on the same folio with the large folio split
-+			 * to normal folios.
-+			 *
-+			 * Split folios are put in split_folios, and
-+			 * we will migrate them after the rest of the
-+			 * list is processed.
-+			 */
-+			if (!thp_migration_supported() && is_thp) {
-+				nr_large_failed++;
-+				stats->nr_thp_failed++;
-+				if (!try_split_folio(folio, &split_folios)) {
-+					stats->nr_thp_split++;
-+					continue;
-+				}
-+				stats->nr_failed_pages += nr_pages;
-+				list_move_tail(&folio->lru, ret_folios);
-+				continue;
-+			}
-+
- 			rc = migrate_folio_unmap(get_new_page, put_new_page, private,
- 						 folio, &dst, pass > 2, force_lock,
- 						 mode, reason, ret_folios);
-@@ -1666,36 +1682,9 @@ retry:
- 			 *	-EAGAIN: stay on the from list
- 			 *	-EDEADLOCK: stay on the from list
- 			 *	-ENOMEM: stay on the from list
--			 *	-ENOSYS: stay on the from list
- 			 *	Other errno: put on ret_folios list
- 			 */
- 			switch(rc) {
--			/*
--			 * Large folio migration might be unsupported or
--			 * the allocation could've failed so we should retry
--			 * on the same folio with the large folio split
--			 * to normal folios.
--			 *
--			 * Split folios are put in split_folios, and
--			 * we will migrate them after the rest of the
--			 * list is processed.
--			 */
--			case -ENOSYS:
--				/* Large folio migration is unsupported */
--				if (is_large) {
--					nr_large_failed++;
--					stats->nr_thp_failed += is_thp;
--					if (!try_split_folio(folio, &split_folios)) {
--						stats->nr_thp_split += is_thp;
--						break;
--					}
--				} else if (!no_split_folio_counting) {
--					nr_failed++;
--				}
--
--				stats->nr_failed_pages += nr_pages;
--				list_move_tail(&folio->lru, ret_folios);
--				break;
- 			case -ENOMEM:
- 				/*
- 				 * When memory is low, don't bother to try to migrate
+--- a/mm/damon/core.c~mm-damon-core-skip-apply-schemes-if-empty
++++ a/mm/damon/core.c
+@@ -1269,7 +1269,8 @@ static int kdamond_fn(void *data)
+ 			if (ctx->callback.after_aggregation &&
+ 					ctx->callback.after_aggregation(ctx))
+ 				break;
+-			kdamond_apply_schemes(ctx);
++			if (!list_empty(&ctx->schemes))
++				kdamond_apply_schemes(ctx);
+ 			kdamond_reset_aggregated(ctx);
+ 			kdamond_split_regions(ctx);
+ 			if (ctx->ops.reset_aggregated)
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from huaisheng.ye@intel.com are
 
-migrate_pages-organize-stats-with-struct-migrate_pages_stats.patch
-migrate_pages-separate-hugetlb-folios-migration.patch
-migrate_pages-restrict-number-of-pages-to-migrate-in-batch.patch
-migrate_pages-split-unmap_and_move-to-_unmap-and-_move.patch
-migrate_pages-batch-_unmap-and-_move.patch
-migrate_pages-move-migrate_folio_unmap.patch
-migrate_pages-share-more-code-between-_unmap-and-_move.patch
-migrate_pages-batch-flushing-tlb.patch
-migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code.patch
+mm-damon-core-skip-apply-schemes-if-empty.patch
 
