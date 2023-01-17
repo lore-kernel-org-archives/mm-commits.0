@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E80ABC00A5A
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Jan 2023 23:47:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B352EC00A5A
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 00:33:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229585AbjAQXrU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Jan 2023 18:47:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38136 "EHLO
+        id S229710AbjARAdI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Jan 2023 19:33:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35196 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229778AbjAQXqf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2023 18:46:35 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAC26613FD
-        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2023 14:53:34 -0800 (PST)
+        with ESMTP id S229746AbjARAcv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2023 19:32:51 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A6A72B60D
+        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2023 15:59:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 53A7A614C7
-        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2023 22:53:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C7D7C433D2;
-        Tue, 17 Jan 2023 22:53:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 14367B81A1D
+        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2023 23:59:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACB48C433D2;
+        Tue, 17 Jan 2023 23:59:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1673996013;
-        bh=x/GaLw2Jd7drdK7r4ed0nAGln9AACJM6D1Sru5nv/T0=;
+        s=korg; t=1673999953;
+        bh=2/F3ILzmcilqCLd1IlV1/+xo95WDiXBtXVt3KVJCYWE=;
         h=Date:To:From:Subject:From;
-        b=Yfx0dkkOAR7Ch9Bx9pEo82Fa6Q3s4PJBjTJOiYI20cw6XWqrdorwqO6x38bNXU/N3
-         YABkIC3PmjHGk4oRP7HKkMXrPpdv4lcEnRK1+wg6QQE9XHpbsMKYLRemIiMz2LdTps
-         L3tsgJF+bWV5GtVuRwANx0Liojb4I97Z4jULinH8=
-Date:   Tue, 17 Jan 2023 14:53:32 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@linux.ibm.com,
-        quic_charante@quicinc.com, mhocko@suse.com, lizhe.67@bytedance.com,
-        david@redhat.com, pasha.tatashin@soleen.com,
-        akpm@linux-foundation.org
+        b=Lj7nDmQDMoDuZyE6fSJcWY0EKb2QF0RnEJE/T4vDUhuftxbzxbXP8jA8Ts44B88LC
+         9x5aM1KkWFxTSMPFaLlf/0G+IHunvcIDMlPZ+Zc0V1hzvvE4QIb3Q8XhZ/2V+1mxk1
+         9EWtwFweiGOld3RNtM5TDudlxGZ7Xoc+dyxdL0r0=
+Date:   Tue, 17 Jan 2023 15:59:12 -0800
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        urezki@gmail.com, ryabinin.a.a@gmail.com, luto@kernel.org,
+        hch@infradead.org, glider@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, jannh@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed-v4.patch added to mm-unstable branch
-Message-Id: <20230117225333.9C7D7C433D2@smtp.kernel.org>
+Subject: + fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks.patch added to mm-unstable branch
+Message-Id: <20230117235913.ACB48C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed-v4
+     Subject: fork, vmalloc: KASAN-poison backing pages of vmapped stacks
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed-v4.patch
+     fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed-v4.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,125 +66,101 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed-v4
-Date: Tue, 17 Jan 2023 20:21:03 +0000
+From: Jann Horn <jannh@google.com>
+Subject: fork, vmalloc: KASAN-poison backing pages of vmapped stacks
+Date: Tue, 17 Jan 2023 17:35:43 +0100
 
-address comments from Mike Rapoport
+KASAN (except in HW_TAGS mode) tracks memory state based on virtual
+addresses.  The mappings of kernel stack pages in the linear mapping are
+currently marked as fully accessible.
 
-Link: https://lkml.kernel.org/r/20230117202103.1412449-1-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Charan Teja Kalla <quic_charante@quicinc.com>
-Cc: Li Zhe <lizhe.67@bytedance.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+Since stack corruption issues can cause some very gnarly errors, let's be
+extra careful and tell KASAN to forbid accesses to stack memory through
+the linear mapping.
+
+Link: https://lkml.kernel.org/r/20230117163543.1049025-1-jannh@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/page_ext.h~mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed-v4
-+++ a/include/linux/page_ext.h
-@@ -8,29 +8,31 @@
- 
- struct pglist_data;
- 
--/*
-+/**
-+ * struct page_ext_operations - per page_ext client operations
-+ * @offset: Offset to the client's data within page_ext. Offset is returned to
-+ *          the client by page_ext_init.
-+ * @size: The size of the client data within page_ext.
-+ * @need: Function that returns true if client requires page_ext.
-+ * @init: (optional) Called to initialize client once page_exts are allocated.
-+ * @need_shared_flags: True when client is using shared page_ext->flags
-+ *                     field.
-+ *
-  * Each Page Extension client must define page_ext_operations in
-  * page_ext_ops array.
-- * offset  offset to the client's data within page_ext. Offset is returned to
-- *         the client by page_ext_init.
-- * size    the size of the client data within page_ext.
-- * need()  function that returns true if client requires page_ext
-- * init()  (optional) called to initialize client once page_exts are allocated.
-- * using_shared_ext_flags  true when client is using shared page_ext->flags
-- *         field.
-  */
- struct page_ext_operations {
- 	size_t offset;
- 	size_t size;
- 	bool (*need)(void);
- 	void (*init)(void);
--	bool using_shared_ext_flags;
-+	bool need_shared_flags;
- };
- 
- #ifdef CONFIG_PAGE_EXTENSION
- 
- /*
-- * The page_ext_flags users must set using_shared_ext_flags to true.
-+ * The page_ext_flags users must set need_shared_flags to true.
-  */
- enum page_ext_flags {
- 	PAGE_EXT_OWNER,
-@@ -47,9 +49,6 @@ enum page_ext_flags {
-  * page_ext helps us add more information about the page.
-  * All page_ext are allocated at boot or memory hotplug event,
-  * then the page_ext for pfn always exists.
-- * Note: that if none of the users of page_ext is setting
-- * using_shared_ext_flags to true, the field cannot be used,
-- * as it will be overlapped with another data.
-  */
- struct page_ext {
- 	unsigned long flags;
---- a/mm/page_ext.c~mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed-v4
-+++ a/mm/page_ext.c
-@@ -71,7 +71,7 @@ static bool need_page_idle(void)
- }
- static struct page_ext_operations page_idle_ops __initdata = {
- 	.need = need_page_idle,
--	.using_shared_ext_flags = true,
-+	.need_shared_flags = true,
- };
+--- a/include/linux/vmalloc.h~fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks
++++ a/include/linux/vmalloc.h
+@@ -298,4 +298,10 @@ bool vmalloc_dump_obj(void *object);
+ static inline bool vmalloc_dump_obj(void *object) { return false; }
  #endif
  
-@@ -108,7 +108,7 @@ static bool __init invoke_need_callbacks
++#if defined(CONFIG_MMU) && (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
++void vmalloc_poison_backing_pages(const void *addr);
++#else
++static inline void vmalloc_poison_backing_pages(const void *addr) {}
++#endif
++
+ #endif /* _LINUX_VMALLOC_H */
+--- a/kernel/fork.c~fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks
++++ a/kernel/fork.c
+@@ -321,6 +321,16 @@ static int alloc_thread_stack_node(struc
+ 		vfree(stack);
+ 		return -ENOMEM;
+ 	}
++
++	/*
++	 * A virtually-allocated stack's memory should only be accessed through
++	 * the vmalloc area, not through the linear mapping.
++	 * Inform KASAN that all accesses through the linear mapping should be
++	 * reported (instead of permitting all accesses through the linear
++	 * mapping).
++	 */
++	vmalloc_poison_backing_pages(stack);
++
+ 	/*
+ 	 * We can't call find_vm_area() in interrupt context, and
+ 	 * free_thread_stack() can be called in interrupt context,
+--- a/mm/vmalloc.c~fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks
++++ a/mm/vmalloc.c
+@@ -4147,6 +4147,30 @@ void pcpu_free_vm_areas(struct vm_struct
+ }
+ #endif	/* CONFIG_SMP */
  
- 	for (i = 0; i < entries; i++) {
- 		if (page_ext_ops[i]->need()) {
--			if (page_ext_ops[i]->using_shared_ext_flags) {
-+			if (page_ext_ops[i]->need_shared_flags) {
- 				page_ext_size = sizeof(struct page_ext);
- 				break;
- 			}
---- a/mm/page_owner.c~mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed-v4
-+++ a/mm/page_owner.c
-@@ -99,7 +99,7 @@ struct page_ext_operations page_owner_op
- 	.size = sizeof(struct page_owner),
- 	.need = need_page_owner,
- 	.init = init_page_owner,
--	.using_shared_ext_flags = true,
-+	.need_shared_flags = true,
- };
- 
- static inline struct page_owner *get_page_owner(struct page_ext *page_ext)
---- a/mm/page_table_check.c~mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed-v4
-+++ a/mm/page_table_check.c
-@@ -45,7 +45,7 @@ struct page_ext_operations page_table_ch
- 	.size = sizeof(struct page_table_check),
- 	.need = need_page_table_check,
- 	.init = init_page_table_check,
--	.using_shared_ext_flags = false,
-+	.need_shared_flags = false,
- };
- 
- static struct page_table_check *get_page_table_check(struct page_ext *page_ext)
++#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
++/*
++ * Poison the KASAN shadow for the linear mapping of the pages used as stack
++ * memory.
++ * NOTE: This makes no sense in HW_TAGS mode because HW_TAGS marks physical
++ * memory, not virtual memory.
++ */
++void vmalloc_poison_backing_pages(const void *addr)
++{
++	struct vm_struct *area;
++	int i;
++
++	if (WARN(!PAGE_ALIGNED(addr), "bad address (%p)\n", addr))
++		return;
++
++	area = find_vm_area(addr);
++	if (WARN(!area, "nonexistent vm area (%p)\n", addr))
++		return;
++
++	for (i = 0; i < area->nr_pages; i++)
++		kasan_poison_pages(area->pages[i], 0, false);
++}
++#endif
++
+ #ifdef CONFIG_PRINTK
+ bool vmalloc_dump_obj(void *object)
+ {
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed.patch
-mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed-v4.patch
-mm-page_ext-init-page_ext-early-if-there-are-no-deferred-struct-pages.patch
+mm-khugepaged-fix-anon_vma-race.patch
+fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks.patch
 
