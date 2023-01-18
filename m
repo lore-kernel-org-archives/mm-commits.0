@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38D06C38159
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 01:06:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B34D4C00A5A
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 01:06:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229445AbjARBGO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Jan 2023 20:06:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57648 "EHLO
+        id S229958AbjARBGz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Jan 2023 20:06:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57056 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229838AbjARBFY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2023 20:05:24 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91D2349407
-        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2023 16:53:52 -0800 (PST)
+        with ESMTP id S230087AbjARBGO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2023 20:06:14 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CDEC460A0
+        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2023 16:54:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E16861579
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 00:53:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82BE7C433EF;
-        Wed, 18 Jan 2023 00:53:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1D638B81A90
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 00:54:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4FF7C433EF;
+        Wed, 18 Jan 2023 00:54:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674003231;
-        bh=JlZbjrKTJ5ZN4ec/1ZpEGVcJMHEbSrvavNIxCDhD9ug=;
+        s=korg; t=1674003287;
+        bh=5pECDjkxRMdAEewtz9ThNPm9JfyjAwGOUs7/7AQpJkA=;
         h=Date:To:From:Subject:From;
-        b=Rmd7RE6Hce4N4pjsA9iVTUPxv8+I52jkN5rewdHdewji+yjJsHp11FMWVJMquqTzH
-         aJgarIug8o3SIHsp0Z2sXnheRbLPzR9X+rj8MmRfglcLD0VW5zbGBLqWKLlZmi+44u
-         58vtxZF1V6R/i1KP+y9SDgrtRmi+g6JtKY07ScgM=
-Date:   Tue, 17 Jan 2023 16:53:50 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=hhqmht6/5IxvLi3WlrEgDFlJer5b1F+lH1KFQlobkY6mOkfKZcEkMIeOsgitkhW+K
+         4WcMLA8X8oI9IEJrJk7iHlNg62UcHCXy/oENnC4rdmBbtjm1glfF4WCYXTfFApRvNb
+         EeN6x19Dfi/7vrO6u5CvYmTyn72MV7xG8swWjfTE=
+Date:   Tue, 17 Jan 2023 16:54:47 -0800
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230118005351.82BE7C433EF@smtp.kernel.org>
+Subject: + zsmalloc-fix-a-race-with-deferred_handles-storing-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230118005447.B4FF7C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes
+     Subject: zsmalloc: avoid unused-function warning
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes.patch
+     zsmalloc-fix-a-race-with-deferred_handles-storing-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-fix-a-race-with-deferred_handles-storing-fix.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,74 +64,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes
-Date: Tue Jan 17 04:08:34 PM PST 2023
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: zsmalloc: avoid unused-function warning
+Date: Tue, 17 Jan 2023 18:04:59 +0100
 
-fix indenting whitespace, reflow comment
+obj_allocated() can be called from two places that are each inside of an
+#ifdef.  When both are disabled, the compiler warns:
 
-Cc: Vlastimil Babka <vbabka@suse.cz>
+mm/zsmalloc.c:900:13: error: 'obj_allocated' defined but not used [-Werror=unused-function]
+
+Rather than trying to figure out the correct #ifdef, mark the trivial
+function as 'inline', which implies __maybe_unused and shuts up the
+warning.
+
+Link: https://lkml.kernel.org/r/20230117170507.2651972-1-arnd@kernel.org
+Fixes: 796c71ac728e ("zsmalloc: fix a race with deferred_handles storing")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mremap.c~mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes
-+++ a/mm/mremap.c
-@@ -1027,17 +1027,19 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 			}
+--- a/mm/zsmalloc.c~zsmalloc-fix-a-race-with-deferred_handles-storing-fix
++++ a/mm/zsmalloc.c
+@@ -937,7 +937,7 @@ static bool obj_tagged(struct page *page
+ 	return true;
+ }
  
- 			/*
--			 * Function vma_merge() is called on the extension we are adding to
--			 * the already existing vma, vma_merge() will merge this extension with
--			 * the already existing vma (expand operation itself) and possibly also
--			 * with the next vma if it becomes adjacent to the expanded vma and
--			 * otherwise compatible.
-+			 * Function vma_merge() is called on the extension we
-+			 * are adding to the already existing vma, vma_merge()
-+			 * will merge this extension with the already existing
-+			 * vma (expand operation itself) and possibly also with
-+			 * the next vma if it becomes adjacent to the expanded
-+			 * vma and  otherwise compatible.
- 			 *
--			 * However, vma_merge() can currently fail due to is_mergeable_vma()
--			 * check for vm_ops->close (see the comment there). Yet this should not
--			 * prevent vma expanding, so perform a simple expand for such vma.
--			 * Ideally the check for close op should be only done when a vma would
--			 * be actually removed due to a merge.
-+			 * However, vma_merge() can currently fail due to
-+			 * is_mergeable_vma() check for vm_ops->close (see the
-+			 * comment there). Yet this should not prevent vma
-+			 * expanding, so perform a simple expand for such vma.
-+			 * Ideally the check for close op should be only done
-+			 * when a vma would be actually removed due to a merge.
- 			 */
- 			if (!vma->vm_ops || !vma->vm_ops->close) {
- 				vma = vma_merge(mm, vma, extension_start, extension_end,
-@@ -1045,7 +1047,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 					extension_pgoff, vma_policy(vma),
- 					vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 			} else if (vma_adjust(vma, vma->vm_start, addr + new_len,
--                                   vma->vm_pgoff, NULL)) {
-+				   vma->vm_pgoff, NULL)) {
- 				vma = NULL;
- 			}
- 			if (!vma) {
+-static bool obj_allocated(struct page *page, void *obj, unsigned long *phandle)
++static inline bool obj_allocated(struct page *page, void *obj, unsigned long *phandle)
+ {
+ 	return obj_tagged(page, obj, phandle, OBJ_ALLOCATED_TAG);
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes.patch
-mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix.patch
-mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-fix.patch
-mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3.patch
-mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
-mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch
-mm-memcontrol-deprecate-charge-moving-fix.patch
-mm-swap-convert-deactivate_page-to-folio_deactivate-fix.patch
-mm-uffd-detect-pgtable-allocation-failures-checkpatch-fixes.patch
-mm-add-folio_add_new_anon_rmap-fix.patch
-mm-remove-page_evictable-fix.patch
-error-injection-remove-ei_etype_none-fix.patch
-hfsplus-remove-unnecessary-variable-initialization-fix.patch
-scripts-gdb-add-mm-introspection-utils-fix.patch
+zsmalloc-fix-a-race-with-deferred_handles-storing-fix.patch
 
