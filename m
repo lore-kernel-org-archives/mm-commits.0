@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72F68C32793
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 21:04:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 317C9C32793
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 21:10:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229670AbjARVEu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 16:04:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34544 "EHLO
+        id S230502AbjARVKB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 16:10:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229981AbjARVEt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 16:04:49 -0500
+        with ESMTP id S230446AbjARVJv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 16:09:51 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A9A2552B7
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 13:04:48 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 626F062D22
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 13:09:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2B412B81F0B
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 21:04:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFE1FC433EF;
-        Wed, 18 Jan 2023 21:04:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F3C35B81F16
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 21:09:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DE45C433F0;
+        Wed, 18 Jan 2023 21:09:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674075885;
-        bh=bkpNU7nYAb99D7XtYATPBOQgnzb7/zNwqF2iOZCPokg=;
+        s=korg; t=1674076148;
+        bh=6G67GnaTwR8Ks7wP2RO13PHFahU4UcFNkh0E3xzFob8=;
         h=Date:To:From:Subject:From;
-        b=PPzGwLpEwUKRqEbN1o5zlu2+ZTbt7W32gaFFCCRuRrDHnjVcwDe02/NyuIpGlWpzt
-         KD8ar7E6oJvidobKDuxI8KsXfkG4n2BYAYenm32rF7/cfldINGbbiwpfLnl2spLctV
-         5KN3oyFCw3SwhKnbi7RJtBJFyCXVlCkundMyADUs=
-Date:   Wed, 18 Jan 2023 13:04:44 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, naoya.horiguchi@nec.com,
-        mike.kravetz@oracle.com, sidhartha.kumar@oracle.com,
-        akpm@linux-foundation.org
+        b=pOocA8L8AKiAe9mY/exf/8wqeMkj+Oqr8c1lI3nojQqX2pZpX42l4mWunajxhcfdY
+         OM1gzWfBnQU3tM0OrIt+Vz9n9+YVBwXB5RpPGoLwvYNJy2vKnu/oP7gsgYs4ylGBx9
+         jvoc2hgiMMdjnEB46lY9HfdKBzAuGuBD3kZn+x18=
+Date:   Wed, 18 Jan 2023 13:09:07 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, mark@fasheh.com,
+        joseph.qi@linux.alibaba.com, jlbec@evilplan.org, jack@suse.cz,
+        dushistov@mail.ru, hch@lst.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-get_hwpoison_huge_page-to-folios.patch added to mm-unstable branch
-Message-Id: <20230118210445.BFE1FC433EF@smtp.kernel.org>
+Subject: + minix-move-releasing-pages-into-unlink-and-rename.patch added to mm-nonmm-unstable branch
+Message-Id: <20230118210908.6DE45C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: convert get_hwpoison_huge_page() to folios
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-get_hwpoison_huge_page-to-folios.patch
+     Subject: minix: move releasing pages into unlink and rename
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     minix-move-releasing-pages-into-unlink-and-rename.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-get_hwpoison_huge_page-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minix-move-releasing-pages-into-unlink-and-rename.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,141 +65,125 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: convert get_hwpoison_huge_page() to folios
-Date: Wed, 18 Jan 2023 09:40:39 -0800
+From: Christoph Hellwig <hch@lst.de>
+Subject: minix: move releasing pages into unlink and rename
+Date: Wed, 18 Jan 2023 18:30:21 +0100
 
-Straightforward conversion of get_hwpoison_huge_page() to
-get_hwpoison_hugetlb_folio().  Reduces two references to a head page in
-memory-failure.c
+Patch series "remove most callers of write_one_page", v3.
 
-Link: https://lkml.kernel.org/r/20230118174039.14247-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+This series removes most users of the write_one_page API.  These helpers
+internally call ->writepage which we are gradually removing from the
+kernel.
+
+
+This patch (of 7):
+
+Instead of consuming the page reference and kmap in the low-level
+minix_delete_entry and minix_set_link helpers, do it in the callers where
+that code can be shared with the error cleanup path.
+
+Link: https://lkml.kernel.org/r/20230118173027.294869-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20230118173027.294869-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- mm/hugetlb.c            |   10 +++++-----
- mm/memory-failure.c     |   22 +++++++++++-----------
- 3 files changed, 17 insertions(+), 17 deletions(-)
+ fs/minix/dir.c   |    2 --
+ fs/minix/namei.c |   19 ++++++++++---------
+ 2 files changed, 10 insertions(+), 11 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-convert-get_hwpoison_huge_page-to-folios
-+++ a/include/linux/hugetlb.h
-@@ -171,7 +171,7 @@ bool hugetlb_reserve_pages(struct inode
- long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
- 						long freed);
- int isolate_hugetlb(struct folio *folio, struct list_head *list);
--int get_hwpoison_huge_page(struct page *page, bool *hugetlb, bool unpoison);
-+int get_hwpoison_hugetlb_folio(struct folio *folio, bool *hugetlb, bool unpoison);
- int get_huge_page_for_hwpoison(unsigned long pfn, int flags,
- 				bool *migratable_cleared);
- void putback_active_hugepage(struct page *page);
---- a/mm/hugetlb.c~mm-hugetlb-convert-get_hwpoison_huge_page-to-folios
-+++ a/mm/hugetlb.c
-@@ -7272,18 +7272,18 @@ unlock:
- 	return ret;
+--- a/fs/minix/dir.c~minix-move-releasing-pages-into-unlink-and-rename
++++ a/fs/minix/dir.c
+@@ -306,7 +306,6 @@ int minix_delete_entry(struct minix_dir_
+ 	} else {
+ 		unlock_page(page);
+ 	}
+-	dir_put_page(page);
+ 	inode->i_ctime = inode->i_mtime = current_time(inode);
+ 	mark_inode_dirty(inode);
+ 	return err;
+@@ -430,7 +429,6 @@ void minix_set_link(struct minix_dir_ent
+ 	} else {
+ 		unlock_page(page);
+ 	}
+-	dir_put_page(page);
+ 	dir->i_mtime = dir->i_ctime = current_time(dir);
+ 	mark_inode_dirty(dir);
+ }
+--- a/fs/minix/namei.c~minix-move-releasing-pages-into-unlink-and-rename
++++ a/fs/minix/namei.c
+@@ -150,23 +150,23 @@ out_dir:
+ 
+ static int minix_unlink(struct inode * dir, struct dentry *dentry)
+ {
+-	int err = -ENOENT;
+ 	struct inode * inode = d_inode(dentry);
+ 	struct page * page;
+ 	struct minix_dir_entry * de;
++	int err;
+ 
+ 	de = minix_find_entry(dentry, &page);
+ 	if (!de)
+-		goto end_unlink;
+-
++		return -ENOENT;
+ 	err = minix_delete_entry(de, page);
+-	if (err)
+-		goto end_unlink;
++	kunmap(page);
++	put_page(page);
+ 
++	if (err)
++		return err;
+ 	inode->i_ctime = dir->i_ctime;
+ 	inode_dec_link_count(inode);
+-end_unlink:
+-	return err;
++	return 0;
  }
  
--int get_hwpoison_huge_page(struct page *page, bool *hugetlb, bool unpoison)
-+int get_hwpoison_hugetlb_folio(struct folio *folio, bool *hugetlb, bool unpoison)
- {
- 	int ret = 0;
- 
- 	*hugetlb = false;
- 	spin_lock_irq(&hugetlb_lock);
--	if (PageHeadHuge(page)) {
-+	if (folio_test_hugetlb(folio)) {
- 		*hugetlb = true;
--		if (HPageFreed(page))
-+		if (folio_test_hugetlb_freed(folio))
- 			ret = 0;
--		else if (HPageMigratable(page) || unpoison)
--			ret = get_page_unless_zero(page);
-+		else if (folio_test_hugetlb_migratable(folio) || unpoison)
-+			ret = folio_try_get(folio);
- 		else
- 			ret = -EBUSY;
+ static int minix_rmdir(struct inode * dir, struct dentry *dentry)
+@@ -223,7 +223,10 @@ static int minix_rename(struct user_name
+ 		new_de = minix_find_entry(new_dentry, &new_page);
+ 		if (!new_de)
+ 			goto out_dir;
++		err = 0;
+ 		minix_set_link(new_de, new_page, old_inode);
++		kunmap(new_page);
++		put_page(new_page);
+ 		new_inode->i_ctime = current_time(new_inode);
+ 		if (dir_de)
+ 			drop_nlink(new_inode);
+@@ -243,8 +246,6 @@ static int minix_rename(struct user_name
+ 		minix_set_link(dir_de, dir_page, new_dir);
+ 		inode_dec_link_count(old_dir);
  	}
---- a/mm/memory-failure.c~mm-hugetlb-convert-get_hwpoison_huge_page-to-folios
-+++ a/mm/memory-failure.c
-@@ -1328,28 +1328,28 @@ static inline bool HWPoisonHandlable(str
- 
- static int __get_hwpoison_page(struct page *page, unsigned long flags)
- {
--	struct page *head = compound_head(page);
-+	struct folio *folio = page_folio(page);
- 	int ret = 0;
- 	bool hugetlb = false;
- 
--	ret = get_hwpoison_huge_page(head, &hugetlb, false);
-+	ret = get_hwpoison_hugetlb_folio(folio, &hugetlb, false);
- 	if (hugetlb)
- 		return ret;
- 
- 	/*
--	 * This check prevents from calling get_page_unless_zero() for any
--	 * unsupported type of page in order to reduce the risk of unexpected
--	 * races caused by taking a page refcount.
-+	 * This check prevents from calling folio_try_get() for any
-+	 * unsupported type of folio in order to reduce the risk of unexpected
-+	 * races caused by taking a folio refcount.
- 	 */
--	if (!HWPoisonHandlable(head, flags))
-+	if (!HWPoisonHandlable(&folio->page, flags))
- 		return -EBUSY;
- 
--	if (get_page_unless_zero(head)) {
--		if (head == compound_head(page))
-+	if (folio_try_get(folio)) {
-+		if (folio == page_folio(page))
- 			return 1;
- 
- 		pr_info("%#lx cannot catch tail\n", page_to_pfn(page));
--		put_page(head);
-+		folio_put(folio);
- 	}
- 
- 	return 0;
-@@ -1418,11 +1418,11 @@ out:
- 
- static int __get_unpoison_page(struct page *page)
- {
--	struct page *head = compound_head(page);
-+	struct folio *folio = page_folio(page);
- 	int ret = 0;
- 	bool hugetlb = false;
- 
--	ret = get_hwpoison_huge_page(head, &hugetlb, true);
-+	ret = get_hwpoison_hugetlb_folio(folio, &hugetlb, true);
- 	if (hugetlb)
- 		return ret;
- 
+-	return 0;
+-
+ out_dir:
+ 	if (dir_de) {
+ 		kunmap(dir_page);
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-move-folio_set_compound_order-to-mm-internalh.patch
-mm-introduce-folio_is_pfmemalloc.patch
-mm-remove-the-hugetlb-field-from-struct-page.patch
-mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios.patch
-mm-memory-failure-convert-try_memory_failure_hugetlb-to-folios.patch
-mm-memory-failure-convert-hugetlb_clear_page_hwpoison-to-folios.patch
-mm-memory-failure-convert-free_raw_hwp_pages-to-folios.patch
-mm-memory-failure-convert-raw_hwp_list_head-to-folios.patch
-mm-memory-failure-convert-__free_raw_hwp_pages-to-folios.patch
-mm-memory-failure-convert-hugetlb_set_page_hwpoison-to-folios.patch
-mm-memory-failure-convert-unpoison_memory-to-folios.patch
-mm-hugetlb-convert-isolate_hugetlb-to-folios.patch
-mm-hugetlb-convert-__update_and_free_page-to-folios.patch
-mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios.patch
-mm-hugetlb-convert-alloc_surplus_huge_page-to-folios.patch
-mm-hugetlb-increase-use-of-folios-in-alloc_huge_page.patch
-mm-hugetlb-convert-alloc_migrate_huge_page-to-folios.patch
-mm-hugetlb-convert-restore_reserve_on_error-to-folios.patch
-mm-hugetlb-convert-demote_free_huge_page-to-folios.patch
-mm-hugetlb-convert-get_hwpoison_huge_page-to-folios.patch
+fs-remove-an-outdated-comment-on-mpage_writepages.patch
+ntfs3-stop-using-generic_writepages.patch
+ntfs3-remove-writepage.patch
+jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2.patch
+ocfs2-use-filemap_fdatawrite_wbc-instead-of-generic_writepages.patch
+mm-remove-generic_writepages.patch
+minix-move-releasing-pages-into-unlink-and-rename.patch
+minix-fix-error-handling-in-minix_delete_entry.patch
+minix-fix-error-handling-in-minix_set_link.patch
+minix-dont-flush-page-immediately-for-dirsync-directories.patch
+sysv-dont-flush-page-immediately-for-dirsync-directories.patch
+ufs-dont-flush-page-immediately-for-dirsync-directories.patch
+ocfs2-dont-use-write_one_page-in-ocfs2_duplicate_clusters_by_page.patch
 
