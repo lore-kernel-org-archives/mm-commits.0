@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12EA3C38159
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 23:55:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E150C678D4
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 23:55:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230219AbjARXzG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 18:55:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57604 "EHLO
+        id S229545AbjARXzH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 18:55:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230229AbjARXye (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 18:54:34 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71813457DA
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 15:53:57 -0800 (PST)
+        with ESMTP id S230198AbjARXyq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 18:54:46 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F12AC4DBD8
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 15:54:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E93E4B81F6C
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 23:53:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 984DCC433EF;
-        Wed, 18 Jan 2023 23:53:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AE786B81D69
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 23:54:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DE31C433D2;
+        Wed, 18 Jan 2023 23:54:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674086034;
-        bh=6uWmseHcqioqw2MaFnAxa2LBv7bZcf0w2jB6Ac+uiCg=;
+        s=korg; t=1674086069;
+        bh=bFMi8a5lT3rZB3s6AYljri3obQ1ZTa+LwGRAE2rSnes=;
         h=Date:To:From:Subject:From;
-        b=j2G0h0w30FmxUyWOHLFBwD5wewcY/xTP1k5Wt0zdZh0WLYMdk7Rxg0r29xlfZdSmG
-         4ZrQUqafR+OzuXDtteBrrHZJKjJoFP7Fxe4SAKmO9iy2l50oC2huX1USpT2C+tdEEH
-         azCcW8LZw/oyC3rmAEJ0u1zGLRfs4TpdZMZbl5bk=
-Date:   Wed, 18 Jan 2023 15:53:54 -0800
+        b=rUZRTS3euBqJ77IoCOPVFt5YlFURiF7cSwAS/aiDdawRIaC5yf8wJNF4vH2yk56BW
+         HaTbGdg2NF5jzGLF+OLLZq3rxBB3/Fxha+T+4R5sJqSzkxJ3YNmRRCWHQMY1+fhFhh
+         chr9rYnFvS8xRKd/7RwnP9pF4/MYwTk4ECFgV8Xc=
+Date:   Wed, 18 Jan 2023 15:54:28 -0800
 To:     mm-commits@vger.kernel.org, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range-fix.patch removed from -mm tree
-Message-Id: <20230118235354.984DCC433EF@smtp.kernel.org>
+Subject: [folded-merged] mm-mprotect-drop-pgprot_t-parameter-from-change_protection-fix.patch removed from -mm tree
+Message-Id: <20230118235429.5DE31C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,43 +41,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fixup: mm/userfaultfd: enable writenotify while userfaultfd-wp is enabled for a VMA
+     Subject: fixup: mm/mprotect: drop pgprot_t parameter from change_protection()
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range-fix.patch
+     mm-mprotect-drop-pgprot_t-parameter-from-change_protection-fix.patch
 
-This patch was dropped because it was folded into mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range.patch
+This patch was dropped because it was folded into mm-mprotect-drop-pgprot_t-parameter-from-change_protection.patch
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: fixup: mm/userfaultfd: enable writenotify while userfaultfd-wp is enabled for a VMA
-Date: Sat, 24 Dec 2022 15:02:36 +0100
+Subject: fixup: mm/mprotect: drop pgprot_t parameter from change_protection()
+Date: Sat, 24 Dec 2022 15:01:18 +0100
 
-No need for additional harmless checks if we're wr-protecting either way.
+PAGE_NONE might not be defined without CONFIG_NUMA_BALANCING
 
-Link: https://lkml.kernel.org/r/71412742-a71f-9c74-865f-773ad83db7a5@redhat.com
+Link: https://lkml.kernel.org/r/5084ff1c-ebb3-f918-6a60-bacabf550a88@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/userfaultfd.c~mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range-fix
-+++ a/mm/userfaultfd.c
-@@ -727,7 +727,7 @@ void uffd_wp_range(struct mm_struct *dst
- 	 * to be write-protected as default whenever protection changes.
- 	 * Try upgrading write permissions manually.
+--- a/mm/mprotect.c~mm-mprotect-drop-pgprot_t-parameter-from-change_protection-fix
++++ a/mm/mprotect.c
+@@ -514,6 +514,7 @@ unsigned long change_protection(struct m
+ 
+ 	BUG_ON((cp_flags & MM_CP_UFFD_WP_ALL) == MM_CP_UFFD_WP_ALL);
+ 
++#ifdef CONFIG_NUMA_BALANCING
+ 	/*
+ 	 * Ordinary protection updates (mprotect, uffd-wp, softdirty tracking)
+ 	 * are expected to reflect their requirements via VMA flags such that
+@@ -521,6 +522,9 @@ unsigned long change_protection(struct m
  	 */
--	if (vma_wants_manual_pte_write_upgrade(dst_vma))
-+	if (!enable_wp && vma_wants_manual_pte_write_upgrade(dst_vma))
- 		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
- 	tlb_gather_mmu(&tlb, dst_mm);
- 	change_protection(&tlb, dst_vma, start, start + len, vma->vm_page_prot,
+ 	if (cp_flags & MM_CP_PROT_NUMA)
+ 		newprot = PAGE_NONE;
++#else
++	WARN_ON_ONCE(cp_flags & MM_CP_PROT_NUMA);
++#endif
+ 
+ 	if (is_vm_hugetlb_page(vma))
+ 		pages = hugetlb_change_protection(vma, start, end, newprot,
 _
 
 Patches currently in -mm which might be from david@redhat.com are
 
 mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range.patch
 mm-mprotect-drop-pgprot_t-parameter-from-change_protection.patch
-mm-mprotect-drop-pgprot_t-parameter-from-change_protection-fix.patch
 selftests-vm-cow-add-cow-tests-for-collapsing-of-pte-mapped-anon-thp.patch
 mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping.patch
 mm-nommu-dont-use-vm_mayshare-for-map_private-mappings.patch
