@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C1C1C38159
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 23:54:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12EA3C38159
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 23:55:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229716AbjARXyT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 18:54:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57906 "EHLO
+        id S230219AbjARXzG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 18:55:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229606AbjARXx6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 18:53:58 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CEFE68423
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 15:53:27 -0800 (PST)
+        with ESMTP id S230229AbjARXye (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 18:54:34 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71813457DA
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 15:53:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1998A61ABA
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 23:53:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C0F7C433EF;
-        Wed, 18 Jan 2023 23:53:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E93E4B81F6C
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 23:53:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 984DCC433EF;
+        Wed, 18 Jan 2023 23:53:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674086006;
-        bh=+sB//3zgDWBoZviC/ohehk0c8dwQENvh0voNiTUcZjk=;
+        s=korg; t=1674086034;
+        bh=6uWmseHcqioqw2MaFnAxa2LBv7bZcf0w2jB6Ac+uiCg=;
         h=Date:To:From:Subject:From;
-        b=aUA8oVSzjJvHgOyNUIZPi8W+5Fxw3B9A6XfDC28ja9lSXPT3O4WpD8SMEXGPHCQOG
-         khFdDF2lPZuh8HQJN+QdmO8z6QE+z/NT3QKFzFx6XWFyc26iPazb4Fn4mKJmoZ5gb1
-         jpmPY6ltWpEWK32C3m7RZqwU1sxVCLZHfj4QBh7s=
-Date:   Wed, 18 Jan 2023 15:53:25 -0800
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        vishal.moola@gmail.com, sj@kernel.org, akpm@linux-foundation.org,
+        b=j2G0h0w30FmxUyWOHLFBwD5wewcY/xTP1k5Wt0zdZh0WLYMdk7Rxg0r29xlfZdSmG
+         4ZrQUqafR+OzuXDtteBrrHZJKjJoFP7Fxe4SAKmO9iy2l50oC2huX1USpT2C+tdEEH
+         azCcW8LZw/oyC3rmAEJ0u1zGLRfs4TpdZMZbl5bk=
+Date:   Wed, 18 Jan 2023 15:53:54 -0800
+To:     mm-commits@vger.kernel.org, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-swap-convert-deactivate_page-to-folio_deactivate-fix.patch removed from -mm tree
-Message-Id: <20230118235326.6C0F7C433EF@smtp.kernel.org>
+Subject: [folded-merged] mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range-fix.patch removed from -mm tree
+Message-Id: <20230118235354.984DCC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,64 +41,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-swap-convert-deactivate_page-to-folio_deactivate-fix
+     Subject: fixup: mm/userfaultfd: enable writenotify while userfaultfd-wp is enabled for a VMA
 has been removed from the -mm tree.  Its filename was
-     mm-swap-convert-deactivate_page-to-folio_deactivate-fix.patch
+     mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range-fix.patch
 
-This patch was dropped because it was folded into mm-swap-convert-deactivate_page-to-folio_deactivate.patch
+This patch was dropped because it was folded into mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swap-convert-deactivate_page-to-folio_deactivate-fix
-Date: Fri Dec 23 09:52:24 AM PST 2022
+From: David Hildenbrand <david@redhat.com>
+Subject: fixup: mm/userfaultfd: enable writenotify while userfaultfd-wp is enabled for a VMA
+Date: Sat, 24 Dec 2022 15:02:36 +0100
 
-fix left-over comments, per Yu Zhao
+No need for additional harmless checks if we're wr-protecting either way.
 
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/71412742-a71f-9c74-865f-773ad83db7a5@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/page-writeback.c~mm-swap-convert-deactivate_page-to-folio_deactivate-fix
-+++ a/mm/page-writeback.c
-@@ -2846,11 +2846,11 @@ bool folio_mark_dirty(struct folio *foli
- 
- 	if (likely(mapping)) {
- 		/*
--		 * readahead/lru_deactivate_page could remain
-+		 * readahead/folio_deactivate could remain
- 		 * PG_readahead/PG_reclaim due to race with folio_end_writeback
- 		 * About readahead, if the folio is written, the flags would be
- 		 * reset. So no problem.
--		 * About lru_deactivate_page, if the folio is redirtied,
-+		 * About folio_deactivate, if the folio is redirtied,
- 		 * the flag will be reset. So no problem. but if the
- 		 * folio is used by readahead it will confuse readahead
- 		 * and make it restart the size rampup process. But it's
---- a/mm/vmscan.c~mm-swap-convert-deactivate_page-to-folio_deactivate-fix
-+++ a/mm/vmscan.c
-@@ -1920,7 +1920,7 @@ retry:
- 			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
- 				/*
- 				 * Immediately reclaim when written back.
--				 * Similar in principle to deactivate_page()
-+				 * Similar in principle to folio_deactivate()
- 				 * except we already have the folio isolated
- 				 * and know it's dirty
- 				 */
+--- a/mm/userfaultfd.c~mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range-fix
++++ a/mm/userfaultfd.c
+@@ -727,7 +727,7 @@ void uffd_wp_range(struct mm_struct *dst
+ 	 * to be write-protected as default whenever protection changes.
+ 	 * Try upgrading write permissions manually.
+ 	 */
+-	if (vma_wants_manual_pte_write_upgrade(dst_vma))
++	if (!enable_wp && vma_wants_manual_pte_write_upgrade(dst_vma))
+ 		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
+ 	tlb_gather_mmu(&tlb, dst_mm);
+ 	change_protection(&tlb, dst_vma, start, start + len, vma->vm_page_prot,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes.patch
-mm-swap-convert-deactivate_page-to-folio_deactivate.patch
-mm-uffd-detect-pgtable-allocation-failures-checkpatch-fixes.patch
-mm-add-folio_add_new_anon_rmap-fix.patch
-mm-remove-page_evictable-fix.patch
-error-injection-remove-ei_etype_none-fix.patch
-hfsplus-remove-unnecessary-variable-initialization-fix.patch
-scripts-gdb-add-mm-introspection-utils-fix.patch
+mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range.patch
+mm-mprotect-drop-pgprot_t-parameter-from-change_protection.patch
+mm-mprotect-drop-pgprot_t-parameter-from-change_protection-fix.patch
+selftests-vm-cow-add-cow-tests-for-collapsing-of-pte-mapped-anon-thp.patch
+mm-nommu-factor-out-check-for-nommu-shared-mappings-into-is_nommu_shared_mapping.patch
+mm-nommu-dont-use-vm_mayshare-for-map_private-mappings.patch
+drivers-misc-open-dice-dont-touch-vm_mayshare.patch
+selftests-mm-define-madv_pageout-to-fix-compilation-issues.patch
+mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks.patch
+mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks-fix.patch
+alpha-mm-support-__have_arch_pte_swp_exclusive.patch
+arc-mm-support-__have_arch_pte_swp_exclusive.patch
+arm-mm-support-__have_arch_pte_swp_exclusive.patch
+csky-mm-support-__have_arch_pte_swp_exclusive.patch
+hexagon-mm-support-__have_arch_pte_swp_exclusive.patch
+ia64-mm-support-__have_arch_pte_swp_exclusive.patch
+loongarch-mm-support-__have_arch_pte_swp_exclusive.patch
+m68k-mm-remove-dummy-__swp-definitions-for-nommu.patch
+m68k-mm-support-__have_arch_pte_swp_exclusive.patch
+microblaze-mm-support-__have_arch_pte_swp_exclusive.patch
+mips-mm-support-__have_arch_pte_swp_exclusive.patch
+nios2-mm-refactor-swap-pte-layout.patch
+nios2-mm-support-__have_arch_pte_swp_exclusive.patch
+openrisc-mm-support-__have_arch_pte_swp_exclusive.patch
+parisc-mm-support-__have_arch_pte_swp_exclusive.patch
+powerpc-mm-support-__have_arch_pte_swp_exclusive-on-32bit-book3s.patch
+powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive.patch
+riscv-mm-support-__have_arch_pte_swp_exclusive.patch
+sh-mm-support-__have_arch_pte_swp_exclusive.patch
+sparc-mm-support-__have_arch_pte_swp_exclusive-on-32bit.patch
+sparc-mm-support-__have_arch_pte_swp_exclusive-on-64bit.patch
+um-mm-support-__have_arch_pte_swp_exclusive.patch
+x86-mm-support-__have_arch_pte_swp_exclusive-also-on-32bit.patch
+xtensa-mm-support-__have_arch_pte_swp_exclusive.patch
+mm-remove-__have_arch_pte_swp_exclusive.patch
 
