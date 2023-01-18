@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D916BC38159
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 23:51:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 170DBC678D4
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 23:51:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230078AbjARXvd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 18:51:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51752 "EHLO
+        id S230082AbjARXvg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 18:51:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230084AbjARXvF (ORCPT
+        with ESMTP id S230079AbjARXvF (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 18:51:05 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2564F45F51
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 15:49:58 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D47584A1EC
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 15:49:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D296EB81F6C
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 23:49:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FCFFC433F0;
-        Wed, 18 Jan 2023 23:49:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 72A9F61831
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 23:49:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D23F3C433D2;
+        Wed, 18 Jan 2023 23:49:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674085795;
-        bh=q4rdF+0EgSrxP8G5WUuQ2TkR5D3dblpOf0GUuC7m34A=;
+        s=korg; t=1674085796;
+        bh=Nr8y2i77IxJjchN2dtt9ltSCvY5BTWux9kebV9rzYBQ=;
         h=Date:To:From:Subject:From;
-        b=nejnrs+N7iKvYu12Bg0ZknQBtJddpHvWlGqbhuk4wXnHtBS4IYNeEmGFlpb5C3FxI
-         1VLWPC7cMbGEiMuYYvAACD643kE2P4P07Vw0Vsl+wq98u9C6XRbotj9p8AYL/Y76/X
-         WdxR/wj3Jb5oWxDuccSxD4yA+dWnPTqRSTV262eM=
-Date:   Wed, 18 Jan 2023 15:49:54 -0800
-To:     mm-commits@vger.kernel.org, jeffxu@google.com,
+        b=st3uRx5rdHlHRRCeMi8z6UDsYNisANZZ6cj0FDi80WOnkhH5ABELMa2bAOW/hsjTV
+         bJEs+CkXYSfWNCL/T3RDHgImIK9mskm6KvnnLNNXGdeYaPpcUp3U+LgpawZp9z+iYR
+         9zbdw2T01UZ014DmpAVnaIJqo4FJKX91A4Z5yLQM=
+Date:   Wed, 18 Jan 2023 15:49:56 -0800
+To:     mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
+        keescook@chromium.org, jorgelo@chromium.org, jeffxu@google.com,
+        jannh@google.com, hughd@google.com, dverkamp@chromium.org,
+        dmitry.torokhov@gmail.com, dh.herrmann@gmail.com,
         akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-fix.patch removed from -mm tree
-Message-Id: <20230118234955.7FCFFC433F0@smtp.kernel.org>
+Subject: [folded-merged] mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3.patch removed from -mm tree
+Message-Id: <20230118234956.D23F3C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,41 +44,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-fix
+     Subject: mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3
 has been removed from the -mm tree.  Its filename was
-     mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-fix.patch
+     mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3.patch
 
 This patch was dropped because it was folded into mm-memfd-add-mfd_noexec_seal-and-mfd_exec.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-fix
-Date: Fri Dec 16 01:31:26 PM PST 2022
+Subject: mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3
+Date: Fri Dec 16 02:04:18 PM PST 2022
 
-remove unneeded register_pid_ns_ctl_table_vm() stub, per Jeff
+s/pr_warn_ratelimited/pr_warn_once/, per review
 
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: David Herrmann <dh.herrmann@gmail.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Jeff Xu <jeffxu@google.com>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/kernel/pid_sysctl.h~mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-fix
-+++ a/kernel/pid_sysctl.h
-@@ -54,7 +54,6 @@ static inline void register_pid_ns_sysct
+--- a/mm/memfd.c~mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3
++++ a/mm/memfd.c
+@@ -308,7 +308,7 @@ SYSCALL_DEFINE2(memfd_create,
+ 			flags |= MFD_NOEXEC_SEAL;
+ 			break;
+ 		default:
+-			pr_warn_ratelimited(
++			pr_warn_once(
+ 				"memfd_create(): MFD_NOEXEC_SEAL is enforced, pid=%d '%s'\n",
+ 				task_pid_nr(current), get_task_comm(comm, current));
+ 			return -EINVAL;
+@@ -316,7 +316,7 @@ SYSCALL_DEFINE2(memfd_create,
  #else
- static inline void initialize_memfd_noexec_scope(struct pid_namespace *ns) {}
- static inline void set_memfd_noexec_scope(struct pid_namespace *ns) {}
--static inline void register_pid_ns_ctl_table_vm(void) {}
- static inline void register_pid_ns_sysctl_table_vm(void) {}
+ 		flags |= MFD_EXEC;
  #endif
- 
+-		pr_warn_ratelimited(
++		pr_warn_once(
+ 			"memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL, pid=%d '%s'\n",
+ 			task_pid_nr(current), get_task_comm(comm, current));
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes.patch
 mm-memfd-add-mfd_noexec_seal-and-mfd_exec.patch
-mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3.patch
 mm-memfd-add-mfd_noexec_seal-and-mfd_exec-fix-3-fix.patch
 mm-hugetlb-introduce-hugetlb_walk-checkpatch-fixes.patch
 mm-memcontrol-deprecate-charge-moving-fix.patch
