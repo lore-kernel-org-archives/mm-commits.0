@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ACFBC38147
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 21:10:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1669BC38159
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 21:10:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230463AbjARVKZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 16:10:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39104 "EHLO
+        id S230387AbjARVKb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 16:10:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230498AbjARVJy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 16:09:54 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65276630A2
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 13:09:15 -0800 (PST)
+        with ESMTP id S230414AbjARVJ7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 16:09:59 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABA7063E3A
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 13:09:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C1B49B81F18
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 21:09:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60495C433D2;
-        Wed, 18 Jan 2023 21:09:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4853961A40
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 21:09:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0573C433D2;
+        Wed, 18 Jan 2023 21:09:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674076152;
-        bh=xc3q2Ng50eYbv3UDJpNqMZwFlXXeWgZ8M9vx+ug/YOk=;
+        s=korg; t=1674076156;
+        bh=y4FtOylYzHguGf77V7lhuRyGLSEQbZxzH/lh5C6q42A=;
         h=Date:To:From:Subject:From;
-        b=XpiNPpWvh4V37xTtClYVTBZSbHqIlMl2La55U8ruW83gR0DSLgoIQqCcwfLIHZUJW
-         QvK3+1ZgGWOAXSTSnJG1GEuDc/AEscKnkeVOU/K2rtwISwT969eCuAhXTSnXQXbSO2
-         0XVt6Lg+qZsDMEdV/kR7uhopzFdnBOr4vnq+Wr3s=
-Date:   Wed, 18 Jan 2023 13:09:11 -0800
+        b=otRhnO6Ag9/6oalSlReUHTmgB9wF6prVJmwUDLyE9rcKNQEUwTafgYuas/B8VhJBT
+         omL1YGKLv3QAkWP8pLkXPPt/1CP6CjG3hpLpg+/bfzVv8wPsld/B2lq3KELx75i1l8
+         6V7y5PiBkyF5KzToVOkGe3Va5v27+BBP41v/PpSY=
+Date:   Wed, 18 Jan 2023 13:09:16 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org, mark@fasheh.com,
         joseph.qi@linux.alibaba.com, jlbec@evilplan.org, jack@suse.cz,
         dushistov@mail.ru, hch@lst.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + minix-fix-error-handling-in-minix_set_link.patch added to mm-nonmm-unstable branch
-Message-Id: <20230118210912.60495C433D2@smtp.kernel.org>
+Subject: + sysv-dont-flush-page-immediately-for-dirsync-directories.patch added to mm-nonmm-unstable branch
+Message-Id: <20230118210916.A0573C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: minix: fix error handling in minix_set_link
+     Subject: sysv: don't flush page immediately for DIRSYNC directories
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     minix-fix-error-handling-in-minix_set_link.patch
+     sysv-dont-flush-page-immediately-for-dirsync-directories.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minix-fix-error-handling-in-minix_set_link.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sysv-dont-flush-page-immediately-for-dirsync-directories.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,17 +66,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: minix: fix error handling in minix_set_link
-Date: Wed, 18 Jan 2023 18:30:23 +0100
+Subject: sysv: don't flush page immediately for DIRSYNC directories
+Date: Wed, 18 Jan 2023 18:30:25 +0100
 
-If minix_prepare_chunk fails, updating c/mtime and marking the dir inode
-dirty is wrong, as the inode hasn't been modified.  Also propagate the
-error to the caller.
+We do not need to writeout modified directory blocks immediately when
+modifying them while the page is locked.  It is enough to do the flush
+somewhat later which has the added benefit that inode times can be flushed
+as well.  It also allows us to stop depending on write_one_page()
+function.
 
-Note that this moves the dir_put_page call later, but that matches other
-uses of this helper in the directory code.
+Ported from an ext2 patch by Jan Kara.
 
-Link: https://lkml.kernel.org/r/20230118173027.294869-4-hch@lst.de
+Link: https://lkml.kernel.org/r/20230118173027.294869-6-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Cc: Jan Kara <jack@suse.cz>
@@ -87,94 +88,93 @@ Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/dir.c   |   22 ++++++++++++----------
- fs/minix/minix.h |    3 ++-
- fs/minix/namei.c |   10 ++++++----
- 3 files changed, 20 insertions(+), 15 deletions(-)
+ fs/sysv/dir.c |   30 +++++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 11 deletions(-)
 
---- a/fs/minix/dir.c~minix-fix-error-handling-in-minix_set_link
-+++ a/fs/minix/dir.c
-@@ -410,8 +410,8 @@ not_empty:
+--- a/fs/sysv/dir.c~sysv-dont-flush-page-immediately-for-dirsync-directories
++++ a/fs/sysv/dir.c
+@@ -34,21 +34,26 @@ static inline void dir_put_page(struct p
+ 	put_page(page);
  }
  
- /* Releases the page */
--void minix_set_link(struct minix_dir_entry *de, struct page *page,
--	struct inode *inode)
-+int minix_set_link(struct minix_dir_entry *de, struct page *page,
-+		struct inode *inode)
+-static int dir_commit_chunk(struct page *page, loff_t pos, unsigned len)
++static void dir_commit_chunk(struct page *page, loff_t pos, unsigned len)
  {
- 	struct inode *dir = page->mapping->host;
- 	struct minix_sb_info *sbi = minix_sb(dir->i_sb);
-@@ -420,19 +420,21 @@ void minix_set_link(struct minix_dir_ent
- 	int err;
+ 	struct address_space *mapping = page->mapping;
+ 	struct inode *dir = mapping->host;
+-	int err = 0;
  
- 	lock_page(page);
--
- 	err = minix_prepare_chunk(page, pos, sbi->s_dirsize);
--	if (err == 0) {
--		if (sbi->s_version == MINIX_V3)
--			((minix3_dirent *) de)->inode = inode->i_ino;
--		else
--			de->inode = inode->i_ino;
--		err = dir_commit_chunk(page, pos, sbi->s_dirsize);
--	} else {
-+	if (err) {
- 		unlock_page(page);
-+		return err;
+ 	block_write_end(NULL, mapping, pos, len, len, page, NULL);
+ 	if (pos+len > dir->i_size) {
+ 		i_size_write(dir, pos+len);
+ 		mark_inode_dirty(dir);
  	}
-+	if (sbi->s_version == MINIX_V3)
-+		((minix3_dirent *)de)->inode = inode->i_ino;
-+	else
-+		de->inode = inode->i_ino;
-+	err = dir_commit_chunk(page, pos, sbi->s_dirsize);
-+	if (err)
-+		return err;
+-	if (IS_DIRSYNC(dir))
+-		err = write_one_page(page);
+-	else
+-		unlock_page(page);
++	unlock_page(page);
++}
++
++static int sysv_handle_dirsync(struct inode *dir)
++{
++	int err;
++
++	err = filemap_write_and_wait(dir->i_mapping);
++	if (!err)
++		err = sync_inode_metadata(dir, 1);
+ 	return err;
+ }
+ 
+@@ -215,9 +220,10 @@ got_it:
+ 	memcpy (de->name, name, namelen);
+ 	memset (de->name + namelen, 0, SYSV_DIRSIZE - namelen - 2);
+ 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), inode->i_ino);
+-	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
++	dir_commit_chunk(page, pos, SYSV_DIRSIZE);
  	dir->i_mtime = dir->i_ctime = current_time(dir);
  	mark_inode_dirty(dir);
-+	return 0;
++	err = sysv_handle_dirsync(dir);
+ out_page:
+ 	dir_put_page(page);
+ out:
+@@ -238,11 +244,11 @@ int sysv_delete_entry(struct sysv_dir_en
+ 	err = sysv_prepare_chunk(page, pos, SYSV_DIRSIZE);
+ 	BUG_ON(err);
+ 	de->inode = 0;
+-	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
++	dir_commit_chunk(page, pos, SYSV_DIRSIZE);
+ 	dir_put_page(page);
+ 	inode->i_ctime = inode->i_mtime = current_time(inode);
+ 	mark_inode_dirty(inode);
+-	return err;
++	return sysv_handle_dirsync(inode);
  }
  
- struct minix_dir_entry * minix_dotdot (struct inode *dir, struct page **p)
---- a/fs/minix/minix.h~minix-fix-error-handling-in-minix_set_link
-+++ a/fs/minix/minix.h
-@@ -69,7 +69,8 @@ extern int minix_add_link(struct dentry*
- extern int minix_delete_entry(struct minix_dir_entry*, struct page*);
- extern int minix_make_empty(struct inode*, struct inode*);
- extern int minix_empty_dir(struct inode*);
--extern void minix_set_link(struct minix_dir_entry*, struct page*, struct inode*);
-+int minix_set_link(struct minix_dir_entry *de, struct page *page,
-+		struct inode *inode);
- extern struct minix_dir_entry *minix_dotdot(struct inode*, struct page**);
- extern ino_t minix_inode_by_name(struct dentry*);
+ int sysv_make_empty(struct inode *inode, struct inode *dir)
+@@ -272,7 +278,8 @@ int sysv_make_empty(struct inode *inode,
+ 	strcpy(de->name,"..");
  
---- a/fs/minix/namei.c~minix-fix-error-handling-in-minix_set_link
-+++ a/fs/minix/namei.c
-@@ -223,10 +223,11 @@ static int minix_rename(struct user_name
- 		new_de = minix_find_entry(new_dentry, &new_page);
- 		if (!new_de)
- 			goto out_dir;
--		err = 0;
--		minix_set_link(new_de, new_page, old_inode);
-+		err = minix_set_link(new_de, new_page, old_inode);
- 		kunmap(new_page);
- 		put_page(new_page);
-+		if (err)
-+			goto out_dir;
- 		new_inode->i_ctime = current_time(new_inode);
- 		if (dir_de)
- 			drop_nlink(new_inode);
-@@ -243,8 +244,9 @@ static int minix_rename(struct user_name
- 	mark_inode_dirty(old_inode);
+ 	kunmap(page);
+-	err = dir_commit_chunk(page, 0, 2 * SYSV_DIRSIZE);
++	dir_commit_chunk(page, 0, 2 * SYSV_DIRSIZE);
++	err = sysv_handle_dirsync(inode);
+ fail:
+ 	put_page(page);
+ 	return err;
+@@ -336,10 +343,11 @@ void sysv_set_link(struct sysv_dir_entry
+ 	err = sysv_prepare_chunk(page, pos, SYSV_DIRSIZE);
+ 	BUG_ON(err);
+ 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), inode->i_ino);
+-	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
++	dir_commit_chunk(page, pos, SYSV_DIRSIZE);
+ 	dir_put_page(page);
+ 	dir->i_mtime = dir->i_ctime = current_time(dir);
+ 	mark_inode_dirty(dir);
++	sysv_handle_dirsync(inode);
+ }
  
- 	if (dir_de) {
--		minix_set_link(dir_de, dir_page, new_dir);
--		inode_dec_link_count(old_dir);
-+		err = minix_set_link(dir_de, dir_page, new_dir);
-+		if (!err)
-+			inode_dec_link_count(old_dir);
- 	}
- out_dir:
- 	if (dir_de) {
+ struct sysv_dir_entry * sysv_dotdot (struct inode *dir, struct page **p)
 _
 
 Patches currently in -mm which might be from hch@lst.de are
