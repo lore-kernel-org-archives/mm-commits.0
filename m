@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 005DAC38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49055C678D4
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229923AbjASBTK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:19:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37450 "EHLO
+        id S229563AbjASBTL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:19:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229563AbjASBRI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:08 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 295FA6B9B2
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:17 -0800 (PST)
+        with ESMTP id S230005AbjASBRl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:41 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25D5B69201
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:33 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D62DBB81D77
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AB02C433D2;
-        Thu, 19 Jan 2023 01:15:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B6C0861B08
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BAA8C433D2;
+        Thu, 19 Jan 2023 01:15:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090914;
-        bh=Y/SWPxsnKbc4hQI0PryLz2afWBYJ47gd9uE147yM4eI=;
+        s=korg; t=1674090932;
+        bh=HOY+DHADrF4mTLcyxfn9/D+Zm90ULU0ulDd6GaqkFk8=;
         h=Date:To:From:Subject:From;
-        b=DXfoRrtpaXMwdujhwj17e8PEwNnhhR9V08+MhAA5QwjwgSEbNMezOI/KTtxsxBfp1
-         HF85O1NckQOE0AeNJeSPjdQ9fGjos4Xwm72aRVuHhgbMz9FK3A5oAxnkP3S3qDJsxm
-         JrQJYQhaFL+2JqHF3ZJOyDArqyCeZQWDYfbUkP5o=
-Date:   Wed, 18 Jan 2023 17:15:14 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        roman.gushchin@linux.dev, oleksiy.avramchenko@sony.com,
-        npiggin@gmail.com, lstoakes@gmail.com, hch@lst.de,
-        hch@infradead.org, bhe@redhat.com, urezki@gmail.com,
-        akpm@linux-foundation.org
+        b=B/KzlwtCk5s2SfxaTY9SpzNHcvRo5a8dMdbKhzUW4VjIt+2AKlqnF5ZbXjcrf+fxR
+         XH4vo6vo7CdBAwEeMjK9O7a0Wn5yilqGTzyPDagG9z6cu6zAg3uTLUVw08HoKHj1GI
+         0HWWu/VjiczA12dTWRI+2rs4POyhDelv8P1K1mEg=
+Date:   Wed, 18 Jan 2023 17:15:31 -0800
+To:     mm-commits@vger.kernel.org, peterx@redhat.com,
+        nadav.amit@gmail.com, hughd@google.com, aarcange@redhat.com,
+        david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-avoid-calling-__find_vmap_area-twice-in-__vunmap.patch removed from -mm tree
-Message-Id: <20230119011514.7AB02C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range.patch removed from -mm tree
+Message-Id: <20230119011532.1BAA8C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,253 +42,160 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: vmalloc: avoid calling __find_vmap_area() twice in __vunmap()
+     Subject: mm/userfaultfd: rely on vma->vm_page_prot in uffd_wp_range()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-avoid-calling-__find_vmap_area-twice-in-__vunmap.patch
+     mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: avoid calling __find_vmap_area() twice in __vunmap()
-Date: Thu, 22 Dec 2022 20:00:20 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/userfaultfd: rely on vma->vm_page_prot in uffd_wp_range()
+Date: Fri, 23 Dec 2022 16:56:15 +0100
 
-Currently the __vunmap() path calls __find_vmap_area() twice.  Once on
-entry to check that the area exists, then inside the remove_vm_area()
-function which also performs a new search for the VA.
+Patch series "mm: uffd-wp + change_protection() cleanups".
 
-In order to improvie it from a performance point of view we split
-remove_vm_area() into two new parts:
-  - find_unlink_vmap_area() that does a search and unlink from tree;
-  - __remove_vm_area() that removes without searching.
+Cleanup page protection handling in uffd-wp when calling
+change_protection() and improve unprotecting uffd=wp in private mappings,
+trying to set PTEs writable again if possible just like we do during
+mprotect() when upgrading write permissions.  Make the change_protection()
+interface harder to get wrong :)
 
-In this case there is no any functional change for remove_vm_area()
-whereas vm_remove_mappings(), where a second search happens, switches to
-the __remove_vm_area() variant where the already detached VA is passed as
-a parameter, so there is no need to find it again.
+I consider both pages primarily cleanups, although patch #1 fixes a corner
+case with uffd-wp and softdirty tracking for shmem.  @Peter, please let me
+know if we should flag patch #1 as pure cleanup -- I have no idea how
+important softdirty tracking on shmem is.
 
-Performance wise, i use test_vmalloc.sh with 32 threads doing alloc
-free on a 64-CPUs-x86_64-box:
 
-perf without this patch:
--   31.41%     0.50%  vmalloc_test/10  [kernel.vmlinux]    [k] __vunmap
-   - 30.92% __vunmap
-      - 17.67% _raw_spin_lock
-           native_queued_spin_lock_slowpath
-      - 12.33% remove_vm_area
-         - 11.79% free_vmap_area_noflush
-            - 11.18% _raw_spin_lock
-                 native_queued_spin_lock_slowpath
-        0.76% free_unref_page
+This patch (of 2):
 
-perf with this patch:
--   11.35%     0.13%  vmalloc_test/14  [kernel.vmlinux]    [k] __vunmap
-   - 11.23% __vunmap
-      - 8.28% find_unlink_vmap_area
-         - 7.95% _raw_spin_lock
-              7.44% native_queued_spin_lock_slowpath
-      - 1.93% free_vmap_area_noflush
-         - 0.56% _raw_spin_lock
-              0.53% native_queued_spin_lock_slowpath
-        0.60% __vunmap_range_noflush
+uffd_wp_range() currently calculates page protection manually using
+vm_get_page_prot().  This will ignore any other reason for active
+writenotify: one mechanism applicable to shmem is softdirty tracking.
 
-__vunmap() consumes around ~20% less CPU cycles on this test.
+For example, the following sequence
 
-Also, switch from find_vmap_area() to find_unlink_vmap_area() to prevent a
-double access to the vmap_area_lock: one for finding area, second time is
-for unlinking from a tree.
+1) Write to mapped shmem page
+2) Clear softdirty
+3) Register uffd-wp covering the mapped page
+4) Unregister uffd-wp covering the mapped page
+5) Write to page again
 
-[urezki@gmail.com: switch to find_unlink_vmap_area() in vm_unmap_ram()]
-  Link: https://lkml.kernel.org/r/20221222190022.134380-2-urezki@gmail.com
-Link: https://lkml.kernel.org/r/20221222190022.134380-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reported-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
-Cc: Christoph Hellwig <hch@lst.de>
+will not set the modified page softdirty, because uffd_wp_range() will
+ignore that writenotify is required for softdirty tracking and simply map
+the page writable again using change_protection().  Similarly, instead of
+unregistering, protecting followed by un-protecting the page using uffd-wp
+would result in the same situation.
+
+Now that we enable writenotify whenever enabling uffd-wp on a VMA,
+vma->vm_page_prot will already properly reflect our requirements: the
+default is to write-protect all PTEs.  However, for shared mappings we
+would now not remap the PTEs writable if possible when unprotecting, just
+like for private mappings (COW).  To compensate, set
+MM_CP_TRY_CHANGE_WRITABLE just like mprotect() does to try mapping
+individual PTEs writable.
+
+For private mappings, this change implies that we will now always try
+setting PTEs writable when un-protecting, just like when upgrading write
+permissions using mprotect(), which is an improvement.
+
+For shared mappings, we will only set PTEs writable if
+can_change_pte_writable()/can_change_pmd_writable() indicates that it's
+ok.  For ordinary shmem, this will be the case when PTEs are dirty, which
+should usually be the case -- otherwise we could special-case shmem in
+can_change_pte_writable()/can_change_pmd_writable() easily, because shmem
+itself doesn't require writenotify.
+
+Note that hugetlb does not yet implement MM_CP_TRY_CHANGE_WRITABLE, so we
+won't try setting PTEs writable when unprotecting or when unregistering
+uffd-wp.  This can be added later on top by implementing
+MM_CP_TRY_CHANGE_WRITABLE.
+
+While commit ffd05793963a ("userfaultfd: wp: support write protection for
+userfault vma range") introduced that code, it should only be applicable
+to uffd-wp on shared mappings -- shmem (hugetlb does not support softdirty
+tracking).  I don't think this corner cases justifies to cc stable.  Let's
+just handle it correctly and prepare for change_protection() cleanups.
+
+[david@redhat.com: o need for additional harmless checks if we're wr-protecting either way]
+  Link: https://lkml.kernel.org/r/71412742-a71f-9c74-865f-773ad83db7a5@redhat.com
+Link: https://lkml.kernel.org/r/20221223155616.297723-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20221223155616.297723-2-david@redhat.com
+Fixes: b1f9e876862d ("mm/uffd: enable write protection for shmem & hugetlbfs")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   79 +++++++++++++++++++++++++++++--------------------
- 1 file changed, 48 insertions(+), 31 deletions(-)
+ mm/userfaultfd.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-avoid-calling-__find_vmap_area-twice-in-__vunmap
-+++ a/mm/vmalloc.c
-@@ -1815,9 +1815,9 @@ static void drain_vmap_area_work(struct
- }
- 
- /*
-- * Free a vmap area, caller ensuring that the area has been unmapped
-- * and flush_cache_vunmap had been called for the correct range
-- * previously.
-+ * Free a vmap area, caller ensuring that the area has been unmapped,
-+ * unlinked and flush_cache_vunmap had been called for the correct
-+ * range previously.
-  */
- static void free_vmap_area_noflush(struct vmap_area *va)
+--- a/mm/userfaultfd.c~mm-userfaultfd-rely-on-vma-vm_page_prot-in-uffd_wp_range
++++ a/mm/userfaultfd.c
+@@ -713,17 +713,25 @@ ssize_t mcopy_continue(struct mm_struct
+ void uffd_wp_range(struct mm_struct *dst_mm, struct vm_area_struct *dst_vma,
+ 		   unsigned long start, unsigned long len, bool enable_wp)
  {
-@@ -1825,9 +1825,8 @@ static void free_vmap_area_noflush(struc
- 	unsigned long va_start = va->va_start;
- 	unsigned long nr_lazy;
++	unsigned int mm_cp_flags;
+ 	struct mmu_gather tlb;
+-	pgprot_t newprot;
  
--	spin_lock(&vmap_area_lock);
--	unlink_va(va, &vmap_area_root);
--	spin_unlock(&vmap_area_lock);
-+	if (WARN_ON_ONCE(!list_empty(&va->list)))
-+		return;
+ 	if (enable_wp)
+-		newprot = vm_get_page_prot(dst_vma->vm_flags & ~(VM_WRITE));
++		mm_cp_flags = MM_CP_UFFD_WP;
+ 	else
+-		newprot = vm_get_page_prot(dst_vma->vm_flags);
++		mm_cp_flags = MM_CP_UFFD_WP_RESOLVE;
  
- 	nr_lazy = atomic_long_add_return((va->va_end - va->va_start) >>
- 				PAGE_SHIFT, &vmap_lazy_nr);
-@@ -1871,6 +1870,19 @@ struct vmap_area *find_vmap_area(unsigne
- 	return va;
++	/*
++	 * vma->vm_page_prot already reflects that uffd-wp is enabled for this
++	 * VMA (see userfaultfd_set_vm_flags()) and that all PTEs are supposed
++	 * to be write-protected as default whenever protection changes.
++	 * Try upgrading write permissions manually.
++	 */
++	if (!enable_wp && vma_wants_manual_pte_write_upgrade(dst_vma))
++		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
+ 	tlb_gather_mmu(&tlb, dst_mm);
+-	change_protection(&tlb, dst_vma, start, start + len, newprot,
+-			  enable_wp ? MM_CP_UFFD_WP : MM_CP_UFFD_WP_RESOLVE);
++	change_protection(&tlb, dst_vma, start, start + len, vma->vm_page_prot,
++			  mm_cp_flags);
+ 	tlb_finish_mmu(&tlb);
  }
  
-+static struct vmap_area *find_unlink_vmap_area(unsigned long addr)
-+{
-+	struct vmap_area *va;
-+
-+	spin_lock(&vmap_area_lock);
-+	va = __find_vmap_area(addr, &vmap_area_root);
-+	if (va)
-+		unlink_va(va, &vmap_area_root);
-+	spin_unlock(&vmap_area_lock);
-+
-+	return va;
-+}
-+
- /*** Per cpu kva allocator ***/
- 
- /*
-@@ -2015,6 +2027,10 @@ static void free_vmap_block(struct vmap_
- 	tmp = xa_erase(&vmap_blocks, addr_to_vb_idx(vb->va->va_start));
- 	BUG_ON(tmp != vb);
- 
-+	spin_lock(&vmap_area_lock);
-+	unlink_va(vb->va, &vmap_area_root);
-+	spin_unlock(&vmap_area_lock);
-+
- 	free_vmap_area_noflush(vb->va);
- 	kfree_rcu(vb, rcu_head);
- }
-@@ -2236,7 +2252,7 @@ void vm_unmap_ram(const void *mem, unsig
- 		return;
- 	}
- 
--	va = find_vmap_area(addr);
-+	va = find_unlink_vmap_area(addr);
- 	BUG_ON(!va);
- 	debug_check_no_locks_freed((void *)va->va_start,
- 				    (va->va_end - va->va_start));
-@@ -2591,6 +2607,20 @@ struct vm_struct *find_vm_area(const voi
- 	return va->vm;
- }
- 
-+static struct vm_struct *__remove_vm_area(struct vmap_area *va)
-+{
-+	struct vm_struct *vm;
-+
-+	if (!va || !va->vm)
-+		return NULL;
-+
-+	vm = va->vm;
-+	kasan_free_module_shadow(vm);
-+	free_unmap_vmap_area(va);
-+
-+	return vm;
-+}
-+
- /**
-  * remove_vm_area - find and remove a continuous kernel virtual area
-  * @addr:	    base address
-@@ -2603,26 +2633,10 @@ struct vm_struct *find_vm_area(const voi
-  */
- struct vm_struct *remove_vm_area(const void *addr)
- {
--	struct vmap_area *va;
--
- 	might_sleep();
- 
--	spin_lock(&vmap_area_lock);
--	va = __find_vmap_area((unsigned long)addr, &vmap_area_root);
--	if (va && va->vm) {
--		struct vm_struct *vm = va->vm;
--
--		va->vm = NULL;
--		spin_unlock(&vmap_area_lock);
--
--		kasan_free_module_shadow(vm);
--		free_unmap_vmap_area(va);
--
--		return vm;
--	}
--
--	spin_unlock(&vmap_area_lock);
--	return NULL;
-+	return __remove_vm_area(
-+		find_unlink_vmap_area((unsigned long) addr));
- }
- 
- static inline void set_area_direct_map(const struct vm_struct *area,
-@@ -2636,16 +2650,17 @@ static inline void set_area_direct_map(c
- 			set_direct_map(area->pages[i]);
- }
- 
--/* Handle removing and resetting vm mappings related to the vm_struct. */
--static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
-+/* Handle removing and resetting vm mappings related to the VA's vm_struct. */
-+static void va_remove_mappings(struct vmap_area *va, int deallocate_pages)
- {
-+	struct vm_struct *area = va->vm;
- 	unsigned long start = ULONG_MAX, end = 0;
- 	unsigned int page_order = vm_area_page_order(area);
- 	int flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
- 	int flush_dmap = 0;
- 	int i;
- 
--	remove_vm_area(area->addr);
-+	__remove_vm_area(va);
- 
- 	/* If this is not VM_FLUSH_RESET_PERMS memory, no need for the below. */
- 	if (!flush_reset)
-@@ -2690,6 +2705,7 @@ static void vm_remove_mappings(struct vm
- static void __vunmap(const void *addr, int deallocate_pages)
- {
- 	struct vm_struct *area;
-+	struct vmap_area *va;
- 
- 	if (!addr)
- 		return;
-@@ -2698,19 +2714,20 @@ static void __vunmap(const void *addr, i
- 			addr))
- 		return;
- 
--	area = find_vm_area(addr);
--	if (unlikely(!area)) {
-+	va = find_unlink_vmap_area((unsigned long)addr);
-+	if (unlikely(!va)) {
- 		WARN(1, KERN_ERR "Trying to vfree() nonexistent vm area (%p)\n",
- 				addr);
- 		return;
- 	}
- 
-+	area = va->vm;
- 	debug_check_no_locks_freed(area->addr, get_vm_area_size(area));
- 	debug_check_no_obj_freed(area->addr, get_vm_area_size(area));
- 
- 	kasan_poison_vmalloc(area->addr, get_vm_area_size(area));
- 
--	vm_remove_mappings(area, deallocate_pages);
-+	va_remove_mappings(va, deallocate_pages);
- 
- 	if (deallocate_pages) {
- 		int i;
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
+mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks.patch
+mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks-fix.patch
+alpha-mm-support-__have_arch_pte_swp_exclusive.patch
+arc-mm-support-__have_arch_pte_swp_exclusive.patch
+arm-mm-support-__have_arch_pte_swp_exclusive.patch
+csky-mm-support-__have_arch_pte_swp_exclusive.patch
+hexagon-mm-support-__have_arch_pte_swp_exclusive.patch
+ia64-mm-support-__have_arch_pte_swp_exclusive.patch
+loongarch-mm-support-__have_arch_pte_swp_exclusive.patch
+m68k-mm-remove-dummy-__swp-definitions-for-nommu.patch
+m68k-mm-support-__have_arch_pte_swp_exclusive.patch
+microblaze-mm-support-__have_arch_pte_swp_exclusive.patch
+mips-mm-support-__have_arch_pte_swp_exclusive.patch
+nios2-mm-refactor-swap-pte-layout.patch
+nios2-mm-support-__have_arch_pte_swp_exclusive.patch
+openrisc-mm-support-__have_arch_pte_swp_exclusive.patch
+parisc-mm-support-__have_arch_pte_swp_exclusive.patch
+powerpc-mm-support-__have_arch_pte_swp_exclusive-on-32bit-book3s.patch
+powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive.patch
+riscv-mm-support-__have_arch_pte_swp_exclusive.patch
+sh-mm-support-__have_arch_pte_swp_exclusive.patch
+sparc-mm-support-__have_arch_pte_swp_exclusive-on-32bit.patch
+sparc-mm-support-__have_arch_pte_swp_exclusive-on-64bit.patch
+um-mm-support-__have_arch_pte_swp_exclusive.patch
+x86-mm-support-__have_arch_pte_swp_exclusive-also-on-32bit.patch
+xtensa-mm-support-__have_arch_pte_swp_exclusive.patch
+mm-remove-__have_arch_pte_swp_exclusive.patch
 
