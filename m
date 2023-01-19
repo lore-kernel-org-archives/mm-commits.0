@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F6F1C38159
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7011C678D4
 	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229620AbjASBTD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229882AbjASBTD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Jan 2023 20:19:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37454 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230036AbjASBRe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:34 -0500
+        with ESMTP id S230035AbjASBRN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:13 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EAD7689E0
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:30 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C86D6B9B8
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:25 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AB87EB81FBA
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54E05C433F0;
-        Thu, 19 Jan 2023 01:15:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 12A55B81FB6
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADB7AC433D2;
+        Thu, 19 Jan 2023 01:15:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090927;
-        bh=CGHRkq0LHzvR3NZx8akU0RJ8Hi77+e8p00hQ2sITleU=;
+        s=korg; t=1674090922;
+        bh=DZnxnI70rP9NeiHW5KXqIwDX20H2KSXQGjH5Ej7ccMI=;
         h=Date:To:From:Subject:From;
-        b=AKy4/672zy6bWbqwi2RLhuHNZESqvmoAjFrU0GY0V4qzbo2J25h3R4Gq3yb5zY8aH
-         Qo7zvfHnRayYZvPB4pw0g2EZeAcisfvVJ6L7PJlXAozc1wLIia0kjyTRDJpQeGQ7Dx
-         iabNiG7IJvsnVU6CRy4BudSupwIjnkLKCgHojzyo=
-Date:   Wed, 18 Jan 2023 17:15:26 -0800
+        b=JjdzGGWqhTxliKlNoldXV5rNB21idG4CTCVhrOLN6Ia8l4ohsR+mmoMMUWznYN6Ep
+         fmPrVfoKJRNmgBA5lmPLCjpK/H65QZHU30Km8hUiPJng3G1ZiNWPS4yBRL2gzH3e/V
+         S4Gh7nLP01Iel/hD1TZ7kfMBxNMMhJUl67SWX5oQ=
+Date:   Wed, 18 Jan 2023 17:15:22 -0800
 To:     mm-commits@vger.kernel.org, surenb@google.com, rppt@kernel.org,
         roman.gushchin@linux.dev, Michael@MichaelLarabel.com,
         mhocko@kernel.org, hannes@cmpxchg.org, corbet@lwn.net,
         yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-clarify-scan_control-flags.patch removed from -mm tree
-Message-Id: <20230119011527.54E05C433F0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-remove-aging-fairness-safeguard.patch removed from -mm tree
+Message-Id: <20230119011522.ADB7AC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,35 +43,37 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: clarify scan_control flags
+     Subject: mm: multi-gen LRU: remove aging fairness safeguard
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-clarify-scan_control-flags.patch
+     mm-multi-gen-lru-remove-aging-fairness-safeguard.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: clarify scan_control flags
-Date: Wed, 21 Dec 2022 21:19:05 -0700
+Subject: mm: multi-gen LRU: remove aging fairness safeguard
+Date: Wed, 21 Dec 2022 21:19:02 -0700
 
-Among the flags in scan_control:
-1. sc->may_swap, which indicates swap constraint due to memsw.max, is
-   supported as usual.
-2. sc->proactive, which indicates reclaim by memory.reclaim, may not
-   opportunistically skip the aging path, since it is considered less
-   latency sensitive.
-3. !(sc->gfp_mask & __GFP_IO), which indicates IO constraint, lowers
-   swappiness to prioritize file LRU, since clean file folios are more
-   likely to exist.
-4. sc->may_writepage and sc->may_unmap, which indicates opportunistic
-   reclaim, are rejected, since unmapped clean folios are already
-   prioritized. Scanning for more of them is likely futile and can
-   cause high reclaim latency when there is a large number of memcgs.
+Recall that the aging produces the youngest generation: first it scans
+for accessed folios and updates their gen counters; then it increments
+lrugen->max_seq.
 
-The rest are handled by the existing code.
+The current aging fairness safeguard for kswapd uses two passes to
+ensure the fairness to multiple eligible memcgs. On the first pass,
+which is shared with the eviction, it checks whether all eligible
+memcgs are low on cold folios. If so, it requires a second pass, on
+which it ages all those memcgs at the same time.
 
-Link: https://lkml.kernel.org/r/20221222041905.2431096-8-yuzhao@google.com
+With memcg LRU, the aging, while ensuring eventual fairness, will run
+when necessary. Therefore the current aging fairness safeguard for
+kswapd will not be needed.
+
+Note that memcg LRU only applies to global reclaim. For memcg reclaim,
+the aging can be unfair to different memcgs, i.e., their
+lrugen->max_seq can be incremented at different paces.
+
+Link: https://lkml.kernel.org/r/20221222041905.2431096-5-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -83,171 +85,260 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   56 +++++++++++++++++++++++++-------------------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
+ mm/vmscan.c |  126 +++++++++++++++++++++++---------------------------
+ 1 file changed, 59 insertions(+), 67 deletions(-)
 
---- a/mm/vmscan.c~mm-multi-gen-lru-clarify-scan_control-flags
+--- a/mm/vmscan.c~mm-multi-gen-lru-remove-aging-fairness-safeguard
 +++ a/mm/vmscan.c
-@@ -3210,6 +3210,9 @@ static int get_swappiness(struct lruvec
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+@@ -137,7 +137,6 @@ struct scan_control {
  
-+	if (!sc->may_swap)
-+		return 0;
-+
- 	if (!can_demote(pgdat->node_id, sc) &&
- 	    mem_cgroup_get_nr_swap_pages(memcg) < MIN_LRU_BATCH)
- 		return 0;
-@@ -4236,7 +4239,7 @@ static void walk_mm(struct lruvec *lruve
- 	} while (err == -EAGAIN);
+ #ifdef CONFIG_LRU_GEN
+ 	/* help kswapd make better choices among multiple memcgs */
+-	unsigned int memcgs_need_aging:1;
+ 	unsigned long last_reclaimed;
+ #endif
+ 
+@@ -4468,7 +4467,7 @@ done:
+ 	return true;
  }
  
--static struct lru_gen_mm_walk *set_mm_walk(struct pglist_data *pgdat)
-+static struct lru_gen_mm_walk *set_mm_walk(struct pglist_data *pgdat, bool force_alloc)
+-static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq, unsigned long *min_seq,
++static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
+ 			     struct scan_control *sc, bool can_swap, unsigned long *nr_to_scan)
  {
- 	struct lru_gen_mm_walk *walk = current->reclaim_state->mm_walk;
- 
-@@ -4244,7 +4247,7 @@ static struct lru_gen_mm_walk *set_mm_wa
- 		VM_WARN_ON_ONCE(walk);
- 
- 		walk = &pgdat->mm_walk;
--	} else if (!pgdat && !walk) {
-+	} else if (!walk && force_alloc) {
- 		VM_WARN_ON_ONCE(current_is_kswapd());
- 
- 		walk = kzalloc(sizeof(*walk), __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
-@@ -4430,7 +4433,7 @@ static bool try_to_inc_max_seq(struct lr
- 		goto done;
- 	}
- 
--	walk = set_mm_walk(NULL);
-+	walk = set_mm_walk(NULL, true);
- 	if (!walk) {
- 		success = iterate_mm_list_nowalk(lruvec, max_seq);
- 		goto done;
-@@ -4499,8 +4502,6 @@ static bool lruvec_is_reclaimable(struct
+ 	int gen, type, zone;
+@@ -4477,6 +4476,13 @@ static bool should_run_aging(struct lruv
+ 	unsigned long total = 0;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
  	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
++	DEFINE_MIN_SEQ(lruvec);
++
++	/* whether this lruvec is completely out of cold folios */
++	if (min_seq[!can_swap] + MIN_NR_GENS > max_seq) {
++		*nr_to_scan = 0;
++		return true;
++	}
+ 
+ 	for (type = !can_swap; type < ANON_AND_FILE; type++) {
+ 		unsigned long seq;
+@@ -4505,8 +4511,6 @@ static bool should_run_aging(struct lruv
+ 	 * stalls when the number of generations reaches MIN_NR_GENS. Hence, the
+ 	 * ideal number of generations is MIN_NR_GENS+1.
+ 	 */
+-	if (min_seq[!can_swap] + MIN_NR_GENS > max_seq)
+-		return true;
+ 	if (min_seq[!can_swap] + MIN_NR_GENS < max_seq)
+ 		return false;
+ 
+@@ -4525,40 +4529,54 @@ static bool should_run_aging(struct lruv
+ 	return false;
+ }
+ 
+-static bool age_lruvec(struct lruvec *lruvec, struct scan_control *sc, unsigned long min_ttl)
++static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
+ {
+-	bool need_aging;
+-	unsigned long nr_to_scan;
+-	int swappiness = get_swappiness(lruvec, sc);
++	int gen, type, zone;
++	unsigned long total = 0;
++	bool can_swap = get_swappiness(lruvec, sc);
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MAX_SEQ(lruvec);
  	DEFINE_MIN_SEQ(lruvec);
  
 -	VM_WARN_ON_ONCE(sc->memcg_low_reclaim);
--
- 	/* see the comment on lru_gen_folio */
- 	gen = lru_gen_from_seq(min_seq[LRU_GEN_FILE]);
- 	birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
-@@ -4756,12 +4757,8 @@ static bool isolate_folio(struct lruvec
- {
- 	bool success;
++	for (type = !can_swap; type < ANON_AND_FILE; type++) {
++		unsigned long seq;
  
--	/* unmapping inhibited */
--	if (!sc->may_unmap && folio_mapped(folio))
+-	mem_cgroup_calculate_protection(NULL, memcg);
++		for (seq = min_seq[type]; seq <= max_seq; seq++) {
++			gen = lru_gen_from_seq(seq);
+ 
+-	if (mem_cgroup_below_min(NULL, memcg))
 -		return false;
--
- 	/* swapping inhibited */
--	if (!(sc->may_writepage && (sc->gfp_mask & __GFP_IO)) &&
-+	if (!(sc->gfp_mask & __GFP_IO) &&
- 	    (folio_test_dirty(folio) ||
- 	     (folio_test_anon(folio) && !folio_test_swapcache(folio))))
- 		return false;
-@@ -4858,9 +4855,8 @@ static int scan_folios(struct lruvec *lr
- 	__count_vm_events(PGSCAN_ANON + type, isolated);
++			for (zone = 0; zone < MAX_NR_ZONES; zone++)
++				total += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
++		}
++	}
  
- 	/*
--	 * There might not be eligible pages due to reclaim_idx, may_unmap and
--	 * may_writepage. Check the remaining to prevent livelock if it's not
--	 * making progress.
-+	 * There might not be eligible folios due to reclaim_idx. Check the
-+	 * remaining to prevent livelock if it's not making progress.
- 	 */
- 	return isolated || !remaining ? scanned : 0;
+-	need_aging = should_run_aging(lruvec, max_seq, min_seq, sc, swappiness, &nr_to_scan);
++	/* whether the size is big enough to be helpful */
++	return mem_cgroup_online(memcg) ? (total >> sc->priority) : total;
++}
+ 
+-	if (min_ttl) {
+-		int gen = lru_gen_from_seq(min_seq[LRU_GEN_FILE]);
+-		unsigned long birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
++static bool lruvec_is_reclaimable(struct lruvec *lruvec, struct scan_control *sc,
++				  unsigned long min_ttl)
++{
++	int gen;
++	unsigned long birth;
++	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
++	DEFINE_MIN_SEQ(lruvec);
+ 
+-		if (time_is_after_jiffies(birth + min_ttl))
+-			return false;
++	VM_WARN_ON_ONCE(sc->memcg_low_reclaim);
+ 
+-		/* the size is likely too small to be helpful */
+-		if (!nr_to_scan && sc->priority != DEF_PRIORITY)
+-			return false;
+-	}
++	/* see the comment on lru_gen_folio */
++	gen = lru_gen_from_seq(min_seq[LRU_GEN_FILE]);
++	birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
+ 
+-	if (need_aging)
+-		try_to_inc_max_seq(lruvec, max_seq, sc, swappiness, false);
++	if (time_is_after_jiffies(birth + min_ttl))
++		return false;
+ 
+-	return true;
++	if (!lruvec_is_sizable(lruvec, sc))
++		return false;
++
++	mem_cgroup_calculate_protection(NULL, memcg);
++
++	return !mem_cgroup_below_min(NULL, memcg);
  }
-@@ -5120,9 +5116,7 @@ static long get_nr_to_scan(struct lruvec
+ 
+ /* to protect the working set of the last N jiffies */
+@@ -4567,46 +4585,32 @@ static unsigned long lru_gen_min_ttl __r
+ static void lru_gen_age_node(struct pglist_data *pgdat, struct scan_control *sc)
+ {
+ 	struct mem_cgroup *memcg;
+-	bool success = false;
+ 	unsigned long min_ttl = READ_ONCE(lru_gen_min_ttl);
+ 
+ 	VM_WARN_ON_ONCE(!current_is_kswapd());
+ 
+ 	sc->last_reclaimed = sc->nr_reclaimed;
+ 
+-	/*
+-	 * To reduce the chance of going into the aging path, which can be
+-	 * costly, optimistically skip it if the flag below was cleared in the
+-	 * eviction path. This improves the overall performance when multiple
+-	 * memcgs are available.
+-	 */
+-	if (!sc->memcgs_need_aging) {
+-		sc->memcgs_need_aging = true;
++	/* check the order to exclude compaction-induced reclaim */
++	if (!min_ttl || sc->order || sc->priority == DEF_PRIORITY)
+ 		return;
+-	}
+-
+-	set_mm_walk(pgdat);
+ 
+ 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
+ 	do {
+ 		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 
+-		if (age_lruvec(lruvec, sc, min_ttl))
+-			success = true;
++		if (lruvec_is_reclaimable(lruvec, sc, min_ttl)) {
++			mem_cgroup_iter_break(NULL, memcg);
++			return;
++		}
+ 
+ 		cond_resched();
+ 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
+ 
+-	clear_mm_walk();
+-
+-	/* check the order to exclude compaction-induced reclaim */
+-	if (success || !min_ttl || sc->order)
+-		return;
+-
+ 	/*
+ 	 * The main goal is to OOM kill if every generation from all memcgs is
+ 	 * younger than min_ttl. However, another possibility is all memcgs are
+-	 * either below min or empty.
++	 * either too small or below min.
+ 	 */
+ 	if (mutex_trylock(&oom_lock)) {
+ 		struct oom_control oc = {
+@@ -5114,34 +5118,28 @@ retry:
+  *    reclaim.
+  */
+ static unsigned long get_nr_to_scan(struct lruvec *lruvec, struct scan_control *sc,
+-				    bool can_swap, bool *need_aging)
++				    bool can_swap)
+ {
+ 	unsigned long nr_to_scan;
  	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
  	DEFINE_MAX_SEQ(lruvec);
+-	DEFINE_MIN_SEQ(lruvec);
  
--	if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg) ||
--	    (mem_cgroup_below_low(sc->target_mem_cgroup, memcg) &&
--	     !sc->memcg_low_reclaim))
-+	if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg))
+ 	if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg) ||
+ 	    (mem_cgroup_below_low(sc->target_mem_cgroup, memcg) &&
+ 	     !sc->memcg_low_reclaim))
  		return 0;
  
- 	if (!should_run_aging(lruvec, max_seq, sc, can_swap, &nr_to_scan))
-@@ -5150,17 +5144,14 @@ static bool try_to_shrink_lruvec(struct
- 	long nr_to_scan;
- 	unsigned long scanned = 0;
- 	unsigned long nr_to_reclaim = get_nr_to_reclaim(sc);
-+	int swappiness = get_swappiness(lruvec, sc);
-+
-+	/* clean file folios are more likely to exist */
-+	if (swappiness && !(sc->gfp_mask & __GFP_IO))
-+		swappiness = 1;
+-	*need_aging = should_run_aging(lruvec, max_seq, min_seq, sc, can_swap, &nr_to_scan);
+-	if (!*need_aging)
++	if (!should_run_aging(lruvec, max_seq, sc, can_swap, &nr_to_scan))
+ 		return nr_to_scan;
  
- 	while (true) {
- 		int delta;
--		int swappiness;
--
--		if (sc->may_swap)
--			swappiness = get_swappiness(lruvec, sc);
--		else if (!cgroup_reclaim(sc) && get_swappiness(lruvec, sc))
--			swappiness = 1;
--		else
--			swappiness = 0;
+ 	/* skip the aging path at the default priority */
+ 	if (sc->priority == DEF_PRIORITY)
+-		goto done;
++		return nr_to_scan;
  
- 		nr_to_scan = get_nr_to_scan(lruvec, sc, swappiness);
- 		if (nr_to_scan <= 0)
-@@ -5291,12 +5282,13 @@ static void lru_gen_shrink_lruvec(struct
+-	/* leave the work to lru_gen_age_node() */
+-	if (current_is_kswapd())
+-		return 0;
++	try_to_inc_max_seq(lruvec, max_seq, sc, can_swap, false);
+ 
+-	if (try_to_inc_max_seq(lruvec, max_seq, sc, can_swap, false))
+-		return nr_to_scan;
+-done:
+-	return min_seq[!can_swap] + MIN_NR_GENS <= max_seq ? nr_to_scan : 0;
++	/* skip this lruvec as it's low on cold folios */
++	return 0;
+ }
+ 
+ static unsigned long get_nr_to_reclaim(struct scan_control *sc)
+@@ -5160,9 +5158,7 @@ static unsigned long get_nr_to_reclaim(s
+ static void lru_gen_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
+ {
  	struct blk_plug plug;
- 
- 	VM_WARN_ON_ONCE(global_reclaim(sc));
-+	VM_WARN_ON_ONCE(!sc->may_writepage || !sc->may_unmap);
+-	bool need_aging = false;
+ 	unsigned long scanned = 0;
+-	unsigned long reclaimed = sc->nr_reclaimed;
+ 	unsigned long nr_to_reclaim = get_nr_to_reclaim(sc);
  
  	lru_add_drain();
+@@ -5183,13 +5179,13 @@ static void lru_gen_shrink_lruvec(struct
+ 		else
+ 			swappiness = 0;
  
- 	blk_start_plug(&plug);
+-		nr_to_scan = get_nr_to_scan(lruvec, sc, swappiness, &need_aging);
++		nr_to_scan = get_nr_to_scan(lruvec, sc, swappiness);
+ 		if (!nr_to_scan)
+-			goto done;
++			break;
  
--	set_mm_walk(lruvec_pgdat(lruvec));
-+	set_mm_walk(NULL, sc->proactive);
+ 		delta = evict_folios(lruvec, sc, swappiness);
+ 		if (!delta)
+-			goto done;
++			break;
  
- 	if (try_to_shrink_lruvec(lruvec, sc))
- 		lru_gen_rotate_memcg(lruvec, MEMCG_LRU_YOUNG);
-@@ -5352,11 +5344,19 @@ static void lru_gen_shrink_node(struct p
+ 		scanned += delta;
+ 		if (scanned >= nr_to_scan)
+@@ -5201,10 +5197,6 @@ static void lru_gen_shrink_lruvec(struct
+ 		cond_resched();
+ 	}
  
- 	VM_WARN_ON_ONCE(!global_reclaim(sc));
- 
-+	/*
-+	 * Unmapped clean folios are already prioritized. Scanning for more of
-+	 * them is likely futile and can cause high reclaim latency when there
-+	 * is a large number of memcgs.
-+	 */
-+	if (!sc->may_writepage || !sc->may_unmap)
-+		goto done;
-+
- 	lru_add_drain();
- 
- 	blk_start_plug(&plug);
- 
--	set_mm_walk(pgdat);
-+	set_mm_walk(pgdat, sc->proactive);
- 
- 	set_initial_priority(pgdat, sc);
- 
-@@ -5374,7 +5374,7 @@ static void lru_gen_shrink_node(struct p
+-	/* see the comment in lru_gen_age_node() */
+-	if (sc->nr_reclaimed - reclaimed >= MIN_LRU_BATCH && !need_aging)
+-		sc->memcgs_need_aging = false;
+-done:
  	clear_mm_walk();
  
  	blk_finish_plug(&plug);
--
-+done:
- 	/* kswapd should never fail */
- 	pgdat->kswapd_failures = 0;
- }
-@@ -5943,7 +5943,7 @@ static ssize_t lru_gen_seq_write(struct
- 	set_task_reclaim_state(current, &sc.reclaim_state);
- 	flags = memalloc_noreclaim_save();
- 	blk_start_plug(&plug);
--	if (!set_mm_walk(NULL)) {
-+	if (!set_mm_walk(NULL, true)) {
- 		err = -ENOMEM;
- 		goto done;
- 	}
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
