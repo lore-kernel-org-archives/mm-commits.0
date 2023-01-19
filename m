@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7C1BC38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:21:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 004A4C38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:22:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230119AbjASBV5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:21:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41164 "EHLO
+        id S230122AbjASBV7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:21:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230121AbjASBT6 (ORCPT
+        with ESMTP id S230125AbjASBT6 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:19:58 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F93A6CCD3
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:37 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1C0B69B0F
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0C30A6176F
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B41CC433EF;
-        Thu, 19 Jan 2023 01:16:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6ED7C61B16
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5D93C433EF;
+        Thu, 19 Jan 2023 01:16:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090996;
-        bh=5duJ2asCR8anvaV9IFZmz3DVDKutUfveVAyVNzPNAj8=;
+        s=korg; t=1674090997;
+        bh=0JIYPn3ud2M8pREf/BRm011oBmeE8Gmz6BfFd6YYjjY=;
         h=Date:To:From:Subject:From;
-        b=YLooD4hAs/w2eDO8k4ngWmCA70hzO9med11gOMoe6lA585JLWoCJEbXwRdmxNT46E
-         /Gp7an1bBJTk7Jo9pSEOUSPrrRW/uk0hOgZA1DNfa/imbk5SvJ/Z/Sk7gTf+s+74s5
-         Sm4L5F+bKA3Zs7kuXFsxGc242AgYd5Cfjm6JWLWA=
-Date:   Wed, 18 Jan 2023 17:16:35 -0800
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        Michael@MichaelLarabel.com, hannes@cmpxchg.org,
-        andrea.righi@canonical.com, yuzhao@google.com,
+        b=c2XkOjSzxayikH+S2uybX+byVOVhnWmhpS3CeIbJrKNpvVizr7Dx2qLEZng+HhZbg
+         lJB7pMLfUrFY/7Rgbp6n0ZXBbam1osKNN/mbiZkfWayzoY28acbEfzNWXM8GTIO4Qf
+         UcBXqwTaViJ2Jlka7vEvw0GcQHr/EZCYy1gHd5u0=
+Date:   Wed, 18 Jan 2023 17:16:37 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        sj@kernel.org, sidhartha.kumar@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-support-posix_fadv_noreuse.patch removed from -mm tree
-Message-Id: <20230119011636.6B41CC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-folio_is_pfmemalloc.patch removed from -mm tree
+Message-Id: <20230119011637.C5D93C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,142 +42,102 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: support POSIX_FADV_NOREUSE
+     Subject: mm: introduce folio_is_pfmemalloc
 has been removed from the -mm tree.  Its filename was
-     mm-support-posix_fadv_noreuse.patch
+     mm-introduce-folio_is_pfmemalloc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: support POSIX_FADV_NOREUSE
-Date: Fri, 30 Dec 2022 14:52:52 -0700
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm: introduce folio_is_pfmemalloc
+Date: Fri, 6 Jan 2023 15:52:51 -0600
 
-This patch adds POSIX_FADV_NOREUSE to vma_has_recency() so that the LRU
-algorithm can ignore access to mapped files marked by this flag.
+Add a folio equivalent for page_is_pfmemalloc. This removes two instances
+of page_is_pfmemalloc(folio_page(folio, 0)) so the folio can be used
+directly.
 
-The advantages of POSIX_FADV_NOREUSE are:
-1. Unlike MADV_SEQUENTIAL and MADV_RANDOM, it does not alter the
-   default readahead behavior.
-2. Unlike MADV_SEQUENTIAL and MADV_RANDOM, it does not split VMAs and
-   therefore does not take mmap_lock.
-3. Unlike MADV_COLD, setting it has a negligible cost, regardless of
-   how many pages it affects.
-
-Its limitations are:
-1. Like POSIX_FADV_RANDOM and POSIX_FADV_SEQUENTIAL, it currently does
-   not support range. IOW, its scope is the entire file.
-2. It currently does not ignore access through file descriptors.
-   Specifically, for the active/inactive LRU, given a file page shared
-   by two users and one of them having set POSIX_FADV_NOREUSE on the
-   file, this page will be activated upon the second user accessing
-   it. This corner case can be covered by checking POSIX_FADV_NOREUSE
-   before calling folio_mark_accessed() on the read path. But it is
-   considered not worth the effort.
-
-There have been a few attempts to support POSIX_FADV_NOREUSE, e.g., [1]. 
-This time the goal is to fill a niche: a few desktop applications, e.g.,
-large file transferring and video encoding/decoding, want fast file
-streaming with mmap() rather than direct IO.  Among those applications, an
-SVT-AV1 regression was reported when running with MGLRU [2].  The
-following test can reproduce that regression.
-
-  kb=$(awk '/MemTotal/ { print $2 }' /proc/meminfo)
-  kb=$((kb - 8*1024*1024))
-
-  modprobe brd rd_nr=1 rd_size=$kb
-  dd if=/dev/zero of=/dev/ram0 bs=1M
-
-  mkfs.ext4 /dev/ram0
-  mount /dev/ram0 /mnt/
-  swapoff -a
-
-  fallocate -l 8G /mnt/swapfile
-  mkswap /mnt/swapfile
-  swapon /mnt/swapfile
-
-  wget http://ultravideo.cs.tut.fi/video/Bosphorus_3840x2160_120fps_420_8bit_YUV_Y4M.7z
-  7z e -o/mnt/ Bosphorus_3840x2160_120fps_420_8bit_YUV_Y4M.7z
-  SvtAv1EncApp --preset 12 -w 3840 -h 2160 \
-               -i /mnt/Bosphorus_3840x2160.y4m
-
-For MGLRU, the following change showed a [9-11]% increase in FPS,
-which makes it on par with the active/inactive LRU.
-
-  patch Source/App/EncApp/EbAppMain.c <<EOF
-  31a32
-  > #include <fcntl.h>
-  35d35
-  < #include <fcntl.h> /* _O_BINARY */
-  117a118
-  >             posix_fadvise(config->mmap.fd, 0, 0, POSIX_FADV_NOREUSE);
-  EOF
-
-[1] https://lore.kernel.org/r/1308923350-7932-1-git-send-email-andrea@betterlinux.com/
-[2] https://openbenchmarking.org/result/2209259-PTS-MGLRU8GB57
-
-Link: https://lkml.kernel.org/r/20221230215252.2628425-2-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrea Righi <andrea.righi@canonical.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michael Larabel <Michael@MichaelLarabel.com>
+Link: https://lkml.kernel.org/r/20230106215251.599222-1-sidhartha.kumar@oracle.com
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h        |    2 ++
- include/linux/mm_inline.h |    3 +++
- mm/fadvise.c              |    5 ++++-
- 3 files changed, 9 insertions(+), 1 deletion(-)
+ include/linux/mm.h |   15 +++++++++++++++
+ mm/slab.c          |    2 +-
+ mm/slub.c          |    2 +-
+ 3 files changed, 17 insertions(+), 2 deletions(-)
 
---- a/include/linux/fs.h~mm-support-posix_fadv_noreuse
-+++ a/include/linux/fs.h
-@@ -166,6 +166,8 @@ typedef int (dio_iodone_t)(struct kiocb
- /* File supports DIRECT IO */
- #define	FMODE_CAN_ODIRECT	((__force fmode_t)0x400000)
- 
-+#define	FMODE_NOREUSE		((__force fmode_t)0x800000)
-+
- /* File was opened by fanotify and shouldn't generate fanotify events */
- #define FMODE_NONOTIFY		((__force fmode_t)0x4000000)
- 
---- a/include/linux/mm_inline.h~mm-support-posix_fadv_noreuse
-+++ a/include/linux/mm_inline.h
-@@ -599,6 +599,9 @@ static inline bool vma_has_recency(struc
- 	if (vma->vm_flags & (VM_SEQ_READ | VM_RAND_READ))
- 		return false;
- 
-+	if (vma->vm_file && (vma->vm_file->f_mode & FMODE_NOREUSE))
-+		return false;
-+
- 	return true;
+--- a/include/linux/mm.h~mm-introduce-folio_is_pfmemalloc
++++ a/include/linux/mm.h
+@@ -1927,6 +1927,21 @@ static inline bool page_is_pfmemalloc(co
  }
  
---- a/mm/fadvise.c~mm-support-posix_fadv_noreuse
-+++ a/mm/fadvise.c
-@@ -80,7 +80,7 @@ int generic_fadvise(struct file *file, l
- 	case POSIX_FADV_NORMAL:
- 		file->f_ra.ra_pages = bdi->ra_pages;
- 		spin_lock(&file->f_lock);
--		file->f_mode &= ~FMODE_RANDOM;
-+		file->f_mode &= ~(FMODE_RANDOM | FMODE_NOREUSE);
- 		spin_unlock(&file->f_lock);
- 		break;
- 	case POSIX_FADV_RANDOM:
-@@ -107,6 +107,9 @@ int generic_fadvise(struct file *file, l
- 		force_page_cache_readahead(mapping, file, start_index, nrpages);
- 		break;
- 	case POSIX_FADV_NOREUSE:
-+		spin_lock(&file->f_lock);
-+		file->f_mode |= FMODE_NOREUSE;
-+		spin_unlock(&file->f_lock);
- 		break;
- 	case POSIX_FADV_DONTNEED:
- 		__filemap_fdatawrite_range(mapping, offset, endbyte,
+ /*
++ * Return true only if the folio has been allocated with
++ * ALLOC_NO_WATERMARKS and the low watermark was not
++ * met implying that the system is under some pressure.
++ */
++static inline bool folio_is_pfmemalloc(const struct folio *folio)
++{
++	/*
++	 * lru.next has bit 1 set if the page is allocated from the
++	 * pfmemalloc reserves.  Callers may simply overwrite it if
++	 * they do not need to preserve that information.
++	 */
++	return (uintptr_t)folio->lru.next & BIT(1);
++}
++
++/*
+  * Only to be called by the page allocator on a freshly allocated
+  * page.
+  */
+--- a/mm/slab.c~mm-introduce-folio_is_pfmemalloc
++++ a/mm/slab.c
+@@ -1373,7 +1373,7 @@ static struct slab *kmem_getpages(struct
+ 	/* Make the flag visible before any changes to folio->mapping */
+ 	smp_wmb();
+ 	/* Record if ALLOC_NO_WATERMARKS was set when allocating the slab */
+-	if (sk_memalloc_socks() && page_is_pfmemalloc(folio_page(folio, 0)))
++	if (sk_memalloc_socks() && folio_is_pfmemalloc(folio))
+ 		slab_set_pfmemalloc(slab);
+ 
+ 	return slab;
+--- a/mm/slub.c~mm-introduce-folio_is_pfmemalloc
++++ a/mm/slub.c
+@@ -1859,7 +1859,7 @@ static inline struct slab *alloc_slab_pa
+ 	__folio_set_slab(folio);
+ 	/* Make the flag visible before any changes to folio->mapping */
+ 	smp_wmb();
+-	if (page_is_pfmemalloc(folio_page(folio, 0)))
++	if (folio_is_pfmemalloc(folio))
+ 		slab_set_pfmemalloc(slab);
+ 
+ 	return slab;
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-mm-multi-gen-lru-fix-crash-during-cgroup-migration.patch
+mm-remove-the-hugetlb-field-from-struct-page.patch
+mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios.patch
+mm-memory-failure-convert-try_memory_failure_hugetlb-to-folios.patch
+mm-memory-failure-convert-hugetlb_clear_page_hwpoison-to-folios.patch
+mm-memory-failure-convert-free_raw_hwp_pages-to-folios.patch
+mm-memory-failure-convert-raw_hwp_list_head-to-folios.patch
+mm-memory-failure-convert-__free_raw_hwp_pages-to-folios.patch
+mm-memory-failure-convert-hugetlb_set_page_hwpoison-to-folios.patch
+mm-memory-failure-convert-unpoison_memory-to-folios.patch
+mm-hugetlb-convert-isolate_hugetlb-to-folios.patch
+mm-hugetlb-convert-__update_and_free_page-to-folios.patch
+mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios.patch
+mm-hugetlb-convert-alloc_surplus_huge_page-to-folios.patch
+mm-hugetlb-increase-use-of-folios-in-alloc_huge_page.patch
+mm-hugetlb-convert-alloc_migrate_huge_page-to-folios.patch
+mm-hugetlb-convert-restore_reserve_on_error-to-folios.patch
+mm-hugetlb-convert-demote_free_huge_page-to-folios.patch
+mm-hugetlb-convert-get_hwpoison_huge_page-to-folios.patch
 
