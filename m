@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFE46C678DC
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F6F1C38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229759AbjASBTB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:19:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37794 "EHLO
+        id S229620AbjASBTD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:19:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229899AbjASBRk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:40 -0500
+        with ESMTP id S230036AbjASBRe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:34 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7056A689E3
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:31 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EAD7689E0
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2650FB81FB6
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4CEDC433F1;
-        Thu, 19 Jan 2023 01:15:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AB87EB81FBA
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54E05C433F0;
+        Thu, 19 Jan 2023 01:15:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090928;
-        bh=pOhqEUlZM09UuLQEEBqysoZnbkyUHd65kNRHymxHNS0=;
+        s=korg; t=1674090927;
+        bh=CGHRkq0LHzvR3NZx8akU0RJ8Hi77+e8p00hQ2sITleU=;
         h=Date:To:From:Subject:From;
-        b=DUwozEHZtL32ND705DiDr3BSjk2qHZncCVE/Xae3DDvHUFjnOROym3p3wBYz7ohFM
-         CB6TAsnMyqri32ANtbI+642xcgV9ef616O1B9u/fWONZ4uP+PXsLpFEEaqUANGCbHb
-         TVrq+YrTLkSPYo7BTsYOsZ6p4GX5MgE+aIAtUcSg=
-Date:   Wed, 18 Jan 2023 17:15:28 -0800
+        b=AKy4/672zy6bWbqwi2RLhuHNZESqvmoAjFrU0GY0V4qzbo2J25h3R4Gq3yb5zY8aH
+         Qo7zvfHnRayYZvPB4pw0g2EZeAcisfvVJ6L7PJlXAozc1wLIia0kjyTRDJpQeGQ7Dx
+         iabNiG7IJvsnVU6CRy4BudSupwIjnkLKCgHojzyo=
+Date:   Wed, 18 Jan 2023 17:15:26 -0800
 To:     mm-commits@vger.kernel.org, surenb@google.com, rppt@kernel.org,
         roman.gushchin@linux.dev, Michael@MichaelLarabel.com,
         mhocko@kernel.org, hannes@cmpxchg.org, corbet@lwn.net,
         yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-simplify-arch_has_hw_pte_young-check.patch removed from -mm tree
-Message-Id: <20230119011528.C4CEDC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-clarify-scan_control-flags.patch removed from -mm tree
+Message-Id: <20230119011527.54E05C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,22 +43,35 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: simplify arch_has_hw_pte_young() check
+     Subject: mm: multi-gen LRU: clarify scan_control flags
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-simplify-arch_has_hw_pte_young-check.patch
+     mm-multi-gen-lru-clarify-scan_control-flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: simplify arch_has_hw_pte_young() check
-Date: Wed, 21 Dec 2022 21:19:06 -0700
+Subject: mm: multi-gen LRU: clarify scan_control flags
+Date: Wed, 21 Dec 2022 21:19:05 -0700
 
-Scanning page tables when hardware does not set the accessed bit has
-no real use cases.
+Among the flags in scan_control:
+1. sc->may_swap, which indicates swap constraint due to memsw.max, is
+   supported as usual.
+2. sc->proactive, which indicates reclaim by memory.reclaim, may not
+   opportunistically skip the aging path, since it is considered less
+   latency sensitive.
+3. !(sc->gfp_mask & __GFP_IO), which indicates IO constraint, lowers
+   swappiness to prioritize file LRU, since clean file folios are more
+   likely to exist.
+4. sc->may_writepage and sc->may_unmap, which indicates opportunistic
+   reclaim, are rejected, since unmapped clean folios are already
+   prioritized. Scanning for more of them is likely futile and can
+   cause high reclaim latency when there is a large number of memcgs.
 
-Link: https://lkml.kernel.org/r/20221222041905.2431096-9-yuzhao@google.com
+The rest are handled by the existing code.
+
+Link: https://lkml.kernel.org/r/20221222041905.2431096-8-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -70,18 +83,169 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   56 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
---- a/mm/vmscan.c~mm-multi-gen-lru-simplify-arch_has_hw_pte_young-check
+--- a/mm/vmscan.c~mm-multi-gen-lru-clarify-scan_control-flags
 +++ a/mm/vmscan.c
-@@ -4428,7 +4428,7 @@ static bool try_to_inc_max_seq(struct lr
- 	 * handful of PTEs. Spreading the work out over a period of time usually
- 	 * is less efficient, but it avoids bursty page faults.
- 	 */
--	if (!force_scan && !(arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))) {
-+	if (!arch_has_hw_pte_young() || !get_cap(LRU_GEN_MM_WALK)) {
+@@ -3210,6 +3210,9 @@ static int get_swappiness(struct lruvec
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 
++	if (!sc->may_swap)
++		return 0;
++
+ 	if (!can_demote(pgdat->node_id, sc) &&
+ 	    mem_cgroup_get_nr_swap_pages(memcg) < MIN_LRU_BATCH)
+ 		return 0;
+@@ -4236,7 +4239,7 @@ static void walk_mm(struct lruvec *lruve
+ 	} while (err == -EAGAIN);
+ }
+ 
+-static struct lru_gen_mm_walk *set_mm_walk(struct pglist_data *pgdat)
++static struct lru_gen_mm_walk *set_mm_walk(struct pglist_data *pgdat, bool force_alloc)
+ {
+ 	struct lru_gen_mm_walk *walk = current->reclaim_state->mm_walk;
+ 
+@@ -4244,7 +4247,7 @@ static struct lru_gen_mm_walk *set_mm_wa
+ 		VM_WARN_ON_ONCE(walk);
+ 
+ 		walk = &pgdat->mm_walk;
+-	} else if (!pgdat && !walk) {
++	} else if (!walk && force_alloc) {
+ 		VM_WARN_ON_ONCE(current_is_kswapd());
+ 
+ 		walk = kzalloc(sizeof(*walk), __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
+@@ -4430,7 +4433,7 @@ static bool try_to_inc_max_seq(struct lr
+ 		goto done;
+ 	}
+ 
+-	walk = set_mm_walk(NULL);
++	walk = set_mm_walk(NULL, true);
+ 	if (!walk) {
  		success = iterate_mm_list_nowalk(lruvec, max_seq);
+ 		goto done;
+@@ -4499,8 +4502,6 @@ static bool lruvec_is_reclaimable(struct
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MIN_SEQ(lruvec);
+ 
+-	VM_WARN_ON_ONCE(sc->memcg_low_reclaim);
+-
+ 	/* see the comment on lru_gen_folio */
+ 	gen = lru_gen_from_seq(min_seq[LRU_GEN_FILE]);
+ 	birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
+@@ -4756,12 +4757,8 @@ static bool isolate_folio(struct lruvec
+ {
+ 	bool success;
+ 
+-	/* unmapping inhibited */
+-	if (!sc->may_unmap && folio_mapped(folio))
+-		return false;
+-
+ 	/* swapping inhibited */
+-	if (!(sc->may_writepage && (sc->gfp_mask & __GFP_IO)) &&
++	if (!(sc->gfp_mask & __GFP_IO) &&
+ 	    (folio_test_dirty(folio) ||
+ 	     (folio_test_anon(folio) && !folio_test_swapcache(folio))))
+ 		return false;
+@@ -4858,9 +4855,8 @@ static int scan_folios(struct lruvec *lr
+ 	__count_vm_events(PGSCAN_ANON + type, isolated);
+ 
+ 	/*
+-	 * There might not be eligible pages due to reclaim_idx, may_unmap and
+-	 * may_writepage. Check the remaining to prevent livelock if it's not
+-	 * making progress.
++	 * There might not be eligible folios due to reclaim_idx. Check the
++	 * remaining to prevent livelock if it's not making progress.
+ 	 */
+ 	return isolated || !remaining ? scanned : 0;
+ }
+@@ -5120,9 +5116,7 @@ static long get_nr_to_scan(struct lruvec
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MAX_SEQ(lruvec);
+ 
+-	if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg) ||
+-	    (mem_cgroup_below_low(sc->target_mem_cgroup, memcg) &&
+-	     !sc->memcg_low_reclaim))
++	if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg))
+ 		return 0;
+ 
+ 	if (!should_run_aging(lruvec, max_seq, sc, can_swap, &nr_to_scan))
+@@ -5150,17 +5144,14 @@ static bool try_to_shrink_lruvec(struct
+ 	long nr_to_scan;
+ 	unsigned long scanned = 0;
+ 	unsigned long nr_to_reclaim = get_nr_to_reclaim(sc);
++	int swappiness = get_swappiness(lruvec, sc);
++
++	/* clean file folios are more likely to exist */
++	if (swappiness && !(sc->gfp_mask & __GFP_IO))
++		swappiness = 1;
+ 
+ 	while (true) {
+ 		int delta;
+-		int swappiness;
+-
+-		if (sc->may_swap)
+-			swappiness = get_swappiness(lruvec, sc);
+-		else if (!cgroup_reclaim(sc) && get_swappiness(lruvec, sc))
+-			swappiness = 1;
+-		else
+-			swappiness = 0;
+ 
+ 		nr_to_scan = get_nr_to_scan(lruvec, sc, swappiness);
+ 		if (nr_to_scan <= 0)
+@@ -5291,12 +5282,13 @@ static void lru_gen_shrink_lruvec(struct
+ 	struct blk_plug plug;
+ 
+ 	VM_WARN_ON_ONCE(global_reclaim(sc));
++	VM_WARN_ON_ONCE(!sc->may_writepage || !sc->may_unmap);
+ 
+ 	lru_add_drain();
+ 
+ 	blk_start_plug(&plug);
+ 
+-	set_mm_walk(lruvec_pgdat(lruvec));
++	set_mm_walk(NULL, sc->proactive);
+ 
+ 	if (try_to_shrink_lruvec(lruvec, sc))
+ 		lru_gen_rotate_memcg(lruvec, MEMCG_LRU_YOUNG);
+@@ -5352,11 +5344,19 @@ static void lru_gen_shrink_node(struct p
+ 
+ 	VM_WARN_ON_ONCE(!global_reclaim(sc));
+ 
++	/*
++	 * Unmapped clean folios are already prioritized. Scanning for more of
++	 * them is likely futile and can cause high reclaim latency when there
++	 * is a large number of memcgs.
++	 */
++	if (!sc->may_writepage || !sc->may_unmap)
++		goto done;
++
+ 	lru_add_drain();
+ 
+ 	blk_start_plug(&plug);
+ 
+-	set_mm_walk(pgdat);
++	set_mm_walk(pgdat, sc->proactive);
+ 
+ 	set_initial_priority(pgdat, sc);
+ 
+@@ -5374,7 +5374,7 @@ static void lru_gen_shrink_node(struct p
+ 	clear_mm_walk();
+ 
+ 	blk_finish_plug(&plug);
+-
++done:
+ 	/* kswapd should never fail */
+ 	pgdat->kswapd_failures = 0;
+ }
+@@ -5943,7 +5943,7 @@ static ssize_t lru_gen_seq_write(struct
+ 	set_task_reclaim_state(current, &sc.reclaim_state);
+ 	flags = memalloc_noreclaim_save();
+ 	blk_start_plug(&plug);
+-	if (!set_mm_walk(NULL)) {
++	if (!set_mm_walk(NULL, true)) {
+ 		err = -ENOMEM;
  		goto done;
  	}
 _
