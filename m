@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 398C2C38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7274AC678D4
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229991AbjASBTH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:19:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37810 "EHLO
+        id S229751AbjASBTI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:19:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229988AbjASBRM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:12 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD3A5689D2
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:23 -0800 (PST)
+        with ESMTP id S229892AbjASBRI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:08 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AD19689C0
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7CCC4B81F6C
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25E84C433F1;
-        Thu, 19 Jan 2023 01:15:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AE7E661B13
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13A93C433EF;
+        Thu, 19 Jan 2023 01:15:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090921;
-        bh=Y/DykVzeU7SFQSDUMivQnR1FhL3V2fW7EDDSQcIEb6E=;
+        s=korg; t=1674090918;
+        bh=W2OOTCrrKJATIgEen9dQYcXay0Gvi+CxYxy9Z17pAbg=;
         h=Date:To:From:Subject:From;
-        b=T//y1YAzRYUrvfsZEB7yM/FCwneR+BNLKu3haIZmF14v0FmtFfKBVh1Cxv/JrEDEX
-         kayq8LeOEfkzk/TKmHcky97r9G6Cij6nrV5XQ3PddL2w7oZzP0SP5pVCQCs6IzF3LG
-         6u6kwFfDB4sky87nVP6ysqD+mYH2DSZfH+vKpwZI=
-Date:   Wed, 18 Jan 2023 17:15:20 -0800
+        b=bFRfHcVKRHhWOEtcSzuLhduiShChjpIu5md5kE5tmm9Ae+VtYn7yX6oAxcS6XCI8a
+         4D3ZNUwA8piBzOoM9slm2r5m5Dbzmvb4A0fU0s9jz/e39dx/NLdEnEo9mQG1aa/SgJ
+         1P7MgEuzIuoP3VzbKosq0M394BOeQdDQ3Dn5mr5A=
+Date:   Wed, 18 Jan 2023 17:15:17 -0800
 To:     mm-commits@vger.kernel.org, surenb@google.com, rppt@kernel.org,
         roman.gushchin@linux.dev, Michael@MichaelLarabel.com,
         mhocko@kernel.org, hannes@cmpxchg.org, corbet@lwn.net,
         yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-remove-eviction-fairness-safeguard.patch removed from -mm tree
-Message-Id: <20230119011521.25E84C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio.patch removed from -mm tree
+Message-Id: <20230119011518.13A93C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,37 +43,121 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: remove eviction fairness safeguard
+     Subject: mm: multi-gen LRU: rename lru_gen_struct to lru_gen_folio
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-remove-eviction-fairness-safeguard.patch
+     mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: remove eviction fairness safeguard
-Date: Wed, 21 Dec 2022 21:19:01 -0700
+Subject: mm: multi-gen LRU: rename lru_gen_struct to lru_gen_folio
+Date: Wed, 21 Dec 2022 21:18:59 -0700
 
-Recall that the eviction consumes the oldest generation: first it
-bucket-sorts folios whose gen counters were updated by the aging and
-reclaims the rest; then it increments lrugen->min_seq.
+Patch series "mm: multi-gen LRU: memcg LRU", v3.
 
-The current eviction fairness safeguard for global reclaim has a
-dilemma: when there are multiple eligible memcgs, should it continue
-or stop upon meeting the reclaim goal? If it continues, it overshoots
-and increases direct reclaim latency; if it stops, it loses fairness
-between memcgs it has taken memory away from and those it has yet to.
+Overview
+========
 
-With memcg LRU, the eviction, while ensuring eventual fairness, will
-stop upon meeting its goal. Therefore the current eviction fairness
-safeguard for global reclaim will not be needed.
+An memcg LRU is a per-node LRU of memcgs.  It is also an LRU of LRUs,
+since each node and memcg combination has an LRU of folios (see
+mem_cgroup_lruvec()).
 
-Note that memcg LRU only applies to global reclaim. For memcg reclaim,
-the eviction will continue, even if it is overshooting. This becomes
-unconditional due to code simplification.
+Its goal is to improve the scalability of global reclaim, which is
+critical to system-wide memory overcommit in data centers.  Note that
+memcg reclaim is currently out of scope.
 
-Link: https://lkml.kernel.org/r/20221222041905.2431096-4-yuzhao@google.com
+Its memory bloat is a pointer to each lruvec and negligible to each
+pglist_data.  In terms of traversing memcgs during global reclaim, it
+improves the best-case complexity from O(n) to O(1) and does not affect
+the worst-case complexity O(n).  Therefore, on average, it has a sublinear
+complexity in contrast to the current linear complexity.
+
+The basic structure of an memcg LRU can be understood by an analogy to
+the active/inactive LRU (of folios):
+1. It has the young and the old (generations), i.e., the counterparts
+   to the active and the inactive;
+2. The increment of max_seq triggers promotion, i.e., the counterpart
+   to activation;
+3. Other events trigger similar operations, e.g., offlining an memcg
+   triggers demotion, i.e., the counterpart to deactivation.
+
+In terms of global reclaim, it has two distinct features:
+1. Sharding, which allows each thread to start at a random memcg (in
+   the old generation) and improves parallelism;
+2. Eventual fairness, which allows direct reclaim to bail out at will
+   and reduces latency without affecting fairness over some time.
+
+The commit message in patch 6 details the workflow:
+https://lore.kernel.org/r/20221222041905.2431096-7-yuzhao@google.com/
+
+The following is a simple test to quickly verify its effectiveness.
+
+  Test design:
+  1. Create multiple memcgs.
+  2. Each memcg contains a job (fio).
+  3. All jobs access the same amount of memory randomly.
+  4. The system does not experience global memory pressure.
+  5. Periodically write to the root memory.reclaim.
+
+  Desired outcome:
+  1. All memcgs have similar pgsteal counts, i.e., stddev(pgsteal)
+     over mean(pgsteal) is close to 0%.
+  2. The total pgsteal is close to the total requested through
+     memory.reclaim, i.e., sum(pgsteal) over sum(requested) is close
+     to 100%.
+
+  Actual outcome [1]:
+                                     MGLRU off    MGLRU on
+  stddev(pgsteal) / mean(pgsteal)    75%          20%
+  sum(pgsteal) / sum(requested)      425%         95%
+
+  ####################################################################
+  MEMCGS=128
+
+  for ((memcg = 0; memcg < $MEMCGS; memcg++)); do
+      mkdir /sys/fs/cgroup/memcg$memcg
+  done
+
+  start() {
+      echo $BASHPID > /sys/fs/cgroup/memcg$memcg/cgroup.procs
+
+      fio -name=memcg$memcg --numjobs=1 --ioengine=mmap \
+          --filename=/dev/zero --size=1920M --rw=randrw \
+          --rate=64m,64m --random_distribution=random \
+          --fadvise_hint=0 --time_based --runtime=10h \
+          --group_reporting --minimal
+  }
+
+  for ((memcg = 0; memcg < $MEMCGS; memcg++)); do
+      start &
+  done
+
+  sleep 600
+
+  for ((i = 0; i < 600; i++)); do
+      echo 256m >/sys/fs/cgroup/memory.reclaim
+      sleep 6
+  done
+
+  for ((memcg = 0; memcg < $MEMCGS; memcg++)); do
+      grep "pgsteal " /sys/fs/cgroup/memcg$memcg/memory.stat
+  done
+  ####################################################################
+
+[1]: This was obtained from running the above script (touches less
+     than 256GB memory) on an EPYC 7B13 with 512GB DRAM for over an
+     hour.
+
+
+This patch (of 8):
+
+The new name lru_gen_folio will be more distinct from the coming
+lru_gen_memcg.
+
+Link: https://lkml.kernel.org/r/20221222041905.2431096-1-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20221222041905.2431096-2-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -85,159 +169,236 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   81 ++++++++++++++------------------------------------
- 1 file changed, 23 insertions(+), 58 deletions(-)
+ include/linux/mm_inline.h |    4 ++--
+ include/linux/mmzone.h    |    6 +++---
+ mm/vmscan.c               |   34 +++++++++++++++++-----------------
+ mm/workingset.c           |    4 ++--
+ 4 files changed, 24 insertions(+), 24 deletions(-)
 
---- a/mm/vmscan.c~mm-multi-gen-lru-remove-eviction-fairness-safeguard
+--- a/include/linux/mm_inline.h~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
++++ a/include/linux/mm_inline.h
+@@ -178,7 +178,7 @@ static inline void lru_gen_update_size(s
+ 	int zone = folio_zonenum(folio);
+ 	int delta = folio_nr_pages(folio);
+ 	enum lru_list lru = type * LRU_INACTIVE_FILE;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	VM_WARN_ON_ONCE(old_gen != -1 && old_gen >= MAX_NR_GENS);
+ 	VM_WARN_ON_ONCE(new_gen != -1 && new_gen >= MAX_NR_GENS);
+@@ -224,7 +224,7 @@ static inline bool lru_gen_add_folio(str
+ 	int gen = folio_lru_gen(folio);
+ 	int type = folio_is_file_lru(folio);
+ 	int zone = folio_zonenum(folio);
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(gen != -1, folio);
+ 
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
++++ a/include/linux/mmzone.h
+@@ -404,7 +404,7 @@ enum {
+  * The number of pages in each generation is eventually consistent and therefore
+  * can be transiently negative when reset_batch_size() is pending.
+  */
+-struct lru_gen_struct {
++struct lru_gen_folio {
+ 	/* the aging increments the youngest generation number */
+ 	unsigned long max_seq;
+ 	/* the eviction increments the oldest generation numbers */
+@@ -461,7 +461,7 @@ struct lru_gen_mm_state {
+ struct lru_gen_mm_walk {
+ 	/* the lruvec under reclaim */
+ 	struct lruvec *lruvec;
+-	/* unstable max_seq from lru_gen_struct */
++	/* unstable max_seq from lru_gen_folio */
+ 	unsigned long max_seq;
+ 	/* the next address within an mm to scan */
+ 	unsigned long next_addr;
+@@ -524,7 +524,7 @@ struct lruvec {
+ 	unsigned long			flags;
+ #ifdef CONFIG_LRU_GEN
+ 	/* evictable pages divided into generations */
+-	struct lru_gen_struct		lrugen;
++	struct lru_gen_folio		lrugen;
+ 	/* to concurrently iterate lru_gen_mm_list */
+ 	struct lru_gen_mm_state		mm_state;
+ #endif
+--- a/mm/vmscan.c~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
 +++ a/mm/vmscan.c
-@@ -449,6 +449,11 @@ static bool cgroup_reclaim(struct scan_c
- 	return sc->target_mem_cgroup;
- }
+@@ -3215,7 +3215,7 @@ static int get_nr_gens(struct lruvec *lr
  
-+static bool global_reclaim(struct scan_control *sc)
-+{
-+	return !sc->target_mem_cgroup || mem_cgroup_is_root(sc->target_mem_cgroup);
-+}
-+
- /**
-  * writeback_throttling_sane - is the usual dirty throttling mechanism available?
-  * @sc: scan_control in question
-@@ -499,6 +504,11 @@ static bool cgroup_reclaim(struct scan_c
- 	return false;
- }
- 
-+static bool global_reclaim(struct scan_control *sc)
-+{
-+	return true;
-+}
-+
- static bool writeback_throttling_sane(struct scan_control *sc)
+ static bool __maybe_unused seq_is_valid(struct lruvec *lruvec)
  {
- 	return true;
-@@ -5006,8 +5016,7 @@ static int isolate_folios(struct lruvec
- 	return scanned;
- }
- 
--static int evict_folios(struct lruvec *lruvec, struct scan_control *sc, int swappiness,
--			bool *need_swapping)
-+static int evict_folios(struct lruvec *lruvec, struct scan_control *sc, int swappiness)
+-	/* see the comment on lru_gen_struct */
++	/* see the comment on lru_gen_folio */
+ 	return get_nr_gens(lruvec, LRU_GEN_FILE) >= MIN_NR_GENS &&
+ 	       get_nr_gens(lruvec, LRU_GEN_FILE) <= get_nr_gens(lruvec, LRU_GEN_ANON) &&
+ 	       get_nr_gens(lruvec, LRU_GEN_ANON) <= MAX_NR_GENS;
+@@ -3612,7 +3612,7 @@ struct ctrl_pos {
+ static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier, int gain,
+ 			  struct ctrl_pos *pos)
  {
- 	int type;
- 	int scanned;
-@@ -5096,9 +5105,6 @@ retry:
- 		goto retry;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	int hist = lru_hist_from_seq(lrugen->min_seq[type]);
+ 
+ 	pos->refaulted = lrugen->avg_refaulted[type][tier] +
+@@ -3627,7 +3627,7 @@ static void read_ctrl_pos(struct lruvec
+ static void reset_ctrl_pos(struct lruvec *lruvec, int type, bool carryover)
+ {
+ 	int hist, tier;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	bool clear = carryover ? NR_HIST_GENS == 1 : NR_HIST_GENS > 1;
+ 	unsigned long seq = carryover ? lrugen->min_seq[type] : lrugen->max_seq + 1;
+ 
+@@ -3704,7 +3704,7 @@ static int folio_update_gen(struct folio
+ static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
+ {
+ 	int type = folio_is_file_lru(folio);
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
+ 	unsigned long new_flags, old_flags = READ_ONCE(folio->flags);
+ 
+@@ -3749,7 +3749,7 @@ static void update_batch_size(struct lru
+ static void reset_batch_size(struct lruvec *lruvec, struct lru_gen_mm_walk *walk)
+ {
+ 	int gen, type, zone;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	walk->batched = 0;
+ 
+@@ -4263,7 +4263,7 @@ static bool inc_min_seq(struct lruvec *l
+ {
+ 	int zone;
+ 	int remaining = MAX_LRU_BATCH;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
+ 
+ 	if (type == LRU_GEN_ANON && !can_swap)
+@@ -4299,7 +4299,7 @@ static bool try_to_inc_min_seq(struct lr
+ {
+ 	int gen, type, zone;
+ 	bool success = false;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	DEFINE_MIN_SEQ(lruvec);
+ 
+ 	VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
+@@ -4320,7 +4320,7 @@ next:
+ 		;
  	}
  
--	if (need_swapping && type == LRU_GEN_ANON)
--		*need_swapping = true;
--
- 	return scanned;
- }
- 
-@@ -5138,67 +5144,26 @@ done:
- 	return min_seq[!can_swap] + MIN_NR_GENS <= max_seq ? nr_to_scan : 0;
- }
- 
--static bool should_abort_scan(struct lruvec *lruvec, unsigned long seq,
--			      struct scan_control *sc, bool need_swapping)
-+static unsigned long get_nr_to_reclaim(struct scan_control *sc)
+-	/* see the comment on lru_gen_struct */
++	/* see the comment on lru_gen_folio */
+ 	if (can_swap) {
+ 		min_seq[LRU_GEN_ANON] = min(min_seq[LRU_GEN_ANON], min_seq[LRU_GEN_FILE]);
+ 		min_seq[LRU_GEN_FILE] = max(min_seq[LRU_GEN_ANON], lrugen->min_seq[LRU_GEN_FILE]);
+@@ -4342,7 +4342,7 @@ static void inc_max_seq(struct lruvec *l
  {
--	int i;
--	DEFINE_MAX_SEQ(lruvec);
--
--	if (!current_is_kswapd()) {
--		/* age each memcg at most once to ensure fairness */
--		if (max_seq - seq > 1)
--			return true;
--
--		/* over-swapping can increase allocation latency */
--		if (sc->nr_reclaimed >= sc->nr_to_reclaim && need_swapping)
--			return true;
--
--		/* give this thread a chance to exit and free its memory */
--		if (fatal_signal_pending(current)) {
--			sc->nr_reclaimed += MIN_LRU_BATCH;
--			return true;
--		}
--
--		if (cgroup_reclaim(sc))
--			return false;
--	} else if (sc->nr_reclaimed - sc->last_reclaimed < sc->nr_to_reclaim)
--		return false;
--
--	/* keep scanning at low priorities to ensure fairness */
--	if (sc->priority > DEF_PRIORITY - 2)
--		return false;
--
--	/*
--	 * A minimum amount of work was done under global memory pressure. For
--	 * kswapd, it may be overshooting. For direct reclaim, the allocation
--	 * may succeed if all suitable zones are somewhat safe. In either case,
--	 * it's better to stop now, and restart later if necessary.
--	 */
--	for (i = 0; i <= sc->reclaim_idx; i++) {
--		unsigned long wmark;
--		struct zone *zone = lruvec_pgdat(lruvec)->node_zones + i;
--
--		if (!managed_zone(zone))
--			continue;
--
--		wmark = current_is_kswapd() ? high_wmark_pages(zone) : low_wmark_pages(zone);
--		if (wmark > zone_page_state(zone, NR_FREE_PAGES))
--			return false;
--	}
-+	/* don't abort memcg reclaim to ensure fairness */
-+	if (!global_reclaim(sc))
-+		return -1;
+ 	int prev, next;
+ 	int type, zone;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
  
--	sc->nr_reclaimed += MIN_LRU_BATCH;
-+	/* discount the previous progress for kswapd */
-+	if (current_is_kswapd())
-+		return sc->nr_to_reclaim + sc->last_reclaimed;
+ 	spin_lock_irq(&lruvec->lru_lock);
  
--	return true;
-+	return max(sc->nr_to_reclaim, compact_gap(sc->order));
- }
+@@ -4400,7 +4400,7 @@ static bool try_to_inc_max_seq(struct lr
+ 	bool success;
+ 	struct lru_gen_mm_walk *walk;
+ 	struct mm_struct *mm = NULL;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
  
- static void lru_gen_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
+ 	VM_WARN_ON_ONCE(max_seq > READ_ONCE(lrugen->max_seq));
+ 
+@@ -4465,7 +4465,7 @@ static bool should_run_aging(struct lruv
+ 	unsigned long old = 0;
+ 	unsigned long young = 0;
+ 	unsigned long total = 0;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 
+ 	for (type = !can_swap; type < ANON_AND_FILE; type++) {
+@@ -4750,7 +4750,7 @@ static bool sort_folio(struct lruvec *lr
+ 	int delta = folio_nr_pages(folio);
+ 	int refs = folio_lru_refs(folio);
+ 	int tier = lru_tier_from_refs(refs);
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(gen >= MAX_NR_GENS, folio);
+ 
+@@ -4850,7 +4850,7 @@ static int scan_folios(struct lruvec *lr
+ 	int scanned = 0;
+ 	int isolated = 0;
+ 	int remaining = MAX_LRU_BATCH;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 
+ 	VM_WARN_ON_ONCE(!list_empty(list));
+@@ -5251,7 +5251,7 @@ done:
+ 
+ static bool __maybe_unused state_is_valid(struct lruvec *lruvec)
  {
- 	struct blk_plug plug;
- 	bool need_aging = false;
--	bool need_swapping = false;
- 	unsigned long scanned = 0;
- 	unsigned long reclaimed = sc->nr_reclaimed;
--	DEFINE_MAX_SEQ(lruvec);
-+	unsigned long nr_to_reclaim = get_nr_to_reclaim(sc);
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
  
- 	lru_add_drain();
+ 	if (lrugen->enabled) {
+ 		enum lru_list lru;
+@@ -5530,7 +5530,7 @@ static void lru_gen_seq_show_full(struct
+ 	int i;
+ 	int type, tier;
+ 	int hist = lru_hist_from_seq(seq);
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
  
-@@ -5222,7 +5187,7 @@ static void lru_gen_shrink_lruvec(struct
- 		if (!nr_to_scan)
- 			goto done;
+ 	for (tier = 0; tier < MAX_NR_TIERS; tier++) {
+ 		seq_printf(m, "            %10d", tier);
+@@ -5580,7 +5580,7 @@ static int lru_gen_seq_show(struct seq_f
+ 	unsigned long seq;
+ 	bool full = !debugfs_real_fops(m->file)->write;
+ 	struct lruvec *lruvec = v;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	int nid = lruvec_pgdat(lruvec)->node_id;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MAX_SEQ(lruvec);
+@@ -5834,7 +5834,7 @@ void lru_gen_init_lruvec(struct lruvec *
+ {
+ 	int i;
+ 	int gen, type, zone;
+-	struct lru_gen_struct *lrugen = &lruvec->lrugen;
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
  
--		delta = evict_folios(lruvec, sc, swappiness, &need_swapping);
-+		delta = evict_folios(lruvec, sc, swappiness);
- 		if (!delta)
- 			goto done;
- 
-@@ -5230,7 +5195,7 @@ static void lru_gen_shrink_lruvec(struct
- 		if (scanned >= nr_to_scan)
- 			break;
- 
--		if (should_abort_scan(lruvec, max_seq, sc, need_swapping))
-+		if (sc->nr_reclaimed >= nr_to_reclaim)
- 			break;
- 
- 		cond_resched();
-@@ -5677,7 +5642,7 @@ static int run_eviction(struct lruvec *l
- 		if (sc->nr_reclaimed >= nr_to_reclaim)
- 			return 0;
- 
--		if (!evict_folios(lruvec, sc, swappiness, NULL))
-+		if (!evict_folios(lruvec, sc, swappiness))
- 			return 0;
- 
- 		cond_resched();
+ 	lrugen->max_seq = MIN_NR_GENS + 1;
+ 	lrugen->enabled = lru_gen_enabled();
+--- a/mm/workingset.c~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
++++ a/mm/workingset.c
+@@ -223,7 +223,7 @@ static void *lru_gen_eviction(struct fol
+ 	unsigned long token;
+ 	unsigned long min_seq;
+ 	struct lruvec *lruvec;
+-	struct lru_gen_struct *lrugen;
++	struct lru_gen_folio *lrugen;
+ 	int type = folio_is_file_lru(folio);
+ 	int delta = folio_nr_pages(folio);
+ 	int refs = folio_lru_refs(folio);
+@@ -252,7 +252,7 @@ static void lru_gen_refault(struct folio
+ 	unsigned long token;
+ 	unsigned long min_seq;
+ 	struct lruvec *lruvec;
+-	struct lru_gen_struct *lrugen;
++	struct lru_gen_folio *lrugen;
+ 	struct mem_cgroup *memcg;
+ 	struct pglist_data *pgdat;
+ 	int type = folio_is_file_lru(folio);
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
