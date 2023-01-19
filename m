@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E765C38159
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Jan 2023 23:59:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B34EEC38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:03:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229796AbjARX7z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 18:59:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36584 "EHLO
+        id S229866AbjASBCz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:02:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230305AbjARX7f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 18:59:35 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96C0B3E635
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 15:59:34 -0800 (PST)
+        with ESMTP id S229483AbjASBCt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:02:49 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08922683CF;
+        Wed, 18 Jan 2023 17:02:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5020BB81EE2
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 23:59:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1FF3C433D2;
-        Wed, 18 Jan 2023 23:59:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7C1CF61B08;
+        Thu, 19 Jan 2023 01:02:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5D6DC433D2;
+        Thu, 19 Jan 2023 01:02:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674086372;
-        bh=DynjpTiUkwhXwrm8cGLV3lHUYFnv2LUjghG4oRVSgyM=;
+        s=korg; t=1674090166;
+        bh=uzD8Ka8JTx/epQ3MAVqfduaJNtunGYzsoPt7QvN+Bu4=;
         h=Date:To:From:Subject:From;
-        b=CBup8jm0jGsi3NuiW1aFuYwFDLBvwmj25rzOMoVfKGeyJB9x7t44nSDGmn5o8EaZt
-         W3DVWazj6alhJhAMw87Odxw/8lxVCZIEu3+A0o7AXym4E3YQFfOK4QrxJWgjYT6Rlj
-         dNTcf5xruzEYQjN+1cYHrpk5WUruggyurk2wWouM=
-Date:   Wed, 18 Jan 2023 15:59:31 -0800
-To:     mm-commits@vger.kernel.org, anshuman.khandual@arm.com,
-        fvdl@google.com, akpm@linux-foundation.org
+        b=d4Aqfv0xhM1k0oiB/z+r+KEzQYGvyNEyW9KWs1GYc4Mv9zJnSAyTHlU0l244f1VyZ
+         Ub+CrX89j0xA2zDzfUTLDF+iZuCQa37i/UZ3um0jqSOx7VymOJp9Pn77sXmzqJJhPp
+         CnLWtFtKyUgTmcVCSOF1XnohIoJ5fYt1IakICnmo=
+Date:   Wed, 18 Jan 2023 17:02:46 -0800
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        stable@vger.kernel.org, pengfei.xu@intel.com, nadav.amit@gmail.com,
+        linmiaohe@huawei.com, david@redhat.com, aarcange@redhat.com,
+        peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-debug-use-valid-physical-memory-for-pmd-pud-tests-v3.patch removed from -mm tree
-Message-Id: <20230118235931.F1FF3C433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-uffd-fix-pte-marker-when-fork-without-fork-event.patch removed from -mm tree
+Message-Id: <20230119010246.D5D6DC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,66 +43,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-debug-use-valid-physical-memory-for-pmd-pud-tests-v3
+     Subject: mm/uffd: fix pte marker when fork() without fork event
 has been removed from the -mm tree.  Its filename was
-     mm-debug-use-valid-physical-memory-for-pmd-pud-tests-v3.patch
+     mm-uffd-fix-pte-marker-when-fork-without-fork-event.patch
 
-This patch was dropped because it was folded into mm-debug-use-valid-physical-memory-for-pmd-pud-tests.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Frank van der Linden <fvdl@google.com>
-Subject: mm-debug-use-valid-physical-memory-for-pmd-pud-tests-v3
-Date: Tue, 10 Jan 2023 18:12:08 +0000
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/uffd: fix pte marker when fork() without fork event
+Date: Wed, 14 Dec 2022 15:04:52 -0500
 
-Link: https://lkml.kernel.org/r/20230110181208.1633879-1-fvdl@google.com
-Fixes: 399145f9eb6c ("mm/debug: add tests validating architecture page table helpers")
-Signed-off-by: Frank van der Linden <fvdl@google.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Patch series "mm: Fixes on pte markers".
+
+Patch 1 resolves the syzkiller report from Pengfei.
+
+Patch 2 further harden pte markers when used with the recent swapin error
+markers.  The major case is we should persist a swapin error marker after
+fork(), so child shouldn't read a corrupted page.
+
+
+This patch (of 2):
+
+When fork(), dst_vma is not guaranteed to have VM_UFFD_WP even if src may
+have it and has pte marker installed.  The warning is improper along with
+the comment.  The right thing is to inherit the pte marker when needed, or
+keep the dst pte empty.
+
+A vague guess is this happened by an accident when there's the prior patch
+to introduce src/dst vma into this helper during the uffd-wp feature got
+developed and I probably messed up in the rebase, since if we replace
+dst_vma with src_vma the warning & comment it all makes sense too.
+
+Hugetlb did exactly the right here (copy_hugetlb_page_range()).  Fix the
+general path.
+
+Reproducer:
+
+https://github.com/xupengfe/syzkaller_logs/blob/main/221208_115556_copy_page_range/repro.c
+
+Bugzilla report: https://bugzilla.kernel.org/show_bug.cgi?id=216808
+
+Link: https://lkml.kernel.org/r/20221214200453.1772655-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20221214200453.1772655-2-peterx@redhat.com
+Fixes: c56d1b62cce8 ("mm/shmem: handle uffd-wp during fork()")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Pengfei Xu <pengfei.xu@intel.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: <stable@vger.kernel.org> # 5.19+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/memory.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug-use-valid-physical-memory-for-pmd-pud-tests-v3
-+++ a/mm/debug_vm_pgtable.c
-@@ -1089,8 +1089,8 @@ debug_vm_pgtable_alloc_huge_page(struct
-  * it's not used on x86.
-  */
- static void  __init phys_align_check(phys_addr_t pstart,
--	phys_addr_t pend, unsigned long psize, phys_addr_t *physp,
--	unsigned long *alignp)
-+				     phys_addr_t pend, unsigned long psize,
-+				     phys_addr_t *physp, unsigned long *alignp)
- {
- 	phys_addr_t aligned_start, aligned_end;
- 
-@@ -1133,20 +1133,19 @@ static void __init init_fixed_pfns(struc
- 	for_each_mem_range(idx, &pstart, &pend) {
- 		/* First check for a PUD-aligned area */
- 		phys_align_check(pstart, pend, PUD_SIZE, &phys,
--				&args->fixed_alignment);
-+				 &args->fixed_alignment);
- 
- 		/* If a PUD-aligned area is found, we're done */
--		if (args->fixed_alignment >= PUD_SIZE)
-+		if (args->fixed_alignment == PUD_SIZE)
- 			break;
- 
- 		/*
- 		 * If no PMD-aligned area found yet, check for one,
- 		 * but continue the loop to look for a PUD-aligned area.
- 		 */
--		if (args->fixed_alignment < PMD_SIZE) {
-+		if (args->fixed_alignment < PMD_SIZE)
- 			phys_align_check(pstart, pend, PMD_SIZE, &phys,
--					&args->fixed_alignment);
--		}
-+					 &args->fixed_alignment);
+--- a/mm/memory.c~mm-uffd-fix-pte-marker-when-fork-without-fork-event
++++ a/mm/memory.c
+@@ -828,12 +828,8 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 			return -EBUSY;
+ 		return -ENOENT;
+ 	} else if (is_pte_marker_entry(entry)) {
+-		/*
+-		 * We're copying the pgtable should only because dst_vma has
+-		 * uffd-wp enabled, do sanity check.
+-		 */
+-		WARN_ON_ONCE(!userfaultfd_wp(dst_vma));
+-		set_pte_at(dst_mm, addr, dst_pte, pte);
++		if (userfaultfd_wp(dst_vma))
++			set_pte_at(dst_mm, addr, dst_pte, pte);
+ 		return 0;
  	}
- 
- 	args->fixed_pgd_pfn = __phys_to_pfn(phys & PGDIR_MASK);
+ 	if (!userfaultfd_wp(dst_vma))
 _
 
-Patches currently in -mm which might be from fvdl@google.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-debug-use-valid-physical-memory-for-pmd-pud-tests.patch
+selftests-vm-remove-__use_gnu-in-hugetlb-madvisec.patch
+mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp.patch
+mm-mprotect-use-long-for-page-accountings-and-retval.patch
+mm-uffd-detect-pgtable-allocation-failures.patch
+mm-hugetlb-let-vma_offset_start-to-return-start.patch
+mm-hugetlb-dont-wait-for-migration-entry-during-follow-page.patch
+mm-hugetlb-document-huge_pte_offset-usage.patch
+mm-hugetlb-move-swap-entry-handling-into-vma-lock-when-faulted.patch
+mm-hugetlb-make-userfaultfd_huge_must_wait-safe-to-pmd-unshare.patch
+mm-hugetlb-make-hugetlb_follow_page_mask-safe-to-pmd-unshare.patch
+mm-hugetlb-make-follow_hugetlb_page-safe-to-pmd-unshare.patch
+mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare.patch
+mm-hugetlb-introduce-hugetlb_walk.patch
 
