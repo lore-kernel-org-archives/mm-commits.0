@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B0F1C46467
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 22:57:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ED3BC6379F
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 23:00:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230043AbjASW50 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 Jan 2023 17:57:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47632 "EHLO
+        id S229826AbjASXAD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 Jan 2023 18:00:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230034AbjASW5A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jan 2023 17:57:00 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CC38524E
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 14:40:23 -0800 (PST)
+        with ESMTP id S229656AbjASW7O (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jan 2023 17:59:14 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F2AF5143C
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 14:47:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2975B61D8E
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 22:40:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80752C433F0;
-        Thu, 19 Jan 2023 22:40:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 11CAF61D78
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 22:47:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E3A7C433D2;
+        Thu, 19 Jan 2023 22:47:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674168022;
-        bh=5IIR23Fj68jbGffs6cwdoP69zqDHsQBR1VXe/TTYlTg=;
+        s=korg; t=1674168467;
+        bh=MDlMckS9ChYQ+Z9vjRxMEtP6vy9jF51YEEbfP1BuvyY=;
         h=Date:To:From:Subject:From;
-        b=a+GbIOCHoEbzfF8myV1+QR5U+R3rc1JnZKZVZXIKt6yUVp+3pzb8Xe5VnYTTm8t8M
-         ADmMvGVcu2JsWzlAdtfcOXZbOVcgXAGpO3BPHip6LglkB03JIiqiWzJ/MukBjRey/E
-         IvGJm97iT3N2+2tlnQ0joTXcDg6f06eXBwbHafbo=
-Date:   Thu, 19 Jan 2023 14:40:21 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@kernel.org,
-        peterz@infradead.org, nathan@kernel.org,
-        mirsad.todorovac@alu.unizg.hr, ke.wang@unisoc.com,
-        catalin.marinas@arm.com, zhaoyang.huang@unisoc.com,
+        b=BQgtMRAbtIZak+eU5m6tFw1B3gjnsg2JNF6/uwnkgOYSko1CmYk0aZHnKD73H/7yd
+         +YpU9mDbHLV8DnnbQC/4p7d1RwQ8Sbd7aQSjJHSo1EkBtsP2K1kbs7Q7OYzgANkTyf
+         akVXazqPE64+nLD0VfZjPJBDDkVoqevNecwQnV7c=
+Date:   Thu, 19 Jan 2023 14:47:46 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, talumbau@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-stack_depot_early_init-for-kmemleak.patch added to mm-unstable branch
-Message-Id: <20230119224022.80752C433F0@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-section-for-bloom-filters.patch added to mm-unstable branch
+Message-Id: <20230119224747.5E3A7C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use stack_depot_early_init for kmemleak
+     Subject: mm: multi-gen LRU: section for Bloom filters
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-stack_depot_early_init-for-kmemleak.patch
+     mm-multi-gen-lru-section-for-bloom-filters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-stack_depot_early_init-for-kmemleak.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-section-for-bloom-filters.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,76 +64,251 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Subject: mm: use stack_depot_early_init for kmemleak
-Date: Thu, 19 Jan 2023 09:22:25 +0800
+From: "T.J. Alumbaugh" <talumbau@google.com>
+Subject: mm: multi-gen LRU: section for Bloom filters
+Date: Wed, 18 Jan 2023 00:18:23 +0000
 
-Mirsad report the below error which is caused by stack_depot_init()
-failure in kvcalloc.  Solve this by having stackdepot use
-stack_depot_early_init().
+Move Bloom filters code into a dedicated section.  Improve the design doc
+to explain Bloom filter usage and connection between aging and eviction in
+their use.
 
-On 1/4/23 17:08, Mirsad Goran Todorovac wrote:
-I hate to bring bad news again, but there seems to be a problem with the output of /sys/kernel/debug/kmemleak:
-
-[root@pc-mtodorov ~]# cat /sys/kernel/debug/kmemleak
-unreferenced object 0xffff951c118568b0 (size 16):
-comm "kworker/u12:2", pid 56, jiffies 4294893952 (age 4356.548s)
-hex dump (first 16 bytes):
-    6d 65 6d 73 74 69 63 6b 30 00 00 00 00 00 00 00 memstick0.......
-    backtrace:
-[root@pc-mtodorov ~]#
-
-Apparently, backtrace of called functions on the stack is no longer printed with the list of memory leaks.
-This appeared on Lenovo desktop 10TX000VCR, with AlmaLinux 8.7 and BIOS version M22KT49A (11/10/2022)
-and 6.2-rc1 and 6.2-rc2 builds.
-This worked on 6.1 with the same CONFIG_KMEMLEAK=y and MGLRU enabled on a vanilla mainstream kernel
-from Mr. Torvalds' tree. I don't know if this is deliberate feature for some reason or a bug.
-Please find attached the config, lshw and kmemleak output.
-
-Link: https://lore.kernel.org/all/5272a819-ef74-65ff-be61-4d2d567337de@alu.unizg.hr/
-Link: https://lkml.kernel.org/r/1674091345-14799-2-git-send-email-zhaoyang.huang@unisoc.com
-Fixes: 56a61617dd22 ("mm: use stack_depot for recording kmemleak's backtrace")
-Reported-by: Mirsad Todorovac <mirsad.todorovac@alu.unizg.hr>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: ke.wang <ke.wang@unisoc.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20230118001827.1040870-4-talumbau@google.com
+Signed-off-by: T.J. Alumbaugh <talumbau@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/Kconfig.debug~mm-use-stack_depot_early_init-for-kmemleak
-+++ a/mm/Kconfig.debug
-@@ -219,6 +219,7 @@ config DEBUG_KMEMLEAK
- 	select KALLSYMS
- 	select CRC32
- 	select STACKDEPOT
-+	select STACKDEPOT_ALWAYS_INIT if !DEBUG_KMEMLEAK_DEFAULT_OFF
- 	help
- 	  Say Y here if you want to enable the memory leak
- 	  detector. The memory allocation/freeing is traced in a way
---- a/mm/kmemleak.c~mm-use-stack_depot_early_init-for-kmemleak
-+++ a/mm/kmemleak.c
-@@ -2069,8 +2069,10 @@ static int __init kmemleak_boot_config(c
- 		return -EINVAL;
- 	if (strcmp(str, "off") == 0)
- 		kmemleak_disable();
--	else if (strcmp(str, "on") == 0)
-+	else if (strcmp(str, "on") == 0) {
- 		kmemleak_skip_disable = 1;
-+		stack_depot_want_early_init();
+--- a/Documentation/mm/multigen_lru.rst~mm-multi-gen-lru-section-for-bloom-filters
++++ a/Documentation/mm/multigen_lru.rst
+@@ -170,6 +170,22 @@ promotes hot pages. If the scan was done
+ adds the PMD entry pointing to the PTE table to the Bloom filter. This
+ forms a feedback loop between the eviction and the aging.
+ 
++Bloom Filters
++-------------
++Bloom filters are a space and memory efficient data structure for set
++membership test, i.e., test if an element is not in the set or may be
++in the set.
++
++In the eviction path, specifically, in ``lru_gen_look_around()``, if a
++PMD has a sufficient number of hot pages, its address is placed in the
++filter. In the aging path, set membership means that the PTE range
++will be scanned for young pages.
++
++Note that Bloom filters are probabilistic on set membership. If a test
++is false positive, the cost is an additional scan of a range of PTEs,
++which may yield hot pages anyway. Parameters of the filter itself can
++control the false positive rate in the limit.
++
+ Summary
+ -------
+ The multi-gen LRU can be disassembled into the following parts:
+--- a/mm/vmscan.c~mm-multi-gen-lru-section-for-bloom-filters
++++ a/mm/vmscan.c
+@@ -3234,6 +3234,98 @@ static bool __maybe_unused seq_is_valid(
+ }
+ 
+ /******************************************************************************
++ *                          Bloom filters
++ ******************************************************************************/
++
++/*
++ * Bloom filters with m=1<<15, k=2 and the false positive rates of ~1/5 when
++ * n=10,000 and ~1/2 when n=20,000, where, conventionally, m is the number of
++ * bits in a bitmap, k is the number of hash functions and n is the number of
++ * inserted items.
++ *
++ * Page table walkers use one of the two filters to reduce their search space.
++ * To get rid of non-leaf entries that no longer have enough leaf entries, the
++ * aging uses the double-buffering technique to flip to the other filter each
++ * time it produces a new generation. For non-leaf entries that have enough
++ * leaf entries, the aging carries them over to the next generation in
++ * walk_pmd_range(); the eviction also report them when walking the rmap
++ * in lru_gen_look_around().
++ *
++ * For future optimizations:
++ * 1. It's not necessary to keep both filters all the time. The spare one can be
++ *    freed after the RCU grace period and reallocated if needed again.
++ * 2. And when reallocating, it's worth scaling its size according to the number
++ *    of inserted entries in the other filter, to reduce the memory overhead on
++ *    small systems and false positives on large systems.
++ * 3. Jenkins' hash function is an alternative to Knuth's.
++ */
++#define BLOOM_FILTER_SHIFT	15
++
++static inline int filter_gen_from_seq(unsigned long seq)
++{
++	return seq % NR_BLOOM_FILTERS;
++}
++
++static void get_item_key(void *item, int *key)
++{
++	u32 hash = hash_ptr(item, BLOOM_FILTER_SHIFT * 2);
++
++	BUILD_BUG_ON(BLOOM_FILTER_SHIFT * 2 > BITS_PER_TYPE(u32));
++
++	key[0] = hash & (BIT(BLOOM_FILTER_SHIFT) - 1);
++	key[1] = hash >> BLOOM_FILTER_SHIFT;
++}
++
++static bool test_bloom_filter(struct lruvec *lruvec, unsigned long seq, void *item)
++{
++	int key[2];
++	unsigned long *filter;
++	int gen = filter_gen_from_seq(seq);
++
++	filter = READ_ONCE(lruvec->mm_state.filters[gen]);
++	if (!filter)
++		return true;
++
++	get_item_key(item, key);
++
++	return test_bit(key[0], filter) && test_bit(key[1], filter);
++}
++
++static void update_bloom_filter(struct lruvec *lruvec, unsigned long seq, void *item)
++{
++	int key[2];
++	unsigned long *filter;
++	int gen = filter_gen_from_seq(seq);
++
++	filter = READ_ONCE(lruvec->mm_state.filters[gen]);
++	if (!filter)
++		return;
++
++	get_item_key(item, key);
++
++	if (!test_bit(key[0], filter))
++		set_bit(key[0], filter);
++	if (!test_bit(key[1], filter))
++		set_bit(key[1], filter);
++}
++
++static void reset_bloom_filter(struct lruvec *lruvec, unsigned long seq)
++{
++	unsigned long *filter;
++	int gen = filter_gen_from_seq(seq);
++
++	filter = lruvec->mm_state.filters[gen];
++	if (filter) {
++		bitmap_clear(filter, 0, BIT(BLOOM_FILTER_SHIFT));
++		return;
 +	}
- 	else
- 		return -EINVAL;
- 	return 0;
++
++	filter = bitmap_zalloc(BIT(BLOOM_FILTER_SHIFT),
++			       __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
++	WRITE_ONCE(lruvec->mm_state.filters[gen], filter);
++}
++
++/******************************************************************************
+  *                          mm_struct list
+  ******************************************************************************/
+ 
+@@ -3352,94 +3444,6 @@ void lru_gen_migrate_mm(struct mm_struct
+ }
+ #endif
+ 
+-/*
+- * Bloom filters with m=1<<15, k=2 and the false positive rates of ~1/5 when
+- * n=10,000 and ~1/2 when n=20,000, where, conventionally, m is the number of
+- * bits in a bitmap, k is the number of hash functions and n is the number of
+- * inserted items.
+- *
+- * Page table walkers use one of the two filters to reduce their search space.
+- * To get rid of non-leaf entries that no longer have enough leaf entries, the
+- * aging uses the double-buffering technique to flip to the other filter each
+- * time it produces a new generation. For non-leaf entries that have enough
+- * leaf entries, the aging carries them over to the next generation in
+- * walk_pmd_range(); the eviction also report them when walking the rmap
+- * in lru_gen_look_around().
+- *
+- * For future optimizations:
+- * 1. It's not necessary to keep both filters all the time. The spare one can be
+- *    freed after the RCU grace period and reallocated if needed again.
+- * 2. And when reallocating, it's worth scaling its size according to the number
+- *    of inserted entries in the other filter, to reduce the memory overhead on
+- *    small systems and false positives on large systems.
+- * 3. Jenkins' hash function is an alternative to Knuth's.
+- */
+-#define BLOOM_FILTER_SHIFT	15
+-
+-static inline int filter_gen_from_seq(unsigned long seq)
+-{
+-	return seq % NR_BLOOM_FILTERS;
+-}
+-
+-static void get_item_key(void *item, int *key)
+-{
+-	u32 hash = hash_ptr(item, BLOOM_FILTER_SHIFT * 2);
+-
+-	BUILD_BUG_ON(BLOOM_FILTER_SHIFT * 2 > BITS_PER_TYPE(u32));
+-
+-	key[0] = hash & (BIT(BLOOM_FILTER_SHIFT) - 1);
+-	key[1] = hash >> BLOOM_FILTER_SHIFT;
+-}
+-
+-static void reset_bloom_filter(struct lruvec *lruvec, unsigned long seq)
+-{
+-	unsigned long *filter;
+-	int gen = filter_gen_from_seq(seq);
+-
+-	filter = lruvec->mm_state.filters[gen];
+-	if (filter) {
+-		bitmap_clear(filter, 0, BIT(BLOOM_FILTER_SHIFT));
+-		return;
+-	}
+-
+-	filter = bitmap_zalloc(BIT(BLOOM_FILTER_SHIFT),
+-			       __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
+-	WRITE_ONCE(lruvec->mm_state.filters[gen], filter);
+-}
+-
+-static void update_bloom_filter(struct lruvec *lruvec, unsigned long seq, void *item)
+-{
+-	int key[2];
+-	unsigned long *filter;
+-	int gen = filter_gen_from_seq(seq);
+-
+-	filter = READ_ONCE(lruvec->mm_state.filters[gen]);
+-	if (!filter)
+-		return;
+-
+-	get_item_key(item, key);
+-
+-	if (!test_bit(key[0], filter))
+-		set_bit(key[0], filter);
+-	if (!test_bit(key[1], filter))
+-		set_bit(key[1], filter);
+-}
+-
+-static bool test_bloom_filter(struct lruvec *lruvec, unsigned long seq, void *item)
+-{
+-	int key[2];
+-	unsigned long *filter;
+-	int gen = filter_gen_from_seq(seq);
+-
+-	filter = READ_ONCE(lruvec->mm_state.filters[gen]);
+-	if (!filter)
+-		return true;
+-
+-	get_item_key(item, key);
+-
+-	return test_bit(key[0], filter) && test_bit(key[1], filter);
+-}
+-
+ static void reset_mm_stats(struct lruvec *lruvec, struct lru_gen_mm_walk *walk, bool last)
+ {
+ 	int i;
 _
 
-Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
+Patches currently in -mm which might be from talumbau@google.com are
 
-mm-move-kmemleaks-kconfig-items-from-lib-to-mm.patch
-mm-use-stack_depot_early_init-for-kmemleak.patch
+mm-multi-gen-lru-section-for-working-set-protection.patch
+mm-multi-gen-lru-section-for-rmap-pt-walk-feedback.patch
+mm-multi-gen-lru-section-for-bloom-filters.patch
+mm-multi-gen-lru-section-for-memcg-lru.patch
+mm-multi-gen-lru-improve-lru_gen_exit_memcg.patch
+mm-multi-gen-lru-improve-walk_pmd_range.patch
+mm-multi-gen-lru-simplify-lru_gen_look_around.patch
 
