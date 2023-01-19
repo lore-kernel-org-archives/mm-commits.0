@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A8FBC678D4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A148CC678D6
 	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:22:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230053AbjASBWP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:22:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40454 "EHLO
+        id S229969AbjASBWR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:22:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229969AbjASBUF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:20:05 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDC254903B
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:53 -0800 (PST)
+        with ESMTP id S230015AbjASBUJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:20:09 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BF936842C
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 780FA61B0B
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D78D5C433EF;
-        Thu, 19 Jan 2023 01:16:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EB2FEB81FB6
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90EA5C433D2;
+        Thu, 19 Jan 2023 01:16:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674091012;
-        bh=/Z8E1JEzT4htElHWE346ComZXoB+Vr5S73LVfp9U2Fg=;
+        s=korg; t=1674091015;
+        bh=76FHgZwKO7Wab4CF1FpdJnrCaDAAbOr3KrJFaS0cvRc=;
         h=Date:To:From:Subject:From;
-        b=HsVEOGY8aNYUNauSjicPsKU4K++aZJMecA02z9Me/5LJbX9+kD1vDbYaDWuJ0edmt
-         cHwFnvWs23EwXfURt/uvp/UlmyCIU6h3/kVdDcJzQgsQEVxtQr7/YvVk4mli4VvSzK
-         XyDPbheghUBEEossGtkJGzcEMeeCSf0IHrYikXk0=
-Date:   Wed, 18 Jan 2023 17:16:52 -0800
-To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn, sj@kernel.org,
-        xu.panda@zte.com.cn, akpm@linux-foundation.org
+        b=KpFvhE9JH3/p6B9tBXsQe/hp/UYuSBHjJrWMCb8c3Dld+xRKoTn48uoXckvCx5QSe
+         CF4FAQ9i/DwjiqA/IQO7IMSIh8v/36ulpKNAJwl2ACfbLIivf08MsE3XPQf1K0mNAL
+         PaPSbN9Xc/WNhZjxs3gg5eATMM31m2dL8fPoBzWw=
+Date:   Wed, 18 Jan 2023 17:16:55 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, bjorn@rivosinc.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-use-strscpy-to-instead-of-strncpy.patch removed from -mm tree
-Message-Id: <20230119011652.D78D5C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-enable-cross-compilation.patch removed from -mm tree
+Message-Id: <20230119011655.90EA5C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,45 +41,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: use strscpy() to instead of strncpy()
+     Subject: selftests: vm: enable cross-compilation
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-use-strscpy-to-instead-of-strncpy.patch
+     selftests-vm-enable-cross-compilation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xu Panda <xu.panda@zte.com.cn>
-Subject: mm/damon/sysfs-schemes: use strscpy() to instead of strncpy()
-Date: Mon, 9 Jan 2023 19:46:55 +0800 (CST)
+From: Björn Töpel <bjorn@rivosinc.com>
+Subject: selftests: vm: enable cross-compilation
+Date: Mon, 9 Jan 2023 12:42:51 +0100
 
-The implementation of strscpy() is more robust and safer.
-That's now the recommended way to copy NUL-terminated strings.
+Selftests vm builds break when doing cross-compilation.  The Makefile
+MACHINE variable incorrectly picks upp the host machine architecture.
 
-Link: https://lkml.kernel.org/r/202301091946553770006@zte.com.cn
-Signed-off-by: Xu Panda <xu.panda@zte.com.cn>
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+If the CROSS_COMPILE variable is set, dig out the target host architecture
+from CROSS_COMPILE, instead of calling uname.
+
+Link: https://lkml.kernel.org/r/20230109114251.3349638-1-bjorn@kernel.org
+Signed-off-by: Björn Töpel <bjorn@rivosinc.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ tools/testing/selftests/mm/Makefile |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-use-strscpy-to-instead-of-strncpy
-+++ a/mm/damon/sysfs-schemes.c
-@@ -353,8 +353,7 @@ static ssize_t memcg_path_store(struct k
- 	if (!path)
- 		return -ENOMEM;
+--- a/tools/testing/selftests/mm/Makefile~selftests-vm-enable-cross-compilation
++++ a/tools/testing/selftests/mm/Makefile
+@@ -5,7 +5,11 @@ LOCAL_HDRS += $(selfdir)/mm/local_config
  
--	strncpy(path, buf, count);
--	path[count] = '\0';
-+	strscpy(path, buf, count + 1);
- 	filter->memcg_path = path;
- 	return count;
- }
+ include local_config.mk
+ 
++ifeq ($(CROSS_COMPILE),)
+ uname_M := $(shell uname -m 2>/dev/null || echo not)
++else
++uname_M := $(shell echo $(CROSS_COMPILE) | grep -o '^[a-z0-9]\+')
++endif
+ MACHINE ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/ppc64/')
+ 
+ # Without this, failed build products remain, with up-to-date timestamps,
 _
 
-Patches currently in -mm which might be from xu.panda@zte.com.cn are
+Patches currently in -mm which might be from bjorn@rivosinc.com are
 
 
