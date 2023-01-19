@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA04DC677F1
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:22:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2429C38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:22:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230132AbjASBWE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230147AbjASBWE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Jan 2023 20:22:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41192 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230147AbjASBUB (ORCPT
+        with ESMTP id S230148AbjASBUB (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:20:01 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A9356CCDD
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:43 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 792526CCDF
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:44 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9D34561B0B
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00877C433D2;
-        Thu, 19 Jan 2023 01:16:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 018606176F
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B7B2C433F1;
+        Thu, 19 Jan 2023 01:16:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674091002;
-        bh=+46+Kojqs75mufJut2Bx7EBopXuJlQJXAQjdF+5NzQ0=;
+        s=korg; t=1674091003;
+        bh=ckBOGl+m8U8OnDNc1bWDHIymENSNHyMqAADXuzsDIIo=;
         h=Date:To:From:Subject:From;
-        b=L1g954wJSuokPDlyOhMPTZwC2hfv3+Ie8UoIdeNZHIoMeJBCNWlKIQ50+vrN/IpF8
-         Kj0d9w9MDktxUI5z7PKmjlZGuyMvRZZrAmW4CjkNqE4wCBJVOIW5ZIo5adl1jC8CHf
-         ybclug87MNGFVF2/w613xz7MZQn8VwlSGb5D14QI=
-Date:   Wed, 18 Jan 2023 17:16:41 -0800
+        b=XygliqgSMEUU5iCoTJkDEDxwmz+Mp9wdnBXdSknaH383GarY3duARAVMv5mc0U6vR
+         SOc7p4nCBFcoUwrzha4B3C791ryC7StyAkwT+sdiaxXeD+kvceG327S2yOsa4E8o/A
+         SmPwp/tDfNUqWO9uYRXJVbVeh5GKs/q+c6pD3oqg=
+Date:   Wed, 18 Jan 2023 17:16:42 -0800
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-vaddr-support-folio-of-neither-hpage_pmd_size-nor-page_size.patch removed from -mm tree
-Message-Id: <20230119011642.00877C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-vaddr-record-appropriate-folio-size-when-the-access-is-not-found.patch removed from -mm tree
+Message-Id: <20230119011643.5B7B2C433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,41 +41,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: support folio of neither HPAGE_PMD_SIZE nor PAGE_SIZE
+     Subject: mm/damon/vaddr: record appropriate folio size when the access is not found
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-support-folio-of-neither-hpage_pmd_size-nor-page_size.patch
+     mm-damon-vaddr-record-appropriate-folio-size-when-the-access-is-not-found.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/vaddr: support folio of neither HPAGE_PMD_SIZE nor PAGE_SIZE
-Date: Mon, 9 Jan 2023 21:33:31 +0000
+Subject: mm/damon/vaddr: record appropriate folio size when the access is not found
+Date: Mon, 9 Jan 2023 21:33:32 +0000
 
-DAMON virtual address space monitoring operations set treats folios having
-non-HPAGE_PMD_SIZE size as having PAGE_SIZE size.  Use the exact size of
-the folio.
+DAMON virtual address spaces monitoring operations set doesn't set folio
+size of the access checked address if access is not found.  It could
+result in unnecessary and inefficient repeated check.  Appropriately set
+the size regardless of access check result.
 
-Link: https://lkml.kernel.org/r/20230109213335.62525-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230109213335.62525-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/vaddr.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-support-folio-of-neither-hpage_pmd_size-nor-page_size
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-record-appropriate-folio-size-when-the-access-is-not-found
 +++ a/mm/damon/vaddr.c
-@@ -475,7 +475,7 @@ regular_page:
+@@ -452,10 +452,9 @@ static int damon_young_pmd_entry(pmd_t *
+ 			goto huge_out;
+ 		if (pmd_young(*pmd) || !folio_test_idle(folio) ||
+ 					mmu_notifier_test_young(walk->mm,
+-						addr)) {
+-			*priv->folio_sz = HPAGE_PMD_SIZE;
++						addr))
+ 			priv->young = true;
+-		}
++		*priv->folio_sz = HPAGE_PMD_SIZE;
+ 		folio_put(folio);
+ huge_out:
+ 		spin_unlock(ptl);
+@@ -474,10 +473,9 @@ regular_page:
+ 	if (!folio)
  		goto out;
  	if (pte_young(*pte) || !folio_test_idle(folio) ||
- 			mmu_notifier_test_young(walk->mm, addr)) {
--		*priv->folio_sz = PAGE_SIZE;
-+		*priv->folio_sz = folio_size(folio);
+-			mmu_notifier_test_young(walk->mm, addr)) {
+-		*priv->folio_sz = folio_size(folio);
++			mmu_notifier_test_young(walk->mm, addr))
  		priv->young = true;
- 	}
+-	}
++	*priv->folio_sz = folio_size(folio);
  	folio_put(folio);
+ out:
+ 	pte_unmap_unlock(pte, ptl);
+@@ -504,10 +502,9 @@ static int damon_young_hugetlb_entry(pte
+ 	folio_get(folio);
+ 
+ 	if (pte_young(entry) || !folio_test_idle(folio) ||
+-	    mmu_notifier_test_young(walk->mm, addr)) {
+-		*priv->folio_sz = huge_page_size(h);
++	    mmu_notifier_test_young(walk->mm, addr))
+ 		priv->young = true;
+-	}
++	*priv->folio_sz = huge_page_size(h);
+ 
+ 	folio_put(folio);
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
