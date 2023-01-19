@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A745C678D4
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50099C678DB
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229762AbjASBUG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:20:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38140 "EHLO
+        id S229972AbjASBUK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:20:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38152 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230009AbjASBSB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:18:01 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0F9D6922F
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:45 -0800 (PST)
+        with ESMTP id S229975AbjASBSR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:18:17 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BFAF6C54C
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E2248B81FBB
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84FFAC433D2;
-        Thu, 19 Jan 2023 01:15:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 87FD561B36
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEBD3C433D2;
+        Thu, 19 Jan 2023 01:15:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090943;
-        bh=fTndUb2bxOZ2t7QC4hY0LIOXUPcaZiokjgc9eSB08WA=;
+        s=korg; t=1674090948;
+        bh=cVDaTHOXAsgfYE0OX1mA/t1IKlNQGF2juwr1wQ3SJ8A=;
         h=Date:To:From:Subject:From;
-        b=YgMY9M1ILsjF8GS6EOwHk1vDT1EM+7+aSCqVg+uiRObBEf35tIaM5kSl2yEcbxhhR
-         tHDiALdkEWPwWrEZ80ShK2kZEufpxUaS2p8P+ZE4ljpxV4q8Xaq66catcEwEVrvokl
-         lWSp7fWCdsM9x0RInzCmGcZLJfR9iQ2TK6XNrXds=
-Date:   Wed, 18 Jan 2023 17:15:43 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
-        mark@fasheh.com, joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
-        jack@suse.com, almaz.alexandrovich@paragon-software.com,
-        hch@lst.de, akpm@linux-foundation.org
+        b=Gmd9NOTDwm7rn0IVQDSt8NwwoRsJf/QUktxBQWVTXDqOdLfeILulwk0d3ROMjyCGz
+         6f6MUKJmU/DPSwgS91JWniRsBj1PypgtZttGzbchqqGkLl+Mbu9U/CRyBufSqik5xr
+         vD3HHGInoA3gBdybaTsXVp60TbIxgKQGMy3aCTu0=
+Date:   Wed, 18 Jan 2023 17:15:47 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        mike.kravetz@oracle.com, wangkefeng.wang@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2.patch removed from -mm tree
-Message-Id: <20230119011543.84FFAC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-convert-split_huge_pages_all-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20230119011547.DEBD3C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,135 +42,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: jbd2,ocfs2: move jbd2_journal_submit_inode_data_buffers to ocfs2
+     Subject: mm: huge_memory: convert split_huge_pages_all() to use a folio
 has been removed from the -mm tree.  Its filename was
-     jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2.patch
+     mm-huge_memory-convert-split_huge_pages_all-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: jbd2,ocfs2: move jbd2_journal_submit_inode_data_buffers to ocfs2
-Date: Thu, 29 Dec 2022 06:10:29 -1000
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: huge_memory: convert split_huge_pages_all() to use a folio
+Date: Thu, 29 Dec 2022 20:25:03 +0800
 
-jbd2_journal_submit_inode_data_buffers is only used by ocfs2, so move it
-there to prepare for removing generic_writepages.
+Straightforwardly convert split_huge_pages_all() to use a folio.
 
-Link: https://lkml.kernel.org/r/20221229161031.391878-5-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
-Cc: Mark Fasheh <mark@fasheh.com>
+Link: https://lkml.kernel.org/r/20221229122503.149083-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/commit.c     |   25 -------------------------
- fs/jbd2/journal.c    |    1 -
- fs/ocfs2/journal.c   |   16 +++++++++++++++-
- include/linux/jbd2.h |    2 --
- 4 files changed, 15 insertions(+), 29 deletions(-)
+ mm/huge_memory.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
---- a/fs/jbd2/commit.c~jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2
-+++ a/fs/jbd2/commit.c
-@@ -177,31 +177,6 @@ static int journal_wait_on_commit_record
- 	return ret;
- }
- 
--/*
-- * write the filemap data using writepage() address_space_operations.
-- * We don't do block allocation here even for delalloc. We don't
-- * use writepages() because with delayed allocation we may be doing
-- * block allocation in writepages().
-- */
--int jbd2_journal_submit_inode_data_buffers(struct jbd2_inode *jinode)
--{
--	struct address_space *mapping = jinode->i_vfs_inode->i_mapping;
--	struct writeback_control wbc = {
--		.sync_mode =  WB_SYNC_ALL,
--		.nr_to_write = mapping->nrpages * 2,
--		.range_start = jinode->i_dirty_start,
--		.range_end = jinode->i_dirty_end,
--	};
--
--	/*
--	 * submit the inode data buffers. We use writepage
--	 * instead of writepages. Because writepages can do
--	 * block allocation with delalloc. We need to write
--	 * only allocated blocks here.
--	 */
--	return generic_writepages(mapping, &wbc);
--}
--
- /* Send all the data buffers related to an inode */
- int jbd2_submit_inode_data(journal_t *journal, struct jbd2_inode *jinode)
+--- a/mm/huge_memory.c~mm-huge_memory-convert-split_huge_pages_all-to-use-a-folio
++++ a/mm/huge_memory.c
+@@ -2935,6 +2935,7 @@ static void split_huge_pages_all(void)
  {
---- a/fs/jbd2/journal.c~jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2
-+++ a/fs/jbd2/journal.c
-@@ -89,7 +89,6 @@ EXPORT_SYMBOL(jbd2_journal_try_to_free_b
- EXPORT_SYMBOL(jbd2_journal_force_commit);
- EXPORT_SYMBOL(jbd2_journal_inode_ranged_write);
- EXPORT_SYMBOL(jbd2_journal_inode_ranged_wait);
--EXPORT_SYMBOL(jbd2_journal_submit_inode_data_buffers);
- EXPORT_SYMBOL(jbd2_journal_finish_inode_data_buffers);
- EXPORT_SYMBOL(jbd2_journal_init_jbd_inode);
- EXPORT_SYMBOL(jbd2_journal_release_jbd_inode);
---- a/fs/ocfs2/journal.c~jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2
-+++ a/fs/ocfs2/journal.c
-@@ -15,6 +15,7 @@
- #include <linux/time.h>
- #include <linux/random.h>
- #include <linux/delay.h>
-+#include <linux/writeback.h>
+ 	struct zone *zone;
+ 	struct page *page;
++	struct folio *folio;
+ 	unsigned long pfn, max_zone_pfn;
+ 	unsigned long total = 0, split = 0;
  
- #include <cluster/masklog.h>
+@@ -2947,24 +2948,32 @@ static void split_huge_pages_all(void)
+ 			int nr_pages;
  
-@@ -841,6 +842,19 @@ bail:
- 	return status;
- }
- 
-+static int ocfs2_journal_submit_inode_data_buffers(struct jbd2_inode *jinode)
-+{
-+	struct address_space *mapping = jinode->i_vfs_inode->i_mapping;
-+	struct writeback_control wbc = {
-+		.sync_mode =  WB_SYNC_ALL,
-+		.nr_to_write = mapping->nrpages * 2,
-+		.range_start = jinode->i_dirty_start,
-+		.range_end = jinode->i_dirty_end,
-+	};
+ 			page = pfn_to_online_page(pfn);
+-			if (!page || !get_page_unless_zero(page))
++			if (!page || PageTail(page))
+ 				continue;
++			folio = page_folio(page);
++			if (!folio_try_get(folio))
++				continue;
 +
-+	return generic_writepages(mapping, &wbc);
-+}
-+
- int ocfs2_journal_init(struct ocfs2_super *osb, int *dirty)
- {
- 	int status = -1;
-@@ -910,7 +924,7 @@ int ocfs2_journal_init(struct ocfs2_supe
++			if (unlikely(page_folio(page) != folio))
++				goto next;
  
- 	journal->j_journal = j_journal;
- 	journal->j_journal->j_submit_inode_data_buffers =
--		jbd2_journal_submit_inode_data_buffers;
-+		ocfs2_journal_submit_inode_data_buffers;
- 	journal->j_journal->j_finish_inode_data_buffers =
- 		jbd2_journal_finish_inode_data_buffers;
- 	journal->j_inode = inode;
---- a/include/linux/jbd2.h~jbd2ocfs2-move-jbd2_journal_submit_inode_data_buffers-to-ocfs2
-+++ a/include/linux/jbd2.h
-@@ -1570,8 +1570,6 @@ extern int	   jbd2_journal_inode_ranged_
- extern int	   jbd2_journal_inode_ranged_wait(handle_t *handle,
- 			struct jbd2_inode *inode, loff_t start_byte,
- 			loff_t length);
--extern int	   jbd2_journal_submit_inode_data_buffers(
--			struct jbd2_inode *jinode);
- extern int	   jbd2_journal_finish_inode_data_buffers(
- 			struct jbd2_inode *jinode);
- extern int	   jbd2_journal_begin_ordered_truncate(journal_t *journal,
+-			if (zone != page_zone(page))
++			if (zone != folio_zone(folio))
+ 				goto next;
+ 
+-			if (!PageHead(page) || PageHuge(page) || !PageLRU(page))
++			if (!folio_test_large(folio)
++				|| folio_test_hugetlb(folio)
++				|| !folio_test_lru(folio))
+ 				goto next;
+ 
+ 			total++;
+-			lock_page(page);
+-			nr_pages = thp_nr_pages(page);
+-			if (!split_huge_page(page))
++			folio_lock(folio);
++			nr_pages = folio_nr_pages(folio);
++			if (!split_folio(folio))
+ 				split++;
+ 			pfn += nr_pages - 1;
+-			unlock_page(page);
++			folio_unlock(folio);
+ next:
+-			put_page(page);
++			folio_put(folio);
+ 			cond_resched();
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
+mm-hwposion-support-recovery-from-ksm_might_need_to_copy.patch
+mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v3.patch
+mm-madvise-use-vm_normal_folio-in-madvise_free_pte_range.patch
 
