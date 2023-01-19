@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF877C38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90F79C677F1
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229840AbjASBUU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:20:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40420 "EHLO
+        id S230029AbjASBUY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:20:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230029AbjASBS5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:18:57 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F94F6923D
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:01 -0800 (PST)
+        with ESMTP id S230063AbjASBS6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:18:58 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5CCB6C573
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:07 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D40A2B81FBB
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74111C433F0;
-        Thu, 19 Jan 2023 01:15:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 617E4618FE
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6126C433D2;
+        Thu, 19 Jan 2023 01:16:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090959;
-        bh=IzhFvsPXHgIQ2mRtm3ahp5Q1hyiKT775sftP+3BvY+E=;
+        s=korg; t=1674090966;
+        bh=a9felRwJe6rRGZmmXxEeeyVlbLplXJf5Wh8+Dnj8+2o=;
         h=Date:To:From:Subject:From;
-        b=mtDR3ov5pt4FNzjhBzScW3134jH3nldzQR9qZBhVyvpOR9kUFYTkrXxQHEDMXwZ2W
-         FYkvbT2qrd3JSLnAnq4JtURBEhdJVz03cwBi7l1ad+3FDx4hrOAdLaSG5s0yAamNPf
-         JOS9qHKO/G0DswvmRlarz5po0U75t1+3GsbQryck=
-Date:   Wed, 18 Jan 2023 17:15:58 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.moola@gmail.com, sj@kernel.org, david@redhat.com,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=WLxug9Dvj1aflzxAwrKolqH5v2G9g2cu8llU9aOWP6lMoKkbip0qBqr0I9eZl5liR
+         U2HYIHHP0ukiRJRNpcJ1ucD5mrw2JxYuA/6OApsfbqrVaEcoMrOXeS5hyiunrv0Njz
+         Ki7A/ZSLs4VVsy+n/krsVrZYv+8zmkxZU8zVIdIo=
+Date:   Wed, 18 Jan 2023 17:16:06 -0800
+To:     mm-commits@vger.kernel.org, mgorman@suse.de, david@redhat.com,
+        anshuman.khandual@arm.com, rppt@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-remove-unneeded-damon_get_page.patch removed from -mm tree
-Message-Id: <20230119011559.74111C433F0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-invert-logic-for-early-page-initialisation-checks.patch removed from -mm tree
+Message-Id: <20230119011606.B6126C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,54 +42,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon: remove unneeded damon_get_page()
+     Subject: mm/page_alloc: invert logic for early page initialisation checks
 has been removed from the -mm tree.  Its filename was
-     mm-damon-remove-unneeded-damon_get_page.patch
+     mm-page_alloc-invert-logic-for-early-page-initialisation-checks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm/damon: remove unneeded damon_get_page()
-Date: Fri, 30 Dec 2022 15:08:48 +0800
+From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Subject: mm/page_alloc: invert logic for early page initialisation checks
+Date: Wed, 4 Jan 2023 21:18:05 +0200
 
-After all damon_get_page() callers are converted to damon_get_folio(),
-remove unneeded wrapper damon_get_page().
+Rename early_page_uninitialised() to early_page_initialised() and invert
+its logic to make the code more readable.
 
-Link: https://lkml.kernel.org/r/20221230070849.63358-8-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/20230104191805.2535864-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.h |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/page_alloc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/damon/ops-common.h~mm-damon-remove-unneeded-damon_get_page
-+++ a/mm/damon/ops-common.h
-@@ -8,13 +8,6 @@
- #include <linux/damon.h>
+--- a/mm/page_alloc.c~mm-page_alloc-invert-logic-for-early-page-initialisation-checks
++++ a/mm/page_alloc.c
+@@ -443,15 +443,15 @@ static inline bool deferred_pages_enable
+ 	return static_branch_unlikely(&deferred_pages);
+ }
  
- struct folio *damon_get_folio(unsigned long pfn);
--static inline struct page *damon_get_page(unsigned long pfn)
--{
--	struct folio *folio = damon_get_folio(pfn);
--
--	/* when folio is NULL, return &(0->page) mean return NULL */
--	return &folio->page;
--}
+-/* Returns true if the struct page for the pfn is uninitialised */
+-static inline bool __meminit early_page_uninitialised(unsigned long pfn)
++/* Returns true if the struct page for the pfn is initialised */
++static inline bool __meminit early_page_initialised(unsigned long pfn)
+ {
+ 	int nid = early_pfn_to_nid(pfn);
  
- void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm, unsigned long addr);
- void damon_pmdp_mkold(pmd_t *pmd, struct mm_struct *mm, unsigned long addr);
+ 	if (node_online(nid) && pfn >= NODE_DATA(nid)->first_deferred_pfn)
+-		return true;
++		return false;
+ 
+-	return false;
++	return true;
+ }
+ 
+ /*
+@@ -498,9 +498,9 @@ static inline bool deferred_pages_enable
+ 	return false;
+ }
+ 
+-static inline bool early_page_uninitialised(unsigned long pfn)
++static inline bool early_page_initialised(unsigned long pfn)
+ {
+-	return false;
++	return true;
+ }
+ 
+ static inline bool defer_init(int nid, unsigned long pfn, unsigned long end_pfn)
+@@ -1643,7 +1643,7 @@ static void __meminit init_reserved_page
+ 	pg_data_t *pgdat;
+ 	int nid, zid;
+ 
+-	if (!early_page_uninitialised(pfn))
++	if (early_page_initialised(pfn))
+ 		return;
+ 
+ 	nid = early_pfn_to_nid(pfn);
+@@ -1806,7 +1806,7 @@ int __meminit early_pfn_to_nid(unsigned
+ void __init memblock_free_pages(struct page *page, unsigned long pfn,
+ 							unsigned int order)
+ {
+-	if (early_page_uninitialised(pfn))
++	if (!early_page_initialised(pfn))
+ 		return;
+ 	if (!kmsan_memblock_free_pages(page, order)) {
+ 		/* KMSAN will take care of these pages. */
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-hwposion-support-recovery-from-ksm_might_need_to_copy.patch
-mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v3.patch
-mm-madvise-use-vm_normal_folio-in-madvise_free_pte_range.patch
 
