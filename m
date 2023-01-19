@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94487C678DD
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Jan 2023 05:30:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F400DC38159
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Jan 2023 05:30:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229972AbjATFaH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Jan 2023 00:30:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35806 "EHLO
+        id S229908AbjATFaG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Jan 2023 00:30:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231506AbjATF3P (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 00:29:15 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F4EE72C17
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 21:23:58 -0800 (PST)
+        with ESMTP id S230465AbjATF2y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 00:28:54 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42A9A518E0
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 21:23:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2CA1DB82754
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 22:47:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDCF9C433EF;
-        Thu, 19 Jan 2023 22:47:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0D84BB8274A
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 22:17:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3982C433D2;
+        Thu, 19 Jan 2023 22:17:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674168475;
-        bh=6R+K1LRA16Pq8hqbAb34C+yytx6Pbq0uiKOXryiYWvk=;
+        s=korg; t=1674166622;
+        bh=RusBCjSBotirrgrMmiXX30KLFkJJLcI2hhenc13d5fU=;
         h=Date:To:From:Subject:From;
-        b=Is9M/AzuGhXT+klrKmeDpM6hC9LD+TYvT+hY22/rb6rLpW7e3PMCrKiIhvifSSvQC
-         3iuFQQtbzFO4tZDyydSSrf3LFTNsLFTThLhBwF5TWKL/GY2T0YBJG1iX3vNq69u04n
-         WzABYO8mwsfj/yZ3v/CCvXa/xpWs4K2oQj9kyVr8=
-Date:   Thu, 19 Jan 2023 14:47:55 -0800
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, talumbau@google.com,
+        b=GLgSfLJnOVFdd6C87CZ1ivY5WxfGtETFdDNUuT2oobuzIENQqlf2260JKdcQc85Iv
+         kwCSYatR8SPpX/Kuv+HjscLa69A0NUSi7CEDB4/4z9INI498GCmjwPPRnV0wwqqSk3
+         jx1mOPEIqNRc9IkXgCRzLfkZrGvKsN7Mo02QLdF8=
+Date:   Thu, 19 Jan 2023 14:17:02 -0800
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        catalin.marinas@arm.com, longman@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-multi-gen-lru-simplify-lru_gen_look_around.patch added to mm-unstable branch
-Message-Id: <20230119224755.CDCF9C433EF@smtp.kernel.org>
+Subject: + mm-kmemleak-simplify-kmemleak_cond_resched-usage.patch added to mm-unstable branch
+Message-Id: <20230119221702.A3982C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: multi-gen LRU: simplify lru_gen_look_around()
+     Subject: mm/kmemleak: simplify kmemleak_cond_resched() usage
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-multi-gen-lru-simplify-lru_gen_look_around.patch
+     mm-kmemleak-simplify-kmemleak_cond_resched-usage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-simplify-lru_gen_look_around.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-simplify-kmemleak_cond_resched-usage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,156 +65,153 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "T.J. Alumbaugh" <talumbau@google.com>
-Subject: mm: multi-gen LRU: simplify lru_gen_look_around()
-Date: Wed, 18 Jan 2023 00:18:27 +0000
+From: Waiman Long <longman@redhat.com>
+Subject: mm/kmemleak: simplify kmemleak_cond_resched() usage
+Date: Wed, 18 Jan 2023 23:01:10 -0500
 
-Update the folio generation in place with or without
-current->reclaim_state->mm_walk.  The LRU lock is held for longer, if
-mm_walk is NULL and the number of folios to update is more than
-PAGEVEC_SIZE.
+Patch series "mm/kmemleak: Simplify kmemleak_cond_resched() & fix UAF", v2.
 
-This causes a measurable regression from the LRU lock contention during a
-microbencmark.  But a tiny regression is not worth the complexity.
+It was found that a KASAN use-after-free error was reported in the
+kmemleak_scan() function.  After further examination, it is believe that
+even though a reference is taken from the current object, it does not
+prevent the object pointed to by the next pointer from going away after a
+cond_resched().
 
-Link: https://lkml.kernel.org/r/20230118001827.1040870-8-talumbau@google.com
-Signed-off-by: T.J. Alumbaugh <talumbau@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+To fix that, additional flags are added to make sure that the current
+object won't be removed from the object_list during the duration of the
+cond_resched() to ensure the validity of the next pointer.
+
+While making the change, I also simplify the current usage of
+kmemleak_cond_resched() to make it easier to understand.
+
+
+This patch (of 2):
+
+The presence of a pinned argument and the 64k loop count make
+kmemleak_cond_resched() a bit more complex to read.  The pinned argument
+is used only by first kmemleak_scan() loop.
+
+Simplify the usage of kmemleak_cond_resched() by removing the pinned
+argument and always do a get_object()/put_object() sequence.  In addition,
+the 64k loop is removed by using need_resched() to decide if
+kmemleak_cond_resched() should be called.
+
+Link: https://lkml.kernel.org/r/20230119040111.350923-1-longman@redhat.com
+Link: https://lkml.kernel.org/r/20230119040111.350923-2-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/vmscan.c~mm-multi-gen-lru-simplify-lru_gen_look_around
-+++ a/mm/vmscan.c
-@@ -4587,13 +4587,12 @@ static void lru_gen_age_node(struct pgli
- void lru_gen_look_around(struct page_vma_mapped_walk *pvmw)
+--- a/mm/kmemleak.c~mm-kmemleak-simplify-kmemleak_cond_resched-usage
++++ a/mm/kmemleak.c
+@@ -1472,22 +1472,17 @@ static void scan_gray_list(void)
+ /*
+  * Conditionally call resched() in an object iteration loop while making sure
+  * that the given object won't go away without RCU read lock by performing a
+- * get_object() if !pinned.
+- *
+- * Return: false if can't do a cond_resched() due to get_object() failure
+- *	   true otherwise
++ * get_object() if necessaary.
+  */
+-static bool kmemleak_cond_resched(struct kmemleak_object *object, bool pinned)
++static void kmemleak_cond_resched(struct kmemleak_object *object)
  {
- 	int i;
--	pte_t *pte;
- 	unsigned long start;
- 	unsigned long end;
--	unsigned long addr;
- 	struct lru_gen_mm_walk *walk;
- 	int young = 0;
--	unsigned long bitmap[BITS_TO_LONGS(MIN_LRU_BATCH)] = {};
-+	pte_t *pte = pvmw->pte;
-+	unsigned long addr = pvmw->address;
- 	struct folio *folio = pfn_folio(pvmw->pfn);
- 	struct mem_cgroup *memcg = folio_memcg(folio);
- 	struct pglist_data *pgdat = folio_pgdat(folio);
-@@ -4610,25 +4609,28 @@ void lru_gen_look_around(struct page_vma
- 	/* avoid taking the LRU lock under the PTL when possible */
- 	walk = current->reclaim_state ? current->reclaim_state->mm_walk : NULL;
+-	if (!pinned && !get_object(object))
+-		return false;
++	if (!get_object(object))
++		return;	/* Try next object */
  
--	start = max(pvmw->address & PMD_MASK, pvmw->vma->vm_start);
--	end = min(pvmw->address | ~PMD_MASK, pvmw->vma->vm_end - 1) + 1;
-+	start = max(addr & PMD_MASK, pvmw->vma->vm_start);
-+	end = min(addr | ~PMD_MASK, pvmw->vma->vm_end - 1) + 1;
- 
- 	if (end - start > MIN_LRU_BATCH * PAGE_SIZE) {
--		if (pvmw->address - start < MIN_LRU_BATCH * PAGE_SIZE / 2)
-+		if (addr - start < MIN_LRU_BATCH * PAGE_SIZE / 2)
- 			end = start + MIN_LRU_BATCH * PAGE_SIZE;
--		else if (end - pvmw->address < MIN_LRU_BATCH * PAGE_SIZE / 2)
-+		else if (end - addr < MIN_LRU_BATCH * PAGE_SIZE / 2)
- 			start = end - MIN_LRU_BATCH * PAGE_SIZE;
- 		else {
--			start = pvmw->address - MIN_LRU_BATCH * PAGE_SIZE / 2;
--			end = pvmw->address + MIN_LRU_BATCH * PAGE_SIZE / 2;
-+			start = addr - MIN_LRU_BATCH * PAGE_SIZE / 2;
-+			end = addr + MIN_LRU_BATCH * PAGE_SIZE / 2;
- 		}
- 	}
- 
--	pte = pvmw->pte - (pvmw->address - start) / PAGE_SIZE;
-+	/* folio_update_gen() requires stable folio_memcg() */
-+	if (!mem_cgroup_trylock_pages(memcg))
-+		return;
- 
--	rcu_read_lock();
- 	arch_enter_lazy_mmu_mode();
- 
-+	pte -= (addr - start) / PAGE_SIZE;
-+
- 	for (i = 0, addr = start; addr != end; i++, addr += PAGE_SIZE) {
- 		unsigned long pfn;
- 
-@@ -4653,56 +4655,27 @@ void lru_gen_look_around(struct page_vma
- 		      !folio_test_swapcache(folio)))
- 			folio_mark_dirty(folio);
- 
-+		if (walk) {
-+			old_gen = folio_update_gen(folio, new_gen);
-+			if (old_gen >= 0 && old_gen != new_gen)
-+				update_batch_size(walk, folio, old_gen, new_gen);
-+
-+			continue;
-+		}
-+
- 		old_gen = folio_lru_gen(folio);
- 		if (old_gen < 0)
- 			folio_set_referenced(folio);
- 		else if (old_gen != new_gen)
--			__set_bit(i, bitmap);
-+			folio_activate(folio);
- 	}
- 
- 	arch_leave_lazy_mmu_mode();
--	rcu_read_unlock();
-+	mem_cgroup_unlock_pages();
- 
- 	/* feedback from rmap walkers to page table walkers */
- 	if (suitable_to_scan(i, young))
- 		update_bloom_filter(lruvec, max_seq, pvmw->pmd);
--
--	if (!walk && bitmap_weight(bitmap, MIN_LRU_BATCH) < PAGEVEC_SIZE) {
--		for_each_set_bit(i, bitmap, MIN_LRU_BATCH) {
--			folio = pfn_folio(pte_pfn(pte[i]));
--			folio_activate(folio);
--		}
--		return;
--	}
--
--	/* folio_update_gen() requires stable folio_memcg() */
--	if (!mem_cgroup_trylock_pages(memcg))
--		return;
--
--	if (!walk) {
--		spin_lock_irq(&lruvec->lru_lock);
--		new_gen = lru_gen_from_seq(lruvec->lrugen.max_seq);
--	}
--
--	for_each_set_bit(i, bitmap, MIN_LRU_BATCH) {
--		folio = pfn_folio(pte_pfn(pte[i]));
--		if (folio_memcg_rcu(folio) != memcg)
--			continue;
--
--		old_gen = folio_update_gen(folio, new_gen);
--		if (old_gen < 0 || old_gen == new_gen)
--			continue;
--
--		if (walk)
--			update_batch_size(walk, folio, old_gen, new_gen);
--		else
--			lru_gen_update_size(lruvec, folio, old_gen, new_gen);
--	}
--
--	if (!walk)
--		spin_unlock_irq(&lruvec->lru_lock);
--
--	mem_cgroup_unlock_pages();
+ 	rcu_read_unlock();
+ 	cond_resched();
+ 	rcu_read_lock();
+-	if (!pinned)
+-		put_object(object);
+-	return true;
++	put_object(object);
  }
  
- /******************************************************************************
+ /*
+@@ -1501,15 +1496,12 @@ static void kmemleak_scan(void)
+ 	struct zone *zone;
+ 	int __maybe_unused i;
+ 	int new_leaks = 0;
+-	int loop_cnt = 0;
+ 
+ 	jiffies_last_scan = jiffies;
+ 
+ 	/* prepare the kmemleak_object's */
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
+-		bool obj_pinned = false;
+-
+ 		raw_spin_lock_irq(&object->lock);
+ #ifdef DEBUG
+ 		/*
+@@ -1535,19 +1527,13 @@ static void kmemleak_scan(void)
+ 
+ 		/* reset the reference count (whiten the object) */
+ 		object->count = 0;
+-		if (color_gray(object) && get_object(object)) {
++		if (color_gray(object) && get_object(object))
+ 			list_add_tail(&object->gray_list, &gray_list);
+-			obj_pinned = true;
+-		}
+ 
+ 		raw_spin_unlock_irq(&object->lock);
+ 
+-		/*
+-		 * Do a cond_resched() every 64k objects to avoid soft lockup.
+-		 */
+-		if (!(++loop_cnt & 0xffff) &&
+-		    !kmemleak_cond_resched(object, obj_pinned))
+-			loop_cnt--; /* Try again on next object */
++		if (need_resched())
++			kmemleak_cond_resched(object);
+ 	}
+ 	rcu_read_unlock();
+ 
+@@ -1614,14 +1600,9 @@ static void kmemleak_scan(void)
+ 	 * scan and color them gray until the next scan.
+ 	 */
+ 	rcu_read_lock();
+-	loop_cnt = 0;
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
+-		/*
+-		 * Do a cond_resched() every 64k objects to avoid soft lockup.
+-		 */
+-		if (!(++loop_cnt & 0xffff) &&
+-		    !kmemleak_cond_resched(object, false))
+-			loop_cnt--;	/* Try again on next object */
++		if (need_resched())
++			kmemleak_cond_resched(object);
+ 
+ 		/*
+ 		 * This is racy but we can save the overhead of lock/unlock
+@@ -1656,14 +1637,9 @@ static void kmemleak_scan(void)
+ 	 * Scanning result reporting.
+ 	 */
+ 	rcu_read_lock();
+-	loop_cnt = 0;
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
+-		/*
+-		 * Do a cond_resched() every 64k objects to avoid soft lockup.
+-		 */
+-		if (!(++loop_cnt & 0xffff) &&
+-		    !kmemleak_cond_resched(object, false))
+-			loop_cnt--;	/* Try again on next object */
++		if (need_resched())
++			kmemleak_cond_resched(object);
+ 
+ 		/*
+ 		 * This is racy but we can save the overhead of lock/unlock
 _
 
-Patches currently in -mm which might be from talumbau@google.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm-multi-gen-lru-section-for-working-set-protection.patch
-mm-multi-gen-lru-section-for-rmap-pt-walk-feedback.patch
-mm-multi-gen-lru-section-for-bloom-filters.patch
-mm-multi-gen-lru-section-for-memcg-lru.patch
-mm-multi-gen-lru-improve-lru_gen_exit_memcg.patch
-mm-multi-gen-lru-improve-walk_pmd_range.patch
-mm-multi-gen-lru-simplify-lru_gen_look_around.patch
+mm-kmemleak-simplify-kmemleak_cond_resched-usage.patch
+mm-kmemleak-fix-uaf-bug-in-kmemleak_scan.patch
 
