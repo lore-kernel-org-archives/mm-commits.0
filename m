@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2429C38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:22:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CABDC38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:22:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230147AbjASBWE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:22:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41198 "EHLO
+        id S229934AbjASBWF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:22:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230148AbjASBUB (ORCPT
+        with ESMTP id S230146AbjASBUB (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:20:01 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 792526CCDF
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:44 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A9BA6CCDE
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:43 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 018606176F
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B7B2C433F1;
-        Thu, 19 Jan 2023 01:16:43 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 13F55B81FB9
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4500C433F1;
+        Thu, 19 Jan 2023 01:16:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674091003;
-        bh=ckBOGl+m8U8OnDNc1bWDHIymENSNHyMqAADXuzsDIIo=;
+        s=korg; t=1674091000;
+        bh=62D2oQSTFFXx87Ztg5eMyDNrpLrMotffL0txLcyP6Yk=;
         h=Date:To:From:Subject:From;
-        b=XygliqgSMEUU5iCoTJkDEDxwmz+Mp9wdnBXdSknaH383GarY3duARAVMv5mc0U6vR
-         SOc7p4nCBFcoUwrzha4B3C791ryC7StyAkwT+sdiaxXeD+kvceG327S2yOsa4E8o/A
-         SmPwp/tDfNUqWO9uYRXJVbVeh5GKs/q+c6pD3oqg=
-Date:   Wed, 18 Jan 2023 17:16:42 -0800
+        b=h1QptfYoW/2B2zCfz46Ihhs84zJLRM+Y5o+tr41v1Y1+1RUyDeHyznVZ3TiPOx/bb
+         vDsFEJD5jmyIH1CU6WyuwRbRbKXxk8n0Q8bOQUWrrb3AcrZxAaJTvR/n2d82wg+SUF
+         9fRNz/NBraocB94l1m4VpdzmmCOrVQaCZ3R3vHAs=
+Date:   Wed, 18 Jan 2023 17:16:40 -0800
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-vaddr-record-appropriate-folio-size-when-the-access-is-not-found.patch removed from -mm tree
-Message-Id: <20230119011643.5B7B2C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-vaddr-rename-damon_young_walk_private-page_sz-to-folio_sz.patch removed from -mm tree
+Message-Id: <20230119011640.A4500C433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,71 +41,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: record appropriate folio size when the access is not found
+     Subject: mm/damon/vaddr: rename 'damon_young_walk_private->page_sz' to 'folio_sz'
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-record-appropriate-folio-size-when-the-access-is-not-found.patch
+     mm-damon-vaddr-rename-damon_young_walk_private-page_sz-to-folio_sz.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/vaddr: record appropriate folio size when the access is not found
-Date: Mon, 9 Jan 2023 21:33:32 +0000
+Subject: mm/damon/vaddr: rename 'damon_young_walk_private->page_sz' to 'folio_sz'
+Date: Mon, 9 Jan 2023 21:33:30 +0000
 
-DAMON virtual address spaces monitoring operations set doesn't set folio
-size of the access checked address if access is not found.  It could
-result in unnecessary and inefficient repeated check.  Appropriately set
-the size regardless of access check result.
+Patch series "mm/damon/{v,p}addr: misc fixups for folio usage".
 
-Link: https://lkml.kernel.org/r/20230109213335.62525-4-sj@kernel.org
+DAMON's monitoring operations set for the virtual and the physical address
+spaces use folio now, but some code is not reflecting the fact.  Further
+cleanup the code for folio usage.
+
+
+This patch (of 6):
+
+DAMON's virtual address space monitoring operations set is using folio
+now.  Rename 'damon_pa_access_chk_result->page_sz' to reflect the fact.
+
+Link: https://lkml.kernel.org/r/20230109213335.62525-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230109213335.62525-2-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/damon/vaddr.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-record-appropriate-folio-size-when-the-access-is-not-found
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-rename-damon_young_walk_private-page_sz-to-folio_sz
 +++ a/mm/damon/vaddr.c
-@@ -452,10 +452,9 @@ static int damon_young_pmd_entry(pmd_t *
- 			goto huge_out;
+@@ -422,7 +422,8 @@ static void damon_va_prepare_access_chec
+ }
+ 
+ struct damon_young_walk_private {
+-	unsigned long *page_sz;
++	/* size of the folio for the access checked virtual memory address */
++	unsigned long *folio_sz;
+ 	bool young;
+ };
+ 
+@@ -452,7 +453,7 @@ static int damon_young_pmd_entry(pmd_t *
  		if (pmd_young(*pmd) || !folio_test_idle(folio) ||
  					mmu_notifier_test_young(walk->mm,
--						addr)) {
--			*priv->folio_sz = HPAGE_PMD_SIZE;
-+						addr))
+ 						addr)) {
+-			*priv->page_sz = HPAGE_PMD_SIZE;
++			*priv->folio_sz = HPAGE_PMD_SIZE;
  			priv->young = true;
--		}
-+		*priv->folio_sz = HPAGE_PMD_SIZE;
+ 		}
  		folio_put(folio);
- huge_out:
- 		spin_unlock(ptl);
-@@ -474,10 +473,9 @@ regular_page:
- 	if (!folio)
+@@ -474,7 +475,7 @@ regular_page:
  		goto out;
  	if (pte_young(*pte) || !folio_test_idle(folio) ||
--			mmu_notifier_test_young(walk->mm, addr)) {
--		*priv->folio_sz = folio_size(folio);
-+			mmu_notifier_test_young(walk->mm, addr))
+ 			mmu_notifier_test_young(walk->mm, addr)) {
+-		*priv->page_sz = PAGE_SIZE;
++		*priv->folio_sz = PAGE_SIZE;
  		priv->young = true;
--	}
-+	*priv->folio_sz = folio_size(folio);
+ 	}
  	folio_put(folio);
- out:
- 	pte_unmap_unlock(pte, ptl);
-@@ -504,10 +502,9 @@ static int damon_young_hugetlb_entry(pte
- 	folio_get(folio);
+@@ -504,7 +505,7 @@ static int damon_young_hugetlb_entry(pte
  
  	if (pte_young(entry) || !folio_test_idle(folio) ||
--	    mmu_notifier_test_young(walk->mm, addr)) {
--		*priv->folio_sz = huge_page_size(h);
-+	    mmu_notifier_test_young(walk->mm, addr))
+ 	    mmu_notifier_test_young(walk->mm, addr)) {
+-		*priv->page_sz = huge_page_size(h);
++		*priv->folio_sz = huge_page_size(h);
  		priv->young = true;
--	}
-+	*priv->folio_sz = huge_page_size(h);
+ 	}
  
- 	folio_put(folio);
+@@ -524,10 +525,10 @@ static const struct mm_walk_ops damon_yo
+ };
+ 
+ static bool damon_va_young(struct mm_struct *mm, unsigned long addr,
+-		unsigned long *page_sz)
++		unsigned long *folio_sz)
+ {
+ 	struct damon_young_walk_private arg = {
+-		.page_sz = page_sz,
++		.folio_sz = folio_sz,
+ 		.young = false,
+ 	};
+ 
+@@ -547,18 +548,18 @@ static void __damon_va_check_access(stru
+ 				struct damon_region *r, bool same_target)
+ {
+ 	static unsigned long last_addr;
+-	static unsigned long last_page_sz = PAGE_SIZE;
++	static unsigned long last_folio_sz = PAGE_SIZE;
+ 	static bool last_accessed;
+ 
+ 	/* If the region is in the last checked page, reuse the result */
+-	if (same_target && (ALIGN_DOWN(last_addr, last_page_sz) ==
+-				ALIGN_DOWN(r->sampling_addr, last_page_sz))) {
++	if (same_target && (ALIGN_DOWN(last_addr, last_folio_sz) ==
++				ALIGN_DOWN(r->sampling_addr, last_folio_sz))) {
+ 		if (last_accessed)
+ 			r->nr_accesses++;
+ 		return;
+ 	}
+ 
+-	last_accessed = damon_va_young(mm, r->sampling_addr, &last_page_sz);
++	last_accessed = damon_va_young(mm, r->sampling_addr, &last_folio_sz);
+ 	if (last_accessed)
+ 		r->nr_accesses++;
  
 _
 
