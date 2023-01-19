@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A6E1C678D6
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC34FC38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229929AbjASBTM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:19:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37844 "EHLO
+        id S229997AbjASBTW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:19:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230002AbjASBRl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:41 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F52069200
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:33 -0800 (PST)
+        with ESMTP id S229933AbjASBRn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:43 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BFA369219
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C404BB81FBC
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 653DFC433EF;
-        Thu, 19 Jan 2023 01:15:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0ACB161B18
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64A1AC433F2;
+        Thu, 19 Jan 2023 01:15:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090930;
-        bh=oZ6BDYlK6z65BPFBof36/5iIE655gfLafjo3a28nTic=;
+        s=korg; t=1674090934;
+        bh=j2QfvnHhTHziNKJU1yf428SUIa+8074vWErTNHcc1dQ=;
         h=Date:To:From:Subject:From;
-        b=KUu/DqRUpPxMS5fquYeSiFL0m2Kl98itg4ZOJe5G82hn30Q/PgYrjLo4bFbZVU0v6
-         iXwfotvMtilb8Dv5wlR37YPhd0KKXoDNWFbwS8KyPUYsNeTLYr2n1nJz+PWa2K126q
-         2aAH3gb0bQPyRgUS/wD/blAcqpIYFcs7A6BIvPC0=
-Date:   Wed, 18 Jan 2023 17:15:29 -0800
-To:     mm-commits@vger.kernel.org, xu.xin16@zte.com.cn, david@redhat.com,
-        xu.panda@zte.com.cn, akpm@linux-foundation.org
+        b=1eVDDUerV3GOSOdxkugq9In/yLMoiT58Xri0PzOtsrznc7ZUjbuz4qfpGnh7u5/B3
+         GJADU9Y61KfrxEoybhwjXCY1uIB95OAZNIW/RxweWKe7rFa9o38/Kg37Wn5sWvJzVc
+         dvmohiKGvaqEvYMbjJN1zS2qrinWAalkZYHt/F0A=
+Date:   Wed, 18 Jan 2023 17:15:33 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        vbabka@suse.cz, peterx@redhat.com, pasha.tatashin@soleen.com,
+        liam.howlett@oracle.com, hughd@google.com, david@redhat.com,
+        ccross@google.com, arnd@arndb.de, kele.huang@columbia.edu,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-ksm_functional_tests-fix-a-typo-in-comment.patch removed from -mm tree
-Message-Id: <20230119011530.653DFC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fix-comment-of-page-table-counter.patch removed from -mm tree
+Message-Id: <20230119011534.64A1AC433F2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,43 +44,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/vm: ksm_functional_tests: fix a typo in comment
+     Subject: mm: fix comment of page table counter
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-ksm_functional_tests-fix-a-typo-in-comment.patch
+     mm-fix-comment-of-page-table-counter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xu Panda <xu.panda@zte.com.cn>
-Subject: selftests/vm: ksm_functional_tests: fix a typo in comment
-Date: Fri, 23 Dec 2022 10:50:24 +0800 (CST)
+From: Kele Huang <kele.huang@columbia.edu>
+Subject: mm: fix comment of page table counter
+Date: Sat, 24 Dec 2022 01:02:33 -0500
 
-Fix a typo of "comaring" which should be "comparing".
+Commit af5b0f6a09e42 ("mm: consolidate page table accounting")
+consolidates page table accounting to a single counter in struct mm_struct
+{} as mm->pgtables_bytes.  So the meanning of this counter should be the
+size of all page tables now.
 
-Link: https://lkml.kernel.org/r/202212231050245952617@zte.com.cn
-Signed-off-by: Xu Panda <xu.panda@zte.com.cn>
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20221224060233.417827-1-kele.huang@columbia.edu
+Signed-off-by: Kele Huang <kele.huang@columbia.edu>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Colin Cross <ccross@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/ksm_functional_tests.c |    2 +-
+ include/linux/mm_types.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/ksm_functional_tests.c~selftests-vm-ksm_functional_tests-fix-a-typo-in-comment
-+++ a/tools/testing/selftests/vm/ksm_functional_tests.c
-@@ -37,7 +37,7 @@ static bool range_maps_duplicates(char *
- 	/*
- 	 * There is no easy way to check if there are KSM pages mapped into
- 	 * this range. We only check that the range does not map the same PFN
--	 * twice by comaring each pair of mapped pages.
-+	 * twice by comparing each pair of mapped pages.
- 	 */
- 	for (offs_a = 0; offs_a < size; offs_a += pagesize) {
- 		pfn_a = pagemap_get_pfn(pagemap_fd, addr + offs_a);
+--- a/include/linux/mm_types.h~mm-fix-comment-of-page-table-counter
++++ a/include/linux/mm_types.h
+@@ -647,7 +647,7 @@ struct mm_struct {
+ 		atomic_t mm_count;
+ 
+ #ifdef CONFIG_MMU
+-		atomic_long_t pgtables_bytes;	/* PTE page table pages */
++		atomic_long_t pgtables_bytes;	/* size of all page tables */
+ #endif
+ 		int map_count;			/* number of VMAs */
+ 
 _
 
-Patches currently in -mm which might be from xu.panda@zte.com.cn are
+Patches currently in -mm which might be from kele.huang@columbia.edu are
 
 
