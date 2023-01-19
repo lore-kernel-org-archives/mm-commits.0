@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B34EEC38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:03:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47A32C677F1
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:03:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229866AbjASBCz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:02:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33906 "EHLO
+        id S229919AbjASBDD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:03:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229483AbjASBCt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:02:49 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08922683CF;
-        Wed, 18 Jan 2023 17:02:48 -0800 (PST)
+        with ESMTP id S229876AbjASBC4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:02:56 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 347D8683D1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:02:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7C1CF61B08;
-        Thu, 19 Jan 2023 01:02:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5D6DC433D2;
-        Thu, 19 Jan 2023 01:02:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 065B0B81D7E
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:02:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FB22C433EF;
+        Thu, 19 Jan 2023 01:02:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090166;
-        bh=uzD8Ka8JTx/epQ3MAVqfduaJNtunGYzsoPt7QvN+Bu4=;
+        s=korg; t=1674090168;
+        bh=NjBttO3O7yP8zznZW5SOsbgwJUsjscYlIynRvyNJL3E=;
         h=Date:To:From:Subject:From;
-        b=d4Aqfv0xhM1k0oiB/z+r+KEzQYGvyNEyW9KWs1GYc4Mv9zJnSAyTHlU0l244f1VyZ
-         Ub+CrX89j0xA2zDzfUTLDF+iZuCQa37i/UZ3um0jqSOx7VymOJp9Pn77sXmzqJJhPp
-         CnLWtFtKyUgTmcVCSOF1XnohIoJ5fYt1IakICnmo=
-Date:   Wed, 18 Jan 2023 17:02:46 -0800
+        b=DPEUzvUB6gRmbC9zSwdOTgwPqoFYaIvaf5JJrAWK/tYgXFWsBkWebn/N0ucmiGG42
+         7fliNxEwLnMS2oF4RdO3zHBie1FxNyqSNGdAoQbSlUipMEBlJYA04pRInNCSF10fiF
+         yJwvZJH2owjwXujgWqwXaFgjMorG5Ywb3KklVvCU=
+Date:   Wed, 18 Jan 2023 17:02:47 -0800
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        stable@vger.kernel.org, pengfei.xu@intel.com, nadav.amit@gmail.com,
-        linmiaohe@huawei.com, david@redhat.com, aarcange@redhat.com,
-        peterx@redhat.com, akpm@linux-foundation.org
+        pengfei.xu@intel.com, nadav.amit@gmail.com, linmiaohe@huawei.com,
+        david@redhat.com, aarcange@redhat.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-uffd-fix-pte-marker-when-fork-without-fork-event.patch removed from -mm tree
-Message-Id: <20230119010246.D5D6DC433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker.patch removed from -mm tree
+Message-Id: <20230119010248.7FB22C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,82 +43,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/uffd: fix pte marker when fork() without fork event
+     Subject: mm: fix a few rare cases of using swapin error pte marker
 has been removed from the -mm tree.  Its filename was
-     mm-uffd-fix-pte-marker-when-fork-without-fork-event.patch
+     mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/uffd: fix pte marker when fork() without fork event
-Date: Wed, 14 Dec 2022 15:04:52 -0500
+Subject: mm: fix a few rare cases of using swapin error pte marker
+Date: Wed, 14 Dec 2022 15:04:53 -0500
 
-Patch series "mm: Fixes on pte markers".
+This patch should harden commit 15520a3f0469 ("mm: use pte markers for
+swap errors") on using pte markers for swapin errors on a few corner
+cases.
 
-Patch 1 resolves the syzkiller report from Pengfei.
+1. Propagate swapin errors across fork()s: if there're swapin errors in
+   the parent mm, after fork()s the child should sigbus too when an error
+   page is accessed.
 
-Patch 2 further harden pte markers when used with the recent swapin error
-markers.  The major case is we should persist a swapin error marker after
-fork(), so child shouldn't read a corrupted page.
+2. Fix a rare condition race in pte_marker_clear() where a uffd-wp pte
+   marker can be quickly switched to a swapin error.
 
+3. Explicitly ignore swapin error pte markers in change_protection().
 
-This patch (of 2):
+I mostly don't worry on (2) or (3) at all, but we should still have them. 
+Case (1) is special because it can potentially cause silent data corrupt
+on child when parent has swapin error triggered with swapoff, but since
+swapin error is rare itself already it's probably not easy to trigger
+either.
 
-When fork(), dst_vma is not guaranteed to have VM_UFFD_WP even if src may
-have it and has pte marker installed.  The warning is improper along with
-the comment.  The right thing is to inherit the pte marker when needed, or
-keep the dst pte empty.
+Currently there is a priority difference between the uffd-wp bit and the
+swapin error entry, in which the swapin error always has higher priority
+(e.g.  we don't need to wr-protect a swapin error pte marker).
 
-A vague guess is this happened by an accident when there's the prior patch
-to introduce src/dst vma into this helper during the uffd-wp feature got
-developed and I probably messed up in the rebase, since if we replace
-dst_vma with src_vma the warning & comment it all makes sense too.
+If there will be a 3rd bit introduced, we'll probably need to consider a
+more involved approach so we may need to start operate on the bits.  Let's
+leave that for later.
 
-Hugetlb did exactly the right here (copy_hugetlb_page_range()).  Fix the
-general path.
+This patch is tested with case (1) explicitly where we'll get corrupted
+data before in the child if there's existing swapin error pte markers, and
+after patch applied the child can be rightfully killed.
 
-Reproducer:
+We don't need to copy stable for this one since 15520a3f0469 just landed
+as part of v6.2-rc1, only "Fixes" applied.
 
-https://github.com/xupengfe/syzkaller_logs/blob/main/221208_115556_copy_page_range/repro.c
-
-Bugzilla report: https://bugzilla.kernel.org/show_bug.cgi?id=216808
-
-Link: https://lkml.kernel.org/r/20221214200453.1772655-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20221214200453.1772655-2-peterx@redhat.com
-Fixes: c56d1b62cce8 ("mm/shmem: handle uffd-wp during fork()")
+Link: https://lkml.kernel.org/r/20221214200453.1772655-3-peterx@redhat.com
+Fixes: 15520a3f0469 ("mm: use pte markers for swap errors")
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Pengfei Xu <pengfei.xu@intel.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: <stable@vger.kernel.org> # 5.19+
+Cc: Pengfei Xu <pengfei.xu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/hugetlb.c  |    3 +++
+ mm/memory.c   |    8 ++++++--
+ mm/mprotect.c |    8 +++++++-
+ 3 files changed, 16 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-uffd-fix-pte-marker-when-fork-without-fork-event
+--- a/mm/hugetlb.c~mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker
++++ a/mm/hugetlb.c
+@@ -5051,6 +5051,9 @@ again:
+ 				entry = huge_pte_clear_uffd_wp(entry);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+ 		} else if (unlikely(is_pte_marker(entry))) {
++			/* No swap on hugetlb */
++			WARN_ON_ONCE(
++			    is_swapin_error_entry(pte_to_swp_entry(entry)));
+ 			/*
+ 			 * We copy the pte marker only if the dst vma has
+ 			 * uffd-wp enabled.
+--- a/mm/memory.c~mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker
 +++ a/mm/memory.c
-@@ -828,12 +828,8 @@ copy_nonpresent_pte(struct mm_struct *ds
+@@ -828,7 +828,7 @@ copy_nonpresent_pte(struct mm_struct *ds
  			return -EBUSY;
  		return -ENOENT;
  	} else if (is_pte_marker_entry(entry)) {
--		/*
--		 * We're copying the pgtable should only because dst_vma has
--		 * uffd-wp enabled, do sanity check.
--		 */
--		WARN_ON_ONCE(!userfaultfd_wp(dst_vma));
--		set_pte_at(dst_mm, addr, dst_pte, pte);
-+		if (userfaultfd_wp(dst_vma))
-+			set_pte_at(dst_mm, addr, dst_pte, pte);
+-		if (userfaultfd_wp(dst_vma))
++		if (is_swapin_error_entry(entry) || userfaultfd_wp(dst_vma))
+ 			set_pte_at(dst_mm, addr, dst_pte, pte);
  		return 0;
  	}
- 	if (!userfaultfd_wp(dst_vma))
+@@ -3625,8 +3625,12 @@ static vm_fault_t pte_marker_clear(struc
+ 	/*
+ 	 * Be careful so that we will only recover a special uffd-wp pte into a
+ 	 * none pte.  Otherwise it means the pte could have changed, so retry.
++	 *
++	 * This should also cover the case where e.g. the pte changed
++	 * quickly from a PTE_MARKER_UFFD_WP into PTE_MARKER_SWAPIN_ERROR.
++	 * So is_pte_marker() check is not enough to safely drop the pte.
+ 	 */
+-	if (is_pte_marker(*vmf->pte))
++	if (pte_same(vmf->orig_pte, *vmf->pte))
+ 		pte_clear(vmf->vma->vm_mm, vmf->address, vmf->pte);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	return 0;
+--- a/mm/mprotect.c~mm-fix-a-few-rare-cases-of-using-swapin-error-pte-marker
++++ a/mm/mprotect.c
+@@ -245,7 +245,13 @@ static unsigned long change_pte_range(st
+ 					newpte = pte_swp_mksoft_dirty(newpte);
+ 				if (pte_swp_uffd_wp(oldpte))
+ 					newpte = pte_swp_mkuffd_wp(newpte);
+-			} else if (pte_marker_entry_uffd_wp(entry)) {
++			} else if (is_pte_marker_entry(entry)) {
++				/*
++				 * Ignore swapin errors unconditionally,
++				 * because any access should sigbus anyway.
++				 */
++				if (is_swapin_error_entry(entry))
++					continue;
+ 				/*
+ 				 * If this is uffd-wp pte marker and we'd like
+ 				 * to unprotect it, drop it; the next page
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
