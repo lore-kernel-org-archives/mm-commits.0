@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A3CFC38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50236C677F1
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:15:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229943AbjASBPy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:15:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38330 "EHLO
+        id S229948AbjASBPz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:15:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229948AbjASBOm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:14:42 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CE9C689DE
+        with ESMTP id S229957AbjASBOn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:14:43 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07DBE6921C
         for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:14:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3AA1561B0E
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92B71C433EF;
-        Thu, 19 Jan 2023 01:14:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 854E4B81D77
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D7EAC433D2;
+        Thu, 19 Jan 2023 01:14:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090849;
-        bh=M5LeXIsaPWrjLkWZOMWm0udJK9gsr41gPqugpEvfuYk=;
+        s=korg; t=1674090848;
+        bh=SaoVZApty6yL28AwkpXH0nVmNG6D/esDsHa/4ODRjBI=;
         h=Date:To:From:Subject:From;
-        b=A3YSie0MxFdnxASFJ0DQM+GXCfqgOkZf36SXJRlyHMKaQgLsgJGWvUADPcXP6pBWw
-         eSY7ipdMyt2QpyBY3BtdlN/balc6A3l8Y4BLVSdXhp0jwPzJ4a8eLwaGRIh72R5qg+
-         8+UdZLFoxtVMSa3qQrWo3/p8eFKI/HLVDgXYEkvs=
-Date:   Wed, 18 Jan 2023 17:14:09 -0800
+        b=qr3KyWp4HUELNMI2JRDkvMWlWReprHCwWU+rX7Y/6R1TdXWii4pJl/LTKCuHuXuU+
+         VRT/FJd8nvqQ1H213sonyTHu1VjrMcIEUGEc8IBggdGpR774K1UD8Lqg3qfCTLthAn
+         lkoM4MfoTgzlePmc0s1D61tFKYsrgoaBRinpYnk0=
+Date:   Wed, 18 Jan 2023 17:14:07 -0800
 To:     mm-commits@vger.kernel.org, jack@suse.cz, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] gfs2-replace-obvious-uses-of-b_page-with-b_folio.patch removed from -mm tree
-Message-Id: <20230119011409.92B71C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] buffer-use-b_folio-in-mark_buffer_dirty.patch removed from -mm tree
+Message-Id: <20230119011408.2D7EAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,64 +41,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: gfs2: replace obvious uses of b_page with b_folio
+     Subject: buffer: use b_folio in mark_buffer_dirty()
 has been removed from the -mm tree.  Its filename was
-     gfs2-replace-obvious-uses-of-b_page-with-b_folio.patch
+     buffer-use-b_folio-in-mark_buffer_dirty.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: gfs2: replace obvious uses of b_page with b_folio
-Date: Thu, 15 Dec 2022 21:43:58 +0000
+Subject: buffer: use b_folio in mark_buffer_dirty()
+Date: Thu, 15 Dec 2022 21:43:57 +0000
 
-These places just use b_page to get to the buffer's address_space.
+Removes about four calls to compound_head().  Two of them are inline which
+removes 132 bytes from the kernel text.
 
-Link: https://lkml.kernel.org/r/20221215214402.3522366-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20221215214402.3522366-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/glops.c   |    2 +-
- fs/gfs2/log.c     |    2 +-
- fs/gfs2/meta_io.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ fs/buffer.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/gfs2/glops.c~gfs2-replace-obvious-uses-of-b_page-with-b_folio
-+++ a/fs/gfs2/glops.c
-@@ -39,7 +39,7 @@ static void gfs2_ail_error(struct gfs2_g
- 	       "AIL buffer %p: blocknr %llu state 0x%08lx mapping %p page "
- 	       "state 0x%lx\n",
- 	       bh, (unsigned long long)bh->b_blocknr, bh->b_state,
--	       bh->b_page->mapping, bh->b_page->flags);
-+	       bh->b_folio->mapping, bh->b_folio->flags);
- 	fs_err(sdp, "AIL glock %u:%llu mapping %p\n",
- 	       gl->gl_name.ln_type, gl->gl_name.ln_number,
- 	       gfs2_glock2aspace(gl));
---- a/fs/gfs2/log.c~gfs2-replace-obvious-uses-of-b_page-with-b_folio
-+++ a/fs/gfs2/log.c
-@@ -127,7 +127,7 @@ __acquires(&sdp->sd_ail_lock)
- 			continue;
- 		gl = bd->bd_gl;
- 		list_move(&bd->bd_ail_st_list, &tr->tr_ail1_list);
--		mapping = bh->b_page->mapping;
-+		mapping = bh->b_folio->mapping;
- 		if (!mapping)
- 			continue;
- 		spin_unlock(&sdp->sd_ail_lock);
---- a/fs/gfs2/meta_io.c~gfs2-replace-obvious-uses-of-b_page-with-b_folio
-+++ a/fs/gfs2/meta_io.c
-@@ -334,7 +334,7 @@ int gfs2_meta_wait(struct gfs2_sbd *sdp,
+--- a/fs/buffer.c~buffer-use-b_folio-in-mark_buffer_dirty
++++ a/fs/buffer.c
+@@ -1095,16 +1095,16 @@ void mark_buffer_dirty(struct buffer_hea
+ 	}
  
- void gfs2_remove_from_journal(struct buffer_head *bh, int meta)
- {
--	struct address_space *mapping = bh->b_page->mapping;
-+	struct address_space *mapping = bh->b_folio->mapping;
- 	struct gfs2_sbd *sdp = gfs2_mapping2sbd(mapping);
- 	struct gfs2_bufdata *bd = bh->b_private;
- 	struct gfs2_trans *tr = current->journal_info;
+ 	if (!test_set_buffer_dirty(bh)) {
+-		struct page *page = bh->b_page;
++		struct folio *folio = bh->b_folio;
+ 		struct address_space *mapping = NULL;
+ 
+-		lock_page_memcg(page);
+-		if (!TestSetPageDirty(page)) {
+-			mapping = page_mapping(page);
++		folio_memcg_lock(folio);
++		if (!folio_test_set_dirty(folio)) {
++			mapping = folio->mapping;
+ 			if (mapping)
+-				__set_page_dirty(page, mapping, 0);
++				__folio_mark_dirty(folio, mapping, 0);
+ 		}
+-		unlock_page_memcg(page);
++		folio_memcg_unlock(folio);
+ 		if (mapping)
+ 			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
