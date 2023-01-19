@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A46AEC38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:22:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C18C0C677F1
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:22:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229975AbjASBWM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:22:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40440 "EHLO
+        id S229981AbjASBWN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:22:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40428 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230168AbjASBUE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:20:04 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B93854941A
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:52 -0800 (PST)
+        with ESMTP id S230016AbjASBUF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:20:05 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A19C4CE4D
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 74204B81FB6
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E8CCC433F0;
-        Thu, 19 Jan 2023 01:16:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DD11C61B0B
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39BA1C433F0;
+        Thu, 19 Jan 2023 01:16:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674091010;
-        bh=h77h6WhYKBdIcsVgRm4NzZDlatj32DTwb71zS0uLEvA=;
+        s=korg; t=1674091014;
+        bh=ao0sTo/XmolSG6rcxaogzlL9l8JNBip2zPqE/sNnFmo=;
         h=Date:To:From:Subject:From;
-        b=WMb0mxtnJ9VPfAkGCSauvW57qGioLQ6Ohej1qfW7gIRVfwuqRsGRXbQsONk9qmC+h
-         xvy6JbV0n0VuU309PT+0SoDRztS2nUcG6sDLOTVaAx0x81CFiURTC4ymDhx6+6dBJz
-         uFWR6kdSMFJ4ki9dS1kGFyyumHqCLQjparcl5U3I=
-Date:   Wed, 18 Jan 2023 17:16:49 -0800
-To:     mm-commits@vger.kernel.org, shuah@kernel.org,
-        mirsad.todorovac@alu.unizg.hr, david@redhat.com,
-        akpm@linux-foundation.org
+        b=TPxr3sdszMVtvNhymfqjjxC/Dn37ZJKKolIC1CPlQ0kHwmoPlOBKUXQDOvCI8PHKC
+         f9GUN6a06AVrmZDHFm4FIB3263r4o1TDH+AeQ3Lxu9M2sIyMC4CQe/VCW6dNGwMKxh
+         p7w0ZmfTR3xDFah7d/yMGWC+ITHMoq9omoxyHLpc=
+Date:   Wed, 18 Jan 2023 17:16:53 -0800
+To:     mm-commits@vger.kernel.org, roman.gushchin@linux.dev,
+        apantykhin@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-define-madv_pageout-to-fix-compilation-issues.patch removed from -mm tree
-Message-Id: <20230119011650.1E8CCC433F0@smtp.kernel.org>
+Subject: [merged mm-stable] tools-cgroup-memcg_shrinker-remove-redundant-import.patch removed from -mm tree
+Message-Id: <20230119011654.39BA1C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,74 +41,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: define MADV_PAGEOUT to fix compilation issues
+     Subject: tools:cgroup:memcg_shrinker remove redundant import
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-define-madv_pageout-to-fix-compilation-issues.patch
+     tools-cgroup-memcg_shrinker-remove-redundant-import.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: selftests/mm: define MADV_PAGEOUT to fix compilation issues
-Date: Mon, 9 Jan 2023 18:12:55 +0100
+From: Alexander Pantyukhin <apantykhin@gmail.com>
+Subject: tools:cgroup:memcg_shrinker remove redundant import
+Date: Sun, 8 Jan 2023 15:50:23 +0500
 
-If MADV_PAGEOUT is not defined (e.g., on AlmaLinux 8), compilation will
-fail.  Let's fix that like khugepaged.c does by conditionally defining
-MADV_PAGEOUT.
+Remove redundant import of the sys module.
 
-Link: https://lkml.kernel.org/r/20230109171255.488749-1-david@redhat.com
-Fixes: 69c66add5663 ("selftests/vm: anon_cow: test COW handling of anonymous memory")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
-Cc: Shuah Khan <shuah@kernel.org>
+Also use the sort function instead of sorted.  It sorts the direct array
+without create the new one in memory.
+
+Link: https://lkml.kernel.org/r/20230108105023.4289-1-apantykhin@gmail.com
+Signed-off-by: Alexander Pantyukhin <apantykhin@gmail.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/cgroup/memcg_shrinker.py |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-define-madv_pageout-to-fix-compilation-issues
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -30,6 +30,9 @@
- #include "../kselftest.h"
- #include "vm_util.h"
+--- a/tools/cgroup/memcg_shrinker.py~tools-cgroup-memcg_shrinker-remove-redundant-import
++++ a/tools/cgroup/memcg_shrinker.py
+@@ -5,7 +5,6 @@
  
-+#ifndef MADV_PAGEOUT
-+#define MADV_PAGEOUT 21
-+#endif
- #ifndef MADV_COLLAPSE
- #define MADV_COLLAPSE 25
- #endif
+ import os
+ import argparse
+-import sys
+ 
+ 
+ def scan_cgroups(cgroup_root):
+@@ -44,7 +43,7 @@ def main():
+ 
+     cgroups = scan_cgroups("/sys/fs/cgroup/")
+     shrinkers = scan_shrinkers("/sys/kernel/debug/shrinker/")
+-    shrinkers = sorted(shrinkers, reverse = True, key = lambda x: x[0])
++    shrinkers.sort(reverse = True, key = lambda x: x[0])
+ 
+     n = 0
+     for s in shrinkers:
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from apantykhin@gmail.com are
 
-mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks.patch
-mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks-fix.patch
-alpha-mm-support-__have_arch_pte_swp_exclusive.patch
-arc-mm-support-__have_arch_pte_swp_exclusive.patch
-arm-mm-support-__have_arch_pte_swp_exclusive.patch
-csky-mm-support-__have_arch_pte_swp_exclusive.patch
-hexagon-mm-support-__have_arch_pte_swp_exclusive.patch
-ia64-mm-support-__have_arch_pte_swp_exclusive.patch
-loongarch-mm-support-__have_arch_pte_swp_exclusive.patch
-m68k-mm-remove-dummy-__swp-definitions-for-nommu.patch
-m68k-mm-support-__have_arch_pte_swp_exclusive.patch
-microblaze-mm-support-__have_arch_pte_swp_exclusive.patch
-mips-mm-support-__have_arch_pte_swp_exclusive.patch
-nios2-mm-refactor-swap-pte-layout.patch
-nios2-mm-support-__have_arch_pte_swp_exclusive.patch
-openrisc-mm-support-__have_arch_pte_swp_exclusive.patch
-parisc-mm-support-__have_arch_pte_swp_exclusive.patch
-powerpc-mm-support-__have_arch_pte_swp_exclusive-on-32bit-book3s.patch
-powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive.patch
-riscv-mm-support-__have_arch_pte_swp_exclusive.patch
-sh-mm-support-__have_arch_pte_swp_exclusive.patch
-sparc-mm-support-__have_arch_pte_swp_exclusive-on-32bit.patch
-sparc-mm-support-__have_arch_pte_swp_exclusive-on-64bit.patch
-um-mm-support-__have_arch_pte_swp_exclusive.patch
-x86-mm-support-__have_arch_pte_swp_exclusive-also-on-32bit.patch
-xtensa-mm-support-__have_arch_pte_swp_exclusive.patch
-mm-remove-__have_arch_pte_swp_exclusive.patch
+scripts-bloat-o-meter-use-the-reverse-flag-for-sort.patch
 
