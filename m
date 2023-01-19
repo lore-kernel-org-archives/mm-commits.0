@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5521DC678D4
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF877C38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229813AbjASBUS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:20:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38178 "EHLO
+        id S229840AbjASBUU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:20:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229840AbjASBSk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:18:40 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B96FE6C55C
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:00 -0800 (PST)
+        with ESMTP id S230029AbjASBS5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:18:57 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F94F6923D
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5B094B81FB6
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A0E2C433EF;
-        Thu, 19 Jan 2023 01:15:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D40A2B81FBB
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74111C433F0;
+        Thu, 19 Jan 2023 01:15:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090958;
-        bh=kpm5GCiLJ1843w7kDnQol5jJ7K/v43hBsJatoA4Yl84=;
+        s=korg; t=1674090959;
+        bh=IzhFvsPXHgIQ2mRtm3ahp5Q1hyiKT775sftP+3BvY+E=;
         h=Date:To:From:Subject:From;
-        b=vigCXYl/JFoy/EsacLJmH189Hs9dCe6ExXx/AwJrnI4M/zEOSU+bSOs+yvdTVftuR
-         Srb0RrN6J/wGHKBm8HwdY8Vb5If2eSB4kuzVffb4CHhAhf+uePpRxQJrmpUDasVLAk
-         HMUWazTViCbIjnVLQQVPFrKjjkyw0tTqo0Gb6ALM=
-Date:   Wed, 18 Jan 2023 17:15:57 -0800
+        b=mtDR3ov5pt4FNzjhBzScW3134jH3nldzQR9qZBhVyvpOR9kUFYTkrXxQHEDMXwZ2W
+         FYkvbT2qrd3JSLnAnq4JtURBEhdJVz03cwBi7l1ad+3FDx4hrOAdLaSG5s0yAamNPf
+         JOS9qHKO/G0DswvmRlarz5po0U75t1+3GsbQryck=
+Date:   Wed, 18 Jan 2023 17:15:58 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, sj@kernel.org, david@redhat.com,
         wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-vaddr-convert-damon_young_pmd_entry-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20230119011558.0A0E2C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-remove-unneeded-damon_get_page.patch removed from -mm tree
+Message-Id: <20230119011559.74111C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,22 +42,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: convert damon_young_pmd_entry() to use a folio
+     Subject: mm/damon: remove unneeded damon_get_page()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-convert-damon_young_pmd_entry-to-use-a-folio.patch
+     mm-damon-remove-unneeded-damon_get_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm/damon/vaddr: convert damon_young_pmd_entry() to use a folio
-Date: Fri, 30 Dec 2022 15:08:47 +0800
+Subject: mm/damon: remove unneeded damon_get_page()
+Date: Fri, 30 Dec 2022 15:08:48 +0800
 
-With damon_get_folio(), let's convert damon_young_pmd_entry()
-to use a folio.
+After all damon_get_page() callers are converted to damon_get_folio(),
+remove unneeded wrapper damon_get_page().
 
-Link: https://lkml.kernel.org/r/20221230070849.63358-7-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20221230070849.63358-8-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -66,61 +66,25 @@ Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/damon/ops-common.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-convert-damon_young_pmd_entry-to-use-a-folio
-+++ a/mm/damon/vaddr.c
-@@ -431,7 +431,7 @@ static int damon_young_pmd_entry(pmd_t *
- {
- 	pte_t *pte;
- 	spinlock_t *ptl;
--	struct page *page;
-+	struct folio *folio;
- 	struct damon_young_walk_private *priv = walk->private;
+--- a/mm/damon/ops-common.h~mm-damon-remove-unneeded-damon_get_page
++++ a/mm/damon/ops-common.h
+@@ -8,13 +8,6 @@
+ #include <linux/damon.h>
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -446,16 +446,16 @@ static int damon_young_pmd_entry(pmd_t *
- 			spin_unlock(ptl);
- 			goto regular_page;
- 		}
--		page = damon_get_page(pmd_pfn(*pmd));
--		if (!page)
-+		folio = damon_get_folio(pmd_pfn(*pmd));
-+		if (!folio)
- 			goto huge_out;
--		if (pmd_young(*pmd) || !page_is_idle(page) ||
-+		if (pmd_young(*pmd) || !folio_test_idle(folio) ||
- 					mmu_notifier_test_young(walk->mm,
- 						addr)) {
- 			*priv->page_sz = HPAGE_PMD_SIZE;
- 			priv->young = true;
- 		}
--		put_page(page);
-+		folio_put(folio);
- huge_out:
- 		spin_unlock(ptl);
- 		return 0;
-@@ -469,15 +469,15 @@ regular_page:
- 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
- 	if (!pte_present(*pte))
- 		goto out;
--	page = damon_get_page(pte_pfn(*pte));
--	if (!page)
-+	folio = damon_get_folio(pte_pfn(*pte));
-+	if (!folio)
- 		goto out;
--	if (pte_young(*pte) || !page_is_idle(page) ||
-+	if (pte_young(*pte) || !folio_test_idle(folio) ||
- 			mmu_notifier_test_young(walk->mm, addr)) {
- 		*priv->page_sz = PAGE_SIZE;
- 		priv->young = true;
- 	}
--	put_page(page);
-+	folio_put(folio);
- out:
- 	pte_unmap_unlock(pte, ptl);
- 	return 0;
+ struct folio *damon_get_folio(unsigned long pfn);
+-static inline struct page *damon_get_page(unsigned long pfn)
+-{
+-	struct folio *folio = damon_get_folio(pfn);
+-
+-	/* when folio is NULL, return &(0->page) mean return NULL */
+-	return &folio->page;
+-}
+ 
+ void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm, unsigned long addr);
+ void damon_pmdp_mkold(pmd_t *pmd, struct mm_struct *mm, unsigned long addr);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
