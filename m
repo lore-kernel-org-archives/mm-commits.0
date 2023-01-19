@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED2C7C677F1
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 005DAC38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229892AbjASBTJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:19:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37452 "EHLO
+        id S229923AbjASBTK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:19:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229976AbjASBQ5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:16:57 -0500
+        with ESMTP id S229563AbjASBRI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:08 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BAB86B9AF
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:14 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 295FA6B9B2
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3C77AB81D7E
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD823C433F0;
-        Thu, 19 Jan 2023 01:15:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D62DBB81D77
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AB02C433D2;
+        Thu, 19 Jan 2023 01:15:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090912;
-        bh=dAR+K/+WdRqYwaGauptajr/51vaPIeh4Y71wwlaXeHo=;
+        s=korg; t=1674090914;
+        bh=Y/SWPxsnKbc4hQI0PryLz2afWBYJ47gd9uE147yM4eI=;
         h=Date:To:From:Subject:From;
-        b=o1Mg/Q2X16M09UGqtnWCctfrSjdoAWlUSfUHYFBT/53tspiVscCNsQ00y8xonfT6t
-         2a3kz7+V+T6zuZUEA/AMLW/ZhU2sPKQ247RQLdb5PaPh0/B5YobxsnWun+NNvKQI4K
-         exeTBMKfgAKy6HVa42XsctwwBu3L9e2b93TW/NVw=
-Date:   Wed, 18 Jan 2023 17:15:12 -0800
+        b=DXfoRrtpaXMwdujhwj17e8PEwNnhhR9V08+MhAA5QwjwgSEbNMezOI/KTtxsxBfp1
+         HF85O1NckQOE0AeNJeSPjdQ9fGjos4Xwm72aRVuHhgbMz9FK3A5oAxnkP3S3qDJsxm
+         JrQJYQhaFL+2JqHF3ZJOyDArqyCeZQWDYfbUkP5o=
+Date:   Wed, 18 Jan 2023 17:15:14 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, jhubbard@nvidia.com, hch@lst.de,
-        dhowells@redhat.com, akpm@linux-foundation.org
+        roman.gushchin@linux.dev, oleksiy.avramchenko@sony.com,
+        npiggin@gmail.com, lstoakes@gmail.com, hch@lst.de,
+        hch@infradead.org, bhe@redhat.com, urezki@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-move-foll_-defs-to-mm_typesh.patch removed from -mm tree
-Message-Id: <20230119011512.CD823C433F0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-avoid-calling-__find_vmap_area-twice-in-__vunmap.patch removed from -mm tree
+Message-Id: <20230119011514.7AB02C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,203 +44,253 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: move FOLL_* defs to mm_types.h
+     Subject: mm: vmalloc: avoid calling __find_vmap_area() twice in __vunmap()
 has been removed from the -mm tree.  Its filename was
-     mm-move-foll_-defs-to-mm_typesh.patch
+     mm-vmalloc-avoid-calling-__find_vmap_area-twice-in-__vunmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: mm: move FOLL_* defs to mm_types.h
-Date: Wed, 21 Dec 2022 21:24:54 +0000
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm: vmalloc: avoid calling __find_vmap_area() twice in __vunmap()
+Date: Thu, 22 Dec 2022 20:00:20 +0100
 
-Move FOLL_* definitions to linux/mm_types.h to make them more accessible
-without having to drag in all of linux/mm.h and everything that drags in
-too[1].
+Currently the __vunmap() path calls __find_vmap_area() twice.  Once on
+entry to check that the area exists, then inside the remove_vm_area()
+function which also performs a new search for the VA.
 
-Link: https://lkml.kernel.org/r/2161258.1671657894@warthog.procyon.org.uk
-Signed-off-by: David Howells <dhowells@redhat.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+In order to improvie it from a performance point of view we split
+remove_vm_area() into two new parts:
+  - find_unlink_vmap_area() that does a search and unlink from tree;
+  - __remove_vm_area() that removes without searching.
+
+In this case there is no any functional change for remove_vm_area()
+whereas vm_remove_mappings(), where a second search happens, switches to
+the __remove_vm_area() variant where the already detached VA is passed as
+a parameter, so there is no need to find it again.
+
+Performance wise, i use test_vmalloc.sh with 32 threads doing alloc
+free on a 64-CPUs-x86_64-box:
+
+perf without this patch:
+-   31.41%     0.50%  vmalloc_test/10  [kernel.vmlinux]    [k] __vunmap
+   - 30.92% __vunmap
+      - 17.67% _raw_spin_lock
+           native_queued_spin_lock_slowpath
+      - 12.33% remove_vm_area
+         - 11.79% free_vmap_area_noflush
+            - 11.18% _raw_spin_lock
+                 native_queued_spin_lock_slowpath
+        0.76% free_unref_page
+
+perf with this patch:
+-   11.35%     0.13%  vmalloc_test/14  [kernel.vmlinux]    [k] __vunmap
+   - 11.23% __vunmap
+      - 8.28% find_unlink_vmap_area
+         - 7.95% _raw_spin_lock
+              7.44% native_queued_spin_lock_slowpath
+      - 1.93% free_vmap_area_noflush
+         - 0.56% _raw_spin_lock
+              0.53% native_queued_spin_lock_slowpath
+        0.60% __vunmap_range_noflush
+
+__vunmap() consumes around ~20% less CPU cycles on this test.
+
+Also, switch from find_vmap_area() to find_unlink_vmap_area() to prevent a
+double access to the vmap_area_lock: one for finding area, second time is
+for unlinking from a tree.
+
+[urezki@gmail.com: switch to find_unlink_vmap_area() in vm_unmap_ram()]
+  Link: https://lkml.kernel.org/r/20221222190022.134380-2-urezki@gmail.com
+Link: https://lkml.kernel.org/r/20221222190022.134380-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reported-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |   75 -------------------------------------
- include/linux/mm_types.h |   75 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 75 insertions(+), 75 deletions(-)
+ mm/vmalloc.c |   79 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 48 insertions(+), 31 deletions(-)
 
---- a/include/linux/mm.h~mm-move-foll_-defs-to-mm_typesh
-+++ a/include/linux/mm.h
-@@ -3057,81 +3057,6 @@ static inline vm_fault_t vmf_error(int e
- struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
- 			 unsigned int foll_flags);
+--- a/mm/vmalloc.c~mm-vmalloc-avoid-calling-__find_vmap_area-twice-in-__vunmap
++++ a/mm/vmalloc.c
+@@ -1815,9 +1815,9 @@ static void drain_vmap_area_work(struct
+ }
  
--#define FOLL_WRITE	0x01	/* check pte is writable */
--#define FOLL_TOUCH	0x02	/* mark page accessed */
--#define FOLL_GET	0x04	/* do get_page on page */
--#define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
--#define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
--#define FOLL_NOWAIT	0x20	/* if a disk transfer is needed, start the IO
--				 * and return without waiting upon it */
--#define FOLL_NOFAULT	0x80	/* do not fault in pages */
--#define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
--#define FOLL_TRIED	0x800	/* a retry, previous pass started an IO */
--#define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
--#define FOLL_ANON	0x8000	/* don't do file mappings */
--#define FOLL_LONGTERM	0x10000	/* mapping lifetime is indefinite: see below */
--#define FOLL_SPLIT_PMD	0x20000	/* split huge pmd before returning */
--#define FOLL_PIN	0x40000	/* pages must be released via unpin_user_page */
--#define FOLL_FAST_ONLY	0x80000	/* gup_fast: prevent fall-back to slow gup */
--#define FOLL_PCI_P2PDMA	0x100000 /* allow returning PCI P2PDMA pages */
--#define FOLL_INTERRUPTIBLE  0x200000 /* allow interrupts from generic signals */
--
--/*
-- * FOLL_PIN and FOLL_LONGTERM may be used in various combinations with each
-- * other. Here is what they mean, and how to use them:
-- *
-- * FOLL_LONGTERM indicates that the page will be held for an indefinite time
-- * period _often_ under userspace control.  This is in contrast to
-- * iov_iter_get_pages(), whose usages are transient.
-- *
-- * FIXME: For pages which are part of a filesystem, mappings are subject to the
-- * lifetime enforced by the filesystem and we need guarantees that longterm
-- * users like RDMA and V4L2 only establish mappings which coordinate usage with
-- * the filesystem.  Ideas for this coordination include revoking the longterm
-- * pin, delaying writeback, bounce buffer page writeback, etc.  As FS DAX was
-- * added after the problem with filesystems was found FS DAX VMAs are
-- * specifically failed.  Filesystem pages are still subject to bugs and use of
-- * FOLL_LONGTERM should be avoided on those pages.
-- *
-- * FIXME: Also NOTE that FOLL_LONGTERM is not supported in every GUP call.
-- * Currently only get_user_pages() and get_user_pages_fast() support this flag
-- * and calls to get_user_pages_[un]locked are specifically not allowed.  This
-- * is due to an incompatibility with the FS DAX check and
-- * FAULT_FLAG_ALLOW_RETRY.
-- *
-- * In the CMA case: long term pins in a CMA region would unnecessarily fragment
-- * that region.  And so, CMA attempts to migrate the page before pinning, when
-- * FOLL_LONGTERM is specified.
-- *
-- * FOLL_PIN indicates that a special kind of tracking (not just page->_refcount,
-- * but an additional pin counting system) will be invoked. This is intended for
-- * anything that gets a page reference and then touches page data (for example,
-- * Direct IO). This lets the filesystem know that some non-file-system entity is
-- * potentially changing the pages' data. In contrast to FOLL_GET (whose pages
-- * are released via put_page()), FOLL_PIN pages must be released, ultimately, by
-- * a call to unpin_user_page().
-- *
-- * FOLL_PIN is similar to FOLL_GET: both of these pin pages. They use different
-- * and separate refcounting mechanisms, however, and that means that each has
-- * its own acquire and release mechanisms:
-- *
-- *     FOLL_GET: get_user_pages*() to acquire, and put_page() to release.
-- *
-- *     FOLL_PIN: pin_user_pages*() to acquire, and unpin_user_pages to release.
-- *
-- * FOLL_PIN and FOLL_GET are mutually exclusive for a given function call.
-- * (The underlying pages may experience both FOLL_GET-based and FOLL_PIN-based
-- * calls applied to them, and that's perfectly OK. This is a constraint on the
-- * callers, not on the pages.)
-- *
-- * FOLL_PIN should be set internally by the pin_user_pages*() APIs, never
-- * directly by the caller. That's in order to help avoid mismatches when
-- * releasing pages: get_user_pages*() pages must be released via put_page(),
-- * while pin_user_pages*() pages must be released via unpin_user_page().
-- *
-- * Please see Documentation/core-api/pin_user_pages.rst for more information.
-- */
--
- static inline int vm_fault_to_errno(vm_fault_t vm_fault, int foll_flags)
+ /*
+- * Free a vmap area, caller ensuring that the area has been unmapped
+- * and flush_cache_vunmap had been called for the correct range
+- * previously.
++ * Free a vmap area, caller ensuring that the area has been unmapped,
++ * unlinked and flush_cache_vunmap had been called for the correct
++ * range previously.
+  */
+ static void free_vmap_area_noflush(struct vmap_area *va)
  {
- 	if (vm_fault & VM_FAULT_OOM)
---- a/include/linux/mm_types.h~mm-move-foll_-defs-to-mm_typesh
-+++ a/include/linux/mm_types.h
-@@ -1085,4 +1085,79 @@ enum fault_flag {
+@@ -1825,9 +1825,8 @@ static void free_vmap_area_noflush(struc
+ 	unsigned long va_start = va->va_start;
+ 	unsigned long nr_lazy;
  
- typedef unsigned int __bitwise zap_flags_t;
+-	spin_lock(&vmap_area_lock);
+-	unlink_va(va, &vmap_area_root);
+-	spin_unlock(&vmap_area_lock);
++	if (WARN_ON_ONCE(!list_empty(&va->list)))
++		return;
  
-+/*
-+ * FOLL_PIN and FOLL_LONGTERM may be used in various combinations with each
-+ * other. Here is what they mean, and how to use them:
-+ *
-+ * FOLL_LONGTERM indicates that the page will be held for an indefinite time
-+ * period _often_ under userspace control.  This is in contrast to
-+ * iov_iter_get_pages(), whose usages are transient.
-+ *
-+ * FIXME: For pages which are part of a filesystem, mappings are subject to the
-+ * lifetime enforced by the filesystem and we need guarantees that longterm
-+ * users like RDMA and V4L2 only establish mappings which coordinate usage with
-+ * the filesystem.  Ideas for this coordination include revoking the longterm
-+ * pin, delaying writeback, bounce buffer page writeback, etc.  As FS DAX was
-+ * added after the problem with filesystems was found FS DAX VMAs are
-+ * specifically failed.  Filesystem pages are still subject to bugs and use of
-+ * FOLL_LONGTERM should be avoided on those pages.
-+ *
-+ * FIXME: Also NOTE that FOLL_LONGTERM is not supported in every GUP call.
-+ * Currently only get_user_pages() and get_user_pages_fast() support this flag
-+ * and calls to get_user_pages_[un]locked are specifically not allowed.  This
-+ * is due to an incompatibility with the FS DAX check and
-+ * FAULT_FLAG_ALLOW_RETRY.
-+ *
-+ * In the CMA case: long term pins in a CMA region would unnecessarily fragment
-+ * that region.  And so, CMA attempts to migrate the page before pinning, when
-+ * FOLL_LONGTERM is specified.
-+ *
-+ * FOLL_PIN indicates that a special kind of tracking (not just page->_refcount,
-+ * but an additional pin counting system) will be invoked. This is intended for
-+ * anything that gets a page reference and then touches page data (for example,
-+ * Direct IO). This lets the filesystem know that some non-file-system entity is
-+ * potentially changing the pages' data. In contrast to FOLL_GET (whose pages
-+ * are released via put_page()), FOLL_PIN pages must be released, ultimately, by
-+ * a call to unpin_user_page().
-+ *
-+ * FOLL_PIN is similar to FOLL_GET: both of these pin pages. They use different
-+ * and separate refcounting mechanisms, however, and that means that each has
-+ * its own acquire and release mechanisms:
-+ *
-+ *     FOLL_GET: get_user_pages*() to acquire, and put_page() to release.
-+ *
-+ *     FOLL_PIN: pin_user_pages*() to acquire, and unpin_user_pages to release.
-+ *
-+ * FOLL_PIN and FOLL_GET are mutually exclusive for a given function call.
-+ * (The underlying pages may experience both FOLL_GET-based and FOLL_PIN-based
-+ * calls applied to them, and that's perfectly OK. This is a constraint on the
-+ * callers, not on the pages.)
-+ *
-+ * FOLL_PIN should be set internally by the pin_user_pages*() APIs, never
-+ * directly by the caller. That's in order to help avoid mismatches when
-+ * releasing pages: get_user_pages*() pages must be released via put_page(),
-+ * while pin_user_pages*() pages must be released via unpin_user_page().
-+ *
-+ * Please see Documentation/core-api/pin_user_pages.rst for more information.
-+ */
+ 	nr_lazy = atomic_long_add_return((va->va_end - va->va_start) >>
+ 				PAGE_SHIFT, &vmap_lazy_nr);
+@@ -1871,6 +1870,19 @@ struct vmap_area *find_vmap_area(unsigne
+ 	return va;
+ }
+ 
++static struct vmap_area *find_unlink_vmap_area(unsigned long addr)
++{
++	struct vmap_area *va;
 +
-+#define FOLL_WRITE	0x01	/* check pte is writable */
-+#define FOLL_TOUCH	0x02	/* mark page accessed */
-+#define FOLL_GET	0x04	/* do get_page on page */
-+#define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
-+#define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
-+#define FOLL_NOWAIT	0x20	/* if a disk transfer is needed, start the IO
-+				 * and return without waiting upon it */
-+#define FOLL_NOFAULT	0x80	/* do not fault in pages */
-+#define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
-+#define FOLL_TRIED	0x800	/* a retry, previous pass started an IO */
-+#define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
-+#define FOLL_ANON	0x8000	/* don't do file mappings */
-+#define FOLL_LONGTERM	0x10000	/* mapping lifetime is indefinite: see below */
-+#define FOLL_SPLIT_PMD	0x20000	/* split huge pmd before returning */
-+#define FOLL_PIN	0x40000	/* pages must be released via unpin_user_page */
-+#define FOLL_FAST_ONLY	0x80000	/* gup_fast: prevent fall-back to slow gup */
-+#define FOLL_PCI_P2PDMA	0x100000 /* allow returning PCI P2PDMA pages */
-+#define FOLL_INTERRUPTIBLE  0x200000 /* allow interrupts from generic signals */
++	spin_lock(&vmap_area_lock);
++	va = __find_vmap_area(addr, &vmap_area_root);
++	if (va)
++		unlink_va(va, &vmap_area_root);
++	spin_unlock(&vmap_area_lock);
 +
- #endif /* _LINUX_MM_TYPES_H */
++	return va;
++}
++
+ /*** Per cpu kva allocator ***/
+ 
+ /*
+@@ -2015,6 +2027,10 @@ static void free_vmap_block(struct vmap_
+ 	tmp = xa_erase(&vmap_blocks, addr_to_vb_idx(vb->va->va_start));
+ 	BUG_ON(tmp != vb);
+ 
++	spin_lock(&vmap_area_lock);
++	unlink_va(vb->va, &vmap_area_root);
++	spin_unlock(&vmap_area_lock);
++
+ 	free_vmap_area_noflush(vb->va);
+ 	kfree_rcu(vb, rcu_head);
+ }
+@@ -2236,7 +2252,7 @@ void vm_unmap_ram(const void *mem, unsig
+ 		return;
+ 	}
+ 
+-	va = find_vmap_area(addr);
++	va = find_unlink_vmap_area(addr);
+ 	BUG_ON(!va);
+ 	debug_check_no_locks_freed((void *)va->va_start,
+ 				    (va->va_end - va->va_start));
+@@ -2591,6 +2607,20 @@ struct vm_struct *find_vm_area(const voi
+ 	return va->vm;
+ }
+ 
++static struct vm_struct *__remove_vm_area(struct vmap_area *va)
++{
++	struct vm_struct *vm;
++
++	if (!va || !va->vm)
++		return NULL;
++
++	vm = va->vm;
++	kasan_free_module_shadow(vm);
++	free_unmap_vmap_area(va);
++
++	return vm;
++}
++
+ /**
+  * remove_vm_area - find and remove a continuous kernel virtual area
+  * @addr:	    base address
+@@ -2603,26 +2633,10 @@ struct vm_struct *find_vm_area(const voi
+  */
+ struct vm_struct *remove_vm_area(const void *addr)
+ {
+-	struct vmap_area *va;
+-
+ 	might_sleep();
+ 
+-	spin_lock(&vmap_area_lock);
+-	va = __find_vmap_area((unsigned long)addr, &vmap_area_root);
+-	if (va && va->vm) {
+-		struct vm_struct *vm = va->vm;
+-
+-		va->vm = NULL;
+-		spin_unlock(&vmap_area_lock);
+-
+-		kasan_free_module_shadow(vm);
+-		free_unmap_vmap_area(va);
+-
+-		return vm;
+-	}
+-
+-	spin_unlock(&vmap_area_lock);
+-	return NULL;
++	return __remove_vm_area(
++		find_unlink_vmap_area((unsigned long) addr));
+ }
+ 
+ static inline void set_area_direct_map(const struct vm_struct *area,
+@@ -2636,16 +2650,17 @@ static inline void set_area_direct_map(c
+ 			set_direct_map(area->pages[i]);
+ }
+ 
+-/* Handle removing and resetting vm mappings related to the vm_struct. */
+-static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
++/* Handle removing and resetting vm mappings related to the VA's vm_struct. */
++static void va_remove_mappings(struct vmap_area *va, int deallocate_pages)
+ {
++	struct vm_struct *area = va->vm;
+ 	unsigned long start = ULONG_MAX, end = 0;
+ 	unsigned int page_order = vm_area_page_order(area);
+ 	int flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
+ 	int flush_dmap = 0;
+ 	int i;
+ 
+-	remove_vm_area(area->addr);
++	__remove_vm_area(va);
+ 
+ 	/* If this is not VM_FLUSH_RESET_PERMS memory, no need for the below. */
+ 	if (!flush_reset)
+@@ -2690,6 +2705,7 @@ static void vm_remove_mappings(struct vm
+ static void __vunmap(const void *addr, int deallocate_pages)
+ {
+ 	struct vm_struct *area;
++	struct vmap_area *va;
+ 
+ 	if (!addr)
+ 		return;
+@@ -2698,19 +2714,20 @@ static void __vunmap(const void *addr, i
+ 			addr))
+ 		return;
+ 
+-	area = find_vm_area(addr);
+-	if (unlikely(!area)) {
++	va = find_unlink_vmap_area((unsigned long)addr);
++	if (unlikely(!va)) {
+ 		WARN(1, KERN_ERR "Trying to vfree() nonexistent vm area (%p)\n",
+ 				addr);
+ 		return;
+ 	}
+ 
++	area = va->vm;
+ 	debug_check_no_locks_freed(area->addr, get_vm_area_size(area));
+ 	debug_check_no_obj_freed(area->addr, get_vm_area_size(area));
+ 
+ 	kasan_poison_vmalloc(area->addr, get_vm_area_size(area));
+ 
+-	vm_remove_mappings(area, deallocate_pages);
++	va_remove_mappings(va, deallocate_pages);
+ 
+ 	if (deallocate_pages) {
+ 		int i;
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
 
