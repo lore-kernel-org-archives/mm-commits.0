@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93892C38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:16:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CF11C677F1
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:16:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229971AbjASBQQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:16:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37408 "EHLO
+        id S230010AbjASBQR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:16:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230020AbjASBOp (ORCPT
+        with ESMTP id S230032AbjASBOp (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:14:45 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 501103B662
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:14:16 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6B2F69B20
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:14:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 042A9B81D66
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9941C433D2;
-        Thu, 19 Jan 2023 01:14:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 64743B81D77
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FD14C433F1;
+        Thu, 19 Jan 2023 01:14:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090853;
-        bh=baylukqRI0TmAfgFwF6y4L5e7/RSdp8wkv2r9ZyzRj4=;
+        s=korg; t=1674090855;
+        bh=5bkT5Jzgy7twTEKextDKqhcwKHvawXxtOhOvgyuMISI=;
         h=Date:To:From:Subject:From;
-        b=FjTcJlNIe5HW+jis5HCnpojkiOatbjKb26W8arbPjeEmQD6UELTChJDTdqIzp8swu
-         bx3x88SyQN8rXx13QTreFISXCd/8CXjnPF/02h/McuijotCoLtplZzmzDzSYbhFati
-         tSWUeAw0LUXj38fsr5VplTbeMKT83pfIiy3kQ/dc=
-Date:   Wed, 18 Jan 2023 17:14:13 -0800
+        b=g0bW4HuEZ63oKTAX6CnFbwvMCtB92JTw9yoiHgRu3MmiUYmjmVNlZVVDzfTzg0q2L
+         swAeKumXGguBrMxS9/YwdHbU/U+1fAk1P/5RgE9PWT2j13r0FcWC9hXSFEpud192LU
+         6SVTdnGuHnt9AclVDH73hPYO1l9vZlJ/N6NmCrOQ=
+Date:   Wed, 18 Jan 2023 17:14:14 -0800
 To:     mm-commits@vger.kernel.org, jack@suse.cz, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] reiserfs-replace-obvious-uses-of-b_page-with-b_folio.patch removed from -mm tree
-Message-Id: <20230119011413.A9941C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mpage-use-b_folio-in-do_mpage_readpage.patch removed from -mm tree
+Message-Id: <20230119011415.0FD14C433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,62 +41,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: reiserfs: replace obvious uses of b_page with b_folio
+     Subject: mpage: use b_folio in do_mpage_readpage()
 has been removed from the -mm tree.  Its filename was
-     reiserfs-replace-obvious-uses-of-b_page-with-b_folio.patch
+     mpage-use-b_folio-in-do_mpage_readpage.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: reiserfs: replace obvious uses of b_page with b_folio
-Date: Thu, 15 Dec 2022 21:44:01 +0000
+Subject: mpage: use b_folio in do_mpage_readpage()
+Date: Thu, 15 Dec 2022 21:44:02 +0000
 
-These places just use b_page to get to the buffer's address_space or call
-page_folio() on b_page to get a folio.
+Remove this conversion of a folio back to a page.
 
-Link: https://lkml.kernel.org/r/20221215214402.3522366-12-willy@infradead.org
+Link: https://lkml.kernel.org/r/20221215214402.3522366-13-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c         |    4 ++--
- fs/reiserfs/tail_conversion.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ fs/mpage.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/reiserfs/journal.c~reiserfs-replace-obvious-uses-of-b_page-with-b_folio
-+++ a/fs/reiserfs/journal.c
-@@ -601,7 +601,7 @@ static int journal_list_still_alive(stru
-  */
- static void release_buffer_page(struct buffer_head *bh)
- {
--	struct folio *folio = page_folio(bh->b_page);
-+	struct folio *folio = bh->b_folio;
- 	if (!folio->mapping && folio_trylock(folio)) {
- 		folio_get(folio);
- 		put_bh(bh);
-@@ -866,7 +866,7 @@ loop_next:
- 		 * will ever write the buffer. We're safe if we write the
- 		 * page one last time after freeing the journal header.
- 		 */
--		if (buffer_dirty(bh) && unlikely(bh->b_page->mapping == NULL)) {
-+		if (buffer_dirty(bh) && unlikely(bh->b_folio->mapping == NULL)) {
- 			spin_unlock(lock);
- 			write_dirty_buffer(bh, 0);
- 			spin_lock(lock);
---- a/fs/reiserfs/tail_conversion.c~reiserfs-replace-obvious-uses-of-b_page-with-b_folio
-+++ a/fs/reiserfs/tail_conversion.c
-@@ -177,7 +177,7 @@ void reiserfs_unmap_buffer(struct buffer
- 	 * BUG() on attempt to write not mapped buffer
+--- a/fs/mpage.c~mpage-use-b_folio-in-do_mpage_readpage
++++ a/fs/mpage.c
+@@ -198,7 +198,7 @@ static struct bio *do_mpage_readpage(str
+ 	/*
+ 	 * Then do more get_blocks calls until we are done with this folio.
  	 */
- 	if ((!list_empty(&bh->b_assoc_buffers) || bh->b_private) && bh->b_page) {
--		struct inode *inode = bh->b_page->mapping->host;
-+		struct inode *inode = bh->b_folio->mapping->host;
- 		struct reiserfs_journal *j = SB_JOURNAL(inode->i_sb);
- 		spin_lock(&j->j_dirty_buffers_lock);
- 		list_del_init(&bh->b_assoc_buffers);
+-	map_bh->b_page = &folio->page;
++	map_bh->b_folio = folio;
+ 	while (page_block < blocks_per_page) {
+ 		map_bh->b_state = 0;
+ 		map_bh->b_size = 0;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
