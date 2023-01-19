@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22F63C38159
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B89A3C677F1
 	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:13:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229947AbjASBNy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229949AbjASBNy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Jan 2023 20:13:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38106 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229975AbjASBNo (ORCPT
+        with ESMTP id S229957AbjASBNo (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:13:44 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8340689E5
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E844769225
         for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:13:33 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D19B618FE
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:13:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C69B0C433F2;
-        Thu, 19 Jan 2023 01:13:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 97EE0B81FB5
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:13:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E0F8C433D2;
+        Thu, 19 Jan 2023 01:13:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090812;
-        bh=pNuB2oCBP3ZPx4j+I+2e5KK+WjE+UE6gq/pnfAa8Wr0=;
+        s=korg; t=1674090811;
+        bh=IyVELQZxH9nFzhuCPaTssZzlBMLFn28W1//cnIsWRlY=;
         h=Date:To:From:Subject:From;
-        b=g8CPatyXL9HOXI5GM/FuZXWBWz7pTBUGkRiFFSaReJAfCUh9PytlDax8Wwu3odwp0
-         /lQatr8n7sPodPHQlTRvtld+suIb0IpLJy305Uuu0Gvv/YXj8PobXY6Y7TayykqRMI
-         Ri9fnCOJJqjjajNYHJ7ZIafhugTXHUnIZKz52vi4=
-Date:   Wed, 18 Jan 2023 17:13:32 -0800
-To:     mm-commits@vger.kernel.org, nadav.amit@gmail.com,
-        mike.kravetz@oracle.com, ives@codesandbox.io, hughd@google.com,
-        david@redhat.com, aarcange@redhat.com, peterx@redhat.com,
+        b=AeKIS6zX+HGUxmX7fTG71nJ+ebxHYuYpYtgMtYt3RsFpOEeRZYiUTYxb0gDMR1KKO
+         wChM1pf+39obERWuI/lmPpaBMvrf7T2kch4+0Ud+hxQrfU8MBxPN/sGP74kCPsm6Qy
+         zCWPDqgI/cIKap3s6aZS4QgJ7Ct7Dd8k5puLTaeU=
+Date:   Wed, 18 Jan 2023 17:13:30 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        songmuchun@bytedance.com, mike.kravetz@oracle.com,
+        jhubbard@nvidia.com, sidhartha.kumar@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp.patch removed from -mm tree
-Message-Id: <20230119011332.C69B0C433F2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-move-folio_set_compound_order-to-mm-internalh.patch removed from -mm tree
+Message-Id: <20230119011331.3E0F8C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,307 +43,144 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/uffd: always wr-protect pte in pte|pmd_mkuffd_wp()
+     Subject: mm: move folio_set_compound_order() to mm/internal.h
 has been removed from the -mm tree.  Its filename was
-     mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp.patch
+     mm-move-folio_set_compound_order-to-mm-internalh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/uffd: always wr-protect pte in pte|pmd_mkuffd_wp()
-Date: Wed, 14 Dec 2022 15:15:33 -0500
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm: move folio_set_compound_order() to mm/internal.h
+Date: Wed, 14 Dec 2022 22:17:57 -0800
 
-This patch is a cleanup to always wr-protect pte/pmd in mkuffd_wp paths.
+folio_set_compound_order() is moved to an mm-internal location so external
+folio users cannot misuse this function.  Change the name of the function
+to folio_set_order() and use WARN_ON_ONCE() rather than BUG_ON.  Also,
+handle the case if a non-large folio is passed and add clarifying comments
+to the function.
 
-The reasons I still think this patch is worthwhile, are:
-
-  (1) It is a cleanup already; diffstat tells.
-
-  (2) It just feels natural after I thought about this, if the pte is uffd
-      protected, let's remove the write bit no matter what it was.
-
-  (2) Since x86 is the only arch that supports uffd-wp, it also redefines
-      pte|pmd_mkuffd_wp() in that it should always contain removals of
-      write bits.  It means any future arch that want to implement uffd-wp
-      should naturally follow this rule too.  It's good to make it a
-      default, even if with vm_page_prot changes on VM_UFFD_WP.
-
-  (3) It covers more than vm_page_prot.  So no chance of any potential
-      future "accident" (like pte_mkdirty() sparc64 or loongarch, even
-      though it just got its pte_mkdirty fixed <1 month ago).  It'll be
-      fairly clear when reading the code too that we don't worry anything
-      before a pte_mkuffd_wp() on uncertainty of the write bit.
-
-We may call pte_wrprotect() one more time in some paths (e.g.  thp split),
-but that should be fully local bitop instruction so the overhead should be
-negligible.
-
-Although this patch should logically also fix all the known issues on
-uffd-wp too recently on page migration (not for numa hint recovery - that
-may need another explcit pte_wrprotect), but this is not the plan for that
-fix.  So no fixes, and stable doesn't need this.
-
-Link: https://lkml.kernel.org/r/20221214201533.1774616-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ives van Hoorne <ives@codesandbox.io>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
+Link: https://lore.kernel.org/lkml/20221207223731.32784-1-sidhartha.kumar@oracle.com/T/
+Link: https://lkml.kernel.org/r/20221215061757.223440-1-sidhartha.kumar@oracle.com
+Fixes: 9fd330582b2f ("mm: add folio dtor and order setter functions")
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: Muchun Song <songmuchun@bytedance.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Suggested-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |   24 ++++++++++++------------
- include/asm-generic/hugetlb.h  |   16 ++++++++--------
- mm/huge_memory.c               |    8 +++-----
- mm/hugetlb.c                   |    4 ++--
- mm/memory.c                    |    8 +++-----
- mm/mprotect.c                  |    6 ++----
- mm/userfaultfd.c               |   18 ++----------------
- 7 files changed, 32 insertions(+), 52 deletions(-)
+ include/linux/mm.h |   16 ----------------
+ mm/hugetlb.c       |    6 +++---
+ mm/internal.h      |   19 +++++++++++++++++++
+ 3 files changed, 22 insertions(+), 19 deletions(-)
 
---- a/arch/x86/include/asm/pgtable.h~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -289,6 +289,11 @@ static inline pte_t pte_clear_flags(pte_
- 	return native_make_pte(v & ~clear);
+--- a/include/linux/mm.h~mm-move-folio_set_compound_order-to-mm-internalh
++++ a/include/linux/mm.h
+@@ -1019,22 +1019,6 @@ static inline void set_compound_order(st
+ #endif
  }
  
-+static inline pte_t pte_wrprotect(pte_t pte)
-+{
-+	return pte_clear_flags(pte, _PAGE_RW);
-+}
-+
- #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
- static inline int pte_uffd_wp(pte_t pte)
- {
-@@ -313,7 +318,7 @@ static inline int pte_uffd_wp(pte_t pte)
- 
- static inline pte_t pte_mkuffd_wp(pte_t pte)
- {
--	return pte_set_flags(pte, _PAGE_UFFD_WP);
-+	return pte_wrprotect(pte_set_flags(pte, _PAGE_UFFD_WP));
- }
- 
- static inline pte_t pte_clear_uffd_wp(pte_t pte)
-@@ -332,11 +337,6 @@ static inline pte_t pte_mkold(pte_t pte)
- 	return pte_clear_flags(pte, _PAGE_ACCESSED);
- }
- 
--static inline pte_t pte_wrprotect(pte_t pte)
+-/*
+- * folio_set_compound_order is generally passed a non-zero order to
+- * initialize a large folio.  However, hugetlb code abuses this by
+- * passing in zero when 'dissolving' a large folio.
+- */
+-static inline void folio_set_compound_order(struct folio *folio,
+-		unsigned int order)
 -{
--	return pte_clear_flags(pte, _PAGE_RW);
--}
+-	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
 -
- static inline pte_t pte_mkexec(pte_t pte)
- {
- 	return pte_clear_flags(pte, _PAGE_NX);
-@@ -401,6 +401,11 @@ static inline pmd_t pmd_clear_flags(pmd_
- 	return native_make_pmd(v & ~clear);
- }
- 
-+static inline pmd_t pmd_wrprotect(pmd_t pmd)
-+{
-+	return pmd_clear_flags(pmd, _PAGE_RW);
-+}
-+
- #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
- static inline int pmd_uffd_wp(pmd_t pmd)
- {
-@@ -409,7 +414,7 @@ static inline int pmd_uffd_wp(pmd_t pmd)
- 
- static inline pmd_t pmd_mkuffd_wp(pmd_t pmd)
- {
--	return pmd_set_flags(pmd, _PAGE_UFFD_WP);
-+	return pmd_wrprotect(pmd_set_flags(pmd, _PAGE_UFFD_WP));
- }
- 
- static inline pmd_t pmd_clear_uffd_wp(pmd_t pmd)
-@@ -428,11 +433,6 @@ static inline pmd_t pmd_mkclean(pmd_t pm
- 	return pmd_clear_flags(pmd, _PAGE_DIRTY);
- }
- 
--static inline pmd_t pmd_wrprotect(pmd_t pmd)
--{
--	return pmd_clear_flags(pmd, _PAGE_RW);
--}
--
- static inline pmd_t pmd_mkdirty(pmd_t pmd)
- {
- 	return pmd_set_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
---- a/include/asm-generic/hugetlb.h~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/include/asm-generic/hugetlb.h
-@@ -25,6 +25,13 @@ static inline pte_t huge_pte_mkwrite(pte
- 	return pte_mkwrite(pte);
- }
- 
-+#ifndef __HAVE_ARCH_HUGE_PTE_WRPROTECT
-+static inline pte_t huge_pte_wrprotect(pte_t pte)
-+{
-+	return pte_wrprotect(pte);
-+}
-+#endif
-+
- static inline pte_t huge_pte_mkdirty(pte_t pte)
- {
- 	return pte_mkdirty(pte);
-@@ -37,7 +44,7 @@ static inline pte_t huge_pte_modify(pte_
- 
- static inline pte_t huge_pte_mkuffd_wp(pte_t pte)
- {
--	return pte_mkuffd_wp(pte);
-+	return huge_pte_wrprotect(pte_mkuffd_wp(pte));
- }
- 
- static inline pte_t huge_pte_clear_uffd_wp(pte_t pte)
-@@ -104,13 +111,6 @@ static inline int huge_pte_none_mostly(p
- 	return huge_pte_none(pte) || is_pte_marker(pte);
- }
- 
--#ifndef __HAVE_ARCH_HUGE_PTE_WRPROTECT
--static inline pte_t huge_pte_wrprotect(pte_t pte)
--{
--	return pte_wrprotect(pte);
--}
+-	folio->_folio_order = order;
+-#ifdef CONFIG_64BIT
+-	folio->_folio_nr_pages = order ? 1U << order : 0;
 -#endif
+-}
 -
- #ifndef __HAVE_ARCH_PREPARE_HUGEPAGE_RANGE
- static inline int prepare_hugepage_range(struct file *file,
- 		unsigned long addr, unsigned long len)
---- a/mm/huge_memory.c~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/mm/huge_memory.c
-@@ -1920,17 +1920,15 @@ int change_huge_pmd(struct mmu_gather *t
- 	oldpmd = pmdp_invalidate_ad(vma, addr, pmd);
- 
- 	entry = pmd_modify(oldpmd, newprot);
--	if (uffd_wp) {
--		entry = pmd_wrprotect(entry);
-+	if (uffd_wp)
- 		entry = pmd_mkuffd_wp(entry);
--	} else if (uffd_wp_resolve) {
-+	else if (uffd_wp_resolve)
- 		/*
- 		 * Leave the write bit to be handled by PF interrupt
- 		 * handler, then things like COW could be properly
- 		 * handled.
- 		 */
- 		entry = pmd_clear_uffd_wp(entry);
--	}
- 
- 	/* See change_pte_range(). */
- 	if ((cp_flags & MM_CP_TRY_CHANGE_WRITABLE) && !pmd_write(entry) &&
-@@ -3275,7 +3273,7 @@ void remove_migration_pmd(struct page_vm
- 	if (is_writable_migration_entry(entry))
- 		pmde = maybe_pmd_mkwrite(pmde, vma);
- 	if (pmd_swp_uffd_wp(*pvmw->pmd))
--		pmde = pmd_wrprotect(pmd_mkuffd_wp(pmde));
-+		pmde = pmd_mkuffd_wp(pmde);
- 	if (!is_migration_entry_young(entry))
- 		pmde = pmd_mkold(pmde);
- 	/* NOTE: this may contain setting soft-dirty on some archs */
---- a/mm/hugetlb.c~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
+ /* Returns the number of pages in this potentially compound page. */
+ static inline unsigned long compound_nr(struct page *page)
+ {
+--- a/mm/hugetlb.c~mm-move-folio_set_compound_order-to-mm-internalh
 +++ a/mm/hugetlb.c
-@@ -5919,7 +5919,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	 * if populated.
- 	 */
- 	if (unlikely(pte_marker_uffd_wp(old_pte)))
--		new_pte = huge_pte_wrprotect(huge_pte_mkuffd_wp(new_pte));
-+		new_pte = huge_pte_mkuffd_wp(new_pte);
- 	set_huge_pte_at(mm, haddr, ptep, new_pte);
+@@ -1492,7 +1492,7 @@ static void __destroy_compound_gigantic_
+ 			set_page_refcounted(p);
+ 	}
  
- 	hugetlb_count_add(pages_per_huge_page(h), mm);
-@@ -6728,7 +6728,7 @@ unsigned long hugetlb_change_protection(
- 			pte = huge_pte_modify(old_pte, newprot);
- 			pte = arch_make_huge_pte(pte, shift, vma->vm_flags);
- 			if (uffd_wp)
--				pte = huge_pte_mkuffd_wp(huge_pte_wrprotect(pte));
-+				pte = huge_pte_mkuffd_wp(pte);
- 			else if (uffd_wp_resolve)
- 				pte = huge_pte_clear_uffd_wp(pte);
- 			huge_ptep_modify_prot_commit(vma, address, ptep, old_pte, pte);
---- a/mm/memory.c~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/mm/memory.c
-@@ -878,7 +878,7 @@ copy_present_page(struct vm_area_struct
- 	pte = maybe_mkwrite(pte_mkdirty(pte), dst_vma);
- 	if (userfaultfd_pte_wp(dst_vma, *src_pte))
- 		/* Uffd-wp needs to be delivered to dest pte as well */
--		pte = pte_wrprotect(pte_mkuffd_wp(pte));
-+		pte = pte_mkuffd_wp(pte);
- 	set_pte_at(dst_vma->vm_mm, addr, dst_pte, pte);
- 	return 0;
+-	folio_set_compound_order(folio, 0);
++	folio_set_order(folio, 0);
+ 	__folio_clear_head(folio);
  }
-@@ -3950,10 +3950,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 	flush_icache_page(vma, page);
- 	if (pte_swp_soft_dirty(vmf->orig_pte))
- 		pte = pte_mksoft_dirty(pte);
--	if (pte_swp_uffd_wp(vmf->orig_pte)) {
-+	if (pte_swp_uffd_wp(vmf->orig_pte))
- 		pte = pte_mkuffd_wp(pte);
--		pte = pte_wrprotect(pte);
--	}
- 	vmf->orig_pte = pte;
  
- 	/* ksm created a completely new copy */
-@@ -4296,7 +4294,7 @@ void do_set_pte(struct vm_fault *vmf, st
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 	if (unlikely(uffd_wp))
--		entry = pte_mkuffd_wp(pte_wrprotect(entry));
-+		entry = pte_mkuffd_wp(entry);
- 	/* copy-on-write page */
- 	if (write && !(vma->vm_flags & VM_SHARED)) {
- 		inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
---- a/mm/mprotect.c~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/mm/mprotect.c
-@@ -177,12 +177,10 @@ static unsigned long change_pte_range(st
- 			oldpte = ptep_modify_prot_start(vma, addr, pte);
- 			ptent = pte_modify(oldpte, newprot);
+@@ -1956,7 +1956,7 @@ static bool __prep_compound_gigantic_fol
+ 	__folio_clear_reserved(folio);
+ 	__folio_set_head(folio);
+ 	/* we rely on prep_new_hugetlb_folio to set the destructor */
+-	folio_set_compound_order(folio, order);
++	folio_set_order(folio, order);
+ 	for (i = 0; i < nr_pages; i++) {
+ 		p = folio_page(folio, i);
  
--			if (uffd_wp) {
--				ptent = pte_wrprotect(ptent);
-+			if (uffd_wp)
- 				ptent = pte_mkuffd_wp(ptent);
--			} else if (uffd_wp_resolve) {
-+			else if (uffd_wp_resolve)
- 				ptent = pte_clear_uffd_wp(ptent);
--			}
+@@ -2020,7 +2020,7 @@ out_error:
+ 		p = folio_page(folio, j);
+ 		__ClearPageReserved(p);
+ 	}
+-	folio_set_compound_order(folio, 0);
++	folio_set_order(folio, 0);
+ 	__folio_clear_head(folio);
+ 	return false;
+ }
+--- a/mm/internal.h~mm-move-folio_set_compound_order-to-mm-internalh
++++ a/mm/internal.h
+@@ -378,6 +378,25 @@ extern void *memmap_alloc(phys_addr_t si
+ int split_free_page(struct page *free_page,
+ 			unsigned int order, unsigned long split_pfn_offset);
  
- 			/*
- 			 * In some writable, shared mappings, we might want
---- a/mm/userfaultfd.c~mm-uffd-always-wr-protect-pte-in-ptepmd_mkuffd_wp
-+++ a/mm/userfaultfd.c
-@@ -74,24 +74,10 @@ int mfill_atomic_install_pte(struct mm_s
- 	_dst_pte = pte_mkdirty(_dst_pte);
- 	if (page_in_cache && !vm_shared)
- 		writable = false;
--
--	/*
--	 * Always mark a PTE as write-protected when needed, regardless of
--	 * VM_WRITE, which the user might change.
--	 */
--	if (wp_copy) {
--		_dst_pte = pte_mkuffd_wp(_dst_pte);
--		writable = false;
--	}
--
- 	if (writable)
- 		_dst_pte = pte_mkwrite(_dst_pte);
--	else
--		/*
--		 * We need this to make sure write bit removed; as mk_pte()
--		 * could return a pte with write bit set.
--		 */
--		_dst_pte = pte_wrprotect(_dst_pte);
-+	if (wp_copy)
-+		_dst_pte = pte_mkuffd_wp(_dst_pte);
++/*
++ * This will have no effect, other than possibly generating a warning, if the
++ * caller passes in a non-large folio.
++ */
++static inline void folio_set_order(struct folio *folio, unsigned int order)
++{
++	if (WARN_ON_ONCE(!folio_test_large(folio)))
++		return;
++
++	folio->_folio_order = order;
++#ifdef CONFIG_64BIT
++	/*
++	 * When hugetlb dissolves a folio, we need to clear the tail
++	 * page, rather than setting nr_pages to 1.
++	 */
++	folio->_folio_nr_pages = order ? 1U << order : 0;
++#endif
++}
++
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
  
- 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
- 
+ /*
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-selftests-vm-remove-__use_gnu-in-hugetlb-madvisec.patch
+mm-remove-the-hugetlb-field-from-struct-page.patch
+mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios.patch
+mm-memory-failure-convert-try_memory_failure_hugetlb-to-folios.patch
+mm-memory-failure-convert-hugetlb_clear_page_hwpoison-to-folios.patch
+mm-memory-failure-convert-free_raw_hwp_pages-to-folios.patch
+mm-memory-failure-convert-raw_hwp_list_head-to-folios.patch
+mm-memory-failure-convert-__free_raw_hwp_pages-to-folios.patch
+mm-memory-failure-convert-hugetlb_set_page_hwpoison-to-folios.patch
+mm-memory-failure-convert-unpoison_memory-to-folios.patch
+mm-hugetlb-convert-isolate_hugetlb-to-folios.patch
+mm-hugetlb-convert-__update_and_free_page-to-folios.patch
+mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios.patch
+mm-hugetlb-convert-alloc_surplus_huge_page-to-folios.patch
+mm-hugetlb-increase-use-of-folios-in-alloc_huge_page.patch
+mm-hugetlb-convert-alloc_migrate_huge_page-to-folios.patch
+mm-hugetlb-convert-restore_reserve_on_error-to-folios.patch
+mm-hugetlb-convert-demote_free_huge_page-to-folios.patch
+mm-hugetlb-convert-get_hwpoison_huge_page-to-folios.patch
 
