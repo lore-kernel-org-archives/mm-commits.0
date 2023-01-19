@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C83AC38159
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F9EC678D4
 	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:16:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229837AbjASBQt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229851AbjASBQt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Jan 2023 20:16:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37674 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229622AbjASBPR (ORCPT
+        with ESMTP id S229797AbjASBPR (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:15:17 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 655EF3B0E1;
-        Wed, 18 Jan 2023 17:14:29 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 836744347D
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:14:29 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F3F0F61B0E;
-        Thu, 19 Jan 2023 01:14:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BE36C433F0;
-        Thu, 19 Jan 2023 01:14:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3B228B81D66
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF411C433EF;
+        Thu, 19 Jan 2023 01:14:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090868;
-        bh=0aKgmZjCcfSnLMYeAl2k/QoZ/2EzP6x+nH6fE9/5Pvo=;
+        s=korg; t=1674090866;
+        bh=azvTZQ5bCYBpvyn0unPZAz5GbWTdIup/L3MC3DwAfT4=;
         h=Date:To:From:Subject:From;
-        b=JpaVIyJySgN8UM1sMiE35xnaSkXTHVi4+t81ne9ai//o6QFxf2nMiYKiqYad/vU6t
-         o6P6mws5qWCzBfyEToLVX+IVbgCHmiQc3wGA/9FOjaGRSyt9KXeJ6juJIuGSUzN/yB
-         XrUxUNh5+D3JS7wiAelX+em9wqFrOnW1hsu98P2I=
-Date:   Wed, 18 Jan 2023 17:14:27 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        songmuchun@bytedance.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@suse.com, hughd@google.com,
-        hannes@cmpxchg.org, akpm@linux-foundation.org
+        b=n0AuRAb3M3lyXoz1ekRVJGTnRDVFoJKo2zffxBFWkr0Nc/aZCBo7jChI/mqmpa3A/
+         1XaQkdaEPCl/SXLi4QJFw+qDr5RWVRDDa/ag62LwBHbPSNiXsOKxG125deyqM1p3Ps
+         8npj8O/gbtWIx9tfvTRWsYsZVMvCiGSwqEfB+opw=
+Date:   Wed, 18 Jan 2023 17:14:26 -0800
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@suse.com,
+        hughd@google.com, hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-deprecate-charge-moving.patch removed from -mm tree
-Message-Id: <20230119011428.5BE36C433F0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-remove-lock_page_memcg.patch removed from -mm tree
+Message-Id: <20230119011426.CF411C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,108 +42,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: deprecate charge moving
+     Subject: mm: rmap: remove lock_page_memcg()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-deprecate-charge-moving.patch
+     mm-rmap-remove-lock_page_memcg.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: deprecate charge moving
-Date: Wed, 7 Dec 2022 14:00:39 +0100
+Subject: mm: rmap: remove lock_page_memcg()
+Date: Tue, 6 Dec 2022 18:13:40 +0100
 
-Charge moving mode in cgroup1 allows memory to follow tasks as they
-migrate between cgroups.  This is, and always has been, a questionable
-thing to do - for several reasons.
+The previous patch made sure charge moving only touches pages for which
+page_mapped() is stable.  lock_page_memcg() is no longer needed.
 
-First, it's expensive.  Pages need to be identified, locked and isolated
-from various MM operations, and reassigned, one by one.
-
-Second, it's unreliable.  Once pages are charged to a cgroup, there isn't
-always a clear owner task anymore.  Cache isn't moved at all, for example.
-Mapped memory is moved - but if trylocking or isolating a page fails,
-it's arbitrarily left behind.  Frequent moving between domains may leave a
-task's memory scattered all over the place.
-
-Third, it isn't really needed.  Launcher tasks can kick off workload tasks
-directly in their target cgroup.  Using dedicated per-workload groups
-allows fine-grained policy adjustments - no need to move tasks and their
-physical pages between control domains.  The feature was never
-forward-ported to cgroup2, and it hasn't been missed.
-
-Despite it being a niche usecase, the maintenance overhead of supporting
-it is enormous.  Because pages are moved while they are live and subject
-to various MM operations, the synchronization rules are complicated. 
-There are lock_page_memcg() in MM and FS code, which non-cgroup people
-don't understand.  In some cases we've been able to shift code and cgroup
-API calls around such that we can rely on native locking as much as
-possible.  But that's fragile, and sometimes we need to hold MM locks for
-longer than we otherwise would (pte lock e.g.).
-
-Mark the feature deprecated. Hopefully we can remove it soon.
-
-And backport into -stable kernels so that people who develop against
-earlier kernels are warned about this deprecation as early as possible.
-
-[akpm@linux-foundation.org: fix memory.rst underlining]
-Link: https://lkml.kernel.org/r/Y5COd+qXwk/S+n8N@cmpxchg.org
+Link: https://lkml.kernel.org/r/20221206171340.139790-3-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memory.rst |   13 +++++++++++--
- mm/memcontrol.c                                |    4 ++++
- 2 files changed, 15 insertions(+), 2 deletions(-)
+ mm/rmap.c |   26 ++++++++------------------
+ 1 file changed, 8 insertions(+), 18 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~mm-memcontrol-deprecate-charge-moving
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -86,6 +86,8 @@ Brief summary of control files.
-  memory.swappiness		     set/show swappiness parameter of vmscan
- 				     (See sysctl's vm.swappiness)
-  memory.move_charge_at_immigrate     set/show controls of moving charges
-+                                     This knob is deprecated and shouldn't be
-+                                     used.
-  memory.oom_control		     set/show oom controls.
-  memory.numa_stat		     show the number of memory usage per numa
- 				     node
-@@ -717,8 +719,15 @@ NOTE2:
-        It is recommended to set the soft limit always below the hard limit,
-        otherwise the hard limit will take precedence.
+--- a/mm/rmap.c~mm-rmap-remove-lock_page_memcg
++++ a/mm/rmap.c
+@@ -1222,9 +1222,6 @@ void page_add_anon_rmap(struct page *pag
+ 	bool compound = flags & RMAP_COMPOUND;
+ 	bool first = true;
  
--8. Move charges at task migration
--=================================
-+8. Move charges at task migration (DEPRECATED!)
-+===============================================
-+
-+THIS IS DEPRECATED!
-+
-+It's expensive and unreliable! It's better practice to launch workload
-+tasks directly from inside their target cgroup. Use dedicated workload
-+cgroups to allow fine-grained policy adjustments without having to
-+move physical pages between control domains.
+-	if (unlikely(PageKsm(page)))
+-		lock_page_memcg(page);
+-
+ 	/* Is page being mapped by PTE? Is this its first map to be added? */
+ 	if (likely(!compound)) {
+ 		first = atomic_inc_and_test(&page->_mapcount);
+@@ -1262,15 +1259,14 @@ void page_add_anon_rmap(struct page *pag
+ 	if (nr)
+ 		__mod_lruvec_page_state(page, NR_ANON_MAPPED, nr);
  
- Users can move charges associated with a task along with task migration, that
- is, uncharge task's pages from the old cgroup and charge them to the new cgroup.
---- a/mm/memcontrol.c~mm-memcontrol-deprecate-charge-moving
-+++ a/mm/memcontrol.c
-@@ -3919,6 +3919,10 @@ static int mem_cgroup_move_charge_write(
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+-	if (unlikely(PageKsm(page)))
+-		unlock_page_memcg(page);
+-
+-	/* address might be in next vma when migration races vma_adjust */
+-	else if (first)
+-		__page_set_anon_rmap(page, vma, address,
+-				     !!(flags & RMAP_EXCLUSIVE));
+-	else
+-		__page_check_anon_rmap(page, vma, address);
++	if (likely(!PageKsm(page))) {
++		/* address might be in next vma when migration races vma_adjust */
++		if (first)
++			__page_set_anon_rmap(page, vma, address,
++					     !!(flags & RMAP_EXCLUSIVE));
++		else
++			__page_check_anon_rmap(page, vma, address);
++	}
  
-+	pr_warn_once("Cgroup memory moving (move_charge_at_immigrate) is deprecated. "
-+		     "Please report your usecase to linux-mm@kvack.org if you "
-+		     "depend on this functionality.\n");
-+
- 	if (val & ~MOVE_MASK)
- 		return -EINVAL;
+ 	mlock_vma_page(page, vma, compound);
+ }
+@@ -1329,7 +1325,6 @@ void page_add_file_rmap(struct page *pag
+ 	bool first;
+ 
+ 	VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
+-	lock_page_memcg(page);
+ 
+ 	/* Is page being mapped by PTE? Is this its first map to be added? */
+ 	if (likely(!compound)) {
+@@ -1365,7 +1360,6 @@ void page_add_file_rmap(struct page *pag
+ 			NR_SHMEM_PMDMAPPED : NR_FILE_PMDMAPPED, nr_pmdmapped);
+ 	if (nr)
+ 		__mod_lruvec_page_state(page, NR_FILE_MAPPED, nr);
+-	unlock_page_memcg(page);
+ 
+ 	mlock_vma_page(page, vma, compound);
+ }
+@@ -1394,8 +1388,6 @@ void page_remove_rmap(struct page *page,
+ 		return;
+ 	}
+ 
+-	lock_page_memcg(page);
+-
+ 	/* Is page being unmapped by PTE? Is this its last map to be removed? */
+ 	if (likely(!compound)) {
+ 		last = atomic_add_negative(-1, &page->_mapcount);
+@@ -1451,8 +1443,6 @@ void page_remove_rmap(struct page *page,
+ 	 * and remember that it's only reliable while mapped.
+ 	 */
+ 
+-	unlock_page_memcg(page);
+-
+ 	munlock_vma_page(page, vma, compound);
+ }
  
 _
 
