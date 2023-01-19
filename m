@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 172EDC678D4
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB5EBC677F1
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229663AbjASBTn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:19:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38330 "EHLO
+        id S229935AbjASBTk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:19:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229934AbjASBRt (ORCPT
+        with ESMTP id S229663AbjASBRt (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:49 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27E5A6C548;
-        Wed, 18 Jan 2023 17:15:40 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24FC56C547
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DAF02B81FBD;
-        Thu, 19 Jan 2023 01:15:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87567C433D2;
-        Thu, 19 Jan 2023 01:15:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B3C2661B18
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14F09C433F1;
+        Thu, 19 Jan 2023 01:15:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090937;
-        bh=PFkEzI4PC6zXUgeRNUUCFeXNNVyrCy15+qXp7hK55Ho=;
+        s=korg; t=1674090939;
+        bh=0G4IetAOU1uSluPcgcSNHux3bphFudl9WH2i+uWCd4E=;
         h=Date:To:From:Subject:From;
-        b=epr/Ef0FfZW1Ziaetvb4OV4VWwMNgWPIDoeFqUX49wV0yVGoo6/TCjdF2bK6P2tJd
-         Ri/bBUvjkqVjv1xgk3cUHfLgv7VFo5D+iUQ5K9Pr5XQNhfZ4EWayb7JKdfM19M8ffF
-         TYZ1gzfa3GLZTYlgv5mS9sJsEIMdD+ElTBV2MO8Y=
-Date:   Wed, 18 Jan 2023 17:15:37 -0800
-To:     mm-commits@vger.kernel.org, zhengjun.xing@linux.intel.com,
-        ying.huang@intel.com, willy@infradead.org, stable@vger.kernel.org,
-        shy828301@gmail.com, rientjes@google.com, riel@surriel.com,
-        nathan@kernel.org, feng.tang@intel.com, fengwei.yin@intel.com,
+        b=znM7CkEhdkxYoJCgJSiMYebsUeu2Ql3DptSC2x/qWKkMnm0V3Arp/j2UCp4UvpMOv
+         3IS68LoexVIi1dvLWNzRYLpCSgFnuzLSgeLVDHx/3yfAWdfcfToNSX3G15quzawO8a
+         Q2kY2ixvtwVrHevXWFtQj/fasXFgkOPn62jNl5oc=
+Date:   Wed, 18 Jan 2023 17:15:38 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
+        mark@fasheh.com, joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
+        jack@suse.cz, almaz.alexandrovich@paragon-software.com, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-thp-check-and-bail-out-if-page-in-deferred-queue-already.patch removed from -mm tree
-Message-Id: <20230119011537.87567C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] fs-remove-an-outdated-comment-on-mpage_writepages.patch removed from -mm tree
+Message-Id: <20230119011539.14F09C433F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,102 +43,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/thp: check and bail out if page in deferred queue already
+     Subject: fs: remove an outdated comment on mpage_writepages
 has been removed from the -mm tree.  Its filename was
-     mm-thp-check-and-bail-out-if-page-in-deferred-queue-already.patch
+     fs-remove-an-outdated-comment-on-mpage_writepages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yin Fengwei <fengwei.yin@intel.com>
-Subject: mm/thp: check and bail out if page in deferred queue already
-Date: Fri, 23 Dec 2022 21:52:07 +0800
+From: Christoph Hellwig <hch@lst.de>
+Subject: fs: remove an outdated comment on mpage_writepages
+Date: Thu, 29 Dec 2022 06:10:26 -1000
 
-Kernel build regression with LLVM was reported here:
-https://lore.kernel.org/all/Y1GCYXGtEVZbcv%2F5@dev-arch.thelio-3990X/ with
-commit f35b5d7d676e ("mm: align larger anonymous mappings on THP
-boundaries").  And the commit f35b5d7d676e was reverted.
+Patch series "remove generic_writepages"
 
-It turned out the regression is related with madvise(MADV_DONTNEED)
-was used by ld.lld. But with none PMD_SIZE aligned parameter len.
-trace-bpfcc captured:
-531607  531732  ld.lld          do_madvise.part.0 start: 0x7feca9000000, len: 0x7fb000, behavior: 0x4
-531607  531793  ld.lld          do_madvise.part.0 start: 0x7fec86a00000, len: 0x7fb000, behavior: 0x4
+This series removes generic_writepages by open coding the current
+functionality in the three remaining callers.  Besides removing some
+code the main benefit is that one of the few remaining ->writepage
+callers from outside the core page cache code go away.
 
-If the underneath physical page is THP, the madvise(MADV_DONTNEED) can
-trigger split_queue_lock contention raised significantly. perf showed
-following data:
-    14.85%     0.00%  ld.lld           [kernel.kallsyms]           [k]
-       entry_SYSCALL_64_after_hwframe
-           11.52%
-                entry_SYSCALL_64_after_hwframe
-                do_syscall_64
-                __x64_sys_madvise
-                do_madvise.part.0
-                zap_page_range
-                unmap_single_vma
-                unmap_page_range
-                page_remove_rmap
-                deferred_split_huge_page
-                __lock_text_start
-                native_queued_spin_lock_slowpath
+This patch (of 6):
 
-If THP can't be removed from rmap as whole THP, partial THP will be
-removed from rmap by removing sub-pages from rmap.  Even the THP head page
-is added to deferred queue already, the split_queue_lock will be acquired
-and check whether the THP head page is in the queue already.  Thus, the
-contention of split_queue_lock is raised.
 
-Before acquire split_queue_lock, check and bail out early if the THP
-head page is in the queue already. The checking without holding
-split_queue_lock could race with deferred_split_scan, but it doesn't
-impact the correctness here.
+mpage_writepages doesn't do any of the page locking itself, so remove and
+outdated comment on the locking pattern there.
 
-Test result of building kernel with ld.lld:
-commit 7b5a0b664ebe (parent commit of f35b5d7d676e):
-time -f "\t%E real,\t%U user,\t%S sys" make LD=ld.lld -skj96 allmodconfig all
-        6:07.99 real,   26367.77 user,  5063.35 sys
-
-commit f35b5d7d676e:
-time -f "\t%E real,\t%U user,\t%S sys" make LD=ld.lld -skj96 allmodconfig all
-        7:22.15 real,   26235.03 user,  12504.55 sys
-
-commit f35b5d7d676e with the fixing patch:
-time -f "\t%E real,\t%U user,\t%S sys" make LD=ld.lld -skj96 allmodconfig all
-        6:08.49 real,   26520.15 user,  5047.91 sys
-
-Link: https://lkml.kernel.org/r/20221223135207.2275317-1-fengwei.yin@intel.com
-Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
-Tested-by: Nathan Chancellor <nathan@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Feng Tang <feng.tang@intel.com>
+Link: https://lkml.kernel.org/r/20221229161031.391878-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20221229161031.391878-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Xing Zhengjun <zhengjun.xing@linux.intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/mpage.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-check-and-bail-out-if-page-in-deferred-queue-already
-+++ a/mm/huge_memory.c
-@@ -2835,6 +2835,9 @@ void deferred_split_huge_page(struct pag
- 	if (PageSwapCache(page))
- 		return;
- 
-+	if (!list_empty(page_deferred_list(page)))
-+		return;
-+
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
- 	if (list_empty(page_deferred_list(page))) {
- 		count_vm_event(THP_DEFERRED_SPLIT_PAGE);
+--- a/fs/mpage.c~fs-remove-an-outdated-comment-on-mpage_writepages
++++ a/fs/mpage.c
+@@ -641,14 +641,6 @@ out:
+  *
+  * This is a library function, which implements the writepages()
+  * address_space_operation.
+- *
+- * If a page is already under I/O, generic_writepages() skips it, even
+- * if it's dirty.  This is desirable behaviour for memory-cleaning writeback,
+- * but it is INCORRECT for data-integrity system calls such as fsync().  fsync()
+- * and msync() need to guarantee that all the data which was dirty at the time
+- * the call was made get new I/O started against them.  If wbc->sync_mode is
+- * WB_SYNC_ALL then we were called for data integrity and we must wait for
+- * existing IO to complete.
+  */
+ int
+ mpage_writepages(struct address_space *mapping,
 _
 
-Patches currently in -mm which might be from fengwei.yin@intel.com are
+Patches currently in -mm which might be from hch@lst.de are
 
 
