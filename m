@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29BE0C38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 172EDC678D4
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229766AbjASBTe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:19:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38364 "EHLO
+        id S229663AbjASBTn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:19:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230008AbjASBR5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:57 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EE406921E
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:43 -0800 (PST)
+        with ESMTP id S229934AbjASBRt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:49 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27E5A6C548;
+        Wed, 18 Jan 2023 17:15:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A176461B08
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B0A8C433EF;
-        Thu, 19 Jan 2023 01:15:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DAF02B81FBD;
+        Thu, 19 Jan 2023 01:15:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87567C433D2;
+        Thu, 19 Jan 2023 01:15:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090942;
-        bh=r+fQZu7VBoIeO5o7qUgWj08GYXuuL9atty3aDNIy0zs=;
+        s=korg; t=1674090937;
+        bh=PFkEzI4PC6zXUgeRNUUCFeXNNVyrCy15+qXp7hK55Ho=;
         h=Date:To:From:Subject:From;
-        b=NzQfDq1g0DvIWRzboxqsiiRVNPScWNwcvFJDgLs4N/8K/VR8KvVj4f3tm+jCQyBGL
-         7VitLt4f3tBmF4MHyJlSnU6wIZWowTazdYihdVPfZ8d8yLsqWxe+cFONy11smXp4oO
-         WPNUlBHJg9ET077Xw0QsPgWYoc9iGS0LP3dW6Qys=
-Date:   Wed, 18 Jan 2023 17:15:41 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
-        mark@fasheh.com, joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
-        jack@suse.com, almaz.alexandrovich@paragon-software.com,
-        hch@lst.de, akpm@linux-foundation.org
+        b=epr/Ef0FfZW1Ziaetvb4OV4VWwMNgWPIDoeFqUX49wV0yVGoo6/TCjdF2bK6P2tJd
+         Ri/bBUvjkqVjv1xgk3cUHfLgv7VFo5D+iUQ5K9Pr5XQNhfZ4EWayb7JKdfM19M8ffF
+         TYZ1gzfa3GLZTYlgv5mS9sJsEIMdD+ElTBV2MO8Y=
+Date:   Wed, 18 Jan 2023 17:15:37 -0800
+To:     mm-commits@vger.kernel.org, zhengjun.xing@linux.intel.com,
+        ying.huang@intel.com, willy@infradead.org, stable@vger.kernel.org,
+        shy828301@gmail.com, rientjes@google.com, riel@surriel.com,
+        nathan@kernel.org, feng.tang@intel.com, fengwei.yin@intel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ntfs3-remove-writepage.patch removed from -mm tree
-Message-Id: <20230119011542.0B0A8C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-thp-check-and-bail-out-if-page-in-deferred-queue-already.patch removed from -mm tree
+Message-Id: <20230119011537.87567C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,86 +44,102 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ntfs3: remove ->writepage
+     Subject: mm/thp: check and bail out if page in deferred queue already
 has been removed from the -mm tree.  Its filename was
-     ntfs3-remove-writepage.patch
+     mm-thp-check-and-bail-out-if-page-in-deferred-queue-already.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: ntfs3: remove ->writepage
-Date: Thu, 29 Dec 2022 06:10:28 -1000
+From: Yin Fengwei <fengwei.yin@intel.com>
+Subject: mm/thp: check and bail out if page in deferred queue already
+Date: Fri, 23 Dec 2022 21:52:07 +0800
 
-->writepage is a very inefficient method to write back data, and only used
-through write_cache_pages or a a fallback when no ->migrate_folio method
-is present.
+Kernel build regression with LLVM was reported here:
+https://lore.kernel.org/all/Y1GCYXGtEVZbcv%2F5@dev-arch.thelio-3990X/ with
+commit f35b5d7d676e ("mm: align larger anonymous mappings on THP
+boundaries").  And the commit f35b5d7d676e was reverted.
 
-Set ->migrate_folio to the generic buffer_head based helper, and remove
-the ->writepage implementation.
+It turned out the regression is related with madvise(MADV_DONTNEED)
+was used by ld.lld. But with none PMD_SIZE aligned parameter len.
+trace-bpfcc captured:
+531607  531732  ld.lld          do_madvise.part.0 start: 0x7feca9000000, len: 0x7fb000, behavior: 0x4
+531607  531793  ld.lld          do_madvise.part.0 start: 0x7fec86a00000, len: 0x7fb000, behavior: 0x4
 
-Link: https://lkml.kernel.org/r/20221229161031.391878-4-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
-Cc: Mark Fasheh <mark@fasheh.com>
+If the underneath physical page is THP, the madvise(MADV_DONTNEED) can
+trigger split_queue_lock contention raised significantly. perf showed
+following data:
+    14.85%     0.00%  ld.lld           [kernel.kallsyms]           [k]
+       entry_SYSCALL_64_after_hwframe
+           11.52%
+                entry_SYSCALL_64_after_hwframe
+                do_syscall_64
+                __x64_sys_madvise
+                do_madvise.part.0
+                zap_page_range
+                unmap_single_vma
+                unmap_page_range
+                page_remove_rmap
+                deferred_split_huge_page
+                __lock_text_start
+                native_queued_spin_lock_slowpath
+
+If THP can't be removed from rmap as whole THP, partial THP will be
+removed from rmap by removing sub-pages from rmap.  Even the THP head page
+is added to deferred queue already, the split_queue_lock will be acquired
+and check whether the THP head page is in the queue already.  Thus, the
+contention of split_queue_lock is raised.
+
+Before acquire split_queue_lock, check and bail out early if the THP
+head page is in the queue already. The checking without holding
+split_queue_lock could race with deferred_split_scan, but it doesn't
+impact the correctness here.
+
+Test result of building kernel with ld.lld:
+commit 7b5a0b664ebe (parent commit of f35b5d7d676e):
+time -f "\t%E real,\t%U user,\t%S sys" make LD=ld.lld -skj96 allmodconfig all
+        6:07.99 real,   26367.77 user,  5063.35 sys
+
+commit f35b5d7d676e:
+time -f "\t%E real,\t%U user,\t%S sys" make LD=ld.lld -skj96 allmodconfig all
+        7:22.15 real,   26235.03 user,  12504.55 sys
+
+commit f35b5d7d676e with the fixing patch:
+time -f "\t%E real,\t%U user,\t%S sys" make LD=ld.lld -skj96 allmodconfig all
+        6:08.49 real,   26520.15 user,  5047.91 sys
+
+Link: https://lkml.kernel.org/r/20221223135207.2275317-1-fengwei.yin@intel.com
+Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+Tested-by: Nathan Chancellor <nathan@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Feng Tang <feng.tang@intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Xing Zhengjun <zhengjun.xing@linux.intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs3/inode.c |   22 +---------------------
- 1 file changed, 1 insertion(+), 21 deletions(-)
+ mm/huge_memory.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/fs/ntfs3/inode.c~ntfs3-remove-writepage
-+++ a/fs/ntfs3/inode.c
-@@ -832,26 +832,6 @@ out:
- 	return err;
- }
+--- a/mm/huge_memory.c~mm-thp-check-and-bail-out-if-page-in-deferred-queue-already
++++ a/mm/huge_memory.c
+@@ -2835,6 +2835,9 @@ void deferred_split_huge_page(struct pag
+ 	if (PageSwapCache(page))
+ 		return;
  
--static int ntfs_writepage(struct page *page, struct writeback_control *wbc)
--{
--	struct address_space *mapping = page->mapping;
--	struct inode *inode = mapping->host;
--	struct ntfs_inode *ni = ntfs_i(inode);
--	int err;
--
--	if (is_resident(ni)) {
--		ni_lock(ni);
--		err = attr_data_write_resident(ni, page);
--		ni_unlock(ni);
--		if (err != E_NTFS_NONRESIDENT) {
--			unlock_page(page);
--			return err;
--		}
--	}
--
--	return block_write_full_page(page, ntfs_get_block, wbc);
--}
--
- static int ntfs_resident_writepage(struct page *page,
- 		struct writeback_control *wbc, void *data)
- {
-@@ -2083,13 +2063,13 @@ const struct inode_operations ntfs_link_
- const struct address_space_operations ntfs_aops = {
- 	.read_folio	= ntfs_read_folio,
- 	.readahead	= ntfs_readahead,
--	.writepage	= ntfs_writepage,
- 	.writepages	= ntfs_writepages,
- 	.write_begin	= ntfs_write_begin,
- 	.write_end	= ntfs_write_end,
- 	.direct_IO	= ntfs_direct_IO,
- 	.bmap		= ntfs_bmap,
- 	.dirty_folio	= block_dirty_folio,
-+	.migrate_folio	= buffer_migrate_folio,
- 	.invalidate_folio = block_invalidate_folio,
- };
- 
++	if (!list_empty(page_deferred_list(page)))
++		return;
++
+ 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
+ 	if (list_empty(page_deferred_list(page))) {
+ 		count_vm_event(THP_DEFERRED_SPLIT_PAGE);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from fengwei.yin@intel.com are
 
 
