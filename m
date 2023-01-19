@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1051C38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:15:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4D7BC677F1
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:15:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229916AbjASBPT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:15:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38212 "EHLO
+        id S229999AbjASBPb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:15:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230002AbjASBOQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:14:16 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F323E689DC
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:14:00 -0800 (PST)
+        with ESMTP id S230010AbjASBO1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:14:27 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28FD169218
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:14:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CCA6E618FE
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32498C433EF;
-        Thu, 19 Jan 2023 01:14:00 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C259DB81FB9
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F3ADC433F0;
+        Thu, 19 Jan 2023 01:14:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090840;
-        bh=WysuOFEKB7dDQO5INfTSYrQ4l8nDSoFursovIKgFG+c=;
+        s=korg; t=1674090841;
+        bh=cRNUd5N45qKvINRhYzB9R3IR69g7dhWx9mf1C2kJgKs=;
         h=Date:To:From:Subject:From;
-        b=UIpYRkj5zy/mBp9bIC+7rD81pfEQfSx5OP9L14aiY9tp3dPd7tGT+kGB3n1XG20Xk
-         wXuIj2cjH5zMD6HGYP5fB2OVhGAgHvNfzQ0jrMxx4h/Chnb00ISXI4kXRd3XKmurkm
-         3oPd6GnrY7ghhIYE/mGxrmUPWSlpppxFot/5lNWI=
-Date:   Wed, 18 Jan 2023 17:13:59 -0800
+        b=gXOKRGl32Sze2Fl4D9T45n/4wYFMMINEZY2bZpCH346bj9hL8QJ1mQQitSTH0WSaa
+         GHHEjV0xO5H5ELCc4CbrnqRHMiOFdOxo9I9MztEwlNwFIqKvpvAjlbLGHDh9bqxO+f
+         K7n1m1IleS+LJELvRHgcKkAlKv7sQ2PsZ9zwOitI=
+Date:   Wed, 18 Jan 2023 17:14:01 -0800
 To:     mm-commits@vger.kernel.org, jack@suse.cz, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] buffer-add-b_folio-as-an-alias-of-b_page.patch removed from -mm tree
-Message-Id: <20230119011400.32498C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] buffer-replace-obvious-uses-of-b_page-with-b_folio.patch removed from -mm tree
+Message-Id: <20230119011401.6F3ADC433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,56 +41,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: buffer: add b_folio as an alias of b_page
+     Subject: buffer: replace obvious uses of b_page with b_folio
 has been removed from the -mm tree.  Its filename was
-     buffer-add-b_folio-as-an-alias-of-b_page.patch
+     buffer-replace-obvious-uses-of-b_page-with-b_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: add b_folio as an alias of b_page
-Date: Thu, 15 Dec 2022 21:43:51 +0000
+Subject: buffer: replace obvious uses of b_page with b_folio
+Date: Thu, 15 Dec 2022 21:43:52 +0000
 
-Patch series "Start converting buffer_heads to use folios".
+These cases just check if it's NULL, or use b_page to get to the page's
+address space.  They are assumptions that b_page never points to a tail
+page.
 
-I was hoping that filesystems would convert from buffer_heads to iomap,
-but that's not happening particularly quickly.  So the buffer_head
-infrastructure needs to be converted from being page-based to being
-folio-based.
-
-
-This patch (of 12):
-
-Buffer heads point to the allocation (ie the folio), not the page.  This
-is currently the same thing for all filesystems that use buffer heads, so
-this is a safe transitional step.
-
-Link: https://lkml.kernel.org/r/20221215214402.3522366-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20221215214402.3522366-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20221215214402.3522366-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/buffer_head.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/buffer.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/buffer_head.h~buffer-add-b_folio-as-an-alias-of-b_page
-+++ a/include/linux/buffer_head.h
-@@ -61,7 +61,10 @@ typedef void (bh_end_io_t)(struct buffer
- struct buffer_head {
- 	unsigned long b_state;		/* buffer state bitmap (see above) */
- 	struct buffer_head *b_this_page;/* circular list of page's buffers */
--	struct page *b_page;		/* the page this bh is mapped to */
-+	union {
-+		struct page *b_page;	/* the page this bh is mapped to */
-+		struct folio *b_folio;	/* the folio this bh is mapped to */
-+	};
+--- a/fs/buffer.c~buffer-replace-obvious-uses-of-b_page-with-b_folio
++++ a/fs/buffer.c
+@@ -321,7 +321,7 @@ static void end_buffer_async_read_io(str
+ {
+ 	/* Decrypt if needed */
+ 	if (uptodate &&
+-	    fscrypt_inode_uses_fs_layer_crypto(bh->b_page->mapping->host)) {
++	    fscrypt_inode_uses_fs_layer_crypto(bh->b_folio->mapping->host)) {
+ 		struct decrypt_bh_ctx *ctx = kmalloc(sizeof(*ctx), GFP_ATOMIC);
  
- 	sector_t b_blocknr;		/* start block number */
- 	size_t b_size;			/* size of mapping */
+ 		if (ctx) {
+@@ -570,7 +570,7 @@ void write_boundary_block(struct block_d
+ void mark_buffer_dirty_inode(struct buffer_head *bh, struct inode *inode)
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+-	struct address_space *buffer_mapping = bh->b_page->mapping;
++	struct address_space *buffer_mapping = bh->b_folio->mapping;
+ 
+ 	mark_buffer_dirty(bh);
+ 	if (!mapping->private_data) {
+@@ -1073,7 +1073,7 @@ __getblk_slow(struct block_device *bdev,
+  * and then attach the address_space's inode to its superblock's dirty
+  * inode list.
+  *
+- * mark_buffer_dirty() is atomic.  It takes bh->b_page->mapping->private_lock,
++ * mark_buffer_dirty() is atomic.  It takes bh->b_folio->mapping->private_lock,
+  * i_pages lock and mapping->host->i_lock.
+  */
+ void mark_buffer_dirty(struct buffer_head *bh)
+@@ -1117,8 +1117,8 @@ void mark_buffer_write_io_error(struct b
+ 
+ 	set_buffer_write_io_error(bh);
+ 	/* FIXME: do we need to set this in both places? */
+-	if (bh->b_page && bh->b_page->mapping)
+-		mapping_set_error(bh->b_page->mapping, -EIO);
++	if (bh->b_folio && bh->b_folio->mapping)
++		mapping_set_error(bh->b_folio->mapping, -EIO);
+ 	if (bh->b_assoc_map)
+ 		mapping_set_error(bh->b_assoc_map, -EIO);
+ 	rcu_read_lock();
+@@ -1154,7 +1154,7 @@ void __bforget(struct buffer_head *bh)
+ {
+ 	clear_buffer_dirty(bh);
+ 	if (bh->b_assoc_map) {
+-		struct address_space *buffer_mapping = bh->b_page->mapping;
++		struct address_space *buffer_mapping = bh->b_folio->mapping;
+ 
+ 		spin_lock(&buffer_mapping->private_lock);
+ 		list_del_init(&bh->b_assoc_buffers);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
