@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B89A3C677F1
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:13:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E4CBC678D4
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:14:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229949AbjASBNy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:13:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36734 "EHLO
+        id S229987AbjASBOD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:14:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229957AbjASBNo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:13:44 -0500
+        with ESMTP id S229813AbjASBNp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:13:45 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E844769225
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:13:33 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97AA969B1A
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:13:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 97EE0B81FB5
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:13:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E0F8C433D2;
-        Thu, 19 Jan 2023 01:13:31 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E3A66B81FBC
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:13:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85B33C433D2;
+        Thu, 19 Jan 2023 01:13:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090811;
-        bh=IyVELQZxH9nFzhuCPaTssZzlBMLFn28W1//cnIsWRlY=;
+        s=korg; t=1674090814;
+        bh=s4tyzjF7R6rTR9GGwv1/dtpajL5wYIBkwrLVapBU9K4=;
         h=Date:To:From:Subject:From;
-        b=AeKIS6zX+HGUxmX7fTG71nJ+ebxHYuYpYtgMtYt3RsFpOEeRZYiUTYxb0gDMR1KKO
-         wChM1pf+39obERWuI/lmPpaBMvrf7T2kch4+0Ud+hxQrfU8MBxPN/sGP74kCPsm6Qy
-         zCWPDqgI/cIKap3s6aZS4QgJ7Ct7Dd8k5puLTaeU=
-Date:   Wed, 18 Jan 2023 17:13:30 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, mike.kravetz@oracle.com,
-        jhubbard@nvidia.com, sidhartha.kumar@oracle.com,
-        akpm@linux-foundation.org
+        b=gebYctQ55jiueY+Kf9d9/TI4XToqYgplzm5XE4fu3NFj/xmFj4GV/TLiszu9T4s+h
+         rHUsCXZJyEukjSfzgyo5uwSiQSv/PbBlqRURqeXxWl4e8Tj8Ztr3/prY7Rz3opG073
+         jsUg4QeyMJWWA0coGk2vjl1ZpJMXR0wOKXdQs1qk=
+Date:   Wed, 18 Jan 2023 17:13:34 -0800
+To:     mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
+        lkp@intel.com, keescook@chromium.org, jorgelo@chromium.org,
+        jeffxu@google.com, jannh@google.com, hughd@google.com,
+        dmitry.torokhov@gmail.com, dh.herrmann@gmail.com,
+        dverkamp@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-move-folio_set_compound_order-to-mm-internalh.patch removed from -mm tree
-Message-Id: <20230119011331.3E0F8C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memfd-add-f_seal_exec.patch removed from -mm tree
+Message-Id: <20230119011334.85B33C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,144 +44,124 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: move folio_set_compound_order() to mm/internal.h
+     Subject: mm/memfd: add F_SEAL_EXEC
 has been removed from the -mm tree.  Its filename was
-     mm-move-folio_set_compound_order-to-mm-internalh.patch
+     mm-memfd-add-f_seal_exec.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm: move folio_set_compound_order() to mm/internal.h
-Date: Wed, 14 Dec 2022 22:17:57 -0800
+From: Daniel Verkamp <dverkamp@chromium.org>
+Subject: mm/memfd: add F_SEAL_EXEC
+Date: Thu, 15 Dec 2022 00:12:01 +0000
 
-folio_set_compound_order() is moved to an mm-internal location so external
-folio users cannot misuse this function.  Change the name of the function
-to folio_set_order() and use WARN_ON_ONCE() rather than BUG_ON.  Also,
-handle the case if a non-large folio is passed and add clarifying comments
-to the function.
+Patch series "mm/memfd: introduce MFD_NOEXEC_SEAL and MFD_EXEC", v8.
 
-Link: https://lore.kernel.org/lkml/20221207223731.32784-1-sidhartha.kumar@oracle.com/T/
-Link: https://lkml.kernel.org/r/20221215061757.223440-1-sidhartha.kumar@oracle.com
-Fixes: 9fd330582b2f ("mm: add folio dtor and order setter functions")
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Suggested-by: Muchun Song <songmuchun@bytedance.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Suggested-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Since Linux introduced the memfd feature, memfd have always had their
+execute bit set, and the memfd_create() syscall doesn't allow setting it
+differently.
+
+However, in a secure by default system, such as ChromeOS, (where all
+executables should come from the rootfs, which is protected by Verified
+boot), this executable nature of memfd opens a door for NoExec bypass and
+enables “confused deputy attack”.  E.g, in VRP bug [1]: cros_vm
+process created a memfd to share the content with an external process,
+however the memfd is overwritten and used for executing arbitrary code and
+root escalation.  [2] lists more VRP in this kind.
+
+On the other hand, executable memfd has its legit use, runc uses memfd’s
+seal and executable feature to copy the contents of the binary then
+execute them, for such system, we need a solution to differentiate runc's
+use of executable memfds and an attacker's [3].
+
+To address those above, this set of patches add following:
+1> Let memfd_create() set X bit at creation time.
+2> Let memfd to be sealed for modifying X bit.
+3> A new pid namespace sysctl: vm.memfd_noexec to control the behavior of
+   X bit.For example, if a container has vm.memfd_noexec=2, then
+   memfd_create() without MFD_NOEXEC_SEAL will be rejected.
+4> A new security hook in memfd_create(). This make it possible to a new
+   LSM, which rejects or allows executable memfd based on its security policy.
+
+
+This patch (of 5):
+
+The new F_SEAL_EXEC flag will prevent modification of the exec bits:
+written as traditional octal mask, 0111, or as named flags, S_IXUSR |
+S_IXGRP | S_IXOTH.  Any chmod(2) or similar call that attempts to modify
+any of these bits after the seal is applied will fail with errno EPERM.
+
+This will preserve the execute bits as they are at the time of sealing, so
+the memfd will become either permanently executable or permanently
+un-executable.
+
+Link: https://lkml.kernel.org/r/20221215001205.51969-1-jeffxu@google.com
+Link: https://lkml.kernel.org/r/20221215001205.51969-2-jeffxu@google.com
+Signed-off-by: Daniel Verkamp <dverkamp@chromium.org>
+Co-developed-by: Jeff Xu <jeffxu@google.com>
+Signed-off-by: Jeff Xu <jeffxu@google.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: David Herrmann <dh.herrmann@gmail.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   16 ----------------
- mm/hugetlb.c       |    6 +++---
- mm/internal.h      |   19 +++++++++++++++++++
- 3 files changed, 22 insertions(+), 19 deletions(-)
+ include/uapi/linux/fcntl.h |    1 +
+ mm/memfd.c                 |    2 ++
+ mm/shmem.c                 |    6 ++++++
+ 3 files changed, 9 insertions(+)
 
---- a/include/linux/mm.h~mm-move-folio_set_compound_order-to-mm-internalh
-+++ a/include/linux/mm.h
-@@ -1019,22 +1019,6 @@ static inline void set_compound_order(st
- #endif
- }
- 
--/*
-- * folio_set_compound_order is generally passed a non-zero order to
-- * initialize a large folio.  However, hugetlb code abuses this by
-- * passing in zero when 'dissolving' a large folio.
-- */
--static inline void folio_set_compound_order(struct folio *folio,
--		unsigned int order)
--{
--	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
--
--	folio->_folio_order = order;
--#ifdef CONFIG_64BIT
--	folio->_folio_nr_pages = order ? 1U << order : 0;
--#endif
--}
--
- /* Returns the number of pages in this potentially compound page. */
- static inline unsigned long compound_nr(struct page *page)
- {
---- a/mm/hugetlb.c~mm-move-folio_set_compound_order-to-mm-internalh
-+++ a/mm/hugetlb.c
-@@ -1492,7 +1492,7 @@ static void __destroy_compound_gigantic_
- 			set_page_refcounted(p);
- 	}
- 
--	folio_set_compound_order(folio, 0);
-+	folio_set_order(folio, 0);
- 	__folio_clear_head(folio);
- }
- 
-@@ -1956,7 +1956,7 @@ static bool __prep_compound_gigantic_fol
- 	__folio_clear_reserved(folio);
- 	__folio_set_head(folio);
- 	/* we rely on prep_new_hugetlb_folio to set the destructor */
--	folio_set_compound_order(folio, order);
-+	folio_set_order(folio, order);
- 	for (i = 0; i < nr_pages; i++) {
- 		p = folio_page(folio, i);
- 
-@@ -2020,7 +2020,7 @@ out_error:
- 		p = folio_page(folio, j);
- 		__ClearPageReserved(p);
- 	}
--	folio_set_compound_order(folio, 0);
-+	folio_set_order(folio, 0);
- 	__folio_clear_head(folio);
- 	return false;
- }
---- a/mm/internal.h~mm-move-folio_set_compound_order-to-mm-internalh
-+++ a/mm/internal.h
-@@ -378,6 +378,25 @@ extern void *memmap_alloc(phys_addr_t si
- int split_free_page(struct page *free_page,
- 			unsigned int order, unsigned long split_pfn_offset);
- 
-+/*
-+ * This will have no effect, other than possibly generating a warning, if the
-+ * caller passes in a non-large folio.
-+ */
-+static inline void folio_set_order(struct folio *folio, unsigned int order)
-+{
-+	if (WARN_ON_ONCE(!folio_test_large(folio)))
-+		return;
-+
-+	folio->_folio_order = order;
-+#ifdef CONFIG_64BIT
-+	/*
-+	 * When hugetlb dissolves a folio, we need to clear the tail
-+	 * page, rather than setting nr_pages to 1.
-+	 */
-+	folio->_folio_nr_pages = order ? 1U << order : 0;
-+#endif
-+}
-+
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+--- a/include/uapi/linux/fcntl.h~mm-memfd-add-f_seal_exec
++++ a/include/uapi/linux/fcntl.h
+@@ -43,6 +43,7 @@
+ #define F_SEAL_GROW	0x0004	/* prevent file from growing */
+ #define F_SEAL_WRITE	0x0008	/* prevent writes */
+ #define F_SEAL_FUTURE_WRITE	0x0010  /* prevent future writes while mapped */
++#define F_SEAL_EXEC	0x0020  /* prevent chmod modifying exec bits */
+ /* (1U << 31) is reserved for signed error codes */
  
  /*
+--- a/mm/memfd.c~mm-memfd-add-f_seal_exec
++++ a/mm/memfd.c
+@@ -147,6 +147,7 @@ static unsigned int *memfd_file_seals_pt
+ }
+ 
+ #define F_ALL_SEALS (F_SEAL_SEAL | \
++		     F_SEAL_EXEC | \
+ 		     F_SEAL_SHRINK | \
+ 		     F_SEAL_GROW | \
+ 		     F_SEAL_WRITE | \
+@@ -175,6 +176,7 @@ static int memfd_add_seals(struct file *
+ 	 *   SEAL_SHRINK: Prevent the file from shrinking
+ 	 *   SEAL_GROW: Prevent the file from growing
+ 	 *   SEAL_WRITE: Prevent write access to the file
++	 *   SEAL_EXEC: Prevent modification of the exec bits in the file mode
+ 	 *
+ 	 * As we don't require any trust relationship between two parties, we
+ 	 * must prevent seals from being removed. Therefore, sealing a file
+--- a/mm/shmem.c~mm-memfd-add-f_seal_exec
++++ a/mm/shmem.c
+@@ -1093,6 +1093,12 @@ static int shmem_setattr(struct user_nam
+ 	if (error)
+ 		return error;
+ 
++	if ((info->seals & F_SEAL_EXEC) && (attr->ia_valid & ATTR_MODE)) {
++		if ((inode->i_mode ^ attr->ia_mode) & 0111) {
++			return -EPERM;
++		}
++	}
++
+ 	if (S_ISREG(inode->i_mode) && (attr->ia_valid & ATTR_SIZE)) {
+ 		loff_t oldsize = inode->i_size;
+ 		loff_t newsize = attr->ia_size;
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from dverkamp@chromium.org are
 
-mm-remove-the-hugetlb-field-from-struct-page.patch
-mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios.patch
-mm-memory-failure-convert-try_memory_failure_hugetlb-to-folios.patch
-mm-memory-failure-convert-hugetlb_clear_page_hwpoison-to-folios.patch
-mm-memory-failure-convert-free_raw_hwp_pages-to-folios.patch
-mm-memory-failure-convert-raw_hwp_list_head-to-folios.patch
-mm-memory-failure-convert-__free_raw_hwp_pages-to-folios.patch
-mm-memory-failure-convert-hugetlb_set_page_hwpoison-to-folios.patch
-mm-memory-failure-convert-unpoison_memory-to-folios.patch
-mm-hugetlb-convert-isolate_hugetlb-to-folios.patch
-mm-hugetlb-convert-__update_and_free_page-to-folios.patch
-mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios.patch
-mm-hugetlb-convert-alloc_surplus_huge_page-to-folios.patch
-mm-hugetlb-increase-use-of-folios-in-alloc_huge_page.patch
-mm-hugetlb-convert-alloc_migrate_huge_page-to-folios.patch
-mm-hugetlb-convert-restore_reserve_on_error-to-folios.patch
-mm-hugetlb-convert-demote_free_huge_page-to-folios.patch
-mm-hugetlb-convert-get_hwpoison_huge_page-to-folios.patch
 
