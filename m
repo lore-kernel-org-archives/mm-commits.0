@@ -2,91 +2,68 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AF50C00A5A
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 03:39:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 585FAC00A5A
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 03:42:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229503AbjASDjZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 22:39:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36034 "EHLO
+        id S229852AbjASDmH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 22:42:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229446AbjASDjV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 22:39:21 -0500
+        with ESMTP id S229775AbjASDlI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 22:41:08 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F3505CE76;
-        Wed, 18 Jan 2023 19:38:00 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 137BE63E24
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 19:37:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4A4FD619E3;
-        Thu, 19 Jan 2023 03:37:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CFFEC433EF;
-        Thu, 19 Jan 2023 03:37:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 59DE1619DD
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 03:37:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96F87C433D2;
+        Thu, 19 Jan 2023 03:37:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674099477;
-        bh=bkyeYnvk1stcz3NTN6x4V1WjCCD8Pp5HmYej8/thAhs=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=YP1KzZHo9/DDFXEEKR5ZoeRSUCYdb+Wx/8LJ3Mk8DXCp1ImxHrmRS6HWt8KZQOB2l
-         Z0TyDz937IEmKzmuhiQK7kMTAfyCi/0wL1g/kkKa7+8tc7j1s3GbwPpvkCKMmkfCwl
-         YFHA72vE7zMmamN3BR+QWfbwOtoedJ0FAlTQsuPU=
-Date:   Wed, 18 Jan 2023 19:37:56 -0800
+        s=korg; t=1674099433;
+        bh=3dji0vqI5gYASZzg2o6bFcQrkjkpK1tG2SOZH+LJXxQ=;
+        h=Date:To:From:Subject:From;
+        b=NPwAu7/upQsNGPt9dWrHcXM2+F1oiq6imvyF8KZvQ+WQwWPsOjyuawgfu7XW3Ow7Y
+         Te2LSUahhAPkJnk7XooqCo65JzpwSpBQPuMcxMn6s4XNoiZOUY+rBB8CFFWpDcVDz/
+         nZnvl0Hs+bewKtFyAmyPfSWPPphAbBRZHdgA0xv4=
+Date:   Wed, 18 Jan 2023 19:37:12 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shy828301@gmail.com, riel@surriel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Yang Shi <shy828301@gmail.com>
-Cc:     mm-commits@vger.kernel.org, zhengjun.xing@linux.intel.com,
-        ying.huang@intel.com, willy@infradead.org, stable@vger.kernel.org,
-        rientjes@google.com, riel@surriel.com, nathan@kernel.org,
-        feng.tang@intel.com, fengwei.yin@intel.com
-Subject: Re: [merged mm-stable]
- mm-thp-check-and-bail-out-if-page-in-deferred-queue-already.patch removed
- from -mm tree
-Message-Id: <20230118193756.88460c12c47d9bed966b4a11@linux-foundation.org>
-In-Reply-To: <CAHbLzkoCskH-etPT0Dbd-dxOGQUXBY8HXTF_r3oWsaHh24DpNA@mail.gmail.com>
-References: <20230119011537.87567C433D2@smtp.kernel.org>
-        <CAHbLzkoCskH-etPT0Dbd-dxOGQUXBY8HXTF_r3oWsaHh24DpNA@mail.gmail.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: + mm-align-larger-anonymous-mappings-on-thp-boundaries.patch added to mm-unstable branch
+Message-Id: <20230119033713.96F87C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, 18 Jan 2023 17:31:48 -0800 Yang Shi <shy828301@gmail.com> wrote:
 
-> On Wed, Jan 18, 2023 at 5:15 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> >
-> >
-> > The quilt patch titled
-> >      Subject: mm/thp: check and bail out if page in deferred queue already
-> > has been removed from the -mm tree.  Its filename was
-> >      mm-thp-check-and-bail-out-if-page-in-deferred-queue-already.patch
-> >
-> > This patch was dropped because it was merged into the mm-stable branch
-> > of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> >
-> > ------------------------------------------------------
-> > From: Yin Fengwei <fengwei.yin@intel.com>
-> > Subject: mm/thp: check and bail out if page in deferred queue already
-> > Date: Fri, 23 Dec 2022 21:52:07 +0800
-> >
-> > Kernel build regression with LLVM was reported here:
-> > https://lore.kernel.org/all/Y1GCYXGtEVZbcv%2F5@dev-arch.thelio-3990X/ with
-> > commit f35b5d7d676e ("mm: align larger anonymous mappings on THP
-> > boundaries").  And the commit f35b5d7d676e was reverted.
-> >
-> > It turned out the regression is related with madvise(MADV_DONTNEED)
-> > was used by ld.lld. But with none PMD_SIZE aligned parameter len.
-> > trace-bpfcc captured:
-> > 531607  531732  ld.lld          do_madvise.part.0 start: 0x7feca9000000, len: 0x7fb000, behavior: 0x4
-> > 531607  531793  ld.lld          do_madvise.part.0 start: 0x7fec86a00000, len: 0x7fb000, behavior: 0x4
-> 
-> This just reminds me that we should reinstantiate Rik's commit?
+The patch titled
+     Subject: mm: align larger anonymous mappings on THP boundaries
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-align-larger-anonymous-mappings-on-thp-boundaries.patch
 
-OK,  I did that.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-align-larger-anonymous-mappings-on-thp-boundaries.patch
 
-The changelog doesn't mention any performance testing results?
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
 From: Rik van Riel <riel@surriel.com>
 Subject: mm: align larger anonymous mappings on THP boundaries
 Date: Tue, 9 Aug 2022 14:24:57 -0400
@@ -121,4 +98,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	addr = get_area(file, addr, len, pgoff, flags);
 _
 
+Patches currently in -mm which might be from riel@surriel.com are
+
+mm-align-larger-anonymous-mappings-on-thp-boundaries.patch
 
