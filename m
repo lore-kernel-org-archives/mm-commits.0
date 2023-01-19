@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6452BC678DB
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AC4DC678D4
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229528AbjASBS7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:18:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38212 "EHLO
+        id S230084AbjASBS6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:18:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38208 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229915AbjASBQu (ORCPT
+        with ESMTP id S229906AbjASBQu (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:16:50 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC3C06B9AC
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:13 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 208346B9A9
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A6502B81D66
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52504C433D2;
-        Thu, 19 Jan 2023 01:15:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D40B2B81F6C
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80654C433D2;
+        Thu, 19 Jan 2023 01:15:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090911;
-        bh=hxEnVH/R4jYWa962XRy/zlnwyX9ylb0K6umeqI/hm9A=;
+        s=korg; t=1674090909;
+        bh=Iipq3xnGvb4e8veB8uJpYgf6y01n3GjrkGXJp9kGPMI=;
         h=Date:To:From:Subject:From;
-        b=Ou0sFrdCIzrpLQOUwKIhAIxfhNEvKWR8+aBrWk+whlCOpS/6ltJN0X9PAtk9egUjx
-         ofUbor+zhAw/FuR77yhuhjGKxKVNVeaeyplZre9SGNUjOrumb1MH5U6zsye9xgzxLj
-         An9Z41O8LXIp/Tly89vaaN1Ebr8Ak7zWx4Py4lCU=
-Date:   Wed, 18 Jan 2023 17:15:10 -0800
-To:     mm-commits@vger.kernel.org, terrelln@fb.com, serge@hallyn.com,
-        paul@paul-moore.com, john.johansen@canonical.com,
-        jmorris@namei.org, daniel@iogearbox.net, sunhao.th@gmail.com,
-        akpm@linux-foundation.org
+        b=IsHyfA5eJl992ih9EFN6qYjL6xEkvTpqIfEGOjDz8rBRYGleFNB6wXE/rppjNIxmL
+         i7zFFcrzxICWQCy1AF3Xo5Q4uaZaXI86+1eab2o/HElP+EqHqMVBwS7xW9OhNwlziq
+         vw0kN1ZzvebYWI0pOXBn9XOKUMwt8L8TXqMXV/uY=
+Date:   Wed, 18 Jan 2023 17:15:09 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, sj@kernel.org,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-new-primitive-kvmemdup.patch removed from -mm tree
-Message-Id: <20230119011511.52504C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-convert-deactivate_page-to-folio_deactivate.patch removed from -mm tree
+Message-Id: <20230119011509.80654C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,118 +41,161 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: new primitive kvmemdup()
+     Subject: mm/swap: convert deactivate_page() to folio_deactivate()
 has been removed from the -mm tree.  Its filename was
-     mm-new-primitive-kvmemdup.patch
+     mm-swap-convert-deactivate_page-to-folio_deactivate.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hao Sun <sunhao.th@gmail.com>
-Subject: mm: new primitive kvmemdup()
-Date: Wed, 21 Dec 2022 22:42:45 +0800
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm/swap: convert deactivate_page() to folio_deactivate()
+Date: Wed, 21 Dec 2022 10:08:48 -0800
 
-Similar to kmemdup(), but support large amount of bytes with kvmalloc()
-and does *not* guarantee that the result will be physically contiguous. 
-Use only in cases where kvmalloc() is needed and free it with kvfree(). 
-Also adapt policy_unpack.c in case someone bisect into this.
+Deactivate_page() has already been converted to use folios, this change
+converts it to take in a folio argument instead of calling page_folio(). 
+It also renames the function folio_deactivate() to be more consistent with
+other folio functions.
 
-Link: https://lkml.kernel.org/r/20221221144245.27164-1-sunhao.th@gmail.com
-Signed-off-by: Hao Sun <sunhao.th@gmail.com>
-Suggested-by: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Nick Terrell <terrelln@fb.com>
-Cc: John Johansen <john.johansen@canonical.com>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
+[akpm@linux-foundation.org: fix left-over comments, per Yu Zhao]
+Link: https://lkml.kernel.org/r/20221221180848.20774-5-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h            |    1 +
- mm/util.c                         |   24 +++++++++++++++++++++++-
- security/apparmor/policy_unpack.c |   11 +----------
- 3 files changed, 25 insertions(+), 11 deletions(-)
+ include/linux/swap.h |    2 +-
+ mm/damon/paddr.c     |    2 +-
+ mm/madvise.c         |    4 ++--
+ mm/page-writeback.c  |    4 ++--
+ mm/swap.c            |   14 ++++++--------
+ mm/vmscan.c          |    2 +-
+ 6 files changed, 13 insertions(+), 15 deletions(-)
 
---- a/include/linux/string.h~mm-new-primitive-kvmemdup
-+++ a/include/linux/string.h
-@@ -177,6 +177,7 @@ extern char *kstrdup(const char *s, gfp_
- extern const char *kstrdup_const(const char *s, gfp_t gfp);
- extern char *kstrndup(const char *s, size_t len, gfp_t gfp);
- extern void *kmemdup(const void *src, size_t len, gfp_t gfp) __realloc_size(2);
-+extern void *kvmemdup(const void *src, size_t len, gfp_t gfp) __realloc_size(2);
- extern char *kmemdup_nul(const char *s, size_t len, gfp_t gfp);
+--- a/include/linux/swap.h~mm-swap-convert-deactivate_page-to-folio_deactivate
++++ a/include/linux/swap.h
+@@ -401,7 +401,7 @@ extern void lru_add_drain(void);
+ extern void lru_add_drain_cpu(int cpu);
+ extern void lru_add_drain_cpu_zone(struct zone *zone);
+ extern void lru_add_drain_all(void);
+-extern void deactivate_page(struct page *page);
++void folio_deactivate(struct folio *folio);
+ void folio_mark_lazyfree(struct folio *folio);
+ extern void swap_setup(void);
  
- extern char **argv_split(gfp_t gfp, const char *str, int *argcp);
---- a/mm/util.c~mm-new-primitive-kvmemdup
-+++ a/mm/util.c
-@@ -120,7 +120,8 @@ EXPORT_SYMBOL(kstrndup);
-  * @len: memory region length
-  * @gfp: GFP mask to use
-  *
-- * Return: newly allocated copy of @src or %NULL in case of error
-+ * Return: newly allocated copy of @src or %NULL in case of error,
-+ * result is physically contiguous. Use kfree() to free.
-  */
- void *kmemdup(const void *src, size_t len, gfp_t gfp)
- {
-@@ -134,6 +135,27 @@ void *kmemdup(const void *src, size_t le
- EXPORT_SYMBOL(kmemdup);
+--- a/mm/damon/paddr.c~mm-swap-convert-deactivate_page-to-folio_deactivate
++++ a/mm/damon/paddr.c
+@@ -297,7 +297,7 @@ static inline unsigned long damon_pa_mar
+ 		if (mark_accessed)
+ 			folio_mark_accessed(folio);
+ 		else
+-			deactivate_page(&folio->page);
++			folio_deactivate(folio);
+ 		folio_put(folio);
+ 		applied += folio_nr_pages(folio);
+ 	}
+--- a/mm/madvise.c~mm-swap-convert-deactivate_page-to-folio_deactivate
++++ a/mm/madvise.c
+@@ -416,7 +416,7 @@ static int madvise_cold_or_pageout_pte_r
+ 					list_add(&folio->lru, &folio_list);
+ 			}
+ 		} else
+-			deactivate_page(&folio->page);
++			folio_deactivate(folio);
+ huge_unlock:
+ 		spin_unlock(ptl);
+ 		if (pageout)
+@@ -510,7 +510,7 @@ regular_folio:
+ 					list_add(&folio->lru, &folio_list);
+ 			}
+ 		} else
+-			deactivate_page(&folio->page);
++			folio_deactivate(folio);
+ 	}
  
- /**
-+ * kvmemdup - duplicate region of memory
-+ *
-+ * @src: memory region to duplicate
-+ * @len: memory region length
-+ * @gfp: GFP mask to use
-+ *
-+ * Return: newly allocated copy of @src or %NULL in case of error,
-+ * result may be not physically contiguous. Use kvfree() to free.
-+ */
-+void *kvmemdup(const void *src, size_t len, gfp_t gfp)
-+{
-+	void *p;
-+
-+	p = kvmalloc(len, gfp);
-+	if (p)
-+		memcpy(p, src, len);
-+	return p;
-+}
-+EXPORT_SYMBOL(kvmemdup);
-+
-+/**
-  * kmemdup_nul - Create a NUL-terminated string from unterminated data
-  * @s: The data to stringify
-  * @len: The size of the data
---- a/security/apparmor/policy_unpack.c~mm-new-primitive-kvmemdup
-+++ a/security/apparmor/policy_unpack.c
-@@ -161,15 +161,6 @@ VISIBLE_IF_KUNIT bool aa_inbounds(struct
+ 	arch_leave_lazy_mmu_mode();
+--- a/mm/page-writeback.c~mm-swap-convert-deactivate_page-to-folio_deactivate
++++ a/mm/page-writeback.c
+@@ -2846,11 +2846,11 @@ bool folio_mark_dirty(struct folio *foli
+ 
+ 	if (likely(mapping)) {
+ 		/*
+-		 * readahead/lru_deactivate_page could remain
++		 * readahead/folio_deactivate could remain
+ 		 * PG_readahead/PG_reclaim due to race with folio_end_writeback
+ 		 * About readahead, if the folio is written, the flags would be
+ 		 * reset. So no problem.
+-		 * About lru_deactivate_page, if the folio is redirtied,
++		 * About folio_deactivate, if the folio is redirtied,
+ 		 * the flag will be reset. So no problem. but if the
+ 		 * folio is used by readahead it will confuse readahead
+ 		 * and make it restart the size rampup process. But it's
+--- a/mm/swap.c~mm-swap-convert-deactivate_page-to-folio_deactivate
++++ a/mm/swap.c
+@@ -733,17 +733,15 @@ void deactivate_file_folio(struct folio
  }
- EXPORT_SYMBOL_IF_KUNIT(aa_inbounds);
  
--static void *kvmemdup(const void *src, size_t len)
--{
--	void *p = kvmalloc(len, GFP_KERNEL);
+ /*
+- * deactivate_page - deactivate a page
+- * @page: page to deactivate
++ * folio_deactivate - deactivate a folio
++ * @folio: folio to deactivate
+  *
+- * deactivate_page() moves @page to the inactive list if @page was on the active
+- * list and was not an unevictable page.  This is done to accelerate the reclaim
+- * of @page.
++ * folio_deactivate() moves @folio to the inactive list if @folio was on the
++ * active list and was not unevictable. This is done to accelerate the
++ * reclaim of @folio.
+  */
+-void deactivate_page(struct page *page)
++void folio_deactivate(struct folio *folio)
+ {
+-	struct folio *folio = page_folio(page);
 -
--	if (p)
--		memcpy(p, src, len);
--	return p;
--}
--
- /**
-  * aa_unpack_u16_chunk - test and do bounds checking for a u16 size based chunk
-  * @e: serialized data read head (NOT NULL)
-@@ -1027,7 +1018,7 @@ static struct aa_profile *unpack_profile
- 
- 			data->key = key;
- 			data->size = aa_unpack_blob(e, &data->data, NULL);
--			data->data = kvmemdup(data->data, data->size);
-+			data->data = kvmemdup(data->data, data->size, GFP_KERNEL);
- 			if (data->size && !data->data) {
- 				kfree_sensitive(data->key);
- 				kfree_sensitive(data);
+ 	if (folio_test_lru(folio) && !folio_test_unevictable(folio) &&
+ 	    (folio_test_active(folio) || lru_gen_enabled())) {
+ 		struct folio_batch *fbatch;
+--- a/mm/vmscan.c~mm-swap-convert-deactivate_page-to-folio_deactivate
++++ a/mm/vmscan.c
+@@ -1920,7 +1920,7 @@ retry:
+ 			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
+ 				/*
+ 				 * Immediately reclaim when written back.
+-				 * Similar in principle to deactivate_page()
++				 * Similar in principle to folio_deactivate()
+ 				 * except we already have the folio isolated
+ 				 * and know it's dirty
+ 				 */
 _
 
-Patches currently in -mm which might be from sunhao.th@gmail.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
+mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page.patch
+mm-khugepaged-convert-release_pte_pages-to-use-folios.patch
+pagemap-add-filemap_grab_folio.patch
+filemap-added-filemap_get_folios_tag.patch
+filemap-convert-__filemap_fdatawait_range-to-use-filemap_get_folios_tag.patch
+page-writeback-convert-write_cache_pages-to-use-filemap_get_folios_tag.patch
+afs-convert-afs_writepages_region-to-use-filemap_get_folios_tag.patch
+btrfs-convert-btree_write_cache_pages-to-use-filemap_get_folio_tag.patch
+btrfs-convert-extent_write_cache_pages-to-use-filemap_get_folios_tag.patch
+ceph-convert-ceph_writepages_start-to-use-filemap_get_folios_tag.patch
+cifs-convert-wdata_alloc_and_fillpages-to-use-filemap_get_folios_tag.patch
+ext4-convert-mpage_prepare_extent_to_map-to-use-filemap_get_folios_tag.patch
+f2fs-convert-f2fs_fsync_node_pages-to-use-filemap_get_folios_tag.patch
+f2fs-convert-f2fs_flush_inline_data-to-use-filemap_get_folios_tag.patch
+f2fs-convert-f2fs_sync_node_pages-to-use-filemap_get_folios_tag.patch
+f2fs-convert-f2fs_write_cache_pages-to-use-filemap_get_folios_tag.patch
+f2fs-convert-last_fsync_dnode-to-use-filemap_get_folios_tag.patch
+f2fs-convert-f2fs_sync_meta_pages-to-use-filemap_get_folios_tag.patch
+gfs2-convert-gfs2_write_cache_jdata-to-use-filemap_get_folios_tag.patch
+nilfs2-convert-nilfs_lookup_dirty_data_buffers-to-use-filemap_get_folios_tag.patch
+nilfs2-convert-nilfs_lookup_dirty_node_buffers-to-use-filemap_get_folios_tag.patch
+nilfs2-convert-nilfs_btree_lookup_dirty_buffers-to-use-filemap_get_folios_tag.patch
+nilfs2-convert-nilfs_copy_dirty_pages-to-use-filemap_get_folios_tag.patch
+nilfs2-convert-nilfs_clear_dirty_pages-to-use-filemap_get_folios_tag.patch
+filemap-remove-find_get_pages_range_tag.patch
 
