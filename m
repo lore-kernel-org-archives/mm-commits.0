@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8691C678D4
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:22:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A46AEC38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:22:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230049AbjASBWL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:22:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40386 "EHLO
+        id S229975AbjASBWM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:22:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230159AbjASBUC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:20:02 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DA771814E
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:47 -0800 (PST)
+        with ESMTP id S230168AbjASBUE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:20:04 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B93854941A
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:52 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 16A3EB81D7E
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B791DC433EF;
-        Thu, 19 Jan 2023 01:16:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 74204B81FB6
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E8CCC433F0;
+        Thu, 19 Jan 2023 01:16:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674091004;
-        bh=zf5KTI+5H/obm26vLfb/P2sJnW9G/cZAl7eIYrLS+H8=;
+        s=korg; t=1674091010;
+        bh=h77h6WhYKBdIcsVgRm4NzZDlatj32DTwb71zS0uLEvA=;
         h=Date:To:From:Subject:From;
-        b=THC49NoIMqX4ClBumNDexB1emHtmbc3JtTJKGVLqwq5oNjlDueYzjT3tIjYNLR12R
-         BHVViFVIsJvr6g+OnG5fij4uNBfFCsBaSZhhwrwcGl1EY+pVGjcpYdHx7XVXii4hk5
-         JMf2DmnvnRJfIFMyZI32Jgh1PFg8QFS2zIyoSH3Q=
-Date:   Wed, 18 Jan 2023 17:16:44 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        b=WMb0mxtnJ9VPfAkGCSauvW57qGioLQ6Ohej1qfW7gIRVfwuqRsGRXbQsONk9qmC+h
+         xvy6JbV0n0VuU309PT+0SoDRztS2nUcG6sDLOTVaAx0x81CFiURTC4ymDhx6+6dBJz
+         uFWR6kdSMFJ4ki9dS1kGFyyumHqCLQjparcl5U3I=
+Date:   Wed, 18 Jan 2023 17:16:49 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        mirsad.todorovac@alu.unizg.hr, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-paddr-rename-damon_pa_access_chk_result-page_sz-to-folio_sz.patch removed from -mm tree
-Message-Id: <20230119011644.B791DC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-define-madv_pageout-to-fix-compilation-issues.patch removed from -mm tree
+Message-Id: <20230119011650.1E8CCC433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,115 +42,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/paddr: rename 'damon_pa_access_chk_result->page_sz' to 'folio_sz'
+     Subject: selftests/mm: define MADV_PAGEOUT to fix compilation issues
 has been removed from the -mm tree.  Its filename was
-     mm-damon-paddr-rename-damon_pa_access_chk_result-page_sz-to-folio_sz.patch
+     selftests-mm-define-madv_pageout-to-fix-compilation-issues.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: rename 'damon_pa_access_chk_result->page_sz' to 'folio_sz'
-Date: Mon, 9 Jan 2023 21:33:33 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/mm: define MADV_PAGEOUT to fix compilation issues
+Date: Mon, 9 Jan 2023 18:12:55 +0100
 
-DAMON's physical address space monitoring operations set is using folio
-now.  Rename 'damon_pa_access_chk_result->page_sz' to reflect the fact.
+If MADV_PAGEOUT is not defined (e.g., on AlmaLinux 8), compilation will
+fail.  Let's fix that like khugepaged.c does by conditionally defining
+MADV_PAGEOUT.
 
-Link: https://lkml.kernel.org/r/20230109213335.62525-5-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20230109171255.488749-1-david@redhat.com
+Fixes: 69c66add5663 ("selftests/vm: anon_cow: test COW handling of anonymous memory")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ tools/testing/selftests/mm/cow.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-rename-damon_pa_access_chk_result-page_sz-to-folio_sz
-+++ a/mm/damon/paddr.c
-@@ -80,7 +80,8 @@ static void damon_pa_prepare_access_chec
- }
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-define-madv_pageout-to-fix-compilation-issues
++++ a/tools/testing/selftests/mm/cow.c
+@@ -30,6 +30,9 @@
+ #include "../kselftest.h"
+ #include "vm_util.h"
  
- struct damon_pa_access_chk_result {
--	unsigned long page_sz;
-+	/* size of the folio for the access checked physical memory address */
-+	unsigned long folio_sz;
- 	bool accessed;
- };
- 
-@@ -91,7 +92,7 @@ static bool __damon_pa_young(struct foli
- 	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, addr, 0);
- 
- 	result->accessed = false;
--	result->page_sz = PAGE_SIZE;
-+	result->folio_sz = PAGE_SIZE;
- 	while (page_vma_mapped_walk(&pvmw)) {
- 		addr = pvmw.address;
- 		if (pvmw.pte) {
-@@ -103,7 +104,7 @@ static bool __damon_pa_young(struct foli
- 			result->accessed = pmd_young(*pvmw.pmd) ||
- 				!folio_test_idle(folio) ||
- 				mmu_notifier_test_young(vma->vm_mm, addr);
--			result->page_sz = HPAGE_PMD_SIZE;
-+			result->folio_sz = HPAGE_PMD_SIZE;
- #else
- 			WARN_ON_ONCE(1);
- #endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
-@@ -118,11 +119,11 @@ static bool __damon_pa_young(struct foli
- 	return !result->accessed;
- }
- 
--static bool damon_pa_young(unsigned long paddr, unsigned long *page_sz)
-+static bool damon_pa_young(unsigned long paddr, unsigned long *folio_sz)
- {
- 	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
- 	struct damon_pa_access_chk_result result = {
--		.page_sz = PAGE_SIZE,
-+		.folio_sz = PAGE_SIZE,
- 		.accessed = false,
- 	};
- 	struct rmap_walk_control rwc = {
-@@ -157,25 +158,25 @@ static bool damon_pa_young(unsigned long
- 	folio_put(folio);
- 
- out:
--	*page_sz = result.page_sz;
-+	*folio_sz = result.folio_sz;
- 	return result.accessed;
- }
- 
- static void __damon_pa_check_access(struct damon_region *r)
- {
- 	static unsigned long last_addr;
--	static unsigned long last_page_sz = PAGE_SIZE;
-+	static unsigned long last_folio_sz = PAGE_SIZE;
- 	static bool last_accessed;
- 
- 	/* If the region is in the last checked page, reuse the result */
--	if (ALIGN_DOWN(last_addr, last_page_sz) ==
--				ALIGN_DOWN(r->sampling_addr, last_page_sz)) {
-+	if (ALIGN_DOWN(last_addr, last_folio_sz) ==
-+				ALIGN_DOWN(r->sampling_addr, last_folio_sz)) {
- 		if (last_accessed)
- 			r->nr_accesses++;
- 		return;
- 	}
- 
--	last_accessed = damon_pa_young(r->sampling_addr, &last_page_sz);
-+	last_accessed = damon_pa_young(r->sampling_addr, &last_folio_sz);
- 	if (last_accessed)
- 		r->nr_accesses++;
- 
++#ifndef MADV_PAGEOUT
++#define MADV_PAGEOUT 21
++#endif
+ #ifndef MADV_COLLAPSE
+ #define MADV_COLLAPSE 25
+ #endif
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-damon-core-update-kernel-doc-comments-for-damos-action-supports-of-each-damon-operations-set.patch
-mm-damon-core-update-kernel-doc-comments-for-damos-filters-supports-of-each-damon-operations-set.patch
-docs-mm-damon-index-mention-damos-on-the-intro.patch
-docs-admin-guide-mm-damon-usage-update-damos-actions-filters-supports-of-each-damon-operations-set.patch
-docs-mm-damon-add-a-maintainer-profile-for-damon.patch
-maintainers-damon-link-maintainer-profile-git-trees-and-website.patch
-selftests-damon-sysfs-hide-expected-write-failures.patch
-selftests-damon-debugfs_rm_non_contexts-hide-expected-write-error-messages.patch
-scripts-spelling-add-a-few-more-typos.patch
+mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks.patch
+mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks-fix.patch
+alpha-mm-support-__have_arch_pte_swp_exclusive.patch
+arc-mm-support-__have_arch_pte_swp_exclusive.patch
+arm-mm-support-__have_arch_pte_swp_exclusive.patch
+csky-mm-support-__have_arch_pte_swp_exclusive.patch
+hexagon-mm-support-__have_arch_pte_swp_exclusive.patch
+ia64-mm-support-__have_arch_pte_swp_exclusive.patch
+loongarch-mm-support-__have_arch_pte_swp_exclusive.patch
+m68k-mm-remove-dummy-__swp-definitions-for-nommu.patch
+m68k-mm-support-__have_arch_pte_swp_exclusive.patch
+microblaze-mm-support-__have_arch_pte_swp_exclusive.patch
+mips-mm-support-__have_arch_pte_swp_exclusive.patch
+nios2-mm-refactor-swap-pte-layout.patch
+nios2-mm-support-__have_arch_pte_swp_exclusive.patch
+openrisc-mm-support-__have_arch_pte_swp_exclusive.patch
+parisc-mm-support-__have_arch_pte_swp_exclusive.patch
+powerpc-mm-support-__have_arch_pte_swp_exclusive-on-32bit-book3s.patch
+powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive.patch
+riscv-mm-support-__have_arch_pte_swp_exclusive.patch
+sh-mm-support-__have_arch_pte_swp_exclusive.patch
+sparc-mm-support-__have_arch_pte_swp_exclusive-on-32bit.patch
+sparc-mm-support-__have_arch_pte_swp_exclusive-on-64bit.patch
+um-mm-support-__have_arch_pte_swp_exclusive.patch
+x86-mm-support-__have_arch_pte_swp_exclusive-also-on-32bit.patch
+xtensa-mm-support-__have_arch_pte_swp_exclusive.patch
+mm-remove-__have_arch_pte_swp_exclusive.patch
 
