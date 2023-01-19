@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86B62C46467
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Jan 2023 05:23:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 029FBC46467
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Jan 2023 05:28:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231392AbjATFXs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Jan 2023 00:23:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56194 "EHLO
+        id S230340AbjATF2w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Jan 2023 00:28:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231335AbjATFXf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 00:23:35 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADD18518DA
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 21:13:52 -0800 (PST)
+        with ESMTP id S231377AbjATF22 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 00:28:28 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BEC02278A
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 21:23:28 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B7F47B8275C
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 21:27:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50DF6C433EF;
-        Thu, 19 Jan 2023 21:27:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D2A89B82763
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 22:47:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79AC4C433D2;
+        Thu, 19 Jan 2023 22:47:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674163662;
-        bh=XJWAH4KsvhQBcClwCXwMVmHE7tT8ts00nnNX4rIcgGA=;
+        s=korg; t=1674168465;
+        bh=Hpdz/I9MA9AKkpu2Zu+0Ro31idz2Ne7uUg7SYqnLQBk=;
         h=Date:To:From:Subject:From;
-        b=N6Uhrk9pJ1qS9pCvoLfJQ2ax2zIzt8MFSjGQ7RDtiZO87WvJkvglRnCY+flvCjaHj
-         BHfwAHLaNHRDpFgiOyP5fMOWDusvdbBN8vjW9FK055jiCslJ636N+RUHQmyU4rPA8o
-         kWPNT1Lrq2S5QoOvgHZokKGnlLgcq8iRTYVZaVjo=
-Date:   Thu, 19 Jan 2023 13:27:41 -0800
-To:     mm-commits@vger.kernel.org, sidhartha.kumar@oracle.com,
-        arnd@arndb.de, akpm@linux-foundation.org
+        b=SI18AmQa1XTNJxX4zQxUvqPXWTMMFZRLfKcqbS28UE/z0RMXYlTD8kug0PDk1W6h7
+         gyR9/1BoB0xY4LPHCbr7slBh5LPtl6uFaT/b1GtrQczMn9pZSpu+OOtHD5u7QBqNjY
+         oxRMxtt1y1DabUuapBdl24kkpsr14zdq2Bs5QAn0=
+Date:   Thu, 19 Jan 2023 14:47:44 -0800
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, talumbau@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-get_hwpoison_huge_page-to-folios-fix.patch added to mm-unstable branch
-Message-Id: <20230119212742.50DF6C433EF@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-section-for-rmap-pt-walk-feedback.patch added to mm-unstable branch
+Message-Id: <20230119224745.79AC4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix get_hwpoison_hugetlb_folio() stub
+     Subject: mm: multi-gen LRU: section for rmap/PT walk feedback
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-get_hwpoison_huge_page-to-folios-fix.patch
+     mm-multi-gen-lru-section-for-rmap-pt-walk-feedback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-get_hwpoison_huge_page-to-folios-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-section-for-rmap-pt-walk-feedback.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,42 +64,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/hugetlb: fix get_hwpoison_hugetlb_folio() stub
-Date: Thu, 19 Jan 2023 12:19:12 +0100
+From: "T.J. Alumbaugh" <talumbau@google.com>
+Subject: mm: multi-gen LRU: section for rmap/PT walk feedback
+Date: Wed, 18 Jan 2023 00:18:22 +0000
 
-The folio conversion patch only changed one of the two implementations,
-the empty stub one still needs the corresponding change:
+Add a section for lru_gen_look_around() in the code and the design doc.
 
-mm/memory-failure.c: In function '__get_hwpoison_page':
-mm/memory-failure.c:1335:15: error: implicit declaration of function 'get_hwpoison_hugetlb_folio'; did you mean 'get_hwpoison_huge_page'? [-Werror=implicit-function-declaration]
- 1335 |         ret = get_hwpoison_hugetlb_folio(folio, &hugetlb, false);
-      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~
-      |               get_hwpoison_huge_page
-
-Link: https://lkml.kernel.org/r/20230119111920.635260-1-arnd@kernel.org
-Fixes: 92e109a2c5a7 ("mm/hugetlb: convert get_hwpoison_huge_page() to folios")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Link: https://lkml.kernel.org/r/20230118001827.1040870-3-talumbau@google.com
+Signed-off-by: T.J. Alumbaugh <talumbau@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/hugetlb.h~mm-hugetlb-convert-get_hwpoison_huge_page-to-folios-fix
-+++ a/include/linux/hugetlb.h
-@@ -417,7 +417,7 @@ static inline int isolate_hugetlb(struct
- 	return -EBUSY;
+--- a/Documentation/mm/multigen_lru.rst~mm-multi-gen-lru-section-for-rmap-pt-walk-feedback
++++ a/Documentation/mm/multigen_lru.rst
+@@ -156,6 +156,20 @@ This time-based approach has the followi
+    and memory sizes.
+ 2. It is more reliable because it is directly wired to the OOM killer.
+ 
++Rmap/PT walk feedback
++---------------------
++Searching the rmap for PTEs mapping each page on an LRU list (to test
++and clear the accessed bit) can be expensive because pages from
++different VMAs (PA space) are not cache friendly to the rmap (VA
++space). For workloads mostly using mapped pages, searching the rmap
++can incur the highest CPU cost in the reclaim path.
++
++``lru_gen_look_around()`` exploits spatial locality to reduce the
++trips into the rmap. It scans the adjacent PTEs of a young PTE and
++promotes hot pages. If the scan was done cacheline efficiently, it
++adds the PMD entry pointing to the PTE table to the Bloom filter. This
++forms a feedback loop between the eviction and the aging.
++
+ Summary
+ -------
+ The multi-gen LRU can be disassembled into the following parts:
+--- a/mm/vmscan.c~mm-multi-gen-lru-section-for-rmap-pt-walk-feedback
++++ a/mm/vmscan.c
+@@ -4569,6 +4569,10 @@ static void lru_gen_age_node(struct pgli
+ 	}
  }
  
--static inline int get_hwpoison_huge_page(struct page *page, bool *hugetlb, bool unpoison)
-+static inline int get_hwpoison_hugetlb_folio(struct folio *folio, bool *hugetlb, bool unpoison)
- {
- 	return 0;
- }
++/******************************************************************************
++ *                          rmap/PT walk feedback
++ ******************************************************************************/
++
+ /*
+  * This function exploits spatial locality when shrink_folio_list() walks the
+  * rmap. It scans the adjacent PTEs of a young PTE and promotes hot pages. If
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from talumbau@google.com are
 
-zsmalloc-fix-a-race-with-deferred_handles-storing-fix.patch
-mm-hugetlb-convert-get_hwpoison_huge_page-to-folios-fix.patch
+mm-multi-gen-lru-section-for-working-set-protection.patch
+mm-multi-gen-lru-section-for-rmap-pt-walk-feedback.patch
+mm-multi-gen-lru-section-for-bloom-filters.patch
+mm-multi-gen-lru-section-for-memcg-lru.patch
+mm-multi-gen-lru-improve-lru_gen_exit_memcg.patch
+mm-multi-gen-lru-improve-walk_pmd_range.patch
+mm-multi-gen-lru-simplify-lru_gen_look_around.patch
 
