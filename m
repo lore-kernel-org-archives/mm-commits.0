@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EA28C38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:17:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FDDFC678DB
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:17:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229924AbjASBRr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:17:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38062 "EHLO
+        id S229771AbjASBRt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:17:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230007AbjASBPn (ORCPT
+        with ESMTP id S229936AbjASBPn (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:15:43 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A792768439
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:14:53 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A54786843B
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:14:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 33DD561B08
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E478C433D2;
-        Thu, 19 Jan 2023 01:14:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 422DD61B20
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DAFEC433EF;
+        Thu, 19 Jan 2023 01:14:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090892;
-        bh=lzgWfW2oRcYnXiipKk5qRpiISZxFFyOXyntaSYzw7kI=;
+        s=korg; t=1674090895;
+        bh=JQKeWcyUfJoSmHFwL4hMRtlRwsBSrfmQnlhgT5FrPNY=;
         h=Date:To:From:Subject:From;
-        b=JVttmE9ed8wk5oJyF/7lCxxwkhME59u4EO9ofbGaLFuwSUwZXC6Pp+ceP0B1dA9hx
-         VO0UKZI7cKgyu5hN1HVGiCxlVOvPKrOT0s/LUbFr+KI6LBZ9GHo823O5RZJkusJIY0
-         XuNoO1VSaTZlcKkBDi/4qKRfBYV0HrL9CvHgNx9Q=
-Date:   Wed, 18 Jan 2023 17:14:52 -0800
-To:     mm-commits@vger.kernel.org, iecedge@gmail.com,
-        akpm@linux-foundation.org
+        b=c4xyrzcQkjGGKqnIZo6Brq+i1lkP5CbigHLW8dIDJ1jzjaa8akGtlI59GZCdY3sfC
+         zmq2Guyjbt4epm6zT4Gq7YfPiOLgRwfBCbzrrR1InC1la8lTtlfuhpFKPV46zxgs5w
+         syGPCKteEnfP5Il2tKdhDnBvMmhQYM4MZvhQrcDk=
+Date:   Wed, 18 Jan 2023 17:14:55 -0800
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        vernon2gm@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-vm-page_owner_sort-free-memory-before-exit.patch removed from -mm tree
-Message-Id: <20230119011452.8E478C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-remove-extra-space-and-blank-line.patch removed from -mm tree
+Message-Id: <20230119011455.9DAFEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,172 +41,149 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: tools/vm/page_owner_sort: free memory before exit
+     Subject: maple_tree: remove extra space and blank line
 has been removed from the -mm tree.  Its filename was
-     tools-vm-page_owner_sort-free-memory-before-exit.patch
+     maple_tree-remove-extra-space-and-blank-line.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jianlin Lv <iecedge@gmail.com>
-Subject: tools/vm/page_owner_sort: free memory before exit
-Date: Mon, 19 Dec 2022 16:49:17 +0000
+From: Vernon Yang <vernon2gm@gmail.com>
+Subject: maple_tree: remove extra space and blank line
+Date: Wed, 21 Dec 2022 14:00:52 +0800
 
-Although when a process terminates, the kernel will removes memory
-associated with that process, It's neither good style nor proper design to
-leave it to kernel.  This patch free allocated memory before process exit.
+Patch series "Clean up and refinement for maple tree", v2.
 
-Link: https://lkml.kernel.org/r/20221219164917.14132-1-iecedge@gmail.com
-Signed-off-by: Jianlin Lv <iecedge@gmail.com>
+This patchset cleans up and refines some maple tree code.  A few small
+changes make the code easier to understand and for better readability.
+
+
+This patch (of 7):
+
+These extra space and blank lines are unnecessary, so drop them.
+
+Link: https://lkml.kernel.org/r/20221221060058.609003-1-vernon2gm@gmail.com
+Link: https://lkml.kernel.org/r/20221221060058.609003-2-vernon2gm@gmail.com
+Signed-off-by: Vernon Yang <vernon2gm@gmail.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page_owner_sort.c |   65 ++++++++++++++++++++++++-----------
- 1 file changed, 45 insertions(+), 20 deletions(-)
+ include/linux/maple_tree.h |    2 --
+ lib/maple_tree.c           |   14 ++++----------
+ 2 files changed, 4 insertions(+), 12 deletions(-)
 
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sort-free-memory-before-exit
-+++ a/tools/vm/page_owner_sort.c
-@@ -246,15 +246,16 @@ static int search_pattern(regex_t *patte
- 	return 0;
+--- a/include/linux/maple_tree.h~maple_tree-remove-extra-space-and-blank-line
++++ a/include/linux/maple_tree.h
+@@ -517,7 +517,6 @@ static inline void mas_reset(struct ma_s
+  * entry.
+  *
+  * Note: may return the zero entry.
+- *
+  */
+ #define mas_for_each(__mas, __entry, __max) \
+ 	while (((__entry) = mas_find((__mas), (__max))) != NULL)
+@@ -639,7 +638,6 @@ static inline void mt_set_in_rcu(struct
  }
  
--static void check_regcomp(regex_t *pattern, const char *regex)
-+static bool check_regcomp(regex_t *pattern, const char *regex)
+ static inline unsigned int mt_height(const struct maple_tree *mt)
+-
  {
- 	int err;
- 
- 	err = regcomp(pattern, regex, REG_EXTENDED | REG_NEWLINE);
- 	if (err != 0 || pattern->re_nsub != 1) {
- 		fprintf(stderr, "Invalid pattern %s code %d\n", regex, err);
--		exit(1);
-+		return false;
- 	}
-+	return true;
+ 	return (mt->ma_flags & MT_FLAGS_HEIGHT_MASK) >> MT_FLAGS_HEIGHT_OFFSET;
+ }
+--- a/lib/maple_tree.c~maple_tree-remove-extra-space-and-blank-line
++++ a/lib/maple_tree.c
+@@ -183,7 +183,6 @@ static void ma_free_rcu(struct maple_nod
+ 	call_rcu(&node->rcu, mt_free_rcu);
  }
  
- static char **explode(char sep, const char *str, int *size)
-@@ -494,28 +495,28 @@ static bool is_need(char *buf)
- 	return true;
- }
- 
--static void add_list(char *buf, int len, char *ext_buf)
-+static bool add_list(char *buf, int len, char *ext_buf)
+-
+ static void mas_set_height(struct ma_state *mas)
  {
- 	if (list_size != 0 &&
- 		len == list[list_size-1].len &&
- 		memcmp(buf, list[list_size-1].txt, len) == 0) {
- 		list[list_size-1].num++;
- 		list[list_size-1].page_num += get_page_num(buf);
--		return;
-+		return true;
- 	}
- 	if (list_size == max_size) {
- 		fprintf(stderr, "max_size too small??\n");
--		exit(1);
-+		return false;
- 	}
- 	if (!is_need(buf))
--		return;
-+		return true;
- 	list[list_size].pid = get_pid(buf);
- 	list[list_size].tgid = get_tgid(buf);
- 	list[list_size].comm = get_comm(buf);
- 	list[list_size].txt = malloc(len+1);
- 	if (!list[list_size].txt) {
- 		fprintf(stderr, "Out of memory\n");
--		exit(1);
-+		return false;
- 	}
- 	memcpy(list[list_size].txt, buf, len);
- 	list[list_size].txt[len] = 0;
-@@ -534,6 +535,7 @@ static void add_list(char *buf, int len,
- 		printf("loaded %d\r", list_size);
- 		fflush(stdout);
- 	}
-+	return true;
+ 	unsigned int new_flags = mas->tree->ma_flags;
+@@ -468,7 +467,7 @@ static inline
+ void mte_set_parent(struct maple_enode *enode, const struct maple_enode *parent,
+ 		    unsigned char slot)
+ {
+-	unsigned long val = (unsigned long) parent;
++	unsigned long val = (unsigned long)parent;
+ 	unsigned long shift;
+ 	unsigned long type;
+ 	enum maple_type p_type = mte_node_type(parent);
+@@ -502,7 +501,7 @@ void mte_set_parent(struct maple_enode *
+  */
+ static inline unsigned int mte_parent_slot(const struct maple_enode *enode)
+ {
+-	unsigned long val = (unsigned long) mte_to_node(enode)->parent;
++	unsigned long val = (unsigned long)mte_to_node(enode)->parent;
+ 
+ 	/* Root. */
+ 	if (val & 1)
+@@ -1278,7 +1277,6 @@ nomem_one:
+ 		mas->alloc->total = success;
+ 	mas_set_err(mas, -ENOMEM);
+ 	return;
+-
  }
  
- static bool parse_cull_args(const char *arg_str)
-@@ -790,12 +792,19 @@ int main(int argc, char **argv)
- 		exit(1);
- 	}
+ /*
+@@ -2946,7 +2944,7 @@ next:
+ 	mas->min = prev_min;
+ 	mas->max = prev_max;
+ 	mas->node = last;
+-	return (void *) next;
++	return (void *)next;
  
--	check_regcomp(&order_pattern, "order\\s*([0-9]*),");
--	check_regcomp(&pid_pattern, "pid\\s*([0-9]*),");
--	check_regcomp(&tgid_pattern, "tgid\\s*([0-9]*) ");
--	check_regcomp(&comm_pattern, "tgid\\s*[0-9]*\\s*\\((.*)\\),\\s*ts");
--	check_regcomp(&ts_nsec_pattern, "ts\\s*([0-9]*)\\s*ns,");
--	check_regcomp(&free_ts_nsec_pattern, "free_ts\\s*([0-9]*)\\s*ns");
-+	if (!check_regcomp(&order_pattern, "order\\s*([0-9]*),"))
-+		goto out_order;
-+	if (!check_regcomp(&pid_pattern, "pid\\s*([0-9]*),"))
-+		goto out_pid;
-+	if (!check_regcomp(&tgid_pattern, "tgid\\s*([0-9]*) "))
-+		goto out_tgid;
-+	if (!check_regcomp(&comm_pattern, "tgid\\s*[0-9]*\\s*\\((.*)\\),\\s*ts"))
-+		goto out_comm;
-+	if (!check_regcomp(&ts_nsec_pattern, "ts\\s*([0-9]*)\\s*ns,"))
-+		goto out_ts;
-+	if (!check_regcomp(&free_ts_nsec_pattern, "free_ts\\s*([0-9]*)\\s*ns"))
-+		goto out_free_ts;
-+
- 	fstat(fileno(fin), &st);
- 	max_size = st.st_size / 100; /* hack ... */
+ dead_node:
+ 	mas_reset(mas);
+@@ -3466,7 +3464,6 @@ static inline bool mas_push_data(struct
+  */
+ static int mas_split(struct ma_state *mas, struct maple_big_node *b_node)
+ {
+-
+ 	struct maple_subtree_state mast;
+ 	int height = 0;
+ 	unsigned char mid_split, split = 0;
+@@ -3892,7 +3889,7 @@ next:
+ 			goto dead_node;
+ 	} while (!ma_is_leaf(type));
  
-@@ -804,7 +813,7 @@ int main(int argc, char **argv)
- 	ext_buf = malloc(BUF_SIZE);
- 	if (!list || !buf || !ext_buf) {
- 		fprintf(stderr, "Out of memory\n");
--		exit(1);
-+		goto out_free;
- 	}
+-	return (void *) next;
++	return (void *)next;
  
- 	for ( ; ; ) {
-@@ -812,7 +821,8 @@ int main(int argc, char **argv)
+ dead_node:
+ 	mas_reset(mas);
+@@ -4710,7 +4707,6 @@ found:
  
- 		if (buf_len < 0)
- 			break;
--		add_list(buf, buf_len, ext_buf);
-+		if (!add_list(buf, buf_len, ext_buf))
-+			goto out_free;
- 	}
+ static inline void mas_rewalk(struct ma_state *mas, unsigned long index)
+ {
+-
+ retry:
+ 	mas_set(mas, index);
+ 	mas_state_walk(mas);
+@@ -4718,7 +4714,6 @@ retry:
+ 		goto retry;
  
- 	printf("loaded %d\n", list_size);
-@@ -862,11 +872,26 @@ int main(int argc, char **argv)
- 			fprintf(fout, "\n");
+ 	return;
+-
+ }
+ 
+ /*
+@@ -5620,7 +5615,6 @@ static void mas_wr_store_setup(struct ma
+ 				mas_reset(wr_mas->mas);
  		}
  	}
--	regfree(&order_pattern);
--	regfree(&pid_pattern);
--	regfree(&tgid_pattern);
--	regfree(&comm_pattern);
--	regfree(&ts_nsec_pattern);
-+
-+out_free:
-+	if (ext_buf)
-+		free(ext_buf);
-+	if (buf)
-+		free(buf);
-+	if (list)
-+		free(list);
-+out_free_ts:
- 	regfree(&free_ts_nsec_pattern);
-+out_ts:
-+	regfree(&ts_nsec_pattern);
-+out_comm:
-+	regfree(&comm_pattern);
-+out_tgid:
-+	regfree(&tgid_pattern);
-+out_pid:
-+	regfree(&pid_pattern);
-+out_order:
-+	regfree(&order_pattern);
-+
- 	return 0;
+-
  }
+ 
+ /* Interface */
 _
 
-Patches currently in -mm which might be from iecedge@gmail.com are
+Patches currently in -mm which might be from vernon2gm@gmail.com are
 
+maple_tree-remove-the-parameter-entry-of-mas_preallocate.patch
+mm-mmap-fix-typo-in-comment.patch
+maple_tree-fix-comment-of-mte_destroy_walk.patch
+mm-mmap-fix-comment-of-unmapped_area_topdown.patch
 
