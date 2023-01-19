@@ -2,42 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0014CC678D4
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F3DBC38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:20:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230006AbjASBUm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:20:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40634 "EHLO
+        id S229973AbjASBUn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:20:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229973AbjASBTG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:19:06 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12C662B607
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:18 -0800 (PST)
+        with ESMTP id S229918AbjASBTH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:19:07 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADA3869B29
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:16:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B5710B81F6C
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 547EAC433D2;
-        Thu, 19 Jan 2023 01:16:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 62DA8B81FB9
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:16:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FE28C433EF;
+        Thu, 19 Jan 2023 01:16:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090975;
-        bh=ZpoZj7U938/MwvDBia8hoEbAgZdzBd80nU6m5eOrBiU=;
+        s=korg; t=1674090977;
+        bh=IYP9utWOyPM8ba4I8zPLn15pNJT0kvitvFyWOekhSyc=;
         h=Date:To:From:Subject:From;
-        b=VoL2Gg06ns/Wb3qdED0Il5gZXa0H7DkokcOCLySEEXmRASepisCaIsCuLEeeWs2YA
-         PEnHlHiSsVglN5dzys0QFeIZOu9U+qpbYraTdE8yMU+prlsHpFmcOn4O9yuzmCB9Xr
-         5PjQAH+hzWqH9hNTvLWd1e7SbdqqHBBL7Rl3LsPs=
-Date:   Wed, 18 Jan 2023 17:16:14 -0800
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        vbabka@suse.cz, ryabinin.a.a@gmail.com, roman.gushchin@linux.dev,
-        rientjes@google.com, penberg@kernel.org, iamjoonsoo.kim@lge.com,
-        glider@google.com, dvyukov@google.com, cl@linux.com,
-        andreyknvl@gmail.com, 42.hyeyoo@gmail.com, feng.tang@intel.com,
-        akpm@linux-foundation.org
+        b=zixIbGNdmUDzTXh7zyB6e3jQVpuB7Nb9Pjrzb+/2tU1mdaaq0XiBdwrI1YgjzBIU2
+         jJQI8VIZgfSy/2U3KfzKt6kfq2zpnphetz2Wv3hmF+/UwhX5gitVGzjKe/VC9twcPl
+         j37UigLw2TXLb9z8NRhvsxJiiwTdumVc/pfDbn/A=
+Date:   Wed, 18 Jan 2023 17:16:16 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
+        vbabka@suse.cz, riel@surriel.com, peterx@redhat.com,
+        palmer@dabbelt.com, nadav.amit@gmail.com, mpe@ellerman.id.au,
+        mhocko@suse.com, hch@lst.de, hca@linux.ibm.com,
+        edumazet@google.com, david@redhat.com, dave.hansen@linux.intel.com,
+        brauner@kernel.org, borntraeger@linux.ibm.com,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kasan-simplify-and-refine-kasan_cache-code.patch removed from -mm tree
-Message-Id: <20230119011615.547EAC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-zap_page_range-and-create-zap_vma_pages.patch removed from -mm tree
+Message-Id: <20230119011617.0FE28C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,168 +46,296 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/kasan: simplify and refine kasan_cache code
+     Subject: mm: remove zap_page_range and create zap_vma_pages
 has been removed from the -mm tree.  Its filename was
-     mm-kasan-simplify-and-refine-kasan_cache-code.patch
+     mm-remove-zap_page_range-and-create-zap_vma_pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Feng Tang <feng.tang@intel.com>
-Subject: mm/kasan: simplify and refine kasan_cache code
-Date: Wed, 4 Jan 2023 14:06:05 +0800
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm: remove zap_page_range and create zap_vma_pages
+Date: Tue, 3 Jan 2023 16:27:32 -0800
 
-struct 'kasan_cache' has a member 'is_kmalloc' indicating whether its host
-kmem_cache is a kmalloc cache.  With newly introduced is_kmalloc_cache()
-helper, 'is_kmalloc' and its related function can be replaced and removed.
+zap_page_range was originally designed to unmap pages within an address
+range that could span multiple vmas.  While working on [1], it was
+discovered that all callers of zap_page_range pass a range entirely within
+a single vma.  In addition, the mmu notification call within zap_page
+range does not correctly handle ranges that span multiple vmas.  When
+crossing a vma boundary, a new mmu_notifier_range_init/end call pair with
+the new vma should be made.
 
-Also 'kasan_cache' is only needed by KASAN generic mode, and not by SW/HW
-tag modes, so refine its protection macro accordingly, suggested by Andrey
-Konoval.
+Instead of fixing zap_page_range, do the following:
+- Create a new routine zap_vma_pages() that will remove all pages within
+  the passed vma.  Most users of zap_page_range pass the entire vma and
+  can use this new routine.
+- For callers of zap_page_range not passing the entire vma, instead call
+  zap_page_range_single().
+- Remove zap_page_range.
 
-Link: https://lkml.kernel.org/r/20230104060605.930910-2-feng.tang@intel.com
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+[1] https://lore.kernel.org/linux-mm/20221114235507.294320-2-mike.kravetz@oracle.com/
+Link: https://lkml.kernel.org/r/20230104002732.232573-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: Peter Xu <peterx@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Acked-by: Heiko Carstens <hca@linux.ibm.com>	[s390]
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h    |   22 +++++-----------------
- include/linux/slab_def.h |    2 +-
- include/linux/slub_def.h |    2 +-
- mm/kasan/common.c        |    9 ++-------
- mm/slab_common.c         |    1 -
- 5 files changed, 9 insertions(+), 27 deletions(-)
+ arch/arm64/kernel/vdso.c                |    6 +---
+ arch/powerpc/kernel/vdso.c              |    4 --
+ arch/powerpc/platforms/book3s/vas-api.c |    2 -
+ arch/powerpc/platforms/pseries/vas.c    |    3 --
+ arch/riscv/kernel/vdso.c                |    6 +---
+ arch/s390/kernel/vdso.c                 |    4 --
+ arch/s390/mm/gmap.c                     |    2 -
+ arch/x86/entry/vdso/vma.c               |    4 --
+ drivers/android/binder_alloc.c          |    2 -
+ include/linux/mm.h                      |    7 +++--
+ mm/memory.c                             |   30 ----------------------
+ mm/page-writeback.c                     |    2 -
+ net/ipv4/tcp.c                          |    7 ++---
+ 13 files changed, 21 insertions(+), 58 deletions(-)
 
---- a/include/linux/kasan.h~mm-kasan-simplify-and-refine-kasan_cache-code
-+++ a/include/linux/kasan.h
-@@ -96,15 +96,6 @@ static inline bool kasan_has_integrated_
+--- a/arch/arm64/kernel/vdso.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/arch/arm64/kernel/vdso.c
+@@ -138,13 +138,11 @@ int vdso_join_timens(struct task_struct
+ 	mmap_read_lock(mm);
+ 
+ 	for_each_vma(vmi, vma) {
+-		unsigned long size = vma->vm_end - vma->vm_start;
+-
+ 		if (vma_is_special_mapping(vma, vdso_info[VDSO_ABI_AA64].dm))
+-			zap_page_range(vma, vma->vm_start, size);
++			zap_vma_pages(vma);
+ #ifdef CONFIG_COMPAT_VDSO
+ 		if (vma_is_special_mapping(vma, vdso_info[VDSO_ABI_AA32].dm))
+-			zap_page_range(vma, vma->vm_start, size);
++			zap_vma_pages(vma);
+ #endif
+ 	}
+ 
+--- a/arch/powerpc/kernel/vdso.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/arch/powerpc/kernel/vdso.c
+@@ -120,10 +120,8 @@ int vdso_join_timens(struct task_struct
+ 
+ 	mmap_read_lock(mm);
+ 	for_each_vma(vmi, vma) {
+-		unsigned long size = vma->vm_end - vma->vm_start;
+-
+ 		if (vma_is_special_mapping(vma, &vvar_spec))
+-			zap_page_range(vma, vma->vm_start, size);
++			zap_vma_pages(vma);
+ 	}
+ 	mmap_read_unlock(mm);
+ 
+--- a/arch/powerpc/platforms/book3s/vas-api.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/arch/powerpc/platforms/book3s/vas-api.c
+@@ -414,7 +414,7 @@ static vm_fault_t vas_mmap_fault(struct
+ 	/*
+ 	 * When the LPAR lost credits due to core removal or during
+ 	 * migration, invalidate the existing mapping for the current
+-	 * paste addresses and set windows in-active (zap_page_range in
++	 * paste addresses and set windows in-active (zap_vma_pages in
+ 	 * reconfig_close_windows()).
+ 	 * New mapping will be done later after migration or new credits
+ 	 * available. So continue to receive faults if the user space
+--- a/arch/powerpc/platforms/pseries/vas.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/arch/powerpc/platforms/pseries/vas.c
+@@ -760,8 +760,7 @@ static int reconfig_close_windows(struct
+ 		 * is done before the original mmap() and after the ioctl.
+ 		 */
+ 		if (vma)
+-			zap_page_range(vma, vma->vm_start,
+-					vma->vm_end - vma->vm_start);
++			zap_vma_pages(vma);
+ 
+ 		mmap_write_unlock(task_ref->mm);
+ 		mutex_unlock(&task_ref->mmap_mutex);
+--- a/arch/riscv/kernel/vdso.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/arch/riscv/kernel/vdso.c
+@@ -124,13 +124,11 @@ int vdso_join_timens(struct task_struct
+ 	mmap_read_lock(mm);
+ 
+ 	for_each_vma(vmi, vma) {
+-		unsigned long size = vma->vm_end - vma->vm_start;
+-
+ 		if (vma_is_special_mapping(vma, vdso_info.dm))
+-			zap_page_range(vma, vma->vm_start, size);
++			zap_vma_pages(vma);
+ #ifdef CONFIG_COMPAT
+ 		if (vma_is_special_mapping(vma, compat_vdso_info.dm))
+-			zap_page_range(vma, vma->vm_start, size);
++			zap_vma_pages(vma);
+ #endif
+ 	}
+ 
+--- a/arch/s390/kernel/vdso.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/arch/s390/kernel/vdso.c
+@@ -59,11 +59,9 @@ int vdso_join_timens(struct task_struct
+ 
+ 	mmap_read_lock(mm);
+ 	for_each_vma(vmi, vma) {
+-		unsigned long size = vma->vm_end - vma->vm_start;
+-
+ 		if (!vma_is_special_mapping(vma, &vvar_mapping))
+ 			continue;
+-		zap_page_range(vma, vma->vm_start, size);
++		zap_vma_pages(vma);
+ 		break;
+ 	}
+ 	mmap_read_unlock(mm);
+--- a/arch/s390/mm/gmap.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/arch/s390/mm/gmap.c
+@@ -722,7 +722,7 @@ void gmap_discard(struct gmap *gmap, uns
+ 		if (is_vm_hugetlb_page(vma))
+ 			continue;
+ 		size = min(to - gaddr, PMD_SIZE - (gaddr & ~PMD_MASK));
+-		zap_page_range(vma, vmaddr, size);
++		zap_page_range_single(vma, vmaddr, size, NULL);
+ 	}
+ 	mmap_read_unlock(gmap->mm);
+ }
+--- a/arch/x86/entry/vdso/vma.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/arch/x86/entry/vdso/vma.c
+@@ -113,10 +113,8 @@ int vdso_join_timens(struct task_struct
+ 
+ 	mmap_read_lock(mm);
+ 	for_each_vma(vmi, vma) {
+-		unsigned long size = vma->vm_end - vma->vm_start;
+-
+ 		if (vma_is_special_mapping(vma, &vvar_mapping))
+-			zap_page_range(vma, vma->vm_start, size);
++			zap_vma_pages(vma);
+ 	}
+ 	mmap_read_unlock(mm);
+ 
+--- a/drivers/android/binder_alloc.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/drivers/android/binder_alloc.c
+@@ -1019,7 +1019,7 @@ enum lru_status binder_alloc_free_page(s
+ 	if (vma) {
+ 		trace_binder_unmap_user_start(alloc, index);
+ 
+-		zap_page_range(vma, page_addr, PAGE_SIZE);
++		zap_page_range_single(vma, page_addr, PAGE_SIZE, NULL);
+ 
+ 		trace_binder_unmap_user_end(alloc, index);
+ 	}
+--- a/include/linux/mm.h~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/include/linux/mm.h
+@@ -1977,10 +1977,13 @@ struct page *vm_normal_page_pmd(struct v
+ 
+ void zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
+ 		  unsigned long size);
+-void zap_page_range(struct vm_area_struct *vma, unsigned long address,
+-		    unsigned long size);
+ void zap_page_range_single(struct vm_area_struct *vma, unsigned long address,
+ 			   unsigned long size, struct zap_details *details);
++static inline void zap_vma_pages(struct vm_area_struct *vma)
++{
++	zap_page_range_single(vma, vma->vm_start,
++			      vma->vm_end - vma->vm_start, NULL);
++}
+ void unmap_vmas(struct mmu_gather *tlb, struct maple_tree *mt,
+ 		struct vm_area_struct *start_vma, unsigned long start,
+ 		unsigned long end);
+--- a/mm/memory.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/mm/memory.c
+@@ -1694,36 +1694,6 @@ void unmap_vmas(struct mmu_gather *tlb,
  }
  
- #ifdef CONFIG_KASAN
--
--struct kasan_cache {
--#ifdef CONFIG_KASAN_GENERIC
--	int alloc_meta_offset;
--	int free_meta_offset;
--#endif
--	bool is_kmalloc;
--};
--
- void __kasan_unpoison_range(const void *addr, size_t size);
- static __always_inline void kasan_unpoison_range(const void *addr, size_t size)
- {
-@@ -129,13 +120,6 @@ static __always_inline bool kasan_unpois
- 	return false;
- }
- 
--void __kasan_cache_create_kmalloc(struct kmem_cache *cache);
--static __always_inline void kasan_cache_create_kmalloc(struct kmem_cache *cache)
+ /**
+- * zap_page_range - remove user pages in a given range
+- * @vma: vm_area_struct holding the applicable pages
+- * @start: starting address of pages to zap
+- * @size: number of bytes to zap
+- *
+- * Caller must protect the VMA list
+- */
+-void zap_page_range(struct vm_area_struct *vma, unsigned long start,
+-		unsigned long size)
 -{
--	if (kasan_enabled())
--		__kasan_cache_create_kmalloc(cache);
+-	struct maple_tree *mt = &vma->vm_mm->mm_mt;
+-	unsigned long end = start + size;
+-	struct mmu_notifier_range range;
+-	struct mmu_gather tlb;
+-	MA_STATE(mas, mt, vma->vm_end, vma->vm_end);
+-
+-	lru_add_drain();
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+-				start, start + size);
+-	tlb_gather_mmu(&tlb, vma->vm_mm);
+-	update_hiwater_rss(vma->vm_mm);
+-	mmu_notifier_invalidate_range_start(&range);
+-	do {
+-		unmap_single_vma(&tlb, vma, start, range.end, NULL);
+-	} while ((vma = mas_find(&mas, end - 1)) != NULL);
+-	mmu_notifier_invalidate_range_end(&range);
+-	tlb_finish_mmu(&tlb);
 -}
 -
- void __kasan_poison_slab(struct slab *slab);
- static __always_inline void kasan_poison_slab(struct slab *slab)
- {
-@@ -255,7 +239,6 @@ static inline bool kasan_unpoison_pages(
- {
- 	return false;
- }
--static inline void kasan_cache_create_kmalloc(struct kmem_cache *cache) {}
- static inline void kasan_poison_slab(struct slab *slab) {}
- static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
- 					void *object) {}
-@@ -306,6 +289,11 @@ static inline void kasan_unpoison_task_s
+-/**
+  * zap_page_range_single - remove user pages in a given range
+  * @vma: vm_area_struct holding the applicable pages
+  * @address: starting address of pages to zap
+--- a/mm/page-writeback.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/mm/page-writeback.c
+@@ -2690,7 +2690,7 @@ void folio_account_cleaned(struct folio
+  *
+  * The caller must hold lock_page_memcg().  Most callers have the folio
+  * locked.  A few have the folio blocked from truncation through other
+- * means (eg zap_page_range() has it mapped and is holding the page table
++ * means (eg zap_vma_pages() has it mapped and is holding the page table
+  * lock).  This can also be called from mark_buffer_dirty(), which I
+  * cannot prove is always protected against truncate.
+  */
+--- a/net/ipv4/tcp.c~mm-remove-zap_page_range-and-create-zap_vma_pages
++++ a/net/ipv4/tcp.c
+@@ -2092,7 +2092,7 @@ static int tcp_zerocopy_vm_insert_batch_
+ 		maybe_zap_len = total_bytes_to_map -  /* All bytes to map */
+ 				*length + /* Mapped or pending */
+ 				(pages_remaining * PAGE_SIZE); /* Failed map. */
+-		zap_page_range(vma, *address, maybe_zap_len);
++		zap_page_range_single(vma, *address, maybe_zap_len, NULL);
+ 		err = 0;
+ 	}
  
- #ifdef CONFIG_KASAN_GENERIC
+@@ -2100,7 +2100,7 @@ static int tcp_zerocopy_vm_insert_batch_
+ 		unsigned long leftover_pages = pages_remaining;
+ 		int bytes_mapped;
  
-+struct kasan_cache {
-+	int alloc_meta_offset;
-+	int free_meta_offset;
-+};
-+
- size_t kasan_metadata_size(struct kmem_cache *cache, bool in_object);
- slab_flags_t kasan_never_merge(void);
- void kasan_cache_create(struct kmem_cache *cache, unsigned int *size,
---- a/include/linux/slab_def.h~mm-kasan-simplify-and-refine-kasan_cache-code
-+++ a/include/linux/slab_def.h
-@@ -72,7 +72,7 @@ struct kmem_cache {
- 	int obj_offset;
- #endif /* CONFIG_DEBUG_SLAB */
- 
--#ifdef CONFIG_KASAN
-+#ifdef CONFIG_KASAN_GENERIC
- 	struct kasan_cache kasan_info;
- #endif
- 
---- a/include/linux/slub_def.h~mm-kasan-simplify-and-refine-kasan_cache-code
-+++ a/include/linux/slub_def.h
-@@ -136,7 +136,7 @@ struct kmem_cache {
- 	unsigned int *random_seq;
- #endif
- 
--#ifdef CONFIG_KASAN
-+#ifdef CONFIG_KASAN_GENERIC
- 	struct kasan_cache kasan_info;
- #endif
- 
---- a/mm/kasan/common.c~mm-kasan-simplify-and-refine-kasan_cache-code
-+++ a/mm/kasan/common.c
-@@ -122,11 +122,6 @@ void __kasan_poison_pages(struct page *p
- 			     KASAN_PAGE_FREE, init);
- }
- 
--void __kasan_cache_create_kmalloc(struct kmem_cache *cache)
--{
--	cache->kasan_info.is_kmalloc = true;
--}
--
- void __kasan_poison_slab(struct slab *slab)
- {
- 	struct page *page = slab_page(slab);
-@@ -326,7 +321,7 @@ void * __must_check __kasan_slab_alloc(s
- 	kasan_unpoison(tagged_object, cache->object_size, init);
- 
- 	/* Save alloc info (if possible) for non-kmalloc() allocations. */
--	if (kasan_stack_collection_enabled() && !cache->kasan_info.is_kmalloc)
-+	if (kasan_stack_collection_enabled() && !is_kmalloc_cache(cache))
- 		kasan_save_alloc_info(cache, tagged_object, flags);
- 
- 	return tagged_object;
-@@ -372,7 +367,7 @@ static inline void *____kasan_kmalloc(st
- 	 * Save alloc info (if possible) for kmalloc() allocations.
- 	 * This also rewrites the alloc info when called from kasan_krealloc().
- 	 */
--	if (kasan_stack_collection_enabled() && cache->kasan_info.is_kmalloc)
-+	if (kasan_stack_collection_enabled() && is_kmalloc_cache(cache))
- 		kasan_save_alloc_info(cache, (void *)object, flags);
- 
- 	/* Keep the tag that was set by kasan_slab_alloc(). */
---- a/mm/slab_common.c~mm-kasan-simplify-and-refine-kasan_cache-code
-+++ a/mm/slab_common.c
-@@ -670,7 +670,6 @@ struct kmem_cache *__init create_kmalloc
- 
- 	create_boot_cache(s, name, size, flags | SLAB_KMALLOC, useroffset,
- 								usersize);
--	kasan_cache_create_kmalloc(s);
- 	list_add(&s->list, &slab_caches);
- 	s->refcount = 1;
- 	return s;
+-		/* We called zap_page_range, try to reinsert. */
++		/* We called zap_page_range_single, try to reinsert. */
+ 		err = vm_insert_pages(vma, *address,
+ 				      pending_pages,
+ 				      &pages_remaining);
+@@ -2234,7 +2234,8 @@ static int tcp_zerocopy_receive(struct s
+ 	total_bytes_to_map = avail_len & ~(PAGE_SIZE - 1);
+ 	if (total_bytes_to_map) {
+ 		if (!(zc->flags & TCP_RECEIVE_ZEROCOPY_FLAG_TLB_CLEAN_HINT))
+-			zap_page_range(vma, address, total_bytes_to_map);
++			zap_page_range_single(vma, address, total_bytes_to_map,
++					      NULL);
+ 		zc->length = total_bytes_to_map;
+ 		zc->recv_skip_hint = 0;
+ 	} else {
 _
 
-Patches currently in -mm which might be from feng.tang@intel.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
