@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7274AC678D4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED2C7C677F1
 	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:19:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229751AbjASBTI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:19:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37796 "EHLO
+        id S229892AbjASBTJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:19:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229892AbjASBRI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:17:08 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AD19689C0
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:19 -0800 (PST)
+        with ESMTP id S229976AbjASBQ5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:16:57 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BAB86B9AF
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:15:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AE7E661B13
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13A93C433EF;
-        Thu, 19 Jan 2023 01:15:18 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3C77AB81D7E
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:15:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD823C433F0;
+        Thu, 19 Jan 2023 01:15:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090918;
-        bh=W2OOTCrrKJATIgEen9dQYcXay0Gvi+CxYxy9Z17pAbg=;
+        s=korg; t=1674090912;
+        bh=dAR+K/+WdRqYwaGauptajr/51vaPIeh4Y71wwlaXeHo=;
         h=Date:To:From:Subject:From;
-        b=bFRfHcVKRHhWOEtcSzuLhduiShChjpIu5md5kE5tmm9Ae+VtYn7yX6oAxcS6XCI8a
-         4D3ZNUwA8piBzOoM9slm2r5m5Dbzmvb4A0fU0s9jz/e39dx/NLdEnEo9mQG1aa/SgJ
-         1P7MgEuzIuoP3VzbKosq0M394BOeQdDQ3Dn5mr5A=
-Date:   Wed, 18 Jan 2023 17:15:17 -0800
-To:     mm-commits@vger.kernel.org, surenb@google.com, rppt@kernel.org,
-        roman.gushchin@linux.dev, Michael@MichaelLarabel.com,
-        mhocko@kernel.org, hannes@cmpxchg.org, corbet@lwn.net,
-        yuzhao@google.com, akpm@linux-foundation.org
+        b=o1Mg/Q2X16M09UGqtnWCctfrSjdoAWlUSfUHYFBT/53tspiVscCNsQ00y8xonfT6t
+         2a3kz7+V+T6zuZUEA/AMLW/ZhU2sPKQ247RQLdb5PaPh0/B5YobxsnWun+NNvKQI4K
+         exeTBMKfgAKy6HVa42XsctwwBu3L9e2b93TW/NVw=
+Date:   Wed, 18 Jan 2023 17:15:12 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, jhubbard@nvidia.com, hch@lst.de,
+        dhowells@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio.patch removed from -mm tree
-Message-Id: <20230119011518.13A93C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-move-foll_-defs-to-mm_typesh.patch removed from -mm tree
+Message-Id: <20230119011512.CD823C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,365 +42,203 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: rename lru_gen_struct to lru_gen_folio
+     Subject: mm: move FOLL_* defs to mm_types.h
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio.patch
+     mm-move-foll_-defs-to-mm_typesh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: rename lru_gen_struct to lru_gen_folio
-Date: Wed, 21 Dec 2022 21:18:59 -0700
+From: David Howells <dhowells@redhat.com>
+Subject: mm: move FOLL_* defs to mm_types.h
+Date: Wed, 21 Dec 2022 21:24:54 +0000
 
-Patch series "mm: multi-gen LRU: memcg LRU", v3.
+Move FOLL_* definitions to linux/mm_types.h to make them more accessible
+without having to drag in all of linux/mm.h and everything that drags in
+too[1].
 
-Overview
-========
-
-An memcg LRU is a per-node LRU of memcgs.  It is also an LRU of LRUs,
-since each node and memcg combination has an LRU of folios (see
-mem_cgroup_lruvec()).
-
-Its goal is to improve the scalability of global reclaim, which is
-critical to system-wide memory overcommit in data centers.  Note that
-memcg reclaim is currently out of scope.
-
-Its memory bloat is a pointer to each lruvec and negligible to each
-pglist_data.  In terms of traversing memcgs during global reclaim, it
-improves the best-case complexity from O(n) to O(1) and does not affect
-the worst-case complexity O(n).  Therefore, on average, it has a sublinear
-complexity in contrast to the current linear complexity.
-
-The basic structure of an memcg LRU can be understood by an analogy to
-the active/inactive LRU (of folios):
-1. It has the young and the old (generations), i.e., the counterparts
-   to the active and the inactive;
-2. The increment of max_seq triggers promotion, i.e., the counterpart
-   to activation;
-3. Other events trigger similar operations, e.g., offlining an memcg
-   triggers demotion, i.e., the counterpart to deactivation.
-
-In terms of global reclaim, it has two distinct features:
-1. Sharding, which allows each thread to start at a random memcg (in
-   the old generation) and improves parallelism;
-2. Eventual fairness, which allows direct reclaim to bail out at will
-   and reduces latency without affecting fairness over some time.
-
-The commit message in patch 6 details the workflow:
-https://lore.kernel.org/r/20221222041905.2431096-7-yuzhao@google.com/
-
-The following is a simple test to quickly verify its effectiveness.
-
-  Test design:
-  1. Create multiple memcgs.
-  2. Each memcg contains a job (fio).
-  3. All jobs access the same amount of memory randomly.
-  4. The system does not experience global memory pressure.
-  5. Periodically write to the root memory.reclaim.
-
-  Desired outcome:
-  1. All memcgs have similar pgsteal counts, i.e., stddev(pgsteal)
-     over mean(pgsteal) is close to 0%.
-  2. The total pgsteal is close to the total requested through
-     memory.reclaim, i.e., sum(pgsteal) over sum(requested) is close
-     to 100%.
-
-  Actual outcome [1]:
-                                     MGLRU off    MGLRU on
-  stddev(pgsteal) / mean(pgsteal)    75%          20%
-  sum(pgsteal) / sum(requested)      425%         95%
-
-  ####################################################################
-  MEMCGS=128
-
-  for ((memcg = 0; memcg < $MEMCGS; memcg++)); do
-      mkdir /sys/fs/cgroup/memcg$memcg
-  done
-
-  start() {
-      echo $BASHPID > /sys/fs/cgroup/memcg$memcg/cgroup.procs
-
-      fio -name=memcg$memcg --numjobs=1 --ioengine=mmap \
-          --filename=/dev/zero --size=1920M --rw=randrw \
-          --rate=64m,64m --random_distribution=random \
-          --fadvise_hint=0 --time_based --runtime=10h \
-          --group_reporting --minimal
-  }
-
-  for ((memcg = 0; memcg < $MEMCGS; memcg++)); do
-      start &
-  done
-
-  sleep 600
-
-  for ((i = 0; i < 600; i++)); do
-      echo 256m >/sys/fs/cgroup/memory.reclaim
-      sleep 6
-  done
-
-  for ((memcg = 0; memcg < $MEMCGS; memcg++)); do
-      grep "pgsteal " /sys/fs/cgroup/memcg$memcg/memory.stat
-  done
-  ####################################################################
-
-[1]: This was obtained from running the above script (touches less
-     than 256GB memory) on an EPYC 7B13 with 512GB DRAM for over an
-     hour.
-
-
-This patch (of 8):
-
-The new name lru_gen_folio will be more distinct from the coming
-lru_gen_memcg.
-
-Link: https://lkml.kernel.org/r/20221222041905.2431096-1-yuzhao@google.com
-Link: https://lkml.kernel.org/r/20221222041905.2431096-2-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michael Larabel <Michael@MichaelLarabel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/2161258.1671657894@warthog.procyon.org.uk
+Signed-off-by: David Howells <dhowells@redhat.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    4 ++--
- include/linux/mmzone.h    |    6 +++---
- mm/vmscan.c               |   34 +++++++++++++++++-----------------
- mm/workingset.c           |    4 ++--
- 4 files changed, 24 insertions(+), 24 deletions(-)
+ include/linux/mm.h       |   75 -------------------------------------
+ include/linux/mm_types.h |   75 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 75 insertions(+), 75 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
-+++ a/include/linux/mm_inline.h
-@@ -178,7 +178,7 @@ static inline void lru_gen_update_size(s
- 	int zone = folio_zonenum(folio);
- 	int delta = folio_nr_pages(folio);
- 	enum lru_list lru = type * LRU_INACTIVE_FILE;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+--- a/include/linux/mm.h~mm-move-foll_-defs-to-mm_typesh
++++ a/include/linux/mm.h
+@@ -3057,81 +3057,6 @@ static inline vm_fault_t vmf_error(int e
+ struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
+ 			 unsigned int foll_flags);
  
- 	VM_WARN_ON_ONCE(old_gen != -1 && old_gen >= MAX_NR_GENS);
- 	VM_WARN_ON_ONCE(new_gen != -1 && new_gen >= MAX_NR_GENS);
-@@ -224,7 +224,7 @@ static inline bool lru_gen_add_folio(str
- 	int gen = folio_lru_gen(folio);
- 	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	VM_WARN_ON_ONCE_FOLIO(gen != -1, folio);
- 
---- a/include/linux/mmzone.h~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
-+++ a/include/linux/mmzone.h
-@@ -404,7 +404,7 @@ enum {
-  * The number of pages in each generation is eventually consistent and therefore
-  * can be transiently negative when reset_batch_size() is pending.
-  */
--struct lru_gen_struct {
-+struct lru_gen_folio {
- 	/* the aging increments the youngest generation number */
- 	unsigned long max_seq;
- 	/* the eviction increments the oldest generation numbers */
-@@ -461,7 +461,7 @@ struct lru_gen_mm_state {
- struct lru_gen_mm_walk {
- 	/* the lruvec under reclaim */
- 	struct lruvec *lruvec;
--	/* unstable max_seq from lru_gen_struct */
-+	/* unstable max_seq from lru_gen_folio */
- 	unsigned long max_seq;
- 	/* the next address within an mm to scan */
- 	unsigned long next_addr;
-@@ -524,7 +524,7 @@ struct lruvec {
- 	unsigned long			flags;
- #ifdef CONFIG_LRU_GEN
- 	/* evictable pages divided into generations */
--	struct lru_gen_struct		lrugen;
-+	struct lru_gen_folio		lrugen;
- 	/* to concurrently iterate lru_gen_mm_list */
- 	struct lru_gen_mm_state		mm_state;
- #endif
---- a/mm/vmscan.c~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
-+++ a/mm/vmscan.c
-@@ -3215,7 +3215,7 @@ static int get_nr_gens(struct lruvec *lr
- 
- static bool __maybe_unused seq_is_valid(struct lruvec *lruvec)
+-#define FOLL_WRITE	0x01	/* check pte is writable */
+-#define FOLL_TOUCH	0x02	/* mark page accessed */
+-#define FOLL_GET	0x04	/* do get_page on page */
+-#define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
+-#define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
+-#define FOLL_NOWAIT	0x20	/* if a disk transfer is needed, start the IO
+-				 * and return without waiting upon it */
+-#define FOLL_NOFAULT	0x80	/* do not fault in pages */
+-#define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
+-#define FOLL_TRIED	0x800	/* a retry, previous pass started an IO */
+-#define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
+-#define FOLL_ANON	0x8000	/* don't do file mappings */
+-#define FOLL_LONGTERM	0x10000	/* mapping lifetime is indefinite: see below */
+-#define FOLL_SPLIT_PMD	0x20000	/* split huge pmd before returning */
+-#define FOLL_PIN	0x40000	/* pages must be released via unpin_user_page */
+-#define FOLL_FAST_ONLY	0x80000	/* gup_fast: prevent fall-back to slow gup */
+-#define FOLL_PCI_P2PDMA	0x100000 /* allow returning PCI P2PDMA pages */
+-#define FOLL_INTERRUPTIBLE  0x200000 /* allow interrupts from generic signals */
+-
+-/*
+- * FOLL_PIN and FOLL_LONGTERM may be used in various combinations with each
+- * other. Here is what they mean, and how to use them:
+- *
+- * FOLL_LONGTERM indicates that the page will be held for an indefinite time
+- * period _often_ under userspace control.  This is in contrast to
+- * iov_iter_get_pages(), whose usages are transient.
+- *
+- * FIXME: For pages which are part of a filesystem, mappings are subject to the
+- * lifetime enforced by the filesystem and we need guarantees that longterm
+- * users like RDMA and V4L2 only establish mappings which coordinate usage with
+- * the filesystem.  Ideas for this coordination include revoking the longterm
+- * pin, delaying writeback, bounce buffer page writeback, etc.  As FS DAX was
+- * added after the problem with filesystems was found FS DAX VMAs are
+- * specifically failed.  Filesystem pages are still subject to bugs and use of
+- * FOLL_LONGTERM should be avoided on those pages.
+- *
+- * FIXME: Also NOTE that FOLL_LONGTERM is not supported in every GUP call.
+- * Currently only get_user_pages() and get_user_pages_fast() support this flag
+- * and calls to get_user_pages_[un]locked are specifically not allowed.  This
+- * is due to an incompatibility with the FS DAX check and
+- * FAULT_FLAG_ALLOW_RETRY.
+- *
+- * In the CMA case: long term pins in a CMA region would unnecessarily fragment
+- * that region.  And so, CMA attempts to migrate the page before pinning, when
+- * FOLL_LONGTERM is specified.
+- *
+- * FOLL_PIN indicates that a special kind of tracking (not just page->_refcount,
+- * but an additional pin counting system) will be invoked. This is intended for
+- * anything that gets a page reference and then touches page data (for example,
+- * Direct IO). This lets the filesystem know that some non-file-system entity is
+- * potentially changing the pages' data. In contrast to FOLL_GET (whose pages
+- * are released via put_page()), FOLL_PIN pages must be released, ultimately, by
+- * a call to unpin_user_page().
+- *
+- * FOLL_PIN is similar to FOLL_GET: both of these pin pages. They use different
+- * and separate refcounting mechanisms, however, and that means that each has
+- * its own acquire and release mechanisms:
+- *
+- *     FOLL_GET: get_user_pages*() to acquire, and put_page() to release.
+- *
+- *     FOLL_PIN: pin_user_pages*() to acquire, and unpin_user_pages to release.
+- *
+- * FOLL_PIN and FOLL_GET are mutually exclusive for a given function call.
+- * (The underlying pages may experience both FOLL_GET-based and FOLL_PIN-based
+- * calls applied to them, and that's perfectly OK. This is a constraint on the
+- * callers, not on the pages.)
+- *
+- * FOLL_PIN should be set internally by the pin_user_pages*() APIs, never
+- * directly by the caller. That's in order to help avoid mismatches when
+- * releasing pages: get_user_pages*() pages must be released via put_page(),
+- * while pin_user_pages*() pages must be released via unpin_user_page().
+- *
+- * Please see Documentation/core-api/pin_user_pages.rst for more information.
+- */
+-
+ static inline int vm_fault_to_errno(vm_fault_t vm_fault, int foll_flags)
  {
--	/* see the comment on lru_gen_struct */
-+	/* see the comment on lru_gen_folio */
- 	return get_nr_gens(lruvec, LRU_GEN_FILE) >= MIN_NR_GENS &&
- 	       get_nr_gens(lruvec, LRU_GEN_FILE) <= get_nr_gens(lruvec, LRU_GEN_ANON) &&
- 	       get_nr_gens(lruvec, LRU_GEN_ANON) <= MAX_NR_GENS;
-@@ -3612,7 +3612,7 @@ struct ctrl_pos {
- static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier, int gain,
- 			  struct ctrl_pos *pos)
- {
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	int hist = lru_hist_from_seq(lrugen->min_seq[type]);
+ 	if (vm_fault & VM_FAULT_OOM)
+--- a/include/linux/mm_types.h~mm-move-foll_-defs-to-mm_typesh
++++ a/include/linux/mm_types.h
+@@ -1085,4 +1085,79 @@ enum fault_flag {
  
- 	pos->refaulted = lrugen->avg_refaulted[type][tier] +
-@@ -3627,7 +3627,7 @@ static void read_ctrl_pos(struct lruvec
- static void reset_ctrl_pos(struct lruvec *lruvec, int type, bool carryover)
- {
- 	int hist, tier;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	bool clear = carryover ? NR_HIST_GENS == 1 : NR_HIST_GENS > 1;
- 	unsigned long seq = carryover ? lrugen->min_seq[type] : lrugen->max_seq + 1;
+ typedef unsigned int __bitwise zap_flags_t;
  
-@@ -3704,7 +3704,7 @@ static int folio_update_gen(struct folio
- static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
- {
- 	int type = folio_is_file_lru(folio);
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
- 	unsigned long new_flags, old_flags = READ_ONCE(folio->flags);
- 
-@@ -3749,7 +3749,7 @@ static void update_batch_size(struct lru
- static void reset_batch_size(struct lruvec *lruvec, struct lru_gen_mm_walk *walk)
- {
- 	int gen, type, zone;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	walk->batched = 0;
- 
-@@ -4263,7 +4263,7 @@ static bool inc_min_seq(struct lruvec *l
- {
- 	int zone;
- 	int remaining = MAX_LRU_BATCH;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
- 
- 	if (type == LRU_GEN_ANON && !can_swap)
-@@ -4299,7 +4299,7 @@ static bool try_to_inc_min_seq(struct lr
- {
- 	int gen, type, zone;
- 	bool success = false;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	DEFINE_MIN_SEQ(lruvec);
- 
- 	VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
-@@ -4320,7 +4320,7 @@ next:
- 		;
- 	}
- 
--	/* see the comment on lru_gen_struct */
-+	/* see the comment on lru_gen_folio */
- 	if (can_swap) {
- 		min_seq[LRU_GEN_ANON] = min(min_seq[LRU_GEN_ANON], min_seq[LRU_GEN_FILE]);
- 		min_seq[LRU_GEN_FILE] = max(min_seq[LRU_GEN_ANON], lrugen->min_seq[LRU_GEN_FILE]);
-@@ -4342,7 +4342,7 @@ static void inc_max_seq(struct lruvec *l
- {
- 	int prev, next;
- 	int type, zone;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	spin_lock_irq(&lruvec->lru_lock);
- 
-@@ -4400,7 +4400,7 @@ static bool try_to_inc_max_seq(struct lr
- 	bool success;
- 	struct lru_gen_mm_walk *walk;
- 	struct mm_struct *mm = NULL;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	VM_WARN_ON_ONCE(max_seq > READ_ONCE(lrugen->max_seq));
- 
-@@ -4465,7 +4465,7 @@ static bool should_run_aging(struct lruv
- 	unsigned long old = 0;
- 	unsigned long young = 0;
- 	unsigned long total = 0;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 
- 	for (type = !can_swap; type < ANON_AND_FILE; type++) {
-@@ -4750,7 +4750,7 @@ static bool sort_folio(struct lruvec *lr
- 	int delta = folio_nr_pages(folio);
- 	int refs = folio_lru_refs(folio);
- 	int tier = lru_tier_from_refs(refs);
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	VM_WARN_ON_ONCE_FOLIO(gen >= MAX_NR_GENS, folio);
- 
-@@ -4850,7 +4850,7 @@ static int scan_folios(struct lruvec *lr
- 	int scanned = 0;
- 	int isolated = 0;
- 	int remaining = MAX_LRU_BATCH;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 
- 	VM_WARN_ON_ONCE(!list_empty(list));
-@@ -5251,7 +5251,7 @@ done:
- 
- static bool __maybe_unused state_is_valid(struct lruvec *lruvec)
- {
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	if (lrugen->enabled) {
- 		enum lru_list lru;
-@@ -5530,7 +5530,7 @@ static void lru_gen_seq_show_full(struct
- 	int i;
- 	int type, tier;
- 	int hist = lru_hist_from_seq(seq);
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	for (tier = 0; tier < MAX_NR_TIERS; tier++) {
- 		seq_printf(m, "            %10d", tier);
-@@ -5580,7 +5580,7 @@ static int lru_gen_seq_show(struct seq_f
- 	unsigned long seq;
- 	bool full = !debugfs_real_fops(m->file)->write;
- 	struct lruvec *lruvec = v;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	int nid = lruvec_pgdat(lruvec)->node_id;
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	DEFINE_MAX_SEQ(lruvec);
-@@ -5834,7 +5834,7 @@ void lru_gen_init_lruvec(struct lruvec *
- {
- 	int i;
- 	int gen, type, zone;
--	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	lrugen->max_seq = MIN_NR_GENS + 1;
- 	lrugen->enabled = lru_gen_enabled();
---- a/mm/workingset.c~mm-multi-gen-lru-rename-lru_gen_struct-to-lru_gen_folio
-+++ a/mm/workingset.c
-@@ -223,7 +223,7 @@ static void *lru_gen_eviction(struct fol
- 	unsigned long token;
- 	unsigned long min_seq;
- 	struct lruvec *lruvec;
--	struct lru_gen_struct *lrugen;
-+	struct lru_gen_folio *lrugen;
- 	int type = folio_is_file_lru(folio);
- 	int delta = folio_nr_pages(folio);
- 	int refs = folio_lru_refs(folio);
-@@ -252,7 +252,7 @@ static void lru_gen_refault(struct folio
- 	unsigned long token;
- 	unsigned long min_seq;
- 	struct lruvec *lruvec;
--	struct lru_gen_struct *lrugen;
-+	struct lru_gen_folio *lrugen;
- 	struct mem_cgroup *memcg;
- 	struct pglist_data *pgdat;
- 	int type = folio_is_file_lru(folio);
++/*
++ * FOLL_PIN and FOLL_LONGTERM may be used in various combinations with each
++ * other. Here is what they mean, and how to use them:
++ *
++ * FOLL_LONGTERM indicates that the page will be held for an indefinite time
++ * period _often_ under userspace control.  This is in contrast to
++ * iov_iter_get_pages(), whose usages are transient.
++ *
++ * FIXME: For pages which are part of a filesystem, mappings are subject to the
++ * lifetime enforced by the filesystem and we need guarantees that longterm
++ * users like RDMA and V4L2 only establish mappings which coordinate usage with
++ * the filesystem.  Ideas for this coordination include revoking the longterm
++ * pin, delaying writeback, bounce buffer page writeback, etc.  As FS DAX was
++ * added after the problem with filesystems was found FS DAX VMAs are
++ * specifically failed.  Filesystem pages are still subject to bugs and use of
++ * FOLL_LONGTERM should be avoided on those pages.
++ *
++ * FIXME: Also NOTE that FOLL_LONGTERM is not supported in every GUP call.
++ * Currently only get_user_pages() and get_user_pages_fast() support this flag
++ * and calls to get_user_pages_[un]locked are specifically not allowed.  This
++ * is due to an incompatibility with the FS DAX check and
++ * FAULT_FLAG_ALLOW_RETRY.
++ *
++ * In the CMA case: long term pins in a CMA region would unnecessarily fragment
++ * that region.  And so, CMA attempts to migrate the page before pinning, when
++ * FOLL_LONGTERM is specified.
++ *
++ * FOLL_PIN indicates that a special kind of tracking (not just page->_refcount,
++ * but an additional pin counting system) will be invoked. This is intended for
++ * anything that gets a page reference and then touches page data (for example,
++ * Direct IO). This lets the filesystem know that some non-file-system entity is
++ * potentially changing the pages' data. In contrast to FOLL_GET (whose pages
++ * are released via put_page()), FOLL_PIN pages must be released, ultimately, by
++ * a call to unpin_user_page().
++ *
++ * FOLL_PIN is similar to FOLL_GET: both of these pin pages. They use different
++ * and separate refcounting mechanisms, however, and that means that each has
++ * its own acquire and release mechanisms:
++ *
++ *     FOLL_GET: get_user_pages*() to acquire, and put_page() to release.
++ *
++ *     FOLL_PIN: pin_user_pages*() to acquire, and unpin_user_pages to release.
++ *
++ * FOLL_PIN and FOLL_GET are mutually exclusive for a given function call.
++ * (The underlying pages may experience both FOLL_GET-based and FOLL_PIN-based
++ * calls applied to them, and that's perfectly OK. This is a constraint on the
++ * callers, not on the pages.)
++ *
++ * FOLL_PIN should be set internally by the pin_user_pages*() APIs, never
++ * directly by the caller. That's in order to help avoid mismatches when
++ * releasing pages: get_user_pages*() pages must be released via put_page(),
++ * while pin_user_pages*() pages must be released via unpin_user_page().
++ *
++ * Please see Documentation/core-api/pin_user_pages.rst for more information.
++ */
++
++#define FOLL_WRITE	0x01	/* check pte is writable */
++#define FOLL_TOUCH	0x02	/* mark page accessed */
++#define FOLL_GET	0x04	/* do get_page on page */
++#define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
++#define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
++#define FOLL_NOWAIT	0x20	/* if a disk transfer is needed, start the IO
++				 * and return without waiting upon it */
++#define FOLL_NOFAULT	0x80	/* do not fault in pages */
++#define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
++#define FOLL_TRIED	0x800	/* a retry, previous pass started an IO */
++#define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
++#define FOLL_ANON	0x8000	/* don't do file mappings */
++#define FOLL_LONGTERM	0x10000	/* mapping lifetime is indefinite: see below */
++#define FOLL_SPLIT_PMD	0x20000	/* split huge pmd before returning */
++#define FOLL_PIN	0x40000	/* pages must be released via unpin_user_page */
++#define FOLL_FAST_ONLY	0x80000	/* gup_fast: prevent fall-back to slow gup */
++#define FOLL_PCI_P2PDMA	0x100000 /* allow returning PCI P2PDMA pages */
++#define FOLL_INTERRUPTIBLE  0x200000 /* allow interrupts from generic signals */
++
+ #endif /* _LINUX_MM_TYPES_H */
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-mm-multi-gen-lru-fix-crash-during-cgroup-migration.patch
 
