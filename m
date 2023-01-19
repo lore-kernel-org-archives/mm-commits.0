@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89871C38159
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:15:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BCE8C38159
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:15:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229744AbjASBPm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:15:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37462 "EHLO
+        id S229841AbjASBPn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:15:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230031AbjASBOa (ORCPT
+        with ESMTP id S230016AbjASBOa (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:14:30 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA9B56923B
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CD9D6922F
         for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:14:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 67706B81D66
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15B5DC433EF;
-        Thu, 19 Jan 2023 01:14:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 16B1C61B0F
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:14:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71D20C433F0;
+        Thu, 19 Jan 2023 01:14:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090844;
-        bh=n6i/YcgIHuHnWJbxTy8CmVKxDStyRQdnnQb/1u9cvqU=;
+        s=korg; t=1674090845;
+        bh=LLqBPHq8FVkHviGEgXzuKf/U/5DbpfxuUwjs8xMFfkI=;
         h=Date:To:From:Subject:From;
-        b=FtsJyi5pWmEnJA/oKUNHzCHgVqjrJPxfoBUJQuBVe73vEPNFX30vBc3KrNbjD8fcM
-         mWjQwJXVsSgf6cTJg0OMAm6q8cD6MGFImbLwZUtPVmjHVK5rDCM4OKjaBJwnu17T/5
-         tDzEcMs++YMAz7wEOjyXAYvJmm39Smq+B6aCwyjE=
-Date:   Wed, 18 Jan 2023 17:14:03 -0800
+        b=QcXk25xk55FCfzXcXKDVOmw4Oi3k0F02uqoF4qbPiU0dPClHjP5qb4+FJDi0nsNCM
+         lxSqQe8DSGkYHOBkxHbelWrfiXr6+XFzlemSrQjXLtfZjsIyHTEIrl7M+GrdqgaKB4
+         YHhOkixVr8aaZejaHvPJB6IcmobDrKpOgA9BNb7w=
+Date:   Wed, 18 Jan 2023 17:14:04 -0800
 To:     mm-commits@vger.kernel.org, jack@suse.cz, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] buffer-use-b_folio-in-end_buffer_async_read.patch removed from -mm tree
-Message-Id: <20230119011404.15B5DC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] buffer-use-b_folio-in-end_buffer_async_write.patch removed from -mm tree
+Message-Id: <20230119011405.71D20C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,82 +41,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: buffer: use b_folio in end_buffer_async_read()
+     Subject: buffer: use b_folio in end_buffer_async_write()
 has been removed from the -mm tree.  Its filename was
-     buffer-use-b_folio-in-end_buffer_async_read.patch
+     buffer-use-b_folio-in-end_buffer_async_write.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: use b_folio in end_buffer_async_read()
-Date: Thu, 15 Dec 2022 21:43:54 +0000
+Subject: buffer: use b_folio in end_buffer_async_write()
+Date: Thu, 15 Dec 2022 21:43:55 +0000
 
-Removes a call to compound_head() in SetPageError(), saving 76 bytes of
-text.
+Save 76 bytes from avoiding the call to compound_head() in SetPageError().
+Also avoid the call to compound_head() in end_page_writeback().
 
-Link: https://lkml.kernel.org/r/20221215214402.3522366-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20221215214402.3522366-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/buffer.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/fs/buffer.c~buffer-use-b_folio-in-end_buffer_async_read
+--- a/fs/buffer.c~buffer-use-b_folio-in-end_buffer_async_write
 +++ a/fs/buffer.c
-@@ -246,18 +246,18 @@ static void end_buffer_async_read(struct
+@@ -344,21 +344,21 @@ void end_buffer_async_write(struct buffe
  	unsigned long flags;
  	struct buffer_head *first;
  	struct buffer_head *tmp;
 -	struct page *page;
--	int page_uptodate = 1;
 +	struct folio *folio;
-+	int folio_uptodate = 1;
  
- 	BUG_ON(!buffer_async_read(bh));
+ 	BUG_ON(!buffer_async_write(bh));
  
 -	page = bh->b_page;
 +	folio = bh->b_folio;
  	if (uptodate) {
  		set_buffer_uptodate(bh);
  	} else {
+ 		buffer_io_error(bh, ", lost async page write");
+ 		mark_buffer_write_io_error(bh);
  		clear_buffer_uptodate(bh);
- 		buffer_io_error(bh, ", async page read");
 -		SetPageError(page);
 +		folio_set_error(folio);
  	}
  
- 	/*
-@@ -265,14 +265,14 @@ static void end_buffer_async_read(struct
- 	 * two buffer heads end IO at almost the same time and both
- 	 * decide that the page is now completely done.
- 	 */
 -	first = page_buffers(page);
 +	first = folio_buffers(folio);
  	spin_lock_irqsave(&first->b_uptodate_lock, flags);
- 	clear_buffer_async_read(bh);
- 	unlock_buffer(bh);
- 	tmp = bh;
- 	do {
- 		if (!buffer_uptodate(tmp))
--			page_uptodate = 0;
-+			folio_uptodate = 0;
- 		if (buffer_async_read(tmp)) {
- 			BUG_ON(!buffer_locked(tmp));
- 			goto still_busy;
-@@ -285,9 +285,9 @@ static void end_buffer_async_read(struct
- 	 * If all of the buffers are uptodate then we can set the page
- 	 * uptodate.
- 	 */
--	if (page_uptodate)
--		SetPageUptodate(page);
--	unlock_page(page);
-+	if (folio_uptodate)
-+		folio_mark_uptodate(folio);
-+	folio_unlock(folio);
+ 
+ 	clear_buffer_async_write(bh);
+@@ -372,7 +372,7 @@ void end_buffer_async_write(struct buffe
+ 		tmp = tmp->b_this_page;
+ 	}
+ 	spin_unlock_irqrestore(&first->b_uptodate_lock, flags);
+-	end_page_writeback(page);
++	folio_end_writeback(folio);
  	return;
  
  still_busy:
