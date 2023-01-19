@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05FEAC677F1
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:14:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF3C8C677F1
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Jan 2023 01:15:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229898AbjASBOz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Jan 2023 20:14:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37616 "EHLO
+        id S229964AbjASBPS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Jan 2023 20:15:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229906AbjASBOF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:14:05 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE10B689C7
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:13:56 -0800 (PST)
+        with ESMTP id S229912AbjASBOP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2023 20:14:15 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 185DD689D2
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2023 17:14:00 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 65E1061B18
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:13:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3A2CC433D2;
-        Thu, 19 Jan 2023 01:13:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BB622B81FBE
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2023 01:13:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 611EAC433D2;
+        Thu, 19 Jan 2023 01:13:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674090835;
-        bh=QCjgYPWAPXHbPXOFmMlI4P+XPlwP46fSUGmxbl+btoI=;
+        s=korg; t=1674090837;
+        bh=X1+mHQ6ZkiMJBA4bnlHYTGNnbGfxfMRPTLuvQ+OogSU=;
         h=Date:To:From:Subject:From;
-        b=dfpGkWis9WQydIiVkUxo4p0yr93I/RWK1i/m7nDeP1Rrlb+mi10wnF4Kue1q4Gaxu
-         A9gDGzaT8h4woLo+qJssKXMNQpflYmgj3IZ4zTms8/TSgWN97ag0dZ2VZKc3AcHY0P
-         rKx86M0kuT+PHG9oaCeVJYEa3Zabsfn09pOiRPhE=
-Date:   Wed, 18 Jan 2023 17:13:55 -0800
+        b=nYUDX5DnXgfpIocG93yXpW9LNBRmCA5xhwfMFVAfZg8TGWIfI8L5jWKF23cWxIa6s
+         CR4R/cYTHgIiH2qPGBcrBLxK8VN0xA/EOfWlrB3QoCXJPjW1RQCIEV51LMt8X925UK
+         yxnXBEJhq9ymOz11pExc1Vl4EbCQGzQoSz5A7mho=
+Date:   Wed, 18 Jan 2023 17:13:56 -0800
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         riel@surriel.com, nadav.amit@gmail.com, mike.kravetz@oracle.com,
         linmiaohe@huawei.com, jthoughton@google.com, jhubbard@nvidia.com,
         jannh@google.com, david@redhat.com, aarcange@redhat.com,
         peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-make-follow_hugetlb_page-safe-to-pmd-unshare.patch removed from -mm tree
-Message-Id: <20230119011355.C3A2CC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare.patch removed from -mm tree
+Message-Id: <20230119011357.611EAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,27 +44,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: make follow_hugetlb_page() safe to pmd unshare
+     Subject: mm/hugetlb: make walk_hugetlb_range() safe to pmd unshare
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-make-follow_hugetlb_page-safe-to-pmd-unshare.patch
+     mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: make follow_hugetlb_page() safe to pmd unshare
-Date: Fri, 16 Dec 2022 10:52:23 -0500
+Subject: mm/hugetlb: make walk_hugetlb_range() safe to pmd unshare
+Date: Fri, 16 Dec 2022 10:52:26 -0500
 
-Since follow_hugetlb_page() walks the pgtable, it needs the vma lock to
+Since walk_hugetlb_range() walks the pgtable, it needs the vma lock to
 make sure the pgtable page will not be freed concurrently.
 
-Link: https://lkml.kernel.org/r/20221216155223.2043727-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20221216155226.2043738-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: James Houghton <jthoughton@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -74,60 +74,74 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/linux/pagewalk.h |   11 ++++++++++-
+ mm/hmm.c                 |   15 ++++++++++++++-
+ mm/pagewalk.c            |    2 ++
+ 3 files changed, 26 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-make-follow_hugetlb_page-safe-to-pmd-unshare
-+++ a/mm/hugetlb.c
-@@ -6454,6 +6454,7 @@ long follow_hugetlb_page(struct mm_struc
- 			break;
- 		}
- 
-+		hugetlb_vma_lock_read(vma);
- 		/*
- 		 * Some archs (sparc64, sh*) have multiple pte_ts to
- 		 * each hugepage.  We have to make sure we get the
-@@ -6478,6 +6479,7 @@ long follow_hugetlb_page(struct mm_struc
- 		    !hugetlbfs_pagecache_present(h, vma, vaddr)) {
- 			if (pte)
- 				spin_unlock(ptl);
-+			hugetlb_vma_unlock_read(vma);
- 			remainder = 0;
- 			break;
- 		}
-@@ -6499,6 +6501,8 @@ long follow_hugetlb_page(struct mm_struc
- 
- 			if (pte)
- 				spin_unlock(ptl);
-+			hugetlb_vma_unlock_read(vma);
+--- a/include/linux/pagewalk.h~mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare
++++ a/include/linux/pagewalk.h
+@@ -21,7 +21,16 @@ struct mm_walk;
+  *			depth is -1 if not known, 0:PGD, 1:P4D, 2:PUD, 3:PMD.
+  *			Any folded depths (where PTRS_PER_P?D is equal to 1)
+  *			are skipped.
+- * @hugetlb_entry:	if set, called for each hugetlb entry
++ * @hugetlb_entry:	if set, called for each hugetlb entry. This hook
++ *			function is called with the vma lock held, in order to
++ *			protect against a concurrent freeing of the pte_t* or
++ *			the ptl. In some cases, the hook function needs to drop
++ *			and retake the vma lock in order to avoid deadlocks
++ *			while calling other functions. In such cases the hook
++ *			function must either refrain from accessing the pte or
++ *			ptl after dropping the vma lock, or else revalidate
++ *			those items after re-acquiring the vma lock and before
++ *			accessing them.
+  * @test_walk:		caller specific callback function to determine whether
+  *			we walk over the current vma or not. Returning 0 means
+  *			"do page table walk over the current vma", returning
+--- a/mm/hmm.c~mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare
++++ a/mm/hmm.c
+@@ -492,8 +492,21 @@ static int hmm_vma_walk_hugetlb_entry(pt
+ 	required_fault =
+ 		hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, cpu_flags);
+ 	if (required_fault) {
++		int ret;
 +
- 			if (flags & FOLL_WRITE)
- 				fault_flags |= FAULT_FLAG_WRITE;
- 			else if (unshare)
-@@ -6561,6 +6565,7 @@ long follow_hugetlb_page(struct mm_struc
- 			remainder -= pages_per_huge_page(h);
- 			i += pages_per_huge_page(h);
- 			spin_unlock(ptl);
-+			hugetlb_vma_unlock_read(vma);
- 			continue;
- 		}
- 
-@@ -6590,6 +6595,7 @@ long follow_hugetlb_page(struct mm_struc
- 			if (WARN_ON_ONCE(!try_grab_folio(pages[i], refs,
- 							 flags))) {
- 				spin_unlock(ptl);
-+				hugetlb_vma_unlock_read(vma);
- 				remainder = 0;
- 				err = -ENOMEM;
- 				break;
-@@ -6601,6 +6607,7 @@ long follow_hugetlb_page(struct mm_struc
- 		i += refs;
- 
  		spin_unlock(ptl);
+-		return hmm_vma_fault(addr, end, required_fault, walk);
 +		hugetlb_vma_unlock_read(vma);
++		/*
++		 * Avoid deadlock: drop the vma lock before calling
++		 * hmm_vma_fault(), which will itself potentially take and
++		 * drop the vma lock. This is also correct from a
++		 * protection point of view, because there is no further
++		 * use here of either pte or ptl after dropping the vma
++		 * lock.
++		 */
++		ret = hmm_vma_fault(addr, end, required_fault, walk);
++		hugetlb_vma_lock_read(vma);
++		return ret;
  	}
- 	*nr_pages = remainder;
- 	/*
+ 
+ 	pfn = pte_pfn(entry) + ((start & ~hmask) >> PAGE_SHIFT);
+--- a/mm/pagewalk.c~mm-hugetlb-make-walk_hugetlb_range-safe-to-pmd-unshare
++++ a/mm/pagewalk.c
+@@ -302,6 +302,7 @@ static int walk_hugetlb_range(unsigned l
+ 	const struct mm_walk_ops *ops = walk->ops;
+ 	int err = 0;
+ 
++	hugetlb_vma_lock_read(vma);
+ 	do {
+ 		next = hugetlb_entry_end(h, addr, end);
+ 		pte = huge_pte_offset(walk->mm, addr & hmask, sz);
+@@ -314,6 +315,7 @@ static int walk_hugetlb_range(unsigned l
+ 		if (err)
+ 			break;
+ 	} while (addr = next, addr != end);
++	hugetlb_vma_unlock_read(vma);
+ 
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
