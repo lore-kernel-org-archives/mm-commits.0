@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA6C6C27C76
-	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:07:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47C17C05027
+	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:07:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229544AbjAUBH0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Jan 2023 20:07:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60966 "EHLO
+        id S229825AbjAUBH1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Jan 2023 20:07:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229852AbjAUBHF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:07:05 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E30871F3A
+        with ESMTP id S229863AbjAUBHG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:07:06 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E11A173177
         for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:07:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ED63F61E1F
+        by sin.source.kernel.org (Postfix) with ESMTPS id 5C6DECE1F9A
         for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:07:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49EDAC433EF;
-        Sat, 21 Jan 2023 01:07:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 967EFC433D2;
+        Sat, 21 Jan 2023 01:07:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674263223;
-        bh=Pono6260bOjH8O0fWsRJ9S8pavtOOzFrhIr4juUm7z8=;
+        s=korg; t=1674263221;
+        bh=kcZGKUb6uX9viXdBhZQTkTunZhMU0rajMdjmu0523r4=;
         h=Date:To:From:Subject:From;
-        b=T/ln5JJnKHH7ixL0PN8pToD9QzEHP4TefwYcJLX098NdwYfQ/Kq0N7tAjOtNsQDJ2
-         CoNYVTtgAMB1F1988TvexPkjPenqgjI7kvO5lZxFeWJaOrvTwCZKhrhorD88LAt47N
-         jFpBNJpsaz3nDlyppKx+3v6HsKYPtNuJRpjLU2FI=
-Date:   Fri, 20 Jan 2023 17:07:02 -0800
+        b=XOEC41NkXiGfesDf9vNX4fCuB5BxIo4UmogOnjlpo9WBynwIm2K1hGQKiXBZDLjU3
+         uTsmW70FNKlVGj/2B+mToK/7l0h0qy20ZOe8TqZecTDVD/CKbnIFc35PueQiFG2Uwv
+         Gk5FWfq4tuBwmvp5tjCMZUt0pkaYO/HZDoKJpRUs=
+Date:   Fri, 20 Jan 2023 17:07:00 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-unnecessary-write-to-vma-iterator-in-__vma_adjust.patch added to mm-unstable branch
-Message-Id: <20230121010703.49EDAC433EF@smtp.kernel.org>
+Subject: + madvise-use-split_vma-instead-of-__split_vma.patch added to mm-unstable branch
+Message-Id: <20230121010701.967EFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove unnecessary write to vma iterator in __vma_adjust()
+     Subject: madvise: use split_vma() instead of __split_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-unnecessary-write-to-vma-iterator-in-__vma_adjust.patch
+     madvise-use-split_vma-instead-of-__split_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unnecessary-write-to-vma-iterator-in-__vma_adjust.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/madvise-use-split_vma-instead-of-__split_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,38 +65,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: remove unnecessary write to vma iterator in __vma_adjust()
-Date: Fri, 20 Jan 2023 11:26:35 -0500
+Subject: madvise: use split_vma() instead of __split_vma()
+Date: Fri, 20 Jan 2023 11:26:34 -0500
 
-If the vma start address is going to change due to an insert, then it is
-safe to not write the vma to the tree.  The write of the insert vma will
-alter the tree as necessary.
+The split_vma() wrapper is specifically for this use case, so use it.
 
-Link: https://lkml.kernel.org/r/20230120162650.984577-35-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230120162650.984577-34-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mm-remove-unnecessary-write-to-vma-iterator-in-__vma_adjust
-+++ a/mm/mmap.c
-@@ -722,10 +722,12 @@ int __vma_adjust(struct vma_iterator *vm
- 	}
+--- a/mm/madvise.c~madvise-use-split_vma-instead-of-__split_vma
++++ a/mm/madvise.c
+@@ -161,17 +161,13 @@ static int madvise_update_vma(struct vm_
+ 	*prev = vma;
  
  	if (start != vma->vm_start) {
--		if ((vma->vm_start < start) &&
--		    (!insert || (insert->vm_end != start))) {
--			vma_iter_clear(vmi, vma->vm_start, start);
--			VM_WARN_ON(insert && insert->vm_start > vma->vm_start);
-+		if (vma->vm_start < start) {
-+			if (!insert || (insert->vm_end != start)) {
-+				vma_iter_clear(vmi, vma->vm_start, start);
-+				vma_iter_set(vmi, start);
-+				VM_WARN_ON(insert && insert->vm_start > vma->vm_start);
-+			}
- 		} else {
- 			vma_changed = true;
- 		}
+-		if (unlikely(mm->map_count >= sysctl_max_map_count))
+-			return -ENOMEM;
+-		error = __split_vma(&vmi, vma, start, 1);
++		error = split_vma(&vmi, vma, start, 1);
+ 		if (error)
+ 			return error;
+ 	}
+ 
+ 	if (end != vma->vm_end) {
+-		if (unlikely(mm->map_count >= sysctl_max_map_count))
+-			return -ENOMEM;
+-		error = __split_vma(&vmi, vma, end, 0);
++		error = split_vma(&vmi, vma, end, 0);
+ 		if (error)
+ 			return error;
+ 	}
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
