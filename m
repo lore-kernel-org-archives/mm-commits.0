@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D1A1C05027
-	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:28:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45F26C05027
+	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:30:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229675AbjAUB2m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Jan 2023 20:28:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37978 "EHLO
+        id S229493AbjAUBaZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Jan 2023 20:30:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229485AbjAUB2i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:28:38 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 836BF5CE68
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:28:37 -0800 (PST)
+        with ESMTP id S229485AbjAUBaZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:30:25 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 456705CE68
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:30:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 200FD61E1F
-        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:28:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71556C433D2;
-        Sat, 21 Jan 2023 01:28:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C108F620F1
+        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:30:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 198DFC433EF;
+        Sat, 21 Jan 2023 01:30:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674264516;
-        bh=oY169n2oub5XlUh8Cfost2j00G2s9mNdvgPj2YcDKl4=;
+        s=korg; t=1674264623;
+        bh=hKI5tjJQpeVyqWhB9W2kM79wjE0/TukJ6eF4s16z9Ag=;
         h=Date:To:From:Subject:From;
-        b=CRu/0XN+JW0fLvJGYhYtGWxBLwpOf9cUyTFWgNFgKzfigcxxYxPFCqvvnS6LemNOF
-         oWq14eA4ZQ0JnjqIIYM1xQ5w5Ehb5yt6oImk8ojDO0ZgYqrM76EkzxXmBY5iQi2mcq
-         WsHvhRW/oYN12rLcTGzEsccbPpvgFNvrHx9qhtUI=
-Date:   Fri, 20 Jan 2023 17:28:35 -0800
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        tony.luck@intel.com, shy828301@gmail.com, rientjes@google.com,
-        naoya.horiguchi@nec.com, jiaqiyan@google.com,
-        akpm@linux-foundation.org
+        b=idN3Q7707oFiaEeLVejS5ok8z/G0AVTZDE52S8h0+R5Q9ny2qEjQhYVgRrRfWv/gA
+         nKN1xtpdV0S16AYO46nRkqTfqkt4Vzf0QtFOEWiuNIuHGIMSAJweqYgtd9XGXkpfgG
+         4ksy6anBVWTmitoknKnXDLuxhbGwvRUJprY60ezw=
+Date:   Fri, 20 Jan 2023 17:30:22 -0800
+To:     mm-commits@vger.kernel.org, yukuai3@huawei.com,
+        yi.zhang@huawei.com, yangerkun@huawei.com, tj@kernel.org,
+        james.smart@broadcom.com, jack@suse.cz, houtao1@huawei.com,
+        ebiggers@google.com, bingjingc@synology.com, axboe@kernel.dk,
+        lilingfeng3@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-document-memory-failure-stats.patch added to mm-unstable branch
-Message-Id: <20230121012836.71556C433D2@smtp.kernel.org>
+Subject: + lib-parser-optimize-match_number-apis-to-use-local-array.patch added to mm-nonmm-unstable branch
+Message-Id: <20230121013023.198DFC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory-failure: document memory failure stats
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-document-memory-failure-stats.patch
+     Subject: lib: parser: optimize match_NUMBER apis to use local array
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-parser-optimize-match_number-apis-to-use-local-array.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-document-memory-failure-stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-parser-optimize-match_number-apis-to-use-local-array.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,75 +67,122 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: mm: memory-failure: document memory failure stats
-Date: Fri, 20 Jan 2023 03:46:22 +0000
+From: Li Lingfeng <lilingfeng3@huawei.com>
+Subject: lib: parser: optimize match_NUMBER apis to use local array
+Date: Fri, 20 Jan 2023 11:23:52 +0800
 
-Add documentation for memory_failure's per NUMA node sysfs entries
+Memory will be allocated to store substring_t in match_strdup(), which
+means the caller of match_strdup() may need to be scheduled out to wait
+for reclaiming memory.
 
-Link: https://lkml.kernel.org/r/20230120034622.2698268-4-jiaqiyan@google.com
-Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Using local array to store substring_t to remove the restriction.
+
+Link: https://lore.kernel.org/all/20221104023938.2346986-5-yukuai1@huaweicloud.com/
+Link: https://lkml.kernel.org/r/20230120032352.242767-1-lilingfeng3@huawei.com
+Signed-off-by: Li Lingfeng <lilingfeng3@huawei.com>
+Cc: BingJing Chang <bingjingc@synology.com>
+Cc: Eric Biggers <ebiggers@google.com>
+Cc: Hou Tao <houtao1@huawei.com>
+Cc: James Smart <james.smart@broadcom.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: yangerkun <yangerkun@huawei.com>
+Cc: Yu Kuai <yukuai3@huawei.com>
+Cc: Zhang Yi <yi.zhang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/ABI/stable/sysfs-devices-node~mm-memory-failure-document-memory-failure-stats
-+++ a/Documentation/ABI/stable/sysfs-devices-node
-@@ -182,3 +182,42 @@ Date:		November 2021
- Contact:	Jarkko Sakkinen <jarkko@kernel.org>
- Description:
- 		The total amount of SGX physical memory in bytes.
+--- a/lib/parser.c~lib-parser-optimize-match_number-apis-to-use-local-array
++++ a/lib/parser.c
+@@ -11,6 +11,15 @@
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ 
++/*
++ * max size needed by different bases to express U64
++ * HEX: "0xFFFFFFFFFFFFFFFF" --> 18
++ * DEC: "18446744073709551615" --> 20
++ * OCT: "01777777777777777777777" --> 23
++ * pick the max one to define NUMBER_BUF_LEN
++ */
++#define NUMBER_BUF_LEN 24
 +
-+What:		/sys/devices/system/node/nodeX/memory_failure/total
-+Date:		January 2023
-+Contact:	Jiaqi Yan <jiaqiyan@google.com>
-+Description:
-+		The total number of raw poisoned pages (pages containing
-+		corrupted data due to memory errors) on a NUMA node.
+ /**
+  * match_one - Determines if a string matches a simple pattern
+  * @s: the string to examine for presence of the pattern
+@@ -129,14 +138,12 @@ EXPORT_SYMBOL(match_token);
+ static int match_number(substring_t *s, int *result, int base)
+ {
+ 	char *endp;
+-	char *buf;
++	char buf[NUMBER_BUF_LEN];
+ 	int ret;
+ 	long val;
+ 
+-	buf = match_strdup(s);
+-	if (!buf)
+-		return -ENOMEM;
+-
++	if (match_strlcpy(buf, s, NUMBER_BUF_LEN) >= NUMBER_BUF_LEN)
++		return -ERANGE;
+ 	ret = 0;
+ 	val = simple_strtol(buf, &endp, base);
+ 	if (endp == buf)
+@@ -145,7 +152,6 @@ static int match_number(substring_t *s,
+ 		ret = -ERANGE;
+ 	else
+ 		*result = (int) val;
+-	kfree(buf);
+ 	return ret;
+ }
+ 
+@@ -163,18 +169,15 @@ static int match_number(substring_t *s,
+  */
+ static int match_u64int(substring_t *s, u64 *result, int base)
+ {
+-	char *buf;
++	char buf[NUMBER_BUF_LEN];
+ 	int ret;
+ 	u64 val;
+ 
+-	buf = match_strdup(s);
+-	if (!buf)
+-		return -ENOMEM;
+-
++	if (match_strlcpy(buf, s, NUMBER_BUF_LEN) >= NUMBER_BUF_LEN)
++		return -ERANGE;
+ 	ret = kstrtoull(buf, base, &val);
+ 	if (!ret)
+ 		*result = val;
+-	kfree(buf);
+ 	return ret;
+ }
+ 
+@@ -206,14 +209,12 @@ EXPORT_SYMBOL(match_int);
+  */
+ int match_uint(substring_t *s, unsigned int *result)
+ {
+-	int err = -ENOMEM;
+-	char *buf = match_strdup(s);
++	char buf[NUMBER_BUF_LEN];
+ 
+-	if (buf) {
+-		err = kstrtouint(buf, 10, result);
+-		kfree(buf);
+-	}
+-	return err;
++	if (match_strlcpy(buf, s, NUMBER_BUF_LEN) >= NUMBER_BUF_LEN)
++		return -ERANGE;
 +
-+What:		/sys/devices/system/node/nodeX/memory_failure/ignored
-+Date:		January 2023
-+Contact:	Jiaqi Yan <jiaqiyan@google.com>
-+Description:
-+		Of the raw poisoned pages on a NUMA node, how many pages are
-+		ignored by memory error recovery attempt, usually because
-+		support for this type of pages is unavailable, and kernel
-+		gives up the recovery.
-+
-+What:		/sys/devices/system/node/nodeX/memory_failure/failed
-+Date:		January 2023
-+Contact:	Jiaqi Yan <jiaqiyan@google.com>
-+Description:
-+		Of the raw poisoned pages on a NUMA node, how many pages are
-+		failed by memory error recovery attempt. This usually means
-+		a key recovery operation failed.
-+
-+What:		/sys/devices/system/node/nodeX/memory_failure/delayed
-+Date:		January 2023
-+Contact:	Jiaqi Yan <jiaqiyan@google.com>
-+Description:
-+		Of the raw poisoned pages on a NUMA node, how many pages are
-+		delayed by memory error recovery attempt. Delayed poisoned
-+		pages usually will be retried by kernel.
-+
-+What:		/sys/devices/system/node/nodeX/memory_failure/recovered
-+Date:		January 2023
-+Contact:	Jiaqi Yan <jiaqiyan@google.com>
-+Description:
-+		Of the raw poisoned pages on a NUMA node, how many pages are
-+		recovered by memory error recovery attempt.
++	return kstrtouint(buf, 10, result);
+ }
+ EXPORT_SYMBOL(match_uint);
+ 
 _
 
-Patches currently in -mm which might be from jiaqiyan@google.com are
+Patches currently in -mm which might be from lilingfeng3@huawei.com are
 
-mm-khugepaged-recover-from-poisoned-anonymous-memory.patch
-mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
-mm-memory-failure-add-memory-failure-stats-to-sysfs.patch
-mm-memory-failure-bump-memory-failure-stats-to-pglist_data.patch
-mm-memory-failure-document-memory-failure-stats.patch
+lib-parser-optimize-match_number-apis-to-use-local-array.patch
 
