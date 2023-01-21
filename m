@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BB3FC27C76
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7676C05027
 	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:06:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229734AbjAUBGf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229675AbjAUBGf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 20 Jan 2023 20:06:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60616 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60584 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229715AbjAUBGd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:06:33 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F5D44672E
+        with ESMTP id S229744AbjAUBG3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:06:29 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C2F149541
         for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:06:27 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B0DEC620A1
-        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:06:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AE67C433D2;
-        Sat, 21 Jan 2023 01:06:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BF587B82AA3
+        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:06:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A399C433D2;
+        Sat, 21 Jan 2023 01:06:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674263186;
-        bh=ud8jgPTEW/MwJdY876Nb/+jophl5YqvAFVFSTBotfOM=;
+        s=korg; t=1674263184;
+        bh=s7B7r1S5iQeiMsaQ/D3GawVtrU67Gbv6pIfHHgcfHgA=;
         h=Date:To:From:Subject:From;
-        b=vfTyPp5sD3TRu1eZy74MiA5cWP7SaquEovpgJ/Cdlb2dBA+OCytPBJ78pAq+mVzjK
-         q1dwQimp6vlal7y1CeY6utPUl/61PQQ6c/dGtVj2u09oh0cLUiSaiSGE5XXYfyQ2PU
-         eAGnAwxjPk54InuWfYsA6UwpKFil0w/e5XQbRv+k=
-Date:   Fri, 20 Jan 2023 17:06:25 -0800
+        b=o4VUwjmYmNLFjhKAWipXuoAX0GrqCqhf3C+Z4vnjrjE1I2RP6b1OD+Kf2+UyqPQQJ
+         T4IpAqr5RdqVuJVRSSJddFqy3Q+DBu3ewAgj9zxpDNX2z9/qK/Joe6HWU2BV2w6t+t
+         hGiVELLH9bHLXBVEnZUj3lqORhsa4JStOYFK3yg8=
+Date:   Fri, 20 Jan 2023 17:06:23 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma.patch added to mm-unstable branch
-Message-Id: <20230121010626.0AE67C433D2@smtp.kernel.org>
+Subject: + mmap-convert-vma_expand-to-use-vma-iterator.patch added to mm-unstable branch
+Message-Id: <20230121010624.5A399C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add temporary vma iterator versions of vma_merge(), split_vma(), and __split_vma()
+     Subject: mmap: convert vma_expand() to use vma iterator
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma.patch
+     mmap-convert-vma_expand-to-use-vma-iterator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmap-convert-vma_expand-to-use-vma-iterator.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,110 +65,57 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: add temporary vma iterator versions of vma_merge(), split_vma(), and __split_vma()
-Date: Fri, 20 Jan 2023 11:26:15 -0500
+Subject: mmap: convert vma_expand() to use vma iterator
+Date: Fri, 20 Jan 2023 11:26:14 -0500
 
-These wrappers are short-lived in this patch set so that each user can be
-converted on its own.  In the end, these functions are renamed in one
-commit.
+Use the vma iterator instead of the maple state for type safety and for
+consistency through the mm code.
 
-Link: https://lkml.kernel.org/r/20230120162650.984577-15-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230120162650.984577-14-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm.h~mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma
-+++ a/include/linux/mm.h
-@@ -2843,11 +2843,20 @@ extern struct vm_area_struct *vma_merge(
- 	struct vm_area_struct *prev, unsigned long addr, unsigned long end,
- 	unsigned long vm_flags, struct anon_vma *, struct file *, pgoff_t,
- 	struct mempolicy *, struct vm_userfaultfd_ctx, struct anon_vma_name *);
-+extern struct vm_area_struct *vmi_vma_merge(struct vma_iterator *vmi,
-+	struct mm_struct *, struct vm_area_struct *prev, unsigned long addr,
-+	unsigned long end, unsigned long vm_flags, struct anon_vma *,
-+	struct file *, pgoff_t, struct mempolicy *, struct vm_userfaultfd_ctx,
-+	struct anon_vma_name *);
- extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
- extern int __split_vma(struct mm_struct *, struct vm_area_struct *,
--	unsigned long addr, int new_below);
-+			       unsigned long addr, int new_below);
-+extern int vmi__split_vma(struct vma_iterator *vmi, struct mm_struct *,
-+	struct vm_area_struct *, unsigned long addr, int new_below);
- extern int split_vma(struct mm_struct *, struct vm_area_struct *,
- 	unsigned long addr, int new_below);
-+extern int vmi_split_vma(struct vma_iterator *vmi, struct mm_struct *,
-+		struct vm_area_struct *, unsigned long addr, int new_below);
- extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
- extern void unlink_file_vma(struct vm_area_struct *);
- extern struct vm_area_struct *copy_vma(struct vm_area_struct **,
---- a/mm/mmap.c~mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma
+--- a/mm/mmap.c~mmap-convert-vma_expand-to-use-vma-iterator
 +++ a/mm/mmap.c
-@@ -1091,6 +1091,25 @@ struct vm_area_struct *vma_merge(struct
- 	return res;
- }
- 
-+struct vm_area_struct *vmi_vma_merge(struct vma_iterator *vmi,
-+			struct mm_struct *mm,
-+			struct vm_area_struct *prev, unsigned long addr,
-+			unsigned long end, unsigned long vm_flags,
-+			struct anon_vma *anon_vma, struct file *file,
-+			pgoff_t pgoff, struct mempolicy *policy,
-+			struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
-+			struct anon_vma_name *anon_name)
-+{
-+	struct vm_area_struct *tmp;
-+
-+	tmp = vma_merge(mm, prev, addr, end, vm_flags, anon_vma, file, pgoff,
-+			policy, vm_userfaultfd_ctx, anon_name);
-+	if (tmp)
-+		vma_iter_set(vmi, end);
-+
-+	return tmp;
-+}
-+
- /*
-  * Rough compatibility check to quickly see if it's even worth looking
-  * at sharing an anon_vma.
-@@ -2276,6 +2295,18 @@ int __split_vma(struct mm_struct *mm, st
- 	validate_mm_mt(mm);
- 	return err;
- }
-+int vmi__split_vma(struct vma_iterator *vmi, struct mm_struct *mm,
-+		   struct vm_area_struct *vma, unsigned long addr, int new_below)
-+{
-+	int ret;
-+	unsigned long end = vma->vm_end;
-+
-+	ret = __split_vma(mm, vma, addr, new_below);
-+	if (!ret)
-+		vma_iter_set(vmi, end);
-+
-+	return ret;
-+}
- 
- /*
-  * Split a vma into two pieces at address 'addr', a new vma is allocated
-@@ -2290,6 +2321,19 @@ int split_vma(struct mm_struct *mm, stru
- 	return __split_vma(mm, vma, addr, new_below);
- }
- 
-+int vmi_split_vma(struct vma_iterator *vmi, struct mm_struct *mm,
-+		  struct vm_area_struct *vma, unsigned long addr, int new_below)
-+{
-+	int ret;
-+	unsigned long end = vma->vm_end;
-+
-+	ret = split_vma(mm, vma, addr, new_below);
-+	if (!ret)
-+		vma_iter_set(vmi, end);
-+
-+	return ret;
-+}
-+
- static inline int munmap_sidetree(struct vm_area_struct *vma,
- 				   struct ma_state *mas_detach)
+@@ -527,7 +527,7 @@ static int vma_link(struct mm_struct *mm
+  *
+  * Returns: 0 on success
+  */
+-inline int vma_expand(struct ma_state *mas, struct vm_area_struct *vma,
++inline int vma_expand(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 		      unsigned long start, unsigned long end, pgoff_t pgoff,
+ 		      struct vm_area_struct *next)
  {
+@@ -556,7 +556,7 @@ inline int vma_expand(struct ma_state *m
+ 	/* Only handles expanding */
+ 	VM_BUG_ON(vma->vm_start < start || vma->vm_end > end);
+ 
+-	if (mas_preallocate(mas, GFP_KERNEL))
++	if (vma_iter_prealloc(vmi))
+ 		goto nomem;
+ 
+ 	vma_adjust_trans_huge(vma, start, end, 0);
+@@ -581,8 +581,7 @@ inline int vma_expand(struct ma_state *m
+ 	vma->vm_start = start;
+ 	vma->vm_end = end;
+ 	vma->vm_pgoff = pgoff;
+-	/* Note: mas must be pointing to the expanding VMA */
+-	vma_mas_store(vma, mas);
++	vma_iter_store(vmi, vma);
+ 
+ 	if (file) {
+ 		vma_interval_tree_insert(vma, root);
+@@ -2600,7 +2599,7 @@ unsigned long mmap_region(struct file *f
+ 
+ 	/* Actually expand, if possible */
+ 	if (vma &&
+-	    !vma_expand(&vmi.mas, vma, merge_start, merge_end, vm_pgoff, next)) {
++	    !vma_expand(&vmi, vma, merge_start, merge_end, vm_pgoff, next)) {
+ 		khugepaged_enter_vma(vma, vm_flags);
+ 		goto expanded;
+ 	}
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
