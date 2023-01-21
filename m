@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD4D6C27C76
-	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:06:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62FB6C27C76
+	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:06:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229712AbjAUBGR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Jan 2023 20:06:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60420 "EHLO
+        id S229697AbjAUBGW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Jan 2023 20:06:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229635AbjAUBGP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:06:15 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D62F60CA3
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:06:13 -0800 (PST)
+        with ESMTP id S229644AbjAUBGT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:06:19 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00F365B595
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:06:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 22FE8620A1
-        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:06:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73D29C433D2;
-        Sat, 21 Jan 2023 01:06:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E279620D5
+        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:06:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4482C4339B;
+        Sat, 21 Jan 2023 01:06:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674263172;
-        bh=RmFY7x08XEWdtBIIjMPasg4mJeGfHByGTlQgdMFvQZE=;
+        s=korg; t=1674263177;
+        bh=l12hCCwCmyp89yiYWz11tS5wF93HPsh4nvDAjtCmzts=;
         h=Date:To:From:Subject:From;
-        b=iv+Bzfp6DaEgEY0Uhq6Vc3zmeE22mgYZe0I645bAzbMUbD0twvyuAa9crTsFWJb5N
-         SsOLVh8SRNunwkN7K1BEh4FN2QzQpMJWHGNJ8943b4PZP2Kdydz7rAfFsNvcWMMb7+
-         c87dmXVHOqeVgihVDMMr4a98CPDaRR+Lz0tcxljA=
-Date:   Fri, 20 Jan 2023 17:06:11 -0800
+        b=S4py7S+pHLLPOCMh15m/7YUJPBEG5PxldQPhCioOe7GONEDGJzk47Wj5mEklQQ5iN
+         mQCjxKGpwgZzoxOOLJKMvO9DBnUxal68ui3jZKQCYXM0vhaMR7cbj//iG9+QZ8R+6z
+         IeHPt54ptU0MMBPJXh79FKuyc3sQzzswi7LjXjfk=
+Date:   Fri, 20 Jan 2023 17:06:16 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-expand-vma-iterator-interface.patch added to mm-unstable branch
-Message-Id: <20230121010612.73D29C433D2@smtp.kernel.org>
+Subject: + kernel-fork-convert-forking-to-using-the-vmi-iterator.patch added to mm-unstable branch
+Message-Id: <20230121010616.E4482C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: expand vma iterator interface
+     Subject: kernel/fork: convert forking to using the vmi iterator
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-expand-vma-iterator-interface.patch
+     kernel-fork-convert-forking-to-using-the-vmi-iterator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-expand-vma-iterator-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-convert-forking-to-using-the-vmi-iterator.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,203 +65,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: expand vma iterator interface
-Date: Fri, 20 Jan 2023 11:26:08 -0500
+Subject: kernel/fork: convert forking to using the vmi iterator
+Date: Fri, 20 Jan 2023 11:26:10 -0500
 
-Add wrappers for the maple tree to the vma iterator.  This will provide
-type safety at compile time.
+Avoid using the maple tree interface directly.  This gains type safety.
 
-Link: https://lkml.kernel.org/r/20230120162650.984577-8-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230120162650.984577-10-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm.h~mm-expand-vma-iterator-interface
-+++ a/include/linux/mm.h
-@@ -670,16 +670,16 @@ static inline bool vma_is_accessible(str
- static inline
- struct vm_area_struct *vma_find(struct vma_iterator *vmi, unsigned long max)
- {
--	return mas_find(&vmi->mas, max);
-+	return mas_find(&vmi->mas, max - 1);
- }
+--- a/kernel/fork.c~kernel-fork-convert-forking-to-using-the-vmi-iterator
++++ a/kernel/fork.c
+@@ -595,8 +595,8 @@ static __latent_entropy int dup_mmap(str
+ 	int retval;
+ 	unsigned long charge = 0;
+ 	LIST_HEAD(uf);
+-	MA_STATE(old_mas, &oldmm->mm_mt, 0, 0);
+-	MA_STATE(mas, &mm->mm_mt, 0, 0);
++	VMA_ITERATOR(old_vmi, oldmm, 0);
++	VMA_ITERATOR(vmi, mm, 0);
  
- static inline struct vm_area_struct *vma_next(struct vma_iterator *vmi)
- {
- 	/*
--	 * Uses vma_find() to get the first VMA when the iterator starts.
-+	 * Uses mas_find() to get the first VMA when the iterator starts.
- 	 * Calling mas_next() could skip the first entry.
- 	 */
--	return vma_find(vmi, ULONG_MAX);
-+	return mas_find(&vmi->mas, ULONG_MAX);
- }
+ 	uprobe_start_dup_mmap();
+ 	if (mmap_write_lock_killable(oldmm)) {
+@@ -623,11 +623,11 @@ static __latent_entropy int dup_mmap(str
+ 		goto out;
+ 	khugepaged_fork(mm, oldmm);
  
- static inline struct vm_area_struct *vma_prev(struct vma_iterator *vmi)
-@@ -692,12 +692,50 @@ static inline unsigned long vma_iter_add
- 	return vmi->mas.index;
- }
+-	retval = mas_expected_entries(&mas, oldmm->map_count);
++	retval = vma_iter_bulk_alloc(&vmi, oldmm->map_count);
+ 	if (retval)
+ 		goto out;
  
-+static inline unsigned long vma_iter_end(struct vma_iterator *vmi)
-+{
-+	return vmi->mas.last + 1;
-+}
-+static inline int vma_iter_bulk_alloc(struct vma_iterator *vmi,
-+				      unsigned long count)
-+{
-+	return mas_expected_entries(&vmi->mas, count);
-+}
-+
-+/* Free any unused preallocations */
-+static inline void vma_iter_free(struct vma_iterator *vmi)
-+{
-+	mas_destroy(&vmi->mas);
-+}
-+
-+static inline int vma_iter_bulk_store(struct vma_iterator *vmi,
-+				      struct vm_area_struct *vma)
-+{
-+	vmi->mas.index = vma->vm_start;
-+	vmi->mas.last = vma->vm_end - 1;
-+	mas_store(&vmi->mas, vma);
-+	if (unlikely(mas_is_err(&vmi->mas)))
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+static inline void vma_iter_invalidate(struct vma_iterator *vmi)
-+{
-+	mas_pause(&vmi->mas);
-+}
-+
-+static inline void vma_iter_set(struct vma_iterator *vmi, unsigned long addr)
-+{
-+	mas_set(&vmi->mas, addr);
-+}
-+
- #define for_each_vma(__vmi, __vma)					\
- 	while (((__vma) = vma_next(&(__vmi))) != NULL)
+-	mas_for_each(&old_mas, mpnt, ULONG_MAX) {
++	for_each_vma(old_vmi, mpnt) {
+ 		struct file *file;
  
- /* The MM code likes to work with exclusive end addresses */
- #define for_each_vma_range(__vmi, __vma, __end)				\
--	while (((__vma) = vma_find(&(__vmi), (__end) - 1)) != NULL)
-+	while (((__vma) = vma_find(&(__vmi), (__end))) != NULL)
+ 		if (mpnt->vm_flags & VM_DONTCOPY) {
+@@ -693,11 +693,8 @@ static __latent_entropy int dup_mmap(str
+ 			hugetlb_dup_vma_private(tmp);
  
- #ifdef CONFIG_SHMEM
- /*
---- a/include/linux/mm_types.h~mm-expand-vma-iterator-interface
-+++ a/include/linux/mm_types.h
-@@ -854,9 +854,7 @@ struct vma_iterator {
- static inline void vma_iter_init(struct vma_iterator *vmi,
- 		struct mm_struct *mm, unsigned long addr)
- {
--	vmi->mas.tree = &mm->mm_mt;
--	vmi->mas.index = addr;
--	vmi->mas.node = MAS_START;
-+	mas_init(&vmi->mas, &mm->mm_mt, addr);
- }
+ 		/* Link the vma into the MT */
+-		mas.index = tmp->vm_start;
+-		mas.last = tmp->vm_end - 1;
+-		mas_store(&mas, tmp);
+-		if (mas_is_err(&mas))
+-			goto fail_nomem_mas_store;
++		if (vma_iter_bulk_store(&vmi, tmp))
++			goto fail_nomem_vmi_store;
  
- struct mmu_gather;
---- a/mm/internal.h~mm-expand-vma-iterator-interface
-+++ a/mm/internal.h
-@@ -873,4 +873,68 @@ static inline bool vma_soft_dirty_enable
- 	return !(vma->vm_flags & VM_SOFTDIRTY);
- }
+ 		mm->map_count++;
+ 		if (!(tmp->vm_flags & VM_WIPEONFORK))
+@@ -712,7 +709,7 @@ static __latent_entropy int dup_mmap(str
+ 	/* a new mm has just been created */
+ 	retval = arch_dup_mmap(oldmm, mm);
+ loop_out:
+-	mas_destroy(&mas);
++	vma_iter_free(&vmi);
+ out:
+ 	mmap_write_unlock(mm);
+ 	flush_tlb_mm(oldmm);
+@@ -722,7 +719,7 @@ fail_uprobe_end:
+ 	uprobe_end_dup_mmap();
+ 	return retval;
  
-+/*
-+ * VMA Iterator functions shared between nommu and mmap
-+ */
-+static inline int vma_iter_prealloc(struct vma_iterator *vmi)
-+{
-+	return mas_preallocate(&vmi->mas, GFP_KERNEL);
-+}
-+
-+static inline void vma_iter_clear(struct vma_iterator *vmi,
-+				  unsigned long start, unsigned long end)
-+{
-+	mas_set_range(&vmi->mas, start, end - 1);
-+	mas_store_prealloc(&vmi->mas, NULL);
-+}
-+
-+static inline struct vm_area_struct *vma_iter_load(struct vma_iterator *vmi)
-+{
-+	return mas_walk(&vmi->mas);
-+}
-+
-+/* Store a VMA with preallocated memory */
-+static inline void vma_iter_store(struct vma_iterator *vmi,
-+				  struct vm_area_struct *vma)
-+{
-+
-+#if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
-+	if (WARN_ON(vmi->mas.node != MAS_START && vmi->mas.index > vma->vm_start)) {
-+		printk("%lu > %lu\n", vmi->mas.index, vma->vm_start);
-+		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
-+		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
-+		mt_dump(vmi->mas.tree);
-+	}
-+	if (WARN_ON(vmi->mas.node != MAS_START && vmi->mas.last <  vma->vm_start)) {
-+		printk("%lu < %lu\n", vmi->mas.last, vma->vm_start);
-+		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
-+		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
-+		mt_dump(vmi->mas.tree);
-+	}
-+#endif
-+
-+	if (vmi->mas.node != MAS_START &&
-+	    ((vmi->mas.index > vma->vm_start) || (vmi->mas.last < vma->vm_start)))
-+		vma_iter_invalidate(vmi);
-+
-+	vmi->mas.index = vma->vm_start;
-+	vmi->mas.last = vma->vm_end - 1;
-+	mas_store_prealloc(&vmi->mas, vma);
-+}
-+
-+static inline int vma_iter_store_gfp(struct vma_iterator *vmi,
-+			struct vm_area_struct *vma, gfp_t gfp)
-+{
-+	if (vmi->mas.node != MAS_START &&
-+	    ((vmi->mas.index > vma->vm_start) || (vmi->mas.last < vma->vm_start)))
-+		vma_iter_invalidate(vmi);
-+
-+	vmi->mas.index = vma->vm_start;
-+	vmi->mas.last = vma->vm_end - 1;
-+	mas_store_gfp(&vmi->mas, vma, gfp);
-+	if (unlikely(mas_is_err(&vmi->mas)))
-+		return -ENOMEM;
-+
-+	return 0;
-+}
- #endif	/* __MM_INTERNAL_H */
---- a/mm/mmap.c~mm-expand-vma-iterator-interface
-+++ a/mm/mmap.c
-@@ -144,6 +144,24 @@ static void remove_vma(struct vm_area_st
- 	vm_area_free(vma);
- }
- 
-+static inline struct vm_area_struct *vma_prev_limit(struct vma_iterator *vmi,
-+						    unsigned long min)
-+{
-+	return mas_prev(&vmi->mas, min);
-+}
-+
-+static inline int vma_iter_clear_gfp(struct vma_iterator *vmi,
-+			unsigned long start, unsigned long end, gfp_t gfp)
-+{
-+	vmi->mas.index = start;
-+	vmi->mas.last = end - 1;
-+	mas_store_gfp(&vmi->mas, NULL, gfp);
-+	if (unlikely(mas_is_err(&vmi->mas)))
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
- /*
-  * check_brk_limits() - Use platform specific check of range & verify mlock
-  * limits.
+-fail_nomem_mas_store:
++fail_nomem_vmi_store:
+ 	unlink_anon_vmas(tmp);
+ fail_nomem_anon_vma_fork:
+ 	mpol_put(vma_policy(tmp));
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
