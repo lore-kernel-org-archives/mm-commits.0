@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3E9EC38141
-	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:07:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46EA5C38159
+	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:07:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229566AbjAUBH2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229852AbjAUBH2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 20 Jan 2023 20:07:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32782 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229879AbjAUBHM (ORCPT
+        with ESMTP id S229831AbjAUBHM (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:07:12 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AFBC73ED4
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:07:08 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EFFB73ED6
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:07:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id B930BCE1F9A
-        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:07:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBC62C433EF;
-        Sat, 21 Jan 2023 01:07:04 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1E143B82AA3
+        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:07:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1879C433D2;
+        Sat, 21 Jan 2023 01:07:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674263225;
-        bh=Z0wBTXPciiyOtu+j45mxJ1AMxk7+IjEjqjmiLuCTKHo=;
+        s=korg; t=1674263226;
+        bh=A+nf2YtCaQOmpJCWKeTU3XHBcxNIbcHX3uIhPzkQUxg=;
         h=Date:To:From:Subject:From;
-        b=RHf8p/ykIxEjVEzAW8wNu/FhisLwqdRJqRgOkXcw7TbJosyiq2NEpIq2KUoKKGiNW
-         /VT8TtOyc+jSvyQwLn5uNjO7NAUzJKwHUOqIKWMKifc5U0BT0yFIJtybjK65DfocuK
-         t0ImNOq7bKVkzaOGpY0MyWY62XYFiudmQuZAKHkY=
-Date:   Fri, 20 Jan 2023 17:07:04 -0800
+        b=NZYe2xthQVyv9n153nkrIv3piDEIEHGyV3przYJqvE/hlKDrQOUCxGfeX8ifl3/Sa
+         wcI9p+tnWGhDmPuXSIK+/los8X9Vb6Ro5K+Q47VSIWjV13Fuy+IkFzEZOsuhHwO9vh
+         uwJKiA2Dwl5R4aENqrO7KTQ2RqgD3+Lp77BOdYfw=
+Date:   Fri, 20 Jan 2023 17:07:06 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pass-vma-iterator-through-to-__vma_adjust.patch added to mm-unstable branch
-Message-Id: <20230121010704.EBC62C433EF@smtp.kernel.org>
+Subject: + mm-add-vma-iterator-to-vma_adjust-arguments.patch added to mm-unstable branch
+Message-Id: <20230121010706.B1879C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pass vma iterator through to __vma_adjust()
+     Subject: mm: add vma iterator to vma_adjust() arguments
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pass-vma-iterator-through-to-__vma_adjust.patch
+     mm-add-vma-iterator-to-vma_adjust-arguments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pass-vma-iterator-through-to-__vma_adjust.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-vma-iterator-to-vma_adjust-arguments.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,95 +65,104 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: pass vma iterator through to __vma_adjust()
-Date: Fri, 20 Jan 2023 11:26:36 -0500
+Subject: mm: add vma iterator to vma_adjust() arguments
+Date: Fri, 20 Jan 2023 11:26:37 -0500
 
-Pass the iterator through to be used in __vma_adjust().  The state of the
-iterator needs to be correct for the operation that will occur so make the
-adjustments.
+Change the vma_adjust() function definition to accept the vma iterator and
+pass it through to __vma_adjust().
 
-Link: https://lkml.kernel.org/r/20230120162650.984577-36-Liam.Howlett@oracle.com
+Update fs/exec to use the new vma_adjust() function parameters.
+
+Update mm/mremap to use the new vma_adjust() function parameters.
+
+Revert the __split_vma() calls back from __vma_adjust() to vma_adjust()
+and pass through the vma iterator.
+
+Link: https://lkml.kernel.org/r/20230120162650.984577-37-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mm-pass-vma-iterator-through-to-__vma_adjust
-+++ a/mm/mmap.c
-@@ -528,6 +528,10 @@ inline int vma_expand(struct vma_iterato
- 		vma_interval_tree_remove(vma, root);
+--- a/fs/exec.c~mm-add-vma-iterator-to-vma_adjust-arguments
++++ a/fs/exec.c
+@@ -699,7 +699,7 @@ static int shift_arg_pages(struct vm_are
+ 	/*
+ 	 * cover the whole range: [new_start, old_end)
+ 	 */
+-	if (vma_adjust(vma, new_start, old_end, vma->vm_pgoff, NULL))
++	if (vma_adjust(&vmi, vma, new_start, old_end, vma->vm_pgoff, NULL))
+ 		return -ENOMEM;
+ 
+ 	/*
+@@ -731,12 +731,9 @@ static int shift_arg_pages(struct vm_are
  	}
+ 	tlb_finish_mmu(&tlb);
  
-+	/* VMA iterator points to previous, so set to start if necessary */
-+	if (vma_iter_addr(vmi) != start)
-+		vma_iter_set(vmi, start);
-+
- 	vma->vm_start = start;
- 	vma->vm_end = end;
- 	vma->vm_pgoff = pgoff;
-@@ -2167,13 +2171,13 @@ static void unmap_region(struct mm_struc
+-	/*
+-	 * Shrink the vma to just the new range.  Always succeeds.
+-	 */
+-	vma_adjust(vma, new_start, new_end, vma->vm_pgoff, NULL);
+-
+-	return 0;
++	vma_prev(&vmi);
++	/* Shrink the vma to just the new range */
++	return vma_adjust(&vmi, vma, new_start, new_end, vma->vm_pgoff, NULL);
+ }
+ 
  /*
-  * __split_vma() bypasses sysctl_max_map_count checking.  We use this where it
-  * has already been checked or doesn't make sense to fail.
-+ * VMA Iterator will point to the end VMA.
-  */
- int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
- 		unsigned long addr, int new_below)
+--- a/include/linux/mm.h~mm-add-vma-iterator-to-vma_adjust-arguments
++++ a/include/linux/mm.h
+@@ -2834,12 +2834,11 @@ extern int __vm_enough_memory(struct mm_
+ extern int __vma_adjust(struct vma_iterator *vmi, struct vm_area_struct *vma, unsigned long start,
+ 	unsigned long end, pgoff_t pgoff, struct vm_area_struct *insert,
+ 	struct vm_area_struct *expand);
+-static inline int vma_adjust(struct vm_area_struct *vma, unsigned long start,
+-	unsigned long end, pgoff_t pgoff, struct vm_area_struct *insert)
++static inline int vma_adjust(struct vma_iterator *vmi,
++	struct vm_area_struct *vma, unsigned long start, unsigned long end,
++	pgoff_t pgoff, struct vm_area_struct *insert)
  {
- 	struct vm_area_struct *new;
- 	int err;
--	unsigned long end = vma->vm_end;
- 
- 	validate_mm_mt(vma->vm_mm);
- 
-@@ -2209,14 +2213,17 @@ int __split_vma(struct vma_iterator *vmi
+-	VMA_ITERATOR(vmi, vma->vm_mm, start);
+-
+-	return __vma_adjust(&vmi, vma, start, end, pgoff, insert, NULL);
++	return __vma_adjust(vmi, vma, start, end, pgoff, insert, NULL);
+ }
+ extern struct vm_area_struct *vma_merge(struct vma_iterator *vmi,
+ 	struct mm_struct *, struct vm_area_struct *prev, unsigned long addr,
+--- a/mm/mmap.c~mm-add-vma-iterator-to-vma_adjust-arguments
++++ a/mm/mmap.c
+@@ -2213,12 +2213,12 @@ int __split_vma(struct vma_iterator *vmi
  		new->vm_ops->open(new);
  
  	if (new_below)
--		err = vma_adjust(vma, addr, vma->vm_end, vma->vm_pgoff +
--			((addr - new->vm_start) >> PAGE_SHIFT), new);
-+		err = __vma_adjust(vmi, vma, addr, vma->vm_end,
-+		   vma->vm_pgoff + ((addr - new->vm_start) >> PAGE_SHIFT),
-+		   new, NULL);
+-		err = __vma_adjust(vmi, vma, addr, vma->vm_end,
+-		   vma->vm_pgoff + ((addr - new->vm_start) >> PAGE_SHIFT),
+-		   new, NULL);
++		err = vma_adjust(vmi, vma, addr, vma->vm_end,
++			vma->vm_pgoff + ((addr - new->vm_start) >> PAGE_SHIFT),
++			new);
  	else
--		err = vma_adjust(vma, vma->vm_start, addr, vma->vm_pgoff, new);
-+		err = __vma_adjust(vmi, vma, vma->vm_start, addr, vma->vm_pgoff,
-+				 new, NULL);
+-		err = __vma_adjust(vmi, vma, vma->vm_start, addr, vma->vm_pgoff,
+-				 new, NULL);
++		err = vma_adjust(vmi, vma, vma->vm_start, addr, vma->vm_pgoff,
++				 new);
  
  	/* Success. */
  	if (!err) {
--		vma_iter_set(vmi, end);
-+		if (new_below)
-+			vma_next(vmi);
- 		return 0;
- 	}
- 
-@@ -2311,8 +2318,7 @@ do_vmi_align_munmap(struct vma_iterator
- 		if (error)
- 			goto start_split_failed;
- 
--		vma_iter_set(vmi, start);
--		vma = vma_find(vmi, end);
-+		vma = vma_iter_load(vmi);
- 	}
- 
- 	prev = vma_prev(vmi);
-@@ -2332,7 +2338,6 @@ do_vmi_align_munmap(struct vma_iterator
- 			if (error)
- 				goto end_split_failed;
- 
--			vma_iter_set(vmi, end);
- 			split = vma_prev(vmi);
- 			error = munmap_sidetree(split, &mas_detach);
- 			if (error)
-@@ -2576,6 +2581,7 @@ cannot_expand:
- 		goto unacct_error;
- 	}
- 
-+	vma_iter_set(&vmi, addr);
- 	vma->vm_start = addr;
- 	vma->vm_end = end;
- 	vma->vm_flags = vm_flags;
+--- a/mm/mremap.c~mm-add-vma-iterator-to-vma_adjust-arguments
++++ a/mm/mremap.c
+@@ -1047,8 +1047,8 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 					extension_end, vma->vm_flags, vma->anon_vma,
+ 					vma->vm_file, extension_pgoff, vma_policy(vma),
+ 					vma->vm_userfaultfd_ctx, anon_vma_name(vma));
+-			} else if (vma_adjust(vma, vma->vm_start, addr + new_len,
+-				   vma->vm_pgoff, NULL)) {
++			} else if (vma_adjust(&vmi, vma, vma->vm_start,
++					addr + new_len, vma->vm_pgoff, NULL)) {
+ 				vma = NULL;
+ 			}
+ 			if (!vma) {
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
