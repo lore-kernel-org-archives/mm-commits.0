@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F630C38141
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 835DEC27C76
 	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:06:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229711AbjAUBGs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229775AbjAUBGs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 20 Jan 2023 20:06:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60698 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229744AbjAUBGj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:06:39 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1464671F3A
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:06:38 -0800 (PST)
+        with ESMTP id S229780AbjAUBGn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:06:43 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A56771BE7
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:06:41 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A3859620E5
-        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:06:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2E85C433EF;
-        Sat, 21 Jan 2023 01:06:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 12D4CB829E7
+        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:06:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7663C433D2;
+        Sat, 21 Jan 2023 01:06:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674263197;
-        bh=4otXyCrwXBZ8FkIOjCTbLlK8ugc+i23e6Y8W5P4B+Qs=;
+        s=korg; t=1674263198;
+        bh=paPkb7QsRu8ZfRWhSs+6VDU3VoGEeycorlYXGMYMJnE=;
         h=Date:To:From:Subject:From;
-        b=jbs6aRXWrU2s3DmR6wp744oSWICWvNGgehgTMXYOQbRFwCoMZwldbpMmsFp8IE1XT
-         FARbxyes86VTGa/U/gv7h5QemYuo3fiMU2kYyCpoj7erpNeBL8vEQdPC2N/RxWTAS2
-         Z1d3806z7GBuOA5s2Uq/glGn5hBxXoRmFP9pCKXQ=
-Date:   Fri, 20 Jan 2023 17:06:36 -0800
+        b=kwDiXg3AC+ygkXOczp2Su7xwKs9tcdXmufuf/w72aID4KeKsvdPsXUxDeybeQgARU
+         UMhRx8Kde8KGtibFM4rxhiZqRI+f5r8nXnRCTtTFTNR34XfqKzy04yzcPjmle3Q84w
+         EVsqwlieOHTZpGUerv6PLo3aVa4hXgLcpXUOjacU=
+Date:   Fri, 20 Jan 2023 17:06:38 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempolicy-convert-to-vma-iterator.patch added to mm-unstable branch
-Message-Id: <20230121010636.F2E85C433EF@smtp.kernel.org>
+Subject: + task_mmu-convert-to-vma-iterator.patch added to mm-unstable branch
+Message-Id: <20230121010638.A7663C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: convert to vma iterator
+     Subject: task_mmu: convert to vma iterator
 has been added to the -mm mm-unstable branch.  Its filename is
-     mempolicy-convert-to-vma-iterator.patch
+     task_mmu-convert-to-vma-iterator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-convert-to-vma-iterator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/task_mmu-convert-to-vma-iterator.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,91 +65,117 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mempolicy: convert to vma iterator
-Date: Fri, 20 Jan 2023 11:26:21 -0500
+Subject: task_mmu: convert to vma iterator
+Date: Fri, 20 Jan 2023 11:26:22 -0500
 
 Use the vma iterator so that the iterator can be invalidated or updated to
 avoid each caller doing so.
 
-Link: https://lkml.kernel.org/r/20230120162650.984577-21-Liam.Howlett@oracle.com
+Update the comments to how the vma iterator works.  The vma iterator will
+keep track of the last vm_end and start the search from vm_end + 1.
+
+Link: https://lkml.kernel.org/r/20230120162650.984577-22-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mempolicy.c~mempolicy-convert-to-vma-iterator
-+++ a/mm/mempolicy.c
-@@ -786,24 +786,21 @@ static int vma_replace_policy(struct vm_
- static int mbind_range(struct mm_struct *mm, unsigned long start,
- 		       unsigned long end, struct mempolicy *new_pol)
- {
--	MA_STATE(mas, &mm->mm_mt, start, start);
-+	VMA_ITERATOR(vmi, mm, start);
- 	struct vm_area_struct *prev;
+--- a/fs/proc/task_mmu.c~task_mmu-convert-to-vma-iterator
++++ a/fs/proc/task_mmu.c
+@@ -892,7 +892,7 @@ static int show_smaps_rollup(struct seq_
  	struct vm_area_struct *vma;
- 	int err = 0;
- 	pgoff_t pgoff;
+ 	unsigned long vma_start = 0, last_vma_end = 0;
+ 	int ret = 0;
+-	MA_STATE(mas, &mm->mm_mt, 0, 0);
++	VMA_ITERATOR(vmi, mm, 0);
  
--	prev = mas_prev(&mas, 0);
--	if (unlikely(!prev))
--		mas_set(&mas, start);
--
--	vma = mas_find(&mas, end - 1);
-+	prev = vma_prev(&vmi);
-+	vma = vma_find(&vmi, end);
- 	if (WARN_ON(!vma))
- 		return 0;
+ 	priv->task = get_proc_task(priv->inode);
+ 	if (!priv->task)
+@@ -910,7 +910,7 @@ static int show_smaps_rollup(struct seq_
+ 		goto out_put_mm;
  
- 	if (start > vma->vm_start)
- 		prev = vma;
+ 	hold_task_mempolicy(priv);
+-	vma = mas_find(&mas, ULONG_MAX);
++	vma = vma_next(&vmi);
  
--	for (; vma; vma = mas_next(&mas, end - 1)) {
-+	do {
- 		unsigned long vmstart = max(start, vma->vm_start);
- 		unsigned long vmend = min(end, vma->vm_end);
- 
-@@ -812,29 +809,23 @@ static int mbind_range(struct mm_struct
- 
- 		pgoff = vma->vm_pgoff +
- 			((vmstart - vma->vm_start) >> PAGE_SHIFT);
--		prev = vma_merge(mm, prev, vmstart, vmend, vma->vm_flags,
-+		prev = vmi_vma_merge(&vmi, mm, prev, vmstart, vmend, vma->vm_flags,
- 				 vma->anon_vma, vma->vm_file, pgoff,
- 				 new_pol, vma->vm_userfaultfd_ctx,
- 				 anon_vma_name(vma));
- 		if (prev) {
--			/* vma_merge() invalidated the mas */
+ 	if (unlikely(!vma))
+ 		goto empty_set;
+@@ -925,7 +925,7 @@ static int show_smaps_rollup(struct seq_
+ 		 * access it for write request.
+ 		 */
+ 		if (mmap_lock_is_contended(mm)) {
 -			mas_pause(&mas);
- 			vma = prev;
- 			goto replace;
- 		}
- 		if (vma->vm_start != vmstart) {
--			err = split_vma(vma->vm_mm, vma, vmstart, 1);
-+			err = vmi_split_vma(&vmi, vma->vm_mm, vma, vmstart, 1);
- 			if (err)
- 				goto out;
--			/* split_vma() invalidated the mas */
--			mas_pause(&mas);
- 		}
- 		if (vma->vm_end != vmend) {
--			err = split_vma(vma->vm_mm, vma, vmend, 0);
-+			err = vmi_split_vma(&vmi, vma->vm_mm, vma, vmend, 0);
- 			if (err)
- 				goto out;
--			/* split_vma() invalidated the mas */
--			mas_pause(&mas);
- 		}
- replace:
- 		err = vma_replace_policy(vma, new_pol);
-@@ -842,7 +833,7 @@ replace:
- 			goto out;
- next:
- 		prev = vma;
--	}
-+	} for_each_vma_range(vmi, vma, end);
++			vma_iter_invalidate(&vmi);
+ 			mmap_read_unlock(mm);
+ 			ret = mmap_read_lock_killable(mm);
+ 			if (ret) {
+@@ -950,31 +950,31 @@ static int show_smaps_rollup(struct seq_
+ 			 *
+ 			 * 1) VMA2 is freed, but VMA3 exists:
+ 			 *
+-			 *    find_vma(mm, 16k - 1) will return VMA3.
++			 *    vma_next(vmi) will return VMA3.
+ 			 *    In this case, just continue from VMA3.
+ 			 *
+ 			 * 2) VMA2 still exists:
+ 			 *
+-			 *    find_vma(mm, 16k - 1) will return VMA2.
+-			 *    Iterate the loop like the original one.
++			 *    vma_next(vmi) will return VMA3.
++			 *    In this case, just continue from VMA3.
+ 			 *
+ 			 * 3) No more VMAs can be found:
+ 			 *
+-			 *    find_vma(mm, 16k - 1) will return NULL.
++			 *    vma_next(vmi) will return NULL.
+ 			 *    No more things to do, just break.
+ 			 *
+ 			 * 4) (last_vma_end - 1) is the middle of a vma (VMA'):
+ 			 *
+-			 *    find_vma(mm, 16k - 1) will return VMA' whose range
++			 *    vma_next(vmi) will return VMA' whose range
+ 			 *    contains last_vma_end.
+ 			 *    Iterate VMA' from last_vma_end.
+ 			 */
+-			vma = mas_find(&mas, ULONG_MAX);
++			vma = vma_next(&vmi);
+ 			/* Case 3 above */
+ 			if (!vma)
+ 				break;
  
- out:
- 	return err;
+-			/* Case 1 above */
++			/* Case 1 and 2 above */
+ 			if (vma->vm_start >= last_vma_end)
+ 				continue;
+ 
+@@ -982,8 +982,7 @@ static int show_smaps_rollup(struct seq_
+ 			if (vma->vm_end > last_vma_end)
+ 				smap_gather_stats(vma, &mss, last_vma_end);
+ 		}
+-		/* Case 2 above */
+-	} while ((vma = mas_find(&mas, ULONG_MAX)) != NULL);
++	} for_each_vma(vmi, vma);
+ 
+ empty_set:
+ 	show_vma_header_prefix(m, vma_start, last_vma_end, 0, 0, 0, 0);
+@@ -1279,7 +1278,7 @@ static ssize_t clear_refs_write(struct f
+ 		return -ESRCH;
+ 	mm = get_task_mm(task);
+ 	if (mm) {
+-		MA_STATE(mas, &mm->mm_mt, 0, 0);
++		VMA_ITERATOR(vmi, mm, 0);
+ 		struct mmu_notifier_range range;
+ 		struct clear_refs_private cp = {
+ 			.type = type,
+@@ -1299,7 +1298,7 @@ static ssize_t clear_refs_write(struct f
+ 		}
+ 
+ 		if (type == CLEAR_REFS_SOFT_DIRTY) {
+-			mas_for_each(&mas, vma, ULONG_MAX) {
++			for_each_vma(vmi, vma) {
+ 				if (!(vma->vm_flags & VM_SOFTDIRTY))
+ 					continue;
+ 				vma->vm_flags &= ~VM_SOFTDIRTY;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
