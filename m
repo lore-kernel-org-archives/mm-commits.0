@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEE63C05027
-	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:06:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BB3FC27C76
+	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:06:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229751AbjAUBGa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Jan 2023 20:06:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60548 "EHLO
+        id S229734AbjAUBGf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Jan 2023 20:06:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229715AbjAUBGZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:06:25 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D66ED5B595
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:06:23 -0800 (PST)
+        with ESMTP id S229715AbjAUBGd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:06:33 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F5D44672E
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:06:27 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 1A9FDCE2A76
-        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:06:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B59CC433D2;
-        Sat, 21 Jan 2023 01:06:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B0DEC620A1
+        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:06:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AE67C433D2;
+        Sat, 21 Jan 2023 01:06:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674263180;
-        bh=XBK5Kr2iGmPA1VZMtoURFKrd0xGe60jGRZJ28YNW3vs=;
+        s=korg; t=1674263186;
+        bh=ud8jgPTEW/MwJdY876Nb/+jophl5YqvAFVFSTBotfOM=;
         h=Date:To:From:Subject:From;
-        b=q2DcMn7o+HT3HBPCryBpnTck83+BDCNXemT84GNFOXKuhQYapaC6flKKQ1cGJ4nnr
-         FUgqze1CLNgMxToUJ+CZHlsuuksNjOjlfg/nUuv7VnolK7vEixp2DQ/d1HNs/2WCPt
-         JQDtjLQYAVk8Yb2SP8Eu34V6rR93oxdly6q7Imr8=
-Date:   Fri, 20 Jan 2023 17:06:19 -0800
+        b=vfTyPp5sD3TRu1eZy74MiA5cWP7SaquEovpgJ/Cdlb2dBA+OCytPBJ78pAq+mVzjK
+         q1dwQimp6vlal7y1CeY6utPUl/61PQQ6c/dGtVj2u09oh0cLUiSaiSGE5XXYfyQ2PU
+         eAGnAwxjPk54InuWfYsA6UwpKFil0w/e5XQbRv+k=
+Date:   Fri, 20 Jan 2023 17:06:25 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-remove-preallocation-from-do_mas_align_munmap.patch added to mm-unstable branch
-Message-Id: <20230121010620.4B59CC433D2@smtp.kernel.org>
+Subject: + mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma.patch added to mm-unstable branch
+Message-Id: <20230121010626.0AE67C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: remove preallocation from do_mas_align_munmap()
+     Subject: mm: add temporary vma iterator versions of vma_merge(), split_vma(), and __split_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-remove-preallocation-from-do_mas_align_munmap.patch
+     mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-remove-preallocation-from-do_mas_align_munmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,74 +65,110 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mmap: remove preallocation from do_mas_align_munmap()
-Date: Fri, 20 Jan 2023 11:26:12 -0500
+Subject: mm: add temporary vma iterator versions of vma_merge(), split_vma(), and __split_vma()
+Date: Fri, 20 Jan 2023 11:26:15 -0500
 
-In preparation of passing the vma state through split, the pre-allocation
-that occurs before the split has to be moved to after.  Since the
-preallocation would then live right next to the store, just call store
-instead of preallocating.  This effectively restores the potential error
-path of splitting and not munmap'ing which pre-dates the maple tree.
+These wrappers are short-lived in this patch set so that each user can be
+converted on its own.  In the end, these functions are renamed in one
+commit.
 
-Link: https://lkml.kernel.org/r/20230120162650.984577-12-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230120162650.984577-15-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mm-mmap-remove-preallocation-from-do_mas_align_munmap
+--- a/include/linux/mm.h~mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma
++++ a/include/linux/mm.h
+@@ -2843,11 +2843,20 @@ extern struct vm_area_struct *vma_merge(
+ 	struct vm_area_struct *prev, unsigned long addr, unsigned long end,
+ 	unsigned long vm_flags, struct anon_vma *, struct file *, pgoff_t,
+ 	struct mempolicy *, struct vm_userfaultfd_ctx, struct anon_vma_name *);
++extern struct vm_area_struct *vmi_vma_merge(struct vma_iterator *vmi,
++	struct mm_struct *, struct vm_area_struct *prev, unsigned long addr,
++	unsigned long end, unsigned long vm_flags, struct anon_vma *,
++	struct file *, pgoff_t, struct mempolicy *, struct vm_userfaultfd_ctx,
++	struct anon_vma_name *);
+ extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
+ extern int __split_vma(struct mm_struct *, struct vm_area_struct *,
+-	unsigned long addr, int new_below);
++			       unsigned long addr, int new_below);
++extern int vmi__split_vma(struct vma_iterator *vmi, struct mm_struct *,
++	struct vm_area_struct *, unsigned long addr, int new_below);
+ extern int split_vma(struct mm_struct *, struct vm_area_struct *,
+ 	unsigned long addr, int new_below);
++extern int vmi_split_vma(struct vma_iterator *vmi, struct mm_struct *,
++		struct vm_area_struct *, unsigned long addr, int new_below);
+ extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
+ extern void unlink_file_vma(struct vm_area_struct *);
+ extern struct vm_area_struct *copy_vma(struct vm_area_struct **,
+--- a/mm/mmap.c~mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma
 +++ a/mm/mmap.c
-@@ -2329,9 +2329,6 @@ do_mas_align_munmap(struct ma_state *mas
- 	mt_init_flags(&mt_detach, MT_FLAGS_LOCK_EXTERN);
- 	mt_set_external_lock(&mt_detach, &mm->mmap_lock);
- 
--	if (mas_preallocate(mas, GFP_KERNEL))
--		return -ENOMEM;
--
- 	mas->last = end - 1;
- 	/*
- 	 * If we need to split any vma, do it now to save pain later.
-@@ -2422,8 +2419,6 @@ do_mas_align_munmap(struct ma_state *mas
- 			goto userfaultfd_error;
- 	}
- 
--	/* Point of no return */
--	mas_set_range(mas, start, end - 1);
- #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
- 	/* Make sure no VMAs are about to be lost. */
- 	{
-@@ -2431,6 +2426,7 @@ do_mas_align_munmap(struct ma_state *mas
- 		struct vm_area_struct *vma_mas, *vma_test;
- 		int test_count = 0;
- 
-+		mas_set_range(mas, start, end - 1);
- 		rcu_read_lock();
- 		vma_test = mas_find(&test, end - 1);
- 		mas_for_each(mas, vma_mas, end - 1) {
-@@ -2440,10 +2436,13 @@ do_mas_align_munmap(struct ma_state *mas
- 		}
- 		rcu_read_unlock();
- 		BUG_ON(count != test_count);
--		mas_set_range(mas, start, end - 1);
- 	}
- #endif
--	mas_store_prealloc(mas, NULL);
-+	/* Point of no return */
-+	mas_set_range(mas, start, end - 1);
-+	if (mas_store_gfp(mas, NULL, GFP_KERNEL))
-+		return -ENOMEM;
-+
- 	mm->map_count -= count;
- 	/*
- 	 * Do not downgrade mmap_lock if we are next to VM_GROWSDOWN or
-@@ -2475,7 +2474,6 @@ end_split_failed:
- 	__mt_destroy(&mt_detach);
- start_split_failed:
- map_count_exceeded:
--	mas_destroy(mas);
- 	return error;
+@@ -1091,6 +1091,25 @@ struct vm_area_struct *vma_merge(struct
+ 	return res;
  }
  
++struct vm_area_struct *vmi_vma_merge(struct vma_iterator *vmi,
++			struct mm_struct *mm,
++			struct vm_area_struct *prev, unsigned long addr,
++			unsigned long end, unsigned long vm_flags,
++			struct anon_vma *anon_vma, struct file *file,
++			pgoff_t pgoff, struct mempolicy *policy,
++			struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
++			struct anon_vma_name *anon_name)
++{
++	struct vm_area_struct *tmp;
++
++	tmp = vma_merge(mm, prev, addr, end, vm_flags, anon_vma, file, pgoff,
++			policy, vm_userfaultfd_ctx, anon_name);
++	if (tmp)
++		vma_iter_set(vmi, end);
++
++	return tmp;
++}
++
+ /*
+  * Rough compatibility check to quickly see if it's even worth looking
+  * at sharing an anon_vma.
+@@ -2276,6 +2295,18 @@ int __split_vma(struct mm_struct *mm, st
+ 	validate_mm_mt(mm);
+ 	return err;
+ }
++int vmi__split_vma(struct vma_iterator *vmi, struct mm_struct *mm,
++		   struct vm_area_struct *vma, unsigned long addr, int new_below)
++{
++	int ret;
++	unsigned long end = vma->vm_end;
++
++	ret = __split_vma(mm, vma, addr, new_below);
++	if (!ret)
++		vma_iter_set(vmi, end);
++
++	return ret;
++}
+ 
+ /*
+  * Split a vma into two pieces at address 'addr', a new vma is allocated
+@@ -2290,6 +2321,19 @@ int split_vma(struct mm_struct *mm, stru
+ 	return __split_vma(mm, vma, addr, new_below);
+ }
+ 
++int vmi_split_vma(struct vma_iterator *vmi, struct mm_struct *mm,
++		  struct vm_area_struct *vma, unsigned long addr, int new_below)
++{
++	int ret;
++	unsigned long end = vma->vm_end;
++
++	ret = split_vma(mm, vma, addr, new_below);
++	if (!ret)
++		vma_iter_set(vmi, end);
++
++	return ret;
++}
++
+ static inline int munmap_sidetree(struct vm_area_struct *vma,
+ 				   struct ma_state *mas_detach)
+ {
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
