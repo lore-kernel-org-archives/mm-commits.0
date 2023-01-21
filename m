@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47C17C05027
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3E9EC38141
 	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:07:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229825AbjAUBH1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Jan 2023 20:07:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60970 "EHLO
+        id S229566AbjAUBH2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Jan 2023 20:07:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229863AbjAUBHG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:07:06 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E11A173177
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:07:04 -0800 (PST)
+        with ESMTP id S229879AbjAUBHM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:07:12 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AFBC73ED4
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:07:08 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 5C6DECE1F9A
-        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:07:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 967EFC433D2;
-        Sat, 21 Jan 2023 01:07:01 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id B930BCE1F9A
+        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:07:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBC62C433EF;
+        Sat, 21 Jan 2023 01:07:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674263221;
-        bh=kcZGKUb6uX9viXdBhZQTkTunZhMU0rajMdjmu0523r4=;
+        s=korg; t=1674263225;
+        bh=Z0wBTXPciiyOtu+j45mxJ1AMxk7+IjEjqjmiLuCTKHo=;
         h=Date:To:From:Subject:From;
-        b=XOEC41NkXiGfesDf9vNX4fCuB5BxIo4UmogOnjlpo9WBynwIm2K1hGQKiXBZDLjU3
-         uTsmW70FNKlVGj/2B+mToK/7l0h0qy20ZOe8TqZecTDVD/CKbnIFc35PueQiFG2Uwv
-         Gk5FWfq4tuBwmvp5tjCMZUt0pkaYO/HZDoKJpRUs=
-Date:   Fri, 20 Jan 2023 17:07:00 -0800
+        b=RHf8p/ykIxEjVEzAW8wNu/FhisLwqdRJqRgOkXcw7TbJosyiq2NEpIq2KUoKKGiNW
+         /VT8TtOyc+jSvyQwLn5uNjO7NAUzJKwHUOqIKWMKifc5U0BT0yFIJtybjK65DfocuK
+         t0ImNOq7bKVkzaOGpY0MyWY62XYFiudmQuZAKHkY=
+Date:   Fri, 20 Jan 2023 17:07:04 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + madvise-use-split_vma-instead-of-__split_vma.patch added to mm-unstable branch
-Message-Id: <20230121010701.967EFC433D2@smtp.kernel.org>
+Subject: + mm-pass-vma-iterator-through-to-__vma_adjust.patch added to mm-unstable branch
+Message-Id: <20230121010704.EBC62C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: madvise: use split_vma() instead of __split_vma()
+     Subject: mm: pass vma iterator through to __vma_adjust()
 has been added to the -mm mm-unstable branch.  Its filename is
-     madvise-use-split_vma-instead-of-__split_vma.patch
+     mm-pass-vma-iterator-through-to-__vma_adjust.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/madvise-use-split_vma-instead-of-__split_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pass-vma-iterator-through-to-__vma_adjust.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,39 +65,95 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: madvise: use split_vma() instead of __split_vma()
-Date: Fri, 20 Jan 2023 11:26:34 -0500
+Subject: mm: pass vma iterator through to __vma_adjust()
+Date: Fri, 20 Jan 2023 11:26:36 -0500
 
-The split_vma() wrapper is specifically for this use case, so use it.
+Pass the iterator through to be used in __vma_adjust().  The state of the
+iterator needs to be correct for the operation that will occur so make the
+adjustments.
 
-Link: https://lkml.kernel.org/r/20230120162650.984577-34-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230120162650.984577-36-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/madvise.c~madvise-use-split_vma-instead-of-__split_vma
-+++ a/mm/madvise.c
-@@ -161,17 +161,13 @@ static int madvise_update_vma(struct vm_
- 	*prev = vma;
- 
- 	if (start != vma->vm_start) {
--		if (unlikely(mm->map_count >= sysctl_max_map_count))
--			return -ENOMEM;
--		error = __split_vma(&vmi, vma, start, 1);
-+		error = split_vma(&vmi, vma, start, 1);
- 		if (error)
- 			return error;
+--- a/mm/mmap.c~mm-pass-vma-iterator-through-to-__vma_adjust
++++ a/mm/mmap.c
+@@ -528,6 +528,10 @@ inline int vma_expand(struct vma_iterato
+ 		vma_interval_tree_remove(vma, root);
  	}
  
- 	if (end != vma->vm_end) {
--		if (unlikely(mm->map_count >= sysctl_max_map_count))
--			return -ENOMEM;
--		error = __split_vma(&vmi, vma, end, 0);
-+		error = split_vma(&vmi, vma, end, 0);
- 		if (error)
- 			return error;
++	/* VMA iterator points to previous, so set to start if necessary */
++	if (vma_iter_addr(vmi) != start)
++		vma_iter_set(vmi, start);
++
+ 	vma->vm_start = start;
+ 	vma->vm_end = end;
+ 	vma->vm_pgoff = pgoff;
+@@ -2167,13 +2171,13 @@ static void unmap_region(struct mm_struc
+ /*
+  * __split_vma() bypasses sysctl_max_map_count checking.  We use this where it
+  * has already been checked or doesn't make sense to fail.
++ * VMA Iterator will point to the end VMA.
+  */
+ int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 		unsigned long addr, int new_below)
+ {
+ 	struct vm_area_struct *new;
+ 	int err;
+-	unsigned long end = vma->vm_end;
+ 
+ 	validate_mm_mt(vma->vm_mm);
+ 
+@@ -2209,14 +2213,17 @@ int __split_vma(struct vma_iterator *vmi
+ 		new->vm_ops->open(new);
+ 
+ 	if (new_below)
+-		err = vma_adjust(vma, addr, vma->vm_end, vma->vm_pgoff +
+-			((addr - new->vm_start) >> PAGE_SHIFT), new);
++		err = __vma_adjust(vmi, vma, addr, vma->vm_end,
++		   vma->vm_pgoff + ((addr - new->vm_start) >> PAGE_SHIFT),
++		   new, NULL);
+ 	else
+-		err = vma_adjust(vma, vma->vm_start, addr, vma->vm_pgoff, new);
++		err = __vma_adjust(vmi, vma, vma->vm_start, addr, vma->vm_pgoff,
++				 new, NULL);
+ 
+ 	/* Success. */
+ 	if (!err) {
+-		vma_iter_set(vmi, end);
++		if (new_below)
++			vma_next(vmi);
+ 		return 0;
  	}
+ 
+@@ -2311,8 +2318,7 @@ do_vmi_align_munmap(struct vma_iterator
+ 		if (error)
+ 			goto start_split_failed;
+ 
+-		vma_iter_set(vmi, start);
+-		vma = vma_find(vmi, end);
++		vma = vma_iter_load(vmi);
+ 	}
+ 
+ 	prev = vma_prev(vmi);
+@@ -2332,7 +2338,6 @@ do_vmi_align_munmap(struct vma_iterator
+ 			if (error)
+ 				goto end_split_failed;
+ 
+-			vma_iter_set(vmi, end);
+ 			split = vma_prev(vmi);
+ 			error = munmap_sidetree(split, &mas_detach);
+ 			if (error)
+@@ -2576,6 +2581,7 @@ cannot_expand:
+ 		goto unacct_error;
+ 	}
+ 
++	vma_iter_set(&vmi, addr);
+ 	vma->vm_start = addr;
+ 	vma->vm_end = end;
+ 	vma->vm_flags = vm_flags;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
