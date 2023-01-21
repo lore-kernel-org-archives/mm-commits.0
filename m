@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F264DC38141
-	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:07:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D9CCC05027
+	for <mm-commits@archiver.kernel.org>; Sat, 21 Jan 2023 01:07:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229807AbjAUBHo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Jan 2023 20:07:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32896 "EHLO
+        id S229902AbjAUBHr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Jan 2023 20:07:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229485AbjAUBHX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:07:23 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BA5973AC8
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:07:21 -0800 (PST)
+        with ESMTP id S229912AbjAUBHZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2023 20:07:25 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AAB073EF9
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2023 17:07:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A4EEC62129
-        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:07:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0469DC433D2;
-        Sat, 21 Jan 2023 01:07:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 358CC60C98
+        for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 01:07:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C1FDC433EF;
+        Sat, 21 Jan 2023 01:07:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674263240;
-        bh=gqPgXDXtj7o9CQtLS1WTsekrDa4vD0Gg4+U/6uKS7F8=;
+        s=korg; t=1674263242;
+        bh=Z8Zi+mtw8vIoY4+tWNAcyD2+Q5VTqpdAX6eZedN5lJg=;
         h=Date:To:From:Subject:From;
-        b=WfFhfKaj9Zzt7HYVEtMFaPiw8LbWsfyzEFPKw7DLmEQVaPe+FVCTpbOcdSg+rJisi
-         RWiGbIpoas+dh66a0HbWIZECJagZbvLIUs4VJZFD0YRBeP6l8F+LmOaQXHgCWgBjO2
-         mdq9kTXiJeElu/8MttzCDMcL/FhHP5NjwxDosn4A=
-Date:   Fri, 20 Jan 2023 17:07:19 -0800
+        b=NPVO4v+ozbD4rGzteqcz4EEOi+uH5A9YSazeszNXOiVUkKCHK0wRveI+frdQd3pPZ
+         ycsSXEu+W1EhDQSBLUGxBnz+e1L0ZEQ9EvsVJ6hh1FN+keLK6TNCXl0FDaTfvu8QrW
+         q0HygQKvV7sHDGuz3MC+Pgq6JgHGuIJiV/I/MmFA=
+Date:   Fri, 20 Jan 2023 17:07:21 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        Liam.Howlett@Oracle.com, akpm@linux-foundation.org
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-dont-use-__vma_adjust-in-__split_vma.patch added to mm-unstable branch
-Message-Id: <20230121010720.0469DC433D2@smtp.kernel.org>
+Subject: + mm-mremap-convert-vma_adjust-to-vma_expand.patch added to mm-unstable branch
+Message-Id: <20230121010722.8C1FDC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't use __vma_adjust() in __split_vma()
+     Subject: mm/mremap: convert vma_adjust() to vma_expand()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-dont-use-__vma_adjust-in-__split_vma.patch
+     mm-mremap-convert-vma_adjust-to-vma_expand.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-use-__vma_adjust-in-__split_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-convert-vma_adjust-to-vma_expand.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,324 +64,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: don't use __vma_adjust() in __split_vma()
-Date: Fri, 20 Jan 2023 11:26:44 -0500
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm/mremap: convert vma_adjust() to vma_expand()
+Date: Fri, 20 Jan 2023 11:26:45 -0500
 
-Use the abstracted locking and maple tree operations.  Since __split_vma()
-is the only user of the __vma_adjust() function to use the insert
-argument, drop that argument.  Remove the NULL passed through from
-fs/exec's shift_arg_pages() and mremap() at the same time.
+Stop using vma_adjust() in preparation for removing the function.  Export
+vma_expand() to use instead.
 
-Link: https://lkml.kernel.org/r/20230120162650.984577-44-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230120162650.984577-45-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/exec.c~mm-dont-use-__vma_adjust-in-__split_vma
-+++ a/fs/exec.c
-@@ -699,7 +699,7 @@ static int shift_arg_pages(struct vm_are
- 	/*
- 	 * cover the whole range: [new_start, old_end)
- 	 */
--	if (vma_adjust(&vmi, vma, new_start, old_end, vma->vm_pgoff, NULL))
-+	if (vma_adjust(&vmi, vma, new_start, old_end, vma->vm_pgoff))
- 		return -ENOMEM;
- 
- 	/*
-@@ -733,7 +733,7 @@ static int shift_arg_pages(struct vm_are
- 
- 	vma_prev(&vmi);
- 	/* Shrink the vma to just the new range */
--	return vma_adjust(&vmi, vma, new_start, new_end, vma->vm_pgoff, NULL);
-+	return vma_adjust(&vmi, vma, new_start, new_end, vma->vm_pgoff);
- }
- 
- /*
---- a/include/linux/mm.h~mm-dont-use-__vma_adjust-in-__split_vma
+--- a/include/linux/mm.h~mm-mremap-convert-vma_adjust-to-vma_expand
 +++ a/include/linux/mm.h
-@@ -2832,13 +2832,12 @@ void anon_vma_interval_tree_verify(struc
- /* mmap.c */
- extern int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin);
- extern int __vma_adjust(struct vma_iterator *vmi, struct vm_area_struct *vma, unsigned long start,
--	unsigned long end, pgoff_t pgoff, struct vm_area_struct *insert,
--	struct vm_area_struct *expand);
-+	unsigned long end, pgoff_t pgoff, struct vm_area_struct *expand);
- static inline int vma_adjust(struct vma_iterator *vmi,
- 	struct vm_area_struct *vma, unsigned long start, unsigned long end,
--	pgoff_t pgoff, struct vm_area_struct *insert)
-+	pgoff_t pgoff)
+@@ -2839,6 +2839,9 @@ static inline int vma_adjust(struct vma_
  {
--	return __vma_adjust(vmi, vma, start, end, pgoff, insert, NULL);
-+	return __vma_adjust(vmi, vma, start, end, pgoff, NULL);
+ 	return __vma_adjust(vmi, vma, start, end, pgoff, NULL);
  }
++extern int vma_expand(struct vma_iterator *vmi, struct vm_area_struct *vma,
++		      unsigned long start, unsigned long end, pgoff_t pgoff,
++		      struct vm_area_struct *next);
  extern struct vm_area_struct *vma_merge(struct vma_iterator *vmi,
  	struct mm_struct *, struct vm_area_struct *prev, unsigned long addr,
---- a/mm/mmap.c~mm-dont-use-__vma_adjust-in-__split_vma
+ 	unsigned long end, unsigned long vm_flags, struct anon_vma *,
+--- a/mm/mmap.c~mm-mremap-convert-vma_adjust-to-vma_expand
 +++ a/mm/mmap.c
-@@ -694,7 +694,7 @@ nomem:
+@@ -637,9 +637,9 @@ again:
+  *
+  * Returns: 0 on success
   */
- int __vma_adjust(struct vma_iterator *vmi, struct vm_area_struct *vma,
- 	unsigned long start, unsigned long end, pgoff_t pgoff,
--	struct vm_area_struct *insert, struct vm_area_struct *expand)
-+	struct vm_area_struct *expand)
+-inline int vma_expand(struct vma_iterator *vmi, struct vm_area_struct *vma,
+-		      unsigned long start, unsigned long end, pgoff_t pgoff,
+-		      struct vm_area_struct *next)
++int vma_expand(struct vma_iterator *vmi, struct vm_area_struct *vma,
++	       unsigned long start, unsigned long end, pgoff_t pgoff,
++	       struct vm_area_struct *next)
  {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct vm_area_struct *remove2 = NULL;
-@@ -707,7 +707,7 @@ int __vma_adjust(struct vma_iterator *vm
- 	struct vm_area_struct *exporter = NULL, *importer = NULL;
- 	struct vma_prepare vma_prep;
- 
--	if (next && !insert) {
-+	if (next) {
- 		if (end >= next->vm_end) {
- 			/*
- 			 * vma expands, overlapping all the next, and
-@@ -798,39 +798,25 @@ int __vma_adjust(struct vma_iterator *vm
- 	VM_WARN_ON(vma_prep.anon_vma && adjust_next && next->anon_vma &&
- 		   vma_prep.anon_vma != next->anon_vma);
- 
--	vma_prep.insert = insert;
- 	vma_prepare(&vma_prep);
- 
--	if (start != vma->vm_start) {
--		if (vma->vm_start < start) {
--			if (!insert || (insert->vm_end != start)) {
--				vma_iter_clear(vmi, vma->vm_start, start);
--				vma_iter_set(vmi, start);
--				VM_WARN_ON(insert && insert->vm_start > vma->vm_start);
--			}
--		} else {
--			vma_changed = true;
--		}
--		vma->vm_start = start;
--	}
--	if (end != vma->vm_end) {
--		if (vma->vm_end > end) {
--			if (!insert || (insert->vm_start != end)) {
--				vma_iter_clear(vmi, end, vma->vm_end);
--				vma_iter_set(vmi, vma->vm_end);
--				VM_WARN_ON(insert &&
--					   insert->vm_end < vma->vm_end);
--			}
--		} else {
--			vma_changed = true;
--		}
--		vma->vm_end = end;
--	}
-+	if (vma->vm_start < start)
-+		vma_iter_clear(vmi, vma->vm_start, start);
-+	else if (start != vma->vm_start)
-+		vma_changed = true;
-+
-+	if (vma->vm_end > end)
-+		vma_iter_clear(vmi, end, vma->vm_end);
-+	else if (end != vma->vm_end)
-+		vma_changed = true;
-+
-+	vma->vm_start = start;
-+	vma->vm_end = end;
-+	vma->vm_pgoff = pgoff;
- 
- 	if (vma_changed)
- 		vma_iter_store(vmi, vma);
- 
--	vma->vm_pgoff = pgoff;
- 	if (adjust_next) {
- 		next->vm_start += adjust_next;
- 		next->vm_pgoff += adjust_next >> PAGE_SHIFT;
-@@ -849,9 +835,9 @@ int __vma_adjust(struct vma_iterator *vm
-  * per-vma resources, so we don't attempt to merge those.
-  */
- static inline int is_mergeable_vma(struct vm_area_struct *vma,
--				struct file *file, unsigned long vm_flags,
--				struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
--				struct anon_vma_name *anon_name)
-+				   struct file *file, unsigned long vm_flags,
-+				   struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
-+				   struct anon_vma_name *anon_name)
- {
- 	/*
- 	 * VM_SOFTDIRTY should not prevent from VMA merging, if we
-@@ -1033,20 +1019,19 @@ struct vm_area_struct *vma_merge(struct
- 			is_mergeable_anon_vma(prev->anon_vma,
- 				next->anon_vma, NULL)) {	 /* cases 1, 6 */
- 		err = __vma_adjust(vmi, prev, prev->vm_start,
--					next->vm_end, prev->vm_pgoff, NULL,
--					prev);
-+					next->vm_end, prev->vm_pgoff, prev);
- 		res = prev;
- 	} else if (merge_prev) {			/* cases 2, 5, 7 */
- 		err = __vma_adjust(vmi, prev, prev->vm_start,
--					end, prev->vm_pgoff, NULL, prev);
-+					end, prev->vm_pgoff, prev);
- 		res = prev;
- 	} else if (merge_next) {
- 		if (prev && addr < prev->vm_end)	/* case 4 */
- 			err = __vma_adjust(vmi, prev, prev->vm_start,
--					addr, prev->vm_pgoff, NULL, next);
-+					addr, prev->vm_pgoff, next);
- 		else					/* cases 3, 8 */
- 			err = __vma_adjust(vmi, mid, addr, next->vm_end,
--					next->vm_pgoff - pglen, NULL, next);
-+					next->vm_pgoff - pglen, next);
- 		res = next;
- 	}
- 
-@@ -2190,11 +2175,15 @@ static void unmap_region(struct mm_struc
- int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
- 		unsigned long addr, int new_below)
- {
-+	struct vma_prepare vp;
- 	struct vm_area_struct *new;
- 	int err;
- 
- 	validate_mm_mt(vma->vm_mm);
- 
-+	WARN_ON(vma->vm_start >= addr);
-+	WARN_ON(vma->vm_end <= addr);
-+
- 	if (vma->vm_ops && vma->vm_ops->may_split) {
- 		err = vma->vm_ops->may_split(vma, addr);
- 		if (err)
-@@ -2205,16 +2194,20 @@ int __split_vma(struct vma_iterator *vmi
- 	if (!new)
- 		return -ENOMEM;
- 
--	if (new_below)
-+	err = -ENOMEM;
-+	if (vma_iter_prealloc(vmi))
-+		goto out_free_vma;
-+
-+	if (new_below) {
- 		new->vm_end = addr;
--	else {
-+	} else {
- 		new->vm_start = addr;
- 		new->vm_pgoff += ((addr - vma->vm_start) >> PAGE_SHIFT);
- 	}
- 
- 	err = vma_dup_policy(vma, new);
- 	if (err)
--		goto out_free_vma;
-+		goto out_free_vmi;
- 
- 	err = anon_vma_clone(new, vma);
- 	if (err)
-@@ -2226,33 +2219,32 @@ int __split_vma(struct vma_iterator *vmi
- 	if (new->vm_ops && new->vm_ops->open)
- 		new->vm_ops->open(new);
- 
--	if (new_below)
--		err = vma_adjust(vmi, vma, addr, vma->vm_end,
--			vma->vm_pgoff + ((addr - new->vm_start) >> PAGE_SHIFT),
--			new);
--	else
--		err = vma_adjust(vmi, vma, vma->vm_start, addr, vma->vm_pgoff,
--				 new);
-+	vma_adjust_trans_huge(vma, vma->vm_start, addr, 0);
-+	init_vma_prep(&vp, vma);
-+	vp.insert = new;
-+	vma_prepare(&vp);
-+
-+	if (new_below) {
-+		vma->vm_start = addr;
-+		vma->vm_pgoff += (addr - new->vm_start) >> PAGE_SHIFT;
-+	} else {
-+		vma->vm_end = addr;
-+	}
-+
-+	/* vma_complete stores the new vma */
-+	vma_complete(&vp, vmi, vma->vm_mm);
- 
- 	/* Success. */
--	if (!err) {
--		if (new_below)
--			vma_next(vmi);
--		return 0;
--	}
-+	if (new_below)
-+		vma_next(vmi);
-+	validate_mm_mt(vma->vm_mm);
-+	return 0;
- 
--	/* Avoid vm accounting in close() operation */
--	new->vm_start = new->vm_end;
--	new->vm_pgoff = 0;
--	/* Clean everything up if vma_adjust failed. */
--	if (new->vm_ops && new->vm_ops->close)
--		new->vm_ops->close(new);
--	if (new->vm_file)
--		fput(new->vm_file);
--	unlink_anon_vmas(new);
-- out_free_mpol:
-+out_free_mpol:
- 	mpol_put(vma_policy(new));
-- out_free_vma:
-+out_free_vmi:
-+	vma_iter_free(vmi);
-+out_free_vma:
- 	vm_area_free(new);
- 	validate_mm_mt(vma->vm_mm);
- 	return err;
---- a/mm/mremap.c~mm-dont-use-__vma_adjust-in-__split_vma
+ 	bool remove_next = false;
+ 	struct vma_prepare vp;
+--- a/mm/mremap.c~mm-mremap-convert-vma_adjust-to-vma_expand
 +++ a/mm/mremap.c
-@@ -1053,7 +1053,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+@@ -1052,8 +1052,8 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 					extension_end, vma->vm_flags, vma->anon_vma,
  					vma->vm_file, extension_pgoff, vma_policy(vma),
  					vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 			} else if (vma_adjust(&vmi, vma, vma->vm_start,
--					addr + new_len, vma->vm_pgoff, NULL)) {
-+					addr + new_len, vma->vm_pgoff)) {
+-			} else if (vma_adjust(&vmi, vma, vma->vm_start,
+-					addr + new_len, vma->vm_pgoff)) {
++			} else if (vma_expand(&vmi, vma, vma->vm_start,
++					addr + new_len, vma->vm_pgoff, NULL)) {
  				vma = NULL;
  			}
  			if (!vma) {
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-maple_tree-add-mas_init-function.patch
-maple_tree-fix-potential-rcu-issue.patch
-maple_tree-reduce-user-error-potential.patch
-test_maple_tree-test-modifications-while-iterating.patch
-mm-expand-vma-iterator-interface.patch
-mm-mmap-convert-brk-to-use-vma-iterator.patch
-kernel-fork-convert-forking-to-using-the-vmi-iterator.patch
-mmap-convert-vma_link-vma-iterator.patch
-mm-mmap-remove-preallocation-from-do_mas_align_munmap.patch
-mmap-change-do_mas_munmap-and-do_mas_aligned_munmap-to-use-vma-iterator.patch
-mmap-convert-vma_expand-to-use-vma-iterator.patch
-mm-add-temporary-vma-iterator-versions-of-vma_merge-split_vma-and-__split_vma.patch
-ipc-shm-use-the-vma-iterator-for-munmap-calls.patch
-userfaultfd-use-vma-iterator.patch
-mm-change-mprotect_fixup-to-vma-iterator.patch
-mlock-convert-mlock-to-vma-iterator.patch
-coredump-convert-to-vma-iterator.patch
-mempolicy-convert-to-vma-iterator.patch
-task_mmu-convert-to-vma-iterator.patch
-sched-convert-to-vma-iterator.patch
-madvise-use-vmi-iterator-for-__split_vma-and-vma_merge.patch
-mmap-pass-through-vmi-iterator-to-__split_vma.patch
-mmap-use-vmi-version-of-vma_merge.patch
-mm-mremap-use-vmi-version-of-vma_merge.patch
-nommu-convert-nommu-to-using-the-vma-iterator.patch
-mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator.patch
-mmap-convert-__vma_adjust-to-use-vma-iterator.patch
-mm-pass-through-vma-iterator-to-__vma_adjust.patch
-madvise-use-split_vma-instead-of-__split_vma.patch
-mm-remove-unnecessary-write-to-vma-iterator-in-__vma_adjust.patch
-mm-pass-vma-iterator-through-to-__vma_adjust.patch
-mm-add-vma-iterator-to-vma_adjust-arguments.patch
-mmap-clean-up-mmap_region-unrolling.patch
-mm-change-munmap-splitting-order-and-move_vma.patch
-mm-mmap-move-anon_vma-setting-in-__vma_adjust.patch
-mm-mmap-refactor-locking-out-of-__vma_adjust.patch
-mm-mmap-use-vma_prepare-and-vma_complete-in-vma_expand.patch
-mm-mmap-introduce-init_vma_prep-and-init_multi_vma_prep.patch
-mm-dont-use-__vma_adjust-in-__split_vma.patch
-mm-mmap-dont-use-__vma_adjust-in-shift_arg_pages.patch
-mm-mmap-introduce-dup_vma_anon-helper.patch
-mm-mmap-convert-do_brk_flags-to-use-vma_prepare-and-vma_complete.patch
-mm-mmap-remove-__vma_adjust.patch
-vma_merge-set-vma-iterator-to-correct-position.patch
+maple_tree-fix-handle-of-invalidated-state-in-mas_wr_store_setup.patch
+maple_tree-fix-mas_prev-and-mas_find-state-handling.patch
+nommu-pass-through-vma-iterator-to-shrink_vma.patch
+mm-damon-vaddr-testh-stop-using-vma_mas_store-for-maple-tree-store.patch
+mm-mremap-convert-vma_adjust-to-vma_expand.patch
 
