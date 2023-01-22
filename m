@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 988C5C27C76
-	for <mm-commits@archiver.kernel.org>; Sun, 22 Jan 2023 01:21:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CD64C54EED
+	for <mm-commits@archiver.kernel.org>; Sun, 22 Jan 2023 01:21:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229773AbjAVBVc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 21 Jan 2023 20:21:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45018 "EHLO
+        id S229780AbjAVBVd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 21 Jan 2023 20:21:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229769AbjAVBVc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 21 Jan 2023 20:21:32 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABC75244AF
+        with ESMTP id S229775AbjAVBVd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 21 Jan 2023 20:21:33 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8EAF244B1
         for <mm-commits@vger.kernel.org>; Sat, 21 Jan 2023 17:21:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 46DC960B42
-        for <mm-commits@vger.kernel.org>; Sun, 22 Jan 2023 01:21:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E714C433EF;
-        Sun, 22 Jan 2023 01:21:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 57F04B80880
+        for <mm-commits@vger.kernel.org>; Sun, 22 Jan 2023 01:21:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFA65C433D2;
+        Sun, 22 Jan 2023 01:21:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674350489;
-        bh=KURw3Hf0WI8Q2c/xhpB6DG2APs+/AlAvOFAFSTEwjgg=;
+        s=korg; t=1674350488;
+        bh=IEtqHyooeMeWNby306kQDkQwUd+fxWvHFWODWFQIjUU=;
         h=Date:To:From:Subject:From;
-        b=PmnMVEtsBIyWPGA0MKO7zECiG81s7drxoGYOF7V8bjQZzOfsHwiNZKvBr3JdJuByX
-         uO3AMSltuEtSjZHjHOr2vn12SitpzVZa6HgjF5TDgBiJJgYtMKm+B4npba7NEUhX8x
-         5MRio4FGlzOehLb6zYx92ScaP452IDoQ4hwsl+JI=
-Date:   Sat, 21 Jan 2023 17:21:29 -0800
+        b=GB8ejD/XnlyVwsTp8w3FUsklwpKk0ZGhVlCXOXhtKyMFZQYS5CH2JWs2WEdK/x3i8
+         JKB5WOxSNBemPMnRpI6US+Tm/Tg+nzbDx1flE1FCfB/N45m18Cv/RqFuBMiZ31gkJc
+         //zc2RB1CDddauaRoPcBfThboqw0sFFYa1ec5QAM=
+Date:   Sat, 21 Jan 2023 17:21:27 -0800
 To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         urezki@gmail.com, ryabinin.a.a@gmail.com, glider@google.com,
         dvyukov@google.com, andreyknvl@gmail.com, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-split-__vunmap.patch added to mm-unstable branch
-Message-Id: <20230122012129.9E714C433EF@smtp.kernel.org>
+Subject: + mm-move-debug-checks-from-__vunmap-to-remove_vm_area.patch added to mm-unstable branch
+Message-Id: <20230122012127.EFA65C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: split __vunmap
+     Subject: mm: move debug checks from __vunmap to remove_vm_area
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-split-__vunmap.patch
+     mm-move-debug-checks-from-__vunmap-to-remove_vm_area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-split-__vunmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-debug-checks-from-__vunmap-to-remove_vm_area.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,140 +67,70 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: split __vunmap
-Date: Sat, 21 Jan 2023 08:10:50 +0100
+Subject: mm: move debug checks from __vunmap to remove_vm_area
+Date: Sat, 21 Jan 2023 08:10:49 +0100
 
-vunmap only needs to find and free the vmap_area and vm_strut, so open
-code that there and merge the rest of the code into vfree.
+All these checks apply to the free_vm_area interface as well, so move them
+to the common routine.
 
-Link: https://lkml.kernel.org/r/20230121071051.1143058-10-hch@lst.de
+Link: https://lkml.kernel.org/r/20230121071051.1143058-9-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/vmalloc.c~mm-split-__vunmap
+--- a/mm/vmalloc.c~mm-move-debug-checks-from-__vunmap-to-remove_vm_area
 +++ a/mm/vmalloc.c
-@@ -2666,45 +2666,6 @@ static void vm_remove_mappings(struct vm
- 	set_area_direct_map(area, set_direct_map_default_noflush);
- }
+@@ -2588,11 +2588,20 @@ struct vm_struct *remove_vm_area(const v
  
--static void __vunmap(const void *addr, int deallocate_pages)
--{
--	struct vm_struct *area;
--
--	if (!addr)
--		return;
--
--	area = remove_vm_area(addr);
--	if (unlikely(!area)) {
--		WARN(1, KERN_ERR "Trying to vfree() nonexistent vm area (%p)\n",
--				addr);
--		return;
--	}
--
--	vm_remove_mappings(area, deallocate_pages);
--
--	if (deallocate_pages) {
--		int i;
--
--		for (i = 0; i < area->nr_pages; i++) {
--			struct page *page = area->pages[i];
--
--			BUG_ON(!page);
--			mod_memcg_page_state(page, MEMCG_VMALLOC, -1);
--			/*
--			 * High-order allocs for huge vmallocs are split, so
--			 * can be freed as an array of order-0 allocations
--			 */
--			__free_pages(page, 0);
--			cond_resched();
--		}
--		atomic_long_sub(area->nr_pages, &nr_vmalloc_pages);
--
--		kvfree(area->pages);
--	}
--
--	kfree(area);
--}
--
- static void delayed_vfree_work(struct work_struct *w)
- {
- 	struct vfree_deferred *p = container_of(w, struct vfree_deferred, wq);
-@@ -2757,6 +2718,9 @@ void vfree_atomic(const void *addr)
-  */
- void vfree(const void *addr)
- {
-+	struct vm_struct *vm;
-+	int i;
+ 	might_sleep();
+ 
++	if (WARN(!PAGE_ALIGNED(addr), "Trying to vfree() bad address (%p)\n",
++			addr))
++		return NULL;
 +
- 	if (unlikely(in_interrupt())) {
- 		vfree_atomic(addr);
+ 	va = find_unlink_vmap_area((unsigned long)addr);
+ 	if (!va || !va->vm)
+ 		return NULL;
+ 	vm = va->vm;
++
++	debug_check_no_locks_freed(vm->addr, get_vm_area_size(vm));
++	debug_check_no_obj_freed(vm->addr, get_vm_area_size(vm));
+ 	kasan_free_module_shadow(vm);
++	kasan_poison_vmalloc(vm->addr, get_vm_area_size(vm));
++
+ 	free_unmap_vmap_area(va);
+ 	return vm;
+ }
+@@ -2664,10 +2673,6 @@ static void __vunmap(const void *addr, i
+ 	if (!addr)
  		return;
-@@ -2766,8 +2730,32 @@ void vfree(const void *addr)
- 	kmemleak_free(addr);
- 	might_sleep();
  
--	if (addr)
--		__vunmap(addr, 1);
-+	if (!addr)
-+		return;
-+
-+	vm = remove_vm_area(addr);
-+	if (unlikely(!vm)) {
-+		WARN(1, KERN_ERR "Trying to vfree() nonexistent vm area (%p)\n",
-+				addr);
-+		return;
-+	}
-+
-+	vm_remove_mappings(vm, true);
-+	for (i = 0; i < vm->nr_pages; i++) {
-+		struct page *page = vm->pages[i];
-+
-+		BUG_ON(!page);
-+		mod_memcg_page_state(page, MEMCG_VMALLOC, -1);
-+		/*
-+		 * High-order allocs for huge vmallocs are split, so
-+		 * can be freed as an array of order-0 allocations
-+		 */
-+		__free_pages(page, 0);
-+		cond_resched();
-+	}
-+	atomic_long_sub(vm->nr_pages, &nr_vmalloc_pages);
-+	kvfree(vm->pages);
-+	kfree(vm);
- }
- EXPORT_SYMBOL(vfree);
+-	if (WARN(!PAGE_ALIGNED(addr), "Trying to vfree() bad address (%p)\n",
+-			addr))
+-		return;
+-
+ 	area = remove_vm_area(addr);
+ 	if (unlikely(!area)) {
+ 		WARN(1, KERN_ERR "Trying to vfree() nonexistent vm area (%p)\n",
+@@ -2675,11 +2680,6 @@ static void __vunmap(const void *addr, i
+ 		return;
+ 	}
  
-@@ -2782,10 +2770,20 @@ EXPORT_SYMBOL(vfree);
-  */
- void vunmap(const void *addr)
- {
-+	struct vm_struct *vm;
-+
- 	BUG_ON(in_interrupt());
- 	might_sleep();
--	if (addr)
--		__vunmap(addr, 0);
-+
-+	if (!addr)
-+		return;
-+	vm = remove_vm_area(addr);
-+	if (unlikely(!vm)) {
-+		WARN(1, KERN_ERR "Trying to vunmap() nonexistent vm area (%p)\n",
-+				addr);
-+		return;
-+	}
-+	kfree(vm);
- }
- EXPORT_SYMBOL(vunmap);
+-	debug_check_no_locks_freed(area->addr, get_vm_area_size(area));
+-	debug_check_no_obj_freed(area->addr, get_vm_area_size(area));
+-
+-	kasan_poison_vmalloc(area->addr, get_vm_area_size(area));
+-
+ 	vm_remove_mappings(area, deallocate_pages);
  
+ 	if (deallocate_pages) {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
