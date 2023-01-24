@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DABDCC61D97
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Jan 2023 20:50:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46D66C54EED
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Jan 2023 21:04:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234343AbjAXUuB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 24 Jan 2023 15:50:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57216 "EHLO
+        id S229826AbjAXVEW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 24 Jan 2023 16:04:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36916 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234377AbjAXUtx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2023 15:49:53 -0500
+        with ESMTP id S234481AbjAXVEW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2023 16:04:22 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9EE95085E
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2023 12:49:51 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FCC649001
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2023 13:04:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4688BB816D8
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2023 20:49:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA67BC433EF;
-        Tue, 24 Jan 2023 20:49:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 52DEBB816DD
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2023 21:04:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06666C433D2;
+        Tue, 24 Jan 2023 21:04:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674593388;
-        bh=tuxaBxn8a1dUM3Fr1LFZiFtioFIu7W+RA9aPmS5Nj4w=;
+        s=korg; t=1674594257;
+        bh=JF6IZ0Vicvv+2jG0Zhx5N6QlxmWyzTSmde/SoLu0kPo=;
         h=Date:To:From:Subject:From;
-        b=stTNPuRB1mv9DopMKQqxqQ5FSSTQyMmJZ4b0r7XUSHp9e/ZnDC+q9+mHcUtfNDSlu
-         kTFQ6ENLa43rLQ5wjlhUhLcssnFnZF4VmtQv8T344ZhREaShg8q/imib3WD+Gx1FBe
-         qGFLjsHX7IUmePqqn7gOJAi5JqNfWow41wcNIrdQ=
-Date:   Tue, 24 Jan 2023 12:49:48 -0800
-To:     mm-commits@vger.kernel.org, hch@infradead.org,
-        rdunlap@infradead.org, akpm@linux-foundation.org
+        b=1MQGvYS10BhYYH2ANPet+PPwLbpZtCjo8TEWgNLpzEbrl3xno19/ktUTLbVN9TeOH
+         pc4ZPgp1bA4ExX6IOpiuJR6PNppud+4OvnO32L9HHPP2m0femB6G+W37tFsinDQkFI
+         cEFCOpDjy1R6s3X/MYvyGHNx914Vj9wCtdEcXrFc=
+Date:   Tue, 24 Jan 2023 13:04:16 -0800
+To:     mm-commits@vger.kernel.org, tytso@mit.edu, jaegeuk@kernel.org,
+        ebiggers@kernel.org, chao@kernel.org, adilger.kernel@dilger.ca,
+        glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + freevxfs-kconfig-fix-spelling.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230124204948.DA67BC433EF@smtp.kernel.org>
+Subject: + fs-hfs-initialize-fsdata-in-hfs_file_truncate.patch added to mm-nonmm-unstable branch
+Message-Id: <20230124210417.06666C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: freevxfs: Kconfig: fix spelling
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     freevxfs-kconfig-fix-spelling.patch
+     Subject: fs: hfs: initialize fsdata in hfs_file_truncate()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fs-hfs-initialize-fsdata-in-hfs_file_truncate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/freevxfs-kconfig-fix-spelling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-hfs-initialize-fsdata-in-hfs_file_truncate.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,40 +65,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: freevxfs: Kconfig: fix spelling
-Date: Tue, 24 Jan 2023 10:16:38 -0800
+From: Alexander Potapenko <glider@google.com>
+Subject: fs: hfs: initialize fsdata in hfs_file_truncate()
+Date: Mon, 21 Nov 2022 12:21:33 +0100
 
-Fix a spello in freevxfs Kconfig.
-(reported by codespell)
+When aops->write_begin() does not initialize fsdata, KMSAN may report an
+error passing the latter to aops->write_end().
 
-Link: https://lkml.kernel.org/r/20230124181638.15604-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Christoph Hellwig <hch@infradead.org>
+Fix this by unconditionally initializing fsdata.
+
+Link: https://lkml.kernel.org/r/20221121112134.407362-4-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Suggested-by: Eric Biggers <ebiggers@kernel.org>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/freevxfs/Kconfig |    2 +-
+ fs/hfs/extent.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/freevxfs/Kconfig~freevxfs-kconfig-fix-spelling
-+++ a/fs/freevxfs/Kconfig
-@@ -8,7 +8,7 @@ config VXFS_FS
- 	  of SCO UnixWare (and possibly others) and optionally available
- 	  for Sunsoft Solaris, HP-UX and many other operating systems. However
- 	  these particular OS implementations of vxfs may differ in on-disk
--	  data endianess and/or superblock offset. The vxfs module has been
-+	  data endianness and/or superblock offset. The vxfs module has been
- 	  tested with SCO UnixWare and HP-UX B.10.20 (pa-risc 1.1 arch.)
- 	  Currently only readonly access is supported and VxFX versions
- 	  2, 3 and 4. Tests were performed with HP-UX VxFS version 3.
+--- a/fs/hfs/extent.c~fs-hfs-initialize-fsdata-in-hfs_file_truncate
++++ a/fs/hfs/extent.c
+@@ -486,7 +486,7 @@ void hfs_file_truncate(struct inode *ino
+ 		inode->i_size);
+ 	if (inode->i_size > HFS_I(inode)->phys_size) {
+ 		struct address_space *mapping = inode->i_mapping;
+-		void *fsdata;
++		void *fsdata = NULL;
+ 		struct page *page;
+ 
+ 		/* XXX: Can use generic_cont_expand? */
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from glider@google.com are
 
-lib-kconfig-fix-spellos.patch
-freevxfs-kconfig-fix-spelling.patch
-freevxfs-fix-kernel-doc-warnings.patch
-ntfs-fix-multiple-kernel-doc-warnings.patch
-userns-fix-a-structs-kernel-doc-notation.patch
+revert-x86-kmsan-sync-metadata-pages-on-page-fault.patch
+kmsan-silence-wmissing-prototypes-warnings.patch
+fs-hfs-initialize-fsdata-in-hfs_file_truncate.patch
+fs-hfsplus-initialize-fsdata-in-hfsplus_file_truncate.patch
 
