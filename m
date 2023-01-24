@@ -2,196 +2,53 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B25BCC61D97
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Jan 2023 21:53:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62E4BC54EED
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Jan 2023 21:56:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235076AbjAXVxS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 24 Jan 2023 16:53:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36922 "EHLO
+        id S229968AbjAXV4W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 24 Jan 2023 16:56:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235075AbjAXVxQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2023 16:53:16 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36BC94DCF2
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2023 13:53:13 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D0E15B81717
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2023 21:53:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A1D1C433D2;
-        Tue, 24 Jan 2023 21:53:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674597190;
-        bh=NAL2wbE4A49IaNP/olDBjXe2fwUVfRU+9RKJk0YsDZ0=;
-        h=Date:To:From:Subject:From;
-        b=es3yZQnP3QB3HvZ30W94fsSq4tObOoXiDTMv0Tu8FTOoZj9t1p84Uqz3r7eZO7OlB
-         2NTEGIg4T/O8qcpH6bH8xhN7zwhaSChFgH7F62Q219rQrS0M/xO8H//fPXCCgV6LLE
-         Tla6eQ/xXLJG27KyPeAClEmfN7D8pAd1HOBOikBg=
-Date:   Tue, 24 Jan 2023 13:53:10 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.moola@gmail.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch added to mm-unstable branch
-Message-Id: <20230124215310.7A1D1C433D2@smtp.kernel.org>
+        with ESMTP id S229545AbjAXV4V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2023 16:56:21 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF80027D70
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2023 13:56:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=cqvcZqK/Mbr+vl8rvBtA7wmqZWACyYbiX4xtBj4OJOc=; b=oikzayWAXTj1plsccPakrSgb94
+        4r/D6Q/Uo1CLOsQjnE8qAHlFuw4AG29aSABud5Fa/mifVbRZZx6f/PJslmdCfK8rCWYV4JtoGTUk+
+        45LBNwa5gC6VdQ50i1HGwBBNZWORAJJ2KncHDqy04AomwxBhth538siVeOZQNPvayTLXJfh4iKe/H
+        IbKcIqennvcKkW7DWPkDKHdnQUGakeJ59LmkJt/sKpF0jpWXXJZV/l+D+M1i/ZSfN+UK6KS0RLcMu
+        GQLTJLMsNhPmhQF1e9IPIJQDGp6I7aXDYm+gwEosIwdxu80U6vMl+CuInaO5R2E36jcn61MZVvi5L
+        NolwmTgA==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1pKRH4-005O3q-HH; Tue, 24 Jan 2023 21:56:14 +0000
+Date:   Tue, 24 Jan 2023 21:56:14 +0000
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, vishal.moola@gmail.com
+Subject: Re: + mm-add-folio_estimated_mapcount.patch added to mm-unstable
+ branch
+Message-ID: <Y9BT/uHMeP/3ytht@casper.infradead.org>
+References: <20230124215305.23B14C433D2@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230124215305.23B14C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Tue, Jan 24, 2023 at 01:53:04PM -0800, Andrew Morton wrote:
+> 
+> The patch titled
+>      Subject: mm: add folio_estimated_mapcount()
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      mm-add-folio_estimated_mapcount.patch
 
-The patch titled
-     Subject: mm/mempolicy: convert queue_pages_hugetlb() to queue_folios_hugetlb()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/mempolicy: convert queue_pages_hugetlb() to queue_folios_hugetlb()
-Date: Mon, 23 Jan 2023 17:22:08 -0800
-
-This change is in preparation for the conversion of queue_pages_required()
-to queue_folio_required() and migrate_page_add() to migrate_folio_add().
-
-Link: https://lkml.kernel.org/r/20230124012210.13963-5-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/mempolicy.c |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
-
---- a/mm/mempolicy.c~mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb
-+++ a/mm/mempolicy.c
-@@ -558,7 +558,7 @@ static int queue_folios_pte_range(pmd_t
- 	return addr != end ? -EIO : 0;
- }
- 
--static int queue_pages_hugetlb(pte_t *pte, unsigned long hmask,
-+static int queue_folios_hugetlb(pte_t *pte, unsigned long hmask,
- 			       unsigned long addr, unsigned long end,
- 			       struct mm_walk *walk)
- {
-@@ -566,7 +566,7 @@ static int queue_pages_hugetlb(pte_t *pt
- #ifdef CONFIG_HUGETLB_PAGE
- 	struct queue_pages *qp = walk->private;
- 	unsigned long flags = (qp->flags & MPOL_MF_VALID);
--	struct page *page;
-+	struct folio *folio;
- 	spinlock_t *ptl;
- 	pte_t entry;
- 
-@@ -574,13 +574,13 @@ static int queue_pages_hugetlb(pte_t *pt
- 	entry = huge_ptep_get(pte);
- 	if (!pte_present(entry))
- 		goto unlock;
--	page = pte_page(entry);
--	if (!queue_pages_required(page, qp))
-+	folio = pfn_folio(pte_pfn(entry));
-+	if (!queue_pages_required(&folio->page, qp))
- 		goto unlock;
- 
- 	if (flags == MPOL_MF_STRICT) {
- 		/*
--		 * STRICT alone means only detecting misplaced page and no
-+		 * STRICT alone means only detecting misplaced folio and no
- 		 * need to further check other vma.
- 		 */
- 		ret = -EIO;
-@@ -591,20 +591,27 @@ static int queue_pages_hugetlb(pte_t *pt
- 		/*
- 		 * Must be STRICT with MOVE*, otherwise .test_walk() have
- 		 * stopped walking current vma.
--		 * Detecting misplaced page but allow migrating pages which
-+		 * Detecting misplaced folio but allow migrating folios which
- 		 * have been queued.
- 		 */
- 		ret = 1;
- 		goto unlock;
- 	}
- 
--	/* With MPOL_MF_MOVE, we migrate only unshared hugepage. */
-+	/*
-+	 * With MPOL_MF_MOVE, we try to migrate only unshared folios. If it
-+	 * is shared it is likely not worth migrating.
-+	 *
-+	 * To check if the folio is shared, ideally we want to make sure
-+	 * every page is mapped to the same process. Doing that is very
-+	 * expensive, so check the estimated mapcount of the folio instead.
-+	 */
- 	if (flags & (MPOL_MF_MOVE_ALL) ||
--	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1)) {
--		if (isolate_hugetlb(page_folio(page), qp->pagelist) &&
-+	    (flags & MPOL_MF_MOVE && folio_estimated_mapcount(folio) == 1)) {
-+		if (isolate_hugetlb(folio, qp->pagelist) &&
- 			(flags & MPOL_MF_STRICT))
- 			/*
--			 * Failed to isolate page but allow migrating pages
-+			 * Failed to isolate folio but allow migrating folios
- 			 * which have been queued.
- 			 */
- 			ret = 1;
-@@ -702,7 +709,7 @@ static int queue_pages_test_walk(unsigne
- }
- 
- static const struct mm_walk_ops queue_pages_walk_ops = {
--	.hugetlb_entry		= queue_pages_hugetlb,
-+	.hugetlb_entry		= queue_folios_hugetlb,
- 	.pmd_entry		= queue_folios_pte_range,
- 	.test_walk		= queue_pages_test_walk,
- };
-_
-
-Patches currently in -mm which might be from vishal.moola@gmail.com are
-
-mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page.patch
-mm-khugepaged-convert-release_pte_pages-to-use-folios.patch
-pagemap-add-filemap_grab_folio.patch
-filemap-added-filemap_get_folios_tag.patch
-filemap-convert-__filemap_fdatawait_range-to-use-filemap_get_folios_tag.patch
-page-writeback-convert-write_cache_pages-to-use-filemap_get_folios_tag.patch
-afs-convert-afs_writepages_region-to-use-filemap_get_folios_tag.patch
-btrfs-convert-btree_write_cache_pages-to-use-filemap_get_folio_tag.patch
-btrfs-convert-extent_write_cache_pages-to-use-filemap_get_folios_tag.patch
-ceph-convert-ceph_writepages_start-to-use-filemap_get_folios_tag.patch
-cifs-convert-wdata_alloc_and_fillpages-to-use-filemap_get_folios_tag.patch
-ext4-convert-mpage_prepare_extent_to_map-to-use-filemap_get_folios_tag.patch
-f2fs-convert-f2fs_fsync_node_pages-to-use-filemap_get_folios_tag.patch
-f2fs-convert-f2fs_flush_inline_data-to-use-filemap_get_folios_tag.patch
-f2fs-convert-f2fs_sync_node_pages-to-use-filemap_get_folios_tag.patch
-f2fs-convert-f2fs_write_cache_pages-to-use-filemap_get_folios_tag.patch
-f2fs-convert-last_fsync_dnode-to-use-filemap_get_folios_tag.patch
-f2fs-convert-f2fs_sync_meta_pages-to-use-filemap_get_folios_tag.patch
-gfs2-convert-gfs2_write_cache_jdata-to-use-filemap_get_folios_tag.patch
-nilfs2-convert-nilfs_lookup_dirty_data_buffers-to-use-filemap_get_folios_tag.patch
-nilfs2-convert-nilfs_lookup_dirty_node_buffers-to-use-filemap_get_folios_tag.patch
-nilfs2-convert-nilfs_btree_lookup_dirty_buffers-to-use-filemap_get_folios_tag.patch
-nilfs2-convert-nilfs_copy_dirty_pages-to-use-filemap_get_folios_tag.patch
-nilfs2-convert-nilfs_clear_dirty_pages-to-use-filemap_get_folios_tag.patch
-filemap-remove-find_get_pages_range_tag.patch
-mm-add-folio_estimated_mapcount.patch
-mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch
-mm-mempolicy-convert-queue_pages_pte_range-to-queue_folios_pte_range.patch
-mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
-mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
-mm-mempolicy-convert-migrate_page_add-to-migrate_folio_add.patch
-
+Um, there was a build breakage report from one of the bots on this
+patch.  Probably better to hold off on this series for now.
