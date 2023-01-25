@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADC98C61D97
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Jan 2023 20:58:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6698C61DA4
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Jan 2023 21:46:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236595AbjAYU6K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 15:58:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57304 "EHLO
+        id S236150AbjAYVqv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 16:46:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235993AbjAYU6J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 15:58:09 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A42811EB0;
-        Wed, 25 Jan 2023 12:58:08 -0800 (PST)
+        with ESMTP id S236231AbjAYVqq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 16:46:46 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 685105618C
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 13:46:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 40BFCB81BAE;
-        Wed, 25 Jan 2023 20:58:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC8F0C433D2;
-        Wed, 25 Jan 2023 20:58:05 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 21F5DB81BF8
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 21:46:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B80CCC4339B;
+        Wed, 25 Jan 2023 21:46:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674680286;
-        bh=URAacItCUg3Q7cu5mejJIDfi+OUx4R78Ds5qjZPIRSE=;
+        s=korg; t=1674683167;
+        bh=L38RygLWWQDl7EWKgy5vbpYqNbFSW7kvIoAhbkvyh28=;
         h=Date:To:From:Subject:From;
-        b=sReDfOaOlybNTwCdj2blzDJ3zJFrp2g6Ch2iSkvKqFTJn/aDQfgHTVTujGsJ64vjE
-         SwmxK31yRN/8RtZrljjDYmHI7JFOhOZBz1BQaLLh0EvRrfWCeGMik0b0OzIR6HkMoa
-         AXW/LEDlCHLCCp951GxwrEExw77yNedGUt1BKhyE=
-Date:   Wed, 25 Jan 2023 12:58:05 -0800
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        stable@vger.kernel.org, saravanak@google.com,
-        catalin.marinas@arm.com, isaacmanjarres@google.com,
-        akpm@linux-foundation.org
+        b=QqJ91ksWQKJxMAhhFcLtvWgGu0p5Q+OVCfHYBS+McWAckHg4dapsBfcxdHg8a0XPb
+         6muRFGGVXxDllFnl4ULNNSMdS+xKvKobxYk/hReFEZuA4etq/lcMuU2uBlwcNggZND
+         V+xgOQhtp5fbud3KN6KiPVMGrR1UrylwcjMg6fvA=
+Date:   Wed, 25 Jan 2023 13:46:07 -0800
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        urezki@gmail.com, ryabinin.a.a@gmail.com, luto@kernel.org,
+        hch@infradead.org, glider@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, jannh@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-cmac-make-kmemleak-aware-of-all-cma-regions.patch removed from -mm tree
-Message-Id: <20230125205805.DC8F0C433D2@smtp.kernel.org>
+Subject: [to-be-updated] fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks.patch removed from -mm tree
+Message-Id: <20230125214607.B80CCC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,84 +43,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/cma.c: make kmemleak aware of all CMA regions
+     Subject: fork, vmalloc: KASAN-poison backing pages of vmapped stacks
 has been removed from the -mm tree.  Its filename was
-     mm-cmac-make-kmemleak-aware-of-all-cma-regions.patch
+     fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
-Subject: mm/cma.c: make kmemleak aware of all CMA regions
-Date: Mon, 9 Jan 2023 14:16:22 -0800
+From: Jann Horn <jannh@google.com>
+Subject: fork, vmalloc: KASAN-poison backing pages of vmapped stacks
+Date: Tue, 17 Jan 2023 17:35:43 +0100
 
-Patch series "Fixes for kmemleak tracking with CMA regions".
+KASAN (except in HW_TAGS mode) tracks memory state based on virtual
+addresses.  The mappings of kernel stack pages in the linear mapping are
+currently marked as fully accessible.
 
-When trying to boot a device with an ARM64 kernel with the following
-config options enabled:
+Since stack corruption issues can cause some very gnarly errors, let's be
+extra careful and tell KASAN to forbid accesses to stack memory through
+the linear mapping.
 
-CONFIG_DEBUG_PAGEALLOC=y
-CONFIG_DEBUG_PAGEALLOC_ENABLE_DEFAULT=y
-CONFIG_DEBUG_KMEMLEAK=y
-
-a page-fault is encountered when kmemleak starts to scan the list of gray
-or allocated objects that it maintains.  Upon closer inspection, it was
-observed that these page-faults always occurred when kmemleak attempted to
-scan a CMA region.
-
-At the moment, kmemleak is made aware of CMA regions that are specified
-through the devicetree to be created at specific memory addresses or
-dynamically allocated within a range of addresses.  However, if the CMA
-region is constrained to a certain range of addresses through the command
-line, the region is reserved through the memblock_reserve() function, but
-kmemleak_alloc_phys() is not invoked.  Furthermore, kmemleak is never
-informed about CMA regions being freed to buddy at boot, which is
-problematic when CONFIG_DEBUG_PAGEALLOC is enabled, as all CMA regions are
-unmapped from the kernel's address space, and subsequently causes a
-page-fault when kmemleak attempts to scan any of them.
-
-This series makes it so that kmemleak is aware of every CMA region before
-they are freed to the buddy allocator, so that at that time, kmemleak can
-be informed that each region is about to be freed, and thus it should not
-attempt to scan those regions.
-
-
-This patch (of 2):
-
-Currently, kmemleak tracks CMA regions that are specified through the
-devicetree.  However, if the global CMA region is specified through the
-commandline, kmemleak will be unaware of the CMA region because
-kmemleak_alloc_phys() is not invoked after memblock_reserve().  Add the
-missing call to kmemleak_alloc_phys() so that all CMA regions are tracked
-by kmemleak before they are freed to the page allocator in
-cma_activate_area().
-
-Link: https://lkml.kernel.org/r/20230109221624.592315-1-isaacmanjarres@google.com
-Link: https://lkml.kernel.org/r/20230109221624.592315-2-isaacmanjarres@google.com
-Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Cc: <stable@vger.kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Saravana Kannan <saravanak@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20230117163543.1049025-1-jannh@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/cma.c~mm-cmac-make-kmemleak-aware-of-all-cma-regions
-+++ a/mm/cma.c
-@@ -318,6 +318,8 @@ int __init cma_declare_contiguous_nid(ph
- 			ret = -EBUSY;
- 			goto err;
- 		}
-+
-+		kmemleak_alloc_phys(base, size, 0);
- 	} else {
- 		phys_addr_t addr = 0;
+--- a/include/linux/vmalloc.h~fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks
++++ a/include/linux/vmalloc.h
+@@ -298,4 +298,10 @@ bool vmalloc_dump_obj(void *object);
+ static inline bool vmalloc_dump_obj(void *object) { return false; }
+ #endif
  
++#if defined(CONFIG_MMU) && (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
++void vmalloc_poison_backing_pages(const void *addr);
++#else
++static inline void vmalloc_poison_backing_pages(const void *addr) {}
++#endif
++
+ #endif /* _LINUX_VMALLOC_H */
+--- a/kernel/fork.c~fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks
++++ a/kernel/fork.c
+@@ -321,6 +321,16 @@ static int alloc_thread_stack_node(struc
+ 		vfree(stack);
+ 		return -ENOMEM;
+ 	}
++
++	/*
++	 * A virtually-allocated stack's memory should only be accessed through
++	 * the vmalloc area, not through the linear mapping.
++	 * Inform KASAN that all accesses through the linear mapping should be
++	 * reported (instead of permitting all accesses through the linear
++	 * mapping).
++	 */
++	vmalloc_poison_backing_pages(stack);
++
+ 	/*
+ 	 * We can't call find_vm_area() in interrupt context, and
+ 	 * free_thread_stack() can be called in interrupt context,
+--- a/mm/vmalloc.c~fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks
++++ a/mm/vmalloc.c
+@@ -4147,6 +4147,30 @@ void pcpu_free_vm_areas(struct vm_struct
+ }
+ #endif	/* CONFIG_SMP */
+ 
++#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
++/*
++ * Poison the KASAN shadow for the linear mapping of the pages used as stack
++ * memory.
++ * NOTE: This makes no sense in HW_TAGS mode because HW_TAGS marks physical
++ * memory, not virtual memory.
++ */
++void vmalloc_poison_backing_pages(const void *addr)
++{
++	struct vm_struct *area;
++	int i;
++
++	if (WARN(!PAGE_ALIGNED(addr), "bad address (%p)\n", addr))
++		return;
++
++	area = find_vm_area(addr);
++	if (WARN(!area, "nonexistent vm area (%p)\n", addr))
++		return;
++
++	for (i = 0; i < area->nr_pages; i++)
++		kasan_poison_pages(area->pages[i], 0, false);
++}
++#endif
++
+ #ifdef CONFIG_PRINTK
+ bool vmalloc_dump_obj(void *object)
+ {
 _
 
-Patches currently in -mm which might be from isaacmanjarres@google.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-revert-mm-kmemleak-alloc-gray-object-for-reserved-region-with-direct-map.patch
-mm-cmac-delete-kmemleak-objects-when-freeing-cma-areas-to-buddy-at-boot.patch
+mm-khugepaged-fix-anon_vma-race.patch
 
