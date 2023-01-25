@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6698C61DA4
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Jan 2023 21:46:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAEEEC54E94
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Jan 2023 21:54:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236150AbjAYVqv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 16:46:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40556 "EHLO
+        id S235442AbjAYVyU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 16:54:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236231AbjAYVqq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 16:46:46 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 685105618C
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 13:46:10 -0800 (PST)
+        with ESMTP id S229454AbjAYVyT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 16:54:19 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C065986A8
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 13:54:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 21F5DB81BF8
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 21:46:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B80CCC4339B;
-        Wed, 25 Jan 2023 21:46:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5AD4061630
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 21:54:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B01D0C4339B;
+        Wed, 25 Jan 2023 21:54:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674683167;
-        bh=L38RygLWWQDl7EWKgy5vbpYqNbFSW7kvIoAhbkvyh28=;
+        s=korg; t=1674683657;
+        bh=i9pGaRAD3w+aCW4UdbVgREfmDlUXoHXr/J3I9RU6inA=;
         h=Date:To:From:Subject:From;
-        b=QqJ91ksWQKJxMAhhFcLtvWgGu0p5Q+OVCfHYBS+McWAckHg4dapsBfcxdHg8a0XPb
-         6muRFGGVXxDllFnl4ULNNSMdS+xKvKobxYk/hReFEZuA4etq/lcMuU2uBlwcNggZND
-         V+xgOQhtp5fbud3KN6KiPVMGrR1UrylwcjMg6fvA=
-Date:   Wed, 25 Jan 2023 13:46:07 -0800
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        urezki@gmail.com, ryabinin.a.a@gmail.com, luto@kernel.org,
-        hch@infradead.org, glider@google.com, dvyukov@google.com,
-        andreyknvl@gmail.com, jannh@google.com, akpm@linux-foundation.org
+        b=Qyhbl84LQRFjLThcewBE016Ob0RfSQ8GFOgr4rzA6gN0JqRs0t2PjXzz6NXnmAOhl
+         QsIPWaGSAwq57A4r23yGgJyDWAvyGoUHihuN3e/nSpe4y8PKcZpw9ZSknGV55tRsZ+
+         OoomUwmc2/kSZlBaYGvwiSfue8xTkJUrmmKU1gHI=
+Date:   Wed, 25 Jan 2023 13:54:17 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks.patch removed from -mm tree
-Message-Id: <20230125214607.B80CCC4339B@smtp.kernel.org>
+Subject: [to-be-updated] mm-add-folio_estimated_mapcount.patch removed from -mm tree
+Message-Id: <20230125215417.B01D0C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,107 +41,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fork, vmalloc: KASAN-poison backing pages of vmapped stacks
+     Subject: mm: add folio_estimated_mapcount()
 has been removed from the -mm tree.  Its filename was
-     fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks.patch
+     mm-add-folio_estimated_mapcount.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: fork, vmalloc: KASAN-poison backing pages of vmapped stacks
-Date: Tue, 17 Jan 2023 17:35:43 +0100
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm: add folio_estimated_mapcount()
+Date: Mon, 23 Jan 2023 17:22:05 -0800
 
-KASAN (except in HW_TAGS mode) tracks memory state based on virtual
-addresses.  The mappings of kernel stack pages in the linear mapping are
-currently marked as fully accessible.
+Patch series "Convert various mempolicy.c functions", v2.
 
-Since stack corruption issues can cause some very gnarly errors, let's be
-extra careful and tell KASAN to forbid accesses to stack memory through
-the linear mapping.
+This patch series converts migrate_page_add() and queue_pages_required()
+to migrate_folio_add() and queue_page_required().  It also converts the
+callers of the functions to use folios as well, and introduces a helper
+function to estimate a folio's mapcount.
 
-Link: https://lkml.kernel.org/r/20230117163543.1049025-1-jannh@google.com
-Signed-off-by: Jann Horn <jannh@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+
+This patch (of 6):
+
+folio_estimated_mapcount() takes in a folio and calls page_mapcount() on
+the first page of that folio.
+
+This is necessary for folio conversions where we only care about either the
+entire_mapcount of a large folio, or the mapcount of a not large folio.
+
+This is in contrast to folio_mapcount() which calculates the total
+number of the times a folio and its subpages are mapped.
+
+Link: https://lkml.kernel.org/r/20230124012210.13963-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230124012210.13963-2-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/vmalloc.h~fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks
-+++ a/include/linux/vmalloc.h
-@@ -298,4 +298,10 @@ bool vmalloc_dump_obj(void *object);
- static inline bool vmalloc_dump_obj(void *object) { return false; }
- #endif
- 
-+#if defined(CONFIG_MMU) && (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
-+void vmalloc_poison_backing_pages(const void *addr);
-+#else
-+static inline void vmalloc_poison_backing_pages(const void *addr) {}
-+#endif
-+
- #endif /* _LINUX_VMALLOC_H */
---- a/kernel/fork.c~fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks
-+++ a/kernel/fork.c
-@@ -321,6 +321,16 @@ static int alloc_thread_stack_node(struc
- 		vfree(stack);
- 		return -ENOMEM;
- 	}
-+
-+	/*
-+	 * A virtually-allocated stack's memory should only be accessed through
-+	 * the vmalloc area, not through the linear mapping.
-+	 * Inform KASAN that all accesses through the linear mapping should be
-+	 * reported (instead of permitting all accesses through the linear
-+	 * mapping).
-+	 */
-+	vmalloc_poison_backing_pages(stack);
-+
- 	/*
- 	 * We can't call find_vm_area() in interrupt context, and
- 	 * free_thread_stack() can be called in interrupt context,
---- a/mm/vmalloc.c~fork-vmalloc-kasan-poison-backing-pages-of-vmapped-stacks
-+++ a/mm/vmalloc.c
-@@ -4147,6 +4147,30 @@ void pcpu_free_vm_areas(struct vm_struct
+--- a/include/linux/mm.h~mm-add-folio_estimated_mapcount
++++ a/include/linux/mm.h
+@@ -913,6 +913,11 @@ static inline int page_mapcount(struct p
+ 	return mapcount;
  }
- #endif	/* CONFIG_SMP */
  
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
-+/*
-+ * Poison the KASAN shadow for the linear mapping of the pages used as stack
-+ * memory.
-+ * NOTE: This makes no sense in HW_TAGS mode because HW_TAGS marks physical
-+ * memory, not virtual memory.
-+ */
-+void vmalloc_poison_backing_pages(const void *addr)
++static inline int folio_estimated_mapcount(struct folio *folio)
 +{
-+	struct vm_struct *area;
-+	int i;
-+
-+	if (WARN(!PAGE_ALIGNED(addr), "bad address (%p)\n", addr))
-+		return;
-+
-+	area = find_vm_area(addr);
-+	if (WARN(!area, "nonexistent vm area (%p)\n", addr))
-+		return;
-+
-+	for (i = 0; i < area->nr_pages; i++)
-+		kasan_poison_pages(area->pages[i], 0, false);
++	return page_mapcount(folio_page(folio, 0));
 +}
-+#endif
 +
- #ifdef CONFIG_PRINTK
- bool vmalloc_dump_obj(void *object)
- {
+ int folio_total_mapcount(struct folio *folio);
+ 
+ /**
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
-mm-khugepaged-fix-anon_vma-race.patch
+mm-khugepaged-introduce-release_pte_folio-to-replace-release_pte_page.patch
+mm-khugepaged-convert-release_pte_pages-to-use-folios.patch
+pagemap-add-filemap_grab_folio.patch
+filemap-added-filemap_get_folios_tag.patch
+filemap-convert-__filemap_fdatawait_range-to-use-filemap_get_folios_tag.patch
+page-writeback-convert-write_cache_pages-to-use-filemap_get_folios_tag.patch
+afs-convert-afs_writepages_region-to-use-filemap_get_folios_tag.patch
+btrfs-convert-btree_write_cache_pages-to-use-filemap_get_folio_tag.patch
+btrfs-convert-extent_write_cache_pages-to-use-filemap_get_folios_tag.patch
+ceph-convert-ceph_writepages_start-to-use-filemap_get_folios_tag.patch
+cifs-convert-wdata_alloc_and_fillpages-to-use-filemap_get_folios_tag.patch
+ext4-convert-mpage_prepare_extent_to_map-to-use-filemap_get_folios_tag.patch
+f2fs-convert-f2fs_fsync_node_pages-to-use-filemap_get_folios_tag.patch
+f2fs-convert-f2fs_flush_inline_data-to-use-filemap_get_folios_tag.patch
+f2fs-convert-f2fs_sync_node_pages-to-use-filemap_get_folios_tag.patch
+f2fs-convert-f2fs_write_cache_pages-to-use-filemap_get_folios_tag.patch
+f2fs-convert-last_fsync_dnode-to-use-filemap_get_folios_tag.patch
+f2fs-convert-f2fs_sync_meta_pages-to-use-filemap_get_folios_tag.patch
+gfs2-convert-gfs2_write_cache_jdata-to-use-filemap_get_folios_tag.patch
+nilfs2-convert-nilfs_lookup_dirty_data_buffers-to-use-filemap_get_folios_tag.patch
+nilfs2-convert-nilfs_lookup_dirty_node_buffers-to-use-filemap_get_folios_tag.patch
+nilfs2-convert-nilfs_btree_lookup_dirty_buffers-to-use-filemap_get_folios_tag.patch
+nilfs2-convert-nilfs_copy_dirty_pages-to-use-filemap_get_folios_tag.patch
+nilfs2-convert-nilfs_clear_dirty_pages-to-use-filemap_get_folios_tag.patch
+filemap-remove-find_get_pages_range_tag.patch
+mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch
+mm-mempolicy-convert-queue_pages_pte_range-to-queue_folios_pte_range.patch
+mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
+mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
+mm-mempolicy-convert-migrate_page_add-to-migrate_folio_add.patch
 
