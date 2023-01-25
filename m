@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAEEEC54E94
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Jan 2023 21:54:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5567C54E94
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Jan 2023 21:54:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235442AbjAYVyU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 16:54:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49044 "EHLO
+        id S235810AbjAYVy0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 16:54:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229454AbjAYVyT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 16:54:19 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C065986A8
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 13:54:18 -0800 (PST)
+        with ESMTP id S235950AbjAYVyZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 16:54:25 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50E51CC09
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 13:54:21 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5AD4061630
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 21:54:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B01D0C4339B;
-        Wed, 25 Jan 2023 21:54:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 022FCB819C5
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 21:54:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3C62C433D2;
+        Wed, 25 Jan 2023 21:54:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674683657;
-        bh=i9pGaRAD3w+aCW4UdbVgREfmDlUXoHXr/J3I9RU6inA=;
+        s=korg; t=1674683658;
+        bh=2VgQJbJhSefIuHhqQebjKRUGycFAdolh4Hhm2vgCTE4=;
         h=Date:To:From:Subject:From;
-        b=Qyhbl84LQRFjLThcewBE016Ob0RfSQ8GFOgr4rzA6gN0JqRs0t2PjXzz6NXnmAOhl
-         QsIPWaGSAwq57A4r23yGgJyDWAvyGoUHihuN3e/nSpe4y8PKcZpw9ZSknGV55tRsZ+
-         OoomUwmc2/kSZlBaYGvwiSfue8xTkJUrmmKU1gHI=
-Date:   Wed, 25 Jan 2023 13:54:17 -0800
+        b=c/TvPiWrTkXRC6SBYt6dTbGpz+fsf8hdZAoZ3J4DMTsySFQJmxqOgCNtZ81gGu2yV
+         XsRQyBTug6RP4Ycyy4e/+Tx8U7Lsh1mKQJjeKMwj4ZAlJ4KCbSsxAO/jzBeTy9lQ3T
+         3HkJxJPMylt2VHOWJuDnUCrV/+jqpJbesel5LonY=
+Date:   Wed, 25 Jan 2023 13:54:18 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-add-folio_estimated_mapcount.patch removed from -mm tree
-Message-Id: <20230125215417.B01D0C4339B@smtp.kernel.org>
+Subject: [to-be-updated] mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch removed from -mm tree
+Message-Id: <20230125215418.A3C62C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,58 +41,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add folio_estimated_mapcount()
+     Subject: mm/mempolicy: convert queue_pages_pmd() to queue_folios_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-add-folio_estimated_mapcount.patch
+     mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm: add folio_estimated_mapcount()
-Date: Mon, 23 Jan 2023 17:22:05 -0800
+Subject: mm/mempolicy: convert queue_pages_pmd() to queue_folios_pmd()
+Date: Mon, 23 Jan 2023 17:22:06 -0800
 
-Patch series "Convert various mempolicy.c functions", v2.
+The function now operates on a folio instead of the page associated with a
+pmd.
 
-This patch series converts migrate_page_add() and queue_pages_required()
-to migrate_folio_add() and queue_page_required().  It also converts the
-callers of the functions to use folios as well, and introduces a helper
-function to estimate a folio's mapcount.
+This change is in preparation for the conversion of queue_pages_required()
+to queue_folio_required() and migrate_page_add() to migrate_folio_add().
 
-
-This patch (of 6):
-
-folio_estimated_mapcount() takes in a folio and calls page_mapcount() on
-the first page of that folio.
-
-This is necessary for folio conversions where we only care about either the
-entire_mapcount of a large folio, or the mapcount of a not large folio.
-
-This is in contrast to folio_mapcount() which calculates the total
-number of the times a folio and its subpages are mapped.
-
-Link: https://lkml.kernel.org/r/20230124012210.13963-1-vishal.moola@gmail.com
-Link: https://lkml.kernel.org/r/20230124012210.13963-2-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230124012210.13963-3-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm.h~mm-add-folio_estimated_mapcount
-+++ a/include/linux/mm.h
-@@ -913,6 +913,11 @@ static inline int page_mapcount(struct p
- 	return mapcount;
+--- a/mm/mempolicy.c~mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd
++++ a/mm/mempolicy.c
+@@ -442,21 +442,21 @@ static inline bool queue_pages_required(
  }
  
-+static inline int folio_estimated_mapcount(struct folio *folio)
-+{
-+	return page_mapcount(folio_page(folio, 0));
-+}
-+
- int folio_total_mapcount(struct folio *folio);
+ /*
+- * queue_pages_pmd() has three possible return values:
+- * 0 - pages are placed on the right node or queued successfully, or
++ * queue_folios_pmd() has three possible return values:
++ * 0 - folios are placed on the right node or queued successfully, or
+  *     special page is met, i.e. huge zero page.
+- * 1 - there is unmovable page, and MPOL_MF_MOVE* & MPOL_MF_STRICT were
++ * 1 - there is unmovable folio, and MPOL_MF_MOVE* & MPOL_MF_STRICT were
+  *     specified.
+  * -EIO - is migration entry or only MPOL_MF_STRICT was specified and an
+- *        existing page was already on a node that does not follow the
++ *        existing folio was already on a node that does not follow the
+  *        policy.
+  */
+-static int queue_pages_pmd(pmd_t *pmd, spinlock_t *ptl, unsigned long addr,
++static int queue_folios_pmd(pmd_t *pmd, spinlock_t *ptl, unsigned long addr,
+ 				unsigned long end, struct mm_walk *walk)
+ 	__releases(ptl)
+ {
+ 	int ret = 0;
+-	struct page *page;
++	struct folio *folio;
+ 	struct queue_pages *qp = walk->private;
+ 	unsigned long flags;
  
- /**
+@@ -464,19 +464,19 @@ static int queue_pages_pmd(pmd_t *pmd, s
+ 		ret = -EIO;
+ 		goto unlock;
+ 	}
+-	page = pmd_page(*pmd);
+-	if (is_huge_zero_page(page)) {
++	folio = pfn_folio(pmd_pfn(*pmd));
++	if (is_huge_zero_page(&folio->page)) {
+ 		walk->action = ACTION_CONTINUE;
+ 		goto unlock;
+ 	}
+-	if (!queue_pages_required(page, qp))
++	if (!queue_pages_required(&folio->page, qp))
+ 		goto unlock;
+ 
+ 	flags = qp->flags;
+-	/* go to thp migration */
++	/* go to folio migration */
+ 	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) {
+ 		if (!vma_migratable(walk->vma) ||
+-		    migrate_page_add(page, qp->pagelist, flags)) {
++		    migrate_page_add(&folio->page, qp->pagelist, flags)) {
+ 			ret = 1;
+ 			goto unlock;
+ 		}
+@@ -512,7 +512,7 @@ static int queue_pages_pte_range(pmd_t *
+ 
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl)
+-		return queue_pages_pmd(pmd, ptl, addr, end, walk);
++		return queue_folios_pmd(pmd, ptl, addr, end, walk);
+ 
+ 	if (pmd_trans_unstable(pmd))
+ 		return 0;
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
@@ -122,7 +158,6 @@ nilfs2-convert-nilfs_btree_lookup_dirty_buffers-to-use-filemap_get_folios_tag.pa
 nilfs2-convert-nilfs_copy_dirty_pages-to-use-filemap_get_folios_tag.patch
 nilfs2-convert-nilfs_clear_dirty_pages-to-use-filemap_get_folios_tag.patch
 filemap-remove-find_get_pages_range_tag.patch
-mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch
 mm-mempolicy-convert-queue_pages_pte_range-to-queue_folios_pte_range.patch
 mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
 mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
