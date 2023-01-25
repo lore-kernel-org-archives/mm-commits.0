@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5567C54E94
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Jan 2023 21:54:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF91C27C76
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Jan 2023 21:54:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235810AbjAYVy0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 16:54:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49172 "EHLO
+        id S235962AbjAYVy1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 16:54:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235950AbjAYVyZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 16:54:25 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50E51CC09
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 13:54:21 -0800 (PST)
+        with ESMTP id S235929AbjAYVyY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 16:54:24 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD01BB46F
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 13:54:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 022FCB819C5
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 615306162F
         for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 21:54:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3C62C433D2;
-        Wed, 25 Jan 2023 21:54:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1F52C4339C;
+        Wed, 25 Jan 2023 21:54:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674683658;
-        bh=2VgQJbJhSefIuHhqQebjKRUGycFAdolh4Hhm2vgCTE4=;
+        s=korg; t=1674683659;
+        bh=8T/IqlJ9bg7dHInYwEx2+mBk+JNIBII1XlVpzPMq9To=;
         h=Date:To:From:Subject:From;
-        b=c/TvPiWrTkXRC6SBYt6dTbGpz+fsf8hdZAoZ3J4DMTsySFQJmxqOgCNtZ81gGu2yV
-         XsRQyBTug6RP4Ycyy4e/+Tx8U7Lsh1mKQJjeKMwj4ZAlJ4KCbSsxAO/jzBeTy9lQ3T
-         3HkJxJPMylt2VHOWJuDnUCrV/+jqpJbesel5LonY=
-Date:   Wed, 25 Jan 2023 13:54:18 -0800
+        b=zs+u3gjSuVs96EYeFFPpvD09tuRFvdA5xiH9h+grtC/FfgQLitgIpzUZoR8kUTwYh
+         X1tXjUqtA18wEehPBYxFg7MftTBzWidvFv4Axd4UrAC0pB4o8RdTTuNQJmWlMuTw4s
+         ZQ0QyU/1edXijKfFZQ/QlcwTu1DbKgzX4DJDsJA8=
+Date:   Wed, 25 Jan 2023 13:54:19 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch removed from -mm tree
-Message-Id: <20230125215418.A3C62C433D2@smtp.kernel.org>
+Subject: [to-be-updated] mm-mempolicy-convert-queue_pages_pte_range-to-queue_folios_pte_range.patch removed from -mm tree
+Message-Id: <20230125215419.B1F52C4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,94 +41,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mempolicy: convert queue_pages_pmd() to queue_folios_pmd()
+     Subject: mm/mempolicy: convert queue_pages_pte_range() to queue_folios_pte_range()
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch
+     mm-mempolicy-convert-queue_pages_pte_range-to-queue_folios_pte_range.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/mempolicy: convert queue_pages_pmd() to queue_folios_pmd()
-Date: Mon, 23 Jan 2023 17:22:06 -0800
+Subject: mm/mempolicy: convert queue_pages_pte_range() to queue_folios_pte_range()
+Date: Mon, 23 Jan 2023 17:22:07 -0800
 
-The function now operates on a folio instead of the page associated with a
-pmd.
+This function now operates on folios associated with ptes instead of
+pages.
 
 This change is in preparation for the conversion of queue_pages_required()
 to queue_folio_required() and migrate_page_add() to migrate_folio_add().
 
-Link: https://lkml.kernel.org/r/20230124012210.13963-3-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230124012210.13963-4-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mempolicy.c~mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd
+--- a/mm/mempolicy.c~mm-mempolicy-convert-queue_pages_pte_range-to-queue_folios_pte_range
 +++ a/mm/mempolicy.c
-@@ -442,21 +442,21 @@ static inline bool queue_pages_required(
- }
- 
- /*
-- * queue_pages_pmd() has three possible return values:
+@@ -491,19 +491,19 @@ unlock:
+  * Scan through pages checking if pages follow certain conditions,
+  * and move them to the pagelist if they do.
+  *
+- * queue_pages_pte_range() has three possible return values:
 - * 0 - pages are placed on the right node or queued successfully, or
-+ * queue_folios_pmd() has three possible return values:
++ * queue_folios_pte_range() has three possible return values:
 + * 0 - folios are placed on the right node or queued successfully, or
-  *     special page is met, i.e. huge zero page.
+  *     special page is met, i.e. zero page.
 - * 1 - there is unmovable page, and MPOL_MF_MOVE* & MPOL_MF_STRICT were
 + * 1 - there is unmovable folio, and MPOL_MF_MOVE* & MPOL_MF_STRICT were
   *     specified.
-  * -EIO - is migration entry or only MPOL_MF_STRICT was specified and an
-- *        existing page was already on a node that does not follow the
-+ *        existing folio was already on a node that does not follow the
-  *        policy.
+- * -EIO - only MPOL_MF_STRICT was specified and an existing page was already
++ * -EIO - only MPOL_MF_STRICT was specified and an existing folio was already
+  *        on a node that does not follow the policy.
   */
--static int queue_pages_pmd(pmd_t *pmd, spinlock_t *ptl, unsigned long addr,
-+static int queue_folios_pmd(pmd_t *pmd, spinlock_t *ptl, unsigned long addr,
- 				unsigned long end, struct mm_walk *walk)
- 	__releases(ptl)
+-static int queue_pages_pte_range(pmd_t *pmd, unsigned long addr,
++static int queue_folios_pte_range(pmd_t *pmd, unsigned long addr,
+ 			unsigned long end, struct mm_walk *walk)
  {
- 	int ret = 0;
+ 	struct vm_area_struct *vma = walk->vma;
 -	struct page *page;
 +	struct folio *folio;
  	struct queue_pages *qp = walk->private;
- 	unsigned long flags;
+ 	unsigned long flags = qp->flags;
+ 	bool has_unmovable = false;
+@@ -521,16 +521,16 @@ static int queue_pages_pte_range(pmd_t *
+ 	for (; addr != end; pte++, addr += PAGE_SIZE) {
+ 		if (!pte_present(*pte))
+ 			continue;
+-		page = vm_normal_page(vma, addr, *pte);
+-		if (!page || is_zone_device_page(page))
++		folio = vm_normal_folio(vma, addr, *pte);
++		if (!folio || folio_is_zone_device(folio))
+ 			continue;
+ 		/*
+-		 * vm_normal_page() filters out zero pages, but there might
+-		 * still be PageReserved pages to skip, perhaps in a VDSO.
++		 * vm_normal_folio() filters out zero pages, but there might
++		 * still be reserved folios to skip, perhaps in a VDSO.
+ 		 */
+-		if (PageReserved(page))
++		if (folio_test_reserved(folio))
+ 			continue;
+-		if (!queue_pages_required(page, qp))
++		if (!queue_pages_required(&folio->page, qp))
+ 			continue;
+ 		if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) {
+ 			/* MPOL_MF_STRICT must be specified if we get here */
+@@ -544,7 +544,7 @@ static int queue_pages_pte_range(pmd_t *
+ 			 * temporary off LRU pages in the range.  Still
+ 			 * need migrate other LRU pages.
+ 			 */
+-			if (migrate_page_add(page, qp->pagelist, flags))
++			if (migrate_page_add(&folio->page, qp->pagelist, flags))
+ 				has_unmovable = true;
+ 		} else
+ 			break;
+@@ -703,7 +703,7 @@ static int queue_pages_test_walk(unsigne
  
-@@ -464,19 +464,19 @@ static int queue_pages_pmd(pmd_t *pmd, s
- 		ret = -EIO;
- 		goto unlock;
- 	}
--	page = pmd_page(*pmd);
--	if (is_huge_zero_page(page)) {
-+	folio = pfn_folio(pmd_pfn(*pmd));
-+	if (is_huge_zero_page(&folio->page)) {
- 		walk->action = ACTION_CONTINUE;
- 		goto unlock;
- 	}
--	if (!queue_pages_required(page, qp))
-+	if (!queue_pages_required(&folio->page, qp))
- 		goto unlock;
+ static const struct mm_walk_ops queue_pages_walk_ops = {
+ 	.hugetlb_entry		= queue_pages_hugetlb,
+-	.pmd_entry		= queue_pages_pte_range,
++	.pmd_entry		= queue_folios_pte_range,
+ 	.test_walk		= queue_pages_test_walk,
+ };
  
- 	flags = qp->flags;
--	/* go to thp migration */
-+	/* go to folio migration */
- 	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) {
- 		if (!vma_migratable(walk->vma) ||
--		    migrate_page_add(page, qp->pagelist, flags)) {
-+		    migrate_page_add(&folio->page, qp->pagelist, flags)) {
- 			ret = 1;
- 			goto unlock;
- 		}
-@@ -512,7 +512,7 @@ static int queue_pages_pte_range(pmd_t *
- 
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (ptl)
--		return queue_pages_pmd(pmd, ptl, addr, end, walk);
-+		return queue_folios_pmd(pmd, ptl, addr, end, walk);
- 
- 	if (pmd_trans_unstable(pmd))
- 		return 0;
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
@@ -158,7 +163,6 @@ nilfs2-convert-nilfs_btree_lookup_dirty_buffers-to-use-filemap_get_folios_tag.pa
 nilfs2-convert-nilfs_copy_dirty_pages-to-use-filemap_get_folios_tag.patch
 nilfs2-convert-nilfs_clear_dirty_pages-to-use-filemap_get_folios_tag.patch
 filemap-remove-find_get_pages_range_tag.patch
-mm-mempolicy-convert-queue_pages_pte_range-to-queue_folios_pte_range.patch
 mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
 mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
 mm-mempolicy-convert-migrate_page_add-to-migrate_folio_add.patch
