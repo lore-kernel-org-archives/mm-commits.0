@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A771C54EAA
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 00:19:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C760C54E94
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 00:19:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229642AbjAZATh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 19:19:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60846 "EHLO
+        id S234492AbjAZATj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 19:19:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230329AbjAZATf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 19:19:35 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 119B65142D
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 16:19:34 -0800 (PST)
+        with ESMTP id S230329AbjAZATi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 19:19:38 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ECE15142D
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 16:19:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A198A616D6
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 00:19:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05042C433EF;
-        Thu, 26 Jan 2023 00:19:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 23B00B81C64
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 00:19:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA2FDC433D2;
+        Thu, 26 Jan 2023 00:19:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674692373;
-        bh=RWuKcGMeZkspJ7Zj2A/Wb82GAlPuNYQtL0hkBUlQ01U=;
+        s=korg; t=1674692374;
+        bh=PYewhYLlzalsV2CiXrG0qnJC5fo46kbESFpfMCQ+H+I=;
         h=Date:To:From:Subject:From;
-        b=Vm7ogSmgmkBHlTbX4ep4olaSAYJcub4FbwSNkhnLQKO9MGz1ftQ/BKQTioyXT35eu
-         RPOUPl8L2G0J1SvzeuvbNarUsYrCqdq+3ij1W5ZAv1UPeOb/M4+WWj215kRId8Z0Vi
-         XGmHxd3qqJDEAXBLbQSrefhri8JQ01lRESferDA8=
-Date:   Wed, 25 Jan 2023 16:19:32 -0800
+        b=YeltfxOsS3hIpojeWaKVjRO2TYO2VkgHcDY8+aDB0cXjKhdsT0kIEyD+hVdq/SiYn
+         4OWHxtA3JRP6XfX7Dif8d5+2eDzglCAgKYHIooeqzAACtf5si8URec6eAq5oxJgc52
+         XVfozn6R8KcKxVoluSh+riGvTHcxIfnOnf/2VxXo=
+Date:   Wed, 25 Jan 2023 16:19:34 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch added to mm-unstable branch
-Message-Id: <20230126001933.05042C433EF@smtp.kernel.org>
+Subject: + mm-mempolicy-convert-migrate_page_add-to-migrate_folio_add.patch added to mm-unstable branch
+Message-Id: <20230126001934.BA2FDC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: convert queue_pages_required() to queue_folio_required()
+     Subject: mm/mempolicy: convert migrate_page_add() to migrate_folio_add()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
+     mm-mempolicy-convert-migrate_page_add-to-migrate_folio_add.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-convert-migrate_page_add-to-migrate_folio_add.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,68 +65,102 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/mempolicy: convert queue_pages_required() to queue_folio_required()
-Date: Wed, 25 Jan 2023 15:41:33 -0800
+Subject: mm/mempolicy: convert migrate_page_add() to migrate_folio_add()
+Date: Wed, 25 Jan 2023 15:41:34 -0800
 
-Replace queue_pages_required() with queue_folio_required(). 
-queue_folio_required() does the same as queue_pages_required(), except
-takes in a folio instead of a page.
+Replace migrate_page_add() with migrate_folio_add().  migrate_folio_add()
+does the same a migrate_page_add() but takes in a folio instead of a page.
+This removes a couple of calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20230125234134.227244-6-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230125234134.227244-7-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mempolicy.c~mm-mempolicy-convert-queue_pages_required-to-queue_folio_required
+--- a/mm/mempolicy.c~mm-mempolicy-convert-migrate_page_add-to-migrate_folio_add
 +++ a/mm/mempolicy.c
-@@ -427,15 +427,15 @@ struct queue_pages {
+@@ -414,7 +414,7 @@ static const struct mempolicy_operations
+ 	},
  };
  
- /*
-- * Check if the page's nid is in qp->nmask.
-+ * Check if the folio's nid is in qp->nmask.
-  *
-  * If MPOL_MF_INVERT is set in qp->flags, check if the nid is
-  * in the invert of qp->nmask.
-  */
--static inline bool queue_pages_required(struct page *page,
-+static inline bool queue_folio_required(struct folio *folio,
- 					struct queue_pages *qp)
+-static int migrate_page_add(struct page *page, struct list_head *pagelist,
++static int migrate_folio_add(struct folio *folio, struct list_head *foliolist,
+ 				unsigned long flags);
+ 
+ struct queue_pages {
+@@ -476,7 +476,7 @@ static int queue_folios_pmd(pmd_t *pmd,
+ 	/* go to folio migration */
+ 	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) {
+ 		if (!vma_migratable(walk->vma) ||
+-		    migrate_page_add(&folio->page, qp->pagelist, flags)) {
++		    migrate_folio_add(folio, qp->pagelist, flags)) {
+ 			ret = 1;
+ 			goto unlock;
+ 		}
+@@ -544,7 +544,7 @@ static int queue_folios_pte_range(pmd_t
+ 			 * temporary off LRU pages in the range.  Still
+ 			 * need migrate other LRU pages.
+ 			 */
+-			if (migrate_page_add(&folio->page, qp->pagelist, flags))
++			if (migrate_folio_add(folio, qp->pagelist, flags))
+ 				has_unmovable = true;
+ 		} else
+ 			break;
+@@ -1020,27 +1020,28 @@ static long do_get_mempolicy(int *policy
+ }
+ 
+ #ifdef CONFIG_MIGRATION
+-/*
+- * page migration, thp tail pages can be passed.
+- */
+-static int migrate_page_add(struct page *page, struct list_head *pagelist,
++static int migrate_folio_add(struct folio *folio, struct list_head *foliolist,
+ 				unsigned long flags)
  {
--	int nid = page_to_nid(page);
-+	int nid = folio_nid(folio);
- 	unsigned long flags = qp->flags;
+-	struct page *head = compound_head(page);
+ 	/*
+-	 * Avoid migrating a page that is shared with others.
++	 * We try to migrate only unshared folios. If it is shared it
++	 * is likely not worth migrating.
++	 *
++	 * To check if the folio is shared, ideally we want to make sure
++	 * every page is mapped to the same process. Doing that is very
++	 * expensive, so check the estimated mapcount of the folio instead.
+ 	 */
+-	if ((flags & MPOL_MF_MOVE_ALL) || page_mapcount(head) == 1) {
+-		if (!isolate_lru_page(head)) {
+-			list_add_tail(&head->lru, pagelist);
+-			mod_node_page_state(page_pgdat(head),
+-				NR_ISOLATED_ANON + page_is_file_lru(head),
+-				thp_nr_pages(head));
++	if ((flags & MPOL_MF_MOVE_ALL) || folio_estimated_mapcount(folio) == 1) {
++		if (!folio_isolate_lru(folio)) {
++			list_add_tail(&folio->lru, foliolist);
++			node_stat_mod_folio(folio,
++				NR_ISOLATED_ANON + folio_is_file_lru(folio),
++				folio_nr_pages(folio));
+ 		} else if (flags & MPOL_MF_STRICT) {
+ 			/*
+-			 * Non-movable page may reach here.  And, there may be
+-			 * temporary off LRU pages or non-LRU movable pages.
+-			 * Treat them as unmovable pages since they can't be
++			 * Non-movable folio may reach here.  And, there may be
++			 * temporary off LRU folios or non-LRU movable folios.
++			 * Treat them as unmovable folios since they can't be
+ 			 * isolated, so they can't be moved at the moment.  It
+ 			 * should return -EIO for this case too.
+ 			 */
+@@ -1232,7 +1233,7 @@ static struct page *new_page(struct page
+ }
+ #else
  
- 	return node_isset(nid, *qp->nmask) == !(flags & MPOL_MF_INVERT);
-@@ -469,7 +469,7 @@ static int queue_folios_pmd(pmd_t *pmd,
- 		walk->action = ACTION_CONTINUE;
- 		goto unlock;
- 	}
--	if (!queue_pages_required(&folio->page, qp))
-+	if (!queue_folio_required(folio, qp))
- 		goto unlock;
- 
- 	flags = qp->flags;
-@@ -530,7 +530,7 @@ static int queue_folios_pte_range(pmd_t
- 		 */
- 		if (folio_test_reserved(folio))
- 			continue;
--		if (!queue_pages_required(&folio->page, qp))
-+		if (!queue_folio_required(folio, qp))
- 			continue;
- 		if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) {
- 			/* MPOL_MF_STRICT must be specified if we get here */
-@@ -575,7 +575,7 @@ static int queue_folios_hugetlb(pte_t *p
- 	if (!pte_present(entry))
- 		goto unlock;
- 	folio = pfn_folio(pte_pfn(entry));
--	if (!queue_pages_required(&folio->page, qp))
-+	if (!queue_folio_required(folio, qp))
- 		goto unlock;
- 
- 	if (flags == MPOL_MF_STRICT) {
+-static int migrate_page_add(struct page *page, struct list_head *pagelist,
++static int migrate_folio_add(struct folio *folio, struct list_head *foliolist,
+ 				unsigned long flags)
+ {
+ 	return -EIO;
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
