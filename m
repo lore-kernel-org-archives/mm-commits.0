@@ -2,121 +2,108 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A43CC05027
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 22:48:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E76C8C54EAA
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 22:49:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229639AbjAZWsY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 Jan 2023 17:48:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48226 "EHLO
+        id S232939AbjAZWtH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 26 Jan 2023 17:49:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232988AbjAZWsW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 17:48:22 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 762833E098;
-        Thu, 26 Jan 2023 14:48:19 -0800 (PST)
+        with ESMTP id S231668AbjAZWtE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 17:49:04 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C2554CE7D
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 14:49:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2B8C9B81F31;
-        Thu, 26 Jan 2023 22:48:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5CF9C433EF;
-        Thu, 26 Jan 2023 22:48:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AB8FC6195E
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 22:49:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FDCEC433D2;
+        Thu, 26 Jan 2023 22:49:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674773296;
-        bh=JHYtMO8JqsaXugOrfIgxQQU/dzx1jV4AWt2zAjd/JoU=;
+        s=korg; t=1674773343;
+        bh=vpXxA88PH9py2WWEqBzKdQdoxUKj8a3YV+tXnjWs+kM=;
         h=Date:To:From:Subject:From;
-        b=gSCaz7txm7jAv+1RtbxL2A5/Cq5giVqtBKA/U/xaYJFs6jVGZt3gy1JkcQh6rq2VI
-         7ADp4e16BfyqUPL4xLJ+n63apRzuBjzQ3HvqE8BYly+uPdC2IwMQ3o7emaqh+PzoTq
-         UXcd+Wd113ZNiSCXsFRvdxiR+fkrdGwTSelTVc3E=
-Date:   Thu, 26 Jan 2023 14:48:16 -0800
+        b=B/yfOyZa8jdKGDHB9HUFUvwsRb7/Vx4K4IL/gEMyFXBPF5NZdn+jmgMADyYn/ejJM
+         Rz1s2WYuDI8Ea07hdJ56QUzgcUwTb5dfy57bC7KFPO+qF3+9shCk7KMBJd2RIF3Cbj
+         zlvzH1CwqkgiajMK5xMiUfyDlWhZYgCo04huhoy0=
+Date:   Thu, 26 Jan 2023 14:49:02 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.moola@gmail.com, stable@vger.kernel.org,
-        songmuchun@bytedance.com, shy828301@gmail.com, peterx@redhat.com,
-        naoya.horiguchi@linux.dev, mhocko@suse.com, jthoughton@google.com,
-        david@redhat.com, mike.kravetz@oracle.com,
-        akpm@linux-foundation.org
+        viro@zeniv.linux.org.uk, tony.luck@intel.com, tglx@linutronix.de,
+        keescook@chromium.org, ira.weiny@intel.com, glider@google.com,
+        dsterba@suse.com, deller@gmx.de, bigeasy@linutronix.de,
+        bagasdotme@gmail.com, andreyknvl@gmail.com,
+        fmdefrancesco@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + migrate-hugetlb-check-for-hugetlb-shared-pmd-in-node-migration.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230126224816.C5CF9C433EF@smtp.kernel.org>
+Subject: [to-be-updated] mm-highmem-align-down-to-page-the-address-for-kunmap_flush_on_unmap.patch removed from -mm tree
+Message-Id: <20230126224903.0FDCEC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: migrate: hugetlb: check for hugetlb shared PMD in node migration
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     migrate-hugetlb-check-for-hugetlb-shared-pmd-in-node-migration.patch
+The quilt patch titled
+     Subject: mm/highmem: align-down to page the address for kunmap_flush_on_unmap()
+has been removed from the -mm tree.  Its filename was
+     mm-highmem-align-down-to-page-the-address-for-kunmap_flush_on_unmap.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate-hugetlb-check-for-hugetlb-shared-pmd-in-node-migration.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: migrate: hugetlb: check for hugetlb shared PMD in node migration
-Date: Thu, 26 Jan 2023 14:27:21 -0800
+From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Subject: mm/highmem: align-down to page the address for kunmap_flush_on_unmap()
+Date: Thu, 26 Jan 2023 15:33:46 +0100
 
-migrate_pages/mempolicy semantics state that CAP_SYS_NICE is required to
-move pages shared with another process to a different node.  page_mapcount
-> 1 is being used to determine if a hugetlb page is shared.  However, a
-hugetlb page will have a mapcount of 1 if mapped by multiple processes via
-a shared PMD.  As a result, hugetlb pages shared by multiple processes and
-mapped with a shared PMD can be moved by a process without CAP_SYS_NICE.
+If ARCH_HAS_FLUSH_ON_KUNMAP is defined (PA-RISC case), __kunmap_local()
+calls kunmap_flush_on_unmap().  The latter currently flushes the wrong
+address (as confirmed by Matthew Wilcox and Helge Deller).  Al Viro
+proposed to call kunmap_flush_on_unmap() on an aligned-down to page
+address in order to fix this issue.  Consensus has been reached on this
+solution.
 
-To fix, check for a shared PMD if mapcount is 1.  If a shared PMD is found
-consider the page shared.
+Therefore, if ARCH_HAS_FLUSH_ON_KUNMAP is defined, call
+kunmap_flush_on_unmap() on an aligned-down to page address computed with
+the PTR_ALIGN_DOWN() macro.
 
-Link: https://lkml.kernel.org/r/20230126222721.222195-3-mike.kravetz@oracle.com
-Fixes: e2d8cf405525 ("migrate: add hugepage migration code to migrate_pages()")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: James Houghton <jthoughton@google.com>
+Link: https://lkml.kernel.org/r/20230126143346.12086-1-fmdefrancesco@gmail.com
+Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
+Fixes: f3ba3c710ac5 ("mm/highmem: Provide kmap_local*")
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Helge Deller <deller@gmx.de>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/highmem-internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~migrate-hugetlb-check-for-hugetlb-shared-pmd-in-node-migration
-+++ a/mm/mempolicy.c
-@@ -600,7 +600,8 @@ static int queue_pages_hugetlb(pte_t *pt
+--- a/include/linux/highmem-internal.h~mm-highmem-align-down-to-page-the-address-for-kunmap_flush_on_unmap
++++ a/include/linux/highmem-internal.h
+@@ -200,7 +200,7 @@ static inline void *kmap_local_pfn(unsig
+ static inline void __kunmap_local(const void *addr)
+ {
+ #ifdef ARCH_HAS_FLUSH_ON_KUNMAP
+-	kunmap_flush_on_unmap(addr);
++	kunmap_flush_on_unmap(PTR_ALIGN_DOWN(addr, PAGE_SIZE));
+ #endif
+ }
  
- 	/* With MPOL_MF_MOVE, we migrate only unshared hugepage. */
- 	if (flags & (MPOL_MF_MOVE_ALL) ||
--	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1)) {
-+	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1 &&
-+	     !hugetlb_pmd_shared(pte))) {
- 		if (isolate_hugetlb(page, qp->pagelist) &&
- 			(flags & MPOL_MF_STRICT))
- 			/*
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from fmdefrancesco@gmail.com are
 
-mm-hugetlb-proc-check-for-hugetlb-shared-pmd-in-proc-pid-smaps.patch
-migrate-hugetlb-check-for-hugetlb-shared-pmd-in-node-migration.patch
+mm-highmem-add-notes-about-conversions-from-kmap_atomic.patch
+mm-highmem-add-notes-about-conversions-from-kmap_atomic-v3.patch
 
