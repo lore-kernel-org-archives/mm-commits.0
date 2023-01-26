@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 927ACC54E94
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 01:17:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08F95C27C76
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 01:17:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229475AbjAZBRt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 20:17:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36404 "EHLO
+        id S235536AbjAZBRz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 20:17:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235536AbjAZBRr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 20:17:47 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FC773A9B
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 17:17:45 -0800 (PST)
+        with ESMTP id S235607AbjAZBRv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 20:17:51 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD181EFB8
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 17:17:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 03A2FB81C6F
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 01:17:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 747CFC4339B;
-        Thu, 26 Jan 2023 01:17:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7F787B81C6F
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 01:17:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21F8CC433D2;
+        Thu, 26 Jan 2023 01:17:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674695862;
-        bh=wqavTumsN5CWyqM3WSoxhoStZ3NBgChXETigw0Xb67I=;
+        s=korg; t=1674695866;
+        bh=jLqIwwpnlQ2vFEDNLcXef3XRIBVuoJMGvOZwnxQFA9c=;
         h=Date:To:From:Subject:From;
-        b=baFqj2Tr/8i5nfRtR8X38xmqiRQS7awOtoYRNQ+RbNTt3DeGtSEUAh1MKK6sINHFX
-         f8V5sNz7Tpc2QDRUeISUwkb0tFpa0uzAmgYqr1OW/6EWgasDwRB7CSwAz6fSIEabgS
-         LcCYipYCJFvdMKQjoT61qJAhWxaOnPBgQwLkLeO8=
-Date:   Wed, 25 Jan 2023 17:17:41 -0800
-To:     mm-commits@vger.kernel.org, zhouchuyi@bytedance.com,
-        vbabka@suse.cz, pedro.falcato@gmail.com, pbonzini@redhat.com,
-        mlevitsk@redhat.com, mhocko@kernel.org, jirislaby@kernel.org,
-        mgorman@techsingularity.net, akpm@linux-foundation.org
+        b=UoOHHaXH9CKDfIhGBFBxOTw3+vzBWc48XkrhVJVLNFixD6fsHlCjqrFBzoZfUA5pl
+         KVCQeEEi53K1wssV63DBb7me/KK/8QgC7MiEdAZzECh8ptBAvQ9DZeWYkg5xXCkLlI
+         y18gD51ndcDUJ5YBHsyKFxdYXYhlhyzlkB51Q+rw=
+Date:   Wed, 25 Jan 2023 17:17:45 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        pedro.falcato@gmail.com, pbonzini@redhat.com, mlevitsk@redhat.com,
+        mhocko@kernel.org, mgorman@techsingularity.net,
+        jirislaby@kernel.org, zhouchuyi@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-finish-scanning-the-current-pageblock-if-requested.patch added to mm-unstable branch
-Message-Id: <20230126011742.747CFC4339B@smtp.kernel.org>
+Subject: + mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch added to mm-unstable branch
+Message-Id: <20230126011746.21F8CC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: finish scanning the current pageblock if requested
+     Date: Wed Jul 13 14:20:09 2022 +0800
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-finish-scanning-the-current-pageblock-if-requested.patch
+     mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-finish-scanning-the-current-pageblock-if-requested.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,18 +67,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, compaction: finish scanning the current pageblock if requested
-Date: Wed, 25 Jan 2023 13:44:33 +0000
 
-cc->finish_pageblock is set when the current pageblock should be rescanned
-but fast_find_migrateblock can select an alternative block.  Disable
-fast_find_migrateblock when the current pageblock scan should be
-completed.
+Frm: Chuyi Zhou <zhouchuyi@bytedance.com>
+Date: Wed Jul 13 14:20:09 2022 +0800
+Subject: mm/compaction: fix set skip in fast_find_migrateblock
 
-Link: https://lkml.kernel.org/r/20230125134434.18017-4-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Chuyi Zhou <zhouchuyi@bytedance.com>
+(akpm: this is a reapplication of 7efc3b726103, after Mel's "Fix excessive
+CPU usage during compaction" series addressed issues whcih this patch
+originally exposed).
+
+When we successfully find a pageblock in fast_find_migrateblock(), the
+block will be set skip-flag through set_pageblock_skip().  However, when
+entering isolate_migratepages_block(), the whole pageblock will be skipped
+due to the branch 'if (!valid_page && IS_ALIGNED(low_pfn,
+pageblock_nr_pages))'.  Eventually we will goto isolate_abort and isolate
+nothing.  That makes fast_find_migrateblock useless.
+
+In this patch, when we find a suitable pageblock in
+fast_find_migrateblock, we do noting but let isolate_migratepages_block to
+set skip flag to the pageblock after scan it.  Normally, we would isolate
+some pages from the fast-find block.
+
+I use mmtest/thpscale-madvhugepage test it. Here is the result:
+                            baseline               patch
+Amean     fault-both-1      1331.66 (   0.00%)     1261.04 *   5.30%*
+Amean     fault-both-3      1383.95 (   0.00%)     1191.69 *  13.89%*
+Amean     fault-both-5      1568.13 (   0.00%)     1445.20 *   7.84%*
+Amean     fault-both-7      1819.62 (   0.00%)     1555.13 *  14.54%*
+Amean     fault-both-12     1106.96 (   0.00%)     1149.43 *  -3.84%*
+Amean     fault-both-18     2196.93 (   0.00%)     1875.77 *  14.62%*
+Amean     fault-both-24     2642.69 (   0.00%)     2671.21 *  -1.08%*
+Amean     fault-both-30     2901.89 (   0.00%)     2857.32 *   1.54%*
+Amean     fault-both-32     3747.00 (   0.00%)     3479.23 *   7.15%*
+
+Link: https://lkml.kernel.org/r/20220713062009.597255-1-zhouchuyi@bytedance.com
+Fixes: 70b44595eafe9 ("mm, compaction: use free lists to quickly locate a migration source")
+Signed-off-by: zhouchuyi <zhouchuyi@bytedance.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Jiri Slaby <jirislaby@kernel.org>
 Cc: Maxim Levitsky <mlevitsk@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -88,33 +114,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/compaction.c~mm-compaction-finish-scanning-the-current-pageblock-if-requested
+--- a/mm/compaction.c~mm-compaction-fix-set-skip-in-fast_find_migrateblock
 +++ a/mm/compaction.c
-@@ -1762,6 +1762,13 @@ static unsigned long fast_find_migratebl
- 		return pfn;
- 
- 	/*
-+	 * If the pageblock should be finished then do not select a different
-+	 * pageblock.
-+	 */
-+	if (cc->finish_pageblock)
-+		return pfn;
-+
-+	/*
- 	 * If the migrate_pfn is not at the start of a zone or the start
- 	 * of a pageblock then assume this is a continuation of a previous
- 	 * scan restarted due to COMPACT_CLUSTER_MAX.
+@@ -1845,7 +1845,6 @@ static unsigned long fast_find_migratebl
+ 					pfn = cc->zone->zone_start_pfn;
+ 				cc->fast_search_fail = 0;
+ 				found_block = true;
+-				set_pageblock_skip(freepage);
+ 				break;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from zhouchuyi@bytedance.com are
 
-mm-page_alloc-rename-alloc_high-to-alloc_min_reserve.patch
-mm-page_alloc-treat-rt-tasks-similar-to-__gfp_high.patch
-mm-page_alloc-explicitly-record-high-order-atomic-allocations-in-alloc_flags.patch
-mm-page_alloc-explicitly-define-what-alloc-flags-deplete-min-reserves.patch
-mm-page_alloc-explicitly-define-how-__gfp_high-non-blocking-allocations-accesses-reserves.patch
-mm-compaction-rename-compact_control-rescan-to-finish_pageblock.patch
-mm-compaction-check-if-a-page-has-been-captured-before-draining-pcp-pages.patch
-mm-compaction-finish-scanning-the-current-pageblock-if-requested.patch
-mm-compaction-finish-pageblocks-on-complete-migration-failure.patch
 
