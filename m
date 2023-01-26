@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AEB1C05027
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 21:18:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A095C54EAA
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 22:32:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230109AbjAZVSc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 Jan 2023 16:18:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47378 "EHLO
+        id S232460AbjAZWcM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 26 Jan 2023 17:32:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229828AbjAZVSb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 16:18:31 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BC5F301B9
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 13:18:30 -0800 (PST)
+        with ESMTP id S232620AbjAZWcL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 17:32:11 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 708B15DC12
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 14:31:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EBBA1617CE
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 21:18:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E766C433D2;
-        Thu, 26 Jan 2023 21:18:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3144CB81F39
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 22:31:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ED2AC433EF;
+        Thu, 26 Jan 2023 22:31:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674767909;
-        bh=SMZoxCtFsHRGL14avq3xtBfgZfbp9fWoHPbvnjY3Uzw=;
+        s=korg; t=1674772313;
+        bh=gMT+75IgQhxYBccf6U4vlCLFKAraLxrVPfVo00J0dDQ=;
         h=Date:To:From:Subject:From;
-        b=X/2FfHhjS17YCcTqDlZ+hqGP7EGHq7UWmwkcniIphQSOpISj0VdG+e5CZQRpE3nuI
-         epL5Oo3d58qWcP5oVnml+78nbmwFeiObg83G1gW/dvSVqd2OfMk0KypmFJ8hEngf+Z
-         XPmz/rHIojn5hBgvS+gG4EIxzn29ENnRqnDyD8p4=
-Date:   Thu, 26 Jan 2023 13:18:28 -0800
-To:     mm-commits@vger.kernel.org,
-        syzbot+5d5d25f90f195a3cfcb4@syzkaller.appspotmail.com,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=UVJDLoJB3Aj0k61mN6akOcxBdw6psLruIch/RgaxRnkGlAQmMehMEEF8hKOZzvhC+
+         zkiIdhvnbM3u9mCfy1hkxYnH1GkXbB6/2WO5xkQX0YX/Fi/oVQJ3irgkTY99OdbV5x
+         vRdwJh48pI6koOc74Mc5vXZTESFRKr4SktN5IlUo=
+Date:   Thu, 26 Jan 2023 14:31:53 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        tonyb@cybernetics.com, hch@lst.de, kbusch@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-replace-warn_ons-for-invalid-dat-metadata-block-requests.patch added to mm-nonmm-unstable branch
-Message-Id: <20230126211829.4E766C433D2@smtp.kernel.org>
+Subject: + dmapool-add-alloc-free-performance-test.patch added to mm-unstable branch
+Message-Id: <20230126223153.9ED2AC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: replace WARN_ONs for invalid DAT metadata block requests
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-replace-warn_ons-for-invalid-dat-metadata-block-requests.patch
+     Subject: dmapool: add alloc/free performance test
+has been added to the -mm mm-unstable branch.  Its filename is
+     dmapool-add-alloc-free-performance-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-replace-warn_ons-for-invalid-dat-metadata-block-requests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dmapool-add-alloc-free-performance-test.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,86 +65,225 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: replace WARN_ONs for invalid DAT metadata block requests
-Date: Fri, 27 Jan 2023 01:41:14 +0900
+From: Keith Busch <kbusch@kernel.org>
+Subject: dmapool: add alloc/free performance test
+Date: Thu, 26 Jan 2023 13:51:14 -0800
 
-If DAT metadata file block access fails due to corruption of the DAT file
-or abnormal virtual block numbers held by b-trees or inodes, a kernel
-warning is generated.
+Patch series "dmapool enhancements", v4.
 
-This replaces the WARN_ONs by error output, so that a kernel, booted with
-panic_on_warn, does not panic.  This patch also replaces the detected
-return code -ENOENT with another internal code -EINVAL to notify the bmap
-layer of metadata corruption.  When the bmap layer sees -EINVAL, it
-handles the abnormal situation with nilfs_bmap_convert_error() and finally
-returns code -EIO as it should.
+Time spent in dma_pool alloc/free increases linearly with the number of
+pages backing the pool.  We can reduce this to constant time with minor
+changes to how free pages are tracked.
 
-Link: https://lkml.kernel.org/r/0000000000005cc3d205ea23ddcf@google.com
-Link: https://lkml.kernel.org/r/20230126164114.6911-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: <syzbot+5d5d25f90f195a3cfcb4@syzkaller.appspotmail.com>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+
+This patch (of 12):
+
+Provide a module that allocates and frees many blocks of various sizes and
+report how long it takes.  This is intended to provide a consistent way to
+measure how changes to the dma_pool_alloc/free routines affect timing.
+
+Link: https://lkml.kernel.org/r/20230126215125.4069751-1-kbusch@meta.com
+Link: https://lkml.kernel.org/r/20230126215125.4069751-2-kbusch@meta.com
+Signed-off-by: Keith Busch <kbusch@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Tony Battersby <tonyb@cybernetics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/dat.c |   27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ mm/Kconfig        |    9 ++
+ mm/Makefile       |    1 
+ mm/dmapool_test.c |  147 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 157 insertions(+)
 
---- a/fs/nilfs2/dat.c~nilfs2-replace-warn_ons-for-invalid-dat-metadata-block-requests
-+++ a/fs/nilfs2/dat.c
-@@ -40,8 +40,21 @@ static inline struct nilfs_dat_info *NIL
- static int nilfs_dat_prepare_entry(struct inode *dat,
- 				   struct nilfs_palloc_req *req, int create)
- {
--	return nilfs_palloc_get_entry_block(dat, req->pr_entry_nr,
--					    create, &req->pr_entry_bh);
-+	int ret;
+--- /dev/null
++++ a/mm/dmapool_test.c
+@@ -0,0 +1,147 @@
++#include <linux/device.h>
++#include <linux/dma-map-ops.h>
++#include <linux/dma-mapping.h>
++#include <linux/dmapool.h>
++#include <linux/kernel.h>
++#include <linux/ktime.h>
++#include <linux/module.h>
 +
-+	ret = nilfs_palloc_get_entry_block(dat, req->pr_entry_nr,
-+					   create, &req->pr_entry_bh);
-+	if (unlikely(ret == -ENOENT)) {
-+		nilfs_err(dat->i_sb,
-+			  "DAT doesn't have a block to manage vblocknr = %llu",
-+			  (unsigned long long)req->pr_entry_nr);
-+		/*
-+		 * Return internal code -EINVAL to notify bmap layer of
-+		 * metadata corruption.
-+		 */
-+		ret = -EINVAL;
++#define NR_TESTS (100)
++
++struct dma_pool_pair {
++	dma_addr_t dma;
++	void *v;
++};
++
++struct dmapool_parms {
++	size_t size;
++	size_t align;
++	size_t boundary;
++};
++
++static const struct dmapool_parms pool_parms[] = {
++	{ .size = 16, .align = 16, .boundary = 0 },
++	{ .size = 64, .align = 64, .boundary = 0 },
++	{ .size = 256, .align = 256, .boundary = 0 },
++	{ .size = 1024, .align = 1024, .boundary = 0 },
++	{ .size = 4096, .align = 4096, .boundary = 0 },
++	{ .size = 68, .align = 32, .boundary = 4096 },
++};
++
++static struct dma_pool *pool;
++static struct device test_dev;
++static u64 dma_mask;
++
++static inline int nr_blocks(int size)
++{
++	return clamp_t(int, (PAGE_SIZE / size) * 512, 1024, 8192);
++}
++
++static int dmapool_test_alloc(struct dma_pool_pair *p, int blocks)
++{
++	int i;
++
++	for (i = 0; i < blocks; i++) {
++		p[i].v = dma_pool_alloc(pool, GFP_KERNEL,
++					&p[i].dma);
++		if (!p[i].v)
++			goto pool_fail;
 +	}
++
++	for (i = 0; i < blocks; i++)
++		dma_pool_free(pool, p[i].v, p[i].dma);
++
++	return 0;
++
++pool_fail:
++	for (--i; i >= 0; i--)
++		dma_pool_free(pool, p[i].v, p[i].dma);
++	return -ENOMEM;
++}
++
++static int dmapool_test_block(const struct dmapool_parms *parms)
++{
++	int blocks = nr_blocks(parms->size);
++	ktime_t start_time, end_time;
++	struct dma_pool_pair *p;
++	int i, ret;
++
++	p = kcalloc(blocks, sizeof(*p), GFP_KERNEL);
++	if (!p)
++		return -ENOMEM;
++
++	pool = dma_pool_create("test pool", &test_dev, parms->size,
++			       parms->align, parms->boundary);
++	if (!pool) {
++		ret = -ENOMEM;
++		goto free_pairs;
++	}
++
++	start_time = ktime_get();
++	for (i = 0; i < NR_TESTS; i++) {
++		ret = dmapool_test_alloc(p, blocks);
++		if (ret)
++			goto free_pool;
++		if (need_resched())
++			cond_resched();
++	}
++	end_time = ktime_get();
++
++	printk("dmapool test: size:%-4zu align:%-4zu blocks:%-4d time:%llu\n",
++		parms->size, parms->align, blocks,
++		ktime_us_delta(end_time, start_time));
++
++free_pool:
++	dma_pool_destroy(pool);
++free_pairs:
++	kfree(p);
 +	return ret;
- }
++}
++
++static void dmapool_test_release(struct device *dev)
++{
++}
++
++static int dmapool_checks(void)
++{
++	int i, ret;
++
++	ret = dev_set_name(&test_dev, "dmapool-test");
++	if (ret)
++		return ret;
++
++	ret = device_register(&test_dev);
++	if (ret) {
++		printk("%s: register failed:%d\n", __func__, ret);
++		goto put_device;
++	}
++
++	test_dev.release = dmapool_test_release;
++	set_dma_ops(&test_dev, NULL);
++	test_dev.dma_mask = &dma_mask;
++	ret = dma_set_mask_and_coherent(&test_dev, DMA_BIT_MASK(64));
++	if (ret) {
++		printk("%s: mask failed:%d\n", __func__, ret);
++		goto del_device;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(pool_parms); i++) {
++		ret = dmapool_test_block(&pool_parms[i]);
++		if (ret)
++			break;
++	}
++
++del_device:
++	device_del(&test_dev);
++put_device:
++	put_device(&test_dev);
++	return ret;
++}
++
++static void dmapool_exit(void)
++{
++}
++
++module_init(dmapool_checks);
++module_exit(dmapool_exit);
++MODULE_LICENSE("GPL");
+--- a/mm/Kconfig~dmapool-add-alloc-free-performance-test
++++ a/mm/Kconfig
+@@ -1100,6 +1100,15 @@ comment "GUP_TEST needs to have DEBUG_FS
+ config GUP_GET_PXX_LOW_HIGH
+ 	bool
  
- static void nilfs_dat_commit_entry(struct inode *dat,
-@@ -123,11 +136,7 @@ static void nilfs_dat_commit_free(struct
++config DMAPOOL_TEST
++	tristate "Enable a module to run time tests on dma_pool"
++	depends on HAS_DMA
++	help
++	  Provides a test module that will allocate and free many blocks of
++	  various sizes and report how long it takes. This is intended to
++	  provide a consistent way to measure how changes to the
++	  dma_pool_alloc/free routines affect performance.
++
+ config ARCH_HAS_PTE_SPECIAL
+ 	bool
  
- int nilfs_dat_prepare_start(struct inode *dat, struct nilfs_palloc_req *req)
- {
--	int ret;
--
--	ret = nilfs_dat_prepare_entry(dat, req, 0);
--	WARN_ON(ret == -ENOENT);
--	return ret;
-+	return nilfs_dat_prepare_entry(dat, req, 0);
- }
- 
- void nilfs_dat_commit_start(struct inode *dat, struct nilfs_palloc_req *req,
-@@ -154,10 +163,8 @@ int nilfs_dat_prepare_end(struct inode *
- 	int ret;
- 
- 	ret = nilfs_dat_prepare_entry(dat, req, 0);
--	if (ret < 0) {
--		WARN_ON(ret == -ENOENT);
-+	if (ret < 0)
- 		return ret;
--	}
- 
- 	kaddr = kmap_atomic(req->pr_entry_bh->b_page);
- 	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+--- a/mm/Makefile~dmapool-add-alloc-free-performance-test
++++ a/mm/Makefile
+@@ -103,6 +103,7 @@ obj-$(CONFIG_MEMCG) += swap_cgroup.o
+ endif
+ obj-$(CONFIG_CGROUP_HUGETLB) += hugetlb_cgroup.o
+ obj-$(CONFIG_GUP_TEST) += gup_test.o
++obj-$(CONFIG_DMAPOOL_TEST) += dmapool_test.o
+ obj-$(CONFIG_MEMORY_FAILURE) += memory-failure.o
+ obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
+ obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from kbusch@kernel.org are
 
-nilfs2-replace-warn_ons-for-invalid-dat-metadata-block-requests.patch
+dmapool-add-alloc-free-performance-test.patch
+dmapool-move-debug-code-to-own-functions.patch
+dmapool-rearrange-page-alloc-failure-handling.patch
+dmapool-consolidate-page-initialization.patch
+dmapool-simplify-freeing.patch
+dmapool-dont-memset-on-free-twice.patch
+dmapool-link-blocks-across-pages.patch
+dmapool-create-destroy-cleanup.patch
 
