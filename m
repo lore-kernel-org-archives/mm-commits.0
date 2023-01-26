@@ -2,46 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C7D4C05027
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 23:23:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D929BC54EAA
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 23:42:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232173AbjAZXXq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 Jan 2023 18:23:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42162 "EHLO
+        id S233564AbjAZXm5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 26 Jan 2023 18:42:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231586AbjAZXXo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 18:23:44 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CED3442E4
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 15:23:43 -0800 (PST)
+        with ESMTP id S233552AbjAZXmx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 18:42:53 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EE2855298
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 15:42:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B793AB81ECD
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 23:23:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A5E2C433D2;
-        Thu, 26 Jan 2023 23:23:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EDA6FB81ED5
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 23:41:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DFCFC433EF;
+        Thu, 26 Jan 2023 23:41:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674775420;
-        bh=N1m8Jm7k6bXxXpB2hy+G3Jd4L+GGheBAQtPMjZtg5WA=;
+        s=korg; t=1674776516;
+        bh=0e1C0RdeCGcXX2g9qdu4nJPwUbwVIsmQTk5uVqHYmPM=;
         h=Date:To:From:Subject:From;
-        b=bvg+TCUBgPYxqHOyMQ7yk1YALfwXe6XJ77P7bo0B8TfYgp1JXG+chQghEPLcX5TEX
-         AMpEhqhk3w9zY7BVDbnECEfn1Kt24sdZYhouwoq9kXrq6YqrTbF9xjjHoweUjTJiNI
-         0/M1CBPrYtD+yfpNKh+4OSBUxB0sIUtOV2ENKSAU=
-Date:   Thu, 26 Jan 2023 15:23:39 -0800
+        b=XI8rBoCLTlOkQxijVwXV9XohhKDFifjbzVXxLNefO5JiwLdWEir6Bfgkk7/CyKvgW
+         /BwrJOGXtrdItEmxIpE+hGGAsGQyrPh1rRONhANWS1XEfFMq9J4pie4KH91QZ10Y5m
+         U2DAshgz0zl0LOGHnqePldQKjZt7cBa2Og24aMOc=
+Date:   Thu, 26 Jan 2023 15:41:56 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vschneid@redhat.com, vincent.guittot@linaro.org, vbabka@suse.cz,
-        tj@kernel.org, shakeelb@google.com, rostedt@goodmis.org,
-        roman.gushchin@linux.dev, rientjes@google.com,
-        peterz@infradead.org, penberg@kernel.org, muchun.song@linux.dev,
-        mingo@redhat.com, mgorman@techsingularity.net,
-        juri.lelli@redhat.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org,
-        dietmar.eggemann@arm.com, dennis@kernel.org, cl@linux.com,
-        bsegall@google.com, bristot@redhat.com, 42.hyeyoo@gmail.com,
-        akpm@linux-foundation.org
+        ira.weiny@intel.com, fmdefrancesco@gmail.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-kconfigdebug-do-not-enable-debug_preempt-by-default.patch added to mm-nonmm-unstable branch
-Message-Id: <20230126232340.4A5E2C433D2@smtp.kernel.org>
+Subject: + mm-add-memcpy_from_file_folio-fix.patch added to mm-unstable branch
+Message-Id: <20230126234156.8DFCFC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/Kconfig.debug: do not enable DEBUG_PREEMPT by default
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-kconfigdebug-do-not-enable-debug_preempt-by-default.patch
+     Subject: mm-add-memcpy_from_file_folio-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-memcpy_from_file_folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-kconfigdebug-do-not-enable-debug_preempt-by-default.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-memcpy_from_file_folio-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -72,88 +65,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: lib/Kconfig.debug: do not enable DEBUG_PREEMPT by default
-Date: Sat, 21 Jan 2023 12:39:42 +0900
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-memcpy_from_file_folio-fix
+Date: Thu Jan 26 03:36:39 PM PST 2023
 
-In workloads where this_cpu operations are frequently performed,
-enabling DEBUG_PREEMPT may result in significant increase in
-runtime overhead due to frequent invocation of
-__this_cpu_preempt_check() function.
-
-This can be demonstrated through benchmarks such as hackbench where this
-configuration results in a 10% reduction in performance, primarily due to
-the added overhead within memcg charging path.
-
-Therefore, do not to enable DEBUG_PREEMPT by default and make users aware
-of its potential impact on performance in some workloads.
-
-hackbench-process-sockets
-		      debug_preempt	 no_debug_preempt
-Amean     1       0.4743 (   0.00%)      0.4295 *   9.45%*
-Amean     4       1.4191 (   0.00%)      1.2650 *  10.86%*
-Amean     7       2.2677 (   0.00%)      2.0094 *  11.39%*
-Amean     12      3.6821 (   0.00%)      3.2115 *  12.78%*
-Amean     21      6.6752 (   0.00%)      5.7956 *  13.18%*
-Amean     30      9.6646 (   0.00%)      8.5197 *  11.85%*
-Amean     48     15.3363 (   0.00%)     13.5559 *  11.61%*
-Amean     79     24.8603 (   0.00%)     22.0597 *  11.27%*
-Amean     96     30.1240 (   0.00%)     26.8073 *  11.01%*
-
-Link: https://lkml.kernel.org/r/20230121033942.350387-1-42.hyeyoo@gmail.com
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/highmem.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/lib/Kconfig.debug~lib-kconfigdebug-do-not-enable-debug_preempt-by-default
-+++ a/lib/Kconfig.debug
-@@ -1176,13 +1176,16 @@ config DEBUG_TIMEKEEPING
- config DEBUG_PREEMPT
- 	bool "Debug preemptible kernel"
- 	depends on DEBUG_KERNEL && PREEMPTION && TRACE_IRQFLAGS_SUPPORT
--	default y
- 	help
- 	  If you say Y here then the kernel will use a debug variant of the
- 	  commonly used smp_processor_id() function and will print warnings
- 	  if kernel code uses it in a preemption-unsafe way. Also, the kernel
- 	  will detect preemption count underflows.
+--- a/include/linux/highmem.h~mm-add-memcpy_from_file_folio-fix
++++ a/include/linux/highmem.h
+@@ -430,13 +430,14 @@ static inline size_t memcpy_from_file_fo
+ {
+ 	size_t offset = offset_in_folio(folio, pos);
+ 	char *from = kmap_local_folio(folio, offset);
++	size_t remaining;
  
-+	  This option has potential to introduce high runtime overhead,
-+	  depending on workload as it triggers debugging routines for each
-+	  this_cpu operation. It should only be used for debugging purposes.
-+
- menu "Lock Debugging (spinlocks, mutexes, etc...)"
+ 	if (folio_test_highmem(folio))
+-		len = min(len, PAGE_SIZE - offset);
++		remaining = PAGE_SIZE - offset;
+ 	else
+-		len = min(len, folio_size(folio) - offset);
++		remaining = folio_size(folio) - offset;
  
- config LOCK_DEBUGGING_SUPPORT
+-	memcpy(to, from, len);
++	memcpy(to, from, min(len, remaining));
+ 	kunmap_local(from);
+ 
+ 	return len;
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_owner-record-single-timestamp-value-for-high-order-allocations.patch
-lib-kconfigdebug-do-not-enable-debug_preempt-by-default.patch
+mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes.patch
+mm-add-folio_add_new_anon_rmap-fix.patch
+mm-remove-page_evictable-fix.patch
+mm-remove-the-swap_readpage-return-value-fix.patch
+block-remove-rw_page-fix.patch
+mm-add-memcpy_from_file_folio-fix.patch
+error-injection-remove-ei_etype_none-fix.patch
+hfsplus-remove-unnecessary-variable-initialization-fix.patch
+scripts-gdb-add-mm-introspection-utils-fix.patch
 
