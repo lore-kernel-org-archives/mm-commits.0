@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CB03C54EAA
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 01:03:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15075C27C76
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 01:17:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229739AbjAZBD2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 20:03:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32966 "EHLO
+        id S229846AbjAZBRl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 20:17:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236518AbjAZBDJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 20:03:09 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89C7912F17
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 17:03:06 -0800 (PST)
+        with ESMTP id S229475AbjAZBRk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 20:17:40 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89DAD45BC4
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 17:17:39 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 28AA0B81C68
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 01:03:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6BF7C433D2;
-        Thu, 26 Jan 2023 01:03:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 298AC61715
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 01:17:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74009C4339B;
+        Thu, 26 Jan 2023 01:17:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674694983;
-        bh=c2qzkT6htsNQ8MC1j1xZQjwKKZEbK/O7AQ8MF2l94pQ=;
+        s=korg; t=1674695858;
+        bh=Jzh3PuORQ55mls8PFKF16ElRdMZeq0j+owoVE1XBJOc=;
         h=Date:To:From:Subject:From;
-        b=mo1ZgP24b2MmDSSkgY48iTG+sGyJvwKYNZ5B18DyWedpXFDKoD2UVs+mBnYRy8F2m
-         8jLMus9i444EO8dgS77qO+bB9Abm/xWwVzHWZihsxwwvXq/Z22pLkoypt1ow7g+VwY
-         /Vv1xoTiltR7DsKtKfUMkj9PQUvVkonO6ukX11Wk=
-Date:   Wed, 25 Jan 2023 17:03:03 -0800
-To:     mm-commits@vger.kernel.org,
-        syzbot+1d9ec4d1a334ae9e1ca6@syzkaller.appspotmail.com,
-        Liam.Howlett@oracle.com, akpm@linux-foundation.org
+        b=oJa4Wsgww0PX3f2mOMAtklypXsfdjvZj6rwGa6ycRDV4Q47wRkn3Y1W8gb0023Njl
+         rVj27potrZdKDhstDhWdn5mFtASSU/gSz2Le4Q3Ah17dvZ+VTEaB+urPWCMrW5dpm9
+         RAyzIucyWrp4mCRcnl/F1S2yq+3Xuw7W5tFTaThM=
+Date:   Wed, 25 Jan 2023 17:17:37 -0800
+To:     mm-commits@vger.kernel.org, zhouchuyi@bytedance.com,
+        vbabka@suse.cz, pedro.falcato@gmail.com, pbonzini@redhat.com,
+        mlevitsk@redhat.com, mhocko@kernel.org, jirislaby@kernel.org,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + madvise-use-split_vma-instead-of-__split_vma-fix.patch added to mm-unstable branch
-Message-Id: <20230126010303.B6BF7C433D2@smtp.kernel.org>
+Subject: + mm-compaction-rename-compact_control-rescan-to-finish_pageblock.patch added to mm-unstable branch
+Message-Id: <20230126011738.74009C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise: fix VMA_ITERATOR start position
+     Subject: mm, compaction: rename compact_control->rescan to finish_pageblock
 has been added to the -mm mm-unstable branch.  Its filename is
-     madvise-use-split_vma-instead-of-__split_vma-fix.patch
+     mm-compaction-rename-compact_control-rescan-to-finish_pageblock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/madvise-use-split_vma-instead-of-__split_vma-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-rename-compact_control-rescan-to-finish_pageblock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,43 +66,133 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Howlett <Liam.Howlett@oracle.com>
-Subject: mm/madvise: fix VMA_ITERATOR start position
-Date: Wed, 25 Jan 2023 08:58:09 -0500
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, compaction: rename compact_control->rescan to finish_pageblock
+Date: Wed, 25 Jan 2023 13:44:31 +0000
 
-The WARN_ON() in vma_iter_store() detected an invalid VMA iterator state. 
-Inspecting the code stack from the report shows that the VMA iterator is
-never set to the correct start position.
+Patch series "Fix excessive CPU usage during compaction".
 
-Setting the initialization of the VMA iterator to use the address 'start'
-fixes this issue.
+Commit 7efc3b726103 ("mm/compaction: fix set skip in fast_find_migrateblock")
+fixed a problem where pageblocks found by fast_find_migrateblock() were
+ignored. Unfortunately there were numerous bug reports complaining about high
+CPU usage and massive stalls once 6.1 was released. Due to the severity,
+the patch was reverted by Vlastimil as a short-term fix[1] to -stable.		
 
-Link: https://lkml.kernel.org/r/20230125135809.85262-1-Liam.Howlett@oracle.com
-Signed-off-by: Liam Howlett <Liam.Howlett@oracle.com>
-Reported-by: <syzbot+1d9ec4d1a334ae9e1ca6@syzkaller.appspotmail.com>
+The underlying problem for each of the bugs is suspected to be the
+repeated scanning of the same pageblocks.  This series should guarantee
+forward progress even with commit 7efc3b726103.  More information is in
+the changelog for patch 4.
+
+[1] http://lore.kernel.org/r/20230113173345.9692-1-vbabka@suse.cz
+
+
+This patch (of 4):
+
+The rescan field was not well named albeit accurate at the time.  Rename
+the field to finish_pageblock to indicate that the remainder of the
+pageblock should be scanned regardless of COMPACT_CLUSTER_MAX.  The intent
+is that pageblocks with transient failures get marked for skipping to
+avoid revisiting the same pageblock.
+
+Link: https://lkml.kernel.org/r/20230125134434.18017-2-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Chuyi Zhou <zhouchuyi@bytedance.com>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Maxim Levitsky <mlevitsk@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/madvise.c~madvise-use-split_vma-instead-of-__split_vma-fix
-+++ a/mm/madvise.c
-@@ -142,7 +142,7 @@ static int madvise_update_vma(struct vm_
- 	struct mm_struct *mm = vma->vm_mm;
- 	int error;
- 	pgoff_t pgoff;
--	VMA_ITERATOR(vmi, mm, 0);
-+	VMA_ITERATOR(vmi, mm, start);
+--- a/mm/compaction.c~mm-compaction-rename-compact_control-rescan-to-finish_pageblock
++++ a/mm/compaction.c
+@@ -1101,12 +1101,12 @@ isolate_success_no_list:
  
- 	if (new_flags == vma->vm_flags && anon_vma_name_eq(anon_vma_name(vma), anon_name)) {
- 		*prev = vma;
+ 		/*
+ 		 * Avoid isolating too much unless this block is being
+-		 * rescanned (e.g. dirty/writeback pages, parallel allocation)
++		 * fully scanned (e.g. dirty/writeback pages, parallel allocation)
+ 		 * or a lock is contended. For contention, isolate quickly to
+ 		 * potentially remove one source of contention.
+ 		 */
+ 		if (cc->nr_migratepages >= COMPACT_CLUSTER_MAX &&
+-		    !cc->rescan && !cc->contended) {
++		    !cc->finish_pageblock && !cc->contended) {
+ 			++low_pfn;
+ 			break;
+ 		}
+@@ -1171,14 +1171,14 @@ isolate_abort:
+ 	}
+ 
+ 	/*
+-	 * Updated the cached scanner pfn once the pageblock has been scanned
++	 * Update the cached scanner pfn once the pageblock has been scanned.
+ 	 * Pages will either be migrated in which case there is no point
+ 	 * scanning in the near future or migration failed in which case the
+ 	 * failure reason may persist. The block is marked for skipping if
+ 	 * there were no pages isolated in the block or if the block is
+ 	 * rescanned twice in a row.
+ 	 */
+-	if (low_pfn == end_pfn && (!nr_isolated || cc->rescan)) {
++	if (low_pfn == end_pfn && (!nr_isolated || cc->finish_pageblock)) {
+ 		if (valid_page && !skip_updated)
+ 			set_pageblock_skip(valid_page);
+ 		update_cached_migrate(cc, low_pfn);
+@@ -2373,17 +2373,17 @@ compact_zone(struct compact_control *cc,
+ 		unsigned long iteration_start_pfn = cc->migrate_pfn;
+ 
+ 		/*
+-		 * Avoid multiple rescans which can happen if a page cannot be
+-		 * isolated (dirty/writeback in async mode) or if the migrated
+-		 * pages are being allocated before the pageblock is cleared.
+-		 * The first rescan will capture the entire pageblock for
+-		 * migration. If it fails, it'll be marked skip and scanning
+-		 * will proceed as normal.
++		 * Avoid multiple rescans of the same pageblock which can
++		 * happen if a page cannot be isolated (dirty/writeback in
++		 * async mode) or if the migrated pages are being allocated
++		 * before the pageblock is cleared.  The first rescan will
++		 * capture the entire pageblock for migration. If it fails,
++		 * it'll be marked skip and scanning will proceed as normal.
+ 		 */
+-		cc->rescan = false;
++		cc->finish_pageblock = false;
+ 		if (pageblock_start_pfn(last_migrated_pfn) ==
+ 		    pageblock_start_pfn(iteration_start_pfn)) {
+-			cc->rescan = true;
++			cc->finish_pageblock = true;
+ 		}
+ 
+ 		switch (isolate_migratepages(cc)) {
+--- a/mm/internal.h~mm-compaction-rename-compact_control-rescan-to-finish_pageblock
++++ a/mm/internal.h
+@@ -448,7 +448,11 @@ struct compact_control {
+ 	bool proactive_compaction;	/* kcompactd proactive compaction */
+ 	bool whole_zone;		/* Whole zone should/has been scanned */
+ 	bool contended;			/* Signal lock contention */
+-	bool rescan;			/* Rescanning the same pageblock */
++	bool finish_pageblock;		/* Scan the remainder of a pageblock. Used
++					 * when there are potentially transient
++					 * isolation or migration failures to
++					 * ensure forward progress.
++					 */
+ 	bool alloc_contig;		/* alloc_contig_range allocation */
+ };
+ 
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-maple_tree-fix-handle-of-invalidated-state-in-mas_wr_store_setup.patch
-maple_tree-fix-mas_prev-and-mas_find-state-handling.patch
-nommu-pass-through-vma-iterator-to-shrink_vma.patch
-mm-damon-vaddr-testh-stop-using-vma_mas_store-for-maple-tree-store.patch
-madvise-use-split_vma-instead-of-__split_vma-fix.patch
-mm-mremap-convert-vma_adjust-to-vma_expand.patch
+mm-page_alloc-rename-alloc_high-to-alloc_min_reserve.patch
+mm-page_alloc-treat-rt-tasks-similar-to-__gfp_high.patch
+mm-page_alloc-explicitly-record-high-order-atomic-allocations-in-alloc_flags.patch
+mm-page_alloc-explicitly-define-what-alloc-flags-deplete-min-reserves.patch
+mm-page_alloc-explicitly-define-how-__gfp_high-non-blocking-allocations-accesses-reserves.patch
+mm-compaction-rename-compact_control-rescan-to-finish_pageblock.patch
+mm-compaction-check-if-a-page-has-been-captured-before-draining-pcp-pages.patch
+mm-compaction-finish-scanning-the-current-pageblock-if-requested.patch
+mm-compaction-finish-pageblocks-on-complete-migration-failure.patch
 
