@@ -2,42 +2,49 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F38BC05027
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 23:05:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B632EC54EAA
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 23:09:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233374AbjAZXFI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 Jan 2023 18:05:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60158 "EHLO
+        id S233322AbjAZXJf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 26 Jan 2023 18:09:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233392AbjAZXFF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 18:05:05 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14B34564BF;
-        Thu, 26 Jan 2023 15:04:41 -0800 (PST)
+        with ESMTP id S229817AbjAZXJe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 18:09:34 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D627523C7F
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 15:09:32 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3A7F0B81F2F;
-        Thu, 26 Jan 2023 23:04:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDFCCC433D2;
-        Thu, 26 Jan 2023 23:04:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6868B6191F
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 23:09:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3C64C433EF;
+        Thu, 26 Jan 2023 23:09:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674774260;
-        bh=bNRIn/ZA0jHDon4cl/MSRknolOPglCa66cEnDB+ygTU=;
+        s=korg; t=1674774571;
+        bh=MYCUdA+wYVXsX8EWUt3BEBr88DO4becPkPWHQNveR50=;
         h=Date:To:From:Subject:From;
-        b=GumhB+z72hdVwN4CLXMJanI6Akavif1pmC1VbkJqKR2QYXy5VyNbCt2Nhu0wIfSEK
-         5YSAV2c8uEmfDya+6H+ER/uIoSZwtN2nNK/OYkVvpqrU0ZBjAAD/WjpntUblBeLD5T
-         IF1JeS9y3sJYkW+xUFepAEIP14hBT1HOg6uafwfQ=
-Date:   Thu, 26 Jan 2023 15:04:20 -0800
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        tony.luck@intel.com, tglx@linutronix.de, stable@vger.kernel.org,
-        keescook@chromium.org, ira.weiny@intel.com, glider@google.com,
-        fmdefrancesco@gmail.com, dsterba@suse.com, deller@gmx.de,
-        bigeasy@linutronix.de, bagasdotme@gmail.com, andreyknvl@gmail.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=RZUOG6iD4lIIwCQ9mrtVl6RPW+IIMAVFccqDxVY/bESrhrObZiBCVoIDiVZklxNmd
+         2INxQjwoSChWTBWNRwgaAQBFibQ8hASZ6vhZGIHvy+zsDm7KDfJC3IbjGE9bek51i2
+         f9imJoY/FxM+g3UKbg5qQKah0Sufot9bK6VFblzc=
+Date:   Thu, 26 Jan 2023 15:09:31 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
+        vbabka@suse.cz, songliubraving@fb.com, soheil@google.com,
+        shakeelb@google.com, sebastian.reichel@collabora.com,
+        rppt@kernel.org, rientjes@google.com, punit.agrawal@bytedance.com,
+        posk@google.com, peterz@infradead.org, peterx@redhat.com,
+        paulmck@kernel.org, mingo@redhat.com, minchan@google.com,
+        mhocko@suse.com, mgorman@techsingularity.net, luto@kernel.org,
+        lstoakes@gmail.com, Liam.Howlett@Oracle.com, ldufour@linux.ibm.com,
+        kent.overstreet@linux.dev, joelaf@google.com, jannh@google.com,
+        hughd@google.com, hannes@cmpxchg.org, gthelen@google.com,
+        edumazet@google.com, dhowells@redhat.com, david@redhat.com,
+        dave@stgolabs.net, bigeasy@linutronix.de, axelrasmussen@google.com,
+        arjunroy@google.com, surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + highmem-round-down-the-address-passed-to-kunmap_flush_on_unmap.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230126230420.CDFCCC433D2@smtp.kernel.org>
+Subject: + kernel-fork-convert-vma-assignment-to-a-memcpy.patch added to mm-unstable branch
+Message-Id: <20230126230931.B3C64C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: highmem: round down the address passed to kunmap_flush_on_unmap()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     highmem-round-down-the-address-passed-to-kunmap_flush_on_unmap.patch
+     Subject: kernel/fork: convert vma assignment to a memcpy
+has been added to the -mm mm-unstable branch.  Its filename is
+     kernel-fork-convert-vma-assignment-to-a-memcpy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/highmem-round-down-the-address-passed-to-kunmap_flush_on_unmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-convert-vma-assignment-to-a-memcpy.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,111 +75,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: highmem: round down the address passed to kunmap_flush_on_unmap()
-Date: Thu, 26 Jan 2023 20:07:27 +0000
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: kernel/fork: convert vma assignment to a memcpy
+Date: Thu, 26 Jan 2023 11:37:46 -0800
 
-We already round down the address in kunmap_local_indexed() which is the
-other implementation of __kunmap_local().  The only implementation of
-kunmap_flush_on_unmap() is PA-RISC which is expecting a page-aligned
-address.  This may be causing PA-RISC to be flushing the wrong addresses
-currently.
+Patch series "introduce vm_flags modifier functions", v4.
 
-Link: https://lkml.kernel.org/r/20230126200727.1680362-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Fixes: 298fa1ad5571 ("highmem: Provide generic variant of kmap_atomic*")
-Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
+This patchset was originally published as a part of per-VMA locking [1]
+and was split after suggestion that it's viable on its own and to
+facilitate the review process.  It is now a preprequisite for the next
+version of per-VMA lock patchset, which reuses vm_flags modifier functions
+to lock the VMA when vm_flags are being updated.
+
+VMA vm_flags modifications are usually done under exclusive mmap_lock
+protection because this attrubute affects other decisions like VMA merging
+or splitting and races should be prevented.  Introduce vm_flags modifier
+functions to enforce correct locking.
+
+
+This patch (of 7):
+
+Convert vma assignment in vm_area_dup() to a memcpy() to prevent compiler
+errors when we add a const modifier to vma->vm_flags.
+
+Link: https://lkml.kernel.org/r/20230126193752.297968-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20230126193752.297968-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Arjun Roy <arjunroy@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Joel Fernandes <joelaf@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Peter Oskolkov <posk@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Punit Agrawal <punit.agrawal@bytedance.com>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: <stable@vger.kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Soheil Hassas Yeganeh <soheil@google.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
+Cc: Sebastian Reichel <sebastian.reichel@collabora.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem-internal.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/fork.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/highmem-internal.h~highmem-round-down-the-address-passed-to-kunmap_flush_on_unmap
-+++ a/include/linux/highmem-internal.h
-@@ -200,7 +200,7 @@ static inline void *kmap_local_pfn(unsig
- static inline void __kunmap_local(const void *addr)
- {
- #ifdef ARCH_HAS_FLUSH_ON_KUNMAP
--	kunmap_flush_on_unmap(addr);
-+	kunmap_flush_on_unmap(PTR_ALIGN_DOWN(addr, PAGE_SIZE));
- #endif
- }
- 
-@@ -227,7 +227,7 @@ static inline void *kmap_atomic_pfn(unsi
- static inline void __kunmap_atomic(const void *addr)
- {
- #ifdef ARCH_HAS_FLUSH_ON_KUNMAP
--	kunmap_flush_on_unmap(addr);
-+	kunmap_flush_on_unmap(PTR_ALIGN_DOWN(addr, PAGE_SIZE));
- #endif
- 	pagefault_enable();
- 	if (IS_ENABLED(CONFIG_PREEMPT_RT))
+--- a/kernel/fork.c~kernel-fork-convert-vma-assignment-to-a-memcpy
++++ a/kernel/fork.c
+@@ -472,7 +472,7 @@ struct vm_area_struct *vm_area_dup(struc
+ 		 * orig->shared.rb may be modified concurrently, but the clone
+ 		 * will be reinitialized.
+ 		 */
+-		*new = data_race(*orig);
++		data_race(memcpy(new, orig, sizeof(*new)));
+ 		INIT_LIST_HEAD(&new->anon_vma_chain);
+ 		dup_anon_vma_name(orig, new);
+ 	}
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-highmem-round-down-the-address-passed-to-kunmap_flush_on_unmap.patch
-mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
-mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped.patch
-doc-clarify-refcount-section-by-referring-to-folios-pages.patch
-mm-convert-total_compound_mapcount-to-folio_total_mapcount.patch
-mm-convert-page_remove_rmap-to-use-a-folio-internally.patch
-mm-convert-page_add_anon_rmap-to-use-a-folio-internally.patch
-mm-convert-page_add_file_rmap-to-use-a-folio-internally.patch
-mm-add-folio_add_new_anon_rmap.patch
-mm-add-folio_add_new_anon_rmap-fix-2.patch
-page_alloc-use-folio-fields-directly.patch
-mm-use-a-folio-in-hugepage_add_anon_rmap-and-hugepage_add_new_anon_rmap.patch
-mm-use-entire_mapcount-in-__page_dup_rmap.patch
-mm-debug-remove-call-to-head_compound_mapcount.patch
-hugetlb-remove-uses-of-folio_mapcount_ptr.patch
-mm-convert-page_mapcount-to-use-folio_entire_mapcount.patch
-mm-remove-head_compound_mapcount-and-_ptr-functions.patch
-mm-reimplement-compound_order.patch
-mm-reimplement-compound_nr.patch
-mm-reimplement-compound_nr-fix.patch
-mm-convert-set_compound_page_dtor-and-set_compound_order-to-folios.patch
-mm-convert-is_transparent_hugepage-to-use-a-folio.patch
-mm-convert-destroy_large_folio-to-use-folio_dtor.patch
-hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch
-mm-remove-first-tail-page-members-from-struct-page.patch
-doc-correct-struct-folio-kernel-doc.patch
-mm-move-page-deferred_list-to-folio-_deferred_list.patch
-mm-huge_memory-remove-page_deferred_list.patch
-mm-huge_memory-convert-get_deferred_split_queue-to-take-a-folio.patch
-mm-convert-deferred_split_huge_page-to-deferred_split_folio.patch
-shmem-convert-shmem_write_end-to-use-a-folio.patch
-mm-add-vma_alloc_zeroed_movable_folio.patch
-mm-convert-do_anonymous_page-to-use-a-folio.patch
-mm-convert-wp_page_copy-to-use-folios.patch
-mm-use-a-folio-in-copy_pte_range.patch
-mm-use-a-folio-in-copy_present_pte.patch
-mm-fs-convert-inode_attach_wb-to-take-a-folio.patch
-mm-convert-mem_cgroup_css_from_page-to-mem_cgroup_css_from_folio.patch
-mm-remove-page_evictable.patch
-mm-remove-mlock_vma_page.patch
-mm-remove-munlock_vma_page.patch
-mm-clean-up-mlock_page-munlock_page-references-in-comments.patch
-rmap-add-folio-parameter-to-__page_set_anon_rmap.patch
-filemap-convert-filemap_map_pmd-to-take-a-folio.patch
-filemap-convert-filemap_range_has_page-to-use-a-folio.patch
-readahead-convert-readahead_expand-to-use-a-folio.patch
-mm-add-memcpy_from_file_folio.patch
-fs-convert-writepage_t-callback-to-pass-a-folio.patch
-mpage-convert-__mpage_writepage-to-use-a-folio-more-fully.patch
+kernel-fork-convert-vma-assignment-to-a-memcpy.patch
+mm-introduce-vma-vm_flags-wrapper-functions.patch
+mm-replace-vm_locked_clear_mask-with-vm_locked_mask.patch
+mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls.patch
+mm-replace-vma-vm_flags-indirect-modification-in-ksm_madvise.patch
+mm-introduce-__vm_flags_mod-and-use-it-in-untrack_pfn.patch
+mm-export-dump_mm.patch
 
