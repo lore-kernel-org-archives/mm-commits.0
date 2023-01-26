@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B3EEC27C76
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 00:48:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F1FCC27C76
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 00:48:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235581AbjAZAsR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 19:48:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54822 "EHLO
+        id S236409AbjAZAsV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 19:48:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54826 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236179AbjAZAsQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 19:48:16 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C7B83644C
+        with ESMTP id S236399AbjAZAsR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 19:48:17 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 556C436447
         for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 16:48:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D86E4616B5
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 00:48:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CBDEC433EF;
-        Thu, 26 Jan 2023 00:48:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C4EBBB817BB
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 00:48:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72B60C433D2;
+        Thu, 26 Jan 2023 00:48:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674694094;
-        bh=oaYHcRxbEzClsMpcZdwlOU4X6k/czeBH32Far/cegN4=;
+        s=korg; t=1674694092;
+        bh=81mJA6U3bf4HTg3rdMOLAK8ORX+1L9nLykGcMJmS7f8=;
         h=Date:To:From:Subject:From;
-        b=KceUMymM4VnEHCjSmqcvbVRfKlCZsCW7Tf3g2r+LhlUzo099g9MxhtV4PkRos4g4O
-         eDjPoX+PJHZkxdio7ZKU5iuIw72mgrzkrr5VKtTYoD7UET3mLs+DSAlvlj/IlZxnZ8
-         HCr/8RYyWUcyhhd0HVp1UJiYwJ44nMNGaDXyZ2KM=
-Date:   Wed, 25 Jan 2023 16:48:13 -0800
+        b=Z2jGfQFmRMIrO5yBbWhh08oz4wLQkYtopA8ylHVadNsRTByHmhdm5yQfUOxPh4bDc
+         3X+iPG9tQJQo5J9r/A3IhAwlR3FALbM69L08GF/Z2AEDZ9QB7FPyV5NAVohrDa+glk
+         eIIlcOSY62dNAckCimcocEuxAky/lXHngMdIcXSc=
+Date:   Wed, 25 Jan 2023 16:48:11 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         songmuchun@bytedance.com, mike.kravetz@oracle.com, lkp@intel.com,
         jhubbard@nvidia.com, gerald.schaefer@linux.ibm.com,
         sidhartha.kumar@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-putback_active_hugepage-to-take-in-a-folio.patch added to mm-unstable branch
-Message-Id: <20230126004814.3CBDEC433EF@smtp.kernel.org>
+Subject: + mm-hugetlb-convert-hugetlbfs_pagecache_present-to-folios.patch added to mm-unstable branch
+Message-Id: <20230126004812.72B60C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: convert putback_active_hugepage to take in a folio
+     Subject: mm/hugetlb: convert hugetlbfs_pagecache_present() to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-putback_active_hugepage-to-take-in-a-folio.patch
+     mm-hugetlb-convert-hugetlbfs_pagecache_present-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-putback_active_hugepage-to-take-in-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-hugetlbfs_pagecache_present-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,104 +67,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: convert putback_active_hugepage to take in a folio
-Date: Wed, 25 Jan 2023 09:05:32 -0800
+Subject: mm/hugetlb: convert hugetlbfs_pagecache_present() to folios
+Date: Wed, 25 Jan 2023 09:05:31 -0800
 
-Convert putback_active_hugepage() to folio_putback_active_hugetlb(), this
-removes one user of the Huge Page macros which take in a page.  The
-callers in migrate.c are also cleaned up by being able to directly use the
-src and dst folio variables.
+Refactor hugetlbfs_pagecache_present() to avoid getting and dropping a
+refcount on a page.  Use RCU and page_cache_next_miss() instead.
 
-Link: https://lkml.kernel.org/r/20230125170537.96973-4-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20230125170537.96973-3-sidhartha.kumar@oracle.com
+Suggested-by: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: kernel test robot <lkp@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/hugetlb.h~mm-hugetlb-convert-putback_active_hugepage-to-take-in-a-folio
-+++ a/include/linux/hugetlb.h
-@@ -174,7 +174,7 @@ int isolate_hugetlb(struct folio *folio,
- int get_hwpoison_hugetlb_folio(struct folio *folio, bool *hugetlb, bool unpoison);
- int get_huge_page_for_hwpoison(unsigned long pfn, int flags,
- 				bool *migratable_cleared);
--void putback_active_hugepage(struct page *page);
-+void folio_putback_active_hugetlb(struct folio *folio);
- void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason);
- void free_huge_page(struct page *page);
- void hugetlb_fix_reserve_counts(struct inode *inode);
-@@ -428,7 +428,7 @@ static inline int get_huge_page_for_hwpo
- 	return 0;
- }
- 
--static inline void putback_active_hugepage(struct page *page)
-+static inline void folio_putback_active_hugetlb(struct folio *folio)
- {
- }
- 
---- a/mm/hugetlb.c~mm-hugetlb-convert-putback_active_hugepage-to-take-in-a-folio
+--- a/mm/hugetlb.c~mm-hugetlb-convert-hugetlbfs_pagecache_present-to-folios
 +++ a/mm/hugetlb.c
-@@ -7300,13 +7300,13 @@ int get_huge_page_for_hwpoison(unsigned
- 	return ret;
- }
- 
--void putback_active_hugepage(struct page *page)
-+void folio_putback_active_hugetlb(struct folio *folio)
+@@ -5651,17 +5651,15 @@ out_release_old:
+ static bool hugetlbfs_pagecache_present(struct hstate *h,
+ 			struct vm_area_struct *vma, unsigned long address)
  {
- 	spin_lock_irq(&hugetlb_lock);
--	SetHPageMigratable(page);
--	list_move_tail(&page->lru, &(page_hstate(page))->hugepage_activelist);
-+	folio_set_hugetlb_migratable(folio);
-+	list_move_tail(&folio->lru, &(folio_hstate(folio))->hugepage_activelist);
- 	spin_unlock_irq(&hugetlb_lock);
--	put_page(page);
-+	folio_put(folio);
+-	struct address_space *mapping;
+-	pgoff_t idx;
+-	struct page *page;
++	struct address_space *mapping = vma->vm_file->f_mapping;
++	pgoff_t idx = vma_hugecache_offset(h, vma, address);
++	bool present;
+ 
+-	mapping = vma->vm_file->f_mapping;
+-	idx = vma_hugecache_offset(h, vma, address);
++	rcu_read_lock();
++	present = page_cache_next_miss(mapping, idx, 1) != idx;
++	rcu_read_unlock();
+ 
+-	page = find_get_page(mapping, idx);
+-	if (page)
+-		put_page(page);
+-	return page != NULL;
++	return present;
  }
  
- void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason)
---- a/mm/migrate.c~mm-hugetlb-convert-putback_active_hugepage-to-take-in-a-folio
-+++ a/mm/migrate.c
-@@ -151,7 +151,7 @@ void putback_movable_pages(struct list_h
- 
- 	list_for_each_entry_safe(page, page2, l, lru) {
- 		if (unlikely(PageHuge(page))) {
--			putback_active_hugepage(page);
-+			folio_putback_active_hugetlb(page_folio(page));
- 			continue;
- 		}
- 		list_del(&page->lru);
-@@ -1374,7 +1374,7 @@ static int unmap_and_move_huge_page(new_
- 
- 	if (folio_ref_count(src) == 1) {
- 		/* page was freed from under us. So we are done. */
--		putback_active_hugepage(hpage);
-+		folio_putback_active_hugetlb(src);
- 		return MIGRATEPAGE_SUCCESS;
- 	}
- 
-@@ -1459,7 +1459,7 @@ out_unlock:
- 	folio_unlock(src);
- out:
- 	if (rc == MIGRATEPAGE_SUCCESS)
--		putback_active_hugepage(hpage);
-+		folio_putback_active_hugetlb(src);
- 	else if (rc != -EAGAIN)
- 		list_move_tail(&src->lru, ret);
- 
-@@ -1471,7 +1471,7 @@ out:
- 	if (put_new_page)
- 		put_new_page(new_hpage, private);
- 	else
--		putback_active_hugepage(new_hpage);
-+		folio_putback_active_hugetlb(dst);
- 
- 	return rc;
- }
+ int hugetlb_add_to_page_cache(struct page *page, struct address_space *mapping,
 _
 
 Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
