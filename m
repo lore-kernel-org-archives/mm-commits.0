@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE879C27C76
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 00:45:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C439C27C76
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 00:48:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235541AbjAZAp7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 19:45:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53648 "EHLO
+        id S235569AbjAZAsN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 19:48:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235569AbjAZAp6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 19:45:58 -0500
+        with ESMTP id S235581AbjAZAsN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 19:48:13 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 351715DC04
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 16:45:57 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C56F2B0AD
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 16:48:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C4DF0616C6
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 00:45:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FAC0C433EF;
-        Thu, 26 Jan 2023 00:45:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5F573616B5
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 00:48:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B703FC433EF;
+        Thu, 26 Jan 2023 00:48:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674693956;
-        bh=qD3mdzjmd2qU22jvCJ9IuXMcmls2/1+O4G/BwWgPOmw=;
+        s=korg; t=1674694090;
+        bh=qvO6VAs/bNpwQuyDzhdgszTtiQse5LKoE8U2EqWhlpY=;
         h=Date:To:From:Subject:From;
-        b=pPislK2GcX2HvBJFx3uNlqZBKs9rXhjaI8Pn2845f0PVyWK6gGZODh8KNXluDBoRN
-         5LcZwZ1GQGjXloFMXsWJzV8PtaMu/GzIaj1+7/2yB+FC2oxq10yf1M3Rssy9g4vVNx
-         1TyU4izI2243eE6tJjr9DW76QuMSTaShaAFFgB+4=
-Date:   Wed, 25 Jan 2023 16:45:55 -0800
-To:     mm-commits@vger.kernel.org, jongwooo.han@gmail.com,
-        akpm@linux-foundation.org
+        b=atpi5rJ/lQHGQdBtcpyY4wkvpe9ZH9XDsw7jyrDXFRIHQCqvtTqDmKu3Y4QIvaxNC
+         gkEvjwp5a/7JDa/xjh9+xGEK3il3EbZfZ7j3zTUbK9oCZnQD4Gwicbov7BxllN2wJU
+         SIzuzlCpHmT43T6Yk6LpHvEqAgVk9PZVtP9rJcv4=
+Date:   Wed, 25 Jan 2023 16:48:10 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        songmuchun@bytedance.com, mike.kravetz@oracle.com, lkp@intel.com,
+        jhubbard@nvidia.com, gerald.schaefer@linux.ibm.com,
+        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-typo-in-comments.patch added to mm-unstable branch
-Message-Id: <20230126004556.1FAC0C433EF@smtp.kernel.org>
+Subject: + mm-hugetlb-convert-hugetlb_install_page-to-folios.patch added to mm-unstable branch
+Message-Id: <20230126004810.B703FC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup.c: fix typo in comments
+     Subject: mm/hugetlb: convert hugetlb_install_page to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-typo-in-comments.patch
+     mm-hugetlb-convert-hugetlb_install_page-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-typo-in-comments.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-hugetlb_install_page-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,30 +66,95 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jongwoo Han <jongwooo.han@gmail.com>
-Subject: mm/gup.c: fix typo in comments
-Date: Thu, 26 Jan 2023 03:08:47 +0900
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm/hugetlb: convert hugetlb_install_page to folios
+Date: Wed, 25 Jan 2023 09:05:30 -0800
 
-Link: https://lkml.kernel.org/r/20230125180847.4542-1-jongwooo.han@gmail.com
-Signed-off-by: Jongwoo Han <jongwooo.han@gmail.com>
+Patch series "convert hugetlb fault functions to folios", v2.
+
+This series converts the hugetlb page faulting functions to operate on
+folios. These include hugetlb_no_page(), hugetlb_wp(),
+copy_hugetlb_page_range(), and hugetlb_mcopy_atomic_pte().
+
+
+This patch (of 8):
+
+Change hugetlb_install_page() to hugetlb_install_folio().  This reduces
+one user of the Huge Page flag macros which take in a page.
+
+Link: https://lkml.kernel.org/r/20230125170537.96973-1-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20230125170537.96973-2-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/gup.c~mm-fix-typo-in-comments
-+++ a/mm/gup.c
-@@ -1055,7 +1055,7 @@ static int check_vma_flags(struct vm_are
-  * This does not guarantee that the page exists in the user mappings when
-  * __get_user_pages returns, and there may even be a completely different
-  * page there in some cases (eg. if mmapped pagecache has been invalidated
-- * and subsequently re faulted). However it does guarantee that the page
-+ * and subsequently re-faulted). However it does guarantee that the page
-  * won't be freed completely. And mostly callers simply care that the page
-  * contains data that was valid *at some point in time*. Typically, an IO
-  * or similar operation cannot guarantee anything stronger anyway because
+--- a/mm/hugetlb.c~mm-hugetlb-convert-hugetlb_install_page-to-folios
++++ a/mm/hugetlb.c
+@@ -4946,14 +4946,14 @@ static bool is_hugetlb_entry_hwpoisoned(
+ }
+ 
+ static void
+-hugetlb_install_page(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
+-		     struct page *new_page)
++hugetlb_install_folio(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
++		     struct folio *new_folio)
+ {
+-	__SetPageUptodate(new_page);
+-	hugepage_add_new_anon_rmap(new_page, vma, addr);
+-	set_huge_pte_at(vma->vm_mm, addr, ptep, make_huge_pte(vma, new_page, 1));
++	__folio_mark_uptodate(new_folio);
++	hugepage_add_new_anon_rmap(&new_folio->page, vma, addr);
++	set_huge_pte_at(vma->vm_mm, addr, ptep, make_huge_pte(vma, &new_folio->page, 1));
+ 	hugetlb_count_add(pages_per_huge_page(hstate_vma(vma)), vma->vm_mm);
+-	SetHPageMigratable(new_page);
++	folio_set_hugetlb_migratable(new_folio);
+ }
+ 
+ int copy_hugetlb_page_range(struct mm_struct *dst, struct mm_struct *src,
+@@ -5107,7 +5107,7 @@ again:
+ 					/* huge_ptep of dst_pte won't change as in child */
+ 					goto again;
+ 				}
+-				hugetlb_install_page(dst_vma, dst_pte, addr, new);
++				hugetlb_install_folio(dst_vma, dst_pte, addr, page_folio(new));
+ 				spin_unlock(src_ptl);
+ 				spin_unlock(dst_ptl);
+ 				continue;
 _
 
-Patches currently in -mm which might be from jongwooo.han@gmail.com are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-mm-fix-typo-in-comments.patch
+mm-remove-the-hugetlb-field-from-struct-page.patch
+mm-memory-failure-convert-__get_huge_page_for_hwpoison-to-folios.patch
+mm-memory-failure-convert-try_memory_failure_hugetlb-to-folios.patch
+mm-memory-failure-convert-hugetlb_clear_page_hwpoison-to-folios.patch
+mm-memory-failure-convert-free_raw_hwp_pages-to-folios.patch
+mm-memory-failure-convert-raw_hwp_list_head-to-folios.patch
+mm-memory-failure-convert-__free_raw_hwp_pages-to-folios.patch
+mm-memory-failure-convert-hugetlb_set_page_hwpoison-to-folios.patch
+mm-memory-failure-convert-unpoison_memory-to-folios.patch
+mm-hugetlb-convert-isolate_hugetlb-to-folios.patch
+mm-hugetlb-convert-__update_and_free_page-to-folios.patch
+mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios.patch
+mm-hugetlb-convert-alloc_surplus_huge_page-to-folios.patch
+mm-hugetlb-increase-use-of-folios-in-alloc_huge_page.patch
+mm-hugetlb-convert-alloc_migrate_huge_page-to-folios.patch
+mm-hugetlb-convert-restore_reserve_on_error-to-folios.patch
+mm-hugetlb-convert-demote_free_huge_page-to-folios.patch
+mm-hugetlb-convert-get_hwpoison_huge_page-to-folios.patch
+mm-hugetlb-convert-hugetlb_install_page-to-folios.patch
+mm-hugetlb-convert-hugetlbfs_pagecache_present-to-folios.patch
+mm-hugetlb-convert-putback_active_hugepage-to-take-in-a-folio.patch
+mm-hugetlb-convert-hugetlb-fault-paths-to-use-alloc_hugetlb_folio.patch
+mm-hugetlb-convert-restore_reserve_on_error-to-take-in-a-folio.patch
+mm-hugetlb-convert-hugetlb_add_to_page_cache-to-take-in-a-folio.patch
+mm-hugetlb-convert-hugetlb_wp-to-take-in-a-folio.patch
+documentation-mm-update-hugetlbfs-documentation-to-mention-alloc_hugetlb_folio.patch
 
