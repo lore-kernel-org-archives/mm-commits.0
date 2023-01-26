@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1E89C54EAA
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 23:09:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54F22C05027
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 23:09:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233386AbjAZXJl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 Jan 2023 18:09:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34490 "EHLO
+        id S229817AbjAZXJm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 26 Jan 2023 18:09:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229817AbjAZXJj (ORCPT
+        with ESMTP id S233384AbjAZXJj (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 18:09:39 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1785669500
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 15:09:37 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2413823C7F
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 15:09:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 1B95FCE2537
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 23:09:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48C3AC433EF;
-        Thu, 26 Jan 2023 23:09:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AE34A61983
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 23:09:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EF2CC433EF;
+        Thu, 26 Jan 2023 23:09:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674774574;
-        bh=4gTy5wgZAtiBSFoLKlintzelM/FHQ+CuaAWY/Aw+Tjk=;
+        s=korg; t=1674774577;
+        bh=piiejpj964IUtd1/FDQb9P3/QKSSxULUG0EvuNDaWgE=;
         h=Date:To:From:Subject:From;
-        b=rnT164sHXeZXF9PfknQlNTbjdKJJYuf8DiCLAuyTEetTM/kQjEDA6mBOYamx/y1TC
-         3FVdNUx5QM5E5hJvT+BFU31aflZodF6a549wAdcLejiDiUF+OHULmYpdBEY2+p7CZG
-         KIYMHMCa1LLSYYjZkNTZ5DFLhVuqg9L6lGx23IfE=
-Date:   Thu, 26 Jan 2023 15:09:33 -0800
+        b=Nveion+yNeVeRkgAD+PYUr/4LJ2WSCzbAqkUPAOpbMM+Uie7FtVhxQjYdoM7eM4Fl
+         we2jhm1RZu/lj5pV/KUIckGAkhSvVsedqslN95au7oYan0gc1Uhl4QrFJO/W0/1GtI
+         MOb7x4R8RLFjVvZoQPTmJ1CV2l5taRTkW1Kxx0X0=
+Date:   Thu, 26 Jan 2023 15:09:36 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         vbabka@suse.cz, songliubraving@fb.com, soheil@google.com,
         shakeelb@google.com, sebastian.reichel@collabora.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         dave@stgolabs.net, bigeasy@linutronix.de, axelrasmussen@google.com,
         arjunroy@google.com, surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-vma-vm_flags-wrapper-functions.patch added to mm-unstable branch
-Message-Id: <20230126230934.48C3AC433EF@smtp.kernel.org>
+Subject: + mm-replace-vm_locked_clear_mask-with-vm_locked_mask.patch added to mm-unstable branch
+Message-Id: <20230126230937.0EF2CC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce vma->vm_flags wrapper functions
+     Subject: mm: replace VM_LOCKED_CLEAR_MASK with VM_LOCKED_MASK
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-vma-vm_flags-wrapper-functions.patch
+     mm-replace-vm_locked_clear_mask-with-vm_locked_mask.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-vma-vm_flags-wrapper-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-replace-vm_locked_clear_mask-with-vm_locked_mask.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,19 +76,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: introduce vma->vm_flags wrapper functions
-Date: Thu, 26 Jan 2023 11:37:47 -0800
+Subject: mm: replace VM_LOCKED_CLEAR_MASK with VM_LOCKED_MASK
+Date: Thu, 26 Jan 2023 11:37:48 -0800
 
-vm_flags are among VMA attributes which affect decisions like VMA merging
-and splitting.  Therefore all vm_flags modifications are performed after
-taking exclusive mmap_lock to prevent vm_flags updates racing with such
-operations.  Introduce modifier functions for vm_flags to be used whenever
-flags are updated.  This way we can better check and control correct
-locking behavior during these updates.
+To simplify the usage of VM_LOCKED_CLEAR_MASK in vm_flags_clear(), replace
+it with VM_LOCKED_MASK bitmask and convert all users.
 
-Link: https://lkml.kernel.org/r/20230126193752.297968-3-surenb@google.com
+Link: https://lkml.kernel.org/r/20230126193752.297968-4-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
@@ -97,6 +92,7 @@ Cc: Arjun Roy <arjunroy@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Greg Thelen <gthelen@google.com>
@@ -126,78 +122,113 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |   40 +++++++++++++++++++++++++++++++++++++
- include/linux/mm_types.h |   10 ++++++++-
- 2 files changed, 49 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    4 ++--
+ kernel/fork.c      |    2 +-
+ mm/hugetlb.c       |    4 ++--
+ mm/mlock.c         |    6 +++---
+ mm/mmap.c          |    6 +++---
+ mm/mremap.c        |    2 +-
+ 6 files changed, 12 insertions(+), 12 deletions(-)
 
---- a/include/linux/mm.h~mm-introduce-vma-vm_flags-wrapper-functions
+--- a/include/linux/mm.h~mm-replace-vm_locked_clear_mask-with-vm_locked_mask
 +++ a/include/linux/mm.h
-@@ -627,6 +627,46 @@ static inline void vma_init(struct vm_ar
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
- }
+@@ -421,8 +421,8 @@ extern unsigned int kobjsize(const void
+ /* This mask defines which mm->def_flags a process can inherit its parent */
+ #define VM_INIT_DEF_MASK	VM_NOHUGEPAGE
  
-+/* Use when VMA is not part of the VMA tree and needs no locking */
-+static inline void vm_flags_init(struct vm_area_struct *vma,
-+				 vm_flags_t flags)
-+{
-+	ACCESS_PRIVATE(vma, __vm_flags) = flags;
-+}
-+
-+/* Use when VMA is part of the VMA tree and modifications need coordination */
-+static inline void vm_flags_reset(struct vm_area_struct *vma,
-+				  vm_flags_t flags)
-+{
-+	mmap_assert_write_locked(vma->vm_mm);
-+	vm_flags_init(vma, flags);
-+}
-+
-+static inline void vm_flags_set(struct vm_area_struct *vma,
-+				vm_flags_t flags)
-+{
-+	mmap_assert_write_locked(vma->vm_mm);
-+	ACCESS_PRIVATE(vma, __vm_flags) |= flags;
-+}
-+
-+static inline void vm_flags_clear(struct vm_area_struct *vma,
-+				  vm_flags_t flags)
-+{
-+	mmap_assert_write_locked(vma->vm_mm);
-+	ACCESS_PRIVATE(vma, __vm_flags) &= ~flags;
-+}
-+
-+/*
-+ * Use only when the order of set/clear operations is unimportant, otherwise
-+ * use vm_flags_{set|clear} explicitly.
-+ */
-+static inline void vm_flags_mod(struct vm_area_struct *vma,
-+				vm_flags_t set, vm_flags_t clear)
-+{
-+	mmap_assert_write_locked(vma->vm_mm);
-+	vm_flags_init(vma, (vma->vm_flags | set) & ~clear);
-+}
-+
- static inline void vma_set_anonymous(struct vm_area_struct *vma)
- {
- 	vma->vm_ops = NULL;
---- a/include/linux/mm_types.h~mm-introduce-vma-vm_flags-wrapper-functions
-+++ a/include/linux/mm_types.h
-@@ -491,7 +491,15 @@ struct vm_area_struct {
- 	 * See vmf_insert_mixed_prot() for discussion.
- 	 */
- 	pgprot_t vm_page_prot;
--	unsigned long vm_flags;		/* Flags, see mm.h. */
-+
-+	/*
-+	 * Flags, see mm.h.
-+	 * To modify use vm_flags_{init|reset|set|clear|mod} functions.
-+	 */
-+	union {
-+		const vm_flags_t vm_flags;
-+		vm_flags_t __private __vm_flags;
-+	};
+-/* This mask is used to clear all the VMA flags used by mlock */
+-#define VM_LOCKED_CLEAR_MASK	(~(VM_LOCKED | VM_LOCKONFAULT))
++/* This mask represents all the VMA flag bits used by mlock */
++#define VM_LOCKED_MASK	(VM_LOCKED | VM_LOCKONFAULT)
+ 
+ /* Arch-specific flags to clear when updating VM flags on protection change */
+ #ifndef VM_ARCH_CLEAR
+--- a/kernel/fork.c~mm-replace-vm_locked_clear_mask-with-vm_locked_mask
++++ a/kernel/fork.c
+@@ -659,7 +659,7 @@ static __latent_entropy int dup_mmap(str
+ 			tmp->anon_vma = NULL;
+ 		} else if (anon_vma_fork(tmp, mpnt))
+ 			goto fail_nomem_anon_vma_fork;
+-		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
++		vm_flags_clear(tmp, VM_LOCKED_MASK);
+ 		file = tmp->vm_file;
+ 		if (file) {
+ 			struct address_space *mapping = file->f_mapping;
+--- a/mm/hugetlb.c~mm-replace-vm_locked_clear_mask-with-vm_locked_mask
++++ a/mm/hugetlb.c
+@@ -6970,8 +6970,8 @@ static unsigned long page_table_shareabl
+ 	unsigned long s_end = sbase + PUD_SIZE;
+ 
+ 	/* Allow segments to share if only one is marked locked */
+-	unsigned long vm_flags = vma->vm_flags & VM_LOCKED_CLEAR_MASK;
+-	unsigned long svm_flags = svma->vm_flags & VM_LOCKED_CLEAR_MASK;
++	unsigned long vm_flags = vma->vm_flags & ~VM_LOCKED_MASK;
++	unsigned long svm_flags = svma->vm_flags & ~VM_LOCKED_MASK;
  
  	/*
- 	 * For areas with an address space and backing store,
+ 	 * match the virtual addresses, permission and the alignment of the
+--- a/mm/mlock.c~mm-replace-vm_locked_clear_mask-with-vm_locked_mask
++++ a/mm/mlock.c
+@@ -497,7 +497,7 @@ static int apply_vma_lock_flags(unsigned
+ 		if (vma->vm_start != tmp)
+ 			return -ENOMEM;
+ 
+-		newflags = vma->vm_flags & VM_LOCKED_CLEAR_MASK;
++		newflags = vma->vm_flags & ~VM_LOCKED_MASK;
+ 		newflags |= flags;
+ 		/* Here we know that  vma->vm_start <= nstart < vma->vm_end. */
+ 		tmp = vma->vm_end;
+@@ -661,7 +661,7 @@ static int apply_mlockall_flags(int flag
+ 	struct vm_area_struct *vma, *prev = NULL;
+ 	vm_flags_t to_add = 0;
+ 
+-	current->mm->def_flags &= VM_LOCKED_CLEAR_MASK;
++	current->mm->def_flags &= ~VM_LOCKED_MASK;
+ 	if (flags & MCL_FUTURE) {
+ 		current->mm->def_flags |= VM_LOCKED;
+ 
+@@ -681,7 +681,7 @@ static int apply_mlockall_flags(int flag
+ 	for_each_vma(vmi, vma) {
+ 		vm_flags_t newflags;
+ 
+-		newflags = vma->vm_flags & VM_LOCKED_CLEAR_MASK;
++		newflags = vma->vm_flags & ~VM_LOCKED_MASK;
+ 		newflags |= to_add;
+ 
+ 		/* Ignore errors */
+--- a/mm/mmap.c~mm-replace-vm_locked_clear_mask-with-vm_locked_mask
++++ a/mm/mmap.c
+@@ -2668,7 +2668,7 @@ expanded:
+ 		if ((vm_flags & VM_SPECIAL) || vma_is_dax(vma) ||
+ 					is_vm_hugetlb_page(vma) ||
+ 					vma == get_gate_vma(current->mm))
+-			vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
++			vm_flags_clear(vma, VM_LOCKED_MASK);
+ 		else
+ 			mm->locked_vm += (len >> PAGE_SHIFT);
+ 	}
+@@ -3338,8 +3338,8 @@ static struct vm_area_struct *__install_
+ 	vma->vm_start = addr;
+ 	vma->vm_end = addr + len;
+ 
+-	vma->vm_flags = vm_flags | mm->def_flags | VM_DONTEXPAND | VM_SOFTDIRTY;
+-	vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
++	vm_flags_init(vma, (vm_flags | mm->def_flags |
++		      VM_DONTEXPAND | VM_SOFTDIRTY) & ~VM_LOCKED_MASK);
+ 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+ 
+ 	vma->vm_ops = ops;
+--- a/mm/mremap.c~mm-replace-vm_locked_clear_mask-with-vm_locked_mask
++++ a/mm/mremap.c
+@@ -687,7 +687,7 @@ static unsigned long move_vma(struct vm_
+ 
+ 	if (unlikely(!err && (flags & MREMAP_DONTUNMAP))) {
+ 		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
+-		vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
++		vm_flags_clear(vma, VM_LOCKED_MASK);
+ 
+ 		/*
+ 		 * anon_vma links of the old vma is no longer needed after its page
 _
 
 Patches currently in -mm which might be from surenb@google.com are
