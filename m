@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38E9BC61DA7
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 23:02:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F38BC05027
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 23:05:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233191AbjAZXCm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 Jan 2023 18:02:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57082 "EHLO
+        id S233374AbjAZXFI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 26 Jan 2023 18:05:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233205AbjAZXCm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 18:02:42 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1E8D53E63
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 15:02:40 -0800 (PST)
+        with ESMTP id S233392AbjAZXFF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 18:05:05 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14B34564BF;
+        Thu, 26 Jan 2023 15:04:41 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4D6E961983
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 23:02:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2D34C433EF;
-        Thu, 26 Jan 2023 23:02:39 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3A7F0B81F2F;
+        Thu, 26 Jan 2023 23:04:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDFCCC433D2;
+        Thu, 26 Jan 2023 23:04:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674774159;
-        bh=/FoNP0/Lvn3GXeIti5uOsVd4jWduSROr2Nkc4gQgbXM=;
+        s=korg; t=1674774260;
+        bh=bNRIn/ZA0jHDon4cl/MSRknolOPglCa66cEnDB+ygTU=;
         h=Date:To:From:Subject:From;
-        b=pxOUsMBt6uskNIewIaYIaJOZFGNrnUCghoZaP9cu3DstsMW8Petp/tbX4fuD4jQPP
-         mlhyQ2Dq/3SuM4nznldFOvjMQgh0enm7zKoVXGrlHPWLwjxd4RwHhZ2C5jbqIC2kzD
-         9VC8l4YGGajGQbNeE1NuRPYE43lShOX3ZktR52wE=
-Date:   Thu, 26 Jan 2023 15:02:39 -0800
-To:     mm-commits@vger.kernel.org, hch@infradead.org, willy@infradead.org,
-        akpm@linux-foundation.org
+        b=GumhB+z72hdVwN4CLXMJanI6Akavif1pmC1VbkJqKR2QYXy5VyNbCt2Nhu0wIfSEK
+         5YSAV2c8uEmfDya+6H+ER/uIoSZwtN2nNK/OYkVvpqrU0ZBjAAD/WjpntUblBeLD5T
+         IF1JeS9y3sJYkW+xUFepAEIP14hBT1HOg6uafwfQ=
+Date:   Thu, 26 Jan 2023 15:04:20 -0800
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        tony.luck@intel.com, tglx@linutronix.de, stable@vger.kernel.org,
+        keescook@chromium.org, ira.weiny@intel.com, glider@google.com,
+        fmdefrancesco@gmail.com, dsterba@suse.com, deller@gmx.de,
+        bigeasy@linutronix.de, bagasdotme@gmail.com, andreyknvl@gmail.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mpage-convert-__mpage_writepage-to-use-a-folio-more-fully.patch added to mm-unstable branch
-Message-Id: <20230126230239.A2D34C433EF@smtp.kernel.org>
+Subject: + highmem-round-down-the-address-passed-to-kunmap_flush_on_unmap.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230126230420.CDFCCC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mpage: convert __mpage_writepage() to use a folio more fully
-has been added to the -mm mm-unstable branch.  Its filename is
-     mpage-convert-__mpage_writepage-to-use-a-folio-more-fully.patch
+     Subject: highmem: round down the address passed to kunmap_flush_on_unmap()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     highmem-round-down-the-address-passed-to-kunmap_flush_on_unmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-convert-__mpage_writepage-to-use-a-folio-more-fully.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/highmem-round-down-the-address-passed-to-kunmap_flush_on_unmap.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,142 +69,64 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mpage: convert __mpage_writepage() to use a folio more fully
-Date: Thu, 26 Jan 2023 20:12:55 +0000
+Subject: highmem: round down the address passed to kunmap_flush_on_unmap()
+Date: Thu, 26 Jan 2023 20:07:27 +0000
 
-This is just a conversion to the folio API.  While there are some nods
-towards supporting multi-page folios in here, the blocks array is still
-sized for one page's worth of blocks, and there are other assumptions such
-as the blocks_per_page variable.
+We already round down the address in kunmap_local_indexed() which is the
+other implementation of __kunmap_local().  The only implementation of
+kunmap_flush_on_unmap() is PA-RISC which is expecting a page-aligned
+address.  This may be causing PA-RISC to be flushing the wrong addresses
+currently.
 
-Link: https://lkml.kernel.org/r/20230126201255.1681189-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230126200727.1680362-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Christoph Hellwig <hch@infradead.org>
+Fixes: 298fa1ad5571 ("highmem: Provide generic variant of kmap_atomic*")
+Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |   43 ++++++++++++++++++++-----------------------
- 1 file changed, 20 insertions(+), 23 deletions(-)
+ include/linux/highmem-internal.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/mpage.c~mpage-convert-__mpage_writepage-to-use-a-folio-more-fully
-+++ a/fs/mpage.c
-@@ -443,13 +443,11 @@ void clean_page_buffers(struct page *pag
- static int __mpage_writepage(struct folio *folio, struct writeback_control *wbc,
- 		      void *data)
+--- a/include/linux/highmem-internal.h~highmem-round-down-the-address-passed-to-kunmap_flush_on_unmap
++++ a/include/linux/highmem-internal.h
+@@ -200,7 +200,7 @@ static inline void *kmap_local_pfn(unsig
+ static inline void __kunmap_local(const void *addr)
  {
--	struct page *page = &folio->page;
- 	struct mpage_data *mpd = data;
- 	struct bio *bio = mpd->bio;
--	struct address_space *mapping = page->mapping;
--	struct inode *inode = page->mapping->host;
-+	struct address_space *mapping = folio->mapping;
-+	struct inode *inode = mapping->host;
- 	const unsigned blkbits = inode->i_blkbits;
--	unsigned long end_index;
- 	const unsigned blocks_per_page = PAGE_SIZE >> blkbits;
- 	sector_t last_block;
- 	sector_t block_in_file;
-@@ -460,13 +458,13 @@ static int __mpage_writepage(struct foli
- 	int boundary = 0;
- 	sector_t boundary_block = 0;
- 	struct block_device *boundary_bdev = NULL;
--	int length;
-+	size_t length;
- 	struct buffer_head map_bh;
- 	loff_t i_size = i_size_read(inode);
- 	int ret = 0;
-+	struct buffer_head *head = folio_buffers(folio);
+ #ifdef ARCH_HAS_FLUSH_ON_KUNMAP
+-	kunmap_flush_on_unmap(addr);
++	kunmap_flush_on_unmap(PTR_ALIGN_DOWN(addr, PAGE_SIZE));
+ #endif
+ }
  
--	if (page_has_buffers(page)) {
--		struct buffer_head *head = page_buffers(page);
-+	if (head) {
- 		struct buffer_head *bh = head;
- 
- 		/* If they're all mapped and dirty, do it */
-@@ -518,8 +516,8 @@ static int __mpage_writepage(struct foli
- 	/*
- 	 * The page has no buffers: map it to disk
- 	 */
--	BUG_ON(!PageUptodate(page));
--	block_in_file = (sector_t)page->index << (PAGE_SHIFT - blkbits);
-+	BUG_ON(!folio_test_uptodate(folio));
-+	block_in_file = (sector_t)folio->index << (PAGE_SHIFT - blkbits);
- 	/*
- 	 * Whole page beyond EOF? Skip allocating blocks to avoid leaking
- 	 * space.
-@@ -527,7 +525,7 @@ static int __mpage_writepage(struct foli
- 	if (block_in_file >= (i_size + (1 << blkbits) - 1) >> blkbits)
- 		goto page_is_mapped;
- 	last_block = (i_size - 1) >> blkbits;
--	map_bh.b_page = page;
-+	map_bh.b_folio = folio;
- 	for (page_block = 0; page_block < blocks_per_page; ) {
- 
- 		map_bh.b_state = 0;
-@@ -556,8 +554,8 @@ static int __mpage_writepage(struct foli
- 	first_unmapped = page_block;
- 
- page_is_mapped:
--	end_index = i_size >> PAGE_SHIFT;
--	if (page->index >= end_index) {
-+	length = folio_size(folio);
-+	if (folio_pos(folio) + length > i_size) {
- 		/*
- 		 * The page straddles i_size.  It must be zeroed out on each
- 		 * and every writepage invocation because it may be mmapped.
-@@ -566,11 +564,10 @@ page_is_mapped:
- 		 * is zeroed when mapped, and writes to that region are not
- 		 * written out to the file."
- 		 */
--		unsigned offset = i_size & (PAGE_SIZE - 1);
--
--		if (page->index > end_index || !offset)
-+		length = i_size - folio_pos(folio);
-+		if (WARN_ON_ONCE(folio_pos(folio) >= i_size))
- 			goto confused;
--		zero_user_segment(page, offset, PAGE_SIZE);
-+		folio_zero_segment(folio, length, folio_size(folio));
- 	}
- 
- 	/*
-@@ -593,18 +590,18 @@ alloc_new:
- 	 * the confused fail path above (OOM) will be very confused when
- 	 * it finds all bh marked clean (i.e. it will not write anything)
- 	 */
--	wbc_account_cgroup_owner(wbc, page, PAGE_SIZE);
-+	wbc_account_cgroup_owner(wbc, &folio->page, folio_size(folio));
- 	length = first_unmapped << blkbits;
--	if (bio_add_page(bio, page, length, 0) < length) {
-+	if (!bio_add_folio(bio, folio, length, 0)) {
- 		bio = mpage_bio_submit(bio);
- 		goto alloc_new;
- 	}
- 
--	clean_buffers(page, first_unmapped);
-+	clean_buffers(&folio->page, first_unmapped);
- 
--	BUG_ON(PageWriteback(page));
--	set_page_writeback(page);
--	unlock_page(page);
-+	BUG_ON(folio_test_writeback(folio));
-+	folio_start_writeback(folio);
-+	folio_unlock(folio);
- 	if (boundary || (first_unmapped != blocks_per_page)) {
- 		bio = mpage_bio_submit(bio);
- 		if (boundary_block) {
-@@ -623,7 +620,7 @@ confused:
- 	/*
- 	 * The caller has a ref on the inode, so *mapping is stable
- 	 */
--	ret = block_write_full_page(page, mpd->get_block, wbc);
-+	ret = block_write_full_page(&folio->page, mpd->get_block, wbc);
- 	mapping_set_error(mapping, ret);
- out:
- 	mpd->bio = bio;
+@@ -227,7 +227,7 @@ static inline void *kmap_atomic_pfn(unsi
+ static inline void __kunmap_atomic(const void *addr)
+ {
+ #ifdef ARCH_HAS_FLUSH_ON_KUNMAP
+-	kunmap_flush_on_unmap(addr);
++	kunmap_flush_on_unmap(PTR_ALIGN_DOWN(addr, PAGE_SIZE));
+ #endif
+ 	pagefault_enable();
+ 	if (IS_ENABLED(CONFIG_PREEMPT_RT))
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
 
+highmem-round-down-the-address-passed-to-kunmap_flush_on_unmap.patch
 mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
 mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped.patch
 doc-clarify-refcount-section-by-referring-to-folios-pages.patch
