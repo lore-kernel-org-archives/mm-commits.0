@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46C38C27C76
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 01:29:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33782C27C76
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 01:48:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233619AbjAZB3r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 20:29:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43792 "EHLO
+        id S229473AbjAZBsO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 20:48:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230233AbjAZB3q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 20:29:46 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB1884698
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 17:29:45 -0800 (PST)
+        with ESMTP id S229458AbjAZBsN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 20:48:13 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1796B5C0CB
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 17:48:13 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7DCA0616E2
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 01:29:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAF3DC433EF;
-        Thu, 26 Jan 2023 01:29:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9FA1D616FD
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 01:48:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F28ECC4339B;
+        Thu, 26 Jan 2023 01:48:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674696584;
-        bh=oGOw4xScrbw7ZQPVcjuJ4tZdrnMm4sTzECFF0cHRW3g=;
+        s=korg; t=1674697692;
+        bh=7ay9zrcV+RlfB0UJMeoMGmixe9lgRZ7nUpVcpaBEoyU=;
         h=Date:To:From:Subject:From;
-        b=t15s9DPX4R2ATk9zyI1PTblNF6NY16zWgdNrXEBSDyHabPdQYhl3IdxJsqABmu25P
-         N0tc1J5EdtKhYOzF9tiU0ds9Xg7HaYTwBj59cskQshwQPiTBj/DHGS9d3rdQl0QRGQ
-         3q3BCz2j57vK3WUDbPAb8b62PMcJpr0O5bNMmAbA=
-Date:   Wed, 25 Jan 2023 17:29:44 -0800
-To:     mm-commits@vger.kernel.org, nico@fluxnic.net,
-        rdunlap@infradead.org, akpm@linux-foundation.org
+        b=h4IS8X4IWdXgAItG4jVLVPvkiAmjgu2APcO4p+F/UzcgKFEnu2vZQlXJEQcNvFhAE
+         Uw+a9REifnqbyZ60uyPcqKqbPv9pvleeKaRYzQHpPXDuP5wdbsMp5hTF16LaEdrCIP
+         qdH1Q8yP8MyWB1QHkAr8CHMcWAvXKtrXMXaq9XcM=
+Date:   Wed, 25 Jan 2023 17:48:11 -0800
+To:     mm-commits@vger.kernel.org, surenb@google.com, mhocko@suse.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + cramfs-kconfig-fix-spelling-punctuation.patch added to mm-nonmm-unstable branch
-Message-Id: <20230126012944.DAF3DC433EF@smtp.kernel.org>
+Subject: + mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix.patch added to mm-unstable branch
+Message-Id: <20230126014811.F28ECC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cramfs: Kconfig: fix spelling & punctuation
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     cramfs-kconfig-fix-spelling-punctuation.patch
+     Subject: mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cramfs-kconfig-fix-spelling-punctuation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,38 +64,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: cramfs: Kconfig: fix spelling & punctuation
-Date: Tue, 24 Jan 2023 10:16:31 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix
+Date: Wed Jan 25 05:47:16 PM PST 2023
 
-Fix spelling and hyphenation in cramfs Kconfig.
+fix mm/nommu.c
 
-Link: https://lkml.kernel.org/r/20230124181631.15204-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Nicolas Pitre <nico@fluxnic.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/cramfs/Kconfig~cramfs-kconfig-fix-spelling-punctuation
-+++ a/fs/cramfs/Kconfig
-@@ -38,7 +38,7 @@ config CRAMFS_MTD
- 	default y if !CRAMFS_BLOCKDEV
- 	help
- 	  This option allows the CramFs driver to load data directly from
--	  a linear adressed memory range (usually non volatile memory
-+	  a linear addressed memory range (usually non-volatile memory
- 	  like flash) instead of going through the block device layer.
- 	  This saves some memory since no intermediate buffering is
- 	  necessary.
+--- a/mm/nommu.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix
++++ a/mm/nommu.c
+@@ -951,7 +951,7 @@ static int do_mmap_private(struct vm_are
+ 	atomic_long_add(total, &mmap_pages_allocated);
+ 
+ 	set_vm_flags(vma, VM_MAPPED_COPY);
+-	region->vm_flags = vma->flags;
++	region->vm_flags = vma->vm_flags;
+ 	region->vm_start = (unsigned long) base;
+ 	region->vm_end   = region->vm_start + len;
+ 	region->vm_top   = region->vm_start + (total << PAGE_SHIFT);
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-kconfig-fix-spellos.patch
-freevxfs-kconfig-fix-spelling.patch
-freevxfs-fix-kernel-doc-warnings.patch
-ntfs-fix-multiple-kernel-doc-warnings.patch
-userns-fix-a-structs-kernel-doc-notation.patch
-cramfs-kconfig-fix-spelling-punctuation.patch
+mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes.patch
+mm-add-folio_add_new_anon_rmap-fix.patch
+mm-remove-page_evictable-fix.patch
+mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix.patch
+mm-remove-the-swap_readpage-return-value-fix.patch
+block-remove-rw_page-fix.patch
+error-injection-remove-ei_etype_none-fix.patch
+hfsplus-remove-unnecessary-variable-initialization-fix.patch
+scripts-gdb-add-mm-introspection-utils-fix.patch
 
