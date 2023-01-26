@@ -2,39 +2,45 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E267EC54E94
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 00:32:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59956C54E94
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 00:36:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236184AbjAZAcx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Jan 2023 19:32:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45142 "EHLO
+        id S236245AbjAZAgO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Jan 2023 19:36:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229481AbjAZAcw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 19:32:52 -0500
+        with ESMTP id S236151AbjAZAgN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 19:36:13 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CD6BCA28;
-        Wed, 25 Jan 2023 16:32:51 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6E844A20A
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 16:36:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DC2E2616EB;
-        Thu, 26 Jan 2023 00:32:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B797C433D2;
-        Thu, 26 Jan 2023 00:32:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 62D08616FF
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 00:36:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B216DC433D2;
+        Thu, 26 Jan 2023 00:36:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674693170;
-        bh=1L6xx0pgpSfHoPAJjRLb3oWVqkHhoCHyIbmVgwoEvvA=;
+        s=korg; t=1674693371;
+        bh=s6FLSEP+OaZIUQgfhTdB/6ORMQq714bDw5cToU4l/ZE=;
         h=Date:To:From:Subject:From;
-        b=vg7ln4+cKOS6x+AgKWbWhtcSHbwYro9QN0ArxLb+0qXPgmjs30M4mYAsj4hCC8BBH
-         WMBPIprUszZD32EtEZx4LyGRz0Tb5TqkmDTdnE2f29ze+65ALe4DLVjt13xrVAjMVD
-         d+UubRXzE77uijVnUzq4HiwyYsiyPBupmoMtx+pM=
-Date:   Wed, 25 Jan 2023 16:32:49 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        shy828301@gmail.com, hughd@google.com, zokeefe@google.com,
+        b=NYAhfKLe+98wzJ3cYvNc4mU7UZOtrhOGq41KHef/tur46SEbH3jZer/JHph02CJgW
+         3r88TynQCFYveP8H7Wynv1oXwL3pA1LMgpt6hQo2kVs9jtmjdBfeyEcVQmjzXT0ZMs
+         4XnvzOAbcRSdDzhcf0AyWXHzDH2HLz7SQAirUDJ8=
+Date:   Wed, 25 Jan 2023 16:36:11 -0800
+To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
+        vgupta@kernel.org, tsbogend@alpha.franken.de, shorne@gmail.com,
+        richard@nod.at, palmer@dabbelt.com, mpe@ellerman.id.au,
+        monstr@monstr.eu, mattst88@gmail.com, kernel@xen0n.name,
+        jcmvbkbc@gmail.com, guoren@kernel.org, gerg@linux-m68k.org,
+        geert@linux-m68k.org, dinguyen@kernel.org, deller@gmx.de,
+        davem@davemloft.net, dalias@libc.org, chenhuacai@kernel.org,
+        bcain@quicinc.com, arnd@arndb.de, rppt@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madv_collapse-catch-none-huge-bad-pmd-lookups.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230126003250.3B797C433D2@smtp.kernel.org>
+Subject: + mips-drop-definition-of-pfn_valid-for-discontigmem.patch added to mm-unstable branch
+Message-Id: <20230126003611.B216DC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/MADV_COLLAPSE: catch !none !huge !bad pmd lookups
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-madv_collapse-catch-none-huge-bad-pmd-lookups.patch
+     Subject: mips: drop definition of pfn_valid() for DISCONTIGMEM
+has been added to the -mm mm-unstable branch.  Its filename is
+     mips-drop-definition-of-pfn_valid-for-discontigmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madv_collapse-catch-none-huge-bad-pmd-lookups.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-drop-definition-of-pfn_valid-for-discontigmem.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,141 +71,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/MADV_COLLAPSE: catch !none !huge !bad pmd lookups
-Date: Wed, 25 Jan 2023 14:53:58 -0800
+From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Subject: mips: drop definition of pfn_valid() for DISCONTIGMEM
+Date: Wed, 25 Jan 2023 21:07:56 +0200
 
-In commit 34488399fa08 ("mm/madvise: add file and shmem support to
-MADV_COLLAPSE") we make the following change to find_pmd_or_thp_or_none():
+There is a stale definition of pfn_valid() for DISCONTINGMEM memory model
+guarded by !FLATMEM && !SPARSEMEM && NUMA ifdefery.
 
-	-       if (!pmd_present(pmde))
-	-               return SCAN_PMD_NULL;
-	+       if (pmd_none(pmde))
-	+               return SCAN_PMD_NONE;
+Remove everything but definition of pfn_valid() for FLATMEM.
 
-This was for-use by MADV_COLLAPSE file/shmem codepaths, where
-MADV_COLLAPSE might identify a pte-mapped hugepage, only to have
-khugepaged race-in, free the pte table, and clear the pmd.  Such codepaths
-include:
-
-A) If we find a suitably-aligned compound page of order HPAGE_PMD_ORDER
-   already in the pagecache.
-B) In retract_page_tables(), if we fail to grab mmap_lock for the target
-   mm/address.
-
-In these cases, collapse_pte_mapped_thp() really does expect a none (not
-just !present) pmd, and we want to suitably identify that case separate
-from the case where no pmd is found, or it's a bad-pmd (of course, many
-things could happen once we drop mmap_lock, and the pmd could plausibly
-undergo multiple transitions due to intervening fault, split, etc). 
-Regardless, the code is prepared install a huge-pmd only when the existing
-pmd entry is either a genuine pte-table-mapping-pmd, or the none-pmd.
-
-However, the commit introduces a logical hole; namely, that we've allowed
-!none- && !huge- && !bad-pmds to be classified as genuine
-pte-table-mapping-pmds.  One such example that could leak through are swap
-entries.  The pmd values aren't checked again before use in
-pte_offset_map_lock(), which is expecting nothing less than a genuine
-pte-table-mapping-pmd.
-
-We want to put back the !pmd_present() check (below the pmd_none() check),
-but need to be careful to deal with subtleties in pmd transitions and
-treatments by various arch.
-
-The issue is that __split_huge_pmd_locked() temporarily clears the present
-bit (or otherwise marks the entry as invalid), but pmd_present() and
-pmd_trans_huge() still need to return true while the pmd is in this
-transitory state.  For example, x86's pmd_present() also checks the
-_PAGE_PSE , riscv's version also checks the _PAGE_LEAF bit, and arm64 also
-checks a PMD_PRESENT_INVALID bit.
-
-Covering all 4 cases for x86 (all checks done on the same pmd value):
-
-1) pmd_present() && pmd_trans_huge()
-   All we actually know here is that the PSE bit is set. Either:
-   a) We aren't racing with __split_huge_page(), and PRESENT or PROTNONE
-      is set.
-      => huge-pmd
-   b) We are currently racing with __split_huge_page().  The danger here
-      is that we proceed as-if we have a huge-pmd, but really we are
-      looking at a pte-mapping-pmd.  So, what is the risk of this
-      danger?
-
-      The only relevant path is:
-
-	madvise_collapse() -> collapse_pte_mapped_thp()
-
-      Where we might just incorrectly report back "success", when really
-      the memory isn't pmd-backed.  This is fine, since split could
-      happen immediately after (actually) successful madvise_collapse().
-      So, it should be safe to just assume huge-pmd here.
-
-2) pmd_present() && !pmd_trans_huge()
-   Either:
-   a) PSE not set and either PRESENT or PROTNONE is.
-      => pte-table-mapping pmd (or PROT_NONE)
-   b) devmap.  This routine can be called immediately after
-      unlocking/locking mmap_lock -- or called with no locks held (see
-      khugepaged_scan_mm_slot()), so previous VMA checks have since been
-      invalidated.
-
-3) !pmd_present() && pmd_trans_huge()
-  Not possible.
-
-4) !pmd_present() && !pmd_trans_huge()
-  Neither PRESENT nor PROTNONE set
-  => not present
-
-I've checked all archs that implement pmd_trans_huge() (arm64, riscv,
-powerpc, longarch, x86, mips, s390) and this logic roughly translates
-(though devmap treatment is unique to x86 and powerpc, and (3) doesn't
-necessarily hold in general -- but that doesn't matter since
-!pmd_present() always takes failure path).
-
-Also, add a comment above find_pmd_or_thp_or_none() to help future
-travelers reason about the validity of the code; namely, the possible
-mutations that might happen out from under us, depending on how mmap_lock
-is held (if at all).
-
-Link: https://lkml.kernel.org/r/20230125225358.2576151-1-zokeefe@google.com
-Fixes: 34488399fa08 ("mm/madvise: add file and shmem support to MADV_COLLAPSE")
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Reported-by: Hugh Dickins <hughd@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230125190757.22555-3-rppt@kernel.org
+Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Brian Cain <bcain@quicinc.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vineet Gupta <vgupta@kernel.org>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/khugepaged.c~mm-madv_collapse-catch-none-huge-bad-pmd-lookups
-+++ a/mm/khugepaged.c
-@@ -847,6 +847,10 @@ static int hugepage_vma_revalidate(struc
- 	return SCAN_SUCCEED;
+--- a/arch/mips/include/asm/page.h~mips-drop-definition-of-pfn_valid-for-discontigmem
++++ a/arch/mips/include/asm/page.h
+@@ -235,21 +235,6 @@ static inline int pfn_valid(unsigned lon
+ 	return pfn >= pfn_offset && pfn < max_mapnr;
  }
  
-+/*
-+ * See pmd_trans_unstable() for how the result may change out from
-+ * underneath us, even if we hold mmap_lock in read.
-+ */
- static int find_pmd_or_thp_or_none(struct mm_struct *mm,
- 				   unsigned long address,
- 				   pmd_t **pmd)
-@@ -865,8 +869,12 @@ static int find_pmd_or_thp_or_none(struc
+-#elif defined(CONFIG_SPARSEMEM)
+-
+-/* pfn_valid is defined in linux/mmzone.h */
+-
+-#elif defined(CONFIG_NUMA)
+-
+-#define pfn_valid(pfn)							\
+-({									\
+-	unsigned long __pfn = (pfn);					\
+-	int __n = pfn_to_nid(__pfn);					\
+-	((__n >= 0) ? (__pfn < NODE_DATA(__n)->node_start_pfn +		\
+-			       NODE_DATA(__n)->node_spanned_pages)	\
+-		    : 0);						\
+-})
+-
  #endif
- 	if (pmd_none(pmde))
- 		return SCAN_PMD_NONE;
-+	if (!pmd_present(pmde))
-+		return SCAN_PMD_NULL;
- 	if (pmd_trans_huge(pmde))
- 		return SCAN_PMD_MAPPED;
-+	if (pmd_devmap(pmde))
-+		return SCAN_PMD_NULL;
- 	if (pmd_bad(pmde))
- 		return SCAN_PMD_NULL;
- 	return SCAN_SUCCEED;
+ 
+ #define virt_to_pfn(kaddr)   	PFN_DOWN(virt_to_phys((void *)(kaddr)))
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-madv_collapse-catch-none-huge-bad-pmd-lookups.patch
+mm-sparse-fix-unused-function-pgdat_to_phys-warning.patch
+m68k-use-asm-generic-memory_modelh-for-both-mmu-and-mmu.patch
+mips-drop-definition-of-pfn_valid-for-discontigmem.patch
+mm-arch-add-generic-implementation-of-pfn_valid-for-flatmem.patch
 
