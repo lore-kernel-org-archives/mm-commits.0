@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE928C27C76
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 00:19:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A771C54EAA
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 00:19:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234642AbjAZATh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229642AbjAZATh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 25 Jan 2023 19:19:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60832 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229642AbjAZATe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 19:19:34 -0500
+        with ESMTP id S230329AbjAZATf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2023 19:19:35 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 756EC51C74
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 16:19:32 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 119B65142D
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2023 16:19:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E7551616B6
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 00:19:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 485CFC433D2;
-        Thu, 26 Jan 2023 00:19:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A198A616D6
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 00:19:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05042C433EF;
+        Thu, 26 Jan 2023 00:19:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674692371;
-        bh=ZpMVfK+YqqHFtry0rB7ykbd3AWSrWJ6YW5doULzL6es=;
+        s=korg; t=1674692373;
+        bh=RWuKcGMeZkspJ7Zj2A/Wb82GAlPuNYQtL0hkBUlQ01U=;
         h=Date:To:From:Subject:From;
-        b=im2Fm+9x/lNMLorvcx9vLg4LYWhTP2LB7qYeOOOESVXtUCAjG+eym7GtAL93aeR6x
-         cQ3zJvBek+RztL8bsIGi0wh8BWdN3yYftLsOQVULqK20/KmBx8t9EigjZwpEz/KwuJ
-         tl8br6QYFQunnNRqtXDAhHSKv6zgYSFb8tWaKJFg=
-Date:   Wed, 25 Jan 2023 16:19:30 -0800
+        b=Vm7ogSmgmkBHlTbX4ep4olaSAYJcub4FbwSNkhnLQKO9MGz1ftQ/BKQTioyXT35eu
+         RPOUPl8L2G0J1SvzeuvbNarUsYrCqdq+3ij1W5ZAv1UPeOb/M4+WWj215kRId8Z0Vi
+         XGmHxd3qqJDEAXBLbQSrefhri8JQ01lRESferDA8=
+Date:   Wed, 25 Jan 2023 16:19:32 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch added to mm-unstable branch
-Message-Id: <20230126001931.485CFC433D2@smtp.kernel.org>
+Subject: + mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch added to mm-unstable branch
+Message-Id: <20230126001933.05042C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: convert queue_pages_hugetlb() to queue_folios_hugetlb()
+     Subject: mm/mempolicy: convert queue_pages_required() to queue_folio_required()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
+     mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,98 +65,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/mempolicy: convert queue_pages_hugetlb() to queue_folios_hugetlb()
-Date: Wed, 25 Jan 2023 15:41:32 -0800
+Subject: mm/mempolicy: convert queue_pages_required() to queue_folio_required()
+Date: Wed, 25 Jan 2023 15:41:33 -0800
 
-This change is in preparation for the conversion of queue_pages_required()
-to queue_folio_required() and migrate_page_add() to migrate_folio_add().
+Replace queue_pages_required() with queue_folio_required(). 
+queue_folio_required() does the same as queue_pages_required(), except
+takes in a folio instead of a page.
 
-Link: https://lkml.kernel.org/r/20230125234134.227244-5-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230125234134.227244-6-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mempolicy.c~mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb
+--- a/mm/mempolicy.c~mm-mempolicy-convert-queue_pages_required-to-queue_folio_required
 +++ a/mm/mempolicy.c
-@@ -558,7 +558,7 @@ static int queue_folios_pte_range(pmd_t
- 	return addr != end ? -EIO : 0;
- }
+@@ -427,15 +427,15 @@ struct queue_pages {
+ };
  
--static int queue_pages_hugetlb(pte_t *pte, unsigned long hmask,
-+static int queue_folios_hugetlb(pte_t *pte, unsigned long hmask,
- 			       unsigned long addr, unsigned long end,
- 			       struct mm_walk *walk)
+ /*
+- * Check if the page's nid is in qp->nmask.
++ * Check if the folio's nid is in qp->nmask.
+  *
+  * If MPOL_MF_INVERT is set in qp->flags, check if the nid is
+  * in the invert of qp->nmask.
+  */
+-static inline bool queue_pages_required(struct page *page,
++static inline bool queue_folio_required(struct folio *folio,
+ 					struct queue_pages *qp)
  {
-@@ -566,7 +566,7 @@ static int queue_pages_hugetlb(pte_t *pt
- #ifdef CONFIG_HUGETLB_PAGE
- 	struct queue_pages *qp = walk->private;
- 	unsigned long flags = (qp->flags & MPOL_MF_VALID);
--	struct page *page;
-+	struct folio *folio;
- 	spinlock_t *ptl;
- 	pte_t entry;
+-	int nid = page_to_nid(page);
++	int nid = folio_nid(folio);
+ 	unsigned long flags = qp->flags;
  
-@@ -574,13 +574,13 @@ static int queue_pages_hugetlb(pte_t *pt
- 	entry = huge_ptep_get(pte);
+ 	return node_isset(nid, *qp->nmask) == !(flags & MPOL_MF_INVERT);
+@@ -469,7 +469,7 @@ static int queue_folios_pmd(pmd_t *pmd,
+ 		walk->action = ACTION_CONTINUE;
+ 		goto unlock;
+ 	}
+-	if (!queue_pages_required(&folio->page, qp))
++	if (!queue_folio_required(folio, qp))
+ 		goto unlock;
+ 
+ 	flags = qp->flags;
+@@ -530,7 +530,7 @@ static int queue_folios_pte_range(pmd_t
+ 		 */
+ 		if (folio_test_reserved(folio))
+ 			continue;
+-		if (!queue_pages_required(&folio->page, qp))
++		if (!queue_folio_required(folio, qp))
+ 			continue;
+ 		if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) {
+ 			/* MPOL_MF_STRICT must be specified if we get here */
+@@ -575,7 +575,7 @@ static int queue_folios_hugetlb(pte_t *p
  	if (!pte_present(entry))
  		goto unlock;
--	page = pte_page(entry);
--	if (!queue_pages_required(page, qp))
-+	folio = pfn_folio(pte_pfn(entry));
-+	if (!queue_pages_required(&folio->page, qp))
+ 	folio = pfn_folio(pte_pfn(entry));
+-	if (!queue_pages_required(&folio->page, qp))
++	if (!queue_folio_required(folio, qp))
  		goto unlock;
  
  	if (flags == MPOL_MF_STRICT) {
- 		/*
--		 * STRICT alone means only detecting misplaced page and no
-+		 * STRICT alone means only detecting misplaced folio and no
- 		 * need to further check other vma.
- 		 */
- 		ret = -EIO;
-@@ -591,20 +591,27 @@ static int queue_pages_hugetlb(pte_t *pt
- 		/*
- 		 * Must be STRICT with MOVE*, otherwise .test_walk() have
- 		 * stopped walking current vma.
--		 * Detecting misplaced page but allow migrating pages which
-+		 * Detecting misplaced folio but allow migrating folios which
- 		 * have been queued.
- 		 */
- 		ret = 1;
- 		goto unlock;
- 	}
- 
--	/* With MPOL_MF_MOVE, we migrate only unshared hugepage. */
-+	/*
-+	 * With MPOL_MF_MOVE, we try to migrate only unshared folios. If it
-+	 * is shared it is likely not worth migrating.
-+	 *
-+	 * To check if the folio is shared, ideally we want to make sure
-+	 * every page is mapped to the same process. Doing that is very
-+	 * expensive, so check the estimated mapcount of the folio instead.
-+	 */
- 	if (flags & (MPOL_MF_MOVE_ALL) ||
--	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1)) {
--		if (isolate_hugetlb(page_folio(page), qp->pagelist) &&
-+	    (flags & MPOL_MF_MOVE && folio_estimated_mapcount(folio) == 1)) {
-+		if (isolate_hugetlb(folio, qp->pagelist) &&
- 			(flags & MPOL_MF_STRICT))
- 			/*
--			 * Failed to isolate page but allow migrating pages
-+			 * Failed to isolate folio but allow migrating folios
- 			 * which have been queued.
- 			 */
- 			ret = 1;
-@@ -702,7 +709,7 @@ static int queue_pages_test_walk(unsigne
- }
- 
- static const struct mm_walk_ops queue_pages_walk_ops = {
--	.hugetlb_entry		= queue_pages_hugetlb,
-+	.hugetlb_entry		= queue_folios_hugetlb,
- 	.pmd_entry		= queue_folios_pte_range,
- 	.test_walk		= queue_pages_test_walk,
- };
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
