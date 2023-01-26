@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A095C54EAA
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 22:32:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9124AC61DA7
+	for <mm-commits@archiver.kernel.org>; Thu, 26 Jan 2023 22:32:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232460AbjAZWcM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 Jan 2023 17:32:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33016 "EHLO
+        id S229500AbjAZWcN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 26 Jan 2023 17:32:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232620AbjAZWcL (ORCPT
+        with ESMTP id S232430AbjAZWcL (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2023 17:32:11 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 708B15DC12
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 14:31:56 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72E5262240
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 14:32:00 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3144CB81F39
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 22:31:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ED2AC433EF;
-        Thu, 26 Jan 2023 22:31:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 26594B81F3E
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2023 22:31:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B78ADC433EF;
+        Thu, 26 Jan 2023 22:31:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1674772313;
-        bh=gMT+75IgQhxYBccf6U4vlCLFKAraLxrVPfVo00J0dDQ=;
+        s=korg; t=1674772317;
+        bh=txzguABxbgX5HXeiQD1GigIZx+DZSA1l4Fbq8fBcKgk=;
         h=Date:To:From:Subject:From;
-        b=UVJDLoJB3Aj0k61mN6akOcxBdw6psLruIch/RgaxRnkGlAQmMehMEEF8hKOZzvhC+
-         zkiIdhvnbM3u9mCfy1hkxYnH1GkXbB6/2WO5xkQX0YX/Fi/oVQJ3irgkTY99OdbV5x
-         vRdwJh48pI6koOc74Mc5vXZTESFRKr4SktN5IlUo=
-Date:   Thu, 26 Jan 2023 14:31:53 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        tonyb@cybernetics.com, hch@lst.de, kbusch@kernel.org,
-        akpm@linux-foundation.org
+        b=qBDA89rmVht28cbXZhRThJNse+QN7g7fk/WHBHdZoE5iaTZDdVBX00gxjNbcd12Kd
+         Ux6SL7t/MKISZYutpPaYYvXdh6FIDTG6N0R9TtnybszFdRZEgsBKXV1SkdNpr+8DUg
+         wfWoD7fZ+c7kTXoIxl0HPokxFOv2PoiZsFN20U2A=
+Date:   Thu, 26 Jan 2023 14:31:57 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, kbusch@kernel.org,
+        hch@lst.de, tonyb@cybernetics.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + dmapool-add-alloc-free-performance-test.patch added to mm-unstable branch
-Message-Id: <20230126223153.9ED2AC433EF@smtp.kernel.org>
+Subject: + dmapool-use-sysfs_emit-instead-of-scnprintf.patch added to mm-unstable branch
+Message-Id: <20230126223157.B78ADC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dmapool: add alloc/free performance test
+     Subject: dmapool: use sysfs_emit() instead of scnprintf()
 has been added to the -mm mm-unstable branch.  Its filename is
-     dmapool-add-alloc-free-performance-test.patch
+     dmapool-use-sysfs_emit-instead-of-scnprintf.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dmapool-add-alloc-free-performance-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dmapool-use-sysfs_emit-instead-of-scnprintf.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,225 +64,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Keith Busch <kbusch@kernel.org>
-Subject: dmapool: add alloc/free performance test
-Date: Thu, 26 Jan 2023 13:51:14 -0800
+From: Tony Battersby <tonyb@cybernetics.com>
+Subject: dmapool: use sysfs_emit() instead of scnprintf()
+Date: Thu, 26 Jan 2023 13:51:16 -0800
 
-Patch series "dmapool enhancements", v4.
+Use sysfs_emit instead of scnprintf, snprintf or sprintf.
 
-Time spent in dma_pool alloc/free increases linearly with the number of
-pages backing the pool.  We can reduce this to constant time with minor
-changes to how free pages are tracked.
-
-
-This patch (of 12):
-
-Provide a module that allocates and frees many blocks of various sizes and
-report how long it takes.  This is intended to provide a consistent way to
-measure how changes to the dma_pool_alloc/free routines affect timing.
-
-Link: https://lkml.kernel.org/r/20230126215125.4069751-1-kbusch@meta.com
-Link: https://lkml.kernel.org/r/20230126215125.4069751-2-kbusch@meta.com
+Link: https://lkml.kernel.org/r/20230126215125.4069751-4-kbusch@meta.com
+Signed-off-by: Tony Battersby <tonyb@cybernetics.com>
 Signed-off-by: Keith Busch <kbusch@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Tony Battersby <tonyb@cybernetics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig        |    9 ++
- mm/Makefile       |    1 
- mm/dmapool_test.c |  147 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 157 insertions(+)
+ mm/dmapool.c |   23 +++++++----------------
+ 1 file changed, 7 insertions(+), 16 deletions(-)
 
---- /dev/null
-+++ a/mm/dmapool_test.c
-@@ -0,0 +1,147 @@
-+#include <linux/device.h>
-+#include <linux/dma-map-ops.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/dmapool.h>
-+#include <linux/kernel.h>
-+#include <linux/ktime.h>
-+#include <linux/module.h>
-+
-+#define NR_TESTS (100)
-+
-+struct dma_pool_pair {
-+	dma_addr_t dma;
-+	void *v;
-+};
-+
-+struct dmapool_parms {
-+	size_t size;
-+	size_t align;
-+	size_t boundary;
-+};
-+
-+static const struct dmapool_parms pool_parms[] = {
-+	{ .size = 16, .align = 16, .boundary = 0 },
-+	{ .size = 64, .align = 64, .boundary = 0 },
-+	{ .size = 256, .align = 256, .boundary = 0 },
-+	{ .size = 1024, .align = 1024, .boundary = 0 },
-+	{ .size = 4096, .align = 4096, .boundary = 0 },
-+	{ .size = 68, .align = 32, .boundary = 4096 },
-+};
-+
-+static struct dma_pool *pool;
-+static struct device test_dev;
-+static u64 dma_mask;
-+
-+static inline int nr_blocks(int size)
-+{
-+	return clamp_t(int, (PAGE_SIZE / size) * 512, 1024, 8192);
-+}
-+
-+static int dmapool_test_alloc(struct dma_pool_pair *p, int blocks)
-+{
-+	int i;
-+
-+	for (i = 0; i < blocks; i++) {
-+		p[i].v = dma_pool_alloc(pool, GFP_KERNEL,
-+					&p[i].dma);
-+		if (!p[i].v)
-+			goto pool_fail;
-+	}
-+
-+	for (i = 0; i < blocks; i++)
-+		dma_pool_free(pool, p[i].v, p[i].dma);
-+
-+	return 0;
-+
-+pool_fail:
-+	for (--i; i >= 0; i--)
-+		dma_pool_free(pool, p[i].v, p[i].dma);
-+	return -ENOMEM;
-+}
-+
-+static int dmapool_test_block(const struct dmapool_parms *parms)
-+{
-+	int blocks = nr_blocks(parms->size);
-+	ktime_t start_time, end_time;
-+	struct dma_pool_pair *p;
-+	int i, ret;
-+
-+	p = kcalloc(blocks, sizeof(*p), GFP_KERNEL);
-+	if (!p)
-+		return -ENOMEM;
-+
-+	pool = dma_pool_create("test pool", &test_dev, parms->size,
-+			       parms->align, parms->boundary);
-+	if (!pool) {
-+		ret = -ENOMEM;
-+		goto free_pairs;
-+	}
-+
-+	start_time = ktime_get();
-+	for (i = 0; i < NR_TESTS; i++) {
-+		ret = dmapool_test_alloc(p, blocks);
-+		if (ret)
-+			goto free_pool;
-+		if (need_resched())
-+			cond_resched();
-+	}
-+	end_time = ktime_get();
-+
-+	printk("dmapool test: size:%-4zu align:%-4zu blocks:%-4d time:%llu\n",
-+		parms->size, parms->align, blocks,
-+		ktime_us_delta(end_time, start_time));
-+
-+free_pool:
-+	dma_pool_destroy(pool);
-+free_pairs:
-+	kfree(p);
-+	return ret;
-+}
-+
-+static void dmapool_test_release(struct device *dev)
-+{
-+}
-+
-+static int dmapool_checks(void)
-+{
-+	int i, ret;
-+
-+	ret = dev_set_name(&test_dev, "dmapool-test");
-+	if (ret)
-+		return ret;
-+
-+	ret = device_register(&test_dev);
-+	if (ret) {
-+		printk("%s: register failed:%d\n", __func__, ret);
-+		goto put_device;
-+	}
-+
-+	test_dev.release = dmapool_test_release;
-+	set_dma_ops(&test_dev, NULL);
-+	test_dev.dma_mask = &dma_mask;
-+	ret = dma_set_mask_and_coherent(&test_dev, DMA_BIT_MASK(64));
-+	if (ret) {
-+		printk("%s: mask failed:%d\n", __func__, ret);
-+		goto del_device;
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(pool_parms); i++) {
-+		ret = dmapool_test_block(&pool_parms[i]);
-+		if (ret)
-+			break;
-+	}
-+
-+del_device:
-+	device_del(&test_dev);
-+put_device:
-+	put_device(&test_dev);
-+	return ret;
-+}
-+
-+static void dmapool_exit(void)
-+{
-+}
-+
-+module_init(dmapool_checks);
-+module_exit(dmapool_exit);
-+MODULE_LICENSE("GPL");
---- a/mm/Kconfig~dmapool-add-alloc-free-performance-test
-+++ a/mm/Kconfig
-@@ -1100,6 +1100,15 @@ comment "GUP_TEST needs to have DEBUG_FS
- config GUP_GET_PXX_LOW_HIGH
- 	bool
+--- a/mm/dmapool.c~dmapool-use-sysfs_emit-instead-of-scnprintf
++++ a/mm/dmapool.c
+@@ -64,18 +64,11 @@ static DEFINE_MUTEX(pools_reg_lock);
  
-+config DMAPOOL_TEST
-+	tristate "Enable a module to run time tests on dma_pool"
-+	depends on HAS_DMA
-+	help
-+	  Provides a test module that will allocate and free many blocks of
-+	  various sizes and report how long it takes. This is intended to
-+	  provide a consistent way to measure how changes to the
-+	  dma_pool_alloc/free routines affect performance.
-+
- config ARCH_HAS_PTE_SPECIAL
- 	bool
+ static ssize_t pools_show(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+-	unsigned temp;
+-	unsigned size;
+-	char *next;
++	int size;
+ 	struct dma_page *page;
+ 	struct dma_pool *pool;
  
---- a/mm/Makefile~dmapool-add-alloc-free-performance-test
-+++ a/mm/Makefile
-@@ -103,6 +103,7 @@ obj-$(CONFIG_MEMCG) += swap_cgroup.o
- endif
- obj-$(CONFIG_CGROUP_HUGETLB) += hugetlb_cgroup.o
- obj-$(CONFIG_GUP_TEST) += gup_test.o
-+obj-$(CONFIG_DMAPOOL_TEST) += dmapool_test.o
- obj-$(CONFIG_MEMORY_FAILURE) += memory-failure.o
- obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
- obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
+-	next = buf;
+-	size = PAGE_SIZE;
+-
+-	temp = scnprintf(next, size, "poolinfo - 0.1\n");
+-	size -= temp;
+-	next += temp;
++	size = sysfs_emit(buf, "poolinfo - 0.1\n");
+ 
+ 	mutex_lock(&pools_lock);
+ 	list_for_each_entry(pool, &dev->dma_pools, pools) {
+@@ -90,16 +83,14 @@ static ssize_t pools_show(struct device
+ 		spin_unlock_irq(&pool->lock);
+ 
+ 		/* per-pool info, no real statistics yet */
+-		temp = scnprintf(next, size, "%-16s %4u %4zu %4zu %2u\n",
+-				 pool->name, blocks,
+-				 pages * (pool->allocation / pool->size),
+-				 pool->size, pages);
+-		size -= temp;
+-		next += temp;
++		size += sysfs_emit_at(buf, size, "%-16s %4u %4zu %4zu %2u\n",
++				      pool->name, blocks,
++				      pages * (pool->allocation / pool->size),
++				      pool->size, pages);
+ 	}
+ 	mutex_unlock(&pools_lock);
+ 
+-	return PAGE_SIZE - size;
++	return size;
+ }
+ 
+ static DEVICE_ATTR_RO(pools);
 _
 
-Patches currently in -mm which might be from kbusch@kernel.org are
+Patches currently in -mm which might be from tonyb@cybernetics.com are
 
-dmapool-add-alloc-free-performance-test.patch
-dmapool-move-debug-code-to-own-functions.patch
-dmapool-rearrange-page-alloc-failure-handling.patch
-dmapool-consolidate-page-initialization.patch
-dmapool-simplify-freeing.patch
-dmapool-dont-memset-on-free-twice.patch
-dmapool-link-blocks-across-pages.patch
-dmapool-create-destroy-cleanup.patch
+dmapool-remove-checks-for-dev-==-null.patch
+dmapool-use-sysfs_emit-instead-of-scnprintf.patch
+dmapool-cleanup-integer-types.patch
+dmapool-speedup-dmapool_debug-with-init_on_alloc.patch
 
