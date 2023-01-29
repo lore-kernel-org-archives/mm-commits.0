@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39ED5C54EED
-	for <mm-commits@archiver.kernel.org>; Sun, 29 Jan 2023 21:11:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6831BC54EED
+	for <mm-commits@archiver.kernel.org>; Sun, 29 Jan 2023 21:21:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234924AbjA2VLp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 29 Jan 2023 16:11:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46376 "EHLO
+        id S233970AbjA2VVj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 29 Jan 2023 16:21:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229549AbjA2VLp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 29 Jan 2023 16:11:45 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41A6B1E1CE
-        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 13:11:44 -0800 (PST)
+        with ESMTP id S229549AbjA2VVi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 29 Jan 2023 16:21:38 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA83C7DB4
+        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 13:21:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E1C2FB80DB6
-        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 21:11:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 884A8C433EF;
-        Sun, 29 Jan 2023 21:11:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 82F2060DF3
+        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 21:21:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC946C433EF;
+        Sun, 29 Jan 2023 21:21:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675026701;
-        bh=8RubRmXR749npP/ndpOE8qvUXqoS7LakLLqm5Z9llJ4=;
+        s=korg; t=1675027297;
+        bh=fses+GXKlxo+CLpj5yBQiqOys1rRaQI7bGKbWdcg2VY=;
         h=Date:To:From:Subject:From;
-        b=E3MhEnLcbm7dCiC8Ki0kY3doMUNUDzovLRy5e3nJn8h7yhocT9hpSHgToXdEzGpgi
-         dRiW9t8hR4HLv468YUD7DgnIb9/aL0mskEiIFf7f0jnQgXg4keXyKNxKOgwpbeYU3X
-         T3h1WAc26IEUI6V5RuZvV0/K5jw378bgj571uUxk=
-Date:   Sun, 29 Jan 2023 13:11:40 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.moola@gmail.com, songmuchun@bytedance.com,
-        shy828301@gmail.com, peterx@redhat.com, naoya.horiguchi@linux.dev,
-        mike.kravetz@oracle.com, mhocko@suse.com, lkp@intel.com,
-        jthoughton@google.com, david@redhat.com, akpm@linux-foundation.org,
+        b=xXf34PbuStB8/YxP6H20SmXs+JABIlxBNGHX+74KL2NpD/VA8MkM3kAhUbM65xqag
+         TcY8mzOgg9czTgE74EVTdU0Vdvp6AQ664KtLYr/mrvjnK247QlGFop+9G3ZDnPuDI5
+         RdV7dp+oJy2K+Gweyyz3aiI4G3dPWQBhEgwj5cr4=
+Date:   Sun, 29 Jan 2023 13:21:36 -0800
+To:     mm-commits@vger.kernel.org, iii@linux.ibm.com, trix@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-proc-check-for-hugetlb-shared-pmd-in-proc-pid-smaps-fix-2.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230129211141.884A8C433EF@smtp.kernel.org>
+Subject: + a.patch added to mm-nonmm-unstable branch
+Message-Id: <20230129212136.DC946C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-proc-check-for-hugetlb-shared-pmd-in-proc-pid-smaps-fix-2
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-proc-check-for-hugetlb-shared-pmd-in-proc-pid-smaps-fix-2.patch
+     Subject: lib/zlib: remove redundation assignement of avail_in dfltcc_gdht()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     a.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-proc-check-for-hugetlb-shared-pmd-in-proc-pid-smaps-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/a.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,50 +64,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-proc-check-for-hugetlb-shared-pmd-in-proc-pid-smaps-fix-2
-Date: Sun Jan 29 01:08:55 PM PST 2023
+From: Tom Rix <trix@redhat.com>
+Subject: lib/zlib: remove redundation assignement of avail_in dfltcc_gdht()
+Date: Sat, 28 Jan 2023 08:50:48 -0800
 
-hugetlb.h: include page_ref.h for page_count()
+cppcheck reports
+lib/zlib_dfltcc/dfltcc_deflate.c:65:21: warning: Redundant assignment of 'avail_in' to itself. [selfAssignment]
+    size_t avail_in = avail_in = strm->avail_in;
 
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Only setting avail_in once is needed.
+
+Link: https://lkml.kernel.org/r/20230128165048.1245792-1-trix@redhat.com
+Fixes: aa5b395b69b6 ("lib/zlib: add s390 hardware support for kernel zlib_deflate")
+Signed-off-by: Tom Rix <trix@redhat.com>
+Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/hugetlb.h~mm-hugetlb-proc-check-for-hugetlb-shared-pmd-in-proc-pid-smaps-fix-2
-+++ a/include/linux/hugetlb.h
-@@ -7,6 +7,7 @@
- #include <linux/fs.h>
- #include <linux/hugetlb_inline.h>
- #include <linux/cgroup.h>
-+#include <linux/page_ref.h>
- #include <linux/list.h>
- #include <linux/kref.h>
- #include <linux/pgtable.h>
+--- a/lib/zlib_dfltcc/dfltcc_deflate.c~a
++++ a/lib/zlib_dfltcc/dfltcc_deflate.c
+@@ -62,7 +62,7 @@ static void dfltcc_gdht(
+ {
+     deflate_state *state = (deflate_state *)strm->state;
+     struct dfltcc_param_v0 *param = &GET_DFLTCC_STATE(state)->param;
+-    size_t avail_in = avail_in = strm->avail_in;
++    size_t avail_in = strm->avail_in;
+ 
+     dfltcc(DFLTCC_GDHT,
+            param, NULL, NULL,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from trix@redhat.com are
 
-mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close-checkpatch-fixes.patch
-mm-hugetlb-proc-check-for-hugetlb-shared-pmd-in-proc-pid-smaps-fix.patch
-mm-hugetlb-proc-check-for-hugetlb-shared-pmd-in-proc-pid-smaps-fix-2.patch
-mm-add-folio_add_new_anon_rmap-fix.patch
-mm-remove-page_evictable-fix.patch
-mm-remove-the-swap_readpage-return-value-fix.patch
-block-remove-rw_page-fix.patch
-mm-add-memcpy_from_file_folio-fix.patch
-error-injection-remove-ei_etype_none-fix.patch
-hfsplus-remove-unnecessary-variable-initialization-fix.patch
-scripts-gdb-add-mm-introspection-utils-fix.patch
+a.patch
 
