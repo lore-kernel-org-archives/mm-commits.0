@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60E6CC05027
-	for <mm-commits@archiver.kernel.org>; Sun, 29 Jan 2023 22:31:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68CDEC54EED
+	for <mm-commits@archiver.kernel.org>; Sun, 29 Jan 2023 22:32:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234659AbjA2Wbp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 29 Jan 2023 17:31:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43826 "EHLO
+        id S235412AbjA2WcA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 29 Jan 2023 17:32:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230206AbjA2Wbo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 29 Jan 2023 17:31:44 -0500
+        with ESMTP id S230206AbjA2WcA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 29 Jan 2023 17:32:00 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 520E61BACE;
-        Sun, 29 Jan 2023 14:31:43 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F0091BACE
+        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 14:31:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E9C0BB80DBE;
-        Sun, 29 Jan 2023 22:31:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79B04C433EF;
-        Sun, 29 Jan 2023 22:31:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D8049B80D9B
+        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 22:31:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F1CCC433EF;
+        Sun, 29 Jan 2023 22:31:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675031500;
-        bh=1VOnSHDXide58kUAGqn4zaPQphp/QWoizDibKjpJw0k=;
+        s=korg; t=1675031516;
+        bh=g58zyKfsC+Ez3Lq6zBqJ4/ydbICpaR24wuw4gfQMKcM=;
         h=Date:To:From:Subject:From;
-        b=0sRapblDWWbU2C4gPX298sJA9b/x5tUn3S88QiTAGoWGZOsXTZDs3hrmbkxjiiFM1
-         mMhmb2jePBnC07nfVJTxyUYB7sKesY62jsMlEoSVUziRpBeCcAb8jcmpGOP0HMVMu2
-         1dnwykK57Tx1yZguNSMgNKkFmcPVYGoMPvGxRdek=
-Date:   Sun, 29 Jan 2023 14:31:39 -0800
-To:     mm-commits@vger.kernel.org, zhouchuyi@bytedance.com,
-        stable@vger.kernel.org, regressions@leemhuis.info,
-        pedro.falcato@gmail.com, pbonzini@redhat.com, mlevitsk@redhat.com,
-        mhocko@kernel.org, mgorman@techsingularity.net,
-        jirislaby@kernel.org, vbabka@suse.cz, akpm@linux-foundation.org
+        b=cz8SGEfsywvZKHd38sUqrqfErGV42EI6eLYWTcCz5Ps3+AoaKbrd0EiEoCGPHFr24
+         sfCz96e3lgcWb5y4XDowsdUVhIrwrt/qYVJXS7VOgXCEsdD34Pali9NldBPiLjqZOe
+         eBngAFwtDqpt189GKhI2DMRUNaFo5gQeJSfl5320=
+Date:   Sun, 29 Jan 2023 14:31:55 -0800
+To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, elver@google.com,
+        dvyukov@google.com, rdunlap@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch removed from -mm tree
-Message-Id: <20230129223140.79B04C433EF@smtp.kernel.org>
+Subject: [merged] lib-kconfig-fix-spellos.patch removed from -mm tree
+Message-Id: <20230129223156.7F1CCC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,69 +42,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Revert "mm/compaction: fix set skip in fast_find_migrateblock"
+     Subject: lib: Kconfig: fix spellos
 has been removed from the -mm tree.  Its filename was
-     revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch
+     lib-kconfig-fix-spellos.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: Revert "mm/compaction: fix set skip in fast_find_migrateblock"
-Date: Fri, 13 Jan 2023 18:33:45 +0100
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: lib: Kconfig: fix spellos
+Date: Tue, 24 Jan 2023 10:16:55 -0800
 
-This reverts commit 7efc3b7261030da79001c00d92bc3392fd6c664c.
+Fix spelling in lib/ Kconfig files.
+(reported by codespell)
 
-We have got openSUSE reports (Link 1) for 6.1 kernel with khugepaged
-stalling CPU for long periods of time.  Investigation of tracepoint data
-shows that compaction is stuck in repeating fast_find_migrateblock() based
-migrate page isolation, and then fails to migrate all isolated pages. 
-Commit 7efc3b726103 ("mm/compaction: fix set skip in
-fast_find_migrateblock") was suspected as it was merged in 6.1 and in
-theory can indeed remove a termination condition for
-fast_find_migrateblock() under certain conditions, as it removes a place
-that always marks a scanned pageblock from being re-scanned.  There are
-other such places, but those can be skipped under certain conditions,
-which seems to match the tracepoint data.
-
-Testing of revert also appears to have resolved the issue, thus revert the
-commit until a more robust solution for the original problem is developed.
-
-It's also likely this will fix qemu stalls with 6.1 kernel reported in
-Link 2, but that is not yet confirmed.
-
-Link: https://bugzilla.suse.com/show_bug.cgi?id=1206848
-Link: https://lore.kernel.org/kvm/b8017e09-f336-3035-8344-c549086c2340@kernel.org/
-Link: https://lkml.kernel.org/r/20230113173345.9692-1-vbabka@suse.cz
-Fixes: 7efc3b726103 ("mm/compaction: fix set skip in fast_find_migrateblock")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Jiri Slaby <jirislaby@kernel.org>
-Tested-by: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: Chuyi Zhou <zhouchuyi@bytedance.com>
-Cc: Maxim Levitsky <mlevitsk@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230124181655.16269-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/compaction.c~revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock
-+++ a/mm/compaction.c
-@@ -1839,6 +1839,7 @@ static unsigned long fast_find_migratebl
- 					pfn = cc->zone->zone_start_pfn;
- 				cc->fast_search_fail = 0;
- 				found_block = true;
-+				set_pageblock_skip(freepage);
- 				break;
- 			}
- 		}
+--- a/lib/Kconfig.debug~lib-kconfig-fix-spellos
++++ a/lib/Kconfig.debug
+@@ -1917,7 +1917,7 @@ config FUNCTION_ERROR_INJECTION
+ 	help
+ 	  Add fault injections into various functions that are annotated with
+ 	  ALLOW_ERROR_INJECTION() in the kernel. BPF may also modify the return
+-	  value of theses functions. This is useful to test error paths of code.
++	  value of these functions. This is useful to test error paths of code.
+ 
+ 	  If unsure, say N
+ 
+--- a/lib/Kconfig.kcsan~lib-kconfig-fix-spellos
++++ a/lib/Kconfig.kcsan
+@@ -194,7 +194,7 @@ config KCSAN_WEAK_MEMORY
+ 	  Enable support for modeling a subset of weak memory, which allows
+ 	  detecting a subset of data races due to missing memory barriers.
+ 
+-	  Depends on KCSAN_STRICT, because the options strenghtening certain
++	  Depends on KCSAN_STRICT, because the options strengthening certain
+ 	  plain accesses by default (depending on !KCSAN_STRICT) reduce the
+ 	  ability to detect any data races invoving reordered accesses, in
+ 	  particular reordered writes.
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close.patch
-mm-use-stack_depot_early_init-for-kmemleak-fix.patch
+freevxfs-kconfig-fix-spelling.patch
+freevxfs-fix-kernel-doc-warnings.patch
+ntfs-fix-multiple-kernel-doc-warnings.patch
+userns-fix-a-structs-kernel-doc-notation.patch
+cramfs-kconfig-fix-spelling-punctuation.patch
 
