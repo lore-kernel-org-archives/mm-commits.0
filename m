@@ -2,43 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90E05C05027
-	for <mm-commits@archiver.kernel.org>; Sun, 29 Jan 2023 22:01:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF729C05027
+	for <mm-commits@archiver.kernel.org>; Sun, 29 Jan 2023 22:03:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234930AbjA2WBL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 29 Jan 2023 17:01:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35168 "EHLO
+        id S231654AbjA2WDv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 29 Jan 2023 17:03:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229523AbjA2WBK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 29 Jan 2023 17:01:10 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78DDD1BD8
-        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 14:01:07 -0800 (PST)
+        with ESMTP id S229523AbjA2WDu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 29 Jan 2023 17:03:50 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C14014211
+        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 14:03:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 150D360E55
-        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 22:01:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CBC4C433D2;
-        Sun, 29 Jan 2023 22:01:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 109C3B80D1A
+        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 22:03:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CBC5C433D2;
+        Sun, 29 Jan 2023 22:03:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675029666;
-        bh=evesjpjbDebT7/1U9rFd5uY0bl2oQk0h/vgc37tuPW0=;
+        s=korg; t=1675029823;
+        bh=yCv68iwyjMall+puo8iX+w3hXWL7WKELKDzugEDBd0k=;
         h=Date:To:From:Subject:From;
-        b=SRx21SMsARoIAWxKdegV2nmIAjE9bY4NZ7qoMlR5YTZn+YPlasePuWbPcAXmOQCi0
-         2p9+GydGKODRuPa9RGyyLohxkl1ntZf61TFJquO55iowW9Z1OSKbG3jacZ5VKVAqOT
-         p2k9TpDM5bIimHDPAEz8NDDsvDx0H0HReyWIHsy4=
-Date:   Sun, 29 Jan 2023 14:01:05 -0800
-To:     mm-commits@vger.kernel.org, zhaoyang.huang@unisoc.com,
-        vbabka@suse.cz, rdunlap@infradead.org, peterz@infradead.org,
-        ojeda@kernel.org, ndesaulniers@google.com, nathan@kernel.org,
-        linux@rasmusvillemoes.dk, keescook@chromium.org,
-        jpoimboe@kernel.org, geert+renesas@glider.be,
-        dan.j.williams@intel.com, ye.xingchen@zte.com.cn,
-        akpm@linux-foundation.org
+        b=wRoAbyHZUhQvmIWtnNblTCWdKQUTau1c3xQv2OjeuRv21sADAdf0eBCm4Lq73wgwa
+         6aHHYhcFZhl9n6wHTctF9giKjyHMgfBz3RJfEdZBUvFmQCb+odsVTdCy7FX7hqHlx8
+         78ZILsYRVbFUD36sUtDkocrwpIZSMRZQi1ts81c8=
+Date:   Sun, 29 Jan 2023 14:03:42 -0800
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        chenwandun@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kconfigdebug-fix-sched_debug-dependency.patch added to mm-nonmm-unstable branch
-Message-Id: <20230129220106.5CBC4C433D2@smtp.kernel.org>
+Subject: + mm-migrate-continue-to-migrate-for-non-hugetlb-folios.patch added to mm-unstable branch
+Message-Id: <20230129220343.9CBC5C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Kconfig.debug: fix SCHED_DEBUG dependency
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kconfigdebug-fix-sched_debug-dependency.patch
+     Subject: mm/migrate: continue to migrate for non-hugetlb folios
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-migrate-continue-to-migrate-for-non-hugetlb-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kconfigdebug-fix-sched_debug-dependency.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-continue-to-migrate-for-non-hugetlb-folios.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -69,46 +64,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ye xingchen <ye.xingchen@zte.com.cn>
-Subject: Kconfig.debug: fix SCHED_DEBUG dependency
-Date: Sun, 29 Jan 2023 11:10:09 +0800 (CST)
+From: Chen Wandun <chenwandun@huawei.com>
+Subject: mm/migrate: continue to migrate for non-hugetlb folios
+Date: Sun, 29 Jan 2023 11:39:10 +0800
 
-The path for SCHED_DEBUG is /sys/kernel/debug/sched.  So, SCHED_DEBUG
-should depend on DEBUG_FS, not PROC_FS.
+migrate_hugetlbs() returns -ENOMEM when there are not enough hugetlbs,
+however there may be free non-hugetlb folios available, so continue to
+migrate for non-hugetlb folios.
 
-Link: https://lkml.kernel.org/r/202301291110098787982@zte.com.cn
-Signed-off-by: ye xingchen <ye.xingchen@zte.com.cn>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Nowdays the only negative return value of migrate_hugetlbs is -ENOMEM. 
+Keep compatibility for coming negative return values instead of ignore
+the return value.
+
+Link: https://lkml.kernel.org/r/20230129033910.1327277-1-chenwandun@huawei.com
+Signed-off-by: Chen Wandun <chenwandun@huawei.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/lib/Kconfig.debug~kconfigdebug-fix-sched_debug-dependency
-+++ a/lib/Kconfig.debug
-@@ -1134,7 +1134,7 @@ menu "Scheduler Debugging"
+--- a/mm/migrate.c~mm-migrate-continue-to-migrate-for-non-hugetlb-folios
++++ a/mm/migrate.c
+@@ -1939,7 +1939,8 @@ int migrate_pages(struct list_head *from
  
- config SCHED_DEBUG
- 	bool "Collect scheduler debugging info"
--	depends on DEBUG_KERNEL && PROC_FS
-+	depends on DEBUG_KERNEL && DEBUG_FS
- 	default y
- 	help
- 	  If you say Y here, the /sys/kernel/debug/sched file will be provided
+ 	rc_gather = migrate_hugetlbs(from, get_new_page, put_new_page, private,
+ 				     mode, reason, &stats, &ret_folios);
+-	if (rc_gather < 0)
++	/* There may be free non-hugetlb folios available, continue to migrate. */
++	if (rc_gather < 0 && rc_gather != -ENOMEM)
+ 		goto out;
+ again:
+ 	nr_pages = 0;
 _
 
-Patches currently in -mm which might be from ye.xingchen@zte.com.cn are
+Patches currently in -mm which might be from chenwandun@huawei.com are
 
-kconfigdebug-fix-the-help-description-in-sched_debug.patch
-kconfigdebug-fix-sched_debug-dependency.patch
+mm-migrate-continue-to-migrate-for-non-hugetlb-folios.patch
 
