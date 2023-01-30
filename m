@@ -2,98 +2,143 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68CDEC54EED
-	for <mm-commits@archiver.kernel.org>; Sun, 29 Jan 2023 22:32:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2549C54EAA
+	for <mm-commits@archiver.kernel.org>; Mon, 30 Jan 2023 23:05:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235412AbjA2WcA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 29 Jan 2023 17:32:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43862 "EHLO
+        id S230141AbjA3XFn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 30 Jan 2023 18:05:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230206AbjA2WcA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 29 Jan 2023 17:32:00 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F0091BACE
-        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 14:31:59 -0800 (PST)
+        with ESMTP id S230223AbjA3XFZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2023 18:05:25 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D966424106
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2023 15:04:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D8049B80D9B
-        for <mm-commits@vger.kernel.org>; Sun, 29 Jan 2023 22:31:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F1CCC433EF;
-        Sun, 29 Jan 2023 22:31:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6EE47612FC
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2023 23:04:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC9ADC433D2;
+        Mon, 30 Jan 2023 23:04:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675031516;
-        bh=g58zyKfsC+Ez3Lq6zBqJ4/ydbICpaR24wuw4gfQMKcM=;
+        s=korg; t=1675119841;
+        bh=CtavB5BK7HWeS60oMkpbeuX8OeJ1eyhNdORhrhX9jCY=;
         h=Date:To:From:Subject:From;
-        b=cz8SGEfsywvZKHd38sUqrqfErGV42EI6eLYWTcCz5Ps3+AoaKbrd0EiEoCGPHFr24
-         sfCz96e3lgcWb5y4XDowsdUVhIrwrt/qYVJXS7VOgXCEsdD34Pali9NldBPiLjqZOe
-         eBngAFwtDqpt189GKhI2DMRUNaFo5gQeJSfl5320=
-Date:   Sun, 29 Jan 2023 14:31:55 -0800
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, elver@google.com,
-        dvyukov@google.com, rdunlap@infradead.org,
-        akpm@linux-foundation.org
+        b=IYLwHwrAsD5Q3fyJGvvfklJnUuHwc3CGZg4+ZDjcinV16b3N9fCWqBwdqXxPEnvM4
+         /klvoJ3OSPI1+5o6VZ7kDPgDCd1SE5sMnibZFj9DOBT8EnUCYGl9badi0plGn1jlbd
+         VUbsGPAWE3jMTHSjJfyoOfaTHEP+F4XprKoIZejY=
+Date:   Mon, 30 Jan 2023 15:04:00 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
+        pasha.tatashin@soleen.com, naoya.horiguchi@nec.com,
+        mhocko@suse.com, Liam.Howlett@Oracle.com, jhubbard@nvidia.com,
+        hughd@google.com, glider@google.com, david@redhat.com,
+        alex.sierra@amd.com, alexander.h.duyck@linux.intel.com,
+        arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] lib-kconfig-fix-spellos.patch removed from -mm tree
-Message-Id: <20230129223156.7F1CCC433EF@smtp.kernel.org>
+Subject: + mm-extend-max-struct-page-size-for-kmsan.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230130230401.BC9ADC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: lib: Kconfig: fix spellos
-has been removed from the -mm tree.  Its filename was
-     lib-kconfig-fix-spellos.patch
+The patch titled
+     Subject: mm: extend max struct page size for kmsan
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-extend-max-struct-page-size-for-kmsan.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-extend-max-struct-page-size-for-kmsan.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib: Kconfig: fix spellos
-Date: Tue, 24 Jan 2023 10:16:55 -0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: extend max struct page size for kmsan
+Date: Mon, 30 Jan 2023 14:07:26 +0100
 
-Fix spelling in lib/ Kconfig files.
-(reported by codespell)
+After x86 enabled support for KMSAN, it has become possible to have larger
+'struct page' than was expected when commit 5470dea49f53 ("mm: use
+mm_zero_struct_page from SPARC on all 64b architectures") was merged:
 
-Link: https://lkml.kernel.org/r/20230124181655.16269-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+include/linux/mm.h:156:10: warning: no case matching constant switch condition '96'
+        switch (sizeof(struct page)) {
+
+Extend the maximum accordingly.
+
+Link: https://lkml.kernel.org/r/20230130130739.563628-1-arnd@kernel.org
+Fixes: 5470dea49f53 ("mm: use mm_zero_struct_page from SPARC on all 64b architectures")
+Fixes: 4ca8cc8d1bbe ("x86: kmsan: enable KMSAN builds for x86")
+Fixes: f80be4571b19 ("kmsan: add KMSAN runtime core")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Alex Sierra <alex.sierra@amd.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/lib/Kconfig.debug~lib-kconfig-fix-spellos
-+++ a/lib/Kconfig.debug
-@@ -1917,7 +1917,7 @@ config FUNCTION_ERROR_INJECTION
- 	help
- 	  Add fault injections into various functions that are annotated with
- 	  ALLOW_ERROR_INJECTION() in the kernel. BPF may also modify the return
--	  value of theses functions. This is useful to test error paths of code.
-+	  value of these functions. This is useful to test error paths of code.
+--- a/include/linux/mm.h~mm-extend-max-struct-page-size-for-kmsan
++++ a/include/linux/mm.h
+@@ -137,7 +137,7 @@ extern int mmap_rnd_compat_bits __read_m
+  * define their own version of this macro in <asm/pgtable.h>
+  */
+ #if BITS_PER_LONG == 64
+-/* This function must be updated when the size of struct page grows above 80
++/* This function must be updated when the size of struct page grows above 96
+  * or reduces below 56. The idea that compiler optimizes out switch()
+  * statement, and only leaves move/store instructions. Also the compiler can
+  * combine write statements if they are both assignments and can be reordered,
+@@ -148,12 +148,18 @@ static inline void __mm_zero_struct_page
+ {
+ 	unsigned long *_pp = (void *)page;
  
- 	  If unsure, say N
+-	 /* Check that struct page is either 56, 64, 72, or 80 bytes */
++	 /* Check that struct page is either 56, 64, 72, 80, 88 or 96 bytes */
+ 	BUILD_BUG_ON(sizeof(struct page) & 7);
+ 	BUILD_BUG_ON(sizeof(struct page) < 56);
+-	BUILD_BUG_ON(sizeof(struct page) > 80);
++	BUILD_BUG_ON(sizeof(struct page) > 96);
  
---- a/lib/Kconfig.kcsan~lib-kconfig-fix-spellos
-+++ a/lib/Kconfig.kcsan
-@@ -194,7 +194,7 @@ config KCSAN_WEAK_MEMORY
- 	  Enable support for modeling a subset of weak memory, which allows
- 	  detecting a subset of data races due to missing memory barriers.
- 
--	  Depends on KCSAN_STRICT, because the options strenghtening certain
-+	  Depends on KCSAN_STRICT, because the options strengthening certain
- 	  plain accesses by default (depending on !KCSAN_STRICT) reduce the
- 	  ability to detect any data races invoving reordered accesses, in
- 	  particular reordered writes.
+ 	switch (sizeof(struct page)) {
++	case 96:
++		_pp[11] = 0;
++		fallthrough;
++	case 88:
++		_pp[10] = 0;
++		fallthrough;
+ 	case 80:
+ 		_pp[9] = 0;
+ 		fallthrough;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-freevxfs-kconfig-fix-spelling.patch
-freevxfs-fix-kernel-doc-warnings.patch
-ntfs-fix-multiple-kernel-doc-warnings.patch
-userns-fix-a-structs-kernel-doc-notation.patch
-cramfs-kconfig-fix-spelling-punctuation.patch
+zsmalloc-fix-a-race-with-deferred_handles-storing-fix.patch
+mm-extend-max-struct-page-size-for-kmsan.patch
+mm-hugetlb-convert-get_hwpoison_huge_page-to-folios-fix.patch
 
