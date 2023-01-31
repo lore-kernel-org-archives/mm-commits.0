@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0815C636D3
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Jan 2023 00:24:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 221BCC636D6
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Jan 2023 00:24:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229607AbjAaAYh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 30 Jan 2023 19:24:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55456 "EHLO
+        id S229608AbjAaAYi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 30 Jan 2023 19:24:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229817AbjAaAYg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2023 19:24:36 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3FD1193F4
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2023 16:24:32 -0800 (PST)
+        with ESMTP id S229580AbjAaAYh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2023 19:24:37 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CA6A199CB
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2023 16:24:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5172FB818C7
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 00:24:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E462DC433EF;
-        Tue, 31 Jan 2023 00:24:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0211CB818C2
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 00:24:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 858C1C433EF;
+        Tue, 31 Jan 2023 00:24:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675124670;
-        bh=84ErJVeXTlfl/5Kzz4X8VXN0cJy1NjTuAWDsK7U8sV4=;
+        s=korg; t=1675124672;
+        bh=T/8U5dMEa+DrWLkgTxh+XCtiX6iBoOjoBPDo4ABj4nM=;
         h=Date:To:From:Subject:From;
-        b=zoDWTouSfUZIyObX8Oo/HIx60DHPqce9j6ijSOBk3b5VGjiK9BwGR2xGqYUprNzcB
-         0gfoEGuvlzFoRZkLmLzqR1zYziAeoy1qGQsHJu0sRc7eAKMFTxHs0raXlwp40socLt
-         +o3/W63ia/nitRAlIxcF2STNHkUJpVJWy1YFkYPQ=
-Date:   Mon, 30 Jan 2023 16:24:29 -0800
+        b=NdfU/u21Hdhqu4I+b4meB+iX3dnsfqo5Dp1HEMF+Z3vyvRcWtShRcMCNjCn7gE0k0
+         xpMx/wm1Iq6ClajxpQr+8roldiVgzvrVHjNdu9ZpmAZ314Gz2c9x+Iirg24etldCeB
+         7hxu7AVjlvFeY2SFVNgXhHpvdynNc8+ABsM3IGLM=
+Date:   Mon, 30 Jan 2023 16:24:31 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, glider@google.com,
         eugenis@google.com, elver@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-mm-rename-stack_depot_want_early_init.patch added to mm-nonmm-unstable branch
-Message-Id: <20230131002429.E462DC433EF@smtp.kernel.org>
+Subject: + lib-stackdepot-rename-stack_depot_disable.patch added to mm-nonmm-unstable branch
+Message-Id: <20230131002432.858C1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot, mm: rename stack_depot_want_early_init
+     Subject: lib/stackdepot: rename stack_depot_disable
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-stackdepot-mm-rename-stack_depot_want_early_init.patch
+     lib-stackdepot-rename-stack_depot_disable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-mm-rename-stack_depot_want_early_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-rename-stack_depot_disable.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,18 +66,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot, mm: rename stack_depot_want_early_init
-Date: Mon, 30 Jan 2023 21:49:28 +0100
+Subject: lib/stackdepot: rename stack_depot_disable
+Date: Mon, 30 Jan 2023 21:49:29 +0100
 
-Rename stack_depot_want_early_init to stack_depot_request_early_init.
+Rename stack_depot_disable to stack_depot_disabled to make its name look
+similar to the names of other stack depot flags.
 
-The old name is confusing, as it hints at returning some kind of intention
-of stack depot.  The new name reflects that this function requests an
-action from stack depot instead.
+Also put stack_depot_disabled's definition together with the other flags.
+
+Also rename is_stack_depot_disabled to disable_stack_depot: this name
+looks more conventional for a function that processes a boot parameter.
 
 No functional changes.
 
-Link: https://lkml.kernel.org/r/cb34925852c81be2ec6aac75766292e4e590523e.1675111415.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/293567627b0d59f1ae5a27ac9537c027a5ff729d.1675111415.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
@@ -87,109 +89,87 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/stackdepot.h~lib-stackdepot-mm-rename-stack_depot_want_early_init
-+++ a/include/linux/stackdepot.h
-@@ -31,26 +31,26 @@ typedef u32 depot_stack_handle_t;
-  * enabled as part of mm_init(), for subsystems where it's known at compile time
-  * that stack depot will be used.
-  *
-- * Another alternative is to call stack_depot_want_early_init(), when the
-+ * Another alternative is to call stack_depot_request_early_init(), when the
-  * decision to use stack depot is taken e.g. when evaluating kernel boot
-  * parameters, which precedes the enablement point in mm_init().
-  *
-- * stack_depot_init() and stack_depot_want_early_init() can be called regardless
-- * of CONFIG_STACKDEPOT and are no-op when disabled. The actual save/fetch/print
-- * functions should only be called from code that makes sure CONFIG_STACKDEPOT
-- * is enabled.
-+ * stack_depot_init() and stack_depot_request_early_init() can be called
-+ * regardless of CONFIG_STACKDEPOT and are no-op when disabled. The actual
-+ * save/fetch/print functions should only be called from code that makes sure
-+ * CONFIG_STACKDEPOT is enabled.
-  */
- #ifdef CONFIG_STACKDEPOT
- int stack_depot_init(void);
- 
--void __init stack_depot_want_early_init(void);
-+void __init stack_depot_request_early_init(void);
- 
- /* This is supposed to be called only from mm_init() */
- int __init stack_depot_early_init(void);
- #else
- static inline int stack_depot_init(void) { return 0; }
- 
--static inline void stack_depot_want_early_init(void) { }
-+static inline void stack_depot_request_early_init(void) { }
- 
- static inline int stack_depot_early_init(void)	{ return 0; }
- #endif
---- a/lib/stackdepot.c~lib-stackdepot-mm-rename-stack_depot_want_early_init
+--- a/lib/stackdepot.c~lib-stackdepot-rename-stack_depot_disable
 +++ a/lib/stackdepot.c
-@@ -71,7 +71,7 @@ struct stack_record {
+@@ -71,6 +71,7 @@ struct stack_record {
  	unsigned long entries[];	/* Variable-sized array of entries. */
  };
  
--static bool __stack_depot_want_early_init __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
-+static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
++static bool stack_depot_disabled;
+ static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
  static bool __stack_depot_early_init_passed __initdata;
  
- static void *stack_slabs[STACK_ALLOC_MAX_SLABS];
-@@ -107,12 +107,12 @@ static int __init is_stack_depot_disable
- }
- early_param("stack_depot_disable", is_stack_depot_disabled);
+@@ -91,21 +92,20 @@ static DEFINE_RAW_SPINLOCK(depot_lock);
+ static unsigned int stack_hash_order;
+ static unsigned int stack_hash_mask;
  
--void __init stack_depot_want_early_init(void)
-+void __init stack_depot_request_early_init(void)
+-static bool stack_depot_disable;
+ static struct stack_record **stack_table;
+ 
+-static int __init is_stack_depot_disabled(char *str)
++static int __init disable_stack_depot(char *str)
  {
--	/* Too late to request early init now */
-+	/* Too late to request early init now. */
- 	WARN_ON(__stack_depot_early_init_passed);
+ 	int ret;
  
--	__stack_depot_want_early_init = true;
-+	__stack_depot_early_init_requested = true;
+-	ret = kstrtobool(str, &stack_depot_disable);
+-	if (!ret && stack_depot_disable) {
++	ret = kstrtobool(str, &stack_depot_disabled);
++	if (!ret && stack_depot_disabled) {
+ 		pr_info("disabled\n");
+ 		stack_table = NULL;
+ 	}
+ 	return 0;
  }
+-early_param("stack_depot_disable", is_stack_depot_disabled);
++early_param("stack_depot_disable", disable_stack_depot);
  
- int __init stack_depot_early_init(void)
+ void __init stack_depot_request_early_init(void)
+ {
 @@ -128,7 +128,7 @@ int __init stack_depot_early_init(void)
  	if (kasan_enabled() && !stack_hash_order)
  		stack_hash_order = STACK_HASH_ORDER_MAX;
  
--	if (!__stack_depot_want_early_init || stack_depot_disable)
-+	if (!__stack_depot_early_init_requested || stack_depot_disable)
+-	if (!__stack_depot_early_init_requested || stack_depot_disable)
++	if (!__stack_depot_early_init_requested || stack_depot_disabled)
  		return 0;
  
  	if (stack_hash_order)
---- a/mm/page_owner.c~lib-stackdepot-mm-rename-stack_depot_want_early_init
-+++ a/mm/page_owner.c
-@@ -48,7 +48,7 @@ static int __init early_page_owner_param
- 	int ret = kstrtobool(buf, &page_owner_enabled);
+@@ -145,7 +145,7 @@ int __init stack_depot_early_init(void)
  
- 	if (page_owner_enabled)
--		stack_depot_want_early_init();
-+		stack_depot_request_early_init();
- 
- 	return ret;
- }
---- a/mm/slub.c~lib-stackdepot-mm-rename-stack_depot_want_early_init
-+++ a/mm/slub.c
-@@ -1592,7 +1592,7 @@ static int __init setup_slub_debug(char
- 		} else {
- 			slab_list_specified = true;
- 			if (flags & SLAB_STORE_USER)
--				stack_depot_want_early_init();
-+				stack_depot_request_early_init();
- 		}
+ 	if (!stack_table) {
+ 		pr_err("hash table allocation failed, disabling\n");
+-		stack_depot_disable = true;
++		stack_depot_disabled = true;
+ 		return -ENOMEM;
  	}
  
-@@ -1611,7 +1611,7 @@ static int __init setup_slub_debug(char
- out:
- 	slub_debug = global_flags;
- 	if (slub_debug & SLAB_STORE_USER)
--		stack_depot_want_early_init();
-+		stack_depot_request_early_init();
- 	if (slub_debug != 0 || slub_debug_string)
- 		static_branch_enable(&slub_debug_enabled);
- 	else
+@@ -158,7 +158,7 @@ int stack_depot_init(void)
+ 	int ret = 0;
+ 
+ 	mutex_lock(&stack_depot_init_mutex);
+-	if (!stack_depot_disable && !stack_table) {
++	if (!stack_depot_disabled && !stack_table) {
+ 		unsigned long entries;
+ 		int scale = STACK_HASH_SCALE;
+ 
+@@ -184,7 +184,7 @@ int stack_depot_init(void)
+ 		stack_table = kvcalloc(entries, sizeof(struct stack_record *), GFP_KERNEL);
+ 		if (!stack_table) {
+ 			pr_err("hash table allocation failed, disabling\n");
+-			stack_depot_disable = true;
++			stack_depot_disabled = true;
+ 			ret = -ENOMEM;
+ 		}
+ 		stack_hash_mask = entries - 1;
+@@ -354,7 +354,7 @@ depot_stack_handle_t __stack_depot_save(
+ 	 */
+ 	nr_entries = filter_irq_stacks(entries, nr_entries);
+ 
+-	if (unlikely(nr_entries == 0) || stack_depot_disable)
++	if (unlikely(nr_entries == 0) || stack_depot_disabled)
+ 		goto fast_exit;
+ 
+ 	hash = hash_stack(entries, nr_entries);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
