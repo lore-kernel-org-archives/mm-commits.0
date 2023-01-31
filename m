@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEE82C636CC
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Jan 2023 23:14:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7124EC38142
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Jan 2023 23:18:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230244AbjAaXOf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Jan 2023 18:14:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52064 "EHLO
+        id S231376AbjAaXSa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Jan 2023 18:18:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229776AbjAaXOe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2023 18:14:34 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9848E7A8D
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 15:14:33 -0800 (PST)
+        with ESMTP id S231671AbjAaXS3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2023 18:18:29 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F85010421
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 15:18:28 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 8992CCE217C
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 23:14:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F495C433D2;
-        Tue, 31 Jan 2023 23:14:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id ECFA5B81ED8
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 23:18:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95D37C433EF;
+        Tue, 31 Jan 2023 23:18:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675206869;
-        bh=ah97Qd5cDJFz/kwZJ3gH8BRJsuqDvozUqrrql2UnmGE=;
+        s=korg; t=1675207105;
+        bh=phwuTDLLgXwJ/tzrIEnEhUBTHMHggKOA9KCuQXOac8s=;
         h=Date:To:From:Subject:From;
-        b=I3NA0Hdzpb8t4FA+eVeOBmzTKxHBXsg5B2RBFbV2+gDigD93c3thtJSL81jXi0Dby
-         naVd7C0YXcbL86hKdf9sRU10fYNj6TppbvJZb8orNHeJhzDgspCKliAoPK8S9jxx6Z
-         P5lb3G9Pz0IBsfV1dGwUUZca3Akik0fN6IGPFO5s=
-Date:   Tue, 31 Jan 2023 15:14:29 -0800
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        wangkefeng.wang@huawei.com, sunnanyong@huawei.com,
-        chenwandun@huawei.com, xialonglong1@huawei.com,
-        akpm@linux-foundation.org
+        b=zLmhJa+VWn3ooq7eV54xGcbjvTgt/OftwUA2nTgcmPDbpJ15A+e7IESbUcKxVzQ0v
+         XbLO2273mOoVgAwzxou9fb4fBtY4bZS6s0STWvD6swYH5O94rihW/0W/TRHktc+Hil
+         NQs/oO6UZjrXvUeDufEJWQZWHXcf77ltntoErAAc=
+Date:   Tue, 31 Jan 2023 15:18:25 -0800
+To:     mm-commits@vger.kernel.org, matthias.bgg@gmail.com,
+        jhubbard@nvidia.com, chinwen.chang@mediatek.com,
+        apopple@nvidia.com, andrew.yang@mediatek.com,
+        Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfile-remove-pr_debug-in-get_swap_pages.patch added to mm-unstable branch
-Message-Id: <20230131231429.8F495C433D2@smtp.kernel.org>
+Subject: + mm-gup-add-folio-to-list-when-folio_isolate_lru-succeed.patch added to mm-unstable branch
+Message-Id: <20230131231825.95D37C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile: remove pr_debug in get_swap_pages()
+     Subject: mm/gup: add folio to list when folio_isolate_lru() succeed
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swapfile-remove-pr_debug-in-get_swap_pages.patch
+     mm-gup-add-folio-to-list-when-folio_isolate_lru-succeed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-remove-pr_debug-in-get_swap_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-add-folio-to-list-when-folio_isolate_lru-succeed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,41 +66,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Longlong Xia <xialonglong1@huawei.com>
-Subject: mm/swapfile: remove pr_debug in get_swap_pages()
-Date: Tue, 31 Jan 2023 07:10:35 +0000
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: mm/gup: add folio to list when folio_isolate_lru() succeed
+Date: Tue, 31 Jan 2023 14:32:06 +0800
 
-It's known that get_swap_pages() may fail to find available space under
-some extreme case, but pr_debug() provides useless information.  Let's
-remove it.
+If we call folio_isolate_lru() successfully, we will get return value 0. 
+We need to add this folio to the movable_pages_list.
 
-Link: https://lkml.kernel.org/r/20230131071035.1085968-1-xialonglong1@huawei.com
-Signed-off-by: Longlong Xia <xialonglong1@huawei.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Chen Wandun <chenwandun@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
+Link: https://lkml.kernel.org/r/20230131063206.28820-1-Kuan-Ying.Lee@mediatek.com
+Fixes: 67e139b02d99 ("mm/gup.c: refactor check_and_migrate_movable_pages()")
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrew Yang <andrew.yang@mediatek.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swapfile-remove-pr_debug-in-get_swap_pages
-+++ a/mm/swapfile.c
-@@ -1098,8 +1098,6 @@ start_over:
- 		spin_unlock(&si->lock);
- 		if (n_ret || size == SWAPFILE_CLUSTER)
- 			goto check_out;
--		pr_debug("scan_swap_map of si %d failed to find offset\n",
--			si->type);
- 		cond_resched();
+--- a/mm/gup.c~mm-gup-add-folio-to-list-when-folio_isolate_lru-succeed
++++ a/mm/gup.c
+@@ -1914,7 +1914,7 @@ static unsigned long collect_longterm_un
+ 			drain_allow = false;
+ 		}
  
- 		spin_lock(&swap_avail_lock);
+-		if (!folio_isolate_lru(folio))
++		if (folio_isolate_lru(folio))
+ 			continue;
+ 
+ 		list_add_tail(&folio->lru, movable_page_list);
 _
 
-Patches currently in -mm which might be from xialonglong1@huawei.com are
+Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
 
-mm-swapfile-add-cond_resched-in-get_swap_pages.patch
-mm-swapfile-remove-pr_debug-in-get_swap_pages.patch
+kasan-infer-allocation-size-by-scanning-metadata.patch
+mm-gup-add-folio-to-list-when-folio_isolate_lru-succeed.patch
 
