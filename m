@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AAA6C61DA4
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Jan 2023 00:24:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBC6CC636D6
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Jan 2023 00:24:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229817AbjAaAYr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 30 Jan 2023 19:24:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55480 "EHLO
+        id S229580AbjAaAYs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 30 Jan 2023 19:24:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55536 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229536AbjAaAYi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2023 19:24:38 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E43FB12586
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2023 16:24:36 -0800 (PST)
+        with ESMTP id S229966AbjAaAYp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2023 19:24:45 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA9A7166CA
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2023 16:24:43 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9B683B818BF
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 00:24:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D5BCC433A1;
-        Tue, 31 Jan 2023 00:24:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A1B16133D
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 00:24:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF4BEC433EF;
+        Tue, 31 Jan 2023 00:24:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675124674;
-        bh=MwvVnu2XeID/wc10GPpygPX5FGy4v3qyX8oWS+50ACs=;
+        s=korg; t=1675124682;
+        bh=T3WmzfLJMNjQDOjFsS7MnJfijMwDSErEbcKK6+Nfluw=;
         h=Date:To:From:Subject:From;
-        b=HRwwhpve1kgWM/k/9aWhRPvOX1vC+tGVNIcL0BFzbz4UUR4xScUCqa/lFc/lMamUQ
-         w6BBzEXmCjemgxlXF3QCcVdbsufHY7ILhZAkBIXrcJh7FK71y2FTRmwv7TOmmkRlww
-         6npvSf78C1MubZoo8mqUEdifF9OkIJQM6fIdB/p8=
-Date:   Mon, 30 Jan 2023 16:24:33 -0800
+        b=qcMl//CpoZ32KbhiDmIoDP8eg1QhGOPtXrSdvJnYXF+xcXkoFXP+dF2iyhaKH38S+
+         YaFJ8T+LFb7c3bpXsWGHLNGkYB1aJ6mklCNFSR5IXWj1YTrJg3Wx0gBeMIHX4zqIKR
+         /XvPTemAQgvh1kKNbLLTO13n40mtvELhmLfzn4mo=
+Date:   Mon, 30 Jan 2023 16:24:42 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, glider@google.com,
         eugenis@google.com, elver@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-annotate-init-and-early-init-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20230131002434.3D5BCC433A1@smtp.kernel.org>
+Subject: + lib-stackdepot-rename-slab-variables.patch added to mm-nonmm-unstable branch
+Message-Id: <20230131002442.CF4BEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: annotate init and early init functions
+     Subject: lib/stackdepot: rename slab variables
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-stackdepot-annotate-init-and-early-init-functions.patch
+     lib-stackdepot-rename-slab-variables.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-annotate-init-and-early-init-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-rename-slab-variables.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,19 +66,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: annotate init and early init functions
-Date: Mon, 30 Jan 2023 21:49:30 +0100
+Subject: lib/stackdepot: rename slab variables
+Date: Mon, 30 Jan 2023 21:49:35 +0100
 
-Add comments to stack_depot_early_init and stack_depot_init to explain
-certain parts of their implementation.
+Give better names to slab-related global variables: change "depot_" prefix
+to "slab_" to point out that these variables are related to stack depot
+slabs.
 
-Also add a pr_info message to stack_depot_early_init similar to the one in
-stack_depot_init.
+Also rename the slabindex field in handle_parts to align its name with the
+slab_index global variable.
 
-Also move the scale variable in stack_depot_init to the scope where it is
-being used.
+No functional changes.
 
-Link: https://lkml.kernel.org/r/be09b64fb196ffe0c19ce7afc4130efba5425df9.1675111415.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/fc73ab8b1469d476363a918cbdfe28e1388c043a.1675111415.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
@@ -88,89 +88,130 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/lib/stackdepot.c~lib-stackdepot-annotate-init-and-early-init-functions
+--- a/lib/stackdepot.c~lib-stackdepot-rename-slab-variables
 +++ a/lib/stackdepot.c
-@@ -115,24 +115,34 @@ void __init stack_depot_request_early_in
- 	__stack_depot_early_init_requested = true;
+@@ -56,7 +56,7 @@
+ union handle_parts {
+ 	depot_stack_handle_t handle;
+ 	struct {
+-		u32 slabindex : STACK_ALLOC_INDEX_BITS;
++		u32 slab_index : STACK_ALLOC_INDEX_BITS;
+ 		u32 offset : STACK_ALLOC_OFFSET_BITS;
+ 		u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
+ 		u32 extra : STACK_DEPOT_EXTRA_BITS;
+@@ -93,11 +93,11 @@ static unsigned int stack_hash_mask;
+ /* Array of memory regions that store stack traces. */
+ static void *stack_slabs[STACK_ALLOC_MAX_SLABS];
+ /* Currently used slab in stack_slabs. */
+-static int depot_index;
++static int slab_index;
+ /* Offset to the unused space in the currently used slab. */
+-static size_t depot_offset;
++static size_t slab_offset;
+ /* Lock that protects the variables above. */
+-static DEFINE_RAW_SPINLOCK(depot_lock);
++static DEFINE_RAW_SPINLOCK(slab_lock);
+ /* Whether the next slab is initialized. */
+ static int next_slab_inited;
+ 
+@@ -230,13 +230,13 @@ static bool depot_init_slab(void **preal
+ 	 */
+ 	if (smp_load_acquire(&next_slab_inited))
+ 		return true;
+-	if (stack_slabs[depot_index] == NULL) {
+-		stack_slabs[depot_index] = *prealloc;
++	if (stack_slabs[slab_index] == NULL) {
++		stack_slabs[slab_index] = *prealloc;
+ 		*prealloc = NULL;
+ 	} else {
+ 		/* If this is the last depot slab, do not touch the next one. */
+-		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS) {
+-			stack_slabs[depot_index + 1] = *prealloc;
++		if (slab_index + 1 < STACK_ALLOC_MAX_SLABS) {
++			stack_slabs[slab_index + 1] = *prealloc;
+ 			*prealloc = NULL;
+ 			/*
+ 			 * This smp_store_release pairs with smp_load_acquire()
+@@ -258,35 +258,35 @@ depot_alloc_stack(unsigned long *entries
+ 
+ 	required_size = ALIGN(required_size, 1 << STACK_ALLOC_ALIGN);
+ 
+-	if (unlikely(depot_offset + required_size > STACK_ALLOC_SIZE)) {
+-		if (unlikely(depot_index + 1 >= STACK_ALLOC_MAX_SLABS)) {
++	if (unlikely(slab_offset + required_size > STACK_ALLOC_SIZE)) {
++		if (unlikely(slab_index + 1 >= STACK_ALLOC_MAX_SLABS)) {
+ 			WARN_ONCE(1, "Stack depot reached limit capacity");
+ 			return NULL;
+ 		}
+-		depot_index++;
+-		depot_offset = 0;
++		slab_index++;
++		slab_offset = 0;
+ 		/*
+ 		 * smp_store_release() here pairs with smp_load_acquire() from
+ 		 * |next_slab_inited| in stack_depot_save() and
+ 		 * depot_init_slab().
+ 		 */
+-		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS)
++		if (slab_index + 1 < STACK_ALLOC_MAX_SLABS)
+ 			smp_store_release(&next_slab_inited, 0);
+ 	}
+ 	depot_init_slab(prealloc);
+-	if (stack_slabs[depot_index] == NULL)
++	if (stack_slabs[slab_index] == NULL)
+ 		return NULL;
+ 
+-	stack = stack_slabs[depot_index] + depot_offset;
++	stack = stack_slabs[slab_index] + slab_offset;
+ 
+ 	stack->hash = hash;
+ 	stack->size = size;
+-	stack->handle.slabindex = depot_index;
+-	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
++	stack->handle.slab_index = slab_index;
++	stack->handle.offset = slab_offset >> STACK_ALLOC_ALIGN;
+ 	stack->handle.valid = 1;
+ 	stack->handle.extra = 0;
+ 	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
+-	depot_offset += required_size;
++	slab_offset += required_size;
+ 
+ 	return stack;
  }
+@@ -418,7 +418,7 @@ depot_stack_handle_t __stack_depot_save(
+ 			prealloc = page_address(page);
+ 	}
  
-+/* Allocates a hash table via memblock. Can only be used during early boot. */
- int __init stack_depot_early_init(void)
- {
- 	unsigned long entries = 0;
+-	raw_spin_lock_irqsave(&depot_lock, flags);
++	raw_spin_lock_irqsave(&slab_lock, flags);
  
--	/* This is supposed to be called only once, from mm_init() */
-+	/* This function must be called only once, from mm_init(). */
- 	if (WARN_ON(__stack_depot_early_init_passed))
- 		return 0;
--
- 	__stack_depot_early_init_passed = true;
+ 	found = find_stack(*bucket, entries, nr_entries, hash);
+ 	if (!found) {
+@@ -441,7 +441,7 @@ depot_stack_handle_t __stack_depot_save(
+ 		WARN_ON(!depot_init_slab(&prealloc));
+ 	}
  
-+	/*
-+	 * If KASAN is enabled, use the maximum order: KASAN is frequently used
-+	 * in fuzzing scenarios, which leads to a large number of different
-+	 * stack traces being stored in stack depot.
-+	 */
- 	if (kasan_enabled() && !stack_hash_order)
- 		stack_hash_order = STACK_HASH_ORDER_MAX;
- 
- 	if (!__stack_depot_early_init_requested || stack_depot_disabled)
+-	raw_spin_unlock_irqrestore(&depot_lock, flags);
++	raw_spin_unlock_irqrestore(&slab_lock, flags);
+ exit:
+ 	if (prealloc) {
+ 		/* Nobody used this memory, ok to free it. */
+@@ -497,12 +497,12 @@ unsigned int stack_depot_fetch(depot_sta
+ 	if (!handle)
  		return 0;
  
-+	/*
-+	 * If stack_hash_order is not set, leave entries as 0 to rely on the
-+	 * automatic calculations performed by alloc_large_system_hash.
-+	 */
- 	if (stack_hash_order)
--		entries = 1UL <<  stack_hash_order;
-+		entries = 1UL << stack_hash_order;
-+	pr_info("allocating hash table via alloc_large_system_hash\n");
- 	stack_table = alloc_large_system_hash("stackdepot",
- 						sizeof(struct stack_record *),
- 						entries,
-@@ -142,7 +152,6 @@ int __init stack_depot_early_init(void)
- 						&stack_hash_mask,
- 						1UL << STACK_HASH_ORDER_MIN,
- 						1UL << STACK_HASH_ORDER_MAX);
--
- 	if (!stack_table) {
- 		pr_err("hash table allocation failed, disabling\n");
- 		stack_depot_disabled = true;
-@@ -152,6 +161,7 @@ int __init stack_depot_early_init(void)
- 	return 0;
- }
- 
-+/* Allocates a hash table via kvmalloc. Can be used after boot. */
- int stack_depot_init(void)
- {
- 	static DEFINE_MUTEX(stack_depot_init_mutex);
-@@ -160,11 +170,16 @@ int stack_depot_init(void)
- 	mutex_lock(&stack_depot_init_mutex);
- 	if (!stack_depot_disabled && !stack_table) {
- 		unsigned long entries;
--		int scale = STACK_HASH_SCALE;
- 
-+		/*
-+		 * Similarly to stack_depot_early_init, use stack_hash_order
-+		 * if assigned, and rely on automatic scaling otherwise.
-+		 */
- 		if (stack_hash_order) {
- 			entries = 1UL << stack_hash_order;
- 		} else {
-+			int scale = STACK_HASH_SCALE;
-+
- 			entries = nr_free_buffer_pages();
- 			entries = roundup_pow_of_two(entries);
- 
-@@ -179,7 +194,7 @@ int stack_depot_init(void)
- 		if (entries > 1UL << STACK_HASH_ORDER_MAX)
- 			entries = 1UL << STACK_HASH_ORDER_MAX;
- 
--		pr_info("allocating hash table of %lu entries with kvcalloc\n",
-+		pr_info("allocating hash table of %lu entries via kvcalloc\n",
- 				entries);
- 		stack_table = kvcalloc(entries, sizeof(struct stack_record *), GFP_KERNEL);
- 		if (!stack_table) {
+-	if (parts.slabindex > depot_index) {
++	if (parts.slab_index > slab_index) {
+ 		WARN(1, "slab index %d out of bounds (%d) for stack id %08x\n",
+-			parts.slabindex, depot_index, handle);
++			parts.slab_index, slab_index, handle);
+ 		return 0;
+ 	}
+-	slab = stack_slabs[parts.slabindex];
++	slab = stack_slabs[parts.slab_index];
+ 	if (!slab)
+ 		return 0;
+ 	stack = slab + offset;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
