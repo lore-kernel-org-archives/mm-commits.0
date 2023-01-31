@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8ABFAC636D3
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Jan 2023 00:24:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A5D8C636D7
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Jan 2023 00:24:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229536AbjAaAYs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 30 Jan 2023 19:24:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55496 "EHLO
+        id S229862AbjAaAYt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 30 Jan 2023 19:24:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229757AbjAaAYk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2023 19:24:40 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D449B193D8
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2023 16:24:38 -0800 (PST)
+        with ESMTP id S229844AbjAaAYn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2023 19:24:43 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F8A619683
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2023 16:24:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 702A761341
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 00:24:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5EC3C4339E;
-        Tue, 31 Jan 2023 00:24:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 27E1361341
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 00:24:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C6A3C4339E;
+        Tue, 31 Jan 2023 00:24:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675124677;
-        bh=EL/aLkZSaf9ikYSh3IxGhpGvwNuUoY/4lsKacqWzuDc=;
+        s=korg; t=1675124679;
+        bh=SpRlKrzpbGYHW7PEanxHjVDYI20ML0785wNBTvMlRwU=;
         h=Date:To:From:Subject:From;
-        b=QxxLS7O/4gj4Nrcsdp/XwGWIGey8AwD3ENExPAq0sfm1DPGvXeraQciJ1Fj72dlnK
-         uk2kvDk6rZIowRJChW2PP6B9xKztq7qk9rHcfzpaB2/gLIdUVdZ1KNs3Bg8oKEb0K0
-         rlCTRboR0Pa/2zpuRCfXT0KjzshO2Y05s+fFzr0c=
-Date:   Mon, 30 Jan 2023 16:24:37 -0800
+        b=SBv7Mv9inmyLieaPDGV7x99RmaQ64QCj0BvdNknnV+hEMHNwbmssXlXCcAatJ3ZNT
+         VoKM5N8v47j3Wj6JwmvPxiJqC5BXC8NNXy6LxTjGkgaPW2SUZI7UNZehNdVoaMh8bK
+         r0ZuwTPxarV6+2/nLe42Gga6crxK3lfbgsx775QY=
+Date:   Mon, 30 Jan 2023 16:24:38 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, glider@google.com,
         eugenis@google.com, elver@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-reorder-and-annotate-global-variables.patch added to mm-nonmm-unstable branch
-Message-Id: <20230131002437.C5EC3C4339E@smtp.kernel.org>
+Subject: + lib-stackdepot-rename-hash-table-constants-and-variables.patch added to mm-nonmm-unstable branch
+Message-Id: <20230131002439.7C6A3C4339E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: reorder and annotate global variables
+     Subject: lib/stackdepot: rename hash table constants and variables
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-stackdepot-reorder-and-annotate-global-variables.patch
+     lib-stackdepot-rename-hash-table-constants-and-variables.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-reorder-and-annotate-global-variables.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-rename-hash-table-constants-and-variables.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,19 +66,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: reorder and annotate global variables
-Date: Mon, 30 Jan 2023 21:49:32 +0100
+Subject: lib/stackdepot: rename hash table constants and variables
+Date: Mon, 30 Jan 2023 21:49:33 +0100
 
-Group stack depot global variables by their purpose:
+Give more meaningful names to hash table-related constants and variables:
 
-1. Hash table-related variables,
-2. Slab-related variables,
+1. Rename STACK_HASH_SCALE to STACK_TABLE_SCALE to point out that it is
+   related to scaling the hash table.
 
-and add comments.
+2. Rename STACK_HASH_ORDER_MIN/MAX to STACK_BUCKET_NUMBER_ORDER_MIN/MAX
+   to point out that it is related to the number of hash table buckets.
 
-Also clean up comments for hash table-related constants.
+3. Rename stack_hash_order to stack_bucket_number_order for the same
+   reason as #2.
 
-Link: https://lkml.kernel.org/r/4ed1d0828e837e15566a7cfa7688a47006e3f4b3.1675111415.git.andreyknvl@google.com
+No functional changes.
+
+Link: https://lkml.kernel.org/r/5456286e2c9f3cd5abf25ad2e7e60dc997c71f66.1675111415.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
@@ -88,50 +92,101 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/lib/stackdepot.c~lib-stackdepot-reorder-and-annotate-global-variables
+--- a/lib/stackdepot.c~lib-stackdepot-rename-hash-table-constants-and-variables
 +++ a/lib/stackdepot.c
-@@ -75,24 +75,31 @@ static bool stack_depot_disabled;
- static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
+@@ -76,17 +76,17 @@ static bool __stack_depot_early_init_req
  static bool __stack_depot_early_init_passed __initdata;
  
--static void *stack_slabs[STACK_ALLOC_MAX_SLABS];
--
--static int depot_index;
--static int next_slab_inited;
--static size_t depot_offset;
--static DEFINE_RAW_SPINLOCK(depot_lock);
--
--/* one hash table bucket entry per 16kB of memory */
-+/* Use one hash table bucket per 16 KB of memory. */
- #define STACK_HASH_SCALE	14
--/* limited between 4k and 1M buckets */
-+/* Limit the number of buckets between 4K and 1M. */
- #define STACK_HASH_ORDER_MIN	12
- #define STACK_HASH_ORDER_MAX	20
-+/* Initial seed for jhash2. */
+ /* Use one hash table bucket per 16 KB of memory. */
+-#define STACK_HASH_SCALE	14
++#define STACK_TABLE_SCALE 14
+ /* Limit the number of buckets between 4K and 1M. */
+-#define STACK_HASH_ORDER_MIN	12
+-#define STACK_HASH_ORDER_MAX	20
++#define STACK_BUCKET_NUMBER_ORDER_MIN 12
++#define STACK_BUCKET_NUMBER_ORDER_MAX 20
+ /* Initial seed for jhash2. */
  #define STACK_HASH_SEED 0x9747b28c
  
-+/* Hash table of pointers to stored stack traces. */
-+static struct stack_record **stack_table;
-+/* Fixed order of the number of table buckets. Used when KASAN is enabled. */
- static unsigned int stack_hash_order;
-+/* Hash mask for indexing the table. */
+ /* Hash table of pointers to stored stack traces. */
+ static struct stack_record **stack_table;
+ /* Fixed order of the number of table buckets. Used when KASAN is enabled. */
+-static unsigned int stack_hash_order;
++static unsigned int stack_bucket_number_order;
+ /* Hash mask for indexing the table. */
  static unsigned int stack_hash_mask;
  
--static struct stack_record **stack_table;
-+/* Array of memory regions that store stack traces. */
-+static void *stack_slabs[STACK_ALLOC_MAX_SLABS];
-+/* Currently used slab in stack_slabs. */
-+static int depot_index;
-+/* Offset to the unused space in the currently used slab. */
-+static size_t depot_offset;
-+/* Lock that protects the variables above. */
-+static DEFINE_RAW_SPINLOCK(depot_lock);
-+/* Whether the next slab is initialized. */
-+static int next_slab_inited;
+@@ -137,28 +137,28 @@ int __init stack_depot_early_init(void)
+ 	 * in fuzzing scenarios, which leads to a large number of different
+ 	 * stack traces being stored in stack depot.
+ 	 */
+-	if (kasan_enabled() && !stack_hash_order)
+-		stack_hash_order = STACK_HASH_ORDER_MAX;
++	if (kasan_enabled() && !stack_bucket_number_order)
++		stack_bucket_number_order = STACK_BUCKET_NUMBER_ORDER_MAX;
  
- static int __init disable_stack_depot(char *str)
- {
+ 	if (!__stack_depot_early_init_requested || stack_depot_disabled)
+ 		return 0;
+ 
+ 	/*
+-	 * If stack_hash_order is not set, leave entries as 0 to rely on the
+-	 * automatic calculations performed by alloc_large_system_hash.
++	 * If stack_bucket_number_order is not set, leave entries as 0 to rely
++	 * on the automatic calculations performed by alloc_large_system_hash.
+ 	 */
+-	if (stack_hash_order)
+-		entries = 1UL << stack_hash_order;
++	if (stack_bucket_number_order)
++		entries = 1UL << stack_bucket_number_order;
+ 	pr_info("allocating hash table via alloc_large_system_hash\n");
+ 	stack_table = alloc_large_system_hash("stackdepot",
+ 						sizeof(struct stack_record *),
+ 						entries,
+-						STACK_HASH_SCALE,
++						STACK_TABLE_SCALE,
+ 						HASH_EARLY | HASH_ZERO,
+ 						NULL,
+ 						&stack_hash_mask,
+-						1UL << STACK_HASH_ORDER_MIN,
+-						1UL << STACK_HASH_ORDER_MAX);
++						1UL << STACK_BUCKET_NUMBER_ORDER_MIN,
++						1UL << STACK_BUCKET_NUMBER_ORDER_MAX);
+ 	if (!stack_table) {
+ 		pr_err("hash table allocation failed, disabling\n");
+ 		stack_depot_disabled = true;
+@@ -181,13 +181,13 @@ int stack_depot_init(void)
+ 		goto out_unlock;
+ 
+ 	/*
+-	 * Similarly to stack_depot_early_init, use stack_hash_order
++	 * Similarly to stack_depot_early_init, use stack_bucket_number_order
+ 	 * if assigned, and rely on automatic scaling otherwise.
+ 	 */
+-	if (stack_hash_order) {
+-		entries = 1UL << stack_hash_order;
++	if (stack_bucket_number_order) {
++		entries = 1UL << stack_bucket_number_order;
+ 	} else {
+-		int scale = STACK_HASH_SCALE;
++		int scale = STACK_TABLE_SCALE;
+ 
+ 		entries = nr_free_buffer_pages();
+ 		entries = roundup_pow_of_two(entries);
+@@ -198,10 +198,10 @@ int stack_depot_init(void)
+ 			entries <<= (PAGE_SHIFT - scale);
+ 	}
+ 
+-	if (entries < 1UL << STACK_HASH_ORDER_MIN)
+-		entries = 1UL << STACK_HASH_ORDER_MIN;
+-	if (entries > 1UL << STACK_HASH_ORDER_MAX)
+-		entries = 1UL << STACK_HASH_ORDER_MAX;
++	if (entries < 1UL << STACK_BUCKET_NUMBER_ORDER_MIN)
++		entries = 1UL << STACK_BUCKET_NUMBER_ORDER_MIN;
++	if (entries > 1UL << STACK_BUCKET_NUMBER_ORDER_MAX)
++		entries = 1UL << STACK_BUCKET_NUMBER_ORDER_MAX;
+ 
+ 	pr_info("allocating hash table of %lu entries via kvcalloc\n", entries);
+ 	stack_table = kvcalloc(entries, sizeof(struct stack_record *), GFP_KERNEL);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
