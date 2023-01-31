@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D1FCC54EAA
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Jan 2023 00:14:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0112C54EAA
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Jan 2023 00:14:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229986AbjAaAO3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 30 Jan 2023 19:14:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50976 "EHLO
+        id S229997AbjAaAOe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 30 Jan 2023 19:14:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229927AbjAaAO3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2023 19:14:29 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D3B440EB
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2023 16:14:27 -0800 (PST)
+        with ESMTP id S229927AbjAaAOd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2023 19:14:33 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C20310D2
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2023 16:14:32 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3627361329
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 00:14:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86B43C433EF;
-        Tue, 31 Jan 2023 00:14:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DBE0EB818C0
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 00:14:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CDBAC433D2;
+        Tue, 31 Jan 2023 00:14:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675124066;
-        bh=3nvxK53/wsaEY56CpZCkNgLlzFW9UbxINdWpwRSIBXI=;
+        s=korg; t=1675124069;
+        bh=LaH08FzJyj1TE47gia5pENSqEabtn6BXK7X39j4X0q4=;
         h=Date:To:From:Subject:From;
-        b=gzb0JGutZpoIY0LGJdpk1LgG9OTTmWRffoePpOOqEtd0wzxRN5heeM0ERrcQggebu
-         p3JVb9Sf8v5SOd4fqfyMBCc06/aGuLhPo3TqK+hCVf4lxt81BEN0PxKJyLSgLL8BHG
-         WDeo/YpyEEGC20hF/v69tBjkHwhTRMFp1f32P+bg=
-Date:   Mon, 30 Jan 2023 16:14:25 -0800
+        b=KFhD5pjgZIub71mbeoR/2pziJ2E8MUKSO0078PU8YvUHzSF8dmTUHPR0i86S0GPz9
+         +08z9AG/9vw6/iVdGN+5Cfopf8rmYcYSIUF7bcBbFO+4clDiGDtO9NIOl4g6wcnmnP
+         lxPaKSqgiDF058pbbNT7KhNS2PZnmfyweiSBNylM=
+Date:   Mon, 30 Jan 2023 16:14:28 -0800
 To:     mm-commits@vger.kernel.org, jane.chu@oracle.com,
         fengwei.yin@intel.com, david@redhat.com, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-folio_estimated_sharers.patch added to mm-unstable branch
-Message-Id: <20230131001426.86B43C433EF@smtp.kernel.org>
+Subject: + mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch added to mm-unstable branch
+Message-Id: <20230131001429.5CDBAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add folio_estimated_sharers()
+     Subject: mm/mempolicy: convert queue_pages_pmd() to queue_folios_pmd()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-folio_estimated_sharers.patch
+     mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_estimated_sharers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,32 +66,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm: add folio_estimated_sharers()
-Date: Mon, 30 Jan 2023 12:18:28 -0800
+Subject: mm/mempolicy: convert queue_pages_pmd() to queue_folios_pmd()
+Date: Mon, 30 Jan 2023 12:18:29 -0800
 
-Patch series "Convert various mempolicy.c functions to use folios", v4.
+The function now operates on a folio instead of the page associated with a
+pmd.
 
-This patch series converts migrate_page_add() and queue_pages_required()
-to migrate_folio_add() and queue_page_required().  It also converts the
-callers of the functions to use folios as well, and introduces a helper
-function to estimate the number of sharers of a folio.
+This change is in preparation for the conversion of queue_pages_required()
+to queue_folio_required() and migrate_page_add() to migrate_folio_add().
 
-
-This patch (of 6):
-
-folio_estimated_sharers() takes in a folio and returns the precise number
-of times the first subpage of the folio is mapped.
-
-This function aims to provide an estimate for the number of sharers of a
-folio.  This is necessary for folio conversions where we care about the
-number of processes that share a folio, but don't necessarily want to
-check every single page within that folio.
-
-This is in contrast to folio_mapcount() which calculates the total number
-of the times a folio and all its subpages are mapped.
-
-Link: https://lkml.kernel.org/r/20230130201833.27042-1-vishal.moola@gmail.com
-Link: https://lkml.kernel.org/r/20230130201833.27042-2-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230130201833.27042-3-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jane Chu <jane.chu@oracle.com>
@@ -100,33 +84,70 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm.h~mm-add-folio_estimated_sharers
-+++ a/include/linux/mm.h
-@@ -1911,6 +1911,24 @@ static inline size_t folio_size(struct f
- 	return PAGE_SIZE << folio_order(folio);
+--- a/mm/mempolicy.c~mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd
++++ a/mm/mempolicy.c
+@@ -442,21 +442,21 @@ static inline bool queue_pages_required(
  }
  
-+/**
-+ * folio_estimated_sharers - Estimate the number of sharers of a folio.
-+ * @folio: The folio.
-+ *
-+ * folio_estimated_sharers() aims to serve as a function to efficiently
-+ * estimate the number of processes sharing a folio. This is done by
-+ * looking at the precise mapcount of the first subpage in the folio, and
-+ * assuming the other subpages are the same. This may not be true for large
-+ * folios. If you want exact mapcounts for exact calculations, look at
-+ * page_mapcount() or folio_total_mapcount().
-+ *
-+ * Return: The estimated number of processes sharing a folio.
-+ */
-+static inline int folio_estimated_sharers(struct folio *folio)
-+{
-+	return page_mapcount(folio_page(folio, 0));
-+}
-+
- #ifndef HAVE_ARCH_MAKE_PAGE_ACCESSIBLE
- static inline int arch_make_page_accessible(struct page *page)
+ /*
+- * queue_pages_pmd() has three possible return values:
+- * 0 - pages are placed on the right node or queued successfully, or
++ * queue_folios_pmd() has three possible return values:
++ * 0 - folios are placed on the right node or queued successfully, or
+  *     special page is met, i.e. huge zero page.
+- * 1 - there is unmovable page, and MPOL_MF_MOVE* & MPOL_MF_STRICT were
++ * 1 - there is unmovable folio, and MPOL_MF_MOVE* & MPOL_MF_STRICT were
+  *     specified.
+  * -EIO - is migration entry or only MPOL_MF_STRICT was specified and an
+- *        existing page was already on a node that does not follow the
++ *        existing folio was already on a node that does not follow the
+  *        policy.
+  */
+-static int queue_pages_pmd(pmd_t *pmd, spinlock_t *ptl, unsigned long addr,
++static int queue_folios_pmd(pmd_t *pmd, spinlock_t *ptl, unsigned long addr,
+ 				unsigned long end, struct mm_walk *walk)
+ 	__releases(ptl)
  {
+ 	int ret = 0;
+-	struct page *page;
++	struct folio *folio;
+ 	struct queue_pages *qp = walk->private;
+ 	unsigned long flags;
+ 
+@@ -464,19 +464,19 @@ static int queue_pages_pmd(pmd_t *pmd, s
+ 		ret = -EIO;
+ 		goto unlock;
+ 	}
+-	page = pmd_page(*pmd);
+-	if (is_huge_zero_page(page)) {
++	folio = pfn_folio(pmd_pfn(*pmd));
++	if (is_huge_zero_page(&folio->page)) {
+ 		walk->action = ACTION_CONTINUE;
+ 		goto unlock;
+ 	}
+-	if (!queue_pages_required(page, qp))
++	if (!queue_pages_required(&folio->page, qp))
+ 		goto unlock;
+ 
+ 	flags = qp->flags;
+-	/* go to thp migration */
++	/* go to folio migration */
+ 	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) {
+ 		if (!vma_migratable(walk->vma) ||
+-		    migrate_page_add(page, qp->pagelist, flags)) {
++		    migrate_page_add(&folio->page, qp->pagelist, flags)) {
+ 			ret = 1;
+ 			goto unlock;
+ 		}
+@@ -512,7 +512,7 @@ static int queue_pages_pte_range(pmd_t *
+ 
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl)
+-		return queue_pages_pmd(pmd, ptl, addr, end, walk);
++		return queue_folios_pmd(pmd, ptl, addr, end, walk);
+ 
+ 	if (pmd_trans_unstable(pmd))
+ 		return 0;
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
