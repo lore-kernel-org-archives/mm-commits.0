@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7306C636CC
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Feb 2023 00:45:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42EAAC64EC3
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Feb 2023 00:45:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231894AbjBAApm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Jan 2023 19:45:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41078 "EHLO
+        id S231860AbjBAApo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Jan 2023 19:45:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231857AbjBAApW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2023 19:45:22 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 624DF51C6C
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 16:45:20 -0800 (PST)
+        with ESMTP id S231859AbjBAApX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2023 19:45:23 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B191530D1;
+        Tue, 31 Jan 2023 16:45:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F17596175A
-        for <mm-commits@vger.kernel.org>; Wed,  1 Feb 2023 00:45:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A31DC433EF;
-        Wed,  1 Feb 2023 00:45:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 91C286175C;
+        Wed,  1 Feb 2023 00:45:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE2DFC433EF;
+        Wed,  1 Feb 2023 00:45:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675212319;
-        bh=N3y+5w/HZEc1yK/Exj0jyctDhDziKJR4v1x1h3QRIlk=;
+        s=korg; t=1675212321;
+        bh=ClQFzhWGiebJjaqQk73jRR8JO9ZTkLw1LzetM/miyOA=;
         h=Date:To:From:Subject:From;
-        b=D+o2rPVwsuxUq7rzNubZbyYtiI1hR7tP8sY1lV3F0/2ihZvCCXev070SWhooLpTLF
-         SgXUndqklyGlDbcQl7X7myufg7zyX6sAq9+TlkyztnYmTBao4U5Ta50AZBsKSGCRVf
-         +gS3wzfY3METUM1qEosmWLq3NULziZbDgeDDzPDI=
-Date:   Tue, 31 Jan 2023 16:45:18 -0800
-To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
-        palmer@rivosinc.com, nathan@kernel.org, naresh.kamboju@linaro.org,
-        masahiroy@kernel.org, hch@lst.de, gregkh@linuxfoundation.org,
-        glaubitz@physik.fu-berlin.de, dennis@ausil.us, dalias@libc.org,
-        arnd@arndb.de, ardb@kernel.org, tom.saeger@oracle.com,
-        akpm@linux-foundation.org
+        b=j+HBi84RbMBORQLof06It7BURdgBeY1zszklTZRhzqTHflth6CTwtq1fPJmcpTcoA
+         jAFWazKH9f4k4c/cF8pmnDvM12KEjxGM2Ap4JaPtx0NPS3r3rCt4bDCRFUY+mX08v5
+         0kK7qEDG4u8bG41ud9HLXdu7IB4CDaY23+p7TCgg=
+Date:   Tue, 31 Jan 2023 16:45:20 -0800
+To:     mm-commits@vger.kernel.org,
+        syzbot+082fa4af80a5bb1a9843@syzkaller.appspotmail.com,
+        stable@vger.kernel.org, pchelkin@ispras.ru, khoroshilov@ispras.ru,
+        phillip@squashfs.org.uk, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] sh-define-runtime_discard_exit.patch removed from -mm tree
-Message-Id: <20230201004519.3A31DC433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count.patch removed from -mm tree
+Message-Id: <20230201004520.EE2DFC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,94 +43,154 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: sh: define RUNTIME_DISCARD_EXIT
+     Subject: Squashfs: fix handling and sanity checking of xattr_ids count
 has been removed from the -mm tree.  Its filename was
-     sh-define-runtime_discard_exit.patch
+     squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tom Saeger <tom.saeger@oracle.com>
-Subject: sh: define RUNTIME_DISCARD_EXIT
-Date: Mon, 23 Jan 2023 17:09:35 -0700
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: Squashfs: fix handling and sanity checking of xattr_ids count
+Date: Fri, 27 Jan 2023 06:18:42 +0000
 
-sh vmlinux fails to link with GNU ld < 2.40 (likely < 2.36) since
-commit 99cb0d917ffa ("arch: fix broken BuildID for arm64 and riscv").
+A Sysbot [1] corrupted filesystem exposes two flaws in the handling and
+sanity checking of the xattr_ids count in the filesystem.  Both of these
+flaws cause computation overflow due to incorrect typing.
 
-This is similar to fixes for powerpc and s390:
-commit 4b9880dbf3bd ("powerpc/vmlinux.lds: Define RUNTIME_DISCARD_EXIT").
-commit a494398bde27 ("s390: define RUNTIME_DISCARD_EXIT to fix link error
-with GNU ld < 2.36").
+In the corrupted filesystem the xattr_ids value is 4294967071, which
+stored in a signed variable becomes the negative number -225.
 
-  $ sh4-linux-gnu-ld --version | head -n1
-  GNU ld (GNU Binutils for Debian) 2.35.2
+Flaw 1 (64-bit systems only):
 
-  $ make ARCH=sh CROSS_COMPILE=sh4-linux-gnu- microdev_defconfig
-  $ make ARCH=sh CROSS_COMPILE=sh4-linux-gnu-
+The signed integer xattr_ids variable causes sign extension.
 
-  `.exit.text' referenced in section `__bug_table' of crypto/algboss.o:
-  defined in discarded section `.exit.text' of crypto/algboss.o
-  `.exit.text' referenced in section `__bug_table' of
-  drivers/char/hw_random/core.o: defined in discarded section
-  `.exit.text' of drivers/char/hw_random/core.o
-  make[2]: *** [scripts/Makefile.vmlinux:34: vmlinux] Error 1
-  make[1]: *** [Makefile:1252: vmlinux] Error 2
+This causes variable overflow in the SQUASHFS_XATTR_*(A) macros.  The
+variable is first multiplied by sizeof(struct squashfs_xattr_id) where the
+type of the sizeof operator is "unsigned long".
 
-arch/sh/kernel/vmlinux.lds.S keeps EXIT_TEXT:
+On a 64-bit system this is 64-bits in size, and causes the negative number
+to be sign extended and widened to 64-bits and then become unsigned.  This
+produces the very large number 18446744073709548016 or 2^64 - 3600.  This
+number when rounded up by SQUASHFS_METADATA_SIZE - 1 (8191 bytes) and
+divided by SQUASHFS_METADATA_SIZE overflows and produces a length of 0
+(stored in len).
 
-	/*
-	 * .exit.text is discarded at runtime, not link time, to deal with
-	 * references from __bug_table
-	 */
-	.exit.text : AT(ADDR(.exit.text)) { EXIT_TEXT }
+Flaw 2 (32-bit systems only):
 
-However, EXIT_TEXT is thrown away by
-DISCARD(include/asm-generic/vmlinux.lds.h) because
-sh does not define RUNTIME_DISCARD_EXIT.
+On a 32-bit system the integer variable is not widened by the unsigned
+long type of the sizeof operator (32-bits), and the signedness of the
+variable has no effect due it always being treated as unsigned.
 
-GNU ld 2.40 does not have this issue and builds fine.
-This corresponds with Masahiro's comments in a494398bde27:
-"Nathan [Chancellor] also found that binutils
-commit 21401fc7bf67 ("Duplicate output sections in scripts") cured this
-issue, so we cannot reproduce it with binutils 2.36+, but it is better
-to not rely on it."
+The above corrupted xattr_ids value of 4294967071, when multiplied
+overflows and produces the number 4294963696 or 2^32 - 3400.  This number
+when rounded up by SQUASHFS_METADATA_SIZE - 1 (8191 bytes) and divided by
+SQUASHFS_METADATA_SIZE overflows again and produces a length of 0.
 
-Link: https://lkml.kernel.org/r/9166a8abdc0f979e50377e61780a4bba1dfa2f52.1674518464.git.tom.saeger@oracle.com
-Fixes: 99cb0d917ffa ("arch: fix broken BuildID for arm64 and riscv")
-Link: https://lore.kernel.org/all/Y7Jal56f6UBh1abE@dev-arch.thelio-3990X/
-Link: https://lore.kernel.org/all/20230123194218.47ssfzhrpnv3xfez@oracle.com/
-Signed-off-by: Tom Saeger <tom.saeger@oracle.com>
-Tested-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dennis Gilmore <dennis@ausil.us>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+The effect of the 0 length computation:
+
+In conjunction with the corrupted xattr_ids field, the filesystem also has
+a corrupted xattr_table_start value, where it matches the end of
+filesystem value of 850.
+
+This causes the following sanity check code to fail because the
+incorrectly computed len of 0 matches the incorrect size of the table
+reported by the superblock (0 bytes).
+
+    len = SQUASHFS_XATTR_BLOCK_BYTES(*xattr_ids);
+    indexes = SQUASHFS_XATTR_BLOCKS(*xattr_ids);
+
+    /*
+     * The computed size of the index table (len bytes) should exactly
+     * match the table start and end points
+    */
+    start = table_start + sizeof(*id_table);
+    end = msblk->bytes_used;
+
+    if (len != (end - start))
+            return ERR_PTR(-EINVAL);
+
+Changing the xattr_ids variable to be "usigned int" fixes the flaw on a
+64-bit system.  This relies on the fact the computation is widened by the
+unsigned long type of the sizeof operator.
+
+Casting the variable to u64 in the above macro fixes this flaw on a 32-bit
+system.
+
+It also means 64-bit systems do not implicitly rely on the type of the
+sizeof operator to widen the computation.
+
+[1] https://lore.kernel.org/lkml/000000000000cd44f005f1a0f17f@google.com/
+
+Link: https://lkml.kernel.org/r/20230127061842.10965-1-phillip@squashfs.org.uk
+Fixes: 506220d2ba21 ("squashfs: add more sanity checks in xattr id lookup")
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: <syzbot+082fa4af80a5bb1a9843@syzkaller.appspotmail.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Fedor Pchelkin <pchelkin@ispras.ru>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/vmlinux.lds.S |    1 +
- 1 file changed, 1 insertion(+)
+ fs/squashfs/squashfs_fs.h    |    2 +-
+ fs/squashfs/squashfs_fs_sb.h |    2 +-
+ fs/squashfs/xattr.h          |    4 ++--
+ fs/squashfs/xattr_id.c       |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/sh/kernel/vmlinux.lds.S~sh-define-runtime_discard_exit
-+++ a/arch/sh/kernel/vmlinux.lds.S
-@@ -4,6 +4,7 @@
-  * Written by Niibe Yutaka and Paul Mundt
+--- a/fs/squashfs/squashfs_fs.h~squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count
++++ a/fs/squashfs/squashfs_fs.h
+@@ -183,7 +183,7 @@ static inline int squashfs_block_size(__
+ #define SQUASHFS_ID_BLOCK_BYTES(A)	(SQUASHFS_ID_BLOCKS(A) *\
+ 					sizeof(u64))
+ /* xattr id lookup table defines */
+-#define SQUASHFS_XATTR_BYTES(A)		((A) * sizeof(struct squashfs_xattr_id))
++#define SQUASHFS_XATTR_BYTES(A)		(((u64) (A)) * sizeof(struct squashfs_xattr_id))
+ 
+ #define SQUASHFS_XATTR_BLOCK(A)		(SQUASHFS_XATTR_BYTES(A) / \
+ 					SQUASHFS_METADATA_SIZE)
+--- a/fs/squashfs/squashfs_fs_sb.h~squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count
++++ a/fs/squashfs/squashfs_fs_sb.h
+@@ -63,7 +63,7 @@ struct squashfs_sb_info {
+ 	long long				bytes_used;
+ 	unsigned int				inodes;
+ 	unsigned int				fragments;
+-	int					xattr_ids;
++	unsigned int				xattr_ids;
+ 	unsigned int				ids;
+ 	bool					panic_on_errors;
+ 	const struct squashfs_decompressor_thread_ops *thread_ops;
+--- a/fs/squashfs/xattr.h~squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count
++++ a/fs/squashfs/xattr.h
+@@ -10,12 +10,12 @@
+ 
+ #ifdef CONFIG_SQUASHFS_XATTR
+ extern __le64 *squashfs_read_xattr_id_table(struct super_block *, u64,
+-		u64 *, int *);
++		u64 *, unsigned int *);
+ extern int squashfs_xattr_lookup(struct super_block *, unsigned int, int *,
+ 		unsigned int *, unsigned long long *);
+ #else
+ static inline __le64 *squashfs_read_xattr_id_table(struct super_block *sb,
+-		u64 start, u64 *xattr_table_start, int *xattr_ids)
++		u64 start, u64 *xattr_table_start, unsigned int *xattr_ids)
+ {
+ 	struct squashfs_xattr_id_table *id_table;
+ 
+--- a/fs/squashfs/xattr_id.c~squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count
++++ a/fs/squashfs/xattr_id.c
+@@ -56,7 +56,7 @@ int squashfs_xattr_lookup(struct super_b
+  * Read uncompressed xattr id lookup table indexes from disk into memory
   */
- OUTPUT_ARCH(sh)
-+#define RUNTIME_DISCARD_EXIT
- #include <asm/thread_info.h>
- #include <asm/cache.h>
- #include <asm/vmlinux.lds.h>
+ __le64 *squashfs_read_xattr_id_table(struct super_block *sb, u64 table_start,
+-		u64 *xattr_table_start, int *xattr_ids)
++		u64 *xattr_table_start, unsigned int *xattr_ids)
+ {
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
+ 	unsigned int len, indexes;
 _
 
-Patches currently in -mm which might be from tom.saeger@oracle.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
 
