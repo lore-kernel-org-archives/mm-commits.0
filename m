@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42EAAC64EC3
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Feb 2023 00:45:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E5E6C636CC
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Feb 2023 00:45:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231860AbjBAApo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Jan 2023 19:45:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41090 "EHLO
+        id S231908AbjBAApx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Jan 2023 19:45:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231859AbjBAApX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2023 19:45:23 -0500
+        with ESMTP id S231863AbjBAAp2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2023 19:45:28 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B191530D1;
-        Tue, 31 Jan 2023 16:45:22 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A46DF521FA
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2023 16:45:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 91C286175C;
-        Wed,  1 Feb 2023 00:45:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE2DFC433EF;
-        Wed,  1 Feb 2023 00:45:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3DB726174D
+        for <mm-commits@vger.kernel.org>; Wed,  1 Feb 2023 00:45:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9262EC433D2;
+        Wed,  1 Feb 2023 00:45:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675212321;
-        bh=ClQFzhWGiebJjaqQk73jRR8JO9ZTkLw1LzetM/miyOA=;
+        s=korg; t=1675212322;
+        bh=wylgXZyDE9ppJV958iIpHZu5i8a3VsTxLwg4FeaRtuY=;
         h=Date:To:From:Subject:From;
-        b=j+HBi84RbMBORQLof06It7BURdgBeY1zszklTZRhzqTHflth6CTwtq1fPJmcpTcoA
-         jAFWazKH9f4k4c/cF8pmnDvM12KEjxGM2Ap4JaPtx0NPS3r3rCt4bDCRFUY+mX08v5
-         0kK7qEDG4u8bG41ud9HLXdu7IB4CDaY23+p7TCgg=
-Date:   Tue, 31 Jan 2023 16:45:20 -0800
-To:     mm-commits@vger.kernel.org,
-        syzbot+082fa4af80a5bb1a9843@syzkaller.appspotmail.com,
-        stable@vger.kernel.org, pchelkin@ispras.ru, khoroshilov@ispras.ru,
-        phillip@squashfs.org.uk, akpm@linux-foundation.org
+        b=I3jfqU9TMbA3AmI1+TWlui+8Ity6LBN8TybzaVtgJeOkjRajeuTR2zzItp0+/0vPF
+         7r7sJ0A7CdYyw/NfOfOaBjO0YTecm0eFAU5SotvgZCXQp/5hxs769hGVtbMyoxVJZB
+         9vsEW4CaL/E8SjhcJu/jpBipbR85u5JSAOL6nirQ=
+Date:   Tue, 31 Jan 2023 16:45:22 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@kernel.org,
+        peterz@infradead.org, nathan@kernel.org,
+        mirsad.todorovac@alu.unizg.hr, ke.wang@unisoc.com,
+        catalin.marinas@arm.com, bp@alien8.de, zhaoyang.huang@unisoc.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count.patch removed from -mm tree
-Message-Id: <20230201004520.EE2DFC433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-use-stack_depot_early_init-for-kmemleak.patch removed from -mm tree
+Message-Id: <20230201004522.9262EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,154 +44,98 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Squashfs: fix handling and sanity checking of xattr_ids count
+     Subject: mm: use stack_depot_early_init for kmemleak
 has been removed from the -mm tree.  Its filename was
-     squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count.patch
+     mm-use-stack_depot_early_init-for-kmemleak.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: fix handling and sanity checking of xattr_ids count
-Date: Fri, 27 Jan 2023 06:18:42 +0000
+From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Subject: mm: use stack_depot_early_init for kmemleak
+Date: Thu, 19 Jan 2023 09:22:25 +0800
 
-A Sysbot [1] corrupted filesystem exposes two flaws in the handling and
-sanity checking of the xattr_ids count in the filesystem.  Both of these
-flaws cause computation overflow due to incorrect typing.
+Mirsad report the below error which is caused by stack_depot_init()
+failure in kvcalloc.  Solve this by having stackdepot use
+stack_depot_early_init().
 
-In the corrupted filesystem the xattr_ids value is 4294967071, which
-stored in a signed variable becomes the negative number -225.
+On 1/4/23 17:08, Mirsad Goran Todorovac wrote:
+I hate to bring bad news again, but there seems to be a problem with the output of /sys/kernel/debug/kmemleak:
 
-Flaw 1 (64-bit systems only):
+[root@pc-mtodorov ~]# cat /sys/kernel/debug/kmemleak
+unreferenced object 0xffff951c118568b0 (size 16):
+comm "kworker/u12:2", pid 56, jiffies 4294893952 (age 4356.548s)
+hex dump (first 16 bytes):
+    6d 65 6d 73 74 69 63 6b 30 00 00 00 00 00 00 00 memstick0.......
+    backtrace:
+[root@pc-mtodorov ~]#
 
-The signed integer xattr_ids variable causes sign extension.
+Apparently, backtrace of called functions on the stack is no longer
+printed with the list of memory leaks.  This appeared on Lenovo desktop
+10TX000VCR, with AlmaLinux 8.7 and BIOS version M22KT49A (11/10/2022) and
+6.2-rc1 and 6.2-rc2 builds.  This worked on 6.1 with the same
+CONFIG_KMEMLEAK=y and MGLRU enabled on a vanilla mainstream kernel from
+Mr.  Torvalds' tree.  I don't know if this is deliberate feature for some
+reason or a bug.  Please find attached the config, lshw and kmemleak
+output.
 
-This causes variable overflow in the SQUASHFS_XATTR_*(A) macros.  The
-variable is first multiplied by sizeof(struct squashfs_xattr_id) where the
-type of the sizeof operator is "unsigned long".
-
-On a 64-bit system this is 64-bits in size, and causes the negative number
-to be sign extended and widened to 64-bits and then become unsigned.  This
-produces the very large number 18446744073709548016 or 2^64 - 3600.  This
-number when rounded up by SQUASHFS_METADATA_SIZE - 1 (8191 bytes) and
-divided by SQUASHFS_METADATA_SIZE overflows and produces a length of 0
-(stored in len).
-
-Flaw 2 (32-bit systems only):
-
-On a 32-bit system the integer variable is not widened by the unsigned
-long type of the sizeof operator (32-bits), and the signedness of the
-variable has no effect due it always being treated as unsigned.
-
-The above corrupted xattr_ids value of 4294967071, when multiplied
-overflows and produces the number 4294963696 or 2^32 - 3400.  This number
-when rounded up by SQUASHFS_METADATA_SIZE - 1 (8191 bytes) and divided by
-SQUASHFS_METADATA_SIZE overflows again and produces a length of 0.
-
-The effect of the 0 length computation:
-
-In conjunction with the corrupted xattr_ids field, the filesystem also has
-a corrupted xattr_table_start value, where it matches the end of
-filesystem value of 850.
-
-This causes the following sanity check code to fail because the
-incorrectly computed len of 0 matches the incorrect size of the table
-reported by the superblock (0 bytes).
-
-    len = SQUASHFS_XATTR_BLOCK_BYTES(*xattr_ids);
-    indexes = SQUASHFS_XATTR_BLOCKS(*xattr_ids);
-
-    /*
-     * The computed size of the index table (len bytes) should exactly
-     * match the table start and end points
-    */
-    start = table_start + sizeof(*id_table);
-    end = msblk->bytes_used;
-
-    if (len != (end - start))
-            return ERR_PTR(-EINVAL);
-
-Changing the xattr_ids variable to be "usigned int" fixes the flaw on a
-64-bit system.  This relies on the fact the computation is widened by the
-unsigned long type of the sizeof operator.
-
-Casting the variable to u64 in the above macro fixes this flaw on a 32-bit
-system.
-
-It also means 64-bit systems do not implicitly rely on the type of the
-sizeof operator to widen the computation.
-
-[1] https://lore.kernel.org/lkml/000000000000cd44f005f1a0f17f@google.com/
-
-Link: https://lkml.kernel.org/r/20230127061842.10965-1-phillip@squashfs.org.uk
-Fixes: 506220d2ba21 ("squashfs: add more sanity checks in xattr id lookup")
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Reported-by: <syzbot+082fa4af80a5bb1a9843@syzkaller.appspotmail.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Cc: Fedor Pchelkin <pchelkin@ispras.ru>
-Cc: <stable@vger.kernel.org>
+[vbabka@suse.cz: remove stack_depot_init() call]
+Link: https://lore.kernel.org/all/5272a819-ef74-65ff-be61-4d2d567337de@alu.unizg.hr/
+Link: https://lkml.kernel.org/r/1674091345-14799-2-git-send-email-zhaoyang.huang@unisoc.com
+Fixes: 56a61617dd22 ("mm: use stack_depot for recording kmemleak's backtrace")
+Reported-by: Mirsad Todorovac <mirsad.todorovac@alu.unizg.hr>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: ke.wang <ke.wang@unisoc.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/squashfs_fs.h    |    2 +-
- fs/squashfs/squashfs_fs_sb.h |    2 +-
- fs/squashfs/xattr.h          |    4 ++--
- fs/squashfs/xattr_id.c       |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ lib/Kconfig.debug |    1 +
+ mm/kmemleak.c     |    5 +++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
---- a/fs/squashfs/squashfs_fs.h~squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count
-+++ a/fs/squashfs/squashfs_fs.h
-@@ -183,7 +183,7 @@ static inline int squashfs_block_size(__
- #define SQUASHFS_ID_BLOCK_BYTES(A)	(SQUASHFS_ID_BLOCKS(A) *\
- 					sizeof(u64))
- /* xattr id lookup table defines */
--#define SQUASHFS_XATTR_BYTES(A)		((A) * sizeof(struct squashfs_xattr_id))
-+#define SQUASHFS_XATTR_BYTES(A)		(((u64) (A)) * sizeof(struct squashfs_xattr_id))
+--- a/lib/Kconfig.debug~mm-use-stack_depot_early_init-for-kmemleak
++++ a/lib/Kconfig.debug
+@@ -754,6 +754,7 @@ config DEBUG_KMEMLEAK
+ 	select KALLSYMS
+ 	select CRC32
+ 	select STACKDEPOT
++	select STACKDEPOT_ALWAYS_INIT if !DEBUG_KMEMLEAK_DEFAULT_OFF
+ 	help
+ 	  Say Y here if you want to enable the memory leak
+ 	  detector. The memory allocation/freeing is traced in a way
+--- a/mm/kmemleak.c~mm-use-stack_depot_early_init-for-kmemleak
++++ a/mm/kmemleak.c
+@@ -2070,8 +2070,10 @@ static int __init kmemleak_boot_config(c
+ 		return -EINVAL;
+ 	if (strcmp(str, "off") == 0)
+ 		kmemleak_disable();
+-	else if (strcmp(str, "on") == 0)
++	else if (strcmp(str, "on") == 0) {
+ 		kmemleak_skip_disable = 1;
++		stack_depot_want_early_init();
++	}
+ 	else
+ 		return -EINVAL;
+ 	return 0;
+@@ -2093,7 +2095,6 @@ void __init kmemleak_init(void)
+ 	if (kmemleak_error)
+ 		return;
  
- #define SQUASHFS_XATTR_BLOCK(A)		(SQUASHFS_XATTR_BYTES(A) / \
- 					SQUASHFS_METADATA_SIZE)
---- a/fs/squashfs/squashfs_fs_sb.h~squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count
-+++ a/fs/squashfs/squashfs_fs_sb.h
-@@ -63,7 +63,7 @@ struct squashfs_sb_info {
- 	long long				bytes_used;
- 	unsigned int				inodes;
- 	unsigned int				fragments;
--	int					xattr_ids;
-+	unsigned int				xattr_ids;
- 	unsigned int				ids;
- 	bool					panic_on_errors;
- 	const struct squashfs_decompressor_thread_ops *thread_ops;
---- a/fs/squashfs/xattr.h~squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count
-+++ a/fs/squashfs/xattr.h
-@@ -10,12 +10,12 @@
+-	stack_depot_init();
+ 	jiffies_min_age = msecs_to_jiffies(MSECS_MIN_AGE);
+ 	jiffies_scan_wait = msecs_to_jiffies(SECS_SCAN_WAIT * 1000);
  
- #ifdef CONFIG_SQUASHFS_XATTR
- extern __le64 *squashfs_read_xattr_id_table(struct super_block *, u64,
--		u64 *, int *);
-+		u64 *, unsigned int *);
- extern int squashfs_xattr_lookup(struct super_block *, unsigned int, int *,
- 		unsigned int *, unsigned long long *);
- #else
- static inline __le64 *squashfs_read_xattr_id_table(struct super_block *sb,
--		u64 start, u64 *xattr_table_start, int *xattr_ids)
-+		u64 start, u64 *xattr_table_start, unsigned int *xattr_ids)
- {
- 	struct squashfs_xattr_id_table *id_table;
- 
---- a/fs/squashfs/xattr_id.c~squashfs-fix-handling-and-sanity-checking-of-xattr_ids-count
-+++ a/fs/squashfs/xattr_id.c
-@@ -56,7 +56,7 @@ int squashfs_xattr_lookup(struct super_b
-  * Read uncompressed xattr id lookup table indexes from disk into memory
-  */
- __le64 *squashfs_read_xattr_id_table(struct super_block *sb, u64 table_start,
--		u64 *xattr_table_start, int *xattr_ids)
-+		u64 *xattr_table_start, unsigned int *xattr_ids)
- {
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
- 	unsigned int len, indexes;
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
 
+mm-move-kmemleaks-kconfig-items-from-lib-to-mm.patch
 
