@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B631CC636D7
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Feb 2023 00:45:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1FA1C38142
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Feb 2023 00:45:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231723AbjBAApU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Jan 2023 19:45:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40868 "EHLO
+        id S231862AbjBAAp2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Jan 2023 19:45:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40910 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231837AbjBAApM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2023 19:45:12 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3CFB51C6C;
-        Tue, 31 Jan 2023 16:45:06 -0800 (PST)
+        with ESMTP id S231300AbjBAApO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2023 19:45:14 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECE874FAF8;
+        Tue, 31 Jan 2023 16:45:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6ED8AB81FCA;
-        Wed,  1 Feb 2023 00:45:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14042C433EF;
-        Wed,  1 Feb 2023 00:45:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 894096175D;
+        Wed,  1 Feb 2023 00:45:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E16BCC433EF;
+        Wed,  1 Feb 2023 00:45:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675212304;
-        bh=Ge440yvx8mZjEWkMt9FTMGo5nRv1nmUf8kEwmDscsmo=;
+        s=korg; t=1675212312;
+        bh=HwsSI8Cj4FMKc1figgZ+7vqoH7BcUp2gnzsCNgIBbWY=;
         h=Date:To:From:Subject:From;
-        b=ycD9gFE7WAyy7MaWrVW0zeDQq2HraP/nzqq2cEjKrOpyWwBjaIo5QSIBwSlGpBbFg
-         Tr7/zPg6IQd6PZEoraLGJTgd7gpXDhIckWDeeJQdr1WJjcowaq4M0iPOy6ys3r7lqe
-         URguN6fhlZ79tFWm3uCcCeG0M5zTewYMKX0UbEqE=
-Date:   Tue, 31 Jan 2023 16:45:03 -0800
+        b=ixYRqHw2aYrwLMjVLEvLZ7Op+iw8HgJoE6sH2fXHY781bJW2HHuQTsGSXVn4/zMdz
+         jkHfs8e5k0cB28sPsiJncW3u4V2zs7sXp5rN4pIyiK6iQ8+iuXFSQqI+7hOLaRdJoQ
+         ka6QvoTPoFCJ9t4v2OB3hxgodFKINh3k4LMnjoeU=
+Date:   Tue, 31 Jan 2023 16:45:11 -0800
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        matenajakub@gmail.com, fvogt@suse.com, vbabka@suse.cz,
+        shy828301@gmail.com, hughd@google.com, zokeefe@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close.patch removed from -mm tree
-Message-Id: <20230201004504.14042C433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-madv_collapse-catch-none-huge-bad-pmd-lookups.patch removed from -mm tree
+Message-Id: <20230201004511.E16BCC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,88 +42,150 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, mremap: fix mremap() expanding for vma's with vm_ops->close()
+     Subject: mm/MADV_COLLAPSE: catch !none !huge !bad pmd lookups
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close.patch
+     mm-madv_collapse-catch-none-huge-bad-pmd-lookups.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, mremap: fix mremap() expanding for vma's with vm_ops->close()
-Date: Tue, 17 Jan 2023 11:19:39 +0100
+From: "Zach O'Keefe" <zokeefe@google.com>
+Subject: mm/MADV_COLLAPSE: catch !none !huge !bad pmd lookups
+Date: Wed, 25 Jan 2023 14:53:58 -0800
 
-Fabian has reported another regression in 6.1 due to ca3d76b0aa80 ("mm:
-add merging after mremap resize").  The problem is that vma_merge() can
-fail when vma has a vm_ops->close() method, causing is_mergeable_vma()
-test to be negative.  This was happening for vma mapping a file from
-fuse-overlayfs, which does have the method.  But when we are simply
-expanding the vma, we never remove it due to the "merge" with the added
-area, so the test should not prevent the expansion.
+In commit 34488399fa08 ("mm/madvise: add file and shmem support to
+MADV_COLLAPSE") we make the following change to find_pmd_or_thp_or_none():
 
-As a quick fix, check for such vmas and expand them using vma_adjust()
-directly as was done before commit ca3d76b0aa80.  For a more robust long
-term solution we should try to limit the check for vma_ops->close only to
-cases that actually result in vma removal, so that no merge would be
-prevented unnecessarily.
+	-       if (!pmd_present(pmde))
+	-               return SCAN_PMD_NULL;
+	+       if (pmd_none(pmde))
+	+               return SCAN_PMD_NONE;
 
-[akpm@linux-foundation.org: fix indenting whitespace, reflow comment]
-Link: https://lkml.kernel.org/r/20230117101939.9753-1-vbabka@suse.cz
-Fixes: ca3d76b0aa80 ("mm: add merging after mremap resize")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Fabian Vogt <fvogt@suse.com>
-  Link: https://bugzilla.suse.com/show_bug.cgi?id=1206359#c35
-Tested-by: Fabian Vogt <fvogt@suse.com>
-Cc: Jakub Matěna <matenajakub@gmail.com>
+This was for-use by MADV_COLLAPSE file/shmem codepaths, where
+MADV_COLLAPSE might identify a pte-mapped hugepage, only to have
+khugepaged race-in, free the pte table, and clear the pmd.  Such codepaths
+include:
+
+A) If we find a suitably-aligned compound page of order HPAGE_PMD_ORDER
+   already in the pagecache.
+B) In retract_page_tables(), if we fail to grab mmap_lock for the target
+   mm/address.
+
+In these cases, collapse_pte_mapped_thp() really does expect a none (not
+just !present) pmd, and we want to suitably identify that case separate
+from the case where no pmd is found, or it's a bad-pmd (of course, many
+things could happen once we drop mmap_lock, and the pmd could plausibly
+undergo multiple transitions due to intervening fault, split, etc). 
+Regardless, the code is prepared install a huge-pmd only when the existing
+pmd entry is either a genuine pte-table-mapping-pmd, or the none-pmd.
+
+However, the commit introduces a logical hole; namely, that we've allowed
+!none- && !huge- && !bad-pmds to be classified as genuine
+pte-table-mapping-pmds.  One such example that could leak through are swap
+entries.  The pmd values aren't checked again before use in
+pte_offset_map_lock(), which is expecting nothing less than a genuine
+pte-table-mapping-pmd.
+
+We want to put back the !pmd_present() check (below the pmd_none() check),
+but need to be careful to deal with subtleties in pmd transitions and
+treatments by various arch.
+
+The issue is that __split_huge_pmd_locked() temporarily clears the present
+bit (or otherwise marks the entry as invalid), but pmd_present() and
+pmd_trans_huge() still need to return true while the pmd is in this
+transitory state.  For example, x86's pmd_present() also checks the
+_PAGE_PSE , riscv's version also checks the _PAGE_LEAF bit, and arm64 also
+checks a PMD_PRESENT_INVALID bit.
+
+Covering all 4 cases for x86 (all checks done on the same pmd value):
+
+1) pmd_present() && pmd_trans_huge()
+   All we actually know here is that the PSE bit is set. Either:
+   a) We aren't racing with __split_huge_page(), and PRESENT or PROTNONE
+      is set.
+      => huge-pmd
+   b) We are currently racing with __split_huge_page().  The danger here
+      is that we proceed as-if we have a huge-pmd, but really we are
+      looking at a pte-mapping-pmd.  So, what is the risk of this
+      danger?
+
+      The only relevant path is:
+
+	madvise_collapse() -> collapse_pte_mapped_thp()
+
+      Where we might just incorrectly report back "success", when really
+      the memory isn't pmd-backed.  This is fine, since split could
+      happen immediately after (actually) successful madvise_collapse().
+      So, it should be safe to just assume huge-pmd here.
+
+2) pmd_present() && !pmd_trans_huge()
+   Either:
+   a) PSE not set and either PRESENT or PROTNONE is.
+      => pte-table-mapping pmd (or PROT_NONE)
+   b) devmap.  This routine can be called immediately after
+      unlocking/locking mmap_lock -- or called with no locks held (see
+      khugepaged_scan_mm_slot()), so previous VMA checks have since been
+      invalidated.
+
+3) !pmd_present() && pmd_trans_huge()
+  Not possible.
+
+4) !pmd_present() && !pmd_trans_huge()
+  Neither PRESENT nor PROTNONE set
+  => not present
+
+I've checked all archs that implement pmd_trans_huge() (arm64, riscv,
+powerpc, longarch, x86, mips, s390) and this logic roughly translates
+(though devmap treatment is unique to x86 and powerpc, and (3) doesn't
+necessarily hold in general -- but that doesn't matter since
+!pmd_present() always takes failure path).
+
+Also, add a comment above find_pmd_or_thp_or_none() to help future
+travelers reason about the validity of the code; namely, the possible
+mutations that might happen out from under us, depending on how mmap_lock
+is held (if at all).
+
+Link: https://lkml.kernel.org/r/20230125225358.2576151-1-zokeefe@google.com
+Fixes: 34488399fa08 ("mm/madvise: add file and shmem support to MADV_COLLAPSE")
+Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+Reported-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+ mm/khugepaged.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/mremap.c~mm-mremap-fix-mremap-expanding-for-vmas-with-vm_ops-close
-+++ a/mm/mremap.c
-@@ -1027,16 +1027,29 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 			}
+--- a/mm/khugepaged.c~mm-madv_collapse-catch-none-huge-bad-pmd-lookups
++++ a/mm/khugepaged.c
+@@ -847,6 +847,10 @@ static int hugepage_vma_revalidate(struc
+ 	return SCAN_SUCCEED;
+ }
  
- 			/*
--			 * Function vma_merge() is called on the extension we are adding to
--			 * the already existing vma, vma_merge() will merge this extension with
--			 * the already existing vma (expand operation itself) and possibly also
--			 * with the next vma if it becomes adjacent to the expanded vma and
--			 * otherwise compatible.
-+			 * Function vma_merge() is called on the extension we
-+			 * are adding to the already existing vma, vma_merge()
-+			 * will merge this extension with the already existing
-+			 * vma (expand operation itself) and possibly also with
-+			 * the next vma if it becomes adjacent to the expanded
-+			 * vma and  otherwise compatible.
-+			 *
-+			 * However, vma_merge() can currently fail due to
-+			 * is_mergeable_vma() check for vm_ops->close (see the
-+			 * comment there). Yet this should not prevent vma
-+			 * expanding, so perform a simple expand for such vma.
-+			 * Ideally the check for close op should be only done
-+			 * when a vma would be actually removed due to a merge.
- 			 */
--			vma = vma_merge(mm, vma, extension_start, extension_end,
-+			if (!vma->vm_ops || !vma->vm_ops->close) {
-+				vma = vma_merge(mm, vma, extension_start, extension_end,
- 					vma->vm_flags, vma->anon_vma, vma->vm_file,
- 					extension_pgoff, vma_policy(vma),
- 					vma->vm_userfaultfd_ctx, anon_vma_name(vma));
-+			} else if (vma_adjust(vma, vma->vm_start, addr + new_len,
-+				   vma->vm_pgoff, NULL)) {
-+				vma = NULL;
-+			}
- 			if (!vma) {
- 				vm_unacct_memory(pages);
- 				ret = -ENOMEM;
++/*
++ * See pmd_trans_unstable() for how the result may change out from
++ * underneath us, even if we hold mmap_lock in read.
++ */
+ static int find_pmd_or_thp_or_none(struct mm_struct *mm,
+ 				   unsigned long address,
+ 				   pmd_t **pmd)
+@@ -865,8 +869,12 @@ static int find_pmd_or_thp_or_none(struc
+ #endif
+ 	if (pmd_none(pmde))
+ 		return SCAN_PMD_NONE;
++	if (!pmd_present(pmde))
++		return SCAN_PMD_NULL;
+ 	if (pmd_trans_huge(pmde))
+ 		return SCAN_PMD_MAPPED;
++	if (pmd_devmap(pmde))
++		return SCAN_PMD_NULL;
+ 	if (pmd_bad(pmde))
+ 		return SCAN_PMD_NULL;
+ 	return SCAN_SUCCEED;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from zokeefe@google.com are
 
-revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch
 
