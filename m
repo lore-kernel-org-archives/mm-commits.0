@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78DE1C05027
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Feb 2023 22:51:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8888C05027
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Feb 2023 23:02:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229974AbjBBWvg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Feb 2023 17:51:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58580 "EHLO
+        id S232593AbjBBXCW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Feb 2023 18:02:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33744 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230173AbjBBWvf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2023 17:51:35 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39D386B9B7
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 14:51:31 -0800 (PST)
+        with ESMTP id S229915AbjBBXCV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2023 18:02:21 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E8107C339
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 15:02:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 40652CE29D6
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:51:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83D66C433EF;
-        Thu,  2 Feb 2023 22:51:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B2A6A60D45
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 23:02:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8F68C433D2;
+        Thu,  2 Feb 2023 23:02:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675378287;
-        bh=Gsnm/f4Jtj6YY7GC8m6FBX+49h3x47EsY7xQqVySKT0=;
+        s=korg; t=1675378939;
+        bh=9WX3NBqZf0hT57zj12LY3tu2WS701wTGnQEPCn7/w20=;
         h=Date:To:From:Subject:From;
-        b=q3P4UktWzeF2iyLkjk5vZuB61FbpfeJ5aKoVyBGoy9hwbHKuXjrpjKaSYJhjO4uRS
-         HWJ1kgP6SuEeF06d02Om4CvZWT4K9fdaQkzXVw9s5SgCybcSS30VgqLF0aEmlAr3Tp
-         dMhc5Bi3FNOoBnC63BvYD5cG/jGSfUbTKHFlKZRE=
-Date:   Thu, 02 Feb 2023 14:51:26 -0800
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, lkp@intel.com,
-        Kuan-Ying.Lee@mediatek.com, glider@google.com,
-        andreyknvl@gmail.com, akpm@linux-foundation.org,
+        b=CXGRort+G9Kkog0as7cGEhU3L1gJ70eQQwPPUYuN46Wv6R2ynQ+ZRKMJIrB1w/c+c
+         3bM9WQhlbBNgDSqjOceaDiZYgVY0gXi2mlpzInkegWe2cW5b8wpvkUJSDmPga20e/n
+         o5Jc9ZFxzmT9sfjMA9rN91Fz9huxsKWNuavLA0SQ=
+Date:   Thu, 02 Feb 2023 15:02:18 -0800
+To:     mm-commits@vger.kernel.org, jhubbard@nvidia.com, jgg@nvidia.com,
+        djwong@kernel.org, david@fromorbit.com, dan.j.williams@intel.com,
+        apopple@nvidia.com, ruansy.fnst@fujitsu.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-infer-allocation-size-by-scanning-metadata-fix.patch added to mm-unstable branch
-Message-Id: <20230202225127.83D66C433EF@smtp.kernel.org>
+Subject: + fsdax-dax_unshare_iter-should-return-a-valid-length.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230202230218.E8F68C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-infer-allocation-size-by-scanning-metadata-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-infer-allocation-size-by-scanning-metadata-fix.patch
+     Subject: fsdax: dax_unshare_iter() should return a valid length
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fsdax-dax_unshare_iter-should-return-a-valid-length.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-infer-allocation-size-by-scanning-metadata-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fsdax-dax_unshare_iter-should-return-a-valid-length.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,47 +66,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kasan-infer-allocation-size-by-scanning-metadata-fix
-Date: Thu Feb  2 02:43:48 PM PST 2023
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Subject: fsdax: dax_unshare_iter() should return a valid length
+Date: Thu, 2 Feb 2023 12:33:47 +0000
 
-fix printk warning
+The copy_mc_to_kernel() will return 0 if it executed successfully.  Then
+the return value should be set to the length it copied.
 
-Reported-by: kernel test robot <lkp@intel.com>
-  Link: https://lkml.kernel.org/r/202302021325.700zGa0M-lkp@intel.com
-Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Link: https://lkml.kernel.org/r/1675341227-14-1-git-send-email-ruansy.fnst@fujitsu.com
+Fixes: d984648e428b ("fsdax,xfs: port unshare to fsdax")
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/kasan/report.c~kasan-infer-allocation-size-by-scanning-metadata-fix
-+++ a/mm/kasan/report.c
-@@ -268,7 +268,7 @@ static void describe_object_addr(const v
- 	}
+--- a/fs/dax.c~fsdax-dax_unshare_iter-should-return-a-valid-length
++++ a/fs/dax.c
+@@ -1274,6 +1274,7 @@ static s64 dax_unshare_iter(struct iomap
+ 	ret = copy_mc_to_kernel(daddr, saddr, length);
+ 	if (ret)
+ 		ret = -EIO;
++	ret = length;
  
- 	pr_err("The buggy address is located %d bytes %s of\n"
--	       " %s%lu-byte region [%px, %px)\n",
-+	       " %s%zu-byte region [%px, %px)\n",
- 	       rel_bytes, rel_type, region_state, info->alloc_size,
- 	       (void *)object_addr, (void *)(object_addr + info->alloc_size));
- }
+ out_unlock:
+ 	dax_read_unlock(id);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
 
-mm-add-folio_add_new_anon_rmap-fix.patch
-mm-remove-page_evictable-fix.patch
-mm-remove-the-swap_readpage-return-value-fix.patch
-block-remove-rw_page-fix.patch
-mm-add-memcpy_from_file_folio-fix.patch
-mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix.patch
-kasan-infer-allocation-size-by-scanning-metadata-fix.patch
-error-injection-remove-ei_etype_none-fix.patch
-hfsplus-remove-unnecessary-variable-initialization-fix.patch
-scripts-gdb-add-mm-introspection-utils-fix.patch
-lib-stackdepot-mm-rename-stack_depot_want_early_init-fix.patch
-lib-stackdepot-annotate-racy-slab_index-accesses-fix.patch
+fsdax-dax_unshare_iter-should-return-a-valid-length.patch
 
