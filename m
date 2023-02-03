@@ -2,105 +2,68 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C17DC63797
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 10:55:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8C60C05027
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 18:45:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229785AbjBCKzA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 05:55:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46068 "EHLO
+        id S233612AbjBCSpT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 13:45:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37220 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233039AbjBCKyw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 05:54:52 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9329C712EB
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 02:54:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1675421647;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=dZdNVQnIEtu86bz3MRrpeYvpbz+dF7Lru5DMYQYbwxM=;
-        b=XhB8kpYQbeOfmMmvDissQoc+NBwjnxu6ZSHXQAttYjs9AOcgQkKlQt7BZY5M7pHg022nQn
-        VVrkksvZr9lTt3xwicsMJO7bkk994Qi7jlVGsqZaWXz6YCXyh3eiIkS9kBO+JuLcyn9qPt
-        4CsyGaSjLHVI7qVCeAxHGg/UDbD6eTA=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-605-7FU3jfKaOzm31odbYWcpdA-1; Fri, 03 Feb 2023 05:54:04 -0500
-X-MC-Unique: 7FU3jfKaOzm31odbYWcpdA-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        with ESMTP id S233150AbjBCSpS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 13:45:18 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3A8F9A82C;
+        Fri,  3 Feb 2023 10:45:17 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id F248785A588;
-        Fri,  3 Feb 2023 10:54:03 +0000 (UTC)
-Received: from pasta.redhat.com (ovpn-192-126.brq.redhat.com [10.40.192.126])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id BC195C15BA0;
-        Fri,  3 Feb 2023 10:54:02 +0000 (UTC)
-From:   Andreas Gruenbacher <agruenba@redhat.com>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3F85461FC9;
+        Fri,  3 Feb 2023 18:45:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id A6810C433EF;
+        Fri,  3 Feb 2023 18:45:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1675449916;
+        bh=WJ1jxG1UPaju0S68jvgkS7JBI3zPQQRBZzErhye/NjE=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=T+hV6e5N0LpRjc2LLd/xOhlcu+EINuP1isKWlcnrVE5sttzv1vnaDewH2yV5KlFOz
+         cgGanMTJIIWARubPVOnkegJrHx5bdGUz6QKqSnFDmWh9eOPK3J91EmWL77NZxPxNLf
+         aclnW39k4n5LdZVDedgE1r3Wewqb7ZhLYkOGcsQ6mjq52qH5RuIr/EAf9kP2NV7VfK
+         M2JkvXdcug7NYXVowRKKnhbAdA0HxIAOvbMa29qLdg5KhZ13AY6lwi6xvXm42U11t7
+         fZX+xlLl46bzNJlGbnyWpmsQ2P0Wwv+TKLw97R718RsQC+/c36yi+Mtgxui4TnoJ/H
+         G84WFzyYO/pLw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 93D18E270C4;
+        Fri,  3 Feb 2023 18:45:16 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.2-rc7
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20230202193214.646203447dc16ea4c6b835a4@linux-foundation.org>
+References: <20230202193214.646203447dc16ea4c6b835a4@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20230202193214.646203447dc16ea4c6b835a4@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-02-19-24-2
+X-PR-Tracked-Commit-Id: ac86f547ca1002aec2ef66b9e64d03f45bbbfbb9
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 0c272a1d33965627653f4fafd6eab55d0d50f21f
+Message-Id: <167544991659.32203.15927463347097984393.pr-tracker-bot@kernel.org>
+Date:   Fri, 03 Feb 2023 18:45:16 +0000
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Andreas Gruenbacher <agruenba@redhat.com>,
-        mm-commits@vger.kernel.org, Matthew Wilcox <willy@infradead.org>
-Subject: Re: [merged mm-stable] gfs2-convert-gfs2_write_cache_jdata-to-use-filemap_get_folios_tag.patch removed from -mm tree
-Date:   Fri,  3 Feb 2023 11:54:01 +0100
-Message-Id: <20230203105401.3362277-1-agruenba@redhat.com>
-In-Reply-To: <20230203063724.26745C4339B@smtp.kernel.org>
-References: <20230203063724.26745C4339B@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.8
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Andrew,
+The pull request you sent on Thu, 2 Feb 2023 19:32:14 -0800:
 
-On Fri, Feb 3, 2023 at 7:37 AM Andrew Morton <akpm@linux-foundation.org> wrote:
-> The quilt patch titled
->      Subject: gfs2: convert gfs2_write_cache_jdata() to use filemap_get_folios_tag()
-> has been removed from the -mm tree.  Its filename was
->      gfs2-convert-gfs2_write_cache_jdata-to-use-filemap_get_folios_tag.patch
->
-> This patch was dropped because it was merged into the mm-stable branch
-> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-02-19-24-2
 
-note that there now is a conflict between the following commit in v6.2-rc6:
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/0c272a1d33965627653f4fafd6eab55d0d50f21f
 
-95ecbd0f162f ("Revert "gfs2: stop using generic_writepages in gfs2_ail1_start_one"")
+Thank you!
 
-and this commit in mm-stable:
-
-d585bdbeb79a ("fs: convert writepage_t callback to pass a folio")
-
-Trivial resolution below.
-
-Thanks,
-Andreas
-
----
- fs/gfs2/log.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/fs/gfs2/log.c b/fs/gfs2/log.c
-index 25fd21a9dec8..807daaeb4153 100644
---- a/fs/gfs2/log.c
-+++ b/fs/gfs2/log.c
-@@ -80,11 +80,11 @@ void gfs2_remove_from_ail(struct gfs2_bufdata *bd)
- 	brelse(bd->bd_bh);
- }
- 
--static int __gfs2_writepage(struct page *page, struct writeback_control *wbc,
--		       void *data)
-+static int __gfs2_writepage(struct folio *folio, struct writeback_control *wbc,
-+			    void *data)
- {
- 	struct address_space *mapping = data;
--	int ret = mapping->a_ops->writepage(page, wbc);
-+	int ret = mapping->a_ops->writepage(&folio->page, wbc);
- 	mapping_set_error(mapping, ret);
- 	return ret;
- }
 -- 
-2.39.0
-
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
