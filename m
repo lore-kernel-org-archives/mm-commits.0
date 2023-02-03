@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D666C6379F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3D5EC63797
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:50:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231598AbjBCGuv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:50:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45306 "EHLO
+        id S231463AbjBCGux (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:50:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229785AbjBCGuv (ORCPT
+        with ESMTP id S231436AbjBCGuv (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:50:51 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFE4D1709;
-        Thu,  2 Feb 2023 22:50:49 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 294749039
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:50:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6DAEC61CC8;
-        Fri,  3 Feb 2023 06:50:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2BDAC433D2;
-        Fri,  3 Feb 2023 06:50:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D6066B82982
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:50:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84608C4339B;
+        Fri,  3 Feb 2023 06:50:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675407048;
-        bh=KSFvSyQNgq4Lw63BSJREbcZddBUKT5iMqmQwyA99iUo=;
+        s=korg; t=1675407047;
+        bh=3AQPr/MXDMuR4sLDa3zR8u/MQcZuiXHQgC30lb0r59g=;
         h=Date:To:From:Subject:From;
-        b=m1GGl5fvP/Dxx+1bAf/0PKrsw+tmUC/gB1fKyeC+9ioZ0lDsM79MsUtesVIxrZFsB
-         ZbBe1rAjeXDOZ7bIKilPrftxCzEku+ep0a7rVMeHW8bh3Hf+9k06fHT6x4FUTW4OKT
-         vkiLi3nfNBK2xvMhNMlaMhOJ+IoK+qnzos/C+/FU=
-Date:   Thu, 02 Feb 2023 22:50:48 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        slava@dubeyko.com, fmdefrancesco@gmail.com, liushixin2@huawei.com,
-        akpm@linux-foundation.org
+        b=N9cOrZZxDV5K98QFaYxAwZlVwyP4BWoc5MMYflo/Dh+W7cYTSKZ+MdsEE1HV8uxTW
+         y2QvQ5Q6ONF2fBDG2eE81y0FwbiqxtNfwCPVS35IJxRZ6h9O14smO1yh61Q1QkZQNm
+         z2e+7fMgE/vTxDhGJzfN1GGNOEd9TH21QZiIWJgw=
+Date:   Thu, 02 Feb 2023 22:50:46 -0800
+To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
+        revest@chromium.org, peterz@infradead.org, mark.rutland@arm.com,
+        kpsingh@kernel.org, keescook@chromium.org, jpoimboe@redhat.com,
+        hch@infradead.org, gregkh@linuxfoundation.org, corbet@lwn.net,
+        clm@meta.com, bp@alien8.de, alexei.starovoitov@gmail.com,
+        mhiramat@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] hfs-fix-missing-hfs_bnode_get-in-__hfs_bnode_create.patch removed from -mm tree
-Message-Id: <20230203065048.C2BDAC433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] docs-fault-injection-add-requirements-of-error-injectable-functions.patch removed from -mm tree
+Message-Id: <20230203065047.84608C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,107 +45,135 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hfs: fix missing hfs_bnode_get() in __hfs_bnode_create
+     Subject: docs: fault-injection: add requirements of error injectable functions
 has been removed from the -mm tree.  Its filename was
-     hfs-fix-missing-hfs_bnode_get-in-__hfs_bnode_create.patch
+     docs-fault-injection-add-requirements-of-error-injectable-functions.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: hfs: fix missing hfs_bnode_get() in __hfs_bnode_create
-Date: Mon, 12 Dec 2022 10:16:27 +0800
+From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Subject: docs: fault-injection: add requirements of error injectable functions
+Date: Mon, 12 Dec 2022 11:46:54 +0900
 
-Syzbot found a kernel BUG in hfs_bnode_put():
+Add a section about the requirements of the error injectable functions and
+the type of errors.
 
- kernel BUG at fs/hfs/bnode.c:466!
- invalid opcode: 0000 [#1] PREEMPT SMP KASAN
- CPU: 0 PID: 3634 Comm: kworker/u4:5 Not tainted 6.1.0-rc7-syzkaller-00190-g97ee9d1c1696 #0
- Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
- Workqueue: writeback wb_workfn (flush-7:0)
- RIP: 0010:hfs_bnode_put+0x46f/0x480 fs/hfs/bnode.c:466
- Code: 8a 80 ff e9 73 fe ff ff 89 d9 80 e1 07 80 c1 03 38 c1 0f 8c a0 fe ff ff 48 89 df e8 db 8a 80 ff e9 93 fe ff ff e8 a1 68 2c ff <0f> 0b e8 9a 68 2c ff 0f 0b 0f 1f 84 00 00 00 00 00 55 41 57 41 56
- RSP: 0018:ffffc90003b4f258 EFLAGS: 00010293
- RAX: ffffffff825e318f RBX: 0000000000000000 RCX: ffff8880739dd7c0
- RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
- RBP: ffffc90003b4f430 R08: ffffffff825e2d9b R09: ffffed10045157d1
- R10: ffffed10045157d1 R11: 1ffff110045157d0 R12: ffff8880228abe80
- R13: ffff88807016c000 R14: dffffc0000000000 R15: ffff8880228abe00
- FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 00007fa6ebe88718 CR3: 000000001e93d000 CR4: 00000000003506f0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
- Call Trace:
-  <TASK>
-  hfs_write_inode+0x1bc/0xb40
-  write_inode fs/fs-writeback.c:1440 [inline]
-  __writeback_single_inode+0x4d6/0x670 fs/fs-writeback.c:1652
-  writeback_sb_inodes+0xb3b/0x18f0 fs/fs-writeback.c:1878
-  __writeback_inodes_wb+0x125/0x420 fs/fs-writeback.c:1949
-  wb_writeback+0x440/0x7b0 fs/fs-writeback.c:2054
-  wb_check_start_all fs/fs-writeback.c:2176 [inline]
-  wb_do_writeback fs/fs-writeback.c:2202 [inline]
-  wb_workfn+0x827/0xef0 fs/fs-writeback.c:2235
-  process_one_work+0x877/0xdb0 kernel/workqueue.c:2289
-  worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
-  kthread+0x266/0x300 kernel/kthread.c:376
-  ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
-  </TASK>
+Since this section must be read before using ALLOW_ERROR_INJECTION()
+macro, that section is referred from the comment of the macro too.
 
-The BUG_ON() is triggered at here:
-
-/* Dispose of resources used by a node */
-void hfs_bnode_put(struct hfs_bnode *node)
-{
-	if (node) {
- 		<skipped>
- 		BUG_ON(!atomic_read(&node->refcnt)); <- we have issue here!!!!
- 		<skipped>
- 	}
-}
-
-By tracing the refcnt, I found the node is created by hfs_bmap_alloc()
-with refcnt 1.  Then the node is used by hfs_btree_write().  There is a
-missing of hfs_bnode_get() after find the node.  The issue happened in
-following path:
-
-<alloc>
- hfs_bmap_alloc
-   hfs_bnode_find
-     __hfs_bnode_create   <- allocate a new node with refcnt 1.
-   hfs_bnode_put          <- decrease the refcnt
-
-<write>
- hfs_btree_write
-   hfs_bnode_find
-     __hfs_bnode_create
-       hfs_bnode_findhash <- find the node without refcnt increased.
-   hfs_bnode_put	  <- trigger the BUG_ON() since refcnt is 0.
-
-Link: https://lkml.kernel.org/r/20221212021627.3766829-1-liushixin2@huawei.com
-Reported-by: syzbot+5b04b49a7ec7226c7426@syzkaller.appspotmail.com
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Cc: Fabio M. De Francesco <fmdefrancesco@gmail.com>
-Cc: Viacheslav Dubeyko <slava@dubeyko.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/167081321427.387937.15475445689482551048.stgit@devnote3
+Link: https://lore.kernel.org/all/20221211115218.2e6e289bb85f8cf53c11aa97@kernel.org/T/#u
+Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Chris Mason <clm@meta.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Florent Revest <revest@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/hfs/bnode.c~hfs-fix-missing-hfs_bnode_get-in-__hfs_bnode_create
-+++ a/fs/hfs/bnode.c
-@@ -274,6 +274,7 @@ static struct hfs_bnode *__hfs_bnode_cre
- 		tree->node_hash[hash] = node;
- 		tree->node_hash_cnt++;
- 	} else {
-+		hfs_bnode_get(node2);
- 		spin_unlock(&tree->hash_lock);
- 		kfree(node);
- 		wait_event(node2->lock_wq, !test_bit(HFS_BNODE_NEW, &node2->flags));
+--- a/Documentation/fault-injection/fault-injection.rst~docs-fault-injection-add-requirements-of-error-injectable-functions
++++ a/Documentation/fault-injection/fault-injection.rst
+@@ -231,6 +231,71 @@ proc entries
+ 	This feature is intended for systematic testing of faults in a single
+ 	system call. See an example below.
+ 
++
++Error Injectable Functions
++--------------------------
++
++This part is for the kenrel developers considering to add a function to
++ALLOW_ERROR_INJECTION() macro.
++
++Requirements for the Error Injectable Functions
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
++Since the function-level error injection forcibly changes the code path
++and returns an error even if the input and conditions are proper, this can
++cause unexpected kernel crash if you allow error injection on the function
++which is NOT error injectable. Thus, you (and reviewers) must ensure;
++
++- The function returns an error code if it fails, and the callers must check
++  it correctly (need to recover from it).
++
++- The function does not execute any code which can change any state before
++  the first error return. The state includes global or local, or input
++  variable. For example, clear output address storage (e.g. `*ret = NULL`),
++  increments/decrements counter, set a flag, preempt/irq disable or get
++  a lock (if those are recovered before returning error, that will be OK.)
++
++The first requirement is important, and it will result in that the release
++(free objects) functions are usually harder to inject errors than allocate
++functions. If errors of such release functions are not correctly handled
++it will cause a memory leak easily (the caller will confuse that the object
++has been released or corrupted.)
++
++The second one is for the caller which expects the function should always
++does something. Thus if the function error injection skips whole of the
++function, the expectation is betrayed and causes an unexpected error.
++
++Type of the Error Injectable Functions
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
++Each error injectable functions will have the error type specified by the
++ALLOW_ERROR_INJECTION() macro. You have to choose it carefully if you add
++a new error injectable function. If the wrong error type is chosen, the
++kernel may crash because it may not be able to handle the error.
++There are 4 types of errors defined in include/asm-generic/error-injection.h
++
++EI_ETYPE_NULL
++  This function will return `NULL` if it fails. e.g. return an allocateed
++  object address.
++
++EI_ETYPE_ERRNO
++  This function will return an `-errno` error code if it fails. e.g. return
++  -EINVAL if the input is wrong. This will include the functions which will
++  return an address which encodes `-errno` by ERR_PTR() macro.
++
++EI_ETYPE_ERRNO_NULL
++  This function will return an `-errno` or `NULL` if it fails. If the caller
++  of this function checks the return value with IS_ERR_OR_NULL() macro, this
++  type will be appropriate.
++
++EI_ETYPE_TRUE
++  This function will return `true` (non-zero positive value) if it fails.
++
++If you specifies a wrong type, for example, EI_TYPE_ERRNO for the function
++which returns an allocated object, it may cause a problem because the returned
++value is not an object address and the caller can not access to the address.
++
++
+ How to add new fault injection capability
+ -----------------------------------------
+ 
+--- a/include/asm-generic/error-injection.h~docs-fault-injection-add-requirements-of-error-injectable-functions
++++ a/include/asm-generic/error-injection.h
+@@ -19,8 +19,10 @@ struct pt_regs;
+ 
+ #ifdef CONFIG_FUNCTION_ERROR_INJECTION
+ /*
+- * Whitelist generating macro. Specify functions which can be
+- * error-injectable using this macro.
++ * Whitelist generating macro. Specify functions which can be error-injectable
++ * using this macro. If you unsure what is required for the error-injectable
++ * functions, please read Documentation/fault-injection/fault-injection.rst
++ * 'Error Injectable Functions' section.
+  */
+ #define ALLOW_ERROR_INJECTION(fname, _etype)				\
+ static struct error_injection_entry __used				\
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from mhiramat@kernel.org are
 
 
