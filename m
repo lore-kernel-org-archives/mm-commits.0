@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEA6CC61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:39:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D516C636D7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:39:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232118AbjBCGj6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232037AbjBCGj6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Feb 2023 01:39:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36494 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232439AbjBCGih (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:38:37 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56C758E6A9
+        with ESMTP id S231761AbjBCGir (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:38:47 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE3298E4B3
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 08271B82988
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA0C7C4339B;
-        Fri,  3 Feb 2023 06:36:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5C2E861DB0
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0088C433D2;
+        Fri,  3 Feb 2023 06:36:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406209;
-        bh=vwPa+we6Poo+eJxhxA/AdUahKUWa3ejUNIxGpuHSh/Q=;
+        s=korg; t=1675406212;
+        bh=G7BogfMpc1gpgDDWF+7tTSEMBxSRc4scli+VAQMo/gw=;
         h=Date:To:From:Subject:From;
-        b=2LrYtMIUDAMNC4IoKQTSLa89NPc9F+Lg9yS3o16bo2BYfZbbnrgqDs6wF/8ZPgMhx
-         VgEp+ow8TEXUKZ3oxjgp2Th+CdgCn7jXrvNlZSnjumv9eeaqrtyXJsLYgTg6Fi4IUB
-         XzTO/9maCmkM5iu2y3BajKWQ9TaXBTstNLTaOhGc=
-Date:   Thu, 02 Feb 2023 22:36:49 -0800
-To:     mm-commits@vger.kernel.org, richard@nod.at,
-        johannes@sipsolutions.net, anton.ivanov@cambridgegreys.com,
-        david@redhat.com, akpm@linux-foundation.org
+        b=HTDRmas6xhhp09dhuowdno0FTwS3i70xpSA8TubQffKfo3KMTAzIRRe7s2MlFUul9
+         cx5tv0b0k4nE3fi5lXdBLgE7IdUNQJLIVzGe+1SBZT27wt5FJqi4HZ01ACNtzKMad6
+         qouz2E8GDmw32Ch62ZgKk+PkO8YM7sKkLMW92DDU=
+Date:   Thu, 02 Feb 2023 22:36:52 -0800
+To:     mm-commits@vger.kernel.org, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] um-mm-support-__have_arch_pte_swp_exclusive.patch removed from -mm tree
-Message-Id: <20230203063649.AA0C7C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-__have_arch_pte_swp_exclusive.patch removed from -mm tree
+Message-Id: <20230203063652.B0088C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,97 +41,386 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: um/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+     Subject: mm: remove __HAVE_ARCH_PTE_SWP_EXCLUSIVE
 has been removed from the -mm tree.  Its filename was
-     um-mm-support-__have_arch_pte_swp_exclusive.patch
+     mm-remove-__have_arch_pte_swp_exclusive.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: um/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-Date: Fri, 13 Jan 2023 18:10:23 +0100
+Subject: mm: remove __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+Date: Fri, 13 Jan 2023 18:10:26 +0100
 
-Let's support __HAVE_ARCH_PTE_SWP_EXCLUSIVE by using bit 10, which is yet
-unused for swap PTEs.
+__HAVE_ARCH_PTE_SWP_EXCLUSIVE is now supported by all architectures that
+support swp PTEs, so let's drop it.
 
-The pte_mkuptodate() is a bit weird in __pte_to_swp_entry() for a swap PTE
-...  but it only messes with bit 1 and 2 and there is a comment in
-set_pte(), so leave these bits alone.
-
-While at it, mask the type in __swp_entry().
-
-Link: https://lkml.kernel.org/r/20230113171026.582290-24-david@redhat.com
+Link: https://lkml.kernel.org/r/20230113171026.582290-27-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/um/include/asm/pgtable.h~um-mm-support-__have_arch_pte_swp_exclusive
+--- a/arch/alpha/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/alpha/include/asm/pgtable.h
+@@ -328,7 +328,6 @@ extern inline pte_t mk_swap_pte(unsigned
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/arc/include/asm/pgtable-bits-arcv2.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/arc/include/asm/pgtable-bits-arcv2.h
+@@ -132,7 +132,6 @@ void update_mmu_cache(struct vm_area_str
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/arm64/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -417,7 +417,6 @@ static inline pgprot_t mk_pmd_sect_prot(
+ 	return __pgprot((pgprot_val(prot) & ~PMD_TABLE_BIT) | PMD_TYPE_SECT);
+ }
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline pte_t pte_swp_mkexclusive(pte_t pte)
+ {
+ 	return set_pte_bit(pte, __pgprot(PTE_SWP_EXCLUSIVE));
+--- a/arch/arm/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/arm/include/asm/pgtable.h
+@@ -298,7 +298,6 @@ static inline pte_t pte_modify(pte_t pte
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(swp)	__pte((swp).val)
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_isset(pte, L_PTE_SWP_EXCLUSIVE);
+--- a/arch/csky/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/csky/include/asm/pgtable.h
+@@ -200,7 +200,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	return pte;
+ }
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/hexagon/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/hexagon/include/asm/pgtable.h
+@@ -397,7 +397,6 @@ static inline unsigned long pmd_page_vad
+ 		(((type & 0x1f) << 1) | \
+ 		 ((offset & 0x3ffff8) << 10) | ((offset & 0x7) << 7)) })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/ia64/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/ia64/include/asm/pgtable.h
+@@ -424,7 +424,6 @@ extern void paging_init (void);
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/loongarch/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -276,7 +276,6 @@ static inline pte_t mk_swap_pte(unsigned
+ #define __pmd_to_swp_entry(pmd) ((swp_entry_t) { pmd_val(pmd) })
+ #define __swp_entry_to_pmd(x)	((pmd_t) { (x).val | _PAGE_HUGE })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/m68k/include/asm/mcf_pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/m68k/include/asm/mcf_pgtable.h
+@@ -275,7 +275,6 @@ extern pgd_t kernel_pg_dir[PTRS_PER_PGD]
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	(__pte((x).val))
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/m68k/include/asm/motorola_pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/m68k/include/asm/motorola_pgtable.h
+@@ -190,7 +190,6 @@ extern pgd_t kernel_pg_dir[128];
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/m68k/include/asm/sun3_pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/m68k/include/asm/sun3_pgtable.h
+@@ -174,7 +174,6 @@ extern pgd_t kernel_pg_dir[PTRS_PER_PGD]
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/microblaze/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/microblaze/include/asm/pgtable.h
+@@ -412,7 +412,6 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) >> 2 })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val << 2 })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/mips/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/mips/include/asm/pgtable.h
+@@ -528,7 +528,6 @@ static inline pte_t pte_modify(pte_t pte
+ }
+ #endif
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ #if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+--- a/arch/nios2/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/nios2/include/asm/pgtable.h
+@@ -253,7 +253,6 @@ static inline unsigned long pmd_page_vad
+ #define __swp_entry_to_pte(swp)	((pte_t) { (swp).val })
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/openrisc/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/openrisc/include/asm/pgtable.h
+@@ -408,7 +408,6 @@ static inline void update_mmu_cache(stru
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/parisc/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/parisc/include/asm/pgtable.h
+@@ -422,7 +422,6 @@ extern void paging_init (void);
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/powerpc/include/asm/book3s/32/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/powerpc/include/asm/book3s/32/pgtable.h
+@@ -386,7 +386,6 @@ static inline void __ptep_set_access_fla
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) >> 3 })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val << 3 })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -717,7 +717,6 @@ static inline pte_t pte_swp_clear_soft_d
+ }
+ #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline pte_t pte_swp_mkexclusive(pte_t pte)
+ {
+ 	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_SWP_EXCLUSIVE));
+--- a/arch/powerpc/include/asm/nohash/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/powerpc/include/asm/nohash/pgtable.h
+@@ -151,7 +151,6 @@ static inline pte_t pte_modify(pte_t pte
+ 	return __pte((pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot));
+ }
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/riscv/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -752,7 +752,6 @@ static inline pmd_t pmdp_establish(struc
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/s390/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/s390/include/asm/pgtable.h
+@@ -812,7 +812,6 @@ static inline int pmd_protnone(pmd_t pmd
+ }
+ #endif
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/sh/include/asm/pgtable_32.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/sh/include/asm/pgtable_32.h
+@@ -479,7 +479,6 @@ static inline unsigned long pmd_page_vad
+ /* In both cases, we borrow bit 6 to store the exclusive marker in swap PTEs. */
+ #define _PAGE_SWP_EXCLUSIVE	_PAGE_USER
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte.pte_low & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/sparc/include/asm/pgtable_32.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/sparc/include/asm/pgtable_32.h
+@@ -353,7 +353,6 @@ static inline swp_entry_t __swp_entry(un
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & SRMMU_SWP_EXCLUSIVE;
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -989,7 +989,6 @@ pgtable_t pgtable_trans_huge_withdraw(st
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/arch/um/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
 +++ a/arch/um/include/asm/pgtable.h
-@@ -21,6 +21,9 @@
- #define _PAGE_PROTNONE	0x010	/* if the user mapped it with PROT_NONE;
- 				   pte_present gives true */
- 
-+/* We borrow bit 10 to store the exclusive marker in swap PTEs. */
-+#define _PAGE_SWP_EXCLUSIVE	0x400
-+
- #ifdef CONFIG_3_LEVEL_PGTABLES
- #include <asm/pgtable-3level.h>
- #else
-@@ -288,16 +291,46 @@ extern pte_t *virt_to_pte(struct mm_stru
- 
- #define update_mmu_cache(vma,address,ptep) do {} while (0)
- 
--/* Encode and de-code a swap entry */
-+/*
-+ * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
-+ * are !pte_none() && !pte_present().
-+ *
-+ * Format of swap PTEs:
-+ *
-+ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-+ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-+ *   <--------------- offset ----------------> E < type -> 0 0 0 1 0
-+ *
-+ *   E is the exclusive marker that is not stored in swap entries.
-+ *   _PAGE_NEWPAGE (bit 1) is always set to 1 in set_pte().
-+ */
- #define __swp_type(x)			(((x).val >> 5) & 0x1f)
- #define __swp_offset(x)			((x).val >> 11)
- 
- #define __swp_entry(type, offset) \
--	((swp_entry_t) { ((type) << 5) | ((offset) << 11) })
-+	((swp_entry_t) { (((type) & 0x1f) << 5) | ((offset) << 11) })
- #define __pte_to_swp_entry(pte) \
+@@ -313,7 +313,6 @@ extern pte_t *virt_to_pte(struct mm_stru
  	((swp_entry_t) { pte_val(pte_mkuptodate(pte)) })
  #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
  
-+#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-+static inline int pte_swp_exclusive(pte_t pte)
-+{
-+	return pte_get_bits(pte, _PAGE_SWP_EXCLUSIVE);
-+}
-+
-+static inline pte_t pte_swp_mkexclusive(pte_t pte)
-+{
-+	pte_set_bits(pte, _PAGE_SWP_EXCLUSIVE);
-+	return pte;
-+}
-+
-+static inline pte_t pte_swp_clear_exclusive(pte_t pte)
-+{
-+	pte_clear_bits(pte, _PAGE_SWP_EXCLUSIVE);
-+	return pte;
-+}
-+
- /* Clear a kernel PTE and flush it from the TLB */
- #define kpte_clear_flush(ptep, vaddr)		\
- do {						\
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_get_bits(pte, _PAGE_SWP_EXCLUSIVE);
+--- a/arch/x86/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1299,7 +1299,6 @@ static inline void update_mmu_cache_pud(
+ 		unsigned long addr, pud_t *pud)
+ {
+ }
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline pte_t pte_swp_mkexclusive(pte_t pte)
+ {
+ 	return pte_set_flags(pte, _PAGE_SWP_EXCLUSIVE);
+--- a/arch/xtensa/include/asm/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/arch/xtensa/include/asm/pgtable.h
+@@ -360,7 +360,6 @@ ptep_set_wrprotect(struct mm_struct *mm,
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
+ 
+-#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline int pte_swp_exclusive(pte_t pte)
+ {
+ 	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
+--- a/include/linux/pgtable.h~mm-remove-__have_arch_pte_swp_exclusive
++++ a/include/linux/pgtable.h
+@@ -1064,35 +1064,6 @@ static inline pgprot_t pgprot_modify(pgp
+ #define arch_start_context_switch(prev)	do {} while (0)
+ #endif
+ 
+-/*
+- * When replacing an anonymous page by a real (!non) swap entry, we clear
+- * PG_anon_exclusive from the page and instead remember whether the flag was
+- * set in the swp pte. During fork(), we have to mark the entry as !exclusive
+- * (possibly shared). On swapin, we use that information to restore
+- * PG_anon_exclusive, which is very helpful in cases where we might have
+- * additional (e.g., FOLL_GET) references on a page and wouldn't be able to
+- * detect exclusivity.
+- *
+- * These functions don't apply to non-swap entries (e.g., migration, hwpoison,
+- * ...).
+- */
+-#ifndef __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+-static inline pte_t pte_swp_mkexclusive(pte_t pte)
+-{
+-	return pte;
+-}
+-
+-static inline int pte_swp_exclusive(pte_t pte)
+-{
+-	return false;
+-}
+-
+-static inline pte_t pte_swp_clear_exclusive(pte_t pte)
+-{
+-	return pte;
+-}
+-#endif
+-
+ #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ #ifndef CONFIG_ARCH_ENABLE_THP_MIGRATION
+ static inline pmd_t pmd_swp_mksoft_dirty(pmd_t pmd)
+--- a/mm/debug_vm_pgtable.c~mm-remove-__have_arch_pte_swp_exclusive
++++ a/mm/debug_vm_pgtable.c
+@@ -810,7 +810,6 @@ static void __init pmd_swap_soft_dirty_t
+ 
+ static void __init pte_swap_exclusive_tests(struct pgtable_debug_args *args)
+ {
+-#ifdef __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ 	unsigned long max_swap_offset;
+ 	swp_entry_t entry, entry2;
+ 	pte_t pte;
+@@ -841,7 +840,6 @@ static void __init pte_swap_exclusive_te
+ 	WARN_ON(!is_swap_pte(pte));
+ 	entry2 = pte_to_swp_entry(pte);
+ 	WARN_ON(memcmp(&entry, &entry2, sizeof(entry)));
+-#endif /* __HAVE_ARCH_PTE_SWP_EXCLUSIVE */
+ }
+ 
+ static void __init pte_swap_tests(struct pgtable_debug_args *args)
+--- a/mm/memory.c~mm-remove-__have_arch_pte_swp_exclusive
++++ a/mm/memory.c
+@@ -3864,10 +3864,6 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	 * the swap entry concurrently) for certainly exclusive pages.
+ 	 */
+ 	if (!folio_test_ksm(folio)) {
+-		/*
+-		 * Note that pte_swp_exclusive() == false for architectures
+-		 * without __HAVE_ARCH_PTE_SWP_EXCLUSIVE.
+-		 */
+ 		exclusive = pte_swp_exclusive(vmf->orig_pte);
+ 		if (folio != swapcache) {
+ 			/*
+--- a/mm/rmap.c~mm-remove-__have_arch_pte_swp_exclusive
++++ a/mm/rmap.c
+@@ -1710,17 +1710,6 @@ static bool try_to_unmap_one(struct foli
+ 				page_vma_mapped_walk_done(&pvmw);
+ 				break;
+ 			}
+-			/*
+-			 * Note: We *don't* remember if the page was mapped
+-			 * exclusively in the swap pte if the architecture
+-			 * doesn't support __HAVE_ARCH_PTE_SWP_EXCLUSIVE. In
+-			 * that case, swapin code has to re-determine that
+-			 * manually and might detect the page as possibly
+-			 * shared, for example, if there are other references on
+-			 * the page or if the page is under writeback. We made
+-			 * sure that there are no GUP pins on the page that
+-			 * would rely on it, so for GUP pins this is fine.
+-			 */
+ 			if (list_empty(&mm->mmlist)) {
+ 				spin_lock(&mmlist_lock);
+ 				if (list_empty(&mm->mmlist))
 _
 
 Patches currently in -mm which might be from david@redhat.com are
