@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FC5C636CC
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:44:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B4D1C636D7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:44:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231716AbjBCGos (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:44:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39780 "EHLO
+        id S232356AbjBCGot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:44:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232512AbjBCGnV (ORCPT
+        with ESMTP id S232517AbjBCGnV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:43:21 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B069991184
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:51 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34DE7911A8
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:54 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 37737B82982
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D066CC4339B;
-        Fri,  3 Feb 2023 06:38:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E62E7B82989
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81D72C433D2;
+        Fri,  3 Feb 2023 06:38:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406328;
-        bh=v/5mvBTDflrcTjUABUD8nx0GOwqNLACO8pTd0mj2MWs=;
+        s=korg; t=1675406331;
+        bh=+EdRWZFTWEqCPCFEs0FKJnfGUDhJbDe6ov2qpG7Vzfw=;
         h=Date:To:From:Subject:From;
-        b=XPBe4QSAFeQceJJzDnWvlCgELYFhpmt4iNElIgur8qXWYD/ly5JtdfoWVZHSwL3Q6
-         qkM/u8SaScQAraAMI9voY3beSDpnN5pS3K6mllazFMiOq358pXTrXR4j+Y6H0Pf0+2
-         WM8q9x3ubOu1onudfIs0Dsps3sfDfVshhZgL8pMU=
-Date:   Thu, 02 Feb 2023 22:38:48 -0800
-To:     mm-commits@vger.kernel.org, vishal.l.verma@intel.com,
-        senozhatsky@chromium.org, minchan@kernel.org, kbusch@kernel.org,
-        ira.weiny@intel.com, dave.jiang@intel.com,
-        dan.j.williams@intel.com, axboe@kernel.dk, hch@lst.de,
+        b=0qM2FZHQ90wU5gP1bRDvLAtfXvTFl56wF6C7VxdcH0lu1a1bgvhOl0QVvUwmPOVFx
+         WuDIAbx3TUD208Gbv5Lx8QyieIa6hh1JLxi25dPBk0W5l6pPGItyedjOQJchWcXte+
+         /PR4Xj51Lp/dPiKxUcGkM6mDR0w/k8oZrHVQXoUk=
+Date:   Thu, 02 Feb 2023 22:38:50 -0800
+To:     mm-commits@vger.kernel.org, hch@infradead.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] block-remove-rw_page.patch removed from -mm tree
-Message-Id: <20230203063848.D066CC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] fs-convert-writepage_t-callback-to-pass-a-folio.patch removed from -mm tree
+Message-Id: <20230203063851.81D72C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,506 +41,341 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: block: remove ->rw_page
+     Subject: fs: convert writepage_t callback to pass a folio
 has been removed from the -mm tree.  Its filename was
-     block-remove-rw_page.patch
+     fs-convert-writepage_t-callback-to-pass-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: block: remove ->rw_page
-Date: Wed, 25 Jan 2023 14:34:36 +0100
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: fs: convert writepage_t callback to pass a folio
+Date: Thu, 26 Jan 2023 20:12:54 +0000
 
-The ->rw_page method is a special purpose bypass of the usual bio handling
-path that is limited to single-page reads and writes and synchronous which
-causes a lot of extra code in the drivers, callers and the block layer.
+Patch series "Convert writepage_t to use a folio".
 
-The only remaining user is the MM swap code.  Switch that swap code to
-simply submit a single-vec on-stack bio an synchronously wait on it based
-on a newly added QUEUE_FLAG_SYNCHRONOUS flag set by the drivers that
-currently implement ->rw_page instead.  While this touches one extra cache
-line and executes extra code, it simplifies the block layer and drivers
-and ensures that all feastures are properly supported by all drivers, e.g.
-right now ->rw_page bypassed cgroup writeback entirely.
+More folioisation.  I split out the mpage work from everything else
+because it completely dominated the patch, but some implementations I just
+converted outright.
 
-[akpm@linux-foundation.org: fix comment typo, per Dan]
-Link: https://lkml.kernel.org/r/20230125133436.447864-8-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Keith Busch <kbusch@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+
+This patch (of 2):
+
+We always write back an entire folio, but that's currently passed as the
+head page.  Convert all filesystems that use write_cache_pages() to expect
+a folio instead of a page.
+
+Link: https://lkml.kernel.org/r/20230126201255.1681189-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230126201255.1681189-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/block/bdev.c~block-remove-rw_page
-+++ a/block/bdev.c
-@@ -304,84 +304,6 @@ out:
- }
- EXPORT_SYMBOL(thaw_bdev);
+--- a/fs/cifs/file.c~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/fs/cifs/file.c
+@@ -2675,14 +2675,14 @@ wdata_send_pages(struct cifs_writedata *
+ static int
+ cifs_writepage_locked(struct page *page, struct writeback_control *wbc);
  
--/**
-- * bdev_read_page() - Start reading a page from a block device
-- * @bdev: The device to read the page from
-- * @sector: The offset on the device to read the page to (need not be aligned)
-- * @page: The page to read
-- *
-- * On entry, the page should be locked.  It will be unlocked when the page
-- * has been read.  If the block driver implements rw_page synchronously,
-- * that will be true on exit from this function, but it need not be.
-- *
-- * Errors returned by this function are usually "soft", eg out of memory, or
-- * queue full; callers should try a different route to read this page rather
-- * than propagate an error back up the stack.
-- *
-- * Return: negative errno if an error occurs, 0 if submission was successful.
-- */
--int bdev_read_page(struct block_device *bdev, sector_t sector,
--			struct page *page)
--{
--	const struct block_device_operations *ops = bdev->bd_disk->fops;
--	int result = -EOPNOTSUPP;
--
--	if (!ops->rw_page || bdev_get_integrity(bdev))
--		return result;
--
--	result = blk_queue_enter(bdev_get_queue(bdev), 0);
--	if (result)
--		return result;
--	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page,
--			      REQ_OP_READ);
--	blk_queue_exit(bdev_get_queue(bdev));
--	return result;
--}
--
--/**
-- * bdev_write_page() - Start writing a page to a block device
-- * @bdev: The device to write the page to
-- * @sector: The offset on the device to write the page to (need not be aligned)
-- * @page: The page to write
-- * @wbc: The writeback_control for the write
-- *
-- * On entry, the page should be locked and not currently under writeback.
-- * On exit, if the write started successfully, the page will be unlocked and
-- * under writeback.  If the write failed already (eg the driver failed to
-- * queue the page to the device), the page will still be locked.  If the
-- * caller is a ->writepage implementation, it will need to unlock the page.
-- *
-- * Errors returned by this function are usually "soft", eg out of memory, or
-- * queue full; callers should try a different route to write this page rather
-- * than propagate an error back up the stack.
-- *
-- * Return: negative errno if an error occurs, 0 if submission was successful.
-- */
--int bdev_write_page(struct block_device *bdev, sector_t sector,
--			struct page *page, struct writeback_control *wbc)
--{
--	int result;
--	const struct block_device_operations *ops = bdev->bd_disk->fops;
--
--	if (!ops->rw_page || bdev_get_integrity(bdev))
--		return -EOPNOTSUPP;
--	result = blk_queue_enter(bdev_get_queue(bdev), 0);
--	if (result)
--		return result;
--
--	set_page_writeback(page);
--	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page,
--			      REQ_OP_WRITE);
--	if (result) {
--		end_page_writeback(page);
--	} else {
--		clean_page_buffers(page);
--		unlock_page(page);
--	}
--	blk_queue_exit(bdev_get_queue(bdev));
--	return result;
--}
--
- /*
-  * pseudo-fs
+-static int cifs_write_one_page(struct page *page, struct writeback_control *wbc,
+-		void *data)
++static int cifs_write_one_page(struct folio *folio,
++		struct writeback_control *wbc, void *data)
+ {
+ 	struct address_space *mapping = data;
+ 	int ret;
+ 
+-	ret = cifs_writepage_locked(page, wbc);
+-	unlock_page(page);
++	ret = cifs_writepage_locked(&folio->page, wbc);
++	folio_unlock(folio);
+ 	mapping_set_error(mapping, ret);
+ 	return ret;
+ }
+--- a/fs/ext4/inode.c~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/fs/ext4/inode.c
+@@ -2711,10 +2711,10 @@ out:
+ 	return err;
+ }
+ 
+-static int ext4_writepage_cb(struct page *page, struct writeback_control *wbc,
++static int ext4_writepage_cb(struct folio *folio, struct writeback_control *wbc,
+ 			     void *data)
+ {
+-	return ext4_writepage(page, wbc);
++	return ext4_writepage(&folio->page, wbc);
+ }
+ 
+ static int ext4_do_writepages(struct mpage_da_data *mpd)
+--- a/fs/ext4/super.c~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/fs/ext4/super.c
+@@ -482,7 +482,7 @@ static void ext4_journal_commit_callback
+  *
+  * However, we may have to redirty a page (see below.)
   */
---- a/drivers/block/brd.c~block-remove-rw_page
-+++ a/drivers/block/brd.c
-@@ -309,23 +309,9 @@ static void brd_submit_bio(struct bio *b
- 	bio_endio(bio);
+-static int ext4_journalled_writepage_callback(struct page *page,
++static int ext4_journalled_writepage_callback(struct folio *folio,
+ 					      struct writeback_control *wbc,
+ 					      void *data)
+ {
+@@ -490,7 +490,7 @@ static int ext4_journalled_writepage_cal
+ 	struct buffer_head *bh, *head;
+ 	struct journal_head *jh;
+ 
+-	bh = head = page_buffers(page);
++	bh = head = folio_buffers(folio);
+ 	do {
+ 		/*
+ 		 * We have to redirty a page in these cases:
+@@ -509,7 +509,7 @@ static int ext4_journalled_writepage_cal
+ 		if (buffer_dirty(bh) ||
+ 		    (jh && (jh->b_transaction != transaction ||
+ 			    jh->b_next_transaction))) {
+-			redirty_page_for_writepage(wbc, page);
++			folio_redirty_for_writepage(wbc, folio);
+ 			goto out;
+ 		}
+ 	} while ((bh = bh->b_this_page) != head);
+--- a/fs/fuse/file.c~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/fs/fuse/file.c
+@@ -2184,7 +2184,7 @@ static bool fuse_writepage_need_send(str
+ 	return false;
  }
  
--static int brd_rw_page(struct block_device *bdev, sector_t sector,
--		       struct page *page, enum req_op op)
--{
--	struct brd_device *brd = bdev->bd_disk->private_data;
--	int err;
--
--	if (PageTransHuge(page))
--		return -ENOTSUPP;
--	err = brd_do_bvec(brd, page, PAGE_SIZE, 0, op, sector);
--	page_endio(page, op_is_write(op), err);
--	return err;
--}
--
- static const struct block_device_operations brd_fops = {
- 	.owner =		THIS_MODULE,
- 	.submit_bio =		brd_submit_bio,
--	.rw_page =		brd_rw_page,
- };
- 
- /*
-@@ -411,6 +397,7 @@ static int brd_alloc(int i)
- 
- 	/* Tell the block layer that this is not a rotational device */
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, disk->queue);
-+	blk_queue_flag_set(QUEUE_FLAG_SYNCHRONOUS, disk->queue);
- 	blk_queue_flag_clear(QUEUE_FLAG_ADD_RANDOM, disk->queue);
- 	err = add_disk(disk);
- 	if (err)
---- a/drivers/block/zram/zram_drv.c~block-remove-rw_page
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1453,10 +1453,6 @@ static int __zram_bvec_read(struct zram
- 		/* Slot should be unlocked before the function call */
- 		zram_slot_unlock(zram, index);
- 
--		/* A null bio means rw_page was used, we must fallback to bio */
--		if (!bio)
--			return -EOPNOTSUPP;
--
- 		ret = zram_bvec_read_from_bdev(zram, page, index, bio,
- 					       partial_io);
+-static int fuse_writepages_fill(struct page *page,
++static int fuse_writepages_fill(struct folio *folio,
+ 		struct writeback_control *wbc, void *_data)
+ {
+ 	struct fuse_fill_wb_data *data = _data;
+@@ -2203,7 +2203,7 @@ static int fuse_writepages_fill(struct p
+ 			goto out_unlock;
  	}
-@@ -2081,61 +2077,6 @@ static void zram_slot_free_notify(struct
- 	zram_slot_unlock(zram, index);
- }
  
--static int zram_rw_page(struct block_device *bdev, sector_t sector,
--		       struct page *page, enum req_op op)
--{
--	int offset, ret;
--	u32 index;
--	struct zram *zram;
--	struct bio_vec bv;
--	unsigned long start_time;
--
--	if (PageTransHuge(page))
--		return -ENOTSUPP;
--	zram = bdev->bd_disk->private_data;
--
--	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
--		atomic64_inc(&zram->stats.invalid_io);
--		ret = -EINVAL;
--		goto out;
--	}
--
--	index = sector >> SECTORS_PER_PAGE_SHIFT;
--	offset = (sector & (SECTORS_PER_PAGE - 1)) << SECTOR_SHIFT;
--
--	bv.bv_page = page;
--	bv.bv_len = PAGE_SIZE;
--	bv.bv_offset = 0;
--
--	start_time = bdev_start_io_acct(bdev->bd_disk->part0,
--			SECTORS_PER_PAGE, op, jiffies);
--	ret = zram_bvec_rw(zram, &bv, index, offset, op, NULL);
--	bdev_end_io_acct(bdev->bd_disk->part0, op, start_time);
--out:
--	/*
--	 * If I/O fails, just return error(ie, non-zero) without
--	 * calling page_endio.
--	 * It causes resubmit the I/O with bio request by upper functions
--	 * of rw_page(e.g., swap_readpage, __swap_writepage) and
--	 * bio->bi_end_io does things to handle the error
--	 * (e.g., SetPageError, set_page_dirty and extra works).
--	 */
--	if (unlikely(ret < 0))
--		return ret;
--
--	switch (ret) {
--	case 0:
--		page_endio(page, op_is_write(op), 0);
--		break;
--	case 1:
--		ret = 0;
--		break;
--	default:
--		WARN_ON(1);
--	}
--	return ret;
--}
--
- static void zram_destroy_comps(struct zram *zram)
- {
- 	u32 prio;
-@@ -2290,7 +2231,6 @@ static const struct block_device_operati
- 	.open = zram_open,
- 	.submit_bio = zram_submit_bio,
- 	.swap_slot_free_notify = zram_slot_free_notify,
--	.rw_page = zram_rw_page,
- 	.owner = THIS_MODULE
- };
- 
-@@ -2389,6 +2329,7 @@ static int zram_add(void)
- 	set_capacity(zram->disk, 0);
- 	/* zram devices sort of resembles non-rotational disks */
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, zram->disk->queue);
-+	blk_queue_flag_set(QUEUE_FLAG_SYNCHRONOUS, zram->disk->queue);
- 	blk_queue_flag_clear(QUEUE_FLAG_ADD_RANDOM, zram->disk->queue);
- 
- 	/*
---- a/drivers/nvdimm/btt.c~block-remove-rw_page
-+++ a/drivers/nvdimm/btt.c
-@@ -1482,20 +1482,6 @@ static void btt_submit_bio(struct bio *b
- 	bio_endio(bio);
- }
- 
--static int btt_rw_page(struct block_device *bdev, sector_t sector,
--		struct page *page, enum req_op op)
--{
--	struct btt *btt = bdev->bd_disk->private_data;
--	int rc;
--
--	rc = btt_do_bvec(btt, NULL, page, thp_size(page), 0, op, sector);
--	if (rc == 0)
--		page_endio(page, op_is_write(op), 0);
--
--	return rc;
--}
--
--
- static int btt_getgeo(struct block_device *bd, struct hd_geometry *geo)
- {
- 	/* some standard values */
-@@ -1508,7 +1494,6 @@ static int btt_getgeo(struct block_devic
- static const struct block_device_operations btt_fops = {
- 	.owner =		THIS_MODULE,
- 	.submit_bio =		btt_submit_bio,
--	.rw_page =		btt_rw_page,
- 	.getgeo =		btt_getgeo,
- };
- 
-@@ -1530,6 +1515,7 @@ static int btt_blk_init(struct btt *btt)
- 	blk_queue_logical_block_size(btt->btt_disk->queue, btt->sector_size);
- 	blk_queue_max_hw_sectors(btt->btt_disk->queue, UINT_MAX);
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, btt->btt_disk->queue);
-+	blk_queue_flag_set(QUEUE_FLAG_SYNCHRONOUS, btt->btt_disk->queue);
- 
- 	if (btt_meta_size(btt)) {
- 		rc = nd_integrity_init(btt->btt_disk, btt_meta_size(btt));
---- a/drivers/nvdimm/pmem.c~block-remove-rw_page
-+++ a/drivers/nvdimm/pmem.c
-@@ -238,28 +238,6 @@ static void pmem_submit_bio(struct bio *
- 	bio_endio(bio);
- }
- 
--static int pmem_rw_page(struct block_device *bdev, sector_t sector,
--		       struct page *page, enum req_op op)
--{
--	struct pmem_device *pmem = bdev->bd_disk->private_data;
--	blk_status_t rc;
--
--	if (op_is_write(op))
--		rc = pmem_do_write(pmem, page, 0, sector, thp_size(page));
--	else
--		rc = pmem_do_read(pmem, page, 0, sector, thp_size(page));
--	/*
--	 * The ->rw_page interface is subtle and tricky.  The core
--	 * retries on any error, so we can only invoke page_endio() in
--	 * the successful completion case.  Otherwise, we'll see crashes
--	 * caused by double completion.
--	 */
--	if (rc == 0)
--		page_endio(page, op_is_write(op), 0);
--
--	return blk_status_to_errno(rc);
--}
--
- /* see "strong" declaration in tools/testing/nvdimm/pmem-dax.c */
- __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 		long nr_pages, enum dax_access_mode mode, void **kaddr,
-@@ -310,7 +288,6 @@ __weak long __pmem_direct_access(struct
- static const struct block_device_operations pmem_fops = {
- 	.owner =		THIS_MODULE,
- 	.submit_bio =		pmem_submit_bio,
--	.rw_page =		pmem_rw_page,
- };
- 
- static int pmem_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
-@@ -565,6 +542,7 @@ static int pmem_attach_disk(struct devic
- 	blk_queue_logical_block_size(q, pmem_sector_size(ndns));
- 	blk_queue_max_hw_sectors(q, UINT_MAX);
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, q);
-+	blk_queue_flag_set(QUEUE_FLAG_SYNCHRONOUS, q);
- 	if (pmem->pfn_flags & PFN_MAP)
- 		blk_queue_flag_set(QUEUE_FLAG_DAX, q);
- 
---- a/include/linux/blkdev.h~block-remove-rw_page
-+++ a/include/linux/blkdev.h
-@@ -554,6 +554,7 @@ struct request_queue {
- #define QUEUE_FLAG_IO_STAT	7	/* do disk/partitions IO accounting */
- #define QUEUE_FLAG_NOXMERGES	9	/* No extended merges */
- #define QUEUE_FLAG_ADD_RANDOM	10	/* Contributes to random pool */
-+#define QUEUE_FLAG_SYNCHRONOUS	11	/* always completes in submit context */
- #define QUEUE_FLAG_SAME_FORCE	12	/* force complete on same CPU */
- #define QUEUE_FLAG_INIT_DONE	14	/* queue is initialized */
- #define QUEUE_FLAG_STABLE_WRITES 15	/* don't modify blks until WB is done */
-@@ -1250,6 +1251,12 @@ static inline bool bdev_nonrot(struct bl
- 	return blk_queue_nonrot(bdev_get_queue(bdev));
- }
- 
-+static inline bool bdev_synchronous(struct block_device *bdev)
-+{
-+	return test_bit(QUEUE_FLAG_SYNCHRONOUS,
-+			&bdev_get_queue(bdev)->queue_flags);
-+}
-+
- static inline bool bdev_stable_writes(struct block_device *bdev)
- {
- 	return test_bit(QUEUE_FLAG_STABLE_WRITES,
-@@ -1382,7 +1389,6 @@ struct block_device_operations {
- 			unsigned int flags);
- 	int (*open) (struct block_device *, fmode_t);
- 	void (*release) (struct gendisk *, fmode_t);
--	int (*rw_page)(struct block_device *, sector_t, struct page *, enum req_op);
- 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
- 	unsigned int (*check_events) (struct gendisk *disk,
-@@ -1417,10 +1423,6 @@ extern int blkdev_compat_ptr_ioctl(struc
- #define blkdev_compat_ptr_ioctl NULL
- #endif
- 
--extern int bdev_read_page(struct block_device *, sector_t, struct page *);
--extern int bdev_write_page(struct block_device *, sector_t, struct page *,
--						struct writeback_control *);
--
- static inline void blk_wake_io_task(struct task_struct *waiter)
- {
- 	/*
---- a/mm/page_io.c~block-remove-rw_page
-+++ a/mm/page_io.c
-@@ -27,7 +27,7 @@
- #include <linux/delayacct.h>
- #include "swap.h"
- 
--static void end_swap_bio_write(struct bio *bio)
-+static void __end_swap_bio_write(struct bio *bio)
- {
- 	struct page *page = bio_first_page_all(bio);
- 
-@@ -48,6 +48,11 @@ static void end_swap_bio_write(struct bi
- 		ClearPageReclaim(page);
+-	if (wpa && fuse_writepage_need_send(fc, page, ap, data)) {
++	if (wpa && fuse_writepage_need_send(fc, &folio->page, ap, data)) {
+ 		fuse_writepages_send(data);
+ 		data->wpa = NULL;
  	}
- 	end_page_writeback(page);
-+}
-+
-+static void end_swap_bio_write(struct bio *bio)
-+{
-+	__end_swap_bio_write(bio);
- 	bio_put(bio);
- }
+@@ -2238,7 +2238,7 @@ static int fuse_writepages_fill(struct p
+ 		data->max_pages = 1;
  
-@@ -326,15 +331,31 @@ static void swap_writepage_fs(struct pag
- 		*wbc->swap_plug = sio;
- }
+ 		ap = &wpa->ia.ap;
+-		fuse_write_args_fill(&wpa->ia, data->ff, page_offset(page), 0);
++		fuse_write_args_fill(&wpa->ia, data->ff, folio_pos(folio), 0);
+ 		wpa->ia.write.in.write_flags |= FUSE_WRITE_CACHE;
+ 		wpa->next = NULL;
+ 		ap->args.in_pages = true;
+@@ -2246,13 +2246,13 @@ static int fuse_writepages_fill(struct p
+ 		ap->num_pages = 0;
+ 		wpa->inode = inode;
+ 	}
+-	set_page_writeback(page);
++	folio_start_writeback(folio);
  
--static void swap_writepage_bdev(struct page *page,
-+static void swap_writepage_bdev_sync(struct page *page,
- 		struct writeback_control *wbc, struct swap_info_struct *sis)
- {
--	struct bio *bio;
-+	struct bio_vec bv;
-+	struct bio bio;
+-	copy_highpage(tmp_page, page);
++	copy_highpage(tmp_page, &folio->page);
+ 	ap->pages[ap->num_pages] = tmp_page;
+ 	ap->descs[ap->num_pages].offset = 0;
+ 	ap->descs[ap->num_pages].length = PAGE_SIZE;
+-	data->orig_pages[ap->num_pages] = page;
++	data->orig_pages[ap->num_pages] = &folio->page;
  
--	if (!bdev_write_page(sis->bdev, swap_page_sector(page), page, wbc)) {
--		count_swpout_vm_event(page);
--		return;
--	}
-+	bio_init(&bio, sis->bdev, &bv, 1,
-+		 REQ_OP_WRITE | REQ_SWAP | wbc_to_write_flags(wbc));
-+	bio.bi_iter.bi_sector = swap_page_sector(page);
-+	bio_add_page(&bio, page, thp_size(page), 0);
-+
-+	bio_associate_blkg_from_page(&bio, page);
-+	count_swpout_vm_event(page);
-+
-+	set_page_writeback(page);
-+	unlock_page(page);
-+
-+	submit_bio_wait(&bio);
-+	__end_swap_bio_write(&bio);
-+}
-+
-+static void swap_writepage_bdev_async(struct page *page,
-+		struct writeback_control *wbc, struct swap_info_struct *sis)
-+{
-+	struct bio *bio;
- 
- 	bio = bio_alloc(sis->bdev, 1,
- 			REQ_OP_WRITE | REQ_SWAP | wbc_to_write_flags(wbc),
-@@ -362,8 +383,10 @@ void __swap_writepage(struct page *page,
- 	 */
- 	if (data_race(sis->flags & SWP_FS_OPS))
- 		swap_writepage_fs(page, wbc);
-+	else if (sis->flags & SWP_SYNCHRONOUS_IO)
-+		swap_writepage_bdev_sync(page, wbc, sis);
- 	else
--		swap_writepage_bdev(page, wbc, sis);
-+		swap_writepage_bdev_async(page, wbc, sis);
- }
- 
- void swap_write_unplug(struct swap_iocb *sio)
-@@ -447,12 +470,6 @@ static void swap_readpage_bdev_sync(stru
- 	struct bio_vec bv;
- 	struct bio bio;
- 
--	if ((sis->flags & SWP_SYNCHRONOUS_IO) &&
--	    !bdev_read_page(sis->bdev, swap_page_sector(page), page)) {
--		count_vm_event(PSWPIN);
--		return;
--	}
--
- 	bio_init(&bio, sis->bdev, &bv, 1, REQ_OP_READ);
- 	bio.bi_iter.bi_sector = swap_page_sector(page);
- 	bio_add_page(&bio, page, thp_size(page), 0);
-@@ -472,12 +489,6 @@ static void swap_readpage_bdev_async(str
- {
- 	struct bio *bio;
- 
--	if ((sis->flags & SWP_SYNCHRONOUS_IO) &&
--	    !bdev_read_page(sis->bdev, swap_page_sector(page), page)) {
--		count_vm_event(PSWPIN);
--		return;
--	}
--
- 	bio = bio_alloc(sis->bdev, 1, REQ_OP_READ, GFP_KERNEL);
- 	bio->bi_iter.bi_sector = swap_page_sector(page);
- 	bio->bi_end_io = end_swap_bio_read;
-@@ -513,7 +524,7 @@ void swap_readpage(struct page *page, bo
- 		unlock_page(page);
- 	} else if (data_race(sis->flags & SWP_FS_OPS)) {
- 		swap_readpage_fs(page, plug);
--	} else if (synchronous) {
-+	} else if (synchronous || (sis->flags & SWP_SYNCHRONOUS_IO)) {
- 		swap_readpage_bdev_sync(page, sis);
+ 	inc_wb_stat(&inode_to_bdi(inode)->wb, WB_WRITEBACK);
+ 	inc_node_page_state(tmp_page, NR_WRITEBACK_TEMP);
+@@ -2266,13 +2266,13 @@ static int fuse_writepages_fill(struct p
+ 		spin_lock(&fi->lock);
+ 		ap->num_pages++;
+ 		spin_unlock(&fi->lock);
+-	} else if (fuse_writepage_add(wpa, page)) {
++	} else if (fuse_writepage_add(wpa, &folio->page)) {
+ 		data->wpa = wpa;
  	} else {
- 		swap_readpage_bdev_async(page, sis);
---- a/mm/swapfile.c~block-remove-rw_page
-+++ a/mm/swapfile.c
-@@ -3071,7 +3071,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	if (p->bdev && bdev_stable_writes(p->bdev))
- 		p->flags |= SWP_STABLE_WRITES;
+-		end_page_writeback(page);
++		folio_end_writeback(folio);
+ 	}
+ out_unlock:
+-	unlock_page(page);
++	folio_unlock(folio);
  
--	if (p->bdev && p->bdev->bd_disk->fops->rw_page)
-+	if (p->bdev && bdev_synchronous(p->bdev))
- 		p->flags |= SWP_SYNCHRONOUS_IO;
+ 	return err;
+ }
+--- a/fs/iomap/buffered-io.c~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/fs/iomap/buffered-io.c
+@@ -1685,10 +1685,9 @@ done:
+  * For unwritten space on the page, we need to start the conversion to
+  * regular allocated space.
+  */
+-static int
+-iomap_do_writepage(struct page *page, struct writeback_control *wbc, void *data)
++static int iomap_do_writepage(struct folio *folio,
++		struct writeback_control *wbc, void *data)
+ {
+-	struct folio *folio = page_folio(page);
+ 	struct iomap_writepage_ctx *wpc = data;
+ 	struct inode *inode = folio->mapping->host;
+ 	u64 end_pos, isize;
+--- a/fs/mpage.c~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/fs/mpage.c
+@@ -440,9 +440,10 @@ void clean_page_buffers(struct page *pag
+ 	clean_buffers(page, ~0U);
+ }
  
- 	if (p->bdev && bdev_nonrot(p->bdev)) {
+-static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
++static int __mpage_writepage(struct folio *folio, struct writeback_control *wbc,
+ 		      void *data)
+ {
++	struct page *page = &folio->page;
+ 	struct mpage_data *mpd = data;
+ 	struct bio *bio = mpd->bio;
+ 	struct address_space *mapping = page->mapping;
+--- a/fs/nfs/write.c~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/fs/nfs/write.c
+@@ -689,13 +689,14 @@ int nfs_writepage(struct page *page, str
+ 	return ret;
+ }
+ 
+-static int nfs_writepages_callback(struct page *page, struct writeback_control *wbc, void *data)
++static int nfs_writepages_callback(struct folio *folio,
++		struct writeback_control *wbc, void *data)
+ {
+ 	int ret;
+ 
+-	ret = nfs_do_writepage(page, wbc, data);
++	ret = nfs_do_writepage(&folio->page, wbc, data);
+ 	if (ret != AOP_WRITEPAGE_ACTIVATE)
+-		unlock_page(page);
++		folio_unlock(folio);
+ 	return ret;
+ }
+ 
+--- a/fs/ntfs3/inode.c~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/fs/ntfs3/inode.c
+@@ -832,7 +832,7 @@ out:
+ 	return err;
+ }
+ 
+-static int ntfs_resident_writepage(struct page *page,
++static int ntfs_resident_writepage(struct folio *folio,
+ 		struct writeback_control *wbc, void *data)
+ {
+ 	struct address_space *mapping = data;
+@@ -840,11 +840,11 @@ static int ntfs_resident_writepage(struc
+ 	int ret;
+ 
+ 	ni_lock(ni);
+-	ret = attr_data_write_resident(ni, page);
++	ret = attr_data_write_resident(ni, &folio->page);
+ 	ni_unlock(ni);
+ 
+ 	if (ret != E_NTFS_NONRESIDENT)
+-		unlock_page(page);
++		folio_unlock(folio);
+ 	mapping_set_error(mapping, ret);
+ 	return ret;
+ }
+--- a/fs/orangefs/inode.c~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/fs/orangefs/inode.c
+@@ -154,21 +154,20 @@ static int orangefs_writepages_work(stru
+ 	return ret;
+ }
+ 
+-static int orangefs_writepages_callback(struct page *page,
+-    struct writeback_control *wbc, void *data)
++static int orangefs_writepages_callback(struct folio *folio,
++		struct writeback_control *wbc, void *data)
+ {
+ 	struct orangefs_writepages *ow = data;
+-	struct orangefs_write_range *wr;
++	struct orangefs_write_range *wr = folio->private;
+ 	int ret;
+ 
+-	if (!PagePrivate(page)) {
+-		unlock_page(page);
++	if (!wr) {
++		folio_unlock(folio);
+ 		/* It's not private so there's nothing to write, right? */
+ 		printk("writepages_callback not private!\n");
+ 		BUG();
+ 		return 0;
+ 	}
+-	wr = (struct orangefs_write_range *)page_private(page);
+ 
+ 	ret = -1;
+ 	if (ow->npages == 0) {
+@@ -176,7 +175,7 @@ static int orangefs_writepages_callback(
+ 		ow->len = wr->len;
+ 		ow->uid = wr->uid;
+ 		ow->gid = wr->gid;
+-		ow->pages[ow->npages++] = page;
++		ow->pages[ow->npages++] = &folio->page;
+ 		ret = 0;
+ 		goto done;
+ 	}
+@@ -188,7 +187,7 @@ static int orangefs_writepages_callback(
+ 	}
+ 	if (ow->off + ow->len == wr->pos) {
+ 		ow->len += wr->len;
+-		ow->pages[ow->npages++] = page;
++		ow->pages[ow->npages++] = &folio->page;
+ 		ret = 0;
+ 		goto done;
+ 	}
+@@ -198,10 +197,10 @@ done:
+ 			orangefs_writepages_work(ow, wbc);
+ 			ow->npages = 0;
+ 		}
+-		ret = orangefs_writepage_locked(page, wbc);
+-		mapping_set_error(page->mapping, ret);
+-		unlock_page(page);
+-		end_page_writeback(page);
++		ret = orangefs_writepage_locked(&folio->page, wbc);
++		mapping_set_error(folio->mapping, ret);
++		folio_unlock(folio);
++		folio_end_writeback(folio);
+ 	} else {
+ 		if (ow->npages == ow->maxpages) {
+ 			orangefs_writepages_work(ow, wbc);
+--- a/include/linux/writeback.h~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/include/linux/writeback.h
+@@ -366,7 +366,7 @@ int balance_dirty_pages_ratelimited_flag
+ 
+ bool wb_over_bg_thresh(struct bdi_writeback *wb);
+ 
+-typedef int (*writepage_t)(struct page *page, struct writeback_control *wbc,
++typedef int (*writepage_t)(struct folio *folio, struct writeback_control *wbc,
+ 				void *data);
+ 
+ void tag_pages_for_writeback(struct address_space *mapping,
+--- a/mm/page-writeback.c~fs-convert-writepage_t-callback-to-pass-a-folio
++++ a/mm/page-writeback.c
+@@ -2470,7 +2470,7 @@ continue_unlock:
+ 				goto continue_unlock;
+ 
+ 			trace_wbc_writepage(wbc, inode_to_bdi(mapping->host));
+-			error = writepage(&folio->page, wbc, data);
++			error = writepage(folio, wbc, data);
+ 			if (unlikely(error)) {
+ 				/*
+ 				 * Handle errors according to the type of
+@@ -2528,11 +2528,11 @@ continue_unlock:
+ }
+ EXPORT_SYMBOL(write_cache_pages);
+ 
+-static int writepage_cb(struct page *page, struct writeback_control *wbc,
++static int writepage_cb(struct folio *folio, struct writeback_control *wbc,
+ 		void *data)
+ {
+ 	struct address_space *mapping = data;
+-	int ret = mapping->a_ops->writepage(page, wbc);
++	int ret = mapping->a_ops->writepage(&folio->page, wbc);
+ 	mapping_set_error(mapping, ret);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
