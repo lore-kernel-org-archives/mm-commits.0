@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59FD8C64EC3
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:51:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D626AC636D7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:51:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232504AbjBCGvb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:51:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45582 "EHLO
+        id S230504AbjBCGvc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:51:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232070AbjBCGvN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:51:13 -0500
+        with ESMTP id S232273AbjBCGvO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:51:14 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19B864DBC4
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:51:05 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3CA574FAE6
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:51:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B8B261DBF
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:51:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDF1BC433D2;
-        Fri,  3 Feb 2023 06:51:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AD89861DBB
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:51:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11B90C4339B;
+        Fri,  3 Feb 2023 06:51:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675407064;
-        bh=37kB25ipFUqgQ5W2MqwZFguCdfiKSGlVldBubtQdJMs=;
+        s=korg; t=1675407069;
+        bh=2BMHUJ/ZaQu9YL5hqTQOqc1mrnQsiMxyPNzPSUMFgM4=;
         h=Date:To:From:Subject:From;
-        b=AxxFxNt4+lsRwiqIywVTyQTIIAqffhWBCmKmhMYILKmgLfBROVXBovjbWqGae0lD6
-         iOcKdzy7wLoq5LwCmPS5fjbpQOUF9xj9LAWneVQKBCRfvmRi5k/SYnw5I77yX+ebMj
-         St+9rQ/Q3Py0oVzMYZSD61utbsverZ/Y0hYqL4Nc=
-Date:   Thu, 02 Feb 2023 22:51:03 -0800
-To:     mm-commits@vger.kernel.org, anton@tuxera.com,
-        rdunlap@infradead.org, akpm@linux-foundation.org
+        b=eus66ylk3af8RxY5pv9Ivue8zSmsMCfcMgc99HKxK5LBYdVY512Jj1fBHCZt9P32H
+         fhIWb2IZvxDkhZvsQmgkdVycoQg5/nDk6a8TfbN5nt/LUOeolk/n8mNAacbsXLYKKS
+         ISEtpT+Mi2rFkd3bqh232zlxtx4vm7m/KuHmgGO4=
+Date:   Thu, 02 Feb 2023 22:51:08 -0800
+To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
+        senozhatsky@chromium.org, rostedt@goodmis.org, prudo@redhat.com,
+        joel@joelfernandes.org, gpiccoli@igalia.com, ebiederm@xmission.com,
+        corbet@lwn.net, bhe@redhat.com, bagasdotme@gmail.com,
+        ribalda@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ntfs-fix-multiple-kernel-doc-warnings.patch removed from -mm tree
-Message-Id: <20230203065103.EDF1BC433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kexec-introduce-sysctl-parameters-kexec_load_limit_.patch removed from -mm tree
+Message-Id: <20230203065109.11B90C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,240 +44,262 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ntfs: fix multiple kernel-doc warnings
+     Subject: kexec: introduce sysctl parameters kexec_load_limit_*
 has been removed from the -mm tree.  Its filename was
-     ntfs-fix-multiple-kernel-doc-warnings.patch
+     kexec-introduce-sysctl-parameters-kexec_load_limit_.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: ntfs: fix multiple kernel-doc warnings
-Date: Sun, 8 Jan 2023 17:00:41 -0800
+From: Ricardo Ribalda <ribalda@chromium.org>
+Subject: kexec: introduce sysctl parameters kexec_load_limit_*
+Date: Wed, 04 Jan 2023 15:38:48 +0100
 
-Fix many W=1 kernel-doc warnings in fs/ntfs/:
+kexec allows replacing the current kernel with a different one.  This is
+usually a source of concerns for sysadmins that want to harden a system.
 
-fs/ntfs/aops.c:30: warning: Incorrect use of kernel-doc format:  * ntfs_end_buffer_async_read - async io completion for reading attributes
-fs/ntfs/aops.c:46: warning: expecting prototype for aops.c(). Prototype was for ntfs_end_buffer_async_read() instead
-fs/ntfs/aops.c:1655: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_normal_aops = '
-fs/ntfs/aops.c:1670: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_compressed_aops = '
-fs/ntfs/aops.c:1685: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_mst_aops = '
-fs/ntfs/compress.c:22: warning: Incorrect use of kernel-doc format:  * ntfs_compression_constants - enum of constants used in the compression code
-fs/ntfs/compress.c:24: warning: cannot understand function prototype: 'typedef enum '
-fs/ntfs/compress.c:47: warning: cannot understand function prototype: 'u8 *ntfs_compression_buffer; '
-fs/ntfs/compress.c:52: warning: expecting prototype for ntfs_cb_lock(). Prototype was for DEFINE_SPINLOCK() instead
-fs/ntfs/dir.c:21: warning: Incorrect use of kernel-doc format:  * The little endian Unicode string $I30 as a global constant.
-fs/ntfs/dir.c:23: warning: cannot understand function prototype: 'ntfschar I30[5] = '
-fs/ntfs/inode.c:31: warning: Incorrect use of kernel-doc format:  * ntfs_test_inode - compare two (possibly fake) inodes for equality
-fs/ntfs/inode.c:47: warning: expecting prototype for inode.c(). Prototype was for ntfs_test_inode() instead
-fs/ntfs/inode.c:2956: warning: expecting prototype for ntfs_write_inode(). Prototype was for __ntfs_write_inode() instead
-fs/ntfs/mft.c:24: warning: expecting prototype for mft.c - NTFS kernel mft record operations. Part of the Linux(). Prototype was for MAX_BHS() instead
-fs/ntfs/namei.c:263: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
- * Inode operations for directories.
-fs/ntfs/namei.c:368: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
- * Export operations allowing NFS exporting of mounted NTFS partitions.
-fs/ntfs/runlist.c:16: warning: Incorrect use of kernel-doc format:  * ntfs_rl_mm - runlist memmove
-fs/ntfs/runlist.c:22: warning: expecting prototype for runlist.c - NTFS runlist handling code.  Part of the Linux(). Prototype was for ntfs_rl_mm() instead
-fs/ntfs/super.c:61: warning: missing initial short description on line:
- * simple_getbool -
-fs/ntfs/super.c:2661: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
- * The complete super operations.
+Linux already provides a way to disable loading new kexec kernel via
+kexec_load_disabled, but that control is very coard, it is all or nothing
+and does not make distinction between a panic kexec and a normal kexec.
 
-Link: https://lkml.kernel.org/r/20230109010041.21442-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Anton Altaparmakov <anton@tuxera.com>
+This patch introduces new sysctl parameters, with finer tuning to specify
+how many times a kexec kernel can be loaded.  The sysadmin can set
+different limits for kexec panic and kexec reboot kernels.  The value can
+be modified at runtime via sysctl, but only with a stricter value.
+
+With these new parameters on place, a system with loadpin and verity
+enabled, using the following kernel parameters:
+sysctl.kexec_load_limit_reboot=0 sysct.kexec_load_limit_panic=1 can have a
+good warranty that if initrd tries to load a panic kernel, a malitious
+user will have small chances to replace that kernel with a different one,
+even if they can trigger timeouts on the disk where the panic kernel
+lives.
+
+Link: https://lkml.kernel.org/r/20221114-disable-kexec-reset-v6-3-6a8531a09b9a@chromium.org
+Signed-off-by: Ricardo Ribalda <ribalda@chromium.org>
+Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Guilherme G. Piccoli <gpiccoli@igalia.com> # Steam Deck
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Philipp Rudo <prudo@redhat.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/ntfs/aops.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/aops.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * aops.c - NTFS kernel address space operations and page cache handling.
-  *
-  * Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.
-@@ -1646,7 +1646,7 @@ hole:
- 	return block;
- }
+--- a/Documentation/admin-guide/sysctl/kernel.rst~kexec-introduce-sysctl-parameters-kexec_load_limit_
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -464,6 +464,24 @@ allowing a system to set up (and later u
+ altered.
+ Generally used together with the `modules_disabled`_ sysctl.
  
--/**
-+/*
-  * ntfs_normal_aops - address space operations for normal inodes and attributes
-  *
-  * Note these are not used for compressed or mst protected inodes and
-@@ -1664,7 +1664,7 @@ const struct address_space_operations nt
- 	.error_remove_page = generic_error_remove_page,
- };
++kexec_load_limit_panic
++======================
++
++This parameter specifies a limit to the number of times the syscalls
++``kexec_load`` and ``kexec_file_load`` can be called with a crash
++image. It can only be set with a more restrictive value than the
++current one.
++
++== ======================================================
++-1 Unlimited calls to kexec. This is the default setting.
++N  Number of calls left.
++== ======================================================
++
++kexec_load_limit_reboot
++=======================
++
++Similar functionality as ``kexec_load_limit_panic``, but for a normal
++image.
  
--/**
-+/*
-  * ntfs_compressed_aops - address space operations for compressed inodes
-  */
- const struct address_space_operations ntfs_compressed_aops = {
-@@ -1678,9 +1678,9 @@ const struct address_space_operations nt
- 	.error_remove_page = generic_error_remove_page,
- };
+ kptr_restrict
+ =============
+--- a/include/linux/kexec.h~kexec-introduce-sysctl-parameters-kexec_load_limit_
++++ a/include/linux/kexec.h
+@@ -404,7 +404,7 @@ extern int kimage_crash_copy_vmcoreinfo(
+ extern struct kimage *kexec_image;
+ extern struct kimage *kexec_crash_image;
  
--/**
-+/*
-  * ntfs_mst_aops - general address space operations for mst protecteed inodes
-- *		   and attributes
-+ *			  and attributes
-  */
- const struct address_space_operations ntfs_mst_aops = {
- 	.read_folio	= ntfs_read_folio,	/* Fill page with data. */
---- a/fs/ntfs/aops.h~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/aops.h
-@@ -1,5 +1,5 @@
- /* SPDX-License-Identifier: GPL-2.0-or-later */
--/**
-+/*
-  * aops.h - Defines for NTFS kernel address space operations and page cache
-  *	    handling.  Part of the Linux-NTFS project.
-  *
---- a/fs/ntfs/compress.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/compress.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * compress.c - NTFS kernel compressed attributes handling.
-  *		Part of the Linux-NTFS project.
-  *
-@@ -41,12 +41,12 @@ typedef enum {
- 	NTFS_MAX_CB_SIZE	= 64 * 1024,
- } ntfs_compression_constants;
+-bool kexec_load_permitted(void);
++bool kexec_load_permitted(int kexec_image_type);
  
--/**
-+/*
-  * ntfs_compression_buffer - one buffer for the decompression engine
-  */
- static u8 *ntfs_compression_buffer;
- 
--/**
-+/*
-  * ntfs_cb_lock - spinlock which protects ntfs_compression_buffer
-  */
- static DEFINE_SPINLOCK(ntfs_cb_lock);
---- a/fs/ntfs/dir.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/dir.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * dir.c - NTFS kernel directory operations. Part of the Linux-NTFS project.
-  *
-  * Copyright (c) 2001-2007 Anton Altaparmakov
-@@ -17,7 +17,7 @@
- #include "debug.h"
- #include "ntfs.h"
- 
--/**
-+/*
-  * The little endian Unicode string $I30 as a global constant.
-  */
- ntfschar I30[5] = { cpu_to_le16('$'), cpu_to_le16('I'),
---- a/fs/ntfs/inode.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/inode.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * inode.c - NTFS kernel inode handling.
-  *
-  * Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.
-@@ -2935,7 +2935,7 @@ out:
- }
- 
- /**
-- * ntfs_write_inode - write out a dirty inode
-+ * __ntfs_write_inode - write out a dirty inode
-  * @vi:		inode to write out
-  * @sync:	if true, write out synchronously
-  *
-@@ -3033,7 +3033,7 @@ int __ntfs_write_inode(struct inode *vi,
- 	 * might not need to be written out.
- 	 * NOTE: It is not a problem when the inode for $MFT itself is being
- 	 * written out as mark_ntfs_record_dirty() will only set I_DIRTY_PAGES
--	 * on the $MFT inode and hence ntfs_write_inode() will not be
-+	 * on the $MFT inode and hence __ntfs_write_inode() will not be
- 	 * re-invoked because of it which in turn is ok since the dirtied mft
- 	 * record will be cleaned and written out to disk below, i.e. before
- 	 * this function returns.
---- a/fs/ntfs/mft.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/mft.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * mft.c - NTFS kernel mft record operations. Part of the Linux-NTFS project.
-  *
-  * Copyright (c) 2001-2012 Anton Altaparmakov and Tuxera Inc.
---- a/fs/ntfs/namei.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/namei.c
-@@ -259,7 +259,7 @@ err_out:
-    }
- }
- 
--/**
-+/*
-  * Inode operations for directories.
-  */
- const struct inode_operations ntfs_dir_inode_ops = {
-@@ -364,7 +364,7 @@ static struct dentry *ntfs_fh_to_parent(
- 				    ntfs_nfs_get_inode);
- }
- 
--/**
-+/*
-  * Export operations allowing NFS exporting of mounted NTFS partitions.
-  *
-  * We use the default ->encode_fh() for now.  Note that they
---- a/fs/ntfs/runlist.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/runlist.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
--/**
-+/*
-  * runlist.c - NTFS runlist handling code.  Part of the Linux-NTFS project.
-  *
-  * Copyright (c) 2001-2007 Anton Altaparmakov
---- a/fs/ntfs/super.c~ntfs-fix-multiple-kernel-doc-warnings
-+++ a/fs/ntfs/super.c
-@@ -58,9 +58,17 @@ const option_t on_errors_arr[] = {
- };
- 
- /**
-- * simple_getbool -
-+ * simple_getbool - convert input string to a boolean value
-+ * @s: input string to convert
-+ * @setval: where to store the output boolean value
-  *
-  * Copied from old ntfs driver (which copied from vfat driver).
-+ *
-+ * "1", "yes", "true", or an empty string are converted to %true.
-+ * "0", "no", and "false" are converted to %false.
-+ *
-+ * Return: %1 if the string is converted or was empty and *setval contains it;
-+ *	   %0 if the string was not valid.
-  */
- static int simple_getbool(char *s, bool *setval)
+ #ifndef kexec_flush_icache_page
+ #define kexec_flush_icache_page(page)
+--- a/kernel/kexec.c~kexec-introduce-sysctl-parameters-kexec_load_limit_
++++ a/kernel/kexec.c
+@@ -190,10 +190,12 @@ out_unlock:
+ static inline int kexec_load_check(unsigned long nr_segments,
+ 				   unsigned long flags)
  {
-@@ -2657,7 +2665,7 @@ static int ntfs_write_inode(struct inode
++	int image_type = (flags & KEXEC_ON_CRASH) ?
++			 KEXEC_TYPE_CRASH : KEXEC_TYPE_DEFAULT;
+ 	int result;
+ 
+ 	/* We only trust the superuser with rebooting the system. */
+-	if (!kexec_load_permitted())
++	if (!kexec_load_permitted(image_type))
+ 		return -EPERM;
+ 
+ 	/* Permit LSMs and IMA to fail the kexec */
+--- a/kernel/kexec_core.c~kexec-introduce-sysctl-parameters-kexec_load_limit_
++++ a/kernel/kexec_core.c
+@@ -920,10 +920,64 @@ int kimage_load_segment(struct kimage *i
+ 	return result;
  }
+ 
++struct kexec_load_limit {
++	/* Mutex protects the limit count. */
++	struct mutex mutex;
++	int limit;
++};
++
++static struct kexec_load_limit load_limit_reboot = {
++	.mutex = __MUTEX_INITIALIZER(load_limit_reboot.mutex),
++	.limit = -1,
++};
++
++static struct kexec_load_limit load_limit_panic = {
++	.mutex = __MUTEX_INITIALIZER(load_limit_panic.mutex),
++	.limit = -1,
++};
++
+ struct kimage *kexec_image;
+ struct kimage *kexec_crash_image;
+ static int kexec_load_disabled;
++
+ #ifdef CONFIG_SYSCTL
++static int kexec_limit_handler(struct ctl_table *table, int write,
++			       void *buffer, size_t *lenp, loff_t *ppos)
++{
++	struct kexec_load_limit *limit = table->data;
++	int val;
++	struct ctl_table tmp = {
++		.data = &val,
++		.maxlen = sizeof(val),
++		.mode = table->mode,
++	};
++	int ret;
++
++	if (write) {
++		ret = proc_dointvec(&tmp, write, buffer, lenp, ppos);
++		if (ret)
++			return ret;
++
++		if (val < 0)
++			return -EINVAL;
++
++		mutex_lock(&limit->mutex);
++		if (limit->limit != -1 && val >= limit->limit)
++			ret = -EINVAL;
++		else
++			limit->limit = val;
++		mutex_unlock(&limit->mutex);
++
++		return ret;
++	}
++
++	mutex_lock(&limit->mutex);
++	val = limit->limit;
++	mutex_unlock(&limit->mutex);
++
++	return proc_dointvec(&tmp, write, buffer, lenp, ppos);
++}
++
+ static struct ctl_table kexec_core_sysctls[] = {
+ 	{
+ 		.procname	= "kexec_load_disabled",
+@@ -935,6 +989,18 @@ static struct ctl_table kexec_core_sysct
+ 		.extra1		= SYSCTL_ONE,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
++	{
++		.procname	= "kexec_load_limit_panic",
++		.data		= &load_limit_panic,
++		.mode		= 0644,
++		.proc_handler	= kexec_limit_handler,
++	},
++	{
++		.procname	= "kexec_load_limit_reboot",
++		.data		= &load_limit_reboot,
++		.mode		= 0644,
++		.proc_handler	= kexec_limit_handler,
++	},
+ 	{ }
+ };
+ 
+@@ -946,13 +1012,30 @@ static int __init kexec_core_sysctl_init
+ late_initcall(kexec_core_sysctl_init);
  #endif
  
--/**
-+/*
-  * The complete super operations.
-  */
- static const struct super_operations ntfs_sops = {
+-bool kexec_load_permitted(void)
++bool kexec_load_permitted(int kexec_image_type)
+ {
++	struct kexec_load_limit *limit;
++
+ 	/*
+ 	 * Only the superuser can use the kexec syscall and if it has not
+ 	 * been disabled.
+ 	 */
+-	return capable(CAP_SYS_BOOT) && !kexec_load_disabled;
++	if (!capable(CAP_SYS_BOOT) || kexec_load_disabled)
++		return false;
++
++	/* Check limit counter and decrease it.*/
++	limit = (kexec_image_type == KEXEC_TYPE_CRASH) ?
++		&load_limit_panic : &load_limit_reboot;
++	mutex_lock(&limit->mutex);
++	if (!limit->limit) {
++		mutex_unlock(&limit->mutex);
++		return false;
++	}
++	if (limit->limit != -1)
++		limit->limit--;
++	mutex_unlock(&limit->mutex);
++
++	return true;
+ }
+ 
+ /*
+--- a/kernel/kexec_file.c~kexec-introduce-sysctl-parameters-kexec_load_limit_
++++ a/kernel/kexec_file.c
+@@ -326,11 +326,13 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
+ 		unsigned long, cmdline_len, const char __user *, cmdline_ptr,
+ 		unsigned long, flags)
+ {
+-	int ret = 0, i;
++	int image_type = (flags & KEXEC_FILE_ON_CRASH) ?
++			 KEXEC_TYPE_CRASH : KEXEC_TYPE_DEFAULT;
+ 	struct kimage **dest_image, *image;
++	int ret = 0, i;
+ 
+ 	/* We only trust the superuser with rebooting the system. */
+-	if (!kexec_load_permitted())
++	if (!kexec_load_permitted(image_type))
+ 		return -EPERM;
+ 
+ 	/* Make sure we have a legal set of flags */
+@@ -342,11 +344,12 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
+ 	if (!kexec_trylock())
+ 		return -EBUSY;
+ 
+-	dest_image = &kexec_image;
+-	if (flags & KEXEC_FILE_ON_CRASH) {
++	if (image_type == KEXEC_TYPE_CRASH) {
+ 		dest_image = &kexec_crash_image;
+ 		if (kexec_crash_image)
+ 			arch_kexec_unprotect_crashkres();
++	} else {
++		dest_image = &kexec_image;
+ 	}
+ 
+ 	if (flags & KEXEC_FILE_UNLOAD)
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from ribalda@chromium.org are
 
 
