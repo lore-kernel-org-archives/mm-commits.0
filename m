@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11F7BC636D7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1CFFC61DA4
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:40:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232409AbjBCGkv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:40:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36646 "EHLO
+        id S232471AbjBCGkw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:40:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36698 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232471AbjBCGjq (ORCPT
+        with ESMTP id S232491AbjBCGjq (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:39:46 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 576C18F262
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:11 -0800 (PST)
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 844738F252
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E628761D99
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B669C4339B;
-        Fri,  3 Feb 2023 06:37:10 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 01547CE2EA3
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59C87C433D2;
+        Fri,  3 Feb 2023 06:37:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406230;
-        bh=JR5c++LMxv7L1SX7np5AbbQCPq/2YN8DTOTwqIEhQfo=;
+        s=korg; t=1675406231;
+        bh=KXqoGRe5BXvjb8QReZVxqaL52OCAEcFGRKunV70hNuE=;
         h=Date:To:From:Subject:From;
-        b=QfS6yokXZX9vgXWFbwdw8g58MTm/dT+oG3ppV9DNDuScbZW6JciDrF5NT4tg6V2SV
-         j+ce0jcJFCHeY1Uk6U4F8iVTtNHFU/0XmD9vmVxwyeEIbvjRx16EUhsOhmf6YAHGgF
-         QkqbOOZa8cXfETmVJhkZ5o/jRDYLI6R+8TRDkzRc=
-Date:   Thu, 02 Feb 2023 22:37:09 -0800
-To:     mm-commits@vger.kernel.org, jlayton@kernel.org,
+        b=qlqT8VBAlSFFmYjgTCB5mOYQRGr8Xl5kmWBCYBiwWFx1XumA6RhHNhXw6xzxlfdRS
+         Z4ZgC1Ir3ABNza4PF+v8LiUwkVLPa2uuy8xOZNlJT3CLhvugmg96m6lJChHRZdRX4b
+         oTKsvtFN2N+FOIjzPpndJLu+8US+jlRzxEHll3W0=
+Date:   Thu, 02 Feb 2023 22:37:10 -0800
+To:     mm-commits@vger.kernel.org, tom@talpey.com, pc@cjr.nz,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ceph-convert-ceph_writepages_start-to-use-filemap_get_folios_tag.patch removed from -mm tree
-Message-Id: <20230203063710.4B669C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] cifs-convert-wdata_alloc_and_fillpages-to-use-filemap_get_folios_tag.patch removed from -mm tree
+Message-Id: <20230203063711.59C87C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,166 +41,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ceph: convert ceph_writepages_start() to use filemap_get_folios_tag()
+     Subject: cifs: convert wdata_alloc_and_fillpages() to use filemap_get_folios_tag()
 has been removed from the -mm tree.  Its filename was
-     ceph-convert-ceph_writepages_start-to-use-filemap_get_folios_tag.patch
+     cifs-convert-wdata_alloc_and_fillpages-to-use-filemap_get_folios_tag.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: ceph: convert ceph_writepages_start() to use filemap_get_folios_tag()
-Date: Wed, 4 Jan 2023 13:14:33 -0800
+Subject: cifs: convert wdata_alloc_and_fillpages() to use filemap_get_folios_tag()
+Date: Wed, 4 Jan 2023 13:14:34 -0800
 
-Convert function to use a folio_batch instead of pagevec.  This is in
-preparation for the removal of find_get_pages_range_tag().
+This is in preparation for the removal of find_get_pages_range_tag().  Now
+also supports the use of large folios.
 
-Also some minor renaming for consistency.
+Since tofind might be larger than the max number of folios in a
+folio_batch (15), we loop through filling in wdata->pages pulling more
+batches until we either reach tofind pages or run out of folios.
 
-Link: https://lkml.kernel.org/r/20230104211448.4804-9-vishal.moola@gmail.com
+This function may not return all pages in the last found folio before
+tofind pages are reached.
+
+Link: https://lkml.kernel.org/r/20230104211448.4804-10-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Acked-by: Jeff Layton <jlayton@kernel.org>
+Acked-by: Paulo Alcantara (SUSE) <pc@cjr.nz>
+Cc: Tom Talpey <tom@talpey.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/ceph/addr.c~ceph-convert-ceph_writepages_start-to-use-filemap_get_folios_tag
-+++ a/fs/ceph/addr.c
-@@ -792,7 +792,7 @@ static int ceph_writepages_start(struct
- 	struct ceph_vino vino = ceph_vino(inode);
- 	pgoff_t index, start_index, end = -1;
- 	struct ceph_snap_context *snapc = NULL, *last_snapc = NULL, *pgsnapc;
--	struct pagevec pvec;
+--- a/fs/cifs/file.c~cifs-convert-wdata_alloc_and_fillpages-to-use-filemap_get_folios_tag
++++ a/fs/cifs/file.c
+@@ -2527,14 +2527,40 @@ wdata_alloc_and_fillpages(pgoff_t tofind
+ 			  unsigned int *found_pages)
+ {
+ 	struct cifs_writedata *wdata;
+-
 +	struct folio_batch fbatch;
- 	int rc = 0;
- 	unsigned int wsize = i_blocksize(inode);
- 	struct ceph_osd_request *req = NULL;
-@@ -821,7 +821,7 @@ static int ceph_writepages_start(struct
- 	if (fsc->mount_options->wsize < wsize)
- 		wsize = fsc->mount_options->wsize;
++	unsigned int i, idx, p, nr;
+ 	wdata = cifs_writedata_alloc((unsigned int)tofind,
+ 				     cifs_writev_complete);
+ 	if (!wdata)
+ 		return NULL;
  
--	pagevec_init(&pvec);
+-	*found_pages = find_get_pages_range_tag(mapping, index, end,
+-				PAGECACHE_TAG_DIRTY, tofind, wdata->pages);
 +	folio_batch_init(&fbatch);
++	*found_pages = 0;
++
++again:
++	nr = filemap_get_folios_tag(mapping, index, end,
++				PAGECACHE_TAG_DIRTY, &fbatch);
++	if (!nr)
++		goto out; /* No dirty pages left in the range */
++
++	for (i = 0; i < nr; i++) {
++		struct folio *folio = fbatch.folios[i];
++
++		idx = 0;
++		p = folio_nr_pages(folio);
++add_more:
++		wdata->pages[*found_pages] = folio_page(folio, idx);
++		folio_get(folio);
++		if (++*found_pages == tofind) {
++			folio_batch_release(&fbatch);
++			goto out;
++		}
++		if (++idx < p)
++			goto add_more;
++	}
++	folio_batch_release(&fbatch);
++	goto again;
++out:
+ 	return wdata;
+ }
  
- 	start_index = wbc->range_cyclic ? mapping->writeback_index : 0;
- 	index = start_index;
-@@ -869,7 +869,7 @@ retry:
- 
- 	while (!done && index <= end) {
- 		int num_ops = 0, op_idx;
--		unsigned i, pvec_pages, max_pages, locked_pages = 0;
-+		unsigned i, nr_folios, max_pages, locked_pages = 0;
- 		struct page **pages = NULL, **data_pages;
- 		struct page *page;
- 		pgoff_t strip_unit_end = 0;
-@@ -879,13 +879,13 @@ retry:
- 		max_pages = wsize >> PAGE_SHIFT;
- 
- get_more_pages:
--		pvec_pages = pagevec_lookup_range_tag(&pvec, mapping, &index,
--						end, PAGECACHE_TAG_DIRTY);
--		dout("pagevec_lookup_range_tag got %d\n", pvec_pages);
--		if (!pvec_pages && !locked_pages)
-+		nr_folios = filemap_get_folios_tag(mapping, &index,
-+				end, PAGECACHE_TAG_DIRTY, &fbatch);
-+		dout("pagevec_lookup_range_tag got %d\n", nr_folios);
-+		if (!nr_folios && !locked_pages)
- 			break;
--		for (i = 0; i < pvec_pages && locked_pages < max_pages; i++) {
--			page = pvec.pages[i];
-+		for (i = 0; i < nr_folios && locked_pages < max_pages; i++) {
-+			page = &fbatch.folios[i]->page;
- 			dout("? %p idx %lu\n", page, page->index);
- 			if (locked_pages == 0)
- 				lock_page(page);  /* first page */
-@@ -995,7 +995,7 @@ get_more_pages:
- 				len = 0;
- 			}
- 
--			/* note position of first page in pvec */
-+			/* note position of first page in fbatch */
- 			dout("%p will write page %p idx %lu\n",
- 			     inode, page, page->index);
- 
-@@ -1005,30 +1005,30 @@ get_more_pages:
- 				fsc->write_congested = true;
- 
- 			pages[locked_pages++] = page;
--			pvec.pages[i] = NULL;
-+			fbatch.folios[i] = NULL;
- 
- 			len += thp_size(page);
- 		}
- 
- 		/* did we get anything? */
- 		if (!locked_pages)
--			goto release_pvec_pages;
-+			goto release_folios;
- 		if (i) {
- 			unsigned j, n = 0;
--			/* shift unused page to beginning of pvec */
--			for (j = 0; j < pvec_pages; j++) {
--				if (!pvec.pages[j])
-+			/* shift unused page to beginning of fbatch */
-+			for (j = 0; j < nr_folios; j++) {
-+				if (!fbatch.folios[j])
- 					continue;
- 				if (n < j)
--					pvec.pages[n] = pvec.pages[j];
-+					fbatch.folios[n] = fbatch.folios[j];
- 				n++;
- 			}
--			pvec.nr = n;
-+			fbatch.nr = n;
- 
--			if (pvec_pages && i == pvec_pages &&
-+			if (nr_folios && i == nr_folios &&
- 			    locked_pages < max_pages) {
--				dout("reached end pvec, trying for more\n");
--				pagevec_release(&pvec);
-+				dout("reached end fbatch, trying for more\n");
-+				folio_batch_release(&fbatch);
- 				goto get_more_pages;
- 			}
- 		}
-@@ -1164,10 +1164,10 @@ new_request:
- 		if (wbc->nr_to_write <= 0 && wbc->sync_mode == WB_SYNC_NONE)
- 			done = true;
- 
--release_pvec_pages:
--		dout("pagevec_release on %d pages (%p)\n", (int)pvec.nr,
--		     pvec.nr ? pvec.pages[0] : NULL);
--		pagevec_release(&pvec);
-+release_folios:
-+		dout("folio_batch release on %d folios (%p)\n", (int)fbatch.nr,
-+		     fbatch.nr ? fbatch.folios[0] : NULL);
-+		folio_batch_release(&fbatch);
- 	}
- 
- 	if (should_loop && !done) {
-@@ -1184,15 +1184,17 @@ release_pvec_pages:
- 			unsigned i, nr;
- 			index = 0;
- 			while ((index <= end) &&
--			       (nr = pagevec_lookup_tag(&pvec, mapping, &index,
--						PAGECACHE_TAG_WRITEBACK))) {
-+			       (nr = filemap_get_folios_tag(mapping, &index,
-+						(pgoff_t)-1,
-+						PAGECACHE_TAG_WRITEBACK,
-+						&fbatch))) {
- 				for (i = 0; i < nr; i++) {
--					page = pvec.pages[i];
-+					page = &fbatch.folios[i]->page;
- 					if (page_snap_context(page) != snapc)
- 						continue;
- 					wait_on_page_writeback(page);
- 				}
--				pagevec_release(&pvec);
-+				folio_batch_release(&fbatch);
- 				cond_resched();
- 			}
- 		}
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
