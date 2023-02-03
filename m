@@ -2,113 +2,169 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68B75C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 02:10:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9604FC61DA4
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 03:32:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229804AbjBCCK2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Feb 2023 21:10:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42328 "EHLO
+        id S232448AbjBCDc2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Feb 2023 22:32:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229469AbjBCCK1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2023 21:10:27 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3610677B1
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 18:10:25 -0800 (PST)
+        with ESMTP id S232467AbjBCDcW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2023 22:32:22 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DB146ACA0;
+        Thu,  2 Feb 2023 19:32:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7FCDE61D60
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 02:10:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2AF6C433D2;
-        Fri,  3 Feb 2023 02:10:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D1FD8B81D79;
+        Fri,  3 Feb 2023 03:32:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 262B4C433D2;
+        Fri,  3 Feb 2023 03:32:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675390224;
-        bh=mjQvqYZnr3GLaSMInVE9djG49fnx2dqPwDlPX3uItwo=;
-        h=Date:To:From:Subject:From;
-        b=XJTB+vYS2VH3vOocd77PyY+RpuzEBzuOyEGe2Y9ifJ1ru2ndcHO21btjdxymQYF7i
-         uZlXt6afracJSDFMurAqC3u+rnRyGVkZS4maURQmMHZMfxs2HGTES1fgHd8haARz8m
-         753Gejo1MQnYcuH+CnlH6oK3Y2Wz+m0s+ZVFx5kE=
-Date:   Thu, 02 Feb 2023 18:10:24 -0800
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
-        pchelkin@ispras.ru, khoroshilov@ispras.ru,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        s=korg; t=1675395135;
+        bh=tVLLWQkfnuhs07CaJsUvIHPfgCGpR0jx28Ktw9IQ+e0=;
+        h=Date:From:To:Cc:Subject:From;
+        b=etXq8oaVU9ZJCURm3jzZo8FjPu4KcpXlVB4LIatts01rnvu649/g2rzAcQ+s9sG/9
+         kQ6wHgoBMsOrdLNrPDdmGxS1nheW70k8431K9YK8G2bzpskGvUCiZkcmVBQb52nYGh
+         q4rJ6VJrtP8cPSKtLZiP++hTwZXaO4v06yfQiGxA=
+Date:   Thu, 2 Feb 2023 19:32:14 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-squashfs-harden-sanity-check-in-squashfs_read_xattr_id_table.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230203021024.D2AF6C433D2@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.2-rc7
+Message-Id: <20230202193214.646203447dc16ea4c6b835a4@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: revert "squashfs: harden sanity check in squashfs_read_xattr_id_table"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-squashfs-harden-sanity-check-in-squashfs_read_xattr_id_table.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-squashfs-harden-sanity-check-in-squashfs_read_xattr_id_table.patch
+The following changes since commit 49d6d7fb631345b0f2957a7c4be24ad63903150f:
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+  mm/uffd: fix pte marker when fork() without fork event (2023-01-18 17:02:19 -0800)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+are available in the Git repository at:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-02-19-24-2
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+for you to fetch changes up to ac86f547ca1002aec2ef66b9e64d03f45bbbfbb9:
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "squashfs: harden sanity check in squashfs_read_xattr_id_table"
-Date: Thu Feb  2 06:07:35 PM PST 2023
+  mm: memcg: fix NULL pointer in mem_cgroup_track_foreign_dirty_slowpath() (2023-01-31 16:44:10 -0800)
 
-This fix was nacked by Philip, for reasons identified in the email linked
-below.
+----------------------------------------------------------------
+25 hotfixes, mainly for MM.  13 are cc:stable.
 
-Link: https://lkml.kernel.org/r/68f15d67-8945-2728-1f17-5b53a80ec52d@squashfs.org.uk
-Fixes: 72e544b1b28325 ("squashfs: harden sanity check in squashfs_read_xattr_id_table")
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Cc: Fedor Pchelkin <pchelkin@ispras.ru>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+Eugen Hristev (1):
+      .mailmap: update e-mail address for Eugen Hristev
 
+Fedor Pchelkin (1):
+      squashfs: harden sanity check in squashfs_read_xattr_id_table
 
---- a/fs/squashfs/xattr_id.c~revert-squashfs-harden-sanity-check-in-squashfs_read_xattr_id_table
-+++ a/fs/squashfs/xattr_id.c
-@@ -76,7 +76,7 @@ __le64 *squashfs_read_xattr_id_table(str
- 	/* Sanity check values */
- 
- 	/* there is always at least one xattr id */
--	if (*xattr_ids <= 0)
-+	if (*xattr_ids == 0)
- 		return ERR_PTR(-EINVAL);
- 
- 	len = SQUASHFS_XATTR_BLOCK_BYTES(*xattr_ids);
-_
+Isaac J. Manjarres (1):
+      Revert "mm: kmemleak: alloc gray object for reserved region with direct map"
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+James Morse (1):
+      ia64: fix build error due to switch case label appearing next to declaration
 
-fsdax-dax_unshare_iter-should-return-a-valid-length-fix.patch
-revert-squashfs-harden-sanity-check-in-squashfs_read_xattr_id_table.patch
-mm-add-folio_add_new_anon_rmap-fix.patch
-mm-remove-page_evictable-fix.patch
-mm-remove-the-swap_readpage-return-value-fix.patch
-block-remove-rw_page-fix.patch
-mm-add-memcpy_from_file_folio-fix.patch
-mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix.patch
-kasan-infer-allocation-size-by-scanning-metadata-fix.patch
-mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix.patch
-error-injection-remove-ei_etype_none-fix.patch
-hfsplus-remove-unnecessary-variable-initialization-fix.patch
-scripts-gdb-add-mm-introspection-utils-fix.patch
-lib-stackdepot-mm-rename-stack_depot_want_early_init-fix.patch
-lib-stackdepot-annotate-racy-slab_index-accesses-fix.patch
+Jann Horn (1):
+      mm/khugepaged: fix ->anon_vma race
+
+Kefeng Wang (1):
+      mm: memcg: fix NULL pointer in mem_cgroup_track_foreign_dirty_slowpath()
+
+Liam Howlett (1):
+      maple_tree: fix mas_empty_area_rev() lower bound validation
+
+Longlong Xia (1):
+      mm/swapfile: add cond_resched() in get_swap_pages()
+
+Matthew Wilcox (Oracle) (1):
+      highmem: round down the address passed to kunmap_flush_on_unmap()
+
+Michal Hocko (1):
+      Revert "mm: add nodes= arg to memory.reclaim"
+
+Mike Kravetz (2):
+      mm: hugetlb: proc: check for hugetlb shared PMD in /proc/PID/smaps
+      migrate: hugetlb: check for hugetlb shared PMD in node migration
+
+Nhat Pham (1):
+      zsmalloc: fix a race with deferred_handles storing
+
+Pengfei Xu (1):
+      selftests/filesystems: grant executable permission to run_fat_tests.sh
+
+Peter Xu (2):
+      mm: fix a few rare cases of using swapin error pte marker
+      selftests/vm: remove __USE_GNU in hugetlb-madvise.c
+
+Phillip Lougher (1):
+      Squashfs: fix handling and sanity checking of xattr_ids count
+
+Randy Dunlap (1):
+      freevxfs: Kconfig: fix spelling
+
+Tom Saeger (1):
+      sh: define RUNTIME_DISCARD_EXIT
+
+Vlastimil Babka (1):
+      mm, mremap: fix mremap() expanding for vma's with vm_ops->close()
+
+Wei Yang (1):
+      maple_tree: should get pivots boundary by type
+
+Yu Zhao (1):
+      mm: multi-gen LRU: fix crash during cgroup migration
+
+Zach O'Keefe (1):
+      mm/MADV_COLLAPSE: catch !none !huge !bad pmd lookups
+
+Zhaoyang Huang (1):
+      mm: use stack_depot_early_init for kmemleak
+
+ye xingchen (1):
+      Kconfig.debug: fix the help description in SCHED_DEBUG
+
+ .mailmap                                           |   1 +
+ Documentation/admin-guide/cgroup-v2.rst            |  15 +-
+ arch/ia64/kernel/sys_ia64.c                        |   7 +-
+ arch/sh/kernel/vmlinux.lds.S                       |   1 +
+ drivers/of/fdt.c                                   |   6 +-
+ fs/freevxfs/Kconfig                                |   2 +-
+ fs/proc/task_mmu.c                                 |   4 +-
+ fs/squashfs/squashfs_fs.h                          |   2 +-
+ fs/squashfs/squashfs_fs_sb.h                       |   2 +-
+ fs/squashfs/xattr.h                                |   4 +-
+ fs/squashfs/xattr_id.c                             |   4 +-
+ include/linux/highmem-internal.h                   |   4 +-
+ include/linux/hugetlb.h                            |  13 ++
+ include/linux/memcontrol.h                         |   5 +-
+ include/linux/swap.h                               |   3 +-
+ lib/Kconfig.debug                                  |   3 +-
+ lib/maple_tree.c                                   |  22 +-
+ lib/test_maple_tree.c                              |  89 ++++++++
+ mm/hugetlb.c                                       |   3 +
+ mm/khugepaged.c                                    |  22 +-
+ mm/kmemleak.c                                      |   5 +-
+ mm/memcontrol.c                                    |  67 ++----
+ mm/memory.c                                        |   8 +-
+ mm/mempolicy.c                                     |   3 +-
+ mm/mprotect.c                                      |   8 +-
+ mm/mremap.c                                        |  25 ++-
+ mm/swapfile.c                                      |   1 +
+ mm/vmscan.c                                        |   9 +-
+ mm/zsmalloc.c                                      | 237 ++++++++++++++++++---
+ .../selftests/filesystems/fat/run_fat_tests.sh     |   0
+ tools/testing/selftests/vm/hugetlb-madvise.c       |   1 -
+ 31 files changed, 429 insertions(+), 147 deletions(-)
+ mode change 100644 => 100755 tools/testing/selftests/filesystems/fat/run_fat_tests.sh
 
