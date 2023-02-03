@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52806C6379F
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:52:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B6EFC636D7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:52:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232253AbjBCGwf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:52:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45768 "EHLO
+        id S231871AbjBCGwe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:52:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232273AbjBCGvk (ORCPT
+        with ESMTP id S232253AbjBCGvk (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:51:40 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F00FB8E05D
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02C208E05A
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:51:25 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8AA6E61DC2
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:51:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE135C433EF;
-        Fri,  3 Feb 2023 06:51:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8ED5561DC1
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:51:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2B0AC433D2;
+        Fri,  3 Feb 2023 06:51:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675407085;
-        bh=UV1div/UYuHkKTpSrlpfSL5+ZStLFc0b/ffDmKd1X4Q=;
+        s=korg; t=1675407084;
+        bh=9AiG2KSnVZvP7I9VpunokhGM2/RZ+Ct7bOLalMB2g04=;
         h=Date:To:From:Subject:From;
-        b=VKM+bthOSKTqo0055yEPskKtqWZmUD7C8cfzB2HihEquL5DpmknhzFiRnP7e7PtyB
-         vOOAdaYY1V7Ybe0n1Wi58AdMTlPc8YXXyPxNQ6o7Zl5JfrHKZO9wAhsPfVPY22zGoH
-         UxiDgiM6ElEpd2aLbHxPSugwB5VIH5CyQGA76Po8=
-Date:   Thu, 02 Feb 2023 22:51:24 -0800
+        b=kuXnx8ntboGuZFISABvqaqxFtcGqQY+aGNIYA5dgBfAmlKzdK3Z8S2LA0pI7eeDOP
+         +H2DYMdlf5eqHK2zEyjIjyazQWuwZIWXBNfA5r26qZT9mvYSuBNz9sRd273erJH4Rd
+         2FFyrnp2zpolQAsp81ZKv5Rhq7AM24AP1lxNiavU=
+Date:   Thu, 02 Feb 2023 22:51:23 -0800
 To:     mm-commits@vger.kernel.org, iii@linux.ibm.com, hca@linux.ibm.com,
         gor@linux.ibm.com, zaslonko@linux.ibm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-zlib-implement-switching-between-dfltcc-and-software.patch removed from -mm tree
-Message-Id: <20230203065124.DE135C433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-zlib-adjust-offset-calculation-for-dfltcc_state.patch removed from -mm tree
+Message-Id: <20230203065123.E2B0AC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,102 +42,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib/zlib: implement switching between DFLTCC and software
+     Subject: lib/zlib: adjust offset calculation for dfltcc_state
 has been removed from the -mm tree.  Its filename was
-     lib-zlib-implement-switching-between-dfltcc-and-software.patch
+     lib-zlib-adjust-offset-calculation-for-dfltcc_state.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Subject: lib/zlib: implement switching between DFLTCC and software
-Date: Thu, 26 Jan 2023 14:14:22 +0100
+Subject: lib/zlib: adjust offset calculation for dfltcc_state
+Date: Thu, 26 Jan 2023 14:14:21 +0100
+
+Patch series "lib/zlib: Set of s390 DFLTCC related patches for kernel zlib".
+
+Patches 1-7 represent a set of s390 zlib hardware support (DFLTCC) related
+fixes and enhancements integrated from zlib-ng repo relevant to kernel
+zlib (https://github.com/zlib-ng/zlib-ng).
+
+Since the official zlib repository never got DFLTCC support code merged,
+all the patches have been picked from zlib-ng fork (zlib data compression
+library for the next generation systems).  This repo contains new
+optimizations and fixes not getting implemented into the official zlib
+repository and falls under the same zlib License.  All of the original
+patches from zlib-ng were authored by Ilya Leoshkevich
+<iii@linux.ibm.com>.  Coding style has been preserved for future
+maintainability.
+
+Patches 1-2 should have no effect for the kernel zlib but make the code
+closer to zlib-ng for future maintainability.
+
+Only Patch 3 touches common zlib_deflate code, other patches are relevant
+to s390 tree only.
+
+Patch 8 is separate and intends to resolve an issue with kernel PPP driver
+which can use kernel zlib for packet compression.  Without this patch PPP
+decompression can fail due to error code returned by hardware
+(dfltcc_inflate) and PPP disables zlib compression for further packets.
+
+
+This patch (of 8):
 
 This commit is based on:
-  https://github.com/zlib-ng/zlib-ng/commit/fc04275
+  https://github.com/zlib-ng/zlib-ng/commit/d8b67f5
 
-Link: https://lkml.kernel.org/r/20230126131428.1222214-3-zaslonko@linux.ibm.com
+Link: https://lkml.kernel.org/r/20230126131428.1222214-1-zaslonko@linux.ibm.com
+Link: https://lkml.kernel.org/r/20230126131428.1222214-2-zaslonko@linux.ibm.com
 Signed-off-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
 Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com> (s390)
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/lib/zlib_dfltcc/dfltcc_deflate.c~lib-zlib-implement-switching-between-dfltcc-and-software
-+++ a/lib/zlib_dfltcc/dfltcc_deflate.c
-@@ -112,30 +112,36 @@ int dfltcc_deflate(
-     int soft_bcc;
-     int no_flush;
+--- a/lib/zlib_dfltcc/dfltcc.h~lib-zlib-adjust-offset-calculation-for-dfltcc_state
++++ a/lib/zlib_dfltcc/dfltcc.h
+@@ -100,8 +100,9 @@ struct dfltcc_state {
+     char msg[64];                      /* Buffer for strm->msg */
+ };
  
--    if (!dfltcc_can_deflate(strm))
-+    if (!dfltcc_can_deflate(strm)) {
-+        /* Clear history. */
-+        if (flush == Z_FULL_FLUSH)
-+            param->hl = 0;
-         return 0;
-+    }
++#define ALIGN_UP(p, size) (__typeof__(p))(((uintptr_t)(p) + ((size) - 1)) & ~((size) - 1))
+ /* Resides right after inflate_state or deflate_state */
+-#define GET_DFLTCC_STATE(state) ((struct dfltcc_state *)((state) + 1))
++#define GET_DFLTCC_STATE(state) ((struct dfltcc_state *)((char *)(state) + ALIGN_UP(sizeof(*state), 8)))
  
- again:
-     masked_avail_in = 0;
-     soft_bcc = 0;
-     no_flush = flush == Z_NO_FLUSH;
- 
--    /* Trailing empty block. Switch to software, except when Continuation Flag
--     * is set, which means that DFLTCC has buffered some output in the
--     * parameter block and needs to be called again in order to flush it.
-+    /* No input data. Return, except when Continuation Flag is set, which means
-+     * that DFLTCC has buffered some output in the parameter block and needs to
-+     * be called again in order to flush it.
-      */
--    if (flush == Z_FINISH && strm->avail_in == 0 && !param->cf) {
--        if (param->bcf) {
--            /* A block is still open, and the hardware does not support closing
--             * blocks without adding data. Thus, close it manually.
--             */
-+    if (strm->avail_in == 0 && !param->cf) {
-+        /* A block is still open, and the hardware does not support closing
-+         * blocks without adding data. Thus, close it manually.
-+         */
-+        if (!no_flush && param->bcf) {
-             send_eobs(strm, param);
-             param->bcf = 0;
-         }
--        return 0;
--    }
--
--    if (strm->avail_in == 0 && !param->cf) {
-+        /* Let one of deflate_* functions write a trailing empty block. */
-+        if (flush == Z_FINISH)
-+            return 0;
-+        /* Clear history. */
-+        if (flush == Z_FULL_FLUSH)
-+            param->hl = 0;
-         *result = need_more;
-         return 1;
-     }
-@@ -189,7 +195,7 @@ again:
-     param->cvt = CVT_ADLER32;
-     if (!no_flush)
-         /* We need to close a block. Always do this in software - when there is
--         * no input data, the hardware will not nohor BCC. */
-+         * no input data, the hardware will not hohor BCC. */
-         soft_bcc = 1;
-     if (flush == Z_FINISH && !param->bcf)
-         /* We are about to open a BFINAL block, set Block Header Final bit
-@@ -204,8 +210,8 @@ again:
-     param->sbb = (unsigned int)state->bi_valid;
-     if (param->sbb > 0)
-         *strm->next_out = (Byte)state->bi_buf;
--    if (param->hl)
--        param->nt = 0; /* Honor history */
-+    /* Honor history and check value */
-+    param->nt = 0;
-     param->cv = strm->adler;
- 
-     /* When opening a block, choose a Huffman-Table Type */
+ /* External functions */
+ int dfltcc_can_deflate(z_streamp strm);
 _
 
 Patches currently in -mm which might be from zaslonko@linux.ibm.com are
