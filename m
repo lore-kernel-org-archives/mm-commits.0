@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01617C636CC
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:38:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9490EC636D7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:38:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232408AbjBCGh6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:37:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36192 "EHLO
+        id S232315AbjBCGiB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:38:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232315AbjBCGgg (ORCPT
+        with ESMTP id S232327AbjBCGgg (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:36:36 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 682D88B326
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:23 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C84E8C1D1
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 15506B82981
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC7FBC433D2;
-        Fri,  3 Feb 2023 06:36:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4C9DCB82982
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9D45C433EF;
+        Fri,  3 Feb 2023 06:36:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406180;
-        bh=csV90ilqI69lfybnhIuLgqB0yO6kx3PLb8YCSbVR3LY=;
+        s=korg; t=1675406182;
+        bh=hs43hecRL7mMOy9sEC8DQ4iNv91DCFUPR04w2kZsIWU=;
         h=Date:To:From:Subject:From;
-        b=OoO9RHygIsT1tgIACdekQxwXajAzfXlxIecAs1ToYNkYjrQ+2XIwczqzrjKHWnQdg
-         bBbKvNa++uYTUj2wl6hs/9zppMbGLCYe38BTSb+5rxO46neuZzXgpmTuvexQdbhHm/
-         W2s1tyQHBkOAWUjudHlz9WClIbwuyJu2xvucMksY=
-Date:   Thu, 02 Feb 2023 22:36:20 -0800
+        b=rKOAMQUf5ZbXrX2voXrUsPdIAkTSsPQVMaYYPOvD0+91V0HqDMccfnTaGUn4QN8I2
+         c+2pzphKu4FhRs4XB49e/h6hbPLGMWRsuGRMsFZg/STucC+8OftNtK7Arw5ivBmbdA
+         Ye9N0t8thKpNN1G83r5Wb07TNRCWijKbr0QC0/TM=
+Date:   Thu, 02 Feb 2023 22:36:21 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         william.kucharski@oracle.com, vbabka@suse.cz, rppt@kernel.org,
         Liam.Howlett@oracle.com, joel@joelfernandes.org, hughd@google.com,
         geert@linux-m68k.org, corbet@lwn.net, brauner@kernel.org,
         lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mlock-update-the-interface-to-use-folios.patch removed from -mm tree
-Message-Id: <20230203063620.AC7FBC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] documentation-mm-update-references-to-__mlock_page-to-_folio.patch removed from -mm tree
+Message-Id: <20230203063621.E9D45C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,26 +44,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: mlock: update the interface to use folios
+     Subject: Documentation/mm: update references to __m[un]lock_page() to *_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-update-the-interface-to-use-folios.patch
+     documentation-mm-update-references-to-__mlock_page-to-_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: mlock: update the interface to use folios
-Date: Thu, 12 Jan 2023 12:39:31 +0000
+Subject: Documentation/mm: update references to __m[un]lock_page() to *_folio()
+Date: Thu, 12 Jan 2023 12:39:32 +0000
 
-Update the mlock interface to accept folios rather than pages, bringing
-the interface in line with the internal implementation.
+We now pass folios to these functions, so update the documentation
+accordingly.
 
-munlock_vma_page() still requires a page_folio() conversion, however this
-is consistent with the existent mlock_vma_page() implementation and a
-product of rmap still dealing in pages rather than folios.
+Additionally, correct the outdated reference to __pagevec_lru_add_fn(),
+the referenced action occurs in __munlock_folio() directly now, replace
+reference to lru_cache_add_inactive_or_unevictable() with the modern folio
+equivalent folio_add_lru_vma() and reference folio flags by the flag name
+rather than accessor.
 
-Link: https://lkml.kernel.org/r/cba12777c5544305014bc0cbec56bb4cc71477d8.1673526881.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/898c487169d98a7f09c1c1e57a7dfdc2b3f6bf0f.1673526881.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -79,267 +81,79 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/internal.h~mm-mlock-update-the-interface-to-use-folios
-+++ a/mm/internal.h
-@@ -533,10 +533,9 @@ extern int mlock_future_check(struct mm_
-  * should be called with vma's mmap_lock held for read or write,
-  * under page table lock for the pte/pmd being added or removed.
-  *
-- * mlock is usually called at the end of page_add_*_rmap(),
-- * munlock at the end of page_remove_rmap(); but new anon
-- * pages are managed by lru_cache_add_inactive_or_unevictable()
-- * calling mlock_new_page().
-+ * mlock is usually called at the end of page_add_*_rmap(), munlock at
-+ * the end of page_remove_rmap(); but new anon folios are managed by
-+ * folio_add_lru_vma() calling mlock_new_folio().
-  *
-  * @compound is used to include pmd mappings of THPs, but filter out
-  * pte mappings of THPs, which cannot be consistently counted: a pte
-@@ -565,18 +564,25 @@ static inline void mlock_vma_page(struct
- 	mlock_vma_folio(page_folio(page), vma, compound);
- }
+--- a/Documentation/mm/unevictable-lru.rst~documentation-mm-update-references-to-__mlock_page-to-_folio
++++ a/Documentation/mm/unevictable-lru.rst
+@@ -308,22 +308,22 @@ do end up getting faulted into this VM_L
+ fault path - which is also how mlock2()'s MLOCK_ONFAULT areas are handled.
  
--void munlock_page(struct page *page);
--static inline void munlock_vma_page(struct page *page,
-+void munlock_folio(struct folio *folio);
-+
-+static inline void munlock_vma_folio(struct folio *folio,
- 			struct vm_area_struct *vma, bool compound)
- {
- 	if (unlikely(vma->vm_flags & VM_LOCKED) &&
--	    (compound || !PageTransCompound(page)))
--		munlock_page(page);
-+	    (compound || !folio_test_large(folio)))
-+		munlock_folio(folio);
-+}
-+
-+static inline void munlock_vma_page(struct page *page,
-+			struct vm_area_struct *vma, bool compound)
-+{
-+	munlock_vma_folio(page_folio(page), vma, compound);
- }
--void mlock_new_page(struct page *page);
--bool need_mlock_page_drain(int cpu);
--void mlock_page_drain_local(void);
--void mlock_page_drain_remote(int cpu);
-+void mlock_new_folio(struct folio *folio);
-+bool need_mlock_drain(int cpu);
-+void mlock_drain_local(void);
-+void mlock_drain_remote(int cpu);
+ For each PTE (or PMD) being faulted into a VMA, the page add rmap function
+-calls mlock_vma_page(), which calls mlock_page() when the VMA is VM_LOCKED
++calls mlock_vma_page(), which calls mlock_folio() when the VMA is VM_LOCKED
+ (unless it is a PTE mapping of a part of a transparent huge page).  Or when
+-it is a newly allocated anonymous page, lru_cache_add_inactive_or_unevictable()
+-calls mlock_new_page() instead: similar to mlock_page(), but can make better
++it is a newly allocated anonymous page, folio_add_lru_vma() calls
++mlock_new_folio() instead: similar to mlock_folio(), but can make better
+ judgments, since this page is held exclusively and known not to be on LRU yet.
  
- extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
+-mlock_page() sets PageMlocked immediately, then places the page on the CPU's
+-mlock pagevec, to batch up the rest of the work to be done under lru_lock by
+-__mlock_page().  __mlock_page() sets PageUnevictable, initializes mlock_count
++mlock_folio() sets PG_mlocked immediately, then places the page on the CPU's
++mlock folio batch, to batch up the rest of the work to be done under lru_lock by
++__mlock_folio().  __mlock_folio() sets PG_unevictable, initializes mlock_count
+ and moves the page to unevictable state ("the unevictable LRU", but with
+-mlock_count in place of LRU threading).  Or if the page was already PageLRU
+-and PageUnevictable and PageMlocked, it simply increments the mlock_count.
++mlock_count in place of LRU threading).  Or if the page was already PG_lru
++and PG_unevictable and PG_mlocked, it simply increments the mlock_count.
  
-@@ -665,10 +671,10 @@ static inline void mlock_vma_page(struct
- 			struct vm_area_struct *vma, bool compound) { }
- static inline void munlock_vma_page(struct page *page,
- 			struct vm_area_struct *vma, bool compound) { }
--static inline void mlock_new_page(struct page *page) { }
--static inline bool need_mlock_page_drain(int cpu) { return false; }
--static inline void mlock_page_drain_local(void) { }
--static inline void mlock_page_drain_remote(int cpu) { }
-+static inline void mlock_new_folio(struct folio *folio) { }
-+static inline bool need_mlock_drain(int cpu) { return false; }
-+static inline void mlock_drain_local(void) { }
-+static inline void mlock_drain_remote(int cpu) { }
- static inline void vunmap_range_noflush(unsigned long start, unsigned long end)
- {
- }
---- a/mm/migrate.c~mm-mlock-update-the-interface-to-use-folios
-+++ a/mm/migrate.c
-@@ -265,7 +265,7 @@ static bool remove_migration_pte(struct
- 			set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
- 		}
- 		if (vma->vm_flags & VM_LOCKED)
--			mlock_page_drain_local();
-+			mlock_drain_local();
+ But in practice that may not work ideally: the page may not yet be on an LRU, or
+ it may have been temporarily isolated from LRU.  In such cases the mlock_count
+-field cannot be touched, but will be set to 0 later when __pagevec_lru_add_fn()
++field cannot be touched, but will be set to 0 later when __munlock_folio()
+ returns the page to "LRU".  Races prohibit mlock_count from being set to 1 then:
+ rather than risk stranding a page indefinitely as unevictable, always err with
+ mlock_count on the low side, so that when munlocked the page will be rescued to
+@@ -377,8 +377,8 @@ that it is munlock() being performed.
  
- 		trace_remove_migration_pte(pvmw.address, pte_val(pte),
- 					   compound_order(new));
---- a/mm/mlock.c~mm-mlock-update-the-interface-to-use-folios
-+++ a/mm/mlock.c
-@@ -210,7 +210,7 @@ static void mlock_folio_batch(struct fol
- 	folio_batch_reinit(fbatch);
- }
+ munlock_page() uses the mlock pagevec to batch up work to be done under
+ lru_lock by  __munlock_page().  __munlock_page() decrements the page's
+-mlock_count, and when that reaches 0 it clears PageMlocked and clears
+-PageUnevictable, moving the page from unevictable state to inactive LRU.
++mlock_count, and when that reaches 0 it clears PG_mlocked and clears
++PG_unevictable, moving the page from unevictable state to inactive LRU.
  
--void mlock_page_drain_local(void)
-+void mlock_drain_local(void)
- {
- 	struct folio_batch *fbatch;
+ But in practice that may not work ideally: the page may not yet have reached
+ "the unevictable LRU", or it may have been temporarily isolated from it.  In
+@@ -488,8 +488,8 @@ munlock_vma_page(), which calls munlock_
  
-@@ -221,7 +221,7 @@ void mlock_page_drain_local(void)
- 	local_unlock(&mlock_fbatch.lock);
- }
+ munlock_page() uses the mlock pagevec to batch up work to be done under
+ lru_lock by  __munlock_page().  __munlock_page() decrements the page's
+-mlock_count, and when that reaches 0 it clears PageMlocked and clears
+-PageUnevictable, moving the page from unevictable state to inactive LRU.
++mlock_count, and when that reaches 0 it clears PG_mlocked and clears
++PG_unevictable, moving the page from unevictable state to inactive LRU.
  
--void mlock_page_drain_remote(int cpu)
-+void mlock_drain_remote(int cpu)
- {
- 	struct folio_batch *fbatch;
- 
-@@ -231,7 +231,7 @@ void mlock_page_drain_remote(int cpu)
- 		mlock_folio_batch(fbatch);
- }
- 
--bool need_mlock_page_drain(int cpu)
-+bool need_mlock_drain(int cpu)
- {
- 	return folio_batch_count(&per_cpu(mlock_fbatch.fbatch, cpu));
- }
-@@ -262,13 +262,12 @@ void mlock_folio(struct folio *folio)
- }
- 
- /**
-- * mlock_new_page - mlock a newly allocated page not yet on LRU
-- * @page: page to be mlocked, either a normal page or a THP head.
-+ * mlock_new_folio - mlock a newly allocated folio not yet on LRU
-+ * @folio: folio to be mlocked, either normal or a THP head.
-  */
--void mlock_new_page(struct page *page)
-+void mlock_new_folio(struct folio *folio)
- {
- 	struct folio_batch *fbatch;
--	struct folio *folio = page_folio(page);
- 	int nr_pages = folio_nr_pages(folio);
- 
- 	local_lock(&mlock_fbatch.lock);
-@@ -286,13 +285,12 @@ void mlock_new_page(struct page *page)
- }
- 
- /**
-- * munlock_page - munlock a page
-- * @page: page to be munlocked, either a normal page or a THP head.
-+ * munlock_folio - munlock a folio
-+ * @folio: folio to be munlocked, either normal or a THP head.
-  */
--void munlock_page(struct page *page)
-+void munlock_folio(struct folio *folio)
- {
- 	struct folio_batch *fbatch;
--	struct folio *folio = page_folio(page);
- 
- 	local_lock(&mlock_fbatch.lock);
- 	fbatch = this_cpu_ptr(&mlock_fbatch.fbatch);
-@@ -314,7 +312,7 @@ static int mlock_pte_range(pmd_t *pmd, u
- 	struct vm_area_struct *vma = walk->vma;
- 	spinlock_t *ptl;
- 	pte_t *start_pte, *pte;
--	struct page *page;
-+	struct folio *folio;
- 
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (ptl) {
-@@ -322,11 +320,11 @@ static int mlock_pte_range(pmd_t *pmd, u
- 			goto out;
- 		if (is_huge_zero_pmd(*pmd))
- 			goto out;
--		page = pmd_page(*pmd);
-+		folio = page_folio(pmd_page(*pmd));
- 		if (vma->vm_flags & VM_LOCKED)
--			mlock_folio(page_folio(page));
-+			mlock_folio(folio);
- 		else
--			munlock_page(page);
-+			munlock_folio(folio);
- 		goto out;
- 	}
- 
-@@ -334,15 +332,15 @@ static int mlock_pte_range(pmd_t *pmd, u
- 	for (pte = start_pte; addr != end; pte++, addr += PAGE_SIZE) {
- 		if (!pte_present(*pte))
- 			continue;
--		page = vm_normal_page(vma, addr, *pte);
--		if (!page || is_zone_device_page(page))
-+		folio = vm_normal_folio(vma, addr, *pte);
-+		if (!folio || folio_is_zone_device(folio))
- 			continue;
--		if (PageTransCompound(page))
-+		if (folio_test_large(folio))
- 			continue;
- 		if (vma->vm_flags & VM_LOCKED)
--			mlock_folio(page_folio(page));
-+			mlock_folio(folio);
- 		else
--			munlock_page(page);
-+			munlock_folio(folio);
- 	}
- 	pte_unmap(start_pte);
- out:
---- a/mm/page_alloc.c~mm-mlock-update-the-interface-to-use-folios
-+++ a/mm/page_alloc.c
-@@ -8587,7 +8587,7 @@ static int page_alloc_cpu_dead(unsigned
- 	struct zone *zone;
- 
- 	lru_add_drain_cpu(cpu);
--	mlock_page_drain_remote(cpu);
-+	mlock_drain_remote(cpu);
- 	drain_pages(cpu);
- 
- 	/*
---- a/mm/rmap.c~mm-mlock-update-the-interface-to-use-folios
-+++ a/mm/rmap.c
-@@ -1764,7 +1764,7 @@ discard:
- 		 */
- 		page_remove_rmap(subpage, vma, folio_test_hugetlb(folio));
- 		if (vma->vm_flags & VM_LOCKED)
--			mlock_page_drain_local();
-+			mlock_drain_local();
- 		folio_put(folio);
- 	}
- 
-@@ -2105,7 +2105,7 @@ static bool try_to_migrate_one(struct fo
- 		 */
- 		page_remove_rmap(subpage, vma, folio_test_hugetlb(folio));
- 		if (vma->vm_flags & VM_LOCKED)
--			mlock_page_drain_local();
-+			mlock_drain_local();
- 		folio_put(folio);
- 	}
- 
---- a/mm/swap.c~mm-mlock-update-the-interface-to-use-folios
-+++ a/mm/swap.c
-@@ -562,7 +562,7 @@ void folio_add_lru_vma(struct folio *fol
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
- 
- 	if (unlikely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) == VM_LOCKED))
--		mlock_new_page(&folio->page);
-+		mlock_new_folio(folio);
- 	else
- 		folio_add_lru(folio);
- }
-@@ -781,7 +781,7 @@ void lru_add_drain(void)
- 	local_lock(&cpu_fbatches.lock);
- 	lru_add_drain_cpu(smp_processor_id());
- 	local_unlock(&cpu_fbatches.lock);
--	mlock_page_drain_local();
-+	mlock_drain_local();
- }
- 
- /*
-@@ -796,7 +796,7 @@ static void lru_add_and_bh_lrus_drain(vo
- 	lru_add_drain_cpu(smp_processor_id());
- 	local_unlock(&cpu_fbatches.lock);
- 	invalidate_bh_lrus_cpu();
--	mlock_page_drain_local();
-+	mlock_drain_local();
- }
- 
- void lru_add_drain_cpu_zone(struct zone *zone)
-@@ -805,7 +805,7 @@ void lru_add_drain_cpu_zone(struct zone
- 	lru_add_drain_cpu(smp_processor_id());
- 	drain_local_pages(zone);
- 	local_unlock(&cpu_fbatches.lock);
--	mlock_page_drain_local();
-+	mlock_drain_local();
- }
- 
- #ifdef CONFIG_SMP
-@@ -828,7 +828,7 @@ static bool cpu_needs_drain(unsigned int
- 		folio_batch_count(&fbatches->lru_deactivate) ||
- 		folio_batch_count(&fbatches->lru_lazyfree) ||
- 		folio_batch_count(&fbatches->activate) ||
--		need_mlock_page_drain(cpu) ||
-+		need_mlock_drain(cpu) ||
- 		has_bh_in_lru(cpu, NULL);
- }
+ But in practice that may not work ideally: the page may not yet have reached
+ "the unevictable LRU", or it may have been temporarily isolated from it.  In
+@@ -515,7 +515,7 @@ munlocking by clearing VM_LOCKED from a
+ present, if one of those pages were unmapped by truncation or hole punch before
+ mlock_pte_range() reached it, it would not be recognized as mlocked by this VMA,
+ and would not be counted out of mlock_count.  In this rare case, a page may
+-still appear as PageMlocked after it has been fully unmapped: and it is left to
++still appear as PG_mlocked after it has been fully unmapped: and it is left to
+ release_pages() (or __page_cache_release()) to clear it and update statistics
+ before freeing (this event is counted in /proc/vmstat unevictable_pgs_cleared,
+ which is usually 0).
+@@ -527,7 +527,7 @@ Page Reclaim in shrink_*_list()
+ vmscan's shrink_active_list() culls any obviously unevictable pages -
+ i.e. !page_evictable(page) pages - diverting those to the unevictable list.
+ However, shrink_active_list() only sees unevictable pages that made it onto the
+-active/inactive LRU lists.  Note that these pages do not have PageUnevictable
++active/inactive LRU lists.  Note that these pages do not have PG_unevictable
+ set - otherwise they would be on the unevictable list and shrink_active_list()
+ would never see them.
  
 _
 
