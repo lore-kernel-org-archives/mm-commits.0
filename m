@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66B3CC636CC
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 05:38:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6F43C636CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 05:41:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230144AbjBCFik (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 00:38:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41344 "EHLO
+        id S231922AbjBCFlz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 00:41:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230070AbjBCFij (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 00:38:39 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E441087D18
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 21:38:37 -0800 (PST)
+        with ESMTP id S230070AbjBCFly (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 00:41:54 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4960885D4
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 21:41:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9DE85B828B3
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 05:38:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 430EFC433EF;
-        Fri,  3 Feb 2023 05:38:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5AA2361D7A
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 05:41:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8C2EC4339B;
+        Fri,  3 Feb 2023 05:41:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675402715;
-        bh=0I/d+nAuN6zye1LzQQPH2cp5TihxqpYkITl0fshLBGs=;
+        s=korg; t=1675402912;
+        bh=s8tXC06xG7vzMX44zbnBJoH4r1oTKTBsdQ/S5rgGQis=;
         h=Date:To:From:Subject:From;
-        b=jKdVHxrfuemRIfaG7XlTfp3cdw1FN1mHfjatTUu6aSQfV/aDJaJp/bilEGVrrH4pB
-         M+LOh4q0K+OnRIsFtBTf+jff0N99pwglY23cJBTqXpT6ZaTU2X8OAzV/D/5qwbSqDg
-         Zuori8izyUIObgBCVLGnsVNxJcdA1BKjmrti3IEQ=
-Date:   Thu, 02 Feb 2023 21:38:34 -0800
-To:     mm-commits@vger.kernel.org,
-        syzbot+fa6f2ee9039b87ef86c4@syzkaller.appspotmail.com,
-        hughd@google.com, willy@infradead.org, akpm@linux-foundation.org
+        b=j93xuBqiBWK8GEGOo04LSIVvytU+1iFxG6XFHJJA9abliA/D66SGjqsR9ZdL7EWBH
+         aRmPXT/b1KqsY9yPFazbL/1zybAvLXYpD3JjR/6j+4o4yk2XH0Y77+iRHqGuH67INS
+         HLEYq8VPpfLkUl3rN1tbZWaSH/jYU51NwfNAfCU4=
+Date:   Thu, 02 Feb 2023 21:41:52 -0800
+To:     mm-commits@vger.kernel.org, lkp@intel.com, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-reimplement-compound_nr-fix.patch removed from -mm tree
-Message-Id: <20230203053835.430EFC433EF@smtp.kernel.org>
+Subject: [folded-merged] mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks-fix.patch removed from -mm tree
+Message-Id: <20230203054152.A8C2EC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,117 +41,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-reimplement-compound_nr-fix
+     Subject: fixup: mm/debug_vm_pgtable: more pte_swp_exclusive() sanity checks
 has been removed from the -mm tree.  Its filename was
-     mm-reimplement-compound_nr-fix.patch
+     mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks-fix.patch
 
-This patch was dropped because it was folded into mm-reimplement-compound_nr.patch
+This patch was dropped because it was folded into mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks.patch
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-reimplement-compound_nr-fix
-Date: Thu, 12 Jan 2023 13:05:05 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: fixup: mm/debug_vm_pgtable: more pte_swp_exclusive() sanity checks
+Date: Sat, 14 Jan 2023 16:47:12 +0100
 
-shmem is deliberately calling zero_user_segments() on a tail page. 
-zero_user_segments() calls compound_nr() which used to return 1 when
-called on a tail page but now trips this assert.  I didn't intend this
-change of behaviour, so let's start by fixing that.
+generic_max_swapfile_size() is only available with CONFIG_SWAP -- which
+makes sense, because without SWAP there are no swap files. Let's
+simply probe manually which bits we can obtain after storing them in a
+PTE, and properly call it "max swap offset", which is more generic for
+a swap entry.
 
-Link: https://lkml.kernel.org/r/Y8AFgZEEjnUIaCbf@casper.infradead.org
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
-Reported-by: <syzbot+fa6f2ee9039b87ef86c4@syzkaller.appspotmail.com>
-  Link: https://lkml.kernel.org/r/000000000000d9ae1305f20e89bd@google.com
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/6aaad548-cf48-77fa-9d6c-db83d724b2eb@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm.h~mm-reimplement-compound_nr-fix
-+++ a/include/linux/mm.h
-@@ -1742,10 +1742,22 @@ static inline long folio_nr_pages(struct
- #endif
- }
- 
--/* Returns the number of pages in this potentially compound page. */
-+/*
-+ * compound_nr() returns the number of pages in this potentially compound
-+ * page.  compound_nr() can be called on a tail page, and is defined to
-+ * return 1 in that case.
-+ */
- static inline unsigned long compound_nr(struct page *page)
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks-fix
++++ a/mm/debug_vm_pgtable.c
+@@ -811,15 +811,17 @@ static void __init pmd_swap_soft_dirty_t
+ static void __init pte_swap_exclusive_tests(struct pgtable_debug_args *args)
  {
--	return folio_nr_pages((struct folio *)page);
-+	struct folio *folio = (struct folio *)page;
+ #ifdef __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+-	unsigned long max_swapfile_size = generic_max_swapfile_size();
++	unsigned long max_swap_offset;
+ 	swp_entry_t entry, entry2;
+ 	pte_t pte;
+ 
+ 	pr_debug("Validating PTE swap exclusive\n");
+ 
++	/* See generic_max_swapfile_size(): probe the maximum offset */
++	max_swap_offset = swp_offset(pte_to_swp_entry(swp_entry_to_pte(swp_entry(0, ~0UL))));
 +
-+	if (!test_bit(PG_head, &folio->flags))
-+		return 1;
-+#ifdef CONFIG_64BIT
-+	return folio->_folio_nr_pages;
-+#else
-+	return 1L << folio->_folio_order;
-+#endif
- }
+ 	/* Create a swp entry with all possible bits set */
+-	entry = swp_entry((1 << MAX_SWAPFILES_SHIFT) - 1,
+-			  max_swapfile_size - 1);
++	entry = swp_entry((1 << MAX_SWAPFILES_SHIFT) - 1, max_swap_offset);
  
- /**
-@@ -1754,8 +1766,7 @@ static inline unsigned long compound_nr(
-  */
- static inline int thp_nr_pages(struct page *page)
- {
--	VM_BUG_ON_PGFLAGS(PageTail(page), page);
--	return compound_nr(page);
-+	return folio_nr_pages((struct folio *)page);
- }
- 
- /**
+ 	pte = swp_entry_to_pte(entry);
+ 	WARN_ON(pte_swp_exclusive(pte));
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
-mm-convert-head_subpages_mapcount-into-folio_nr_pages_mapped.patch
-doc-clarify-refcount-section-by-referring-to-folios-pages.patch
-mm-convert-total_compound_mapcount-to-folio_total_mapcount.patch
-mm-convert-page_remove_rmap-to-use-a-folio-internally.patch
-mm-convert-page_add_anon_rmap-to-use-a-folio-internally.patch
-mm-convert-page_add_file_rmap-to-use-a-folio-internally.patch
-mm-add-folio_add_new_anon_rmap.patch
-page_alloc-use-folio-fields-directly.patch
-mm-use-a-folio-in-hugepage_add_anon_rmap-and-hugepage_add_new_anon_rmap.patch
-mm-use-entire_mapcount-in-__page_dup_rmap.patch
-mm-debug-remove-call-to-head_compound_mapcount.patch
-hugetlb-remove-uses-of-folio_mapcount_ptr.patch
-mm-convert-page_mapcount-to-use-folio_entire_mapcount.patch
-mm-remove-head_compound_mapcount-and-_ptr-functions.patch
-mm-reimplement-compound_order.patch
-mm-reimplement-compound_nr.patch
-mm-convert-set_compound_page_dtor-and-set_compound_order-to-folios.patch
-mm-convert-is_transparent_hugepage-to-use-a-folio.patch
-mm-convert-destroy_large_folio-to-use-folio_dtor.patch
-hugetlb-remove-uses-of-compound_dtor-and-compound_nr.patch
-mm-remove-first-tail-page-members-from-struct-page.patch
-doc-correct-struct-folio-kernel-doc.patch
-mm-move-page-deferred_list-to-folio-_deferred_list.patch
-mm-huge_memory-remove-page_deferred_list.patch
-mm-huge_memory-convert-get_deferred_split_queue-to-take-a-folio.patch
-mm-convert-deferred_split_huge_page-to-deferred_split_folio.patch
-shmem-convert-shmem_write_end-to-use-a-folio.patch
-mm-add-vma_alloc_zeroed_movable_folio.patch
-mm-convert-do_anonymous_page-to-use-a-folio.patch
-mm-convert-wp_page_copy-to-use-folios.patch
-mm-use-a-folio-in-copy_pte_range.patch
-mm-use-a-folio-in-copy_present_pte.patch
-mm-fs-convert-inode_attach_wb-to-take-a-folio.patch
-mm-convert-mem_cgroup_css_from_page-to-mem_cgroup_css_from_folio.patch
-mm-remove-page_evictable.patch
-mm-remove-mlock_vma_page.patch
-mm-remove-munlock_vma_page.patch
-mm-clean-up-mlock_page-munlock_page-references-in-comments.patch
-rmap-add-folio-parameter-to-__page_set_anon_rmap.patch
-filemap-convert-filemap_map_pmd-to-take-a-folio.patch
-filemap-convert-filemap_range_has_page-to-use-a-folio.patch
-readahead-convert-readahead_expand-to-use-a-folio.patch
-mm-add-memcpy_from_file_folio.patch
-fs-convert-writepage_t-callback-to-pass-a-folio.patch
-mpage-convert-__mpage_writepage-to-use-a-folio-more-fully.patch
-mpage-convert-__mpage_writepage-to-use-a-folio-more-fully-fix.patch
+mm-debug_vm_pgtable-more-pte_swp_exclusive-sanity-checks.patch
+alpha-mm-support-__have_arch_pte_swp_exclusive.patch
+arc-mm-support-__have_arch_pte_swp_exclusive.patch
+arm-mm-support-__have_arch_pte_swp_exclusive.patch
+csky-mm-support-__have_arch_pte_swp_exclusive.patch
+hexagon-mm-support-__have_arch_pte_swp_exclusive.patch
+ia64-mm-support-__have_arch_pte_swp_exclusive.patch
+loongarch-mm-support-__have_arch_pte_swp_exclusive.patch
+m68k-mm-remove-dummy-__swp-definitions-for-nommu.patch
+m68k-mm-support-__have_arch_pte_swp_exclusive.patch
+microblaze-mm-support-__have_arch_pte_swp_exclusive.patch
+mips-mm-support-__have_arch_pte_swp_exclusive.patch
+nios2-mm-refactor-swap-pte-layout.patch
+nios2-mm-support-__have_arch_pte_swp_exclusive.patch
+openrisc-mm-support-__have_arch_pte_swp_exclusive.patch
+parisc-mm-support-__have_arch_pte_swp_exclusive.patch
+powerpc-mm-support-__have_arch_pte_swp_exclusive-on-32bit-book3s.patch
+powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive.patch
+riscv-mm-support-__have_arch_pte_swp_exclusive.patch
+sh-mm-support-__have_arch_pte_swp_exclusive.patch
+sparc-mm-support-__have_arch_pte_swp_exclusive-on-32bit.patch
+sparc-mm-support-__have_arch_pte_swp_exclusive-on-64bit.patch
+um-mm-support-__have_arch_pte_swp_exclusive.patch
+x86-mm-support-__have_arch_pte_swp_exclusive-also-on-32bit.patch
+xtensa-mm-support-__have_arch_pte_swp_exclusive.patch
+mm-remove-__have_arch_pte_swp_exclusive.patch
 
