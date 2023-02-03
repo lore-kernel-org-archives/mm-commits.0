@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B2DBC636CC
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:35:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C462EC61DA4
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:35:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232166AbjBCGf4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:35:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36366 "EHLO
+        id S232198AbjBCGf5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:35:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232100AbjBCGfe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:35:34 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 926FD55BD
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:35:33 -0800 (PST)
+        with ESMTP id S232107AbjBCGfj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:35:39 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6545AEF95
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:35:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id ACFEBCE2EA3
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:35:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3187C4339C;
-        Fri,  3 Feb 2023 06:35:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E81A761DA7
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:35:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 437D1C4339C;
+        Fri,  3 Feb 2023 06:35:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406130;
-        bh=mh/jHjmT/blNRsz20Hofnuf0BN1KaD3L4XTMCwc0EMc=;
+        s=korg; t=1675406133;
+        bh=z6G9kRVAP8y7/b3S/zaX3b6TcTuk77q1uI87S7vlaYs=;
         h=Date:To:From:Subject:From;
-        b=cZJxWavrvgOwPSLt0XKGgZ8hOASkrT1NUgwY09+GGbzCZMCcbhA84SLfQdMH8WeLd
-         0/fr5mbfVYo37b8HyN9HA5s/4ewtp8KV+NOWd24AZq07cxonixYk2OtusIlhV+8vAv
-         pVaMZoKKO5h2xpSUc2RrSMJFhljfiRQ5mw0ShzLA=
-Date:   Thu, 02 Feb 2023 22:35:29 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
+        b=wiQGZkXR/JMy9rahi8Ddi4vgfATd5nnIcgB4H2i8YykmgXQvX0yVGF5v5PKDWxRL9
+         C/nVyDUCYnx2iKbpN/nNdN4bTXgwXrUfHHInnVnf9tuQvl2on0cBY0c9DgLwloe2P+
+         G5yNjANVqEINu8NBl5JssdOyr2sjs+P2lq60LlBo=
+Date:   Thu, 02 Feb 2023 22:35:32 -0800
+To:     mm-commits@vger.kernel.org, jhubbard@nvidia.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-add-missing-kcompactd-wakeup-trace-event.patch removed from -mm tree
-Message-Id: <20230203063529.E3187C4339C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch removed from -mm tree
+Message-Id: <20230203063533.437D1C4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,42 +41,256 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: add missing kcompactd wakeup trace event
+     Subject: mm: remove folio_pincount_ptr() and head_compound_pincount()
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-add-missing-kcompactd-wakeup-trace-event.patch
+     mm-remove-folio_pincount_ptr-and-head_compound_pincount.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: compaction: add missing kcompactd wakeup trace event
-Date: Tue, 10 Jan 2023 21:36:21 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: remove folio_pincount_ptr() and head_compound_pincount()
+Date: Wed, 11 Jan 2023 14:28:47 +0000
 
-Add missing kcompactd wakeup trace event for proactive compaction,
-meanwhile use order = -1 and the highest zone index of the pgdat for the
-kcompactd wakeup trace event by proactive compaction.
+We can use folio->_pincount directly, since all users are guarded by tests
+of compound/large.
 
-Link: https://lkml.kernel.org/r/cbf8097a2d8a1b6800991f2a21575550d3613ce6.1673342761.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20230111142915.1001531-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/compaction.c~mm-compaction-add-missing-kcompactd-wakeup-trace-event
-+++ a/mm/compaction.c
-@@ -2730,6 +2730,8 @@ int compaction_proactiveness_sysctl_hand
- 				continue;
+--- a/Documentation/core-api/pin_user_pages.rst~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/Documentation/core-api/pin_user_pages.rst
+@@ -55,18 +55,17 @@ flags the caller provides. The caller is
+ pages* array, and the function then pins pages by incrementing each by a special
+ value: GUP_PIN_COUNTING_BIAS.
  
- 			pgdat->proactive_compact_trigger = true;
-+			trace_mm_compaction_wakeup_kcompactd(pgdat->node_id, -1,
-+							     pgdat->nr_zones - 1);
- 			wake_up_interruptible(&pgdat->kcompactd_wait);
- 		}
+-For compound pages, the GUP_PIN_COUNTING_BIAS scheme is not used. Instead,
+-an exact form of pin counting is achieved, by using the 2nd struct page
+-in the compound page. A new struct page field, compound_pincount, has
+-been added in order to support this.
+-
+-This approach for compound pages avoids the counting upper limit problems that
+-are discussed below. Those limitations would have been aggravated severely by
+-huge pages, because each tail page adds a refcount to the head page. And in
+-fact, testing revealed that, without a separate compound_pincount field,
+-page overflows were seen in some huge page stress tests.
++For large folios, the GUP_PIN_COUNTING_BIAS scheme is not used. Instead,
++the extra space available in the struct folio is used to store the
++pincount directly.
++
++This approach for large folios avoids the counting upper limit problems
++that are discussed below. Those limitations would have been aggravated
++severely by huge pages, because each tail page adds a refcount to the
++head page. And in fact, testing revealed that, without a separate pincount
++field, refcount overflows were seen in some huge page stress tests.
+ 
+-This also means that huge pages and compound pages do not suffer
++This also means that huge pages and large folios do not suffer
+ from the false positives problem that is mentioned below.::
+ 
+  Function
+@@ -264,9 +263,9 @@ place.)
+ Other diagnostics
+ =================
+ 
+-dump_page() has been enhanced slightly, to handle these new counting
+-fields, and to better report on compound pages in general. Specifically,
+-for compound pages, the exact (compound_pincount) pincount is reported.
++dump_page() has been enhanced slightly to handle these new counting
++fields, and to better report on large folios in general.  Specifically,
++for large folios, the exact pincount is reported.
+ 
+ References
+ ==========
+--- a/include/linux/mm.h~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/include/linux/mm.h
+@@ -1011,11 +1011,6 @@ static inline void folio_set_compound_dt
+ 
+ void destroy_large_folio(struct folio *folio);
+ 
+-static inline int head_compound_pincount(struct page *head)
+-{
+-	return atomic_read(compound_pincount_ptr(head));
+-}
+-
+ static inline void set_compound_order(struct page *page, unsigned int order)
+ {
+ 	page[1].compound_order = order;
+@@ -1641,11 +1636,6 @@ static inline struct folio *pfn_folio(un
+ 	return page_folio(pfn_to_page(pfn));
+ }
+ 
+-static inline atomic_t *folio_pincount_ptr(struct folio *folio)
+-{
+-	return &folio_page(folio, 1)->compound_pincount;
+-}
+-
+ /**
+  * folio_maybe_dma_pinned - Report if a folio may be pinned for DMA.
+  * @folio: The folio.
+@@ -1663,7 +1653,7 @@ static inline atomic_t *folio_pincount_p
+  * expected to be able to deal gracefully with a false positive.
+  *
+  * For large folios, the result will be exactly correct. That's because
+- * we have more tracking data available: the compound_pincount is used
++ * we have more tracking data available: the _pincount field is used
+  * instead of the GUP_PIN_COUNTING_BIAS scheme.
+  *
+  * For more information, please see Documentation/core-api/pin_user_pages.rst.
+@@ -1674,7 +1664,7 @@ static inline atomic_t *folio_pincount_p
+ static inline bool folio_maybe_dma_pinned(struct folio *folio)
+ {
+ 	if (folio_test_large(folio))
+-		return atomic_read(folio_pincount_ptr(folio)) > 0;
++		return atomic_read(&folio->_pincount) > 0;
+ 
+ 	/*
+ 	 * folio_ref_count() is signed. If that refcount overflows, then
+--- a/include/linux/mm_types.h~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/include/linux/mm_types.h
+@@ -443,11 +443,6 @@ static inline atomic_t *subpages_mapcoun
+ 	return &page[1].subpages_mapcount;
+ }
+ 
+-static inline atomic_t *compound_pincount_ptr(struct page *page)
+-{
+-	return &page[1].compound_pincount;
+-}
+-
+ /*
+  * Used for sizing the vmemmap region on some architectures
+  */
+--- a/mm/debug.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/mm/debug.c
+@@ -94,11 +94,11 @@ static void __dump_page(struct page *pag
+ 			page, page_ref_count(head), mapcount, mapping,
+ 			page_to_pgoff(page), page_to_pfn(page));
+ 	if (compound) {
+-		pr_warn("head:%p order:%u compound_mapcount:%d subpages_mapcount:%d compound_pincount:%d\n",
++		pr_warn("head:%p order:%u compound_mapcount:%d subpages_mapcount:%d pincount:%d\n",
+ 				head, compound_order(head),
+ 				head_compound_mapcount(head),
+ 				head_subpages_mapcount(head),
+-				head_compound_pincount(head));
++				atomic_read(&folio->_pincount));
  	}
+ 
+ #ifdef CONFIG_MEMCG
+--- a/mm/gup.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/mm/gup.c
+@@ -111,7 +111,7 @@ retry:
+  *    FOLL_GET: folio's refcount will be incremented by @refs.
+  *
+  *    FOLL_PIN on large folios: folio's refcount will be incremented by
+- *    @refs, and its compound_pincount will be incremented by @refs.
++ *    @refs, and its pincount will be incremented by @refs.
+  *
+  *    FOLL_PIN on single-page folios: folio's refcount will be incremented by
+  *    @refs * GUP_PIN_COUNTING_BIAS.
+@@ -157,7 +157,7 @@ struct folio *try_grab_folio(struct page
+ 		 * try_get_folio() is left intact.
+ 		 */
+ 		if (folio_test_large(folio))
+-			atomic_add(refs, folio_pincount_ptr(folio));
++			atomic_add(refs, &folio->_pincount);
+ 		else
+ 			folio_ref_add(folio,
+ 					refs * (GUP_PIN_COUNTING_BIAS - 1));
+@@ -182,7 +182,7 @@ static void gup_put_folio(struct folio *
+ 	if (flags & FOLL_PIN) {
+ 		node_stat_mod_folio(folio, NR_FOLL_PIN_RELEASED, refs);
+ 		if (folio_test_large(folio))
+-			atomic_sub(refs, folio_pincount_ptr(folio));
++			atomic_sub(refs, &folio->_pincount);
+ 		else
+ 			refs *= GUP_PIN_COUNTING_BIAS;
+ 	}
+@@ -232,7 +232,7 @@ int __must_check try_grab_page(struct pa
+ 		 */
+ 		if (folio_test_large(folio)) {
+ 			folio_ref_add(folio, 1);
+-			atomic_add(1, folio_pincount_ptr(folio));
++			atomic_add(1, &folio->_pincount);
+ 		} else {
+ 			folio_ref_add(folio, GUP_PIN_COUNTING_BIAS);
+ 		}
+--- a/mm/huge_memory.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/mm/huge_memory.c
+@@ -2477,9 +2477,9 @@ static void __split_huge_page_tail(struc
+ 	 * of swap cache pages that store the swp_entry_t in tail pages.
+ 	 * Fix up and warn once if private is unexpectedly set.
+ 	 *
+-	 * What of 32-bit systems, on which head[1].compound_pincount overlays
++	 * What of 32-bit systems, on which folio->_pincount overlays
+ 	 * head[1].private?  No problem: THP_SWAP is not enabled on 32-bit, and
+-	 * compound_pincount must be 0 for folio_ref_freeze() to have succeeded.
++	 * pincount must be 0 for folio_ref_freeze() to have succeeded.
+ 	 */
+ 	if (!folio_test_swapcache(page_folio(head))) {
+ 		VM_WARN_ON_ONCE_PAGE(page_tail->private != 0, page_tail);
+--- a/mm/hugetlb.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/mm/hugetlb.c
+@@ -1476,7 +1476,7 @@ static void __destroy_compound_gigantic_
+ 
+ 	atomic_set(folio_mapcount_ptr(folio), 0);
+ 	atomic_set(folio_subpages_mapcount_ptr(folio), 0);
+-	atomic_set(folio_pincount_ptr(folio), 0);
++	atomic_set(&folio->_pincount, 0);
+ 
+ 	for (i = 1; i < nr_pages; i++) {
+ 		p = folio_page(folio, i);
+@@ -1998,7 +1998,7 @@ static bool __prep_compound_gigantic_fol
+ 	}
+ 	atomic_set(folio_mapcount_ptr(folio), -1);
+ 	atomic_set(folio_subpages_mapcount_ptr(folio), 0);
+-	atomic_set(folio_pincount_ptr(folio), 0);
++	atomic_set(&folio->_pincount, 0);
+ 	return true;
+ 
+ out_error:
+--- a/mm/page_alloc.c~mm-remove-folio_pincount_ptr-and-head_compound_pincount
++++ a/mm/page_alloc.c
+@@ -775,11 +775,13 @@ void free_compound_page(struct page *pag
+ 
+ static void prep_compound_head(struct page *page, unsigned int order)
+ {
++	struct folio *folio = (struct folio *)page;
++
+ 	set_compound_page_dtor(page, COMPOUND_PAGE_DTOR);
+ 	set_compound_order(page, order);
+ 	atomic_set(compound_mapcount_ptr(page), -1);
+ 	atomic_set(subpages_mapcount_ptr(page), 0);
+-	atomic_set(compound_pincount_ptr(page), 0);
++	atomic_set(&folio->_pincount, 0);
+ }
+ 
+ static void prep_compound_tail(struct page *head, int tail_idx)
+@@ -1291,6 +1293,7 @@ static inline bool free_page_is_bad(stru
+ 
+ static int free_tail_pages_check(struct page *head_page, struct page *page)
+ {
++	struct folio *folio = (struct folio *)head_page;
+ 	int ret = 1;
+ 
+ 	/*
+@@ -1314,8 +1317,8 @@ static int free_tail_pages_check(struct
+ 			bad_page(page, "nonzero subpages_mapcount");
+ 			goto out;
+ 		}
+-		if (unlikely(head_compound_pincount(head_page))) {
+-			bad_page(page, "nonzero compound_pincount");
++		if (unlikely(atomic_read(&folio->_pincount))) {
++			bad_page(page, "nonzero pincount");
+ 			goto out;
+ 		}
+ 		break;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
