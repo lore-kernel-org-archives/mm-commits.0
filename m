@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2053C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:40:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 455CCC6379F
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:40:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232374AbjBCGkd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:40:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36594 "EHLO
+        id S232055AbjBCGkf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:40:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232462AbjBCGj3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:39:29 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00AB78C41C
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:02 -0800 (PST)
+        with ESMTP id S232138AbjBCGjc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:39:32 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04C898EB64
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D4A6C61D97
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A415C4339C;
-        Fri,  3 Feb 2023 06:37:02 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 95ED8B82980
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C225C4339B;
+        Fri,  3 Feb 2023 06:37:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406222;
-        bh=L5AD0ZEjwsH2tO7aoNmR+DP3rP52PojSO2nfn/PrvvI=;
+        s=korg; t=1675406224;
+        bh=K4Pcqdl1WMDbD70OTsUWe28OlbKJKJ/H+PptTifs/UA=;
         h=Date:To:From:Subject:From;
-        b=BYl0QRYQhu19HGv6uRlK4WQfOgK7IFylWu6Nz75SOZgx6hMqTINSbBVCQucNrSZ0E
-         FjdOS4UjYXFJHqw4UatoAnSq5yivf63J84IfHvPCLEqutDcIypVxUzGsem0enJWNXZ
-         MtXVXgXYjQLpfBV0UhnDDzjaXUgoQ8GzyKbXDT5I=
-Date:   Thu, 02 Feb 2023 22:37:01 -0800
-To:     mm-commits@vger.kernel.org, riel@surriel.com, hughd@google.com,
-        stevensd@chromium.org, akpm@linux-foundation.org
+        b=aopjOxE/Ks+6b3QN9u0aPDA3N2MO0snMMzA48gxbBgnsSbWNDVBUN93mdmVdTs8Qj
+         oOYa4QYK5pXeVdjJ4OrEoVkbJqWb9tuO0WmdVrtEHjb1EjyhmV4YT4RQLIqnwHKyzv
+         rYxJoT01m0x4UKd6UCeabdP8pGBkJGYUnBBfKW2Q=
+Date:   Thu, 02 Feb 2023 22:37:03 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-khugepaged-with-shmem_enabled=advise.patch removed from -mm tree
-Message-Id: <20230203063702.3A415C4339C@smtp.kernel.org>
+Subject: [merged mm-stable] filemap-added-filemap_get_folios_tag.patch removed from -mm tree
+Message-Id: <20230203063704.3C225C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,132 +41,121 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: fix khugepaged with shmem_enabled=advise
+     Subject: filemap: add filemap_get_folios_tag()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-khugepaged-with-shmem_enabled=advise.patch
+     filemap-added-filemap_get_folios_tag.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Stevens <stevensd@chromium.org>
-Subject: mm: fix khugepaged with shmem_enabled=advise
-Date: Fri, 13 Jan 2023 11:30:11 +0900
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: filemap: add filemap_get_folios_tag()
+Date: Wed, 4 Jan 2023 13:14:27 -0800
 
-Pass vm_flags as a parameter to shmem_is_huge, rather than reading the
-flags from the vm_area_struct in question.  This allows the updated flags
-from hugepage_madvise to be passed to the check, which is necessary
-because madvise does not update the vm_area_struct's flags until after
-hugepage_madvise returns.
+This is the equivalent of find_get_pages_range_tag(), except for folios
+instead of pages.
 
-This fixes an issue when shmem_enabled=madvise, where MADV_HUGEPAGE on
-shmem was not able to register the mm_struct with khugepaged.  Prior to
-cd89fb065099, the mm_struct was registered by MADV_HUGEPAGE regardless of
-the value of shmem_enabled (which was only checked when scanning vmas).
+One noteable difference is filemap_get_folios_tag() does not take in a
+maximum pages argument.  It instead tries to fill a folio batch and stops
+either once full (15 folios) or reaching the end of the search range.
 
-Link: https://lkml.kernel.org/r/20230113023011.1784015-1-stevensd@google.com
-Fixes: cd89fb065099 ("mm,thp,shmem: make khugepaged obey tmpfs mount flags")
-Signed-off-by: David Stevens <stevensd@chromium.org>
-Cc: David Stevens <stevensd@chromium.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@surriel.com>
+The new function supports large folios, the initial function did not since
+all callers don't use large folios.
+
+Link: https://lkml.kernel.org/r/20230104211448.4804-3-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Matthew Wilcow (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/shmem_fs.h~mm-fix-khugepaged-with-shmem_enabled=advise
-+++ a/include/linux/shmem_fs.h
-@@ -92,14 +92,8 @@ extern struct page *shmem_read_mapping_p
- extern void shmem_truncate_range(struct inode *inode, loff_t start, loff_t end);
- int shmem_unuse(unsigned int type);
+--- a/include/linux/pagemap.h~filemap-added-filemap_get_folios_tag
++++ a/include/linux/pagemap.h
+@@ -739,6 +739,8 @@ unsigned filemap_get_folios(struct addre
+ 		pgoff_t end, struct folio_batch *fbatch);
+ unsigned filemap_get_folios_contig(struct address_space *mapping,
+ 		pgoff_t *start, pgoff_t end, struct folio_batch *fbatch);
++unsigned filemap_get_folios_tag(struct address_space *mapping, pgoff_t *start,
++		pgoff_t end, xa_mark_t tag, struct folio_batch *fbatch);
+ unsigned find_get_pages_range_tag(struct address_space *mapping, pgoff_t *index,
+ 			pgoff_t end, xa_mark_t tag, unsigned int nr_pages,
+ 			struct page **pages);
+--- a/mm/filemap.c~filemap-added-filemap_get_folios_tag
++++ a/mm/filemap.c
+@@ -2282,6 +2282,60 @@ out:
+ EXPORT_SYMBOL(filemap_get_folios_contig);
  
--extern bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
--			  pgoff_t index, bool shmem_huge_force);
--static inline bool shmem_huge_enabled(struct vm_area_struct *vma,
--				      bool shmem_huge_force)
--{
--	return shmem_is_huge(vma, file_inode(vma->vm_file), vma->vm_pgoff,
--			     shmem_huge_force);
--}
-+extern bool shmem_is_huge(struct inode *inode, pgoff_t index, bool shmem_huge_force,
-+			  struct mm_struct *mm, unsigned long vm_flags);
- extern unsigned long shmem_swap_usage(struct vm_area_struct *vma);
- extern unsigned long shmem_partial_swap_usage(struct address_space *mapping,
- 						pgoff_t start, pgoff_t end);
---- a/mm/huge_memory.c~mm-fix-khugepaged-with-shmem_enabled=advise
-+++ a/mm/huge_memory.c
-@@ -119,7 +119,8 @@ bool hugepage_vma_check(struct vm_area_s
- 	 * own flags.
- 	 */
- 	if (!in_pf && shmem_file(vma->vm_file))
--		return shmem_huge_enabled(vma, !enforce_sysfs);
-+		return shmem_is_huge(file_inode(vma->vm_file), vma->vm_pgoff,
-+				     !enforce_sysfs, vma->vm_mm, vm_flags);
- 
- 	/* Enforce sysfs THP requirements as necessary */
- 	if (enforce_sysfs &&
---- a/mm/shmem.c~mm-fix-khugepaged-with-shmem_enabled=advise
-+++ a/mm/shmem.c
-@@ -468,15 +468,14 @@ static bool shmem_confirm_swap(struct ad
- 
- static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
- 
--bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
--		   pgoff_t index, bool shmem_huge_force)
-+bool shmem_is_huge(struct inode *inode, pgoff_t index, bool shmem_huge_force,
-+		   struct mm_struct *mm, unsigned long vm_flags)
- {
- 	loff_t i_size;
- 
- 	if (!S_ISREG(inode->i_mode))
- 		return false;
--	if (vma && ((vma->vm_flags & VM_NOHUGEPAGE) ||
--	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags)))
-+	if (mm && ((vm_flags & VM_NOHUGEPAGE) || test_bit(MMF_DISABLE_THP, &mm->flags)))
- 		return false;
- 	if (shmem_huge == SHMEM_HUGE_DENY)
- 		return false;
-@@ -493,7 +492,7 @@ bool shmem_is_huge(struct vm_area_struct
- 			return true;
- 		fallthrough;
- 	case SHMEM_HUGE_ADVISE:
--		if (vma && (vma->vm_flags & VM_HUGEPAGE))
-+		if (mm && (vm_flags & VM_HUGEPAGE))
- 			return true;
- 		fallthrough;
- 	default:
-@@ -676,8 +675,8 @@ static long shmem_unused_huge_count(stru
- 
- #define shmem_huge SHMEM_HUGE_DENY
- 
--bool shmem_is_huge(struct vm_area_struct *vma, struct inode *inode,
--		   pgoff_t index, bool shmem_huge_force)
-+bool shmem_is_huge(struct inode *inode, pgoff_t index, bool shmem_huge_force,
-+		   struct mm_struct *mm, unsigned long vm_flags)
- {
- 	return false;
- }
-@@ -1068,7 +1067,7 @@ static int shmem_getattr(struct user_nam
- 			STATX_ATTR_NODUMP);
- 	generic_fillattr(&init_user_ns, inode, stat);
- 
--	if (shmem_is_huge(NULL, inode, 0, false))
-+	if (shmem_is_huge(inode, 0, false, NULL, 0))
- 		stat->blksize = HPAGE_PMD_SIZE;
- 
- 	if (request_mask & STATX_BTIME) {
-@@ -1926,7 +1925,8 @@ repeat:
- 		return 0;
- 	}
- 
--	if (!shmem_is_huge(vma, inode, index, false))
-+	if (!shmem_is_huge(inode, index, false,
-+			   vma ? vma->vm_mm : NULL, vma ? vma->vm_flags : 0))
- 		goto alloc_nohuge;
- 
- 	huge_gfp = vma_thp_gfp_mask(vma);
+ /**
++ * filemap_get_folios_tag - Get a batch of folios matching @tag
++ * @mapping:    The address_space to search
++ * @start:      The starting page index
++ * @end:        The final page index (inclusive)
++ * @tag:        The tag index
++ * @fbatch:     The batch to fill
++ *
++ * Same as filemap_get_folios(), but only returning folios tagged with @tag.
++ *
++ * Return: The number of folios found.
++ * Also update @start to index the next folio for traversal.
++ */
++unsigned filemap_get_folios_tag(struct address_space *mapping, pgoff_t *start,
++			pgoff_t end, xa_mark_t tag, struct folio_batch *fbatch)
++{
++	XA_STATE(xas, &mapping->i_pages, *start);
++	struct folio *folio;
++
++	rcu_read_lock();
++	while ((folio = find_get_entry(&xas, end, tag)) != NULL) {
++		/*
++		 * Shadow entries should never be tagged, but this iteration
++		 * is lockless so there is a window for page reclaim to evict
++		 * a page we saw tagged. Skip over it.
++		 */
++		if (xa_is_value(folio))
++			continue;
++		if (!folio_batch_add(fbatch, folio)) {
++			unsigned long nr = folio_nr_pages(folio);
++
++			if (folio_test_hugetlb(folio))
++				nr = 1;
++			*start = folio->index + nr;
++			goto out;
++		}
++	}
++	/*
++	 * We come here when there is no page beyond @end. We take care to not
++	 * overflow the index @start as it confuses some of the callers. This
++	 * breaks the iteration when there is a page at index -1 but that is
++	 * already broke anyway.
++	 */
++	if (end == (pgoff_t)-1)
++		*start = (pgoff_t)-1;
++	else
++		*start = end + 1;
++out:
++	rcu_read_unlock();
++
++	return folio_batch_count(fbatch);
++}
++EXPORT_SYMBOL(filemap_get_folios_tag);
++
++/**
+  * find_get_pages_range_tag - Find and return head pages matching @tag.
+  * @mapping:	the address_space to search
+  * @index:	the starting page index
 _
 
-Patches currently in -mm which might be from stevensd@chromium.org are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
+mm-add-folio_estimated_sharers.patch
+mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch
+mm-mempolicy-convert-queue_pages_pte_range-to-queue_folios_pte_range.patch
+mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
+mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
+mm-mempolicy-convert-migrate_page_add-to-migrate_folio_add.patch
+mm-add-folio_get_nontail_page.patch
+mm-migrate-add-folio_movable_ops.patch
+mm-migrate-convert-isolate_movable_page-to-use-folios.patch
+mm-migrate-convert-putback_movable_pages-to-use-folios.patch
 
