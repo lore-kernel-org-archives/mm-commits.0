@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A7CDC61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 22:15:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77A99C61DA4
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 22:24:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229785AbjBCWPO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 17:15:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37142 "EHLO
+        id S231216AbjBCWYx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 17:24:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233357AbjBCWOq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 17:14:46 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEEC1AF50D
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 14:13:48 -0800 (PST)
+        with ESMTP id S233097AbjBCWYq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 17:24:46 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B11A69503
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 14:24:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9EA26B82C2A
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 22:13:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E596C433D2;
-        Fri,  3 Feb 2023 22:13:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A5416202B
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 22:24:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0AFEC433D2;
+        Fri,  3 Feb 2023 22:24:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675462426;
-        bh=1iWzk2KavpLoJK5p82ahS7/RHM/4/fObC7e3mL6ywA8=;
+        s=korg; t=1675463085;
+        bh=MQ05PtIRg5cE4ERZXXjDcpwXneIWNBdGoVz6+69oe9o=;
         h=Date:To:From:Subject:From;
-        b=vuklxjO7FuP09D9iDd8A60HLR6numhAQoTE3kPZ0NfYazEwk48v0ijliweAaNt87A
-         rJYMRLlNjSFZdkE9pDj4SFJe3ASDpu1rn3CBIal0oEIa4xLps0dB/R8F17I8RvE7Nt
-         iDdZX4zbN0N0T8/eotLMO66U/mevqZ8lsp0Xbq4k=
-Date:   Fri, 03 Feb 2023 14:13:45 -0800
-To:     mm-commits@vger.kernel.org, ira.weiny@intel.com,
-        fmdefrancesco@gmail.com, willy@infradead.org,
-        akpm@linux-foundation.org
+        b=U8LbUQxopZQoyZN68diZn+IbZYzHBfMQkHNa+TF8R2yLcl6tKqmas/bQP0DD29GEU
+         KzCe3jQ4hs/7Hofglq9c43WPzBBAt5a2QauLkoNbUHWxpWam0N32+lCOBnj+L8Bi0b
+         iQ2C1swb/r+9J49x1yXjLSCXu+B71riIO2kJuGBU=
+Date:   Fri, 03 Feb 2023 14:24:44 -0800
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, vbabka@suse.cz,
+        rppt@linux.ibm.com, rppt@kernel.org, osalvador@suse.de,
+        mgorman@techsingularity.net, david@redhat.com,
+        yajun.deng@linux.dev, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-memcpy_from_file_folio.patch added to mm-unstable branch
-Message-Id: <20230203221346.3E596C433D2@smtp.kernel.org>
+Subject: + mm-page_alloc-reduce-fallbacks-to-migrate_pcptypes-1.patch added to mm-unstable branch
+Message-Id: <20230203222444.E0AFEC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix memcpy_from_file_folio() integer underflow
+     Subject: mm/page_alloc: reduce fallbacks to (MIGRATE_PCPTYPES - 1)
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-memcpy_from_file_folio.patch
+     mm-page_alloc-reduce-fallbacks-to-migrate_pcptypes-1.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-memcpy_from_file_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-reduce-fallbacks-to-migrate_pcptypes-1.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,42 +66,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: fix memcpy_from_file_folio() integer underflow
-Date: Fri, 3 Feb 2023 16:28:40 -0500
+From: Yajun Deng <yajun.deng@linux.dev>
+Subject: mm/page_alloc: reduce fallbacks to (MIGRATE_PCPTYPES - 1)
+Date: Fri, 3 Feb 2023 18:01:32 +0800
 
-If we have a HIGHMEM system with a large folio, 'offset' may be larger
-than PAGE_SIZE, and so min_t will cap at 'len' instead of the intended
-end-of-page.  That can overflow into the next page which is likely to be
-unmapped and fault, but could theoretically copy the wrong data.
+The commit 1dd214b8f21c ("mm: page_alloc: avoid merging non-fallbackable
+pageblocks with others") has removed MIGRATE_CMA and MIGRATE_ISOLATE from
+fallbacks list. so there is no need to add an element at the end of every
+type.
 
-Link: https://lkml.kernel.org/r/Y919vmSrtAgsf6K3@casper.infradead.org
-Fixes: 00cdf76012ab ("mm: add memcpy_from_file_folio()")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
+Reduce fallbacks to (MIGRATE_PCPTYPES - 1).
+
+Link: https://lkml.kernel.org/r/20230203100132.1627787-1-yajun.deng@linux.dev
+Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/highmem.h~mm-add-memcpy_from_file_folio
-+++ a/include/linux/highmem.h
-@@ -431,9 +431,10 @@ static inline size_t memcpy_from_file_fo
- 	size_t offset = offset_in_folio(folio, pos);
- 	char *from = kmap_local_folio(folio, offset);
+--- a/mm/page_alloc.c~mm-page_alloc-reduce-fallbacks-to-migrate_pcptypes-1
++++ a/mm/page_alloc.c
+@@ -2603,10 +2603,10 @@ struct page *__rmqueue_smallest(struct z
+  *
+  * The other migratetypes do not have fallbacks.
+  */
+-static int fallbacks[MIGRATE_TYPES][3] = {
+-	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_TYPES },
+-	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_TYPES },
+-	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_TYPES },
++static int fallbacks[MIGRATE_TYPES][MIGRATE_PCPTYPES - 1] = {
++	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE   },
++	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE },
++	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE   },
+ };
  
--	if (folio_test_highmem(folio))
-+	if (folio_test_highmem(folio)) {
-+		offset = offset_in_page(offset);
- 		len = min_t(size_t, len, PAGE_SIZE - offset);
--	else
-+	} else
- 		len = min(len, folio_size(folio) - offset);
+ #ifdef CONFIG_CMA
+@@ -2865,11 +2865,8 @@ int find_suitable_fallback(struct free_a
+ 		return -1;
  
- 	memcpy(to, from, len);
+ 	*can_steal = false;
+-	for (i = 0;; i++) {
++	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
+ 		fallback_mt = fallbacks[migratetype][i];
+-		if (fallback_mt == MIGRATE_TYPES)
+-			break;
+-
+ 		if (free_area_empty(area, fallback_mt))
+ 			continue;
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from yajun.deng@linux.dev are
 
-mm-add-memcpy_from_file_folio.patch
+mm-page_alloc-reduce-fallbacks-to-migrate_pcptypes-1.patch
 
