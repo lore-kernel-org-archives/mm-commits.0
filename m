@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0095C6379F
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:41:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F655C636D7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:41:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232096AbjBCGlb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:41:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36942 "EHLO
+        id S231542AbjBCGlc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:41:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231542AbjBCGkN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:40:13 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 132F58D61F
+        with ESMTP id S232258AbjBCGkQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:40:16 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED20A8D627
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:29 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B04B61D97
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECC98C433EF;
-        Fri,  3 Feb 2023 06:37:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 85E0761D98
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF5E7C433D2;
+        Fri,  3 Feb 2023 06:37:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406248;
-        bh=juLEnN0bmH3h3POfVGxIEMZKro2NpSG7FGfHz8JEf3M=;
+        s=korg; t=1675406249;
+        bh=8+o0s35fktt0q/6uLumqVN+bkFFSLcUasROTz+tZG2E=;
         h=Date:To:From:Subject:From;
-        b=mwLfGvjy8Fdb0KeBK6gUs9k/OYajjuqcYw4ET0mhPh65aKtAKWMuLTiG3UxETU4tQ
-         2rcAP5japES39LbimlKkXwXWJhhgcutPy7X1gmlYMahNpWa6PPa9C2t6y/gJu3BeR+
-         owmPh9MMBr6d8X9NgeHaijaoMDwDCiaJyFHThtDg=
-Date:   Thu, 02 Feb 2023 22:37:27 -0800
+        b=pGCREGlyJ/jxOW/UNFwWLngu5zdcwWYgucd0B48Eget4Qb0dlyPE/6EptshprPc3q
+         i5nVZZQ6F1v1Fn2U8NVnyrqBGDfEgNvtU9b+8a7BqTnAxWI9wtakNw4Zwoe72RnIiq
+         B+kMWLHJWiCsqwhcGc7siQGJ7iTHPX7/tA4eD8Vs=
+Date:   Thu, 02 Feb 2023 22:37:28 -0800
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] nilfs2-convert-nilfs_copy_dirty_pages-to-use-filemap_get_folios_tag.patch removed from -mm tree
-Message-Id: <20230203063727.ECC98C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] nilfs2-convert-nilfs_clear_dirty_pages-to-use-filemap_get_folios_tag.patch removed from -mm tree
+Message-Id: <20230203063728.DF5E7C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,94 +41,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nilfs2: convert nilfs_copy_dirty_pages() to use filemap_get_folios_tag()
+     Subject: nilfs2: convert nilfs_clear_dirty_pages() to use filemap_get_folios_tag()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-convert-nilfs_copy_dirty_pages-to-use-filemap_get_folios_tag.patch
+     nilfs2-convert-nilfs_clear_dirty_pages-to-use-filemap_get_folios_tag.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: nilfs2: convert nilfs_copy_dirty_pages() to use filemap_get_folios_tag()
-Date: Wed, 4 Jan 2023 13:14:46 -0800
+Subject: nilfs2: convert nilfs_clear_dirty_pages() to use filemap_get_folios_tag()
+Date: Wed, 4 Jan 2023 13:14:47 -0800
 
 Convert function to use folios throughout.  This is in preparation for the
-removal of find_get_pages_range_tag().  This change removes 8 calls to
+removal of find_get_pages_range_tag().  This change removes 2 calls to
 compound_head().
 
-Link: https://lkml.kernel.org/r/20230104211448.4804-22-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230104211448.4804-23-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Acked-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/nilfs2/page.c~nilfs2-convert-nilfs_copy_dirty_pages-to-use-filemap_get_folios_tag
+--- a/fs/nilfs2/page.c~nilfs2-convert-nilfs_clear_dirty_pages-to-use-filemap_get_folios_tag
 +++ a/fs/nilfs2/page.c
-@@ -240,42 +240,43 @@ static void nilfs_copy_page(struct page
- int nilfs_copy_dirty_pages(struct address_space *dmap,
- 			   struct address_space *smap)
+@@ -358,22 +358,22 @@ repeat:
+  */
+ void nilfs_clear_dirty_pages(struct address_space *mapping, bool silent)
  {
 -	struct pagevec pvec;
 +	struct folio_batch fbatch;
  	unsigned int i;
  	pgoff_t index = 0;
- 	int err = 0;
  
 -	pagevec_init(&pvec);
 +	folio_batch_init(&fbatch);
- repeat:
--	if (!pagevec_lookup_tag(&pvec, smap, &index, PAGECACHE_TAG_DIRTY))
-+	if (!filemap_get_folios_tag(smap, &index, (pgoff_t)-1,
-+				PAGECACHE_TAG_DIRTY, &fbatch))
- 		return 0;
  
--	for (i = 0; i < pagevec_count(&pvec); i++) {
--		struct page *page = pvec.pages[i], *dpage;
-+	for (i = 0; i < folio_batch_count(&fbatch); i++) {
-+		struct folio *folio = fbatch.folios[i], *dfolio;
+-	while (pagevec_lookup_tag(&pvec, mapping, &index,
+-					PAGECACHE_TAG_DIRTY)) {
+-		for (i = 0; i < pagevec_count(&pvec); i++) {
+-			struct page *page = pvec.pages[i];
++	while (filemap_get_folios_tag(mapping, &index, (pgoff_t)-1,
++				PAGECACHE_TAG_DIRTY, &fbatch)) {
++		for (i = 0; i < folio_batch_count(&fbatch); i++) {
++			struct folio *folio = fbatch.folios[i];
  
--		lock_page(page);
--		if (unlikely(!PageDirty(page)))
--			NILFS_PAGE_BUG(page, "inconsistent dirty state");
-+		folio_lock(folio);
-+		if (unlikely(!folio_test_dirty(folio)))
-+			NILFS_PAGE_BUG(&folio->page, "inconsistent dirty state");
- 
--		dpage = grab_cache_page(dmap, page->index);
--		if (unlikely(!dpage)) {
-+		dfolio = filemap_grab_folio(dmap, folio->index);
-+		if (unlikely(!dfolio)) {
- 			/* No empty page is added to the page cache */
- 			err = -ENOMEM;
+-			lock_page(page);
+-			nilfs_clear_dirty_page(page, silent);
 -			unlock_page(page);
++			folio_lock(folio);
++			nilfs_clear_dirty_page(&folio->page, silent);
 +			folio_unlock(folio);
- 			break;
  		}
--		if (unlikely(!page_has_buffers(page)))
--			NILFS_PAGE_BUG(page,
-+		if (unlikely(!folio_buffers(folio)))
-+			NILFS_PAGE_BUG(&folio->page,
- 				       "found empty page in dat page cache");
- 
--		nilfs_copy_page(dpage, page, 1);
--		__set_page_dirty_nobuffers(dpage);
-+		nilfs_copy_page(&dfolio->page, &folio->page, 1);
-+		filemap_dirty_folio(folio_mapping(dfolio), dfolio);
- 
--		unlock_page(dpage);
--		put_page(dpage);
--		unlock_page(page);
-+		folio_unlock(dfolio);
-+		folio_put(dfolio);
-+		folio_unlock(folio);
+-		pagevec_release(&pvec);
++		folio_batch_release(&fbatch);
+ 		cond_resched();
  	}
--	pagevec_release(&pvec);
-+	folio_batch_release(&fbatch);
- 	cond_resched();
- 
- 	if (likely(!err))
+ }
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
