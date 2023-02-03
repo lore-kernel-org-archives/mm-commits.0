@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0615C636D3
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Feb 2023 23:58:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E28CC636D3
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 00:06:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231486AbjBBX6B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Feb 2023 18:58:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37338 "EHLO
+        id S233489AbjBCAGK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Feb 2023 19:06:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233348AbjBBX5z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2023 18:57:55 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE6C36CC97
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 15:57:53 -0800 (PST)
+        with ESMTP id S233488AbjBCAGC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2023 19:06:02 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E083987590
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 16:05:41 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 76812B827D6
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 23:57:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F526C433D2;
-        Thu,  2 Feb 2023 23:57:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 61E1CB828BB
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 00:05:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE04FC433A0;
+        Fri,  3 Feb 2023 00:05:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675382271;
-        bh=7Sip9jePHXDhKTxR7sCSW2kwKod7rmgoeY186nwvTLc=;
+        s=korg; t=1675382739;
+        bh=RLLdvnsLtxG0kZEa9jhKQ6RyWHKKOSrKENNSQsmZdrM=;
         h=Date:To:From:Subject:From;
-        b=Bly8ZTaTanewN5ZBm8iawnzIxqVXG/S/uFCOYumWYoH+vprg/nv2E8kTgsB+t9Xj+
-         7PoE9yWipROGIZ4mpqMfdL5Abgk2utYOWkrt5tu1uaaYos6xqhAQADvL/tF3lSCxIF
-         hCe4qchOGwU0ujA5cwjRHMyjZ1NidkfSFDfaSmBs=
-Date:   Thu, 02 Feb 2023 15:57:50 -0800
-To:     mm-commits@vger.kernel.org, urezki@gmail.com,
-        sangyun.kim@snu.ac.kr, rppt@kernel.org, gwan-gyeong.mun@intel.com,
-        christophe.leroy@csgroup.eu, casionwoo@gmail.com,
-        42.hyeyoo@gmail.com, hn.min.lee@gmail.com,
-        akpm@linux-foundation.org
+        b=D0f+WXpRhFzeuLLuJJ16bg5iFplzHn2wr3962CQYbSqhT2OZKfyM/WD1iZH4Wb09B
+         vfN+Thp68IDPW6RhWdQuCzJTr17cQuWo+KzHzNeKyb7U+z+8Uls17N1lQl+GoK+jaJ
+         K8x8KAHyn3JWp+1EkdyFT7mkCzLUPJB5Ms3tkbpU=
+Date:   Thu, 02 Feb 2023 16:05:38 -0800
+To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
+        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-replace-bug_on-to-a-simple-if-statement.patch added to mm-unstable branch
-Message-Id: <20230202235751.0F526C433D2@smtp.kernel.org>
+Subject: + mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v4.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230203000538.EE04FC433A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: replace BUG_ON with a simple if statement
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-replace-bug_on-to-a-simple-if-statement.patch
+     Subject: mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v4
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v4.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-replace-bug_on-to-a-simple-if-statement.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v4.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,51 +65,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hyunmin Lee <hn.min.lee@gmail.com>
-Subject: mm/vmalloc: replace BUG_ON with a simple if statement
-Date: Wed, 1 Feb 2023 20:51:42 +0900
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v4
+Date: Wed, 1 Feb 2023 15:44:33 +0800
 
-As per the coding standards, in the event of an abnormal condition that
-should not occur under normal circumstances, the kernel should attempt
-recovery and proceed with execution, rather than halting the machine.
+- update changelog and directly return ERR_PTR(-EHWPOISON) in
+  ksm_might_need_to_copy() suggested HORIGUCHI NAOYA
+- add back unlikely in unuse_pte()
 
-Specifically, in the alloc_vmap_area() function, use a simple if()
-instead of using BUG_ON() halting the machine.
-
-Link: https://lkml.kernel.org/r/20230201115142.GA7772@min-iamroot
-Co-Developed-by: Gwan-gyeong Mun <gwan-gyeong.mun@intel.com>
-Co-Developed-by: Jeungwoo Yoo <casionwoo@gmail.com>
-Co-Developed-by: Sangyun Kim <sangyun.kim@snu.ac.kr>
-Signed-off-by: Hyunmin Lee <hn.min.lee@gmail.com>
-Signed-off-by: Gwan-gyeong Mun <gwan-gyeong.mun@intel.com>
-Signed-off-by: Jeungwoo Yoo <casionwoo@gmail.com>
-Signed-off-by: Sangyun Kim <sangyun.kim@snu.ac.kr>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Reviewed-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Link: https://lkml.kernel.org/r/20230201074433.96641-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/vmalloc.c~mm-vmalloc-replace-bug_on-to-a-simple-if-statement
-+++ a/mm/vmalloc.c
-@@ -1587,9 +1587,8 @@ static struct vmap_area *alloc_vmap_area
- 	int purged = 0;
- 	int ret;
+--- a/mm/ksm.c~mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v4
++++ a/mm/ksm.c
+@@ -2631,9 +2631,8 @@ struct page *ksm_might_need_to_copy(stru
+ 	if (new_page) {
+ 		if (copy_mc_user_highpage(new_page, page, address, vma)) {
+ 			put_page(new_page);
+-			new_page = ERR_PTR(-EHWPOISON);
+ 			memory_failure_queue(page_to_pfn(page), 0);
+-			return new_page;
++			return ERR_PTR(-EHWPOISON);
+ 		}
+ 		SetPageDirty(new_page);
+ 		__SetPageUptodate(new_page);
+--- a/mm/swapfile.c~mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v4
++++ a/mm/swapfile.c
+@@ -1780,7 +1780,7 @@ static int unuse_pte(struct vm_area_stru
+ 		goto out;
+ 	}
  
--	BUG_ON(!size);
--	BUG_ON(offset_in_page(size));
--	BUG_ON(!is_power_of_2(align));
-+	if (unlikely(!size || offset_in_page(size) || !is_power_of_2(align)))
-+		return ERR_PTR(-EINVAL);
+-	if (hwposioned || !PageUptodate(page)) {
++	if (unlikely(hwposioned || !PageUptodate(page))) {
+ 		swp_entry_t swp_entry;
  
- 	if (unlikely(!vmap_initialized))
- 		return ERR_PTR(-EBUSY);
+ 		dec_mm_counter(vma->vm_mm, MM_SWAPENTS);
 _
 
-Patches currently in -mm which might be from hn.min.lee@gmail.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-vmalloc-replace-bug_on-to-a-simple-if-statement.patch
+mm-hwposion-support-recovery-from-ksm_might_need_to_copy.patch
+mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v3.patch
+mm-hwposion-support-recovery-from-ksm_might_need_to_copy-v4.patch
+mm-madvise-use-vm_normal_folio-in-madvise_free_pte_range.patch
 
