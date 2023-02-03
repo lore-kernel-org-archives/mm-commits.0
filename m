@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3D5EC63797
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:50:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 552DAC636CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:50:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231463AbjBCGux (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:50:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45316 "EHLO
+        id S231888AbjBCGu4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:50:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231436AbjBCGuv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:50:51 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 294749039
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:50:50 -0800 (PST)
+        with ESMTP id S229785AbjBCGuw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:50:52 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4F2118B04
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:50:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D6066B82982
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:50:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84608C4339B;
-        Fri,  3 Feb 2023 06:50:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6237D61DBB
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:50:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA972C4339B;
+        Fri,  3 Feb 2023 06:50:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675407047;
-        bh=3AQPr/MXDMuR4sLDa3zR8u/MQcZuiXHQgC30lb0r59g=;
+        s=korg; t=1675407050;
+        bh=onBkx/dYNLdRol8N+GVClCIzfwz1Q5giPZIki+lNjys=;
         h=Date:To:From:Subject:From;
-        b=N9cOrZZxDV5K98QFaYxAwZlVwyP4BWoc5MMYflo/Dh+W7cYTSKZ+MdsEE1HV8uxTW
-         y2QvQ5Q6ONF2fBDG2eE81y0FwbiqxtNfwCPVS35IJxRZ6h9O14smO1yh61Q1QkZQNm
-         z2e+7fMgE/vTxDhGJzfN1GGNOEd9TH21QZiIWJgw=
-Date:   Thu, 02 Feb 2023 22:50:46 -0800
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
-        revest@chromium.org, peterz@infradead.org, mark.rutland@arm.com,
-        kpsingh@kernel.org, keescook@chromium.org, jpoimboe@redhat.com,
-        hch@infradead.org, gregkh@linuxfoundation.org, corbet@lwn.net,
-        clm@meta.com, bp@alien8.de, alexei.starovoitov@gmail.com,
-        mhiramat@kernel.org, akpm@linux-foundation.org
+        b=kuwsBpy+B47lSc04Xvyi2sDLLOPyLl8x36rWFEKSAkkQhO++dllHcIsJpsM2k8b6w
+         hb5THeKexjTIrdl6NtBPDi6YMiz46FfrTu24kHaWK+1MfBoP0+Nl6eBsqxYj7XXGhM
+         wit6qMKgQS0CZteIaRdz0LfZU4pIP5zxEMRkvCrw=
+Date:   Thu, 02 Feb 2023 22:50:50 -0800
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
+        jiebin.sun@intel.com, alexander.sverdlin@siemens.com,
+        1vier1@web.de, manfred@colorfullife.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] docs-fault-injection-add-requirements-of-error-injectable-functions.patch removed from -mm tree
-Message-Id: <20230203065047.84608C4339B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] include-linux-percpu_counterh-race-in-uniprocessor-percpu_counter_add.patch removed from -mm tree
+Message-Id: <20230203065050.BA972C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,135 +42,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: docs: fault-injection: add requirements of error injectable functions
+     Subject: include/linux/percpu_counter.h: race in uniprocessor percpu_counter_add()
 has been removed from the -mm tree.  Its filename was
-     docs-fault-injection-add-requirements-of-error-injectable-functions.patch
+     include-linux-percpu_counterh-race-in-uniprocessor-percpu_counter_add.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Subject: docs: fault-injection: add requirements of error injectable functions
-Date: Mon, 12 Dec 2022 11:46:54 +0900
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: include/linux/percpu_counter.h: race in uniprocessor percpu_counter_add()
+Date: Fri, 16 Dec 2022 16:04:40 +0100
 
-Add a section about the requirements of the error injectable functions and
-the type of errors.
+The percpu interface is supposed to be preempt and irq safe.
 
-Since this section must be read before using ALLOW_ERROR_INJECTION()
-macro, that section is referred from the comment of the macro too.
+But:
+The uniprocessor implementation of percpu_counter_add() is not irq safe:
+if an interrupt happens during the +=, then the result is undefined.
 
-Link: https://lkml.kernel.org/r/167081321427.387937.15475445689482551048.stgit@devnote3
-Link: https://lore.kernel.org/all/20221211115218.2e6e289bb85f8cf53c11aa97@kernel.org/T/#u
-Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Chris Mason <clm@meta.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Florent Revest <revest@chromium.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Therefore: switch from preempt_disable() to local_irq_save().
+This prevents interrupts from interrupting the +=, and as a side effect
+prevents preemption.
+
+Link: https://lkml.kernel.org/r/20221216150441.200533-2-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: "Sun, Jiebin" <jiebin.sun@intel.com>
+Cc: <1vier1@web.de>
+Cc: Alexander Sverdlin <alexander.sverdlin@siemens.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/fault-injection/fault-injection.rst~docs-fault-injection-add-requirements-of-error-injectable-functions
-+++ a/Documentation/fault-injection/fault-injection.rst
-@@ -231,6 +231,71 @@ proc entries
- 	This feature is intended for systematic testing of faults in a single
- 	system call. See an example below.
+--- a/include/linux/percpu_counter.h~include-linux-percpu_counterh-race-in-uniprocessor-percpu_counter_add
++++ a/include/linux/percpu_counter.h
+@@ -152,9 +152,11 @@ __percpu_counter_compare(struct percpu_c
+ static inline void
+ percpu_counter_add(struct percpu_counter *fbc, s64 amount)
+ {
+-	preempt_disable();
++	unsigned long flags;
++
++	local_irq_save(flags);
+ 	fbc->count += amount;
+-	preempt_enable();
++	local_irq_restore(flags);
+ }
  
-+
-+Error Injectable Functions
-+--------------------------
-+
-+This part is for the kenrel developers considering to add a function to
-+ALLOW_ERROR_INJECTION() macro.
-+
-+Requirements for the Error Injectable Functions
-+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+
-+Since the function-level error injection forcibly changes the code path
-+and returns an error even if the input and conditions are proper, this can
-+cause unexpected kernel crash if you allow error injection on the function
-+which is NOT error injectable. Thus, you (and reviewers) must ensure;
-+
-+- The function returns an error code if it fails, and the callers must check
-+  it correctly (need to recover from it).
-+
-+- The function does not execute any code which can change any state before
-+  the first error return. The state includes global or local, or input
-+  variable. For example, clear output address storage (e.g. `*ret = NULL`),
-+  increments/decrements counter, set a flag, preempt/irq disable or get
-+  a lock (if those are recovered before returning error, that will be OK.)
-+
-+The first requirement is important, and it will result in that the release
-+(free objects) functions are usually harder to inject errors than allocate
-+functions. If errors of such release functions are not correctly handled
-+it will cause a memory leak easily (the caller will confuse that the object
-+has been released or corrupted.)
-+
-+The second one is for the caller which expects the function should always
-+does something. Thus if the function error injection skips whole of the
-+function, the expectation is betrayed and causes an unexpected error.
-+
-+Type of the Error Injectable Functions
-+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+
-+Each error injectable functions will have the error type specified by the
-+ALLOW_ERROR_INJECTION() macro. You have to choose it carefully if you add
-+a new error injectable function. If the wrong error type is chosen, the
-+kernel may crash because it may not be able to handle the error.
-+There are 4 types of errors defined in include/asm-generic/error-injection.h
-+
-+EI_ETYPE_NULL
-+  This function will return `NULL` if it fails. e.g. return an allocateed
-+  object address.
-+
-+EI_ETYPE_ERRNO
-+  This function will return an `-errno` error code if it fails. e.g. return
-+  -EINVAL if the input is wrong. This will include the functions which will
-+  return an address which encodes `-errno` by ERR_PTR() macro.
-+
-+EI_ETYPE_ERRNO_NULL
-+  This function will return an `-errno` or `NULL` if it fails. If the caller
-+  of this function checks the return value with IS_ERR_OR_NULL() macro, this
-+  type will be appropriate.
-+
-+EI_ETYPE_TRUE
-+  This function will return `true` (non-zero positive value) if it fails.
-+
-+If you specifies a wrong type, for example, EI_TYPE_ERRNO for the function
-+which returns an allocated object, it may cause a problem because the returned
-+value is not an object address and the caller can not access to the address.
-+
-+
- How to add new fault injection capability
- -----------------------------------------
- 
---- a/include/asm-generic/error-injection.h~docs-fault-injection-add-requirements-of-error-injectable-functions
-+++ a/include/asm-generic/error-injection.h
-@@ -19,8 +19,10 @@ struct pt_regs;
- 
- #ifdef CONFIG_FUNCTION_ERROR_INJECTION
- /*
-- * Whitelist generating macro. Specify functions which can be
-- * error-injectable using this macro.
-+ * Whitelist generating macro. Specify functions which can be error-injectable
-+ * using this macro. If you unsure what is required for the error-injectable
-+ * functions, please read Documentation/fault-injection/fault-injection.rst
-+ * 'Error Injectable Functions' section.
-  */
- #define ALLOW_ERROR_INJECTION(fname, _etype)				\
- static struct error_injection_entry __used				\
+ /* non-SMP percpu_counter_add_local is the same with percpu_counter_add */
 _
 
-Patches currently in -mm which might be from mhiramat@kernel.org are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 
