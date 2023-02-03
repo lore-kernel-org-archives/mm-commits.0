@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFB70C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:39:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11FAAC636D7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:39:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232447AbjBCGjW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:39:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36200 "EHLO
+        id S232270AbjBCGjX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:39:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36942 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232270AbjBCGh1 (ORCPT
+        with ESMTP id S232387AbjBCGh1 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:37:27 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0DE18E06F
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:40 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A8D98E043
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 20898CE2EA1
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4817C433EF;
-        Fri,  3 Feb 2023 06:36:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0E257B828B2
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9AE0C433EF;
+        Fri,  3 Feb 2023 06:36:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406198;
-        bh=ViosIn/ICb+r9+RD97OzYoDOGgnTF8jhRpVpPbZd8g0=;
+        s=korg; t=1675406199;
+        bh=ld0tZC53lT7XOUKCPTHAOzIRIxsebVnbXqLxhGShuYM=;
         h=Date:To:From:Subject:From;
-        b=ou25sHFB1uAxiWVusU9Pxp9V4re0nU4Pt4jOZSJMJ6P8fbNGTBKp/15vH4CRvoeQr
-         LI4SZsYd7YcZNcTF74KyvrqUZNKx5o1wWhXYZnwytmegsjG+gqQRHAGewCwcmrNa1d
-         NgffR3Lt4XhTxN38xC8SDLb/yaFWf5HR7JNnkGpw=
-Date:   Thu, 02 Feb 2023 22:36:38 -0800
-To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
-        david@redhat.com, akpm@linux-foundation.org
+        b=chzOVGwEjyFQMengPE0x2UaHCcdJfkbo73+zdpYlCoHcruI86eWaV7j5OK/vxwcRo
+         AaT8N+rJRbaRb+NCthAFkBXLmK9goSb5qt9clm78Ou6T0WtFTkYxHCwokyWT6EW/h/
+         sRpcS/KidwUfqVpPg20hdijSRw7aLsZX59GVpeHw=
+Date:   Thu, 02 Feb 2023 22:36:39 -0800
+To:     mm-commits@vger.kernel.org, dinguyen@kernel.org, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mips-mm-support-__have_arch_pte_swp_exclusive.patch removed from -mm tree
-Message-Id: <20230203063638.A4817C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] nios2-mm-refactor-swap-pte-layout.patch removed from -mm tree
+Message-Id: <20230203063639.A9AE0C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,247 +41,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mips/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+     Subject: nios2/mm: refactor swap PTE layout
 has been removed from the -mm tree.  Its filename was
-     mips-mm-support-__have_arch_pte_swp_exclusive.patch
+     nios2-mm-refactor-swap-pte-layout.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mips/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-Date: Fri, 13 Jan 2023 18:10:12 +0100
+Subject: nios2/mm: refactor swap PTE layout
+Date: Fri, 13 Jan 2023 18:10:13 +0100
 
-Let's support __HAVE_ARCH_PTE_SWP_EXCLUSIVE.
+nios2 disables swap for a good reason: it doesn't even provide sufficient
+type bits as required by core MM.  However, swap entries are nowadays also
+used for other purposes (migration entries, PTE markers, HWPoison, ...),
+and accidential use could be problematic.
 
-On 64bit, steal one bit from the type.  Generic MM currently only uses 5
-bits for the type (MAX_SWAPFILES_SHIFT), so the stolen bit is effectively
-unused.
+Let's properly use 5 bits for the swap type and document the layout.  Bits
+26--31 should get ignored by hardware completely, so they can be used.
 
-On 32bit we're able to locate unused bits.  As the PTE layout for 32 bit
-is very confusing, document it a bit better.
-
-While at it, mask the type in __swp_entry()/mk_swap_pte().
-
-Link: https://lkml.kernel.org/r/20230113171026.582290-13-david@redhat.com
+Link: https://lkml.kernel.org/r/20230113171026.582290-14-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/mips/include/asm/pgtable-32.h~mips-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/mips/include/asm/pgtable-32.h
-@@ -191,49 +191,113 @@ static inline pte_t pfn_pte(unsigned lon
- 
- #define pte_page(x)		pfn_to_page(pte_pfn(x))
- 
-+/*
-+ * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
-+ * are !pte_none() && !pte_present().
-+ */
- #if defined(CONFIG_CPU_R3K_TLB)
- 
--/* Swap entries must have VALID bit cleared. */
-+/*
-+ * Format of swap PTEs:
-+ *
-+ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-+ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-+ *   <----------- offset ------------> < type -> V G E 0 0 0 0 0 0 P
-+ *
-+ *   E is the exclusive marker that is not stored in swap entries.
-+ *   _PAGE_PRESENT (P), _PAGE_VALID (V) and_PAGE_GLOBAL (G) have to remain
-+ *   unused.
-+ */
- #define __swp_type(x)			(((x).val >> 10) & 0x1f)
- #define __swp_offset(x)			((x).val >> 15)
--#define __swp_entry(type,offset)	((swp_entry_t) { ((type) << 10) | ((offset) << 15) })
-+#define __swp_entry(type, offset)	((swp_entry_t) { (((type) & 0x1f) << 10) | ((offset) << 15) })
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
- 
-+/* We borrow bit 7 to store the exclusive marker in swap PTEs. */
-+#define _PAGE_SWP_EXCLUSIVE	(1 << 7)
-+
- #else
- 
- #if defined(CONFIG_XPA)
- 
--/* Swap entries must have VALID and GLOBAL bits cleared. */
-+/*
-+ * Format of swap PTEs:
-+ *
-+ *   6 6 6 6 5 5 5 5 5 5 5 5 5 5 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3 3 3
-+ *   3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2
-+ *   0 0 0 0 0 0 E P <------------------ zeroes ------------------->
-+ *
-+ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-+ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-+ *   <----------------- offset ------------------> < type -> V G 0 0
-+ *
-+ *   E is the exclusive marker that is not stored in swap entries.
-+ *   _PAGE_PRESENT (P), _PAGE_VALID (V) and_PAGE_GLOBAL (G) have to remain
-+ *   unused.
-+ */
- #define __swp_type(x)			(((x).val >> 4) & 0x1f)
- #define __swp_offset(x)			 ((x).val >> 9)
--#define __swp_entry(type,offset)	((swp_entry_t)  { ((type) << 4) | ((offset) << 9) })
-+#define __swp_entry(type, offset)	((swp_entry_t)  { (((type) & 0x1f) << 4) | ((offset) << 9) })
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { (pte).pte_high })
- #define __swp_entry_to_pte(x)		((pte_t) { 0, (x).val })
- 
-+/*
-+ * We borrow bit 57 (bit 25 in the low PTE) to store the exclusive marker in
-+ * swap PTEs.
-+ */
-+#define _PAGE_SWP_EXCLUSIVE	(1 << 25)
-+
- #elif defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
- 
--/* Swap entries must have VALID and GLOBAL bits cleared. */
-+/*
-+ * Format of swap PTEs:
-+ *
-+ *   6 6 6 6 5 5 5 5 5 5 5 5 5 5 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3 3 3
-+ *   3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2
-+ *   <------------------ zeroes -------------------> E P 0 0 0 0 0 0
-+ *
-+ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-+ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-+ *   <------------------- offset --------------------> < type -> V G
-+ *
-+ *   E is the exclusive marker that is not stored in swap entries.
-+ *   _PAGE_PRESENT (P), _PAGE_VALID (V) and_PAGE_GLOBAL (G) have to remain
-+ *   unused.
-+ */
- #define __swp_type(x)			(((x).val >> 2) & 0x1f)
- #define __swp_offset(x)			 ((x).val >> 7)
--#define __swp_entry(type, offset)	((swp_entry_t)  { ((type) << 2) | ((offset) << 7) })
-+#define __swp_entry(type, offset)	((swp_entry_t)  { (((type) & 0x1f) << 2) | ((offset) << 7) })
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { (pte).pte_high })
- #define __swp_entry_to_pte(x)		((pte_t) { 0, (x).val })
- 
-+/*
-+ * We borrow bit 39 (bit 7 in the low PTE) to store the exclusive marker in swap
-+ * PTEs.
-+ */
-+#define _PAGE_SWP_EXCLUSIVE	(1 << 7)
-+
- #else
- /*
-- * Constraints:
-- *      _PAGE_PRESENT at bit 0
-- *      _PAGE_MODIFIED at bit 4
-- *      _PAGE_GLOBAL at bit 6
-- *      _PAGE_VALID at bit 7
-+ * Format of swap PTEs:
-+ *
-+ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-+ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-+ *   <------------- offset --------------> < type -> 0 0 0 0 0 0 E P
-+ *
-+ *   E is the exclusive marker that is not stored in swap entries.
-+ *   _PAGE_PRESENT (P), _PAGE_VALID (V) and_PAGE_GLOBAL (G) have to remain
-+ *   unused. The location of V and G varies.
-  */
- #define __swp_type(x)			(((x).val >> 8) & 0x1f)
- #define __swp_offset(x)			 ((x).val >> 13)
--#define __swp_entry(type,offset)	((swp_entry_t)	{ ((type) << 8) | ((offset) << 13) })
-+#define __swp_entry(type, offset)	((swp_entry_t)	{ ((type) << 8) | ((offset) << 13) })
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
- 
-+/* We borrow bit 1 to store the exclusive marker in swap PTEs. */
-+#define _PAGE_SWP_EXCLUSIVE	(1 << 1)
-+
- #endif /* defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32) */
- 
- #endif /* defined(CONFIG_CPU_R3K_TLB) */
---- a/arch/mips/include/asm/pgtable-64.h~mips-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/mips/include/asm/pgtable-64.h
-@@ -320,16 +320,31 @@ extern void pud_init(void *addr);
- extern void pmd_init(void *addr);
+--- a/arch/nios2/include/asm/pgtable.h~nios2-mm-refactor-swap-pte-layout
++++ a/arch/nios2/include/asm/pgtable.h
+@@ -232,19 +232,21 @@ static inline unsigned long pmd_page_vad
+ 		__FILE__, __LINE__, pgd_val(e))
  
  /*
-- * Non-present pages:  high 40 bits are offset, next 8 bits type,
-- * low 16 bits zero.
+- * Encode and decode a swap entry (must be !pte_none(pte) && !pte_present(pte):
 + * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
 + * are !pte_none() && !pte_present().
-+ *
+  *
+- * 31 30 29 28 27 26 25 24 23 22 21 20 19 18 ...  1  0
+- *  0  0  0  0 type.  0  0  0  0  0  0 offset.........
 + * Format of swap PTEs:
-+ *
-+ *   6 6 6 6 5 5 5 5 5 5 5 5 5 5 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3 3 3
-+ *   3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2
-+ *   <--------------------------- offset ---------------------------
-+ *
+  *
+- * This gives us up to 2**2 = 4 swap files and 2**20 * 4K = 4G per swap file.
 + *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
 + *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-+ *   --------------> E <-- type ---> <---------- zeroes ----------->
-+ *
-+ *  E is the exclusive marker that is not stored in swap entries.
++ *   0 < type -> 0 0 0 0 0 0 <-------------- offset --------------->
+  *
+- * Note that the offset field is always non-zero, thus !pte_none(pte) is always
+- * true.
++ * Note that the offset field is always non-zero if the swap type is 0, thus
++ * !pte_none() is always true.
   */
- static inline pte_t mk_swap_pte(unsigned long type, unsigned long offset)
--{ pte_t pte; pte_val(pte) = (type << 16) | (offset << 24); return pte; }
-+{ pte_t pte; pte_val(pte) = ((type & 0x7f) << 16) | (offset << 24); return pte; }
- 
--#define __swp_type(x)		(((x).val >> 16) & 0xff)
-+#define __swp_type(x)		(((x).val >> 16) & 0x7f)
- #define __swp_offset(x)		((x).val >> 24)
- #define __swp_entry(type, offset) ((swp_entry_t) { pte_val(mk_swap_pte((type), (offset))) })
- #define __pte_to_swp_entry(pte) ((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
- 
-+/* We borrow bit 23 to store the exclusive marker in swap PTEs. */
-+#define _PAGE_SWP_EXCLUSIVE	(1 << 23)
-+
- #endif /* _ASM_PGTABLE_64_H */
---- a/arch/mips/include/asm/pgtable.h~mips-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -528,6 +528,42 @@ static inline pte_t pte_modify(pte_t pte
- }
- #endif
- 
-+#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-+#if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
-+static inline int pte_swp_exclusive(pte_t pte)
-+{
-+	return pte.pte_low & _PAGE_SWP_EXCLUSIVE;
-+}
-+
-+static inline pte_t pte_swp_mkexclusive(pte_t pte)
-+{
-+	pte.pte_low |= _PAGE_SWP_EXCLUSIVE;
-+	return pte;
-+}
-+
-+static inline pte_t pte_swp_clear_exclusive(pte_t pte)
-+{
-+	pte.pte_low &= ~_PAGE_SWP_EXCLUSIVE;
-+	return pte;
-+}
-+#else
-+static inline int pte_swp_exclusive(pte_t pte)
-+{
-+	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
-+}
-+
-+static inline pte_t pte_swp_mkexclusive(pte_t pte)
-+{
-+	pte_val(pte) |= _PAGE_SWP_EXCLUSIVE;
-+	return pte;
-+}
-+
-+static inline pte_t pte_swp_clear_exclusive(pte_t pte)
-+{
-+	pte_val(pte) &= ~_PAGE_SWP_EXCLUSIVE;
-+	return pte;
-+}
-+#endif
- 
- extern void __update_tlb(struct vm_area_struct *vma, unsigned long address,
- 	pte_t pte);
+-#define __swp_type(swp)		(((swp).val >> 26) & 0x3)
++#define __swp_type(swp)		(((swp).val >> 26) & 0x1f)
+ #define __swp_offset(swp)	((swp).val & 0xfffff)
+-#define __swp_entry(type, off)	((swp_entry_t) { (((type) & 0x3) << 26) \
++#define __swp_entry(type, off)	((swp_entry_t) { (((type) & 0x1f) << 26) \
+ 						 | ((off) & 0xfffff) })
+ #define __swp_entry_to_pte(swp)	((pte_t) { (swp).val })
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
 _
 
 Patches currently in -mm which might be from david@redhat.com are
