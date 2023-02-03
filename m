@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FE10C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:44:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FC5C636CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:44:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232354AbjBCGor (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:44:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39778 "EHLO
+        id S231716AbjBCGos (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:44:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39780 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231716AbjBCGnV (ORCPT
+        with ESMTP id S232512AbjBCGnV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:43:21 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4230D91181
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B069991184
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D0CB361D99
+        by ams.source.kernel.org (Postfix) with ESMTPS id 37737B82982
         for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3246FC4339C;
-        Fri,  3 Feb 2023 06:38:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D066CC4339B;
+        Fri,  3 Feb 2023 06:38:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406330;
-        bh=zsstVWSOM+bDqSYzeal3U2wFX3KuXfaSidUgFoZ7Te8=;
+        s=korg; t=1675406328;
+        bh=v/5mvBTDflrcTjUABUD8nx0GOwqNLACO8pTd0mj2MWs=;
         h=Date:To:From:Subject:From;
-        b=uM2uhr3j/+7rVMGD4sib7E4ap3skbggcwvUQ8jM4gc4ugOiVxvLG6MdsQ1EzEo2N7
-         eEidCCe/O3xXuTbCCFnxtLvitJVuw0RuvT4P6eTgFnZA20DBKLksQEUBobHILRK6J/
-         Oi/BX5AP7wf2Fv6Y9SJwBLcYTaz/bcAIAET7/K5A=
-Date:   Thu, 02 Feb 2023 22:38:49 -0800
-To:     mm-commits@vger.kernel.org, ira.weiny@intel.com,
-        fmdefrancesco@gmail.com, willy@infradead.org,
+        b=XPBe4QSAFeQceJJzDnWvlCgELYFhpmt4iNElIgur8qXWYD/ly5JtdfoWVZHSwL3Q6
+         qkM/u8SaScQAraAMI9voY3beSDpnN5pS3K6mllazFMiOq358pXTrXR4j+Y6H0Pf0+2
+         WM8q9x3ubOu1onudfIs0Dsps3sfDfVshhZgL8pMU=
+Date:   Thu, 02 Feb 2023 22:38:48 -0800
+To:     mm-commits@vger.kernel.org, vishal.l.verma@intel.com,
+        senozhatsky@chromium.org, minchan@kernel.org, kbusch@kernel.org,
+        ira.weiny@intel.com, dave.jiang@intel.com,
+        dan.j.williams@intel.com, axboe@kernel.dk, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-memcpy_from_file_folio.patch removed from -mm tree
-Message-Id: <20230203063850.3246FC4339C@smtp.kernel.org>
+Subject: [merged mm-stable] block-remove-rw_page.patch removed from -mm tree
+Message-Id: <20230203063848.D066CC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,84 +44,506 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add memcpy_from_file_folio()
+     Subject: block: remove ->rw_page
 has been removed from the -mm tree.  Its filename was
-     mm-add-memcpy_from_file_folio.patch
+     block-remove-rw_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add memcpy_from_file_folio()
-Date: Thu, 26 Jan 2023 20:15:52 +0000
+From: Christoph Hellwig <hch@lst.de>
+Subject: block: remove ->rw_page
+Date: Wed, 25 Jan 2023 14:34:36 +0100
 
-This is the equivalent of memcpy_from_page().  It differs in that it takes
-the position in a file instead of offset in a folio, it accepts the total
-number of bytes to be copied (instead of the number of bytes to be copied
-from this folio) and it returns how many bytes were copied from the folio,
-rather than making the caller calculate that and then checking if the
-caller got it right.
+The ->rw_page method is a special purpose bypass of the usual bio handling
+path that is limited to single-page reads and writes and synchronous which
+causes a lot of extra code in the drivers, callers and the block layer.
 
-[akpm@linux-foundation.org: fix typo in comment]
-Link: https://lkml.kernel.org/r/20230126201552.1681588-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+The only remaining user is the MM swap code.  Switch that swap code to
+simply submit a single-vec on-stack bio an synchronously wait on it based
+on a newly added QUEUE_FLAG_SYNCHRONOUS flag set by the drivers that
+currently implement ->rw_page instead.  While this touches one extra cache
+line and executes extra code, it simplifies the block layer and drivers
+and ensures that all feastures are properly supported by all drivers, e.g.
+right now ->rw_page bypassed cgroup writeback entirely.
+
+[akpm@linux-foundation.org: fix comment typo, per Dan]
+Link: https://lkml.kernel.org/r/20230125133436.447864-8-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Keith Busch <kbusch@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/highmem.h~mm-add-memcpy_from_file_folio
-+++ a/include/linux/highmem.h
-@@ -414,6 +414,35 @@ static inline void memzero_page(struct p
+--- a/block/bdev.c~block-remove-rw_page
++++ a/block/bdev.c
+@@ -304,84 +304,6 @@ out:
+ }
+ EXPORT_SYMBOL(thaw_bdev);
+ 
+-/**
+- * bdev_read_page() - Start reading a page from a block device
+- * @bdev: The device to read the page from
+- * @sector: The offset on the device to read the page to (need not be aligned)
+- * @page: The page to read
+- *
+- * On entry, the page should be locked.  It will be unlocked when the page
+- * has been read.  If the block driver implements rw_page synchronously,
+- * that will be true on exit from this function, but it need not be.
+- *
+- * Errors returned by this function are usually "soft", eg out of memory, or
+- * queue full; callers should try a different route to read this page rather
+- * than propagate an error back up the stack.
+- *
+- * Return: negative errno if an error occurs, 0 if submission was successful.
+- */
+-int bdev_read_page(struct block_device *bdev, sector_t sector,
+-			struct page *page)
+-{
+-	const struct block_device_operations *ops = bdev->bd_disk->fops;
+-	int result = -EOPNOTSUPP;
+-
+-	if (!ops->rw_page || bdev_get_integrity(bdev))
+-		return result;
+-
+-	result = blk_queue_enter(bdev_get_queue(bdev), 0);
+-	if (result)
+-		return result;
+-	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page,
+-			      REQ_OP_READ);
+-	blk_queue_exit(bdev_get_queue(bdev));
+-	return result;
+-}
+-
+-/**
+- * bdev_write_page() - Start writing a page to a block device
+- * @bdev: The device to write the page to
+- * @sector: The offset on the device to write the page to (need not be aligned)
+- * @page: The page to write
+- * @wbc: The writeback_control for the write
+- *
+- * On entry, the page should be locked and not currently under writeback.
+- * On exit, if the write started successfully, the page will be unlocked and
+- * under writeback.  If the write failed already (eg the driver failed to
+- * queue the page to the device), the page will still be locked.  If the
+- * caller is a ->writepage implementation, it will need to unlock the page.
+- *
+- * Errors returned by this function are usually "soft", eg out of memory, or
+- * queue full; callers should try a different route to write this page rather
+- * than propagate an error back up the stack.
+- *
+- * Return: negative errno if an error occurs, 0 if submission was successful.
+- */
+-int bdev_write_page(struct block_device *bdev, sector_t sector,
+-			struct page *page, struct writeback_control *wbc)
+-{
+-	int result;
+-	const struct block_device_operations *ops = bdev->bd_disk->fops;
+-
+-	if (!ops->rw_page || bdev_get_integrity(bdev))
+-		return -EOPNOTSUPP;
+-	result = blk_queue_enter(bdev_get_queue(bdev), 0);
+-	if (result)
+-		return result;
+-
+-	set_page_writeback(page);
+-	result = ops->rw_page(bdev, sector + get_start_sect(bdev), page,
+-			      REQ_OP_WRITE);
+-	if (result) {
+-		end_page_writeback(page);
+-	} else {
+-		clean_page_buffers(page);
+-		unlock_page(page);
+-	}
+-	blk_queue_exit(bdev_get_queue(bdev));
+-	return result;
+-}
+-
+ /*
+  * pseudo-fs
+  */
+--- a/drivers/block/brd.c~block-remove-rw_page
++++ a/drivers/block/brd.c
+@@ -309,23 +309,9 @@ static void brd_submit_bio(struct bio *b
+ 	bio_endio(bio);
  }
  
- /**
-+ * memcpy_from_file_folio - Copy some bytes from a file folio.
-+ * @to: The destination buffer.
-+ * @folio: The folio to copy from.
-+ * @pos: The position in the file.
-+ * @len: The maximum number of bytes to copy.
-+ *
-+ * Copy up to @len bytes from this folio.  This may be limited by PAGE_SIZE
-+ * if the folio comes from HIGHMEM, and by the size of the folio.
-+ *
-+ * Return: The number of bytes copied from the folio.
-+ */
-+static inline size_t memcpy_from_file_folio(char *to, struct folio *folio,
-+		loff_t pos, size_t len)
+-static int brd_rw_page(struct block_device *bdev, sector_t sector,
+-		       struct page *page, enum req_op op)
+-{
+-	struct brd_device *brd = bdev->bd_disk->private_data;
+-	int err;
+-
+-	if (PageTransHuge(page))
+-		return -ENOTSUPP;
+-	err = brd_do_bvec(brd, page, PAGE_SIZE, 0, op, sector);
+-	page_endio(page, op_is_write(op), err);
+-	return err;
+-}
+-
+ static const struct block_device_operations brd_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.submit_bio =		brd_submit_bio,
+-	.rw_page =		brd_rw_page,
+ };
+ 
+ /*
+@@ -411,6 +397,7 @@ static int brd_alloc(int i)
+ 
+ 	/* Tell the block layer that this is not a rotational device */
+ 	blk_queue_flag_set(QUEUE_FLAG_NONROT, disk->queue);
++	blk_queue_flag_set(QUEUE_FLAG_SYNCHRONOUS, disk->queue);
+ 	blk_queue_flag_clear(QUEUE_FLAG_ADD_RANDOM, disk->queue);
+ 	err = add_disk(disk);
+ 	if (err)
+--- a/drivers/block/zram/zram_drv.c~block-remove-rw_page
++++ a/drivers/block/zram/zram_drv.c
+@@ -1453,10 +1453,6 @@ static int __zram_bvec_read(struct zram
+ 		/* Slot should be unlocked before the function call */
+ 		zram_slot_unlock(zram, index);
+ 
+-		/* A null bio means rw_page was used, we must fallback to bio */
+-		if (!bio)
+-			return -EOPNOTSUPP;
+-
+ 		ret = zram_bvec_read_from_bdev(zram, page, index, bio,
+ 					       partial_io);
+ 	}
+@@ -2081,61 +2077,6 @@ static void zram_slot_free_notify(struct
+ 	zram_slot_unlock(zram, index);
+ }
+ 
+-static int zram_rw_page(struct block_device *bdev, sector_t sector,
+-		       struct page *page, enum req_op op)
+-{
+-	int offset, ret;
+-	u32 index;
+-	struct zram *zram;
+-	struct bio_vec bv;
+-	unsigned long start_time;
+-
+-	if (PageTransHuge(page))
+-		return -ENOTSUPP;
+-	zram = bdev->bd_disk->private_data;
+-
+-	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
+-		atomic64_inc(&zram->stats.invalid_io);
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-
+-	index = sector >> SECTORS_PER_PAGE_SHIFT;
+-	offset = (sector & (SECTORS_PER_PAGE - 1)) << SECTOR_SHIFT;
+-
+-	bv.bv_page = page;
+-	bv.bv_len = PAGE_SIZE;
+-	bv.bv_offset = 0;
+-
+-	start_time = bdev_start_io_acct(bdev->bd_disk->part0,
+-			SECTORS_PER_PAGE, op, jiffies);
+-	ret = zram_bvec_rw(zram, &bv, index, offset, op, NULL);
+-	bdev_end_io_acct(bdev->bd_disk->part0, op, start_time);
+-out:
+-	/*
+-	 * If I/O fails, just return error(ie, non-zero) without
+-	 * calling page_endio.
+-	 * It causes resubmit the I/O with bio request by upper functions
+-	 * of rw_page(e.g., swap_readpage, __swap_writepage) and
+-	 * bio->bi_end_io does things to handle the error
+-	 * (e.g., SetPageError, set_page_dirty and extra works).
+-	 */
+-	if (unlikely(ret < 0))
+-		return ret;
+-
+-	switch (ret) {
+-	case 0:
+-		page_endio(page, op_is_write(op), 0);
+-		break;
+-	case 1:
+-		ret = 0;
+-		break;
+-	default:
+-		WARN_ON(1);
+-	}
+-	return ret;
+-}
+-
+ static void zram_destroy_comps(struct zram *zram)
+ {
+ 	u32 prio;
+@@ -2290,7 +2231,6 @@ static const struct block_device_operati
+ 	.open = zram_open,
+ 	.submit_bio = zram_submit_bio,
+ 	.swap_slot_free_notify = zram_slot_free_notify,
+-	.rw_page = zram_rw_page,
+ 	.owner = THIS_MODULE
+ };
+ 
+@@ -2389,6 +2329,7 @@ static int zram_add(void)
+ 	set_capacity(zram->disk, 0);
+ 	/* zram devices sort of resembles non-rotational disks */
+ 	blk_queue_flag_set(QUEUE_FLAG_NONROT, zram->disk->queue);
++	blk_queue_flag_set(QUEUE_FLAG_SYNCHRONOUS, zram->disk->queue);
+ 	blk_queue_flag_clear(QUEUE_FLAG_ADD_RANDOM, zram->disk->queue);
+ 
+ 	/*
+--- a/drivers/nvdimm/btt.c~block-remove-rw_page
++++ a/drivers/nvdimm/btt.c
+@@ -1482,20 +1482,6 @@ static void btt_submit_bio(struct bio *b
+ 	bio_endio(bio);
+ }
+ 
+-static int btt_rw_page(struct block_device *bdev, sector_t sector,
+-		struct page *page, enum req_op op)
+-{
+-	struct btt *btt = bdev->bd_disk->private_data;
+-	int rc;
+-
+-	rc = btt_do_bvec(btt, NULL, page, thp_size(page), 0, op, sector);
+-	if (rc == 0)
+-		page_endio(page, op_is_write(op), 0);
+-
+-	return rc;
+-}
+-
+-
+ static int btt_getgeo(struct block_device *bd, struct hd_geometry *geo)
+ {
+ 	/* some standard values */
+@@ -1508,7 +1494,6 @@ static int btt_getgeo(struct block_devic
+ static const struct block_device_operations btt_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.submit_bio =		btt_submit_bio,
+-	.rw_page =		btt_rw_page,
+ 	.getgeo =		btt_getgeo,
+ };
+ 
+@@ -1530,6 +1515,7 @@ static int btt_blk_init(struct btt *btt)
+ 	blk_queue_logical_block_size(btt->btt_disk->queue, btt->sector_size);
+ 	blk_queue_max_hw_sectors(btt->btt_disk->queue, UINT_MAX);
+ 	blk_queue_flag_set(QUEUE_FLAG_NONROT, btt->btt_disk->queue);
++	blk_queue_flag_set(QUEUE_FLAG_SYNCHRONOUS, btt->btt_disk->queue);
+ 
+ 	if (btt_meta_size(btt)) {
+ 		rc = nd_integrity_init(btt->btt_disk, btt_meta_size(btt));
+--- a/drivers/nvdimm/pmem.c~block-remove-rw_page
++++ a/drivers/nvdimm/pmem.c
+@@ -238,28 +238,6 @@ static void pmem_submit_bio(struct bio *
+ 	bio_endio(bio);
+ }
+ 
+-static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+-		       struct page *page, enum req_op op)
+-{
+-	struct pmem_device *pmem = bdev->bd_disk->private_data;
+-	blk_status_t rc;
+-
+-	if (op_is_write(op))
+-		rc = pmem_do_write(pmem, page, 0, sector, thp_size(page));
+-	else
+-		rc = pmem_do_read(pmem, page, 0, sector, thp_size(page));
+-	/*
+-	 * The ->rw_page interface is subtle and tricky.  The core
+-	 * retries on any error, so we can only invoke page_endio() in
+-	 * the successful completion case.  Otherwise, we'll see crashes
+-	 * caused by double completion.
+-	 */
+-	if (rc == 0)
+-		page_endio(page, op_is_write(op), 0);
+-
+-	return blk_status_to_errno(rc);
+-}
+-
+ /* see "strong" declaration in tools/testing/nvdimm/pmem-dax.c */
+ __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 		long nr_pages, enum dax_access_mode mode, void **kaddr,
+@@ -310,7 +288,6 @@ __weak long __pmem_direct_access(struct
+ static const struct block_device_operations pmem_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.submit_bio =		pmem_submit_bio,
+-	.rw_page =		pmem_rw_page,
+ };
+ 
+ static int pmem_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+@@ -565,6 +542,7 @@ static int pmem_attach_disk(struct devic
+ 	blk_queue_logical_block_size(q, pmem_sector_size(ndns));
+ 	blk_queue_max_hw_sectors(q, UINT_MAX);
+ 	blk_queue_flag_set(QUEUE_FLAG_NONROT, q);
++	blk_queue_flag_set(QUEUE_FLAG_SYNCHRONOUS, q);
+ 	if (pmem->pfn_flags & PFN_MAP)
+ 		blk_queue_flag_set(QUEUE_FLAG_DAX, q);
+ 
+--- a/include/linux/blkdev.h~block-remove-rw_page
++++ a/include/linux/blkdev.h
+@@ -554,6 +554,7 @@ struct request_queue {
+ #define QUEUE_FLAG_IO_STAT	7	/* do disk/partitions IO accounting */
+ #define QUEUE_FLAG_NOXMERGES	9	/* No extended merges */
+ #define QUEUE_FLAG_ADD_RANDOM	10	/* Contributes to random pool */
++#define QUEUE_FLAG_SYNCHRONOUS	11	/* always completes in submit context */
+ #define QUEUE_FLAG_SAME_FORCE	12	/* force complete on same CPU */
+ #define QUEUE_FLAG_INIT_DONE	14	/* queue is initialized */
+ #define QUEUE_FLAG_STABLE_WRITES 15	/* don't modify blks until WB is done */
+@@ -1250,6 +1251,12 @@ static inline bool bdev_nonrot(struct bl
+ 	return blk_queue_nonrot(bdev_get_queue(bdev));
+ }
+ 
++static inline bool bdev_synchronous(struct block_device *bdev)
 +{
-+	size_t offset = offset_in_folio(folio, pos);
-+	char *from = kmap_local_folio(folio, offset);
-+
-+	if (folio_test_highmem(folio))
-+		len = min_t(size_t, len, PAGE_SIZE - offset);
-+	else
-+		len = min(len, folio_size(folio) - offset);
-+
-+	memcpy(to, from, len);
-+	kunmap_local(from);
-+
-+	return len;
++	return test_bit(QUEUE_FLAG_SYNCHRONOUS,
++			&bdev_get_queue(bdev)->queue_flags);
 +}
 +
-+/**
-  * folio_zero_segments() - Zero two byte ranges in a folio.
-  * @folio: The folio to write to.
-  * @start1: The first byte to zero.
---- a/include/linux/page-flags.h~mm-add-memcpy_from_file_folio
-+++ a/include/linux/page-flags.h
-@@ -531,6 +531,7 @@ PAGEFLAG(Readahead, readahead, PF_NO_COM
-  * available at this point.
-  */
- #define PageHighMem(__p) is_highmem_idx(page_zonenum(__p))
-+#define folio_test_highmem(__f)	is_highmem_idx(folio_zonenum(__f))
- #else
- PAGEFLAG_FALSE(HighMem, highmem)
+ static inline bool bdev_stable_writes(struct block_device *bdev)
+ {
+ 	return test_bit(QUEUE_FLAG_STABLE_WRITES,
+@@ -1382,7 +1389,6 @@ struct block_device_operations {
+ 			unsigned int flags);
+ 	int (*open) (struct block_device *, fmode_t);
+ 	void (*release) (struct gendisk *, fmode_t);
+-	int (*rw_page)(struct block_device *, sector_t, struct page *, enum req_op);
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	unsigned int (*check_events) (struct gendisk *disk,
+@@ -1417,10 +1423,6 @@ extern int blkdev_compat_ptr_ioctl(struc
+ #define blkdev_compat_ptr_ioctl NULL
  #endif
+ 
+-extern int bdev_read_page(struct block_device *, sector_t, struct page *);
+-extern int bdev_write_page(struct block_device *, sector_t, struct page *,
+-						struct writeback_control *);
+-
+ static inline void blk_wake_io_task(struct task_struct *waiter)
+ {
+ 	/*
+--- a/mm/page_io.c~block-remove-rw_page
++++ a/mm/page_io.c
+@@ -27,7 +27,7 @@
+ #include <linux/delayacct.h>
+ #include "swap.h"
+ 
+-static void end_swap_bio_write(struct bio *bio)
++static void __end_swap_bio_write(struct bio *bio)
+ {
+ 	struct page *page = bio_first_page_all(bio);
+ 
+@@ -48,6 +48,11 @@ static void end_swap_bio_write(struct bi
+ 		ClearPageReclaim(page);
+ 	}
+ 	end_page_writeback(page);
++}
++
++static void end_swap_bio_write(struct bio *bio)
++{
++	__end_swap_bio_write(bio);
+ 	bio_put(bio);
+ }
+ 
+@@ -326,15 +331,31 @@ static void swap_writepage_fs(struct pag
+ 		*wbc->swap_plug = sio;
+ }
+ 
+-static void swap_writepage_bdev(struct page *page,
++static void swap_writepage_bdev_sync(struct page *page,
+ 		struct writeback_control *wbc, struct swap_info_struct *sis)
+ {
+-	struct bio *bio;
++	struct bio_vec bv;
++	struct bio bio;
+ 
+-	if (!bdev_write_page(sis->bdev, swap_page_sector(page), page, wbc)) {
+-		count_swpout_vm_event(page);
+-		return;
+-	}
++	bio_init(&bio, sis->bdev, &bv, 1,
++		 REQ_OP_WRITE | REQ_SWAP | wbc_to_write_flags(wbc));
++	bio.bi_iter.bi_sector = swap_page_sector(page);
++	bio_add_page(&bio, page, thp_size(page), 0);
++
++	bio_associate_blkg_from_page(&bio, page);
++	count_swpout_vm_event(page);
++
++	set_page_writeback(page);
++	unlock_page(page);
++
++	submit_bio_wait(&bio);
++	__end_swap_bio_write(&bio);
++}
++
++static void swap_writepage_bdev_async(struct page *page,
++		struct writeback_control *wbc, struct swap_info_struct *sis)
++{
++	struct bio *bio;
+ 
+ 	bio = bio_alloc(sis->bdev, 1,
+ 			REQ_OP_WRITE | REQ_SWAP | wbc_to_write_flags(wbc),
+@@ -362,8 +383,10 @@ void __swap_writepage(struct page *page,
+ 	 */
+ 	if (data_race(sis->flags & SWP_FS_OPS))
+ 		swap_writepage_fs(page, wbc);
++	else if (sis->flags & SWP_SYNCHRONOUS_IO)
++		swap_writepage_bdev_sync(page, wbc, sis);
+ 	else
+-		swap_writepage_bdev(page, wbc, sis);
++		swap_writepage_bdev_async(page, wbc, sis);
+ }
+ 
+ void swap_write_unplug(struct swap_iocb *sio)
+@@ -447,12 +470,6 @@ static void swap_readpage_bdev_sync(stru
+ 	struct bio_vec bv;
+ 	struct bio bio;
+ 
+-	if ((sis->flags & SWP_SYNCHRONOUS_IO) &&
+-	    !bdev_read_page(sis->bdev, swap_page_sector(page), page)) {
+-		count_vm_event(PSWPIN);
+-		return;
+-	}
+-
+ 	bio_init(&bio, sis->bdev, &bv, 1, REQ_OP_READ);
+ 	bio.bi_iter.bi_sector = swap_page_sector(page);
+ 	bio_add_page(&bio, page, thp_size(page), 0);
+@@ -472,12 +489,6 @@ static void swap_readpage_bdev_async(str
+ {
+ 	struct bio *bio;
+ 
+-	if ((sis->flags & SWP_SYNCHRONOUS_IO) &&
+-	    !bdev_read_page(sis->bdev, swap_page_sector(page), page)) {
+-		count_vm_event(PSWPIN);
+-		return;
+-	}
+-
+ 	bio = bio_alloc(sis->bdev, 1, REQ_OP_READ, GFP_KERNEL);
+ 	bio->bi_iter.bi_sector = swap_page_sector(page);
+ 	bio->bi_end_io = end_swap_bio_read;
+@@ -513,7 +524,7 @@ void swap_readpage(struct page *page, bo
+ 		unlock_page(page);
+ 	} else if (data_race(sis->flags & SWP_FS_OPS)) {
+ 		swap_readpage_fs(page, plug);
+-	} else if (synchronous) {
++	} else if (synchronous || (sis->flags & SWP_SYNCHRONOUS_IO)) {
+ 		swap_readpage_bdev_sync(page, sis);
+ 	} else {
+ 		swap_readpage_bdev_async(page, sis);
+--- a/mm/swapfile.c~block-remove-rw_page
++++ a/mm/swapfile.c
+@@ -3071,7 +3071,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	if (p->bdev && bdev_stable_writes(p->bdev))
+ 		p->flags |= SWP_STABLE_WRITES;
+ 
+-	if (p->bdev && p->bdev->bd_disk->fops->rw_page)
++	if (p->bdev && bdev_synchronous(p->bdev))
+ 		p->flags |= SWP_SYNCHRONOUS_IO;
+ 
+ 	if (p->bdev && bdev_nonrot(p->bdev)) {
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from hch@lst.de are
 
 
