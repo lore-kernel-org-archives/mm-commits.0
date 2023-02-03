@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B4D1C636D7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98B80C63797
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:44:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232356AbjBCGot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:44:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39788 "EHLO
+        id S232506AbjBCGou (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:44:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232517AbjBCGnV (ORCPT
+        with ESMTP id S232519AbjBCGnV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:43:21 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34DE7911A8
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:54 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7172911AA
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E62E7B82989
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81D72C433D2;
-        Fri,  3 Feb 2023 06:38:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DEFF1B8298A
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8081FC4339B;
+        Fri,  3 Feb 2023 06:38:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406331;
-        bh=+EdRWZFTWEqCPCFEs0FKJnfGUDhJbDe6ov2qpG7Vzfw=;
+        s=korg; t=1675406332;
+        bh=tifhlBs64Yd3td7B1AGG3IVbbluYltKiAKI1fKDK3OI=;
         h=Date:To:From:Subject:From;
-        b=0qM2FZHQ90wU5gP1bRDvLAtfXvTFl56wF6C7VxdcH0lu1a1bgvhOl0QVvUwmPOVFx
-         WuDIAbx3TUD208Gbv5Lx8QyieIa6hh1JLxi25dPBk0W5l6pPGItyedjOQJchWcXte+
-         /PR4Xj51Lp/dPiKxUcGkM6mDR0w/k8oZrHVQXoUk=
-Date:   Thu, 02 Feb 2023 22:38:50 -0800
-To:     mm-commits@vger.kernel.org, hch@infradead.org, willy@infradead.org,
-        akpm@linux-foundation.org
+        b=MNeNSLLtEs7M+iUQnd53pfAkSXUTocI+CqZCM6uNN3RMdxDTZoKBwlNBL1InPmckI
+         2YwEdwTDlkeyDGN5qupbxv/D3YCAygENYB++xP024Ag5RZy3shTRRdTk6Y7CiLH8Vm
+         OkwL3F7eSF6R3QELPYJea2mKbzjN4YDPJGMD7Xm4=
+Date:   Thu, 02 Feb 2023 22:38:51 -0800
+To:     mm-commits@vger.kernel.org, jack@suse.cz, hch@infradead.org,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-convert-writepage_t-callback-to-pass-a-folio.patch removed from -mm tree
-Message-Id: <20230203063851.81D72C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mpage-convert-__mpage_writepage-to-use-a-folio-more-fully.patch removed from -mm tree
+Message-Id: <20230203063852.8081FC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,339 +41,150 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fs: convert writepage_t callback to pass a folio
+     Subject: mpage: convert __mpage_writepage() to use a folio more fully
 has been removed from the -mm tree.  Its filename was
-     fs-convert-writepage_t-callback-to-pass-a-folio.patch
+     mpage-convert-__mpage_writepage-to-use-a-folio-more-fully.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fs: convert writepage_t callback to pass a folio
-Date: Thu, 26 Jan 2023 20:12:54 +0000
+Subject: mpage: convert __mpage_writepage() to use a folio more fully
+Date: Thu, 26 Jan 2023 20:12:55 +0000
 
-Patch series "Convert writepage_t to use a folio".
+This is just a conversion to the folio API.  While there are some nods
+towards supporting multi-page folios in here, the blocks array is still
+sized for one page's worth of blocks, and there are other assumptions such
+as the blocks_per_page variable.
 
-More folioisation.  I split out the mpage work from everything else
-because it completely dominated the patch, but some implementations I just
-converted outright.
-
-
-This patch (of 2):
-
-We always write back an entire folio, but that's currently passed as the
-head page.  Convert all filesystems that use write_cache_pages() to expect
-a folio instead of a page.
-
-Link: https://lkml.kernel.org/r/20230126201255.1681189-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20230126201255.1681189-2-willy@infradead.org
+[willy@infradead.org: fix accidentally-triggering WARN_ON_ONCE]
+  Link: https://lkml.kernel.org/r/Y9kuaBgXf9lKJ8b0@casper.infradead.org
+Link: https://lkml.kernel.org/r/20230126201255.1681189-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/cifs/file.c~fs-convert-writepage_t-callback-to-pass-a-folio
-+++ a/fs/cifs/file.c
-@@ -2675,14 +2675,14 @@ wdata_send_pages(struct cifs_writedata *
- static int
- cifs_writepage_locked(struct page *page, struct writeback_control *wbc);
- 
--static int cifs_write_one_page(struct page *page, struct writeback_control *wbc,
--		void *data)
-+static int cifs_write_one_page(struct folio *folio,
-+		struct writeback_control *wbc, void *data)
- {
- 	struct address_space *mapping = data;
- 	int ret;
- 
--	ret = cifs_writepage_locked(page, wbc);
--	unlock_page(page);
-+	ret = cifs_writepage_locked(&folio->page, wbc);
-+	folio_unlock(folio);
- 	mapping_set_error(mapping, ret);
- 	return ret;
- }
---- a/fs/ext4/inode.c~fs-convert-writepage_t-callback-to-pass-a-folio
-+++ a/fs/ext4/inode.c
-@@ -2711,10 +2711,10 @@ out:
- 	return err;
- }
- 
--static int ext4_writepage_cb(struct page *page, struct writeback_control *wbc,
-+static int ext4_writepage_cb(struct folio *folio, struct writeback_control *wbc,
- 			     void *data)
- {
--	return ext4_writepage(page, wbc);
-+	return ext4_writepage(&folio->page, wbc);
- }
- 
- static int ext4_do_writepages(struct mpage_da_data *mpd)
---- a/fs/ext4/super.c~fs-convert-writepage_t-callback-to-pass-a-folio
-+++ a/fs/ext4/super.c
-@@ -482,7 +482,7 @@ static void ext4_journal_commit_callback
-  *
-  * However, we may have to redirty a page (see below.)
-  */
--static int ext4_journalled_writepage_callback(struct page *page,
-+static int ext4_journalled_writepage_callback(struct folio *folio,
- 					      struct writeback_control *wbc,
- 					      void *data)
- {
-@@ -490,7 +490,7 @@ static int ext4_journalled_writepage_cal
- 	struct buffer_head *bh, *head;
- 	struct journal_head *jh;
- 
--	bh = head = page_buffers(page);
-+	bh = head = folio_buffers(folio);
- 	do {
- 		/*
- 		 * We have to redirty a page in these cases:
-@@ -509,7 +509,7 @@ static int ext4_journalled_writepage_cal
- 		if (buffer_dirty(bh) ||
- 		    (jh && (jh->b_transaction != transaction ||
- 			    jh->b_next_transaction))) {
--			redirty_page_for_writepage(wbc, page);
-+			folio_redirty_for_writepage(wbc, folio);
- 			goto out;
- 		}
- 	} while ((bh = bh->b_this_page) != head);
---- a/fs/fuse/file.c~fs-convert-writepage_t-callback-to-pass-a-folio
-+++ a/fs/fuse/file.c
-@@ -2184,7 +2184,7 @@ static bool fuse_writepage_need_send(str
- 	return false;
- }
- 
--static int fuse_writepages_fill(struct page *page,
-+static int fuse_writepages_fill(struct folio *folio,
- 		struct writeback_control *wbc, void *_data)
- {
- 	struct fuse_fill_wb_data *data = _data;
-@@ -2203,7 +2203,7 @@ static int fuse_writepages_fill(struct p
- 			goto out_unlock;
- 	}
- 
--	if (wpa && fuse_writepage_need_send(fc, page, ap, data)) {
-+	if (wpa && fuse_writepage_need_send(fc, &folio->page, ap, data)) {
- 		fuse_writepages_send(data);
- 		data->wpa = NULL;
- 	}
-@@ -2238,7 +2238,7 @@ static int fuse_writepages_fill(struct p
- 		data->max_pages = 1;
- 
- 		ap = &wpa->ia.ap;
--		fuse_write_args_fill(&wpa->ia, data->ff, page_offset(page), 0);
-+		fuse_write_args_fill(&wpa->ia, data->ff, folio_pos(folio), 0);
- 		wpa->ia.write.in.write_flags |= FUSE_WRITE_CACHE;
- 		wpa->next = NULL;
- 		ap->args.in_pages = true;
-@@ -2246,13 +2246,13 @@ static int fuse_writepages_fill(struct p
- 		ap->num_pages = 0;
- 		wpa->inode = inode;
- 	}
--	set_page_writeback(page);
-+	folio_start_writeback(folio);
- 
--	copy_highpage(tmp_page, page);
-+	copy_highpage(tmp_page, &folio->page);
- 	ap->pages[ap->num_pages] = tmp_page;
- 	ap->descs[ap->num_pages].offset = 0;
- 	ap->descs[ap->num_pages].length = PAGE_SIZE;
--	data->orig_pages[ap->num_pages] = page;
-+	data->orig_pages[ap->num_pages] = &folio->page;
- 
- 	inc_wb_stat(&inode_to_bdi(inode)->wb, WB_WRITEBACK);
- 	inc_node_page_state(tmp_page, NR_WRITEBACK_TEMP);
-@@ -2266,13 +2266,13 @@ static int fuse_writepages_fill(struct p
- 		spin_lock(&fi->lock);
- 		ap->num_pages++;
- 		spin_unlock(&fi->lock);
--	} else if (fuse_writepage_add(wpa, page)) {
-+	} else if (fuse_writepage_add(wpa, &folio->page)) {
- 		data->wpa = wpa;
- 	} else {
--		end_page_writeback(page);
-+		folio_end_writeback(folio);
- 	}
- out_unlock:
--	unlock_page(page);
-+	folio_unlock(folio);
- 
- 	return err;
- }
---- a/fs/iomap/buffered-io.c~fs-convert-writepage_t-callback-to-pass-a-folio
-+++ a/fs/iomap/buffered-io.c
-@@ -1685,10 +1685,9 @@ done:
-  * For unwritten space on the page, we need to start the conversion to
-  * regular allocated space.
-  */
--static int
--iomap_do_writepage(struct page *page, struct writeback_control *wbc, void *data)
-+static int iomap_do_writepage(struct folio *folio,
-+		struct writeback_control *wbc, void *data)
- {
--	struct folio *folio = page_folio(page);
- 	struct iomap_writepage_ctx *wpc = data;
- 	struct inode *inode = folio->mapping->host;
- 	u64 end_pos, isize;
---- a/fs/mpage.c~fs-convert-writepage_t-callback-to-pass-a-folio
+--- a/fs/mpage.c~mpage-convert-__mpage_writepage-to-use-a-folio-more-fully
 +++ a/fs/mpage.c
-@@ -440,9 +440,10 @@ void clean_page_buffers(struct page *pag
- 	clean_buffers(page, ~0U);
- }
- 
--static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
-+static int __mpage_writepage(struct folio *folio, struct writeback_control *wbc,
+@@ -443,13 +443,11 @@ void clean_page_buffers(struct page *pag
+ static int __mpage_writepage(struct folio *folio, struct writeback_control *wbc,
  		      void *data)
  {
-+	struct page *page = &folio->page;
+-	struct page *page = &folio->page;
  	struct mpage_data *mpd = data;
  	struct bio *bio = mpd->bio;
- 	struct address_space *mapping = page->mapping;
---- a/fs/nfs/write.c~fs-convert-writepage_t-callback-to-pass-a-folio
-+++ a/fs/nfs/write.c
-@@ -689,13 +689,14 @@ int nfs_writepage(struct page *page, str
- 	return ret;
- }
+-	struct address_space *mapping = page->mapping;
+-	struct inode *inode = page->mapping->host;
++	struct address_space *mapping = folio->mapping;
++	struct inode *inode = mapping->host;
+ 	const unsigned blkbits = inode->i_blkbits;
+-	unsigned long end_index;
+ 	const unsigned blocks_per_page = PAGE_SIZE >> blkbits;
+ 	sector_t last_block;
+ 	sector_t block_in_file;
+@@ -460,13 +458,13 @@ static int __mpage_writepage(struct foli
+ 	int boundary = 0;
+ 	sector_t boundary_block = 0;
+ 	struct block_device *boundary_bdev = NULL;
+-	int length;
++	size_t length;
+ 	struct buffer_head map_bh;
+ 	loff_t i_size = i_size_read(inode);
+ 	int ret = 0;
++	struct buffer_head *head = folio_buffers(folio);
  
--static int nfs_writepages_callback(struct page *page, struct writeback_control *wbc, void *data)
-+static int nfs_writepages_callback(struct folio *folio,
-+		struct writeback_control *wbc, void *data)
- {
- 	int ret;
+-	if (page_has_buffers(page)) {
+-		struct buffer_head *head = page_buffers(page);
++	if (head) {
+ 		struct buffer_head *bh = head;
  
--	ret = nfs_do_writepage(page, wbc, data);
-+	ret = nfs_do_writepage(&folio->page, wbc, data);
- 	if (ret != AOP_WRITEPAGE_ACTIVATE)
--		unlock_page(page);
-+		folio_unlock(folio);
- 	return ret;
- }
+ 		/* If they're all mapped and dirty, do it */
+@@ -518,8 +516,8 @@ static int __mpage_writepage(struct foli
+ 	/*
+ 	 * The page has no buffers: map it to disk
+ 	 */
+-	BUG_ON(!PageUptodate(page));
+-	block_in_file = (sector_t)page->index << (PAGE_SHIFT - blkbits);
++	BUG_ON(!folio_test_uptodate(folio));
++	block_in_file = (sector_t)folio->index << (PAGE_SHIFT - blkbits);
+ 	/*
+ 	 * Whole page beyond EOF? Skip allocating blocks to avoid leaking
+ 	 * space.
+@@ -527,7 +525,7 @@ static int __mpage_writepage(struct foli
+ 	if (block_in_file >= (i_size + (1 << blkbits) - 1) >> blkbits)
+ 		goto page_is_mapped;
+ 	last_block = (i_size - 1) >> blkbits;
+-	map_bh.b_page = page;
++	map_bh.b_folio = folio;
+ 	for (page_block = 0; page_block < blocks_per_page; ) {
  
---- a/fs/ntfs3/inode.c~fs-convert-writepage_t-callback-to-pass-a-folio
-+++ a/fs/ntfs3/inode.c
-@@ -832,7 +832,7 @@ out:
- 	return err;
- }
+ 		map_bh.b_state = 0;
+@@ -556,8 +554,11 @@ static int __mpage_writepage(struct foli
+ 	first_unmapped = page_block;
  
--static int ntfs_resident_writepage(struct page *page,
-+static int ntfs_resident_writepage(struct folio *folio,
- 		struct writeback_control *wbc, void *data)
- {
- 	struct address_space *mapping = data;
-@@ -840,11 +840,11 @@ static int ntfs_resident_writepage(struc
- 	int ret;
+ page_is_mapped:
+-	end_index = i_size >> PAGE_SHIFT;
+-	if (page->index >= end_index) {
++	/* Don't bother writing beyond EOF, truncate will discard the folio */
++	if (folio_pos(folio) >= i_size)
++		goto confused;
++	length = folio_size(folio);
++	if (folio_pos(folio) + length > i_size) {
+ 		/*
+ 		 * The page straddles i_size.  It must be zeroed out on each
+ 		 * and every writepage invocation because it may be mmapped.
+@@ -566,11 +567,8 @@ page_is_mapped:
+ 		 * is zeroed when mapped, and writes to that region are not
+ 		 * written out to the file."
+ 		 */
+-		unsigned offset = i_size & (PAGE_SIZE - 1);
+-
+-		if (page->index > end_index || !offset)
+-			goto confused;
+-		zero_user_segment(page, offset, PAGE_SIZE);
++		length = i_size - folio_pos(folio);
++		folio_zero_segment(folio, length, folio_size(folio));
+ 	}
  
- 	ni_lock(ni);
--	ret = attr_data_write_resident(ni, page);
-+	ret = attr_data_write_resident(ni, &folio->page);
- 	ni_unlock(ni);
+ 	/*
+@@ -593,18 +591,18 @@ alloc_new:
+ 	 * the confused fail path above (OOM) will be very confused when
+ 	 * it finds all bh marked clean (i.e. it will not write anything)
+ 	 */
+-	wbc_account_cgroup_owner(wbc, page, PAGE_SIZE);
++	wbc_account_cgroup_owner(wbc, &folio->page, folio_size(folio));
+ 	length = first_unmapped << blkbits;
+-	if (bio_add_page(bio, page, length, 0) < length) {
++	if (!bio_add_folio(bio, folio, length, 0)) {
+ 		bio = mpage_bio_submit(bio);
+ 		goto alloc_new;
+ 	}
  
- 	if (ret != E_NTFS_NONRESIDENT)
--		unlock_page(page);
-+		folio_unlock(folio);
+-	clean_buffers(page, first_unmapped);
++	clean_buffers(&folio->page, first_unmapped);
+ 
+-	BUG_ON(PageWriteback(page));
+-	set_page_writeback(page);
+-	unlock_page(page);
++	BUG_ON(folio_test_writeback(folio));
++	folio_start_writeback(folio);
++	folio_unlock(folio);
+ 	if (boundary || (first_unmapped != blocks_per_page)) {
+ 		bio = mpage_bio_submit(bio);
+ 		if (boundary_block) {
+@@ -623,7 +621,7 @@ confused:
+ 	/*
+ 	 * The caller has a ref on the inode, so *mapping is stable
+ 	 */
+-	ret = block_write_full_page(page, mpd->get_block, wbc);
++	ret = block_write_full_page(&folio->page, mpd->get_block, wbc);
  	mapping_set_error(mapping, ret);
- 	return ret;
- }
---- a/fs/orangefs/inode.c~fs-convert-writepage_t-callback-to-pass-a-folio
-+++ a/fs/orangefs/inode.c
-@@ -154,21 +154,20 @@ static int orangefs_writepages_work(stru
- 	return ret;
- }
- 
--static int orangefs_writepages_callback(struct page *page,
--    struct writeback_control *wbc, void *data)
-+static int orangefs_writepages_callback(struct folio *folio,
-+		struct writeback_control *wbc, void *data)
- {
- 	struct orangefs_writepages *ow = data;
--	struct orangefs_write_range *wr;
-+	struct orangefs_write_range *wr = folio->private;
- 	int ret;
- 
--	if (!PagePrivate(page)) {
--		unlock_page(page);
-+	if (!wr) {
-+		folio_unlock(folio);
- 		/* It's not private so there's nothing to write, right? */
- 		printk("writepages_callback not private!\n");
- 		BUG();
- 		return 0;
- 	}
--	wr = (struct orangefs_write_range *)page_private(page);
- 
- 	ret = -1;
- 	if (ow->npages == 0) {
-@@ -176,7 +175,7 @@ static int orangefs_writepages_callback(
- 		ow->len = wr->len;
- 		ow->uid = wr->uid;
- 		ow->gid = wr->gid;
--		ow->pages[ow->npages++] = page;
-+		ow->pages[ow->npages++] = &folio->page;
- 		ret = 0;
- 		goto done;
- 	}
-@@ -188,7 +187,7 @@ static int orangefs_writepages_callback(
- 	}
- 	if (ow->off + ow->len == wr->pos) {
- 		ow->len += wr->len;
--		ow->pages[ow->npages++] = page;
-+		ow->pages[ow->npages++] = &folio->page;
- 		ret = 0;
- 		goto done;
- 	}
-@@ -198,10 +197,10 @@ done:
- 			orangefs_writepages_work(ow, wbc);
- 			ow->npages = 0;
- 		}
--		ret = orangefs_writepage_locked(page, wbc);
--		mapping_set_error(page->mapping, ret);
--		unlock_page(page);
--		end_page_writeback(page);
-+		ret = orangefs_writepage_locked(&folio->page, wbc);
-+		mapping_set_error(folio->mapping, ret);
-+		folio_unlock(folio);
-+		folio_end_writeback(folio);
- 	} else {
- 		if (ow->npages == ow->maxpages) {
- 			orangefs_writepages_work(ow, wbc);
---- a/include/linux/writeback.h~fs-convert-writepage_t-callback-to-pass-a-folio
-+++ a/include/linux/writeback.h
-@@ -366,7 +366,7 @@ int balance_dirty_pages_ratelimited_flag
- 
- bool wb_over_bg_thresh(struct bdi_writeback *wb);
- 
--typedef int (*writepage_t)(struct page *page, struct writeback_control *wbc,
-+typedef int (*writepage_t)(struct folio *folio, struct writeback_control *wbc,
- 				void *data);
- 
- void tag_pages_for_writeback(struct address_space *mapping,
---- a/mm/page-writeback.c~fs-convert-writepage_t-callback-to-pass-a-folio
-+++ a/mm/page-writeback.c
-@@ -2470,7 +2470,7 @@ continue_unlock:
- 				goto continue_unlock;
- 
- 			trace_wbc_writepage(wbc, inode_to_bdi(mapping->host));
--			error = writepage(&folio->page, wbc, data);
-+			error = writepage(folio, wbc, data);
- 			if (unlikely(error)) {
- 				/*
- 				 * Handle errors according to the type of
-@@ -2528,11 +2528,11 @@ continue_unlock:
- }
- EXPORT_SYMBOL(write_cache_pages);
- 
--static int writepage_cb(struct page *page, struct writeback_control *wbc,
-+static int writepage_cb(struct folio *folio, struct writeback_control *wbc,
- 		void *data)
- {
- 	struct address_space *mapping = data;
--	int ret = mapping->a_ops->writepage(page, wbc);
-+	int ret = mapping->a_ops->writepage(&folio->page, wbc);
- 	mapping_set_error(mapping, ret);
- 	return ret;
- }
+ out:
+ 	mpd->bio = bio;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
