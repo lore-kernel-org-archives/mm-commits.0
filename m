@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 142F5C63797
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:43:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 362F5C636CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:43:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232530AbjBCGne (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232093AbjBCGne (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Feb 2023 01:43:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39460 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232093AbjBCGmA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:42:00 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E26EA14205
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:16 -0800 (PST)
+        with ESMTP id S232305AbjBCGmB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:42:01 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9286614483
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 3A60DCE2EA3
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6026BC433D2;
-        Fri,  3 Feb 2023 06:38:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2C59461DAA
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8084FC433D2;
+        Fri,  3 Feb 2023 06:38:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406293;
-        bh=qNBSqN7yAwb5B7oK1cb6AO2HPgLEFtZ4RnCn8nsijU4=;
+        s=korg; t=1675406296;
+        bh=IqTz9OqU8VHQ9wpqug8pHWxFFM19P9GlPz8a9hNsRbE=;
         h=Date:To:From:Subject:From;
-        b=DmwQ5Xgum9z12ARabechc/LIcWqqS4ejIWpUjhni0Me3v5CTojuKdNhP+4m4Ksrko
-         P6C347dE6wYyQHNIQ9ugGTYeOl728cWd2xtNgHqZBaf5uUPblfKbx2RbpCzFukROTq
-         Ztxty5MXhgtm/lZ20cYQXF8Cn1SUcso973uBPlGk=
-Date:   Thu, 02 Feb 2023 22:38:12 -0800
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, talumbau@google.com,
+        b=KQZ37sFkuW5t8fDuOB0razX5WgzWfkkepKpVHaCc45jn+xoc2Wn2O/NaWDQk50GvC
+         DrDSS6yOSfahGqX/5PNyVox4MaPNl7WM8K53ooBh2aMWN79SByqqql+HhVX9yyXObj
+         JjcH76uf8C2j0O2o4Yudypk3vMulTeGPIK37+2lA=
+Date:   Thu, 02 Feb 2023 22:38:15 -0800
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        tony.luck@intel.com, shy828301@gmail.com, rientjes@google.com,
+        naoya.horiguchi@nec.com, jiaqiyan@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-improve-lru_gen_exit_memcg.patch removed from -mm tree
-Message-Id: <20230203063813.6026BC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-add-memory-failure-stats-to-sysfs.patch removed from -mm tree
+Message-Id: <20230203063816.8084FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,49 +43,265 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: improve lru_gen_exit_memcg()
+     Subject: mm: memory-failure: add memory failure stats to sysfs
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-improve-lru_gen_exit_memcg.patch
+     mm-memory-failure-add-memory-failure-stats-to-sysfs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "T.J. Alumbaugh" <talumbau@google.com>
-Subject: mm: multi-gen LRU: improve lru_gen_exit_memcg()
-Date: Wed, 18 Jan 2023 00:18:25 +0000
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm: memory-failure: add memory failure stats to sysfs
+Date: Fri, 20 Jan 2023 03:46:20 +0000
 
-Add warnings and poison ->next.
+Patch series "Introduce per NUMA node memory error statistics", v2.
 
-Link: https://lkml.kernel.org/r/20230118001827.1040870-6-talumbau@google.com
-Signed-off-by: T.J. Alumbaugh <talumbau@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Background
+==========
+
+In the RFC for Kernel Support of Memory Error Detection [1], one advantage
+of software-based scanning over hardware patrol scrubber is the ability to
+make statistics visible to system administrators.  The statistics include
+2 categories:
+
+* Memory error statistics, for example, how many memory error are
+  encountered, how many of them are recovered by the kernel.  Note these
+  memory errors are non-fatal to kernel: during the machine check
+  exception (MCE) handling kernel already classified MCE's severity to be
+  unnecessary to panic (but either action required or optional).
+
+* Scanner statistics, for example how many times the scanner have fully
+  scanned a NUMA node, how many errors are first detected by the scanner.
+
+The memory error statistics are useful to userspace and actually not
+specific to scanner detected memory errors, and are the focus of this
+patchset.
+
+Motivation
+==========
+
+Memory error stats are important to userspace but insufficient in kernel
+today.  Datacenter administrators can better monitor a machine's memory
+health with the visible stats.  For example, while memory errors are
+inevitable on servers with 10+ TB memory, starting server maintenance when
+there are only 1~2 recovered memory errors could be overreacting; in cloud
+production environment maintenance usually means live migrate all the
+workload running on the server and this usually causes nontrivial
+disruption to the customer.  Providing insight into the scope of memory
+errors on a system helps to determine the appropriate follow-up action. 
+In addition, the kernel's existing memory error stats need to be
+standardized so that userspace can reliably count on their usefulness.
+
+Today kernel provides following memory error info to userspace, but they
+are not sufficient or have disadvantages:
+* HardwareCorrupted in /proc/meminfo: number of bytes poisoned in total,
+  not per NUMA node stats though
+* ras:memory_failure_event: only available after explicitly enabled
+* /dev/mcelog provides many useful info about the MCEs, but doesn't
+  capture how memory_failure recovered memory MCEs
+* kernel logs: userspace needs to process log text
+
+Exposing memory error stats is also a good start for the in-kernel memory
+error detector.  Today the data source of memory error stats are either
+direct memory error consumption, or hardware patrol scrubber detection
+(either signaled as UCNA or SRAO).  Once in-kernel memory scanner is
+implemented, it will be the main source as it is usually configured to
+scan memory DIMMs constantly and faster than hardware patrol scrubber.
+
+How Implemented
+===============
+
+As Naoya pointed out [2], exposing memory error statistics to userspace is
+useful independent of software or hardware scanner.  Therefore we
+implement the memory error statistics independent of the in-kernel memory
+error detector.  It exposes the following per NUMA node memory error
+counters:
+
+  /sys/devices/system/node/node${X}/memory_failure/total
+  /sys/devices/system/node/node${X}/memory_failure/recovered
+  /sys/devices/system/node/node${X}/memory_failure/ignored
+  /sys/devices/system/node/node${X}/memory_failure/failed
+  /sys/devices/system/node/node${X}/memory_failure/delayed
+
+These counters describe how many raw pages are poisoned and after the
+attempted recoveries by the kernel, their resolutions: how many are
+recovered, ignored, failed, or delayed respectively.  This approach can be
+easier to extend for future use cases than /proc/meminfo, trace event, and
+log.  The following math holds for the statistics:
+
+* total = recovered + ignored + failed + delayed
+
+These memory error stats are reset during machine boot.
+
+The 1st commit introduces these sysfs entries.  The 2nd commit populates
+memory error stats every time memory_failure attempts memory error
+recovery.  The 3rd commit adds documentations for introduced stats.
+
+[1] https://lore.kernel.org/linux-mm/7E670362-C29E-4626-B546-26530D54F937@gmail.com/T/#mc22959244f5388891c523882e61163c6e4d703af
+[2] https://lore.kernel.org/linux-mm/7E670362-C29E-4626-B546-26530D54F937@gmail.com/T/#m52d8d7a333d8536bd7ce74253298858b1c0c0ac6
+
+
+This patch (of 3):
+
+Today kernel provides following memory error info to userspace, but each
+has its own disadvantage
+
+* HardwareCorrupted in /proc/meminfo: number of bytes poisoned in total,
+  not per NUMA node stats though
+
+* ras:memory_failure_event: only available after explicitly enabled
+
+* /dev/mcelog provides many useful info about the MCEs, but
+  doesn't capture how memory_failure recovered memory MCEs
+
+* kernel logs: userspace needs to process log text
+
+Exposes per NUMA node memory error stats as sysfs entries:
+
+  /sys/devices/system/node/node${X}/memory_failure/total
+  /sys/devices/system/node/node${X}/memory_failure/recovered
+  /sys/devices/system/node/node${X}/memory_failure/ignored
+  /sys/devices/system/node/node${X}/memory_failure/failed
+  /sys/devices/system/node/node${X}/memory_failure/delayed
+
+These counters describe how many raw pages are poisoned and after the
+attempted recoveries by the kernel, their resolutions: how many are
+recovered, ignored, failed, or delayed respectively.  The following math
+holds for the statistics:
+
+* total = recovered + ignored + failed + delayed
+
+Link: https://lkml.kernel.org/r/20230120034622.2698268-1-jiaqiyan@google.com
+Link: https://lkml.kernel.org/r/20230120034622.2698268-2-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/vmscan.c~mm-multi-gen-lru-improve-lru_gen_exit_memcg
-+++ a/mm/vmscan.c
-@@ -6168,12 +6168,17 @@ void lru_gen_exit_memcg(struct mem_cgrou
- 	int i;
- 	int nid;
+--- a/drivers/base/node.c~mm-memory-failure-add-memory-failure-stats-to-sysfs
++++ a/drivers/base/node.c
+@@ -587,6 +587,9 @@ static const struct attribute_group *nod
+ #ifdef CONFIG_HAVE_ARCH_NODE_DEV_GROUP
+ 	&arch_node_dev_group,
+ #endif
++#ifdef CONFIG_MEMORY_FAILURE
++	&memory_failure_attr_group,
++#endif
+ 	NULL
+ };
  
-+	VM_WARN_ON_ONCE(!list_empty(&memcg->mm_list.fifo));
+--- a/include/linux/mm.h~mm-memory-failure-add-memory-failure-stats-to-sysfs
++++ a/include/linux/mm.h
+@@ -3455,6 +3455,11 @@ enum mf_action_page_type {
+ 	MF_MSG_UNKNOWN,
+ };
+ 
++/*
++ * Sysfs entries for memory failure handling statistics.
++ */
++extern const struct attribute_group memory_failure_attr_group;
 +
- 	for_each_node(nid) {
- 		struct lruvec *lruvec = get_lruvec(memcg, nid);
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
+ extern void clear_huge_page(struct page *page,
+ 			    unsigned long addr_hint,
+--- a/include/linux/mmzone.h~mm-memory-failure-add-memory-failure-stats-to-sysfs
++++ a/include/linux/mmzone.h
+@@ -1212,6 +1212,31 @@ struct deferred_split {
+ };
+ #endif
  
-+		VM_WARN_ON_ONCE(lruvec->mm_state.nr_walkers);
- 		VM_WARN_ON_ONCE(memchr_inv(lruvec->lrugen.nr_pages, 0,
- 					   sizeof(lruvec->lrugen.nr_pages)));
- 
-+		lruvec->lrugen.list.next = LIST_POISON1;
++#ifdef CONFIG_MEMORY_FAILURE
++/*
++ * Per NUMA node memory failure handling statistics.
++ */
++struct memory_failure_stats {
++	/*
++	 * Number of raw pages poisoned.
++	 * Cases not accounted: memory outside kernel control, offline page,
++	 * arch-specific memory_failure (SGX), hwpoison_filter() filtered
++	 * error events, and unpoison actions from hwpoison_unpoison.
++	 */
++	unsigned long total;
++	/*
++	 * Recovery results of poisoned raw pages handled by memory_failure,
++	 * in sync with mf_result.
++	 * total = ignored + failed + delayed + recovered.
++	 * total * PAGE_SIZE * #nodes = /proc/meminfo/HardwareCorrupted.
++	 */
++	unsigned long ignored;
++	unsigned long failed;
++	unsigned long delayed;
++	unsigned long recovered;
++};
++#endif
 +
- 		for (i = 0; i < NR_BLOOM_FILTERS; i++) {
- 			bitmap_free(lruvec->mm_state.filters[i]);
- 			lruvec->mm_state.filters[i] = NULL;
+ /*
+  * On NUMA machines, each NUMA node would have a pg_data_t to describe
+  * it's memory layout. On UMA machines there is a single pglist_data which
+@@ -1357,6 +1382,9 @@ typedef struct pglist_data {
+ #ifdef CONFIG_NUMA
+ 	struct memory_tier __rcu *memtier;
+ #endif
++#ifdef CONFIG_MEMORY_FAILURE
++	struct memory_failure_stats mf_stats;
++#endif
+ } pg_data_t;
+ 
+ #define node_present_pages(nid)	(NODE_DATA(nid)->node_present_pages)
+--- a/mm/memory-failure.c~mm-memory-failure-add-memory-failure-stats-to-sysfs
++++ a/mm/memory-failure.c
+@@ -87,6 +87,41 @@ inline void num_poisoned_pages_sub(unsig
+ 		memblk_nr_poison_sub(pfn, i);
+ }
+ 
++/**
++ * MF_ATTR_RO - Create sysfs entry for each memory failure statistics.
++ * @_name: name of the file in the per NUMA sysfs directory.
++ */
++#define MF_ATTR_RO(_name)					\
++static ssize_t _name##_show(struct device *dev,			\
++			    struct device_attribute *attr,	\
++			    char *buf)				\
++{								\
++	struct memory_failure_stats *mf_stats =			\
++		&NODE_DATA(dev->id)->mf_stats;			\
++	return sprintf(buf, "%lu\n", mf_stats->_name);		\
++}								\
++static DEVICE_ATTR_RO(_name)
++
++MF_ATTR_RO(total);
++MF_ATTR_RO(ignored);
++MF_ATTR_RO(failed);
++MF_ATTR_RO(delayed);
++MF_ATTR_RO(recovered);
++
++static struct attribute *memory_failure_attr[] = {
++	&dev_attr_total.attr,
++	&dev_attr_ignored.attr,
++	&dev_attr_failed.attr,
++	&dev_attr_delayed.attr,
++	&dev_attr_recovered.attr,
++	NULL,
++};
++
++const struct attribute_group memory_failure_attr_group = {
++	.name = "memory_failure",
++	.attrs = memory_failure_attr,
++};
++
+ /*
+  * Return values:
+  *   1:   the page is dissolved (if needed) and taken off from buddy,
 _
 
-Patches currently in -mm which might be from talumbau@google.com are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
+mm-khugepaged-recover-from-poisoned-anonymous-memory.patch
+mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
 
