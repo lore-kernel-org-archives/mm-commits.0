@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F815C61DA4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E42CC636D7
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:51:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232316AbjBCGv3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232406AbjBCGv3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Feb 2023 01:51:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45442 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231989AbjBCGvM (ORCPT
+        with ESMTP id S232001AbjBCGvM (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:51:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AD78360BF
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:51:04 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59A6E4C1E
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:51:03 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 99D1561DBB
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:51:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01618C4339B;
-        Fri,  3 Feb 2023 06:51:02 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E48A5B82986
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:51:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 845EDC4339B;
+        Fri,  3 Feb 2023 06:51:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675407063;
-        bh=TqO1/STFmqcfXxqVEqu/KpJkJNEg8sGneGEX6lCJoa8=;
+        s=korg; t=1675407060;
+        bh=HOdpm7smJaWBkpyyg2vsKET9OYsILanjCaTec3fqp9k=;
         h=Date:To:From:Subject:From;
-        b=qCiT8fvcYAfjvBXWJjJrP5qYeR8FTC5zBsioFKsQ0nImNCTCi4VTHuSYn3atgr1Kd
-         YXyXBLZ1wBRYAhZSUFdB6kmvKMUFpntvM6EmQj8CRgkMaC7NxjczPXIRZ3QFAxyC5u
-         upkRyTaleBfdjqsbKy49UEhmDviAopqOR0QgtEF8=
-Date:   Thu, 02 Feb 2023 22:51:02 -0800
-To:     mm-commits@vger.kernel.org, hch@lst.de, gregkh@linuxfoundation.org,
-        rdunlap@infradead.org, akpm@linux-foundation.org
+        b=1LoTmQ1J3vZSA2ZGVsT1PK3pD8+F/lqtgqnq0JAxjOidfKBEVzwHWhdgtzL8JcMxV
+         YROrGYWQ2Cz3CE5e27WqiV+RV5H9w5J8tyNZpTZSJP+qp0LqI/JMndcJzy1m44suCS
+         An7umD3cxAWPJDXAZekZU9D6s4zGGyQTr6+gSyzY=
+Date:   Thu, 02 Feb 2023 22:50:59 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mingo@redhat.com,
+        kbingham@kernel.org, jan.kiszka@siemens.com,
+        gregkh@linuxfoundation.org, dmitrii.bundin.a@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] freevxfs-fix-kernel-doc-warnings.patch removed from -mm tree
-Message-Id: <20230203065103.01618C4339B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-add-mm-introspection-utils.patch removed from -mm tree
+Message-Id: <20230203065100.845EDC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,75 +43,330 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: freevxfs: fix kernel-doc warnings
+     Subject: scripts/gdb: add mm introspection utils
 has been removed from the -mm tree.  Its filename was
-     freevxfs-fix-kernel-doc-warnings.patch
+     scripts-gdb-add-mm-introspection-utils.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: freevxfs: fix kernel-doc warnings
-Date: Sun, 8 Jan 2023 18:29:15 -0800
+From: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
+Subject: scripts/gdb: add mm introspection utils
+Date: Mon, 2 Jan 2023 20:10:14 +0300
 
-Fix multiple kernel-doc warnings in freevxfs:
+This command provides a way to traverse the entire page hierarchy by a
+given virtual address on x86.  In addition to qemu's commands info
+tlb/info mem it provides the complete information about the paging
+structure for an arbitrary virtual address.  It supports 4KB/2MB/1GB and 5
+level paging.
 
-fs/freevxfs/vxfs_subr.c:45: warning: Function parameter or member 'mapping' not described in 'vxfs_get_page'
-fs/freevxfs/vxfs_subr.c:45: warning: Excess function parameter 'ip' description in 'vxfs_get_page'
-2 warnings
-fs/freevxfs/vxfs_subr.c:101: warning: expecting prototype for vxfs_get_block(). Prototype was for vxfs_getblk() instead
-fs/freevxfs/vxfs_super.c:184: warning: expecting prototype for vxfs_read_super(). Prototype was for vxfs_fill_super() instead
+Here is an example output for 2MB success translation:
 
-Link: https://lkml.kernel.org/r/20230109022915.17504-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+(gdb) translate-vm address
+cr3:
+    cr3 binary data                0x1085be003
+    next entry physical address   0x1085be000
+    ---
+    bit  3          page level write through       False
+    bit  4          page level cache disabled      False
+level 4:
+    entry address                  0xffff8881085be7f8
+    page entry binary data         0x800000010ac83067
+    next entry physical address   0x10ac83000
+    ---
+    bit  0          entry present                  True
+    bit  1          read/write access allowed      True
+    bit  2          user access allowed            True
+    bit  3          page level write through       False
+    bit  4          page level cache disabled      False
+    bit  5          entry has been accessed        True
+    bit  7          page size                      False
+    bit  11         restart to ordinary            False
+    bit  63         execute disable                True
+level 3:
+    entry address                  0xffff88810ac83a48
+    page entry binary data         0x101af7067
+    next entry physical address   0x101af7000
+    ---
+    bit  0          entry present                  True
+    bit  1          read/write access allowed      True
+    bit  2          user access allowed            True
+    bit  3          page level write through       False
+    bit  4          page level cache disabled      False
+    bit  5          entry has been accessed        True
+    bit  7          page size                      False
+    bit  11         restart to ordinary            False
+    bit  63         execute disable                False
+level 2:
+    entry address                  0xffff888101af7368
+    page entry binary data         0x80000001634008e7
+    page size                      2MB
+    page physical address         0x163400000
+    ---
+    bit  0          entry present                  True
+    bit  1          read/write access allowed      True
+    bit  2          user access allowed            True
+    bit  3          page level write through       False
+    bit  4          page level cache disabled      False
+    bit  5          entry has been accessed        True
+    bit  7          page size                      True
+    bit  6          page dirty                     True
+    bit  8          global translation             False
+    bit  11         restart to ordinary            True
+    bit  12         pat                            False
+    bits (59, 62)   protection key                 0
+    bit  63         execute disable                True
+
+[dmitrii.bundin.a@gmail.com: add SPDX line, other tweaks]
+  Link: https://lkml.kernel.org/r/20230113175151.22278-1-dmitrii.bundin.a@gmail.com
+[akpm@linux-foundation.org: s/physicall/physical/]
+Link: https://lkml.kernel.org/r/20230102171014.31408-1-dmitrii.bundin.a@gmail.com
+Signed-off-by: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
+Acked by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/freevxfs/vxfs_subr.c~freevxfs-fix-kernel-doc-warnings
-+++ a/fs/freevxfs/vxfs_subr.c
-@@ -31,7 +31,7 @@ vxfs_put_page(struct page *pp)
- 
- /**
-  * vxfs_get_page - read a page into memory.
-- * @ip:		inode to read from
-+ * @mapping:	mapping to read from
-  * @n:		page number
-  *
-  * Description:
-@@ -81,14 +81,14 @@ vxfs_bread(struct inode *ip, int block)
- }
- 
- /**
-- * vxfs_get_block - locate buffer for given inode,block tuple 
-+ * vxfs_getblk - locate buffer for given inode,block tuple
-  * @ip:		inode
-  * @iblock:	logical block
-  * @bp:		buffer skeleton
-  * @create:	%TRUE if blocks may be newly allocated.
-  *
-  * Description:
-- *   The vxfs_get_block function fills @bp with the right physical
-+ *   The vxfs_getblk function fills @bp with the right physical
-  *   block and device number to perform a lowlevel read/write on
-  *   it.
-  *
---- a/fs/freevxfs/vxfs_super.c~freevxfs-fix-kernel-doc-warnings
-+++ a/fs/freevxfs/vxfs_super.c
-@@ -165,7 +165,7 @@ static int vxfs_try_sb_magic(struct supe
- }
- 
- /**
-- * vxfs_read_super - read superblock into memory and initialize filesystem
-+ * vxfs_fill_super - read superblock into memory and initialize filesystem
-  * @sbp:		VFS superblock (to fill)
-  * @dp:			fs private mount data
-  * @silent:		do not complain loudly when sth is wrong
+--- /dev/null
++++ a/scripts/gdb/linux/mm.py
+@@ -0,0 +1,222 @@
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# gdb helper commands and functions for Linux kernel debugging
++#
++#  routines to introspect page table
++#
++# Authors:
++#  Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
++#
++
++import gdb
++
++from linux import utils
++
++PHYSICAL_ADDRESS_MASK = gdb.parse_and_eval('0xfffffffffffff')
++
++
++def page_mask(level=1):
++    # 4KB
++    if level == 1:
++        return gdb.parse_and_eval('(u64) ~0xfff')
++    # 2MB
++    elif level == 2:
++        return gdb.parse_and_eval('(u64) ~0x1fffff')
++    # 1GB
++    elif level == 3:
++        return gdb.parse_and_eval('(u64) ~0x3fffffff')
++    else:
++        raise Exception(f'Unknown page level: {level}')
++
++
++#page_offset_base in case CONFIG_DYNAMIC_MEMORY_LAYOUT is disabled
++POB_NO_DYNAMIC_MEM_LAYOUT = '0xffff888000000000'
++def _page_offset_base():
++    pob_symbol = gdb.lookup_global_symbol('page_offset_base')
++    pob = pob_symbol.name if pob_symbol else POB_NO_DYNAMIC_MEM_LAYOUT
++    return gdb.parse_and_eval(pob)
++
++
++def is_bit_defined_tupled(data, offset):
++    return offset, bool(data >> offset & 1)
++
++def content_tupled(data, bit_start, bit_end):
++    return (bit_start, bit_end), data >> bit_start & ((1 << (1 + bit_end - bit_start)) - 1)
++
++def entry_va(level, phys_addr, translating_va):
++        def start_bit(level):
++            if level == 5:
++                return 48
++            elif level == 4:
++                return 39
++            elif level == 3:
++                return 30
++            elif level == 2:
++                return 21
++            elif level == 1:
++                return 12
++            else:
++                raise Exception(f'Unknown level {level}')
++
++        entry_offset =  ((translating_va >> start_bit(level)) & 511) * 8
++        entry_va = _page_offset_base() + phys_addr + entry_offset
++        return entry_va
++
++class Cr3():
++    def __init__(self, cr3, page_levels):
++        self.cr3 = cr3
++        self.page_levels = page_levels
++        self.page_level_write_through = is_bit_defined_tupled(cr3, 3)
++        self.page_level_cache_disabled = is_bit_defined_tupled(cr3, 4)
++        self.next_entry_physical_address = cr3 & PHYSICAL_ADDRESS_MASK & page_mask()
++
++    def next_entry(self, va):
++        next_level = self.page_levels
++        return PageHierarchyEntry(entry_va(next_level, self.next_entry_physical_address, va), next_level)
++
++    def mk_string(self):
++            return f"""\
++cr3:
++    {'cr3 binary data': <30} {hex(self.cr3)}
++    {'next entry physical address': <30} {hex(self.next_entry_physical_address)}
++    ---
++    {'bit' : <4} {self.page_level_write_through[0]: <10} {'page level write through': <30} {self.page_level_write_through[1]}
++    {'bit' : <4} {self.page_level_cache_disabled[0]: <10} {'page level cache disabled': <30} {self.page_level_cache_disabled[1]}
++"""
++
++
++class PageHierarchyEntry():
++    def __init__(self, address, level):
++        data = int.from_bytes(
++            memoryview(gdb.selected_inferior().read_memory(address, 8)),
++            "little"
++        )
++        if level == 1:
++            self.is_page = True
++            self.entry_present = is_bit_defined_tupled(data, 0)
++            self.read_write = is_bit_defined_tupled(data, 1)
++            self.user_access_allowed = is_bit_defined_tupled(data, 2)
++            self.page_level_write_through = is_bit_defined_tupled(data, 3)
++            self.page_level_cache_disabled = is_bit_defined_tupled(data, 4)
++            self.entry_was_accessed = is_bit_defined_tupled(data, 5)
++            self.dirty = is_bit_defined_tupled(data, 6)
++            self.pat = is_bit_defined_tupled(data, 7)
++            self.global_translation = is_bit_defined_tupled(data, 8)
++            self.page_physical_address = data & PHYSICAL_ADDRESS_MASK & page_mask(level)
++            self.next_entry_physical_address = None
++            self.hlat_restart_with_ordinary = is_bit_defined_tupled(data, 11)
++            self.protection_key = content_tupled(data, 59, 62)
++            self.executed_disable = is_bit_defined_tupled(data, 63)
++        else:
++            page_size = is_bit_defined_tupled(data, 7)
++            page_size_bit = page_size[1]
++            self.is_page = page_size_bit
++            self.entry_present = is_bit_defined_tupled(data, 0)
++            self.read_write = is_bit_defined_tupled(data, 1)
++            self.user_access_allowed = is_bit_defined_tupled(data, 2)
++            self.page_level_write_through = is_bit_defined_tupled(data, 3)
++            self.page_level_cache_disabled = is_bit_defined_tupled(data, 4)
++            self.entry_was_accessed = is_bit_defined_tupled(data, 5)
++            self.page_size = page_size
++            self.dirty = is_bit_defined_tupled(
++                data, 6) if page_size_bit else None
++            self.global_translation = is_bit_defined_tupled(
++                data, 8) if page_size_bit else None
++            self.pat = is_bit_defined_tupled(
++                data, 12) if page_size_bit else None
++            self.page_physical_address = data & PHYSICAL_ADDRESS_MASK & page_mask(level) if page_size_bit else None
++            self.next_entry_physical_address = None if page_size_bit else data & PHYSICAL_ADDRESS_MASK & page_mask()
++            self.hlat_restart_with_ordinary = is_bit_defined_tupled(data, 11)
++            self.protection_key = content_tupled(data, 59, 62) if page_size_bit else None
++            self.executed_disable = is_bit_defined_tupled(data, 63)
++        self.address = address
++        self.page_entry_binary_data = data
++        self.page_hierarchy_level = level
++
++    def next_entry(self, va):
++        if self.is_page or not self.entry_present[1]:
++            return None
++
++        next_level = self.page_hierarchy_level - 1
++        return PageHierarchyEntry(entry_va(next_level, self.next_entry_physical_address, va), next_level)
++
++
++    def mk_string(self):
++        if not self.entry_present[1]:
++            return f"""\
++level {self.page_hierarchy_level}:
++    {'entry address': <30} {hex(self.address)}
++    {'page entry binary data': <30} {hex(self.page_entry_binary_data)}
++    ---
++    PAGE ENTRY IS NOT PRESENT!
++"""
++        elif self.is_page:
++            def page_size_line(ps_bit, ps, level):
++                return "" if level == 1 else f"{'bit': <3} {ps_bit: <5} {'page size': <30} {ps}"
++
++            return f"""\
++level {self.page_hierarchy_level}:
++    {'entry address': <30} {hex(self.address)}
++    {'page entry binary data': <30} {hex(self.page_entry_binary_data)}
++    {'page size': <30} {'1GB' if self.page_hierarchy_level == 3 else '2MB' if self.page_hierarchy_level == 2 else '4KB' if self.page_hierarchy_level == 1 else 'Unknown page size for level:' + self.page_hierarchy_level}
++    {'page physical address': <30} {hex(self.page_physical_address)}
++    ---
++    {'bit': <4} {self.entry_present[0]: <10} {'entry present': <30} {self.entry_present[1]}
++    {'bit': <4} {self.read_write[0]: <10} {'read/write access allowed': <30} {self.read_write[1]}
++    {'bit': <4} {self.user_access_allowed[0]: <10} {'user access allowed': <30} {self.user_access_allowed[1]}
++    {'bit': <4} {self.page_level_write_through[0]: <10} {'page level write through': <30} {self.page_level_write_through[1]}
++    {'bit': <4} {self.page_level_cache_disabled[0]: <10} {'page level cache disabled': <30} {self.page_level_cache_disabled[1]}
++    {'bit': <4} {self.entry_was_accessed[0]: <10} {'entry has been accessed': <30} {self.entry_was_accessed[1]}
++    {"" if self.page_hierarchy_level == 1 else f"{'bit': <4} {self.page_size[0]: <10} {'page size': <30} {self.page_size[1]}"}
++    {'bit': <4} {self.dirty[0]: <10} {'page dirty': <30} {self.dirty[1]}
++    {'bit': <4} {self.global_translation[0]: <10} {'global translation': <30} {self.global_translation[1]}
++    {'bit': <4} {self.hlat_restart_with_ordinary[0]: <10} {'restart to ordinary': <30} {self.hlat_restart_with_ordinary[1]}
++    {'bit': <4} {self.pat[0]: <10} {'pat': <30} {self.pat[1]}
++    {'bits': <4} {str(self.protection_key[0]): <10} {'protection key': <30} {self.protection_key[1]}
++    {'bit': <4} {self.executed_disable[0]: <10} {'execute disable': <30} {self.executed_disable[1]}
++"""
++        else:
++            return f"""\
++level {self.page_hierarchy_level}:
++    {'entry address': <30} {hex(self.address)}
++    {'page entry binary data': <30} {hex(self.page_entry_binary_data)}
++    {'next entry physical address': <30} {hex(self.next_entry_physical_address)}
++    ---
++    {'bit': <4} {self.entry_present[0]: <10} {'entry present': <30} {self.entry_present[1]}
++    {'bit': <4} {self.read_write[0]: <10} {'read/write access allowed': <30} {self.read_write[1]}
++    {'bit': <4} {self.user_access_allowed[0]: <10} {'user access allowed': <30} {self.user_access_allowed[1]}
++    {'bit': <4} {self.page_level_write_through[0]: <10} {'page level write through': <30} {self.page_level_write_through[1]}
++    {'bit': <4} {self.page_level_cache_disabled[0]: <10} {'page level cache disabled': <30} {self.page_level_cache_disabled[1]}
++    {'bit': <4} {self.entry_was_accessed[0]: <10} {'entry has been accessed': <30} {self.entry_was_accessed[1]}
++    {'bit': <4} {self.page_size[0]: <10} {'page size': <30} {self.page_size[1]}
++    {'bit': <4} {self.hlat_restart_with_ordinary[0]: <10} {'restart to ordinary': <30} {self.hlat_restart_with_ordinary[1]}
++    {'bit': <4} {self.executed_disable[0]: <10} {'execute disable': <30} {self.executed_disable[1]}
++"""
++
++
++class TranslateVM(gdb.Command):
++    """Prints the entire paging structure used to translate a given virtual address.
++
++Having an address space of the currently executed process translates the virtual address
++and prints detailed information of all paging structure levels used for the transaltion.
++Currently supported arch: x86"""
++
++    def __init__(self):
++        super(TranslateVM, self).__init__('translate-vm', gdb.COMMAND_USER)
++
++    def invoke(self, arg, from_tty):
++        if utils.is_target_arch("x86"):
++            vm_address = gdb.parse_and_eval(f'{arg}')
++            cr3_data = gdb.parse_and_eval('$cr3')
++            cr4 = gdb.parse_and_eval('$cr4')
++            page_levels = 5 if cr4 & (1 << 12) else 4
++            page_entry = Cr3(cr3_data, page_levels)
++            while page_entry:
++                gdb.write(page_entry.mk_string())
++                page_entry = page_entry.next_entry(vm_address)
++        else:
++            gdb.GdbError("Virtual address translation is not"
++                         "supported for this arch")
++
++
++TranslateVM()
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-mm-introspection-utils
++++ a/scripts/gdb/vmlinux-gdb.py
+@@ -37,3 +37,4 @@ else:
+     import linux.clk
+     import linux.genpd
+     import linux.device
++    import linux.mm
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from dmitrii.bundin.a@gmail.com are
 
 
