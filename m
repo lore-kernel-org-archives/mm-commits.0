@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC34CC636CC
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:37:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A906CC61DA4
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:37:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232233AbjBCGhT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:37:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36924 "EHLO
+        id S231775AbjBCGhU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:37:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231775AbjBCGgW (ORCPT
+        with ESMTP id S232037AbjBCGgW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:36:22 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2FB98D403
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:08 -0800 (PST)
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C1E880F90
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 69F3961DA8
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDB69C433D2;
-        Fri,  3 Feb 2023 06:36:07 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 4F853CE2EC5
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B353C4339C;
+        Fri,  3 Feb 2023 06:36:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406167;
-        bh=ZKSwxbYd9eCm1IYbuKu1dUQxZxR6sUFQEFv0o2hnG/o=;
+        s=korg; t=1675406165;
+        bh=F9u0YNkrRLHkYD7otOxg8VVTflAUurt4oE8MlpjNRHY=;
         h=Date:To:From:Subject:From;
-        b=mbSvsgcVpisYsJMthYdbDNxCF2fQ/lAwij7agqyzkfh7ywzo2ehOwPxE2YvrKdJcy
-         L0KqkPFdtcLU/ntIBGte26QoKsQqZT7IrSE4ZlQn8LxRuek7GaNxj40xOCMyY87wv8
-         nHs9IO3ppXzesu2ytn02ERn4E+oaTIv0ZSzFHIIY=
-Date:   Thu, 02 Feb 2023 22:36:07 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
-        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
+        b=Ki88AuQ2Y/llcOd968d7RmltluPsN/G6NnxIVKUR/rDxLJ3Xgg013j2E2aoSpUhSR
+         w3lLe4aPjKk6MQ9xzWvI+Q60QUjeVLqIurfrF0y6QzSIR0Di6klX8hQM+35Oc8v+I6
+         rt8ee0DclbPvrmWyY4r+nKmreGLx1gmBK+//+MdY=
+Date:   Thu, 02 Feb 2023 22:36:04 -0800
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
+        qun-wei.lin@mediatek.com, peterz@infradead.org, mingo@redhat.com,
+        luto@kernel.org, elver@google.com, dvyukov@google.com,
+        glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-convert-try_memory_failure_hugetlb-to-folios.patch removed from -mm tree
-Message-Id: <20230203063607.BDB69C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] revert-x86-kmsan-sync-metadata-pages-on-page-fault.patch removed from -mm tree
+Message-Id: <20230203063605.8B353C4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,116 +43,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: convert try_memory_failure_hugetlb() to folios
+     Subject: Revert "x86: kmsan: sync metadata pages on page fault"
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-convert-try_memory_failure_hugetlb-to-folios.patch
+     revert-x86-kmsan-sync-metadata-pages-on-page-fault.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/memory-failure: convert try_memory_failure_hugetlb() to folios
-Date: Thu, 12 Jan 2023 14:46:02 -0600
+From: Alexander Potapenko <glider@google.com>
+Subject: Revert "x86: kmsan: sync metadata pages on page fault"
+Date: Wed, 11 Jan 2023 11:18:06 +0100
 
-Use a struct folio rather than a head page in try_memory_failure_hugetlb. 
-This converts one user of SetHPageMigratable to the folio equivalent.
+This reverts commit 3f1e2c7a9099c1ed32c67f12cdf432ba782cf51f.
 
-Link: https://lkml.kernel.org/r/20230112204608.80136-3-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+As noticed by Qun-Wei Lin, arch_sync_kernel_mappings() in
+arch/x86/mm/fault.c is only used with CONFIG_X86_32, whereas KMSAN is only
+supported on x86_64, where this code is not compiled.
+
+The patch in question dates back to downstream KMSAN branch based on
+v5.8-rc5, it sneaked into upstream unnoticed in v6.1.
+
+Link: https://lkml.kernel.org/r/20230111101806.3236991-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reported-by: Qun-Wei Lin <qun-wei.lin@mediatek.com>
+  Link: https://github.com/google/kmsan/issues/91
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memory-failure.c~mm-memory-failure-convert-try_memory_failure_hugetlb-to-folios
-+++ a/mm/memory-failure.c
-@@ -1860,7 +1860,7 @@ static int try_memory_failure_hugetlb(un
+--- a/arch/x86/mm/fault.c~revert-x86-kmsan-sync-metadata-pages-on-page-fault
++++ a/arch/x86/mm/fault.c
+@@ -260,7 +260,7 @@ static noinline int vmalloc_fault(unsign
+ }
+ NOKPROBE_SYMBOL(vmalloc_fault);
+ 
+-static void __arch_sync_kernel_mappings(unsigned long start, unsigned long end)
++void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
  {
- 	int res;
- 	struct page *p = pfn_to_page(pfn);
--	struct page *head;
-+	struct folio *folio;
- 	unsigned long page_flags;
- 	bool migratable_cleared = false;
+ 	unsigned long addr;
  
-@@ -1873,8 +1873,8 @@ retry:
- 	} else if (res == -EHWPOISON) {
- 		pr_err("%#lx: already hardware poisoned\n", pfn);
- 		if (flags & MF_ACTION_REQUIRED) {
--			head = compound_head(p);
--			res = kill_accessing_process(current, page_to_pfn(head), flags);
-+			folio = page_folio(p);
-+			res = kill_accessing_process(current, folio_pfn(folio), flags);
- 		}
- 		return res;
- 	} else if (res == -EBUSY) {
-@@ -1885,16 +1885,16 @@ retry:
- 		return action_result(pfn, MF_MSG_UNKNOWN, MF_IGNORED);
+@@ -284,27 +284,6 @@ static void __arch_sync_kernel_mappings(
  	}
+ }
  
--	head = compound_head(p);
--	lock_page(head);
-+	folio = page_folio(p);
-+	folio_lock(folio);
- 
- 	if (hwpoison_filter(p)) {
--		hugetlb_clear_page_hwpoison(head);
-+		hugetlb_clear_page_hwpoison(&folio->page);
- 		if (migratable_cleared)
--			SetHPageMigratable(head);
--		unlock_page(head);
-+			folio_set_hugetlb_migratable(folio);
-+		folio_unlock(folio);
- 		if (res == 1)
--			put_page(head);
-+			folio_put(folio);
- 		return -EOPNOTSUPP;
- 	}
- 
-@@ -1903,7 +1903,7 @@ retry:
- 	 * or demotion can be prevented by PageHWPoison flag.
- 	 */
- 	if (res == 0) {
--		unlock_page(head);
-+		folio_unlock(folio);
- 		if (__page_handle_poison(p) >= 0) {
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
-@@ -1913,10 +1913,10 @@ retry:
- 		return action_result(pfn, MF_MSG_FREE_HUGE, res);
- 	}
- 
--	page_flags = head->flags;
-+	page_flags = folio->flags;
- 
--	if (!hwpoison_user_mappings(p, pfn, flags, head)) {
--		unlock_page(head);
-+	if (!hwpoison_user_mappings(p, pfn, flags, &folio->page)) {
-+		folio_unlock(folio);
- 		return action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 	}
- 
+-void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
+-{
+-	__arch_sync_kernel_mappings(start, end);
+-#ifdef CONFIG_KMSAN
+-	/*
+-	 * KMSAN maintains two additional metadata page mappings for the
+-	 * [VMALLOC_START, VMALLOC_END) range. These mappings start at
+-	 * KMSAN_VMALLOC_SHADOW_START and KMSAN_VMALLOC_ORIGIN_START and
+-	 * have to be synced together with the vmalloc memory mapping.
+-	 */
+-	if (start >= VMALLOC_START && end < VMALLOC_END) {
+-		__arch_sync_kernel_mappings(
+-			start - VMALLOC_START + KMSAN_VMALLOC_SHADOW_START,
+-			end - VMALLOC_START + KMSAN_VMALLOC_SHADOW_START);
+-		__arch_sync_kernel_mappings(
+-			start - VMALLOC_START + KMSAN_VMALLOC_ORIGIN_START,
+-			end - VMALLOC_START + KMSAN_VMALLOC_ORIGIN_START);
+-	}
+-#endif
+-}
+-
+ static bool low_pfn(unsigned long pfn)
+ {
+ 	return pfn < max_low_pfn;
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from glider@google.com are
 
-mm-hugetlb-convert-isolate_hugetlb-to-folios.patch
-mm-hugetlb-convert-__update_and_free_page-to-folios.patch
-mm-hugetlb-convert-dequeue_hugetlb_page-functions-to-folios.patch
-mm-hugetlb-convert-alloc_surplus_huge_page-to-folios.patch
-mm-hugetlb-increase-use-of-folios-in-alloc_huge_page.patch
-mm-hugetlb-convert-alloc_migrate_huge_page-to-folios.patch
-mm-hugetlb-convert-restore_reserve_on_error-to-folios.patch
-mm-hugetlb-convert-demote_free_huge_page-to-folios.patch
-mm-hugetlb-convert-hugetlb_install_page-to-folios.patch
-mm-hugetlb-convert-hugetlbfs_pagecache_present-to-folios.patch
-mm-hugetlb-convert-putback_active_hugepage-to-take-in-a-folio.patch
-mm-hugetlb-convert-hugetlb-fault-paths-to-use-alloc_hugetlb_folio.patch
-mm-hugetlb-convert-restore_reserve_on_error-to-take-in-a-folio.patch
-mm-hugetlb-convert-hugetlb_add_to_page_cache-to-take-in-a-folio.patch
-mm-hugetlb-convert-hugetlb_wp-to-take-in-a-folio.patch
-documentation-mm-update-hugetlbfs-documentation-to-mention-alloc_hugetlb_folio.patch
+fs-hfs-initialize-fsdata-in-hfs_file_truncate.patch
+fs-hfsplus-initialize-fsdata-in-hfsplus_file_truncate.patch
 
