@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F318CC636CC
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:42:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89FA5C6379F
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:42:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232539AbjBCGmK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:42:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36654 "EHLO
+        id S232443AbjBCGmL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:42:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36672 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232392AbjBCGkt (ORCPT
+        with ESMTP id S232448AbjBCGkt (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:40:49 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 015508FB4B
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:42 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60FC98FB51
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:43 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B12B2B8297E
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FCCBC4339B;
-        Fri,  3 Feb 2023 06:37:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EB30461DAA
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51C07C4339B;
+        Fri,  3 Feb 2023 06:37:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406260;
-        bh=1qBwHfOifBqdxi4Zf8V887MtJ2EdvrRMU0cclxusneA=;
+        s=korg; t=1675406262;
+        bh=RqTHXWdvJxLpitH1BlllXsmniQLAY2AQq3SiFFvFVAY=;
         h=Date:To:From:Subject:From;
-        b=ezh2ff96rvmuUAVtCAmODWuUt7e7i9LTsgW/P7QttwQH1sny/BlvbpDy5sIJWqnBF
-         Ivt8iu2izUJ7Q2M9FqbdgTJGxz2NdocZhtTUYIOrJHmcjFSTVxTR96S96jiVNKvHNK
-         et6DNWI33eE6LiIoP0BP64n+sI3782QDTUe19Mn4=
-Date:   Thu, 02 Feb 2023 22:37:39 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        akpm@linux-foundation.org
+        b=auHN/cmdscUKbpTe42OR20qkd6JHHNS+Jv0Dwn7W4Ds0s8CN/o4dDXf3TRNqCsaLh
+         2WmxnADQkUnIpW6kSl4v7aLf6ckvL6b64CJPvNEn54mncnNx/YiNr8qd6VPIiSGTTB
+         iDcHgAFug5Yy+g59VTDkdhad4THEAId38pr+AvFM=
+Date:   Thu, 02 Feb 2023 22:37:41 -0800
+To:     mm-commits@vger.kernel.org, william.kucharski@oracle.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-munlock_vma_page.patch removed from -mm tree
-Message-Id: <20230203063740.5FCCBC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] rmap-add-folio-parameter-to-__page_set_anon_rmap.patch removed from -mm tree
+Message-Id: <20230203063742.51C07C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,111 +41,109 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove munlock_vma_page()
+     Subject: rmap: add folio parameter to __page_set_anon_rmap()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-munlock_vma_page.patch
+     rmap-add-folio-parameter-to-__page_set_anon_rmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove munlock_vma_page()
-Date: Mon, 16 Jan 2023 19:28:26 +0000
+Subject: rmap: add folio parameter to __page_set_anon_rmap()
+Date: Mon, 16 Jan 2023 19:29:59 +0000
 
-All callers now have a folio and can call munlock_vma_folio().  Update the
-documentation to refer to munlock_vma_folio().
+Avoid the compound_head() call in PageAnon() by passing in the folio that
+all callers have.  Also save me from wondering whether page->mapping can
+ever be overwritten on a tail page (I don't think it can, but I'm not 100%
+sure).
 
-Link: https://lkml.kernel.org/r/20230116192827.2146732-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230116192959.2147032-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/mm/unevictable-lru.rst~mm-remove-munlock_vma_page
-+++ a/Documentation/mm/unevictable-lru.rst
-@@ -486,7 +486,7 @@ Before the unevictable/mlock changes, ml
- way, so unmapping them required no processing.
- 
- For each PTE (or PMD) being unmapped from a VMA, page_remove_rmap() calls
--munlock_vma_page(), which calls munlock_page() when the VMA is VM_LOCKED
-+munlock_vma_folio(), which calls munlock_folio() when the VMA is VM_LOCKED
- (unless it was a PTE mapping of a part of a transparent huge page).
- 
- munlock_page() uses the mlock pagevec to batch up work to be done under
-@@ -510,7 +510,7 @@ which had been Copied-On-Write from the
- 
- Mlocked pages can be munlocked and deleted in this way: like with munmap(),
- for each PTE (or PMD) being unmapped from a VMA, page_remove_rmap() calls
--munlock_vma_page(), which calls munlock_page() when the VMA is VM_LOCKED
-+munlock_vma_folio(), which calls munlock_folio() when the VMA is VM_LOCKED
- (unless it was a PTE mapping of a part of a transparent huge page).
- 
- However, if there is a racing munlock(), since mlock_vma_pages_range() starts
---- a/kernel/events/uprobes.c~mm-remove-munlock_vma_page
-+++ a/kernel/events/uprobes.c
-@@ -22,7 +22,6 @@
- #include <linux/swap.h>		/* folio_free_swap */
- #include <linux/ptrace.h>	/* user_enable_single_step */
- #include <linux/kdebug.h>	/* notifier mechanism */
--#include "../../mm/internal.h"	/* munlock_vma_page */
- #include <linux/percpu-rwsem.h>
- #include <linux/task_work.h>
- #include <linux/shmem_fs.h>
---- a/mm/internal.h~mm-remove-munlock_vma_page
-+++ a/mm/internal.h
-@@ -548,7 +548,6 @@ static inline void mlock_vma_folio(struc
- }
- 
- void munlock_folio(struct folio *folio);
--
- static inline void munlock_vma_folio(struct folio *folio,
- 			struct vm_area_struct *vma, bool compound)
- {
-@@ -557,11 +556,6 @@ static inline void munlock_vma_folio(str
- 		munlock_folio(folio);
- }
- 
--static inline void munlock_vma_page(struct page *page,
--			struct vm_area_struct *vma, bool compound)
--{
--	munlock_vma_folio(page_folio(page), vma, compound);
--}
- void mlock_new_folio(struct folio *folio);
- bool need_mlock_drain(int cpu);
- void mlock_drain_local(void);
-@@ -650,8 +644,6 @@ static inline struct file *maybe_unlock_
- }
- #else /* !CONFIG_MMU */
- static inline void unmap_mapping_folio(struct folio *folio) { }
--static inline void munlock_vma_page(struct page *page,
--			struct vm_area_struct *vma, bool compound) { }
- static inline void mlock_new_folio(struct folio *folio) { }
- static inline bool need_mlock_drain(int cpu) { return false; }
- static inline void mlock_drain_local(void) { }
---- a/mm/rmap.c~mm-remove-munlock_vma_page
+--- a/mm/rmap.c~rmap-add-folio-parameter-to-__page_set_anon_rmap
 +++ a/mm/rmap.c
-@@ -1431,14 +1431,14 @@ void page_remove_rmap(struct page *page,
- 	}
+@@ -1131,19 +1131,20 @@ void page_move_anon_rmap(struct page *pa
+ 
+ /**
+  * __page_set_anon_rmap - set up new anonymous rmap
+- * @page:	Page or Hugepage to add to rmap
++ * @folio:	Folio which contains page.
++ * @page:	Page to add to rmap.
+  * @vma:	VM area to add page to.
+  * @address:	User virtual address of the mapping	
+  * @exclusive:	the page is exclusively owned by the current process
+  */
+-static void __page_set_anon_rmap(struct page *page,
++static void __page_set_anon_rmap(struct folio *folio, struct page *page,
+ 	struct vm_area_struct *vma, unsigned long address, int exclusive)
+ {
+ 	struct anon_vma *anon_vma = vma->anon_vma;
+ 
+ 	BUG_ON(!anon_vma);
+ 
+-	if (PageAnon(page))
++	if (folio_test_anon(folio))
+ 		goto out;
  
  	/*
--	 * It would be tidy to reset PageAnon mapping when fully unmapped,
--	 * but that might overwrite a racing page_add_anon_rmap
--	 * which increments mapcount after us but sets mapping
--	 * before us: so leave the reset to free_pages_prepare,
--	 * and remember that it's only reliable while mapped.
-+	 * It would be tidy to reset folio_test_anon mapping when fully
-+	 * unmapped, but that might overwrite a racing page_add_anon_rmap
-+	 * which increments mapcount after us but sets mapping before us:
-+	 * so leave the reset to free_pages_prepare, and remember that
-+	 * it's only reliable while mapped.
- 	 */
+@@ -1155,14 +1156,14 @@ static void __page_set_anon_rmap(struct
+ 		anon_vma = anon_vma->root;
  
--	munlock_vma_page(page, vma, compound);
-+	munlock_vma_folio(folio, vma, compound);
+ 	/*
+-	 * page_idle does a lockless/optimistic rmap scan on page->mapping.
++	 * page_idle does a lockless/optimistic rmap scan on folio->mapping.
+ 	 * Make sure the compiler doesn't split the stores of anon_vma and
+ 	 * the PAGE_MAPPING_ANON type identifier, otherwise the rmap code
+ 	 * could mistake the mapping for a struct address_space and crash.
+ 	 */
+ 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
+-	WRITE_ONCE(page->mapping, (struct address_space *) anon_vma);
+-	page->index = linear_page_index(vma, address);
++	WRITE_ONCE(folio->mapping, (struct address_space *) anon_vma);
++	folio->index = linear_page_index(vma, address);
+ out:
+ 	if (exclusive)
+ 		SetPageAnonExclusive(page);
+@@ -1254,7 +1255,7 @@ void page_add_anon_rmap(struct page *pag
+ 	if (likely(!folio_test_ksm(folio))) {
+ 		/* address might be in next vma when migration races vma_adjust */
+ 		if (first)
+-			__page_set_anon_rmap(page, vma, address,
++			__page_set_anon_rmap(folio, page, vma, address,
+ 					     !!(flags & RMAP_EXCLUSIVE));
+ 		else
+ 			__page_check_anon_rmap(page, vma, address);
+@@ -1297,7 +1298,7 @@ void folio_add_new_anon_rmap(struct foli
+ 	}
+ 
+ 	__lruvec_stat_mod_folio(folio, NR_ANON_MAPPED, nr);
+-	__page_set_anon_rmap(&folio->page, vma, address, 1);
++	__page_set_anon_rmap(folio, &folio->page, vma, address, 1);
  }
  
- /*
+ /**
+@@ -2528,7 +2529,7 @@ void hugepage_add_anon_rmap(struct page
+ 	VM_BUG_ON_PAGE(!first && (flags & RMAP_EXCLUSIVE), page);
+ 	VM_BUG_ON_PAGE(!first && PageAnonExclusive(page), page);
+ 	if (first)
+-		__page_set_anon_rmap(page, vma, address,
++		__page_set_anon_rmap(folio, page, vma, address,
+ 				     !!(flags & RMAP_EXCLUSIVE));
+ }
+ 
+@@ -2541,6 +2542,6 @@ void hugepage_add_new_anon_rmap(struct p
+ 	/* increment count (starts at -1) */
+ 	atomic_set(&folio->_entire_mapcount, 0);
+ 	folio_clear_hugetlb_restore_reserve(folio);
+-	__page_set_anon_rmap(page, vma, address, 1);
++	__page_set_anon_rmap(folio, page, vma, address, 1);
+ }
+ #endif /* CONFIG_HUGETLB_PAGE */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
