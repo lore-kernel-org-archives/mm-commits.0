@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0363AC636CC
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:43:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6005C636CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:43:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232142AbjBCGnX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:43:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39896 "EHLO
+        id S232165AbjBCGn3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:43:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232402AbjBCGlw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:41:52 -0500
+        with ESMTP id S232529AbjBCGlx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:41:53 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E97BB759
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:12 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 631D4FF07
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B5CB61DAB
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72B13C433D2;
-        Fri,  3 Feb 2023 06:38:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F1A4061DA8
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 554A7C433EF;
+        Fri,  3 Feb 2023 06:38:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406291;
-        bh=I+hYZtAlsYYH3f7L6xIH8VAWI3lYwqHo+FyDdgXU/zw=;
+        s=korg; t=1675406294;
+        bh=TUzxMV1s8NaA0us6fe5sGtR9asY0XFanMm8silDFg80=;
         h=Date:To:From:Subject:From;
-        b=Z2Wdou6JQS6WZqkOA34FAJLCIqstVuVBlw66/zCnFEWCQM2iyGxKJKGBlTQy0erTJ
-         UgzjysRf5hiYxXBEC9IfUx20js7lWPeYxMuP5NFt7uPQmm/Fv5OoDbU6r58DZlS1nt
-         CLHcACJwuCTEOyMBydSzBoVwo3c2CbNUsHm6+5tE=
-Date:   Thu, 02 Feb 2023 22:38:10 -0800
+        b=qwQRGOnaYiPIIOYPCSGzHiL+0dO/jCipwVjndCdec0Taz9oVnI+IsEhpX7KvVGu+J
+         7zI2+JhZLWwahNgauJhuDblSVDlJl37iSDH6cn0smWk/5T9JYnQPA7o78set9Mfkp3
+         arNVE6azp36DjLexF6Zc/dOmS4floSCx4qN8/73U=
+Date:   Thu, 02 Feb 2023 22:38:13 -0800
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, talumbau@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-section-for-bloom-filters.patch removed from -mm tree
-Message-Id: <20230203063811.72B13C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-improve-walk_pmd_range.patch removed from -mm tree
+Message-Id: <20230203063814.554A7C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,250 +41,143 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: section for Bloom filters
+     Subject: mm: multi-gen LRU: improve walk_pmd_range()
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-section-for-bloom-filters.patch
+     mm-multi-gen-lru-improve-walk_pmd_range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "T.J. Alumbaugh" <talumbau@google.com>
-Subject: mm: multi-gen LRU: section for Bloom filters
-Date: Wed, 18 Jan 2023 00:18:23 +0000
+Subject: mm: multi-gen LRU: improve walk_pmd_range()
+Date: Wed, 18 Jan 2023 00:18:26 +0000
 
-Move Bloom filters code into a dedicated section.  Improve the design doc
-to explain Bloom filter usage and connection between aging and eviction in
-their use.
+Improve readability of walk_pmd_range() and walk_pmd_range_locked().
 
-Link: https://lkml.kernel.org/r/20230118001827.1040870-4-talumbau@google.com
+Link: https://lkml.kernel.org/r/20230118001827.1040870-7-talumbau@google.com
 Signed-off-by: T.J. Alumbaugh <talumbau@google.com>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/mm/multigen_lru.rst~mm-multi-gen-lru-section-for-bloom-filters
-+++ a/Documentation/mm/multigen_lru.rst
-@@ -170,6 +170,22 @@ promotes hot pages. If the scan was done
- adds the PMD entry pointing to the PTE table to the Bloom filter. This
- forms a feedback loop between the eviction and the aging.
- 
-+Bloom Filters
-+-------------
-+Bloom filters are a space and memory efficient data structure for set
-+membership test, i.e., test if an element is not in the set or may be
-+in the set.
-+
-+In the eviction path, specifically, in ``lru_gen_look_around()``, if a
-+PMD has a sufficient number of hot pages, its address is placed in the
-+filter. In the aging path, set membership means that the PTE range
-+will be scanned for young pages.
-+
-+Note that Bloom filters are probabilistic on set membership. If a test
-+is false positive, the cost is an additional scan of a range of PTEs,
-+which may yield hot pages anyway. Parameters of the filter itself can
-+control the false positive rate in the limit.
-+
- Summary
- -------
- The multi-gen LRU can be disassembled into the following parts:
---- a/mm/vmscan.c~mm-multi-gen-lru-section-for-bloom-filters
+--- a/mm/vmscan.c~mm-multi-gen-lru-improve-walk_pmd_range
 +++ a/mm/vmscan.c
-@@ -3234,6 +3234,98 @@ static bool __maybe_unused seq_is_valid(
+@@ -3999,8 +3999,8 @@ restart:
  }
  
- /******************************************************************************
-+ *                          Bloom filters
-+ ******************************************************************************/
-+
-+/*
-+ * Bloom filters with m=1<<15, k=2 and the false positive rates of ~1/5 when
-+ * n=10,000 and ~1/2 when n=20,000, where, conventionally, m is the number of
-+ * bits in a bitmap, k is the number of hash functions and n is the number of
-+ * inserted items.
-+ *
-+ * Page table walkers use one of the two filters to reduce their search space.
-+ * To get rid of non-leaf entries that no longer have enough leaf entries, the
-+ * aging uses the double-buffering technique to flip to the other filter each
-+ * time it produces a new generation. For non-leaf entries that have enough
-+ * leaf entries, the aging carries them over to the next generation in
-+ * walk_pmd_range(); the eviction also report them when walking the rmap
-+ * in lru_gen_look_around().
-+ *
-+ * For future optimizations:
-+ * 1. It's not necessary to keep both filters all the time. The spare one can be
-+ *    freed after the RCU grace period and reallocated if needed again.
-+ * 2. And when reallocating, it's worth scaling its size according to the number
-+ *    of inserted entries in the other filter, to reduce the memory overhead on
-+ *    small systems and false positives on large systems.
-+ * 3. Jenkins' hash function is an alternative to Knuth's.
-+ */
-+#define BLOOM_FILTER_SHIFT	15
-+
-+static inline int filter_gen_from_seq(unsigned long seq)
-+{
-+	return seq % NR_BLOOM_FILTERS;
-+}
-+
-+static void get_item_key(void *item, int *key)
-+{
-+	u32 hash = hash_ptr(item, BLOOM_FILTER_SHIFT * 2);
-+
-+	BUILD_BUG_ON(BLOOM_FILTER_SHIFT * 2 > BITS_PER_TYPE(u32));
-+
-+	key[0] = hash & (BIT(BLOOM_FILTER_SHIFT) - 1);
-+	key[1] = hash >> BLOOM_FILTER_SHIFT;
-+}
-+
-+static bool test_bloom_filter(struct lruvec *lruvec, unsigned long seq, void *item)
-+{
-+	int key[2];
-+	unsigned long *filter;
-+	int gen = filter_gen_from_seq(seq);
-+
-+	filter = READ_ONCE(lruvec->mm_state.filters[gen]);
-+	if (!filter)
-+		return true;
-+
-+	get_item_key(item, key);
-+
-+	return test_bit(key[0], filter) && test_bit(key[1], filter);
-+}
-+
-+static void update_bloom_filter(struct lruvec *lruvec, unsigned long seq, void *item)
-+{
-+	int key[2];
-+	unsigned long *filter;
-+	int gen = filter_gen_from_seq(seq);
-+
-+	filter = READ_ONCE(lruvec->mm_state.filters[gen]);
-+	if (!filter)
-+		return;
-+
-+	get_item_key(item, key);
-+
-+	if (!test_bit(key[0], filter))
-+		set_bit(key[0], filter);
-+	if (!test_bit(key[1], filter))
-+		set_bit(key[1], filter);
-+}
-+
-+static void reset_bloom_filter(struct lruvec *lruvec, unsigned long seq)
-+{
-+	unsigned long *filter;
-+	int gen = filter_gen_from_seq(seq);
-+
-+	filter = lruvec->mm_state.filters[gen];
-+	if (filter) {
-+		bitmap_clear(filter, 0, BIT(BLOOM_FILTER_SHIFT));
-+		return;
-+	}
-+
-+	filter = bitmap_zalloc(BIT(BLOOM_FILTER_SHIFT),
-+			       __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
-+	WRITE_ONCE(lruvec->mm_state.filters[gen], filter);
-+}
-+
-+/******************************************************************************
-  *                          mm_struct list
-  ******************************************************************************/
- 
-@@ -3352,94 +3444,6 @@ void lru_gen_migrate_mm(struct mm_struct
- }
- #endif
- 
--/*
-- * Bloom filters with m=1<<15, k=2 and the false positive rates of ~1/5 when
-- * n=10,000 and ~1/2 when n=20,000, where, conventionally, m is the number of
-- * bits in a bitmap, k is the number of hash functions and n is the number of
-- * inserted items.
-- *
-- * Page table walkers use one of the two filters to reduce their search space.
-- * To get rid of non-leaf entries that no longer have enough leaf entries, the
-- * aging uses the double-buffering technique to flip to the other filter each
-- * time it produces a new generation. For non-leaf entries that have enough
-- * leaf entries, the aging carries them over to the next generation in
-- * walk_pmd_range(); the eviction also report them when walking the rmap
-- * in lru_gen_look_around().
-- *
-- * For future optimizations:
-- * 1. It's not necessary to keep both filters all the time. The spare one can be
-- *    freed after the RCU grace period and reallocated if needed again.
-- * 2. And when reallocating, it's worth scaling its size according to the number
-- *    of inserted entries in the other filter, to reduce the memory overhead on
-- *    small systems and false positives on large systems.
-- * 3. Jenkins' hash function is an alternative to Knuth's.
-- */
--#define BLOOM_FILTER_SHIFT	15
--
--static inline int filter_gen_from_seq(unsigned long seq)
--{
--	return seq % NR_BLOOM_FILTERS;
--}
--
--static void get_item_key(void *item, int *key)
--{
--	u32 hash = hash_ptr(item, BLOOM_FILTER_SHIFT * 2);
--
--	BUILD_BUG_ON(BLOOM_FILTER_SHIFT * 2 > BITS_PER_TYPE(u32));
--
--	key[0] = hash & (BIT(BLOOM_FILTER_SHIFT) - 1);
--	key[1] = hash >> BLOOM_FILTER_SHIFT;
--}
--
--static void reset_bloom_filter(struct lruvec *lruvec, unsigned long seq)
--{
--	unsigned long *filter;
--	int gen = filter_gen_from_seq(seq);
--
--	filter = lruvec->mm_state.filters[gen];
--	if (filter) {
--		bitmap_clear(filter, 0, BIT(BLOOM_FILTER_SHIFT));
--		return;
--	}
--
--	filter = bitmap_zalloc(BIT(BLOOM_FILTER_SHIFT),
--			       __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
--	WRITE_ONCE(lruvec->mm_state.filters[gen], filter);
--}
--
--static void update_bloom_filter(struct lruvec *lruvec, unsigned long seq, void *item)
--{
--	int key[2];
--	unsigned long *filter;
--	int gen = filter_gen_from_seq(seq);
--
--	filter = READ_ONCE(lruvec->mm_state.filters[gen]);
--	if (!filter)
--		return;
--
--	get_item_key(item, key);
--
--	if (!test_bit(key[0], filter))
--		set_bit(key[0], filter);
--	if (!test_bit(key[1], filter))
--		set_bit(key[1], filter);
--}
--
--static bool test_bloom_filter(struct lruvec *lruvec, unsigned long seq, void *item)
--{
--	int key[2];
--	unsigned long *filter;
--	int gen = filter_gen_from_seq(seq);
--
--	filter = READ_ONCE(lruvec->mm_state.filters[gen]);
--	if (!filter)
--		return true;
--
--	get_item_key(item, key);
--
--	return test_bit(key[0], filter) && test_bit(key[1], filter);
--}
--
- static void reset_mm_stats(struct lruvec *lruvec, struct lru_gen_mm_walk *walk, bool last)
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
+-static void walk_pmd_range_locked(pud_t *pud, unsigned long next, struct vm_area_struct *vma,
+-				  struct mm_walk *args, unsigned long *bitmap, unsigned long *start)
++static void walk_pmd_range_locked(pud_t *pud, unsigned long addr, struct vm_area_struct *vma,
++				  struct mm_walk *args, unsigned long *bitmap, unsigned long *first)
  {
  	int i;
+ 	pmd_t *pmd;
+@@ -4013,18 +4013,19 @@ static void walk_pmd_range_locked(pud_t
+ 	VM_WARN_ON_ONCE(pud_leaf(*pud));
+ 
+ 	/* try to batch at most 1+MIN_LRU_BATCH+1 entries */
+-	if (*start == -1) {
+-		*start = next;
++	if (*first == -1) {
++		*first = addr;
++		bitmap_zero(bitmap, MIN_LRU_BATCH);
+ 		return;
+ 	}
+ 
+-	i = next == -1 ? 0 : pmd_index(next) - pmd_index(*start);
++	i = addr == -1 ? 0 : pmd_index(addr) - pmd_index(*first);
+ 	if (i && i <= MIN_LRU_BATCH) {
+ 		__set_bit(i - 1, bitmap);
+ 		return;
+ 	}
+ 
+-	pmd = pmd_offset(pud, *start);
++	pmd = pmd_offset(pud, *first);
+ 
+ 	ptl = pmd_lockptr(args->mm, pmd);
+ 	if (!spin_trylock(ptl))
+@@ -4035,15 +4036,16 @@ static void walk_pmd_range_locked(pud_t
+ 	do {
+ 		unsigned long pfn;
+ 		struct folio *folio;
+-		unsigned long addr = i ? (*start & PMD_MASK) + i * PMD_SIZE : *start;
++
++		/* don't round down the first address */
++		addr = i ? (*first & PMD_MASK) + i * PMD_SIZE : *first;
+ 
+ 		pfn = get_pmd_pfn(pmd[i], vma, addr);
+ 		if (pfn == -1)
+ 			goto next;
+ 
+ 		if (!pmd_trans_huge(pmd[i])) {
+-			if (arch_has_hw_nonleaf_pmd_young() &&
+-			    get_cap(LRU_GEN_NONLEAF_YOUNG))
++			if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG))
+ 				pmdp_test_and_clear_young(vma, addr, pmd + i);
+ 			goto next;
+ 		}
+@@ -4072,12 +4074,11 @@ next:
+ 	arch_leave_lazy_mmu_mode();
+ 	spin_unlock(ptl);
+ done:
+-	*start = -1;
+-	bitmap_zero(bitmap, MIN_LRU_BATCH);
++	*first = -1;
+ }
+ #else
+-static void walk_pmd_range_locked(pud_t *pud, unsigned long next, struct vm_area_struct *vma,
+-				  struct mm_walk *args, unsigned long *bitmap, unsigned long *start)
++static void walk_pmd_range_locked(pud_t *pud, unsigned long addr, struct vm_area_struct *vma,
++				  struct mm_walk *args, unsigned long *bitmap, unsigned long *first)
+ {
+ }
+ #endif
+@@ -4090,9 +4091,9 @@ static void walk_pmd_range(pud_t *pud, u
+ 	unsigned long next;
+ 	unsigned long addr;
+ 	struct vm_area_struct *vma;
+-	unsigned long pos = -1;
++	unsigned long bitmap[BITS_TO_LONGS(MIN_LRU_BATCH)];
++	unsigned long first = -1;
+ 	struct lru_gen_mm_walk *walk = args->private;
+-	unsigned long bitmap[BITS_TO_LONGS(MIN_LRU_BATCH)] = {};
+ 
+ 	VM_WARN_ON_ONCE(pud_leaf(*pud));
+ 
+@@ -4131,18 +4132,17 @@ restart:
+ 			if (pfn < pgdat->node_start_pfn || pfn >= pgdat_end_pfn(pgdat))
+ 				continue;
+ 
+-			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
++			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &first);
+ 			continue;
+ 		}
+ #endif
+ 		walk->mm_stats[MM_NONLEAF_TOTAL]++;
+ 
+-		if (arch_has_hw_nonleaf_pmd_young() &&
+-		    get_cap(LRU_GEN_NONLEAF_YOUNG)) {
++		if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG)) {
+ 			if (!pmd_young(val))
+ 				continue;
+ 
+-			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
++			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &first);
+ 		}
+ 
+ 		if (!walk->force_scan && !test_bloom_filter(walk->lruvec, walk->max_seq, pmd + i))
+@@ -4159,7 +4159,7 @@ restart:
+ 		update_bloom_filter(walk->lruvec, walk->max_seq + 1, pmd + i);
+ 	}
+ 
+-	walk_pmd_range_locked(pud, -1, vma, args, bitmap, &pos);
++	walk_pmd_range_locked(pud, -1, vma, args, bitmap, &first);
+ 
+ 	if (i < PTRS_PER_PMD && get_next_vma(PUD_MASK, PMD_SIZE, args, &start, &end))
+ 		goto restart;
 _
 
 Patches currently in -mm which might be from talumbau@google.com are
