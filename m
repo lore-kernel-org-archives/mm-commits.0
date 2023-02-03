@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9170FC636D7
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:42:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 367DDC636CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:42:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232481AbjBCGmf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:42:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39624 "EHLO
+        id S232559AbjBCGmm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:42:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232500AbjBCGlH (ORCPT
+        with ESMTP id S232503AbjBCGlH (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:41:07 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1A148FB74
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D13AC8FB77
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:54 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 53749B82981
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1E88C433EF;
-        Fri,  3 Feb 2023 06:37:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 78848B828B2
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19639C4339B;
+        Fri,  3 Feb 2023 06:37:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406271;
-        bh=zMz98LKioCHUkYq57GBaid4FFUsIUwfPwcgErCRkk7U=;
+        s=korg; t=1675406272;
+        bh=ZLUNsdaG47LFnXgiEEvU+jvnWQwCpS2AERrHqDs6vdA=;
         h=Date:To:From:Subject:From;
-        b=b6+InhbPrJswv+9xqe5xmed07wmazcq4zeMTnHa7rvfbnXSq5FoGMmNknFTVAbwnY
-         5A0Ja4ygi1F2zhAQIZ65PptRDEnC8cp2f0S2UPSh/BVUv7sfBKz35OUor8UwB/TAzU
-         qUQig0I3jX40GNJxq3A3eRdWIYesfP6fRjfQeSnY=
-Date:   Thu, 02 Feb 2023 22:37:50 -0800
+        b=CK5I5u3a1ZNkhb+rhMJZXt0R3G/4wFQ4V1Op9ipZs/IAPY7UjhjvpnphO/5YF2tBc
+         koAI8EmD6ARtRvWr1on63wQ/d95Jr3chuJDz7UcuwToQfxwhMiic5g9vicIy6B5oHD
+         9iU2h561ZJ7Aes445+7ZUMPi0aG2Hoy5v2fM6ffY=
+Date:   Thu, 02 Feb 2023 22:37:51 -0800
 To:     mm-commits@vger.kernel.org, minchan@kernel.org,
         mike.kravetz@oracle.com, senozhatsky@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zsmalloc-rework-zspage-chain-size-selection.patch removed from -mm tree
-Message-Id: <20230203063750.F1E88C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] zsmalloc-skip-chain-size-calculation-for-pow_of_2-classes.patch removed from -mm tree
+Message-Id: <20230203063752.19639C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,39 +42,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zsmalloc: rework zspage chain size selection
+     Subject: zsmalloc: skip chain size calculation for pow_of_2 classes
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-rework-zspage-chain-size-selection.patch
+     zsmalloc-skip-chain-size-calculation-for-pow_of_2-classes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: rework zspage chain size selection
-Date: Wed, 18 Jan 2023 09:52:07 +0900
+Subject: zsmalloc: skip chain size calculation for pow_of_2 classes
+Date: Wed, 18 Jan 2023 09:52:08 +0900
 
-Patch series "zsmalloc: make zspage chain size configurable".
+If a class size is power of 2 then it wastes no memory and the best
+configuration is 1 physical page per-zspage.
 
-Computers are bad at division.  We currently decide the best zspage chain
-size (max number of physical pages per-zspage) by looking at a `used
-percentage` value.  This is not enough as we lose precision during usage
-percentage calculations For example, let's look at size class 208:
-
-pages per zspage       wasted bytes         used%
-       1                   144               96
-       2                    80               99
-       3                    16               99
-       4                   160               99
-
-Current algorithm will select 2 page per zspage configuration, as it's the
-first one to reach 99%.  However, 3 pages per zspage waste less memory.
-
-Change algorithm and select zspage configuration that has lowest wasted
-value.
-
-Link: https://lkml.kernel.org/r/20230118005210.2814763-1-senozhatsky@chromium.org
-Link: https://lkml.kernel.org/r/20230118005210.2814763-2-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20230118005210.2814763-3-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
@@ -82,85 +65,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/zsmalloc.c~zsmalloc-rework-zspage-chain-size-selection
+--- a/mm/zsmalloc.c~zsmalloc-skip-chain-size-calculation-for-pow_of_2-classes
 +++ a/mm/zsmalloc.c
-@@ -822,42 +822,6 @@ out:
- 	return newfg;
- }
+@@ -2370,6 +2370,9 @@ static int calculate_zspage_chain_size(i
+ 	int i, min_waste = INT_MAX;
+ 	int chain_size = 1;
  
--/*
-- * We have to decide on how many pages to link together
-- * to form a zspage for each size class. This is important
-- * to reduce wastage due to unusable space left at end of
-- * each zspage which is given as:
-- *     wastage = Zp % class_size
-- *     usage = Zp - wastage
-- * where Zp = zspage size = k * PAGE_SIZE where k = 1, 2, ...
-- *
-- * For example, for size class of 3/8 * PAGE_SIZE, we should
-- * link together 3 PAGE_SIZE sized pages to form a zspage
-- * since then we can perfectly fit in 8 such objects.
-- */
--static int get_pages_per_zspage(int class_size)
--{
--	int i, max_usedpc = 0;
--	/* zspage order which gives maximum used size per KB */
--	int max_usedpc_order = 1;
--
--	for (i = 1; i <= ZS_MAX_PAGES_PER_ZSPAGE; i++) {
--		int zspage_size;
--		int waste, usedpc;
--
--		zspage_size = i * PAGE_SIZE;
--		waste = zspage_size % class_size;
--		usedpc = (zspage_size - waste) * 100 / zspage_size;
--
--		if (usedpc > max_usedpc) {
--			max_usedpc = usedpc;
--			max_usedpc_order = i;
--		}
--	}
--
--	return max_usedpc_order;
--}
--
- static struct zspage *get_zspage(struct page *page)
- {
- 	struct zspage *zspage = (struct zspage *)page_private(page);
-@@ -2401,6 +2365,24 @@ static int zs_register_shrinker(struct z
- 				 pool->name);
- }
++	if (is_power_of_2(class_size))
++		return chain_size;
++
+ 	for (i = 1; i <= ZS_MAX_PAGES_PER_ZSPAGE; i++) {
+ 		int waste;
  
-+static int calculate_zspage_chain_size(int class_size)
-+{
-+	int i, min_waste = INT_MAX;
-+	int chain_size = 1;
-+
-+	for (i = 1; i <= ZS_MAX_PAGES_PER_ZSPAGE; i++) {
-+		int waste;
-+
-+		waste = (i * PAGE_SIZE) % class_size;
-+		if (waste < min_waste) {
-+			min_waste = waste;
-+			chain_size = i;
-+		}
-+	}
-+
-+	return chain_size;
-+}
-+
- /**
-  * zs_create_pool - Creates an allocation pool to work from.
-  * @name: pool name to be created
-@@ -2445,7 +2427,7 @@ struct zs_pool *zs_create_pool(const cha
- 		size = ZS_MIN_ALLOC_SIZE + i * ZS_SIZE_CLASS_DELTA;
- 		if (size > ZS_MAX_ALLOC_SIZE)
- 			size = ZS_MAX_ALLOC_SIZE;
--		pages_per_zspage = get_pages_per_zspage(size);
-+		pages_per_zspage = calculate_zspage_chain_size(size);
- 		objs_per_zspage = pages_per_zspage * PAGE_SIZE / size;
- 
- 		/*
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
