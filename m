@@ -2,169 +2,199 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9604FC61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 03:32:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E2B7C61DA4
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 05:29:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232448AbjBCDc2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Feb 2023 22:32:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52076 "EHLO
+        id S231364AbjBCF3o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 00:29:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232467AbjBCDcW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2023 22:32:22 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DB146ACA0;
-        Thu,  2 Feb 2023 19:32:18 -0800 (PST)
+        with ESMTP id S230230AbjBCF3n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 00:29:43 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7DA82201A
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 21:29:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D1FD8B81D79;
-        Fri,  3 Feb 2023 03:32:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 262B4C433D2;
-        Fri,  3 Feb 2023 03:32:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 411AA61D0D
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 05:29:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93CB1C4339C;
+        Fri,  3 Feb 2023 05:29:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675395135;
-        bh=tVLLWQkfnuhs07CaJsUvIHPfgCGpR0jx28Ktw9IQ+e0=;
-        h=Date:From:To:Cc:Subject:From;
-        b=etXq8oaVU9ZJCURm3jzZo8FjPu4KcpXlVB4LIatts01rnvu649/g2rzAcQ+s9sG/9
-         kQ6wHgoBMsOrdLNrPDdmGxS1nheW70k8431K9YK8G2bzpskGvUCiZkcmVBQb52nYGh
-         q4rJ6VJrtP8cPSKtLZiP++hTwZXaO4v06yfQiGxA=
-Date:   Thu, 2 Feb 2023 19:32:14 -0800
+        s=korg; t=1675402181;
+        bh=bN4NYeFtmynUbpq30ucWhiJVnVeU1Fi6HNdlWzeDxTY=;
+        h=Date:To:From:Subject:From;
+        b=0t3vqoA5iWdYiQW/UwhlR+owlSUYzb+QKeuT1ViFNG1ec745XX+yISWdAVIXmMsLJ
+         LdqVY19NWW5KcyEdukOOw9BM789sFzugb/awp5zi1t0hpECWiYfqmavYLkVLaVzher
+         s5dS9I9JyOd7Myy8m8zD5tVJsxdMfWpfAO0Rlv44=
+Date:   Thu, 02 Feb 2023 21:29:41 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
+        stephen.s.brennan@oracle.com, lstoakes@gmail.com,
+        hch@infradead.org, bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.2-rc7
-Message-Id: <20230202193214.646203447dc16ea4c6b835a4@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: [to-be-updated] mm-vmallocc-allow-vread-to-read-out-vm_map_ram-areas.patch removed from -mm tree
+Message-Id: <20230203052941.93CB1C4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The quilt patch titled
+     Subject: mm/vmalloc.c: allow vread() to read out vm_map_ram areas
+has been removed from the -mm tree.  Its filename was
+     mm-vmallocc-allow-vread-to-read-out-vm_map_ram-areas.patch
 
-The following changes since commit 49d6d7fb631345b0f2957a7c4be24ad63903150f:
+This patch was dropped because an updated version will be merged
 
-  mm/uffd: fix pte marker when fork() without fork event (2023-01-18 17:02:19 -0800)
+------------------------------------------------------
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/vmalloc.c: allow vread() to read out vm_map_ram areas
+Date: Fri, 13 Jan 2023 11:19:17 +0800
 
-are available in the Git repository at:
+Currently, vread can read out vmalloc areas which is associated with a
+vm_struct.  While this doesn't work for areas created by vm_map_ram()
+interface because it doesn't have an associated vm_struct.  Then in
+vread(), these areas are all skipped.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-02-19-24-2
+Here, add a new function vmap_ram_vread() to read out vm_map_ram areas. 
+The area created with vmap_ram_vread() interface directly can be handled
+like the other normal vmap areas with aligned_vread().  While areas which
+will be further subdivided and managed with vmap_block need carefully read
+out page-aligned small regions and zero fill holes.
 
-for you to fetch changes up to ac86f547ca1002aec2ef66b9e64d03f45bbbfbb9:
+Link: https://lkml.kernel.org/r/20230113031921.64716-4-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Stephen Brennan <stephen.s.brennan@oracle.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-  mm: memcg: fix NULL pointer in mem_cgroup_track_foreign_dirty_slowpath() (2023-01-31 16:44:10 -0800)
 
-----------------------------------------------------------------
-25 hotfixes, mainly for MM.  13 are cc:stable.
+--- a/mm/vmalloc.c~mm-vmallocc-allow-vread-to-read-out-vm_map_ram-areas
++++ a/mm/vmalloc.c
+@@ -3544,6 +3544,65 @@ static int aligned_vread(char *buf, char
+ 	return copied;
+ }
+ 
++static void vmap_ram_vread(char *buf, char *addr, int count, unsigned long flags)
++{
++	char *start;
++	struct vmap_block *vb;
++	unsigned long offset;
++	unsigned int rs, re, n;
++
++	/*
++	 * If it's area created by vm_map_ram() interface directly, but
++	 * not further subdividing and delegating management to vmap_block,
++	 * handle it here.
++	 */
++	if (!(flags & VMAP_BLOCK)) {
++		aligned_vread(buf, addr, count);
++		return;
++	}
++
++	/*
++	 * Area is split into regions and tracked with vmap_block, read out
++	 * each region and zero fill the hole between regions.
++	 */
++	vb = xa_load(&vmap_blocks, addr_to_vb_idx((unsigned long)addr));
++
++	spin_lock(&vb->lock);
++	if (bitmap_empty(vb->used_map, VMAP_BBMAP_BITS)) {
++		spin_unlock(&vb->lock);
++		memset(buf, 0, count);
++		return;
++	}
++	for_each_set_bitrange(rs, re, vb->used_map, VMAP_BBMAP_BITS) {
++		if (!count)
++			break;
++		start = vmap_block_vaddr(vb->va->va_start, rs);
++		while (addr < start) {
++			if (count == 0)
++				break;
++			*buf = '\0';
++			buf++;
++			addr++;
++			count--;
++		}
++		/*it could start reading from the middle of used region*/
++		offset = offset_in_page(addr);
++		n = ((re - rs + 1) << PAGE_SHIFT) - offset;
++		if (n > count)
++			n = count;
++		aligned_vread(buf, start+offset, n);
++
++		buf += n;
++		addr += n;
++		count -= n;
++	}
++	spin_unlock(&vb->lock);
++
++	/* zero-fill the left dirty or free regions */
++	if (count)
++		memset(buf, 0, count);
++}
++
+ /**
+  * vread() - read vmalloc area in a safe way.
+  * @buf:     buffer for reading data
+@@ -3574,7 +3633,7 @@ long vread(char *buf, char *addr, unsign
+ 	struct vm_struct *vm;
+ 	char *vaddr, *buf_start = buf;
+ 	unsigned long buflen = count;
+-	unsigned long n;
++	unsigned long n, size, flags;
+ 
+ 	addr = kasan_reset_tag(addr);
+ 
+@@ -3595,12 +3654,16 @@ long vread(char *buf, char *addr, unsign
+ 		if (!count)
+ 			break;
+ 
+-		if (!va->vm)
++		vm = va->vm;
++		flags = va->flags & VMAP_FLAGS_MASK;
++
++		if (!vm && !flags)
+ 			continue;
+ 
+-		vm = va->vm;
+-		vaddr = (char *) vm->addr;
+-		if (addr >= vaddr + get_vm_area_size(vm))
++		vaddr = (char *) va->va_start;
++		size = vm ? get_vm_area_size(vm) : va_size(va);
++
++		if (addr >= vaddr + size)
+ 			continue;
+ 		while (addr < vaddr) {
+ 			if (count == 0)
+@@ -3610,10 +3673,13 @@ long vread(char *buf, char *addr, unsign
+ 			addr++;
+ 			count--;
+ 		}
+-		n = vaddr + get_vm_area_size(vm) - addr;
++		n = vaddr + size - addr;
+ 		if (n > count)
+ 			n = count;
+-		if (!(vm->flags & VM_IOREMAP))
++
++		if (flags & VMAP_RAM)
++			vmap_ram_vread(buf, addr, n, flags);
++		else if (!(vm->flags & VM_IOREMAP))
+ 			aligned_vread(buf, addr, n);
+ 		else /* IOREMAP area is treated as memory hole */
+ 			memset(buf, 0, n);
+_
 
-----------------------------------------------------------------
-Eugen Hristev (1):
-      .mailmap: update e-mail address for Eugen Hristev
+Patches currently in -mm which might be from bhe@redhat.com are
 
-Fedor Pchelkin (1):
-      squashfs: harden sanity check in squashfs_read_xattr_id_table
-
-Isaac J. Manjarres (1):
-      Revert "mm: kmemleak: alloc gray object for reserved region with direct map"
-
-James Morse (1):
-      ia64: fix build error due to switch case label appearing next to declaration
-
-Jann Horn (1):
-      mm/khugepaged: fix ->anon_vma race
-
-Kefeng Wang (1):
-      mm: memcg: fix NULL pointer in mem_cgroup_track_foreign_dirty_slowpath()
-
-Liam Howlett (1):
-      maple_tree: fix mas_empty_area_rev() lower bound validation
-
-Longlong Xia (1):
-      mm/swapfile: add cond_resched() in get_swap_pages()
-
-Matthew Wilcox (Oracle) (1):
-      highmem: round down the address passed to kunmap_flush_on_unmap()
-
-Michal Hocko (1):
-      Revert "mm: add nodes= arg to memory.reclaim"
-
-Mike Kravetz (2):
-      mm: hugetlb: proc: check for hugetlb shared PMD in /proc/PID/smaps
-      migrate: hugetlb: check for hugetlb shared PMD in node migration
-
-Nhat Pham (1):
-      zsmalloc: fix a race with deferred_handles storing
-
-Pengfei Xu (1):
-      selftests/filesystems: grant executable permission to run_fat_tests.sh
-
-Peter Xu (2):
-      mm: fix a few rare cases of using swapin error pte marker
-      selftests/vm: remove __USE_GNU in hugetlb-madvise.c
-
-Phillip Lougher (1):
-      Squashfs: fix handling and sanity checking of xattr_ids count
-
-Randy Dunlap (1):
-      freevxfs: Kconfig: fix spelling
-
-Tom Saeger (1):
-      sh: define RUNTIME_DISCARD_EXIT
-
-Vlastimil Babka (1):
-      mm, mremap: fix mremap() expanding for vma's with vm_ops->close()
-
-Wei Yang (1):
-      maple_tree: should get pivots boundary by type
-
-Yu Zhao (1):
-      mm: multi-gen LRU: fix crash during cgroup migration
-
-Zach O'Keefe (1):
-      mm/MADV_COLLAPSE: catch !none !huge !bad pmd lookups
-
-Zhaoyang Huang (1):
-      mm: use stack_depot_early_init for kmemleak
-
-ye xingchen (1):
-      Kconfig.debug: fix the help description in SCHED_DEBUG
-
- .mailmap                                           |   1 +
- Documentation/admin-guide/cgroup-v2.rst            |  15 +-
- arch/ia64/kernel/sys_ia64.c                        |   7 +-
- arch/sh/kernel/vmlinux.lds.S                       |   1 +
- drivers/of/fdt.c                                   |   6 +-
- fs/freevxfs/Kconfig                                |   2 +-
- fs/proc/task_mmu.c                                 |   4 +-
- fs/squashfs/squashfs_fs.h                          |   2 +-
- fs/squashfs/squashfs_fs_sb.h                       |   2 +-
- fs/squashfs/xattr.h                                |   4 +-
- fs/squashfs/xattr_id.c                             |   4 +-
- include/linux/highmem-internal.h                   |   4 +-
- include/linux/hugetlb.h                            |  13 ++
- include/linux/memcontrol.h                         |   5 +-
- include/linux/swap.h                               |   3 +-
- lib/Kconfig.debug                                  |   3 +-
- lib/maple_tree.c                                   |  22 +-
- lib/test_maple_tree.c                              |  89 ++++++++
- mm/hugetlb.c                                       |   3 +
- mm/khugepaged.c                                    |  22 +-
- mm/kmemleak.c                                      |   5 +-
- mm/memcontrol.c                                    |  67 ++----
- mm/memory.c                                        |   8 +-
- mm/mempolicy.c                                     |   3 +-
- mm/mprotect.c                                      |   8 +-
- mm/mremap.c                                        |  25 ++-
- mm/swapfile.c                                      |   1 +
- mm/vmscan.c                                        |   9 +-
- mm/zsmalloc.c                                      | 237 ++++++++++++++++++---
- .../selftests/filesystems/fat/run_fat_tests.sh     |   0
- tools/testing/selftests/vm/hugetlb-madvise.c       |   1 -
- 31 files changed, 429 insertions(+), 147 deletions(-)
- mode change 100644 => 100755 tools/testing/selftests/filesystems/fat/run_fat_tests.sh
+mm-vmalloc-explicitly-identify-vm_map_ram-area-when-shown-in-proc-vmcoreinfo.patch
+mm-vmalloc-skip-the-uninitilized-vmalloc-areas.patch
+powerpc-mm-add-vm_ioremap-flag-to-the-vmalloc-area.patch
+sh-mm-set-vm_ioremap-flag-to-the-vmalloc-area.patch
 
