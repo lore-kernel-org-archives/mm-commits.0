@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 130A5C63797
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:40:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5FFBC636CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:39:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232228AbjBCGj7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:39:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36348 "EHLO
+        id S231761AbjBCGj6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:39:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232254AbjBCGjE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:39:04 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C73F48E6AE
+        with ESMTP id S232230AbjBCGiw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:38:52 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B82148E49A
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6620EB82986
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03D7CC433EF;
-        Fri,  3 Feb 2023 06:36:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 078E361DA5
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EBAAC433D2;
+        Fri,  3 Feb 2023 06:36:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406214;
-        bh=YPvtnCdos+SvHyZOFCCPFilM2FWkXtWjcQ12YnhUMhw=;
+        s=korg; t=1675406215;
+        bh=T9eZh+0hNPEOUOE9QE3VEZgZUqJM703uzO+gvrmNkOU=;
         h=Date:To:From:Subject:From;
-        b=BLKl6AD3L3jK4M+VYeowt755hPCL2GboNEE1R7jElk+e1vxufoAEGHa4t2V4dS32i
-         GoyFGTYivvTTRT65iAheNZdvp0Y2yvdb0P5qNkGx/coXoBrRBkmO7MANT3MIVrX60h
-         /b07dBS7V3pI42XK1XNV5/darz1lKXQnYjESSo3c=
-Date:   Thu, 02 Feb 2023 22:36:53 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@kernel.org,
-        rientjes@google.com, quic_charante@quicinc.com, mhocko@suse.com,
-        lizhe.67@bytedance.com, david@redhat.com,
-        pasha.tatashin@soleen.com, akpm@linux-foundation.org
+        b=BJYMOLaVYinVACq1DPbbQ44RUYi/lrV/SDp43ghX9XOzFkoWQ760YKryvtlj7uNGB
+         nWXX43SYo+oe4M9FHat2bd2/0kv5xew3L+FS/pCGH2TivFVLC0OiFNaOZJj6vD8Wcu
+         tqetm30rmpQlFvv8wI15ztbXxfGMav96W5sbM9wA=
+Date:   Thu, 02 Feb 2023 22:36:54 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        thierry.reding@gmail.com, neilb@suse.de, mhocko@suse.com,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed.patch removed from -mm tree
-Message-Id: <20230203063654.03D7CC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-rename-alloc_high-to-alloc_min_reserve.patch removed from -mm tree
+Message-Id: <20230203063655.5EBAAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,145 +42,114 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_ext: do not allocate space for page_ext->flags if not needed
+     Subject: mm/page_alloc: rename ALLOC_HIGH to ALLOC_MIN_RESERVE
 has been removed from the -mm tree.  Its filename was
-     mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed.patch
+     mm-page_alloc-rename-alloc_high-to-alloc_min_reserve.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: mm/page_ext: do not allocate space for page_ext->flags if not needed
-Date: Fri, 13 Jan 2023 15:42:53 +0000
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: rename ALLOC_HIGH to ALLOC_MIN_RESERVE
+Date: Fri, 13 Jan 2023 11:12:12 +0000
 
-There is 8 byte page_ext->flags field allocated per page whenever
-CONFIG_PAGE_EXTENSION is enabled.  However, not every user of page_ext
-uses flags.  Therefore, check whether flags is needed at least by one user
-and if so allocate space for it.
+Patch series "Discard __GFP_ATOMIC", v3.
 
-For example when page_table_check is enabled, on a machine with 128G
-of memory before the fix:
+Neil's patch has been residing in mm-unstable as commit 2fafb4fe8f7a ("mm:
+discard __GFP_ATOMIC") for a long time and recently brought up again. 
+Most recently, I was worried that __GFP_HIGH allocations could use
+high-order atomic reserves which is unintentional but there was no
+response so lets revisit -- this series reworks how min reserves are used,
+protects highorder reserves and then finishes with Neil's patch with very
+minor modifications so it fits on top.
 
-[    2.244288] allocated 536870912 bytes of page_ext
-after the fix:
-[    2.160154] allocated 268435456 bytes of page_ext
+There was a review discussion on renaming __GFP_DIRECT_RECLAIM to
+__GFP_ALLOW_BLOCKING but I didn't think it was that big an issue and is
+orthogonal to the removal of __GFP_ATOMIC.
 
-Also, add a kernel-doc comment before page_ext_operations that describes
-the fields, and remove check if need() is set, as that is now a required
-field.
+There were some concerns about how the gfp flags affect the min reserves
+but it never reached a solid conclusion so I made my own attempt.
 
-[pasha.tatashin@soleen.com: address comments from Mike Rapoport]
-  Link: https://lkml.kernel.org/r/20230117202103.1412449-1-pasha.tatashin@soleen.com
-Link: https://lkml.kernel.org/r/20230113154253.92480-1-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+The series tries to iron out some of the details on how reserves are used.
+ALLOC_HIGH becomes ALLOC_MIN_RESERVE and ALLOC_HARDER becomes
+ALLOC_NON_BLOCK and documents how the reserves are affected.  For example,
+ALLOC_NON_BLOCK (no direct reclaim) on its own allows 25% of the min
+reserve.  ALLOC_MIN_RESERVE (__GFP_HIGH) allows 50% and both combined
+allows deeper access again.  ALLOC_OOM allows access to 75%.
+
+High-order atomic allocations are explicitly handled with the caveat that
+no __GFP_ATOMIC flag means that any high-order allocation that specifies
+GFP_HIGH and cannot enter direct reclaim will be treated as if it was
+GFP_ATOMIC.
+
+
+This patch (of 6):
+
+__GFP_HIGH aliases to ALLOC_HIGH but the name does not really hint what it
+means.  As ALLOC_HIGH is internal to the allocator, rename it to
+ALLOC_MIN_RESERVE to document that the min reserves can be depleted.
+
+Link: https://lkml.kernel.org/r/20230113111217.14134-1-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20230113111217.14134-2-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Charan Teja Kalla <quic_charante@quicinc.com>
-Cc: Li Zhe <lizhe.67@bytedance.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Thierry Reding <thierry.reding@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/page_ext.h~mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed
-+++ a/include/linux/page_ext.h
-@@ -7,15 +7,33 @@
- #include <linux/stackdepot.h>
- 
- struct pglist_data;
-+
-+/**
-+ * struct page_ext_operations - per page_ext client operations
-+ * @offset: Offset to the client's data within page_ext. Offset is returned to
-+ *          the client by page_ext_init.
-+ * @size: The size of the client data within page_ext.
-+ * @need: Function that returns true if client requires page_ext.
-+ * @init: (optional) Called to initialize client once page_exts are allocated.
-+ * @need_shared_flags: True when client is using shared page_ext->flags
-+ *                     field.
-+ *
-+ * Each Page Extension client must define page_ext_operations in
-+ * page_ext_ops array.
-+ */
- struct page_ext_operations {
- 	size_t offset;
- 	size_t size;
- 	bool (*need)(void);
- 	void (*init)(void);
-+	bool need_shared_flags;
- };
- 
- #ifdef CONFIG_PAGE_EXTENSION
- 
-+/*
-+ * The page_ext_flags users must set need_shared_flags to true.
-+ */
- enum page_ext_flags {
- 	PAGE_EXT_OWNER,
- 	PAGE_EXT_OWNER_ALLOCATED,
---- a/mm/page_ext.c~mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed
-+++ a/mm/page_ext.c
-@@ -71,6 +71,7 @@ static bool need_page_idle(void)
- }
- static struct page_ext_operations page_idle_ops __initdata = {
- 	.need = need_page_idle,
-+	.need_shared_flags = true,
- };
+--- a/mm/internal.h~mm-page_alloc-rename-alloc_high-to-alloc_min_reserve
++++ a/mm/internal.h
+@@ -779,7 +779,9 @@ unsigned int reclaim_clean_pages_from_li
  #endif
  
-@@ -86,7 +87,7 @@ static struct page_ext_operations *page_
- #endif
- };
+ #define ALLOC_HARDER		 0x10 /* try to alloc harder */
+-#define ALLOC_HIGH		 0x20 /* __GFP_HIGH set */
++#define ALLOC_MIN_RESERVE	 0x20 /* __GFP_HIGH set. Allow access to 50%
++				       * of the min watermark.
++				       */
+ #define ALLOC_CPUSET		 0x40 /* check for correct cpuset */
+ #define ALLOC_CMA		 0x80 /* allow allocations from CMA areas */
+ #ifdef CONFIG_ZONE_DMA32
+--- a/mm/page_alloc.c~mm-page_alloc-rename-alloc_high-to-alloc_min_reserve
++++ a/mm/page_alloc.c
+@@ -3994,7 +3994,7 @@ bool __zone_watermark_ok(struct zone *z,
+ 	/* free_pages may go negative - that's OK */
+ 	free_pages -= __zone_watermark_unusable_free(z, order, alloc_flags);
  
--unsigned long page_ext_size = sizeof(struct page_ext);
-+unsigned long page_ext_size;
+-	if (alloc_flags & ALLOC_HIGH)
++	if (alloc_flags & ALLOC_MIN_RESERVE)
+ 		min -= min / 2;
  
- static unsigned long total_usage;
- static struct page_ext *lookup_page_ext(const struct page *page);
-@@ -106,7 +107,16 @@ static bool __init invoke_need_callbacks
- 	bool need = false;
+ 	if (unlikely(alloc_harder)) {
+@@ -4836,18 +4836,18 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	unsigned int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
  
- 	for (i = 0; i < entries; i++) {
--		if (page_ext_ops[i]->need && page_ext_ops[i]->need()) {
-+		if (page_ext_ops[i]->need()) {
-+			if (page_ext_ops[i]->need_shared_flags) {
-+				page_ext_size = sizeof(struct page_ext);
-+				break;
-+			}
-+		}
-+	}
-+
-+	for (i = 0; i < entries; i++) {
-+		if (page_ext_ops[i]->need()) {
- 			page_ext_ops[i]->offset = page_ext_size;
- 			page_ext_size += page_ext_ops[i]->size;
- 			need = true;
---- a/mm/page_owner.c~mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed
-+++ a/mm/page_owner.c
-@@ -99,6 +99,7 @@ struct page_ext_operations page_owner_op
- 	.size = sizeof(struct page_owner),
- 	.need = need_page_owner,
- 	.init = init_page_owner,
-+	.need_shared_flags = true,
- };
+ 	/*
+-	 * __GFP_HIGH is assumed to be the same as ALLOC_HIGH
++	 * __GFP_HIGH is assumed to be the same as ALLOC_MIN_RESERVE
+ 	 * and __GFP_KSWAPD_RECLAIM is assumed to be the same as ALLOC_KSWAPD
+ 	 * to save two branches.
+ 	 */
+-	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_HIGH);
++	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_MIN_RESERVE);
+ 	BUILD_BUG_ON(__GFP_KSWAPD_RECLAIM != (__force gfp_t) ALLOC_KSWAPD);
  
- static inline struct page_owner *get_page_owner(struct page_ext *page_ext)
---- a/mm/page_table_check.c~mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed
-+++ a/mm/page_table_check.c
-@@ -45,6 +45,7 @@ struct page_ext_operations page_table_ch
- 	.size = sizeof(struct page_table_check),
- 	.need = need_page_table_check,
- 	.init = init_page_table_check,
-+	.need_shared_flags = false,
- };
- 
- static struct page_table_check *get_page_table_check(struct page_ext *page_ext)
+ 	/*
+ 	 * The caller may dip into page reserves a bit more if the caller
+ 	 * cannot run direct reclaim, or if the caller has realtime scheduling
+ 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
+-	 * set both ALLOC_HARDER (__GFP_ATOMIC) and ALLOC_HIGH (__GFP_HIGH).
++	 * set both ALLOC_HARDER (__GFP_ATOMIC) and ALLOC_MIN_RESERVE(__GFP_HIGH).
+ 	 */
+ 	alloc_flags |= (__force int)
+ 		(gfp_mask & (__GFP_HIGH | __GFP_KSWAPD_RECLAIM));
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
 
