@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15A9BC636D7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1092C6379F
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:39:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231245AbjBCGjv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:39:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36630 "EHLO
+        id S232056AbjBCGjx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:39:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232335AbjBCGiP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:38:15 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90BC48E4A3
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:46 -0800 (PST)
+        with ESMTP id S232058AbjBCGi2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:38:28 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B759B8E4B1
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0B9B4B8297E
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FE4FC4339B;
-        Fri,  3 Feb 2023 06:36:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5370861DA5
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A69F9C4339B;
+        Fri,  3 Feb 2023 06:36:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406204;
-        bh=Zra30rPhFBz5ObVGj5sz5m8k4dgc5JyiblfgohDlNzQ=;
+        s=korg; t=1675406206;
+        bh=68fpWUHr11vLfrk54keXvDvSLsfdpndkjdBc0iri6SE=;
         h=Date:To:From:Subject:From;
-        b=LVzQdOHBzaAAnCy4cf1kwJvt/xpjhd0Hf286bNx9nX2/le1s0miMT/evVQshpjSYu
-         vcnVPl4QU79Rj3aj9tIoYU5K/lsm9SAe/s1izfKh3bc82bkdlFKr4IwcQARjkhtSmw
-         RtMcvR8605Ps3v5vS8RX7/Byyq/JxMs2yKypDdP8=
-Date:   Thu, 02 Feb 2023 22:36:44 -0800
-To:     mm-commits@vger.kernel.org, npiggin@gmail.com, mpe@ellerman.id.au,
-        christophe.leroy@csgroup.eu, david@redhat.com,
-        akpm@linux-foundation.org
+        b=RrMq3xJBPrGVdyXFfY/pq1maSwiuGiofdZl5FtwSqaeaFtFfBOtrGJcaQ1GCYAUqi
+         WT9VtWW7sweSMmSdW86annKfeh+PB4bJ0QbJxA4y4Reei7ooeH8ILsBc+a9QoGolnn
+         kH/thKbHfqNOKxi6vlkWNRVIpL1LkMbOAX+mH7Fw=
+Date:   Thu, 02 Feb 2023 22:36:46 -0800
+To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
+        dalias@libc.org, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive.patch removed from -mm tree
-Message-Id: <20230203063644.9FE4FC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] sh-mm-support-__have_arch_pte_swp_exclusive.patch removed from -mm tree
+Message-Id: <20230203063646.A69F9C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,214 +41,124 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: powerpc/nohash/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+     Subject: sh/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
 has been removed from the -mm tree.  Its filename was
-     powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive.patch
+     sh-mm-support-__have_arch_pte_swp_exclusive.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: powerpc/nohash/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-Date: Fri, 13 Jan 2023 18:10:18 +0100
+Subject: sh/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+Date: Fri, 13 Jan 2023 18:10:20 +0100
 
-Let's support __HAVE_ARCH_PTE_SWP_EXCLUSIVE on 32bit and 64bit.
+Let's support __HAVE_ARCH_PTE_SWP_EXCLUSIVE by using bit 6 in the PTE,
+reducing the swap type in the !CONFIG_X2TLB case to 5 bits.  Generic MM
+currently only uses 5 bits for the type (MAX_SWAPFILES_SHIFT), so the
+stolen bit is effectively unused.
 
-On 64bit, let's use MSB 56 (LSB 7), located right next to the page type. 
-On 32bit, let's use LSB 2 to avoid stealing one bit from the swap offset.
+Interrestingly, the swap type in the !CONFIG_X2TLB case could currently
+overlap with the _PAGE_PRESENT bit, because there is a sneaky shift by 1
+in __pte_to_swp_entry() and __swp_entry_to_pte().  Bit 0-7 in the
+architecture specific swap PTE would get shifted to bit 1-8 in the PTE. 
+As generic MM uses 5 bits only, this didn't matter so far.
 
-There seems to be no real reason why these bits cannot be used for swap
-PTEs.  The important part is that _PAGE_PRESENT and _PAGE_HASHPTE remain
-0.
+While at it, mask the type in __swp_entry().
 
-While at it, mask the type in __swp_entry() and remove _PAGE_BIT_SWAP_TYPE
-from pte-e500.h: while it was used in 64bit code it was ignored in 32bit
-code.
-
-Link: https://lkml.kernel.org/r/20230113171026.582290-19-david@redhat.com
+Link: https://lkml.kernel.org/r/20230113171026.582290-21-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/powerpc/include/asm/nohash/32/pgtable.h~powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/powerpc/include/asm/nohash/32/pgtable.h
-@@ -360,18 +360,30 @@ static inline int pte_young(pte_t pte)
+--- a/arch/sh/include/asm/pgtable_32.h~sh-mm-support-__have_arch_pte_swp_exclusive
++++ a/arch/sh/include/asm/pgtable_32.h
+@@ -423,40 +423,70 @@ static inline unsigned long pmd_page_vad
  #endif
  
- #define pmd_page(pmd)		pfn_to_page(pmd_pfn(pmd))
-+
  /*
-- * Encode and decode a swap entry.
-- * Note that the bits we use in a PTE for representing a swap entry
-- * must not include the _PAGE_PRESENT bit.
-- *   -- paulus
+- * Encode and de-code a swap entry
 + * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
 + * are !pte_none() && !pte_present().
-+ *
-+ * Format of swap PTEs (32bit PTEs):
-+ *
-+ *                         1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
-+ *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+ *   <------------------ offset -------------------> < type -> E 0 0
-+ *
-+ * E is the exclusive marker that is not stored in swap entries.
-+ *
-+ * For 64bit PTEs, the offset is extended by 32bit.
-  */
- #define __swp_type(entry)		((entry).val & 0x1f)
- #define __swp_offset(entry)		((entry).val >> 5)
--#define __swp_entry(type, offset)	((swp_entry_t) { (type) | ((offset) << 5) })
-+#define __swp_entry(type, offset)	((swp_entry_t) { ((type) & 0x1f) | ((offset) << 5) })
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) >> 3 })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val << 3 })
- 
-+/* We borrow LSB 2 to store the exclusive marker in swap PTEs. */
-+#define _PAGE_SWP_EXCLUSIVE	0x000004
-+
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* __ASM_POWERPC_NOHASH_32_PGTABLE_H */
---- a/arch/powerpc/include/asm/nohash/32/pte-40x.h~powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/powerpc/include/asm/nohash/32/pte-40x.h
-@@ -27,9 +27,9 @@
-  *   of the 16 available.  Bit 24-26 of the TLB are cleared in the TLB
-  *   miss handler.  Bit 27 is PAGE_USER, thus selecting the correct
-  *   zone.
-- * - PRESENT *must* be in the bottom two bits because swap cache
-- *   entries use the top 30 bits.  Because 40x doesn't support SMP
-- *   anyway, M is irrelevant so we borrow it for PAGE_PRESENT.  Bit 30
-+ * - PRESENT *must* be in the bottom two bits because swap PTEs
-+ *   use the top 30 bits.  Because 40x doesn't support SMP anyway, M is
-+ *   irrelevant so we borrow it for PAGE_PRESENT.  Bit 30
-  *   is cleared in the TLB miss handler before the TLB entry is loaded.
-  * - All other bits of the PTE are loaded into TLBLO without
-  *   modification, leaving us only the bits 20, 21, 24, 25, 26, 30 for
---- a/arch/powerpc/include/asm/nohash/32/pte-44x.h~powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/powerpc/include/asm/nohash/32/pte-44x.h
-@@ -56,20 +56,10 @@
-  * above bits.  Note that the bit values are CPU specific, not architecture
-  * specific.
   *
-- * The kernel PTE entry holds an arch-dependent swp_entry structure under
-- * certain situations. In other words, in such situations some portion of
-- * the PTE bits are used as a swp_entry. In the PPC implementation, the
-- * 3-24th LSB are shared with swp_entry, however the 0-2nd three LSB still
-- * hold protection values. That means the three protection bits are
-- * reserved for both PTE and SWAP entry at the most significant three
-- * LSBs.
+  * Constraints:
+  *	_PAGE_PRESENT at bit 8
+  *	_PAGE_PROTNONE at bit 9
+  *
+- * For the normal case, we encode the swap type into bits 0:7 and the
+- * swap offset into bits 10:30. For the 64-bit PTE case, we keep the
+- * preserved bits in the low 32-bits and use the upper 32 as the swap
+- * offset (along with a 5-bit type), following the same approach as x86
+- * PAE. This keeps the logic quite simple.
++ * For the normal case, we encode the swap type and offset into the swap PTE
++ * such that bits 8 and 9 stay zero. For the 64-bit PTE case, we use the
++ * upper 32 for the swap offset and swap type, following the same approach as
++ * x86 PAE. This keeps the logic quite simple.
+  *
+  * As is evident by the Alpha code, if we ever get a 64-bit unsigned
+  * long (swp_entry_t) to match up with the 64-bit PTEs, this all becomes
+  * much cleaner..
 - *
-- * There are three protection bits available for SWAP entry:
-- *	_PAGE_PRESENT
-- *	_PAGE_HASHPTE (if HW has)
-- *
-- * So those three bits have to be inside of 0-2nd LSB of PTE.
-- *
-+ * The kernel PTE entry can be an ordinary PTE mapping a page or a special swap
-+ * PTE. In case of a swap PTE, LSB 2-24 are used to store information regarding
-+ * the swap entry. However LSB 0-1 still hold protection values, for example,
-+ * to distinguish swap PTEs from ordinary PTEs, and must be used with care.
+- * NOTE: We should set ZEROs at the position of _PAGE_PRESENT
+- *       and _PAGE_PROTNONE bits
   */
- 
- #define _PAGE_PRESENT	0x00000001		/* S: PTE valid */
---- a/arch/powerpc/include/asm/nohash/32/pte-85xx.h~powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/powerpc/include/asm/nohash/32/pte-85xx.h
-@@ -11,8 +11,8 @@
-    32 33 34 35 36  ... 50 51 52 53 54 55 56 57 58 59 60 61 62 63
-    RPN......................  0  0 U0 U1 U2 U3 UX SX UW SW UR SR
- 
--   - PRESENT *must* be in the bottom three bits because swap cache
--     entries use the top 29 bits.
-+   - PRESENT *must* be in the bottom two bits because swap PTEs use
-+     the top 30 bits.
- 
- */
- 
---- a/arch/powerpc/include/asm/nohash/64/pgtable.h~powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/powerpc/include/asm/nohash/64/pgtable.h
-@@ -276,22 +276,40 @@ static inline void __ptep_set_access_fla
- #define pgd_ERROR(e) \
- 	pr_err("%s:%d: bad pgd %08lx.\n", __FILE__, __LINE__, pgd_val(e))
- 
--/* Encode and de-code a swap entry */
++
+ #ifdef CONFIG_X2TLB
 +/*
-+ * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
-+ * are !pte_none() && !pte_present().
-+ *
 + * Format of swap PTEs:
 + *
-+ *                         1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
-+ *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+ *   <-------------------------- offset ----------------------------
++ *   6 6 6 6 5 5 5 5 5 5 5 5 5 5 4 4 4 4 4 4 4 4 4 4 3 3 3 3 3 3 3 3
++ *   3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2
++ *   <--------------------- offset ----------------------> < type ->
 + *
-+ *   3 3 3 3 3 3 3 3 4 4 4 4 4 4 4 4 4 4 5 5 5 5 5 5 5 5 5 5 6 6 6 6
-+ *   2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
-+ *   --------------> <----------- zero ------------> E < type -> 0 0
-+ *
-+ * E is the exclusive marker that is not stored in swap entries.
++ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
++ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
++ *   <------------------- zeroes --------------------> E 0 0 0 0 0 0
 + */
- #define MAX_SWAPFILES_CHECK() do { \
- 	BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > SWP_TYPE_BITS); \
- 	} while (0)
+ #define __swp_type(x)			((x).val & 0x1f)
+ #define __swp_offset(x)			((x).val >> 5)
+-#define __swp_entry(type, offset)	((swp_entry_t){ (type) | (offset) << 5})
++#define __swp_entry(type, offset)	((swp_entry_t){ ((type) & 0x1f) | (offset) << 5})
+ #define __pte_to_swp_entry(pte)		((swp_entry_t){ (pte).pte_high })
+ #define __swp_entry_to_pte(x)		((pte_t){ 0, (x).val })
  
- #define SWP_TYPE_BITS 5
--#define __swp_type(x)		(((x).val >> _PAGE_BIT_SWAP_TYPE) \
-+#define __swp_type(x)		(((x).val >> 2) \
- 				& ((1UL << SWP_TYPE_BITS) - 1))
- #define __swp_offset(x)		((x).val >> PTE_RPN_SHIFT)
- #define __swp_entry(type, offset)	((swp_entry_t) { \
--					((type) << _PAGE_BIT_SWAP_TYPE) \
-+					(((type) & 0x1f) << 2) \
- 					| ((offset) << PTE_RPN_SHIFT) })
+ #else
+-#define __swp_type(x)			((x).val & 0xff)
++/*
++ * Format of swap PTEs:
++ *
++ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
++ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
++ *   <--------------- offset ----------------> 0 0 0 0 E < type -> 0
++ *
++ *   E is the exclusive marker that is not stored in swap entries.
++ */
++#define __swp_type(x)			((x).val & 0x1f)
+ #define __swp_offset(x)			((x).val >> 10)
+-#define __swp_entry(type, offset)	((swp_entry_t){(type) | (offset) <<10})
++#define __swp_entry(type, offset)	((swp_entry_t){((type) & 0x1f) | (offset) << 10})
  
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val((pte)) })
- #define __swp_entry_to_pte(x)		__pte((x).val)
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) >> 1 })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val << 1 })
+ #endif
  
-+/* We borrow MSB 56 (LSB 7) to store the exclusive marker in swap PTEs. */
-+#define _PAGE_SWP_EXCLUSIVE	0x80
++/* In both cases, we borrow bit 6 to store the exclusive marker in swap PTEs. */
++#define _PAGE_SWP_EXCLUSIVE	_PAGE_USER
 +
- int map_kernel_page(unsigned long ea, unsigned long pa, pgprot_t prot);
- void unmap_kernel_page(unsigned long va);
- extern int __meminit vmemmap_create_mapping(unsigned long start,
---- a/arch/powerpc/include/asm/nohash/pgtable.h~powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/powerpc/include/asm/nohash/pgtable.h
-@@ -151,6 +151,22 @@ static inline pte_t pte_modify(pte_t pte
- 	return __pte((pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot));
- }
- 
 +#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
 +static inline int pte_swp_exclusive(pte_t pte)
 +{
-+	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
++	return pte.pte_low & _PAGE_SWP_EXCLUSIVE;
 +}
 +
-+static inline pte_t pte_swp_mkexclusive(pte_t pte)
-+{
-+	return __pte(pte_val(pte) | _PAGE_SWP_EXCLUSIVE);
-+}
++PTE_BIT_FUNC(low, swp_mkexclusive, |= _PAGE_SWP_EXCLUSIVE);
++PTE_BIT_FUNC(low, swp_clear_exclusive, &= ~_PAGE_SWP_EXCLUSIVE);
 +
-+static inline pte_t pte_swp_clear_exclusive(pte_t pte)
-+{
-+	return __pte(pte_val(pte) & ~_PAGE_SWP_EXCLUSIVE);
-+}
-+
- /* Insert a PTE, top-level function is out of line. It uses an inline
-  * low level function in the respective pgtable-* files
-  */
---- a/arch/powerpc/include/asm/nohash/pte-e500.h~powerpc-nohash-mm-support-__have_arch_pte_swp_exclusive
-+++ a/arch/powerpc/include/asm/nohash/pte-e500.h
-@@ -12,7 +12,6 @@
- /* Architected bits */
- #define _PAGE_PRESENT	0x000001 /* software: pte contains a translation */
- #define _PAGE_SW1	0x000002
--#define _PAGE_BIT_SWAP_TYPE	2
- #define _PAGE_BAP_SR	0x000004
- #define _PAGE_BAP_UR	0x000008
- #define _PAGE_BAP_SW	0x000010
+ #endif /* __ASSEMBLY__ */
+ #endif /* __ASM_SH_PGTABLE_32_H */
 _
 
 Patches currently in -mm which might be from david@redhat.com are
