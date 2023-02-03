@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6005C636CC
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:43:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A049C636D7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:43:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232165AbjBCGn3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:43:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38550 "EHLO
+        id S232529AbjBCGnb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:43:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232529AbjBCGlx (ORCPT
+        with ESMTP id S232530AbjBCGlx (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:41:53 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 631D4FF07
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46FAEFF02
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F1A4061DA8
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 554A7C433EF;
-        Fri,  3 Feb 2023 06:38:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BE8ADB82984
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69692C4339B;
+        Fri,  3 Feb 2023 06:38:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406294;
-        bh=TUzxMV1s8NaA0us6fe5sGtR9asY0XFanMm8silDFg80=;
+        s=korg; t=1675406292;
+        bh=idCN6avbUQGSaUGKvVslGOY/n8ZbThBnl4WGzRbjqGI=;
         h=Date:To:From:Subject:From;
-        b=qwQRGOnaYiPIIOYPCSGzHiL+0dO/jCipwVjndCdec0Taz9oVnI+IsEhpX7KvVGu+J
-         7zI2+JhZLWwahNgauJhuDblSVDlJl37iSDH6cn0smWk/5T9JYnQPA7o78set9Mfkp3
-         arNVE6azp36DjLexF6Zc/dOmS4floSCx4qN8/73U=
-Date:   Thu, 02 Feb 2023 22:38:13 -0800
+        b=oYabB7AJjSpPZ/aW1urIdK/irFSf4JD2wvbsjWFxOcOnan9EI+3XucifilMG1Vlcl
+         xvOypQ1RYuKy5+pW1bl7bLfPfWkdiBEWN/51lNAUVTEheqTVhuPt0V+VrK0v6cX0a4
+         1fiYX48I9qyvM+KZCTb1q1ley8ujr1xpSf4Fv6UY=
+Date:   Thu, 02 Feb 2023 22:38:11 -0800
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, talumbau@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-improve-walk_pmd_range.patch removed from -mm tree
-Message-Id: <20230203063814.554A7C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-section-for-memcg-lru.patch removed from -mm tree
+Message-Id: <20230203063812.69692C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,143 +41,431 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: improve walk_pmd_range()
+     Subject: mm: multi-gen LRU: section for memcg LRU
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-improve-walk_pmd_range.patch
+     mm-multi-gen-lru-section-for-memcg-lru.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "T.J. Alumbaugh" <talumbau@google.com>
-Subject: mm: multi-gen LRU: improve walk_pmd_range()
-Date: Wed, 18 Jan 2023 00:18:26 +0000
+Subject: mm: multi-gen LRU: section for memcg LRU
+Date: Wed, 18 Jan 2023 00:18:24 +0000
 
-Improve readability of walk_pmd_range() and walk_pmd_range_locked().
+Move memcg LRU code into a dedicated section.  Improve the design doc to
+outline its architecture.
 
-Link: https://lkml.kernel.org/r/20230118001827.1040870-7-talumbau@google.com
+Link: https://lkml.kernel.org/r/20230118001827.1040870-5-talumbau@google.com
 Signed-off-by: T.J. Alumbaugh <talumbau@google.com>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/vmscan.c~mm-multi-gen-lru-improve-walk_pmd_range
-+++ a/mm/vmscan.c
-@@ -3999,8 +3999,8 @@ restart:
- }
+--- a/Documentation/mm/multigen_lru.rst~mm-multi-gen-lru-section-for-memcg-lru
++++ a/Documentation/mm/multigen_lru.rst
+@@ -186,9 +186,40 @@ is false positive, the cost is an additi
+ which may yield hot pages anyway. Parameters of the filter itself can
+ control the false positive rate in the limit.
  
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
--static void walk_pmd_range_locked(pud_t *pud, unsigned long next, struct vm_area_struct *vma,
--				  struct mm_walk *args, unsigned long *bitmap, unsigned long *start)
-+static void walk_pmd_range_locked(pud_t *pud, unsigned long addr, struct vm_area_struct *vma,
-+				  struct mm_walk *args, unsigned long *bitmap, unsigned long *first)
- {
- 	int i;
- 	pmd_t *pmd;
-@@ -4013,18 +4013,19 @@ static void walk_pmd_range_locked(pud_t
- 	VM_WARN_ON_ONCE(pud_leaf(*pud));
- 
- 	/* try to batch at most 1+MIN_LRU_BATCH+1 entries */
--	if (*start == -1) {
--		*start = next;
-+	if (*first == -1) {
-+		*first = addr;
-+		bitmap_zero(bitmap, MIN_LRU_BATCH);
- 		return;
- 	}
- 
--	i = next == -1 ? 0 : pmd_index(next) - pmd_index(*start);
-+	i = addr == -1 ? 0 : pmd_index(addr) - pmd_index(*first);
- 	if (i && i <= MIN_LRU_BATCH) {
- 		__set_bit(i - 1, bitmap);
- 		return;
- 	}
- 
--	pmd = pmd_offset(pud, *start);
-+	pmd = pmd_offset(pud, *first);
- 
- 	ptl = pmd_lockptr(args->mm, pmd);
- 	if (!spin_trylock(ptl))
-@@ -4035,15 +4036,16 @@ static void walk_pmd_range_locked(pud_t
- 	do {
- 		unsigned long pfn;
- 		struct folio *folio;
--		unsigned long addr = i ? (*start & PMD_MASK) + i * PMD_SIZE : *start;
++Memcg LRU
++---------
++An memcg LRU is a per-node LRU of memcgs. It is also an LRU of LRUs,
++since each node and memcg combination has an LRU of folios (see
++``mem_cgroup_lruvec()``). Its goal is to improve the scalability of
++global reclaim, which is critical to system-wide memory overcommit in
++data centers. Note that memcg LRU only applies to global reclaim.
 +
-+		/* don't round down the first address */
-+		addr = i ? (*first & PMD_MASK) + i * PMD_SIZE : *first;
++The basic structure of an memcg LRU can be understood by an analogy to
++the active/inactive LRU (of folios):
++
++1. It has the young and the old (generations), i.e., the counterparts
++   to the active and the inactive;
++2. The increment of ``max_seq`` triggers promotion, i.e., the
++   counterpart to activation;
++3. Other events trigger similar operations, e.g., offlining an memcg
++   triggers demotion, i.e., the counterpart to deactivation.
++
++In terms of global reclaim, it has two distinct features:
++
++1. Sharding, which allows each thread to start at a random memcg (in
++   the old generation) and improves parallelism;
++2. Eventual fairness, which allows direct reclaim to bail out at will
++   and reduces latency without affecting fairness over some time.
++
++In terms of traversing memcgs during global reclaim, it improves the
++best-case complexity from O(n) to O(1) and does not affect the
++worst-case complexity O(n). Therefore, on average, it has a sublinear
++complexity.
++
+ Summary
+ -------
+-The multi-gen LRU can be disassembled into the following parts:
++The multi-gen LRU (of folios) can be disassembled into the following
++parts:
  
- 		pfn = get_pmd_pfn(pmd[i], vma, addr);
- 		if (pfn == -1)
- 			goto next;
- 
- 		if (!pmd_trans_huge(pmd[i])) {
--			if (arch_has_hw_nonleaf_pmd_young() &&
--			    get_cap(LRU_GEN_NONLEAF_YOUNG))
-+			if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG))
- 				pmdp_test_and_clear_young(vma, addr, pmd + i);
- 			goto next;
- 		}
-@@ -4072,12 +4074,11 @@ next:
- 	arch_leave_lazy_mmu_mode();
- 	spin_unlock(ptl);
- done:
--	*start = -1;
--	bitmap_zero(bitmap, MIN_LRU_BATCH);
-+	*first = -1;
+ * Generations
+ * Rmap walks
+--- a/include/linux/mm_inline.h~mm-multi-gen-lru-section-for-memcg-lru
++++ a/include/linux/mm_inline.h
+@@ -122,18 +122,6 @@ static inline bool lru_gen_in_fault(void
+ 	return current->in_lru_fault;
  }
- #else
--static void walk_pmd_range_locked(pud_t *pud, unsigned long next, struct vm_area_struct *vma,
--				  struct mm_walk *args, unsigned long *bitmap, unsigned long *start)
-+static void walk_pmd_range_locked(pud_t *pud, unsigned long addr, struct vm_area_struct *vma,
-+				  struct mm_walk *args, unsigned long *bitmap, unsigned long *first)
+ 
+-#ifdef CONFIG_MEMCG
+-static inline int lru_gen_memcg_seg(struct lruvec *lruvec)
+-{
+-	return READ_ONCE(lruvec->lrugen.seg);
+-}
+-#else
+-static inline int lru_gen_memcg_seg(struct lruvec *lruvec)
+-{
+-	return 0;
+-}
+-#endif
+-
+ static inline int lru_gen_from_seq(unsigned long seq)
+ {
+ 	return seq % MAX_NR_GENS;
+@@ -309,11 +297,6 @@ static inline bool lru_gen_in_fault(void
+ 	return false;
+ }
+ 
+-static inline int lru_gen_memcg_seg(struct lruvec *lruvec)
+-{
+-	return 0;
+-}
+-
+ static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
+ {
+ 	return false;
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-section-for-memcg-lru
++++ a/include/linux/mmzone.h
+@@ -368,15 +368,6 @@ struct page_vma_mapped_walk;
+ #define LRU_GEN_MASK		((BIT(LRU_GEN_WIDTH) - 1) << LRU_GEN_PGOFF)
+ #define LRU_REFS_MASK		((BIT(LRU_REFS_WIDTH) - 1) << LRU_REFS_PGOFF)
+ 
+-/* see the comment on MEMCG_NR_GENS */
+-enum {
+-	MEMCG_LRU_NOP,
+-	MEMCG_LRU_HEAD,
+-	MEMCG_LRU_TAIL,
+-	MEMCG_LRU_OLD,
+-	MEMCG_LRU_YOUNG,
+-};
+-
+ #ifdef CONFIG_LRU_GEN
+ 
+ enum {
+@@ -557,7 +548,7 @@ void lru_gen_exit_memcg(struct mem_cgrou
+ void lru_gen_online_memcg(struct mem_cgroup *memcg);
+ void lru_gen_offline_memcg(struct mem_cgroup *memcg);
+ void lru_gen_release_memcg(struct mem_cgroup *memcg);
+-void lru_gen_rotate_memcg(struct lruvec *lruvec, int op);
++void lru_gen_soft_reclaim(struct lruvec *lruvec);
+ 
+ #else /* !CONFIG_MEMCG */
+ 
+@@ -608,7 +599,7 @@ static inline void lru_gen_release_memcg
  {
  }
- #endif
-@@ -4090,9 +4091,9 @@ static void walk_pmd_range(pud_t *pud, u
- 	unsigned long next;
- 	unsigned long addr;
- 	struct vm_area_struct *vma;
--	unsigned long pos = -1;
-+	unsigned long bitmap[BITS_TO_LONGS(MIN_LRU_BATCH)];
-+	unsigned long first = -1;
- 	struct lru_gen_mm_walk *walk = args->private;
--	unsigned long bitmap[BITS_TO_LONGS(MIN_LRU_BATCH)] = {};
  
- 	VM_WARN_ON_ONCE(pud_leaf(*pud));
+-static inline void lru_gen_rotate_memcg(struct lruvec *lruvec, int op)
++static inline void lru_gen_soft_reclaim(struct lruvec *lruvec)
+ {
+ }
  
-@@ -4131,18 +4132,17 @@ restart:
- 			if (pfn < pgdat->node_start_pfn || pfn >= pgdat_end_pfn(pgdat))
- 				continue;
+--- a/mm/memcontrol.c~mm-multi-gen-lru-section-for-memcg-lru
++++ a/mm/memcontrol.c
+@@ -476,12 +476,8 @@ static void mem_cgroup_update_tree(struc
+ 	struct mem_cgroup_tree_per_node *mctz;
  
--			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
-+			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &first);
- 			continue;
- 		}
- #endif
- 		walk->mm_stats[MM_NONLEAF_TOTAL]++;
- 
--		if (arch_has_hw_nonleaf_pmd_young() &&
--		    get_cap(LRU_GEN_NONLEAF_YOUNG)) {
-+		if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG)) {
- 			if (!pmd_young(val))
- 				continue;
- 
--			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
-+			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &first);
- 		}
- 
- 		if (!walk->force_scan && !test_bloom_filter(walk->lruvec, walk->max_seq, pmd + i))
-@@ -4159,7 +4159,7 @@ restart:
- 		update_bloom_filter(walk->lruvec, walk->max_seq + 1, pmd + i);
+ 	if (lru_gen_enabled()) {
+-		struct lruvec *lruvec = &memcg->nodeinfo[nid]->lruvec;
+-
+-		/* see the comment on MEMCG_NR_GENS */
+-		if (soft_limit_excess(memcg) && lru_gen_memcg_seg(lruvec) != MEMCG_LRU_HEAD)
+-			lru_gen_rotate_memcg(lruvec, MEMCG_LRU_HEAD);
+-
++		if (soft_limit_excess(memcg))
++			lru_gen_soft_reclaim(&memcg->nodeinfo[nid]->lruvec);
+ 		return;
  	}
  
--	walk_pmd_range_locked(pud, -1, vma, args, bitmap, &pos);
-+	walk_pmd_range_locked(pud, -1, vma, args, bitmap, &first);
+--- a/mm/vmscan.c~mm-multi-gen-lru-section-for-memcg-lru
++++ a/mm/vmscan.c
+@@ -4706,6 +4706,148 @@ void lru_gen_look_around(struct page_vma
+ }
  
- 	if (i < PTRS_PER_PMD && get_next_vma(PUD_MASK, PMD_SIZE, args, &start, &end))
- 		goto restart;
+ /******************************************************************************
++ *                          memcg LRU
++ ******************************************************************************/
++
++/* see the comment on MEMCG_NR_GENS */
++enum {
++	MEMCG_LRU_NOP,
++	MEMCG_LRU_HEAD,
++	MEMCG_LRU_TAIL,
++	MEMCG_LRU_OLD,
++	MEMCG_LRU_YOUNG,
++};
++
++#ifdef CONFIG_MEMCG
++
++static int lru_gen_memcg_seg(struct lruvec *lruvec)
++{
++	return READ_ONCE(lruvec->lrugen.seg);
++}
++
++static void lru_gen_rotate_memcg(struct lruvec *lruvec, int op)
++{
++	int seg;
++	int old, new;
++	int bin = get_random_u32_below(MEMCG_NR_BINS);
++	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
++
++	spin_lock(&pgdat->memcg_lru.lock);
++
++	VM_WARN_ON_ONCE(hlist_nulls_unhashed(&lruvec->lrugen.list));
++
++	seg = 0;
++	new = old = lruvec->lrugen.gen;
++
++	/* see the comment on MEMCG_NR_GENS */
++	if (op == MEMCG_LRU_HEAD)
++		seg = MEMCG_LRU_HEAD;
++	else if (op == MEMCG_LRU_TAIL)
++		seg = MEMCG_LRU_TAIL;
++	else if (op == MEMCG_LRU_OLD)
++		new = get_memcg_gen(pgdat->memcg_lru.seq);
++	else if (op == MEMCG_LRU_YOUNG)
++		new = get_memcg_gen(pgdat->memcg_lru.seq + 1);
++	else
++		VM_WARN_ON_ONCE(true);
++
++	hlist_nulls_del_rcu(&lruvec->lrugen.list);
++
++	if (op == MEMCG_LRU_HEAD || op == MEMCG_LRU_OLD)
++		hlist_nulls_add_head_rcu(&lruvec->lrugen.list, &pgdat->memcg_lru.fifo[new][bin]);
++	else
++		hlist_nulls_add_tail_rcu(&lruvec->lrugen.list, &pgdat->memcg_lru.fifo[new][bin]);
++
++	pgdat->memcg_lru.nr_memcgs[old]--;
++	pgdat->memcg_lru.nr_memcgs[new]++;
++
++	lruvec->lrugen.gen = new;
++	WRITE_ONCE(lruvec->lrugen.seg, seg);
++
++	if (!pgdat->memcg_lru.nr_memcgs[old] && old == get_memcg_gen(pgdat->memcg_lru.seq))
++		WRITE_ONCE(pgdat->memcg_lru.seq, pgdat->memcg_lru.seq + 1);
++
++	spin_unlock(&pgdat->memcg_lru.lock);
++}
++
++void lru_gen_online_memcg(struct mem_cgroup *memcg)
++{
++	int gen;
++	int nid;
++	int bin = get_random_u32_below(MEMCG_NR_BINS);
++
++	for_each_node(nid) {
++		struct pglist_data *pgdat = NODE_DATA(nid);
++		struct lruvec *lruvec = get_lruvec(memcg, nid);
++
++		spin_lock(&pgdat->memcg_lru.lock);
++
++		VM_WARN_ON_ONCE(!hlist_nulls_unhashed(&lruvec->lrugen.list));
++
++		gen = get_memcg_gen(pgdat->memcg_lru.seq);
++
++		hlist_nulls_add_tail_rcu(&lruvec->lrugen.list, &pgdat->memcg_lru.fifo[gen][bin]);
++		pgdat->memcg_lru.nr_memcgs[gen]++;
++
++		lruvec->lrugen.gen = gen;
++
++		spin_unlock(&pgdat->memcg_lru.lock);
++	}
++}
++
++void lru_gen_offline_memcg(struct mem_cgroup *memcg)
++{
++	int nid;
++
++	for_each_node(nid) {
++		struct lruvec *lruvec = get_lruvec(memcg, nid);
++
++		lru_gen_rotate_memcg(lruvec, MEMCG_LRU_OLD);
++	}
++}
++
++void lru_gen_release_memcg(struct mem_cgroup *memcg)
++{
++	int gen;
++	int nid;
++
++	for_each_node(nid) {
++		struct pglist_data *pgdat = NODE_DATA(nid);
++		struct lruvec *lruvec = get_lruvec(memcg, nid);
++
++		spin_lock(&pgdat->memcg_lru.lock);
++
++		VM_WARN_ON_ONCE(hlist_nulls_unhashed(&lruvec->lrugen.list));
++
++		gen = lruvec->lrugen.gen;
++
++		hlist_nulls_del_rcu(&lruvec->lrugen.list);
++		pgdat->memcg_lru.nr_memcgs[gen]--;
++
++		if (!pgdat->memcg_lru.nr_memcgs[gen] && gen == get_memcg_gen(pgdat->memcg_lru.seq))
++			WRITE_ONCE(pgdat->memcg_lru.seq, pgdat->memcg_lru.seq + 1);
++
++		spin_unlock(&pgdat->memcg_lru.lock);
++	}
++}
++
++void lru_gen_soft_reclaim(struct lruvec *lruvec)
++{
++	/* see the comment on MEMCG_NR_GENS */
++	if (lru_gen_memcg_seg(lruvec) != MEMCG_LRU_HEAD)
++		lru_gen_rotate_memcg(lruvec, MEMCG_LRU_HEAD);
++}
++
++#else /* !CONFIG_MEMCG */
++
++static int lru_gen_memcg_seg(struct lruvec *lruvec)
++{
++	return 0;
++}
++
++#endif
++
++/******************************************************************************
+  *                          the eviction
+  ******************************************************************************/
+ 
+@@ -5397,53 +5539,6 @@ done:
+ 	pgdat->kswapd_failures = 0;
+ }
+ 
+-#ifdef CONFIG_MEMCG
+-void lru_gen_rotate_memcg(struct lruvec *lruvec, int op)
+-{
+-	int seg;
+-	int old, new;
+-	int bin = get_random_u32_below(MEMCG_NR_BINS);
+-	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+-
+-	spin_lock(&pgdat->memcg_lru.lock);
+-
+-	VM_WARN_ON_ONCE(hlist_nulls_unhashed(&lruvec->lrugen.list));
+-
+-	seg = 0;
+-	new = old = lruvec->lrugen.gen;
+-
+-	/* see the comment on MEMCG_NR_GENS */
+-	if (op == MEMCG_LRU_HEAD)
+-		seg = MEMCG_LRU_HEAD;
+-	else if (op == MEMCG_LRU_TAIL)
+-		seg = MEMCG_LRU_TAIL;
+-	else if (op == MEMCG_LRU_OLD)
+-		new = get_memcg_gen(pgdat->memcg_lru.seq);
+-	else if (op == MEMCG_LRU_YOUNG)
+-		new = get_memcg_gen(pgdat->memcg_lru.seq + 1);
+-	else
+-		VM_WARN_ON_ONCE(true);
+-
+-	hlist_nulls_del_rcu(&lruvec->lrugen.list);
+-
+-	if (op == MEMCG_LRU_HEAD || op == MEMCG_LRU_OLD)
+-		hlist_nulls_add_head_rcu(&lruvec->lrugen.list, &pgdat->memcg_lru.fifo[new][bin]);
+-	else
+-		hlist_nulls_add_tail_rcu(&lruvec->lrugen.list, &pgdat->memcg_lru.fifo[new][bin]);
+-
+-	pgdat->memcg_lru.nr_memcgs[old]--;
+-	pgdat->memcg_lru.nr_memcgs[new]++;
+-
+-	lruvec->lrugen.gen = new;
+-	WRITE_ONCE(lruvec->lrugen.seg, seg);
+-
+-	if (!pgdat->memcg_lru.nr_memcgs[old] && old == get_memcg_gen(pgdat->memcg_lru.seq))
+-		WRITE_ONCE(pgdat->memcg_lru.seq, pgdat->memcg_lru.seq + 1);
+-
+-	spin_unlock(&pgdat->memcg_lru.lock);
+-}
+-#endif
+-
+ /******************************************************************************
+  *                          state change
+  ******************************************************************************/
+@@ -6086,67 +6181,6 @@ void lru_gen_exit_memcg(struct mem_cgrou
+ 	}
+ }
+ 
+-void lru_gen_online_memcg(struct mem_cgroup *memcg)
+-{
+-	int gen;
+-	int nid;
+-	int bin = get_random_u32_below(MEMCG_NR_BINS);
+-
+-	for_each_node(nid) {
+-		struct pglist_data *pgdat = NODE_DATA(nid);
+-		struct lruvec *lruvec = get_lruvec(memcg, nid);
+-
+-		spin_lock(&pgdat->memcg_lru.lock);
+-
+-		VM_WARN_ON_ONCE(!hlist_nulls_unhashed(&lruvec->lrugen.list));
+-
+-		gen = get_memcg_gen(pgdat->memcg_lru.seq);
+-
+-		hlist_nulls_add_tail_rcu(&lruvec->lrugen.list, &pgdat->memcg_lru.fifo[gen][bin]);
+-		pgdat->memcg_lru.nr_memcgs[gen]++;
+-
+-		lruvec->lrugen.gen = gen;
+-
+-		spin_unlock(&pgdat->memcg_lru.lock);
+-	}
+-}
+-
+-void lru_gen_offline_memcg(struct mem_cgroup *memcg)
+-{
+-	int nid;
+-
+-	for_each_node(nid) {
+-		struct lruvec *lruvec = get_lruvec(memcg, nid);
+-
+-		lru_gen_rotate_memcg(lruvec, MEMCG_LRU_OLD);
+-	}
+-}
+-
+-void lru_gen_release_memcg(struct mem_cgroup *memcg)
+-{
+-	int gen;
+-	int nid;
+-
+-	for_each_node(nid) {
+-		struct pglist_data *pgdat = NODE_DATA(nid);
+-		struct lruvec *lruvec = get_lruvec(memcg, nid);
+-
+-		spin_lock(&pgdat->memcg_lru.lock);
+-
+-		VM_WARN_ON_ONCE(hlist_nulls_unhashed(&lruvec->lrugen.list));
+-
+-		gen = lruvec->lrugen.gen;
+-
+-		hlist_nulls_del_rcu(&lruvec->lrugen.list);
+-		pgdat->memcg_lru.nr_memcgs[gen]--;
+-
+-		if (!pgdat->memcg_lru.nr_memcgs[gen] && gen == get_memcg_gen(pgdat->memcg_lru.seq))
+-			WRITE_ONCE(pgdat->memcg_lru.seq, pgdat->memcg_lru.seq + 1);
+-
+-		spin_unlock(&pgdat->memcg_lru.lock);
+-	}
+-}
+-
+ #endif /* CONFIG_MEMCG */
+ 
+ static int __init init_lru_gen(void)
 _
 
 Patches currently in -mm which might be from talumbau@google.com are
