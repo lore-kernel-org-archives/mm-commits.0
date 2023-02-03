@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7115AC636CC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6CB0C61DA4
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:42:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232279AbjBCGmx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:42:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39754 "EHLO
+        id S232335AbjBCGmy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:42:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232263AbjBCGla (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:41:30 -0500
+        with ESMTP id S232334AbjBCGld (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:41:33 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A46A4216
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:04 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DE624EF2
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CB4B361DB5
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F3D1C433EF;
-        Fri,  3 Feb 2023 06:38:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EB31461DAA
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C842C4339C;
+        Fri,  3 Feb 2023 06:38:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406283;
-        bh=tx8rjTH7980B/phOD7CJl6yoNErFfqSjqfBeMOVUkn8=;
+        s=korg; t=1675406287;
+        bh=siWUERszd9kkn7cXXX3lvbrDixbHTaLjhBawBnKWkbE=;
         h=Date:To:From:Subject:From;
-        b=AykLU374I4kGeALvor5DtCvoq4qW5PXIGT0Fq5oC2S9Q4kULGVlkBFzjCnrXYyNYn
-         okEugpZpWz24ihS3PEIhMr5Mv6BdzqIZ680jT74OCacYzF/CXJY4LvnBUgaadVnlAN
-         b0F6B8rOj0dY0Ki/ITSpZVV6Xos860lXGfAtZIic=
-Date:   Thu, 02 Feb 2023 22:38:02 -0800
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        catalin.marinas@arm.com, longman@redhat.com,
-        akpm@linux-foundation.org
+        b=PkF/FwB/9dQuFav0V49zLMo3JekJA4W5JaQdBhhH6uPwgcQMlOJSk6HPODxuN5OrA
+         o6jGMcQYfd3+LzwRJ1RBkPXMkxajspk+NQZ4a6vU30bR1VM1BZjRu6pjM6/s6eNZMn
+         EIcm7T1GYBtDPc4SQsQ0Y0ZJkmkOKi/kUptO0Unc=
+Date:   Thu, 02 Feb 2023 22:38:06 -0800
+To:     mm-commits@vger.kernel.org, brendanhiggins@google.com,
+        sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kmemleak-simplify-kmemleak_cond_resched-usage.patch removed from -mm tree
-Message-Id: <20230203063803.2F3D1C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-test-add-a-test-for-damon_update_monitoring_results.patch removed from -mm tree
+Message-Id: <20230203063807.4C842C4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,159 +41,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/kmemleak: simplify kmemleak_cond_resched() usage
+     Subject: mm/damon/core-test: add a test for damon_update_monitoring_results()
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-simplify-kmemleak_cond_resched-usage.patch
+     mm-damon-core-test-add-a-test-for-damon_update_monitoring_results.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/kmemleak: simplify kmemleak_cond_resched() usage
-Date: Wed, 18 Jan 2023 23:01:10 -0500
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core-test: add a test for damon_update_monitoring_results()
+Date: Thu, 19 Jan 2023 01:38:31 +0000
 
-Patch series "mm/kmemleak: Simplify kmemleak_cond_resched() & fix UAF", v2.
+Add a simple unit test for damon_update_monitoring_results() function.
 
-It was found that a KASAN use-after-free error was reported in the
-kmemleak_scan() function.  After further examination, it is believe that
-even though a reference is taken from the current object, it does not
-prevent the object pointed to by the next pointer from going away after a
-cond_resched().
-
-To fix that, additional flags are added to make sure that the current
-object won't be removed from the object_list during the duration of the
-cond_resched() to ensure the validity of the next pointer.
-
-While making the change, I also simplify the current usage of
-kmemleak_cond_resched() to make it easier to understand.
-
-
-This patch (of 2):
-
-The presence of a pinned argument and the 64k loop count make
-kmemleak_cond_resched() a bit more complex to read.  The pinned argument
-is used only by first kmemleak_scan() loop.
-
-Simplify the usage of kmemleak_cond_resched() by removing the pinned
-argument and always do a get_object()/put_object() sequence.  In addition,
-the 64k loop is removed by using need_resched() to decide if
-kmemleak_cond_resched() should be called.
-
-Link: https://lkml.kernel.org/r/20230119040111.350923-1-longman@redhat.com
-Link: https://lkml.kernel.org/r/20230119040111.350923-2-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20230119013831.1911-4-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/kmemleak.c~mm-kmemleak-simplify-kmemleak_cond_resched-usage
-+++ a/mm/kmemleak.c
-@@ -1472,22 +1472,17 @@ static void scan_gray_list(void)
- /*
-  * Conditionally call resched() in an object iteration loop while making sure
-  * that the given object won't go away without RCU read lock by performing a
-- * get_object() if !pinned.
-- *
-- * Return: false if can't do a cond_resched() due to get_object() failure
-- *	   true otherwise
-+ * get_object() if necessaary.
-  */
--static bool kmemleak_cond_resched(struct kmemleak_object *object, bool pinned)
-+static void kmemleak_cond_resched(struct kmemleak_object *object)
- {
--	if (!pinned && !get_object(object))
--		return false;
-+	if (!get_object(object))
-+		return;	/* Try next object */
- 
- 	rcu_read_unlock();
- 	cond_resched();
- 	rcu_read_lock();
--	if (!pinned)
--		put_object(object);
--	return true;
-+	put_object(object);
+--- a/mm/damon/core-test.h~mm-damon-core-test-add-a-test-for-damon_update_monitoring_results
++++ a/mm/damon/core-test.h
+@@ -289,6 +289,35 @@ static void damon_test_set_regions(struc
+ 	damon_destroy_target(t);
  }
  
- /*
-@@ -1501,15 +1496,12 @@ static void kmemleak_scan(void)
- 	struct zone *zone;
- 	int __maybe_unused i;
- 	int new_leaks = 0;
--	int loop_cnt = 0;
++static void damon_test_update_monitoring_result(struct kunit *test)
++{
++	struct damon_attrs old_attrs = {
++		.sample_interval = 10, .aggr_interval = 1000,};
++	struct damon_attrs new_attrs;
++	struct damon_region *r = damon_new_region(3, 7);
++
++	r->nr_accesses = 15;
++	r->age = 20;
++
++	new_attrs = (struct damon_attrs){
++		.sample_interval = 100, .aggr_interval = 10000,};
++	damon_update_monitoring_result(r, &old_attrs, &new_attrs);
++	KUNIT_EXPECT_EQ(test, r->nr_accesses, 15);
++	KUNIT_EXPECT_EQ(test, r->age, 2);
++
++	new_attrs = (struct damon_attrs){
++		.sample_interval = 1, .aggr_interval = 1000};
++	damon_update_monitoring_result(r, &old_attrs, &new_attrs);
++	KUNIT_EXPECT_EQ(test, r->nr_accesses, 150);
++	KUNIT_EXPECT_EQ(test, r->age, 2);
++
++	new_attrs = (struct damon_attrs){
++		.sample_interval = 1, .aggr_interval = 100};
++	damon_update_monitoring_result(r, &old_attrs, &new_attrs);
++	KUNIT_EXPECT_EQ(test, r->nr_accesses, 150);
++	KUNIT_EXPECT_EQ(test, r->age, 20);
++}
++
+ static struct kunit_case damon_test_cases[] = {
+ 	KUNIT_CASE(damon_test_target),
+ 	KUNIT_CASE(damon_test_regions),
+@@ -299,6 +328,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damon_test_split_regions_of),
+ 	KUNIT_CASE(damon_test_ops_registration),
+ 	KUNIT_CASE(damon_test_set_regions),
++	KUNIT_CASE(damon_test_update_monitoring_result),
+ 	{},
+ };
  
- 	jiffies_last_scan = jiffies;
- 
- 	/* prepare the kmemleak_object's */
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(object, &object_list, object_list) {
--		bool obj_pinned = false;
--
- 		raw_spin_lock_irq(&object->lock);
- #ifdef DEBUG
- 		/*
-@@ -1535,19 +1527,13 @@ static void kmemleak_scan(void)
- 
- 		/* reset the reference count (whiten the object) */
- 		object->count = 0;
--		if (color_gray(object) && get_object(object)) {
-+		if (color_gray(object) && get_object(object))
- 			list_add_tail(&object->gray_list, &gray_list);
--			obj_pinned = true;
--		}
- 
- 		raw_spin_unlock_irq(&object->lock);
- 
--		/*
--		 * Do a cond_resched() every 64k objects to avoid soft lockup.
--		 */
--		if (!(++loop_cnt & 0xffff) &&
--		    !kmemleak_cond_resched(object, obj_pinned))
--			loop_cnt--; /* Try again on next object */
-+		if (need_resched())
-+			kmemleak_cond_resched(object);
- 	}
- 	rcu_read_unlock();
- 
-@@ -1614,14 +1600,9 @@ static void kmemleak_scan(void)
- 	 * scan and color them gray until the next scan.
- 	 */
- 	rcu_read_lock();
--	loop_cnt = 0;
- 	list_for_each_entry_rcu(object, &object_list, object_list) {
--		/*
--		 * Do a cond_resched() every 64k objects to avoid soft lockup.
--		 */
--		if (!(++loop_cnt & 0xffff) &&
--		    !kmemleak_cond_resched(object, false))
--			loop_cnt--;	/* Try again on next object */
-+		if (need_resched())
-+			kmemleak_cond_resched(object);
- 
- 		/*
- 		 * This is racy but we can save the overhead of lock/unlock
-@@ -1656,14 +1637,9 @@ static void kmemleak_scan(void)
- 	 * Scanning result reporting.
- 	 */
- 	rcu_read_lock();
--	loop_cnt = 0;
- 	list_for_each_entry_rcu(object, &object_list, object_list) {
--		/*
--		 * Do a cond_resched() every 64k objects to avoid soft lockup.
--		 */
--		if (!(++loop_cnt & 0xffff) &&
--		    !kmemleak_cond_resched(object, false))
--			loop_cnt--;	/* Try again on next object */
-+		if (need_resched())
-+			kmemleak_cond_resched(object);
- 
- 		/*
- 		 * This is racy but we can save the overhead of lock/unlock
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+scripts-spelling-add-a-few-more-typos.patch
 
