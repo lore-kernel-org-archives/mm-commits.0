@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6974DC63797
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:41:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CC39C636CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:41:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232103AbjBCGlI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:41:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36924 "EHLO
+        id S231436AbjBCGlQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:41:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232541AbjBCGjt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:39:49 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D080D8CA9C
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:24 -0800 (PST)
+        with ESMTP id S232171AbjBCGj6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:39:58 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1B908D430
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8E61BB82981
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3269FC4339C;
-        Fri,  3 Feb 2023 06:37:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 85116B82980
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26745C4339B;
+        Fri,  3 Feb 2023 06:37:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406242;
-        bh=e0u4TC9tTqwPrbKtCDqQqUMLLXekrJv0Qu0hKusLpuk=;
+        s=korg; t=1675406244;
+        bh=+com/3z8ItzcMVqOd352Jtfw/ShCHIozktKvMtBXGdo=;
         h=Date:To:From:Subject:From;
-        b=2Q7YbAug7ZGXpiIXH2UEUk1EXSVP4gS+Ntz5raAHYzWmtXed0jKsAL+PP7/iirW/j
-         MiKpVCGdDAuEbZNp0VJUf3C/1TyOjgM3aq9js3HL+t7214M8mPEBgm2zBV3QRZ8JDo
-         NBNBN7aB2kcw5ULzWPlCyvwCpH4oabrmfDHugL50=
-Date:   Thu, 02 Feb 2023 22:37:21 -0800
-To:     mm-commits@vger.kernel.org, chao@kernel.org,
+        b=IeGNGqa3VHlKhB1fjRbMg8t0nBxfYM2Ofavj/O/qJW/TqC7TIBoboxPb5eDXlnTYw
+         5aDu/URbPXJlisLTz4cLg3/fCfJv9TTg6zrC0xj643HbKEwb02Cto22+KiBxo35OGt
+         4TPl4iRRZUCnlVeVea6+HPpeqCllLIPb/fz/xVac=
+Date:   Thu, 02 Feb 2023 22:37:23 -0800
+To:     mm-commits@vger.kernel.org, agruenba@redhat.com,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] f2fs-convert-last_fsync_dnode-to-use-filemap_get_folios_tag.patch removed from -mm tree
-Message-Id: <20230203063722.3269FC4339C@smtp.kernel.org>
+Subject: [merged mm-stable] gfs2-convert-gfs2_write_cache_jdata-to-use-filemap_get_folios_tag.patch removed from -mm tree
+Message-Id: <20230203063724.26745C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,72 +41,181 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: f2fs: convert last_fsync_dnode() to use filemap_get_folios_tag()
+     Subject: gfs2: convert gfs2_write_cache_jdata() to use filemap_get_folios_tag()
 has been removed from the -mm tree.  Its filename was
-     f2fs-convert-last_fsync_dnode-to-use-filemap_get_folios_tag.patch
+     gfs2-convert-gfs2_write_cache_jdata-to-use-filemap_get_folios_tag.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: f2fs: convert last_fsync_dnode() to use filemap_get_folios_tag()
-Date: Wed, 4 Jan 2023 13:14:40 -0800
+Subject: gfs2: convert gfs2_write_cache_jdata() to use filemap_get_folios_tag()
+Date: Wed, 4 Jan 2023 13:14:42 -0800
 
-Convert to use a folio_batch instead of pagevec.  This is in preparation
-for the removal of find_get_pages_range_tag().
+Convert function to use folios throughout.  This is in preparation for the
+removal of find_get_pgaes_range_tag().  This change removes 8 calls to
+compound_head().
 
-Link: https://lkml.kernel.org/r/20230104211448.4804-16-vishal.moola@gmail.com
+Also had to modify and rename gfs2_write_jdata_pagevec() to take in and
+utilize folio_batch rather than pagevec and use folios rather than pages. 
+gfs2_write_jdata_batch() now supports large folios.
+
+Link: https://lkml.kernel.org/r/20230104211448.4804-18-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Acked-by: Chao Yu <chao@kernel.org>
+Reviewed-by: Andreas Gruenbacher <agruenba@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/f2fs/node.c~f2fs-convert-last_fsync_dnode-to-use-filemap_get_folios_tag
-+++ a/fs/f2fs/node.c
-@@ -1518,23 +1518,24 @@ iput_out:
- static struct page *last_fsync_dnode(struct f2fs_sb_info *sbi, nid_t ino)
+--- a/fs/gfs2/aops.c~gfs2-convert-gfs2_write_cache_jdata-to-use-filemap_get_folios_tag
++++ a/fs/gfs2/aops.c
+@@ -195,67 +195,71 @@ static int gfs2_writepages(struct addres
+ }
+ 
+ /**
+- * gfs2_write_jdata_pagevec - Write back a pagevec's worth of pages
++ * gfs2_write_jdata_batch - Write back a folio batch's worth of folios
+  * @mapping: The mapping
+  * @wbc: The writeback control
+- * @pvec: The vector of pages
+- * @nr_pages: The number of pages to write
++ * @fbatch: The batch of folios
+  * @done_index: Page index
+  *
+  * Returns: non-zero if loop should terminate, zero otherwise
+  */
+ 
+-static int gfs2_write_jdata_pagevec(struct address_space *mapping,
++static int gfs2_write_jdata_batch(struct address_space *mapping,
+ 				    struct writeback_control *wbc,
+-				    struct pagevec *pvec,
+-				    int nr_pages,
++				    struct folio_batch *fbatch,
+ 				    pgoff_t *done_index)
  {
- 	pgoff_t index;
+ 	struct inode *inode = mapping->host;
+ 	struct gfs2_sbd *sdp = GFS2_SB(inode);
+-	unsigned nrblocks = nr_pages * (PAGE_SIZE >> inode->i_blkbits);
++	unsigned nrblocks;
+ 	int i;
+ 	int ret;
++	int nr_pages = 0;
++	int nr_folios = folio_batch_count(fbatch);
++
++	for (i = 0; i < nr_folios; i++)
++		nr_pages += folio_nr_pages(fbatch->folios[i]);
++	nrblocks = nr_pages * (PAGE_SIZE >> inode->i_blkbits);
+ 
+ 	ret = gfs2_trans_begin(sdp, nrblocks, nrblocks);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	for(i = 0; i < nr_pages; i++) {
+-		struct page *page = pvec->pages[i];
++	for (i = 0; i < nr_folios; i++) {
++		struct folio *folio = fbatch->folios[i];
+ 
+-		*done_index = page->index;
++		*done_index = folio->index;
+ 
+-		lock_page(page);
++		folio_lock(folio);
+ 
+-		if (unlikely(page->mapping != mapping)) {
++		if (unlikely(folio->mapping != mapping)) {
+ continue_unlock:
+-			unlock_page(page);
++			folio_unlock(folio);
+ 			continue;
+ 		}
+ 
+-		if (!PageDirty(page)) {
++		if (!folio_test_dirty(folio)) {
+ 			/* someone wrote it for us */
+ 			goto continue_unlock;
+ 		}
+ 
+-		if (PageWriteback(page)) {
++		if (folio_test_writeback(folio)) {
+ 			if (wbc->sync_mode != WB_SYNC_NONE)
+-				wait_on_page_writeback(page);
++				folio_wait_writeback(folio);
+ 			else
+ 				goto continue_unlock;
+ 		}
+ 
+-		BUG_ON(PageWriteback(page));
+-		if (!clear_page_dirty_for_io(page))
++		BUG_ON(folio_test_writeback(folio));
++		if (!folio_clear_dirty_for_io(folio))
+ 			goto continue_unlock;
+ 
+ 		trace_wbc_writepage(wbc, inode_to_bdi(inode));
+ 
+-		ret = __gfs2_jdata_writepage(page, wbc);
++		ret = __gfs2_jdata_writepage(&folio->page, wbc);
+ 		if (unlikely(ret)) {
+ 			if (ret == AOP_WRITEPAGE_ACTIVATE) {
+-				unlock_page(page);
++				folio_unlock(folio);
+ 				ret = 0;
+ 			} else {
+ 
+@@ -268,7 +272,8 @@ continue_unlock:
+ 				 * not be suitable for data integrity
+ 				 * writeout).
+ 				 */
+-				*done_index = page->index + 1;
++				*done_index = folio->index +
++					folio_nr_pages(folio);
+ 				ret = 1;
+ 				break;
+ 			}
+@@ -305,8 +310,8 @@ static int gfs2_write_cache_jdata(struct
+ {
+ 	int ret = 0;
+ 	int done = 0;
 -	struct pagevec pvec;
-+	struct folio_batch fbatch;
- 	struct page *last_page = NULL;
 -	int nr_pages;
++	struct folio_batch fbatch;
 +	int nr_folios;
+ 	pgoff_t writeback_index;
+ 	pgoff_t index;
+ 	pgoff_t end;
+@@ -315,7 +320,7 @@ static int gfs2_write_cache_jdata(struct
+ 	int range_whole = 0;
+ 	xa_mark_t tag;
  
 -	pagevec_init(&pvec);
 +	folio_batch_init(&fbatch);
- 	index = 0;
+ 	if (wbc->range_cyclic) {
+ 		writeback_index = mapping->writeback_index; /* prev offset */
+ 		index = writeback_index;
+@@ -341,17 +346,18 @@ retry:
+ 		tag_pages_for_writeback(mapping, index, end);
+ 	done_index = index;
+ 	while (!done && (index <= end)) {
+-		nr_pages = pagevec_lookup_range_tag(&pvec, mapping, &index, end,
+-				tag);
+-		if (nr_pages == 0)
++		nr_folios = filemap_get_folios_tag(mapping, &index, end,
++				tag, &fbatch);
++		if (nr_folios == 0)
+ 			break;
  
--	while ((nr_pages = pagevec_lookup_tag(&pvec, NODE_MAPPING(sbi), &index,
--				PAGECACHE_TAG_DIRTY))) {
-+	while ((nr_folios = filemap_get_folios_tag(NODE_MAPPING(sbi), &index,
-+					(pgoff_t)-1, PAGECACHE_TAG_DIRTY,
-+					&fbatch))) {
- 		int i;
- 
--		for (i = 0; i < nr_pages; i++) {
--			struct page *page = pvec.pages[i];
-+		for (i = 0; i < nr_folios; i++) {
-+			struct page *page = &fbatch.folios[i]->page;
- 
- 			if (unlikely(f2fs_cp_error(sbi))) {
- 				f2fs_put_page(last_page, 0);
--				pagevec_release(&pvec);
-+				folio_batch_release(&fbatch);
- 				return ERR_PTR(-EIO);
- 			}
- 
-@@ -1565,7 +1566,7 @@ continue_unlock:
- 			last_page = page;
- 			unlock_page(page);
- 		}
+-		ret = gfs2_write_jdata_pagevec(mapping, wbc, &pvec, nr_pages, &done_index);
++		ret = gfs2_write_jdata_batch(mapping, wbc, &fbatch,
++				&done_index);
+ 		if (ret)
+ 			done = 1;
+ 		if (ret > 0)
+ 			ret = 0;
 -		pagevec_release(&pvec);
 +		folio_batch_release(&fbatch);
  		cond_resched();
  	}
- 	return last_page;
+ 
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
