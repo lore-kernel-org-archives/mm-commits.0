@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CBB8C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:46:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00AF5C61DA4
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:46:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232611AbjBCGqP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:46:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39768 "EHLO
+        id S232661AbjBCGqj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:46:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231629AbjBCGpr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:45:47 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 347B5928D8
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:43:28 -0800 (PST)
+        with ESMTP id S232047AbjBCGqW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:46:22 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD3FA92ED7
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:44:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C71A461DB3
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:43:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 280FBC433D2;
-        Fri,  3 Feb 2023 06:43:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 68D5561DB5
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:44:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B81F0C433D2;
+        Fri,  3 Feb 2023 06:44:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406607;
-        bh=QLqnMQIsw7UMhjq9Ohy7B/KKwDk3pzNG28YWq1f2HmY=;
+        s=korg; t=1675406650;
+        bh=3ZerAGSsk6HGd7BCRVdaAvnxd7ZwEZ5PVGw5j10Kgz8=;
         h=Date:To:From:Subject:From;
-        b=qudAkcFKl3/X/ZuOJmv6coyGB8xCtWnsrEWze/4OKWc7tBJTIuSTOalHyVdRVfrEi
-         gabsSFkZQqBJDFf56Nc3NHiOk1hI9j3YdIWZx8Tci8E83ittvVLvH6U9gTYwEOPF+4
-         lPIDFVUGd2Cg+U4gUyLRZfruyMPpEeVqdK6H5P2U=
-Date:   Thu, 02 Feb 2023 22:43:26 -0800
-To:     mm-commits@vger.kernel.org, joel@joelfernandes.org,
-        ribalda@chromium.org, akpm@linux-foundation.org
+        b=KUzQVNnEE/7mx3z5trIY9HbCW66AhKRv8TX9AncYFAuINLMA/aFqNWA/TwM1y/Jmo
+         55+iI23geEr1QWf96Q09Fnxj0eF6EqMMc5gfzk3kwHPOvbJRpCb9dTfTrBW00pSlz5
+         90p8DgHyBk/Yyj/jy68X3R2gJyDbJZRSdnHOGbJA=
+Date:   Thu, 02 Feb 2023 22:44:10 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@kernel.org,
+        mingo@redhat.com, kbingham@kernel.org, jan.kiszka@siemens.com,
+        gregkh@linuxfoundation.org, dmitrii.bundin.a@gmail.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kvm-x86-fix-trivial-typo.patch removed from -mm tree
-Message-Id: <20230203064327.280FBC433D2@smtp.kernel.org>
+Subject: [folded-merged] scripts-gdb-add-mm-introspection-utils-fix.patch removed from -mm tree
+Message-Id: <20230203064410.B81F0C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,63 +43,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: KVM: x86: fix trivial typo
+     Subject: scripts-gdb-add-mm-introspection-utils-fix
 has been removed from the -mm tree.  Its filename was
-     kvm-x86-fix-trivial-typo.patch
+     scripts-gdb-add-mm-introspection-utils-fix.patch
 
-This patch was dropped because it was folded into scripts-spellingtxt-add-permitted.patch
+This patch was dropped because it was folded into scripts-gdb-add-mm-introspection-utils.patch
 
 ------------------------------------------------------
-From: Ricardo Ribalda <ribalda@chromium.org>
-Subject: KVM: x86: fix trivial typo
-Date: Tue, 20 Dec 2022 23:20:31 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scripts-gdb-add-mm-introspection-utils-fix
+Date: Fri Jan 13 08:04:59 PM PST 2023
 
-Permitted is spelled with two t.
+s/physicall/physical/
 
-Link: https://lkml.kernel.org/r/20221220-permited-v1-2-52ea9857fa61@chromium.org
-Signed-off-by: Ricardo Ribalda <ribalda@chromium.org>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Dmitrii Bundin <dmitrii.bundin.a@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/x86/kvm/emulate.c~kvm-x86-fix-trivial-typo
-+++ a/arch/x86/kvm/emulate.c
-@@ -2615,8 +2615,8 @@ static bool emulator_io_port_access_allo
- 	return true;
- }
- 
--static bool emulator_io_permited(struct x86_emulate_ctxt *ctxt,
--				 u16 port, u16 len)
-+static bool emulator_io_permitted(struct x86_emulate_ctxt *ctxt,
-+				  u16 port, u16 len)
- {
- 	if (ctxt->perm_ok)
- 		return true;
-@@ -3961,7 +3961,7 @@ static int check_rdpmc(struct x86_emulat
- static int check_perm_in(struct x86_emulate_ctxt *ctxt)
- {
- 	ctxt->dst.bytes = min(ctxt->dst.bytes, 4u);
--	if (!emulator_io_permited(ctxt, ctxt->src.val, ctxt->dst.bytes))
-+	if (!emulator_io_permitted(ctxt, ctxt->src.val, ctxt->dst.bytes))
- 		return emulate_gp(ctxt, 0);
- 
- 	return X86EMUL_CONTINUE;
-@@ -3970,7 +3970,7 @@ static int check_perm_in(struct x86_emul
- static int check_perm_out(struct x86_emulate_ctxt *ctxt)
- {
- 	ctxt->src.bytes = min(ctxt->src.bytes, 4u);
--	if (!emulator_io_permited(ctxt, ctxt->dst.val, ctxt->src.bytes))
-+	if (!emulator_io_permitted(ctxt, ctxt->dst.val, ctxt->src.bytes))
- 		return emulate_gp(ctxt, 0);
- 
- 	return X86EMUL_CONTINUE;
+--- a/scripts/gdb/linux/mm.py~scripts-gdb-add-mm-introspection-utils-fix
++++ a/scripts/gdb/linux/mm.py
+@@ -78,7 +78,7 @@ class Cr3():
+             return f"""\
+ cr3:
+     {'cr3 binary data': <30} {hex(self.cr3)}
+-    {'next entry physicall address': <30} {hex(self.next_entry_physical_address)}
++    {'next entry physical address': <30} {hex(self.next_entry_physical_address)}
+     ---
+     {'bit' : <4} {self.page_level_write_through[0]: <10} {'page level write through': <30} {self.page_level_write_through[1]}
+     {'bit' : <4} {self.page_level_cache_disabled[0]: <10} {'page level cache disabled': <30} {self.page_level_cache_disabled[1]}
+@@ -159,7 +159,7 @@ level {self.page_hierarchy_level}:
+     {'entry address': <30} {hex(self.address)}
+     {'page entry binary data': <30} {hex(self.page_entry_binary_data)}
+     {'page size': <30} {'1GB' if self.page_hierarchy_level == 3 else '2MB' if self.page_hierarchy_level == 2 else '4KB' if self.page_hierarchy_level == 1 else 'Unknown page size for level:' + self.page_hierarchy_level}
+-    {'page physicall address': <30} {hex(self.page_physical_address)}
++    {'page physical address': <30} {hex(self.page_physical_address)}
+     ---
+     {'bit': <4} {self.entry_present[0]: <10} {'entry present': <30} {self.entry_present[1]}
+     {'bit': <4} {self.read_write[0]: <10} {'read/write access allowed': <30} {self.read_write[1]}
+@@ -180,7 +180,7 @@ level {self.page_hierarchy_level}:
+ level {self.page_hierarchy_level}:
+     {'entry address': <30} {hex(self.address)}
+     {'page entry binary data': <30} {hex(self.page_entry_binary_data)}
+-    {'next entry physicall address': <30} {hex(self.next_entry_physical_address)}
++    {'next entry physical address': <30} {hex(self.next_entry_physical_address)}
+     ---
+     {'bit': <4} {self.entry_present[0]: <10} {'entry present': <30} {self.entry_present[1]}
+     {'bit': <4} {self.read_write[0]: <10} {'read/write access allowed': <30} {self.read_write[1]}
 _
 
-Patches currently in -mm which might be from ribalda@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scripts-spellingtxt-add-permitted.patch
-documentation-sysctl-correct-kexec_load_disabled.patch
-kexec-factor-out-kexec_load_permitted.patch
-kexec-introduce-sysctl-parameters-kexec_load_limit_.patch
+fsdax-dax_unshare_iter-should-return-a-valid-length-fix.patch
+revert-squashfs-harden-sanity-check-in-squashfs_read_xattr_id_table.patch
+mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix.patch
+kasan-infer-allocation-size-by-scanning-metadata-fix.patch
+mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix.patch
+scripts-gdb-add-mm-introspection-utils.patch
+lib-stackdepot-mm-rename-stack_depot_want_early_init-fix.patch
+lib-stackdepot-annotate-racy-slab_index-accesses-fix.patch
 
