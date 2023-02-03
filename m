@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B72A6C6379F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59FD8C64EC3
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:51:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232070AbjBCGvc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:51:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45594 "EHLO
+        id S232504AbjBCGvb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:51:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232241AbjBCGvN (ORCPT
+        with ESMTP id S232070AbjBCGvN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:51:13 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF91A4DE31
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:51:06 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19B864DBC4
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:51:05 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 799CF61DBB
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:51:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5002C433D2;
-        Fri,  3 Feb 2023 06:51:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B8B261DBF
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:51:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDF1BC433D2;
+        Fri,  3 Feb 2023 06:51:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675407065;
-        bh=PsR1lnMRwR35pt2l6HQbCKgOLLS/at7SCsHwPmq/b9s=;
+        s=korg; t=1675407064;
+        bh=37kB25ipFUqgQ5W2MqwZFguCdfiKSGlVldBubtQdJMs=;
         h=Date:To:From:Subject:From;
-        b=BycZ5l2GHAVn7ZtSTYejyzPUUFiAGp+AKxf01vcGOFOpF9opluDNzVvabr/+OtwPj
-         3rWvJx3RqulQpTlvgV/3xnSdNvJTDg6+eFxP9kyCU5v8OgZtqc904SDQYU01JrTmhb
-         t9IFVRM171gaeeBsW9ou3ZhsTLhQwuhbM+mzuHZY=
-Date:   Thu, 02 Feb 2023 22:51:05 -0800
-To:     mm-commits@vger.kernel.org, hirofumi@mail.parknet.co.jp,
-        pali@kernel.org, akpm@linux-foundation.org
+        b=AxxFxNt4+lsRwiqIywVTyQTIIAqffhWBCmKmhMYILKmgLfBROVXBovjbWqGae0lD6
+         iOcKdzy7wLoq5LwCmPS5fjbpQOUF9xj9LAWneVQKBCRfvmRi5k/SYnw5I77yX+ebMj
+         St+9rQ/Q3Py0oVzMYZSD61utbsverZ/Y0hYqL4Nc=
+Date:   Thu, 02 Feb 2023 22:51:03 -0800
+To:     mm-commits@vger.kernel.org, anton@tuxera.com,
+        rdunlap@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fat-fix-return-value-of-vfat_bad_char-and-vfat_replace_char-functions.patch removed from -mm tree
-Message-Id: <20230203065105.D5002C433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ntfs-fix-multiple-kernel-doc-warnings.patch removed from -mm tree
+Message-Id: <20230203065103.EDF1BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,49 +41,240 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fat: fix return value of vfat_bad_char() and vfat_replace_char() functions
+     Subject: ntfs: fix multiple kernel-doc warnings
 has been removed from the -mm tree.  Its filename was
-     fat-fix-return-value-of-vfat_bad_char-and-vfat_replace_char-functions.patch
+     ntfs-fix-multiple-kernel-doc-warnings.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pali Rohár <pali@kernel.org>
-Subject: fat: fix return value of vfat_bad_char() and vfat_replace_char() functions
-Date: Mon, 26 Dec 2022 15:25:12 +0100
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: ntfs: fix multiple kernel-doc warnings
+Date: Sun, 8 Jan 2023 17:00:41 -0800
 
-These functions returns boolean value not wide character.
+Fix many W=1 kernel-doc warnings in fs/ntfs/:
 
-Link: https://lkml.kernel.org/r/20221226142512.13848-1-pali@kernel.org
-Signed-off-by: Pali Rohár <pali@kernel.org>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+fs/ntfs/aops.c:30: warning: Incorrect use of kernel-doc format:  * ntfs_end_buffer_async_read - async io completion for reading attributes
+fs/ntfs/aops.c:46: warning: expecting prototype for aops.c(). Prototype was for ntfs_end_buffer_async_read() instead
+fs/ntfs/aops.c:1655: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_normal_aops = '
+fs/ntfs/aops.c:1670: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_compressed_aops = '
+fs/ntfs/aops.c:1685: warning: cannot understand function prototype: 'const struct address_space_operations ntfs_mst_aops = '
+fs/ntfs/compress.c:22: warning: Incorrect use of kernel-doc format:  * ntfs_compression_constants - enum of constants used in the compression code
+fs/ntfs/compress.c:24: warning: cannot understand function prototype: 'typedef enum '
+fs/ntfs/compress.c:47: warning: cannot understand function prototype: 'u8 *ntfs_compression_buffer; '
+fs/ntfs/compress.c:52: warning: expecting prototype for ntfs_cb_lock(). Prototype was for DEFINE_SPINLOCK() instead
+fs/ntfs/dir.c:21: warning: Incorrect use of kernel-doc format:  * The little endian Unicode string $I30 as a global constant.
+fs/ntfs/dir.c:23: warning: cannot understand function prototype: 'ntfschar I30[5] = '
+fs/ntfs/inode.c:31: warning: Incorrect use of kernel-doc format:  * ntfs_test_inode - compare two (possibly fake) inodes for equality
+fs/ntfs/inode.c:47: warning: expecting prototype for inode.c(). Prototype was for ntfs_test_inode() instead
+fs/ntfs/inode.c:2956: warning: expecting prototype for ntfs_write_inode(). Prototype was for __ntfs_write_inode() instead
+fs/ntfs/mft.c:24: warning: expecting prototype for mft.c - NTFS kernel mft record operations. Part of the Linux(). Prototype was for MAX_BHS() instead
+fs/ntfs/namei.c:263: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
+ * Inode operations for directories.
+fs/ntfs/namei.c:368: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
+ * Export operations allowing NFS exporting of mounted NTFS partitions.
+fs/ntfs/runlist.c:16: warning: Incorrect use of kernel-doc format:  * ntfs_rl_mm - runlist memmove
+fs/ntfs/runlist.c:22: warning: expecting prototype for runlist.c - NTFS runlist handling code.  Part of the Linux(). Prototype was for ntfs_rl_mm() instead
+fs/ntfs/super.c:61: warning: missing initial short description on line:
+ * simple_getbool -
+fs/ntfs/super.c:2661: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
+ * The complete super operations.
+
+Link: https://lkml.kernel.org/r/20230109010041.21442-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Anton Altaparmakov <anton@tuxera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/fat/namei_vfat.c~fat-fix-return-value-of-vfat_bad_char-and-vfat_replace_char-functions
-+++ a/fs/fat/namei_vfat.c
-@@ -200,7 +200,7 @@ static const struct dentry_operations vf
- 
- /* Characters that are undesirable in an MS-DOS file name */
- 
--static inline wchar_t vfat_bad_char(wchar_t w)
-+static inline bool vfat_bad_char(wchar_t w)
- {
- 	return (w < 0x0020)
- 	    || (w == '*') || (w == '?') || (w == '<') || (w == '>')
-@@ -208,7 +208,7 @@ static inline wchar_t vfat_bad_char(wcha
- 	    || (w == '\\');
+--- a/fs/ntfs/aops.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/aops.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * aops.c - NTFS kernel address space operations and page cache handling.
+  *
+  * Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.
+@@ -1646,7 +1646,7 @@ hole:
+ 	return block;
  }
  
--static inline wchar_t vfat_replace_char(wchar_t w)
-+static inline bool vfat_replace_char(wchar_t w)
+-/**
++/*
+  * ntfs_normal_aops - address space operations for normal inodes and attributes
+  *
+  * Note these are not used for compressed or mst protected inodes and
+@@ -1664,7 +1664,7 @@ const struct address_space_operations nt
+ 	.error_remove_page = generic_error_remove_page,
+ };
+ 
+-/**
++/*
+  * ntfs_compressed_aops - address space operations for compressed inodes
+  */
+ const struct address_space_operations ntfs_compressed_aops = {
+@@ -1678,9 +1678,9 @@ const struct address_space_operations nt
+ 	.error_remove_page = generic_error_remove_page,
+ };
+ 
+-/**
++/*
+  * ntfs_mst_aops - general address space operations for mst protecteed inodes
+- *		   and attributes
++ *			  and attributes
+  */
+ const struct address_space_operations ntfs_mst_aops = {
+ 	.read_folio	= ntfs_read_folio,	/* Fill page with data. */
+--- a/fs/ntfs/aops.h~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/aops.h
+@@ -1,5 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0-or-later */
+-/**
++/*
+  * aops.h - Defines for NTFS kernel address space operations and page cache
+  *	    handling.  Part of the Linux-NTFS project.
+  *
+--- a/fs/ntfs/compress.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/compress.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * compress.c - NTFS kernel compressed attributes handling.
+  *		Part of the Linux-NTFS project.
+  *
+@@ -41,12 +41,12 @@ typedef enum {
+ 	NTFS_MAX_CB_SIZE	= 64 * 1024,
+ } ntfs_compression_constants;
+ 
+-/**
++/*
+  * ntfs_compression_buffer - one buffer for the decompression engine
+  */
+ static u8 *ntfs_compression_buffer;
+ 
+-/**
++/*
+  * ntfs_cb_lock - spinlock which protects ntfs_compression_buffer
+  */
+ static DEFINE_SPINLOCK(ntfs_cb_lock);
+--- a/fs/ntfs/dir.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/dir.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * dir.c - NTFS kernel directory operations. Part of the Linux-NTFS project.
+  *
+  * Copyright (c) 2001-2007 Anton Altaparmakov
+@@ -17,7 +17,7 @@
+ #include "debug.h"
+ #include "ntfs.h"
+ 
+-/**
++/*
+  * The little endian Unicode string $I30 as a global constant.
+  */
+ ntfschar I30[5] = { cpu_to_le16('$'), cpu_to_le16('I'),
+--- a/fs/ntfs/inode.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/inode.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * inode.c - NTFS kernel inode handling.
+  *
+  * Copyright (c) 2001-2014 Anton Altaparmakov and Tuxera Inc.
+@@ -2935,7 +2935,7 @@ out:
+ }
+ 
+ /**
+- * ntfs_write_inode - write out a dirty inode
++ * __ntfs_write_inode - write out a dirty inode
+  * @vi:		inode to write out
+  * @sync:	if true, write out synchronously
+  *
+@@ -3033,7 +3033,7 @@ int __ntfs_write_inode(struct inode *vi,
+ 	 * might not need to be written out.
+ 	 * NOTE: It is not a problem when the inode for $MFT itself is being
+ 	 * written out as mark_ntfs_record_dirty() will only set I_DIRTY_PAGES
+-	 * on the $MFT inode and hence ntfs_write_inode() will not be
++	 * on the $MFT inode and hence __ntfs_write_inode() will not be
+ 	 * re-invoked because of it which in turn is ok since the dirtied mft
+ 	 * record will be cleaned and written out to disk below, i.e. before
+ 	 * this function returns.
+--- a/fs/ntfs/mft.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/mft.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * mft.c - NTFS kernel mft record operations. Part of the Linux-NTFS project.
+  *
+  * Copyright (c) 2001-2012 Anton Altaparmakov and Tuxera Inc.
+--- a/fs/ntfs/namei.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/namei.c
+@@ -259,7 +259,7 @@ err_out:
+    }
+ }
+ 
+-/**
++/*
+  * Inode operations for directories.
+  */
+ const struct inode_operations ntfs_dir_inode_ops = {
+@@ -364,7 +364,7 @@ static struct dentry *ntfs_fh_to_parent(
+ 				    ntfs_nfs_get_inode);
+ }
+ 
+-/**
++/*
+  * Export operations allowing NFS exporting of mounted NTFS partitions.
+  *
+  * We use the default ->encode_fh() for now.  Note that they
+--- a/fs/ntfs/runlist.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/runlist.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/**
++/*
+  * runlist.c - NTFS runlist handling code.  Part of the Linux-NTFS project.
+  *
+  * Copyright (c) 2001-2007 Anton Altaparmakov
+--- a/fs/ntfs/super.c~ntfs-fix-multiple-kernel-doc-warnings
++++ a/fs/ntfs/super.c
+@@ -58,9 +58,17 @@ const option_t on_errors_arr[] = {
+ };
+ 
+ /**
+- * simple_getbool -
++ * simple_getbool - convert input string to a boolean value
++ * @s: input string to convert
++ * @setval: where to store the output boolean value
+  *
+  * Copied from old ntfs driver (which copied from vfat driver).
++ *
++ * "1", "yes", "true", or an empty string are converted to %true.
++ * "0", "no", and "false" are converted to %false.
++ *
++ * Return: %1 if the string is converted or was empty and *setval contains it;
++ *	   %0 if the string was not valid.
+  */
+ static int simple_getbool(char *s, bool *setval)
  {
- 	return (w == '[') || (w == ']') || (w == ';') || (w == ',')
- 	    || (w == '+') || (w == '=');
+@@ -2657,7 +2665,7 @@ static int ntfs_write_inode(struct inode
+ }
+ #endif
+ 
+-/**
++/*
+  * The complete super operations.
+  */
+ static const struct super_operations ntfs_sops = {
 _
 
-Patches currently in -mm which might be from pali@kernel.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 
