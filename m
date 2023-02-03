@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38546C636D7
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:52:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84FF2C61DA4
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:52:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230372AbjBCGwo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:52:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45786 "EHLO
+        id S232019AbjBCGwy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:52:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232158AbjBCGvt (ORCPT
+        with ESMTP id S232206AbjBCGvt (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:51:49 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E7484FAE6
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A22118E05F
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:51:36 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A1DE361DB3
+        by ams.source.kernel.org (Postfix) with ESMTPS id 612FFB82982
         for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:51:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06A0CC4339E;
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09DCCC433D2;
         Fri,  3 Feb 2023 06:51:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675407095;
-        bh=z8KFWxUETxxGwkpFejjw065lGYe1Un8SEfgmZKDu/OE=;
+        s=korg; t=1675407094;
+        bh=6kFafOuDLpNtgDBbulR/NFuR7/GwD9gtM5Q3wbQRG34=;
         h=Date:To:From:Subject:From;
-        b=bALKQL3V4MGA1MUqfhdzUS3gDOF5JBuerP7PzDVWJA6bUCwES74tN1CIUMomJbqfu
-         opkjDSQhIhmxwOzGdZscqnLY6gqGHJ6p3BypekTNtcwiflx2sz43FyfPaPCALdtS2r
-         iH4Ohx6e5MIxqJb8qm7m7ViQlRQb9miNS1eohrKE=
-Date:   Thu, 02 Feb 2023 22:51:34 -0800
-To:     mm-commits@vger.kernel.org, vipinsh@google.com,
-        paulo.miguel.almeida.rodenas@gmail.com, nicolas@fjasle.eu,
-        masahiroy@kernel.org, gregkh@linuxfoundation.org,
-        cristian.ciocaltea@collabora.com, haokexin@gmail.com,
-        akpm@linux-foundation.org
+        b=HhqFudJXZHEtkBUvg4V5JXd+0A4MegBK+zf886VDKFKLVvAYa5Hcyju+6WGsrACtI
+         x11SnoiWqSnYhVIxpFoYFMdt4M/noNIIk5UWJeqVWu8dvxNdSB5IUCS4oNxdzImJoV
+         OVjMo8PbS9gNOT4Bxx9jBtUPuVrnSV/B2T3rBbX4=
+Date:   Thu, 02 Feb 2023 22:51:33 -0800
+To:     mm-commits@vger.kernel.org,
+        syzbot+cbff7a52b6f99059e67f@syzkaller.appspotmail.com,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-tagssh-fix-the-kconfig-tags-generation-when-using-latest-ctags.patch removed from -mm tree
-Message-Id: <20230203065135.06A0CC4339E@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-prevent-warning-in-nilfs_dat_commit_end.patch removed from -mm tree
+Message-Id: <20230203065134.09DCCC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,57 +42,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: scripts/tags.sh: fix the Kconfig tags generation when using latest ctags
+     Subject: nilfs2: prevent WARNING in nilfs_dat_commit_end()
 has been removed from the -mm tree.  Its filename was
-     scripts-tagssh-fix-the-kconfig-tags-generation-when-using-latest-ctags.patch
+     nilfs2-prevent-warning-in-nilfs_dat_commit_end.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kevin Hao <haokexin@gmail.com>
-Subject: scripts/tags.sh: fix the Kconfig tags generation when using latest ctags
-Date: Sat, 28 Jan 2023 14:49:16 +0800
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: prevent WARNING in nilfs_dat_commit_end()
+Date: Fri, 27 Jan 2023 22:22:02 +0900
 
-The Kconfig language has already been built-in in the latest ctags, so it
-would error exit if we try to define it as an user-defined language via
-'--langdef=kconfig'.  This results that there is no Kconfig tags in the
-final tag file.  Fix this by skipping the user Kconfig definition for the
-latest ctags.
+If nilfs2 reads a corrupted disk image and its DAT metadata file contains
+invalid lifetime data for a virtual block number, a kernel warning can be
+generated by the WARN_ON check in nilfs_dat_commit_end() and can panic if
+the kernel is booted with panic_on_warn.
 
-Link: https://lkml.kernel.org/r/20230128064916.912744-1-haokexin@gmail.com
-Signed-off-by: Kevin Hao <haokexin@gmail.com>
-Reviewed-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nicolas Schier <nicolas@fjasle.eu>
-Cc: Paulo Miguel Almeida <paulo.miguel.almeida.rodenas@gmail.com>
-Cc: Vipin Sharma <vipinsh@google.com>
+This patch avoids the issue with a sanity check that treats it as an
+error.
+
+Since error return is not allowed in the execution phase of
+nilfs_dat_commit_end(), this inserts that sanity check in
+nilfs_dat_prepare_end(), which prepares for nilfs_dat_commit_end().
+
+As the error code, -EINVAL is returned to notify bmap layer of the
+metadata corruption.  When the bmap layer sees this code, it handles the
+abnormal situation and replaces the return code with -EIO as it should.
+
+Link: https://lkml.kernel.org/r/000000000000154d2c05e9ec7df6@google.com
+Link: https://lkml.kernel.org/r/20230127132202.6083-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: <syzbot+cbff7a52b6f99059e67f@syzkaller.appspotmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/scripts/tags.sh~scripts-tagssh-fix-the-kconfig-tags-generation-when-using-latest-ctags
-+++ a/scripts/tags.sh
-@@ -264,10 +264,12 @@ exuberant()
- 	--$CTAGS_EXTRA=+fq --c-kinds=+px --fields=+iaS --langmap=c:+.h \
- 	"${regex[@]}"
+--- a/fs/nilfs2/dat.c~nilfs2-prevent-warning-in-nilfs_dat_commit_end
++++ a/fs/nilfs2/dat.c
+@@ -158,6 +158,7 @@ void nilfs_dat_commit_start(struct inode
+ int nilfs_dat_prepare_end(struct inode *dat, struct nilfs_palloc_req *req)
+ {
+ 	struct nilfs_dat_entry *entry;
++	__u64 start;
+ 	sector_t blocknr;
+ 	void *kaddr;
+ 	int ret;
+@@ -169,6 +170,7 @@ int nilfs_dat_prepare_end(struct inode *
+ 	kaddr = kmap_atomic(req->pr_entry_bh->b_page);
+ 	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+ 					     req->pr_entry_bh, kaddr);
++	start = le64_to_cpu(entry->de_start);
+ 	blocknr = le64_to_cpu(entry->de_blocknr);
+ 	kunmap_atomic(kaddr);
  
--	setup_regex exuberant kconfig
--	all_kconfigs | xargs $1 -a                              \
--	--langdef=kconfig --language-force=kconfig "${regex[@]}"
--
-+	KCONFIG_ARGS=()
-+	if ! $1 --list-languages | grep -iq kconfig; then
-+		setup_regex exuberant kconfig
-+		KCONFIG_ARGS=(--langdef=kconfig --language-force=kconfig "${regex[@]}")
-+	fi
-+	all_kconfigs | xargs $1 -a "${KCONFIG_ARGS[@]}"
+@@ -179,6 +181,15 @@ int nilfs_dat_prepare_end(struct inode *
+ 			return ret;
+ 		}
+ 	}
++	if (unlikely(start > nilfs_mdt_cno(dat))) {
++		nilfs_err(dat->i_sb,
++			  "vblocknr = %llu has abnormal lifetime: start cno (= %llu) > current cno (= %llu)",
++			  (unsigned long long)req->pr_entry_nr,
++			  (unsigned long long)start,
++			  (unsigned long long)nilfs_mdt_cno(dat));
++		nilfs_dat_abort_entry(dat, req);
++		return -EINVAL;
++	}
+ 
+ 	return 0;
  }
- 
- emacs()
 _
 
-Patches currently in -mm which might be from haokexin@gmail.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
 
