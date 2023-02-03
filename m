@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9BA5C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:41:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC9B9C61DA4
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:41:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232258AbjBCGld (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 01:41:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36948 "EHLO
+        id S232524AbjBCGle (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 01:41:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232279AbjBCGkW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:40:22 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B8E48F509
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:31 -0800 (PST)
+        with ESMTP id S232356AbjBCGkd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:40:33 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BD728D631
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:33 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8AE5061D99
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E30ACC4339C;
-        Fri,  3 Feb 2023 06:37:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 389E6B8297E
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5059C4339B;
+        Fri,  3 Feb 2023 06:37:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
         s=korg; t=1675406250;
-        bh=tMJVSxw+KJlONKbvFNfEZGf7MFoeEfVo36afXbj9KNc=;
+        bh=jKveg4Hi1ls/C3Y5yTyKfaiBXqLrK91Po5zjHQkzIxA=;
         h=Date:To:From:Subject:From;
-        b=VUWDz8ng4CKHKlyEIBqXy5RFZYe62P5UiCs/nt22ijcZIz+zFthKeajfz6ee3xz4e
-         QjBSrF/vxmld9ThZKwOwWj885L3JnPZgcmTbFP3hJMFszn13dImOiH3hON+bS9kP74
-         Yexl4EPMekI2piSkF8T3I8vZMhDYPksuigml95Q4=
-Date:   Thu, 02 Feb 2023 22:37:29 -0800
-To:     mm-commits@vger.kernel.org, vishal.moola@gmail.com,
+        b=ffYiN7hEVVkg6qwsdvQ1xHzXzvJQntPbJ8a2TI8Msn2gu29n3MBq+5wS/cCMP7LaM
+         iOV+9JUGDpdrIsUfxS00LTQFko+4FTiMOdAcAmP0MRkW9HQrqnG0El7FK4ykmv2Ap8
+         3TokGQK2bIV6gINVPfnDpnS0OMyT1Y1Q+sb6NqfY=
+Date:   Thu, 02 Feb 2023 22:37:30 -0800
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] filemap-remove-find_get_pages_range_tag.patch removed from -mm tree
-Message-Id: <20230203063729.E30ACC4339C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-vma_alloc_zeroed_movable_folio.patch removed from -mm tree
+Message-Id: <20230203063730.D5059C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,163 +41,241 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: filemap: remove find_get_pages_range_tag()
+     Subject: mm: add vma_alloc_zeroed_movable_folio()
 has been removed from the -mm tree.  Its filename was
-     filemap-remove-find_get_pages_range_tag.patch
+     mm-add-vma_alloc_zeroed_movable_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: filemap: remove find_get_pages_range_tag()
-Date: Wed, 4 Jan 2023 13:14:48 -0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: add vma_alloc_zeroed_movable_folio()
+Date: Mon, 16 Jan 2023 19:18:09 +0000
 
-All callers to find_get_pages_range_tag(), find_get_pages_tag(),
-pagevec_lookup_range_tag(), and pagevec_lookup_tag() have been removed.
+Replace alloc_zeroed_user_highpage_movable().  The main difference is
+returning a folio containing a single page instead of returning the page,
+but take the opportunity to rename the function to match other allocation
+functions a little better and rewrite the documentation to place more
+emphasis on the zeroing rather than the highmem aspect.
 
-Link: https://lkml.kernel.org/r/20230104211448.4804-24-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/20230116191813.2145215-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/pagemap.h~filemap-remove-find_get_pages_range_tag
-+++ a/include/linux/pagemap.h
-@@ -741,16 +741,6 @@ unsigned filemap_get_folios_contig(struc
- 		pgoff_t *start, pgoff_t end, struct folio_batch *fbatch);
- unsigned filemap_get_folios_tag(struct address_space *mapping, pgoff_t *start,
- 		pgoff_t end, xa_mark_t tag, struct folio_batch *fbatch);
--unsigned find_get_pages_range_tag(struct address_space *mapping, pgoff_t *index,
--			pgoff_t end, xa_mark_t tag, unsigned int nr_pages,
--			struct page **pages);
--static inline unsigned find_get_pages_tag(struct address_space *mapping,
--			pgoff_t *index, xa_mark_t tag, unsigned int nr_pages,
--			struct page **pages)
--{
--	return find_get_pages_range_tag(mapping, index, (pgoff_t)-1, tag,
--					nr_pages, pages);
--}
+--- a/arch/alpha/include/asm/page.h~mm-add-vma_alloc_zeroed_movable_folio
++++ a/arch/alpha/include/asm/page.h
+@@ -17,9 +17,8 @@
+ extern void clear_page(void *page);
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
  
- struct page *grab_cache_page_write_begin(struct address_space *mapping,
- 			pgoff_t index);
---- a/include/linux/pagevec.h~filemap-remove-find_get_pages_range_tag
-+++ a/include/linux/pagevec.h
-@@ -26,14 +26,6 @@ struct pagevec {
- };
+-#define alloc_zeroed_user_highpage_movable(vma, vaddr) \
+-	alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vaddr)
+-#define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
++#define vma_alloc_zeroed_movable_folio(vma, vaddr) \
++	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr, false)
  
- void __pagevec_release(struct pagevec *pvec);
--unsigned pagevec_lookup_range_tag(struct pagevec *pvec,
--		struct address_space *mapping, pgoff_t *index, pgoff_t end,
--		xa_mark_t tag);
--static inline unsigned pagevec_lookup_tag(struct pagevec *pvec,
--		struct address_space *mapping, pgoff_t *index, xa_mark_t tag)
--{
--	return pagevec_lookup_range_tag(pvec, mapping, index, (pgoff_t)-1, tag);
--}
+ extern void copy_page(void * _to, void * _from);
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+--- a/arch/arm64/include/asm/page.h~mm-add-vma_alloc_zeroed_movable_folio
++++ a/arch/arm64/include/asm/page.h
+@@ -29,9 +29,9 @@ void copy_user_highpage(struct page *to,
+ void copy_highpage(struct page *to, struct page *from);
+ #define __HAVE_ARCH_COPY_HIGHPAGE
  
- static inline void pagevec_init(struct pagevec *pvec)
- {
---- a/mm/filemap.c~filemap-remove-find_get_pages_range_tag
-+++ a/mm/filemap.c
-@@ -2337,66 +2337,6 @@ out:
- }
- EXPORT_SYMBOL(filemap_get_folios_tag);
+-struct page *alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
++struct folio *vma_alloc_zeroed_movable_folio(struct vm_area_struct *vma,
+ 						unsigned long vaddr);
+-#define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
++#define vma_alloc_zeroed_movable_folio vma_alloc_zeroed_movable_folio
  
--/**
-- * find_get_pages_range_tag - Find and return head pages matching @tag.
-- * @mapping:	the address_space to search
-- * @index:	the starting page index
-- * @end:	The final page index (inclusive)
-- * @tag:	the tag index
-- * @nr_pages:	the maximum number of pages
-- * @pages:	where the resulting pages are placed
-- *
-- * Like find_get_pages_range(), except we only return head pages which are
-- * tagged with @tag.  @index is updated to the index immediately after the
-- * last page we return, ready for the next iteration.
-- *
-- * Return: the number of pages which were found.
-- */
--unsigned find_get_pages_range_tag(struct address_space *mapping, pgoff_t *index,
--			pgoff_t end, xa_mark_t tag, unsigned int nr_pages,
--			struct page **pages)
--{
--	XA_STATE(xas, &mapping->i_pages, *index);
--	struct folio *folio;
--	unsigned ret = 0;
--
--	if (unlikely(!nr_pages))
--		return 0;
--
--	rcu_read_lock();
--	while ((folio = find_get_entry(&xas, end, tag))) {
--		/*
--		 * Shadow entries should never be tagged, but this iteration
--		 * is lockless so there is a window for page reclaim to evict
--		 * a page we saw tagged.  Skip over it.
--		 */
--		if (xa_is_value(folio))
--			continue;
--
--		pages[ret] = &folio->page;
--		if (++ret == nr_pages) {
--			*index = folio->index + folio_nr_pages(folio);
--			goto out;
--		}
--	}
--
--	/*
--	 * We come here when we got to @end. We take care to not overflow the
--	 * index @index as it confuses some of the callers. This breaks the
--	 * iteration when there is a page at index -1 but that is already
--	 * broken anyway.
--	 */
--	if (end == (pgoff_t)-1)
--		*index = (pgoff_t)-1;
--	else
--		*index = end + 1;
--out:
--	rcu_read_unlock();
--
--	return ret;
--}
--EXPORT_SYMBOL(find_get_pages_range_tag);
--
+ void tag_clear_highpage(struct page *to);
+ #define __HAVE_ARCH_TAG_CLEAR_HIGHPAGE
+--- a/arch/arm64/mm/fault.c~mm-add-vma_alloc_zeroed_movable_folio
++++ a/arch/arm64/mm/fault.c
+@@ -925,7 +925,7 @@ NOKPROBE_SYMBOL(do_debug_exception);
  /*
-  * CD/DVDs are error prone. When a medium error occurs, the driver may fail
-  * a _large_ part of the i/o request. Imagine the worst scenario:
---- a/mm/swap.c~filemap-remove-find_get_pages_range_tag
-+++ a/mm/swap.c
-@@ -1115,16 +1115,6 @@ void folio_batch_remove_exceptionals(str
- 	fbatch->nr = j;
- }
- 
--unsigned pagevec_lookup_range_tag(struct pagevec *pvec,
--		struct address_space *mapping, pgoff_t *index, pgoff_t end,
--		xa_mark_t tag)
--{
--	pvec->nr = find_get_pages_range_tag(mapping, index, end, tag,
--					PAGEVEC_SIZE, pvec->pages);
--	return pagevec_count(pvec);
--}
--EXPORT_SYMBOL(pagevec_lookup_range_tag);
--
- /*
-  * Perform any setup for the swap system
+  * Used during anonymous page fault handling.
   */
+-struct page *alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
++struct folio *vma_alloc_zeroed_movable_folio(struct vm_area_struct *vma,
+ 						unsigned long vaddr)
+ {
+ 	gfp_t flags = GFP_HIGHUSER_MOVABLE | __GFP_ZERO;
+@@ -938,7 +938,7 @@ struct page *alloc_zeroed_user_highpage_
+ 	if (vma->vm_flags & VM_MTE)
+ 		flags |= __GFP_ZEROTAGS;
+ 
+-	return alloc_page_vma(flags, vma, vaddr);
++	return vma_alloc_folio(flags, 0, vma, vaddr, false);
+ }
+ 
+ void tag_clear_highpage(struct page *page)
+--- a/arch/ia64/include/asm/page.h~mm-add-vma_alloc_zeroed_movable_folio
++++ a/arch/ia64/include/asm/page.h
+@@ -82,17 +82,15 @@ do {						\
+ } while (0)
+ 
+ 
+-#define alloc_zeroed_user_highpage_movable(vma, vaddr)			\
++#define vma_alloc_zeroed_movable_folio(vma, vaddr)			\
+ ({									\
+-	struct page *page = alloc_page_vma(				\
+-		GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vaddr);		\
+-	if (page)							\
+- 		flush_dcache_page(page);				\
+-	page;								\
++	struct folio *folio = vma_alloc_folio(				\
++		GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr, false); \
++	if (folio)							\
++		flush_dcache_folio(folio);				\
++	folio;								\
+ })
+ 
+-#define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
+-
+ #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+ 
+ #include <asm-generic/memory_model.h>
+--- a/arch/m68k/include/asm/page_no.h~mm-add-vma_alloc_zeroed_movable_folio
++++ a/arch/m68k/include/asm/page_no.h
+@@ -13,9 +13,8 @@ extern unsigned long memory_end;
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ 
+-#define alloc_zeroed_user_highpage_movable(vma, vaddr) \
+-	alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vaddr)
+-#define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
++#define vma_alloc_zeroed_movable_folio(vma, vaddr) \
++	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr, false)
+ 
+ #define __pa(vaddr)		((unsigned long)(vaddr))
+ #define __va(paddr)		((void *)((unsigned long)(paddr)))
+--- a/arch/s390/include/asm/page.h~mm-add-vma_alloc_zeroed_movable_folio
++++ a/arch/s390/include/asm/page.h
+@@ -73,9 +73,8 @@ static inline void copy_page(void *to, v
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ 
+-#define alloc_zeroed_user_highpage_movable(vma, vaddr) \
+-	alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vaddr)
+-#define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
++#define vma_alloc_zeroed_movable_folio(vma, vaddr) \
++	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr, false)
+ 
+ /*
+  * These are used to make use of C type-checking..
+--- a/arch/x86/include/asm/page.h~mm-add-vma_alloc_zeroed_movable_folio
++++ a/arch/x86/include/asm/page.h
+@@ -34,9 +34,8 @@ static inline void copy_user_page(void *
+ 	copy_page(to, from);
+ }
+ 
+-#define alloc_zeroed_user_highpage_movable(vma, vaddr) \
+-	alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vaddr)
+-#define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
++#define vma_alloc_zeroed_movable_folio(vma, vaddr) \
++	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr, false)
+ 
+ #ifndef __pa
+ #define __pa(x)		__phys_addr((unsigned long)(x))
+--- a/include/linux/highmem.h~mm-add-vma_alloc_zeroed_movable_folio
++++ a/include/linux/highmem.h
+@@ -207,31 +207,30 @@ static inline void clear_user_highpage(s
+ }
+ #endif
+ 
+-#ifndef __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
++#ifndef vma_alloc_zeroed_movable_folio
+ /**
+- * alloc_zeroed_user_highpage_movable - Allocate a zeroed HIGHMEM page for a VMA that the caller knows can move
+- * @vma: The VMA the page is to be allocated for
+- * @vaddr: The virtual address the page will be inserted into
++ * vma_alloc_zeroed_movable_folio - Allocate a zeroed page for a VMA.
++ * @vma: The VMA the page is to be allocated for.
++ * @vaddr: The virtual address the page will be inserted into.
+  *
+- * Returns: The allocated and zeroed HIGHMEM page
++ * This function will allocate a page suitable for inserting into this
++ * VMA at this virtual address.  It may be allocated from highmem or
++ * the movable zone.  An architecture may provide its own implementation.
+  *
+- * This function will allocate a page for a VMA that the caller knows will
+- * be able to migrate in the future using move_pages() or reclaimed
+- *
+- * An architecture may override this function by defining
+- * __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE and providing their own
+- * implementation.
++ * Return: A folio containing one allocated and zeroed page or NULL if
++ * we are out of memory.
+  */
+-static inline struct page *
+-alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
++static inline
++struct folio *vma_alloc_zeroed_movable_folio(struct vm_area_struct *vma,
+ 				   unsigned long vaddr)
+ {
+-	struct page *page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vaddr);
++	struct folio *folio;
+ 
+-	if (page)
+-		clear_user_highpage(page, vaddr);
++	folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, vaddr, false);
++	if (folio)
++		clear_user_highpage(&folio->page, vaddr);
+ 
+-	return page;
++	return folio;
+ }
+ #endif
+ 
+--- a/mm/memory.c~mm-add-vma_alloc_zeroed_movable_folio
++++ a/mm/memory.c
+@@ -3056,10 +3056,12 @@ static vm_fault_t wp_page_copy(struct vm
+ 		goto oom;
+ 
+ 	if (is_zero_pfn(pte_pfn(vmf->orig_pte))) {
+-		new_page = alloc_zeroed_user_highpage_movable(vma,
+-							      vmf->address);
+-		if (!new_page)
++		struct folio *new_folio;
++
++		new_folio = vma_alloc_zeroed_movable_folio(vma, vmf->address);
++		if (!new_folio)
+ 			goto oom;
++		new_page = &new_folio->page;
+ 	} else {
+ 		new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
+ 				vmf->address);
+@@ -3995,6 +3997,7 @@ static vm_fault_t do_anonymous_page(stru
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct page *page;
++	struct folio *folio;
+ 	vm_fault_t ret = 0;
+ 	pte_t entry;
+ 
+@@ -4044,11 +4047,12 @@ static vm_fault_t do_anonymous_page(stru
+ 	/* Allocate our own private page. */
+ 	if (unlikely(anon_vma_prepare(vma)))
+ 		goto oom;
+-	page = alloc_zeroed_user_highpage_movable(vma, vmf->address);
+-	if (!page)
++	folio = vma_alloc_zeroed_movable_folio(vma, vmf->address);
++	if (!folio)
+ 		goto oom;
+ 
+-	if (mem_cgroup_charge(page_folio(page), vma->vm_mm, GFP_KERNEL))
++	page = &folio->page;
++	if (mem_cgroup_charge(folio, vma->vm_mm, GFP_KERNEL))
+ 		goto oom_free_page;
+ 	cgroup_throttle_swaprate(page, GFP_KERNEL);
+ 
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-add-folio_estimated_sharers.patch
-mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch
-mm-mempolicy-convert-queue_pages_pte_range-to-queue_folios_pte_range.patch
-mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
-mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
-mm-mempolicy-convert-migrate_page_add-to-migrate_folio_add.patch
-mm-add-folio_get_nontail_page.patch
-mm-migrate-add-folio_movable_ops.patch
-mm-migrate-convert-isolate_movable_page-to-use-folios.patch
-mm-migrate-convert-putback_movable_pages-to-use-folios.patch
 
