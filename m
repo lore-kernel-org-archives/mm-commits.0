@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 797BEC61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 00:23:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DB8BC636D3
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 00:32:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231744AbjBCAXr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Feb 2023 19:23:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52578 "EHLO
+        id S232020AbjBCAcT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Feb 2023 19:32:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229974AbjBCAXr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2023 19:23:47 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A258E81B2B
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 16:23:45 -0800 (PST)
+        with ESMTP id S232240AbjBCAcQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2023 19:32:16 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D2AF233D8
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 16:32:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2835761D11
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 00:23:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73BC5C433D2;
-        Fri,  3 Feb 2023 00:23:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1A92BB828DE
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 00:32:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A91C9C4339B;
+        Fri,  3 Feb 2023 00:32:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675383824;
-        bh=cAUQRl4M7mTUZpKH/54gPku1AxukNWU/jgJaSpG7FpY=;
+        s=korg; t=1675384332;
+        bh=ZmSBeHgcJoWaK4PzDetjsiEl79iVMrJgNRh15HSH+zA=;
         h=Date:To:From:Subject:From;
-        b=rgmFwAu1A+fXBaC7JcV6gOW2YYJsk5VaQ/R6UZD08u/6xt8+gQJ0Fydkn9iPUDxze
-         8YD2OTHGOFd9PyFNpVLo7FEkbxDWM8xnild9ztnzKOjT1doBRWvHNJWiFiISHNS2cc
-         I3O8+HQHQXBOKCwcuY1onuxTYhHLI/wzm59HD/Mo=
-Date:   Thu, 02 Feb 2023 16:23:43 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        ruansy.fnst@fujitsu.com, jhubbard@nvidia.com, jgg@nvidia.com,
-        djwong@kernel.org, david@fromorbit.com, dan.j.williams@intel.com,
-        apopple@nvidia.com, akpm@linux-foundation.org,
+        b=2OMe48LfFnan8nUQRyAqDlxZ/pIVIClWxQDt/9vKknIkTDbyw6GtLNFk3ZRocOePQ
+         6jOXMieO7sfgoTgkmyUO/s6gIHPKce/e8Bt4OmZ60kcpsyodqW5cTSwvbdPCasL6Gn
+         L6mpi1pPjpNa+XDPfX5KgHxfmjAx5Nj/sE9LOJhs=
+Date:   Thu, 02 Feb 2023 16:32:12 -0800
+To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
+        songmuchun@bytedance.com, roman.gushchin@linux.dev,
+        kent.overstreet@gmail.com, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fsdax-dax_unshare_iter-should-return-a-valid-length-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230203002344.73BC5C433D2@smtp.kernel.org>
+Subject: + mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix.patch added to mm-unstable branch
+Message-Id: <20230203003212.A91C9C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsdax-dax_unshare_iter-should-return-a-valid-length-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fsdax-dax_unshare_iter-should-return-a-valid-length-fix.patch
+     Subject: mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fsdax-dax_unshare_iter-should-return-a-valid-length-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,39 +67,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fsdax-dax_unshare_iter-should-return-a-valid-length-fix
-Date: Thu Feb  2 04:15:00 PM PST 2023
+Subject: mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix
+Date: Thu Feb  2 04:31:34 PM PST 2023
 
-don't mess up `ret', per Matthew
+fix CONFIG_SHRINKER_DEBUG=n stub
 
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/dax.c~fsdax-dax_unshare_iter-should-return-a-valid-length-fix
-+++ a/fs/dax.c
-@@ -1271,10 +1271,10 @@ static s64 dax_unshare_iter(struct iomap
- 	if (ret < 0)
- 		goto out_unlock;
- 
--	ret = copy_mc_to_kernel(daddr, saddr, length);
--	if (ret)
-+	if (copy_mc_to_kernel(daddr, saddr, length) == 0)
-+		ret = length;
-+	else
- 		ret = -EIO;
--	ret = length;
- 
- out_unlock:
- 	dax_read_unlock(id);
+--- a/include/linux/shrinker.h~mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix
++++ a/include/linux/shrinker.h
+@@ -117,6 +117,7 @@ static inline int shrinker_debugfs_add(s
+ }
+ static inline struct dentry *shrinker_debugfs_remove(struct shrinker *shrinker)
+ {
++	return NULL;
+ }
+ static inline __printf(2, 3)
+ int shrinker_debugfs_rename(struct shrinker *shrinker, const char *fmt, ...)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +102,7 @@ block-remove-rw_page-fix.patch
 mm-add-memcpy_from_file_folio-fix.patch
 mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix.patch
 kasan-infer-allocation-size-by-scanning-metadata-fix.patch
+mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix.patch
 error-injection-remove-ei_etype_none-fix.patch
 hfsplus-remove-unnecessary-variable-initialization-fix.patch
 scripts-gdb-add-mm-introspection-utils-fix.patch
