@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84AE9C636CC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EABACC61DA4
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:43:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232622AbjBCGnn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232312AbjBCGnn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Feb 2023 01:43:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39458 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232428AbjBCGmJ (ORCPT
+        with ESMTP id S232537AbjBCGmJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:42:09 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FE82166DC
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:19 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1F021A48E
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:38:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8163F61DA8
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9F7AC433EF;
-        Fri,  3 Feb 2023 06:38:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A7C5D61DB1
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:38:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DB35C4339B;
+        Fri,  3 Feb 2023 06:38:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406299;
-        bh=4lVwz3rQ9bpcYgh6/38Pjns/Pc+omgliBIAZ2yM5ekU=;
+        s=korg; t=1675406300;
+        bh=IwLtTMOZJZocttWx8SW2FMAryX/qQdOXnulDp49QR18=;
         h=Date:To:From:Subject:From;
-        b=d94yJN7x57fbCuMc9aE+ny/XBriLEGbWMebU4240LvcbeTcTUpviETJTEodn1i7N5
-         t5h5Uu+sZ1nnbTpHcWbX4wAsxE8IuYbZ4j1DiW4/UtYuBQCOccPg0WNgeELVKILvrh
-         4ekDbOCqEhjeA/Bf1oX2tk2Qb1ldA9KPfS3/YUxU=
-Date:   Thu, 02 Feb 2023 22:38:18 -0800
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        tony.luck@intel.com, shy828301@gmail.com, rientjes@google.com,
-        naoya.horiguchi@nec.com, jiaqiyan@google.com,
-        akpm@linux-foundation.org
+        b=D6iYcbWp7RjtbqXkh3fXL8LoZH1IZ2LQQeDVdQOhxdaaSrQr1uwcYCBzKWq6uCTLl
+         PoaNrKD57nIEJtoFJhvyUcYRjQ1Wm0rOQ8TyUmRcidFvoJ/oMC+5sjYgfDuvAlc0r7
+         wKxO6mYWyIkmVmqRV3cOFdTrZeU5xOcjqv8KlXnI=
+Date:   Thu, 02 Feb 2023 22:38:19 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@linux.ibm.com,
+        rientjes@google.com, mhocko@kernel.org, iamjoonsoo.kim@lge.com,
+        david@redhat.com, 42.hyeyoo@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-document-memory-failure-stats.patch removed from -mm tree
-Message-Id: <20230203063818.D9F7AC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_owner-record-single-timestamp-value-for-high-order-allocations.patch removed from -mm tree
+Message-Id: <20230203063820.0DB35C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,80 +42,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory-failure: document memory failure stats
+     Subject: mm/page_owner: record single timestamp value for high order allocations
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-document-memory-failure-stats.patch
+     mm-page_owner-record-single-timestamp-value-for-high-order-allocations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: mm: memory-failure: document memory failure stats
-Date: Fri, 20 Jan 2023 03:46:22 +0000
+From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Subject: mm/page_owner: record single timestamp value for high order allocations
+Date: Sun, 22 Jan 2023 01:50:54 +0900
 
-Add documentation for memory_failure's per NUMA node sysfs entries
+When allocating a high-order page, separate allocation timestamp is
+recorded for each sub-page resulting in different timestamp values between
+them.
 
-Link: https://lkml.kernel.org/r/20230120034622.2698268-4-jiaqiyan@google.com
-Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+This behavior is not consistent with the behavior when recording free
+timestamp and caused confusion when analyzing memory dumps.  Record single
+timestamp for the entire allocation, aligning with the behavior for free
+timestamps.
+
+Link: https://lkml.kernel.org/r/20230121165054.520507-1-42.hyeyoo@gmail.com
+Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/ABI/stable/sysfs-devices-node~mm-memory-failure-document-memory-failure-stats
-+++ a/Documentation/ABI/stable/sysfs-devices-node
-@@ -182,3 +182,42 @@ Date:		November 2021
- Contact:	Jarkko Sakkinen <jarkko@kernel.org>
- Description:
- 		The total amount of SGX physical memory in bytes.
-+
-+What:		/sys/devices/system/node/nodeX/memory_failure/total
-+Date:		January 2023
-+Contact:	Jiaqi Yan <jiaqiyan@google.com>
-+Description:
-+		The total number of raw poisoned pages (pages containing
-+		corrupted data due to memory errors) on a NUMA node.
-+
-+What:		/sys/devices/system/node/nodeX/memory_failure/ignored
-+Date:		January 2023
-+Contact:	Jiaqi Yan <jiaqiyan@google.com>
-+Description:
-+		Of the raw poisoned pages on a NUMA node, how many pages are
-+		ignored by memory error recovery attempt, usually because
-+		support for this type of pages is unavailable, and kernel
-+		gives up the recovery.
-+
-+What:		/sys/devices/system/node/nodeX/memory_failure/failed
-+Date:		January 2023
-+Contact:	Jiaqi Yan <jiaqiyan@google.com>
-+Description:
-+		Of the raw poisoned pages on a NUMA node, how many pages are
-+		failed by memory error recovery attempt. This usually means
-+		a key recovery operation failed.
-+
-+What:		/sys/devices/system/node/nodeX/memory_failure/delayed
-+Date:		January 2023
-+Contact:	Jiaqi Yan <jiaqiyan@google.com>
-+Description:
-+		Of the raw poisoned pages on a NUMA node, how many pages are
-+		delayed by memory error recovery attempt. Delayed poisoned
-+		pages usually will be retried by kernel.
-+
-+What:		/sys/devices/system/node/nodeX/memory_failure/recovered
-+Date:		January 2023
-+Contact:	Jiaqi Yan <jiaqiyan@google.com>
-+Description:
-+		Of the raw poisoned pages on a NUMA node, how many pages are
-+		recovered by memory error recovery attempt.
+--- a/mm/page_owner.c~mm-page_owner-record-single-timestamp-value-for-high-order-allocations
++++ a/mm/page_owner.c
+@@ -163,6 +163,7 @@ static inline void __set_page_owner_hand
+ {
+ 	struct page_owner *page_owner;
+ 	int i;
++	u64 ts_nsec = local_clock();
+ 
+ 	for (i = 0; i < (1 << order); i++) {
+ 		page_owner = get_page_owner(page_ext);
+@@ -172,7 +173,7 @@ static inline void __set_page_owner_hand
+ 		page_owner->last_migrate_reason = -1;
+ 		page_owner->pid = current->pid;
+ 		page_owner->tgid = current->tgid;
+-		page_owner->ts_nsec = local_clock();
++		page_owner->ts_nsec = ts_nsec;
+ 		strscpy(page_owner->comm, current->comm,
+ 			sizeof(page_owner->comm));
+ 		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
 _
 
-Patches currently in -mm which might be from jiaqiyan@google.com are
+Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
 
-mm-khugepaged-recover-from-poisoned-anonymous-memory.patch
-mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
+lib-kconfigdebug-do-not-enable-debug_preempt-by-default.patch
 
