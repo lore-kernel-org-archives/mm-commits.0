@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 455CCC6379F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3834C63797
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:40:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232055AbjBCGkf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232085AbjBCGkf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Feb 2023 01:40:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37016 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37056 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232138AbjBCGjc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:39:32 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04C898EB64
+        with ESMTP id S232054AbjBCGjh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:39:37 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7AEB8EB7C
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 95ED8B82980
+        by sin.source.kernel.org (Postfix) with ESMTPS id 01109CE2EA3
         for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C225C4339B;
-        Fri,  3 Feb 2023 06:37:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C53FC433EF;
+        Fri,  3 Feb 2023 06:37:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406224;
-        bh=K4Pcqdl1WMDbD70OTsUWe28OlbKJKJ/H+PptTifs/UA=;
+        s=korg; t=1675406223;
+        bh=6yXSqbpE/O+wcyuH17jEVBOczddXgAJy2BU7XoYtv4g=;
         h=Date:To:From:Subject:From;
-        b=aopjOxE/Ks+6b3QN9u0aPDA3N2MO0snMMzA48gxbBgnsSbWNDVBUN93mdmVdTs8Qj
-         oOYa4QYK5pXeVdjJ4OrEoVkbJqWb9tuO0WmdVrtEHjb1EjyhmV4YT4RQLIqnwHKyzv
-         rYxJoT01m0x4UKd6UCeabdP8pGBkJGYUnBBfKW2Q=
-Date:   Thu, 02 Feb 2023 22:37:03 -0800
+        b=rl+TIGhg9K6CctFN1B5Kkv4tmxVQS6UZtw83GU+43ZYjDPVFQWPo2rIgGq8+A/nRi
+         fsTnHJIIqLHW6Ie1nnhNJhcFHuqo3MUfhuPvMt6D+wfngftxKwoSYseBbGtACXXmc+
+         crC0T9vmJUZTHMIFdTkA9fn64uwOuqkPWBIo6Azc=
+Date:   Thu, 02 Feb 2023 22:37:02 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] filemap-added-filemap_get_folios_tag.patch removed from -mm tree
-Message-Id: <20230203063704.3C225C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] pagemap-add-filemap_grab_folio.patch removed from -mm tree
+Message-Id: <20230203063703.3C53FC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,109 +41,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: filemap: add filemap_get_folios_tag()
+     Subject: pagemap: add filemap_grab_folio()
 has been removed from the -mm tree.  Its filename was
-     filemap-added-filemap_get_folios_tag.patch
+     pagemap-add-filemap_grab_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: filemap: add filemap_get_folios_tag()
-Date: Wed, 4 Jan 2023 13:14:27 -0800
+Subject: pagemap: add filemap_grab_folio()
+Date: Wed, 4 Jan 2023 13:14:26 -0800
 
-This is the equivalent of find_get_pages_range_tag(), except for folios
-instead of pages.
+Patch series "Convert to filemap_get_folios_tag()", v5.
 
-One noteable difference is filemap_get_folios_tag() does not take in a
-maximum pages argument.  It instead tries to fill a folio batch and stops
-either once full (15 folios) or reaching the end of the search range.
+This patch series replaces find_get_pages_range_tag() with
+filemap_get_folios_tag().  This also allows the removal of multiple calls
+to compound_head() throughout.
 
-The new function supports large folios, the initial function did not since
-all callers don't use large folios.
+It also makes a good chunk of the straightforward conversions to folios,
+and takes the opportunity to introduce a function that grabs a folio from
+the pagecache.
 
-Link: https://lkml.kernel.org/r/20230104211448.4804-3-vishal.moola@gmail.com
+
+This patch (of 23):
+
+Add function filemap_grab_folio() to grab a folio from the page cache. 
+This function is meant to serve as a folio replacement for
+grab_cache_page, and is used to facilitate the removal of
+find_get_pages_range_tag().
+
+Link: https://lkml.kernel.org/r/20230104211448.4804-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230104211448.4804-2-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Matthew Wilcow (Oracle) <willy@infradead.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/pagemap.h~filemap-added-filemap_get_folios_tag
+--- a/include/linux/pagemap.h~pagemap-add-filemap_grab_folio
 +++ a/include/linux/pagemap.h
-@@ -739,6 +739,8 @@ unsigned filemap_get_folios(struct addre
- 		pgoff_t end, struct folio_batch *fbatch);
- unsigned filemap_get_folios_contig(struct address_space *mapping,
- 		pgoff_t *start, pgoff_t end, struct folio_batch *fbatch);
-+unsigned filemap_get_folios_tag(struct address_space *mapping, pgoff_t *start,
-+		pgoff_t end, xa_mark_t tag, struct folio_batch *fbatch);
- unsigned find_get_pages_range_tag(struct address_space *mapping, pgoff_t *index,
- 			pgoff_t end, xa_mark_t tag, unsigned int nr_pages,
- 			struct page **pages);
---- a/mm/filemap.c~filemap-added-filemap_get_folios_tag
-+++ a/mm/filemap.c
-@@ -2282,6 +2282,60 @@ out:
- EXPORT_SYMBOL(filemap_get_folios_contig);
+@@ -547,6 +547,26 @@ static inline struct folio *filemap_lock
+ }
  
  /**
-+ * filemap_get_folios_tag - Get a batch of folios matching @tag
-+ * @mapping:    The address_space to search
-+ * @start:      The starting page index
-+ * @end:        The final page index (inclusive)
-+ * @tag:        The tag index
-+ * @fbatch:     The batch to fill
++ * filemap_grab_folio - grab a folio from the page cache
++ * @mapping: The address space to search
++ * @index: The page index
 + *
-+ * Same as filemap_get_folios(), but only returning folios tagged with @tag.
++ * Looks up the page cache entry at @mapping & @index. If no folio is found,
++ * a new folio is created. The folio is locked, marked as accessed, and
++ * returned.
 + *
-+ * Return: The number of folios found.
-+ * Also update @start to index the next folio for traversal.
++ * Return: A found or created folio. NULL if no folio is found and failed to
++ * create a folio.
 + */
-+unsigned filemap_get_folios_tag(struct address_space *mapping, pgoff_t *start,
-+			pgoff_t end, xa_mark_t tag, struct folio_batch *fbatch)
++static inline struct folio *filemap_grab_folio(struct address_space *mapping,
++					pgoff_t index)
 +{
-+	XA_STATE(xas, &mapping->i_pages, *start);
-+	struct folio *folio;
-+
-+	rcu_read_lock();
-+	while ((folio = find_get_entry(&xas, end, tag)) != NULL) {
-+		/*
-+		 * Shadow entries should never be tagged, but this iteration
-+		 * is lockless so there is a window for page reclaim to evict
-+		 * a page we saw tagged. Skip over it.
-+		 */
-+		if (xa_is_value(folio))
-+			continue;
-+		if (!folio_batch_add(fbatch, folio)) {
-+			unsigned long nr = folio_nr_pages(folio);
-+
-+			if (folio_test_hugetlb(folio))
-+				nr = 1;
-+			*start = folio->index + nr;
-+			goto out;
-+		}
-+	}
-+	/*
-+	 * We come here when there is no page beyond @end. We take care to not
-+	 * overflow the index @start as it confuses some of the callers. This
-+	 * breaks the iteration when there is a page at index -1 but that is
-+	 * already broke anyway.
-+	 */
-+	if (end == (pgoff_t)-1)
-+		*start = (pgoff_t)-1;
-+	else
-+		*start = end + 1;
-+out:
-+	rcu_read_unlock();
-+
-+	return folio_batch_count(fbatch);
++	return __filemap_get_folio(mapping, index,
++			FGP_LOCK | FGP_ACCESSED | FGP_CREAT,
++			mapping_gfp_mask(mapping));
 +}
-+EXPORT_SYMBOL(filemap_get_folios_tag);
 +
 +/**
-  * find_get_pages_range_tag - Find and return head pages matching @tag.
-  * @mapping:	the address_space to search
-  * @index:	the starting page index
+  * find_get_page - find and get a page reference
+  * @mapping: the address_space to search
+  * @offset: the page index
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
