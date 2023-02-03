@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FEEAC636CC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E500C61DA4
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:37:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232405AbjBCGhx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232168AbjBCGhx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Feb 2023 01:37:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37056 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232165AbjBCGga (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:36:30 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72BF08D63F
+        with ESMTP id S232093AbjBCGgf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:36:35 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 134378D63E
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:36:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 101FF61D1D
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6284DC4339C;
-        Fri,  3 Feb 2023 06:36:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8665BB8297E
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:36:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33783C4339B;
+        Fri,  3 Feb 2023 06:36:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406179;
-        bh=+z+1pvHlnTg24nyCFUz0acf12z4qG3JJCq3FB0h0Pmk=;
+        s=korg; t=1675406178;
+        bh=ruywR0Cl0BZQOCBCvIS1qKMAmouSBpUiT4/oVKPV+KA=;
         h=Date:To:From:Subject:From;
-        b=0TATOE6wnysrgS1Iqznl1LVoM8L2VdZpbjq0VvZlx95Gvo549Z3EAMAGZwYNJaTHz
-         7PkVHiMsPZq8WDNBOUmQPOEAd5vsCehhCwlrZPjyIMJzSPED6vEb4S0igKC5B2MFtA
-         mAn6IniWTSMNU+sQTkAjojSo3RJt8Rue0rUoeOFM=
-Date:   Thu, 02 Feb 2023 22:36:18 -0800
+        b=0en4o2BBAOUBuvZm5Kz4i8U2dgJNlgRRuqBusNlkBSafB2DBup7lnYD6HbKVyBaT0
+         HW4F/2DQiDdZgrqIGK6lgdihdxTo1N9qQ5xKzLwwLEaoDyLfz5UUfWNgZOmLO+SSnY
+         e21Fn/PYgp/SqTkE9P7HMC/pHWFSa6KgjVlevodc=
+Date:   Thu, 02 Feb 2023 22:36:17 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         william.kucharski@oracle.com, vbabka@suse.cz, rppt@kernel.org,
         Liam.Howlett@oracle.com, joel@joelfernandes.org, hughd@google.com,
         geert@linux-m68k.org, corbet@lwn.net, brauner@kernel.org,
         lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] m68k-mm-motorola-specify-pmd_page-type.patch removed from -mm tree
-Message-Id: <20230203063619.6284DC4339C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mlock-use-folios-and-a-folio-batch-internally.patch removed from -mm tree
+Message-Id: <20230203063618.33783C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,28 +44,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: m68k/mm/motorola: specify pmd_page() type
+     Subject: mm: mlock: use folios and a folio batch internally
 has been removed from the -mm tree.  Its filename was
-     m68k-mm-motorola-specify-pmd_page-type.patch
+     mm-mlock-use-folios-and-a-folio-batch-internally.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: m68k/mm/motorola: specify pmd_page() type
-Date: Thu, 12 Jan 2023 12:39:30 +0000
+Subject: mm: mlock: use folios and a folio batch internally
+Date: Thu, 12 Jan 2023 12:39:29 +0000
 
-Failing to specify a specific type here breaks anything that relies on the
-type being explicitly known, such as page_folio().
+This brings mlock in line with the folio batches declared in mm/swap.c and
+makes the code more consistent across the two.
 
-Make explicit the type of null pointer returned here.
+The existing mechanism for identifying which operation each folio in the
+batch is undergoing is maintained, i.e.  using the lower 2 bits of the
+struct folio address (previously struct page address).  This should
+continue to function correctly as folios remain at least system
+word-aligned.
 
-Link: https://lkml.kernel.org/r/ad6be2821bbd6af10966b3704568ff458b270d9c.1673526881.git.lstoakes@gmail.com
+All invocations of mlock() pass either a non-compound page or the head of
+a THP-compound page and no tail pages need updating so this functionality
+works with struct folios being used internally rather than struct pages.
+
+In this patch the external interface is kept identical to before in order
+to maintain separation between patches in the series, using a rather
+awkward conversion from struct page to struct folio in relevant functions.
+
+However, this maintenance of the existing interface is intended to be
+temporary - the next patch in the series will update the interfaces to
+accept folios directly.
+
+Link: https://lkml.kernel.org/r/9f894d54d568773f4ed3cb0eef5f8932f62c95f4.1673526881.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -77,17 +93,403 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/m68k/include/asm/motorola_pgtable.h~m68k-mm-motorola-specify-pmd_page-type
-+++ a/arch/m68k/include/asm/motorola_pgtable.h
-@@ -124,7 +124,7 @@ static inline void pud_set(pud_t *pudp,
-  * expects pmd_page() to exists, only to then DCE it all. Provide a dummy to
-  * make the compiler happy.
+--- a/mm/mlock.c~mm-mlock-use-folios-and-a-folio-batch-internally
++++ a/mm/mlock.c
+@@ -28,12 +28,12 @@
+ 
+ #include "internal.h"
+ 
+-struct mlock_pvec {
++struct mlock_fbatch {
+ 	local_lock_t lock;
+-	struct pagevec vec;
++	struct folio_batch fbatch;
+ };
+ 
+-static DEFINE_PER_CPU(struct mlock_pvec, mlock_pvec) = {
++static DEFINE_PER_CPU(struct mlock_fbatch, mlock_fbatch) = {
+ 	.lock = INIT_LOCAL_LOCK(lock),
+ };
+ 
+@@ -48,192 +48,192 @@ bool can_do_mlock(void)
+ EXPORT_SYMBOL(can_do_mlock);
+ 
+ /*
+- * Mlocked pages are marked with PageMlocked() flag for efficient testing
++ * Mlocked folios are marked with the PG_mlocked flag for efficient testing
+  * in vmscan and, possibly, the fault path; and to support semi-accurate
+  * statistics.
+  *
+- * An mlocked page [PageMlocked(page)] is unevictable.  As such, it will
+- * be placed on the LRU "unevictable" list, rather than the [in]active lists.
+- * The unevictable list is an LRU sibling list to the [in]active lists.
+- * PageUnevictable is set to indicate the unevictable state.
++ * An mlocked folio [folio_test_mlocked(folio)] is unevictable.  As such, it
++ * will be ostensibly placed on the LRU "unevictable" list (actually no such
++ * list exists), rather than the [in]active lists. PG_unevictable is set to
++ * indicate the unevictable state.
   */
--#define pmd_page(pmd)		NULL
-+#define pmd_page(pmd)		((struct page *)NULL)
  
+-static struct lruvec *__mlock_page(struct page *page, struct lruvec *lruvec)
++static struct lruvec *__mlock_folio(struct folio *folio, struct lruvec *lruvec)
+ {
+ 	/* There is nothing more we can do while it's off LRU */
+-	if (!TestClearPageLRU(page))
++	if (!folio_test_clear_lru(folio))
+ 		return lruvec;
  
- #define pud_none(pud)		(!pud_val(pud))
+-	lruvec = folio_lruvec_relock_irq(page_folio(page), lruvec);
++	lruvec = folio_lruvec_relock_irq(folio, lruvec);
+ 
+-	if (unlikely(page_evictable(page))) {
++	if (unlikely(folio_evictable(folio))) {
+ 		/*
+-		 * This is a little surprising, but quite possible:
+-		 * PageMlocked must have got cleared already by another CPU.
+-		 * Could this page be on the Unevictable LRU?  I'm not sure,
+-		 * but move it now if so.
++		 * This is a little surprising, but quite possible: PG_mlocked
++		 * must have got cleared already by another CPU.  Could this
++		 * folio be unevictable?  I'm not sure, but move it now if so.
+ 		 */
+-		if (PageUnevictable(page)) {
+-			del_page_from_lru_list(page, lruvec);
+-			ClearPageUnevictable(page);
+-			add_page_to_lru_list(page, lruvec);
++		if (folio_test_unevictable(folio)) {
++			lruvec_del_folio(lruvec, folio);
++			folio_clear_unevictable(folio);
++			lruvec_add_folio(lruvec, folio);
++
+ 			__count_vm_events(UNEVICTABLE_PGRESCUED,
+-					  thp_nr_pages(page));
++					  folio_nr_pages(folio));
+ 		}
+ 		goto out;
+ 	}
+ 
+-	if (PageUnevictable(page)) {
+-		if (PageMlocked(page))
+-			page->mlock_count++;
++	if (folio_test_unevictable(folio)) {
++		if (folio_test_mlocked(folio))
++			folio->mlock_count++;
+ 		goto out;
+ 	}
+ 
+-	del_page_from_lru_list(page, lruvec);
+-	ClearPageActive(page);
+-	SetPageUnevictable(page);
+-	page->mlock_count = !!PageMlocked(page);
+-	add_page_to_lru_list(page, lruvec);
+-	__count_vm_events(UNEVICTABLE_PGCULLED, thp_nr_pages(page));
++	lruvec_del_folio(lruvec, folio);
++	folio_clear_active(folio);
++	folio_set_unevictable(folio);
++	folio->mlock_count = !!folio_test_mlocked(folio);
++	lruvec_add_folio(lruvec, folio);
++	__count_vm_events(UNEVICTABLE_PGCULLED, folio_nr_pages(folio));
+ out:
+-	SetPageLRU(page);
++	folio_set_lru(folio);
+ 	return lruvec;
+ }
+ 
+-static struct lruvec *__mlock_new_page(struct page *page, struct lruvec *lruvec)
++static struct lruvec *__mlock_new_folio(struct folio *folio, struct lruvec *lruvec)
+ {
+-	VM_BUG_ON_PAGE(PageLRU(page), page);
++	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+ 
+-	lruvec = folio_lruvec_relock_irq(page_folio(page), lruvec);
++	lruvec = folio_lruvec_relock_irq(folio, lruvec);
+ 
+ 	/* As above, this is a little surprising, but possible */
+-	if (unlikely(page_evictable(page)))
++	if (unlikely(folio_evictable(folio)))
+ 		goto out;
+ 
+-	SetPageUnevictable(page);
+-	page->mlock_count = !!PageMlocked(page);
+-	__count_vm_events(UNEVICTABLE_PGCULLED, thp_nr_pages(page));
++	folio_set_unevictable(folio);
++	folio->mlock_count = !!folio_test_mlocked(folio);
++	__count_vm_events(UNEVICTABLE_PGCULLED, folio_nr_pages(folio));
+ out:
+-	add_page_to_lru_list(page, lruvec);
+-	SetPageLRU(page);
++	lruvec_add_folio(lruvec, folio);
++	folio_set_lru(folio);
+ 	return lruvec;
+ }
+ 
+-static struct lruvec *__munlock_page(struct page *page, struct lruvec *lruvec)
++static struct lruvec *__munlock_folio(struct folio *folio, struct lruvec *lruvec)
+ {
+-	int nr_pages = thp_nr_pages(page);
++	int nr_pages = folio_nr_pages(folio);
+ 	bool isolated = false;
+ 
+-	if (!TestClearPageLRU(page))
++	if (!folio_test_clear_lru(folio))
+ 		goto munlock;
+ 
+ 	isolated = true;
+-	lruvec = folio_lruvec_relock_irq(page_folio(page), lruvec);
++	lruvec = folio_lruvec_relock_irq(folio, lruvec);
+ 
+-	if (PageUnevictable(page)) {
++	if (folio_test_unevictable(folio)) {
+ 		/* Then mlock_count is maintained, but might undercount */
+-		if (page->mlock_count)
+-			page->mlock_count--;
+-		if (page->mlock_count)
++		if (folio->mlock_count)
++			folio->mlock_count--;
++		if (folio->mlock_count)
+ 			goto out;
+ 	}
+ 	/* else assume that was the last mlock: reclaim will fix it if not */
+ 
+ munlock:
+-	if (TestClearPageMlocked(page)) {
+-		__mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
+-		if (isolated || !PageUnevictable(page))
++	if (folio_test_clear_mlocked(folio)) {
++		__zone_stat_mod_folio(folio, NR_MLOCK, -nr_pages);
++		if (isolated || !folio_test_unevictable(folio))
+ 			__count_vm_events(UNEVICTABLE_PGMUNLOCKED, nr_pages);
+ 		else
+ 			__count_vm_events(UNEVICTABLE_PGSTRANDED, nr_pages);
+ 	}
+ 
+-	/* page_evictable() has to be checked *after* clearing Mlocked */
+-	if (isolated && PageUnevictable(page) && page_evictable(page)) {
+-		del_page_from_lru_list(page, lruvec);
+-		ClearPageUnevictable(page);
+-		add_page_to_lru_list(page, lruvec);
++	/* folio_evictable() has to be checked *after* clearing Mlocked */
++	if (isolated && folio_test_unevictable(folio) && folio_evictable(folio)) {
++		lruvec_del_folio(lruvec, folio);
++		folio_clear_unevictable(folio);
++		lruvec_add_folio(lruvec, folio);
+ 		__count_vm_events(UNEVICTABLE_PGRESCUED, nr_pages);
+ 	}
+ out:
+ 	if (isolated)
+-		SetPageLRU(page);
++		folio_set_lru(folio);
+ 	return lruvec;
+ }
+ 
+ /*
+- * Flags held in the low bits of a struct page pointer on the mlock_pvec.
++ * Flags held in the low bits of a struct folio pointer on the mlock_fbatch.
+  */
+-#define LRU_PAGE 0x1
+-#define NEW_PAGE 0x2
+-static inline struct page *mlock_lru(struct page *page)
++#define LRU_FOLIO 0x1
++#define NEW_FOLIO 0x2
++static inline struct folio *mlock_lru(struct folio *folio)
+ {
+-	return (struct page *)((unsigned long)page + LRU_PAGE);
++	return (struct folio *)((unsigned long)folio + LRU_FOLIO);
+ }
+ 
+-static inline struct page *mlock_new(struct page *page)
++static inline struct folio *mlock_new(struct folio *folio)
+ {
+-	return (struct page *)((unsigned long)page + NEW_PAGE);
++	return (struct folio *)((unsigned long)folio + NEW_FOLIO);
+ }
+ 
+ /*
+- * mlock_pagevec() is derived from pagevec_lru_move_fn():
+- * perhaps that can make use of such page pointer flags in future,
+- * but for now just keep it for mlock.  We could use three separate
+- * pagevecs instead, but one feels better (munlocking a full pagevec
+- * does not need to drain mlocking pagevecs first).
++ * mlock_folio_batch() is derived from folio_batch_move_lru(): perhaps that can
++ * make use of such folio pointer flags in future, but for now just keep it for
++ * mlock.  We could use three separate folio batches instead, but one feels
++ * better (munlocking a full folio batch does not need to drain mlocking folio
++ * batches first).
+  */
+-static void mlock_pagevec(struct pagevec *pvec)
++static void mlock_folio_batch(struct folio_batch *fbatch)
+ {
+ 	struct lruvec *lruvec = NULL;
+ 	unsigned long mlock;
+-	struct page *page;
++	struct folio *folio;
+ 	int i;
+ 
+-	for (i = 0; i < pagevec_count(pvec); i++) {
+-		page = pvec->pages[i];
+-		mlock = (unsigned long)page & (LRU_PAGE | NEW_PAGE);
+-		page = (struct page *)((unsigned long)page - mlock);
+-		pvec->pages[i] = page;
+-
+-		if (mlock & LRU_PAGE)
+-			lruvec = __mlock_page(page, lruvec);
+-		else if (mlock & NEW_PAGE)
+-			lruvec = __mlock_new_page(page, lruvec);
++	for (i = 0; i < folio_batch_count(fbatch); i++) {
++		folio = fbatch->folios[i];
++		mlock = (unsigned long)folio & (LRU_FOLIO | NEW_FOLIO);
++		folio = (struct folio *)((unsigned long)folio - mlock);
++		fbatch->folios[i] = folio;
++
++		if (mlock & LRU_FOLIO)
++			lruvec = __mlock_folio(folio, lruvec);
++		else if (mlock & NEW_FOLIO)
++			lruvec = __mlock_new_folio(folio, lruvec);
+ 		else
+-			lruvec = __munlock_page(page, lruvec);
++			lruvec = __munlock_folio(folio, lruvec);
+ 	}
+ 
+ 	if (lruvec)
+ 		unlock_page_lruvec_irq(lruvec);
+-	release_pages(pvec->pages, pvec->nr);
+-	pagevec_reinit(pvec);
++	release_pages(fbatch->folios, fbatch->nr);
++	folio_batch_reinit(fbatch);
+ }
+ 
+ void mlock_page_drain_local(void)
+ {
+-	struct pagevec *pvec;
++	struct folio_batch *fbatch;
+ 
+-	local_lock(&mlock_pvec.lock);
+-	pvec = this_cpu_ptr(&mlock_pvec.vec);
+-	if (pagevec_count(pvec))
+-		mlock_pagevec(pvec);
+-	local_unlock(&mlock_pvec.lock);
++	local_lock(&mlock_fbatch.lock);
++	fbatch = this_cpu_ptr(&mlock_fbatch.fbatch);
++	if (folio_batch_count(fbatch))
++		mlock_folio_batch(fbatch);
++	local_unlock(&mlock_fbatch.lock);
+ }
+ 
+ void mlock_page_drain_remote(int cpu)
+ {
+-	struct pagevec *pvec;
++	struct folio_batch *fbatch;
+ 
+ 	WARN_ON_ONCE(cpu_online(cpu));
+-	pvec = &per_cpu(mlock_pvec.vec, cpu);
+-	if (pagevec_count(pvec))
+-		mlock_pagevec(pvec);
++	fbatch = &per_cpu(mlock_fbatch.fbatch, cpu);
++	if (folio_batch_count(fbatch))
++		mlock_folio_batch(fbatch);
+ }
+ 
+ bool need_mlock_page_drain(int cpu)
+ {
+-	return pagevec_count(&per_cpu(mlock_pvec.vec, cpu));
++	return folio_batch_count(&per_cpu(mlock_fbatch.fbatch, cpu));
+ }
+ 
+ /**
+@@ -242,10 +242,10 @@ bool need_mlock_page_drain(int cpu)
+  */
+ void mlock_folio(struct folio *folio)
+ {
+-	struct pagevec *pvec;
++	struct folio_batch *fbatch;
+ 
+-	local_lock(&mlock_pvec.lock);
+-	pvec = this_cpu_ptr(&mlock_pvec.vec);
++	local_lock(&mlock_fbatch.lock);
++	fbatch = this_cpu_ptr(&mlock_fbatch.fbatch);
+ 
+ 	if (!folio_test_set_mlocked(folio)) {
+ 		int nr_pages = folio_nr_pages(folio);
+@@ -255,10 +255,10 @@ void mlock_folio(struct folio *folio)
+ 	}
+ 
+ 	folio_get(folio);
+-	if (!pagevec_add(pvec, mlock_lru(&folio->page)) ||
++	if (!folio_batch_add(fbatch, mlock_lru(folio)) ||
+ 	    folio_test_large(folio) || lru_cache_disabled())
+-		mlock_pagevec(pvec);
+-	local_unlock(&mlock_pvec.lock);
++		mlock_folio_batch(fbatch);
++	local_unlock(&mlock_fbatch.lock);
+ }
+ 
+ /**
+@@ -267,20 +267,22 @@ void mlock_folio(struct folio *folio)
+  */
+ void mlock_new_page(struct page *page)
+ {
+-	struct pagevec *pvec;
+-	int nr_pages = thp_nr_pages(page);
++	struct folio_batch *fbatch;
++	struct folio *folio = page_folio(page);
++	int nr_pages = folio_nr_pages(folio);
++
++	local_lock(&mlock_fbatch.lock);
++	fbatch = this_cpu_ptr(&mlock_fbatch.fbatch);
++	folio_set_mlocked(folio);
+ 
+-	local_lock(&mlock_pvec.lock);
+-	pvec = this_cpu_ptr(&mlock_pvec.vec);
+-	SetPageMlocked(page);
+-	mod_zone_page_state(page_zone(page), NR_MLOCK, nr_pages);
++	zone_stat_mod_folio(folio, NR_MLOCK, nr_pages);
+ 	__count_vm_events(UNEVICTABLE_PGMLOCKED, nr_pages);
+ 
+-	get_page(page);
+-	if (!pagevec_add(pvec, mlock_new(page)) ||
+-	    PageHead(page) || lru_cache_disabled())
+-		mlock_pagevec(pvec);
+-	local_unlock(&mlock_pvec.lock);
++	folio_get(folio);
++	if (!folio_batch_add(fbatch, mlock_new(folio)) ||
++	    folio_test_large(folio) || lru_cache_disabled())
++		mlock_folio_batch(fbatch);
++	local_unlock(&mlock_fbatch.lock);
+ }
+ 
+ /**
+@@ -289,20 +291,20 @@ void mlock_new_page(struct page *page)
+  */
+ void munlock_page(struct page *page)
+ {
+-	struct pagevec *pvec;
++	struct folio_batch *fbatch;
++	struct folio *folio = page_folio(page);
+ 
+-	local_lock(&mlock_pvec.lock);
+-	pvec = this_cpu_ptr(&mlock_pvec.vec);
++	local_lock(&mlock_fbatch.lock);
++	fbatch = this_cpu_ptr(&mlock_fbatch.fbatch);
+ 	/*
+-	 * TestClearPageMlocked(page) must be left to __munlock_page(),
+-	 * which will check whether the page is multiply mlocked.
++	 * folio_test_clear_mlocked(folio) must be left to __munlock_folio(),
++	 * which will check whether the folio is multiply mlocked.
+ 	 */
+-
+-	get_page(page);
+-	if (!pagevec_add(pvec, page) ||
+-	    PageHead(page) || lru_cache_disabled())
+-		mlock_pagevec(pvec);
+-	local_unlock(&mlock_pvec.lock);
++	folio_get(folio);
++	if (!folio_batch_add(fbatch, folio) ||
++	    folio_test_large(folio) || lru_cache_disabled())
++		mlock_folio_batch(fbatch);
++	local_unlock(&mlock_fbatch.lock);
+ }
+ 
+ static int mlock_pte_range(pmd_t *pmd, unsigned long addr,
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
