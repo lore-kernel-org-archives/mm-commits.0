@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3086C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 05:44:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F22EDC636CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 05:44:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231956AbjBCFoA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Feb 2023 00:44:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41882 "EHLO
+        id S231967AbjBCFoc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Feb 2023 00:44:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230070AbjBCFn7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 00:43:59 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20E1F60CA3
-        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 21:43:58 -0800 (PST)
+        with ESMTP id S230070AbjBCFob (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 00:44:31 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C93B760CA3
+        for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 21:44:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 92ABB61D68
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 05:43:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB461C433D2;
-        Fri,  3 Feb 2023 05:43:56 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 62C5FB828B2
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 05:44:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 013EBC433D2;
+        Fri,  3 Feb 2023 05:44:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675403037;
-        bh=c+wW2RzgMjKf2lhrHUL0BSbK7MCgdYJMk0+0tZpOWUo=;
+        s=korg; t=1675403068;
+        bh=+CTYLQ+5Z7iEc2Mr9RB0JvO7bV8iTTCBfULzXyZQRu8=;
         h=Date:To:From:Subject:From;
-        b=vIpNu+C1Z3bwvh3umiwKGGQn52YFBdVXs7Kr8FikE4ZqXTt/6/FIJgxHx2sjR8FaY
-         U5oH3gRBB/F+AGE2S0miXwzE2TXN/hVfAUxduH9AMNny/lPwhlA4ZCneUZxq3wQ+iP
-         T/wzeftFM3vDNAY4j0tcHVAWON2s0IKb+W3z7yDw=
-Date:   Thu, 02 Feb 2023 21:43:56 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        sfr@canb.auug.org.au, akpm@linux-foundation.org,
+        b=DNABuT/8ZQ/hJJq28XhjEwfvKOp7/+9qkAnm1BK/5NvWTbKpcJX1+ZdCnFY6WriHp
+         yOh8SMs5YYW3Ou3yfinCOaUJp3Jh8C57bT9FRer3KZr2erM1wn7LotGHeoh/xLDgWH
+         RXD/bES52T+NF1fAJldk6XAmLCT2gXwqNw3XwZ/M=
+Date:   Thu, 02 Feb 2023 21:44:27 -0800
+To:     mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-remove-page_evictable-fix.patch removed from -mm tree
-Message-Id: <20230203054356.EB461C433D2@smtp.kernel.org>
+Subject: [folded-merged] mm-page_ext-init-page_ext-early-if-there-are-no-deferred-struct-pages-v2.patch removed from -mm tree
+Message-Id: <20230203054428.013EBC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,53 +41,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-remove-page_evictable-fix
+     Subject: mm-page_ext-init-page_ext-early-if-there-are-no-deferred-struct-pages-v2
 has been removed from the -mm tree.  Its filename was
-     mm-remove-page_evictable-fix.patch
+     mm-page_ext-init-page_ext-early-if-there-are-no-deferred-struct-pages-v2.patch
 
-This patch was dropped because it was folded into mm-remove-page_evictable.patch
+This patch was dropped because it was folded into mm-page_ext-init-page_ext-early-if-there-are-no-deferred-struct-pages.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-remove-page_evictable-fix
-Date: Tue Jan 17 04:20:34 PM PST 2023
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: mm-page_ext-init-page_ext-early-if-there-are-no-deferred-struct-pages-v2
+Date: Wed, 18 Jan 2023 15:52:51 +0000
 
-fix Documentation/mm/unevictable-lru.rst underlining
+fix build with CONFIG_PAGE_EXTENSION=n
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-  Link: https://lkml.kernel.org/r/20230117145106.585b277b@canb.auug.org.au
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20230118155251.2522985-1-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/mm/unevictable-lru.rst~mm-remove-page_evictable-fix
-+++ a/Documentation/mm/unevictable-lru.rst
-@@ -183,7 +183,7 @@ VM_LOCKED VMA, or found in a VMA being V
+--- a/include/linux/page_ext.h~mm-page_ext-init-page_ext-early-if-there-are-no-deferred-struct-pages-v2
++++ a/include/linux/page_ext.h
+@@ -29,6 +29,8 @@ struct page_ext_operations {
+ 	bool need_shared_flags;
+ };
  
++extern bool deferred_struct_pages;
++
+ #ifdef CONFIG_PAGE_EXTENSION
  
- Vmscan's Handling of Unevictable Folios
----------------------------------------
-+---------------------------------------
+ /*
+@@ -54,7 +56,6 @@ struct page_ext {
+ 	unsigned long flags;
+ };
  
- If unevictable folios are culled in the fault path, or moved to the unevictable
- list at mlock() or mmap() time, vmscan will not encounter the folios until they
+-extern bool deferred_struct_pages;
+ extern bool early_page_ext;
+ extern unsigned long page_ext_size;
+ extern void pgdat_page_ext_init(struct pglist_data *pgdat);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-fsdax-dax_unshare_iter-should-return-a-valid-length-fix.patch
-revert-squashfs-harden-sanity-check-in-squashfs_read_xattr_id_table.patch
-mm-remove-page_evictable.patch
-mm-remove-the-swap_readpage-return-value-fix.patch
-block-remove-rw_page-fix.patch
-mm-add-memcpy_from_file_folio-fix.patch
-mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix.patch
-kasan-infer-allocation-size-by-scanning-metadata-fix.patch
-mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix.patch
-error-injection-remove-ei_etype_none-fix.patch
-hfsplus-remove-unnecessary-variable-initialization-fix.patch
-scripts-gdb-add-mm-introspection-utils-fix.patch
-lib-stackdepot-mm-rename-stack_depot_want_early_init-fix.patch
-lib-stackdepot-annotate-racy-slab_index-accesses-fix.patch
+mm-page_ext-do-not-allocate-space-for-page_ext-flags-if-not-needed.patch
+mm-page_ext-init-page_ext-early-if-there-are-no-deferred-struct-pages.patch
 
