@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 552E0C636CC
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:42:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85AF9C636D7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Feb 2023 06:42:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232462AbjBCGmO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232461AbjBCGmO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Feb 2023 01:42:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39480 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36704 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232461AbjBCGku (ORCPT
+        with ESMTP id S232455AbjBCGku (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2023 01:40:50 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57E488FB59
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07AC28FB55
         for <mm-commits@vger.kernel.org>; Thu,  2 Feb 2023 22:37:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E317261D99
-        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43057C433D2;
-        Fri,  3 Feb 2023 06:37:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A953CB828B2
+        for <mm-commits@vger.kernel.org>; Fri,  3 Feb 2023 06:37:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47CE2C433D2;
+        Fri,  3 Feb 2023 06:37:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675406265;
-        bh=WtE1gm4RH3RkJO+x1DBBrdBv0s8UBLfNExtgQxKjllE=;
+        s=korg; t=1675406263;
+        bh=hj2V1ZZYHFfjxkrfMBxQLi0H6rfE+GbwadToWsRXJ+I=;
         h=Date:To:From:Subject:From;
-        b=EfYNSrR8Il+uocE7Un5AwRAOsFdnvSYN4kaMXPU3PZRmrbU90B7Zpe24s+tboOVE1
-         HVNkqWbfjbqn2kd7RU+VMJosveeBsN7LYTNhac2MQsNBhfiwvQY2L8HhdjvPRsMAws
-         N7ATvZ2hvNUyiNcknN251vCznMjmMwvIWQ+gjeX0=
-Date:   Thu, 02 Feb 2023 22:37:44 -0800
+        b=y5z2tJ/LplhEoRjzYr3YmXylq6i7vr496YR+ayEoBvaHAgavACrqJlrJLj60sBQ+u
+         JAqY6QMxbyCBIRxA/pxieAhikM6IdCMoyuWPlwxkDQBOlQomiewxxz02XaiVo16ZQx
+         lPMlcLRvA9wUlr10iNn/GVvWjmyfdJMAIO6YwBTk=
+Date:   Thu, 02 Feb 2023 22:37:42 -0800
 To:     mm-commits@vger.kernel.org, william.kucharski@oracle.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] readahead-convert-readahead_expand-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20230203063745.43057C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] filemap-convert-filemap_map_pmd-to-take-a-folio.patch removed from -mm tree
+Message-Id: <20230203063743.47CE2C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,94 +41,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: readahead: convert readahead_expand() to use a folio
+     Subject: filemap: convert filemap_map_pmd() to take a folio
 has been removed from the -mm tree.  Its filename was
-     readahead-convert-readahead_expand-to-use-a-folio.patch
+     filemap-convert-filemap_map_pmd-to-take-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: readahead: convert readahead_expand() to use a folio
-Date: Mon, 16 Jan 2023 19:39:41 +0000
+Subject: filemap: convert filemap_map_pmd() to take a folio
+Date: Mon, 16 Jan 2023 19:39:39 +0000
 
-Replace the uses of page with a folio.  Also add a missing test for
-workingset in the leading edge expansion.
+Patch series "Some more filemap folio conversions".
 
-Link: https://lkml.kernel.org/r/20230116193941.2148487-4-willy@infradead.org
+Three more places which could easily be converted to folios.  The third
+one fixes a minor bug in readahead_expand(), but it's only a performance
+bug and there are few users of readahead_expand(), so I don't think it's
+worth backporting.
+
+
+This patch (of 3):
+
+Save a few calls to compound_head().  We specify exactly which page from
+the folio to use by passing in start_pgoff, which means this will work for
+a folio which is larger than PMD size.  The rest of the VM isn't prepared
+for that yet, but now this function is.
+
+Link: https://lkml.kernel.org/r/20230116193941.2148487-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230116193941.2148487-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/readahead.c~readahead-convert-readahead_expand-to-use-a-folio
-+++ a/mm/readahead.c
-@@ -801,21 +801,25 @@ void readahead_expand(struct readahead_c
- 	/* Expand the leading edge downwards */
- 	while (ractl->_index > new_index) {
- 		unsigned long index = ractl->_index - 1;
--		struct page *page = xa_load(&mapping->i_pages, index);
-+		struct folio *folio = xa_load(&mapping->i_pages, index);
+--- a/mm/filemap.c~filemap-convert-filemap_map_pmd-to-take-a-folio
++++ a/mm/filemap.c
+@@ -3259,22 +3259,24 @@ out_retry:
+ }
+ EXPORT_SYMBOL(filemap_fault);
  
--		if (page && !xa_is_value(page))
--			return; /* Page apparently present */
-+		if (folio && !xa_is_value(folio))
-+			return; /* Folio apparently present */
+-static bool filemap_map_pmd(struct vm_fault *vmf, struct page *page)
++static bool filemap_map_pmd(struct vm_fault *vmf, struct folio *folio,
++		pgoff_t start)
+ {
+ 	struct mm_struct *mm = vmf->vma->vm_mm;
  
--		page = __page_cache_alloc(gfp_mask);
--		if (!page)
-+		folio = filemap_alloc_folio(gfp_mask, 0);
-+		if (!folio)
- 			return;
--		if (add_to_page_cache_lru(page, mapping, index, gfp_mask) < 0) {
--			put_page(page);
-+		if (filemap_add_folio(mapping, folio, index, gfp_mask) < 0) {
-+			folio_put(folio);
- 			return;
- 		}
--
-+		if (unlikely(folio_test_workingset(folio)) &&
-+				!ractl->_workingset) {
-+			ractl->_workingset = true;
-+			psi_memstall_enter(&ractl->_pflags);
-+		}
- 		ractl->_nr_pages++;
--		ractl->_index = page->index;
-+		ractl->_index = folio->index;
+ 	/* Huge page is mapped? No need to proceed. */
+ 	if (pmd_trans_huge(*vmf->pmd)) {
+-		unlock_page(page);
+-		put_page(page);
++		folio_unlock(folio);
++		folio_put(folio);
+ 		return true;
  	}
  
- 	new_len += new_start - readahead_pos(ractl);
-@@ -824,19 +828,20 @@ void readahead_expand(struct readahead_c
- 	/* Expand the trailing edge upwards */
- 	while (ractl->_nr_pages < new_nr_pages) {
- 		unsigned long index = ractl->_index + ractl->_nr_pages;
--		struct page *page = xa_load(&mapping->i_pages, index);
-+		struct folio *folio = xa_load(&mapping->i_pages, index);
- 
--		if (page && !xa_is_value(page))
--			return; /* Page apparently present */
-+		if (folio && !xa_is_value(folio))
-+			return; /* Folio apparently present */
- 
--		page = __page_cache_alloc(gfp_mask);
--		if (!page)
-+		folio = filemap_alloc_folio(gfp_mask, 0);
-+		if (!folio)
- 			return;
--		if (add_to_page_cache_lru(page, mapping, index, gfp_mask) < 0) {
--			put_page(page);
-+		if (filemap_add_folio(mapping, folio, index, gfp_mask) < 0) {
-+			folio_put(folio);
- 			return;
+-	if (pmd_none(*vmf->pmd) && PageTransHuge(page)) {
++	if (pmd_none(*vmf->pmd) && folio_test_pmd_mappable(folio)) {
++		struct page *page = folio_file_page(folio, start);
+ 		vm_fault_t ret = do_set_pmd(vmf, page);
+ 		if (!ret) {
+ 			/* The page is mapped successfully, reference consumed. */
+-			unlock_page(page);
++			folio_unlock(folio);
+ 			return true;
  		}
--		if (unlikely(PageWorkingset(page)) && !ractl->_workingset) {
-+		if (unlikely(folio_test_workingset(folio)) &&
-+				!ractl->_workingset) {
- 			ractl->_workingset = true;
- 			psi_memstall_enter(&ractl->_pflags);
- 		}
+ 	}
+@@ -3284,8 +3286,8 @@ static bool filemap_map_pmd(struct vm_fa
+ 
+ 	/* See comment in handle_pte_fault() */
+ 	if (pmd_devmap_trans_unstable(vmf->pmd)) {
+-		unlock_page(page);
+-		put_page(page);
++		folio_unlock(folio);
++		folio_put(folio);
+ 		return true;
+ 	}
+ 
+@@ -3368,7 +3370,7 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 	if (!folio)
+ 		goto out;
+ 
+-	if (filemap_map_pmd(vmf, &folio->page)) {
++	if (filemap_map_pmd(vmf, folio, start_pgoff)) {
+ 		ret = VM_FAULT_NOPAGE;
+ 		goto out;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
