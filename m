@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E05FC636D6
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Feb 2023 01:29:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35682C64EC4
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Feb 2023 01:29:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229574AbjBGB3u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Feb 2023 20:29:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36364 "EHLO
+        id S229535AbjBGB3v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Feb 2023 20:29:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230257AbjBGB3n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2023 20:29:43 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 598542C640
-        for <mm-commits@vger.kernel.org>; Mon,  6 Feb 2023 17:29:41 -0800 (PST)
+        with ESMTP id S230265AbjBGB3o (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2023 20:29:44 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 534292ED5B
+        for <mm-commits@vger.kernel.org>; Mon,  6 Feb 2023 17:29:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 10C57B8167B
-        for <mm-commits@vger.kernel.org>; Tue,  7 Feb 2023 01:29:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A050DC4339E;
-        Tue,  7 Feb 2023 01:29:38 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 5941ACE1C95
+        for <mm-commits@vger.kernel.org>; Tue,  7 Feb 2023 01:29:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 756AAC433D2;
+        Tue,  7 Feb 2023 01:29:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675733378;
-        bh=Ufg3qo58FdUFhzLRNyxTUwHEmWfrLT/1HD82w57Atg4=;
+        s=korg; t=1675733376;
+        bh=mmsYjhpdIObSvW9dbmg0tds3IPk+g9s9oa5+O+tYgv4=;
         h=Date:To:From:Subject:From;
-        b=2WCyOMbLNnGL7YLFSn4zEBCzVeb+pSR9WmAYvtKHiXZtJr+gqNq6CB31fxLD8KMkV
-         0iuqIxz7qV+wQcIEwaN8pzZPYWT68R5g0J/Dwy/XpVICN+1t+Qi9RvlPMvhZHbgiN5
-         +3chk/ufwJ3ktm3gM34kZ8o1gIK7eyRkECZcim0M=
-Date:   Mon, 06 Feb 2023 17:29:38 -0800
+        b=X2KDoCexC5FebTzHppxHwigzhIlGWPGaguBJq9IBb8mDFgTbHaw7F0oTVwFlxgpvu
+         TWD+fHsFNppg1zsT/HJmuqh2cwQC30ncZ8TIA1fmQ2H9A6/6XUNlOEXLmw8N820gF2
+         h6dUk1pvIvjIrrYePJGEus/0n+SsaV2pO/rnmC5o=
+Date:   Mon, 06 Feb 2023 17:29:35 -0800
 To:     mm-commits@vger.kernel.org, rppt@kernel.org, jhubbard@nvidia.com,
         imbrenda@linux.ibm.com, hch@infradead.org, dhowells@redhat.com,
         david@redhat.com, apopple@nvidia.com, jgg@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-add-an-assertion-that-the-mmap-lock-is-locked.patch added to mm-unstable branch
-Message-Id: <20230207012938.A050DC4339E@smtp.kernel.org>
+Subject: + mm-gup-simplify-the-external-interface-functions-and-consolidate-invariants.patch added to mm-unstable branch
+Message-Id: <20230207012936.756AAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: add an assertion that the mmap lock is locked
+     Subject: mm/gup: simplify the external interface functions and consolidate invariants
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-add-an-assertion-that-the-mmap-lock-is-locked.patch
+     mm-gup-simplify-the-external-interface-functions-and-consolidate-invariants.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-add-an-assertion-that-the-mmap-lock-is-locked.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-simplify-the-external-interface-functions-and-consolidate-invariants.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,45 +67,368 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jason Gunthorpe <jgg@nvidia.com>
-Subject: mm/gup: add an assertion that the mmap lock is locked
-Date: Tue, 24 Jan 2023 16:34:27 -0400
+Subject: mm/gup: simplify the external interface functions and consolidate invariants
+Date: Tue, 24 Jan 2023 16:34:26 -0400
 
-Since commit 5b78ed24e8ec ("mm/pagemap: add mmap_assert_locked()
-annotations to find_vma*()") we already have this assertion, it is just
-buried in find_vma():
+The GUP family of functions have a complex, but fairly well defined, set
+of invariants for their arguments.  Currently these are sprinkled about,
+sometimes in duplicate through many functions.
 
+Internally we don't follow all the invariants that the external interface
+has to follow, so place these checks directly at the exported interface. 
+This ensures the internal functions never reach a violated invariant.
+
+Remove the duplicated invariant checks.
+
+The end result is to make these functions fully internal:
  __get_user_pages_locked()
-  __get_user_pages()
-  find_extend_vma()
-   find_vma()
+ internal_get_user_pages_fast()
+ __gup_longterm_locked()
 
-Also check it at the top of __get_user_pages_locked() as a form of
-documentation.
+And all the other functions call directly into one of these.
 
-Link: https://lkml.kernel.org/r/6-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
+Link: https://lkml.kernel.org/r/5-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Suggested-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/gup.c~mm-gup-add-an-assertion-that-the-mmap-lock-is-locked
+--- a/mm/gup.c~mm-gup-simplify-the-external-interface-functions-and-consolidate-invariants
 +++ a/mm/gup.c
-@@ -1360,6 +1360,8 @@ static __always_inline long __get_user_p
- 		must_unlock = true;
- 		*locked = 1;
- 	}
-+	else
-+		mmap_assert_locked(mm);
+@@ -215,7 +215,6 @@ int __must_check try_grab_page(struct pa
+ {
+ 	struct folio *folio = page_folio(page);
  
- 	if (flags & FOLL_PIN)
- 		mm_set_has_pinned_flag(&mm->flags);
+-	WARN_ON_ONCE((flags & (FOLL_GET | FOLL_PIN)) == (FOLL_GET | FOLL_PIN));
+ 	if (WARN_ON_ONCE(folio_ref_count(folio) <= 0))
+ 		return -ENOMEM;
+ 
+@@ -818,7 +817,7 @@ struct page *follow_page(struct vm_area_
+ 	if (vma_is_secretmem(vma))
+ 		return NULL;
+ 
+-	if (foll_flags & FOLL_PIN)
++	if (WARN_ON_ONCE(foll_flags & FOLL_PIN))
+ 		return NULL;
+ 
+ 	page = follow_page_mask(vma, address, foll_flags, &ctx);
+@@ -975,9 +974,6 @@ static int check_vma_flags(struct vm_are
+ 	if ((gup_flags & FOLL_LONGTERM) && vma_is_fsdax(vma))
+ 		return -EOPNOTSUPP;
+ 
+-	if ((gup_flags & FOLL_LONGTERM) && (gup_flags & FOLL_PCI_P2PDMA))
+-		return -EOPNOTSUPP;
+-
+ 	if (vma_is_secretmem(vma))
+ 		return -EFAULT;
+ 
+@@ -1354,11 +1350,6 @@ static __always_inline long __get_user_p
+ 	long ret, pages_done;
+ 	bool must_unlock = false;
+ 
+-	if (locked) {
+-		/* if VM_FAULT_RETRY can be returned, vmas become invalid */
+-		BUG_ON(vmas);
+-	}
+-
+ 	/*
+ 	 * The internal caller expects GUP to manage the lock internally and the
+ 	 * lock must be released when this returns.
+@@ -2087,16 +2078,6 @@ static long __gup_longterm_locked(struct
+ 		return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
+ 					       locked, gup_flags);
+ 
+-	/*
+-	 * If we get to this point then FOLL_LONGTERM is set, and FOLL_LONGTERM
+-	 * implies FOLL_PIN (although the reverse is not true). Therefore it is
+-	 * correct to unconditionally call check_and_migrate_movable_pages()
+-	 * which assumes pages have been pinned via FOLL_PIN.
+-	 *
+-	 * Enforce the above reasoning by asserting that FOLL_PIN is set.
+-	 */
+-	if (WARN_ON(!(gup_flags & FOLL_PIN)))
+-		return -EINVAL;
+ 	flags = memalloc_pin_save();
+ 	do {
+ 		nr_pinned_pages = __get_user_pages_locked(mm, start, nr_pages,
+@@ -2106,28 +2087,66 @@ static long __gup_longterm_locked(struct
+ 			rc = nr_pinned_pages;
+ 			break;
+ 		}
++
++		/* FOLL_LONGTERM implies FOLL_PIN */
+ 		rc = check_and_migrate_movable_pages(nr_pinned_pages, pages);
+ 	} while (rc == -EAGAIN);
+ 	memalloc_pin_restore(flags);
+ 	return rc ? rc : nr_pinned_pages;
+ }
+ 
+-static bool is_valid_gup_flags(unsigned int gup_flags)
++/*
++ * Check that the given flags are valid for the exported gup/pup interface, and
++ * update them with the required flags that the caller must have set.
++ */
++static bool is_valid_gup_args(struct page **pages, struct vm_area_struct **vmas,
++			      int *locked, unsigned int *gup_flags_p,
++			      unsigned int to_set)
+ {
++	unsigned int gup_flags = *gup_flags_p;
++
+ 	/*
+-	 * FOLL_PIN must only be set internally by the pin_user_pages*() APIs,
+-	 * never directly by the caller, so enforce that with an assertion:
++	 * These flags not allowed to be specified externally to the gup
++	 * interfaces:
++	 * - FOLL_PIN/FOLL_TRIED/FOLL_FAST_ONLY are internal only
++	 * - FOLL_REMOTE is internal only and used on follow_page()
+ 	 */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
++	if (WARN_ON_ONCE(gup_flags & (FOLL_PIN | FOLL_TRIED |
++				      FOLL_REMOTE | FOLL_FAST_ONLY)))
++		return false;
++
++	gup_flags |= to_set;
++
++	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
++	if (WARN_ON_ONCE((gup_flags & (FOLL_PIN | FOLL_GET)) ==
++			 (FOLL_PIN | FOLL_GET)))
++		return false;
++
++	/* LONGTERM can only be specified when pinning */
++	if (WARN_ON_ONCE(!(gup_flags & FOLL_PIN) && (gup_flags & FOLL_LONGTERM)))
++		return false;
++
++	/* Pages input must be given if using GET/PIN */
++	if (WARN_ON_ONCE((gup_flags & (FOLL_GET | FOLL_PIN)) && !pages))
+ 		return false;
++
++	/* At the external interface locked must be set */
++	if (WARN_ON_ONCE(locked && *locked != 1))
++		return false;
++
++	/* We want to allow the pgmap to be hot-unplugged at all times */
++	if (WARN_ON_ONCE((gup_flags & FOLL_LONGTERM) &&
++			 (gup_flags & FOLL_PCI_P2PDMA)))
++		return false;
++
+ 	/*
+-	 * FOLL_PIN is a prerequisite to FOLL_LONGTERM. Another way of saying
+-	 * that is, FOLL_LONGTERM is a specific case, more restrictive case of
+-	 * FOLL_PIN.
++	 * Can't use VMAs with locked, as locked allows GUP to unlock
++	 * which invalidates the vmas array
+ 	 */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_LONGTERM))
++	if (WARN_ON_ONCE(vmas && locked))
+ 		return false;
+ 
++	*gup_flags_p = gup_flags;
+ 	return true;
+ }
+ 
+@@ -2197,11 +2216,12 @@ long get_user_pages_remote(struct mm_str
+ 		unsigned int gup_flags, struct page **pages,
+ 		struct vm_area_struct **vmas, int *locked)
+ {
+-	if (!is_valid_gup_flags(gup_flags))
++	if (!is_valid_gup_args(pages, vmas, locked, &gup_flags,
++			       FOLL_TOUCH | FOLL_REMOTE))
+ 		return -EINVAL;
+ 
+ 	return __get_user_pages_locked(mm, start, nr_pages, pages, vmas, locked,
+-				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
++				       gup_flags);
+ }
+ EXPORT_SYMBOL(get_user_pages_remote);
+ 
+@@ -2235,11 +2255,11 @@ long get_user_pages(unsigned long start,
+ 		unsigned int gup_flags, struct page **pages,
+ 		struct vm_area_struct **vmas)
+ {
+-	if (!is_valid_gup_flags(gup_flags))
++	if (!is_valid_gup_args(pages, vmas, NULL, &gup_flags, FOLL_TOUCH))
+ 		return -EINVAL;
+ 
+ 	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
+-				       vmas, NULL, gup_flags | FOLL_TOUCH);
++				       vmas, NULL, gup_flags);
+ }
+ EXPORT_SYMBOL(get_user_pages);
+ 
+@@ -2263,8 +2283,11 @@ long get_user_pages_unlocked(unsigned lo
+ {
+ 	int locked = 0;
+ 
++	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_TOUCH))
++		return -EINVAL;
++
+ 	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
+-				       NULL, &locked, gup_flags | FOLL_TOUCH);
++				       NULL, &locked, gup_flags);
+ }
+ EXPORT_SYMBOL(get_user_pages_unlocked);
+ 
+@@ -2992,7 +3015,9 @@ int get_user_pages_fast_only(unsigned lo
+ 	 * FOLL_FAST_ONLY is required in order to match the API description of
+ 	 * this routine: no fall back to regular ("slow") GUP.
+ 	 */
+-	gup_flags |= FOLL_GET | FOLL_FAST_ONLY;
++	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
++			       FOLL_GET | FOLL_FAST_ONLY))
++		return -EINVAL;
+ 
+ 	nr_pinned = internal_get_user_pages_fast(start, nr_pages, gup_flags,
+ 						 pages);
+@@ -3029,16 +3054,14 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast_on
+ int get_user_pages_fast(unsigned long start, int nr_pages,
+ 			unsigned int gup_flags, struct page **pages)
+ {
+-	if (!is_valid_gup_flags(gup_flags))
+-		return -EINVAL;
+-
+ 	/*
+ 	 * The caller may or may not have explicitly set FOLL_GET; either way is
+ 	 * OK. However, internally (within mm/gup.c), gup fast variants must set
+ 	 * FOLL_GET, because gup fast is always a "pin with a +1 page refcount"
+ 	 * request.
+ 	 */
+-	gup_flags |= FOLL_GET;
++	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_GET))
++		return -EINVAL;
+ 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
+ }
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
+@@ -3062,14 +3085,8 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
+ int pin_user_pages_fast(unsigned long start, int nr_pages,
+ 			unsigned int gup_flags, struct page **pages)
+ {
+-	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
++	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_PIN))
+ 		return -EINVAL;
+-
+-	if (WARN_ON_ONCE(!pages))
+-		return -EINVAL;
+-
+-	gup_flags |= FOLL_PIN;
+ 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
+ }
+ EXPORT_SYMBOL_GPL(pin_user_pages_fast);
+@@ -3086,19 +3103,13 @@ int pin_user_pages_fast_only(unsigned lo
+ 	int nr_pinned;
+ 
+ 	/*
+-	 * FOLL_GET and FOLL_PIN are mutually exclusive. Note that the API
+-	 * rules require returning 0, rather than -errno:
+-	 */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
+-		return 0;
+-
+-	if (WARN_ON_ONCE(!pages))
+-		return 0;
+-	/*
+ 	 * FOLL_FAST_ONLY is required in order to match the API description of
+ 	 * this routine: no fall back to regular ("slow") GUP.
+ 	 */
+-	gup_flags |= (FOLL_PIN | FOLL_FAST_ONLY);
++	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
++			       FOLL_PIN | FOLL_FAST_ONLY))
++		return 0;
++
+ 	nr_pinned = internal_get_user_pages_fast(start, nr_pages, gup_flags,
+ 						 pages);
+ 	/*
+@@ -3140,16 +3151,11 @@ long pin_user_pages_remote(struct mm_str
+ 			   unsigned int gup_flags, struct page **pages,
+ 			   struct vm_area_struct **vmas, int *locked)
+ {
+-	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
+-		return -EINVAL;
+-
+-	if (WARN_ON_ONCE(!pages))
+-		return -EINVAL;
+-
++	if (!is_valid_gup_args(pages, vmas, locked, &gup_flags,
++			       FOLL_PIN | FOLL_TOUCH | FOLL_REMOTE))
++		return 0;
+ 	return __gup_longterm_locked(mm, start, nr_pages, pages, vmas, locked,
+-				     gup_flags | FOLL_PIN | FOLL_TOUCH |
+-					     FOLL_REMOTE);
++				     gup_flags);
+ }
+ EXPORT_SYMBOL(pin_user_pages_remote);
+ 
+@@ -3174,14 +3180,8 @@ long pin_user_pages(unsigned long start,
+ 		    unsigned int gup_flags, struct page **pages,
+ 		    struct vm_area_struct **vmas)
+ {
+-	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
+-		return -EINVAL;
+-
+-	if (WARN_ON_ONCE(!pages))
+-		return -EINVAL;
+-
+-	gup_flags |= FOLL_PIN;
++	if (!is_valid_gup_args(pages, vmas, NULL, &gup_flags, FOLL_PIN))
++		return 0;
+ 	return __gup_longterm_locked(current->mm, start, nr_pages,
+ 				     pages, vmas, NULL, gup_flags);
+ }
+@@ -3195,15 +3195,12 @@ EXPORT_SYMBOL(pin_user_pages);
+ long pin_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
+ 			     struct page **pages, unsigned int gup_flags)
+ {
+-	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
+-		return -EINVAL;
+ 	int locked = 0;
+ 
+-	if (WARN_ON_ONCE(!pages))
+-		return -EINVAL;
++	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
++			       FOLL_PIN | FOLL_TOUCH))
++		return 0;
+ 
+-	gup_flags |= FOLL_PIN | FOLL_TOUCH;
+ 	return __gup_longterm_locked(current->mm, start, nr_pages, pages, NULL,
+ 				     &locked, gup_flags);
+ }
+--- a/mm/huge_memory.c~mm-gup-simplify-the-external-interface-functions-and-consolidate-invariants
++++ a/mm/huge_memory.c
+@@ -1042,11 +1042,6 @@ struct page *follow_devmap_pmd(struct vm
+ 
+ 	assert_spin_locked(pmd_lockptr(mm, pmd));
+ 
+-	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+-	if (WARN_ON_ONCE((flags & (FOLL_PIN | FOLL_GET)) ==
+-			 (FOLL_PIN | FOLL_GET)))
+-		return NULL;
+-
+ 	if (flags & FOLL_WRITE && !pmd_write(*pmd))
+ 		return NULL;
+ 
+@@ -1205,11 +1200,6 @@ struct page *follow_devmap_pud(struct vm
+ 	if (flags & FOLL_WRITE && !pud_write(*pud))
+ 		return NULL;
+ 
+-	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+-	if (WARN_ON_ONCE((flags & (FOLL_PIN | FOLL_GET)) ==
+-			 (FOLL_PIN | FOLL_GET)))
+-		return NULL;
+-
+ 	if (pud_present(*pud) && pud_devmap(*pud))
+ 		/* pass */;
+ 	else
 _
 
 Patches currently in -mm which might be from jgg@nvidia.com are
