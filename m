@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4B3FC61DA4
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Feb 2023 01:29:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23BE0C636D3
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Feb 2023 01:29:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229805AbjBGB3g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229649AbjBGB3g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 6 Feb 2023 20:29:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36304 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229649AbjBGB3f (ORCPT
+        with ESMTP id S229791AbjBGB3f (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2023 20:29:35 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AC652ED42
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D228D2ED54
         for <mm-commits@vger.kernel.org>; Mon,  6 Feb 2023 17:29:33 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 23DAACE1C47
-        for <mm-commits@vger.kernel.org>; Tue,  7 Feb 2023 01:29:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EEEDC433EF;
-        Tue,  7 Feb 2023 01:29:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6E0E2610A6
+        for <mm-commits@vger.kernel.org>; Tue,  7 Feb 2023 01:29:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE24CC433D2;
+        Tue,  7 Feb 2023 01:29:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675733369;
-        bh=UrGvj0YK4QgTY00bkSXRkNVFm90lwMfL8vfI7CO/jEI=;
+        s=korg; t=1675733372;
+        bh=REez/GRAy8ccSGRuCL67WZUunQzPR6qYLNrPXBamfgw=;
         h=Date:To:From:Subject:From;
-        b=HAV6WiSXzsym37R4xIJJXDbjbPSYr6RSEfz9HRyc3DIG7bBe67dCqsa61wVr2egMj
-         7TizwxPoe8skW7q+PWPoPzHRxiUzu/ZSDiW+M9SP2ewZos2M+pXFIQEy5t+7NyNCD5
-         mmlBDBeB8BqFGdyaurnPPh7O4/YyvXU+2qDILMGE=
-Date:   Mon, 06 Feb 2023 17:29:28 -0800
+        b=ljSc0KusJNg893Qwr8kK3G3/UpTTFw1ZQ/BfzfTTVbe+O21d45ejLTIyrlUZj8Qdl
+         huJ1rxhpoLxywi7CCWKPIKs428vXPohnpUC3VTptNc0xk8eebd1vtfz0fGCvjb9j0Z
+         L3p8uP3FY0e/tVVtoEJuE28Vo33fBBp59LzYezZY=
+Date:   Mon, 06 Feb 2023 17:29:32 -0800
 To:     mm-commits@vger.kernel.org, rppt@kernel.org, jhubbard@nvidia.com,
         imbrenda@linux.ibm.com, hch@infradead.org, dhowells@redhat.com,
         david@redhat.com, apopple@nvidia.com, jgg@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-have-internal-functions-get-the-mmap_read_lock.patch added to mm-unstable branch
-Message-Id: <20230207012929.3EEEDC433EF@smtp.kernel.org>
+Subject: + mm-gup-dont-call-__gup_longterm_locked-if-foll_longterm-cannot-be-set.patch added to mm-unstable branch
+Message-Id: <20230207012932.BE24CC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: have internal functions get the mmap_read_lock()
+     Subject: mm/gup: don't call __gup_longterm_locked() if FOLL_LONGTERM cannot be set
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-have-internal-functions-get-the-mmap_read_lock.patch
+     mm-gup-dont-call-__gup_longterm_locked-if-foll_longterm-cannot-be-set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-have-internal-functions-get-the-mmap_read_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-dont-call-__gup_longterm_locked-if-foll_longterm-cannot-be-set.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,314 +67,64 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jason Gunthorpe <jgg@nvidia.com>
-Subject: mm/gup: have internal functions get the mmap_read_lock()
-Date: Tue, 24 Jan 2023 16:34:22 -0400
+Subject: mm/gup: don't call __gup_longterm_locked() if FOLL_LONGTERM cannot be set
+Date: Tue, 24 Jan 2023 16:34:24 -0400
 
-Patch series "Simplify the external interface for GUP", v2.
+get_user_pages_remote(), get_user_pages_unlocked() and get_user_pages()
+are never called with FOLL_LONGTERM, so directly call
+__get_user_pages_locked()
 
-It is quite a maze of EXPORTED symbols leading up to the three actual
-worker functions of GUP. Simplify this by reorganizing some of the code so
-the EXPORTED symbols directly call the correct internal function with
-validated and consistent arguments.
+The next patch will add an assertion for this.
 
-Consolidate all the assertions into one place at the top of the call
-chains.
-
-Remove some dead code.
-
-Move more things into the mm/internal.h header
-
-
-This patch (of 13):
-
-__get_user_pages_locked() and __gup_longterm_locked() both require the
-mmap lock to be held.  They have a slightly unusual locked parameter that
-is used to allow these functions to unlock and relock the mmap lock and
-convey that fact to the caller.
-
-Several places wrap these functions with a simple mmap_read_lock() just so
-they can follow the optimized locked protocol.
-
-Consolidate this internally to the functions.  Allow internal callers to
-set locked = 0 to cause the functions to acquire and release the lock on
-their own.
-
-Reorganize __gup_longterm_locked() to use the autolocking in
-__get_user_pages_locked().
-
-Replace all the places obtaining the mmap_read_lock() just to call
-__get_user_pages_locked() with the new mechanism.  Replace all the
-internal callers of get_user_pages_unlocked() with direct calls to
-__gup_longterm_locked() using the new mechanism.
-
-A following patch will add assertions ensuring the external interface
-continues to always pass in locked = 1.
-
-Link: https://lkml.kernel.org/r/0-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
-Link: https://lkml.kernel.org/r/1-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
+Link: https://lkml.kernel.org/r/3-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Suggested-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/gup.c~mm-gup-have-internal-functions-get-the-mmap_read_lock
+--- a/mm/gup.c~mm-gup-dont-call-__gup_longterm_locked-if-foll_longterm-cannot-be-set
 +++ a/mm/gup.c
-@@ -1331,8 +1331,17 @@ static bool gup_signal_pending(unsigned
- }
- 
- /*
-- * Please note that this function, unlike __get_user_pages will not
-- * return 0 for nr_pages > 0 without FOLL_NOWAIT
-+ * Locking: (*locked == 1) means that the mmap_lock has already been acquired by
-+ * the caller. This function may drop the mmap_lock. If it does so, then it will
-+ * set (*locked = 0).
-+ *
-+ * (*locked == 0) means that the caller expects this function to acquire and
-+ * drop the mmap_lock. Therefore, the value of *locked will still be zero when
-+ * the function returns, even though it may have changed temporarily during
-+ * function execution.
-+ *
-+ * Please note that this function, unlike __get_user_pages(), will not return 0
-+ * for nr_pages > 0, unless FOLL_NOWAIT is used.
-  */
- static __always_inline long __get_user_pages_locked(struct mm_struct *mm,
- 						unsigned long start,
-@@ -1343,13 +1352,22 @@ static __always_inline long __get_user_p
- 						unsigned int flags)
- {
- 	long ret, pages_done;
--	bool lock_dropped;
-+	bool must_unlock = false;
- 
- 	if (locked) {
- 		/* if VM_FAULT_RETRY can be returned, vmas become invalid */
- 		BUG_ON(vmas);
--		/* check caller initialized locked */
--		BUG_ON(*locked != 1);
-+	}
-+
-+	/*
-+	 * The internal caller expects GUP to manage the lock internally and the
-+	 * lock must be released when this returns.
-+	 */
-+	if (locked && !*locked) {
-+		if (mmap_read_lock_killable(mm))
-+			return -EAGAIN;
-+		must_unlock = true;
-+		*locked = 1;
- 	}
- 
- 	if (flags & FOLL_PIN)
-@@ -1368,7 +1386,6 @@ static __always_inline long __get_user_p
- 		flags |= FOLL_GET;
- 
- 	pages_done = 0;
--	lock_dropped = false;
- 	for (;;) {
- 		ret = __get_user_pages(mm, start, nr_pages, flags, pages,
- 				       vmas, locked);
-@@ -1404,7 +1421,9 @@ static __always_inline long __get_user_p
- 		if (likely(pages))
- 			pages += ret;
- 		start += ret << PAGE_SHIFT;
--		lock_dropped = true;
-+
-+		/* The lock was temporarily dropped, so we must unlock later */
-+		must_unlock = true;
- 
- retry:
- 		/*
-@@ -1451,10 +1470,11 @@ retry:
- 			pages++;
- 		start += PAGE_SIZE;
- 	}
--	if (lock_dropped && *locked) {
-+	if (must_unlock && *locked) {
- 		/*
--		 * We must let the caller know we temporarily dropped the lock
--		 * and so the critical section protected by it was lost.
-+		 * We either temporarily dropped the lock, or the caller
-+		 * requested that we both acquire and drop the lock. Either way,
-+		 * we must now unlock, and notify the caller of that state.
- 		 */
- 		mmap_read_unlock(mm);
- 		*locked = 0;
-@@ -1659,9 +1679,24 @@ static long __get_user_pages_locked(stru
- 		unsigned int foll_flags)
- {
- 	struct vm_area_struct *vma;
-+	bool must_unlock = false;
- 	unsigned long vm_flags;
- 	long i;
- 
-+	if (!nr_pages)
-+		return 0;
-+
-+	/*
-+	 * The internal caller expects GUP to manage the lock internally and the
-+	 * lock must be released when this returns.
-+	 */
-+	if (locked && !*locked) {
-+		if (mmap_read_lock_killable(mm))
-+			return -EAGAIN;
-+		must_unlock = true;
-+		*locked = 1;
-+	}
-+
- 	/* calculate required read or write permissions.
- 	 * If FOLL_FORCE is set, we only require the "MAY" flags.
- 	 */
-@@ -1673,12 +1708,12 @@ static long __get_user_pages_locked(stru
- 	for (i = 0; i < nr_pages; i++) {
- 		vma = find_vma(mm, start);
- 		if (!vma)
--			goto finish_or_fault;
-+			break;
- 
- 		/* protect what we can, including chardevs */
- 		if ((vma->vm_flags & (VM_IO | VM_PFNMAP)) ||
- 		    !(vm_flags & vma->vm_flags))
--			goto finish_or_fault;
-+			break;
- 
- 		if (pages) {
- 			pages[i] = virt_to_page((void *)start);
-@@ -1690,9 +1725,11 @@ static long __get_user_pages_locked(stru
- 		start = (start + PAGE_SIZE) & PAGE_MASK;
- 	}
- 
--	return i;
-+	if (must_unlock && *locked) {
-+		mmap_read_unlock(mm);
-+		*locked = 0;
-+	}
- 
--finish_or_fault:
- 	return i ? : -EFAULT;
- }
- #endif /* !CONFIG_MMU */
-@@ -1861,17 +1898,13 @@ EXPORT_SYMBOL(fault_in_readable);
- #ifdef CONFIG_ELF_CORE
- struct page *get_dump_page(unsigned long addr)
- {
--	struct mm_struct *mm = current->mm;
- 	struct page *page;
--	int locked = 1;
-+	int locked = 0;
- 	int ret;
- 
--	if (mmap_read_lock_killable(mm))
--		return NULL;
--	ret = __get_user_pages_locked(mm, addr, 1, &page, NULL, &locked,
-+	ret = __get_user_pages_locked(current->mm, addr, 1, &page, NULL,
-+				      &locked,
- 				      FOLL_FORCE | FOLL_DUMP | FOLL_GET);
--	if (locked)
--		mmap_read_unlock(mm);
- 	return (ret == 1) ? page : NULL;
- }
- #endif /* CONFIG_ELF_CORE */
-@@ -2047,13 +2080,9 @@ static long __gup_longterm_locked(struct
- 				  int *locked,
- 				  unsigned int gup_flags)
- {
--	bool must_unlock = false;
- 	unsigned int flags;
- 	long rc, nr_pinned_pages;
- 
--	if (locked && WARN_ON_ONCE(!*locked))
--		return -EINVAL;
--
- 	if (!(gup_flags & FOLL_LONGTERM))
- 		return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
- 					       locked, gup_flags);
-@@ -2070,11 +2099,6 @@ static long __gup_longterm_locked(struct
+@@ -2200,8 +2200,8 @@ long get_user_pages_remote(struct mm_str
+ 	if (!is_valid_gup_flags(gup_flags))
  		return -EINVAL;
- 	flags = memalloc_pin_save();
- 	do {
--		if (locked && !*locked) {
--			mmap_read_lock(mm);
--			must_unlock = true;
--			*locked = 1;
--		}
- 		nr_pinned_pages = __get_user_pages_locked(mm, start, nr_pages,
- 							  pages, vmas, locked,
- 							  gup_flags);
-@@ -2085,11 +2109,6 @@ static long __gup_longterm_locked(struct
- 		rc = check_and_migrate_movable_pages(nr_pinned_pages, pages);
- 	} while (rc == -EAGAIN);
- 	memalloc_pin_restore(flags);
--
--	if (locked && *locked && must_unlock) {
--		mmap_read_unlock(mm);
--		*locked = 0;
--	}
- 	return rc ? rc : nr_pinned_pages;
+ 
+-	return __gup_longterm_locked(mm, start, nr_pages, pages, vmas, locked,
+-				     gup_flags | FOLL_TOUCH | FOLL_REMOTE);
++	return __get_user_pages_locked(mm, start, nr_pages, pages, vmas, locked,
++				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
  }
+ EXPORT_SYMBOL(get_user_pages_remote);
  
-@@ -2242,16 +2261,10 @@ EXPORT_SYMBOL(get_user_pages);
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 			     struct page **pages, unsigned int gup_flags)
+@@ -2238,8 +2238,8 @@ long get_user_pages(unsigned long start,
+ 	if (!is_valid_gup_flags(gup_flags))
+ 		return -EINVAL;
+ 
+-	return __gup_longterm_locked(current->mm, start, nr_pages,
+-				     pages, vmas, NULL, gup_flags | FOLL_TOUCH);
++	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
++				       vmas, NULL, gup_flags | FOLL_TOUCH);
+ }
+ EXPORT_SYMBOL(get_user_pages);
+ 
+@@ -2263,8 +2263,8 @@ long get_user_pages_unlocked(unsigned lo
  {
--	struct mm_struct *mm = current->mm;
--	int locked = 1;
--	long ret;
-+	int locked = 0;
+ 	int locked = 0;
  
--	mmap_read_lock(mm);
--	ret = __gup_longterm_locked(mm, start, nr_pages, pages, NULL, &locked,
--				    gup_flags | FOLL_TOUCH);
--	if (locked)
--		mmap_read_unlock(mm);
--	return ret;
-+	return __gup_longterm_locked(current->mm, start, nr_pages, pages, NULL,
-+				     &locked, gup_flags | FOLL_TOUCH);
+-	return __gup_longterm_locked(current->mm, start, nr_pages, pages, NULL,
+-				     &locked, gup_flags | FOLL_TOUCH);
++	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
++				       NULL, &locked, gup_flags | FOLL_TOUCH);
  }
  EXPORT_SYMBOL(get_user_pages_unlocked);
  
-@@ -2904,6 +2917,7 @@ static int internal_get_user_pages_fast(
- {
- 	unsigned long len, end;
- 	unsigned long nr_pinned;
-+	int locked = 0;
- 	int ret;
- 
- 	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
-@@ -2932,8 +2946,9 @@ static int internal_get_user_pages_fast(
- 	/* Slow path: try to get the remaining pages with get_user_pages */
- 	start += nr_pinned << PAGE_SHIFT;
- 	pages += nr_pinned;
--	ret = get_user_pages_unlocked(start, nr_pages - nr_pinned, pages,
--				      gup_flags);
-+	ret = __gup_longterm_locked(current->mm, start, nr_pages - nr_pinned,
-+				    pages, NULL, &locked,
-+				    gup_flags | FOLL_TOUCH);
- 	if (ret < 0) {
- 		/*
- 		 * The caller has to unpin the pages we already pinned so
-@@ -3183,11 +3198,13 @@ long pin_user_pages_unlocked(unsigned lo
- 	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
- 	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
- 		return -EINVAL;
-+	int locked = 0;
- 
- 	if (WARN_ON_ONCE(!pages))
- 		return -EINVAL;
- 
--	gup_flags |= FOLL_PIN;
--	return get_user_pages_unlocked(start, nr_pages, pages, gup_flags);
-+	gup_flags |= FOLL_PIN | FOLL_TOUCH;
-+	return __gup_longterm_locked(current->mm, start, nr_pages, pages, NULL,
-+				     &locked, gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages_unlocked);
 _
 
 Patches currently in -mm which might be from jgg@nvidia.com are
