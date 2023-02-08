@@ -2,98 +2,93 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 843C8C636CC
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Feb 2023 22:55:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65070C636D3
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Feb 2023 22:07:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229995AbjBGWzE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Feb 2023 17:55:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44820 "EHLO
+        id S232171AbjBHWHk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Feb 2023 17:07:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230020AbjBGWzE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2023 17:55:04 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BF4622A03
-        for <mm-commits@vger.kernel.org>; Tue,  7 Feb 2023 14:55:03 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0050761309
-        for <mm-commits@vger.kernel.org>; Tue,  7 Feb 2023 22:55:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 528F7C433EF;
-        Tue,  7 Feb 2023 22:55:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675810502;
-        bh=QraoPQZUjmoZovXNVpwwiOQRrRsagmR+784RSOEk6Ac=;
-        h=Date:To:From:Subject:From;
-        b=QwRtiBUm7mzxv1WkOPZ2Sa/YQczgPYMvjzy5R1m8y4t0Xxo4r/Yq0x5XZUjhmUvo3
-         w9Z+fGYuAt7gTPe2pYCPf47VkSMRJJcln8JVh/9eoE0aRef18ZBvrooeqLiWOJ76i2
-         mJ25Pm41SvMsbzf0trIHH8Mi6+HcdKDZoxBuhmhI=
-Date:   Tue, 07 Feb 2023 14:55:01 -0800
-To:     mm-commits@vger.kernel.org, dan.j.williams@intel.com,
-        lizhijian@fujitsu.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memremapc-fix-outdated-comment-in-devm_memremap_pages.patch added to mm-unstable branch
-Message-Id: <20230207225502.528F7C433EF@smtp.kernel.org>
+        with ESMTP id S231880AbjBHWHj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2023 17:07:39 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC3332D141
+        for <mm-commits@vger.kernel.org>; Wed,  8 Feb 2023 14:07:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=HlvR3d/6n/F587Rd5qM29kAwyzm+92Ti0VB36bENoZI=; b=mbCJ/juuRXUhePBQukWRHHwoE/
+        0ZQBBPyYgc0sHOQ/ulRO6piRc8cQMlQCw4NdFFFZ2McPqpZSWBBweu2wOyScUiF1JmOKuz7TlzHtM
+        D1se+rqKTsLGh2tag4JwO3SHTBWjFl4Qy+MB2WEaesknQHVlY44N5uNyrzJ6y71TA/tJTcYXmctvs
+        BxI3OEjI2BlQeenp9SbDnpNQ8GwRgFRMVnnMM3HzlFPR41HELpHU65jBRnRIDDST0L1Xx0vsABMNU
+        B/s6n8ZaZf74+laQt3b5ZfNBgXGkUHsSS0RCyj5+cWOkARZBoNRD7Te070QAKniWU4jCX3c5qBLt/
+        0l2/8wVA==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1pPsbF-001aDN-DN; Wed, 08 Feb 2023 22:07:33 +0000
+Date:   Wed, 8 Feb 2023 22:07:33 +0000
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, vbabka@suse.cz, surenb@google.com,
+        shakeelb@google.com, rientjes@google.com,
+        quic_pkondeti@quicinc.com, quic_charante@quicinc.com,
+        mhocko@suse.com, markhemm@googlemail.com, hughd@google.com
+Subject: Re: + shmem-add-shmem_read_folio-and-shmem_read_folio_gfp.patch
+ added to mm-unstable branch
+Message-ID: <Y+QdJTuzxeBYejw2@casper.infradead.org>
+References: <20230207010408.34435C433EF@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230207010408.34435C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Mon, Feb 06, 2023 at 05:04:07PM -0800, Andrew Morton wrote:
+> +struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
+> +					 pgoff_t index, gfp_t gfp)
+> +{
+> +	struct folio *folio = shmem_read_folio_gfp(mapping, index, gfp);
+> +	struct page *page = folio_file_page(folio, index);
+> +
 
-The patch titled
-     Subject: mm/memremap.c: fix outdated comment in devm_memremap_pages
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memremapc-fix-outdated-comment-in-devm_memremap_pages.patch
+Ugh, insufficiently cautious.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memremapc-fix-outdated-comment-in-devm_memremap_pages.patch
+This should have been
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+	struct folio *folio = shmem_read_folio_gfp(mapping, index, gfp);
+	struct page *page;
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+	if (IS_ERR(folio))
+		return &folio->page;
+	page = folio_file_page(folio, index);
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+Unfortunately I have to go out now, but that's the solution to the
+latest syzbot splat I saw.  I'll do you a proper -fix patch later
+if you don't get to it first.
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Li Zhijian <lizhijian@fujitsu.com>
-Subject: mm/memremap.c: fix outdated comment in devm_memremap_pages
-Date: Tue, 7 Feb 2023 06:27:00 +0000
-
-commit a4574f63edc6 ("mm/memremap_pages: convert to 'struct range'")
-converted res to range, update the comment correspondingly.
-
-Link: https://lkml.kernel.org/r/1675751220-2-1-git-send-email-lizhijian@fujitsu.com
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/memremap.c~mm-memremapc-fix-outdated-comment-in-devm_memremap_pages
-+++ a/mm/memremap.c
-@@ -385,7 +385,7 @@ EXPORT_SYMBOL_GPL(memremap_pages);
-  * @pgmap: pointer to a struct dev_pagemap
-  *
-  * Notes:
-- * 1/ At a minimum the res and type members of @pgmap must be initialized
-+ * 1/ At a minimum the range and type members of @pgmap must be initialized
-  *    by the caller before passing it to this function
-  *
-  * 2/ The altmap field may optionally be initialized, in which case
-_
-
-Patches currently in -mm which might be from lizhijian@fujitsu.com are
-
-mm-memremapc-fix-outdated-comment-in-devm_memremap_pages.patch
-
+>  	if (PageHWPoison(page)) {
+>  		folio_put(folio);
+>  		return ERR_PTR(-EIO);
+>  	}
+>  
+>  	return page;
+> -#else
+> -	/*
+> -	 * The tiny !SHMEM case uses ramfs without swap
+> -	 */
+> -	return read_cache_page_gfp(mapping, index, gfp);
+> -#endif
+>  }
+>  EXPORT_SYMBOL_GPL(shmem_read_mapping_page_gfp);
+> _
+> 
+> Patches currently in -mm which might be from willy@infradead.org are
+> 
+> mm-add-memcpy_from_file_folio.patch
+> filemap-add-mapping_read_folio_gfp.patch
+> shmem-add-shmem_read_folio-and-shmem_read_folio_gfp.patch
+> shmem-fix-w=1-build-warnings-with-config_shmem=n.patch
+> 
