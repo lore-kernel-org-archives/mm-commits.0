@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C0C3C636D6
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Feb 2023 21:29:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EF35C05027
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Feb 2023 22:01:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230292AbjBIV3o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Feb 2023 16:29:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37830 "EHLO
+        id S230107AbjBIWBP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 17:01:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230040AbjBIV3n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 16:29:43 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA4ED5ACC1;
-        Thu,  9 Feb 2023 13:29:42 -0800 (PST)
+        with ESMTP id S229460AbjBIWBP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 17:01:15 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F04A2656A3;
+        Thu,  9 Feb 2023 14:01:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5A377B816DD;
-        Thu,  9 Feb 2023 21:29:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08A11C4339C;
-        Thu,  9 Feb 2023 21:29:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E01761B89;
+        Thu,  9 Feb 2023 22:01:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8116C433EF;
+        Thu,  9 Feb 2023 22:01:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675978180;
-        bh=HVBtsj0d+zxhqBt4QDtTRv3AilgydBUVKjFcLtKL5h0=;
+        s=korg; t=1675980071;
+        bh=MEM5Eq+Cc129af3iSNYKlayCiQ6m6MiCeukgCgHocAg=;
         h=Date:To:From:Subject:From;
-        b=tp7QNhGbWFSFFwvVQAlUv0gw+4vHT12sdlzoFyNXPo3d0CcfoG2OTayIDN5kJvBb3
-         AbVG1YHlvDJaoX+1i9vLROoUZELyAcJOj5Z96bVBS1bxCD3f2zFct8syxNIaIqWws2
-         lj+MB0/nOIYsdwtKnh1TY5y2OcLyrxOy3jXtdmhs=
-Date:   Thu, 09 Feb 2023 13:29:39 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        shy828301@gmail.com, hughd@google.com, zokeefe@google.com,
+        b=u3lAqb2Fd+/O7K1sg24Lux2FI8mT0Va9HLX4/u/SxCFH4J4xLCk53cIv10/7ZshQR
+         N4hwVvRD4WNVcFG8pI0u+9KJ5viznPlFQKQ71oMZWlRmI32antcHgB9rvUm6Ttay17
+         m8Yc36hOyS7Cm2dtSrBkUM31LTp8oZmxwJ2jDSqY=
+Date:   Thu, 09 Feb 2023 14:01:11 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, david.chen@nutanix.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madv_collapse-set-eagain-on-unexpected-page-refcount.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230209212940.08A11C4339C@smtp.kernel.org>
+Subject: + fix-page-corruption-caused-by-racy-check-in-__free_pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230209220111.D8116C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/MADV_COLLAPSE: set EAGAIN on unexpected page refcount
+     Subject: mm/page_alloc.c: fix page corruption caused by racy check in __free_pages
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-madv_collapse-set-eagain-on-unexpected-page-refcount.patch
+     fix-page-corruption-caused-by-racy-check-in-__free_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madv_collapse-set-eagain-on-unexpected-page-refcount.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-page-corruption-caused-by-racy-check-in-__free_pages.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,45 +65,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/MADV_COLLAPSE: set EAGAIN on unexpected page refcount
-Date: Tue, 24 Jan 2023 17:57:37 -0800
+From: David Chen <david.chen@nutanix.com>
+Subject: mm/page_alloc.c: fix page corruption caused by racy check in __free_pages
+Date: Thu, 9 Feb 2023 17:48:28 +0000
 
-During collapse, in a few places we check to see if a given small page has
-any unaccounted references.  If the refcount on the page doesn't match our
-expectations, it must be there is an unknown user concurrently interested
-in the page, and so it's not safe to move the contents elsewhere. 
-However, the unaccounted pins are likely an ephemeral state.
+When we upgraded our kernel, we started seeing some page corruption like
+the following consistently:
 
-In such a situation, make MADV_COLLAPSE set EAGAIN errno, indicating that
-collapse may succeed on retry.
+ BUG: Bad page state in process ganesha.nfsd  pfn:1304ca
+ page:0000000022261c55 refcount:0 mapcount:-128 mapping:0000000000000000 in=
+dex:0x0 pfn:0x1304ca
+ flags: 0x17ffffc0000000()
+ raw: 0017ffffc0000000 ffff8a513ffd4c98 ffffeee24b35ec08 0000000000000000
+ raw: 0000000000000000 0000000000000001 00000000ffffff7f 0000000000000000
+ page dumped because: nonzero mapcount
+ CPU: 0 PID: 15567 Comm: ganesha.nfsd Kdump: loaded Tainted: P    B      O =
+     5.10.158-1.nutanix.20221209.el7.x86_64 #1
+ Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Referenc=
+e Platform, BIOS 6.00 04/05/2016
+ Call Trace:
+  dump_stack+0x74/0x96
+  bad_page.cold+0x63/0x94
+  check_new_page_bad+0x6d/0x80
+  rmqueue+0x46e/0x970
+  get_page_from_freelist+0xcb/0x3f0
+  ? _cond_resched+0x19/0x40
+  __alloc_pages_nodemask+0x164/0x300
+  alloc_pages_current+0x87/0xf0
+  skb_page_frag_refill+0x84/0x110
+  ...
 
-Link: https://lkml.kernel.org/r/20230125015738.912924-1-zokeefe@google.com
-Fixes: 7d8faaf15545 ("mm/madvise: introduce MADV_COLLAPSE sync hugepage collapse")
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Reported-by: Hugh Dickins <hughd@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
+Sometimes, it would also show up as corruption in the free list pointer and
+cause crashes.
+
+After bisecting the issue, we found the issue started from e320d3012d25:
+
+	if (put_page_testzero(page))
+		free_the_page(page, order);
+	else if (!PageHead(page))
+		while (order-- > 0)
+			free_the_page(page + (1 << order), order);
+
+So the problem is the check PageHead is racy because at this point we
+already dropped our reference to the page.  So even if we came in with
+compound page, the page can already be freed and PageHead can return false
+and we will end up freeing all the tail pages causing double free.
+
+Link: https://lkml.kernel.org/r/Message-ID:
+Fixes: e320d3012d25 ("mm/page_alloc.c: fix freeing non-compound pages")
+Signed-off-by: Chunwei Chen <david.chen@nutanix.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-madv_collapse-set-eagain-on-unexpected-page-refcount
-+++ a/mm/khugepaged.c
-@@ -2611,6 +2611,7 @@ static int madvise_collapse_errno(enum s
- 	case SCAN_CGROUP_CHARGE_FAIL:
- 		return -EBUSY;
- 	/* Resource temporary unavailable - trying again might succeed */
-+	case SCAN_PAGE_COUNT:
- 	case SCAN_PAGE_LOCK:
- 	case SCAN_PAGE_LRU:
- 	case SCAN_DEL_PAGE_LRU:
+--- a/mm/page_alloc.c~fix-page-corruption-caused-by-racy-check-in-__free_pages
++++ a/mm/page_alloc.c
+@@ -5631,9 +5631,12 @@ EXPORT_SYMBOL(get_zeroed_page);
+  */
+ void __free_pages(struct page *page, unsigned int order)
+ {
++	/* get PageHead before we drop reference */
++	int head =3D PageHead(page);
++
+ 	if (put_page_testzero(page))
+ 		free_the_page(page, order);
+-	else if (!PageHead(page))
++	else if (!head)
+ 		while (order-- > 0)
+ 			free_the_page(page + (1 << order), order);
+ }
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from david.chen@nutanix.com are
 
-mm-madv_collapse-set-eagain-on-unexpected-page-refcount.patch
+fix-page-corruption-caused-by-racy-check-in-__free_pages.patch
 
