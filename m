@@ -2,71 +2,87 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12B3EC05027
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Feb 2023 03:56:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BB45C05027
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Feb 2023 03:59:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232874AbjBID4w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Feb 2023 22:56:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47972 "EHLO
+        id S232901AbjBID75 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Feb 2023 22:59:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232432AbjBID4v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2023 22:56:51 -0500
+        with ESMTP id S232908AbjBID7z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2023 22:59:55 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1A3783F0
-        for <mm-commits@vger.kernel.org>; Wed,  8 Feb 2023 19:56:49 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EED792E810
+        for <mm-commits@vger.kernel.org>; Wed,  8 Feb 2023 19:59:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8979E61881
-        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 03:56:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6374C433EF;
-        Thu,  9 Feb 2023 03:56:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8AEFA61881
+        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 03:59:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BC6FC433EF;
+        Thu,  9 Feb 2023 03:59:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675915008;
-        bh=K6/WTGq/GybE0gMfibkwscGBHOGdBhpCD+Y5fdojJk8=;
-        h=Date:To:From:Subject:From;
-        b=YIW/MKKLXZrwJ7adeotpYc1LwVHClcuKl2DVXfUggNQXAkJdZDjn4/andXln2eecX
-         WUY8zc0KF5OtpAoBg3lt5izODvm2htDvzxaDi5wmcADGbKIlHQsipB1G1yRQuK0fql
-         v09vs+MCAO3eQLuo5o/A7D+rUDfy/PZgxoPh4440=
-Date:   Wed, 08 Feb 2023 19:56:48 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        surenb@google.com, shakeelb@google.com, rientjes@google.com,
-        quic_pkondeti@quicinc.com, quic_charante@quicinc.com,
-        mhocko@suse.com, markhemm@googlemail.com, hughd@google.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        s=korg; t=1675915192;
+        bh=ghCym8aUHlqe6s95x5ctYpcq5NFtxPRPm2qr49GnhKo=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=R8UmICs3b4KxcgbiFKK/GOU/N3koF1m8GgC1gqZLmWErgJ59dMLei/jasn0rsZwqF
+         ddVB4vhSnkzRypqXYsgl5DEIZi4VjJG/FEbcmhwTOVtQKQIthry3Sze+JkJDgQp9kv
+         UPemB4rVgShHKUaAzcTwSA1pp8tKBiDTGaxPKa60=
+Date:   Wed, 8 Feb 2023 19:59:51 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-add-shmem_read_folio-and-shmem_read_folio_gfp-fix.patch added to mm-unstable branch
-Message-Id: <20230209035648.D6374C433EF@smtp.kernel.org>
+To:     Matthew Wilcox <willy@infradead.org>
+Cc:     mm-commits@vger.kernel.org, vbabka@suse.cz, surenb@google.com,
+        shakeelb@google.com, rientjes@google.com,
+        quic_pkondeti@quicinc.com, quic_charante@quicinc.com,
+        mhocko@suse.com, markhemm@googlemail.com, hughd@google.com
+Subject: Re: + shmem-add-shmem_read_folio-and-shmem_read_folio_gfp.patch
+ added to mm-unstable branch
+Message-Id: <20230208195951.9bf2f8a61c096ce4660793d5@linux-foundation.org>
+In-Reply-To: <Y+QdJTuzxeBYejw2@casper.infradead.org>
+References: <20230207010408.34435C433EF@smtp.kernel.org>
+        <Y+QdJTuzxeBYejw2@casper.infradead.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, 8 Feb 2023 22:07:33 +0000 Matthew Wilcox <willy@infradead.org> wrote:
 
-The patch titled
-     Subject: shmem-add-shmem_read_folio-and-shmem_read_folio_gfp-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-add-shmem_read_folio-and-shmem_read_folio_gfp-fix.patch
+> On Mon, Feb 06, 2023 at 05:04:07PM -0800, Andrew Morton wrote:
+> > +struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
+> > +					 pgoff_t index, gfp_t gfp)
+> > +{
+> > +	struct folio *folio = shmem_read_folio_gfp(mapping, index, gfp);
+> > +	struct page *page = folio_file_page(folio, index);
+> > +
+> 
+> Ugh, insufficiently cautious.
+> 
+> This should have been
+> 
+> 	struct folio *folio = shmem_read_folio_gfp(mapping, index, gfp);
+> 	struct page *page;
+> 
+> 	if (IS_ERR(folio))
+> 		return &folio->page;
+> 	page = folio_file_page(folio, index);
+> 
+> Unfortunately I have to go out now, but that's the solution to the
+> latest syzbot splat I saw.  I'll do you a proper -fix patch later
+> if you don't get to it first.
+> 
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-add-shmem_read_folio-and-shmem_read_folio_gfp-fix.patch
+No probs, thanks.
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+(although that trick of doing &randomgarbagepointeroftypefoliostar->page
+still makes my brain bleed)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: shmem-add-shmem_read_folio-and-shmem_read_folio_gfp-fix
 Date: Wed Feb  8 07:54:45 PM PST 2023
@@ -105,13 +121,4 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		folio_put(folio);
  		return ERR_PTR(-EIO);
 _
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-shrinkers-fix-deadlock-in-shrinker-debugfs-fix.patch
-mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls-fix.patch
-kasan-infer-allocation-size-by-scanning-metadata-fix.patch
-shmem-add-shmem_read_folio-and-shmem_read_folio_gfp-fix.patch
-lib-stackdepot-mm-rename-stack_depot_want_early_init-fix.patch
-lib-stackdepot-annotate-racy-slab_index-accesses-fix.patch
 
