@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FC37C636D3
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Feb 2023 04:14:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C0C3C636D6
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Feb 2023 21:29:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229468AbjBIEOJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Feb 2023 23:14:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58116 "EHLO
+        id S230292AbjBIV3o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 16:29:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229450AbjBIEOJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2023 23:14:09 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 462FD37B46;
-        Wed,  8 Feb 2023 20:13:22 -0800 (PST)
+        with ESMTP id S230040AbjBIV3n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 16:29:43 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA4ED5ACC1;
+        Thu,  9 Feb 2023 13:29:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 813B3B8164F;
-        Thu,  9 Feb 2023 04:11:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B67BC433D2;
-        Thu,  9 Feb 2023 04:11:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5A377B816DD;
+        Thu,  9 Feb 2023 21:29:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08A11C4339C;
+        Thu,  9 Feb 2023 21:29:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675915894;
-        bh=RYEtM6aU+aW85+WzpssnI74f+wBUFOV2fCK4BM0NTkU=;
+        s=korg; t=1675978180;
+        bh=HVBtsj0d+zxhqBt4QDtTRv3AilgydBUVKjFcLtKL5h0=;
         h=Date:To:From:Subject:From;
-        b=IKYZJIFOKsbiXbWXmklxuCSq0OcJGCuu5kLdh7fQTwBTDOVcumj95FMH5O8FSKTO2
-         mE5tT5aWzMZdyNWnfWQURVVDuy3ZwJPoKA/1ESt1pQeUFNvdWZAXyZp0RBkVrQvMlS
-         cqK0iS+iojv7m4Ss5jr6ZcKaTOYekdodRms/s65U=
-Date:   Wed, 08 Feb 2023 20:11:33 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, qian@ddn.com, akpm@linux-foundation.org
+        b=tp7QNhGbWFSFFwvVQAlUv0gw+4vHT12sdlzoFyNXPo3d0CcfoG2OTayIDN5kJvBb3
+         AbVG1YHlvDJaoX+1i9vLROoUZELyAcJOj5Z96bVBS1bxCD3f2zFct8syxNIaIqWws2
+         lj+MB0/nOIYsdwtKnh1TY5y2OcLyrxOy3jXtdmhs=
+Date:   Thu, 09 Feb 2023 13:29:39 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        shy828301@gmail.com, hughd@google.com, zokeefe@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-fix-page-end-in-filemap_get_read_batch.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230209041134.1B67BC433D2@smtp.kernel.org>
+Subject: + mm-madv_collapse-set-eagain-on-unexpected-page-refcount.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230209212940.08A11C4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: fix page end in filemap_get_read_batch
+     Subject: mm/MADV_COLLAPSE: set EAGAIN on unexpected page refcount
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-filemap-fix-page-end-in-filemap_get_read_batch.patch
+     mm-madv_collapse-set-eagain-on-unexpected-page-refcount.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-fix-page-end-in-filemap_get_read_batch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madv_collapse-set-eagain-on-unexpected-page-refcount.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,59 +65,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qian Yingjin <qian@ddn.com>
-Subject: mm/filemap: fix page end in filemap_get_read_batch
-Date: Wed, 8 Feb 2023 10:24:00 +0800
+From: "Zach O'Keefe" <zokeefe@google.com>
+Subject: mm/MADV_COLLAPSE: set EAGAIN on unexpected page refcount
+Date: Tue, 24 Jan 2023 17:57:37 -0800
 
-I was running traces of the read code against an RAID storage system to
-understand why read requests were being misaligned against the underlying
-RAID strips.  I found that the page end offset calculation in
-filemap_get_read_batch() was off by one.
+During collapse, in a few places we check to see if a given small page has
+any unaccounted references.  If the refcount on the page doesn't match our
+expectations, it must be there is an unknown user concurrently interested
+in the page, and so it's not safe to move the contents elsewhere. 
+However, the unaccounted pins are likely an ephemeral state.
 
-When a read is submitted with end offset 1048575, then it calculates the
-end page for read of 256 when it should be 255.  "last_index" is the index
-of the page beyond the end of the read and it should be skipped when get a
-batch of pages for read in @filemap_get_read_batch().
+In such a situation, make MADV_COLLAPSE set EAGAIN errno, indicating that
+collapse may succeed on retry.
 
-The below simple patch fixes the problem.  This code was introduced in
-kernel 5.12.
-
-Link: https://lkml.kernel.org/r/20230208022400.28962-1-coolqyj@163.com
-Fixes: cbd59c48ae2b ("mm/filemap: use head pages in generic_file_buffered_read")
-Signed-off-by: Qian Yingjin <qian@ddn.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20230125015738.912924-1-zokeefe@google.com
+Fixes: 7d8faaf15545 ("mm/madvise: introduce MADV_COLLAPSE sync hugepage collapse")
+Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+Reported-by: Hugh Dickins <hughd@google.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/khugepaged.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/filemap.c~mm-filemap-fix-page-end-in-filemap_get_read_batch
-+++ a/mm/filemap.c
-@@ -2588,18 +2588,19 @@ static int filemap_get_pages(struct kioc
- 	struct folio *folio;
- 	int err = 0;
- 
-+	/* "last_index" is the index of the page beyond the end of the read */
- 	last_index = DIV_ROUND_UP(iocb->ki_pos + iter->count, PAGE_SIZE);
- retry:
- 	if (fatal_signal_pending(current))
- 		return -EINTR;
- 
--	filemap_get_read_batch(mapping, index, last_index, fbatch);
-+	filemap_get_read_batch(mapping, index, last_index - 1, fbatch);
- 	if (!folio_batch_count(fbatch)) {
- 		if (iocb->ki_flags & IOCB_NOIO)
- 			return -EAGAIN;
- 		page_cache_sync_readahead(mapping, ra, filp, index,
- 				last_index - index);
--		filemap_get_read_batch(mapping, index, last_index, fbatch);
-+		filemap_get_read_batch(mapping, index, last_index - 1, fbatch);
- 	}
- 	if (!folio_batch_count(fbatch)) {
- 		if (iocb->ki_flags & (IOCB_NOWAIT | IOCB_WAITQ))
+--- a/mm/khugepaged.c~mm-madv_collapse-set-eagain-on-unexpected-page-refcount
++++ a/mm/khugepaged.c
+@@ -2611,6 +2611,7 @@ static int madvise_collapse_errno(enum s
+ 	case SCAN_CGROUP_CHARGE_FAIL:
+ 		return -EBUSY;
+ 	/* Resource temporary unavailable - trying again might succeed */
++	case SCAN_PAGE_COUNT:
+ 	case SCAN_PAGE_LOCK:
+ 	case SCAN_PAGE_LRU:
+ 	case SCAN_DEL_PAGE_LRU:
 _
 
-Patches currently in -mm which might be from qian@ddn.com are
+Patches currently in -mm which might be from zokeefe@google.com are
 
-mm-filemap-fix-page-end-in-filemap_get_read_batch.patch
+mm-madv_collapse-set-eagain-on-unexpected-page-refcount.patch
 
