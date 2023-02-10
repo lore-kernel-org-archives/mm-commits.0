@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A542C636D3
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:55:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF09C61DA4
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:55:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231135AbjBJAzf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Feb 2023 19:55:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45010 "EHLO
+        id S231139AbjBJAz5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 19:55:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230300AbjBJAyj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:54:39 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A261A6BD12
-        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:53:47 -0800 (PST)
+        with ESMTP id S230338AbjBJAyn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:54:43 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 526CC6E885
+        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:53:52 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B327DB82397
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:53:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D734C433EF;
-        Fri, 10 Feb 2023 00:53:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0835FB82398
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:53:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F711C433D2;
+        Fri, 10 Feb 2023 00:53:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675990424;
-        bh=bNyzEA0To2n8OQJocZ/Ldv50+VL2y7KOgq1VxDAYaPw=;
+        s=korg; t=1675990429;
+        bh=r71uEvG5eFuhb+aEOPtuMJI28/r9mrL7GD3cyLgBx1c=;
         h=Date:To:From:Subject:From;
-        b=RvVMoQo2UgnOL/lQv1eX4NRWT2+6ac5hjYfpQGRrpZu7+cNWBivzdyb/VZVr8xX7x
-         mPmxc//JdqbeS9rUt30YzhE/60gSD/JsoQ4S7ztGCjvM3osMqKm8fwjejW7ukrOmHf
-         rPWj0ZxWjIGRFhYVghqXi/pa9WlnDUdhuH5p4wls=
-Date:   Thu, 09 Feb 2023 16:53:43 -0800
+        b=MD61CaE0BHieTLdSn5VcXYw+iMYMX9WIQBK06jeGG10t2BQ397p/vNjs8IACcS1sq
+         F0Foctz2iMJxMinaMEvDj9phzcuhrb2QGRJV6m64DQY1FdszCC9qVdr4Ht22WAp71Q
+         eucUsdl+BCBHvRAckffjugajSrM6wcNMcd+4RTrc=
+Date:   Thu, 09 Feb 2023 16:53:49 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         vbabka@suse.cz, songliubraving@fb.com, soheil@google.com,
         shakeelb@google.com, sebastian.reichel@collabora.com,
@@ -41,11 +41,10 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         hughd@google.com, hannes@cmpxchg.org, gthelen@google.com,
         edumazet@google.com, dhowells@redhat.com, david@redhat.com,
         dave@stgolabs.net, bigeasy@linutronix.de, axelrasmussen@google.com,
-        arjunroy@google.com, 42.hyeyoo@gmail.com, surenb@google.com,
-        akpm@linux-foundation.org
+        arjunroy@google.com, surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls.patch removed from -mm tree
-Message-Id: <20230210005344.4D734C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-__vm_flags_mod-and-use-it-in-untrack_pfn.patch removed from -mm tree
+Message-Id: <20230210005349.8F711C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,31 +52,31 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: replace vma->vm_flags direct modifications with modifier calls
+     Subject: mm: introduce __vm_flags_mod and use it in untrack_pfn
 has been removed from the -mm tree.  Its filename was
-     mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls.patch
+     mm-introduce-__vm_flags_mod-and-use-it-in-untrack_pfn.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: replace vma->vm_flags direct modifications with modifier calls
-Date: Thu, 26 Jan 2023 11:37:49 -0800
+Subject: mm: introduce __vm_flags_mod and use it in untrack_pfn
+Date: Thu, 26 Jan 2023 11:37:51 -0800
 
-Replace direct modifications to vma->vm_flags with calls to modifier
-functions to be able to track flag changes and to keep vma locking
-correctness.
+There are scenarios when vm_flags can be modified without exclusive
+mmap_lock, such as:
+- after VMA was isolated and mmap_lock was downgraded or dropped
+- in exit_mmap when there are no other mm users and locking is unnecessary
+Introduce __vm_flags_mod to avoid assertions when the caller takes
+responsibility for the required locking.
+Pass a hint to untrack_pfn to conditionally use __vm_flags_mod for
+flags modification to avoid assertion.
 
-[akpm@linux-foundation.org: fix drivers/misc/open-dice.c, per Hyeonggon Yoo]
-Link: https://lkml.kernel.org/r/20230126193752.297968-5-surenb@google.com
+Link: https://lkml.kernel.org/r/20230126193752.297968-7-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: Sebastian Reichel <sebastian.reichel@collabora.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Arjun Roy <arjunroy@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -94,8 +93,10 @@ Cc: Joel Fernandes <joelaf@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Minchan Kim <minchan@google.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Peter Oskolkov <posk@google.com>
@@ -103,6 +104,7 @@ Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Punit Agrawal <punit.agrawal@bytedance.com>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Sebastian Reichel <sebastian.reichel@collabora.com>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Soheil Hassas Yeganeh <soheil@google.com>
 Cc: Song Liu <songliubraving@fb.com>
@@ -111,1924 +113,234 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/process.c                               |    2 -
- arch/ia64/mm/init.c                                     |    8 ++---
- arch/loongarch/include/asm/tlb.h                        |    2 -
- arch/powerpc/kvm/book3s_xive_native.c                   |    2 -
- arch/powerpc/mm/book3s64/subpage_prot.c                 |    2 -
- arch/powerpc/platforms/book3s/vas-api.c                 |    2 -
- arch/powerpc/platforms/cell/spufs/file.c                |   14 +++++-----
- arch/s390/mm/gmap.c                                     |    3 --
- arch/x86/entry/vsyscall/vsyscall_64.c                   |    2 -
- arch/x86/kernel/cpu/sgx/driver.c                        |    2 -
- arch/x86/kernel/cpu/sgx/virt.c                          |    2 -
- arch/x86/mm/pat/memtype.c                               |    6 ++--
- arch/x86/um/mem_32.c                                    |    2 -
- drivers/acpi/pfr_telemetry.c                            |    2 -
- drivers/android/binder.c                                |    3 --
- drivers/char/mspec.c                                    |    2 -
- drivers/crypto/hisilicon/qm.c                           |    2 -
- drivers/dax/device.c                                    |    2 -
- drivers/dma/idxd/cdev.c                                 |    2 -
- drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c                 |    2 -
- drivers/gpu/drm/amd/amdkfd/kfd_chardev.c                |    4 +-
- drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c               |    4 +-
- drivers/gpu/drm/amd/amdkfd/kfd_events.c                 |    4 +-
- drivers/gpu/drm/amd/amdkfd/kfd_process.c                |    4 +-
- drivers/gpu/drm/drm_gem.c                               |    2 -
- drivers/gpu/drm/drm_gem_dma_helper.c                    |    3 --
- drivers/gpu/drm/drm_gem_shmem_helper.c                  |    2 -
- drivers/gpu/drm/drm_vm.c                                |    8 ++---
- drivers/gpu/drm/etnaviv/etnaviv_gem.c                   |    2 -
- drivers/gpu/drm/exynos/exynos_drm_gem.c                 |    4 +-
- drivers/gpu/drm/gma500/framebuffer.c                    |    2 -
- drivers/gpu/drm/i810/i810_dma.c                         |    2 -
- drivers/gpu/drm/i915/gem/i915_gem_mman.c                |    4 +-
- drivers/gpu/drm/mediatek/mtk_drm_gem.c                  |    2 -
- drivers/gpu/drm/msm/msm_gem.c                           |    2 -
- drivers/gpu/drm/omapdrm/omap_gem.c                      |    3 --
- drivers/gpu/drm/rockchip/rockchip_drm_gem.c             |    3 --
- drivers/gpu/drm/tegra/gem.c                             |    5 +--
- drivers/gpu/drm/ttm/ttm_bo_vm.c                         |    3 --
- drivers/gpu/drm/virtio/virtgpu_vram.c                   |    2 -
- drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c                |    2 -
- drivers/gpu/drm/xen/xen_drm_front_gem.c                 |    3 --
- drivers/hsi/clients/cmt_speech.c                        |    2 -
- drivers/hwtracing/intel_th/msu.c                        |    2 -
- drivers/hwtracing/stm/core.c                            |    2 -
- drivers/infiniband/hw/hfi1/file_ops.c                   |    4 +-
- drivers/infiniband/hw/mlx5/main.c                       |    4 +-
- drivers/infiniband/hw/qib/qib_file_ops.c                |   13 ++++-----
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c            |    2 -
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c         |    2 -
- drivers/media/common/videobuf2/videobuf2-dma-contig.c   |    2 -
- drivers/media/common/videobuf2/videobuf2-vmalloc.c      |    2 -
- drivers/media/v4l2-core/videobuf-dma-contig.c           |    2 -
- drivers/media/v4l2-core/videobuf-dma-sg.c               |    4 +-
- drivers/media/v4l2-core/videobuf-vmalloc.c              |    2 -
- drivers/misc/cxl/context.c                              |    2 -
- drivers/misc/habanalabs/common/memory.c                 |    2 -
- drivers/misc/habanalabs/gaudi/gaudi.c                   |    4 +-
- drivers/misc/habanalabs/gaudi2/gaudi2.c                 |    8 ++---
- drivers/misc/habanalabs/goya/goya.c                     |    4 +-
- drivers/misc/ocxl/context.c                             |    4 +-
- drivers/misc/ocxl/sysfs.c                               |    2 -
- drivers/misc/open-dice.c                                |    4 +-
- drivers/misc/sgi-gru/grufile.c                          |    4 +-
- drivers/misc/uacce/uacce.c                              |    2 -
- drivers/sbus/char/oradax.c                              |    2 -
- drivers/scsi/cxlflash/ocxl_hw.c                         |    2 -
- drivers/scsi/sg.c                                       |    2 -
- drivers/staging/media/atomisp/pci/hmm/hmm_bo.c          |    2 -
- drivers/staging/media/deprecated/meye/meye.c            |    4 +-
- drivers/staging/media/deprecated/stkwebcam/stk-webcam.c |    2 -
- drivers/target/target_core_user.c                       |    2 -
- drivers/uio/uio.c                                       |    2 -
- drivers/usb/core/devio.c                                |    3 --
- drivers/usb/mon/mon_bin.c                               |    3 --
- drivers/vdpa/vdpa_user/iova_domain.c                    |    2 -
- drivers/vfio/pci/vfio_pci_core.c                        |    2 -
- drivers/vhost/vdpa.c                                    |    2 -
- drivers/video/fbdev/68328fb.c                           |    2 -
- drivers/video/fbdev/core/fb_defio.c                     |    4 +-
- drivers/xen/gntalloc.c                                  |    2 -
- drivers/xen/gntdev.c                                    |    4 +-
- drivers/xen/privcmd-buf.c                               |    2 -
- drivers/xen/privcmd.c                                   |    4 +-
- fs/aio.c                                                |    2 -
- fs/cramfs/inode.c                                       |    2 -
- fs/erofs/data.c                                         |    2 -
- fs/exec.c                                               |    4 +-
- fs/ext4/file.c                                          |    2 -
- fs/fuse/dax.c                                           |    2 -
- fs/hugetlbfs/inode.c                                    |    4 +-
- fs/orangefs/file.c                                      |    3 --
- fs/proc/task_mmu.c                                      |    2 -
- fs/proc/vmcore.c                                        |    3 --
- fs/userfaultfd.c                                        |    2 -
- fs/xfs/xfs_file.c                                       |    2 -
- include/linux/mm.h                                      |    2 -
- kernel/bpf/ringbuf.c                                    |    4 +-
- kernel/bpf/syscall.c                                    |    4 +-
- kernel/events/core.c                                    |    2 -
- kernel/kcov.c                                           |    2 -
- kernel/relay.c                                          |    2 -
- mm/madvise.c                                            |    2 -
- mm/memory.c                                             |    6 ++--
- mm/mlock.c                                              |    6 ++--
- mm/mmap.c                                               |   10 +++----
- mm/mprotect.c                                           |    2 -
- mm/mremap.c                                             |    6 ++--
- mm/nommu.c                                              |   11 ++++---
- mm/secretmem.c                                          |    2 -
- mm/shmem.c                                              |    2 -
- mm/vmalloc.c                                            |    2 -
- net/ipv4/tcp.c                                          |    4 +-
- security/selinux/selinuxfs.c                            |    6 ++--
- sound/core/oss/pcm_oss.c                                |    2 -
- sound/core/pcm_native.c                                 |    9 +++---
- sound/soc/pxa/mmp-sspa.c                                |    2 -
- sound/usb/usx2y/us122l.c                                |    4 +-
- sound/usb/usx2y/usX2Yhwdep.c                            |    2 -
- sound/usb/usx2y/usx2yhwdeppcm.c                         |    2 -
- 120 files changed, 188 insertions(+), 199 deletions(-)
+ arch/x86/mm/pat/memtype.c |   10 +++++++---
+ include/linux/mm.h        |   14 ++++++++++++--
+ include/linux/pgtable.h   |    5 +++--
+ mm/memory.c               |   13 +++++++------
+ mm/memremap.c             |    4 ++--
+ mm/mmap.c                 |   16 ++++++++++------
+ 6 files changed, 41 insertions(+), 21 deletions(-)
 
---- a/arch/arm/kernel/process.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/arm/kernel/process.c
-@@ -316,7 +316,7 @@ static int __init gate_vma_init(void)
- 	gate_vma.vm_page_prot = PAGE_READONLY_EXEC;
- 	gate_vma.vm_start = 0xffff0000;
- 	gate_vma.vm_end	= 0xffff0000 + PAGE_SIZE;
--	gate_vma.vm_flags = VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYEXEC;
-+	vm_flags_init(&gate_vma, VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYEXEC);
- 	return 0;
- }
- arch_initcall(gate_vma_init);
---- a/arch/ia64/mm/init.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/ia64/mm/init.c
-@@ -109,7 +109,7 @@ ia64_init_addr_space (void)
- 		vma_set_anonymous(vma);
- 		vma->vm_start = current->thread.rbs_bot & PAGE_MASK;
- 		vma->vm_end = vma->vm_start + PAGE_SIZE;
--		vma->vm_flags = VM_DATA_DEFAULT_FLAGS|VM_GROWSUP|VM_ACCOUNT;
-+		vm_flags_init(vma, VM_DATA_DEFAULT_FLAGS|VM_GROWSUP|VM_ACCOUNT);
- 		vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
- 		mmap_write_lock(current->mm);
- 		if (insert_vm_struct(current->mm, vma)) {
-@@ -127,8 +127,8 @@ ia64_init_addr_space (void)
- 			vma_set_anonymous(vma);
- 			vma->vm_end = PAGE_SIZE;
- 			vma->vm_page_prot = __pgprot(pgprot_val(PAGE_READONLY) | _PAGE_MA_NAT);
--			vma->vm_flags = VM_READ | VM_MAYREAD | VM_IO |
--					VM_DONTEXPAND | VM_DONTDUMP;
-+			vm_flags_init(vma, VM_READ | VM_MAYREAD | VM_IO |
-+				      VM_DONTEXPAND | VM_DONTDUMP);
- 			mmap_write_lock(current->mm);
- 			if (insert_vm_struct(current->mm, vma)) {
- 				mmap_write_unlock(current->mm);
-@@ -272,7 +272,7 @@ static int __init gate_vma_init(void)
- 	vma_init(&gate_vma, NULL);
- 	gate_vma.vm_start = FIXADDR_USER_START;
- 	gate_vma.vm_end = FIXADDR_USER_END;
--	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
-+	vm_flags_init(&gate_vma, VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC);
- 	gate_vma.vm_page_prot = __pgprot(__ACCESS_BITS | _PAGE_PL_3 | _PAGE_AR_RX);
- 
- 	return 0;
---- a/arch/loongarch/include/asm/tlb.h~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/loongarch/include/asm/tlb.h
-@@ -149,7 +149,7 @@ static inline void tlb_flush(struct mmu_
- 	struct vm_area_struct vma;
- 
- 	vma.vm_mm = tlb->mm;
--	vma.vm_flags = 0;
-+	vm_flags_init(&vma, 0);
- 	if (tlb->fullmm) {
- 		flush_tlb_mm(tlb->mm);
- 		return;
---- a/arch/powerpc/kvm/book3s_xive_native.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/powerpc/kvm/book3s_xive_native.c
-@@ -324,7 +324,7 @@ static int kvmppc_xive_native_mmap(struc
- 		return -EINVAL;
- 	}
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached_wc(vma->vm_page_prot);
- 
- 	/*
---- a/arch/powerpc/mm/book3s64/subpage_prot.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/powerpc/mm/book3s64/subpage_prot.c
-@@ -156,7 +156,7 @@ static void subpage_mark_vma_nohuge(stru
- 	 * VM_NOHUGEPAGE and split them.
- 	 */
- 	for_each_vma_range(vmi, vma, addr + len) {
--		vma->vm_flags |= VM_NOHUGEPAGE;
-+		vm_flags_set(vma, VM_NOHUGEPAGE);
- 		walk_page_vma(vma, &subpage_walk_ops, NULL);
- 	}
- }
---- a/arch/powerpc/platforms/book3s/vas-api.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/powerpc/platforms/book3s/vas-api.c
-@@ -525,7 +525,7 @@ static int coproc_mmap(struct file *fp,
- 	pfn = paste_addr >> PAGE_SHIFT;
- 
- 	/* flags, page_prot from cxl_mmap(), except we want cachable */
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_cached(vma->vm_page_prot);
- 
- 	prot = __pgprot(pgprot_val(vma->vm_page_prot) | _PAGE_DIRTY);
---- a/arch/powerpc/platforms/cell/spufs/file.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/powerpc/platforms/cell/spufs/file.c
-@@ -291,7 +291,7 @@ static int spufs_mem_mmap(struct file *f
- 	if (!(vma->vm_flags & VM_SHARED))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached_wc(vma->vm_page_prot);
- 
- 	vma->vm_ops = &spufs_mem_mmap_vmops;
-@@ -381,7 +381,7 @@ static int spufs_cntl_mmap(struct file *
- 	if (!(vma->vm_flags & VM_SHARED))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 
- 	vma->vm_ops = &spufs_cntl_mmap_vmops;
-@@ -1043,7 +1043,7 @@ static int spufs_signal1_mmap(struct fil
- 	if (!(vma->vm_flags & VM_SHARED))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 
- 	vma->vm_ops = &spufs_signal1_mmap_vmops;
-@@ -1179,7 +1179,7 @@ static int spufs_signal2_mmap(struct fil
- 	if (!(vma->vm_flags & VM_SHARED))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 
- 	vma->vm_ops = &spufs_signal2_mmap_vmops;
-@@ -1302,7 +1302,7 @@ static int spufs_mss_mmap(struct file *f
- 	if (!(vma->vm_flags & VM_SHARED))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 
- 	vma->vm_ops = &spufs_mss_mmap_vmops;
-@@ -1364,7 +1364,7 @@ static int spufs_psmap_mmap(struct file
- 	if (!(vma->vm_flags & VM_SHARED))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 
- 	vma->vm_ops = &spufs_psmap_mmap_vmops;
-@@ -1424,7 +1424,7 @@ static int spufs_mfc_mmap(struct file *f
- 	if (!(vma->vm_flags & VM_SHARED))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 
- 	vma->vm_ops = &spufs_mfc_mmap_vmops;
---- a/arch/s390/mm/gmap.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/s390/mm/gmap.c
-@@ -2522,8 +2522,7 @@ static inline void thp_split_mm(struct m
- 	VMA_ITERATOR(vmi, mm, 0);
- 
- 	for_each_vma(vmi, vma) {
--		vma->vm_flags &= ~VM_HUGEPAGE;
--		vma->vm_flags |= VM_NOHUGEPAGE;
-+		vm_flags_mod(vma, VM_NOHUGEPAGE, VM_HUGEPAGE);
- 		walk_page_vma(vma, &thp_split_walk_ops, NULL);
- 	}
- 	mm->def_flags |= VM_NOHUGEPAGE;
---- a/arch/x86/entry/vsyscall/vsyscall_64.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/x86/entry/vsyscall/vsyscall_64.c
-@@ -391,7 +391,7 @@ void __init map_vsyscall(void)
- 	}
- 
- 	if (vsyscall_mode == XONLY)
--		gate_vma.vm_flags = VM_EXEC;
-+		vm_flags_init(&gate_vma, VM_EXEC);
- 
- 	BUILD_BUG_ON((unsigned long)__fix_to_virt(VSYSCALL_PAGE) !=
- 		     (unsigned long)VSYSCALL_ADDR);
---- a/arch/x86/kernel/cpu/sgx/driver.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/x86/kernel/cpu/sgx/driver.c
-@@ -95,7 +95,7 @@ static int sgx_mmap(struct file *file, s
- 		return ret;
- 
- 	vma->vm_ops = &sgx_vm_ops;
--	vma->vm_flags |= VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP | VM_IO;
-+	vm_flags_set(vma, VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP | VM_IO);
- 	vma->vm_private_data = encl;
- 
- 	return 0;
---- a/arch/x86/kernel/cpu/sgx/virt.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/x86/kernel/cpu/sgx/virt.c
-@@ -105,7 +105,7 @@ static int sgx_vepc_mmap(struct file *fi
- 
- 	vma->vm_ops = &sgx_vepc_vm_ops;
- 	/* Don't copy VMA in fork() */
--	vma->vm_flags |= VM_PFNMAP | VM_IO | VM_DONTDUMP | VM_DONTCOPY;
-+	vm_flags_set(vma, VM_PFNMAP | VM_IO | VM_DONTDUMP | VM_DONTCOPY);
- 	vma->vm_private_data = vepc;
- 
- 	return 0;
---- a/arch/x86/mm/pat/memtype.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
+--- a/arch/x86/mm/pat/memtype.c~mm-introduce-__vm_flags_mod-and-use-it-in-untrack_pfn
 +++ a/arch/x86/mm/pat/memtype.c
-@@ -1000,7 +1000,7 @@ int track_pfn_remap(struct vm_area_struc
- 
- 		ret = reserve_pfn_range(paddr, size, prot, 0);
- 		if (ret == 0 && vma)
--			vma->vm_flags |= VM_PAT;
-+			vm_flags_set(vma, VM_PAT);
- 		return ret;
- 	}
- 
-@@ -1066,7 +1066,7 @@ void untrack_pfn(struct vm_area_struct *
+@@ -1046,7 +1046,7 @@ void track_pfn_insert(struct vm_area_str
+  * can be for the entire vma (in which case pfn, size are zero).
+  */
+ void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
+-		 unsigned long size)
++		 unsigned long size, bool mm_wr_locked)
+ {
+ 	resource_size_t paddr;
+ 	unsigned long prot;
+@@ -1065,8 +1065,12 @@ void untrack_pfn(struct vm_area_struct *
+ 		size = vma->vm_end - vma->vm_start;
  	}
  	free_pfn_range(paddr, size);
- 	if (vma)
--		vma->vm_flags &= ~VM_PAT;
-+		vm_flags_clear(vma, VM_PAT);
+-	if (vma)
+-		vm_flags_clear(vma, VM_PAT);
++	if (vma) {
++		if (mm_wr_locked)
++			vm_flags_clear(vma, VM_PAT);
++		else
++			__vm_flags_mod(vma, 0, VM_PAT);
++	}
  }
  
  /*
-@@ -1076,7 +1076,7 @@ void untrack_pfn(struct vm_area_struct *
-  */
- void untrack_pfn_moved(struct vm_area_struct *vma)
- {
--	vma->vm_flags &= ~VM_PAT;
-+	vm_flags_clear(vma, VM_PAT);
- }
- 
- pgprot_t pgprot_writecombine(pgprot_t prot)
---- a/arch/x86/um/mem_32.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/arch/x86/um/mem_32.c
-@@ -16,7 +16,7 @@ static int __init gate_vma_init(void)
- 	vma_init(&gate_vma, NULL);
- 	gate_vma.vm_start = FIXADDR_USER_START;
- 	gate_vma.vm_end = FIXADDR_USER_END;
--	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
-+	vm_flags_init(&gate_vma, VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC);
- 	gate_vma.vm_page_prot = PAGE_READONLY;
- 
- 	return 0;
---- a/drivers/acpi/pfr_telemetry.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/acpi/pfr_telemetry.c
-@@ -310,7 +310,7 @@ pfrt_log_mmap(struct file *file, struct
- 		return -EROFS;
- 
- 	/* changing from read to write with mprotect is not allowed */
--	vma->vm_flags &= ~VM_MAYWRITE;
-+	vm_flags_clear(vma, VM_MAYWRITE);
- 
- 	pfrt_log_dev = to_pfrt_log_dev(file);
- 
---- a/drivers/android/binder.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/android/binder.c
-@@ -5572,8 +5572,7 @@ static int binder_mmap(struct file *filp
- 		       proc->pid, vma->vm_start, vma->vm_end, "bad vm_flags", -EPERM);
- 		return -EPERM;
- 	}
--	vma->vm_flags |= VM_DONTCOPY | VM_MIXEDMAP;
--	vma->vm_flags &= ~VM_MAYWRITE;
-+	vm_flags_mod(vma, VM_DONTCOPY | VM_MIXEDMAP, VM_MAYWRITE);
- 
- 	vma->vm_ops = &binder_vm_ops;
- 	vma->vm_private_data = proc;
---- a/drivers/char/mspec.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/char/mspec.c
-@@ -206,7 +206,7 @@ mspec_mmap(struct file *file, struct vm_
- 	refcount_set(&vdata->refcnt, 1);
- 	vma->vm_private_data = vdata;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 	if (vdata->type == MSPEC_UNCACHED)
- 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	vma->vm_ops = &mspec_vm_ops;
---- a/drivers/crypto/hisilicon/qm.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/crypto/hisilicon/qm.c
-@@ -2363,7 +2363,7 @@ static int hisi_qm_uacce_mmap(struct uac
- 				return -EINVAL;
- 		}
- 
--		vma->vm_flags |= VM_IO;
-+		vm_flags_set(vma, VM_IO);
- 
- 		return remap_pfn_range(vma, vma->vm_start,
- 				       phys_base >> PAGE_SHIFT,
---- a/drivers/dax/device.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/dax/device.c
-@@ -308,7 +308,7 @@ static int dax_mmap(struct file *filp, s
- 		return rc;
- 
- 	vma->vm_ops = &dax_vm_ops;
--	vma->vm_flags |= VM_HUGEPAGE;
-+	vm_flags_set(vma, VM_HUGEPAGE);
- 	return 0;
- }
- 
---- a/drivers/dma/idxd/cdev.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/dma/idxd/cdev.c
-@@ -201,7 +201,7 @@ static int idxd_cdev_mmap(struct file *f
- 	if (rc < 0)
- 		return rc;
- 
--	vma->vm_flags |= VM_DONTCOPY;
-+	vm_flags_set(vma, VM_DONTCOPY);
- 	pfn = (base + idxd_get_wq_portal_full_offset(wq->id,
- 				IDXD_PORTAL_LIMITED)) >> PAGE_SHIFT;
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
-@@ -257,7 +257,7 @@ static int amdgpu_gem_object_mmap(struct
- 	 */
- 	if (is_cow_mapping(vma->vm_flags) &&
- 	    !(vma->vm_flags & VM_ACCESS_FLAGS))
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
- 
- 	return drm_gem_ttm_mmap(obj, vma);
- }
---- a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-@@ -2879,8 +2879,8 @@ static int kfd_mmio_mmap(struct kfd_dev
- 
- 	address = dev->adev->rmmio_remap.bus_addr;
- 
--	vma->vm_flags |= VM_IO | VM_DONTCOPY | VM_DONTEXPAND | VM_NORESERVE |
--				VM_DONTDUMP | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_DONTCOPY | VM_DONTEXPAND | VM_NORESERVE |
-+				VM_DONTDUMP | VM_PFNMAP);
- 
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 
---- a/drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c
-@@ -159,8 +159,8 @@ int kfd_doorbell_mmap(struct kfd_dev *de
- 	address = kfd_get_process_doorbells(pdd);
- 	if (!address)
- 		return -ENOMEM;
--	vma->vm_flags |= VM_IO | VM_DONTCOPY | VM_DONTEXPAND | VM_NORESERVE |
--				VM_DONTDUMP | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_DONTCOPY | VM_DONTEXPAND | VM_NORESERVE |
-+				VM_DONTDUMP | VM_PFNMAP);
- 
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 
---- a/drivers/gpu/drm/amd/amdkfd/kfd_events.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_events.c
-@@ -1052,8 +1052,8 @@ int kfd_event_mmap(struct kfd_process *p
- 	pfn = __pa(page->kernel_address);
- 	pfn >>= PAGE_SHIFT;
- 
--	vma->vm_flags |= VM_IO | VM_DONTCOPY | VM_DONTEXPAND | VM_NORESERVE
--		       | VM_DONTDUMP | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_DONTCOPY | VM_DONTEXPAND | VM_NORESERVE
-+		       | VM_DONTDUMP | VM_PFNMAP);
- 
- 	pr_debug("Mapping signal page\n");
- 	pr_debug("     start user address  == 0x%08lx\n", vma->vm_start);
---- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
-@@ -1978,8 +1978,8 @@ int kfd_reserved_mem_mmap(struct kfd_dev
- 		return -ENOMEM;
- 	}
- 
--	vma->vm_flags |= VM_IO | VM_DONTCOPY | VM_DONTEXPAND
--		| VM_NORESERVE | VM_DONTDUMP | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_DONTCOPY | VM_DONTEXPAND
-+		| VM_NORESERVE | VM_DONTDUMP | VM_PFNMAP);
- 	/* Mapping pages to user process */
- 	return remap_pfn_range(vma, vma->vm_start,
- 			       PFN_DOWN(__pa(qpd->cwsr_kaddr)),
---- a/drivers/gpu/drm/drm_gem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/drm_gem.c
-@@ -1047,7 +1047,7 @@ int drm_gem_mmap_obj(struct drm_gem_obje
- 			goto err_drm_gem_object_put;
- 		}
- 
--		vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+		vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 		vma->vm_page_prot = pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
- 		vma->vm_page_prot = pgprot_decrypted(vma->vm_page_prot);
- 	}
---- a/drivers/gpu/drm/drm_gem_dma_helper.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/drm_gem_dma_helper.c
-@@ -530,8 +530,7 @@ int drm_gem_dma_mmap(struct drm_gem_dma_
- 	 * the whole buffer.
- 	 */
- 	vma->vm_pgoff -= drm_vma_node_start(&obj->vma_node);
--	vma->vm_flags &= ~VM_PFNMAP;
--	vma->vm_flags |= VM_DONTEXPAND;
-+	vm_flags_mod(vma, VM_DONTEXPAND, VM_PFNMAP);
- 
- 	if (dma_obj->map_noncoherent) {
- 		vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
---- a/drivers/gpu/drm/drm_gem_shmem_helper.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/drm_gem_shmem_helper.c
-@@ -633,7 +633,7 @@ int drm_gem_shmem_mmap(struct drm_gem_sh
- 	if (ret)
- 		return ret;
- 
--	vma->vm_flags |= VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
- 	if (shmem->map_wc)
- 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
---- a/drivers/gpu/drm/drm_vm.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/drm_vm.c
-@@ -476,7 +476,7 @@ static int drm_mmap_dma(struct file *fil
- 
- 	if (!capable(CAP_SYS_ADMIN) &&
- 	    (dma->flags & _DRM_DMA_USE_PCI_RO)) {
--		vma->vm_flags &= ~(VM_WRITE | VM_MAYWRITE);
-+		vm_flags_clear(vma, VM_WRITE | VM_MAYWRITE);
- #if defined(__i386__) || defined(__x86_64__)
- 		pgprot_val(vma->vm_page_prot) &= ~_PAGE_RW;
- #else
-@@ -492,7 +492,7 @@ static int drm_mmap_dma(struct file *fil
- 
- 	vma->vm_ops = &drm_vm_dma_ops;
- 
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 
- 	drm_vm_open_locked(dev, vma);
- 	return 0;
-@@ -560,7 +560,7 @@ static int drm_mmap_locked(struct file *
- 		return -EINVAL;
- 
- 	if (!capable(CAP_SYS_ADMIN) && (map->flags & _DRM_READ_ONLY)) {
--		vma->vm_flags &= ~(VM_WRITE | VM_MAYWRITE);
-+		vm_flags_clear(vma, VM_WRITE | VM_MAYWRITE);
- #if defined(__i386__) || defined(__x86_64__)
- 		pgprot_val(vma->vm_page_prot) &= ~_PAGE_RW;
- #else
-@@ -628,7 +628,7 @@ static int drm_mmap_locked(struct file *
- 	default:
- 		return -EINVAL;	/* This should never happen. */
- 	}
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 
- 	drm_vm_open_locked(dev, vma);
- 	return 0;
---- a/drivers/gpu/drm/etnaviv/etnaviv_gem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/etnaviv/etnaviv_gem.c
-@@ -130,7 +130,7 @@ static int etnaviv_gem_mmap_obj(struct e
- {
- 	pgprot_t vm_page_prot;
- 
--	vma->vm_flags |= VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 
- 	vm_page_prot = vm_get_page_prot(vma->vm_flags);
- 
---- a/drivers/gpu/drm/exynos/exynos_drm_gem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/exynos/exynos_drm_gem.c
-@@ -274,7 +274,7 @@ static int exynos_drm_gem_mmap_buffer(st
- 	unsigned long vm_size;
- 	int ret;
- 
--	vma->vm_flags &= ~VM_PFNMAP;
-+	vm_flags_clear(vma, VM_PFNMAP);
- 	vma->vm_pgoff = 0;
- 
- 	vm_size = vma->vm_end - vma->vm_start;
-@@ -368,7 +368,7 @@ static int exynos_drm_gem_mmap(struct dr
- 	if (obj->import_attach)
- 		return dma_buf_mmap(obj->dma_buf, vma, 0);
- 
--	vma->vm_flags |= VM_IO | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_DONTEXPAND | VM_DONTDUMP);
- 
- 	DRM_DEV_DEBUG_KMS(to_dma_dev(obj->dev), "flags = 0x%x\n",
- 			  exynos_gem->flags);
---- a/drivers/gpu/drm/gma500/framebuffer.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/gma500/framebuffer.c
-@@ -139,7 +139,7 @@ static int psbfb_mmap(struct fb_info *in
- 	 */
- 	vma->vm_ops = &psbfb_vm_ops;
- 	vma->vm_private_data = (void *)fb;
--	vma->vm_flags |= VM_IO | VM_MIXEDMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_MIXEDMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 	return 0;
- }
- 
---- a/drivers/gpu/drm/i810/i810_dma.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/i810/i810_dma.c
-@@ -102,7 +102,7 @@ static int i810_mmap_buffers(struct file
- 	buf = dev_priv->mmap_buffer;
- 	buf_priv = buf->dev_private;
- 
--	vma->vm_flags |= VM_DONTCOPY;
-+	vm_flags_set(vma, VM_DONTCOPY);
- 
- 	buf_priv->currently_mapped = I810_BUF_MAPPED;
- 
---- a/drivers/gpu/drm/i915/gem/i915_gem_mman.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_mman.c
-@@ -979,7 +979,7 @@ int i915_gem_mmap(struct file *filp, str
- 			i915_gem_object_put(obj);
- 			return -EINVAL;
- 		}
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
- 	}
- 
- 	anon = mmap_singleton(to_i915(dev));
-@@ -988,7 +988,7 @@ int i915_gem_mmap(struct file *filp, str
- 		return PTR_ERR(anon);
- 	}
- 
--	vma->vm_flags |= VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP | VM_IO;
-+	vm_flags_set(vma, VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP | VM_IO);
- 
- 	/*
- 	 * We keep the ref on mmo->obj, not vm_file, but we require
---- a/drivers/gpu/drm/mediatek/mtk_drm_gem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/mediatek/mtk_drm_gem.c
-@@ -158,7 +158,7 @@ static int mtk_drm_gem_object_mmap(struc
- 	 * dma_alloc_attrs() allocated a struct page table for mtk_gem, so clear
- 	 * VM_PFNMAP flag that was set by drm_gem_mmap_obj()/drm_gem_mmap().
- 	 */
--	vma->vm_flags |= VM_IO | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_page_prot = pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
- 	vma->vm_page_prot = pgprot_decrypted(vma->vm_page_prot);
- 
---- a/drivers/gpu/drm/msm/msm_gem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/msm/msm_gem.c
-@@ -1012,7 +1012,7 @@ static int msm_gem_object_mmap(struct dr
- {
- 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
- 
--	vma->vm_flags |= VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_page_prot = msm_gem_pgprot(msm_obj, vm_get_page_prot(vma->vm_flags));
- 
- 	return 0;
---- a/drivers/gpu/drm/omapdrm/omap_gem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/omapdrm/omap_gem.c
-@@ -543,8 +543,7 @@ int omap_gem_mmap_obj(struct drm_gem_obj
- {
- 	struct omap_gem_object *omap_obj = to_omap_bo(obj);
- 
--	vma->vm_flags &= ~VM_PFNMAP;
--	vma->vm_flags |= VM_MIXEDMAP;
-+	vm_flags_mod(vma, VM_MIXEDMAP, VM_PFNMAP);
- 
- 	if (omap_obj->flags & OMAP_BO_WC) {
- 		vma->vm_page_prot = pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
---- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
-@@ -251,8 +251,7 @@ static int rockchip_drm_gem_object_mmap(
- 	 * We allocated a struct page table for rk_obj, so clear
- 	 * VM_PFNMAP flag that was set by drm_gem_mmap_obj()/drm_gem_mmap().
- 	 */
--	vma->vm_flags |= VM_IO | VM_DONTEXPAND | VM_DONTDUMP;
--	vma->vm_flags &= ~VM_PFNMAP;
-+	vm_flags_mod(vma, VM_IO | VM_DONTEXPAND | VM_DONTDUMP, VM_PFNMAP);
- 
- 	vma->vm_page_prot = pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
- 	vma->vm_page_prot = pgprot_decrypted(vma->vm_page_prot);
---- a/drivers/gpu/drm/tegra/gem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/tegra/gem.c
-@@ -574,7 +574,7 @@ int __tegra_gem_mmap(struct drm_gem_obje
- 		 * and set the vm_pgoff (used as a fake buffer offset by DRM)
- 		 * to 0 as we want to map the whole buffer.
- 		 */
--		vma->vm_flags &= ~VM_PFNMAP;
-+		vm_flags_clear(vma, VM_PFNMAP);
- 		vma->vm_pgoff = 0;
- 
- 		err = dma_mmap_wc(gem->dev->dev, vma, bo->vaddr, bo->iova,
-@@ -588,8 +588,7 @@ int __tegra_gem_mmap(struct drm_gem_obje
- 	} else {
- 		pgprot_t prot = vm_get_page_prot(vma->vm_flags);
- 
--		vma->vm_flags |= VM_MIXEDMAP;
--		vma->vm_flags &= ~VM_PFNMAP;
-+		vm_flags_mod(vma, VM_MIXEDMAP, VM_PFNMAP);
- 
- 		vma->vm_page_prot = pgprot_writecombine(prot);
- 	}
---- a/drivers/gpu/drm/ttm/ttm_bo_vm.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/ttm/ttm_bo_vm.c
-@@ -468,8 +468,7 @@ int ttm_bo_mmap_obj(struct vm_area_struc
- 
- 	vma->vm_private_data = bo;
- 
--	vma->vm_flags |= VM_PFNMAP;
--	vma->vm_flags |= VM_IO | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_PFNMAP | VM_IO | VM_DONTEXPAND | VM_DONTDUMP);
- 	return 0;
- }
- EXPORT_SYMBOL(ttm_bo_mmap_obj);
---- a/drivers/gpu/drm/virtio/virtgpu_vram.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/virtio/virtgpu_vram.c
-@@ -46,7 +46,7 @@ static int virtio_gpu_vram_mmap(struct d
- 		return -EINVAL;
- 
- 	vma->vm_pgoff -= drm_vma_node_start(&obj->vma_node);
--	vma->vm_flags |= VM_MIXEDMAP | VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_MIXEDMAP | VM_DONTEXPAND);
- 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
- 	vma->vm_page_prot = pgprot_decrypted(vma->vm_page_prot);
- 	vma->vm_ops = &virtio_gpu_vram_vm_ops;
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c
-@@ -97,7 +97,7 @@ int vmw_mmap(struct file *filp, struct v
- 
- 	/* Use VM_PFNMAP rather than VM_MIXEDMAP if not a COW mapping */
- 	if (!is_cow_mapping(vma->vm_flags))
--		vma->vm_flags = (vma->vm_flags & ~VM_MIXEDMAP) | VM_PFNMAP;
-+		vm_flags_mod(vma, VM_PFNMAP, VM_MIXEDMAP);
- 
- 	ttm_bo_put(bo); /* release extra ref taken by ttm_bo_mmap_obj() */
- 
---- a/drivers/gpu/drm/xen/xen_drm_front_gem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/gpu/drm/xen/xen_drm_front_gem.c
-@@ -69,8 +69,7 @@ static int xen_drm_front_gem_object_mmap
- 	 * vm_pgoff (used as a fake buffer offset by DRM) to 0 as we want to map
- 	 * the whole buffer.
- 	 */
--	vma->vm_flags &= ~VM_PFNMAP;
--	vma->vm_flags |= VM_MIXEDMAP | VM_DONTEXPAND;
-+	vm_flags_mod(vma, VM_MIXEDMAP | VM_DONTEXPAND, VM_PFNMAP);
- 	vma->vm_pgoff = 0;
- 
- 	/*
---- a/drivers/hsi/clients/cmt_speech.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/hsi/clients/cmt_speech.c
-@@ -1264,7 +1264,7 @@ static int cs_char_mmap(struct file *fil
- 	if (vma_pages(vma) != 1)
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_DONTDUMP | VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_IO | VM_DONTDUMP | VM_DONTEXPAND);
- 	vma->vm_ops = &cs_char_vm_ops;
- 	vma->vm_private_data = file->private_data;
- 
---- a/drivers/hwtracing/intel_th/msu.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/hwtracing/intel_th/msu.c
-@@ -1659,7 +1659,7 @@ out:
- 		atomic_dec(&msc->user_count);
- 
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTCOPY;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTCOPY);
- 	vma->vm_ops = &msc_mmap_ops;
- 	return ret;
- }
---- a/drivers/hwtracing/stm/core.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/hwtracing/stm/core.c
-@@ -715,7 +715,7 @@ static int stm_char_mmap(struct file *fi
- 	pm_runtime_get_sync(&stm->dev);
- 
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--	vma->vm_flags |= VM_IO | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_ops = &stm_mmap_vmops;
- 	vm_iomap_memory(vma, phys, size);
- 
---- a/drivers/infiniband/hw/hfi1/file_ops.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -403,7 +403,7 @@ static int hfi1_file_mmap(struct file *f
- 			ret = -EPERM;
- 			goto done;
- 		}
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
- 		addr = vma->vm_start;
- 		for (i = 0 ; i < uctxt->egrbufs.numbufs; i++) {
- 			memlen = uctxt->egrbufs.buffers[i].len;
-@@ -528,7 +528,7 @@ static int hfi1_file_mmap(struct file *f
- 		goto done;
- 	}
- 
--	vma->vm_flags = flags;
-+	vm_flags_reset(vma, flags);
- 	hfi1_cdbg(PROC,
- 		  "%u:%u type:%u io/vf:%d/%d, addr:0x%llx, len:%lu(%lu), flags:0x%lx\n",
- 		    ctxt, subctxt, type, mapio, vmf, memaddr, memlen,
---- a/drivers/infiniband/hw/mlx5/main.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/infiniband/hw/mlx5/main.c
-@@ -2087,7 +2087,7 @@ static int mlx5_ib_mmap_clock_info_page(
- 
- 	if (vma->vm_flags & (VM_WRITE | VM_EXEC))
- 		return -EPERM;
--	vma->vm_flags &= ~VM_MAYWRITE;
-+	vm_flags_clear(vma, VM_MAYWRITE);
- 
- 	if (!dev->mdev->clock_info)
- 		return -EOPNOTSUPP;
-@@ -2311,7 +2311,7 @@ static int mlx5_ib_mmap(struct ib_uconte
- 
- 		if (vma->vm_flags & VM_WRITE)
- 			return -EPERM;
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
- 
- 		/* Don't expose to user-space information it shouldn't have */
- 		if (PAGE_SIZE > 4096)
---- a/drivers/infiniband/hw/qib/qib_file_ops.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -733,7 +733,7 @@ static int qib_mmap_mem(struct vm_area_s
- 		}
- 
- 		/* don't allow them to later change with mprotect */
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
- 	}
- 
- 	pfn = virt_to_phys(kvaddr) >> PAGE_SHIFT;
-@@ -769,7 +769,7 @@ static int mmap_ureg(struct vm_area_stru
- 		phys = dd->physaddr + ureg;
- 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 
--		vma->vm_flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		vm_flags_set(vma, VM_DONTCOPY | VM_DONTEXPAND);
- 		ret = io_remap_pfn_range(vma, vma->vm_start,
- 					 phys >> PAGE_SHIFT,
- 					 vma->vm_end - vma->vm_start,
-@@ -810,8 +810,7 @@ static int mmap_piobufs(struct vm_area_s
- 	 * don't allow them to later change to readable with mprotect (for when
- 	 * not initially mapped readable, as is normally the case)
- 	 */
--	vma->vm_flags &= ~VM_MAYREAD;
--	vma->vm_flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+	vm_flags_mod(vma, VM_DONTCOPY | VM_DONTEXPAND, VM_MAYREAD);
- 
- 	/* We used PAT if wc_cookie == 0 */
- 	if (!dd->wc_cookie)
-@@ -852,7 +851,7 @@ static int mmap_rcvegrbufs(struct vm_are
- 		goto bail;
- 	}
- 	/* don't allow them to later change to writable with mprotect */
--	vma->vm_flags &= ~VM_MAYWRITE;
-+	vm_flags_clear(vma, VM_MAYWRITE);
- 
- 	start = vma->vm_start;
- 
-@@ -944,7 +943,7 @@ static int mmap_kvaddr(struct vm_area_st
- 		 * Don't allow permission to later change to writable
- 		 * with mprotect.
- 		 */
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
- 	} else
- 		goto bail;
- 	len = vma->vm_end - vma->vm_start;
-@@ -955,7 +954,7 @@ static int mmap_kvaddr(struct vm_area_st
- 
- 	vma->vm_pgoff = (unsigned long) addr >> PAGE_SHIFT;
- 	vma->vm_ops = &qib_file_vm_ops;
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 	ret = 1;
- 
- bail:
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -672,7 +672,7 @@ int usnic_ib_mmap(struct ib_ucontext *co
- 	usnic_dbg("\n");
- 
- 	us_ibdev = to_usdev(context->device);
--	vma->vm_flags |= VM_IO;
-+	vm_flags_set(vma, VM_IO);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	vfid = vma->vm_pgoff;
- 	usnic_dbg("Page Offset %lu PAGE_SHIFT %u VFID %u\n",
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-@@ -408,7 +408,7 @@ int pvrdma_mmap(struct ib_ucontext *ibco
- 	}
- 
- 	/* Map UAR to kernel space, VM_LOCKED? */
--	vma->vm_flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_DONTCOPY | VM_DONTEXPAND);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	if (io_remap_pfn_range(vma, start, context->uar.pfn, size,
- 			       vma->vm_page_prot))
---- a/drivers/media/common/videobuf2/videobuf2-dma-contig.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/media/common/videobuf2/videobuf2-dma-contig.c
-@@ -293,7 +293,7 @@ static int vb2_dc_mmap(void *buf_priv, s
- 		return ret;
- 	}
- 
--	vma->vm_flags		|= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_private_data	= &buf->handler;
- 	vma->vm_ops		= &vb2_common_vm_ops;
- 
---- a/drivers/media/common/videobuf2/videobuf2-vmalloc.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/media/common/videobuf2/videobuf2-vmalloc.c
-@@ -185,7 +185,7 @@ static int vb2_vmalloc_mmap(void *buf_pr
- 	/*
- 	 * Make sure that vm_areas for 2 buffers won't be merged together
- 	 */
--	vma->vm_flags		|= VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_DONTEXPAND);
- 
- 	/*
- 	 * Use common vm_area operations to track buffer refcount.
---- a/drivers/media/v4l2-core/videobuf-dma-contig.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/media/v4l2-core/videobuf-dma-contig.c
-@@ -314,7 +314,7 @@ static int __videobuf_mmap_mapper(struct
- 	}
- 
- 	vma->vm_ops = &videobuf_vm_ops;
--	vma->vm_flags |= VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_DONTEXPAND);
- 	vma->vm_private_data = map;
- 
- 	dev_dbg(q->dev, "mmap %p: q=%p %08lx-%08lx (%lx) pgoff %08lx buf %d\n",
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -630,8 +630,8 @@ static int __videobuf_mmap_mapper(struct
- 	map->count    = 1;
- 	map->q        = q;
- 	vma->vm_ops   = &videobuf_vm_ops;
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
--	vma->vm_flags &= ~VM_IO; /* using shared anonymous pages */
-+	/* using shared anonymous pages */
-+	vm_flags_mod(vma, VM_DONTEXPAND | VM_DONTDUMP, VM_IO);
- 	vma->vm_private_data = map;
- 	dprintk(1, "mmap %p: q=%p %08lx-%08lx pgoff %08lx bufs %d-%d\n",
- 		map, q, vma->vm_start, vma->vm_end, vma->vm_pgoff, first, last);
---- a/drivers/media/v4l2-core/videobuf-vmalloc.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/media/v4l2-core/videobuf-vmalloc.c
-@@ -247,7 +247,7 @@ static int __videobuf_mmap_mapper(struct
- 	}
- 
- 	vma->vm_ops          = &videobuf_vm_ops;
--	vma->vm_flags       |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_private_data = map;
- 
- 	dprintk(1, "mmap %p: q=%p %08lx-%08lx (%lx) pgoff %08lx buf %d\n",
---- a/drivers/misc/cxl/context.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/misc/cxl/context.c
-@@ -220,7 +220,7 @@ int cxl_context_iomap(struct cxl_context
- 	pr_devel("%s: mmio physical: %llx pe: %i master:%i\n", __func__,
- 		 ctx->psn_phys, ctx->pe , ctx->master);
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	vma->vm_ops = &cxl_mmap_vmops;
- 	return 0;
---- a/drivers/misc/habanalabs/common/memory.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/misc/habanalabs/common/memory.c
-@@ -2082,7 +2082,7 @@ static int hl_ts_mmap(struct hl_mmap_mem
- {
- 	struct hl_ts_buff *ts_buff = buf->private;
- 
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP | VM_DONTCOPY | VM_NORESERVE;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP | VM_DONTCOPY | VM_NORESERVE);
- 	return remap_vmalloc_range(vma, ts_buff->user_buff_address, 0);
- }
- 
---- a/drivers/misc/habanalabs/gaudi2/gaudi2.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/misc/habanalabs/gaudi2/gaudi2.c
-@@ -5538,8 +5538,8 @@ static int gaudi2_mmap(struct hl_device
- {
- 	int rc;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP |
--			VM_DONTCOPY | VM_NORESERVE;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP |
-+			VM_DONTCOPY | VM_NORESERVE);
- 
- #ifdef _HAS_DMA_MMAP_COHERENT
- 
-@@ -10116,8 +10116,8 @@ static int gaudi2_block_mmap(struct hl_d
- 
- 	address = pci_resource_start(hdev->pdev, SRAM_CFG_BAR_ID) + offset_in_bar;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP |
--			VM_DONTCOPY | VM_NORESERVE;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP |
-+			VM_DONTCOPY | VM_NORESERVE);
- 
- 	rc = remap_pfn_range(vma, vma->vm_start, address >> PAGE_SHIFT,
- 			block_size, vma->vm_page_prot);
---- a/drivers/misc/habanalabs/gaudi/gaudi.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/misc/habanalabs/gaudi/gaudi.c
-@@ -4236,8 +4236,8 @@ static int gaudi_mmap(struct hl_device *
- {
- 	int rc;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP |
--			VM_DONTCOPY | VM_NORESERVE;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP |
-+			VM_DONTCOPY | VM_NORESERVE);
- 
- 	rc = dma_mmap_coherent(hdev->dev, vma, cpu_addr,
- 				(dma_addr - HOST_PHYS_BASE), size);
---- a/drivers/misc/habanalabs/goya/goya.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/misc/habanalabs/goya/goya.c
-@@ -2880,8 +2880,8 @@ static int goya_mmap(struct hl_device *h
- {
- 	int rc;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP |
--			VM_DONTCOPY | VM_NORESERVE;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP |
-+			VM_DONTCOPY | VM_NORESERVE);
- 
- 	rc = dma_mmap_coherent(hdev->dev, vma, cpu_addr,
- 				(dma_addr - HOST_PHYS_BASE), size);
---- a/drivers/misc/ocxl/context.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/misc/ocxl/context.c
-@@ -180,7 +180,7 @@ static int check_mmap_afu_irq(struct ocx
- 	if ((vma->vm_flags & VM_READ) || (vma->vm_flags & VM_EXEC) ||
- 		!(vma->vm_flags & VM_WRITE))
- 		return -EINVAL;
--	vma->vm_flags &= ~(VM_MAYREAD | VM_MAYEXEC);
-+	vm_flags_clear(vma, VM_MAYREAD | VM_MAYEXEC);
- 	return 0;
- }
- 
-@@ -204,7 +204,7 @@ int ocxl_context_mmap(struct ocxl_contex
- 	if (rc)
- 		return rc;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	vma->vm_ops = &ocxl_vmops;
- 	return 0;
---- a/drivers/misc/ocxl/sysfs.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/misc/ocxl/sysfs.c
-@@ -134,7 +134,7 @@ static int global_mmio_mmap(struct file
- 		(afu->config.global_mmio_size >> PAGE_SHIFT))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	vma->vm_ops = &global_mmio_vmops;
- 	vma->vm_private_data = afu;
---- a/drivers/misc/open-dice.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/misc/open-dice.c
-@@ -95,12 +95,12 @@ static int open_dice_mmap(struct file *f
- 		if (vma->vm_flags & VM_WRITE)
- 			return -EPERM;
- 		/* Ensure userspace cannot acquire VM_WRITE later. */
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
- 	}
- 
- 	/* Create write-combine mapping so all clients observe a wipe. */
- 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
--	vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTCOPY | VM_DONTDUMP);
- 	return vm_iomap_memory(vma, drvdata->rmem->base, drvdata->rmem->size);
- }
- 
---- a/drivers/misc/sgi-gru/grufile.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -101,8 +101,8 @@ static int gru_file_mmap(struct file *fi
- 				vma->vm_end & (GRU_GSEG_PAGESIZE - 1))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_LOCKED |
--			 VM_DONTCOPY | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_LOCKED |
-+			 VM_DONTCOPY | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_page_prot = PAGE_SHARED;
- 	vma->vm_ops = &gru_vm_ops;
- 
---- a/drivers/misc/uacce/uacce.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/misc/uacce/uacce.c
-@@ -229,7 +229,7 @@ static int uacce_fops_mmap(struct file *
- 	if (!qfr)
- 		return -ENOMEM;
- 
--	vma->vm_flags |= VM_DONTCOPY | VM_DONTEXPAND | VM_WIPEONFORK;
-+	vm_flags_set(vma, VM_DONTCOPY | VM_DONTEXPAND | VM_WIPEONFORK);
- 	vma->vm_ops = &uacce_vm_ops;
- 	vma->vm_private_data = q;
- 	qfr->type = type;
---- a/drivers/sbus/char/oradax.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/sbus/char/oradax.c
-@@ -389,7 +389,7 @@ static int dax_devmap(struct file *f, st
- 	/* completion area is mapped read-only for user */
- 	if (vma->vm_flags & VM_WRITE)
- 		return -EPERM;
--	vma->vm_flags &= ~VM_MAYWRITE;
-+	vm_flags_clear(vma, VM_MAYWRITE);
- 
- 	if (remap_pfn_range(vma, vma->vm_start, ctx->ca_buf_ra >> PAGE_SHIFT,
- 			    len, vma->vm_page_prot))
---- a/drivers/scsi/cxlflash/ocxl_hw.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/scsi/cxlflash/ocxl_hw.c
-@@ -1167,7 +1167,7 @@ static int afu_mmap(struct file *file, s
- 	    (ctx->psn_size >> PAGE_SHIFT))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	vma->vm_ops = &ocxlflash_vmops;
- 	return 0;
---- a/drivers/scsi/sg.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/scsi/sg.c
-@@ -1288,7 +1288,7 @@ sg_mmap(struct file *filp, struct vm_are
- 	}
- 
- 	sfp->mmap_called = 1;
--	vma->vm_flags |= VM_IO | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_private_data = sfp;
- 	vma->vm_ops = &sg_mmap_vm_ops;
- out:
---- a/drivers/staging/media/atomisp/pci/hmm/hmm_bo.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/staging/media/atomisp/pci/hmm/hmm_bo.c
-@@ -1072,7 +1072,7 @@ int hmm_bo_mmap(struct vm_area_struct *v
- 	vma->vm_private_data = bo;
- 
- 	vma->vm_ops = &hmm_bo_vm_ops;
--	vma->vm_flags |= VM_IO | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_DONTEXPAND | VM_DONTDUMP);
- 
- 	/*
- 	 * call hmm_bo_vm_open explicitly.
---- a/drivers/staging/media/deprecated/meye/meye.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/staging/media/deprecated/meye/meye.c
-@@ -1476,8 +1476,8 @@ static int meye_mmap(struct file *file,
- 	}
- 
- 	vma->vm_ops = &meye_vm_ops;
--	vma->vm_flags &= ~VM_IO;	/* not I/O memory */
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	/* not I/O memory */
-+	vm_flags_mod(vma, VM_DONTEXPAND | VM_DONTDUMP, VM_IO);
- 	vma->vm_private_data = (void *) (offset / gbufsize);
- 	meye_vm_open(vma);
- 
---- a/drivers/staging/media/deprecated/stkwebcam/stk-webcam.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/staging/media/deprecated/stkwebcam/stk-webcam.c
-@@ -779,7 +779,7 @@ static int v4l_stk_mmap(struct file *fp,
- 	ret = remap_vmalloc_range(vma, sbuf->buffer, 0);
- 	if (ret)
- 		return ret;
--	vma->vm_flags |= VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_DONTEXPAND);
- 	vma->vm_private_data = sbuf;
- 	vma->vm_ops = &stk_v4l_vm_ops;
- 	sbuf->v4lbuf.flags |= V4L2_BUF_FLAG_MAPPED;
---- a/drivers/target/target_core_user.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/target/target_core_user.c
-@@ -1928,7 +1928,7 @@ static int tcmu_mmap(struct uio_info *in
- {
- 	struct tcmu_dev *udev = container_of(info, struct tcmu_dev, uio_info);
- 
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_ops = &tcmu_vm_ops;
- 
- 	vma->vm_private_data = udev;
---- a/drivers/uio/uio.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/uio/uio.c
-@@ -713,7 +713,7 @@ static const struct vm_operations_struct
- 
- static int uio_mmap_logical(struct vm_area_struct *vma)
- {
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_ops = &uio_logical_vm_ops;
- 	return 0;
- }
---- a/drivers/usb/core/devio.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/usb/core/devio.c
-@@ -279,8 +279,7 @@ static int usbdev_mmap(struct file *file
- 		}
- 	}
- 
--	vma->vm_flags |= VM_IO;
--	vma->vm_flags |= (VM_DONTEXPAND | VM_DONTDUMP);
-+	vm_flags_set(vma, VM_IO | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_ops = &usbdev_vm_ops;
- 	vma->vm_private_data = usbm;
- 
---- a/drivers/usb/mon/mon_bin.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/usb/mon/mon_bin.c
-@@ -1272,8 +1272,7 @@ static int mon_bin_mmap(struct file *fil
- 	if (vma->vm_flags & VM_WRITE)
- 		return -EPERM;
- 
--	vma->vm_flags &= ~VM_MAYWRITE;
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_mod(vma, VM_DONTEXPAND | VM_DONTDUMP, VM_MAYWRITE);
- 	vma->vm_private_data = filp->private_data;
- 	mon_bin_vma_open(vma);
- 	return 0;
---- a/drivers/vdpa/vdpa_user/iova_domain.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/vdpa/vdpa_user/iova_domain.c
-@@ -512,7 +512,7 @@ static int vduse_domain_mmap(struct file
- {
- 	struct vduse_iova_domain *domain = file->private_data;
- 
--	vma->vm_flags |= VM_DONTDUMP | VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_DONTDUMP | VM_DONTEXPAND);
- 	vma->vm_private_data = domain;
- 	vma->vm_ops = &vduse_domain_mmap_ops;
- 
---- a/drivers/vfio/pci/vfio_pci_core.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/vfio/pci/vfio_pci_core.c
-@@ -1799,7 +1799,7 @@ int vfio_pci_core_mmap(struct vfio_devic
- 	 * See remap_pfn_range(), called from vfio_pci_fault() but we can't
- 	 * change vm_flags within the fault handler.  Set them now.
- 	 */
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_ops = &vfio_pci_mmap_ops;
- 
- 	return 0;
---- a/drivers/vhost/vdpa.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/vhost/vdpa.c
-@@ -1315,7 +1315,7 @@ static int vhost_vdpa_mmap(struct file *
- 	if (vma->vm_end - vma->vm_start != notify.size)
- 		return -ENOTSUPP;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_ops = &vhost_vdpa_vm_ops;
- 	return 0;
- }
---- a/drivers/video/fbdev/68328fb.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/video/fbdev/68328fb.c
-@@ -391,7 +391,7 @@ static int mc68x328fb_mmap(struct fb_inf
- #ifndef MMU
- 	/* this is uClinux (no MMU) specific code */
- 
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_start = videomemory;
- 
- 	return 0;
---- a/drivers/video/fbdev/core/fb_defio.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/video/fbdev/core/fb_defio.c
-@@ -232,9 +232,9 @@ static const struct address_space_operat
- int fb_deferred_io_mmap(struct fb_info *info, struct vm_area_struct *vma)
- {
- 	vma->vm_ops = &fb_deferred_io_vm_ops;
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 	if (!(info->flags & FBINFO_VIRTFB))
--		vma->vm_flags |= VM_IO;
-+		vm_flags_set(vma, VM_IO);
- 	vma->vm_private_data = info;
- 	return 0;
- }
---- a/drivers/xen/gntalloc.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/xen/gntalloc.c
-@@ -525,7 +525,7 @@ static int gntalloc_mmap(struct file *fi
- 
- 	vma->vm_private_data = vm_priv;
- 
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 
- 	vma->vm_ops = &gntalloc_vmops;
- 
---- a/drivers/xen/gntdev.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/xen/gntdev.c
-@@ -1055,10 +1055,10 @@ static int gntdev_mmap(struct file *flip
- 
- 	vma->vm_ops = &gntdev_vmops;
- 
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP | VM_MIXEDMAP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP | VM_MIXEDMAP);
- 
- 	if (use_ptemod)
--		vma->vm_flags |= VM_DONTCOPY;
-+		vm_flags_set(vma, VM_DONTCOPY);
- 
- 	vma->vm_private_data = map;
- 	if (map->flags) {
---- a/drivers/xen/privcmd-buf.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/xen/privcmd-buf.c
-@@ -156,7 +156,7 @@ static int privcmd_buf_mmap(struct file
- 	vma_priv->file_priv = file_priv;
- 	vma_priv->users = 1;
- 
--	vma->vm_flags |= VM_IO | VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_IO | VM_DONTEXPAND);
- 	vma->vm_ops = &privcmd_buf_vm_ops;
- 	vma->vm_private_data = vma_priv;
- 
---- a/drivers/xen/privcmd.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/drivers/xen/privcmd.c
-@@ -934,8 +934,8 @@ static int privcmd_mmap(struct file *fil
- {
- 	/* DONTCOPY is essential for Xen because copy_page_range doesn't know
- 	 * how to recreate these mappings */
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTCOPY |
--			 VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTCOPY |
-+			 VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_ops = &privcmd_vm_ops;
- 	vma->vm_private_data = NULL;
- 
---- a/fs/aio.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/aio.c
-@@ -390,7 +390,7 @@ static const struct vm_operations_struct
- 
- static int aio_ring_mmap(struct file *file, struct vm_area_struct *vma)
- {
--	vma->vm_flags |= VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_DONTEXPAND);
- 	vma->vm_ops = &aio_ring_vm_ops;
- 	return 0;
- }
---- a/fs/cramfs/inode.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/cramfs/inode.c
-@@ -408,7 +408,7 @@ static int cramfs_physmem_mmap(struct fi
- 		 * unpopulated ptes via cramfs_read_folio().
- 		 */
- 		int i;
--		vma->vm_flags |= VM_MIXEDMAP;
-+		vm_flags_set(vma, VM_MIXEDMAP);
- 		for (i = 0; i < pages && !ret; i++) {
- 			vm_fault_t vmf;
- 			unsigned long off = i * PAGE_SIZE;
---- a/fs/erofs/data.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/erofs/data.c
-@@ -429,7 +429,7 @@ static int erofs_file_mmap(struct file *
- 		return -EINVAL;
- 
- 	vma->vm_ops = &erofs_dax_vm_ops;
--	vma->vm_flags |= VM_HUGEPAGE;
-+	vm_flags_set(vma, VM_HUGEPAGE);
- 	return 0;
- }
- #else
---- a/fs/exec.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/exec.c
-@@ -270,7 +270,7 @@ static int __bprm_mm_init(struct linux_b
- 	BUILD_BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
- 	vma->vm_end = STACK_TOP_MAX;
- 	vma->vm_start = vma->vm_end - PAGE_SIZE;
--	vma->vm_flags = VM_SOFTDIRTY | VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
-+	vm_flags_init(vma, VM_SOFTDIRTY | VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP);
- 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
- 
- 	err = insert_vm_struct(mm, vma);
-@@ -834,7 +834,7 @@ int setup_arg_pages(struct linux_binprm
- 	}
- 
- 	/* mprotect_fixup is overkill to remove the temporary stack flags */
--	vma->vm_flags &= ~VM_STACK_INCOMPLETE_SETUP;
-+	vm_flags_clear(vma, VM_STACK_INCOMPLETE_SETUP);
- 
- 	stack_expand = 131072UL; /* randomly 32*4k (or 2*64k) pages */
- 	stack_size = vma->vm_end - vma->vm_start;
---- a/fs/ext4/file.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/ext4/file.c
-@@ -801,7 +801,7 @@ static int ext4_file_mmap(struct file *f
- 	file_accessed(file);
- 	if (IS_DAX(file_inode(file))) {
- 		vma->vm_ops = &ext4_dax_vm_ops;
--		vma->vm_flags |= VM_HUGEPAGE;
-+		vm_flags_set(vma, VM_HUGEPAGE);
- 	} else {
- 		vma->vm_ops = &ext4_file_vm_ops;
- 	}
---- a/fs/fuse/dax.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/fuse/dax.c
-@@ -860,7 +860,7 @@ int fuse_dax_mmap(struct file *file, str
- {
- 	file_accessed(file);
- 	vma->vm_ops = &fuse_dax_vm_ops;
--	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+	vm_flags_set(vma, VM_MIXEDMAP | VM_HUGEPAGE);
- 	return 0;
- }
- 
---- a/fs/hugetlbfs/inode.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/hugetlbfs/inode.c
-@@ -132,7 +132,7 @@ static int hugetlbfs_file_mmap(struct fi
- 	 * way when do_mmap unwinds (may be important on powerpc
- 	 * and ia64).
- 	 */
--	vma->vm_flags |= VM_HUGETLB | VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_HUGETLB | VM_DONTEXPAND);
- 	vma->vm_ops = &hugetlb_vm_ops;
- 
- 	ret = seal_check_future_write(info->seals, vma);
-@@ -811,7 +811,7 @@ static long hugetlbfs_fallocate(struct f
- 	 * as input to create an allocation policy.
- 	 */
- 	vma_init(&pseudo_vma, mm);
--	pseudo_vma.vm_flags = (VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
-+	vm_flags_init(&pseudo_vma, VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
- 	pseudo_vma.vm_file = file;
- 
- 	for (index = start; index < end; index++) {
---- a/fs/orangefs/file.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/orangefs/file.c
-@@ -389,8 +389,7 @@ static int orangefs_file_mmap(struct fil
- 		     "orangefs_file_mmap: called on %pD\n", file);
- 
- 	/* set the sequential readahead hint */
--	vma->vm_flags |= VM_SEQ_READ;
--	vma->vm_flags &= ~VM_RAND_READ;
-+	vm_flags_mod(vma, VM_SEQ_READ, VM_RAND_READ);
- 
- 	file_accessed(file);
- 	vma->vm_ops = &orangefs_file_vm_ops;
---- a/fs/proc/task_mmu.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/proc/task_mmu.c
-@@ -1299,7 +1299,7 @@ static ssize_t clear_refs_write(struct f
- 			for_each_vma(vmi, vma) {
- 				if (!(vma->vm_flags & VM_SOFTDIRTY))
- 					continue;
--				vma->vm_flags &= ~VM_SOFTDIRTY;
-+				vm_flags_clear(vma, VM_SOFTDIRTY);
- 				vma_set_page_prot(vma);
- 			}
- 
---- a/fs/proc/vmcore.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/proc/vmcore.c
-@@ -582,8 +582,7 @@ static int mmap_vmcore(struct file *file
- 	if (vma->vm_flags & (VM_WRITE | VM_EXEC))
- 		return -EPERM;
- 
--	vma->vm_flags &= ~(VM_MAYWRITE | VM_MAYEXEC);
--	vma->vm_flags |= VM_MIXEDMAP;
-+	vm_flags_mod(vma, VM_MIXEDMAP, VM_MAYWRITE | VM_MAYEXEC);
- 	vma->vm_ops = &vmcore_mmap_ops;
- 
- 	len = 0;
---- a/fs/userfaultfd.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/userfaultfd.c
-@@ -113,7 +113,7 @@ static void userfaultfd_set_vm_flags(str
- {
- 	const bool uffd_wp_changed = (vma->vm_flags ^ flags) & VM_UFFD_WP;
- 
--	vma->vm_flags = flags;
-+	vm_flags_reset(vma, flags);
- 	/*
- 	 * For shared mappings, we want to enable writenotify while
- 	 * userfaultfd-wp is enabled (see vma_wants_writenotify()). We'll simply
---- a/fs/xfs/xfs_file.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/fs/xfs/xfs_file.c
-@@ -1429,7 +1429,7 @@ xfs_file_mmap(
- 	file_accessed(file);
- 	vma->vm_ops = &xfs_file_vm_ops;
- 	if (IS_DAX(inode))
--		vma->vm_flags |= VM_HUGEPAGE;
-+		vm_flags_set(vma, VM_HUGEPAGE);
- 	return 0;
- }
- 
---- a/include/linux/mm.h~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
+--- a/include/linux/mm.h~mm-introduce-__vm_flags_mod-and-use-it-in-untrack_pfn
 +++ a/include/linux/mm.h
-@@ -3653,7 +3653,7 @@ static inline int seal_check_future_writ
- 		 * VM_MAYWRITE as we still want them to be COW-writable.
- 		 */
- 		if (vma->vm_flags & VM_SHARED)
--			vma->vm_flags &= ~(VM_MAYWRITE);
-+			vm_flags_clear(vma, VM_MAYWRITE);
- 	}
+@@ -657,6 +657,16 @@ static inline void vm_flags_clear(struct
+ }
  
- 	return 0;
---- a/kernel/bpf/ringbuf.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/kernel/bpf/ringbuf.c
-@@ -269,7 +269,7 @@ static int ringbuf_map_mmap_kern(struct
- 		if (vma->vm_pgoff != 0 || vma->vm_end - vma->vm_start != PAGE_SIZE)
- 			return -EPERM;
- 	} else {
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
- 	}
- 	/* remap_vmalloc_range() checks size and offset constraints */
- 	return remap_vmalloc_range(vma, rb_map->rb,
-@@ -290,7 +290,7 @@ static int ringbuf_map_mmap_user(struct
- 			 */
- 			return -EPERM;
- 	} else {
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
- 	}
- 	/* remap_vmalloc_range() checks size and offset constraints */
- 	return remap_vmalloc_range(vma, rb_map->rb, vma->vm_pgoff + RINGBUF_PGOFF);
---- a/kernel/bpf/syscall.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/kernel/bpf/syscall.c
-@@ -882,10 +882,10 @@ static int bpf_map_mmap(struct file *fil
- 	/* set default open/close callbacks */
- 	vma->vm_ops = &bpf_map_default_vmops;
- 	vma->vm_private_data = map;
--	vma->vm_flags &= ~VM_MAYEXEC;
-+	vm_flags_clear(vma, VM_MAYEXEC);
- 	if (!(vma->vm_flags & VM_WRITE))
- 		/* disallow re-mapping with PROT_WRITE */
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
+ /*
++ * Use only if VMA is not part of the VMA tree or has no other users and
++ * therefore needs no locking.
++ */
++static inline void __vm_flags_mod(struct vm_area_struct *vma,
++				  vm_flags_t set, vm_flags_t clear)
++{
++	vm_flags_init(vma, (vma->vm_flags | set) & ~clear);
++}
++
++/*
+  * Use only when the order of set/clear operations is unimportant, otherwise
+  * use vm_flags_{set|clear} explicitly.
+  */
+@@ -664,7 +674,7 @@ static inline void vm_flags_mod(struct v
+ 				vm_flags_t set, vm_flags_t clear)
+ {
+ 	mmap_assert_write_locked(vma->vm_mm);
+-	vm_flags_init(vma, (vma->vm_flags | set) & ~clear);
++	__vm_flags_mod(vma, set, clear);
+ }
  
- 	err = map->ops->map_mmap(map, vma);
- 	if (err)
---- a/kernel/events/core.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/kernel/events/core.c
-@@ -6573,7 +6573,7 @@ aux_unlock:
- 	 * Since pinned accounting is per vm we cannot allow fork() to copy our
- 	 * vma.
- 	 */
--	vma->vm_flags |= VM_DONTCOPY | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTCOPY | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_ops = &perf_mmap_vmops;
+ static inline void vma_set_anonymous(struct vm_area_struct *vma)
+@@ -2085,7 +2095,7 @@ static inline void zap_vma_pages(struct
+ }
+ void unmap_vmas(struct mmu_gather *tlb, struct maple_tree *mt,
+ 		struct vm_area_struct *start_vma, unsigned long start,
+-		unsigned long end);
++		unsigned long end, bool mm_wr_locked);
  
- 	if (event->pmu->event_mapped)
---- a/kernel/kcov.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/kernel/kcov.c
-@@ -489,7 +489,7 @@ static int kcov_mmap(struct file *filep,
- 		goto exit;
- 	}
- 	spin_unlock_irqrestore(&kcov->lock, flags);
--	vma->vm_flags |= VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_DONTEXPAND);
- 	for (off = 0; off < size; off += PAGE_SIZE) {
- 		page = vmalloc_to_page(kcov->area + off);
- 		res = vm_insert_page(vma, vma->vm_start + off, page);
---- a/kernel/relay.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/kernel/relay.c
-@@ -91,7 +91,7 @@ static int relay_mmap_buf(struct rchan_b
- 		return -EINVAL;
+ struct mmu_notifier_range;
  
- 	vma->vm_ops = &relay_file_mmap_ops;
--	vma->vm_flags |= VM_DONTEXPAND;
-+	vm_flags_set(vma, VM_DONTEXPAND);
- 	vma->vm_private_data = buf;
+--- a/include/linux/pgtable.h~mm-introduce-__vm_flags_mod-and-use-it-in-untrack_pfn
++++ a/include/linux/pgtable.h
+@@ -1185,7 +1185,8 @@ static inline int track_pfn_copy(struct
+  * can be for the entire vma (in which case pfn, size are zero).
+  */
+ static inline void untrack_pfn(struct vm_area_struct *vma,
+-			       unsigned long pfn, unsigned long size)
++			       unsigned long pfn, unsigned long size,
++			       bool mm_wr_locked)
+ {
+ }
  
- 	return 0;
---- a/mm/madvise.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/mm/madvise.c
-@@ -176,7 +176,7 @@ success:
- 	/*
- 	 * vm_flags is protected by the mmap_lock held in write mode.
- 	 */
--	vma->vm_flags = new_flags;
-+	vm_flags_reset(vma, new_flags);
- 	if (!vma->vm_file || vma_is_anon_shmem(vma)) {
- 		error = replace_anon_vma_name(vma, anon_name);
- 		if (error)
---- a/mm/memory.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
+@@ -1203,7 +1204,7 @@ extern void track_pfn_insert(struct vm_a
+ 			     pfn_t pfn);
+ extern int track_pfn_copy(struct vm_area_struct *vma);
+ extern void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
+-			unsigned long size);
++			unsigned long size, bool mm_wr_locked);
+ extern void untrack_pfn_moved(struct vm_area_struct *vma);
+ #endif
+ 
+--- a/mm/memory.c~mm-introduce-__vm_flags_mod-and-use-it-in-untrack_pfn
 +++ a/mm/memory.c
-@@ -1928,7 +1928,7 @@ int vm_insert_pages(struct vm_area_struc
- 	if (!(vma->vm_flags & VM_MIXEDMAP)) {
- 		BUG_ON(mmap_read_trylock(vma->vm_mm));
- 		BUG_ON(vma->vm_flags & VM_PFNMAP);
--		vma->vm_flags |= VM_MIXEDMAP;
-+		vm_flags_set(vma, VM_MIXEDMAP);
- 	}
- 	/* Defer page refcount checking till we're about to map that page. */
- 	return insert_pages(vma, addr, pages, num, vma->vm_page_prot);
-@@ -1986,7 +1986,7 @@ int vm_insert_page(struct vm_area_struct
- 	if (!(vma->vm_flags & VM_MIXEDMAP)) {
- 		BUG_ON(mmap_read_trylock(vma->vm_mm));
- 		BUG_ON(vma->vm_flags & VM_PFNMAP);
--		vma->vm_flags |= VM_MIXEDMAP;
-+		vm_flags_set(vma, VM_MIXEDMAP);
- 	}
- 	return insert_page(vma, addr, page, vma->vm_page_prot);
+@@ -1613,7 +1613,7 @@ void unmap_page_range(struct mmu_gather
+ static void unmap_single_vma(struct mmu_gather *tlb,
+ 		struct vm_area_struct *vma, unsigned long start_addr,
+ 		unsigned long end_addr,
+-		struct zap_details *details)
++		struct zap_details *details, bool mm_wr_locked)
+ {
+ 	unsigned long start = max(vma->vm_start, start_addr);
+ 	unsigned long end;
+@@ -1628,7 +1628,7 @@ static void unmap_single_vma(struct mmu_
+ 		uprobe_munmap(vma, start, end);
+ 
+ 	if (unlikely(vma->vm_flags & VM_PFNMAP))
+-		untrack_pfn(vma, 0, 0);
++		untrack_pfn(vma, 0, 0, mm_wr_locked);
+ 
+ 	if (start != end) {
+ 		if (unlikely(is_vm_hugetlb_page(vma))) {
+@@ -1675,7 +1675,7 @@ static void unmap_single_vma(struct mmu_
+  */
+ void unmap_vmas(struct mmu_gather *tlb, struct maple_tree *mt,
+ 		struct vm_area_struct *vma, unsigned long start_addr,
+-		unsigned long end_addr)
++		unsigned long end_addr, bool mm_wr_locked)
+ {
+ 	struct mmu_notifier_range range;
+ 	struct zap_details details = {
+@@ -1689,7 +1689,8 @@ void unmap_vmas(struct mmu_gather *tlb,
+ 				start_addr, end_addr);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 	do {
+-		unmap_single_vma(tlb, vma, start_addr, end_addr, &details);
++		unmap_single_vma(tlb, vma, start_addr, end_addr, &details,
++				 mm_wr_locked);
+ 	} while ((vma = mas_find(&mas, end_addr - 1)) != NULL);
+ 	mmu_notifier_invalidate_range_end(&range);
  }
-@@ -2452,7 +2452,7 @@ int remap_pfn_range_notrack(struct vm_ar
- 		vma->vm_pgoff = pfn;
- 	}
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 
- 	BUG_ON(addr >= end);
- 	pfn -= addr >> PAGE_SHIFT;
---- a/mm/mlock.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/mm/mlock.c
-@@ -380,7 +380,7 @@ static void mlock_vma_pages_range(struct
+@@ -1723,7 +1724,7 @@ void zap_page_range_single(struct vm_are
+ 	 * unmap 'address-end' not 'range.start-range.end' as range
+ 	 * could have been expanded for hugetlb pmd sharing.
  	 */
- 	if (newflags & VM_LOCKED)
- 		newflags |= VM_IO;
--	WRITE_ONCE(vma->vm_flags, newflags);
-+	vm_flags_reset(vma, newflags);
- 
- 	lru_add_drain();
- 	walk_page_range(vma->vm_mm, start, end, &mlock_walk_ops, NULL);
-@@ -388,7 +388,7 @@ static void mlock_vma_pages_range(struct
- 
- 	if (newflags & VM_IO) {
- 		newflags &= ~VM_IO;
--		WRITE_ONCE(vma->vm_flags, newflags);
-+		vm_flags_reset(vma, newflags);
- 	}
+-	unmap_single_vma(&tlb, vma, address, end, details);
++	unmap_single_vma(&tlb, vma, address, end, details, false);
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_finish_mmu(&tlb);
  }
+@@ -2492,7 +2493,7 @@ int remap_pfn_range(struct vm_area_struc
  
-@@ -457,7 +457,7 @@ success:
- 
- 	if ((newflags & VM_LOCKED) && (oldflags & VM_LOCKED)) {
- 		/* No work to do, and mlocking twice would be wrong */
--		vma->vm_flags = newflags;
-+		vm_flags_reset(vma, newflags);
- 	} else {
- 		mlock_vma_pages_range(vma, start, end, newflags);
- 	}
---- a/mm/mmap.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/mm/mmap.c
-@@ -2555,7 +2555,7 @@ cannot_expand:
- 	vma_iter_set(&vmi, addr);
- 	vma->vm_start = addr;
- 	vma->vm_end = end;
--	vma->vm_flags = vm_flags;
-+	vm_flags_init(vma, vm_flags);
- 	vma->vm_page_prot = vm_get_page_prot(vm_flags);
- 	vma->vm_pgoff = pgoff;
- 
-@@ -2683,7 +2683,7 @@ expanded:
- 	 * then new mapped in-place (which must be aimed as
- 	 * a completely new data area).
- 	 */
--	vma->vm_flags |= VM_SOFTDIRTY;
-+	vm_flags_set(vma, VM_SOFTDIRTY);
- 
- 	vma_set_page_prot(vma);
- 
-@@ -2909,7 +2909,7 @@ static int do_brk_flags(struct vma_itera
- 		init_vma_prep(&vp, vma);
- 		vma_prepare(&vp);
- 		vma->vm_end = addr + len;
--		vma->vm_flags |= VM_SOFTDIRTY;
-+		vm_flags_set(vma, VM_SOFTDIRTY);
- 		vma_iter_store(vmi, vma);
- 
- 		vma_complete(&vp, vmi, mm);
-@@ -2926,7 +2926,7 @@ static int do_brk_flags(struct vma_itera
- 	vma->vm_start = addr;
- 	vma->vm_end = addr + len;
- 	vma->vm_pgoff = addr >> PAGE_SHIFT;
--	vma->vm_flags = flags;
-+	vm_flags_init(vma, flags);
- 	vma->vm_page_prot = vm_get_page_prot(flags);
- 	if (vma_iter_store_gfp(vmi, vma, GFP_KERNEL))
- 		goto mas_store_fail;
-@@ -2938,7 +2938,7 @@ out:
- 	mm->data_vm += len >> PAGE_SHIFT;
- 	if (flags & VM_LOCKED)
- 		mm->locked_vm += (len >> PAGE_SHIFT);
--	vma->vm_flags |= VM_SOFTDIRTY;
-+	vm_flags_set(vma, VM_SOFTDIRTY);
- 	validate_mm(mm);
- 	return 0;
- 
---- a/mm/mprotect.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/mm/mprotect.c
-@@ -670,7 +670,7 @@ success:
- 	 * vm_flags and vm_page_prot are protected by the mmap_lock
- 	 * held in write mode.
- 	 */
--	vma->vm_flags = newflags;
-+	vm_flags_reset(vma, newflags);
- 	if (vma_wants_manual_pte_write_upgrade(vma))
- 		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
- 	vma_set_page_prot(vma);
---- a/mm/mremap.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/mm/mremap.c
-@@ -662,7 +662,7 @@ static unsigned long move_vma(struct vm_
- 
- 	/* Conceal VM_ACCOUNT so old reservation is not undone */
- 	if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP)) {
--		vma->vm_flags &= ~VM_ACCOUNT;
-+		vm_flags_clear(vma, VM_ACCOUNT);
- 		if (vma->vm_start < old_addr)
- 			account_start = vma->vm_start;
- 		if (vma->vm_end > old_addr + old_len)
-@@ -719,12 +719,12 @@ static unsigned long move_vma(struct vm_
- 	/* Restore VM_ACCOUNT if one or two pieces of vma left */
- 	if (account_start) {
- 		vma = vma_prev(&vmi);
--		vma->vm_flags |= VM_ACCOUNT;
-+		vm_flags_set(vma, VM_ACCOUNT);
- 	}
- 
- 	if (account_end) {
- 		vma = vma_next(&vmi);
--		vma->vm_flags |= VM_ACCOUNT;
-+		vm_flags_set(vma, VM_ACCOUNT);
- 	}
- 
- 	return new_addr;
---- a/mm/nommu.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/mm/nommu.c
-@@ -173,7 +173,7 @@ static void *__vmalloc_user_flags(unsign
- 		mmap_write_lock(current->mm);
- 		vma = find_vma(current->mm, (unsigned long)ret);
- 		if (vma)
--			vma->vm_flags |= VM_USERMAP;
-+			vm_flags_set(vma, VM_USERMAP);
- 		mmap_write_unlock(current->mm);
- 	}
- 
-@@ -950,7 +950,8 @@ static int do_mmap_private(struct vm_are
- 
- 	atomic_long_add(total, &mmap_pages_allocated);
- 
--	region->vm_flags = vma->vm_flags |= VM_MAPPED_COPY;
-+	vm_flags_set(vma, VM_MAPPED_COPY);
-+	region->vm_flags = vma->vm_flags;
- 	region->vm_start = (unsigned long) base;
- 	region->vm_end   = region->vm_start + len;
- 	region->vm_top   = region->vm_start + (total << PAGE_SHIFT);
-@@ -1047,7 +1048,7 @@ unsigned long do_mmap(struct file *file,
- 	region->vm_flags = vm_flags;
- 	region->vm_pgoff = pgoff;
- 
--	vma->vm_flags = vm_flags;
-+	vm_flags_init(vma, vm_flags);
- 	vma->vm_pgoff = pgoff;
- 
- 	if (file) {
-@@ -1111,7 +1112,7 @@ unsigned long do_mmap(struct file *file,
- 			vma->vm_end = start + len;
- 
- 			if (pregion->vm_flags & VM_MAPPED_COPY)
--				vma->vm_flags |= VM_MAPPED_COPY;
-+				vm_flags_set(vma, VM_MAPPED_COPY);
- 			else {
- 				ret = do_mmap_shared_file(vma);
- 				if (ret < 0) {
-@@ -1601,7 +1602,7 @@ int remap_pfn_range(struct vm_area_struc
- 	if (addr != (pfn << PAGE_SHIFT))
- 		return -EINVAL;
- 
--	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 	return 0;
+ 	err = remap_pfn_range_notrack(vma, addr, pfn, size, prot);
+ 	if (err)
+-		untrack_pfn(vma, pfn, PAGE_ALIGN(size));
++		untrack_pfn(vma, pfn, PAGE_ALIGN(size), true);
+ 	return err;
  }
  EXPORT_SYMBOL(remap_pfn_range);
---- a/mm/secretmem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/mm/secretmem.c
-@@ -128,7 +128,7 @@ static int secretmem_mmap(struct file *f
- 	if (mlock_future_check(vma->vm_mm, vma->vm_flags | VM_LOCKED, len))
- 		return -EAGAIN;
+--- a/mm/memremap.c~mm-introduce-__vm_flags_mod-and-use-it-in-untrack_pfn
++++ a/mm/memremap.c
+@@ -129,7 +129,7 @@ static void pageunmap_range(struct dev_p
+ 	}
+ 	mem_hotplug_done();
  
--	vma->vm_flags |= VM_LOCKED | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_LOCKED | VM_DONTDUMP);
- 	vma->vm_ops = &secretmem_vm_ops;
- 
- 	return 0;
---- a/mm/shmem.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/mm/shmem.c
-@@ -2304,7 +2304,7 @@ static int shmem_mmap(struct file *file,
- 		return ret;
- 
- 	/* arm64 - allow memory tagging on RAM-based files */
--	vma->vm_flags |= VM_MTE_ALLOWED;
-+	vm_flags_set(vma, VM_MTE_ALLOWED);
- 
- 	file_accessed(file);
- 	/* This is anonymous shared memory if it is unlinked at the time of mmap */
---- a/mm/vmalloc.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/mm/vmalloc.c
-@@ -3596,7 +3596,7 @@ int remap_vmalloc_range_partial(struct v
- 		size -= PAGE_SIZE;
- 	} while (size > 0);
- 
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 
- 	return 0;
+-	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range));
++	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range), true);
+ 	pgmap_array_delete(range);
  }
---- a/net/ipv4/tcp.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/net/ipv4/tcp.c
-@@ -1890,10 +1890,10 @@ int tcp_mmap(struct file *file, struct s
+ 
+@@ -276,7 +276,7 @@ err_add_memory:
+ 	if (!is_private)
+ 		kasan_remove_zero_shadow(__va(range->start), range_len(range));
+ err_kasan:
+-	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range));
++	untrack_pfn(NULL, PHYS_PFN(range->start), range_len(range), true);
+ err_pfn_remap:
+ 	pgmap_array_delete(range);
+ 	return error;
+--- a/mm/mmap.c~mm-introduce-__vm_flags_mod-and-use-it-in-untrack_pfn
++++ a/mm/mmap.c
+@@ -78,7 +78,7 @@ core_param(ignore_rlimit_data, ignore_rl
+ static void unmap_region(struct mm_struct *mm, struct maple_tree *mt,
+ 		struct vm_area_struct *vma, struct vm_area_struct *prev,
+ 		struct vm_area_struct *next, unsigned long start,
+-		unsigned long end);
++		unsigned long end, bool mm_wr_locked);
+ 
+ static pgprot_t vm_pgprot_modify(pgprot_t oldprot, unsigned long vm_flags)
  {
- 	if (vma->vm_flags & (VM_WRITE | VM_EXEC))
- 		return -EPERM;
--	vma->vm_flags &= ~(VM_MAYWRITE | VM_MAYEXEC);
-+	vm_flags_clear(vma, VM_MAYWRITE | VM_MAYEXEC);
- 
- 	/* Instruct vm_insert_page() to not mmap_read_lock(mm) */
--	vma->vm_flags |= VM_MIXEDMAP;
-+	vm_flags_set(vma, VM_MIXEDMAP);
- 
- 	vma->vm_ops = &tcp_vm_ops;
- 	return 0;
---- a/security/selinux/selinuxfs.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/security/selinux/selinuxfs.c
-@@ -262,7 +262,7 @@ static int sel_mmap_handle_status(struct
- 	if (vma->vm_flags & VM_WRITE)
- 		return -EPERM;
- 	/* disallow mprotect() turns it into writable */
--	vma->vm_flags &= ~VM_MAYWRITE;
-+	vm_flags_clear(vma, VM_MAYWRITE);
- 
- 	return remap_pfn_range(vma, vma->vm_start,
- 			       page_to_pfn(status),
-@@ -506,13 +506,13 @@ static int sel_mmap_policy(struct file *
+@@ -2133,14 +2133,14 @@ static inline void remove_mt(struct mm_s
+ static void unmap_region(struct mm_struct *mm, struct maple_tree *mt,
+ 		struct vm_area_struct *vma, struct vm_area_struct *prev,
+ 		struct vm_area_struct *next,
+-		unsigned long start, unsigned long end)
++		unsigned long start, unsigned long end, bool mm_wr_locked)
  {
- 	if (vma->vm_flags & VM_SHARED) {
- 		/* do not allow mprotect to make mapping writable */
--		vma->vm_flags &= ~VM_MAYWRITE;
-+		vm_flags_clear(vma, VM_MAYWRITE);
+ 	struct mmu_gather tlb;
  
- 		if (vma->vm_flags & VM_WRITE)
- 			return -EACCES;
+ 	lru_add_drain();
+ 	tlb_gather_mmu(&tlb, mm);
+ 	update_hiwater_rss(mm);
+-	unmap_vmas(&tlb, mt, vma, start, end);
++	unmap_vmas(&tlb, mt, vma, start, end, mm_wr_locked);
+ 	free_pgtables(&tlb, mt, vma, prev ? prev->vm_end : FIRST_USER_ADDRESS,
+ 				 next ? next->vm_start : USER_PGTABLES_CEILING);
+ 	tlb_finish_mmu(&tlb);
+@@ -2388,7 +2388,11 @@ do_vmi_align_munmap(struct vma_iterator
+ 			mmap_write_downgrade(mm);
  	}
  
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_ops = &sel_mmap_policy_ops;
+-	unmap_region(mm, &mt_detach, vma, prev, next, start, end);
++	/*
++	 * We can free page tables without write-locking mmap_lock because VMAs
++	 * were isolated before we downgraded mmap_lock.
++	 */
++	unmap_region(mm, &mt_detach, vma, prev, next, start, end, !downgrade);
+ 	/* Statistics and freeing VMAs */
+ 	mas_set(&mas_detach, start);
+ 	remove_mt(mm, &mas_detach);
+@@ -2701,7 +2705,7 @@ unmap_and_free_vma:
  
- 	return 0;
---- a/sound/core/oss/pcm_oss.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/sound/core/oss/pcm_oss.c
-@@ -2910,7 +2910,7 @@ static int snd_pcm_oss_mmap(struct file
+ 		/* Undo any partial mapping done by a device driver. */
+ 		unmap_region(mm, &mm->mm_mt, vma, prev, next, vma->vm_start,
+-			     vma->vm_end);
++			     vma->vm_end, true);
  	}
- 	/* set VM_READ access as well to fix memset() routines that do
- 	   reads before writes (to improve performance) */
--	area->vm_flags |= VM_READ;
-+	vm_flags_set(area, VM_READ);
- 	if (substream == NULL)
- 		return -ENXIO;
- 	runtime = substream->runtime;
---- a/sound/core/pcm_native.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/sound/core/pcm_native.c
-@@ -3675,8 +3675,9 @@ static int snd_pcm_mmap_status(struct sn
- 		return -EINVAL;
- 	area->vm_ops = &snd_pcm_vm_ops_status;
- 	area->vm_private_data = substream;
--	area->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
--	area->vm_flags &= ~(VM_WRITE | VM_MAYWRITE);
-+	vm_flags_mod(area, VM_DONTEXPAND | VM_DONTDUMP,
-+		     VM_WRITE | VM_MAYWRITE);
-+
- 	return 0;
- }
+ 	if (file && (vm_flags & VM_SHARED))
+ 		mapping_unmap_writable(file->f_mapping);
+@@ -3029,7 +3033,7 @@ void exit_mmap(struct mm_struct *mm)
+ 	tlb_gather_mmu_fullmm(&tlb, mm);
+ 	/* update_hiwater_rss(mm) here? but nobody should be looking */
+ 	/* Use ULONG_MAX here to ensure all VMAs in the mm are unmapped */
+-	unmap_vmas(&tlb, &mm->mm_mt, vma, 0, ULONG_MAX);
++	unmap_vmas(&tlb, &mm->mm_mt, vma, 0, ULONG_MAX, false);
+ 	mmap_read_unlock(mm);
  
-@@ -3712,7 +3713,7 @@ static int snd_pcm_mmap_control(struct s
- 		return -EINVAL;
- 	area->vm_ops = &snd_pcm_vm_ops_control;
- 	area->vm_private_data = substream;
--	area->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(area, VM_DONTEXPAND | VM_DONTDUMP);
- 	return 0;
- }
- 
-@@ -3828,7 +3829,7 @@ static const struct vm_operations_struct
- int snd_pcm_lib_default_mmap(struct snd_pcm_substream *substream,
- 			     struct vm_area_struct *area)
- {
--	area->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(area, VM_DONTEXPAND | VM_DONTDUMP);
- 	if (!substream->ops->page &&
- 	    !snd_dma_buffer_mmap(snd_pcm_get_dma_buf(substream), area))
- 		return 0;
---- a/sound/soc/pxa/mmp-sspa.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/sound/soc/pxa/mmp-sspa.c
-@@ -404,7 +404,7 @@ static int mmp_pcm_mmap(struct snd_soc_c
- 			struct snd_pcm_substream *substream,
- 			struct vm_area_struct *vma)
- {
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	return remap_pfn_range(vma, vma->vm_start,
- 		substream->dma_buffer.addr >> PAGE_SHIFT,
---- a/sound/usb/usx2y/us122l.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/sound/usb/usx2y/us122l.c
-@@ -224,9 +224,9 @@ static int usb_stream_hwdep_mmap(struct
- 	}
- 
- 	area->vm_ops = &usb_stream_hwdep_vm_ops;
--	area->vm_flags |= VM_DONTDUMP;
-+	vm_flags_set(area, VM_DONTDUMP);
- 	if (!read)
--		area->vm_flags |= VM_DONTEXPAND;
-+		vm_flags_set(area, VM_DONTEXPAND);
- 	area->vm_private_data = us122l;
- 	atomic_inc(&us122l->mmap_count);
- out:
---- a/sound/usb/usx2y/usX2Yhwdep.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/sound/usb/usx2y/usX2Yhwdep.c
-@@ -61,7 +61,7 @@ static int snd_us428ctls_mmap(struct snd
- 	}
- 
- 	area->vm_ops = &us428ctls_vm_ops;
--	area->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(area, VM_DONTEXPAND | VM_DONTDUMP);
- 	area->vm_private_data = hw->private_data;
- 	return 0;
- }
---- a/sound/usb/usx2y/usx2yhwdeppcm.c~mm-replace-vma-vm_flags-direct-modifications-with-modifier-calls
-+++ a/sound/usb/usx2y/usx2yhwdeppcm.c
-@@ -706,7 +706,7 @@ static int snd_usx2y_hwdep_pcm_mmap(stru
- 		return -ENODEV;
- 
- 	area->vm_ops = &snd_usx2y_hwdep_pcm_vm_ops;
--	area->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vm_flags_set(area, VM_DONTEXPAND | VM_DONTDUMP);
- 	area->vm_private_data = hw->private_data;
- 	return 0;
- }
+ 	/*
 _
 
 Patches currently in -mm which might be from surenb@google.com are
