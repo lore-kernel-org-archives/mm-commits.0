@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC955C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:56:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48AB7C636D3
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:56:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230459AbjBJA4f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Feb 2023 19:56:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44932 "EHLO
+        id S231283AbjBJA4g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 19:56:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231263AbjBJAzM (ORCPT
+        with ESMTP id S231268AbjBJAzM (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:55:12 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B725B7430B
-        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:54:12 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 288A57430C
+        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:54:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6446CB82398
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:54:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3CF7C4339B;
-        Fri, 10 Feb 2023 00:54:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B80E961BF3
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:54:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 205EDC433D2;
+        Fri, 10 Feb 2023 00:54:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675990450;
-        bh=e4jn/c1pFLX3oWr+DPVgzJGfqTYL7JNWNzDdmfVAJe0=;
+        s=korg; t=1675990453;
+        bh=0HAApHhmsDygzQIBiCRaUVjmTmBC1YPocu/4muT6trg=;
         h=Date:To:From:Subject:From;
-        b=JFW3vLjQPP2qtocIqQdgNU3pa+YSB4OCzs0xIbF7BkD88rcj1/MVqkWLOLCUd9B0f
-         cAQGmk6DpZUfecyEovDn5joR3C80c8az8z6t7ApqynaEoVzRpdkeO8w/qp2SHVJNRA
-         KwpwTKn3oCXk7SrQ2FfoAEu/3L9gRSMlzBKe1Y5Y=
-Date:   Thu, 09 Feb 2023 16:54:09 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, vbabka@suse.cz,
-        rppt@linux.ibm.com, rppt@kernel.org, osalvador@suse.de,
-        mgorman@techsingularity.net, david@redhat.com,
-        yajun.deng@linux.dev, akpm@linux-foundation.org
+        b=MYE9X32SxfDyQfRMwtEqkbXl86exwaOyzYUoEXDWW16xoDlJ1cmVcqDIb+7x4k6OD
+         tGBMv1Ad+lghNRShNB7aqkA62DF/WVynlDYY6APrn7hT9WrEg3+cRkIt7PEQuiDB8m
+         AL69FtUL+XGaBdqnyDBWWgNkjRlCO4Dq55HAXjJU=
+Date:   Thu, 09 Feb 2023 16:54:12 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, surenb@google.com,
+        shakeelb@google.com, rientjes@google.com,
+        quic_pkondeti@quicinc.com, quic_charante@quicinc.com,
+        mhocko@suse.com, markhemm@googlemail.com, hughd@google.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-reduce-fallbacks-to-migrate_pcptypes-1.patch removed from -mm tree
-Message-Id: <20230210005409.F3CF7C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] shmem-add-shmem_read_folio-and-shmem_read_folio_gfp.patch removed from -mm tree
+Message-Id: <20230210005413.205EDC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,72 +44,129 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: reduce fallbacks to (MIGRATE_PCPTYPES - 1)
+     Subject: shmem: add shmem_read_folio() and shmem_read_folio_gfp()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-reduce-fallbacks-to-migrate_pcptypes-1.patch
+     shmem-add-shmem_read_folio-and-shmem_read_folio_gfp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yajun Deng <yajun.deng@linux.dev>
-Subject: mm/page_alloc: reduce fallbacks to (MIGRATE_PCPTYPES - 1)
-Date: Fri, 3 Feb 2023 18:01:32 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: shmem: add shmem_read_folio() and shmem_read_folio_gfp()
+Date: Mon, 6 Feb 2023 16:25:20 +0000
 
-The commit 1dd214b8f21c ("mm: page_alloc: avoid merging non-fallbackable
-pageblocks with others") has removed MIGRATE_CMA and MIGRATE_ISOLATE from
-fallbacks list. so there is no need to add an element at the end of every
-type.
+These are the folio replacements for shmem_read_mapping_page() and
+shmem_read_mapping_page_gfp().
 
-Reduce fallbacks to (MIGRATE_PCPTYPES - 1).
-
-Link: https://lkml.kernel.org/r/20230203100132.1627787-1-yajun.deng@linux.dev
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Rapoport <rppt@kernel.org>
+[akpm@linux-foundation.org: fix shmem_read_mapping_page_gfp(), per Matthew]
+  Link: https://lkml.kernel.org/r/Y+QdJTuzxeBYejw2@casper.infradead.org
+Link: https://lkml.kernel.org/r/20230206162520.4029022-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mark Hemment <markhemm@googlemail.com>
+Cc: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ include/linux/shmem_fs.h |    8 ++++++++
+ mm/shmem.c               |   36 ++++++++++++++++++++++++------------
+ 2 files changed, 32 insertions(+), 12 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-reduce-fallbacks-to-migrate_pcptypes-1
-+++ a/mm/page_alloc.c
-@@ -2603,10 +2603,10 @@ struct page *__rmqueue_smallest(struct z
+--- a/include/linux/shmem_fs.h~shmem-add-shmem_read_folio-and-shmem_read_folio_gfp
++++ a/include/linux/shmem_fs.h
+@@ -109,6 +109,14 @@ enum sgp_type {
+ 
+ int shmem_get_folio(struct inode *inode, pgoff_t index, struct folio **foliop,
+ 		enum sgp_type sgp);
++struct folio *shmem_read_folio_gfp(struct address_space *mapping,
++		pgoff_t index, gfp_t gfp);
++
++static inline struct folio *shmem_read_folio(struct address_space *mapping,
++		pgoff_t index)
++{
++	return shmem_read_folio_gfp(mapping, index, mapping_gfp_mask(mapping));
++}
+ 
+ static inline struct page *shmem_read_mapping_page(
+ 				struct address_space *mapping, pgoff_t index)
+--- a/mm/shmem.c~shmem-add-shmem_read_folio-and-shmem_read_folio_gfp
++++ a/mm/shmem.c
+@@ -4311,9 +4311,9 @@ int shmem_zero_setup(struct vm_area_stru
+ }
+ 
+ /**
+- * shmem_read_mapping_page_gfp - read into page cache, using specified page allocation flags.
+- * @mapping:	the page's address_space
+- * @index:	the page index
++ * shmem_read_folio_gfp - read into page cache, using specified page allocation flags.
++ * @mapping:	the folio's address_space
++ * @index:	the folio index
+  * @gfp:	the page allocator flags to use if allocating
   *
-  * The other migratetypes do not have fallbacks.
+  * This behaves as a tmpfs "read_cache_page_gfp(mapping, index, gfp)",
+@@ -4325,13 +4325,12 @@ int shmem_zero_setup(struct vm_area_stru
+  * i915_gem_object_get_pages_gtt() mixes __GFP_NORETRY | __GFP_NOWARN in
+  * with the mapping_gfp_mask(), to avoid OOMing the machine unnecessarily.
   */
--static int fallbacks[MIGRATE_TYPES][3] = {
--	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_TYPES },
--	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_TYPES },
--	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_TYPES },
-+static int fallbacks[MIGRATE_TYPES][MIGRATE_PCPTYPES - 1] = {
-+	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE   },
-+	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE },
-+	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE   },
- };
+-struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
+-					 pgoff_t index, gfp_t gfp)
++struct folio *shmem_read_folio_gfp(struct address_space *mapping,
++		pgoff_t index, gfp_t gfp)
+ {
+ #ifdef CONFIG_SHMEM
+ 	struct inode *inode = mapping->host;
+ 	struct folio *folio;
+-	struct page *page;
+ 	int error;
  
- #ifdef CONFIG_CMA
-@@ -2865,11 +2865,8 @@ int find_suitable_fallback(struct free_a
- 		return -1;
+ 	BUG_ON(!shmem_mapping(mapping));
+@@ -4341,6 +4340,25 @@ struct page *shmem_read_mapping_page_gfp
+ 		return ERR_PTR(error);
  
- 	*can_steal = false;
--	for (i = 0;; i++) {
-+	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
- 		fallback_mt = fallbacks[migratetype][i];
--		if (fallback_mt == MIGRATE_TYPES)
--			break;
--
- 		if (free_area_empty(area, fallback_mt))
- 			continue;
+ 	folio_unlock(folio);
++	return folio;
++#else
++	/*
++	 * The tiny !SHMEM case uses ramfs without swap
++	 */
++	return mapping_read_folio_gfp(mapping, index, gfp);
++#endif
++}
++EXPORT_SYMBOL_GPL(shmem_read_folio_gfp);
++
++struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
++					 pgoff_t index, gfp_t gfp)
++{
++	struct folio *folio = shmem_read_folio_gfp(mapping, index, gfp);
++	struct page *page;
++
++	if (IS_ERR(folio))
++		return &folio->page;
++
+ 	page = folio_file_page(folio, index);
+ 	if (PageHWPoison(page)) {
+ 		folio_put(folio);
+@@ -4348,11 +4366,5 @@ struct page *shmem_read_mapping_page_gfp
+ 	}
  
+ 	return page;
+-#else
+-	/*
+-	 * The tiny !SHMEM case uses ramfs without swap
+-	 */
+-	return read_cache_page_gfp(mapping, index, gfp);
+-#endif
+ }
+ EXPORT_SYMBOL_GPL(shmem_read_mapping_page_gfp);
 _
 
-Patches currently in -mm which might be from yajun.deng@linux.dev are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
