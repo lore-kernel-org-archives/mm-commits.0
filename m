@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 912F0C636D7
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:57:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CA97C61DA4
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:57:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231297AbjBJA5q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Feb 2023 19:57:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44140 "EHLO
+        id S230203AbjBJA5r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 19:57:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45056 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230203AbjBJA4L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:56:11 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB5AE7095D
-        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:54:42 -0800 (PST)
+        with ESMTP id S229695AbjBJA4M (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:56:12 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E368970961
+        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:54:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 77EE061C3D
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:54:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C82B6C433D2;
-        Fri, 10 Feb 2023 00:54:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 807AA61BA3
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:54:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7083C4339B;
+        Fri, 10 Feb 2023 00:54:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675990481;
-        bh=TtmLltmXJ/8cMpeZcItcQfntSEd6o2ASXyP//a2SC+k=;
+        s=korg; t=1675990484;
+        bh=nkoX8mVTDjpMPG4if6/wqqhzE9HpVFZdea8P87TO9Oc=;
         h=Date:To:From:Subject:From;
-        b=1WBQ5JbBtreSH8rw/GCrJMZLYmIWQtFtPYqMSrw6G7sJcHbHl+C22mV6Vjkg+tOej
-         KGVI15JkyWjfuusFEIs6hVCJjVkAGbRArJrjgda8rJM27wh0qS+qFUxOP3LuVLKzsw
-         5nDvu59HB6phT/hWpN3yh0MbVGGi0WhrkygNW/9I=
-Date:   Thu, 09 Feb 2023 16:54:41 -0800
+        b=s6CBweAgZgKPqTbggMbTF2/K4kPfLQwXQRpe+4FRGXnxqcZ9mhxxsy0wLuhMw+Hhf
+         BU1/Kr6f9j9kauCodijVbphnf4fg7+55lNDzS50VDEbEVR0wnJh5ozSpYu1+zLeT2+
+         mAt0oao75rwK0gwcw1lDsz0jjOnpGpLkGF5RouPc=
+Date:   Thu, 09 Feb 2023 16:54:44 -0800
 To:     mm-commits@vger.kernel.org, rppt@kernel.org, jhubbard@nvidia.com,
         imbrenda@linux.ibm.com, hch@infradead.org, dhowells@redhat.com,
         david@redhat.com, apopple@nvidia.com, jgg@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-remove-pin_user_pages_fast_only.patch removed from -mm tree
-Message-Id: <20230210005441.C82B6C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-move-gup_must_unshare-to-mm-internalh.patch removed from -mm tree
+Message-Id: <20230210005444.D7083C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,91 +43,185 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup: remove pin_user_pages_fast_only()
+     Subject: mm/gup: move gup_must_unshare() to mm/internal.h
 has been removed from the -mm tree.  Its filename was
-     mm-gup-remove-pin_user_pages_fast_only.patch
+     mm-gup-move-gup_must_unshare-to-mm-internalh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jason Gunthorpe <jgg@nvidia.com>
-Subject: mm/gup: remove pin_user_pages_fast_only()
-Date: Tue, 24 Jan 2023 16:34:31 -0400
+Subject: mm/gup: move gup_must_unshare() to mm/internal.h
+Date: Tue, 24 Jan 2023 16:34:33 -0400
 
-Commit ed29c2691188 ("drm/i915: Fix userptr so we do not have to worry
-about obj->mm.lock, v7.") removed the only caller, remove this dead code
-too.
+This function is only used in gup.c and closely related.  It touches
+FOLL_PIN so it must be moved before the next patch.
 
-Link: https://lkml.kernel.org/r/10-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
+Link: https://lkml.kernel.org/r/12-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: David Howells <dhowells@redhat.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- mm/gup.c           |   33 ---------------------------------
- 2 files changed, 35 deletions(-)
+ include/linux/mm.h |   65 -------------------------------------------
+ mm/internal.h      |   65 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+), 65 deletions(-)
 
---- a/include/linux/mm.h~mm-gup-remove-pin_user_pages_fast_only
+--- a/include/linux/mm.h~mm-gup-move-gup_must_unshare-to-mm-internalh
 +++ a/include/linux/mm.h
-@@ -2261,8 +2261,6 @@ extern int mprotect_fixup(struct vma_ite
-  */
- int get_user_pages_fast_only(unsigned long start, int nr_pages,
- 			     unsigned int gup_flags, struct page **pages);
--int pin_user_pages_fast_only(unsigned long start, int nr_pages,
--			     unsigned int gup_flags, struct page **pages);
- 
- static inline bool get_user_page_fast_only(unsigned long addr,
- 			unsigned int gup_flags, struct page **pagep)
---- a/mm/gup.c~mm-gup-remove-pin_user_pages_fast_only
-+++ a/mm/gup.c
-@@ -3102,39 +3102,6 @@ int pin_user_pages_fast(unsigned long st
+@@ -3181,71 +3181,6 @@ static inline int vm_fault_to_errno(vm_f
  }
- EXPORT_SYMBOL_GPL(pin_user_pages_fast);
  
--/*
-- * This is the FOLL_PIN equivalent of get_user_pages_fast_only(). Behavior
-- * is the same, except that this one sets FOLL_PIN instead of FOLL_GET.
+ /*
+- * Indicates for which pages that are write-protected in the page table,
+- * whether GUP has to trigger unsharing via FAULT_FLAG_UNSHARE such that the
+- * GUP pin will remain consistent with the pages mapped into the page tables
+- * of the MM.
 - *
-- * The API rules are the same, too: no negative values may be returned.
+- * Temporary unmapping of PageAnonExclusive() pages or clearing of
+- * PageAnonExclusive() has to protect against concurrent GUP:
+- * * Ordinary GUP: Using the PT lock
+- * * GUP-fast and fork(): mm->write_protect_seq
+- * * GUP-fast and KSM or temporary unmapping (swap, migration): see
+- *    page_try_share_anon_rmap()
+- *
+- * Must be called with the (sub)page that's actually referenced via the
+- * page table entry, which might not necessarily be the head page for a
+- * PTE-mapped THP.
+- *
+- * If the vma is NULL, we're coming from the GUP-fast path and might have
+- * to fallback to the slow path just to lookup the vma.
 - */
--int pin_user_pages_fast_only(unsigned long start, int nr_pages,
--			     unsigned int gup_flags, struct page **pages)
+-static inline bool gup_must_unshare(struct vm_area_struct *vma,
+-				    unsigned int flags, struct page *page)
 -{
--	int nr_pinned;
+-	/*
+-	 * FOLL_WRITE is implicitly handled correctly as the page table entry
+-	 * has to be writable -- and if it references (part of) an anonymous
+-	 * folio, that part is required to be marked exclusive.
+-	 */
+-	if ((flags & (FOLL_WRITE | FOLL_PIN)) != FOLL_PIN)
+-		return false;
+-	/*
+-	 * Note: PageAnon(page) is stable until the page is actually getting
+-	 * freed.
+-	 */
+-	if (!PageAnon(page)) {
+-		/*
+-		 * We only care about R/O long-term pining: R/O short-term
+-		 * pinning does not have the semantics to observe successive
+-		 * changes through the process page tables.
+-		 */
+-		if (!(flags & FOLL_LONGTERM))
+-			return false;
+-
+-		/* We really need the vma ... */
+-		if (!vma)
+-			return true;
+-
+-		/*
+-		 * ... because we only care about writable private ("COW")
+-		 * mappings where we have to break COW early.
+-		 */
+-		return is_cow_mapping(vma->vm_flags);
+-	}
+-
+-	/* Paired with a memory barrier in page_try_share_anon_rmap(). */
+-	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP))
+-		smp_rmb();
 -
 -	/*
--	 * FOLL_FAST_ONLY is required in order to match the API description of
--	 * this routine: no fall back to regular ("slow") GUP.
+-	 * Note that PageKsm() pages cannot be exclusive, and consequently,
+-	 * cannot get pinned.
 -	 */
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
--			       FOLL_PIN | FOLL_FAST_ONLY))
--		return 0;
--
--	nr_pinned = internal_get_user_pages_fast(start, nr_pages, gup_flags,
--						 pages);
--	/*
--	 * This routine is not allowed to return negative values. However,
--	 * internal_get_user_pages_fast() *can* return -errno. Therefore,
--	 * correct for that here:
--	 */
--	if (nr_pinned < 0)
--		nr_pinned = 0;
--
--	return nr_pinned;
+-	return !PageAnonExclusive(page);
 -}
--EXPORT_SYMBOL_GPL(pin_user_pages_fast_only);
 -
- /**
-  * pin_user_pages_remote() - pin pages of a remote process
-  *
+-/*
+  * Indicates whether GUP can follow a PROT_NONE mapped page, or whether
+  * a (NUMA hinting) fault is required.
+  */
+--- a/mm/internal.h~mm-gup-move-gup_must_unshare-to-mm-internalh
++++ a/mm/internal.h
+@@ -858,6 +858,71 @@ int migrate_device_coherent_page(struct
+ struct folio *try_grab_folio(struct page *page, int refs, unsigned int flags);
+ int __must_check try_grab_page(struct page *page, unsigned int flags);
+ 
++/*
++ * Indicates for which pages that are write-protected in the page table,
++ * whether GUP has to trigger unsharing via FAULT_FLAG_UNSHARE such that the
++ * GUP pin will remain consistent with the pages mapped into the page tables
++ * of the MM.
++ *
++ * Temporary unmapping of PageAnonExclusive() pages or clearing of
++ * PageAnonExclusive() has to protect against concurrent GUP:
++ * * Ordinary GUP: Using the PT lock
++ * * GUP-fast and fork(): mm->write_protect_seq
++ * * GUP-fast and KSM or temporary unmapping (swap, migration): see
++ *    page_try_share_anon_rmap()
++ *
++ * Must be called with the (sub)page that's actually referenced via the
++ * page table entry, which might not necessarily be the head page for a
++ * PTE-mapped THP.
++ *
++ * If the vma is NULL, we're coming from the GUP-fast path and might have
++ * to fallback to the slow path just to lookup the vma.
++ */
++static inline bool gup_must_unshare(struct vm_area_struct *vma,
++				    unsigned int flags, struct page *page)
++{
++	/*
++	 * FOLL_WRITE is implicitly handled correctly as the page table entry
++	 * has to be writable -- and if it references (part of) an anonymous
++	 * folio, that part is required to be marked exclusive.
++	 */
++	if ((flags & (FOLL_WRITE | FOLL_PIN)) != FOLL_PIN)
++		return false;
++	/*
++	 * Note: PageAnon(page) is stable until the page is actually getting
++	 * freed.
++	 */
++	if (!PageAnon(page)) {
++		/*
++		 * We only care about R/O long-term pining: R/O short-term
++		 * pinning does not have the semantics to observe successive
++		 * changes through the process page tables.
++		 */
++		if (!(flags & FOLL_LONGTERM))
++			return false;
++
++		/* We really need the vma ... */
++		if (!vma)
++			return true;
++
++		/*
++		 * ... because we only care about writable private ("COW")
++		 * mappings where we have to break COW early.
++		 */
++		return is_cow_mapping(vma->vm_flags);
++	}
++
++	/* Paired with a memory barrier in page_try_share_anon_rmap(). */
++	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP))
++		smp_rmb();
++
++	/*
++	 * Note that PageKsm() pages cannot be exclusive, and consequently,
++	 * cannot get pinned.
++	 */
++	return !PageAnonExclusive(page);
++}
++
+ extern bool mirrored_kernelcore;
+ 
+ static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from jgg@nvidia.com are
