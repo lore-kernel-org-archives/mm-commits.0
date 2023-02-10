@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC9E7C636D3
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:58:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE955C61DA4
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 01:05:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231278AbjBJA6U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Feb 2023 19:58:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45176 "EHLO
+        id S230007AbjBJBFC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 20:05:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231246AbjBJA4Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:56:25 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B5437096C
-        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:54:50 -0800 (PST)
+        with ESMTP id S229764AbjBJBFB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 20:05:01 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A9A55C8B2
+        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 17:04:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 20055B82396
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:54:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE655C4339B;
-        Fri, 10 Feb 2023 00:54:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EB64961C36
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 01:04:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43141C433D2;
+        Fri, 10 Feb 2023 01:04:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675990487;
-        bh=QM3HB99oxECU/wsf+2h43WzbmCFUmeLt1ugKCLOFTHY=;
+        s=korg; t=1675991098;
+        bh=ALkc7VeWcU+SiqChIxmO+hSOveOjOWJMRcm1EWZ8pyY=;
         h=Date:To:From:Subject:From;
-        b=KLaOKc5wP39qw4yT9ZxpGISGUXNcuqNfbQ3+EDO5kA9xYvTiDgnWW+329eYHk310V
-         CdgjwRTKZZ8MnAngFit3TBICBoOInWdBkzsjIpG29FBJoPc1aQ0feiDIlRy2am3FWQ
-         Z6VKNhUPHFGWypyF6uSQ9K4WgPhDwOBDMRI4kft8=
-Date:   Thu, 09 Feb 2023 16:54:47 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org, linux@weissschuh.net,
+        b=QaJ8fNLzM6vcr7FcY76c/eKG9hLnA40sXzHX3L9wmITAwhy4swjKz95M3DeeATpoU
+         NJ7vapeje3MX0kCtBS/YMQa4FHRPJtYgEpDAfi8hYZgZjeCfMjd4Op5+iI8RYttdFI
+         7kmra6CVYT5/vOedmUUH6uRXNJPradRLW7u9c5R0=
+Date:   Thu, 09 Feb 2023 17:04:57 -0800
+To:     mm-commits@vger.kernel.org, trix@redhat.com,
+        samitolvanen@google.com, peterz@infradead.org, paulmck@kernel.org,
+        ndesaulniers@google.com, nathan@kernel.org, mark.rutland@arm.com,
+        keescook@chromium.org, jpoimboe@kernel.org, frederic@kernel.org,
+        elver@google.com, ebiederm@xmission.com,
+        ashimida@linux.alibaba.com, juerg.haefliger@canonical.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-make-kobj_type-structures-constant.patch removed from -mm tree
-Message-Id: <20230210005447.BE655C4339B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] arch-kconfig-fix-indentation.patch removed from -mm tree
+Message-Id: <20230210010458.43141C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,253 +46,252 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: make kobj_type structures constant
+     Subject: arch/Kconfig: fix indentation
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-make-kobj_type-structures-constant.patch
+     arch-kconfig-fix-indentation.patch
 
-This patch was dropped because it was merged into the mm-stable branch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thomas Weißschuh <linux@weissschuh.net>
-Subject: mm/damon/sysfs: make kobj_type structures constant
-Date: Tue, 07 Feb 2023 19:21:15 +0000
+From: Juerg Haefliger <juerg.haefliger@canonical.com>
+Subject: arch/Kconfig: fix indentation
+Date: Wed, 1 Feb 2023 17:24:35 +0100
 
-Since commit ee6d3dd4ed48 ("driver core: make kobj_type constant.") the
-driver core allows the usage of const struct kobj_type.
+The convention for indentation seems to be a single tab.  Help text is
+further indented by an additional two whitespaces.  Fix the lines that
+violate these rules.
 
-Take advantage of this to constify the structure definitions to prevent
-modification at runtime.
-
-Link: https://lkml.kernel.org/r/20230207-kobj_type-damon-v1-1-9d4fea6a465b@weissschuh.net
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20230201162435.218368-1-juerg.haefliger@canonical.com
+Signed-off-by: Juerg Haefliger <juerg.haefliger@canonical.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Dan Li <ashimida@linux.alibaba.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Juerg Haefliger <juerg.haefliger@canonical.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Tom Rix <trix@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-common.c  |    2 +-
- mm/damon/sysfs-common.h  |    4 ++--
- mm/damon/sysfs-schemes.c |   18 +++++++++---------
- mm/damon/sysfs.c         |   22 +++++++++++-----------
- 4 files changed, 23 insertions(+), 23 deletions(-)
+ arch/Kconfig |  136 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 68 insertions(+), 68 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-make-kobj_type-structures-constant
-+++ a/mm/damon/sysfs.c
-@@ -81,7 +81,7 @@ static struct attribute *damon_sysfs_reg
- };
- ATTRIBUTE_GROUPS(damon_sysfs_region);
+--- a/arch/Kconfig~arch-kconfig-fix-indentation
++++ a/arch/Kconfig
+@@ -35,7 +35,7 @@ config HOTPLUG_SMT
+ 	bool
  
--static struct kobj_type damon_sysfs_region_ktype = {
-+static const struct kobj_type damon_sysfs_region_ktype = {
- 	.release = damon_sysfs_region_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_region_groups,
-@@ -198,7 +198,7 @@ static struct attribute *damon_sysfs_reg
- };
- ATTRIBUTE_GROUPS(damon_sysfs_regions);
+ config GENERIC_ENTRY
+-       bool
++	bool
  
--static struct kobj_type damon_sysfs_regions_ktype = {
-+static const struct kobj_type damon_sysfs_regions_ktype = {
- 	.release = damon_sysfs_regions_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_regions_groups,
-@@ -277,7 +277,7 @@ static struct attribute *damon_sysfs_tar
- };
- ATTRIBUTE_GROUPS(damon_sysfs_target);
+ config KPROBES
+ 	bool "Kprobes"
+@@ -55,26 +55,26 @@ config JUMP_LABEL
+ 	depends on HAVE_ARCH_JUMP_LABEL
+ 	select OBJTOOL if HAVE_JUMP_LABEL_HACK
+ 	help
+-	 This option enables a transparent branch optimization that
+-	 makes certain almost-always-true or almost-always-false branch
+-	 conditions even cheaper to execute within the kernel.
+-
+-	 Certain performance-sensitive kernel code, such as trace points,
+-	 scheduler functionality, networking code and KVM have such
+-	 branches and include support for this optimization technique.
+-
+-	 If it is detected that the compiler has support for "asm goto",
+-	 the kernel will compile such branches with just a nop
+-	 instruction. When the condition flag is toggled to true, the
+-	 nop will be converted to a jump instruction to execute the
+-	 conditional block of instructions.
+-
+-	 This technique lowers overhead and stress on the branch prediction
+-	 of the processor and generally makes the kernel faster. The update
+-	 of the condition is slower, but those are always very rare.
++	  This option enables a transparent branch optimization that
++	  makes certain almost-always-true or almost-always-false branch
++	  conditions even cheaper to execute within the kernel.
++
++	  Certain performance-sensitive kernel code, such as trace points,
++	  scheduler functionality, networking code and KVM have such
++	  branches and include support for this optimization technique.
++
++	  If it is detected that the compiler has support for "asm goto",
++	  the kernel will compile such branches with just a nop
++	  instruction. When the condition flag is toggled to true, the
++	  nop will be converted to a jump instruction to execute the
++	  conditional block of instructions.
++
++	  This technique lowers overhead and stress on the branch prediction
++	  of the processor and generally makes the kernel faster. The update
++	  of the condition is slower, but those are always very rare.
  
--static struct kobj_type damon_sysfs_target_ktype = {
-+static const struct kobj_type damon_sysfs_target_ktype = {
- 	.release = damon_sysfs_target_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_target_groups,
-@@ -402,7 +402,7 @@ static struct attribute *damon_sysfs_tar
- };
- ATTRIBUTE_GROUPS(damon_sysfs_targets);
+-	 ( On 32-bit x86, the necessary options added to the compiler
+-	   flags may increase the size of the kernel slightly. )
++	  ( On 32-bit x86, the necessary options added to the compiler
++	    flags may increase the size of the kernel slightly. )
  
--static struct kobj_type damon_sysfs_targets_ktype = {
-+static const struct kobj_type damon_sysfs_targets_ktype = {
- 	.release = damon_sysfs_targets_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_targets_groups,
-@@ -530,7 +530,7 @@ static struct attribute *damon_sysfs_int
- };
- ATTRIBUTE_GROUPS(damon_sysfs_intervals);
+ config STATIC_KEYS_SELFTEST
+ 	bool "Static key selftest"
+@@ -98,9 +98,9 @@ config KPROBES_ON_FTRACE
+ 	depends on KPROBES && HAVE_KPROBES_ON_FTRACE
+ 	depends on DYNAMIC_FTRACE_WITH_REGS
+ 	help
+-	 If function tracer is enabled and the arch supports full
+-	 passing of pt_regs to function tracing, then kprobes can
+-	 optimize on top of function tracing.
++	  If function tracer is enabled and the arch supports full
++	  passing of pt_regs to function tracing, then kprobes can
++	  optimize on top of function tracing.
  
--static struct kobj_type damon_sysfs_intervals_ktype = {
-+static const struct kobj_type damon_sysfs_intervals_ktype = {
- 	.release = damon_sysfs_intervals_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_intervals_groups,
-@@ -612,7 +612,7 @@ static struct attribute *damon_sysfs_att
- };
- ATTRIBUTE_GROUPS(damon_sysfs_attrs);
+ config UPROBES
+ 	def_bool n
+@@ -154,21 +154,21 @@ config HAVE_EFFICIENT_UNALIGNED_ACCESS
+ config ARCH_USE_BUILTIN_BSWAP
+ 	bool
+ 	help
+-	 Modern versions of GCC (since 4.4) have builtin functions
+-	 for handling byte-swapping. Using these, instead of the old
+-	 inline assembler that the architecture code provides in the
+-	 __arch_bswapXX() macros, allows the compiler to see what's
+-	 happening and offers more opportunity for optimisation. In
+-	 particular, the compiler will be able to combine the byteswap
+-	 with a nearby load or store and use load-and-swap or
+-	 store-and-swap instructions if the architecture has them. It
+-	 should almost *never* result in code which is worse than the
+-	 hand-coded assembler in <asm/swab.h>.  But just in case it
+-	 does, the use of the builtins is optional.
+-
+-	 Any architecture with load-and-swap or store-and-swap
+-	 instructions should set this. And it shouldn't hurt to set it
+-	 on architectures that don't have such instructions.
++	  Modern versions of GCC (since 4.4) have builtin functions
++	  for handling byte-swapping. Using these, instead of the old
++	  inline assembler that the architecture code provides in the
++	  __arch_bswapXX() macros, allows the compiler to see what's
++	  happening and offers more opportunity for optimisation. In
++	  particular, the compiler will be able to combine the byteswap
++	  with a nearby load or store and use load-and-swap or
++	  store-and-swap instructions if the architecture has them. It
++	  should almost *never* result in code which is worse than the
++	  hand-coded assembler in <asm/swab.h>.  But just in case it
++	  does, the use of the builtins is optional.
++
++	  Any architecture with load-and-swap or store-and-swap
++	  instructions should set this. And it shouldn't hurt to set it
++	  on architectures that don't have such instructions.
  
--static struct kobj_type damon_sysfs_attrs_ktype = {
-+static const struct kobj_type damon_sysfs_attrs_ktype = {
- 	.release = damon_sysfs_attrs_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_attrs_groups,
-@@ -800,7 +800,7 @@ static struct attribute *damon_sysfs_con
- };
- ATTRIBUTE_GROUPS(damon_sysfs_context);
+ config KRETPROBES
+ 	def_bool y
+@@ -720,13 +720,13 @@ config LTO_CLANG_FULL
+ 	depends on !COMPILE_TEST
+ 	select LTO_CLANG
+ 	help
+-          This option enables Clang's full Link Time Optimization (LTO), which
+-          allows the compiler to optimize the kernel globally. If you enable
+-          this option, the compiler generates LLVM bitcode instead of ELF
+-          object files, and the actual compilation from bitcode happens at
+-          the LTO link step, which may take several minutes depending on the
+-          kernel configuration. More information can be found from LLVM's
+-          documentation:
++	  This option enables Clang's full Link Time Optimization (LTO), which
++	  allows the compiler to optimize the kernel globally. If you enable
++	  this option, the compiler generates LLVM bitcode instead of ELF
++	  object files, and the actual compilation from bitcode happens at
++	  the LTO link step, which may take several minutes depending on the
++	  kernel configuration. More information can be found from LLVM's
++	  documentation:
  
--static struct kobj_type damon_sysfs_context_ktype = {
-+static const struct kobj_type damon_sysfs_context_ktype = {
- 	.release = damon_sysfs_context_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_context_groups,
-@@ -926,7 +926,7 @@ static struct attribute *damon_sysfs_con
- };
- ATTRIBUTE_GROUPS(damon_sysfs_contexts);
+ 	    https://llvm.org/docs/LinkTimeOptimization.html
  
--static struct kobj_type damon_sysfs_contexts_ktype = {
-+static const struct kobj_type damon_sysfs_contexts_ktype = {
- 	.release = damon_sysfs_contexts_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_contexts_groups,
-@@ -1564,7 +1564,7 @@ static struct attribute *damon_sysfs_kda
- };
- ATTRIBUTE_GROUPS(damon_sysfs_kdamond);
+@@ -1330,9 +1330,9 @@ config ARCH_HAS_CC_PLATFORM
+ 	bool
  
--static struct kobj_type damon_sysfs_kdamond_ktype = {
-+static const struct kobj_type damon_sysfs_kdamond_ktype = {
- 	.release = damon_sysfs_kdamond_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_kdamond_groups,
-@@ -1707,7 +1707,7 @@ static struct attribute *damon_sysfs_kda
- };
- ATTRIBUTE_GROUPS(damon_sysfs_kdamonds);
+ config HAVE_SPARSE_SYSCALL_NR
+-       bool
+-       help
+-          An architecture should select this if its syscall numbering is sparse
++	bool
++	help
++	  An architecture should select this if its syscall numbering is sparse
+ 	  to save space. For example, MIPS architecture has a syscall array with
+ 	  entries at 4000, 5000 and 6000 locations. This option turns on syscall
+ 	  related optimizations for a given architecture.
+@@ -1356,35 +1356,35 @@ config HAVE_PREEMPT_DYNAMIC_CALL
+ 	depends on HAVE_STATIC_CALL
+ 	select HAVE_PREEMPT_DYNAMIC
+ 	help
+-	   An architecture should select this if it can handle the preemption
+-	   model being selected at boot time using static calls.
++	  An architecture should select this if it can handle the preemption
++	  model being selected at boot time using static calls.
  
--static struct kobj_type damon_sysfs_kdamonds_ktype = {
-+static const struct kobj_type damon_sysfs_kdamonds_ktype = {
- 	.release = damon_sysfs_kdamonds_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_kdamonds_groups,
-@@ -1757,7 +1757,7 @@ static struct attribute *damon_sysfs_ui_
- };
- ATTRIBUTE_GROUPS(damon_sysfs_ui_dir);
+-	   Where an architecture selects HAVE_STATIC_CALL_INLINE, any call to a
+-	   preemption function will be patched directly.
++	  Where an architecture selects HAVE_STATIC_CALL_INLINE, any call to a
++	  preemption function will be patched directly.
  
--static struct kobj_type damon_sysfs_ui_dir_ktype = {
-+static const struct kobj_type damon_sysfs_ui_dir_ktype = {
- 	.release = damon_sysfs_ui_dir_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_ui_dir_groups,
---- a/mm/damon/sysfs-common.c~mm-damon-sysfs-make-kobj_type-structures-constant
-+++ a/mm/damon/sysfs-common.c
-@@ -99,7 +99,7 @@ static struct attribute *damon_sysfs_ul_
- };
- ATTRIBUTE_GROUPS(damon_sysfs_ul_range);
+-	   Where an architecture does not select HAVE_STATIC_CALL_INLINE, any
+-	   call to a preemption function will go through a trampoline, and the
+-	   trampoline will be patched.
++	  Where an architecture does not select HAVE_STATIC_CALL_INLINE, any
++	  call to a preemption function will go through a trampoline, and the
++	  trampoline will be patched.
  
--struct kobj_type damon_sysfs_ul_range_ktype = {
-+const struct kobj_type damon_sysfs_ul_range_ktype = {
- 	.release = damon_sysfs_ul_range_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_ul_range_groups,
---- a/mm/damon/sysfs-common.h~mm-damon-sysfs-make-kobj_type-structures-constant
-+++ a/mm/damon/sysfs-common.h
-@@ -21,7 +21,7 @@ struct damon_sysfs_ul_range *damon_sysfs
- 		unsigned long max);
- void damon_sysfs_ul_range_release(struct kobject *kobj);
+-	   It is strongly advised to support inline static call to avoid any
+-	   overhead.
++	  It is strongly advised to support inline static call to avoid any
++	  overhead.
  
--extern struct kobj_type damon_sysfs_ul_range_ktype;
-+extern const struct kobj_type damon_sysfs_ul_range_ktype;
+ config HAVE_PREEMPT_DYNAMIC_KEY
+ 	bool
+ 	depends on HAVE_ARCH_JUMP_LABEL
+ 	select HAVE_PREEMPT_DYNAMIC
+ 	help
+-	   An architecture should select this if it can handle the preemption
+-	   model being selected at boot time using static keys.
++	  An architecture should select this if it can handle the preemption
++	  model being selected at boot time using static keys.
  
- /*
-  * schemes directory
-@@ -36,7 +36,7 @@ struct damon_sysfs_schemes {
- struct damon_sysfs_schemes *damon_sysfs_schemes_alloc(void);
- void damon_sysfs_schemes_rm_dirs(struct damon_sysfs_schemes *schemes);
+-	   Each preemption function will be given an early return based on a
+-	   static key. This should have slightly lower overhead than non-inline
+-	   static calls, as this effectively inlines each trampoline into the
+-	   start of its callee. This may avoid redundant work, and may
+-	   integrate better with CFI schemes.
++	  Each preemption function will be given an early return based on a
++	  static key. This should have slightly lower overhead than non-inline
++	  static calls, as this effectively inlines each trampoline into the
++	  start of its callee. This may avoid redundant work, and may
++	  integrate better with CFI schemes.
  
--extern struct kobj_type damon_sysfs_schemes_ktype;
-+extern const struct kobj_type damon_sysfs_schemes_ktype;
+-	   This will have greater overhead than using inline static calls as
+-	   the call to the preemption function cannot be entirely elided.
++	  This will have greater overhead than using inline static calls as
++	  the call to the preemption function cannot be entirely elided.
  
- int damon_sysfs_set_schemes(struct damon_ctx *ctx,
- 		struct damon_sysfs_schemes *sysfs_schemes);
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-make-kobj_type-structures-constant
-+++ a/mm/damon/sysfs-schemes.c
-@@ -103,7 +103,7 @@ static struct attribute *damon_sysfs_sch
- };
- ATTRIBUTE_GROUPS(damon_sysfs_scheme_region);
+ config ARCH_WANT_LD_ORPHAN_WARN
+ 	bool
+@@ -1407,8 +1407,8 @@ config ARCH_SUPPORTS_PAGE_TABLE_CHECK
+ config ARCH_SPLIT_ARG64
+ 	bool
+ 	help
+-	   If a 32-bit architecture requires 64-bit arguments to be split into
+-	   pairs of 32-bit arguments, select this option.
++	  If a 32-bit architecture requires 64-bit arguments to be split into
++	  pairs of 32-bit arguments, select this option.
  
--static struct kobj_type damon_sysfs_scheme_region_ktype = {
-+static const struct kobj_type damon_sysfs_scheme_region_ktype = {
- 	.release = damon_sysfs_scheme_region_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_scheme_region_groups,
-@@ -153,7 +153,7 @@ static struct attribute *damon_sysfs_sch
- };
- ATTRIBUTE_GROUPS(damon_sysfs_scheme_regions);
- 
--static struct kobj_type damon_sysfs_scheme_regions_ktype = {
-+static const struct kobj_type damon_sysfs_scheme_regions_ktype = {
- 	.release = damon_sysfs_scheme_regions_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_scheme_regions_groups,
-@@ -252,7 +252,7 @@ static struct attribute *damon_sysfs_sta
- };
- ATTRIBUTE_GROUPS(damon_sysfs_stats);
- 
--static struct kobj_type damon_sysfs_stats_ktype = {
-+static const struct kobj_type damon_sysfs_stats_ktype = {
- 	.release = damon_sysfs_stats_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_stats_groups,
-@@ -678,7 +678,7 @@ static struct attribute *damon_sysfs_wat
- };
- ATTRIBUTE_GROUPS(damon_sysfs_watermarks);
- 
--static struct kobj_type damon_sysfs_watermarks_ktype = {
-+static const struct kobj_type damon_sysfs_watermarks_ktype = {
- 	.release = damon_sysfs_watermarks_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_watermarks_groups,
-@@ -789,7 +789,7 @@ static struct attribute *damon_sysfs_wei
- };
- ATTRIBUTE_GROUPS(damon_sysfs_weights);
- 
--static struct kobj_type damon_sysfs_weights_ktype = {
-+static const struct kobj_type damon_sysfs_weights_ktype = {
- 	.release = damon_sysfs_weights_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_weights_groups,
-@@ -920,7 +920,7 @@ static struct attribute *damon_sysfs_quo
- };
- ATTRIBUTE_GROUPS(damon_sysfs_quotas);
- 
--static struct kobj_type damon_sysfs_quotas_ktype = {
-+static const struct kobj_type damon_sysfs_quotas_ktype = {
- 	.release = damon_sysfs_quotas_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_quotas_groups,
-@@ -1019,7 +1019,7 @@ static struct attribute *damon_sysfs_acc
- };
- ATTRIBUTE_GROUPS(damon_sysfs_access_pattern);
- 
--static struct kobj_type damon_sysfs_access_pattern_ktype = {
-+static const struct kobj_type damon_sysfs_access_pattern_ktype = {
- 	.release = damon_sysfs_access_pattern_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_access_pattern_groups,
-@@ -1279,7 +1279,7 @@ static struct attribute *damon_sysfs_sch
- };
- ATTRIBUTE_GROUPS(damon_sysfs_scheme);
- 
--static struct kobj_type damon_sysfs_scheme_ktype = {
-+static const struct kobj_type damon_sysfs_scheme_ktype = {
- 	.release = damon_sysfs_scheme_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_scheme_groups,
-@@ -1396,7 +1396,7 @@ static struct attribute *damon_sysfs_sch
- };
- ATTRIBUTE_GROUPS(damon_sysfs_schemes);
- 
--struct kobj_type damon_sysfs_schemes_ktype = {
-+const struct kobj_type damon_sysfs_schemes_ktype = {
- 	.release = damon_sysfs_schemes_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = damon_sysfs_schemes_groups,
+ config ARCH_HAS_ELFCORE_COMPAT
+ 	bool
 _
 
-Patches currently in -mm which might be from linux@weissschuh.net are
+Patches currently in -mm which might be from juerg.haefliger@canonical.com are
 
 
