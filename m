@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D2B9C636D3
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:57:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 912F0C636D7
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:57:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231293AbjBJA5p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Feb 2023 19:57:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44112 "EHLO
+        id S231297AbjBJA5q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 19:57:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231272AbjBJA4L (ORCPT
+        with ESMTP id S230203AbjBJA4L (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:56:11 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53A527095B
-        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:54:41 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB5AE7095D
+        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:54:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E4D5561BA3
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:54:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49417C433A0;
-        Fri, 10 Feb 2023 00:54:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 77EE061C3D
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:54:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C82B6C433D2;
+        Fri, 10 Feb 2023 00:54:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675990480;
-        bh=bu3QgdDbg2WfbkYO5w9a45ONWUFzF1KpjYzlo3VK+2A=;
+        s=korg; t=1675990481;
+        bh=TtmLltmXJ/8cMpeZcItcQfntSEd6o2ASXyP//a2SC+k=;
         h=Date:To:From:Subject:From;
-        b=oKruv238TmcS7AMVj612LTsimIJCVlll4uGPMDqbYZPa2Xy+4RfLbbed22AYCk4Lp
-         QWQnslRU2yOXq9u8pBfVU2uMvm1EPIfVWAeEgiVOLQypISkHn6EPRggyLkVdGtO3FH
-         VBEFHTvIKX1x550WPsQFFboNpim8HtBKbJBgv7ZA=
-Date:   Thu, 09 Feb 2023 16:54:39 -0800
+        b=1WBQ5JbBtreSH8rw/GCrJMZLYmIWQtFtPYqMSrw6G7sJcHbHl+C22mV6Vjkg+tOej
+         KGVI15JkyWjfuusFEIs6hVCJjVkAGbRArJrjgda8rJM27wh0qS+qFUxOP3LuVLKzsw
+         5nDvu59HB6phT/hWpN3yh0MbVGGi0WhrkygNW/9I=
+Date:   Thu, 09 Feb 2023 16:54:41 -0800
 To:     mm-commits@vger.kernel.org, rppt@kernel.org, jhubbard@nvidia.com,
         imbrenda@linux.ibm.com, hch@infradead.org, dhowells@redhat.com,
         david@redhat.com, apopple@nvidia.com, jgg@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-make-locked-never-null-in-the-internal-gup-functions.patch removed from -mm tree
-Message-Id: <20230210005440.49417C433A0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-remove-pin_user_pages_fast_only.patch removed from -mm tree
+Message-Id: <20230210005441.C82B6C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,203 +43,91 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup: make locked never NULL in the internal GUP functions
+     Subject: mm/gup: remove pin_user_pages_fast_only()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-make-locked-never-null-in-the-internal-gup-functions.patch
+     mm-gup-remove-pin_user_pages_fast_only.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jason Gunthorpe <jgg@nvidia.com>
-Subject: mm/gup: make locked never NULL in the internal GUP functions
-Date: Tue, 24 Jan 2023 16:34:30 -0400
+Subject: mm/gup: remove pin_user_pages_fast_only()
+Date: Tue, 24 Jan 2023 16:34:31 -0400
 
-Now that NULL locked doesn't have a special meaning we can just make it
-non-NULL in all cases and remove the special tests.
+Commit ed29c2691188 ("drm/i915: Fix userptr so we do not have to worry
+about obj->mm.lock, v7.") removed the only caller, remove this dead code
+too.
 
-get_user_pages() and pin_user_pages() can safely pass in a locked = 1
-
-get_user_pages_remote) and pin_user_pages_remote() can swap in a local
-variable for locked if NULL is passed.
-
-Remove all the NULL checks.
-
-Link: https://lkml.kernel.org/r/9-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
+Link: https://lkml.kernel.org/r/10-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   53 +++++++++++++++++++++++++++++++----------------------
- 1 file changed, 31 insertions(+), 22 deletions(-)
+ include/linux/mm.h |    2 --
+ mm/gup.c           |   33 ---------------------------------
+ 2 files changed, 35 deletions(-)
 
---- a/mm/gup.c~mm-gup-make-locked-never-null-in-the-internal-gup-functions
-+++ a/mm/gup.c
-@@ -879,9 +879,9 @@ unmap:
- }
- 
- /*
-- * mmap_lock must be held on entry.  If @locked != NULL and *@flags
-- * does not include FOLL_NOWAIT, the mmap_lock may be released.  If it
-- * is, *@locked will be set to 0 and -EBUSY returned.
-+ * mmap_lock must be held on entry.  If @flags has FOLL_UNLOCKABLE but not
-+ * FOLL_NOWAIT, the mmap_lock may be released.  If it is, *@locked will be set
-+ * to 0 and -EBUSY returned.
+--- a/include/linux/mm.h~mm-gup-remove-pin_user_pages_fast_only
++++ a/include/linux/mm.h
+@@ -2261,8 +2261,6 @@ extern int mprotect_fixup(struct vma_ite
   */
- static int faultin_page(struct vm_area_struct *vma,
- 		unsigned long address, unsigned int *flags, bool unshare,
-@@ -930,8 +930,8 @@ static int faultin_page(struct vm_area_s
- 		 * mmap lock in the page fault handler. Sanity check this.
- 		 */
- 		WARN_ON_ONCE(fault_flags & FAULT_FLAG_RETRY_NOWAIT);
--		if (locked)
--			*locked = 0;
-+		*locked = 0;
-+
- 		/*
- 		 * We should do the same as VM_FAULT_RETRY, but let's not
- 		 * return -EBUSY since that's not reflecting the reality of
-@@ -951,7 +951,7 @@ static int faultin_page(struct vm_area_s
- 	}
+ int get_user_pages_fast_only(unsigned long start, int nr_pages,
+ 			     unsigned int gup_flags, struct page **pages);
+-int pin_user_pages_fast_only(unsigned long start, int nr_pages,
+-			     unsigned int gup_flags, struct page **pages);
  
- 	if (ret & VM_FAULT_RETRY) {
--		if (locked && !(fault_flags & FAULT_FLAG_RETRY_NOWAIT))
-+		if (!(fault_flags & FAULT_FLAG_RETRY_NOWAIT))
- 			*locked = 0;
- 		return -EBUSY;
- 	}
-@@ -1062,14 +1062,12 @@ static int check_vma_flags(struct vm_are
-  * appropriate) must be called after the page is finished with, and
-  * before put_page is called.
-  *
-- * If @locked != NULL, *@locked will be set to 0 when mmap_lock is
-- * released by an up_read().  That can happen if @gup_flags does not
-- * have FOLL_NOWAIT.
+ static inline bool get_user_page_fast_only(unsigned long addr,
+ 			unsigned int gup_flags, struct page **pagep)
+--- a/mm/gup.c~mm-gup-remove-pin_user_pages_fast_only
++++ a/mm/gup.c
+@@ -3102,39 +3102,6 @@ int pin_user_pages_fast(unsigned long st
+ }
+ EXPORT_SYMBOL_GPL(pin_user_pages_fast);
+ 
+-/*
+- * This is the FOLL_PIN equivalent of get_user_pages_fast_only(). Behavior
+- * is the same, except that this one sets FOLL_PIN instead of FOLL_GET.
 - *
-- * A caller using such a combination of @locked and @gup_flags
-- * must therefore hold the mmap_lock for reading only, and recognize
-- * when it's been released.  Otherwise, it must be held for either
-- * reading or writing and will not be released.
-+ * If FOLL_UNLOCKABLE is set without FOLL_NOWAIT then the mmap_lock may
-+ * be released. If this happens *@locked will be set to 0 on return.
-+ *
-+ * A caller using such a combination of @gup_flags must therefore hold the
-+ * mmap_lock for reading only, and recognize when it's been released. Otherwise,
-+ * it must be held for either reading or writing and will not be released.
+- * The API rules are the same, too: no negative values may be returned.
+- */
+-int pin_user_pages_fast_only(unsigned long start, int nr_pages,
+-			     unsigned int gup_flags, struct page **pages)
+-{
+-	int nr_pinned;
+-
+-	/*
+-	 * FOLL_FAST_ONLY is required in order to match the API description of
+-	 * this routine: no fall back to regular ("slow") GUP.
+-	 */
+-	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
+-			       FOLL_PIN | FOLL_FAST_ONLY))
+-		return 0;
+-
+-	nr_pinned = internal_get_user_pages_fast(start, nr_pages, gup_flags,
+-						 pages);
+-	/*
+-	 * This routine is not allowed to return negative values. However,
+-	 * internal_get_user_pages_fast() *can* return -errno. Therefore,
+-	 * correct for that here:
+-	 */
+-	if (nr_pinned < 0)
+-		nr_pinned = 0;
+-
+-	return nr_pinned;
+-}
+-EXPORT_SYMBOL_GPL(pin_user_pages_fast_only);
+-
+ /**
+  * pin_user_pages_remote() - pin pages of a remote process
   *
-  * In most cases, get_user_pages or get_user_pages_fast should be used
-  * instead of __get_user_pages. __get_user_pages should be used only if
-@@ -1121,7 +1119,7 @@ static long __get_user_pages(struct mm_s
- 				i = follow_hugetlb_page(mm, vma, pages, vmas,
- 						&start, &nr_pages, i,
- 						gup_flags, locked);
--				if (locked && *locked == 0) {
-+				if (!*locked) {
- 					/*
- 					 * We've got a VM_FAULT_RETRY
- 					 * and we've lost mmap_lock.
-@@ -1354,7 +1352,7 @@ static __always_inline long __get_user_p
- 	 * The internal caller expects GUP to manage the lock internally and the
- 	 * lock must be released when this returns.
- 	 */
--	if (locked && !*locked) {
-+	if (!*locked) {
- 		if (mmap_read_lock_killable(mm))
- 			return -EAGAIN;
- 		must_unlock = true;
-@@ -1502,6 +1500,7 @@ long populate_vma_page_range(struct vm_a
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long nr_pages = (end - start) / PAGE_SIZE;
-+	int local_locked = 1;
- 	int gup_flags;
- 	long ret;
- 
-@@ -1542,7 +1541,7 @@ long populate_vma_page_range(struct vm_a
- 	 * not result in a stack expansion that recurses back here.
- 	 */
- 	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
--				NULL, NULL, locked);
-+				NULL, NULL, locked ? locked : &local_locked);
- 	lru_add_drain();
- 	return ret;
- }
-@@ -1683,7 +1682,7 @@ static long __get_user_pages_locked(stru
- 	 * The internal caller expects GUP to manage the lock internally and the
- 	 * lock must be released when this returns.
- 	 */
--	if (locked && !*locked) {
-+	if (!*locked) {
- 		if (mmap_read_lock_killable(mm))
- 			return -EAGAIN;
- 		must_unlock = true;
-@@ -2222,11 +2221,14 @@ long get_user_pages_remote(struct mm_str
- 		unsigned int gup_flags, struct page **pages,
- 		struct vm_area_struct **vmas, int *locked)
- {
-+	int local_locked = 1;
-+
- 	if (!is_valid_gup_args(pages, vmas, locked, &gup_flags,
- 			       FOLL_TOUCH | FOLL_REMOTE))
- 		return -EINVAL;
- 
--	return __get_user_pages_locked(mm, start, nr_pages, pages, vmas, locked,
-+	return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
-+				       locked ? locked : &local_locked,
- 				       gup_flags);
- }
- EXPORT_SYMBOL(get_user_pages_remote);
-@@ -2261,11 +2263,13 @@ long get_user_pages(unsigned long start,
- 		unsigned int gup_flags, struct page **pages,
- 		struct vm_area_struct **vmas)
- {
-+	int locked = 1;
-+
- 	if (!is_valid_gup_args(pages, vmas, NULL, &gup_flags, FOLL_TOUCH))
- 		return -EINVAL;
- 
- 	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
--				       vmas, NULL, gup_flags);
-+				       vmas, &locked, gup_flags);
- }
- EXPORT_SYMBOL(get_user_pages);
- 
-@@ -3158,10 +3162,13 @@ long pin_user_pages_remote(struct mm_str
- 			   unsigned int gup_flags, struct page **pages,
- 			   struct vm_area_struct **vmas, int *locked)
- {
-+	int local_locked = 1;
-+
- 	if (!is_valid_gup_args(pages, vmas, locked, &gup_flags,
- 			       FOLL_PIN | FOLL_TOUCH | FOLL_REMOTE))
- 		return 0;
--	return __gup_longterm_locked(mm, start, nr_pages, pages, vmas, locked,
-+	return __gup_longterm_locked(mm, start, nr_pages, pages, vmas,
-+				     locked ? locked : &local_locked,
- 				     gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages_remote);
-@@ -3187,10 +3194,12 @@ long pin_user_pages(unsigned long start,
- 		    unsigned int gup_flags, struct page **pages,
- 		    struct vm_area_struct **vmas)
- {
-+	int locked = 1;
-+
- 	if (!is_valid_gup_args(pages, vmas, NULL, &gup_flags, FOLL_PIN))
- 		return 0;
- 	return __gup_longterm_locked(current->mm, start, nr_pages,
--				     pages, vmas, NULL, gup_flags);
-+				     pages, vmas, &locked, gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages);
- 
 _
 
 Patches currently in -mm which might be from jgg@nvidia.com are
