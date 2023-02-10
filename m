@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9014C636D4
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 21:51:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3F12C05027
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 21:51:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233789AbjBJVv1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233790AbjBJVv1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 10 Feb 2023 16:51:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34078 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233460AbjBJVv0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Feb 2023 16:51:26 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FF573D09C
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 13:51:24 -0800 (PST)
+        with ESMTP id S233460AbjBJVv1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Feb 2023 16:51:27 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 966FD60D4D
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 13:51:25 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 6593FCE28B9
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 21:51:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9AE6C433EF;
-        Fri, 10 Feb 2023 21:51:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 305C361E9C
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 21:51:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 809C6C433EF;
+        Fri, 10 Feb 2023 21:51:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676065880;
-        bh=7syN9Kb7VpMMLQIB7wo1u6AE0SE/y5RFN35I/BUGBwI=;
+        s=korg; t=1676065884;
+        bh=Klg1DEEuR7ovSPBTklY56Fb1FK9IdxbEQjbwVYdukis=;
         h=Date:To:From:Subject:From;
-        b=sPejjBqy/8vPNzOY6wSIc7T+XwMtQT7sIxk15JuL92Nwfb4doIGuTK7gFekbjSI+u
-         aJx095IC4yyTgzb8LoSITq7Nc9S/c1leoxjWHHGzp/K7KHqY2+V8gqubw5Tm+BBptf
-         79CDl6/gPj1DhFME1tifzjzcNavq4mj7B/N+c448=
-Date:   Fri, 10 Feb 2023 13:51:19 -0800
+        b=UPctbjBIXQX0hN12woHw2/MR1l33DMMkBTnuaANm6VR1RacXNX6ra/D0XGUrYxBVC
+         1oBYjsWhnDQTUhfq4sc1NkSVEjNZM68JfbGkl/PExmQlZNgnqbt8LLCwZNhxe16dhS
+         Gg7qhFx1Q8DBsz0iSkJKd7odTZMi/OOpjh3RZres=
+Date:   Fri, 10 Feb 2023 13:51:23 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, glider@google.com,
-        eugenis@google.com, elver@google.com, andreyknvl@google.com,
-        akpm@linux-foundation.org
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-put-functions-in-logical-order.patch added to mm-nonmm-unstable branch
-Message-Id: <20230210215120.A9AE6C433EF@smtp.kernel.org>
+Subject: + lib-stackdepot-mm-rename-stack_depot_want_early_init.patch added to mm-nonmm-unstable branch
+Message-Id: <20230210215124.809C6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: put functions in logical order
+     Subject: lib/stackdepot, mm: rename stack_depot_want_early_init
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-stackdepot-put-functions-in-logical-order.patch
+     lib-stackdepot-mm-rename-stack_depot_want_early_init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-put-functions-in-logical-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-mm-rename-stack_depot_want_early_init.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,425 +65,128 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: put functions in logical order
-Date: Fri, 10 Feb 2023 22:15:49 +0100
+Subject: lib/stackdepot, mm: rename stack_depot_want_early_init
+Date: Fri, 10 Feb 2023 22:15:51 +0100
 
-Patch series "lib/stackdepot: fixes and clean-ups", v2.
+Rename stack_depot_want_early_init to stack_depot_request_early_init.
 
-A set of fixes, comments, and clean-ups I came up with while reading
-the stack depot code.
-
-
-This patch (of 18):
-
-Put stack depot functions' declarations and definitions in a more logical
-order:
-
-1. Functions that save stack traces into stack depot.
-2. Functions that fetch and print stack traces.
-3. stack_depot_get_extra_bits that operates on stack depot handles
-   and does not interact with the stack depot storage.
+The old name is confusing, as it hints at returning some kind of intention
+of stack depot.  The new name reflects that this function requests an
+action from stack depot instead.
 
 No functional changes.
 
-Link: https://lkml.kernel.org/r/cover.1676063693.git.andreyknvl@google.com
-Link: https://lkml.kernel.org/r/daca1319b665d826b94c596b992a8d8117846147.1676063693.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/359f31bf67429a06e630b4395816a967214ef753.1676063693.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/stackdepot.h~lib-stackdepot-put-functions-in-logical-order
+--- a/include/linux/stackdepot.h~lib-stackdepot-mm-rename-stack_depot_want_early_init
 +++ a/include/linux/stackdepot.h
-@@ -14,17 +14,13 @@
- #include <linux/gfp.h>
- 
- typedef u32 depot_stack_handle_t;
-+
- /*
-  * Number of bits in the handle that stack depot doesn't use. Users may store
-  * information in them.
+@@ -31,26 +31,26 @@ typedef u32 depot_stack_handle_t;
+  * enabled as part of mm_init(), for subsystems where it's known at compile time
+  * that stack depot will be used.
+  *
+- * Another alternative is to call stack_depot_want_early_init(), when the
++ * Another alternative is to call stack_depot_request_early_init(), when the
+  * decision to use stack depot is taken e.g. when evaluating kernel boot
+  * parameters, which precedes the enablement point in mm_init().
+  *
+- * stack_depot_init() and stack_depot_want_early_init() can be called regardless
+- * of CONFIG_STACKDEPOT and are no-op when disabled. The actual save/fetch/print
+- * functions should only be called from code that makes sure CONFIG_STACKDEPOT
+- * is enabled.
++ * stack_depot_init() and stack_depot_request_early_init() can be called
++ * regardless of CONFIG_STACKDEPOT and are no-op when disabled. The actual
++ * save/fetch/print functions should only be called from code that makes sure
++ * CONFIG_STACKDEPOT is enabled.
   */
- #define STACK_DEPOT_EXTRA_BITS 5
+ #ifdef CONFIG_STACKDEPOT
+ int stack_depot_init(void);
  
--depot_stack_handle_t __stack_depot_save(unsigned long *entries,
--					unsigned int nr_entries,
--					unsigned int extra_bits,
--					gfp_t gfp_flags, bool can_alloc);
--
- /*
-  * Every user of stack depot has to call stack_depot_init() during its own init
-  * when it's decided that it will be calling stack_depot_save() later. This is
-@@ -59,17 +55,22 @@ static inline void stack_depot_want_earl
+-void __init stack_depot_want_early_init(void);
++void __init stack_depot_request_early_init(void);
+ 
+ /* This is supposed to be called only from mm_init() */
+ int __init stack_depot_early_init(void);
+ #else
+ static inline int stack_depot_init(void) { return 0; }
+ 
+-static inline void stack_depot_want_early_init(void) { }
++static inline void stack_depot_request_early_init(void) { }
+ 
  static inline int stack_depot_early_init(void)	{ return 0; }
  #endif
- 
-+depot_stack_handle_t __stack_depot_save(unsigned long *entries,
-+					unsigned int nr_entries,
-+					unsigned int extra_bits,
-+					gfp_t gfp_flags, bool can_alloc);
-+
- depot_stack_handle_t stack_depot_save(unsigned long *entries,
- 				      unsigned int nr_entries, gfp_t gfp_flags);
- 
- unsigned int stack_depot_fetch(depot_stack_handle_t handle,
- 			       unsigned long **entries);
- 
--unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle);
-+void stack_depot_print(depot_stack_handle_t stack);
- 
- int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
- 		       int spaces);
- 
--void stack_depot_print(depot_stack_handle_t stack);
-+unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle);
- 
- #endif
---- a/lib/stackdepot.c~lib-stackdepot-put-functions-in-logical-order
+--- a/lib/stackdepot.c~lib-stackdepot-mm-rename-stack_depot_want_early_init
 +++ a/lib/stackdepot.c
-@@ -79,84 +79,6 @@ static int next_slab_inited;
- static size_t depot_offset;
- static DEFINE_RAW_SPINLOCK(depot_lock);
+@@ -71,7 +71,7 @@ struct stack_record {
+ 	unsigned long entries[];	/* Variable-sized array of entries. */
+ };
  
--unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle)
--{
--	union handle_parts parts = { .handle = handle };
--
--	return parts.extra;
--}
--EXPORT_SYMBOL(stack_depot_get_extra_bits);
--
--static bool init_stack_slab(void **prealloc)
--{
--	if (!*prealloc)
--		return false;
--	/*
--	 * This smp_load_acquire() pairs with smp_store_release() to
--	 * |next_slab_inited| below and in depot_alloc_stack().
--	 */
--	if (smp_load_acquire(&next_slab_inited))
--		return true;
--	if (stack_slabs[depot_index] == NULL) {
--		stack_slabs[depot_index] = *prealloc;
--		*prealloc = NULL;
--	} else {
--		/* If this is the last depot slab, do not touch the next one. */
--		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS) {
--			stack_slabs[depot_index + 1] = *prealloc;
--			*prealloc = NULL;
--		}
--		/*
--		 * This smp_store_release pairs with smp_load_acquire() from
--		 * |next_slab_inited| above and in stack_depot_save().
--		 */
--		smp_store_release(&next_slab_inited, 1);
--	}
--	return true;
--}
--
--/* Allocation of a new stack in raw storage */
--static struct stack_record *
--depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
--{
--	struct stack_record *stack;
--	size_t required_size = struct_size(stack, entries, size);
--
--	required_size = ALIGN(required_size, 1 << STACK_ALLOC_ALIGN);
--
--	if (unlikely(depot_offset + required_size > STACK_ALLOC_SIZE)) {
--		if (unlikely(depot_index + 1 >= STACK_ALLOC_MAX_SLABS)) {
--			WARN_ONCE(1, "Stack depot reached limit capacity");
--			return NULL;
--		}
--		depot_index++;
--		depot_offset = 0;
--		/*
--		 * smp_store_release() here pairs with smp_load_acquire() from
--		 * |next_slab_inited| in stack_depot_save() and
--		 * init_stack_slab().
--		 */
--		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS)
--			smp_store_release(&next_slab_inited, 0);
--	}
--	init_stack_slab(prealloc);
--	if (stack_slabs[depot_index] == NULL)
--		return NULL;
--
--	stack = stack_slabs[depot_index] + depot_offset;
--
--	stack->hash = hash;
--	stack->size = size;
--	stack->handle.slabindex = depot_index;
--	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
--	stack->handle.valid = 1;
--	stack->handle.extra = 0;
--	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
--	depot_offset += required_size;
--
--	return stack;
--}
--
- /* one hash table bucket entry per 16kB of memory */
- #define STACK_HASH_SCALE	14
- /* limited between 4k and 1M buckets */
-@@ -270,6 +192,76 @@ int stack_depot_init(void)
+-static bool __stack_depot_want_early_init __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
++static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
+ static bool __stack_depot_early_init_passed __initdata;
+ 
+ static void *stack_slabs[STACK_ALLOC_MAX_SLABS];
+@@ -107,12 +107,12 @@ static int __init is_stack_depot_disable
  }
- EXPORT_SYMBOL_GPL(stack_depot_init);
+ early_param("stack_depot_disable", is_stack_depot_disabled);
  
-+static bool init_stack_slab(void **prealloc)
-+{
-+	if (!*prealloc)
-+		return false;
-+	/*
-+	 * This smp_load_acquire() pairs with smp_store_release() to
-+	 * |next_slab_inited| below and in depot_alloc_stack().
-+	 */
-+	if (smp_load_acquire(&next_slab_inited))
-+		return true;
-+	if (stack_slabs[depot_index] == NULL) {
-+		stack_slabs[depot_index] = *prealloc;
-+		*prealloc = NULL;
-+	} else {
-+		/* If this is the last depot slab, do not touch the next one. */
-+		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS) {
-+			stack_slabs[depot_index + 1] = *prealloc;
-+			*prealloc = NULL;
-+		}
-+		/*
-+		 * This smp_store_release pairs with smp_load_acquire() from
-+		 * |next_slab_inited| above and in stack_depot_save().
-+		 */
-+		smp_store_release(&next_slab_inited, 1);
-+	}
-+	return true;
-+}
-+
-+/* Allocation of a new stack in raw storage */
-+static struct stack_record *
-+depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
-+{
-+	struct stack_record *stack;
-+	size_t required_size = struct_size(stack, entries, size);
-+
-+	required_size = ALIGN(required_size, 1 << STACK_ALLOC_ALIGN);
-+
-+	if (unlikely(depot_offset + required_size > STACK_ALLOC_SIZE)) {
-+		if (unlikely(depot_index + 1 >= STACK_ALLOC_MAX_SLABS)) {
-+			WARN_ONCE(1, "Stack depot reached limit capacity");
-+			return NULL;
-+		}
-+		depot_index++;
-+		depot_offset = 0;
-+		/*
-+		 * smp_store_release() here pairs with smp_load_acquire() from
-+		 * |next_slab_inited| in stack_depot_save() and
-+		 * init_stack_slab().
-+		 */
-+		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS)
-+			smp_store_release(&next_slab_inited, 0);
-+	}
-+	init_stack_slab(prealloc);
-+	if (stack_slabs[depot_index] == NULL)
-+		return NULL;
-+
-+	stack = stack_slabs[depot_index] + depot_offset;
-+
-+	stack->hash = hash;
-+	stack->size = size;
-+	stack->handle.slabindex = depot_index;
-+	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
-+	stack->handle.valid = 1;
-+	stack->handle.extra = 0;
-+	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
-+	depot_offset += required_size;
-+
-+	return stack;
-+}
-+
- /* Calculate hash for a stack */
- static inline u32 hash_stack(unsigned long *entries, unsigned int size)
+-void __init stack_depot_want_early_init(void)
++void __init stack_depot_request_early_init(void)
  {
-@@ -310,85 +302,6 @@ static inline struct stack_record *find_
+-	/* Too late to request early init now */
++	/* Too late to request early init now. */
+ 	WARN_ON(__stack_depot_early_init_passed);
+ 
+-	__stack_depot_want_early_init = true;
++	__stack_depot_early_init_requested = true;
  }
  
- /**
-- * stack_depot_snprint - print stack entries from a depot into a buffer
-- *
-- * @handle:	Stack depot handle which was returned from
-- *		stack_depot_save().
-- * @buf:	Pointer to the print buffer
-- *
-- * @size:	Size of the print buffer
-- *
-- * @spaces:	Number of leading spaces to print
-- *
-- * Return:	Number of bytes printed.
-- */
--int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
--		       int spaces)
--{
--	unsigned long *entries;
--	unsigned int nr_entries;
--
--	nr_entries = stack_depot_fetch(handle, &entries);
--	return nr_entries ? stack_trace_snprint(buf, size, entries, nr_entries,
--						spaces) : 0;
--}
--EXPORT_SYMBOL_GPL(stack_depot_snprint);
--
--/**
-- * stack_depot_print - print stack entries from a depot
-- *
-- * @stack:		Stack depot handle which was returned from
-- *			stack_depot_save().
-- *
-- */
--void stack_depot_print(depot_stack_handle_t stack)
--{
--	unsigned long *entries;
--	unsigned int nr_entries;
--
--	nr_entries = stack_depot_fetch(stack, &entries);
--	if (nr_entries > 0)
--		stack_trace_print(entries, nr_entries, 0);
--}
--EXPORT_SYMBOL_GPL(stack_depot_print);
--
--/**
-- * stack_depot_fetch - Fetch stack entries from a depot
-- *
-- * @handle:		Stack depot handle which was returned from
-- *			stack_depot_save().
-- * @entries:		Pointer to store the entries address
-- *
-- * Return: The number of trace entries for this depot.
-- */
--unsigned int stack_depot_fetch(depot_stack_handle_t handle,
--			       unsigned long **entries)
--{
--	union handle_parts parts = { .handle = handle };
--	void *slab;
--	size_t offset = parts.offset << STACK_ALLOC_ALIGN;
--	struct stack_record *stack;
--
--	*entries = NULL;
--	if (!handle)
--		return 0;
--
--	if (parts.slabindex > depot_index) {
--		WARN(1, "slab index %d out of bounds (%d) for stack id %08x\n",
--			parts.slabindex, depot_index, handle);
--		return 0;
--	}
--	slab = stack_slabs[parts.slabindex];
--	if (!slab)
--		return 0;
--	stack = slab + offset;
--
--	*entries = stack->entries;
--	return stack->size;
--}
--EXPORT_SYMBOL_GPL(stack_depot_fetch);
--
--/**
-  * __stack_depot_save - Save a stack trace from an array
-  *
-  * @entries:		Pointer to storage array
-@@ -533,3 +446,90 @@ depot_stack_handle_t stack_depot_save(un
- 	return __stack_depot_save(entries, nr_entries, 0, alloc_flags, true);
+ int __init stack_depot_early_init(void)
+@@ -128,7 +128,7 @@ int __init stack_depot_early_init(void)
+ 	if (kasan_enabled() && !stack_hash_order)
+ 		stack_hash_order = STACK_HASH_ORDER_MAX;
+ 
+-	if (!__stack_depot_want_early_init || stack_depot_disable)
++	if (!__stack_depot_early_init_requested || stack_depot_disable)
+ 		return 0;
+ 
+ 	if (stack_hash_order)
+--- a/mm/page_owner.c~lib-stackdepot-mm-rename-stack_depot_want_early_init
++++ a/mm/page_owner.c
+@@ -48,7 +48,7 @@ static int __init early_page_owner_param
+ 	int ret = kstrtobool(buf, &page_owner_enabled);
+ 
+ 	if (page_owner_enabled)
+-		stack_depot_want_early_init();
++		stack_depot_request_early_init();
+ 
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(stack_depot_save);
-+
-+/**
-+ * stack_depot_fetch - Fetch stack entries from a depot
-+ *
-+ * @handle:		Stack depot handle which was returned from
-+ *			stack_depot_save().
-+ * @entries:		Pointer to store the entries address
-+ *
-+ * Return: The number of trace entries for this depot.
-+ */
-+unsigned int stack_depot_fetch(depot_stack_handle_t handle,
-+			       unsigned long **entries)
-+{
-+	union handle_parts parts = { .handle = handle };
-+	void *slab;
-+	size_t offset = parts.offset << STACK_ALLOC_ALIGN;
-+	struct stack_record *stack;
-+
-+	*entries = NULL;
-+	if (!handle)
-+		return 0;
-+
-+	if (parts.slabindex > depot_index) {
-+		WARN(1, "slab index %d out of bounds (%d) for stack id %08x\n",
-+			parts.slabindex, depot_index, handle);
-+		return 0;
-+	}
-+	slab = stack_slabs[parts.slabindex];
-+	if (!slab)
-+		return 0;
-+	stack = slab + offset;
-+
-+	*entries = stack->entries;
-+	return stack->size;
-+}
-+EXPORT_SYMBOL_GPL(stack_depot_fetch);
-+
-+/**
-+ * stack_depot_print - print stack entries from a depot
-+ *
-+ * @stack:		Stack depot handle which was returned from
-+ *			stack_depot_save().
-+ *
-+ */
-+void stack_depot_print(depot_stack_handle_t stack)
-+{
-+	unsigned long *entries;
-+	unsigned int nr_entries;
-+
-+	nr_entries = stack_depot_fetch(stack, &entries);
-+	if (nr_entries > 0)
-+		stack_trace_print(entries, nr_entries, 0);
-+}
-+EXPORT_SYMBOL_GPL(stack_depot_print);
-+
-+/**
-+ * stack_depot_snprint - print stack entries from a depot into a buffer
-+ *
-+ * @handle:	Stack depot handle which was returned from
-+ *		stack_depot_save().
-+ * @buf:	Pointer to the print buffer
-+ *
-+ * @size:	Size of the print buffer
-+ *
-+ * @spaces:	Number of leading spaces to print
-+ *
-+ * Return:	Number of bytes printed.
-+ */
-+int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
-+		       int spaces)
-+{
-+	unsigned long *entries;
-+	unsigned int nr_entries;
-+
-+	nr_entries = stack_depot_fetch(handle, &entries);
-+	return nr_entries ? stack_trace_snprint(buf, size, entries, nr_entries,
-+						spaces) : 0;
-+}
-+EXPORT_SYMBOL_GPL(stack_depot_snprint);
-+
-+unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle)
-+{
-+	union handle_parts parts = { .handle = handle };
-+
-+	return parts.extra;
-+}
-+EXPORT_SYMBOL(stack_depot_get_extra_bits);
+--- a/mm/slub.c~lib-stackdepot-mm-rename-stack_depot_want_early_init
++++ a/mm/slub.c
+@@ -1592,7 +1592,7 @@ static int __init setup_slub_debug(char
+ 		} else {
+ 			slab_list_specified = true;
+ 			if (flags & SLAB_STORE_USER)
+-				stack_depot_want_early_init();
++				stack_depot_request_early_init();
+ 		}
+ 	}
+ 
+@@ -1611,7 +1611,7 @@ static int __init setup_slub_debug(char
+ out:
+ 	slub_debug = global_flags;
+ 	if (slub_debug & SLAB_STORE_USER)
+-		stack_depot_want_early_init();
++		stack_depot_request_early_init();
+ 	if (slub_debug != 0 || slub_debug_string)
+ 		static_branch_enable(&slub_debug_enabled);
+ 	else
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
