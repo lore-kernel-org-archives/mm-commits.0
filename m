@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AADBCC05027
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 21:52:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65BA9C677F1
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 21:52:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233632AbjBJVwF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Feb 2023 16:52:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34148 "EHLO
+        id S233313AbjBJVwG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Feb 2023 16:52:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233924AbjBJVvj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Feb 2023 16:51:39 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 378703D09C
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 13:51:38 -0800 (PST)
+        with ESMTP id S233929AbjBJVvq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Feb 2023 16:51:46 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57AC6635A0
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 13:51:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B51D6B825E0
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 21:51:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FE56C433D2;
-        Fri, 10 Feb 2023 21:51:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E707061E50
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 21:51:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F9CEC433EF;
+        Fri, 10 Feb 2023 21:51:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676065895;
-        bh=4t8U3cIaMLnIsGdajd3CbVIRxfqzXXIGMa4+80LIpaQ=;
+        s=korg; t=1676065904;
+        bh=qMiEJo2L+amZUmDTTnwgdDpYi2V4BWTN7YSzyu7s8Mg=;
         h=Date:To:From:Subject:From;
-        b=pcvkbwYGxWx97BwvziUKW3NsLjFbWS3SC9D3ETnM/RElPS9nyLdtPVJjJpbrm/Cr/
-         BrfJZGQhn4Dwof3cv5B8IasKR1F81zqlG0c93aju3mUC7hLlbBL1L2E8HfOakHogB1
-         ofATePfoWmyCBIieVGjV1C9vKeQs1so9M3i82nco=
-Date:   Fri, 10 Feb 2023 13:51:34 -0800
+        b=t4iqTV9ZCkAteU/zCo5bdqUQfDjMPYQ9O17Y8Oq74X9lrZloRxu/2Eqfg1Z4qcd75
+         W1/yYrueSNQXlLTXew3Zi/Lnii1gQh7u8d+56B26DL/KibU4b7F9ciyTX0Q/GwIgPz
+         Nj4ybPt19jC8l/+pIW9D1Ute+0H7C4kbv4y3SKXM=
+Date:   Fri, 10 Feb 2023 13:51:43 -0800
 To:     mm-commits@vger.kernel.org, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-rename-slab-to-pool.patch added to mm-nonmm-unstable branch
-Message-Id: <20230210215135.6FE56C433D2@smtp.kernel.org>
+Subject: + lib-stackdepot-rename-next_pool_inited-to-next_pool_required.patch added to mm-nonmm-unstable branch
+Message-Id: <20230210215144.3F9CEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: rename slab to pool
+     Subject: lib/stackdepot: rename next_pool_inited to next_pool_required
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-stackdepot-rename-slab-to-pool.patch
+     lib-stackdepot-rename-next_pool_inited-to-next_pool_required.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-rename-slab-to-pool.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-rename-next_pool_inited-to-next_pool_required.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,261 +65,105 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: rename slab to pool
-Date: Fri, 10 Feb 2023 22:15:57 +0100
+Subject: lib/stackdepot: rename next_pool_inited to next_pool_required
+Date: Fri, 10 Feb 2023 22:16:02 +0100
 
-Use "pool" instead of "slab" for naming memory regions stack depot
-uses to store stack traces. Using "slab" is confusing, as stack depot
-pools have nothing to do with the slab allocator.
+Stack depot uses next_pool_inited to mark that either the next pool is
+initialized or the limit on the number of pools is reached. However,
+the flag name only reflects the former part of its purpose, which is
+confusing.
 
-Also give better names to pool-related global variables: change
-"depot_" prefix to "pool_" to point out that these variables are
-related to stack depot pools.
+Rename next_pool_inited to next_pool_required and invert its value.
 
-Also rename the slabindex (poolindex) field in handle_parts to pool_index
-to align its name with the pool_index global variable.
+Also annotate usages of next_pool_required with comments.
 
-No functional changes.
-
-Link: https://lkml.kernel.org/r/923c507edb350c3b6ef85860f36be489dfc0ad21.1676063693.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/484fd2695dff7a9bdc437a32f8a6ee228535aa02.1676063693.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/lib/stackdepot.c~lib-stackdepot-rename-slab-to-pool
+--- a/lib/stackdepot.c~lib-stackdepot-rename-next_pool_inited-to-next_pool_required
 +++ a/lib/stackdepot.c
-@@ -39,7 +39,7 @@
- #define DEPOT_STACK_BITS (sizeof(depot_stack_handle_t) * 8)
- 
- #define STACK_ALLOC_NULL_PROTECTION_BITS 1
--#define STACK_ALLOC_ORDER 2 /* 'Slab' size order for stack depot, 4 pages */
-+#define STACK_ALLOC_ORDER 2 /* Pool size order for stack depot, 4 pages */
- #define STACK_ALLOC_SIZE (1LL << (PAGE_SHIFT + STACK_ALLOC_ORDER))
- #define STACK_ALLOC_ALIGN 4
- #define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
-@@ -47,16 +47,16 @@
- #define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
- 		STACK_ALLOC_NULL_PROTECTION_BITS - \
- 		STACK_ALLOC_OFFSET_BITS - STACK_DEPOT_EXTRA_BITS)
--#define STACK_ALLOC_SLABS_CAP 8192
--#define STACK_ALLOC_MAX_SLABS \
--	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
--	 (1LL << (STACK_ALLOC_INDEX_BITS)) : STACK_ALLOC_SLABS_CAP)
-+#define STACK_ALLOC_POOLS_CAP 8192
-+#define STACK_ALLOC_MAX_POOLS \
-+	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_POOLS_CAP) ? \
-+	 (1LL << (STACK_ALLOC_INDEX_BITS)) : STACK_ALLOC_POOLS_CAP)
- 
- /* The compact structure to store the reference to stacks. */
- union handle_parts {
- 	depot_stack_handle_t handle;
- 	struct {
--		u32 slabindex : STACK_ALLOC_INDEX_BITS;
-+		u32 pool_index : STACK_ALLOC_INDEX_BITS;
- 		u32 offset : STACK_ALLOC_OFFSET_BITS;
- 		u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
- 		u32 extra : STACK_DEPOT_EXTRA_BITS;
-@@ -91,15 +91,15 @@ static unsigned int stack_bucket_number_
- static unsigned int stack_hash_mask;
- 
- /* Array of memory regions that store stack traces. */
--static void *stack_slabs[STACK_ALLOC_MAX_SLABS];
--/* Currently used slab in stack_slabs. */
--static int depot_index;
--/* Offset to the unused space in the currently used slab. */
--static size_t depot_offset;
-+static void *stack_pools[STACK_ALLOC_MAX_POOLS];
-+/* Currently used pool in stack_pools. */
-+static int pool_index;
-+/* Offset to the unused space in the currently used pool. */
-+static size_t pool_offset;
+@@ -96,8 +96,14 @@ static int pool_index;
+ static size_t pool_offset;
  /* Lock that protects the variables above. */
--static DEFINE_RAW_SPINLOCK(depot_lock);
--/* Whether the next slab is initialized. */
--static int next_slab_inited;
-+static DEFINE_RAW_SPINLOCK(pool_lock);
-+/* Whether the next pool is initialized. */
-+static int next_pool_inited;
+ static DEFINE_RAW_SPINLOCK(pool_lock);
+-/* Whether the next pool is initialized. */
+-static int next_pool_inited;
++/*
++ * Stack depot tries to keep an extra pool allocated even before it runs out
++ * of space in the currently used pool.
++ * This flag marks that this next extra pool needs to be allocated and
++ * initialized. It has the value 0 when either the next pool is not yet
++ * initialized or the limit on the number of pools is reached.
++ */
++static int next_pool_required = 1;
  
  static int __init disable_stack_depot(char *str)
  {
-@@ -220,30 +220,30 @@ out_unlock:
- }
- EXPORT_SYMBOL_GPL(stack_depot_init);
- 
--static bool init_stack_slab(void **prealloc)
-+static bool init_stack_pool(void **prealloc)
+@@ -222,10 +228,12 @@ EXPORT_SYMBOL_GPL(stack_depot_init);
+ static void depot_init_pool(void **prealloc)
  {
- 	if (!*prealloc)
- 		return false;
  	/*
- 	 * This smp_load_acquire() pairs with smp_store_release() to
--	 * |next_slab_inited| below and in depot_alloc_stack().
-+	 * |next_pool_inited| below and in depot_alloc_stack().
++	 * If the next pool is already initialized or the maximum number of
++	 * pools is reached, do not use the preallocated memory.
+ 	 * smp_load_acquire() here pairs with smp_store_release() below and
+ 	 * in depot_alloc_stack().
  	 */
--	if (smp_load_acquire(&next_slab_inited))
-+	if (smp_load_acquire(&next_pool_inited))
- 		return true;
--	if (stack_slabs[depot_index] == NULL) {
--		stack_slabs[depot_index] = *prealloc;
-+	if (stack_pools[pool_index] == NULL) {
-+		stack_pools[pool_index] = *prealloc;
- 		*prealloc = NULL;
- 	} else {
--		/* If this is the last depot slab, do not touch the next one. */
--		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS) {
--			stack_slabs[depot_index + 1] = *prealloc;
-+		/* If this is the last depot pool, do not touch the next one. */
-+		if (pool_index + 1 < STACK_ALLOC_MAX_POOLS) {
-+			stack_pools[pool_index + 1] = *prealloc;
+-	if (smp_load_acquire(&next_pool_inited))
++	if (!smp_load_acquire(&next_pool_required))
+ 		return;
+ 
+ 	/* Check if the current pool is not yet allocated. */
+@@ -243,10 +251,13 @@ static void depot_init_pool(void **preal
  			*prealloc = NULL;
  		}
  		/*
- 		 * This smp_store_release pairs with smp_load_acquire() from
--		 * |next_slab_inited| above and in stack_depot_save().
-+		 * |next_pool_inited| above and in stack_depot_save().
++		 * At this point, either the next pool is initialized or the
++		 * maximum number of pools is reached. In either case, take
++		 * note that initializing another pool is not required.
+ 		 * This smp_store_release pairs with smp_load_acquire() above
+ 		 * and in stack_depot_save().
  		 */
--		smp_store_release(&next_slab_inited, 1);
-+		smp_store_release(&next_pool_inited, 1);
+-		smp_store_release(&next_pool_inited, 1);
++		smp_store_release(&next_pool_required, 0);
  	}
- 	return true;
  }
-@@ -257,35 +257,35 @@ depot_alloc_stack(unsigned long *entries
  
- 	required_size = ALIGN(required_size, 1 << STACK_ALLOC_ALIGN);
- 
--	if (unlikely(depot_offset + required_size > STACK_ALLOC_SIZE)) {
--		if (unlikely(depot_index + 1 >= STACK_ALLOC_MAX_SLABS)) {
-+	if (unlikely(pool_offset + required_size > STACK_ALLOC_SIZE)) {
-+		if (unlikely(pool_index + 1 >= STACK_ALLOC_MAX_POOLS)) {
- 			WARN_ONCE(1, "Stack depot reached limit capacity");
- 			return NULL;
- 		}
--		depot_index++;
--		depot_offset = 0;
-+		pool_index++;
-+		pool_offset = 0;
+@@ -271,11 +282,13 @@ depot_alloc_stack(unsigned long *entries
+ 		pool_index++;
+ 		pool_offset = 0;
  		/*
- 		 * smp_store_release() here pairs with smp_load_acquire() from
--		 * |next_slab_inited| in stack_depot_save() and
--		 * init_stack_slab().
-+		 * |next_pool_inited| in stack_depot_save() and
-+		 * init_stack_pool().
++		 * If the maximum number of pools is not reached, take note
++		 * that the next pool needs to initialized.
+ 		 * smp_store_release() here pairs with smp_load_acquire() in
+ 		 * stack_depot_save() and depot_init_pool().
  		 */
--		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS)
--			smp_store_release(&next_slab_inited, 0);
-+		if (pool_index + 1 < STACK_ALLOC_MAX_POOLS)
-+			smp_store_release(&next_pool_inited, 0);
+ 		if (pool_index + 1 < DEPOT_MAX_POOLS)
+-			smp_store_release(&next_pool_inited, 0);
++			smp_store_release(&next_pool_required, 1);
  	}
--	init_stack_slab(prealloc);
--	if (stack_slabs[depot_index] == NULL)
-+	init_stack_pool(prealloc);
-+	if (stack_pools[pool_index] == NULL)
- 		return NULL;
  
--	stack = stack_slabs[depot_index] + depot_offset;
-+	stack = stack_pools[pool_index] + pool_offset;
- 
- 	stack->hash = hash;
- 	stack->size = size;
--	stack->handle.slabindex = depot_index;
--	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
-+	stack->handle.pool_index = pool_index;
-+	stack->handle.offset = pool_offset >> STACK_ALLOC_ALIGN;
- 	stack->handle.valid = 1;
- 	stack->handle.extra = 0;
- 	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
--	depot_offset += required_size;
-+	pool_offset += required_size;
- 
- 	return stack;
- }
-@@ -336,10 +336,10 @@ static inline struct stack_record *find_
-  * @nr_entries:		Size of the storage array
-  * @extra_bits:		Flags to store in unused bits of depot_stack_handle_t
-  * @alloc_flags:	Allocation gfp flags
-- * @can_alloc:		Allocate stack slabs (increased chance of failure if false)
-+ * @can_alloc:		Allocate stack pools (increased chance of failure if false)
-  *
-  * Saves a stack trace from @entries array of size @nr_entries. If @can_alloc is
-- * %true, is allowed to replenish the stack slab pool in case no space is left
-+ * %true, is allowed to replenish the stack pool in case no space is left
-  * (allocates using GFP flags of @alloc_flags). If @can_alloc is %false, avoids
-  * any allocations and will fail if no space is left to store the stack trace.
-  *
-@@ -396,14 +396,14 @@ depot_stack_handle_t __stack_depot_save(
+ 	/* Assign the preallocated memory to a pool if required. */
+@@ -406,14 +419,13 @@ depot_stack_handle_t __stack_depot_save(
  		goto exit;
  
  	/*
--	 * Check if the current or the next stack slab need to be initialized.
-+	 * Check if the current or the next stack pool need to be initialized.
- 	 * If so, allocate the memory - we won't be able to do that under the
- 	 * lock.
+-	 * Check if the current or the next stack pool need to be initialized.
+-	 * If so, allocate the memory - we won't be able to do that under the
+-	 * lock.
++	 * Check if another stack pool needs to be initialized. If so, allocate
++	 * the memory now - we won't be able to do that under the lock.
  	 *
  	 * The smp_load_acquire() here pairs with smp_store_release() to
--	 * |next_slab_inited| in depot_alloc_stack() and init_stack_slab().
-+	 * |next_pool_inited| in depot_alloc_stack() and init_stack_pool().
+ 	 * |next_pool_inited| in depot_alloc_stack() and depot_init_pool().
  	 */
--	if (unlikely(can_alloc && !smp_load_acquire(&next_slab_inited))) {
-+	if (unlikely(can_alloc && !smp_load_acquire(&next_pool_inited))) {
+-	if (unlikely(can_alloc && !smp_load_acquire(&next_pool_inited))) {
++	if (unlikely(can_alloc && smp_load_acquire(&next_pool_required))) {
  		/*
  		 * Zero out zone modifiers, as we don't have specific zone
  		 * requirements. Keep the flags related to allocation in atomic
-@@ -417,7 +417,7 @@ depot_stack_handle_t __stack_depot_save(
- 			prealloc = page_address(page);
- 	}
- 
--	raw_spin_lock_irqsave(&depot_lock, flags);
-+	raw_spin_lock_irqsave(&pool_lock, flags);
- 
- 	found = find_stack(*bucket, entries, nr_entries, hash);
- 	if (!found) {
-@@ -437,10 +437,10 @@ depot_stack_handle_t __stack_depot_save(
- 		 * We didn't need to store this stack trace, but let's keep
- 		 * the preallocated memory for the future.
- 		 */
--		WARN_ON(!init_stack_slab(&prealloc));
-+		WARN_ON(!init_stack_pool(&prealloc));
- 	}
- 
--	raw_spin_unlock_irqrestore(&depot_lock, flags);
-+	raw_spin_unlock_irqrestore(&pool_lock, flags);
- exit:
- 	if (prealloc) {
- 		/* Nobody used this memory, ok to free it. */
-@@ -488,7 +488,7 @@ unsigned int stack_depot_fetch(depot_sta
- 			       unsigned long **entries)
- {
- 	union handle_parts parts = { .handle = handle };
--	void *slab;
-+	void *pool;
- 	size_t offset = parts.offset << STACK_ALLOC_ALIGN;
- 	struct stack_record *stack;
- 
-@@ -496,15 +496,15 @@ unsigned int stack_depot_fetch(depot_sta
- 	if (!handle)
- 		return 0;
- 
--	if (parts.slabindex > depot_index) {
--		WARN(1, "slab index %d out of bounds (%d) for stack id %08x\n",
--			parts.slabindex, depot_index, handle);
-+	if (parts.pool_index > pool_index) {
-+		WARN(1, "pool index %d out of bounds (%d) for stack id %08x\n",
-+			parts.pool_index, pool_index, handle);
- 		return 0;
- 	}
--	slab = stack_slabs[parts.slabindex];
--	if (!slab)
-+	pool = stack_pools[parts.pool_index];
-+	if (!pool)
- 		return 0;
--	stack = slab + offset;
-+	stack = pool + offset;
- 
- 	*entries = stack->entries;
- 	return stack->size;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
