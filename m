@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A84B6C636D3
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Feb 2023 23:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E833C05027
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:44:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229907AbjBIX5h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Feb 2023 18:57:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35810 "EHLO
+        id S229576AbjBJAox (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 19:44:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229905AbjBIX53 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 18:57:29 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A3B957745;
-        Thu,  9 Feb 2023 15:57:28 -0800 (PST)
+        with ESMTP id S229829AbjBJAow (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:44:52 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC02937540
+        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:44:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BC89BB8237D;
-        Thu,  9 Feb 2023 23:57:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AEE5C433EF;
-        Thu,  9 Feb 2023 23:57:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4941061B83
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:44:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3D2CC433D2;
+        Fri, 10 Feb 2023 00:44:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675987045;
-        bh=7lN+NGRzK81or526PNeUvooIUTm6VAC0Sl3UHKY3Dq8=;
+        s=korg; t=1675989890;
+        bh=rk0g+SDLBGfOfs5U0RJqQeqqND5ZZSUgm/Q+2FFXsHU=;
         h=Date:To:From:Subject:From;
-        b=KMswBQAX42QIJTlSj7fN+IAcR9/1FO70/ihW1nnIp8lZ6TeB0LnjNW4DZxhcO+zhd
-         ajKU79jy90FGc6vIKkPSVotAmPM24a+mYUu6LD2yDSxhs0dSc2r1f2bcziXonfyAak
-         3I8fITr613paKzhNLjalETkp6PQ54ovdjleDQtPE=
-Date:   Thu, 09 Feb 2023 15:57:24 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        saravanak@google.com, rppt@kernel.org, robh@kernel.org,
-        rmk+kernel@armlinux.org.uk, rafael.j.wysocki@intel.com,
-        mick@ics.forth.gr, kirill.shtuemov@linux.intel.com,
-        frowand.list@gmail.com, catalin.marinas@arm.com,
-        isaacmanjarres@google.com, akpm@linux-foundation.org
+        b=cs/3JhAjUj0HWs1eh7AG0nB2ic2A+gI1n1ht2gcf67R5RyXNr+dQ0yX3lHnGMqd42
+         FECWvb3zzxYSRxucxE86PPsyqSj6L8w46xcG+HEpfDQb/J2BTdh4s6yWm3W0LAGFok
+         edSz3T4Upmab8nQyeUuitYV0HF8ONzBAQpjx43LI=
+Date:   Thu, 09 Feb 2023 16:44:49 -0800
+To:     mm-commits@vger.kernel.org,
+        syzbot+1d9ec4d1a334ae9e1ca6@syzkaller.appspotmail.com,
+        Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] of-reserved_mem-have-kmemleak-ignore-dynamically-allocated-reserved-mem.patch removed from -mm tree
-Message-Id: <20230209235725.5AEE5C433EF@smtp.kernel.org>
+Subject: [folded-merged] madvise-use-split_vma-instead-of-__split_vma-fix.patch removed from -mm tree
+Message-Id: <20230210004450.A3D2CC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,108 +42,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: of: reserved_mem: Have kmemleak ignore dynamically allocated reserved mem
+     Subject: mm/madvise: fix VMA_ITERATOR start position
 has been removed from the -mm tree.  Its filename was
-     of-reserved_mem-have-kmemleak-ignore-dynamically-allocated-reserved-mem.patch
+     madvise-use-split_vma-instead-of-__split_vma-fix.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into madvise-use-split_vma-instead-of-__split_vma.patch
 
 ------------------------------------------------------
-From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
-Subject: of: reserved_mem: Have kmemleak ignore dynamically allocated reserved mem
-Date: Wed, 8 Feb 2023 15:20:00 -0800
+From: Liam Howlett <Liam.Howlett@oracle.com>
+Subject: mm/madvise: fix VMA_ITERATOR start position
+Date: Wed, 25 Jan 2023 08:58:09 -0500
 
-Patch series "Fix kmemleak crashes when scanning CMA regions", v2.
+The WARN_ON() in vma_iter_store() detected an invalid VMA iterator state. 
+Inspecting the code stack from the report shows that the VMA iterator is
+never set to the correct start position.
 
-When trying to boot a device with an ARM64 kernel with the following
-config options enabled:
+Setting the initialization of the VMA iterator to use the address 'start'
+fixes this issue.
 
-CONFIG_DEBUG_PAGEALLOC=y
-CONFIG_DEBUG_PAGEALLOC_ENABLE_DEFAULT=y
-CONFIG_DEBUG_KMEMLEAK=y
-
-a crash is encountered when kmemleak starts to scan the list of gray
-or allocated objects that it maintains. Upon closer inspection, it was
-observed that these page-faults always occurred when kmemleak attempted
-to scan a CMA region.
-
-At the moment, kmemleak is made aware of CMA regions that are specified
-through the devicetree to be dynamically allocated within a range of
-addresses. However, kmemleak should not need to scan CMA regions or any
-reserved memory region, as those regions can be used for DMA transfers
-between drivers and peripherals, and thus wouldn't contain anything
-useful for kmemleak.
-
-Additionally, since CMA regions are unmapped from the kernel's address
-space when they are freed to the buddy allocator at boot when
-CONFIG_DEBUG_PAGEALLOC is enabled, kmemleak shouldn't attempt to access
-those memory regions, as that will trigger a crash. Thus, kmemleak
-should ignore all dynamically allocated reserved memory regions.
-
-
-This patch (of 1):
-
-Currently, kmemleak ignores dynamically allocated reserved memory regions
-that don't have a kernel mapping.  However, regions that do retain a
-kernel mapping (e.g.  CMA regions) do get scanned by kmemleak.
-
-This is not ideal for two reasons:
-
-1  kmemleak works by scanning memory regions for pointers to allocated
-   objects to determine if those objects have been leaked or not. 
-   However, reserved memory regions can be used between drivers and
-   peripherals for DMA transfers, and thus, would not contain pointers to
-   allocated objects, making it unnecessary for kmemleak to scan these
-   reserved memory regions.
-
-2  When CONFIG_DEBUG_PAGEALLOC is enabled, along with kmemleak, the
-   CMA reserved memory regions are unmapped from the kernel's address
-   space when they are freed to buddy at boot.  These CMA reserved regions
-   are still tracked by kmemleak, however, and when kmemleak attempts to
-   scan them, a crash will happen, as accessing the CMA region will result
-   in a page-fault, since the regions are unmapped.
-
-Thus, use kmemleak_ignore_phys() for all dynamically allocated reserved
-memory regions, instead of those that do not have a kernel mapping
-associated with them.
-
-Link: https://lkml.kernel.org/r/20230208232001.2052777-1-isaacmanjarres@google.com
-Link: https://lkml.kernel.org/r/20230208232001.2052777-2-isaacmanjarres@google.com
-Fixes: a7259df76702 ("memblock: make memblock_find_in_range method private")
-Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Frank Rowand <frowand.list@gmail.com>
-Cc: Kirill A. Shutemov <kirill.shtuemov@linux.intel.com>
-Cc: Nick Kossifidis <mick@ics.forth.gr>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
-Cc: Saravana Kannan <saravanak@google.com>
-Cc: <stable@vger.kernel.org>	[5.15+]
+Link: https://lkml.kernel.org/r/20230125135809.85262-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam Howlett <Liam.Howlett@oracle.com>
+Reported-by: <syzbot+1d9ec4d1a334ae9e1ca6@syzkaller.appspotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/of/of_reserved_mem.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/drivers/of/of_reserved_mem.c~of-reserved_mem-have-kmemleak-ignore-dynamically-allocated-reserved-mem
-+++ a/drivers/of/of_reserved_mem.c
-@@ -48,9 +48,10 @@ static int __init early_init_dt_alloc_re
- 		err = memblock_mark_nomap(base, size);
- 		if (err)
- 			memblock_phys_free(base, size);
--		kmemleak_ignore_phys(base);
- 	}
+--- a/mm/madvise.c~madvise-use-split_vma-instead-of-__split_vma-fix
++++ a/mm/madvise.c
+@@ -142,7 +142,7 @@ static int madvise_update_vma(struct vm_
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	int error;
+ 	pgoff_t pgoff;
+-	VMA_ITERATOR(vmi, mm, 0);
++	VMA_ITERATOR(vmi, mm, start);
  
-+	kmemleak_ignore_phys(base);
-+
- 	return err;
- }
- 
+ 	if (new_flags == vma->vm_flags && anon_vma_name_eq(anon_vma_name(vma), anon_name)) {
+ 		*prev = vma;
 _
 
-Patches currently in -mm which might be from isaacmanjarres@google.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
+maple_tree-fix-handle-of-invalidated-state-in-mas_wr_store_setup.patch
+maple_tree-fix-mas_prev-and-mas_find-state-handling.patch
+ipc-shm-introduce-new-do_vma_munmap-to-munmap.patch
+nommu-pass-through-vma-iterator-to-shrink_vma.patch
+mm-damon-vaddr-testh-stop-using-vma_mas_store-for-maple-tree-store.patch
+madvise-use-split_vma-instead-of-__split_vma.patch
+mm-change-munmap-splitting-order-and-move_vma-fix.patch
+mm-mremap-convert-vma_adjust-to-vma_expand.patch
+mm-mmap-remove-__vma_adjust-fix.patch
 
