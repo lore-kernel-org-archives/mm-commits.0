@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF807C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:53:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1574DC05027
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:53:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230525AbjBJAw7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Feb 2023 19:52:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43986 "EHLO
+        id S231126AbjBJAxA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 19:53:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230350AbjBJAwr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:52:47 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AE296BD33
-        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:52:46 -0800 (PST)
+        with ESMTP id S230359AbjBJAws (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:52:48 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 523FE6ADC6
+        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:52:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 34A8BB82272
+        by sin.source.kernel.org (Postfix) with ESMTPS id A1D4FCE270F
         for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:52:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7279C4339B;
-        Fri, 10 Feb 2023 00:52:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 330AEC433EF;
+        Fri, 10 Feb 2023 00:52:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675990363;
-        bh=ritFaqYxvqakER4DJ9vsPj48LO+NXuDGs5B3u2f6dDU=;
+        s=korg; t=1675990365;
+        bh=71yWEsrUxcFRPEf3LGs/6uQgrqXzMem8n5XvTL3dQHk=;
         h=Date:To:From:Subject:From;
-        b=NwSJqXsqzJPyX/NuvN27g/Oj1hFdLov8bIayZKUyVJ5zAxtzz0CC96nCjbFyW5IZ2
-         7r9iaBUL6FyO6NmrkfOCQhnLFUb/Z812IhmtBfJ2MJ8ABTsYxeYKnuPN0qN3xBtFKQ
-         AlXERPPBC+EMlvPgeb0TpxBYTEoLffQyJTSmVy+M=
-Date:   Thu, 09 Feb 2023 16:52:43 -0800
-To:     mm-commits@vger.kernel.org, svens@linux.ibm.com, arnd@arndb.de,
-        Liam.Howlett@oracle.com, akpm@linux-foundation.org
+        b=JPtH13o37+8RmUoFAWx5koUFv0eMMzlyOXJx2Oh+b7d8+OTtgnIjrckneD7Y7szmm
+         ++I1kQvWhQv4CKKwSV3ED1rBFDlHYm7CGQHLD5538+gFfQVlpS+CGC+O+IzQYesDGd
+         kSh0eI6VADoiiq0Huo9j43Vn7YydK1k9sdQglUJQ=
+Date:   Thu, 09 Feb 2023 16:52:44 -0800
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ipc-shm-introduce-new-do_vma_munmap-to-munmap.patch removed from -mm tree
-Message-Id: <20230210005243.D7279C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] userfaultfd-use-vma-iterator.patch removed from -mm tree
+Message-Id: <20230210005245.330AEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,159 +41,272 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ipc/shm: introduce new do_vma_munmap() to munmap
+     Subject: userfaultfd: use vma iterator
 has been removed from the -mm tree.  Its filename was
-     ipc-shm-introduce-new-do_vma_munmap-to-munmap.patch
+     userfaultfd-use-vma-iterator.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: ipc/shm: introduce new do_vma_munmap() to munmap
-Date: Thu, 26 Jan 2023 16:20:49 -0500
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: userfaultfd: use vma iterator
+Date: Fri, 20 Jan 2023 11:26:17 -0500
 
-The shm already has the vma iterator in position for a write. 
-do_vmi_munmap() searches for the correct position and aligns the write, so
-it is not the right function to use in this case.
+Use the vma iterator so that the iterator can be invalidated or updated to
+avoid each caller doing so.
 
-The shm VMA tree modification is similar to the brk munmap situation, the
-vma iterator is in position and the VMA is already known.  This patch
-generalizes the brk munmap function do_brk_munmap() to be used for any
-other callers with the vma iterator already in position to munmap a VMA.
-
-Link: https://lkml.kernel.org/r/20230126212049.980501-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230120162650.984577-17-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Sven Schnelle <svens@linux.ibm.com>
-  Link: https://lore.kernel.org/linux-mm/yt9dh6wec21a.fsf@linux.ibm.com/
-Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +++
- ipc/shm.c          |   11 ++++++-----
- mm/mmap.c          |   40 +++++++++++++++++++---------------------
- 3 files changed, 28 insertions(+), 26 deletions(-)
+ fs/userfaultfd.c |   87 +++++++++++++++++----------------------------
+ 1 file changed, 33 insertions(+), 54 deletions(-)
 
---- a/include/linux/mm.h~ipc-shm-introduce-new-do_vma_munmap-to-munmap
-+++ a/include/linux/mm.h
-@@ -2922,6 +2922,9 @@ extern int do_munmap(struct mm_struct *,
- extern int do_madvise(struct mm_struct *mm, unsigned long start, size_t len_in, int behavior);
+--- a/fs/userfaultfd.c~userfaultfd-use-vma-iterator
++++ a/fs/userfaultfd.c
+@@ -883,7 +883,7 @@ static int userfaultfd_release(struct in
+ 	/* len == 0 means wake all */
+ 	struct userfaultfd_wake_range range = { .len = 0, };
+ 	unsigned long new_flags;
+-	MA_STATE(mas, &mm->mm_mt, 0, 0);
++	VMA_ITERATOR(vmi, mm, 0);
  
- #ifdef CONFIG_MMU
-+extern int do_vma_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+			 unsigned long start, unsigned long end,
-+			 struct list_head *uf, bool downgrade);
- extern int __mm_populate(unsigned long addr, unsigned long len,
- 			 int ignore_errors);
- static inline void mm_populate(unsigned long addr, unsigned long len)
---- a/ipc/shm.c~ipc-shm-introduce-new-do_vma_munmap-to-munmap
-+++ a/ipc/shm.c
-@@ -1786,8 +1786,8 @@ long ksys_shmdt(char __user *shmaddr)
- 			 */
- 			file = vma->vm_file;
- 			size = i_size_read(file_inode(vma->vm_file));
--			do_vmi_munmap(&vmi, mm, vma->vm_start,
--			      vma->vm_end - vma->vm_start, NULL, false);
-+			do_vma_munmap(&vmi, vma, vma->vm_start, vma->vm_end,
-+				      NULL, false);
- 			/*
- 			 * We discovered the size of the shm segment, so
- 			 * break out of here and fall through to the next
-@@ -1810,9 +1810,10 @@ long ksys_shmdt(char __user *shmaddr)
- 		/* finding a matching vma now does not alter retval */
- 		if ((vma->vm_ops == &shm_vm_ops) &&
- 		    ((vma->vm_start - addr)/PAGE_SIZE == vma->vm_pgoff) &&
--		    (vma->vm_file == file))
--			do_vmi_munmap(&vmi, mm, vma->vm_start,
--			      vma->vm_end - vma->vm_start, NULL, false);
-+		    (vma->vm_file == file)) {
-+			do_vma_munmap(&vmi, vma, vma->vm_start, vma->vm_end,
-+				      NULL, false);
-+		}
+ 	WRITE_ONCE(ctx->released, true);
  
- 		vma = vma_next(&vmi);
- 	}
---- a/mm/mmap.c~ipc-shm-introduce-new-do_vma_munmap-to-munmap
-+++ a/mm/mmap.c
-@@ -180,9 +180,6 @@ static int check_brk_limits(unsigned lon
+@@ -900,7 +900,7 @@ static int userfaultfd_release(struct in
+ 	 */
+ 	mmap_write_lock(mm);
+ 	prev = NULL;
+-	mas_for_each(&mas, vma, ULONG_MAX) {
++	for_each_vma(vmi, vma) {
+ 		cond_resched();
+ 		BUG_ON(!!vma->vm_userfaultfd_ctx.ctx ^
+ 		       !!(vma->vm_flags & __VM_UFFD_FLAGS));
+@@ -909,13 +909,12 @@ static int userfaultfd_release(struct in
+ 			continue;
+ 		}
+ 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+-		prev = vma_merge(mm, prev, vma->vm_start, vma->vm_end,
++		prev = vmi_vma_merge(&vmi, mm, prev, vma->vm_start, vma->vm_end,
+ 				 new_flags, vma->anon_vma,
+ 				 vma->vm_file, vma->vm_pgoff,
+ 				 vma_policy(vma),
+ 				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
+ 		if (prev) {
+-			mas_pause(&mas);
+ 			vma = prev;
+ 		} else {
+ 			prev = vma;
+@@ -1302,7 +1301,7 @@ static int userfaultfd_register(struct u
+ 	bool found;
+ 	bool basic_ioctls;
+ 	unsigned long start, end, vma_end;
+-	MA_STATE(mas, &mm->mm_mt, 0, 0);
++	struct vma_iterator vmi;
  
- 	return mlock_future_check(current->mm, current->mm->def_flags, len);
- }
--static int do_brk_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
--			 unsigned long newbrk, unsigned long oldbrk,
--			 struct list_head *uf);
- static int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *brkvma,
- 		unsigned long addr, unsigned long request, unsigned long flags);
- SYSCALL_DEFINE1(brk, unsigned long, brk)
-@@ -236,7 +233,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 	user_uffdio_register = (struct uffdio_register __user *) arg;
+ 
+@@ -1344,17 +1343,13 @@ static int userfaultfd_register(struct u
+ 	if (!mmget_not_zero(mm))
+ 		goto out;
+ 
++	ret = -EINVAL;
+ 	mmap_write_lock(mm);
+-	mas_set(&mas, start);
+-	vma = mas_find(&mas, ULONG_MAX);
++	vma_iter_init(&vmi, mm, start);
++	vma = vma_find(&vmi, end);
+ 	if (!vma)
+ 		goto out_unlock;
+ 
+-	/* check that there's at least one vma in the range */
+-	ret = -EINVAL;
+-	if (vma->vm_start >= end)
+-		goto out_unlock;
+-
+ 	/*
+ 	 * If the first vma contains huge pages, make sure start address
+ 	 * is aligned to huge page size.
+@@ -1371,7 +1366,8 @@ static int userfaultfd_register(struct u
+ 	 */
+ 	found = false;
+ 	basic_ioctls = false;
+-	for (cur = vma; cur; cur = mas_next(&mas, end - 1)) {
++	cur = vma;
++	do {
+ 		cond_resched();
+ 
+ 		BUG_ON(!!cur->vm_userfaultfd_ctx.ctx ^
+@@ -1428,16 +1424,14 @@ static int userfaultfd_register(struct u
+ 			basic_ioctls = true;
+ 
+ 		found = true;
+-	}
++	} for_each_vma_range(vmi, cur, end);
+ 	BUG_ON(!found);
+ 
+-	mas_set(&mas, start);
+-	prev = mas_prev(&mas, 0);
+-	if (prev != vma)
+-		mas_next(&mas, ULONG_MAX);
++	vma_iter_set(&vmi, start);
++	prev = vma_prev(&vmi);
+ 
+ 	ret = 0;
+-	do {
++	for_each_vma_range(vmi, vma, end) {
+ 		cond_resched();
+ 
+ 		BUG_ON(!vma_can_userfault(vma, vm_flags));
+@@ -1458,30 +1452,25 @@ static int userfaultfd_register(struct u
+ 		vma_end = min(end, vma->vm_end);
+ 
+ 		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
+-		prev = vma_merge(mm, prev, start, vma_end, new_flags,
++		prev = vmi_vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
+ 				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
+ 				 vma_policy(vma),
+ 				 ((struct vm_userfaultfd_ctx){ ctx }),
+ 				 anon_vma_name(vma));
+ 		if (prev) {
+ 			/* vma_merge() invalidated the mas */
+-			mas_pause(&mas);
+ 			vma = prev;
+ 			goto next;
+ 		}
+ 		if (vma->vm_start < start) {
+-			ret = split_vma(mm, vma, start, 1);
++			ret = vmi_split_vma(&vmi, mm, vma, start, 1);
+ 			if (ret)
+ 				break;
+-			/* split_vma() invalidated the mas */
+-			mas_pause(&mas);
+ 		}
+ 		if (vma->vm_end > end) {
+-			ret = split_vma(mm, vma, end, 0);
++			ret = vmi_split_vma(&vmi, mm, vma, end, 0);
+ 			if (ret)
+ 				break;
+-			/* split_vma() invalidated the mas */
+-			mas_pause(&mas);
+ 		}
+ 	next:
+ 		/*
+@@ -1498,8 +1487,8 @@ static int userfaultfd_register(struct u
+ 	skip:
+ 		prev = vma;
+ 		start = vma->vm_end;
+-		vma = mas_next(&mas, end - 1);
+-	} while (vma);
++	}
++
+ out_unlock:
+ 	mmap_write_unlock(mm);
+ 	mmput(mm);
+@@ -1543,7 +1532,7 @@ static int userfaultfd_unregister(struct
+ 	bool found;
+ 	unsigned long start, end, vma_end;
+ 	const void __user *buf = (void __user *)arg;
+-	MA_STATE(mas, &mm->mm_mt, 0, 0);
++	struct vma_iterator vmi;
+ 
+ 	ret = -EFAULT;
+ 	if (copy_from_user(&uffdio_unregister, buf, sizeof(uffdio_unregister)))
+@@ -1562,14 +1551,10 @@ static int userfaultfd_unregister(struct
+ 		goto out;
+ 
+ 	mmap_write_lock(mm);
+-	mas_set(&mas, start);
+-	vma = mas_find(&mas, ULONG_MAX);
+-	if (!vma)
+-		goto out_unlock;
+-
+-	/* check that there's at least one vma in the range */
+ 	ret = -EINVAL;
+-	if (vma->vm_start >= end)
++	vma_iter_init(&vmi, mm, start);
++	vma = vma_find(&vmi, end);
++	if (!vma)
+ 		goto out_unlock;
  
  	/*
- 	 * Always allow shrinking brk.
--	 * do_brk_munmap() may downgrade mmap_lock to read.
-+	 * do_vma_munmap() may downgrade mmap_lock to read.
+@@ -1587,8 +1572,8 @@ static int userfaultfd_unregister(struct
+ 	 * Search for not compatible vmas.
  	 */
- 	if (brk <= mm->brk) {
- 		int ret;
-@@ -248,11 +245,11 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
- 			goto out; /* mapping intersects with an existing non-brk vma. */
+ 	found = false;
+-	ret = -EINVAL;
+-	for (cur = vma; cur; cur = mas_next(&mas, end - 1)) {
++	cur = vma;
++	do {
+ 		cond_resched();
+ 
+ 		BUG_ON(!!cur->vm_userfaultfd_ctx.ctx ^
+@@ -1605,16 +1590,13 @@ static int userfaultfd_unregister(struct
+ 			goto out_unlock;
+ 
+ 		found = true;
+-	}
++	} for_each_vma_range(vmi, cur, end);
+ 	BUG_ON(!found);
+ 
+-	mas_set(&mas, start);
+-	prev = mas_prev(&mas, 0);
+-	if (prev != vma)
+-		mas_next(&mas, ULONG_MAX);
+-
++	vma_iter_set(&vmi, start);
++	prev = vma_prev(&vmi);
+ 	ret = 0;
+-	do {
++	for_each_vma_range(vmi, vma, end) {
+ 		cond_resched();
+ 
+ 		BUG_ON(!vma_can_userfault(vma, vma->vm_flags));
+@@ -1650,26 +1632,23 @@ static int userfaultfd_unregister(struct
+ 			uffd_wp_range(mm, vma, start, vma_end - start, false);
+ 
+ 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+-		prev = vma_merge(mm, prev, start, vma_end, new_flags,
++		prev = vmi_vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
+ 				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
+ 				 vma_policy(vma),
+ 				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
+ 		if (prev) {
+ 			vma = prev;
+-			mas_pause(&mas);
+ 			goto next;
+ 		}
+ 		if (vma->vm_start < start) {
+-			ret = split_vma(mm, vma, start, 1);
++			ret = vmi_split_vma(&vmi, mm, vma, start, 1);
+ 			if (ret)
+ 				break;
+-			mas_pause(&mas);
+ 		}
+ 		if (vma->vm_end > end) {
+-			ret = split_vma(mm, vma, end, 0);
++			ret = vmi_split_vma(&vmi, mm, vma, end, 0);
+ 			if (ret)
+ 				break;
+-			mas_pause(&mas);
+ 		}
+ 	next:
  		/*
- 		 * mm->brk must be protected by write mmap_lock.
--		 * do_brk_munmap() may downgrade the lock,  so update it
--		 * before calling do_brk_munmap().
-+		 * do_vma_munmap() may downgrade the lock,  so update it
-+		 * before calling do_vma_munmap().
- 		 */
- 		mm->brk = brk;
--		ret = do_brk_munmap(&vmi, brkvma, newbrk, oldbrk, &uf);
-+		ret = do_vma_munmap(&vmi, brkvma, newbrk, oldbrk, &uf, true);
- 		if (ret == 1)  {
- 			downgraded = true;
- 			goto success;
-@@ -2951,26 +2948,27 @@ out:
- }
- 
- /*
-- * brk_munmap() - Unmap a full or partial vma.
-- * @vmi: The vma iterator
-- * @vma: The vma to be modified
-- * @newbrk: the start of the address to unmap
-- * @oldbrk: The end of the address to unmap
-+ * do_vma_munmap() - Unmap a full or partial vma.
-+ * @vmi: The vma iterator pointing at the vma
-+ * @vma: The first vma to be munmapped
-+ * @start: the start of the address to unmap
-+ * @end: The end of the address to unmap
-  * @uf: The userfaultfd list_head
-+ * @downgrade: Attempt to downgrade or not
-  *
-- * Returns: 1 on success.
-- * unmaps a partial VMA mapping.  Does not handle alignment, downgrades lock if
-- * possible.
-- */
--static int do_brk_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
--			 unsigned long newbrk, unsigned long oldbrk,
--			 struct list_head *uf)
-+ * Returns: 0 on success and not downgraded, 1 on success and downgraded.
-+ * unmaps a VMA mapping when the vma iterator is already in position.
-+ * Does not handle alignment.
-+ */
-+int do_vma_munmap(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+		  unsigned long start, unsigned long end,
-+		  struct list_head *uf, bool downgrade)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	int ret;
- 
--	arch_unmap(mm, newbrk, oldbrk);
--	ret = do_vmi_align_munmap(vmi, vma, mm, newbrk, oldbrk, uf, true);
-+	arch_unmap(mm, start, end);
-+	ret = do_vmi_align_munmap(vmi, vma, mm, start, end, uf, downgrade);
- 	validate_mm_mt(mm);
- 	return ret;
- }
+@@ -1683,8 +1662,8 @@ static int userfaultfd_unregister(struct
+ 	skip:
+ 		prev = vma;
+ 		start = vma->vm_end;
+-		vma = mas_next(&mas, end - 1);
+-	} while (vma);
++	}
++
+ out_unlock:
+ 	mmap_write_unlock(mm);
+ 	mmput(mm);
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
 
