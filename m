@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AE1AC05027
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:57:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC894C61DA4
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:58:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229695AbjBJA5r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Feb 2023 19:57:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44110 "EHLO
+        id S229632AbjBJA6K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 19:58:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231237AbjBJA4L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:56:11 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6116A6F8F1
-        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:54:44 -0800 (PST)
+        with ESMTP id S230501AbjBJA4Y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:56:24 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFC2E7095E
+        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:54:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F186861BA3
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:54:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A17DC433D2;
-        Fri, 10 Feb 2023 00:54:43 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A92FBB82272
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:54:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6498FC4339C;
+        Fri, 10 Feb 2023 00:54:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675990483;
-        bh=HdMNGN8h0PA1Oj0Adjo0D9IzdqdLv4ml8syi3DbztIM=;
+        s=korg; t=1675990486;
+        bh=A6ZShyRlc3xIMj8BU4C73q92EJ6my/3sZ1thYR12g8A=;
         h=Date:To:From:Subject:From;
-        b=kUA44ZZSFZVlsD9IyvxRf1ITceRONeGodzb/MaDQk5Vh3PuCVn2OzhnEAqWH2aeUm
-         wBv2kE5CmfZGG2gWbpV2RHiTwerqqSQFafGG9o2cB1kCBoV9dtyfBLrGxHC8Bl//AT
-         Ie1DM1RoA1jZ/MIspAVqRaG6ZkndYJdVq3Q3aWqY=
-Date:   Thu, 09 Feb 2023 16:54:42 -0800
+        b=u77MWJa/TUQL7QrNu40irWQ94/Dg3TfHhv5BC58vTcZvb9RGYo0sEoWgFQ6emAbSY
+         HvZ1+3b1d1GYmOX0CULJfDbJNVwZ0BkKrJj2ExcwJXeCaL/rdx3nDECjFKTzxosmR8
+         YObOwS+wOWe8Op6VB0lRucJgiyGXx4cerMeqKMfA=
+Date:   Thu, 09 Feb 2023 16:54:45 -0800
 To:     mm-commits@vger.kernel.org, rppt@kernel.org, jhubbard@nvidia.com,
         imbrenda@linux.ibm.com, hch@infradead.org, dhowells@redhat.com,
         david@redhat.com, apopple@nvidia.com, jgg@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-make-get_user_pages_fast_only-return-the-common-return-value.patch removed from -mm tree
-Message-Id: <20230210005443.5A17DC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-move-private-gup-foll_-flags-to-internalh.patch removed from -mm tree
+Message-Id: <20230210005446.6498FC4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,82 +43,139 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup: make get_user_pages_fast_only() return the common return value
+     Subject: mm/gup: move private gup FOLL_ flags to internal.h
 has been removed from the -mm tree.  Its filename was
-     mm-gup-make-get_user_pages_fast_only-return-the-common-return-value.patch
+     mm-gup-move-private-gup-foll_-flags-to-internalh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jason Gunthorpe <jgg@nvidia.com>
-Subject: mm/gup: make get_user_pages_fast_only() return the common return value
-Date: Tue, 24 Jan 2023 16:34:32 -0400
+Subject: mm/gup: move private gup FOLL_ flags to internal.h
+Date: Tue, 24 Jan 2023 16:34:34 -0400
 
-There are only two callers, both can handle the common return code:
+Move the flags that should not/are not used outside gup.c and related into
+mm/internal.h to discourage driver abuse.
 
-- get_user_page_fast_only() checks == 1
+To make this more maintainable going forward compact the two FOLL ranges
+with new bit numbers from 0 to 11 and 16 to 21, using shifts so it is
+explicit.
 
-- gfn_to_page_many_atomic() already returns -1, and the only caller
-  checks for negative return values
+Switch to an enum so the whole thing is easier to read.
 
-Remove the restriction against returning negative values.
-
-Link: https://lkml.kernel.org/r/11-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
+Link: https://lkml.kernel.org/r/13-v2-987e91b59705+36b-gup_tidy_jgg@nvidia.com
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ include/linux/mm_types.h |   57 ++++++++++++++++++++++---------------
+ mm/internal.h            |   15 +++++++++
+ 2 files changed, 50 insertions(+), 22 deletions(-)
 
---- a/mm/gup.c~mm-gup-make-get_user_pages_fast_only-return-the-common-return-value
-+++ a/mm/gup.c
-@@ -3005,8 +3005,6 @@ static int internal_get_user_pages_fast(
+--- a/include/linux/mm_types.h~mm-gup-move-private-gup-foll_-flags-to-internalh
++++ a/include/linux/mm_types.h
+@@ -1040,9 +1040,6 @@ typedef unsigned int __bitwise zap_flags
+  * FOLL_PIN and FOLL_LONGTERM may be used in various combinations with each
+  * other. Here is what they mean, and how to use them:
   *
-  * Like get_user_pages_fast() except it's IRQ-safe in that it won't fall back to
-  * the regular GUP.
-- * Note a difference with get_user_pages_fast: this always returns the
-- * number of pages pinned, 0 if no pages were pinned.
+- * FOLL_LONGTERM indicates that the page will be held for an indefinite time
+- * period _often_ under userspace control.  This is in contrast to
+- * iov_iter_get_pages(), whose usages are transient.
   *
-  * If the architecture does not support this function, simply return with no
-  * pages pinned.
-@@ -3018,7 +3016,6 @@ static int internal_get_user_pages_fast(
- int get_user_pages_fast_only(unsigned long start, int nr_pages,
- 			     unsigned int gup_flags, struct page **pages)
- {
--	int nr_pinned;
- 	/*
- 	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
- 	 * because gup fast is always a "pin with a +1 page refcount" request.
-@@ -3030,19 +3027,7 @@ int get_user_pages_fast_only(unsigned lo
- 			       FOLL_GET | FOLL_FAST_ONLY))
- 		return -EINVAL;
+  * FIXME: For pages which are part of a filesystem, mappings are subject to the
+  * lifetime enforced by the filesystem and we need guarantees that longterm
+@@ -1086,24 +1083,40 @@ typedef unsigned int __bitwise zap_flags
+  * Please see Documentation/core-api/pin_user_pages.rst for more information.
+  */
  
--	nr_pinned = internal_get_user_pages_fast(start, nr_pages, gup_flags,
--						 pages);
--
--	/*
--	 * As specified in the API description above, this routine is not
--	 * allowed to return negative values. However, the common core
--	 * routine internal_get_user_pages_fast() *can* return -errno.
--	 * Therefore, correct for that here:
--	 */
--	if (nr_pinned < 0)
--		nr_pinned = 0;
--
--	return nr_pinned;
-+	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
- }
- EXPORT_SYMBOL_GPL(get_user_pages_fast_only);
+-#define FOLL_WRITE	0x01	/* check pte is writable */
+-#define FOLL_TOUCH	0x02	/* mark page accessed */
+-#define FOLL_GET	0x04	/* do get_page on page */
+-#define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
+-#define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
+-#define FOLL_NOWAIT	0x20	/* if a disk transfer is needed, start the IO
+-				 * and return without waiting upon it */
+-#define FOLL_NOFAULT	0x80	/* do not fault in pages */
+-#define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
+-#define FOLL_TRIED	0x800	/* a retry, previous pass started an IO */
+-#define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
+-#define FOLL_ANON	0x8000	/* don't do file mappings */
+-#define FOLL_LONGTERM	0x10000	/* mapping lifetime is indefinite: see below */
+-#define FOLL_SPLIT_PMD	0x20000	/* split huge pmd before returning */
+-#define FOLL_PIN	0x40000	/* pages must be released via unpin_user_page */
+-#define FOLL_FAST_ONLY	0x80000	/* gup_fast: prevent fall-back to slow gup */
+-#define FOLL_PCI_P2PDMA	0x100000 /* allow returning PCI P2PDMA pages */
+-#define FOLL_INTERRUPTIBLE  0x200000 /* allow interrupts from generic signals */
+-#define FOLL_UNLOCKABLE	0x400000 /* allow unlocking the mmap lock (internal only) */
++enum {
++	/* check pte is writable */
++	FOLL_WRITE = 1 << 0,
++	/* do get_page on page */
++	FOLL_GET = 1 << 1,
++	/* give error on hole if it would be zero */
++	FOLL_DUMP = 1 << 2,
++	/* get_user_pages read/write w/o permission */
++	FOLL_FORCE = 1 << 3,
++	/*
++	 * if a disk transfer is needed, start the IO and return without waiting
++	 * upon it
++	 */
++	FOLL_NOWAIT = 1 << 4,
++	/* do not fault in pages */
++	FOLL_NOFAULT = 1 << 5,
++	/* check page is hwpoisoned */
++	FOLL_HWPOISON = 1 << 6,
++	/* don't do file mappings */
++	FOLL_ANON = 1 << 7,
++	/*
++	 * FOLL_LONGTERM indicates that the page will be held for an indefinite
++	 * time period _often_ under userspace control.  This is in contrast to
++	 * iov_iter_get_pages(), whose usages are transient.
++	 */
++	FOLL_LONGTERM = 1 << 8,
++	/* split huge pmd before returning */
++	FOLL_SPLIT_PMD = 1 << 9,
++	/* allow returning PCI P2PDMA pages */
++	FOLL_PCI_P2PDMA = 1 << 10,
++	/* allow interrupts from generic signals */
++	FOLL_INTERRUPTIBLE = 1 << 11,
++
++	/* See also internal only FOLL flags in mm/internal.h */
++};
  
+ #endif /* _LINUX_MM_TYPES_H */
+--- a/mm/internal.h~mm-gup-move-private-gup-foll_-flags-to-internalh
++++ a/mm/internal.h
+@@ -858,6 +858,21 @@ int migrate_device_coherent_page(struct
+ struct folio *try_grab_folio(struct page *page, int refs, unsigned int flags);
+ int __must_check try_grab_page(struct page *page, unsigned int flags);
+ 
++enum {
++	/* mark page accessed */
++	FOLL_TOUCH = 1 << 16,
++	/* a retry, previous pass started an IO */
++	FOLL_TRIED = 1 << 17,
++	/* we are working on non-current tsk/mm */
++	FOLL_REMOTE = 1 << 18,
++	/* pages must be released via unpin_user_page */
++	FOLL_PIN = 1 << 19,
++	/* gup_fast: prevent fall-back to slow gup */
++	FOLL_FAST_ONLY = 1 << 20,
++	/* allow unlocking the mmap lock */
++	FOLL_UNLOCKABLE = 1 << 21,
++};
++
+ /*
+  * Indicates for which pages that are write-protected in the page table,
+  * whether GUP has to trigger unsharing via FAULT_FLAG_UNSHARE such that the
 _
 
 Patches currently in -mm which might be from jgg@nvidia.com are
