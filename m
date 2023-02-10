@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D556EC05027
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:54:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D820BC61DA4
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 00:54:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231176AbjBJAyK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Feb 2023 19:54:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44922 "EHLO
+        id S231179AbjBJAyU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Feb 2023 19:54:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231179AbjBJAxp (ORCPT
+        with ESMTP id S231183AbjBJAxp (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2023 19:53:45 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72B5B6D8E7
-        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:53:05 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 057886F8D9
+        for <mm-commits@vger.kernel.org>; Thu,  9 Feb 2023 16:53:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 042CB61C3D
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:53:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FDD6C433A8;
-        Fri, 10 Feb 2023 00:53:04 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 99B52B82272
+        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 00:53:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31FEFC4339C;
+        Fri, 10 Feb 2023 00:53:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1675990384;
-        bh=a26FiTZ2BmL+nv5vfiWFUXNqyw160HtfQz++3CVL0/A=;
+        s=korg; t=1675990387;
+        bh=F6E/PXmIagcOj6n+yttTlZhfNpdL6Ui1j1zkIce7/jk=;
         h=Date:To:From:Subject:From;
-        b=uoXRTHRCi2WIJLjCtfuYN+1m1BtH+mcnYC8va27LA+eJPfn/DQ0uhQJTU7wcnG3L5
-         YY6pcRXUWedEit8zxFRYVhmio0irBp+GI8V8YI1/pkjV9e4hO0RvmsZonBm8khKCFR
-         fsW9nip0GNp26EX4hda7fbL6u2GDaJmJhgZjZcfc=
-Date:   Thu, 09 Feb 2023 16:53:03 -0800
+        b=obDEmBUm5wNSloZfvIegulYkuML/ZvRlBXBl614HEVw1rnKFEOn29TCAO6XCqDvws
+         BDOV+5Iv0BrqjT0CkXyNNl7MLcBSN6v+9z5ulpsr/rC9lyArjx2+ww3ygFSHy0ZMLT
+         pcBFI2rsnbmfJprr1QFIDaG5a251pIM+zAuFe604=
+Date:   Thu, 09 Feb 2023 16:53:06 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator.patch removed from -mm tree
-Message-Id: <20230210005304.5FDD6C433A8@smtp.kernel.org>
+Subject: [merged mm-stable] mmap-convert-__vma_adjust-to-use-vma-iterator.patch removed from -mm tree
+Message-Id: <20230210005307.31FEFC4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,460 +41,194 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: switch vma_merge(), split_vma(), and __split_vma to vma iterator
+     Subject: mmap: convert __vma_adjust() to use vma iterator
 has been removed from the -mm tree.  Its filename was
-     mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator.patch
+     mmap-convert-__vma_adjust-to-use-vma-iterator.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: switch vma_merge(), split_vma(), and __split_vma to vma iterator
-Date: Fri, 20 Jan 2023 11:26:30 -0500
+Subject: mmap: convert __vma_adjust() to use vma iterator
+Date: Fri, 20 Jan 2023 11:26:32 -0500
 
-Drop the vmi_* functions and transition all users to use the vma iterator
-directly.
+Use the vma iterator internally for __vma_adjust().  Avoid using the maple
+tree interface directly for type safety.
 
-Link: https://lkml.kernel.org/r/20230120162650.984577-30-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230120162650.984577-32-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c   |   14 +++----
- include/linux/mm.h |   18 ++-------
- mm/madvise.c       |    6 +--
- mm/mempolicy.c     |    6 +--
- mm/mlock.c         |    6 +--
- mm/mmap.c          |   79 +++++++++++--------------------------------
- mm/mprotect.c      |    6 +--
- mm/mremap.c        |   10 ++---
- mm/nommu.c         |    8 ++--
- 9 files changed, 55 insertions(+), 98 deletions(-)
+ include/linux/mm.h |    3 -
+ mm/mmap.c          |   75 +++++++------------------------------------
+ 2 files changed, 13 insertions(+), 65 deletions(-)
 
---- a/fs/userfaultfd.c~mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator
-+++ a/fs/userfaultfd.c
-@@ -909,7 +909,7 @@ static int userfaultfd_release(struct in
- 			continue;
- 		}
- 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
--		prev = vmi_vma_merge(&vmi, mm, prev, vma->vm_start, vma->vm_end,
-+		prev = vma_merge(&vmi, mm, prev, vma->vm_start, vma->vm_end,
- 				 new_flags, vma->anon_vma,
- 				 vma->vm_file, vma->vm_pgoff,
- 				 vma_policy(vma),
-@@ -1452,7 +1452,7 @@ static int userfaultfd_register(struct u
- 		vma_end = min(end, vma->vm_end);
- 
- 		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
--		prev = vmi_vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
-+		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
- 				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
- 				 vma_policy(vma),
- 				 ((struct vm_userfaultfd_ctx){ ctx }),
-@@ -1463,12 +1463,12 @@ static int userfaultfd_register(struct u
- 			goto next;
- 		}
- 		if (vma->vm_start < start) {
--			ret = vmi_split_vma(&vmi, mm, vma, start, 1);
-+			ret = split_vma(&vmi, vma, start, 1);
- 			if (ret)
- 				break;
- 		}
- 		if (vma->vm_end > end) {
--			ret = vmi_split_vma(&vmi, mm, vma, end, 0);
-+			ret = split_vma(&vmi, vma, end, 0);
- 			if (ret)
- 				break;
- 		}
-@@ -1632,7 +1632,7 @@ static int userfaultfd_unregister(struct
- 			uffd_wp_range(mm, vma, start, vma_end - start, false);
- 
- 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
--		prev = vmi_vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
-+		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
- 				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
- 				 vma_policy(vma),
- 				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
-@@ -1641,12 +1641,12 @@ static int userfaultfd_unregister(struct
- 			goto next;
- 		}
- 		if (vma->vm_start < start) {
--			ret = vmi_split_vma(&vmi, mm, vma, start, 1);
-+			ret = split_vma(&vmi, vma, start, 1);
- 			if (ret)
- 				break;
- 		}
- 		if (vma->vm_end > end) {
--			ret = vmi_split_vma(&vmi, mm, vma, end, 0);
-+			ret = split_vma(&vmi, vma, end, 0);
- 			if (ret)
- 				break;
- 		}
---- a/include/linux/mm.h~mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator
+--- a/include/linux/mm.h~mmap-convert-__vma_adjust-to-use-vma-iterator
 +++ a/include/linux/mm.h
-@@ -2839,24 +2839,16 @@ static inline int vma_adjust(struct vm_a
- {
- 	return __vma_adjust(vma, start, end, pgoff, insert, NULL);
- }
--extern struct vm_area_struct *vma_merge(struct mm_struct *,
--	struct vm_area_struct *prev, unsigned long addr, unsigned long end,
--	unsigned long vm_flags, struct anon_vma *, struct file *, pgoff_t,
--	struct mempolicy *, struct vm_userfaultfd_ctx, struct anon_vma_name *);
--extern struct vm_area_struct *vmi_vma_merge(struct vma_iterator *vmi,
-+extern struct vm_area_struct *vma_merge(struct vma_iterator *vmi,
- 	struct mm_struct *, struct vm_area_struct *prev, unsigned long addr,
- 	unsigned long end, unsigned long vm_flags, struct anon_vma *,
- 	struct file *, pgoff_t, struct mempolicy *, struct vm_userfaultfd_ctx,
- 	struct anon_vma_name *);
- extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
--extern int __split_vma(struct mm_struct *, struct vm_area_struct *,
--			       unsigned long addr, int new_below);
--extern int vmi__split_vma(struct vma_iterator *vmi, struct mm_struct *,
--	struct vm_area_struct *, unsigned long addr, int new_below);
--extern int split_vma(struct mm_struct *, struct vm_area_struct *,
--	unsigned long addr, int new_below);
--extern int vmi_split_vma(struct vma_iterator *vmi, struct mm_struct *,
--		struct vm_area_struct *, unsigned long addr, int new_below);
-+extern int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *,
-+		       unsigned long addr, int new_below);
-+extern int split_vma(struct vma_iterator *vmi, struct vm_area_struct *,
-+			 unsigned long addr, int new_below);
- extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
- extern void unlink_file_vma(struct vm_area_struct *);
- extern struct vm_area_struct *copy_vma(struct vm_area_struct **,
---- a/mm/madvise.c~mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator
-+++ a/mm/madvise.c
-@@ -150,7 +150,7 @@ static int madvise_update_vma(struct vm_
- 	}
+@@ -2856,9 +2856,6 @@ extern struct vm_area_struct *copy_vma(s
+ 	bool *need_rmap_locks);
+ extern void exit_mmap(struct mm_struct *);
  
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
--	*prev = vmi_vma_merge(&vmi, mm, *prev, start, end, new_flags,
-+	*prev = vma_merge(&vmi, mm, *prev, start, end, new_flags,
- 			  vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
- 			  vma->vm_userfaultfd_ctx, anon_name);
- 	if (*prev) {
-@@ -163,7 +163,7 @@ static int madvise_update_vma(struct vm_
- 	if (start != vma->vm_start) {
- 		if (unlikely(mm->map_count >= sysctl_max_map_count))
- 			return -ENOMEM;
--		error = vmi__split_vma(&vmi, mm, vma, start, 1);
-+		error = __split_vma(&vmi, vma, start, 1);
- 		if (error)
- 			return error;
- 	}
-@@ -171,7 +171,7 @@ static int madvise_update_vma(struct vm_
- 	if (end != vma->vm_end) {
- 		if (unlikely(mm->map_count >= sysctl_max_map_count))
- 			return -ENOMEM;
--		error = vmi__split_vma(&vmi, mm, vma, end, 0);
-+		error = __split_vma(&vmi, vma, end, 0);
- 		if (error)
- 			return error;
- 	}
---- a/mm/mempolicy.c~mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator
-+++ a/mm/mempolicy.c
-@@ -810,7 +810,7 @@ static int mbind_range(struct mm_struct
- 
- 		pgoff = vma->vm_pgoff +
- 			((vmstart - vma->vm_start) >> PAGE_SHIFT);
--		prev = vmi_vma_merge(&vmi, mm, prev, vmstart, vmend, vma->vm_flags,
-+		prev = vma_merge(&vmi, mm, prev, vmstart, vmend, vma->vm_flags,
- 				 vma->anon_vma, vma->vm_file, pgoff,
- 				 new_pol, vma->vm_userfaultfd_ctx,
- 				 anon_vma_name(vma));
-@@ -819,12 +819,12 @@ static int mbind_range(struct mm_struct
- 			goto replace;
- 		}
- 		if (vma->vm_start != vmstart) {
--			err = vmi_split_vma(&vmi, vma->vm_mm, vma, vmstart, 1);
-+			err = split_vma(&vmi, vma, vmstart, 1);
- 			if (err)
- 				goto out;
- 		}
- 		if (vma->vm_end != vmend) {
--			err = vmi_split_vma(&vmi, vma->vm_mm, vma, vmend, 0);
-+			err = split_vma(&vmi, vma, vmend, 0);
- 			if (err)
- 				goto out;
- 		}
---- a/mm/mlock.c~mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator
-+++ a/mm/mlock.c
-@@ -418,7 +418,7 @@ static int mlock_fixup(struct vma_iterat
- 		goto out;
- 
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
--	*prev = vmi_vma_merge(vmi, mm, *prev, start, end, newflags,
-+	*prev = vma_merge(vmi, mm, *prev, start, end, newflags,
- 			vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
- 			vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 	if (*prev) {
-@@ -427,13 +427,13 @@ static int mlock_fixup(struct vma_iterat
- 	}
- 
- 	if (start != vma->vm_start) {
--		ret = vmi_split_vma(vmi, mm, vma, start, 1);
-+		ret = split_vma(vmi, vma, start, 1);
- 		if (ret)
- 			goto out;
- 	}
- 
- 	if (end != vma->vm_end) {
--		ret = vmi_split_vma(vmi, mm, vma, end, 0);
-+		ret = split_vma(vmi, vma, end, 0);
- 		if (ret)
- 			goto out;
- 	}
---- a/mm/mmap.c~mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator
+-void vma_mas_store(struct vm_area_struct *vma, struct ma_state *mas);
+-void vma_mas_remove(struct vm_area_struct *vma, struct ma_state *mas);
+-
+ static inline int check_data_rlimit(unsigned long rlim,
+ 				    unsigned long new,
+ 				    unsigned long start,
+--- a/mm/mmap.c~mmap-convert-__vma_adjust-to-use-vma-iterator
 +++ a/mm/mmap.c
-@@ -1010,7 +1010,7 @@ can_vma_merge_after(struct vm_area_struc
-  * parameter) may establish ptes with the wrong permissions of NNNN
-  * instead of the right permissions of XXXX.
-  */
--struct vm_area_struct *vma_merge(struct mm_struct *mm,
-+struct vm_area_struct *vma_merge(struct vma_iterator *vmi, struct mm_struct *mm,
- 			struct vm_area_struct *prev, unsigned long addr,
- 			unsigned long end, unsigned long vm_flags,
- 			struct anon_vma *anon_vma, struct file *file,
-@@ -1019,7 +1019,7 @@ struct vm_area_struct *vma_merge(struct
- 			struct anon_vma_name *anon_name)
- {
- 	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
--	struct vm_area_struct *mid, *next, *res;
-+	struct vm_area_struct *mid, *next, *res = NULL;
- 	int err = -1;
- 	bool merge_prev = false;
- 	bool merge_next = false;
-@@ -1085,26 +1085,11 @@ struct vm_area_struct *vma_merge(struct
- 	if (err)
- 		return NULL;
- 	khugepaged_enter_vma(res, vm_flags);
--	return res;
--}
- 
--struct vm_area_struct *vmi_vma_merge(struct vma_iterator *vmi,
--			struct mm_struct *mm,
--			struct vm_area_struct *prev, unsigned long addr,
--			unsigned long end, unsigned long vm_flags,
--			struct anon_vma *anon_vma, struct file *file,
--			pgoff_t pgoff, struct mempolicy *policy,
--			struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
--			struct anon_vma_name *anon_name)
--{
--	struct vm_area_struct *tmp;
--
--	tmp = vma_merge(mm, prev, addr, end, vm_flags, anon_vma, file, pgoff,
--			policy, vm_userfaultfd_ctx, anon_name);
--	if (tmp)
-+	if (res)
- 		vma_iter_set(vmi, end);
- 
--	return tmp;
-+	return res;
+@@ -432,56 +432,6 @@ static void __vma_link_file(struct vm_ar
+ 	flush_dcache_mmap_unlock(mapping);
  }
  
- /*
-@@ -2228,12 +2213,14 @@ static void unmap_region(struct mm_struc
-  * __split_vma() bypasses sysctl_max_map_count checking.  We use this where it
-  * has already been checked or doesn't make sense to fail.
-  */
--int __split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
-+int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
- 		unsigned long addr, int new_below)
- {
- 	struct vm_area_struct *new;
- 	int err;
--	validate_mm_mt(mm);
-+	unsigned long end = vma->vm_end;
-+
-+	validate_mm_mt(vma->vm_mm);
- 
- 	if (vma->vm_ops && vma->vm_ops->may_split) {
- 		err = vma->vm_ops->may_split(vma, addr);
-@@ -2273,8 +2260,10 @@ int __split_vma(struct mm_struct *mm, st
- 		err = vma_adjust(vma, vma->vm_start, addr, vma->vm_pgoff, new);
- 
- 	/* Success. */
--	if (!err)
-+	if (!err) {
-+		vma_iter_set(vmi, end);
- 		return 0;
-+	}
- 
- 	/* Avoid vm accounting in close() operation */
- 	new->vm_start = new->vm_end;
-@@ -2289,46 +2278,21 @@ int __split_vma(struct mm_struct *mm, st
- 	mpol_put(vma_policy(new));
-  out_free_vma:
- 	vm_area_free(new);
--	validate_mm_mt(mm);
-+	validate_mm_mt(vma->vm_mm);
- 	return err;
- }
--int vmi__split_vma(struct vma_iterator *vmi, struct mm_struct *mm,
--		   struct vm_area_struct *vma, unsigned long addr, int new_below)
+-/*
+- * vma_mas_store() - Store a VMA in the maple tree.
+- * @vma: The vm_area_struct
+- * @mas: The maple state
+- *
+- * Efficient way to store a VMA in the maple tree when the @mas has already
+- * walked to the correct location.
+- *
+- * Note: the end address is inclusive in the maple tree.
+- */
+-void vma_mas_store(struct vm_area_struct *vma, struct ma_state *mas)
 -{
--	int ret;
--	unsigned long end = vma->vm_end;
--
--	ret = __split_vma(mm, vma, addr, new_below);
--	if (!ret)
--		vma_iter_set(vmi, end);
--
--	return ret;
--}
- 
- /*
-  * Split a vma into two pieces at address 'addr', a new vma is allocated
-  * either for the first part or the tail.
-  */
--int split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
-+int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
- 	      unsigned long addr, int new_below)
- {
--	if (mm->map_count >= sysctl_max_map_count)
-+	if (vma->vm_mm->map_count >= sysctl_max_map_count)
- 		return -ENOMEM;
- 
--	return __split_vma(mm, vma, addr, new_below);
+-	trace_vma_store(mas->tree, vma);
+-	mas_set_range(mas, vma->vm_start, vma->vm_end - 1);
+-	mas_store_prealloc(mas, vma);
 -}
 -
--int vmi_split_vma(struct vma_iterator *vmi, struct mm_struct *mm,
--		  struct vm_area_struct *vma, unsigned long addr, int new_below)
+-/*
+- * vma_mas_remove() - Remove a VMA from the maple tree.
+- * @vma: The vm_area_struct
+- * @mas: The maple state
+- *
+- * Efficient way to remove a VMA from the maple tree when the @mas has already
+- * been established and points to the correct location.
+- * Note: the end address is inclusive in the maple tree.
+- */
+-void vma_mas_remove(struct vm_area_struct *vma, struct ma_state *mas)
 -{
--	int ret;
--	unsigned long end = vma->vm_end;
+-	trace_vma_mas_szero(mas->tree, vma->vm_start, vma->vm_end - 1);
+-	mas->index = vma->vm_start;
+-	mas->last = vma->vm_end - 1;
+-	mas_store_prealloc(mas, NULL);
+-}
 -
--	ret = split_vma(mm, vma, addr, new_below);
--	if (!ret)
--		vma_iter_set(vmi, end);
+-/*
+- * vma_mas_szero() - Set a given range to zero.  Used when modifying a
+- * vm_area_struct start or end.
+- *
+- * @mas: The maple tree ma_state
+- * @start: The start address to zero
+- * @end: The end address to zero.
+- */
+-static inline void vma_mas_szero(struct ma_state *mas, unsigned long start,
+-				unsigned long end)
+-{
+-	trace_vma_mas_szero(mas->tree, start, end - 1);
+-	mas_set_range(mas, start, end - 1);
+-	mas_store_prealloc(mas, NULL);
+-}
 -
--	return ret;
-+	return __split_vma(vmi, vma, addr, new_below);
- }
- 
- static inline int munmap_sidetree(struct vm_area_struct *vma,
-@@ -2388,7 +2352,7 @@ do_vmi_align_munmap(struct vma_iterator
- 		if (end < vma->vm_end && mm->map_count >= sysctl_max_map_count)
- 			goto map_count_exceeded;
- 
--		error = vmi__split_vma(vmi, mm, vma, start, 0);
-+		error = __split_vma(vmi, vma, start, 0);
- 		if (error)
- 			goto start_split_failed;
- 
-@@ -2409,7 +2373,7 @@ do_vmi_align_munmap(struct vma_iterator
- 		if (next->vm_end > end) {
- 			struct vm_area_struct *split;
- 
--			error = vmi__split_vma(vmi, mm, next, end, 1);
-+			error = __split_vma(vmi, next, end, 1);
- 			if (error)
- 				goto end_split_failed;
- 
-@@ -2690,9 +2654,10 @@ cannot_expand:
- 		 * vma again as we may succeed this time.
- 		 */
- 		if (unlikely(vm_flags != vma->vm_flags && prev)) {
--			merge = vmi_vma_merge(&vmi, mm, prev, vma->vm_start,
--				vma->vm_end, vma->vm_flags, NULL, vma->vm_file,
--				vma->vm_pgoff, NULL, NULL_VM_UFFD_CTX, NULL);
-+			merge = vma_merge(&vmi, mm, prev, vma->vm_start,
-+				    vma->vm_end, vma->vm_flags, NULL,
-+				    vma->vm_file, vma->vm_pgoff, NULL,
-+				    NULL_VM_UFFD_CTX, NULL);
- 			if (merge) {
- 				/*
- 				 * ->mmap() can change vma->vm_file and fput
-@@ -3249,7 +3214,7 @@ struct vm_area_struct *copy_vma(struct v
- 	if (new_vma && new_vma->vm_start < addr + len)
- 		return NULL;	/* should never get here */
- 
--	new_vma = vmi_vma_merge(&vmi, mm, prev, addr, addr + len, vma->vm_flags,
-+	new_vma = vma_merge(&vmi, mm, prev, addr, addr + len, vma->vm_flags,
- 			    vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
- 			    vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 	if (new_vma) {
---- a/mm/mprotect.c~mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator
-+++ a/mm/mprotect.c
-@@ -642,7 +642,7 @@ mprotect_fixup(struct vma_iterator *vmi,
- 	 * First try to merge with previous and/or next vma.
- 	 */
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
--	*pprev = vmi_vma_merge(vmi, mm, *pprev, start, end, newflags,
-+	*pprev = vma_merge(vmi, mm, *pprev, start, end, newflags,
- 			   vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
- 			   vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 	if (*pprev) {
-@@ -654,13 +654,13 @@ mprotect_fixup(struct vma_iterator *vmi,
- 	*pprev = vma;
- 
- 	if (start != vma->vm_start) {
--		error = vmi_split_vma(vmi, mm, vma, start, 1);
-+		error = split_vma(vmi, vma, start, 1);
- 		if (error)
- 			goto fail;
- 	}
- 
- 	if (end != vma->vm_end) {
--		error = vmi_split_vma(vmi, mm, vma, end, 0);
-+		error = split_vma(vmi, vma, end, 0);
- 		if (error)
- 			goto fail;
- 	}
---- a/mm/mremap.c~mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator
-+++ a/mm/mremap.c
-@@ -1043,12 +1043,10 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 			 * when a vma would be actually removed due to a merge.
- 			 */
- 			if (!vma->vm_ops || !vma->vm_ops->close) {
--				vma = vmi_vma_merge(&vmi, mm, vma,
--				       extension_start, extension_end,
--				       vma->vm_flags, vma->anon_vma,
--				       vma->vm_file, extension_pgoff,
--				       vma_policy(vma), vma->vm_userfaultfd_ctx,
--				       anon_vma_name(vma));
-+				vma = vma_merge(&vmi, mm, vma, extension_start,
-+					extension_end, vma->vm_flags, vma->anon_vma,
-+					vma->vm_file, extension_pgoff, vma_policy(vma),
-+					vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 			} else if (vma_adjust(vma, vma->vm_start, addr + new_len,
- 				   vma->vm_pgoff, NULL)) {
- 				vma = NULL;
---- a/mm/nommu.c~mm-switch-vma_merge-split_vma-and-__split_vma-to-vma-iterator
-+++ a/mm/nommu.c
-@@ -1297,18 +1297,20 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
-  * split a vma into two pieces at address 'addr', a new vma is allocated either
-  * for the first part or the tail.
-  */
--int vmi_split_vma(struct vma_iterator *vmi, struct mm_struct *mm,
--		  struct vm_area_struct *vma, unsigned long addr, int new_below)
-+int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+	      unsigned long addr, int new_below)
+ static int vma_link(struct mm_struct *mm, struct vm_area_struct *vma)
  {
- 	struct vm_area_struct *new;
- 	struct vm_region *region;
- 	unsigned long npages;
-+	struct mm_struct *mm;
+ 	VMA_ITERATOR(vmi, mm, 0);
+@@ -641,7 +591,7 @@ int __vma_adjust(struct vm_area_struct *
+ 	bool vma_changed = false;
+ 	long adjust_next = 0;
+ 	int remove_next = 0;
+-	MA_STATE(mas, &mm->mm_mt, 0, 0);
++	VMA_ITERATOR(vmi, mm, 0);
+ 	struct vm_area_struct *exporter = NULL, *importer = NULL;
  
- 	/* we're only permitted to split anonymous regions (these should have
- 	 * only a single usage on the region) */
- 	if (vma->vm_file)
- 		return -ENOMEM;
- 
-+	mm = vma->vm_mm;
- 	if (mm->map_count >= sysctl_max_map_count)
- 		return -ENOMEM;
- 
-@@ -1465,7 +1467,7 @@ int do_munmap(struct mm_struct *mm, unsi
- 		if (end != vma->vm_end && offset_in_page(end))
- 			return -EINVAL;
- 		if (start != vma->vm_start && end != vma->vm_end) {
--			ret = vmi_split_vma(&vmi, mm, vma, start, 1);
-+			ret = split_vma(&vmi, vma, start, 1);
- 			if (ret < 0)
- 				return ret;
+ 	if (next && !insert) {
+@@ -726,7 +676,7 @@ int __vma_adjust(struct vm_area_struct *
  		}
+ 	}
+ 
+-	if (mas_preallocate(&mas, GFP_KERNEL))
++	if (vma_iter_prealloc(&vmi))
+ 		return -ENOMEM;
+ 
+ 	vma_adjust_trans_huge(orig_vma, start, end, adjust_next);
+@@ -772,7 +722,7 @@ int __vma_adjust(struct vm_area_struct *
+ 	if (start != vma->vm_start) {
+ 		if ((vma->vm_start < start) &&
+ 		    (!insert || (insert->vm_end != start))) {
+-			vma_mas_szero(&mas, vma->vm_start, start);
++			vma_iter_clear(&vmi, vma->vm_start, start);
+ 			VM_WARN_ON(insert && insert->vm_start > vma->vm_start);
+ 		} else {
+ 			vma_changed = true;
+@@ -782,8 +732,8 @@ int __vma_adjust(struct vm_area_struct *
+ 	if (end != vma->vm_end) {
+ 		if (vma->vm_end > end) {
+ 			if (!insert || (insert->vm_start != end)) {
+-				vma_mas_szero(&mas, end, vma->vm_end);
+-				mas_reset(&mas);
++				vma_iter_clear(&vmi, end, vma->vm_end);
++				vma_iter_set(&vmi, vma->vm_end);
+ 				VM_WARN_ON(insert &&
+ 					   insert->vm_end < vma->vm_end);
+ 			}
+@@ -794,13 +744,13 @@ int __vma_adjust(struct vm_area_struct *
+ 	}
+ 
+ 	if (vma_changed)
+-		vma_mas_store(vma, &mas);
++		vma_iter_store(&vmi, vma);
+ 
+ 	vma->vm_pgoff = pgoff;
+ 	if (adjust_next) {
+ 		next->vm_start += adjust_next;
+ 		next->vm_pgoff += adjust_next >> PAGE_SHIFT;
+-		vma_mas_store(next, &mas);
++		vma_iter_store(&vmi, next);
+ 	}
+ 
+ 	if (file) {
+@@ -820,8 +770,7 @@ int __vma_adjust(struct vm_area_struct *
+ 		 * us to insert it before dropping the locks
+ 		 * (it may either follow vma or precede it).
+ 		 */
+-		mas_reset(&mas);
+-		vma_mas_store(insert, &mas);
++		vma_iter_store(&vmi, insert);
+ 		mm->map_count++;
+ 	}
+ 
+@@ -867,7 +816,7 @@ again:
+ 	if (insert && file)
+ 		uprobe_mmap(insert);
+ 
+-	mas_destroy(&mas);
++	vma_iter_free(&vmi);
+ 	validate_mm(mm);
+ 
+ 	return 0;
+@@ -1999,7 +1948,8 @@ int expand_upwards(struct vm_area_struct
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_end = address;
+ 				/* Overwrite old entry in mtree. */
+-				vma_mas_store(vma, &mas);
++				mas_set_range(&mas, vma->vm_start, address - 1);
++				mas_store_prealloc(&mas, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
+ 				spin_unlock(&mm->page_table_lock);
+ 
+@@ -2081,7 +2031,8 @@ int expand_downwards(struct vm_area_stru
+ 				vma->vm_start = address;
+ 				vma->vm_pgoff -= grow;
+ 				/* Overwrite old entry in mtree. */
+-				vma_mas_store(vma, &mas);
++				mas_set_range(&mas, address, vma->vm_end - 1);
++				mas_store_prealloc(&mas, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
+ 				spin_unlock(&mm->page_table_lock);
+ 
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
