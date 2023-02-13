@@ -2,102 +2,68 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44F97C636D4
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 22:19:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB8FDC636D4
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 22:20:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230016AbjBMWTl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Feb 2023 17:19:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59666 "EHLO
+        id S229670AbjBMWU4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Feb 2023 17:20:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60394 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229754AbjBMWTk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 17:19:40 -0500
-Received: from mail-ed1-x52b.google.com (mail-ed1-x52b.google.com [IPv6:2a00:1450:4864:20::52b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EA1C1BAFA
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 14:19:39 -0800 (PST)
-Received: by mail-ed1-x52b.google.com with SMTP id v13so14898969eda.11
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 14:19:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=DdMCs5H/JbVPnWmVGco7GaqG11iC0AcIT5fsrf+QDfI=;
-        b=KFhLIbySr50Oa8sCR5/ttrXS+KaoYFaH6AeqV/8/irVu90nmkKYvpyt1TUBsRKxQc2
-         iFw2sIJul+x6NLvT3VEF5EcS7gCvG9AeCpfAtltEgntiSmb4MN++sQrtO7ovQ57xEPoR
-         +IZ/HqRpLpbx6wQzywccDeDlwK04i5gUsyZEg=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=DdMCs5H/JbVPnWmVGco7GaqG11iC0AcIT5fsrf+QDfI=;
-        b=TLx3g89i2V3gYs0hCA7ezyfj6yG79y4V2jSyzs38+rNSNoi5FByzo/BL8WMhSAzo2p
-         WcYGTcTSGiy186x8aVbzilN0gpiZu3sr1EWo5+XQGhxqVKxJJgfne83f2f5jxwGTeDha
-         /CcMTUNZCi5x0WQUX11ov1/rZcUlpUfqyVh+1LjGIJgvg62SYZ8eoPMxtXr3NT4XZdn7
-         64A4Xq8AKpXzRXpRmR5wlw46+i6DMZpdXi0owQGrT2kYVOS+BhzK4EqK50l4rToG1eWS
-         cYEfEFeG3vFLX4BFanmsPVdJNRytbKhdOFI9m9PnWdek2oj//7i34+pRJXsfKo/bKDQc
-         YWlQ==
-X-Gm-Message-State: AO0yUKWvuvL7iJmv3hnYaBlDL2vnRHr+wrvVTDu9DiPNKKD0xMq6TJPJ
-        3UtJKmO6kFLtjXEjLSHnlZGmUTT8WJTH6KvnQA8=
-X-Google-Smtp-Source: AK7set8zCyjcoSXiPmvNM46o2v3UQ13WurNAmcXLjuWBJ3Dmb95TPgev8VrliL2zeuSQ/KlJJOiWkw==
-X-Received: by 2002:a50:bb62:0:b0:4a2:4ed3:c151 with SMTP id y89-20020a50bb62000000b004a24ed3c151mr219155ede.39.1676326777637;
-        Mon, 13 Feb 2023 14:19:37 -0800 (PST)
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com. [209.85.218.49])
-        by smtp.gmail.com with ESMTPSA id cq5-20020a056402220500b004acb2c8aeaesm5163338edb.85.2023.02.13.14.19.36
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 13 Feb 2023 14:19:37 -0800 (PST)
-Received: by mail-ej1-f49.google.com with SMTP id hx15so35430670ejc.11
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 14:19:36 -0800 (PST)
-X-Received: by 2002:a17:907:984a:b0:88f:a9ec:dfd7 with SMTP id
- jj10-20020a170907984a00b0088fa9ecdfd7mr268381ejc.0.1676326776594; Mon, 13 Feb
- 2023 14:19:36 -0800 (PST)
-MIME-Version: 1.0
-References: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
-In-Reply-To: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Mon, 13 Feb 2023 14:19:19 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wiBrY+O-4=2mrbVyxR+hOqfdJ=Do6xoucfJ9_5az01L4Q@mail.gmail.com>
-Message-ID: <CAHk-=wiBrY+O-4=2mrbVyxR+hOqfdJ=Do6xoucfJ9_5az01L4Q@mail.gmail.com>
+        with ESMTP id S229647AbjBMWUz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 17:20:55 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D93AB1BAF6;
+        Mon, 13 Feb 2023 14:20:54 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 80427B81986;
+        Mon, 13 Feb 2023 22:20:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 2287FC433A0;
+        Mon, 13 Feb 2023 22:20:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1676326852;
+        bh=t7yk4QfjdKebtkFOT4hKLNy2o+tR2q7g/yGYYxojAQk=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=quuK3qnzHMerC/r6syHr/WCZ0q0SOEjwet9YTwZQDKrGSYG31G22nmVw8d/KtBgFp
+         APIcYHejuKZddAixlxSV07Jr2Vnrp97gxddG7vtrcUGYJO9TP9DObke+NILsGvd+Gf
+         H2WKZ9xz+1kwpFU45HpsTWM6c8+h5KGiaK2whQkUxiVVV0Xw5eCmiie8nzNTTEoiXk
+         VZLrQfDgSfZ8f5YgKMbYZsWrLJzbEmsVHsICt5cyhl+0vQP167QFym+q2KOv3CZs4Q
+         vB5jS027N5uHRYugnHCpoMRirC0jFHbu/AQ1POtkngFHj522AkOm6qtB571brkWhXh
+         IQfYoYAPH4jOw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 109ADC41676;
+        Mon, 13 Feb 2023 22:20:52 +0000 (UTC)
 Subject: Re: [GIT PULL] hotfixes for 6.2
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
+References: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-13-13-50
+X-PR-Tracked-Commit-Id: ce4d9a1ea35ac5429e822c4106cb2859d5c71f3e
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: f6feea56f66d34259c4222fa02e8171c4f2673d1
+Message-Id: <167632685206.30028.16383204020347410670.pr-tracker-bot@kernel.org>
+Date:   Mon, 13 Feb 2023 22:20:52 +0000
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, Feb 13, 2023 at 2:08 PM Andrew Morton <akpm@linux-foundation.org> wrote:
->
-> Kuan-Ying Lee (1):
->       mm/gup: add folio to list when folio_isolate_lru() succeed
+The pull request you sent on Mon, 13 Feb 2023 14:08:12 -0800:
 
-Ugh. I really hate fixes like this.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-13-13-50
 
-The problem came from mis-understanding the return value of
-folio_isolate_lru(), and thinking that it was a boolean
-success/failure thing.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/f6feea56f66d34259c4222fa02e8171c4f2673d1
 
-It wasn't, it was an integer "success/errno" thing, and the sense of
-the test was wrong. So the patch is
+Thank you!
 
--       if (!folio_isolate_lru(folio))
-+       if (folio_isolate_lru(folio))
-                continue;
-
-but at no point was the code *clarified*.
-
-Wouldn't it have been much better to write the new code to be
-
-        if (folio_isolate_lru(folio) < 0)
-                continue;
-
-to actually make it clear that this is a "negative error return check".
-
-I've pulled this, but I really think that when somebody notices that
-we had a silly bug because of a misunderstanding like this, it's not
-just that the bug should be fixed, the code should also be *clarified*
-at the same time.
-
-                 Linus
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
