@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C785C678DB
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 18:53:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 928B0C636CC
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 19:03:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229678AbjBMSxb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Feb 2023 13:53:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49674 "EHLO
+        id S229898AbjBMTDq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Feb 2023 14:03:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229999AbjBMSx0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 13:53:26 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B6031F5DC
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 10:53:25 -0800 (PST)
+        with ESMTP id S230011AbjBMTDn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 14:03:43 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EE1F7EFF
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 11:03:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E3C2CB816D4
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 18:53:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 757F9C433EF;
-        Mon, 13 Feb 2023 18:53:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 208186127C
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 19:03:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72960C433EF;
+        Mon, 13 Feb 2023 19:03:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676314402;
-        bh=/Jv9sFUffQHrDqXoZGpTur4UEaDbFlUG9TtBYuuPaY8=;
+        s=korg; t=1676314992;
+        bh=M0vUSXBK/5scIl8OYk2V7+HD13Ww6qQonub3Y+au/aw=;
         h=Date:To:From:Subject:From;
-        b=RqCxAuWlWzBi6FJD9KNhUry3VL4HxGFftI0vFPHQSRVvKUIWGdTlYheo0eToGahgn
-         dLCTgXH6CKJLhkobninIXglDM5GRdCy64V/zDkmDfdL9VqKQoiC/Q7oLPp+8uAbiuL
-         ysGkQw+ESSQjikk3yn35cOSLvAEECoym6zt0Yos0=
-Date:   Mon, 13 Feb 2023 10:53:21 -0800
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
+        b=l/iIu3MeHQr644Yyx50Q4KJWP89f5jYmAWT+kMfj++mOATXbaZeF00YG7WYFXFQii
+         eOX4fj45DcbYFzkpZHi1TFA8KNu+7/IH6S4pVS3ccBY40hDi3Hj2knxeewX2ifkVhG
+         4+01K8DaYfaPSNvQ5RZcPHqMMGtKMQ/nh9f1JvPA=
+Date:   Mon, 13 Feb 2023 11:03:11 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, glider@google.com,
+        eugenis@google.com, elver@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-call-panic-when-memoryless-node-allocation-fails.patch added to mm-unstable branch
-Message-Id: <20230213185322.757F9C433EF@smtp.kernel.org>
+Subject: + lib-stackdepot-annotate-racy-pool_index-accesses-fix.patch added to mm-unstable branch
+Message-Id: <20230213190312.72960C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: call panic() when memoryless node allocation fails
+     Subject: lib/stackdepot: fix for "annotate racy pool_index accesses"
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-call-panic-when-memoryless-node-allocation-fails.patch
+     lib-stackdepot-annotate-racy-pool_index-accesses-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-call-panic-when-memoryless-node-allocation-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-annotate-racy-pool_index-accesses-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,42 +65,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: page_alloc: call panic() when memoryless node allocation fails
-Date: Sun, 12 Feb 2023 19:10:27 +0800
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: lib/stackdepot: fix for "annotate racy pool_index accesses"
+Date: Sat, 11 Feb 2023 16:48:42 +0100
 
-In free_area_init(), we will continue to run after allocation of
-memoryless node pgdat fails.  However, in the subsequent process (such as
-when initializing zonelist), the case that NODE_DATA(nid) is NULL is not
-handled, which will cause panic.  Instead of this, it's better to call
-panic() directly when the memory allocation fails during system boot.
+Change the remaining reference to pool_index in stack_depot_fetch to
+pool_index_cached.
 
-Link: https://lkml.kernel.org/r/20230212111027.95520-1-zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Link: https://lkml.kernel.org/r/95cf53f0da2c112aa2cc54456cbcd6975c3ff343.1676129911.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/page_alloc.c~mm-page_alloc-call-panic-when-memoryless-node-allocation-fails
-+++ a/mm/page_alloc.c
-@@ -8422,11 +8422,9 @@ void __init free_area_init(unsigned long
+--- a/lib/stackdepot.c~lib-stackdepot-annotate-racy-pool_index-accesses-fix
++++ a/lib/stackdepot.c
+@@ -521,7 +521,7 @@ unsigned int stack_depot_fetch(depot_sta
  
- 			/* Allocator not initialized yet */
- 			pgdat = arch_alloc_nodedata(nid);
--			if (!pgdat) {
--				pr_err("Cannot allocate %zuB for node %d.\n",
--						sizeof(*pgdat), nid);
--				continue;
--			}
-+			if (!pgdat)
-+				panic("Cannot allocate %zuB for node %d.\n",
-+				       sizeof(*pgdat), nid);
- 			arch_refresh_nodedata(nid, pgdat);
- 			free_area_init_memoryless_node(nid);
- 
+ 	if (parts.pool_index > pool_index_cached) {
+ 		WARN(1, "pool index %d out of bounds (%d) for stack id %08x\n",
+-			parts.pool_index, pool_index, handle);
++			parts.pool_index, pool_index_cached, handle);
+ 		return 0;
+ 	}
+ 	pool = stack_pools[parts.pool_index];
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-page_alloc-call-panic-when-memoryless-node-allocation-fails.patch
+lib-stackdepot-put-functions-in-logical-order.patch
+lib-stackdepot-use-pr_fmt-to-define-message-format.patch
+lib-stackdepot-mm-rename-stack_depot_want_early_init.patch
+lib-stackdepot-rename-stack_depot_disable.patch
+lib-stackdepot-annotate-init-and-early-init-functions.patch
+lib-stackdepot-lower-the-indentation-in-stack_depot_init.patch
+lib-stackdepot-reorder-and-annotate-global-variables.patch
+lib-stackdepot-rename-hash-table-constants-and-variables.patch
+lib-stackdepot-rename-slab-to-pool.patch
+lib-stackdepot-rename-handle-and-pool-constants.patch
+lib-stackdepot-rename-init_stack_pool.patch
+lib-stacktrace-drop-impossible-warn_on-for-depot_init_pool.patch
+lib-stackdepot-annotate-depot_init_pool-and-depot_alloc_stack.patch
+lib-stackdepot-rename-next_pool_inited-to-next_pool_required.patch
+lib-stacktrace-kasan-kmsan-rework-extra_bits-interface.patch
+lib-stackdepot-annotate-racy-pool_index-accesses.patch
+lib-stackdepot-annotate-racy-pool_index-accesses-fix.patch
+lib-stackdepot-various-comments-clean-ups.patch
+lib-stackdepot-move-documentation-comments-to-stackdepoth.patch
 
