@@ -2,68 +2,87 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB8FDC636D4
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 22:20:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73ECDC636D4
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 23:52:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229670AbjBMWU4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Feb 2023 17:20:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60394 "EHLO
+        id S230246AbjBMXwG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Feb 2023 18:52:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229647AbjBMWUz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 17:20:55 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D93AB1BAF6;
-        Mon, 13 Feb 2023 14:20:54 -0800 (PST)
+        with ESMTP id S229956AbjBMXwF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 18:52:05 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F49E1632D
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 15:52:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 80427B81986;
-        Mon, 13 Feb 2023 22:20:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 2287FC433A0;
-        Mon, 13 Feb 2023 22:20:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1676326852;
-        bh=t7yk4QfjdKebtkFOT4hKLNy2o+tR2q7g/yGYYxojAQk=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=quuK3qnzHMerC/r6syHr/WCZ0q0SOEjwet9YTwZQDKrGSYG31G22nmVw8d/KtBgFp
-         APIcYHejuKZddAixlxSV07Jr2Vnrp97gxddG7vtrcUGYJO9TP9DObke+NILsGvd+Gf
-         H2WKZ9xz+1kwpFU45HpsTWM6c8+h5KGiaK2whQkUxiVVV0Xw5eCmiie8nzNTTEoiXk
-         VZLrQfDgSfZ8f5YgKMbYZsWrLJzbEmsVHsICt5cyhl+0vQP167QFym+q2KOv3CZs4Q
-         vB5jS027N5uHRYugnHCpoMRirC0jFHbu/AQ1POtkngFHj522AkOm6qtB571brkWhXh
-         IQfYoYAPH4jOw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 109ADC41676;
-        Mon, 13 Feb 2023 22:20:52 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.2
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
-References: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-13-13-50
-X-PR-Tracked-Commit-Id: ce4d9a1ea35ac5429e822c4106cb2859d5c71f3e
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: f6feea56f66d34259c4222fa02e8171c4f2673d1
-Message-Id: <167632685206.30028.16383204020347410670.pr-tracker-bot@kernel.org>
-Date:   Mon, 13 Feb 2023 22:20:52 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 18B216134B
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 23:52:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D188C433D2;
+        Mon, 13 Feb 2023 23:52:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1676332323;
+        bh=Ww8xlPST34pD9pkk3tCwlrr4aCNgiLqnF7BnJQC/ctI=;
+        h=Date:To:From:Subject:From;
+        b=QTGRwMnqZFKluxHkVcsCc5KIC9g4xEylX+XL3ia0DskZ6rfNFyUydFUp7UnEB278N
+         h7YyAJt8yMLFryg/Mys8wjQw6sqz5ZMifl6OizCUItU8SEXz6dDRxWcP1GxZB5NBPX
+         oQ3WMCgTeGqmgaZvBLb5sbk74IaxJ17LyW0B3aT8=
+Date:   Mon, 13 Feb 2023 15:52:02 -0800
+To:     mm-commits@vger.kernel.org, rdunlap@xenotime.net, corbet@lwn.net,
+        sj@kernel.org, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [folded-merged] mm-damon-dbgfs-print-damon-debugfs-interface-deprecation-message-fix.patch removed from -mm tree
+Message-Id: <20230213235203.6D188C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Mon, 13 Feb 2023 14:08:12 -0800:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-13-13-50
+The quilt patch titled
+     Subject: mm-damon-dbgfs-print-damon-debugfs-interface-deprecation-message-fix
+has been removed from the -mm tree.  Its filename was
+     mm-damon-dbgfs-print-damon-debugfs-interface-deprecation-message-fix.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/f6feea56f66d34259c4222fa02e8171c4f2673d1
+This patch was dropped because it was folded into mm-damon-dbgfs-print-damon-debugfs-interface-deprecation-message.patch
 
-Thank you!
+------------------------------------------------------
+From: SeongJae Park <sj@kernel.org>
+Subject: mm-damon-dbgfs-print-damon-debugfs-interface-deprecation-message-fix
+Date: Fri, 10 Feb 2023 04:48:38 +0000
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+split DAMON debugfs file open warning message, per Randy
+
+
+Link: https://lkml.kernel.org/r/20230209192009.7885-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230210044838.63723-4-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-print-damon-debugfs-interface-deprecation-message-fix
++++ a/mm/damon/dbgfs.c
+@@ -22,7 +22,10 @@ static DEFINE_MUTEX(damon_dbgfs_lock);
+ 
+ static void damon_dbgfs_warn_deprecation(void)
+ {
+-	pr_warn_once("DAMON debugfs interface is deprecated, so users should move to the sysfs interface (DAMON_SYSFS).  If you depend on this and cannot move, please report your usecase to damon@lists.linux.dev and linux-mm@kvack.org.\n");
++	pr_warn_once("DAMON debugfs interface is deprecated, "
++		     "so users should move to DAMON_SYSFS. If you cannot, "
++		     "please report your usecase to damon@lists.linux.dev and "
++		     "linux-mm@kvack.org.\n");
+ }
+ 
+ /*
+_
+
+Patches currently in -mm which might be from sj@kernel.org are
+
+docs-admin-guide-mm-damon-usage-add-damon-debugfs-interface-deprecation-notice.patch
+mm-damon-kconfig-add-damon-debugfs-interface-deprecation-notice.patch
+mm-damon-dbgfs-print-damon-debugfs-interface-deprecation-message.patch
+
