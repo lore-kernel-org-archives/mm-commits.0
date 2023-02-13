@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84A93C05027
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Feb 2023 23:21:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D467C636D4
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 18:06:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229468AbjBJXVj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Feb 2023 18:21:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60984 "EHLO
+        id S229678AbjBMSG1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Feb 2023 13:06:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229461AbjBJXVj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Feb 2023 18:21:39 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BC8E61D2F
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 15:21:38 -0800 (PST)
+        with ESMTP id S229770AbjBMSG0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 13:06:26 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 175C84C17
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 10:05:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CF2F061EC4
-        for <mm-commits@vger.kernel.org>; Fri, 10 Feb 2023 23:21:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E9B4C433D2;
-        Fri, 10 Feb 2023 23:21:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6118BB80E8E
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 18:05:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE310C433A0;
+        Mon, 13 Feb 2023 18:05:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676071297;
-        bh=7DOkhBzTcw5xiQ/1Fz7V7dWQz0t2x0G54qHw6BGWxBA=;
+        s=korg; t=1676311501;
+        bh=SvWeu4QUxsPm8bCvIcVPgdMpNsjvr6tRCEha+8E2Xwk=;
         h=Date:To:From:Subject:From;
-        b=WSEPxCE1G4G1G/jBmcX3Pi5XHiwHz7d0oiGgo1R9LOF2F8Hv+0ZZj5Sy3edj/m22g
-         Ry4G1E/rW3paMClkgOJNbLIzX5w3hg5JuXl279dnpudkNuQE1IAhI4c6eIvsWUNSXS
-         Nhxs36tPHFFGJMxUmclZM7KES48TKHieAdC3sd0A=
-Date:   Fri, 10 Feb 2023 15:21:36 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, glider@google.com,
+        b=aNvjI9IPsV1X+ZkPzHiEXw8B1Qq7/pOlNLykDlY7vtNLW9HcVJ7xk3KZaNGb2jgkU
+         XNhkMbEcMa9lPxCVnOWmZ05UzELgR90hBJqkn+8tVaKlArHNd+xnK9GFjF3rxQ07qb
+         ngJp4jcvbDlsJ25bLrOEJCWpuV+niZ3tuSJ7SxcU=
+Date:   Mon, 13 Feb 2023 10:05:00 -0800
+To:     mm-commits@vger.kernel.org, glider@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-mm-rename-stack_depot_want_early_init-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20230210232137.2E9B4C433D2@smtp.kernel.org>
+Subject: + lib-stackdepot-move-documentation-comments-to-stackdepoth-fix.patch added to mm-unstable branch
+Message-Id: <20230213180500.EE310C433A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-stackdepot-mm-rename-stack_depot_want_early_init-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-stackdepot-mm-rename-stack_depot_want_early_init-fix.patch
+     Subject: lib-stackdepot-move-documentation-comments-to-stackdepoth-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-stackdepot-move-documentation-comments-to-stackdepoth-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-mm-rename-stack_depot_want_early_init-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-move-documentation-comments-to-stackdepoth-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,32 +66,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-stackdepot-mm-rename-stack_depot_want_early_init-fix
-Date: Fri Feb 10 03:13:49 PM PST 2023
+Subject: lib-stackdepot-move-documentation-comments-to-stackdepoth-fix
+Date: Mon Feb 13 10:04:04 AM PST 2023
 
-update mm/kmemleak.c
+grammar fix, per Alexander
 
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/kmemleak.c~lib-stackdepot-mm-rename-stack_depot_want_early_init-fix
-+++ a/mm/kmemleak.c
-@@ -2071,7 +2071,7 @@ static int __init kmemleak_boot_config(c
- 		kmemleak_disable();
- 	else if (strcmp(str, "on") == 0) {
- 		kmemleak_skip_disable = 1;
--		stack_depot_want_early_init();
-+		stack_depot_request_early_init();
- 	}
- 	else
- 		return -EINVAL;
+--- a/include/linux/stackdepot.h~lib-stackdepot-move-documentation-comments-to-stackdepoth-fix
++++ a/include/linux/stackdepot.h
+@@ -11,7 +11,7 @@
+  * SLUB_DEBUG needs 256 bytes per object for that). Since allocation and free
+  * stack traces often repeat, using stack depot allows to save about 100x space.
+  *
+- * Stack traces are never removed from stack depot.
++ * Stack traces are never removed from the stack depot.
+  *
+  * Author: Alexander Potapenko <glider@google.com>
+  * Copyright (C) 2016 Google, Inc.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 lib-stackdepot-mm-rename-stack_depot_want_early_init-fix.patch
+lib-stackdepot-move-documentation-comments-to-stackdepoth-fix.patch
 
