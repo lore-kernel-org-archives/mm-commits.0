@@ -2,129 +2,121 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAAE7C636CC
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 21:49:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F190BC636CC
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 22:08:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230164AbjBMVtE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Feb 2023 16:49:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40524 "EHLO
+        id S229629AbjBMWIQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Feb 2023 17:08:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231217AbjBMVtC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 16:49:02 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06AAF17CDA
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 13:49:00 -0800 (PST)
+        with ESMTP id S229627AbjBMWIP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 17:08:15 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4892CA273;
+        Mon, 13 Feb 2023 14:08:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9473B6130B
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 21:48:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAD2CC433D2;
-        Mon, 13 Feb 2023 21:48:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D82E361307;
+        Mon, 13 Feb 2023 22:08:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B5C3C433D2;
+        Mon, 13 Feb 2023 22:08:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676324939;
-        bh=Bq3ReEgFDKhYLKbmN+bSmMNH6CCANbK/6ASEjeviofw=;
-        h=Date:To:From:Subject:From;
-        b=HR7qulixhU9CFfs65XNxUZmKky1Tj4aK+uK/slBEdq2UAWTrN7F2KY54NySNJs9ji
-         mEp17wYafYKy5l+OlY2CMWI5Bavjr+pEEdbzxiV/jwgx7SigpKPawqdYpO/QnulC7s
-         6eu5+E/gC34NYX50T1a+lLCrvGkJrLsZegfmtk1U=
-Date:   Mon, 13 Feb 2023 13:48:58 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        m.szyprowski@samsung.com, alex@ghiti.fr, vishal.moola@gmail.com,
-        akpm@linux-foundation.org
+        s=korg; t=1676326093;
+        bh=i9TwxVSkwgF61NSvkuQGhtwSNYbYXtVRB5snHY42JT4=;
+        h=Date:From:To:Cc:Subject:From;
+        b=m9f+uxmpllO3COwWCrYPSMgMAkOTiYOR89B3+p6yWZZ7W/ezpY7EyU3BvxZBIEzz6
+         zvc/sstoItjneWiws7N6TS5dKetP4vC/BxAIWueDpoZB1R3oVqdrTeJc3023TYMlKq
+         iDHA4XVpoBjX1bn/GTsd0dau5UjColuD86z84dVc=
+Date:   Mon, 13 Feb 2023 14:08:12 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-fix-invalid-page-access-in-release_pte_pages.patch added to mm-unstable branch
-Message-Id: <20230213214858.EAD2CC433D2@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.2
+Message-Id: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/khugepaged: fix invalid page access in release_pte_pages()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-fix-invalid-page-access-in-release_pte_pages.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-invalid-page-access-in-release_pte_pages.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/khugepaged: fix invalid page access in release_pte_pages()
-Date: Mon, 13 Feb 2023 13:43:24 -0800
-
-release_pte_pages() converts from a pfn to a folio by using pfn_folio(). 
-If the pte is not mapped, pfn_folio() will result in undefined behavior
-which ends up causing a kernel panic[1].
-
-Only call pfn_folio() once we have validated that the pte is both valid
-and mapped to fix the issue.
-
-[1] https://lore.kernel.org/linux-mm/ff300770-afe9-908d-23ed-d23e0796e899@samsung.com/
-
-Link: https://lkml.kernel.org/r/20230213214324.34215-1-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Fixes: 9bdfeea46f49 ("mm/khugepaged: convert release_pte_pages() to use folios")
-Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Debugged-by: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Linus, please merge this batch of fixes, thanks.
 
 
---- a/mm/khugepaged.c~mm-khugepaged-fix-invalid-page-access-in-release_pte_pages
-+++ a/mm/khugepaged.c
-@@ -511,11 +511,17 @@ static void release_pte_pages(pte_t *pte
- 
- 	while (--_pte >= pte) {
- 		pte_t pteval = *_pte;
-+		unsigned long pfn;
- 
--		folio = pfn_folio(pte_pfn(pteval));
--		if (!pte_none(pteval) && !is_zero_pfn(pte_pfn(pteval)) &&
--				!folio_test_large(folio))
--			release_pte_folio(folio);
-+		if (pte_none(pteval))
-+			continue;
-+		pfn = pte_pfn(pteval);
-+		if (is_zero_pfn(pfn))
-+			continue;
-+		folio = pfn_folio(pfn);
-+		if (folio_test_large(folio))
-+			continue;
-+		release_pte_folio(folio);
- 	}
- 
- 	list_for_each_entry_safe(folio, tmp, compound_pagelist, lru) {
-_
+The following changes since commit ac86f547ca1002aec2ef66b9e64d03f45bbbfbb9:
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+  mm: memcg: fix NULL pointer in mem_cgroup_track_foreign_dirty_slowpath() (2023-01-31 16:44:10 -0800)
 
-mm-khugepaged-fix-invalid-page-access-in-release_pte_pages.patch
-mm-add-folio_estimated_sharers.patch
-mm-mempolicy-convert-queue_pages_pmd-to-queue_folios_pmd.patch
-mm-mempolicy-convert-queue_pages_pte_range-to-queue_folios_pte_range.patch
-mm-mempolicy-convert-queue_pages_hugetlb-to-queue_folios_hugetlb.patch
-mm-mempolicy-convert-queue_pages_required-to-queue_folio_required.patch
-mm-mempolicy-convert-migrate_page_add-to-migrate_folio_add.patch
-mm-add-folio_get_nontail_page.patch
-mm-migrate-add-folio_movable_ops.patch
-mm-migrate-convert-isolate_movable_page-to-use-folios.patch
-mm-migrate-convert-putback_movable_pages-to-use-folios.patch
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-13-13-50
+
+for you to fetch changes up to ce4d9a1ea35ac5429e822c4106cb2859d5c71f3e:
+
+  of: reserved_mem: Have kmemleak ignore dynamically allocated reserved mem (2023-02-09 15:56:51 -0800)
+
+----------------------------------------------------------------
+12 hotfixes, mostly against mm/.  Five of these fixes are cc:stable.
+
+----------------------------------------------------------------
+Alexander Mikhalitsyn (1):
+      mailmap: add entry for Alexander Mikhalitsyn
+
+Andrew Morton (1):
+      revert "squashfs: harden sanity check in squashfs_read_xattr_id_table"
+
+Arnd Bergmann (1):
+      mm: extend max struct page size for kmsan
+
+Christophe Leroy (1):
+      kasan: fix Oops due to missing calls to kasan_arch_is_ready()
+
+Isaac J. Manjarres (1):
+      of: reserved_mem: Have kmemleak ignore dynamically allocated reserved mem
+
+Jeff Xie (1):
+      scripts/gdb: fix 'lx-current' for x86
+
+Kefeng Wang (1):
+      mm: hwpoison: support recovery from ksm_might_need_to_copy()
+
+Kuan-Ying Lee (1):
+      mm/gup: add folio to list when folio_isolate_lru() succeed
+
+Li Lingfeng (1):
+      lib: parser: optimize match_NUMBER apis to use local array
+
+Qi Zheng (1):
+      mm: shrinkers: fix deadlock in shrinker debugfs
+
+Seth Jenkins (1):
+      aio: fix mremap after fork null-deref
+
+Shiyang Ruan (1):
+      fsdax: dax_unshare_iter() should return a valid length
+
+ .mailmap                     |  2 ++
+ drivers/of/of_reserved_mem.c |  3 ++-
+ fs/aio.c                     |  4 ++++
+ fs/dax.c                     |  5 +++--
+ fs/squashfs/xattr_id.c       |  2 +-
+ include/linux/mm.h           | 12 +++++++++---
+ include/linux/shrinker.h     |  5 +++--
+ lib/parser.c                 | 39 ++++++++++++++++++++-------------------
+ mm/gup.c                     |  2 +-
+ mm/kasan/common.c            |  3 +++
+ mm/kasan/generic.c           |  7 ++++++-
+ mm/kasan/shadow.c            | 12 ++++++++++++
+ mm/ksm.c                     |  7 +++++--
+ mm/memory.c                  |  3 +++
+ mm/shrinker_debug.c          | 13 ++++++++-----
+ mm/swapfile.c                | 20 ++++++++++++++------
+ mm/vmscan.c                  |  6 +++++-
+ scripts/gdb/linux/cpus.py    |  2 +-
+ 18 files changed, 102 insertions(+), 45 deletions(-)
 
