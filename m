@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0F75C636CC
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 18:22:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3FCFC636D4
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 18:29:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231149AbjBMSWV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Feb 2023 13:22:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41662 "EHLO
+        id S229554AbjBMS3g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Feb 2023 13:29:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231298AbjBMSWP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 13:22:15 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F8081A94A
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 10:21:53 -0800 (PST)
+        with ESMTP id S229484AbjBMS3g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 13:29:36 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3E8B1259D
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 10:29:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2D712B81730
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 18:21:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1A2FC433D2;
-        Mon, 13 Feb 2023 18:21:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0613C6123A
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 18:28:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 571AEC433EF;
+        Mon, 13 Feb 2023 18:28:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676312510;
-        bh=hTOiwhB7hAHMfv1hquENXq4/AVQR4dlvgUgTeu4LIw8=;
+        s=korg; t=1676312886;
+        bh=7v8966LmdPjyMk0PbfQEscZr5DS8z5FZZAc4aTjBvYE=;
         h=Date:To:From:Subject:From;
-        b=fKx6mu/C2zqHncqDaAr+w6GW3dn7LFZ6oiIcf1rscm8WZNYLlRXFqFjID4akyk0Wg
-         cvdnVRqmq6Q/YjbbhZ7Wdtw2TzVgaCf4c6U6qG4N5oYRKvQKq6qqIUqE0Ddr7qDFBi
-         gacBxD7+AXq7O33rsskmVHv/FTlxnJZ42IzhDpQE=
-Date:   Mon, 13 Feb 2023 10:21:50 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
-        willy@infradead.org, shy828301@gmail.com, osalvador@suse.de,
-        minchan@kernel.org, mike.kravetz@oracle.com, bharata@amd.com,
-        baolin.wang@linux.alibaba.com, apopple@nvidia.com,
-        42.hyeyoo@gmail.com, ying.huang@intel.com,
-        akpm@linux-foundation.org
+        b=NbNgEgdK2fDwp5lLyu4kITqAyQqYjx1y39EQA6czc1Cd8nvcFRBf31AoEkqkj52/2
+         qd6LX1OvWdntqDsl+0m9PTqSNpHEWjlLVA/nxxyo2wXQtdmTCGQIEA2Fc5nvhfVLp+
+         lIJyhMp/Of68oxcKLZ/HWAAlQzegOJUG85P2k0WI=
+Date:   Mon, 13 Feb 2023 10:28:05 -0800
+To:     mm-commits@vger.kernel.org, tjmercier@google.com,
+        yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code.patch added to mm-unstable branch
-Message-Id: <20230213182150.C1A2FC433D2@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-avoid-futile-retries.patch added to mm-unstable branch
+Message-Id: <20230213182806.571AEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: migrate_pages: move THP/hugetlb migration support check to simplify code
+     Subject: mm: multi-gen LRU: avoid futile retries
 has been added to the -mm mm-unstable branch.  Its filename is
-     migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code.patch
+     mm-multi-gen-lru-avoid-futile-retries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-avoid-futile-retries.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,175 +64,95 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: migrate_pages: move THP/hugetlb migration support check to simplify code
-Date: Mon, 13 Feb 2023 20:34:44 +0800
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: multi-gen LRU: avoid futile retries
+Date: Mon, 13 Feb 2023 00:53:22 -0700
 
-This is a code cleanup patch, no functionality change is expected.  After
-the change, the line number reduces especially in the long
-migrate_pages_batch().
+Recall that the per-node memcg LRU has two generations and they alternate
+when the last memcg (of a given node) is moved from one to the other. 
+Each generation is also sharded into multiple bins to improve scalability.
+A reclaimer starts with a random bin (in the old generation) and, if it
+fails, it will retry, i.e., to try the rest of the bins.
 
-Link: https://lkml.kernel.org/r/20230213123444.155149-10-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Suggested-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: Xin Hao <xhao@linux.alibaba.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+If a reclaimer fails with the last memcg, it should move this memcg to the
+young generation first, which causes the generations to alternate, and
+then retry.  Otherwise, the retries will be futile because all other bins
+are empty.
+
+Link: https://lkml.kernel.org/r/20230213075322.1416966-1-yuzhao@google.com
+Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reported-by: T.J. Mercier <tjmercier@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/migrate.c~migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code
-+++ a/mm/migrate.c
-@@ -1117,9 +1117,6 @@ static int migrate_folio_unmap(new_page_
- 	bool locked = false;
- 	bool dst_locked = false;
+--- a/mm/vmscan.c~mm-multi-gen-lru-avoid-futile-retries
++++ a/mm/vmscan.c
+@@ -5356,18 +5356,20 @@ static int shrink_one(struct lruvec *lru
  
--	if (!thp_migration_supported() && folio_test_transhuge(src))
--		return -ENOSYS;
+ static void shrink_many(struct pglist_data *pgdat, struct scan_control *sc)
+ {
++	int op;
+ 	int gen;
+ 	int bin;
+ 	int first_bin;
+ 	struct lruvec *lruvec;
+ 	struct lru_gen_folio *lrugen;
++	struct mem_cgroup *memcg;
+ 	const struct hlist_nulls_node *pos;
+-	int op = 0;
+-	struct mem_cgroup *memcg = NULL;
+ 	unsigned long nr_to_reclaim = get_nr_to_reclaim(sc);
+ 
+ 	bin = first_bin = get_random_u32_below(MEMCG_NR_BINS);
+ restart:
++	op = 0;
++	memcg = NULL;
+ 	gen = get_memcg_gen(READ_ONCE(pgdat->memcg_lru.seq));
+ 
+ 	rcu_read_lock();
+@@ -5391,14 +5393,22 @@ restart:
+ 
+ 		op = shrink_one(lruvec, sc);
+ 
+-		if (sc->nr_reclaimed >= nr_to_reclaim)
+-			goto success;
 -
- 	if (folio_ref_count(src) == 1) {
- 		/* Folio was freed from under us. So we are done. */
- 		folio_clear_active(src);
-@@ -1380,16 +1377,6 @@ static int unmap_and_move_huge_page(new_
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
- 
--	/*
--	 * Migratability of hugepages depends on architectures and their size.
--	 * This check is necessary because some callers of hugepage migration
--	 * like soft offline and memory hotremove don't walk through page
--	 * tables or check whether the hugepage is pmd-based or not before
--	 * kicking migration.
--	 */
--	if (!hugepage_migration_supported(page_hstate(hpage)))
--		return -ENOSYS;
--
- 	if (folio_ref_count(src) == 1) {
- 		/* page was freed from under us. So we are done. */
- 		folio_putback_active_hugetlb(src);
-@@ -1556,6 +1543,20 @@ static int migrate_hugetlbs(struct list_
- 
- 			cond_resched();
- 
-+			/*
-+			 * Migratability of hugepages depends on architectures and
-+			 * their size.  This check is necessary because some callers
-+			 * of hugepage migration like soft offline and memory
-+			 * hotremove don't walk through page tables or check whether
-+			 * the hugepage is pmd-based or not before kicking migration.
-+			 */
-+			if (!hugepage_migration_supported(folio_hstate(folio))) {
-+				nr_failed++;
-+				stats->nr_failed_pages += nr_pages;
-+				list_move_tail(&folio->lru, ret_folios);
-+				continue;
-+			}
+ 		rcu_read_lock();
 +
- 			rc = unmap_and_move_huge_page(get_new_page,
- 						      put_new_page, private,
- 						      &folio->page, pass > 2, mode,
-@@ -1565,16 +1566,9 @@ static int migrate_hugetlbs(struct list_
- 			 *	Success: hugetlb folio will be put back
- 			 *	-EAGAIN: stay on the from list
- 			 *	-ENOMEM: stay on the from list
--			 *	-ENOSYS: stay on the from list
- 			 *	Other errno: put on ret_folios list
- 			 */
- 			switch(rc) {
--			case -ENOSYS:
--				/* Hugetlb migration is unsupported */
--				nr_failed++;
--				stats->nr_failed_pages += nr_pages;
--				list_move_tail(&folio->lru, ret_folios);
--				break;
- 			case -ENOMEM:
- 				/*
- 				 * When memory is low, don't bother to try to migrate
-@@ -1664,6 +1658,28 @@ retry:
++		if (sc->nr_reclaimed >= nr_to_reclaim)
++			break;
+ 	}
  
- 			cond_resched();
+ 	rcu_read_unlock();
  
-+			/*
-+			 * Large folio migration might be unsupported or
-+			 * the allocation might be failed so we should retry
-+			 * on the same folio with the large folio split
-+			 * to normal folios.
-+			 *
-+			 * Split folios are put in split_folios, and
-+			 * we will migrate them after the rest of the
-+			 * list is processed.
-+			 */
-+			if (!thp_migration_supported() && is_thp) {
-+				nr_large_failed++;
-+				stats->nr_thp_failed++;
-+				if (!try_split_folio(folio, &split_folios)) {
-+					stats->nr_thp_split++;
-+					continue;
-+				}
-+				stats->nr_failed_pages += nr_pages;
-+				list_move_tail(&folio->lru, ret_folios);
-+				continue;
-+			}
++	if (op)
++		lru_gen_rotate_memcg(lruvec, op);
 +
- 			rc = migrate_folio_unmap(get_new_page, put_new_page, private,
- 						 folio, &dst, pass > 2, avoid_force_lock,
- 						 mode, reason, ret_folios);
-@@ -1675,36 +1691,9 @@ retry:
- 			 *	-EAGAIN: stay on the from list
- 			 *	-EDEADLOCK: stay on the from list
- 			 *	-ENOMEM: stay on the from list
--			 *	-ENOSYS: stay on the from list
- 			 *	Other errno: put on ret_folios list
- 			 */
- 			switch(rc) {
--			/*
--			 * Large folio migration might be unsupported or
--			 * the allocation could've failed so we should retry
--			 * on the same folio with the large folio split
--			 * to normal folios.
--			 *
--			 * Split folios are put in split_folios, and
--			 * we will migrate them after the rest of the
--			 * list is processed.
--			 */
--			case -ENOSYS:
--				/* Large folio migration is unsupported */
--				if (is_large) {
--					nr_large_failed++;
--					stats->nr_thp_failed += is_thp;
--					if (!try_split_folio(folio, &split_folios)) {
--						stats->nr_thp_split += is_thp;
--						break;
--					}
--				} else if (!no_split_folio_counting) {
--					nr_failed++;
--				}
++	mem_cgroup_put(memcg);
++
++	if (sc->nr_reclaimed >= nr_to_reclaim)
++		return;
++
+ 	/* restart if raced with lru_gen_rotate_memcg() */
+ 	if (gen != get_nulls_value(pos))
+ 		goto restart;
+@@ -5407,11 +5417,6 @@ restart:
+ 	bin = get_memcg_bin(bin + 1);
+ 	if (bin != first_bin)
+ 		goto restart;
+-success:
+-	if (op)
+-		lru_gen_rotate_memcg(lruvec, op);
 -
--				stats->nr_failed_pages += nr_pages;
--				list_move_tail(&folio->lru, ret_folios);
--				break;
- 			case -ENOMEM:
- 				/*
- 				 * When memory is low, don't bother to try to migrate
+-	mem_cgroup_put(memcg);
+ }
+ 
+ static void lru_gen_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-migrate_pages-organize-stats-with-struct-migrate_pages_stats.patch
-migrate_pages-separate-hugetlb-folios-migration.patch
-migrate_pages-restrict-number-of-pages-to-migrate-in-batch.patch
-migrate_pages-split-unmap_and_move-to-_unmap-and-_move.patch
-migrate_pages-batch-_unmap-and-_move.patch
-migrate_pages-move-migrate_folio_unmap.patch
-migrate_pages-share-more-code-between-_unmap-and-_move.patch
-migrate_pages-batch-flushing-tlb.patch
-migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code.patch
+mm-multi-gen-lru-avoid-futile-retries.patch
 
