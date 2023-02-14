@@ -2,101 +2,78 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A416C6379F
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Feb 2023 23:56:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25C01C636CC
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Feb 2023 01:26:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231334AbjBMX42 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Feb 2023 18:56:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60746 "EHLO
+        id S230120AbjBNB0J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Feb 2023 20:26:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40766 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231326AbjBMX4B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 18:56:01 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B074199D2
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 15:55:43 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 807E2CE0B18
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2023 23:55:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E40EC433EF;
-        Mon, 13 Feb 2023 23:55:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676332539;
-        bh=g+1fVFJSMwpbXKxF3Q7Iy+GKpjjozARwRyv5KmzbaZ0=;
-        h=Date:To:From:Subject:From;
-        b=ZMZ0B/EuHgIoTxeID7RNpDyIPI2QCfzfSl6p0FKTE90NPerc9KOToLTjWqbd8PjQl
-         i1FGCbMenHPa/Gl+E2OzyAUFDUJQR+bufbspVvtZg8v1QNrf0gihK4Ng6suYMxM6M2
-         Je45i+BdxghZHUfvoXbWClhEObZpxjRdxxCFGhiA=
-Date:   Mon, 13 Feb 2023 15:55:39 -0800
-To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-kconfig-add-damon-debugfs-interface-deprecation-notice.patch removed from -mm tree
-Message-Id: <20230213235539.9E40EC433EF@smtp.kernel.org>
+        with ESMTP id S229601AbjBNB0I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 20:26:08 -0500
+Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA4F912061;
+        Mon, 13 Feb 2023 17:26:05 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R911e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045168;MF=baolin.wang@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0VbdH-ho_1676337963;
+Received: from 30.97.48.79(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0VbdH-ho_1676337963)
+          by smtp.aliyun-inc.com;
+          Tue, 14 Feb 2023 09:26:03 +0800
+Message-ID: <dd2ba3b9-8fab-ce3b-4f01-eadbb527f3bc@linux.alibaba.com>
+Date:   Tue, 14 Feb 2023 09:26:03 +0800
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.7.2
+Subject: Re: [GIT PULL] hotfixes for 6.2
+To:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
+ <CAHk-=wiBrY+O-4=2mrbVyxR+hOqfdJ=Do6xoucfJ9_5az01L4Q@mail.gmail.com>
+From:   Baolin Wang <baolin.wang@linux.alibaba.com>
+In-Reply-To: <CAHk-=wiBrY+O-4=2mrbVyxR+hOqfdJ=Do6xoucfJ9_5az01L4Q@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/damon/Kconfig: add DAMON debugfs interface deprecation notice
-has been removed from the -mm tree.  Its filename was
-     mm-damon-kconfig-add-damon-debugfs-interface-deprecation-notice.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+On 2/14/2023 6:19 AM, Linus Torvalds wrote:
+> On Mon, Feb 13, 2023 at 2:08 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>>
+>> Kuan-Ying Lee (1):
+>>        mm/gup: add folio to list when folio_isolate_lru() succeed
+> 
+> Ugh. I really hate fixes like this.
+> 
+> The problem came from mis-understanding the return value of
+> folio_isolate_lru(), and thinking that it was a boolean
+> success/failure thing.
+> 
+> It wasn't, it was an integer "success/errno" thing, and the sense of
+> the test was wrong. So the patch is
+> 
+> -       if (!folio_isolate_lru(folio))
+> +       if (folio_isolate_lru(folio))
+>                  continue;
+> 
+> but at no point was the code *clarified*.
+> 
+> Wouldn't it have been much better to write the new code to be
+> 
+>          if (folio_isolate_lru(folio) < 0)
+>                  continue;
+> 
+> to actually make it clear that this is a "negative error return check".
+> 
+> I've pulled this, but I really think that when somebody notices that
+> we had a silly bug because of a misunderstanding like this, it's not
+> just that the bug should be fixed, the code should also be *clarified*
+> at the same time.
 
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/Kconfig: add DAMON debugfs interface deprecation notice
-Date: Thu, 9 Feb 2023 19:20:08 +0000
-
-DAMON debugfs interface has announced to be deprecated after >v5.15 LTS
-kernel is released.  And, v6.1.y has announced to be an LTS[1].
-
-Though the announcement was there for a while, some people might not
-noticed that so far.  Also, some users could depend on it and have
-problems at  movng to the alternative (DAMON sysfs interface).
-
-For such cases, note DAMON debugfs interface as deprecated, and contacts
-to ask helps on the Kconfig.
-
-[1] https://git.kernel.org/pub/scm/docs/kernel/website.git/commit/?id=332e9121320bc7461b2d3a79665caf153e51732c
-
-Link: https://lkml.kernel.org/r/20230209192009.7885-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
-
---- a/mm/damon/Kconfig~mm-damon-kconfig-add-damon-debugfs-interface-deprecation-notice
-+++ a/mm/damon/Kconfig
-@@ -60,7 +60,7 @@ config DAMON_SYSFS
- 	  the interface for arbitrary data access monitoring.
- 
- config DAMON_DBGFS
--	bool "DAMON debugfs interface"
-+	bool "DAMON debugfs interface (DEPRECATED!)"
- 	depends on DAMON_VADDR && DAMON_PADDR && DEBUG_FS
- 	help
- 	  This builds the debugfs interface for DAMON.  The user space admins
-@@ -68,8 +68,9 @@ config DAMON_DBGFS
- 
- 	  If unsure, say N.
- 
--	  This will be removed after >5.15.y LTS kernel is released, so users
--	  should move to the sysfs interface (DAMON_SYSFS).
-+	  This is deprecated, so users should move to the sysfs interface
-+	  (DAMON_SYSFS).  If you depend on this and cannot move, please report
-+	  your usecase to damon@lists.linux.dev and linux-mm@kvack.org.
- 
- config DAMON_DBGFS_KUNIT_TEST
- 	bool "Test for damon debugfs interface" if !KUNIT_ALL_TESTS
-_
-
-Patches currently in -mm which might be from sj@kernel.org are
-
-
+Yes, agree, I need to check the return value of folio_isolate_lru() 
+every time when looking at the code. I can help to create a patch to 
+make it clear for all users.
