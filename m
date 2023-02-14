@@ -2,78 +2,139 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25C01C636CC
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Feb 2023 01:26:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12F95C61DA4
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Feb 2023 19:41:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230120AbjBNB0J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Feb 2023 20:26:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40766 "EHLO
+        id S232593AbjBNTlk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Feb 2023 14:41:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229601AbjBNB0I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2023 20:26:08 -0500
-Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA4F912061;
-        Mon, 13 Feb 2023 17:26:05 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R911e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045168;MF=baolin.wang@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0VbdH-ho_1676337963;
-Received: from 30.97.48.79(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0VbdH-ho_1676337963)
-          by smtp.aliyun-inc.com;
-          Tue, 14 Feb 2023 09:26:03 +0800
-Message-ID: <dd2ba3b9-8fab-ce3b-4f01-eadbb527f3bc@linux.alibaba.com>
-Date:   Tue, 14 Feb 2023 09:26:03 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.7.2
-Subject: Re: [GIT PULL] hotfixes for 6.2
-To:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20230213140812.db63c7146ebc396691594b73@linux-foundation.org>
- <CAHk-=wiBrY+O-4=2mrbVyxR+hOqfdJ=Do6xoucfJ9_5az01L4Q@mail.gmail.com>
-From:   Baolin Wang <baolin.wang@linux.alibaba.com>
-In-Reply-To: <CAHk-=wiBrY+O-4=2mrbVyxR+hOqfdJ=Do6xoucfJ9_5az01L4Q@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S229483AbjBNTlj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2023 14:41:39 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 588B02BEF2
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2023 11:41:38 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C290DB81EBE
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2023 19:41:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67615C4339B;
+        Tue, 14 Feb 2023 19:41:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1676403695;
+        bh=hpjB1DfN0z9MwO2rUFR4yJfGEYrCpu6VgD4/y8+7FSA=;
+        h=Date:To:From:Subject:From;
+        b=ojFZYEFg5i6g+oIImoaU6CyxEfRKVeZtB1TVVrBNWT05pFOw10J8RfNQE2Q8lh3TG
+         aa/DxB0xsHjatNpvVrdzXAuxyHz+WntU6Ly/Xj55p5QyxnMWSJaeKZJ+aRX7Vdhus9
+         VXWmfsHv19oubI/DLHN8AmM5LCsp0gDSTa8CZ900=
+Date:   Tue, 14 Feb 2023 11:41:34 -0800
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        vernon2gm@gmail.com, ryabinin.a.a@gmail.com,
+        Liam.Howlett@Oracle.com, glider@google.com, dvyukov@google.com,
+        david@redhat.com, andreyknvl@gmail.com, arnd@arndb.de,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + maple_tree-reduce-stack-usage-with-gcc-9-and-earlier.patch added to mm-unstable branch
+Message-Id: <20230214194135.67615C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
+The patch titled
+     Subject: maple_tree: reduce stack usage with gcc-9 and earlier
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple_tree-reduce-stack-usage-with-gcc-9-and-earlier.patch
 
-On 2/14/2023 6:19 AM, Linus Torvalds wrote:
-> On Mon, Feb 13, 2023 at 2:08 PM Andrew Morton <akpm@linux-foundation.org> wrote:
->>
->> Kuan-Ying Lee (1):
->>        mm/gup: add folio to list when folio_isolate_lru() succeed
-> 
-> Ugh. I really hate fixes like this.
-> 
-> The problem came from mis-understanding the return value of
-> folio_isolate_lru(), and thinking that it was a boolean
-> success/failure thing.
-> 
-> It wasn't, it was an integer "success/errno" thing, and the sense of
-> the test was wrong. So the patch is
-> 
-> -       if (!folio_isolate_lru(folio))
-> +       if (folio_isolate_lru(folio))
->                  continue;
-> 
-> but at no point was the code *clarified*.
-> 
-> Wouldn't it have been much better to write the new code to be
-> 
->          if (folio_isolate_lru(folio) < 0)
->                  continue;
-> 
-> to actually make it clear that this is a "negative error return check".
-> 
-> I've pulled this, but I really think that when somebody notices that
-> we had a silly bug because of a misunderstanding like this, it's not
-> just that the bug should be fixed, the code should also be *clarified*
-> at the same time.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-reduce-stack-usage-with-gcc-9-and-earlier.patch
 
-Yes, agree, I need to check the return value of folio_isolate_lru() 
-every time when looking at the code. I can help to create a patch to 
-make it clear for all users.
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: maple_tree: reduce stack usage with gcc-9 and earlier
+Date: Tue, 14 Feb 2023 11:30:24 +0100
+
+gcc-10 changed the way inlining works to be less aggressive, but older
+versions run into an oversized stack frame warning whenever
+CONFIG_KASAN_STACK is enabled, as that forces variables from inlined
+callees to be non-overlapping:
+
+lib/maple_tree.c: In function 'mas_wr_bnode':
+lib/maple_tree.c:4320:1: error: the frame size of 1424 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
+
+Change the annotations on mas_store_b_node() and mas_commit_b_node()
+to explicitly forbid inlining in this configuration, which is
+the same behavior that newer versions already have.
+
+Link: https://lkml.kernel.org/r/20230214103030.1051950-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Vernon Yang <vernon2gm@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+
+--- a/lib/maple_tree.c~maple_tree-reduce-stack-usage-with-gcc-9-and-earlier
++++ a/lib/maple_tree.c
+@@ -146,6 +146,13 @@ struct maple_subtree_state {
+ 	struct maple_big_node *bn;
+ };
+ 
++#ifdef CONFIG_KASAN_STACK
++/* Prevent mas_wr_bnode() from exceeding the stack frame limit */
++#define noinline_for_kasan noinline_for_stack
++#else
++#define noinline_for_kasan inline
++#endif
++
+ /* Functions */
+ static inline struct maple_node *mt_alloc_one(gfp_t gfp)
+ {
+@@ -2107,7 +2114,7 @@ static inline void mas_bulk_rebalance(st
+  *
+  * Return: The actual end of the data stored in @b_node
+  */
+-static inline void mas_store_b_node(struct ma_wr_state *wr_mas,
++static noinline_for_kasan void mas_store_b_node(struct ma_wr_state *wr_mas,
+ 		struct maple_big_node *b_node, unsigned char offset_end)
+ {
+ 	unsigned char slot;
+@@ -3579,7 +3586,7 @@ static inline bool mas_reuse_node(struct
+  * @b_node: The maple big node
+  * @end: The end of the data.
+  */
+-static inline int mas_commit_b_node(struct ma_wr_state *wr_mas,
++static noinline_for_kasan int mas_commit_b_node(struct ma_wr_state *wr_mas,
+ 			    struct maple_big_node *b_node, unsigned char end)
+ {
+ 	struct maple_node *node;
+_
+
+Patches currently in -mm which might be from arnd@arndb.de are
+
+maple_tree-reduce-stack-usage-with-gcc-9-and-earlier.patch
+
