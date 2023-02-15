@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3462C636CC
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Feb 2023 20:59:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68D2DC64EC7
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Feb 2023 20:59:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229647AbjBOU67 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Feb 2023 15:58:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52964 "EHLO
+        id S229462AbjBOU7A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Feb 2023 15:59:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229783AbjBOU6l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2023 15:58:41 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3E0D3E0B9
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2023 12:56:06 -0800 (PST)
+        with ESMTP id S230010AbjBOU6o (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2023 15:58:44 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C284474CD
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2023 12:56:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 73E9BB823AD
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2023 20:55:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27B6BC433D2;
-        Wed, 15 Feb 2023 20:55:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E98F261D69
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2023 20:55:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45D98C433EF;
+        Wed, 15 Feb 2023 20:55:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676494525;
-        bh=YNmh2tvCTZhM16PbxWXtDitDKGSuLiacXLGkbxN7QVI=;
+        s=korg; t=1676494528;
+        bh=KzneInbO7eF/Y92y3R+z0GxBqjDzN5RZt+cww9pHoTw=;
         h=Date:To:From:Subject:From;
-        b=QqDgO4gx60fMYw9W0kucdr0B8uG5FKrXShGOtfRfPR364zLBuCKMi29U5hKKeWIbq
-         x2J+iZQIPCqlGkssFnk5Vex7rtDFcFWUvMoUQQQcT0W//JzPpitFTvE/oHctJd2Ikz
-         lGMBGROwLXx/2By+XFMZp3g8H0Il/fGpCMt+AqfE=
-Date:   Wed, 15 Feb 2023 12:55:24 -0800
+        b=SIz7j87b3vnxVxshcp9OzJOfZ8WearkiBxgatDamaLYKSadwvOaxBdnO8PDlB4rL6
+         n61D1AYr2EZfQ+y4LoDMZ89snDnM91i33pwU7Tkn5wFFFCKe8bBDHNO0qR/9sHTGmw
+         jPsN2IaWqmmGOcMPiq8x4ckD4Ijl89wl8Dy2B+ws=
+Date:   Wed, 15 Feb 2023 12:55:27 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        torvalds@linux-foundation.org, sj@kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, osalvador@suse.de,
-        naoya.horiguchi@nec.com, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, mhocko@kernel.org, linmiaohe@huawei.com,
-        hannes@cmpxchg.org, david@redhat.com,
+        torvalds@linux-foundation.org, sj@kernel.org, david@redhat.com,
         baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-change-to-return-bool-for-folio_isolate_lru.patch added to mm-unstable branch
-Message-Id: <20230215205525.27B6BC433D2@smtp.kernel.org>
+Subject: + mm-change-to-return-bool-for-isolate_lru_page.patch added to mm-unstable branch
+Message-Id: <20230215205528.45D98C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: change to return bool for folio_isolate_lru()
+     Subject: mm: change to return bool for isolate_lru_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-change-to-return-bool-for-folio_isolate_lru.patch
+     mm-change-to-return-bool-for-isolate_lru_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-change-to-return-bool-for-folio_isolate_lru.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-change-to-return-bool-for-isolate_lru_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,208 +66,186 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: change to return bool for folio_isolate_lru()
-Date: Wed, 15 Feb 2023 18:39:34 +0800
+Subject: mm: change to return bool for isolate_lru_page()
+Date: Wed, 15 Feb 2023 18:39:35 +0800
 
-Patch series "Change the return value for page isolation functions", v3.
+The isolate_lru_page() can only return 0 or -EBUSY, and most users did not
+care about the negative error of isolate_lru_page(), except one user in
+add_page_for_migration().  So we can convert the isolate_lru_page() to
+return a boolean value, which can help to make the code more clear when
+checking the return value of isolate_lru_page().
 
-Now the page isolation functions did not return a boolean to indicate
-success or not, instead it will return a negative error when failed
-to isolate a page. So below code used in most places seem a boolean
-success/failure thing, which can confuse people whether the isolation
-is successful.
-
-if (folio_isolate_lru(folio))
-        continue;
-
-Moreover the page isolation functions only return 0 or -EBUSY, and
-most users did not care about the negative error except for few users,
-thus we can convert all page isolation functions to return a boolean
-value, which can remove the confusion to make code more clear.
-
-No functional changes intended in this patch series.
-
-
-This patch (of 4):
-
-Now the folio_isolate_lru() did not return a boolean value to indicate
-isolation success or not, however below code checking the return value can
-make people think that it was a boolean success/failure thing, which makes
-people easy to make mistakes (see the fix patch[1]).
-
-if (folio_isolate_lru(folio))
-	continue;
-
-Thus it's better to check the negative error value expilictly returned by
-folio_isolate_lru(), which makes code more clear per Linus's
-suggestion[2].  Moreover Matthew suggested we can convert the isolation
-functions to return a boolean[3], since most users did not care about the
-negative error value, and can also remove the confusing of checking return
-value.
-
-So this patch converts the folio_isolate_lru() to return a boolean value,
-which means return 'true' to indicate the folio isolation is successful,
-and 'false' means a failure to isolation.  Meanwhile changing all users'
-logic of checking the isolation state.
+Also convert all users' logic of checking the isolation state.
 
 No functional changes intended.
 
-[1] https://lore.kernel.org/all/20230131063206.28820-1-Kuan-Ying.Lee@mediatek.com/T/#u
-[2] https://lore.kernel.org/all/CAHk-=wiBrY+O-4=2mrbVyxR+hOqfdJ=Do6xoucfJ9_5az01L4Q@mail.gmail.com/
-[3] https://lore.kernel.org/all/Y+sTFqwMNAjDvxw3@casper.infradead.org/
-
-Link: https://lkml.kernel.org/r/cover.1676424378.git.baolin.wang@linux.alibaba.com
-Link: https://lkml.kernel.org/r/8a4e3679ed4196168efadf7ea36c038f2f7d5aa9.1676424378.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/3074c1ab628d9dbf139b33f248a8bc253a3f95f0.1676424378.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
 Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c  |    2 +-
- mm/folio-compat.c |    8 +++++++-
- mm/gup.c          |    2 +-
- mm/internal.h     |    2 +-
- mm/khugepaged.c   |    2 +-
- mm/madvise.c      |    4 ++--
- mm/mempolicy.c    |    2 +-
- mm/vmscan.c       |   10 +++++-----
- 8 files changed, 19 insertions(+), 13 deletions(-)
+ mm/folio-compat.c   |   12 +++---------
+ mm/internal.h       |    2 +-
+ mm/khugepaged.c     |    2 +-
+ mm/memcontrol.c     |    4 ++--
+ mm/memory-failure.c |    4 ++--
+ mm/memory_hotplug.c |    8 +++++---
+ mm/migrate.c        |    9 ++++++---
+ mm/migrate_device.c |    2 +-
+ 8 files changed, 21 insertions(+), 22 deletions(-)
 
---- a/mm/damon/paddr.c~mm-change-to-return-bool-for-folio_isolate_lru
-+++ a/mm/damon/paddr.c
-@@ -246,7 +246,7 @@ static unsigned long damon_pa_pageout(st
- 
- 		folio_clear_referenced(folio);
- 		folio_test_clear_young(folio);
--		if (folio_isolate_lru(folio)) {
-+		if (!folio_isolate_lru(folio)) {
- 			folio_put(folio);
- 			continue;
- 		}
---- a/mm/folio-compat.c~mm-change-to-return-bool-for-folio_isolate_lru
+--- a/mm/folio-compat.c~mm-change-to-return-bool-for-isolate_lru_page
 +++ a/mm/folio-compat.c
-@@ -115,9 +115,15 @@ EXPORT_SYMBOL(grab_cache_page_write_begi
+@@ -113,17 +113,11 @@ struct page *grab_cache_page_write_begin
+ }
+ EXPORT_SYMBOL(grab_cache_page_write_begin);
  
- int isolate_lru_page(struct page *page)
+-int isolate_lru_page(struct page *page)
++bool isolate_lru_page(struct page *page)
  {
-+	bool ret;
-+
+-	bool ret;
+-
  	if (WARN_RATELIMIT(PageTail(page), "trying to isolate tail page"))
- 		return -EBUSY;
--	return folio_isolate_lru((struct folio *)page);
-+	ret = folio_isolate_lru((struct folio *)page);
-+	if (ret)
-+		return 0;
-+
-+	return -EBUSY;
+-		return -EBUSY;
+-	ret = folio_isolate_lru((struct folio *)page);
+-	if (ret)
+-		return 0;
+-
+-	return -EBUSY;
++		return false;
++	return folio_isolate_lru((struct folio *)page);
  }
  
  void putback_lru_page(struct page *page)
---- a/mm/gup.c~mm-change-to-return-bool-for-folio_isolate_lru
-+++ a/mm/gup.c
-@@ -1939,7 +1939,7 @@ static unsigned long collect_longterm_un
- 			drain_allow = false;
- 		}
- 
--		if (folio_isolate_lru(folio))
-+		if (!folio_isolate_lru(folio))
- 			continue;
- 
- 		list_add_tail(&folio->lru, movable_page_list);
---- a/mm/internal.h~mm-change-to-return-bool-for-folio_isolate_lru
+--- a/mm/internal.h~mm-change-to-return-bool-for-isolate_lru_page
 +++ a/mm/internal.h
-@@ -188,7 +188,7 @@ pgprot_t __init early_memremap_pgprot_ad
+@@ -187,7 +187,7 @@ pgprot_t __init early_memremap_pgprot_ad
+ /*
   * in mm/vmscan.c:
   */
- int isolate_lru_page(struct page *page);
--int folio_isolate_lru(struct folio *folio);
-+bool folio_isolate_lru(struct folio *folio);
+-int isolate_lru_page(struct page *page);
++bool isolate_lru_page(struct page *page);
+ bool folio_isolate_lru(struct folio *folio);
  void putback_lru_page(struct page *page);
  void folio_putback_lru(struct folio *folio);
- extern void reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason);
---- a/mm/khugepaged.c~mm-change-to-return-bool-for-folio_isolate_lru
+--- a/mm/khugepaged.c~mm-change-to-return-bool-for-isolate_lru_page
 +++ a/mm/khugepaged.c
-@@ -2047,7 +2047,7 @@ static int collapse_file(struct mm_struc
- 			goto out_unlock;
- 		}
- 
--		if (folio_isolate_lru(folio)) {
-+		if (!folio_isolate_lru(folio)) {
+@@ -659,7 +659,7 @@ static int __collapse_huge_page_isolate(
+ 		 * Isolate the page to avoid collapsing an hugepage
+ 		 * currently in use by the VM.
+ 		 */
+-		if (isolate_lru_page(page)) {
++		if (!isolate_lru_page(page)) {
+ 			unlock_page(page);
  			result = SCAN_DEL_PAGE_LRU;
- 			goto out_unlock;
- 		}
---- a/mm/madvise.c~mm-change-to-return-bool-for-folio_isolate_lru
-+++ a/mm/madvise.c
-@@ -406,7 +406,7 @@ static int madvise_cold_or_pageout_pte_r
- 		folio_clear_referenced(folio);
- 		folio_test_clear_young(folio);
- 		if (pageout) {
--			if (!folio_isolate_lru(folio)) {
-+			if (folio_isolate_lru(folio)) {
- 				if (folio_test_unevictable(folio))
- 					folio_putback_lru(folio);
- 				else
-@@ -500,7 +500,7 @@ regular_folio:
- 		folio_clear_referenced(folio);
- 		folio_test_clear_young(folio);
- 		if (pageout) {
--			if (!folio_isolate_lru(folio)) {
-+			if (folio_isolate_lru(folio)) {
- 				if (folio_test_unevictable(folio))
- 					folio_putback_lru(folio);
- 				else
---- a/mm/mempolicy.c~mm-change-to-return-bool-for-folio_isolate_lru
-+++ a/mm/mempolicy.c
-@@ -1033,7 +1033,7 @@ static int migrate_folio_add(struct foli
- 	 * expensive, so check the estimated mapcount of the folio instead.
- 	 */
- 	if ((flags & MPOL_MF_MOVE_ALL) || folio_estimated_sharers(folio) == 1) {
--		if (!folio_isolate_lru(folio)) {
-+		if (folio_isolate_lru(folio)) {
- 			list_add_tail(&folio->lru, foliolist);
- 			node_stat_mod_folio(folio,
- 				NR_ISOLATED_ANON + folio_is_file_lru(folio),
---- a/mm/vmscan.c~mm-change-to-return-bool-for-folio_isolate_lru
-+++ a/mm/vmscan.c
-@@ -2337,12 +2337,12 @@ move:
-  * (2) The lru_lock must not be held.
-  * (3) Interrupts must be enabled.
-  *
-- * Return: 0 if the folio was removed from an LRU list.
-- * -EBUSY if the folio was not on an LRU list.
-+ * Return: true if the folio was removed from an LRU list.
-+ * false if the folio was not on an LRU list.
+ 			goto out;
+--- a/mm/memcontrol.c~mm-change-to-return-bool-for-isolate_lru_page
++++ a/mm/memcontrol.c
+@@ -6176,7 +6176,7 @@ static int mem_cgroup_move_charge_pte_ra
+ 		target_type = get_mctgt_type_thp(vma, addr, *pmd, &target);
+ 		if (target_type == MC_TARGET_PAGE) {
+ 			page = target.page;
+-			if (!isolate_lru_page(page)) {
++			if (isolate_lru_page(page)) {
+ 				if (!mem_cgroup_move_account(page, true,
+ 							     mc.from, mc.to)) {
+ 					mc.precharge -= HPAGE_PMD_NR;
+@@ -6226,7 +6226,7 @@ retry:
+ 			 */
+ 			if (PageTransCompound(page))
+ 				goto put;
+-			if (!device && isolate_lru_page(page))
++			if (!device && !isolate_lru_page(page))
+ 				goto put;
+ 			if (!mem_cgroup_move_account(page, false,
+ 						mc.from, mc.to)) {
+--- a/mm/memory-failure.c~mm-change-to-return-bool-for-isolate_lru_page
++++ a/mm/memory-failure.c
+@@ -846,7 +846,7 @@ static const char * const action_page_ty
   */
--int folio_isolate_lru(struct folio *folio)
-+bool folio_isolate_lru(struct folio *folio)
+ static int delete_from_lru_cache(struct page *p)
  {
--	int ret = -EBUSY;
-+	bool ret = false;
+-	if (!isolate_lru_page(p)) {
++	if (isolate_lru_page(p)) {
+ 		/*
+ 		 * Clear sensible page flags, so that the buddy system won't
+ 		 * complain when the page is unpoison-and-freed.
+@@ -2513,7 +2513,7 @@ static bool isolate_page(struct page *pa
+ 		bool lru = !__PageMovable(page);
  
- 	VM_BUG_ON_FOLIO(!folio_ref_count(folio), folio);
+ 		if (lru)
+-			isolated = !isolate_lru_page(page);
++			isolated = isolate_lru_page(page);
+ 		else
+ 			isolated = !isolate_movable_page(page,
+ 							 ISOLATE_UNEVICTABLE);
+--- a/mm/memory_hotplug.c~mm-change-to-return-bool-for-isolate_lru_page
++++ a/mm/memory_hotplug.c
+@@ -1632,6 +1632,7 @@ do_migrate_range(unsigned long start_pfn
  
-@@ -2353,7 +2353,7 @@ int folio_isolate_lru(struct folio *foli
- 		lruvec = folio_lruvec_lock_irq(folio);
- 		lruvec_del_folio(lruvec, folio);
- 		unlock_page_lruvec_irq(lruvec);
--		ret = 0;
-+		ret = true;
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+ 		struct folio *folio;
++		bool isolated;
+ 
+ 		if (!pfn_valid(pfn))
+ 			continue;
+@@ -1667,9 +1668,10 @@ do_migrate_range(unsigned long start_pfn
+ 		 * We can skip free pages. And we can deal with pages on
+ 		 * LRU and non-lru movable pages.
+ 		 */
+-		if (PageLRU(page))
+-			ret = isolate_lru_page(page);
+-		else
++		if (PageLRU(page)) {
++			isolated = isolate_lru_page(page);
++			ret = isolated ? 0 : -EBUSY;
++		} else
+ 			ret = isolate_movable_page(page, ISOLATE_UNEVICTABLE);
+ 		if (!ret) { /* Success */
+ 			list_add_tail(&page->lru, &source);
+--- a/mm/migrate.c~mm-change-to-return-bool-for-isolate_lru_page
++++ a/mm/migrate.c
+@@ -2132,11 +2132,14 @@ static int add_page_for_migration(struct
+ 		}
+ 	} else {
+ 		struct page *head;
++		bool isolated;
+ 
+ 		head = compound_head(page);
+-		err = isolate_lru_page(head);
+-		if (err)
++		isolated = isolate_lru_page(head);
++		if (!isolated) {
++			err = -EBUSY;
+ 			goto out_putpage;
++		}
+ 
+ 		err = 1;
+ 		list_add_tail(&head->lru, pagelist);
+@@ -2541,7 +2544,7 @@ static int numamigrate_isolate_page(pg_d
+ 		return 0;
  	}
  
- 	return ret;
+-	if (isolate_lru_page(page))
++	if (!isolate_lru_page(page))
+ 		return 0;
+ 
+ 	mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON + page_is_file_lru(page),
+--- a/mm/migrate_device.c~mm-change-to-return-bool-for-isolate_lru_page
++++ a/mm/migrate_device.c
+@@ -388,7 +388,7 @@ static unsigned long migrate_device_unma
+ 				allow_drain = false;
+ 			}
+ 
+-			if (isolate_lru_page(page)) {
++			if (!isolate_lru_page(page)) {
+ 				src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+ 				restore++;
+ 				continue;
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
