@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05DD9C636D4
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Feb 2023 20:23:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A04D1C636CC
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Feb 2023 20:23:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229745AbjBOUXI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Feb 2023 15:23:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45272 "EHLO
+        id S229591AbjBOUXO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Feb 2023 15:23:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229710AbjBOUXH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2023 15:23:07 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23FEA4203
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2023 12:23:06 -0800 (PST)
+        with ESMTP id S229686AbjBOUXJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2023 15:23:09 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70D532D168
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2023 12:23:08 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AA87761D6F
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2023 20:23:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 051CCC433EF;
-        Wed, 15 Feb 2023 20:23:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EB6F161D71
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2023 20:23:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 533D5C433EF;
+        Wed, 15 Feb 2023 20:23:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676492585;
-        bh=uf54wzC1LTbqMvNBzVTKiu0J76EUYdUE4pH9FfiQW78=;
+        s=korg; t=1676492587;
+        bh=MV9x2nkYMmXcq1zWNb1XZG8xeCvLadXU6dG7wYoaCHA=;
         h=Date:To:From:Subject:From;
-        b=qwcDDwYzqL3sdGKjVfZxVAwiJmveQYVUNPkqC/m3nHbVmjonAzJv9AgHr8lzYcTC1
-         1Mosiq0dWOXyam73JgufJ6xTksQhOQYhK3X0iRp0k3Awscgf5MqX7xb5K9Pf0uTwE/
-         eTaJwRMKPgvy43o8/E1FL7ECVUALvNVYgNfsLJho=
-Date:   Wed, 15 Feb 2023 12:23:04 -0800
+        b=HX9Tz6Woa8bLOXOf3lsYSzeuwh/1hbutSTCZQn4IBDd36litt09KLcPb0Z+kl1llR
+         4OCrfutyEjgZHYEkOUh5Fw0Sa33Duv3oSOZVM+Rhsxg42T4BI3lXD7rOKEU0dKRXnE
+         xWFU/DH+BAqiLdBNMCQk2yExmubk2V/kpQPq/u3I=
+Date:   Wed, 15 Feb 2023 12:23:06 -0800
 To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         ryabinin.a.a@gmail.com, peterz@infradead.org,
         Kuan-Ying.Lee@mediatek.com, jpoimboe@kernel.org, glider@google.com,
         elver@google.com, dvyukov@google.com, andreyknvl@gmail.com,
         arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-mark-addr_has_metadata-__always_inline.patch added to mm-unstable branch
-Message-Id: <20230215202305.051CCC433EF@smtp.kernel.org>
+Subject: + kmsan-disable-ftrace-in-kmsan-core-code.patch added to mm-unstable branch
+Message-Id: <20230215202307.533D5C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: mark addr_has_metadata __always_inline
+     Subject: kmsan: disable ftrace in kmsan core code
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-mark-addr_has_metadata-__always_inline.patch
+     kmsan-disable-ftrace-in-kmsan-core-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-mark-addr_has_metadata-__always_inline.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-disable-ftrace-in-kmsan-core-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,61 +68,70 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: kasan: mark addr_has_metadata __always_inline
-Date: Wed, 15 Feb 2023 14:00:56 +0100
+Subject: kmsan: disable ftrace in kmsan core code
+Date: Wed, 15 Feb 2023 14:00:57 +0100
 
-Patch series "objtool warning fixes", v2.
+objtool warns about some suspicous code inside of kmsan:
 
-These are three of the easier fixes for objtool warnings around
-kasan/kmsan/kcsan.  I dropped one patch since Peter had come up with a
-better fix, and adjusted the changelog text based on feedback.
+vmlinux.o: warning: objtool: __msan_metadata_ptr_for_load_n+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_metadata_ptr_for_store_n+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_metadata_ptr_for_load_1+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_metadata_ptr_for_store_1+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_metadata_ptr_for_load_2+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_metadata_ptr_for_store_2+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_metadata_ptr_for_load_4+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_metadata_ptr_for_store_4+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_metadata_ptr_for_load_8+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_metadata_ptr_for_store_8+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_instrument_asm_store+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_chain_origin+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_poison_alloca+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_warning+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: __msan_get_context_state+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: kmsan_copy_to_user+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: kmsan_unpoison_memory+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: kmsan_unpoison_entry_regs+0x4: call to __fentry__() with UACCESS enabled
+vmlinux.o: warning: objtool: kmsan_report+0x4: call to __fentry__() with UACCESS enabled
 
+The Makefile contained a line to turn off ftrace for the entire directory,
+but this does not work. Replace it with individual lines, matching the
+approach in kasan.
 
-This patch (of 3):
-
-When the compiler decides not to inline this function, objtool complains
-about incorrect UACCESS state:
-
-mm/kasan/generic.o: warning: objtool: __asan_load2+0x11: call to addr_has_metadata() with UACCESS enabled
-
-Link: https://lore.kernel.org/all/20230208164011.2287122-1-arnd@kernel.org/
-Link: https://lkml.kernel.org/r/20230215130058.3836177-2-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20230215130058.3836177-3-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
+Fixes: f80be4571b19 ("kmsan: add KMSAN runtime core")
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Josh Poimboeuf <jpoimboe@kernel.org>
 Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/kmsan/Makefile |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/kasan.h~kasan-mark-addr_has_metadata-__always_inline
-+++ a/mm/kasan/kasan.h
-@@ -297,7 +297,7 @@ static inline const void *kasan_shadow_t
- 		<< KASAN_SHADOW_SCALE_SHIFT);
- }
+--- a/mm/kmsan/Makefile~kmsan-disable-ftrace-in-kmsan-core-code
++++ a/mm/kmsan/Makefile
+@@ -14,7 +14,13 @@ CC_FLAGS_KMSAN_RUNTIME := -fno-stack-pro
+ CC_FLAGS_KMSAN_RUNTIME += $(call cc-option,-fno-conserve-stack)
+ CC_FLAGS_KMSAN_RUNTIME += -DDISABLE_BRANCH_PROFILING
  
--static inline bool addr_has_metadata(const void *addr)
-+static __always_inline bool addr_has_metadata(const void *addr)
- {
- 	return (kasan_reset_tag(addr) >=
- 		kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
-@@ -316,7 +316,7 @@ bool kasan_check_range(unsigned long add
+-CFLAGS_REMOVE.o = $(CC_FLAGS_FTRACE)
++# Disable ftrace to avoid recursion.
++CFLAGS_REMOVE_core.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_hooks.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_init.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_instrumentation.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_report.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_shadow.o = $(CC_FLAGS_FTRACE)
  
- #else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- 
--static inline bool addr_has_metadata(const void *addr)
-+static __always_inline bool addr_has_metadata(const void *addr)
- {
- 	return (is_vmalloc_addr(addr) || virt_addr_valid(addr));
- }
+ CFLAGS_core.o := $(CC_FLAGS_KMSAN_RUNTIME)
+ CFLAGS_hooks.o := $(CC_FLAGS_KMSAN_RUNTIME)
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
