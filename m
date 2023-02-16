@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E3B7C636CC
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Feb 2023 22:07:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF33EC61DA4
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Feb 2023 22:43:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230252AbjBPWH2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Feb 2023 17:07:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51142 "EHLO
+        id S229794AbjBPWns (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Feb 2023 17:43:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229704AbjBPWH2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 17:07:28 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C672D43914
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 14:07:26 -0800 (PST)
+        with ESMTP id S229571AbjBPWnr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 17:43:47 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3658246164
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 14:43:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5D64360C64
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 22:07:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1A9CC433EF;
-        Thu, 16 Feb 2023 22:07:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D82F7B829D6
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 22:43:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BE33C433EF;
+        Thu, 16 Feb 2023 22:43:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676585245;
-        bh=dyUBP6YPnZeNmWhyRJ/v0sVaJuSDqhVoL9g6htI9Mcc=;
+        s=korg; t=1676587423;
+        bh=AemsdlfTKGgWXOnDRt8XEfCLjn21ieoWbsVUZ3wBTk4=;
         h=Date:To:From:Subject:From;
-        b=Zbx3OeuUF7808efhOWMmWIPoHBXy7dW6uWB+nyppx5+ZL+KMreEWrtY8JxkzPJESV
-         blVVUy4f4/TtdSQvPXOS7EvwbVhlbGExICrxBoyWxpsDmTIz/E47roJ6vfPnrT5/Fe
-         ch8DLPtpJ7nf8OuqAtfwr1ApD9y7GFVJgMw1ILJ8=
-Date:   Thu, 16 Feb 2023 14:07:24 -0800
-To:     mm-commits@vger.kernel.org, osalvador@suse.de, david@redhat.com,
-        baolin.wang@linux.alibaba.com, sj@kernel.org,
+        b=L/Vv46WpcFK8GUcpYUKGr68UcYQ+OWkwNo6gKq/hFEU2VQYwaB1cS2iFgJRtNAfAq
+         HwrY+g0iy+XFS1iIC8KIFgAuAkdakl4b1b3aawoRCI1CyZWKPIaV3pGySYsn/TVGO2
+         47kDItdSzD3GgEWaHPf8iO6/2ToArPVq6oStG04s=
+Date:   Thu, 16 Feb 2023 14:43:42 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        torvalds@linux-foundation.org, sj@kernel.org, david@redhat.com,
+        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-cleanup-return-value-handing-in-do_migrate_range.patch added to mm-unstable branch
-Message-Id: <20230216220725.A1A9CC433EF@smtp.kernel.org>
+Subject: + mm-change-to-return-bool-for-isolate_movable_page-fix.patch added to mm-unstable branch
+Message-Id: <20230216224343.6BE33C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: cleanup return value handing in do_migrate_range()
+     Subject: mm-change-to-return-bool-for-isolate_movable_page-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-cleanup-return-value-handing-in-do_migrate_range.patch
+     mm-change-to-return-bool-for-isolate_movable_page-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-cleanup-return-value-handing-in-do_migrate_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-change-to-return-bool-for-isolate_movable_page-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,70 +66,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/memory_hotplug: cleanup return value handing in do_migrate_range()
-Date: Thu, 16 Feb 2023 17:07:03 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-change-to-return-bool-for-isolate_movable_page-fix
+Date: Thu Feb 16 02:41:42 PM PST 2023
 
-Return value mechanism of do_migrate_range() is not very simple, while no
-caller of the function checks the return value.  Make the function return
-nothing to be more simple, and cleanup related unnecessary code.
+remove unneeded comment, per Matthew
 
-Link: https://lkml.kernel.org/r/20230216170703.64574-1-sj@kernel.org
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-cleanup-return-value-handing-in-do_migrate_range
+--- a/mm/memory_hotplug.c~mm-change-to-return-bool-for-isolate_movable_page-fix
 +++ a/mm/memory_hotplug.c
-@@ -1620,12 +1620,10 @@ found:
- 	return 0;
- }
- 
--static int
--do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
-+static void do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
- {
- 	unsigned long pfn;
- 	struct page *page, *head;
--	int ret = 0;
- 	LIST_HEAD(source);
- 	static DEFINE_RATELIMIT_STATE(migrate_rs, DEFAULT_RATELIMIT_INTERVAL,
- 				      DEFAULT_RATELIMIT_BURST);
-@@ -1679,7 +1677,6 @@ do_migrate_range(unsigned long start_pfn
- 						    page_is_file_lru(page));
- 
- 		} else {
--			ret = -EBUSY;
- 			if (__ratelimit(&migrate_rs)) {
- 				pr_warn("failed to isolate pfn %lx\n", pfn);
- 				dump_page(page, "isolation failed");
-@@ -1693,6 +1690,7 @@ do_migrate_range(unsigned long start_pfn
- 			.nmask = &nmask,
- 			.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
- 		};
-+		int ret;
- 
- 		/*
- 		 * We have checked that migration range is on a single zone so
-@@ -1721,8 +1719,6 @@ do_migrate_range(unsigned long start_pfn
- 			putback_movable_pages(&source);
- 		}
- 	}
--
--	return ret;
- }
- 
- static int __init cmdline_parse_movable_node(char *p)
+@@ -1672,7 +1672,7 @@ do_migrate_range(unsigned long start_pfn
+ 			isolated = isolate_lru_page(page);
+ 		else
+ 			isolated = isolate_movable_page(page, ISOLATE_UNEVICTABLE);
+-		if (isolated) { /* Success */
++		if (isolated) {
+ 			list_add_tail(&page->lru, &source);
+ 			if (!__PageMovable(page))
+ 				inc_node_page_state(page, NR_ISOLATED_ANON +
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memory_hotplug-cleanup-return-value-handing-in-do_migrate_range.patch
-mm-memory_hotplug-return-nothing-from-do_migrate_range.patch
-mm-memory_hotplug-cleanup-ret-variable-usage-in-do_migrate_range.patch
+lib-stackdepot-mm-rename-stack_depot_want_early_init-fix.patch
+lib-stackdepot-move-documentation-comments-to-stackdepoth-fix.patch
+mm-hugetlb-change-to-return-bool-for-isolate_hugetlb-fix.patch
+mm-change-to-return-bool-for-isolate_movable_page-fix.patch
 
