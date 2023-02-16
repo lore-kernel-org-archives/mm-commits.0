@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86876C636D4
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Feb 2023 23:30:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB2ADC636D7
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Feb 2023 21:57:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229636AbjBOXag (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Feb 2023 18:30:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40560 "EHLO
+        id S230254AbjBPV5J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Feb 2023 16:57:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229493AbjBOXaf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2023 18:30:35 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1F6743457
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2023 15:30:34 -0800 (PST)
+        with ESMTP id S229541AbjBPV5J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 16:57:09 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA80F4DE0E;
+        Thu, 16 Feb 2023 13:56:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5B1D0B8225F
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2023 23:30:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CECAC433EF;
-        Wed, 15 Feb 2023 23:30:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4891C60C71;
+        Thu, 16 Feb 2023 21:56:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99512C433A0;
+        Thu, 16 Feb 2023 21:56:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676503832;
-        bh=BpEQ+bSrY/MiSJ3v6gCQqF3JlB22deaOkpV6FJwkiVA=;
+        s=korg; t=1676584616;
+        bh=qDmxSxoBKk1Qa30a7Y9foBsbHqpaX8s9ZMRxS3UQFSU=;
         h=Date:To:From:Subject:From;
-        b=hbQ10KBT2nW4FfN4YBTwpdrHZPtcBxsadd/kLVBLXJ1/rU5Qv94Ui/ocoIUI2g4DB
-         u3dwomBlgoBjIwTDqD3ysdQ8lv/0K9yPgmbsvqQ4HXFn13ZRFXFKL909+qgjbt6awn
-         rHoPRU4f/XN9OhgUs2yWOWstKwnww4zXc2rU6vaE=
-Date:   Wed, 15 Feb 2023 15:30:31 -0800
-To:     mm-commits@vger.kernel.org, osalvador@suse.de, david@redhat.com,
-        sj@kernel.org, akpm@linux-foundation.org
+        b=TlYC/CcLu22jSKXvcN5Me9ZjJkLML/qiRbmEWgJViP+KT2sst7hFuBxYOaTazidWA
+         LU1nan5TJbFCgCcQwekuzFMBJJmXN+1QWT7+wPB87mueiSsWU07IPU8+yQ0w8rVKBV
+         VBguiAOBO1p/VgmF39zWikSTfnYVq/ROgZvwFto4=
+Date:   Thu, 16 Feb 2023 13:56:55 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        regressions@lists.linux.dev, nbowler@draconx.ca, david@redhat.com,
+        peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-return-nothing-from-do_migrate_range.patch added to mm-unstable branch
-Message-Id: <20230215233032.0CECAC433EF@smtp.kernel.org>
+Subject: + mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230216215656.99512C433A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: return nothing from do_migrate_range()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-return-nothing-from-do_migrate_range.patch
+     Subject: mm/migrate: fix wrongly apply write bit after mkdirty on sparc64
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-return-nothing-from-do_migrate_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,57 +65,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/memory_hotplug: return nothing from do_migrate_range()
-Date: Wed, 15 Feb 2023 23:02:59 +0000
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/migrate: fix wrongly apply write bit after mkdirty on sparc64
+Date: Thu, 16 Feb 2023 10:30:59 -0500
 
-Patch series "mm/memory_hotplug: cleanup do_migrate_range()".
+Nick Bowler reported another sparc64 breakage after the young/dirty
+persistent work for page migration (per "Link:" below).  That's after a
+similar report [2].
 
-Make do_migrate_range() return value mechanism simple.
+It turns out page migration was overlooked, and it wasn't failing before
+because page migration was not enabled in the initial report test
+environment.
 
+David proposed another way [2] to fix this from sparc64 side, but that
+patch didn't land somehow.  Neither did I check whether there's any other
+arch that has similar issues.
 
-This patch (of 2):
+Let's fix it for now as simple as moving the write bit handling to be
+after dirty, like what we did before.
 
-Return value mechanism of do_migrate_range() is not very simple, while
-no caller of the function checks the return value.  Make the function
-return nothing to be more simple.
+Note: this is based on mm-unstable, because the breakage was since 6.1 and
+we're at a very late stage of 6.2 (-rc8), so I assume for this specific
+case we should target this at 6.3.
 
-Link: https://lkml.kernel.org/r/20230215230300.61125-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20230215230300.61125-2-sj@kernel.org
-Suggested-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+[1] https://lore.kernel.org/all/20221021160603.GA23307@u164.east.ru/
+[2] https://lore.kernel.org/all/20221212130213.136267-1-david@redhat.com/
+
+Link: https://lkml.kernel.org/r/20230216153059.256739-1-peterx@redhat.com
+Fixes: 2e3468778dbe ("mm: remember young/dirty bit for page migrations")
+Link: https://lore.kernel.org/all/CADyTPExpEqaJiMGoV+Z6xVgL50ZoMJg49B10LcZ=8eg19u34BA@mail.gmail.com/
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Nick Bowler <nbowler@draconx.ca>
+Acked-by: David Hildenbrand <david@redhat.com>
+Tested-by: Nick Bowler <nbowler@draconx.ca>
+Cc: <regressions@lists.linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-return-nothing-from-do_migrate_range
-+++ a/mm/memory_hotplug.c
-@@ -1620,8 +1620,7 @@ found:
- 	return 0;
- }
+--- a/mm/huge_memory.c~mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64
++++ a/mm/huge_memory.c
+@@ -3272,8 +3272,6 @@ void remove_migration_pmd(struct page_vm
+ 	pmde = mk_huge_pmd(new, READ_ONCE(vma->vm_page_prot));
+ 	if (pmd_swp_soft_dirty(*pvmw->pmd))
+ 		pmde = pmd_mksoft_dirty(pmde);
+-	if (is_writable_migration_entry(entry))
+-		pmde = maybe_pmd_mkwrite(pmde, vma);
+ 	if (pmd_swp_uffd_wp(*pvmw->pmd))
+ 		pmde = pmd_wrprotect(pmd_mkuffd_wp(pmde));
+ 	if (!is_migration_entry_young(entry))
+@@ -3281,6 +3279,10 @@ void remove_migration_pmd(struct page_vm
+ 	/* NOTE: this may contain setting soft-dirty on some archs */
+ 	if (PageDirty(new) && is_migration_entry_dirty(entry))
+ 		pmde = pmd_mkdirty(pmde);
++	if (is_writable_migration_entry(entry))
++		pmde = maybe_pmd_mkwrite(pmde, vma);
++	else
++		pmde = pmd_wrprotect(pmde);
  
--static int
--do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
-+static void do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
- {
- 	unsigned long pfn;
- 	struct page *page, *head;
-@@ -1721,8 +1720,6 @@ do_migrate_range(unsigned long start_pfn
- 			putback_movable_pages(&source);
- 		}
- 	}
--
--	return ret;
- }
+ 	if (PageAnon(new)) {
+ 		rmap_t rmap_flags = RMAP_COMPOUND;
+--- a/mm/migrate.c~mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64
++++ a/mm/migrate.c
+@@ -224,6 +224,8 @@ static bool remove_migration_pte(struct
+ 			pte = maybe_mkwrite(pte, vma);
+ 		else if (pte_swp_uffd_wp(*pvmw.pte))
+ 			pte = pte_mkuffd_wp(pte);
++		else
++			pte = pte_wrprotect(pte);
  
- static int __init cmdline_parse_movable_node(char *p)
+ 		if (folio_test_anon(folio) && !is_readable_migration_entry(entry))
+ 			rmap_flags |= RMAP_EXCLUSIVE;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-memory_hotplug-return-nothing-from-do_migrate_range.patch
-mm-memory_hotplug-cleanup-ret-variable-usage-in-do_migrate_range.patch
+mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch
+mm-uffd-fix-comment-in-handling-pte-markers.patch
 
