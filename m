@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2505C64ED6
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:44:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ED5AC636D4
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:44:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229592AbjBQEou (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Feb 2023 23:44:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55282 "EHLO
+        id S229566AbjBQEov (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Feb 2023 23:44:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229566AbjBQEom (ORCPT
+        with ESMTP id S229591AbjBQEom (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:44:42 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01B514C6F5
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE81437F06
         for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7D18FB829C0
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11E7BC433D2;
-        Fri, 17 Feb 2023 04:44:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5CD7161245
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B44F6C433EF;
+        Fri, 17 Feb 2023 04:44:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676609077;
-        bh=wJr2TDc3poS5RbJ9wKhC35tO2ft5Q42VZ2NTBrIGxh4=;
+        s=korg; t=1676609079;
+        bh=YvbjQDEa88G0jzuRk5pMLs1eKh5o7b+AbWiebM7dQn8=;
         h=Date:To:From:Subject:From;
-        b=wU/QdYPAfpFgBDThSv/wPeqca+oAXjEns3CFJROEjywOGIGfNkhi8UtZQjTLPem9n
-         rDUD2WtSQUauiYx/9lOQAh2qf4DYNKSkV58GhBxx5EzdZvqSxZDS3XC3O0dR8Ry83O
-         qhnrjhubUwV2nJGddEpVabrvBq0FfqdSlP1U/swk=
-Date:   Thu, 16 Feb 2023 20:44:36 -0800
-To:     mm-commits@vger.kernel.org, glider@google.com,
-        andreyknvl@google.com, akpm@linux-foundation.org
+        b=f5aCCZkEbEsunWJMRACZ2CJSe1i2Nx02mO0m0YDHP9sogY8JfHkBsH2H3GKd4G/0e
+         COji9fP58947+ACqCwEtGfMux3uY85bf/O2jFQ3ixFnmHmocgHVssfFzBFpeocAIOg
+         GfG87KwjrpKZpM19GWJNX5zcb0Gi/QtgkCHZcjAs=
+Date:   Thu, 16 Feb 2023 20:44:39 -0800
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
+        willy@infradead.org, shy828301@gmail.com, osalvador@suse.de,
+        minchan@kernel.org, mike.kravetz@oracle.com, bharata@amd.com,
+        baolin.wang@linux.alibaba.com, apopple@nvidia.com,
+        42.hyeyoo@gmail.com, ying.huang@intel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-stackdepot-various-comments-clean-ups.patch removed from -mm tree
-Message-Id: <20230217044437.11E7BC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] migrate_pages-organize-stats-with-struct-migrate_pages_stats.patch removed from -mm tree
+Message-Id: <20230217044439.B44F6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,374 +45,265 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib/stackdepot: various comments clean-ups
+     Subject: migrate_pages: organize stats with struct migrate_pages_stats
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-various-comments-clean-ups.patch
+     migrate_pages-organize-stats-with-struct-migrate_pages_stats.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: various comments clean-ups
-Date: Fri, 10 Feb 2023 22:16:05 +0100
+From: Huang Ying <ying.huang@intel.com>
+Subject: migrate_pages: organize stats with struct migrate_pages_stats
+Date: Mon, 13 Feb 2023 20:34:36 +0800
 
-Clean up comments in include/linux/stackdepot.h and lib/stackdepot.c:
+Patch series "migrate_pages(): batch TLB flushing", v5.
 
-1. Rework the initialization comment in stackdepot.h.
-2. Rework the header comment in stackdepot.c.
-3. Various clean-ups for other comments.
+Now, migrate_pages() migrates folios one by one, like the fake code as
+follows,
 
-Also adjust whitespaces for find_stack and depot_alloc_stack call sites.
+  for each folio
+    unmap
+    flush TLB
+    copy
+    restore map
 
-No functional changes.
+If multiple folios are passed to migrate_pages(), there are opportunities
+to batch the TLB flushing and copying.  That is, we can change the code to
+something as follows,
 
-Link: https://lkml.kernel.org/r/5836231b7954355e2311fc9b5870f697ea8e1f7d.1676063693.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+  for each folio
+    unmap
+  for each folio
+    flush TLB
+  for each folio
+    copy
+  for each folio
+    restore map
+
+The total number of TLB flushing IPI can be reduced considerably.  And we
+may use some hardware accelerator such as DSA to accelerate the folio
+copying.
+
+So in this patch, we refactor the migrate_pages() implementation and
+implement the TLB flushing batching.  Base on this, hardware accelerated
+folio copying can be implemented.
+
+If too many folios are passed to migrate_pages(), in the naive batched
+implementation, we may unmap too many folios at the same time.  The
+possibility for a task to wait for the migrated folios to be mapped again
+increases.  So the latency may be hurt.  To deal with this issue, the max
+number of folios be unmapped in batch is restricted to no more than
+HPAGE_PMD_NR in the unit of page.  That is, the influence is at the same
+level of THP migration.
+
+We use the following test to measure the performance impact of the
+patchset,
+
+On a 2-socket Intel server,
+
+ - Run pmbench memory accessing benchmark
+
+ - Run `migratepages` to migrate pages of pmbench between node 0 and
+   node 1 back and forth.
+
+With the patch, the TLB flushing IPI reduces 99.1% during the test and
+the number of pages migrated successfully per second increases 291.7%.
+
+Xin Hao helped to test the patchset on an ARM64 server with 128 cores,
+2 NUMA nodes.  Test results show that the page migration performance
+increases up to 78%.
+
+
+This patch (of 9):
+
+Define struct migrate_pages_stats to organize the various statistics in
+migrate_pages().  This makes it easier to collect and consume the
+statistics in multiple functions.  This will be needed in the following
+patches in the series.
+
+Link: https://lkml.kernel.org/r/20230213123444.155149-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230213123444.155149-2-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Xin Hao <xhao@linux.alibaba.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/stackdepot.h~lib-stackdepot-various-comments-clean-ups
-+++ a/include/linux/stackdepot.h
-@@ -1,11 +1,11 @@
- /* SPDX-License-Identifier: GPL-2.0-or-later */
- /*
-- * A generic stack depot implementation
-+ * Stack depot - a stack trace storage that avoids duplication.
-  *
-  * Author: Alexander Potapenko <glider@google.com>
-  * Copyright (C) 2016 Google, Inc.
-  *
-- * Based on code by Dmitry Chernenkov.
-+ * Based on the code by Dmitry Chernenkov.
-  */
- 
- #ifndef _LINUX_STACKDEPOT_H
-@@ -17,35 +17,37 @@ typedef u32 depot_stack_handle_t;
- 
- /*
-  * Number of bits in the handle that stack depot doesn't use. Users may store
-- * information in them.
-+ * information in them via stack_depot_set/get_extra_bits.
-  */
- #define STACK_DEPOT_EXTRA_BITS 5
- 
- /*
-- * Every user of stack depot has to call stack_depot_init() during its own init
-- * when it's decided that it will be calling stack_depot_save() later. This is
-- * recommended for e.g. modules initialized later in the boot process, when
-- * slab_is_available() is true.
-- *
-- * The alternative is to select STACKDEPOT_ALWAYS_INIT to have stack depot
-- * enabled as part of mm_init(), for subsystems where it's known at compile time
-- * that stack depot will be used.
-- *
-- * Another alternative is to call stack_depot_request_early_init(), when the
-- * decision to use stack depot is taken e.g. when evaluating kernel boot
-- * parameters, which precedes the enablement point in mm_init().
-+ * Using stack depot requires its initialization, which can be done in 3 ways:
-+ *
-+ * 1. Selecting CONFIG_STACKDEPOT_ALWAYS_INIT. This option is suitable in
-+ *    scenarios where it's known at compile time that stack depot will be used.
-+ *    Enabling this config makes the kernel initialize stack depot in mm_init().
-+ *
-+ * 2. Calling stack_depot_request_early_init() during early boot, before
-+ *    stack_depot_early_init() in mm_init() completes. For example, this can
-+ *    be done when evaluating kernel boot parameters.
-+ *
-+ * 3. Calling stack_depot_init(). Possible after boot is complete. This option
-+ *    is recommended for modules initialized later in the boot process, after
-+ *    mm_init() completes.
-  *
-  * stack_depot_init() and stack_depot_request_early_init() can be called
-- * regardless of CONFIG_STACKDEPOT and are no-op when disabled. The actual
-- * save/fetch/print functions should only be called from code that makes sure
-- * CONFIG_STACKDEPOT is enabled.
-+ * regardless of whether CONFIG_STACKDEPOT is enabled and are no-op when this
-+ * config is disabled. The save/fetch/print stack depot functions can only be
-+ * called from the code that makes sure CONFIG_STACKDEPOT is enabled _and_
-+ * initializes stack depot via one of the ways listed above.
-  */
- #ifdef CONFIG_STACKDEPOT
- int stack_depot_init(void);
- 
- void __init stack_depot_request_early_init(void);
- 
--/* This is supposed to be called only from mm_init() */
-+/* Must be only called from mm_init(). */
- int __init stack_depot_early_init(void);
- #else
- static inline int stack_depot_init(void) { return 0; }
---- a/lib/stackdepot.c~lib-stackdepot-various-comments-clean-ups
-+++ a/lib/stackdepot.c
-@@ -1,22 +1,26 @@
- // SPDX-License-Identifier: GPL-2.0-only
- /*
-- * Generic stack depot for storing stack traces.
-+ * Stack depot - a stack trace storage that avoids duplication.
-  *
-- * Some debugging tools need to save stack traces of certain events which can
-- * be later presented to the user. For example, KASAN needs to safe alloc and
-- * free stacks for each object, but storing two stack traces per object
-- * requires too much memory (e.g. SLUB_DEBUG needs 256 bytes per object for
-- * that).
-- *
-- * Instead, stack depot maintains a hashtable of unique stacktraces. Since alloc
-- * and free stacks repeat a lot, we save about 100x space.
-- * Stacks are never removed from depot, so we store them contiguously one after
-- * another in a contiguous memory allocation.
-+ * Stack depot is intended to be used by subsystems that need to store and
-+ * later retrieve many potentially duplicated stack traces without wasting
-+ * memory.
-+ *
-+ * For example, KASAN needs to save allocation and free stack traces for each
-+ * object. Storing two stack traces per object requires a lot of memory (e.g.
-+ * SLUB_DEBUG needs 256 bytes per object for that). Since allocation and free
-+ * stack traces often repeat, using stack depot allows to save about 100x space.
-+ *
-+ * Internally, stack depot maintains a hash table of unique stacktraces. The
-+ * stack traces themselves are stored contiguously one after another in a set
-+ * of separate page allocations.
-+ *
-+ * Stack traces are never removed from stack depot.
-  *
-  * Author: Alexander Potapenko <glider@google.com>
-  * Copyright (C) 2016 Google, Inc.
-  *
-- * Based on code by Dmitry Chernenkov.
-+ * Based on the code by Dmitry Chernenkov.
-  */
- 
- #define pr_fmt(fmt) "stackdepot: " fmt
-@@ -50,7 +54,7 @@
- 	(((1LL << (DEPOT_POOL_INDEX_BITS)) < DEPOT_POOLS_CAP) ? \
- 	 (1LL << (DEPOT_POOL_INDEX_BITS)) : DEPOT_POOLS_CAP)
- 
--/* The compact structure to store the reference to stacks. */
-+/* Compact structure that stores a reference to a stack. */
- union handle_parts {
- 	depot_stack_handle_t handle;
- 	struct {
-@@ -62,11 +66,11 @@ union handle_parts {
- };
- 
- struct stack_record {
--	struct stack_record *next;	/* Link in the hashtable */
--	u32 hash;			/* Hash in the hastable */
--	u32 size;			/* Number of frames in the stack */
-+	struct stack_record *next;	/* Link in the hash table */
-+	u32 hash;			/* Hash in the hash table */
-+	u32 size;			/* Number of stored frames */
- 	union handle_parts handle;
--	unsigned long entries[];	/* Variable-sized array of entries. */
-+	unsigned long entries[];	/* Variable-sized array of frames */
- };
- 
- static bool stack_depot_disabled;
-@@ -317,7 +321,7 @@ depot_alloc_stack(unsigned long *entries
- 	return stack;
+--- a/mm/migrate.c~migrate_pages-organize-stats-with-struct-migrate_pages_stats
++++ a/mm/migrate.c
+@@ -1414,6 +1414,16 @@ static inline int try_split_folio(struct
+ 	return rc;
  }
  
--/* Calculate hash for a stack */
-+/* Calculates the hash for a stack. */
- static inline u32 hash_stack(unsigned long *entries, unsigned int size)
- {
- 	return jhash2((u32 *)entries,
-@@ -325,9 +329,9 @@ static inline u32 hash_stack(unsigned lo
- 		      STACK_HASH_SEED);
- }
++struct migrate_pages_stats {
++	int nr_succeeded;	/* Normal and large folios migrated successfully, in
++				   units of base pages */
++	int nr_failed_pages;	/* Normal and large folios failed to be migrated, in
++				   units of base pages.  Untried folios aren't counted */
++	int nr_thp_succeeded;	/* THP migrated successfully */
++	int nr_thp_failed;	/* THP failed to be migrated */
++	int nr_thp_split;	/* THP split before migrating */
++};
++
+ /*
+  * migrate_pages - migrate the folios specified in a list, to the free folios
+  *		   supplied as the target for the page migration
+@@ -1448,13 +1458,8 @@ int migrate_pages(struct list_head *from
+ 	int large_retry = 1;
+ 	int thp_retry = 1;
+ 	int nr_failed = 0;
+-	int nr_failed_pages = 0;
+ 	int nr_retry_pages = 0;
+-	int nr_succeeded = 0;
+-	int nr_thp_succeeded = 0;
+ 	int nr_large_failed = 0;
+-	int nr_thp_failed = 0;
+-	int nr_thp_split = 0;
+ 	int pass = 0;
+ 	bool is_large = false;
+ 	bool is_thp = false;
+@@ -1464,9 +1469,11 @@ int migrate_pages(struct list_head *from
+ 	LIST_HEAD(split_folios);
+ 	bool nosplit = (reason == MR_NUMA_MISPLACED);
+ 	bool no_split_folio_counting = false;
++	struct migrate_pages_stats stats;
  
--/* Use our own, non-instrumented version of memcmp().
-- *
-- * We actually don't care about the order, just the equality.
-+/*
-+ * Non-instrumented version of memcmp().
-+ * Does not check the lexicographical order, only the equality.
-  */
- static inline
- int stackdepot_memcmp(const unsigned long *u1, const unsigned long *u2,
-@@ -340,7 +344,7 @@ int stackdepot_memcmp(const unsigned lon
- 	return 0;
- }
+ 	trace_mm_migrate_pages_start(mode, reason);
  
--/* Find a stack that is equal to the one stored in entries in the hash */
-+/* Finds a stack in a bucket of the hash table. */
- static inline struct stack_record *find_stack(struct stack_record *bucket,
- 					     unsigned long *entries, int size,
- 					     u32 hash)
-@@ -357,27 +361,27 @@ static inline struct stack_record *find_
- }
++	memset(&stats, 0, sizeof(stats));
+ split_folio_migration:
+ 	for (pass = 0; pass < 10 && (retry || large_retry); pass++) {
+ 		retry = 0;
+@@ -1520,9 +1527,9 @@ split_folio_migration:
+ 				/* Large folio migration is unsupported */
+ 				if (is_large) {
+ 					nr_large_failed++;
+-					nr_thp_failed += is_thp;
++					stats.nr_thp_failed += is_thp;
+ 					if (!try_split_folio(folio, &split_folios)) {
+-						nr_thp_split += is_thp;
++						stats.nr_thp_split += is_thp;
+ 						break;
+ 					}
+ 				/* Hugetlb migration is unsupported */
+@@ -1530,7 +1537,7 @@ split_folio_migration:
+ 					nr_failed++;
+ 				}
  
- /**
-- * __stack_depot_save - Save a stack trace from an array
-+ * __stack_depot_save - Save a stack trace to stack depot
-  *
-- * @entries:		Pointer to storage array
-- * @nr_entries:		Size of the storage array
-- * @alloc_flags:	Allocation gfp flags
-+ * @entries:		Pointer to the stack trace
-+ * @nr_entries:		Number of frames in the stack
-+ * @alloc_flags:	Allocation GFP flags
-  * @can_alloc:		Allocate stack pools (increased chance of failure if false)
-  *
-  * Saves a stack trace from @entries array of size @nr_entries. If @can_alloc is
-- * %true, is allowed to replenish the stack pool in case no space is left
-+ * %true, stack depot can replenish the stack pools in case no space is left
-  * (allocates using GFP flags of @alloc_flags). If @can_alloc is %false, avoids
-- * any allocations and will fail if no space is left to store the stack trace.
-+ * any allocations and fails if no space is left to store the stack trace.
-  *
-- * If the stack trace in @entries is from an interrupt, only the portion up to
-- * interrupt entry is saved.
-+ * If the provided stack trace comes from the interrupt context, only the part
-+ * up to the interrupt entry is saved.
-  *
-  * Context: Any context, but setting @can_alloc to %false is required if
-  *          alloc_pages() cannot be used from the current context. Currently
-- *          this is the case from contexts where neither %GFP_ATOMIC nor
-+ *          this is the case for contexts where neither %GFP_ATOMIC nor
-  *          %GFP_NOWAIT can be used (NMI, raw_spin_lock).
-  *
-- * Return: The handle of the stack struct stored in depot, 0 on failure.
-+ * Return: Handle of the stack struct stored in depot, 0 on failure
-  */
- depot_stack_handle_t __stack_depot_save(unsigned long *entries,
- 					unsigned int nr_entries,
-@@ -392,11 +396,11 @@ depot_stack_handle_t __stack_depot_save(
+-				nr_failed_pages += nr_pages;
++				stats.nr_failed_pages += nr_pages;
+ 				list_move_tail(&folio->lru, &ret_folios);
+ 				break;
+ 			case -ENOMEM:
+@@ -1540,13 +1547,13 @@ split_folio_migration:
+ 				 */
+ 				if (is_large) {
+ 					nr_large_failed++;
+-					nr_thp_failed += is_thp;
++					stats.nr_thp_failed += is_thp;
+ 					/* Large folio NUMA faulting doesn't split to retry. */
+ 					if (!nosplit) {
+ 						int ret = try_split_folio(folio, &split_folios);
  
- 	/*
- 	 * If this stack trace is from an interrupt, including anything before
--	 * interrupt entry usually leads to unbounded stackdepot growth.
-+	 * interrupt entry usually leads to unbounded stack depot growth.
- 	 *
--	 * Because use of filter_irq_stacks() is a requirement to ensure
--	 * stackdepot can efficiently deduplicate interrupt stacks, always
--	 * filter_irq_stacks() to simplify all callers' use of stackdepot.
-+	 * Since use of filter_irq_stacks() is a requirement to ensure stack
-+	 * depot can efficiently deduplicate interrupt stacks, always
-+	 * filter_irq_stacks() to simplify all callers' use of stack depot.
- 	 */
- 	nr_entries = filter_irq_stacks(entries, nr_entries);
+ 						if (!ret) {
+-							nr_thp_split += is_thp;
++							stats.nr_thp_split += is_thp;
+ 							break;
+ 						} else if (reason == MR_LONGTERM_PIN &&
+ 							   ret == -EAGAIN) {
+@@ -1564,7 +1571,7 @@ split_folio_migration:
+ 					nr_failed++;
+ 				}
  
-@@ -411,8 +415,7 @@ depot_stack_handle_t __stack_depot_save(
- 	 * The smp_load_acquire() here pairs with smp_store_release() to
- 	 * |bucket| below.
- 	 */
--	found = find_stack(smp_load_acquire(bucket), entries,
--			   nr_entries, hash);
-+	found = find_stack(smp_load_acquire(bucket), entries, nr_entries, hash);
- 	if (found)
- 		goto exit;
+-				nr_failed_pages += nr_pages + nr_retry_pages;
++				stats.nr_failed_pages += nr_pages + nr_retry_pages;
+ 				/*
+ 				 * There might be some split folios of fail-to-migrate large
+ 				 * folios left in split_folios list. Move them back to migration
+@@ -1574,7 +1581,7 @@ split_folio_migration:
+ 				list_splice_init(&split_folios, from);
+ 				/* nr_failed isn't updated for not used */
+ 				nr_large_failed += large_retry;
+-				nr_thp_failed += thp_retry;
++				stats.nr_thp_failed += thp_retry;
+ 				goto out;
+ 			case -EAGAIN:
+ 				if (is_large) {
+@@ -1586,8 +1593,8 @@ split_folio_migration:
+ 				nr_retry_pages += nr_pages;
+ 				break;
+ 			case MIGRATEPAGE_SUCCESS:
+-				nr_succeeded += nr_pages;
+-				nr_thp_succeeded += is_thp;
++				stats.nr_succeeded += nr_pages;
++				stats.nr_thp_succeeded += is_thp;
+ 				break;
+ 			default:
+ 				/*
+@@ -1598,20 +1605,20 @@ split_folio_migration:
+ 				 */
+ 				if (is_large) {
+ 					nr_large_failed++;
+-					nr_thp_failed += is_thp;
++					stats.nr_thp_failed += is_thp;
+ 				} else if (!no_split_folio_counting) {
+ 					nr_failed++;
+ 				}
  
-@@ -441,7 +444,8 @@ depot_stack_handle_t __stack_depot_save(
- 
- 	found = find_stack(*bucket, entries, nr_entries, hash);
- 	if (!found) {
--		struct stack_record *new = depot_alloc_stack(entries, nr_entries, hash, &prealloc);
-+		struct stack_record *new =
-+			depot_alloc_stack(entries, nr_entries, hash, &prealloc);
- 
- 		if (new) {
- 			new->next = *bucket;
-@@ -454,8 +458,8 @@ depot_stack_handle_t __stack_depot_save(
+-				nr_failed_pages += nr_pages;
++				stats.nr_failed_pages += nr_pages;
+ 				break;
+ 			}
  		}
- 	} else if (prealloc) {
- 		/*
--		 * We didn't need to store this stack trace, but let's keep
--		 * the preallocated memory for the future.
-+		 * Stack depot already contains this stack trace, but let's
-+		 * keep the preallocated memory for the future.
- 		 */
- 		depot_init_pool(&prealloc);
  	}
-@@ -463,7 +467,7 @@ depot_stack_handle_t __stack_depot_save(
- 	raw_spin_unlock_irqrestore(&pool_lock, flags);
- exit:
- 	if (prealloc) {
--		/* Nobody used this memory, ok to free it. */
-+		/* Stack depot didn't use this memory, free it. */
- 		free_pages((unsigned long)prealloc, DEPOT_POOL_ORDER);
- 	}
- 	if (found)
-@@ -474,16 +478,16 @@ fast_exit:
- EXPORT_SYMBOL_GPL(__stack_depot_save);
+ 	nr_failed += retry;
+ 	nr_large_failed += large_retry;
+-	nr_thp_failed += thp_retry;
+-	nr_failed_pages += nr_retry_pages;
++	stats.nr_thp_failed += thp_retry;
++	stats.nr_failed_pages += nr_retry_pages;
+ 	/*
+ 	 * Try to migrate split folios of fail-to-migrate large folios, no
+ 	 * nr_failed counting in this round, since all split folios of a
+@@ -1644,16 +1651,17 @@ out:
+ 	if (list_empty(from))
+ 		rc = 0;
  
- /**
-- * stack_depot_save - Save a stack trace from an array
-+ * stack_depot_save - Save a stack trace to stack depot
-  *
-- * @entries:		Pointer to storage array
-- * @nr_entries:		Size of the storage array
-- * @alloc_flags:	Allocation gfp flags
-+ * @entries:		Pointer to the stack trace
-+ * @nr_entries:		Number of frames in the stack
-+ * @alloc_flags:	Allocation GFP flags
-  *
-  * Context: Contexts where allocations via alloc_pages() are allowed.
-  *          See __stack_depot_save() for more details.
-  *
-- * Return: The handle of the stack struct stored in depot, 0 on failure.
-+ * Return: Handle of the stack trace stored in depot, 0 on failure
-  */
- depot_stack_handle_t stack_depot_save(unsigned long *entries,
- 				      unsigned int nr_entries,
-@@ -494,13 +498,12 @@ depot_stack_handle_t stack_depot_save(un
- EXPORT_SYMBOL_GPL(stack_depot_save);
+-	count_vm_events(PGMIGRATE_SUCCESS, nr_succeeded);
+-	count_vm_events(PGMIGRATE_FAIL, nr_failed_pages);
+-	count_vm_events(THP_MIGRATION_SUCCESS, nr_thp_succeeded);
+-	count_vm_events(THP_MIGRATION_FAIL, nr_thp_failed);
+-	count_vm_events(THP_MIGRATION_SPLIT, nr_thp_split);
+-	trace_mm_migrate_pages(nr_succeeded, nr_failed_pages, nr_thp_succeeded,
+-			       nr_thp_failed, nr_thp_split, mode, reason);
++	count_vm_events(PGMIGRATE_SUCCESS, stats.nr_succeeded);
++	count_vm_events(PGMIGRATE_FAIL, stats.nr_failed_pages);
++	count_vm_events(THP_MIGRATION_SUCCESS, stats.nr_thp_succeeded);
++	count_vm_events(THP_MIGRATION_FAIL, stats.nr_thp_failed);
++	count_vm_events(THP_MIGRATION_SPLIT, stats.nr_thp_split);
++	trace_mm_migrate_pages(stats.nr_succeeded, stats.nr_failed_pages,
++			       stats.nr_thp_succeeded, stats.nr_thp_failed,
++			       stats.nr_thp_split, mode, reason);
  
- /**
-- * stack_depot_fetch - Fetch stack entries from a depot
-+ * stack_depot_fetch - Fetch a stack trace from stack depot
-  *
-- * @handle:		Stack depot handle which was returned from
-- *			stack_depot_save().
-- * @entries:		Pointer to store the entries address
-+ * @handle:	Stack depot handle returned from stack_depot_save()
-+ * @entries:	Pointer to store the address of the stack trace
-  *
-- * Return: The number of trace entries for this depot.
-+ * Return: Number of frames for the fetched stack
-  */
- unsigned int stack_depot_fetch(depot_stack_handle_t handle,
- 			       unsigned long **entries)
-@@ -535,11 +538,9 @@ unsigned int stack_depot_fetch(depot_sta
- EXPORT_SYMBOL_GPL(stack_depot_fetch);
+ 	if (ret_succeeded)
+-		*ret_succeeded = nr_succeeded;
++		*ret_succeeded = stats.nr_succeeded;
  
- /**
-- * stack_depot_print - print stack entries from a depot
-- *
-- * @stack:		Stack depot handle which was returned from
-- *			stack_depot_save().
-+ * stack_depot_print - Print a stack trace from stack depot
-  *
-+ * @stack:	Stack depot handle returned from stack_depot_save()
-  */
- void stack_depot_print(depot_stack_handle_t stack)
- {
-@@ -553,17 +554,14 @@ void stack_depot_print(depot_stack_handl
- EXPORT_SYMBOL_GPL(stack_depot_print);
- 
- /**
-- * stack_depot_snprint - print stack entries from a depot into a buffer
-+ * stack_depot_snprint - Print a stack trace from stack depot into a buffer
-  *
-- * @handle:	Stack depot handle which was returned from
-- *		stack_depot_save().
-+ * @handle:	Stack depot handle returned from stack_depot_save()
-  * @buf:	Pointer to the print buffer
-- *
-  * @size:	Size of the print buffer
-- *
-  * @spaces:	Number of leading spaces to print
-  *
-- * Return:	Number of bytes printed.
-+ * Return:	Number of bytes printed
-  */
- int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
- 		       int spaces)
+ 	return rc;
+ }
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 
