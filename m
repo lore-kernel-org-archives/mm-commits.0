@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7078C636D4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CD16C64EC4
 	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:45:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229574AbjBQEpy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Feb 2023 23:45:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55224 "EHLO
+        id S229436AbjBQEpx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Feb 2023 23:45:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229644AbjBQEpD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:45:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 615844FCBA
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:53 -0800 (PST)
+        with ESMTP id S229574AbjBQEoz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:44:55 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75BDD59712
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:52 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F2E65612CA
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0CFA961306
         for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58E2EC433EF;
-        Fri, 17 Feb 2023 04:44:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64468C433D2;
+        Fri, 17 Feb 2023 04:44:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676609092;
-        bh=+URmD5n/qrzSZGYiriUbOOUi1Tosdu6qCDxouoWqYzo=;
+        s=korg; t=1676609091;
+        bh=c04oUzVaOsfnOvV8yRlinW31fJ0tvnNFVnZvfu4zvuI=;
         h=Date:To:From:Subject:From;
-        b=ZQeK0mngaqpjFc7OA3ihsrEw0aZ+vufZ4dWwO1NeAN/d85Vo02U1/pjUF8St6b1Fr
-         z+3AyhcgcIa5cEA6Nix9ezIav2DaF/g34lz6Peti5m1E450xplwTU7pBDuuwqgeI4s
-         PhmbK9QHwIDVcgeWDNIsqIPkwVQlo2EjFmqW1zKA=
-Date:   Thu, 16 Feb 2023 20:44:51 -0800
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
+        b=1AaSHxb13qp7S/TqTh6HuitVJ5jG1mVnZJYOBqV89O/Oq17olAfiwPi/h1CtSBx9I
+         N2C6aHnNJ/DoDwYxmDNvZjgCedoFQu7enCUFTi5JAVkgiRAjDfkmcrUC6urG14ZLsV
+         SLMlCSqNd4uI4fFc0jFTv1Xmb5+KnAXLu4gVj5hc=
+Date:   Thu, 16 Feb 2023 20:44:50 -0800
+To:     mm-commits@vger.kernel.org, tjmercier@google.com,
+        yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-call-panic-when-memoryless-node-allocation-fails.patch removed from -mm tree
-Message-Id: <20230217044452.58E2EC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-avoid-futile-retries.patch removed from -mm tree
+Message-Id: <20230217044451.64468C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,49 +41,102 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: call panic() when memoryless node allocation fails
+     Subject: mm: multi-gen LRU: avoid futile retries
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-call-panic-when-memoryless-node-allocation-fails.patch
+     mm-multi-gen-lru-avoid-futile-retries.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: page_alloc: call panic() when memoryless node allocation fails
-Date: Sun, 12 Feb 2023 19:10:27 +0800
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: multi-gen LRU: avoid futile retries
+Date: Mon, 13 Feb 2023 00:53:22 -0700
 
-In free_area_init(), we will continue to run after allocation of
-memoryless node pgdat fails.  However, in the subsequent process (such as
-when initializing zonelist), the case that NODE_DATA(nid) is NULL is not
-handled, which will cause panic.  Instead of this, it's better to call
-panic() directly when the memory allocation fails during system boot.
+Recall that the per-node memcg LRU has two generations and they alternate
+when the last memcg (of a given node) is moved from one to the other. 
+Each generation is also sharded into multiple bins to improve scalability.
+A reclaimer starts with a random bin (in the old generation) and, if it
+fails, it will retry, i.e., to try the rest of the bins.
 
-Link: https://lkml.kernel.org/r/20230212111027.95520-1-zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+If a reclaimer fails with the last memcg, it should move this memcg to the
+young generation first, which causes the generations to alternate, and
+then retry.  Otherwise, the retries will be futile because all other bins
+are empty.
+
+Link: https://lkml.kernel.org/r/20230213075322.1416966-1-yuzhao@google.com
+Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reported-by: T.J. Mercier <tjmercier@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/page_alloc.c~mm-page_alloc-call-panic-when-memoryless-node-allocation-fails
-+++ a/mm/page_alloc.c
-@@ -8405,11 +8405,9 @@ void __init free_area_init(unsigned long
+--- a/mm/vmscan.c~mm-multi-gen-lru-avoid-futile-retries
++++ a/mm/vmscan.c
+@@ -5356,18 +5356,20 @@ static int shrink_one(struct lruvec *lru
  
- 			/* Allocator not initialized yet */
- 			pgdat = arch_alloc_nodedata(nid);
--			if (!pgdat) {
--				pr_err("Cannot allocate %zuB for node %d.\n",
--						sizeof(*pgdat), nid);
--				continue;
--			}
-+			if (!pgdat)
-+				panic("Cannot allocate %zuB for node %d.\n",
-+				       sizeof(*pgdat), nid);
- 			arch_refresh_nodedata(nid, pgdat);
- 			free_area_init_memoryless_node(nid);
+ static void shrink_many(struct pglist_data *pgdat, struct scan_control *sc)
+ {
++	int op;
+ 	int gen;
+ 	int bin;
+ 	int first_bin;
+ 	struct lruvec *lruvec;
+ 	struct lru_gen_folio *lrugen;
++	struct mem_cgroup *memcg;
+ 	const struct hlist_nulls_node *pos;
+-	int op = 0;
+-	struct mem_cgroup *memcg = NULL;
+ 	unsigned long nr_to_reclaim = get_nr_to_reclaim(sc);
  
+ 	bin = first_bin = get_random_u32_below(MEMCG_NR_BINS);
+ restart:
++	op = 0;
++	memcg = NULL;
+ 	gen = get_memcg_gen(READ_ONCE(pgdat->memcg_lru.seq));
+ 
+ 	rcu_read_lock();
+@@ -5391,14 +5393,22 @@ restart:
+ 
+ 		op = shrink_one(lruvec, sc);
+ 
+-		if (sc->nr_reclaimed >= nr_to_reclaim)
+-			goto success;
+-
+ 		rcu_read_lock();
++
++		if (sc->nr_reclaimed >= nr_to_reclaim)
++			break;
+ 	}
+ 
+ 	rcu_read_unlock();
+ 
++	if (op)
++		lru_gen_rotate_memcg(lruvec, op);
++
++	mem_cgroup_put(memcg);
++
++	if (sc->nr_reclaimed >= nr_to_reclaim)
++		return;
++
+ 	/* restart if raced with lru_gen_rotate_memcg() */
+ 	if (gen != get_nulls_value(pos))
+ 		goto restart;
+@@ -5407,11 +5417,6 @@ restart:
+ 	bin = get_memcg_bin(bin + 1);
+ 	if (bin != first_bin)
+ 		goto restart;
+-success:
+-	if (op)
+-		lru_gen_rotate_memcg(lruvec, op);
+-
+-	mem_cgroup_put(memcg);
+ }
+ 
+ static void lru_gen_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
 
