@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71C83C05027
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:45:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC6C1C05027
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:46:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229633AbjBQEpz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Feb 2023 23:45:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55574 "EHLO
+        id S229672AbjBQEqM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Feb 2023 23:46:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229648AbjBQEpD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:45:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94D06564B4
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:54 -0800 (PST)
+        with ESMTP id S229460AbjBQEpj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:45:39 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12F3759717
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 338E061366
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89221C433D2;
-        Fri, 17 Feb 2023 04:44:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C2631B82B22
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82222C433EF;
+        Fri, 17 Feb 2023 04:44:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676609093;
-        bh=lzivtJV8u28vLIBK994zXciEa5kNNnrLpgtemOcysaU=;
+        s=korg; t=1676609094;
+        bh=cAmqXRv2uLU3+TzYVW0zl8np8lrjc5MwwG73rQjQXcw=;
         h=Date:To:From:Subject:From;
-        b=aQfXU/ZI9tut52A/sCLTmqK6JKLTh7xpMJJONTa2YJlI0het19SNvJIcXny+skhY9
-         HcW88sBntll8w/M1x0bf32ha3Lpsh7YHIk+Zw8OimYYEkO6tPCELC83QbeUTsEDFtM
-         DdgxPqAa/GdQU5mUfa0MTNoyK/6ta/NymbdIOE4Q=
-Date:   Thu, 16 Feb 2023 20:44:52 -0800
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        vernon2gm@gmail.com, ryabinin.a.a@gmail.com,
-        Liam.Howlett@oracle.com, glider@google.com, dvyukov@google.com,
-        david@redhat.com, andreyknvl@gmail.com, arnd@arndb.de,
-        akpm@linux-foundation.org
+        b=SiTk4tI9QYmVsVZasiwEfoSl1YxUjqvCpnzdjCV7YxmnxM28JGdbx4p2cijBk20cx
+         7y+FH9mEuFxdI0V9FqeowDCqJXleZj/ZnM+rrvUBGewvq3HomE6+C8EGiX4dC2EXB+
+         l1P/uuKQm75wcVz8SqYGw3m91xUXU6zv6m6muoKY=
+Date:   Thu, 16 Feb 2023 20:44:53 -0800
+To:     mm-commits@vger.kernel.org, vvs@openvz.org, tj@kernel.org,
+        roman.gushchin@linux.dev, dennis@kernel.org, cl@linux.com,
+        laoar.shao@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-reduce-stack-usage-with-gcc-9-and-earlier.patch removed from -mm tree
-Message-Id: <20230217044453.89221C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-percpu-fix-incorrect-size-in-pcpu_obj_full_size.patch removed from -mm tree
+Message-Id: <20230217044454.82222C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,83 +42,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: reduce stack usage with gcc-9 and earlier
+     Subject: mm: percpu: fix incorrect size in pcpu_obj_full_size()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-reduce-stack-usage-with-gcc-9-and-earlier.patch
+     mm-percpu-fix-incorrect-size-in-pcpu_obj_full_size.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: maple_tree: reduce stack usage with gcc-9 and earlier
-Date: Tue, 14 Feb 2023 11:30:24 +0100
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm: percpu: fix incorrect size in pcpu_obj_full_size()
+Date: Tue, 14 Feb 2023 15:35:49 +0000
 
-gcc-10 changed the way inlining works to be less aggressive, but older
-versions run into an oversized stack frame warning whenever
-CONFIG_KASAN_STACK is enabled, as that forces variables from inlined
-callees to be non-overlapping:
+The extra space which is used to store the obj_cgroup membership is only
+valid when kmemcg is enabled.  The kmemcg can be disabled via the kernel
+parameter "cgroup.memory=nokmem" at boot time.  This helper is also used
+in non-memcg code, for example the tracepoint, so we should fix it.
 
-lib/maple_tree.c: In function 'mas_wr_bnode':
-lib/maple_tree.c:4320:1: error: the frame size of 1424 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
+It was found by code review when I was implementing bpf memory usage[1]. 
+No real issue happens in production environment.
 
-Change the annotations on mas_store_b_node() and mas_commit_b_node()
-to explicitly forbid inlining in this configuration, which is
-the same behavior that newer versions already have.
+[1]. https://lwn.net/Articles/921991/
 
-Link: https://lkml.kernel.org/r/20230214103030.1051950-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Vernon Yang <vernon2gm@gmail.com>
+Link: https://lkml.kernel.org/r/20230214153549.12291-1-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Vasily Averin <vvs@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/lib/maple_tree.c~maple_tree-reduce-stack-usage-with-gcc-9-and-earlier
-+++ a/lib/maple_tree.c
-@@ -146,6 +146,13 @@ struct maple_subtree_state {
- 	struct maple_big_node *bn;
- };
+--- a/mm/percpu-internal.h~mm-percpu-fix-incorrect-size-in-pcpu_obj_full_size
++++ a/mm/percpu-internal.h
+@@ -4,6 +4,7 @@
  
-+#ifdef CONFIG_KASAN_STACK
-+/* Prevent mas_wr_bnode() from exceeding the stack frame limit */
-+#define noinline_for_kasan noinline_for_stack
-+#else
-+#define noinline_for_kasan inline
-+#endif
-+
- /* Functions */
- static inline struct maple_node *mt_alloc_one(gfp_t gfp)
- {
-@@ -2107,7 +2114,7 @@ static inline void mas_bulk_rebalance(st
+ #include <linux/types.h>
+ #include <linux/percpu.h>
++#include <linux/memcontrol.h>
+ 
+ /*
+  * pcpu_block_md is the metadata block struct.
+@@ -118,14 +119,15 @@ static inline int pcpu_chunk_map_bits(st
+  * @size: size of area to allocate in bytes
   *
-  * Return: The actual end of the data stored in @b_node
+  * For each accounted object there is an extra space which is used to store
+- * obj_cgroup membership. Charge it too.
++ * obj_cgroup membership if kmemcg is not disabled. Charge it too.
   */
--static inline void mas_store_b_node(struct ma_wr_state *wr_mas,
-+static noinline_for_kasan void mas_store_b_node(struct ma_wr_state *wr_mas,
- 		struct maple_big_node *b_node, unsigned char offset_end)
+ static inline size_t pcpu_obj_full_size(size_t size)
  {
- 	unsigned char slot;
-@@ -3579,7 +3586,7 @@ static inline bool mas_reuse_node(struct
-  * @b_node: The maple big node
-  * @end: The end of the data.
-  */
--static inline int mas_commit_b_node(struct ma_wr_state *wr_mas,
-+static noinline_for_kasan int mas_commit_b_node(struct ma_wr_state *wr_mas,
- 			    struct maple_big_node *b_node, unsigned char end)
- {
- 	struct maple_node *node;
+ 	size_t extra_size = 0;
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+-	extra_size += size / PCPU_MIN_ALLOC_SIZE * sizeof(struct obj_cgroup *);
++	if (!mem_cgroup_kmem_disabled())
++		extra_size += size / PCPU_MIN_ALLOC_SIZE * sizeof(struct obj_cgroup *);
+ #endif
+ 
+ 	return size * num_possible_cpus() + extra_size;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
 
-kasan-mark-addr_has_metadata-__always_inline.patch
-kmsan-disable-ftrace-in-kmsan-core-code.patch
-objtool-add-uaccess-exceptions-for-__tsan_volatile_read-write.patch
 
