@@ -2,108 +2,104 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 021E0C64EC4
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:46:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CDC5C05027
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 21:10:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229688AbjBQEqN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Feb 2023 23:46:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55716 "EHLO
+        id S229677AbjBQVKY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Feb 2023 16:10:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229482AbjBQEpj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:45:39 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39A265A399
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:58 -0800 (PST)
+        with ESMTP id S229482AbjBQVKX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2023 16:10:23 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AACD5D3EB
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 13:10:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EF9E5B829C0
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FFD4C4339E;
-        Fri, 17 Feb 2023 04:44:55 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id BF11CCE310E
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 21:10:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6BCAC433D2;
+        Fri, 17 Feb 2023 21:10:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676609095;
-        bh=E2IOVc5EUKQAMV3ebtNx6XeWxC/OYfYdE/oW2FiuZOc=;
+        s=korg; t=1676668218;
+        bh=vi7CB75/hSAKqWm8DcMpNNFx9xDC/xKJYW1bZ6GAiWw=;
         h=Date:To:From:Subject:From;
-        b=e/y1bdhQqp6F9jurqoyzHb6sXCXOAcvobC7nBcs4/lgnNNkhQoX7HRzLsqbtgZPDW
-         iKGOY6F++MBS5EwPcLeACBilqotf1UmXfXXaprTrZ3kTuSiIHlURDanqt1eTOFXLB3
-         n0ePl7fRBeUpbIDGkCNcEz1bzNUBWBAh0VzqJpMY=
-Date:   Thu, 16 Feb 2023 20:44:55 -0800
-To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
-        linux@roeck-us.net, glaubitz@physik.fu-berlin.de,
-        gerg@linux-m68k.org, geert@linux-m68k.org, david@redhat.com,
-        dalias@libc.org, arnd@arndb.de, rppt@kernel.org,
-        akpm@linux-foundation.org
+        b=LbIjwQiXro5piAWz1t+S0sx+san1spuXZkt2ijBp/u89sHlQNQiSf97bRx0hz5goG
+         kYFUz88+2f36mxjs7nt9I6UUQz8/i1K/UPEv7TsDNxe/obMP3N2KOqXBqkr354hFGT
+         GjpyQy19y37Bmr5sPMwjHGXsolDcgt2PsVm+tYfI=
+Date:   Fri, 17 Feb 2023 13:10:17 -0800
+To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tkhai@ya.ru,
+        qyousef@layalina.io, djakov@kernel.org, colin.i.king@gmail.com,
+        baolin.wang@linux.alibaba.com, arnd@arndb.de,
+        konrad.dybcio@linaro.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] m68k-nommu-add-missing-definition-of-arch_pfn_offset.patch removed from -mm tree
-Message-Id: <20230217044455.8FFD4C4339E@smtp.kernel.org>
+Subject: + mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230217211018.A6BCAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: m68k/nommu: add missing definition of ARCH_PFN_OFFSET
-has been removed from the -mm tree.  Its filename was
-     m68k-nommu-add-missing-definition-of-arch_pfn_offset.patch
+The patch titled
+     Subject: mailmap: map Georgi Djakov's old Linaro address to his current one
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: m68k/nommu: add missing definition of ARCH_PFN_OFFSET
-Date: Tue, 14 Feb 2023 16:07:28 +0200
+From: Konrad Dybcio <konrad.dybcio@linaro.org>
+Subject: mailmap: map Georgi Djakov's old Linaro address to his current one
+Date: Fri, 17 Feb 2023 21:35:16 +0100
 
-Patch series "fixups for generic implementation of pfn_valid()".
+Georgi's old email is still picked up by the likes of get_maintainer.pl
+and it keeps bouncing every time one submits an interconnect patch.  Map
+it to his current @kernel.org one.
 
-Guenter reported boot failures on m68k-nommu and sh caused by the switch to
-the generic implementation of pfn_valid():
-
-https://lore.kernel.org/all/20230212173513.GA4052259@roeck-us.net
-https://lore.kernel.org/all/20230212161320.GA3784076@roeck-us.net
-
-These are small fixups that address the issues.
-
-
-This patch (of 2):
-
-On m68k/nommu RAM does not necessarily start at 0x0 and when it does not
-pfn_valid() uses a wrong offset into the memory map which causes silent
-boot failures.
-
-Define ARCH_PFN_OFFSET to make pfn_valid() use the correct offset.
-
-Link: https://lkml.kernel.org/r/20230214140729.1649961-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20230214140729.1649961-2-rppt@kernel.org
-Fixes: d82f07f06cf8 ("m68k: use asm-generic/memory_model.h for both MMU and !MMU")
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: Greg Ungerer <gerg@linux-m68k.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20230217203516.826424-1-konrad.dybcio@linaro.org
+Signed-off-by: Konrad Dybcio <konrad.dybcio@linaro.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Georgi Djakov <djakov@kernel.org>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Qais Yousef <qyousef@layalina.io>
+Cc: Vasily Averin <vasily.averin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/m68k/include/asm/page_no.h~m68k-nommu-add-missing-definition-of-arch_pfn_offset
-+++ a/arch/m68k/include/asm/page_no.h
-@@ -28,6 +28,8 @@ extern unsigned long memory_end;
- #define	virt_addr_valid(kaddr)	(((unsigned long)(kaddr) >= PAGE_OFFSET) && \
- 				((unsigned long)(kaddr) < memory_end))
- 
-+#define ARCH_PFN_OFFSET PHYS_PFN(PAGE_OFFSET_RAW)
-+
- #endif /* __ASSEMBLY__ */
- 
- #endif /* _M68K_PAGE_NO_H */
+--- a/.mailmap~mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one
++++ a/.mailmap
+@@ -150,6 +150,7 @@ Gao Xiang <xiang@kernel.org> <gaoxiang25
+ Gao Xiang <xiang@kernel.org> <hsiangkao@aol.com>
+ Gao Xiang <xiang@kernel.org> <hsiangkao@linux.alibaba.com>
+ Gao Xiang <xiang@kernel.org> <hsiangkao@redhat.com>
++Georgi Djakov <djakov@kernel.org> <georgi.djakov@linaro.org>
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@de.ibm.com>
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com> <gerald.schaefer@de.ibm.com>
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@linux.vnet.ibm.com>
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from konrad.dybcio@linaro.org are
 
+mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one.patch
 
