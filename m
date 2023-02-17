@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0CD0C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 02:19:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A36A0C636D4
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:44:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230207AbjBQCT2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Feb 2023 21:19:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44996 "EHLO
+        id S229580AbjBQEoX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Feb 2023 23:44:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229508AbjBQCT1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 21:19:27 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DCB72E0C6
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 18:19:26 -0800 (PST)
+        with ESMTP id S229506AbjBQEoW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:44:22 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CA2E3527F
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 083696112C
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 02:19:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E205C433D2;
-        Fri, 17 Feb 2023 02:19:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D7A3A612CA
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E437C433EF;
+        Fri, 17 Feb 2023 04:44:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676600365;
-        bh=1EOZVwwhChuK5nuAw9RwuDVe9UdsJW629SD71q262YI=;
+        s=korg; t=1676609059;
+        bh=asCH7TjNalnd8JEq2uoFwmaW9kY0LJhGXz5lqsggPZs=;
         h=Date:To:From:Subject:From;
-        b=qnaOqOIEQFpjjcPWmaAzprl5unhhQYkWqRaM25DzwFJRXJoxs50JEgY38bRzegpbh
-         1F6C+LpLqCyFw7tcC7aUBpQHnwjWbC0ipyprAmnfd14vSxv36Oy8rsPyJI1B5YFBbc
-         wb16nYPu+Og55fHAR8kLaygrSohlr+IRsklz36Rg=
-Date:   Thu, 16 Feb 2023 18:19:24 -0800
-To:     mm-commits@vger.kernel.org, glider@google.com,
-        andreyknvl@google.com, akpm@linux-foundation.org,
+        b=V3Sqi9XvvtJqB/H1c1k4utf6njhJUEZPgXV+RIARDSX1Ek5sRUK2zuLvo3TyvKIRK
+         AmGNBF5d0xMZC2v82cbj6f+64FrMTAhlhJ89g6+UknQ6axpPKugNYiNsn+ymbak0dn
+         RqqrORZ8V6+5fpttoIqu2w+SODAD5AEvPDx5+mcY=
+Date:   Thu, 16 Feb 2023 20:44:18 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, glider@google.com,
+        eugenis@google.com, elver@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] lib-stackdepot-move-documentation-comments-to-stackdepoth-fix.patch removed from -mm tree
-Message-Id: <20230217021925.5E205C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] lib-stackdepot-put-functions-in-logical-order.patch removed from -mm tree
+Message-Id: <20230217044419.2E437C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,42 +42,436 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib-stackdepot-move-documentation-comments-to-stackdepoth-fix
+     Subject: lib/stackdepot: put functions in logical order
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-move-documentation-comments-to-stackdepoth-fix.patch
+     lib-stackdepot-put-functions-in-logical-order.patch
 
-This patch was dropped because it was folded into lib-stackdepot-move-documentation-comments-to-stackdepoth.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-stackdepot-move-documentation-comments-to-stackdepoth-fix
-Date: Mon Feb 13 10:04:04 AM PST 2023
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: lib/stackdepot: put functions in logical order
+Date: Fri, 10 Feb 2023 22:15:49 +0100
 
-grammar fix, per Alexander
+Patch series "lib/stackdepot: fixes and clean-ups", v2.
 
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
+A set of fixes, comments, and clean-ups I came up with while reading
+the stack depot code.
+
+
+This patch (of 18):
+
+Put stack depot functions' declarations and definitions in a more logical
+order:
+
+1. Functions that save stack traces into stack depot.
+2. Functions that fetch and print stack traces.
+3. stack_depot_get_extra_bits that operates on stack depot handles
+   and does not interact with the stack depot storage.
+
+No functional changes.
+
+Link: https://lkml.kernel.org/r/cover.1676063693.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/daca1319b665d826b94c596b992a8d8117846147.1676063693.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/stackdepot.h~lib-stackdepot-move-documentation-comments-to-stackdepoth-fix
+--- a/include/linux/stackdepot.h~lib-stackdepot-put-functions-in-logical-order
 +++ a/include/linux/stackdepot.h
-@@ -11,7 +11,7 @@
-  * SLUB_DEBUG needs 256 bytes per object for that). Since allocation and free
-  * stack traces often repeat, using stack depot allows to save about 100x space.
+@@ -14,17 +14,13 @@
+ #include <linux/gfp.h>
+ 
+ typedef u32 depot_stack_handle_t;
++
+ /*
+  * Number of bits in the handle that stack depot doesn't use. Users may store
+  * information in them.
+  */
+ #define STACK_DEPOT_EXTRA_BITS 5
+ 
+-depot_stack_handle_t __stack_depot_save(unsigned long *entries,
+-					unsigned int nr_entries,
+-					unsigned int extra_bits,
+-					gfp_t gfp_flags, bool can_alloc);
+-
+ /*
+  * Every user of stack depot has to call stack_depot_init() during its own init
+  * when it's decided that it will be calling stack_depot_save() later. This is
+@@ -59,17 +55,22 @@ static inline void stack_depot_want_earl
+ static inline int stack_depot_early_init(void)	{ return 0; }
+ #endif
+ 
++depot_stack_handle_t __stack_depot_save(unsigned long *entries,
++					unsigned int nr_entries,
++					unsigned int extra_bits,
++					gfp_t gfp_flags, bool can_alloc);
++
+ depot_stack_handle_t stack_depot_save(unsigned long *entries,
+ 				      unsigned int nr_entries, gfp_t gfp_flags);
+ 
+ unsigned int stack_depot_fetch(depot_stack_handle_t handle,
+ 			       unsigned long **entries);
+ 
+-unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle);
++void stack_depot_print(depot_stack_handle_t stack);
+ 
+ int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
+ 		       int spaces);
+ 
+-void stack_depot_print(depot_stack_handle_t stack);
++unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle);
+ 
+ #endif
+--- a/lib/stackdepot.c~lib-stackdepot-put-functions-in-logical-order
++++ a/lib/stackdepot.c
+@@ -79,84 +79,6 @@ static int next_slab_inited;
+ static size_t depot_offset;
+ static DEFINE_RAW_SPINLOCK(depot_lock);
+ 
+-unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle)
+-{
+-	union handle_parts parts = { .handle = handle };
+-
+-	return parts.extra;
+-}
+-EXPORT_SYMBOL(stack_depot_get_extra_bits);
+-
+-static bool init_stack_slab(void **prealloc)
+-{
+-	if (!*prealloc)
+-		return false;
+-	/*
+-	 * This smp_load_acquire() pairs with smp_store_release() to
+-	 * |next_slab_inited| below and in depot_alloc_stack().
+-	 */
+-	if (smp_load_acquire(&next_slab_inited))
+-		return true;
+-	if (stack_slabs[depot_index] == NULL) {
+-		stack_slabs[depot_index] = *prealloc;
+-		*prealloc = NULL;
+-	} else {
+-		/* If this is the last depot slab, do not touch the next one. */
+-		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS) {
+-			stack_slabs[depot_index + 1] = *prealloc;
+-			*prealloc = NULL;
+-		}
+-		/*
+-		 * This smp_store_release pairs with smp_load_acquire() from
+-		 * |next_slab_inited| above and in stack_depot_save().
+-		 */
+-		smp_store_release(&next_slab_inited, 1);
+-	}
+-	return true;
+-}
+-
+-/* Allocation of a new stack in raw storage */
+-static struct stack_record *
+-depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
+-{
+-	struct stack_record *stack;
+-	size_t required_size = struct_size(stack, entries, size);
+-
+-	required_size = ALIGN(required_size, 1 << STACK_ALLOC_ALIGN);
+-
+-	if (unlikely(depot_offset + required_size > STACK_ALLOC_SIZE)) {
+-		if (unlikely(depot_index + 1 >= STACK_ALLOC_MAX_SLABS)) {
+-			WARN_ONCE(1, "Stack depot reached limit capacity");
+-			return NULL;
+-		}
+-		depot_index++;
+-		depot_offset = 0;
+-		/*
+-		 * smp_store_release() here pairs with smp_load_acquire() from
+-		 * |next_slab_inited| in stack_depot_save() and
+-		 * init_stack_slab().
+-		 */
+-		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS)
+-			smp_store_release(&next_slab_inited, 0);
+-	}
+-	init_stack_slab(prealloc);
+-	if (stack_slabs[depot_index] == NULL)
+-		return NULL;
+-
+-	stack = stack_slabs[depot_index] + depot_offset;
+-
+-	stack->hash = hash;
+-	stack->size = size;
+-	stack->handle.slabindex = depot_index;
+-	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
+-	stack->handle.valid = 1;
+-	stack->handle.extra = 0;
+-	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
+-	depot_offset += required_size;
+-
+-	return stack;
+-}
+-
+ /* one hash table bucket entry per 16kB of memory */
+ #define STACK_HASH_SCALE	14
+ /* limited between 4k and 1M buckets */
+@@ -270,6 +192,76 @@ int stack_depot_init(void)
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_init);
+ 
++static bool init_stack_slab(void **prealloc)
++{
++	if (!*prealloc)
++		return false;
++	/*
++	 * This smp_load_acquire() pairs with smp_store_release() to
++	 * |next_slab_inited| below and in depot_alloc_stack().
++	 */
++	if (smp_load_acquire(&next_slab_inited))
++		return true;
++	if (stack_slabs[depot_index] == NULL) {
++		stack_slabs[depot_index] = *prealloc;
++		*prealloc = NULL;
++	} else {
++		/* If this is the last depot slab, do not touch the next one. */
++		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS) {
++			stack_slabs[depot_index + 1] = *prealloc;
++			*prealloc = NULL;
++		}
++		/*
++		 * This smp_store_release pairs with smp_load_acquire() from
++		 * |next_slab_inited| above and in stack_depot_save().
++		 */
++		smp_store_release(&next_slab_inited, 1);
++	}
++	return true;
++}
++
++/* Allocation of a new stack in raw storage */
++static struct stack_record *
++depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
++{
++	struct stack_record *stack;
++	size_t required_size = struct_size(stack, entries, size);
++
++	required_size = ALIGN(required_size, 1 << STACK_ALLOC_ALIGN);
++
++	if (unlikely(depot_offset + required_size > STACK_ALLOC_SIZE)) {
++		if (unlikely(depot_index + 1 >= STACK_ALLOC_MAX_SLABS)) {
++			WARN_ONCE(1, "Stack depot reached limit capacity");
++			return NULL;
++		}
++		depot_index++;
++		depot_offset = 0;
++		/*
++		 * smp_store_release() here pairs with smp_load_acquire() from
++		 * |next_slab_inited| in stack_depot_save() and
++		 * init_stack_slab().
++		 */
++		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS)
++			smp_store_release(&next_slab_inited, 0);
++	}
++	init_stack_slab(prealloc);
++	if (stack_slabs[depot_index] == NULL)
++		return NULL;
++
++	stack = stack_slabs[depot_index] + depot_offset;
++
++	stack->hash = hash;
++	stack->size = size;
++	stack->handle.slabindex = depot_index;
++	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
++	stack->handle.valid = 1;
++	stack->handle.extra = 0;
++	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
++	depot_offset += required_size;
++
++	return stack;
++}
++
+ /* Calculate hash for a stack */
+ static inline u32 hash_stack(unsigned long *entries, unsigned int size)
+ {
+@@ -310,85 +302,6 @@ static inline struct stack_record *find_
+ }
+ 
+ /**
+- * stack_depot_snprint - print stack entries from a depot into a buffer
+- *
+- * @handle:	Stack depot handle which was returned from
+- *		stack_depot_save().
+- * @buf:	Pointer to the print buffer
+- *
+- * @size:	Size of the print buffer
+- *
+- * @spaces:	Number of leading spaces to print
+- *
+- * Return:	Number of bytes printed.
+- */
+-int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
+-		       int spaces)
+-{
+-	unsigned long *entries;
+-	unsigned int nr_entries;
+-
+-	nr_entries = stack_depot_fetch(handle, &entries);
+-	return nr_entries ? stack_trace_snprint(buf, size, entries, nr_entries,
+-						spaces) : 0;
+-}
+-EXPORT_SYMBOL_GPL(stack_depot_snprint);
+-
+-/**
+- * stack_depot_print - print stack entries from a depot
+- *
+- * @stack:		Stack depot handle which was returned from
+- *			stack_depot_save().
+- *
+- */
+-void stack_depot_print(depot_stack_handle_t stack)
+-{
+-	unsigned long *entries;
+-	unsigned int nr_entries;
+-
+-	nr_entries = stack_depot_fetch(stack, &entries);
+-	if (nr_entries > 0)
+-		stack_trace_print(entries, nr_entries, 0);
+-}
+-EXPORT_SYMBOL_GPL(stack_depot_print);
+-
+-/**
+- * stack_depot_fetch - Fetch stack entries from a depot
+- *
+- * @handle:		Stack depot handle which was returned from
+- *			stack_depot_save().
+- * @entries:		Pointer to store the entries address
+- *
+- * Return: The number of trace entries for this depot.
+- */
+-unsigned int stack_depot_fetch(depot_stack_handle_t handle,
+-			       unsigned long **entries)
+-{
+-	union handle_parts parts = { .handle = handle };
+-	void *slab;
+-	size_t offset = parts.offset << STACK_ALLOC_ALIGN;
+-	struct stack_record *stack;
+-
+-	*entries = NULL;
+-	if (!handle)
+-		return 0;
+-
+-	if (parts.slabindex > depot_index) {
+-		WARN(1, "slab index %d out of bounds (%d) for stack id %08x\n",
+-			parts.slabindex, depot_index, handle);
+-		return 0;
+-	}
+-	slab = stack_slabs[parts.slabindex];
+-	if (!slab)
+-		return 0;
+-	stack = slab + offset;
+-
+-	*entries = stack->entries;
+-	return stack->size;
+-}
+-EXPORT_SYMBOL_GPL(stack_depot_fetch);
+-
+-/**
+  * __stack_depot_save - Save a stack trace from an array
   *
-- * Stack traces are never removed from stack depot.
-+ * Stack traces are never removed from the stack depot.
-  *
-  * Author: Alexander Potapenko <glider@google.com>
-  * Copyright (C) 2016 Google, Inc.
+  * @entries:		Pointer to storage array
+@@ -533,3 +446,90 @@ depot_stack_handle_t stack_depot_save(un
+ 	return __stack_depot_save(entries, nr_entries, 0, alloc_flags, true);
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_save);
++
++/**
++ * stack_depot_fetch - Fetch stack entries from a depot
++ *
++ * @handle:		Stack depot handle which was returned from
++ *			stack_depot_save().
++ * @entries:		Pointer to store the entries address
++ *
++ * Return: The number of trace entries for this depot.
++ */
++unsigned int stack_depot_fetch(depot_stack_handle_t handle,
++			       unsigned long **entries)
++{
++	union handle_parts parts = { .handle = handle };
++	void *slab;
++	size_t offset = parts.offset << STACK_ALLOC_ALIGN;
++	struct stack_record *stack;
++
++	*entries = NULL;
++	if (!handle)
++		return 0;
++
++	if (parts.slabindex > depot_index) {
++		WARN(1, "slab index %d out of bounds (%d) for stack id %08x\n",
++			parts.slabindex, depot_index, handle);
++		return 0;
++	}
++	slab = stack_slabs[parts.slabindex];
++	if (!slab)
++		return 0;
++	stack = slab + offset;
++
++	*entries = stack->entries;
++	return stack->size;
++}
++EXPORT_SYMBOL_GPL(stack_depot_fetch);
++
++/**
++ * stack_depot_print - print stack entries from a depot
++ *
++ * @stack:		Stack depot handle which was returned from
++ *			stack_depot_save().
++ *
++ */
++void stack_depot_print(depot_stack_handle_t stack)
++{
++	unsigned long *entries;
++	unsigned int nr_entries;
++
++	nr_entries = stack_depot_fetch(stack, &entries);
++	if (nr_entries > 0)
++		stack_trace_print(entries, nr_entries, 0);
++}
++EXPORT_SYMBOL_GPL(stack_depot_print);
++
++/**
++ * stack_depot_snprint - print stack entries from a depot into a buffer
++ *
++ * @handle:	Stack depot handle which was returned from
++ *		stack_depot_save().
++ * @buf:	Pointer to the print buffer
++ *
++ * @size:	Size of the print buffer
++ *
++ * @spaces:	Number of leading spaces to print
++ *
++ * Return:	Number of bytes printed.
++ */
++int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
++		       int spaces)
++{
++	unsigned long *entries;
++	unsigned int nr_entries;
++
++	nr_entries = stack_depot_fetch(handle, &entries);
++	return nr_entries ? stack_trace_snprint(buf, size, entries, nr_entries,
++						spaces) : 0;
++}
++EXPORT_SYMBOL_GPL(stack_depot_snprint);
++
++unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle)
++{
++	union handle_parts parts = { .handle = handle };
++
++	return parts.extra;
++}
++EXPORT_SYMBOL(stack_depot_get_extra_bits);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-lib-stackdepot-move-documentation-comments-to-stackdepoth.patch
-mm-hugetlb-change-to-return-bool-for-isolate_hugetlb-fix.patch
-mm-change-to-return-bool-for-isolate_movable_page-fix.patch
-include-linux-migrateh-remove-unneeded-externs.patch
 
