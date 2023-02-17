@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37C0DC636D6
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7078C636D4
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:45:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229616AbjBQEpw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Feb 2023 23:45:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55496 "EHLO
+        id S229574AbjBQEpy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Feb 2023 23:45:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229633AbjBQEoy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:44:54 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3339E53808
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:51 -0800 (PST)
+        with ESMTP id S229644AbjBQEpD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:45:03 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 615844FCBA
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C680D6133B
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DD82C4339B;
-        Fri, 17 Feb 2023 04:44:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F2E65612CA
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58E2EC433EF;
+        Fri, 17 Feb 2023 04:44:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676609090;
-        bh=OjFVQGDBdu2+F+P5F15KPI0bAA1lVPaXNZsbWKbc3a4=;
+        s=korg; t=1676609092;
+        bh=+URmD5n/qrzSZGYiriUbOOUi1Tosdu6qCDxouoWqYzo=;
         h=Date:To:From:Subject:From;
-        b=NmmZdv/5PaKLU7aeABku7yT6N7Oo+LQf6ojiX40aETnC8Cs2tfDQJnoFUodiCNTUc
-         PndXJQC71x+GshVqHIRtmuhoMltwjgMGWEiHyVswH9L4ZklpNkAuXQf6LCe8b7S9SW
-         /FNjcsq13F/5ywEsKUaY98zl+VLbAspCEqqTNmKc=
-Date:   Thu, 16 Feb 2023 20:44:49 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
-        willy@infradead.org, shy828301@gmail.com, osalvador@suse.de,
-        minchan@kernel.org, mike.kravetz@oracle.com, bharata@amd.com,
-        baolin.wang@linux.alibaba.com, apopple@nvidia.com,
-        42.hyeyoo@gmail.com, ying.huang@intel.com,
+        b=ZQeK0mngaqpjFc7OA3ihsrEw0aZ+vufZ4dWwO1NeAN/d85Vo02U1/pjUF8St6b1Fr
+         z+3AyhcgcIa5cEA6Nix9ezIav2DaF/g34lz6Peti5m1E450xplwTU7pBDuuwqgeI4s
+         PhmbK9QHwIDVcgeWDNIsqIPkwVQlo2EjFmqW1zKA=
+Date:   Thu, 16 Feb 2023 20:44:51 -0800
+To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code.patch removed from -mm tree
-Message-Id: <20230217044450.2DD82C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-call-panic-when-memoryless-node-allocation-fails.patch removed from -mm tree
+Message-Id: <20230217044452.58E2EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,174 +41,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: migrate_pages: move THP/hugetlb migration support check to simplify code
+     Subject: mm: page_alloc: call panic() when memoryless node allocation fails
 has been removed from the -mm tree.  Its filename was
-     migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code.patch
+     mm-page_alloc-call-panic-when-memoryless-node-allocation-fails.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: migrate_pages: move THP/hugetlb migration support check to simplify code
-Date: Mon, 13 Feb 2023 20:34:44 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: page_alloc: call panic() when memoryless node allocation fails
+Date: Sun, 12 Feb 2023 19:10:27 +0800
 
-This is a code cleanup patch, no functionality change is expected.  After
-the change, the line number reduces especially in the long
-migrate_pages_batch().
+In free_area_init(), we will continue to run after allocation of
+memoryless node pgdat fails.  However, in the subsequent process (such as
+when initializing zonelist), the case that NODE_DATA(nid) is NULL is not
+handled, which will cause panic.  Instead of this, it's better to call
+panic() directly when the memory allocation fails during system boot.
 
-Link: https://lkml.kernel.org/r/20230213123444.155149-10-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Suggested-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: Xin Hao <xhao@linux.alibaba.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Link: https://lkml.kernel.org/r/20230212111027.95520-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/migrate.c~migrate_pages-move-thp-hugetlb-migration-support-check-to-simplify-code
-+++ a/mm/migrate.c
-@@ -1117,9 +1117,6 @@ static int migrate_folio_unmap(new_page_
- 	bool locked = false;
- 	bool dst_locked = false;
+--- a/mm/page_alloc.c~mm-page_alloc-call-panic-when-memoryless-node-allocation-fails
++++ a/mm/page_alloc.c
+@@ -8405,11 +8405,9 @@ void __init free_area_init(unsigned long
  
--	if (!thp_migration_supported() && folio_test_transhuge(src))
--		return -ENOSYS;
--
- 	if (folio_ref_count(src) == 1) {
- 		/* Folio was freed from under us. So we are done. */
- 		folio_clear_active(src);
-@@ -1380,16 +1377,6 @@ static int unmap_and_move_huge_page(new_
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
+ 			/* Allocator not initialized yet */
+ 			pgdat = arch_alloc_nodedata(nid);
+-			if (!pgdat) {
+-				pr_err("Cannot allocate %zuB for node %d.\n",
+-						sizeof(*pgdat), nid);
+-				continue;
+-			}
++			if (!pgdat)
++				panic("Cannot allocate %zuB for node %d.\n",
++				       sizeof(*pgdat), nid);
+ 			arch_refresh_nodedata(nid, pgdat);
+ 			free_area_init_memoryless_node(nid);
  
--	/*
--	 * Migratability of hugepages depends on architectures and their size.
--	 * This check is necessary because some callers of hugepage migration
--	 * like soft offline and memory hotremove don't walk through page
--	 * tables or check whether the hugepage is pmd-based or not before
--	 * kicking migration.
--	 */
--	if (!hugepage_migration_supported(page_hstate(hpage)))
--		return -ENOSYS;
--
- 	if (folio_ref_count(src) == 1) {
- 		/* page was freed from under us. So we are done. */
- 		folio_putback_active_hugetlb(src);
-@@ -1556,6 +1543,20 @@ static int migrate_hugetlbs(struct list_
- 
- 			cond_resched();
- 
-+			/*
-+			 * Migratability of hugepages depends on architectures and
-+			 * their size.  This check is necessary because some callers
-+			 * of hugepage migration like soft offline and memory
-+			 * hotremove don't walk through page tables or check whether
-+			 * the hugepage is pmd-based or not before kicking migration.
-+			 */
-+			if (!hugepage_migration_supported(folio_hstate(folio))) {
-+				nr_failed++;
-+				stats->nr_failed_pages += nr_pages;
-+				list_move_tail(&folio->lru, ret_folios);
-+				continue;
-+			}
-+
- 			rc = unmap_and_move_huge_page(get_new_page,
- 						      put_new_page, private,
- 						      &folio->page, pass > 2, mode,
-@@ -1565,16 +1566,9 @@ static int migrate_hugetlbs(struct list_
- 			 *	Success: hugetlb folio will be put back
- 			 *	-EAGAIN: stay on the from list
- 			 *	-ENOMEM: stay on the from list
--			 *	-ENOSYS: stay on the from list
- 			 *	Other errno: put on ret_folios list
- 			 */
- 			switch(rc) {
--			case -ENOSYS:
--				/* Hugetlb migration is unsupported */
--				nr_failed++;
--				stats->nr_failed_pages += nr_pages;
--				list_move_tail(&folio->lru, ret_folios);
--				break;
- 			case -ENOMEM:
- 				/*
- 				 * When memory is low, don't bother to try to migrate
-@@ -1664,6 +1658,28 @@ retry:
- 
- 			cond_resched();
- 
-+			/*
-+			 * Large folio migration might be unsupported or
-+			 * the allocation might be failed so we should retry
-+			 * on the same folio with the large folio split
-+			 * to normal folios.
-+			 *
-+			 * Split folios are put in split_folios, and
-+			 * we will migrate them after the rest of the
-+			 * list is processed.
-+			 */
-+			if (!thp_migration_supported() && is_thp) {
-+				nr_large_failed++;
-+				stats->nr_thp_failed++;
-+				if (!try_split_folio(folio, &split_folios)) {
-+					stats->nr_thp_split++;
-+					continue;
-+				}
-+				stats->nr_failed_pages += nr_pages;
-+				list_move_tail(&folio->lru, ret_folios);
-+				continue;
-+			}
-+
- 			rc = migrate_folio_unmap(get_new_page, put_new_page, private,
- 						 folio, &dst, pass > 2, avoid_force_lock,
- 						 mode, reason, ret_folios);
-@@ -1675,36 +1691,9 @@ retry:
- 			 *	-EAGAIN: stay on the from list
- 			 *	-EDEADLOCK: stay on the from list
- 			 *	-ENOMEM: stay on the from list
--			 *	-ENOSYS: stay on the from list
- 			 *	Other errno: put on ret_folios list
- 			 */
- 			switch(rc) {
--			/*
--			 * Large folio migration might be unsupported or
--			 * the allocation could've failed so we should retry
--			 * on the same folio with the large folio split
--			 * to normal folios.
--			 *
--			 * Split folios are put in split_folios, and
--			 * we will migrate them after the rest of the
--			 * list is processed.
--			 */
--			case -ENOSYS:
--				/* Large folio migration is unsupported */
--				if (is_large) {
--					nr_large_failed++;
--					stats->nr_thp_failed += is_thp;
--					if (!try_split_folio(folio, &split_folios)) {
--						stats->nr_thp_split += is_thp;
--						break;
--					}
--				} else if (!no_split_folio_counting) {
--					nr_failed++;
--				}
--
--				stats->nr_failed_pages += nr_pages;
--				list_move_tail(&folio->lru, ret_folios);
--				break;
- 			case -ENOMEM:
- 				/*
- 				 * When memory is low, don't bother to try to migrate
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
 
