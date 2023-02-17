@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA51FC636D6
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:44:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2505C64ED6
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:44:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229608AbjBQEot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Feb 2023 23:44:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55268 "EHLO
+        id S229592AbjBQEou (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Feb 2023 23:44:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229592AbjBQEol (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:44:41 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4014C497FC
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:39 -0800 (PST)
+        with ESMTP id S229566AbjBQEom (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:44:42 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01B514C6F5
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D088D612CA
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7D18FB829C0
         for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D7C1C4339B;
-        Fri, 17 Feb 2023 04:44:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11E7BC433D2;
+        Fri, 17 Feb 2023 04:44:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676609078;
-        bh=gT75eTUJdJDaEHNSUKJ0XQheJLRnRrozGZBu7FkEj3s=;
+        s=korg; t=1676609077;
+        bh=wJr2TDc3poS5RbJ9wKhC35tO2ft5Q42VZ2NTBrIGxh4=;
         h=Date:To:From:Subject:From;
-        b=vyJBvUo3vDvnEYQed1k2IlD8nzAXozeQAJ/01uugrMrIdSyHNxTORC7o8bv7kx1T3
-         ZY5IE3C6x23yePlT1OQm8fpwh51a+Xo4fVThqAzB9bvwsxrV9utHs0kCBs9JspvWmX
-         ujgz5M6xr7sr+B/ZvG8r92b8CAokFfDVWm2luzE0=
-Date:   Thu, 16 Feb 2023 20:44:37 -0800
+        b=wU/QdYPAfpFgBDThSv/wPeqca+oAXjEns3CFJROEjywOGIGfNkhi8UtZQjTLPem9n
+         rDUD2WtSQUauiYx/9lOQAh2qf4DYNKSkV58GhBxx5EzdZvqSxZDS3XC3O0dR8Ry83O
+         qhnrjhubUwV2nJGddEpVabrvBq0FfqdSlP1U/swk=
+Date:   Thu, 16 Feb 2023 20:44:36 -0800
 To:     mm-commits@vger.kernel.org, glider@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-stackdepot-move-documentation-comments-to-stackdepoth.patch removed from -mm tree
-Message-Id: <20230217044438.2D7C1C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] lib-stackdepot-various-comments-clean-ups.patch removed from -mm tree
+Message-Id: <20230217044437.11E7BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,38 +41,124 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib/stackdepot: move documentation comments to stackdepot.h
+     Subject: lib/stackdepot: various comments clean-ups
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-move-documentation-comments-to-stackdepoth.patch
+     lib-stackdepot-various-comments-clean-ups.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: move documentation comments to stackdepot.h
-Date: Fri, 10 Feb 2023 22:16:06 +0100
+Subject: lib/stackdepot: various comments clean-ups
+Date: Fri, 10 Feb 2023 22:16:05 +0100
 
-Move all interface- and usage-related documentation comments to
-include/linux/stackdepot.h.
+Clean up comments in include/linux/stackdepot.h and lib/stackdepot.c:
 
-It makes sense to have them in the header where they are available to
-the interface users.
+1. Rework the initialization comment in stackdepot.h.
+2. Rework the header comment in stackdepot.c.
+3. Various clean-ups for other comments.
 
-[akpm@linux-foundation.org: grammar fix, per Alexander]
-Link: https://lkml.kernel.org/r/fbfee41495b306dd8881f9b1c1b80999c885e82f.1676063693.git.andreyknvl@google.com
+Also adjust whitespaces for find_stack and depot_alloc_stack call sites.
+
+No functional changes.
+
+Link: https://lkml.kernel.org/r/5836231b7954355e2311fc9b5870f697ea8e1f7d.1676063693.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/stackdepot.h~lib-stackdepot-move-documentation-comments-to-stackdepoth
+--- a/include/linux/stackdepot.h~lib-stackdepot-various-comments-clean-ups
 +++ a/include/linux/stackdepot.h
-@@ -2,6 +2,17 @@
+@@ -1,11 +1,11 @@
+ /* SPDX-License-Identifier: GPL-2.0-or-later */
  /*
-  * Stack depot - a stack trace storage that avoids duplication.
+- * A generic stack depot implementation
++ * Stack depot - a stack trace storage that avoids duplication.
   *
+  * Author: Alexander Potapenko <glider@google.com>
+  * Copyright (C) 2016 Google, Inc.
+  *
+- * Based on code by Dmitry Chernenkov.
++ * Based on the code by Dmitry Chernenkov.
+  */
+ 
+ #ifndef _LINUX_STACKDEPOT_H
+@@ -17,35 +17,37 @@ typedef u32 depot_stack_handle_t;
+ 
+ /*
+  * Number of bits in the handle that stack depot doesn't use. Users may store
+- * information in them.
++ * information in them via stack_depot_set/get_extra_bits.
+  */
+ #define STACK_DEPOT_EXTRA_BITS 5
+ 
+ /*
+- * Every user of stack depot has to call stack_depot_init() during its own init
+- * when it's decided that it will be calling stack_depot_save() later. This is
+- * recommended for e.g. modules initialized later in the boot process, when
+- * slab_is_available() is true.
+- *
+- * The alternative is to select STACKDEPOT_ALWAYS_INIT to have stack depot
+- * enabled as part of mm_init(), for subsystems where it's known at compile time
+- * that stack depot will be used.
+- *
+- * Another alternative is to call stack_depot_request_early_init(), when the
+- * decision to use stack depot is taken e.g. when evaluating kernel boot
+- * parameters, which precedes the enablement point in mm_init().
++ * Using stack depot requires its initialization, which can be done in 3 ways:
++ *
++ * 1. Selecting CONFIG_STACKDEPOT_ALWAYS_INIT. This option is suitable in
++ *    scenarios where it's known at compile time that stack depot will be used.
++ *    Enabling this config makes the kernel initialize stack depot in mm_init().
++ *
++ * 2. Calling stack_depot_request_early_init() during early boot, before
++ *    stack_depot_early_init() in mm_init() completes. For example, this can
++ *    be done when evaluating kernel boot parameters.
++ *
++ * 3. Calling stack_depot_init(). Possible after boot is complete. This option
++ *    is recommended for modules initialized later in the boot process, after
++ *    mm_init() completes.
+  *
+  * stack_depot_init() and stack_depot_request_early_init() can be called
+- * regardless of CONFIG_STACKDEPOT and are no-op when disabled. The actual
+- * save/fetch/print functions should only be called from code that makes sure
+- * CONFIG_STACKDEPOT is enabled.
++ * regardless of whether CONFIG_STACKDEPOT is enabled and are no-op when this
++ * config is disabled. The save/fetch/print stack depot functions can only be
++ * called from the code that makes sure CONFIG_STACKDEPOT is enabled _and_
++ * initializes stack depot via one of the ways listed above.
+  */
+ #ifdef CONFIG_STACKDEPOT
+ int stack_depot_init(void);
+ 
+ void __init stack_depot_request_early_init(void);
+ 
+-/* This is supposed to be called only from mm_init() */
++/* Must be only called from mm_init(). */
+ int __init stack_depot_early_init(void);
+ #else
+ static inline int stack_depot_init(void) { return 0; }
+--- a/lib/stackdepot.c~lib-stackdepot-various-comments-clean-ups
++++ a/lib/stackdepot.c
+@@ -1,22 +1,26 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Generic stack depot for storing stack traces.
++ * Stack depot - a stack trace storage that avoids duplication.
+  *
+- * Some debugging tools need to save stack traces of certain events which can
+- * be later presented to the user. For example, KASAN needs to safe alloc and
+- * free stacks for each object, but storing two stack traces per object
+- * requires too much memory (e.g. SLUB_DEBUG needs 256 bytes per object for
+- * that).
+- *
+- * Instead, stack depot maintains a hashtable of unique stacktraces. Since alloc
+- * and free stacks repeat a lot, we save about 100x space.
+- * Stacks are never removed from depot, so we store them contiguously one after
+- * another in a contiguous memory allocation.
 + * Stack depot is intended to be used by subsystems that need to store and
 + * later retrieve many potentially duplicated stack traces without wasting
 + * memory.
@@ -82,261 +168,245 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 + * SLUB_DEBUG needs 256 bytes per object for that). Since allocation and free
 + * stack traces often repeat, using stack depot allows to save about 100x space.
 + *
-+ * Stack traces are never removed from the stack depot.
++ * Internally, stack depot maintains a hash table of unique stacktraces. The
++ * stack traces themselves are stored contiguously one after another in a set
++ * of separate page allocations.
 + *
++ * Stack traces are never removed from stack depot.
+  *
   * Author: Alexander Potapenko <glider@google.com>
   * Copyright (C) 2016 Google, Inc.
   *
-@@ -57,24 +68,100 @@ static inline void stack_depot_request_e
- static inline int stack_depot_early_init(void)	{ return 0; }
- #endif
+- * Based on code by Dmitry Chernenkov.
++ * Based on the code by Dmitry Chernenkov.
+  */
  
-+/**
+ #define pr_fmt(fmt) "stackdepot: " fmt
+@@ -50,7 +54,7 @@
+ 	(((1LL << (DEPOT_POOL_INDEX_BITS)) < DEPOT_POOLS_CAP) ? \
+ 	 (1LL << (DEPOT_POOL_INDEX_BITS)) : DEPOT_POOLS_CAP)
+ 
+-/* The compact structure to store the reference to stacks. */
++/* Compact structure that stores a reference to a stack. */
+ union handle_parts {
+ 	depot_stack_handle_t handle;
+ 	struct {
+@@ -62,11 +66,11 @@ union handle_parts {
+ };
+ 
+ struct stack_record {
+-	struct stack_record *next;	/* Link in the hashtable */
+-	u32 hash;			/* Hash in the hastable */
+-	u32 size;			/* Number of frames in the stack */
++	struct stack_record *next;	/* Link in the hash table */
++	u32 hash;			/* Hash in the hash table */
++	u32 size;			/* Number of stored frames */
+ 	union handle_parts handle;
+-	unsigned long entries[];	/* Variable-sized array of entries. */
++	unsigned long entries[];	/* Variable-sized array of frames */
+ };
+ 
+ static bool stack_depot_disabled;
+@@ -317,7 +321,7 @@ depot_alloc_stack(unsigned long *entries
+ 	return stack;
+ }
+ 
+-/* Calculate hash for a stack */
++/* Calculates the hash for a stack. */
+ static inline u32 hash_stack(unsigned long *entries, unsigned int size)
+ {
+ 	return jhash2((u32 *)entries,
+@@ -325,9 +329,9 @@ static inline u32 hash_stack(unsigned lo
+ 		      STACK_HASH_SEED);
+ }
+ 
+-/* Use our own, non-instrumented version of memcmp().
+- *
+- * We actually don't care about the order, just the equality.
++/*
++ * Non-instrumented version of memcmp().
++ * Does not check the lexicographical order, only the equality.
+  */
+ static inline
+ int stackdepot_memcmp(const unsigned long *u1, const unsigned long *u2,
+@@ -340,7 +344,7 @@ int stackdepot_memcmp(const unsigned lon
+ 	return 0;
+ }
+ 
+-/* Find a stack that is equal to the one stored in entries in the hash */
++/* Finds a stack in a bucket of the hash table. */
+ static inline struct stack_record *find_stack(struct stack_record *bucket,
+ 					     unsigned long *entries, int size,
+ 					     u32 hash)
+@@ -357,27 +361,27 @@ static inline struct stack_record *find_
+ }
+ 
+ /**
+- * __stack_depot_save - Save a stack trace from an array
 + * __stack_depot_save - Save a stack trace to stack depot
-+ *
+  *
+- * @entries:		Pointer to storage array
+- * @nr_entries:		Size of the storage array
+- * @alloc_flags:	Allocation gfp flags
 + * @entries:		Pointer to the stack trace
 + * @nr_entries:		Number of frames in the stack
 + * @alloc_flags:	Allocation GFP flags
-+ * @can_alloc:		Allocate stack pools (increased chance of failure if false)
-+ *
-+ * Saves a stack trace from @entries array of size @nr_entries. If @can_alloc is
+  * @can_alloc:		Allocate stack pools (increased chance of failure if false)
+  *
+  * Saves a stack trace from @entries array of size @nr_entries. If @can_alloc is
+- * %true, is allowed to replenish the stack pool in case no space is left
 + * %true, stack depot can replenish the stack pools in case no space is left
-+ * (allocates using GFP flags of @alloc_flags). If @can_alloc is %false, avoids
+  * (allocates using GFP flags of @alloc_flags). If @can_alloc is %false, avoids
+- * any allocations and will fail if no space is left to store the stack trace.
 + * any allocations and fails if no space is left to store the stack trace.
-+ *
+  *
+- * If the stack trace in @entries is from an interrupt, only the portion up to
+- * interrupt entry is saved.
 + * If the provided stack trace comes from the interrupt context, only the part
 + * up to the interrupt entry is saved.
-+ *
-+ * Context: Any context, but setting @can_alloc to %false is required if
-+ *          alloc_pages() cannot be used from the current context. Currently
+  *
+  * Context: Any context, but setting @can_alloc to %false is required if
+  *          alloc_pages() cannot be used from the current context. Currently
+- *          this is the case from contexts where neither %GFP_ATOMIC nor
 + *          this is the case for contexts where neither %GFP_ATOMIC nor
-+ *          %GFP_NOWAIT can be used (NMI, raw_spin_lock).
-+ *
+  *          %GFP_NOWAIT can be used (NMI, raw_spin_lock).
+  *
+- * Return: The handle of the stack struct stored in depot, 0 on failure.
 + * Return: Handle of the stack struct stored in depot, 0 on failure
-+ */
+  */
  depot_stack_handle_t __stack_depot_save(unsigned long *entries,
  					unsigned int nr_entries,
- 					gfp_t gfp_flags, bool can_alloc);
+@@ -392,11 +396,11 @@ depot_stack_handle_t __stack_depot_save(
  
-+/**
+ 	/*
+ 	 * If this stack trace is from an interrupt, including anything before
+-	 * interrupt entry usually leads to unbounded stackdepot growth.
++	 * interrupt entry usually leads to unbounded stack depot growth.
+ 	 *
+-	 * Because use of filter_irq_stacks() is a requirement to ensure
+-	 * stackdepot can efficiently deduplicate interrupt stacks, always
+-	 * filter_irq_stacks() to simplify all callers' use of stackdepot.
++	 * Since use of filter_irq_stacks() is a requirement to ensure stack
++	 * depot can efficiently deduplicate interrupt stacks, always
++	 * filter_irq_stacks() to simplify all callers' use of stack depot.
+ 	 */
+ 	nr_entries = filter_irq_stacks(entries, nr_entries);
+ 
+@@ -411,8 +415,7 @@ depot_stack_handle_t __stack_depot_save(
+ 	 * The smp_load_acquire() here pairs with smp_store_release() to
+ 	 * |bucket| below.
+ 	 */
+-	found = find_stack(smp_load_acquire(bucket), entries,
+-			   nr_entries, hash);
++	found = find_stack(smp_load_acquire(bucket), entries, nr_entries, hash);
+ 	if (found)
+ 		goto exit;
+ 
+@@ -441,7 +444,8 @@ depot_stack_handle_t __stack_depot_save(
+ 
+ 	found = find_stack(*bucket, entries, nr_entries, hash);
+ 	if (!found) {
+-		struct stack_record *new = depot_alloc_stack(entries, nr_entries, hash, &prealloc);
++		struct stack_record *new =
++			depot_alloc_stack(entries, nr_entries, hash, &prealloc);
+ 
+ 		if (new) {
+ 			new->next = *bucket;
+@@ -454,8 +458,8 @@ depot_stack_handle_t __stack_depot_save(
+ 		}
+ 	} else if (prealloc) {
+ 		/*
+-		 * We didn't need to store this stack trace, but let's keep
+-		 * the preallocated memory for the future.
++		 * Stack depot already contains this stack trace, but let's
++		 * keep the preallocated memory for the future.
+ 		 */
+ 		depot_init_pool(&prealloc);
+ 	}
+@@ -463,7 +467,7 @@ depot_stack_handle_t __stack_depot_save(
+ 	raw_spin_unlock_irqrestore(&pool_lock, flags);
+ exit:
+ 	if (prealloc) {
+-		/* Nobody used this memory, ok to free it. */
++		/* Stack depot didn't use this memory, free it. */
+ 		free_pages((unsigned long)prealloc, DEPOT_POOL_ORDER);
+ 	}
+ 	if (found)
+@@ -474,16 +478,16 @@ fast_exit:
+ EXPORT_SYMBOL_GPL(__stack_depot_save);
+ 
+ /**
+- * stack_depot_save - Save a stack trace from an array
 + * stack_depot_save - Save a stack trace to stack depot
-+ *
+  *
+- * @entries:		Pointer to storage array
+- * @nr_entries:		Size of the storage array
+- * @alloc_flags:	Allocation gfp flags
 + * @entries:		Pointer to the stack trace
 + * @nr_entries:		Number of frames in the stack
 + * @alloc_flags:	Allocation GFP flags
-+ *
-+ * Context: Contexts where allocations via alloc_pages() are allowed.
-+ *          See __stack_depot_save() for more details.
-+ *
+  *
+  * Context: Contexts where allocations via alloc_pages() are allowed.
+  *          See __stack_depot_save() for more details.
+  *
+- * Return: The handle of the stack struct stored in depot, 0 on failure.
 + * Return: Handle of the stack trace stored in depot, 0 on failure
-+ */
- depot_stack_handle_t stack_depot_save(unsigned long *entries,
- 				      unsigned int nr_entries, gfp_t gfp_flags);
- 
-+/**
-+ * stack_depot_fetch - Fetch a stack trace from stack depot
-+ *
-+ * @handle:	Stack depot handle returned from stack_depot_save()
-+ * @entries:	Pointer to store the address of the stack trace
-+ *
-+ * Return: Number of frames for the fetched stack
-+ */
- unsigned int stack_depot_fetch(depot_stack_handle_t handle,
- 			       unsigned long **entries);
- 
-+/**
-+ * stack_depot_print - Print a stack trace from stack depot
-+ *
-+ * @stack:	Stack depot handle returned from stack_depot_save()
-+ */
- void stack_depot_print(depot_stack_handle_t stack);
- 
-+/**
-+ * stack_depot_snprint - Print a stack trace from stack depot into a buffer
-+ *
-+ * @handle:	Stack depot handle returned from stack_depot_save()
-+ * @buf:	Pointer to the print buffer
-+ * @size:	Size of the print buffer
-+ * @spaces:	Number of leading spaces to print
-+ *
-+ * Return:	Number of bytes printed
-+ */
- int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
- 		       int spaces);
- 
-+/**
-+ * stack_depot_set_extra_bits - Set extra bits in a stack depot handle
-+ *
-+ * @handle:	Stack depot handle returned from stack_depot_save()
-+ * @extra_bits:	Value to set the extra bits
-+ *
-+ * Return: Stack depot handle with extra bits set
-+ *
-+ * Stack depot handles have a few unused bits, which can be used for storing
-+ * user-specific information. These bits are transparent to the stack depot.
-+ */
- depot_stack_handle_t __must_check stack_depot_set_extra_bits(
- 			depot_stack_handle_t handle, unsigned int extra_bits);
- 
-+/**
-+ * stack_depot_get_extra_bits - Retrieve extra bits from a stack depot handle
-+ *
-+ * @handle:	Stack depot handle with extra bits saved
-+ *
-+ * Return: Extra bits retrieved from the stack depot handle
-+ */
- unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle);
- 
- #endif
---- a/lib/stackdepot.c~lib-stackdepot-move-documentation-comments-to-stackdepoth
-+++ a/lib/stackdepot.c
-@@ -2,21 +2,10 @@
- /*
-  * Stack depot - a stack trace storage that avoids duplication.
-  *
-- * Stack depot is intended to be used by subsystems that need to store and
-- * later retrieve many potentially duplicated stack traces without wasting
-- * memory.
-- *
-- * For example, KASAN needs to save allocation and free stack traces for each
-- * object. Storing two stack traces per object requires a lot of memory (e.g.
-- * SLUB_DEBUG needs 256 bytes per object for that). Since allocation and free
-- * stack traces often repeat, using stack depot allows to save about 100x space.
-- *
-  * Internally, stack depot maintains a hash table of unique stacktraces. The
-  * stack traces themselves are stored contiguously one after another in a set
-  * of separate page allocations.
-  *
-- * Stack traces are never removed from stack depot.
-- *
-  * Author: Alexander Potapenko <glider@google.com>
-  * Copyright (C) 2016 Google, Inc.
-  *
-@@ -360,29 +349,6 @@ static inline struct stack_record *find_
- 	return NULL;
- }
- 
--/**
-- * __stack_depot_save - Save a stack trace to stack depot
-- *
-- * @entries:		Pointer to the stack trace
-- * @nr_entries:		Number of frames in the stack
-- * @alloc_flags:	Allocation GFP flags
-- * @can_alloc:		Allocate stack pools (increased chance of failure if false)
-- *
-- * Saves a stack trace from @entries array of size @nr_entries. If @can_alloc is
-- * %true, stack depot can replenish the stack pools in case no space is left
-- * (allocates using GFP flags of @alloc_flags). If @can_alloc is %false, avoids
-- * any allocations and fails if no space is left to store the stack trace.
-- *
-- * If the provided stack trace comes from the interrupt context, only the part
-- * up to the interrupt entry is saved.
-- *
-- * Context: Any context, but setting @can_alloc to %false is required if
-- *          alloc_pages() cannot be used from the current context. Currently
-- *          this is the case for contexts where neither %GFP_ATOMIC nor
-- *          %GFP_NOWAIT can be used (NMI, raw_spin_lock).
-- *
-- * Return: Handle of the stack struct stored in depot, 0 on failure
-- */
- depot_stack_handle_t __stack_depot_save(unsigned long *entries,
- 					unsigned int nr_entries,
- 					gfp_t alloc_flags, bool can_alloc)
-@@ -477,18 +443,6 @@ fast_exit:
- }
- EXPORT_SYMBOL_GPL(__stack_depot_save);
- 
--/**
-- * stack_depot_save - Save a stack trace to stack depot
-- *
-- * @entries:		Pointer to the stack trace
-- * @nr_entries:		Number of frames in the stack
-- * @alloc_flags:	Allocation GFP flags
-- *
-- * Context: Contexts where allocations via alloc_pages() are allowed.
-- *          See __stack_depot_save() for more details.
-- *
-- * Return: Handle of the stack trace stored in depot, 0 on failure
-- */
+  */
  depot_stack_handle_t stack_depot_save(unsigned long *entries,
  				      unsigned int nr_entries,
- 				      gfp_t alloc_flags)
-@@ -497,14 +451,6 @@ depot_stack_handle_t stack_depot_save(un
- }
+@@ -494,13 +498,12 @@ depot_stack_handle_t stack_depot_save(un
  EXPORT_SYMBOL_GPL(stack_depot_save);
  
--/**
-- * stack_depot_fetch - Fetch a stack trace from stack depot
-- *
-- * @handle:	Stack depot handle returned from stack_depot_save()
-- * @entries:	Pointer to store the address of the stack trace
-- *
-- * Return: Number of frames for the fetched stack
-- */
+ /**
+- * stack_depot_fetch - Fetch stack entries from a depot
++ * stack_depot_fetch - Fetch a stack trace from stack depot
+  *
+- * @handle:		Stack depot handle which was returned from
+- *			stack_depot_save().
+- * @entries:		Pointer to store the entries address
++ * @handle:	Stack depot handle returned from stack_depot_save()
++ * @entries:	Pointer to store the address of the stack trace
+  *
+- * Return: The number of trace entries for this depot.
++ * Return: Number of frames for the fetched stack
+  */
  unsigned int stack_depot_fetch(depot_stack_handle_t handle,
  			       unsigned long **entries)
- {
-@@ -537,11 +483,6 @@ unsigned int stack_depot_fetch(depot_sta
- }
+@@ -535,11 +538,9 @@ unsigned int stack_depot_fetch(depot_sta
  EXPORT_SYMBOL_GPL(stack_depot_fetch);
  
--/**
-- * stack_depot_print - Print a stack trace from stack depot
+ /**
+- * stack_depot_print - print stack entries from a depot
 - *
-- * @stack:	Stack depot handle returned from stack_depot_save()
-- */
+- * @stack:		Stack depot handle which was returned from
+- *			stack_depot_save().
++ * stack_depot_print - Print a stack trace from stack depot
+  *
++ * @stack:	Stack depot handle returned from stack_depot_save()
+  */
  void stack_depot_print(depot_stack_handle_t stack)
  {
- 	unsigned long *entries;
-@@ -553,16 +494,6 @@ void stack_depot_print(depot_stack_handl
- }
+@@ -553,17 +554,14 @@ void stack_depot_print(depot_stack_handl
  EXPORT_SYMBOL_GPL(stack_depot_print);
  
--/**
-- * stack_depot_snprint - Print a stack trace from stack depot into a buffer
+ /**
+- * stack_depot_snprint - print stack entries from a depot into a buffer
++ * stack_depot_snprint - Print a stack trace from stack depot into a buffer
+  *
+- * @handle:	Stack depot handle which was returned from
+- *		stack_depot_save().
++ * @handle:	Stack depot handle returned from stack_depot_save()
+  * @buf:	Pointer to the print buffer
 - *
-- * @handle:	Stack depot handle returned from stack_depot_save()
-- * @buf:	Pointer to the print buffer
-- * @size:	Size of the print buffer
-- * @spaces:	Number of leading spaces to print
+  * @size:	Size of the print buffer
 - *
-- * Return:	Number of bytes printed
-- */
+  * @spaces:	Number of leading spaces to print
+  *
+- * Return:	Number of bytes printed.
++ * Return:	Number of bytes printed
+  */
  int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
  		       int spaces)
- {
-@@ -575,17 +506,6 @@ int stack_depot_snprint(depot_stack_hand
- }
- EXPORT_SYMBOL_GPL(stack_depot_snprint);
- 
--/**
-- * stack_depot_set_extra_bits - Set extra bits in a stack depot handle
-- *
-- * @handle:	Stack depot handle returned from stack_depot_save()
-- * @extra_bits:	Value to set the extra bits
-- *
-- * Return: Stack depot handle with extra bits set
-- *
-- * Stack depot handles have a few unused bits, which can be used for storing
-- * user-specific information. These bits are transparent to the stack depot.
-- */
- depot_stack_handle_t __must_check stack_depot_set_extra_bits(
- 			depot_stack_handle_t handle, unsigned int extra_bits)
- {
-@@ -600,13 +520,6 @@ depot_stack_handle_t __must_check stack_
- }
- EXPORT_SYMBOL(stack_depot_set_extra_bits);
- 
--/**
-- * stack_depot_get_extra_bits - Retrieve extra bits from a stack depot handle
-- *
-- * @handle:	Stack depot handle with extra bits saved
-- *
-- * Return: Extra bits retrieved from the stack depot handle
-- */
- unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle)
- {
- 	union handle_parts parts = { .handle = handle };
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
