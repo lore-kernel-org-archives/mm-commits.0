@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CF25C05027
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:44:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C92ACC636D4
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:44:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229506AbjBQEoX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Feb 2023 23:44:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55084 "EHLO
+        id S229605AbjBQEod (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Feb 2023 23:44:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229524AbjBQEoW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:44:22 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DD1B37F06
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:21 -0800 (PST)
+        with ESMTP id S229524AbjBQEoZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:44:25 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F1F23527F
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A0C760FF1
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 600D3C433D2;
-        Fri, 17 Feb 2023 04:44:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F36F8B829AB
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85290C433EF;
+        Fri, 17 Feb 2023 04:44:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676609060;
-        bh=gFUOY1BP0VsZonbZ8rM0hU0eiD4p+Qi2ym2+yvBQdwk=;
+        s=korg; t=1676609061;
+        bh=6ecwvtR6RTnJlppqDmkG1lCONk7JHytZt2lix5GxKgQ=;
         h=Date:To:From:Subject:From;
-        b=rQPwpU+dixc79RrQ2SebyJdTBBIxyQlKbtkssZbZz2Pio8pBhHULoTwh3imeJoQa2
-         6oeT1+wqBBBDDo2+O9gmoBwBTTw3xIQbzk3fjHcDG/eSK37EnLxHj6lEabPRhgH8JH
-         4Zt4gtc+eHrccbPYSDtNhDNdI/6Fmxy70hqm7BOU=
-Date:   Thu, 16 Feb 2023 20:44:19 -0800
-To:     mm-commits@vger.kernel.org, glider@google.com,
+        b=vLsaS7izr71pogUX8k3CcXuAFv02IMh/1PAAzbZ2IxV4yVK4/wBW5w/LOdXm0Cj0g
+         VhXEcJG6f4JRrTwyh81+PYHLbdBZF7wsO4IP9FjjGsHQ6s6ytxiDOHa/Jr3wZ/yano
+         r0i0y1Qj6AaeCZ6I5J90mr+FtYTf/EqG5bqKYINs=
+Date:   Thu, 16 Feb 2023 20:44:20 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, glider@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-stackdepot-use-pr_fmt-to-define-message-format.patch removed from -mm tree
-Message-Id: <20230217044420.600D3C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] lib-stackdepot-mm-rename-stack_depot_want_early_init.patch removed from -mm tree
+Message-Id: <20230217044421.85290C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,71 +41,149 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib/stackdepot: use pr_fmt to define message format
+     Subject: lib/stackdepot, mm: rename stack_depot_want_early_init
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-use-pr_fmt-to-define-message-format.patch
+     lib-stackdepot-mm-rename-stack_depot_want_early_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: use pr_fmt to define message format
-Date: Fri, 10 Feb 2023 22:15:50 +0100
+Subject: lib/stackdepot, mm: rename stack_depot_want_early_init
+Date: Fri, 10 Feb 2023 22:15:51 +0100
 
-Use pr_fmt to define the format for printing stack depot messages instead
-of duplicating the "Stack Depot" prefix in each message.
+Rename stack_depot_want_early_init to stack_depot_request_early_init.
 
-Link: https://lkml.kernel.org/r/3d09db0171a0e92ff3eb0ee74de74558bc9b56c4.1676063693.git.andreyknvl@google.com
+The old name is confusing, as it hints at returning some kind of intention
+of stack depot.  The new name reflects that this function requests an
+action from stack depot instead.
+
+No functional changes.
+
+[akpm@linux-foundation.org: update mm/kmemleak.c]
+Link: https://lkml.kernel.org/r/359f31bf67429a06e630b4395816a967214ef753.1676063693.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/lib/stackdepot.c~lib-stackdepot-use-pr_fmt-to-define-message-format
-+++ a/lib/stackdepot.c
-@@ -19,6 +19,8 @@
-  * Based on code by Dmitry Chernenkov.
+--- a/include/linux/stackdepot.h~lib-stackdepot-mm-rename-stack_depot_want_early_init
++++ a/include/linux/stackdepot.h
+@@ -31,26 +31,26 @@ typedef u32 depot_stack_handle_t;
+  * enabled as part of mm_init(), for subsystems where it's known at compile time
+  * that stack depot will be used.
+  *
+- * Another alternative is to call stack_depot_want_early_init(), when the
++ * Another alternative is to call stack_depot_request_early_init(), when the
+  * decision to use stack depot is taken e.g. when evaluating kernel boot
+  * parameters, which precedes the enablement point in mm_init().
+  *
+- * stack_depot_init() and stack_depot_want_early_init() can be called regardless
+- * of CONFIG_STACKDEPOT and are no-op when disabled. The actual save/fetch/print
+- * functions should only be called from code that makes sure CONFIG_STACKDEPOT
+- * is enabled.
++ * stack_depot_init() and stack_depot_request_early_init() can be called
++ * regardless of CONFIG_STACKDEPOT and are no-op when disabled. The actual
++ * save/fetch/print functions should only be called from code that makes sure
++ * CONFIG_STACKDEPOT is enabled.
   */
+ #ifdef CONFIG_STACKDEPOT
+ int stack_depot_init(void);
  
-+#define pr_fmt(fmt) "stackdepot: " fmt
-+
- #include <linux/gfp.h>
- #include <linux/jhash.h>
- #include <linux/kernel.h>
-@@ -98,7 +100,7 @@ static int __init is_stack_depot_disable
+-void __init stack_depot_want_early_init(void);
++void __init stack_depot_request_early_init(void);
  
- 	ret = kstrtobool(str, &stack_depot_disable);
- 	if (!ret && stack_depot_disable) {
--		pr_info("Stack Depot is disabled\n");
-+		pr_info("disabled\n");
- 		stack_table = NULL;
+ /* This is supposed to be called only from mm_init() */
+ int __init stack_depot_early_init(void);
+ #else
+ static inline int stack_depot_init(void) { return 0; }
+ 
+-static inline void stack_depot_want_early_init(void) { }
++static inline void stack_depot_request_early_init(void) { }
+ 
+ static inline int stack_depot_early_init(void)	{ return 0; }
+ #endif
+--- a/lib/stackdepot.c~lib-stackdepot-mm-rename-stack_depot_want_early_init
++++ a/lib/stackdepot.c
+@@ -71,7 +71,7 @@ struct stack_record {
+ 	unsigned long entries[];	/* Variable-sized array of entries. */
+ };
+ 
+-static bool __stack_depot_want_early_init __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
++static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
+ static bool __stack_depot_early_init_passed __initdata;
+ 
+ static void *stack_slabs[STACK_ALLOC_MAX_SLABS];
+@@ -107,12 +107,12 @@ static int __init is_stack_depot_disable
+ }
+ early_param("stack_depot_disable", is_stack_depot_disabled);
+ 
+-void __init stack_depot_want_early_init(void)
++void __init stack_depot_request_early_init(void)
+ {
+-	/* Too late to request early init now */
++	/* Too late to request early init now. */
+ 	WARN_ON(__stack_depot_early_init_passed);
+ 
+-	__stack_depot_want_early_init = true;
++	__stack_depot_early_init_requested = true;
+ }
+ 
+ int __init stack_depot_early_init(void)
+@@ -128,7 +128,7 @@ int __init stack_depot_early_init(void)
+ 	if (kasan_enabled() && !stack_hash_order)
+ 		stack_hash_order = STACK_HASH_ORDER_MAX;
+ 
+-	if (!__stack_depot_want_early_init || stack_depot_disable)
++	if (!__stack_depot_early_init_requested || stack_depot_disable)
+ 		return 0;
+ 
+ 	if (stack_hash_order)
+--- a/mm/kmemleak.c~lib-stackdepot-mm-rename-stack_depot_want_early_init
++++ a/mm/kmemleak.c
+@@ -2071,7 +2071,7 @@ static int __init kmemleak_boot_config(c
+ 		kmemleak_disable();
+ 	else if (strcmp(str, "on") == 0) {
+ 		kmemleak_skip_disable = 1;
+-		stack_depot_want_early_init();
++		stack_depot_request_early_init();
  	}
- 	return 0;
-@@ -142,7 +144,7 @@ int __init stack_depot_early_init(void)
- 						1UL << STACK_HASH_ORDER_MAX);
+ 	else
+ 		return -EINVAL;
+--- a/mm/page_owner.c~lib-stackdepot-mm-rename-stack_depot_want_early_init
++++ a/mm/page_owner.c
+@@ -48,7 +48,7 @@ static int __init early_page_owner_param
+ 	int ret = kstrtobool(buf, &page_owner_enabled);
  
- 	if (!stack_table) {
--		pr_err("Stack Depot hash table allocation failed, disabling\n");
-+		pr_err("hash table allocation failed, disabling\n");
- 		stack_depot_disable = true;
- 		return -ENOMEM;
- 	}
-@@ -177,11 +179,11 @@ int stack_depot_init(void)
- 		if (entries > 1UL << STACK_HASH_ORDER_MAX)
- 			entries = 1UL << STACK_HASH_ORDER_MAX;
+ 	if (page_owner_enabled)
+-		stack_depot_want_early_init();
++		stack_depot_request_early_init();
  
--		pr_info("Stack Depot allocating hash table of %lu entries with kvcalloc\n",
-+		pr_info("allocating hash table of %lu entries with kvcalloc\n",
- 				entries);
- 		stack_table = kvcalloc(entries, sizeof(struct stack_record *), GFP_KERNEL);
- 		if (!stack_table) {
--			pr_err("Stack Depot hash table allocation failed, disabling\n");
-+			pr_err("hash table allocation failed, disabling\n");
- 			stack_depot_disable = true;
- 			ret = -ENOMEM;
+ 	return ret;
+ }
+--- a/mm/slub.c~lib-stackdepot-mm-rename-stack_depot_want_early_init
++++ a/mm/slub.c
+@@ -1592,7 +1592,7 @@ static int __init setup_slub_debug(char
+ 		} else {
+ 			slab_list_specified = true;
+ 			if (flags & SLAB_STORE_USER)
+-				stack_depot_want_early_init();
++				stack_depot_request_early_init();
  		}
+ 	}
+ 
+@@ -1611,7 +1611,7 @@ static int __init setup_slub_debug(char
+ out:
+ 	slub_debug = global_flags;
+ 	if (slub_debug & SLAB_STORE_USER)
+-		stack_depot_want_early_init();
++		stack_depot_request_early_init();
+ 	if (slub_debug != 0 || slub_debug_string)
+ 		static_branch_enable(&slub_debug_enabled);
+ 	else
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
