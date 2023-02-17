@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80841C64EC4
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:44:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE018C05027
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 04:45:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229625AbjBQEoy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Feb 2023 23:44:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55282 "EHLO
+        id S229619AbjBQEpF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Feb 2023 23:45:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229644AbjBQEos (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:44:48 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E73814FCBA
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:44 -0800 (PST)
+        with ESMTP id S229572AbjBQEov (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2023 23:44:51 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E9DF3527F
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2023 20:44:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 914A6B82B1D
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41648C4339B;
-        Fri, 17 Feb 2023 04:44:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2AD97B82B21
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2023 04:44:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9958C433EF;
+        Fri, 17 Feb 2023 04:44:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676609082;
-        bh=6PGRTBvp1rTHoJP37mGxNlsYhLDsuVzfr720Bvb8cVc=;
+        s=korg; t=1676609085;
+        bh=N5qc00I3Y9ySr+USHW1IeLIC6HLMKZ9Hm8zlCszrim8=;
         h=Date:To:From:Subject:From;
-        b=A4FeIFaPmrXhlUKQbXs+9jhjWQIN5BEDHFmoXufUDpZYpS2X2U3lrX0u0eMFsWg1t
-         9iXRNi9QglHsHocDplALlM7yXjOiOHjxCcGChDKPRyJBUDBObXRg9vl9tNtjeWmSXI
-         MBnbNEyfl2Ky4i32u5shy7iAR/IXrDThqv/yoXTU=
-Date:   Thu, 16 Feb 2023 20:44:41 -0800
+        b=i3+Q/3uX7vWut2riQAe8oJKKV+gUkRl9pVtKvibFXW8Tr2kEMbdmg+GEJVItFxwdg
+         qjQUhJiWA2kg2onv3fyVYiuDqFMPu8cuMC4scyz7T+jL+Q2ON524zEjuSpkezS+SKH
+         WBBeApe21VX+CncBmAhn73Yq0OP0e6ZfRyTB/mTU=
+Date:   Thu, 16 Feb 2023 20:44:44 -0800
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
         willy@infradead.org, shy828301@gmail.com, osalvador@suse.de,
         minchan@kernel.org, mike.kravetz@oracle.com, bharata@amd.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
         42.hyeyoo@gmail.com, ying.huang@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] migrate_pages-restrict-number-of-pages-to-migrate-in-batch.patch removed from -mm tree
-Message-Id: <20230217044442.41648C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] migrate_pages-batch-_unmap-and-_move.patch removed from -mm tree
+Message-Id: <20230217044444.D9958C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,36 +45,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: migrate_pages: restrict number of pages to migrate in batch
+     Subject: migrate_pages: batch _unmap and _move
 has been removed from the -mm tree.  Its filename was
-     migrate_pages-restrict-number-of-pages-to-migrate-in-batch.patch
+     migrate_pages-batch-_unmap-and-_move.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: migrate_pages: restrict number of pages to migrate in batch
-Date: Mon, 13 Feb 2023 20:34:38 +0800
+Subject: migrate_pages: batch _unmap and _move
+Date: Mon, 13 Feb 2023 20:34:40 +0800
 
-This is a preparation patch to batch the folio unmapping and moving for
-non-hugetlb folios.
+In this patch the _unmap and _move stage of the folio migration is
+batched.  That for, previously, it is,
 
-If we had batched the folio unmapping, all folios to be migrated would be
-unmapped before copying the contents and flags of the folios.  If the
-folios that were passed to migrate_pages() were too many in unit of pages,
-the execution of the processes would be stopped for too long time, thus
-too long latency.  For example, migrate_pages() syscall will call
-migrate_pages() with all folios of a process.  To avoid this possible
-issue, in this patch, we restrict the number of pages to be migrated to be
-no more than HPAGE_PMD_NR.  That is, the influence is at the same level of
-THP migration.
+  for each folio
+    _unmap()
+    _move()
 
-Link: https://lkml.kernel.org/r/20230213123444.155149-4-ying.huang@intel.com
+Now, it is,
+
+  for each folio
+    _unmap()
+  for each folio
+    _move()
+
+Based on this, we can batch the TLB flushing and use some hardware
+accelerator to copy folios between batched _unmap and batched _move
+stages.
+
+Link: https://lkml.kernel.org/r/20230213123444.155149-6-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Yang Shi <shy828301@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Bharata B Rao <bharata@amd.com>
@@ -82,328 +88,362 @@ Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Xin Hao <xhao@linux.alibaba.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/migrate.c~migrate_pages-restrict-number-of-pages-to-migrate-in-batch
+--- a/mm/migrate.c~migrate_pages-batch-_unmap-and-_move
 +++ a/mm/migrate.c
-@@ -1414,6 +1414,11 @@ static inline int try_split_folio(struct
- 	return rc;
+@@ -1051,6 +1051,33 @@ static void __migrate_folio_extract(stru
+ 	dst->private = NULL;
  }
  
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define NR_MAX_BATCHED_MIGRATION	HPAGE_PMD_NR
-+#else
-+#define NR_MAX_BATCHED_MIGRATION	512
-+#endif
- #define NR_MAX_MIGRATE_PAGES_RETRY	10
++/* Restore the source folio to the original state upon failure */
++static void migrate_folio_undo_src(struct folio *src,
++				   int page_was_mapped,
++				   struct anon_vma *anon_vma,
++				   struct list_head *ret)
++{
++	if (page_was_mapped)
++		remove_migration_ptes(src, src, false);
++	/* Drop an anon_vma reference if we took one */
++	if (anon_vma)
++		put_anon_vma(anon_vma);
++	folio_unlock(src);
++	list_move_tail(&src->lru, ret);
++}
++
++/* Restore the destination folio to the original state upon failure */
++static void migrate_folio_undo_dst(struct folio *dst,
++				   free_page_t put_new_page,
++				   unsigned long private)
++{
++	folio_unlock(dst);
++	if (put_new_page)
++		put_new_page(&dst->page, private);
++	else
++		folio_put(dst);
++}
++
+ /* Cleanup src folio upon migration success */
+ static void migrate_folio_done(struct folio *src,
+ 			       enum migrate_reason reason)
+@@ -1069,8 +1096,8 @@ static void migrate_folio_done(struct fo
+ 		folio_put(src);
+ }
  
- struct migrate_pages_stats {
-@@ -1515,40 +1520,15 @@ static int migrate_hugetlbs(struct list_
+-static int __migrate_folio_unmap(struct folio *src, struct folio *dst,
+-				int force, enum migrate_mode mode)
++static int __migrate_folio_unmap(struct folio *src, struct folio *dst, int force,
++				 bool avoid_force_lock, enum migrate_mode mode)
+ {
+ 	int rc = -EAGAIN;
+ 	int page_was_mapped = 0;
+@@ -1097,6 +1124,17 @@ static int __migrate_folio_unmap(struct
+ 		if (current->flags & PF_MEMALLOC)
+ 			goto out;
+ 
++		/*
++		 * We have locked some folios and are going to wait to lock
++		 * this folio.  To avoid a potential deadlock, let's bail
++		 * out and not do that. The locked folios will be moved and
++		 * unlocked, then we can wait to lock this folio.
++		 */
++		if (avoid_force_lock) {
++			rc = -EDEADLOCK;
++			goto out;
++		}
++
+ 		folio_lock(src);
+ 	}
+ 
+@@ -1205,10 +1243,20 @@ static int __migrate_folio_move(struct f
+ 	int page_was_mapped = 0;
+ 	struct anon_vma *anon_vma = NULL;
+ 	bool is_lru = !__PageMovable(&src->page);
++	struct list_head *prev;
+ 
+ 	__migrate_folio_extract(dst, &page_was_mapped, &anon_vma);
++	prev = dst->lru.prev;
++	list_del(&dst->lru);
+ 
+ 	rc = move_to_new_folio(dst, src, mode);
++
++	if (rc == -EAGAIN) {
++		list_add(&dst->lru, prev);
++		__migrate_folio_record(dst, page_was_mapped, anon_vma);
++		return rc;
++	}
++
+ 	if (unlikely(!is_lru))
+ 		goto out_unlock_both;
+ 
+@@ -1251,7 +1299,7 @@ out_unlock_both:
+ /* Obtain the lock on page, remove all ptes. */
+ static int migrate_folio_unmap(new_page_t get_new_page, free_page_t put_new_page,
+ 			       unsigned long private, struct folio *src,
+-			       struct folio **dstp, int force,
++			       struct folio **dstp, int force, bool avoid_force_lock,
+ 			       enum migrate_mode mode, enum migrate_reason reason,
+ 			       struct list_head *ret)
+ {
+@@ -1279,7 +1327,7 @@ static int migrate_folio_unmap(new_page_
+ 	*dstp = dst;
+ 
+ 	dst->private = NULL;
+-	rc = __migrate_folio_unmap(src, dst, force, mode);
++	rc = __migrate_folio_unmap(src, dst, force, avoid_force_lock, mode);
+ 	if (rc == MIGRATEPAGE_UNMAP)
+ 		return rc;
+ 
+@@ -1287,7 +1335,7 @@ static int migrate_folio_unmap(new_page_
+ 	 * A folio that has not been unmapped will be restored to
+ 	 * right list unless we want to retry.
+ 	 */
+-	if (rc != -EAGAIN)
++	if (rc != -EAGAIN && rc != -EDEADLOCK)
+ 		list_move_tail(&src->lru, ret);
+ 
+ 	if (put_new_page)
+@@ -1326,9 +1374,8 @@ static int migrate_folio_move(free_page_
+ 	 */
+ 	if (rc == MIGRATEPAGE_SUCCESS) {
+ 		migrate_folio_done(src, reason);
+-	} else {
+-		if (rc != -EAGAIN)
+-			list_add_tail(&src->lru, ret);
++	} else if (rc != -EAGAIN) {
++		list_add_tail(&src->lru, ret);
+ 
+ 		if (put_new_page)
+ 			put_new_page(&dst->page, private);
+@@ -1603,12 +1650,16 @@ static int migrate_hugetlbs(struct list_
  	return nr_failed;
  }
  
--/*
-- * migrate_pages - migrate the folios specified in a list, to the free folios
-- *		   supplied as the target for the page migration
-- *
-- * @from:		The list of folios to be migrated.
-- * @get_new_page:	The function used to allocate free folios to be used
-- *			as the target of the folio migration.
-- * @put_new_page:	The function used to free target folios if migration
-- *			fails, or NULL if no special handling is necessary.
-- * @private:		Private data to be passed on to get_new_page()
-- * @mode:		The migration mode that specifies the constraints for
-- *			folio migration, if any.
-- * @reason:		The reason for folio migration.
-- * @ret_succeeded:	Set to the number of folios migrated successfully if
-- *			the caller passes a non-NULL pointer.
-- *
-- * The function returns after NR_MAX_MIGRATE_PAGES_RETRY attempts or if no folios
-- * are movable any more because the list has become empty or no retryable folios
-- * exist any more. It is caller's responsibility to call putback_movable_pages()
-- * only if ret != 0.
-- *
-- * Returns the number of {normal folio, large folio, hugetlb} that were not
-- * migrated, or an error code. The number of large folio splits will be
-- * considered as the number of non-migrated large folio, no matter how many
-- * split folios of the large folio are migrated successfully.
-- */
--int migrate_pages(struct list_head *from, new_page_t get_new_page,
-+static int migrate_pages_batch(struct list_head *from, new_page_t get_new_page,
++/*
++ * migrate_pages_batch() first unmaps folios in the from list as many as
++ * possible, then move the unmapped folios.
++ */
+ static int migrate_pages_batch(struct list_head *from, new_page_t get_new_page,
  		free_page_t put_new_page, unsigned long private,
--		enum migrate_mode mode, int reason, unsigned int *ret_succeeded)
-+		enum migrate_mode mode, int reason, struct list_head *ret_folios,
-+		struct migrate_pages_stats *stats)
+ 		enum migrate_mode mode, int reason, struct list_head *ret_folios,
+ 		struct migrate_pages_stats *stats)
  {
- 	int retry = 1;
+-	int retry = 1;
++	int retry;
  	int large_retry = 1;
  	int thp_retry = 1;
--	int nr_failed;
-+	int nr_failed = 0;
- 	int nr_retry_pages = 0;
- 	int nr_large_failed = 0;
+ 	int nr_failed = 0;
+@@ -1617,13 +1668,19 @@ static int migrate_pages_batch(struct li
  	int pass = 0;
-@@ -1556,20 +1536,9 @@ int migrate_pages(struct list_head *from
+ 	bool is_large = false;
  	bool is_thp = false;
- 	struct folio *folio, *folio2;
- 	int rc, nr_pages;
--	LIST_HEAD(ret_folios);
+-	struct folio *folio, *folio2, *dst = NULL;
+-	int rc, nr_pages;
++	struct folio *folio, *folio2, *dst = NULL, *dst2;
++	int rc, rc_saved, nr_pages;
  	LIST_HEAD(split_folios);
++	LIST_HEAD(unmap_folios);
++	LIST_HEAD(dst_folios);
  	bool nosplit = (reason == MR_NUMA_MISPLACED);
  	bool no_split_folio_counting = false;
--	struct migrate_pages_stats stats;
--
--	trace_mm_migrate_pages_start(mode, reason);
--
--	memset(&stats, 0, sizeof(stats));
--	rc = migrate_hugetlbs(from, get_new_page, put_new_page, private, mode, reason,
--			      &stats, &ret_folios);
--	if (rc < 0)
--		goto out;
--	nr_failed = rc;
++	bool avoid_force_lock;
  
- split_folio_migration:
+-split_folio_migration:
++retry:
++	rc_saved = 0;
++	avoid_force_lock = false;
++	retry = 1;
  	for (pass = 0;
-@@ -1581,12 +1550,6 @@ split_folio_migration:
- 		nr_retry_pages = 0;
+ 	     pass < NR_MAX_MIGRATE_PAGES_RETRY && (retry || large_retry);
+ 	     pass++) {
+@@ -1645,16 +1702,15 @@ split_folio_migration:
+ 			cond_resched();
  
- 		list_for_each_entry_safe(folio, folio2, from, lru) {
--			/* Retried hugetlb folios will be kept in list  */
--			if (folio_test_hugetlb(folio)) {
--				list_move_tail(&folio->lru, &ret_folios);
--				continue;
--			}
--
- 			/*
- 			 * Large folio statistics is based on the source large
- 			 * folio. Capture required information that might get
-@@ -1600,15 +1563,14 @@ split_folio_migration:
- 
- 			rc = unmap_and_move(get_new_page, put_new_page,
- 					    private, folio, pass > 2, mode,
--					    reason, &ret_folios);
-+					    reason, ret_folios);
+ 			rc = migrate_folio_unmap(get_new_page, put_new_page, private,
+-						 folio, &dst, pass > 2, mode,
+-						 reason, ret_folios);
+-			if (rc == MIGRATEPAGE_UNMAP)
+-				rc = migrate_folio_move(put_new_page, private,
+-							folio, dst, mode,
+-							reason, ret_folios);
++						 folio, &dst, pass > 2, avoid_force_lock,
++						 mode, reason, ret_folios);
  			/*
  			 * The rules are:
  			 *	Success: folio will be freed
++			 *	Unmap: folio will be put on unmap_folios list,
++			 *	       dst folio put on dst_folios list
  			 *	-EAGAIN: stay on the from list
++			 *	-EDEADLOCK: stay on the from list
  			 *	-ENOMEM: stay on the from list
  			 *	-ENOSYS: stay on the from list
--			 *	Other errno: put on ret_folios list then splice to
--			 *		     from list
-+			 *	Other errno: put on ret_folios list
- 			 */
- 			switch(rc) {
- 			/*
-@@ -1625,17 +1587,17 @@ split_folio_migration:
- 				/* Large folio migration is unsupported */
- 				if (is_large) {
- 					nr_large_failed++;
--					stats.nr_thp_failed += is_thp;
-+					stats->nr_thp_failed += is_thp;
- 					if (!try_split_folio(folio, &split_folios)) {
--						stats.nr_thp_split += is_thp;
-+						stats->nr_thp_split += is_thp;
- 						break;
- 					}
- 				} else if (!no_split_folio_counting) {
- 					nr_failed++;
- 				}
- 
--				stats.nr_failed_pages += nr_pages;
--				list_move_tail(&folio->lru, &ret_folios);
-+				stats->nr_failed_pages += nr_pages;
-+				list_move_tail(&folio->lru, ret_folios);
- 				break;
+ 			 *	Other errno: put on ret_folios list
+@@ -1689,7 +1745,7 @@ split_folio_migration:
  			case -ENOMEM:
  				/*
-@@ -1644,13 +1606,13 @@ split_folio_migration:
+ 				 * When memory is low, don't bother to try to migrate
+-				 * other folios, just exit.
++				 * other folios, move unmapped folios, then exit.
  				 */
  				if (is_large) {
  					nr_large_failed++;
--					stats.nr_thp_failed += is_thp;
-+					stats->nr_thp_failed += is_thp;
- 					/* Large folio NUMA faulting doesn't split to retry. */
- 					if (!nosplit) {
- 						int ret = try_split_folio(folio, &split_folios);
- 
- 						if (!ret) {
--							stats.nr_thp_split += is_thp;
-+							stats->nr_thp_split += is_thp;
- 							break;
- 						} else if (reason == MR_LONGTERM_PIN &&
- 							   ret == -EAGAIN) {
-@@ -1668,17 +1630,17 @@ split_folio_migration:
- 					nr_failed++;
- 				}
- 
--				stats.nr_failed_pages += nr_pages + nr_retry_pages;
-+				stats->nr_failed_pages += nr_pages + nr_retry_pages;
- 				/*
- 				 * There might be some split folios of fail-to-migrate large
--				 * folios left in split_folios list. Move them back to migration
-+				 * folios left in split_folios list. Move them to ret_folios
- 				 * list so that they could be put back to the right list by
- 				 * the caller otherwise the folio refcnt will be leaked.
- 				 */
--				list_splice_init(&split_folios, from);
-+				list_splice_init(&split_folios, ret_folios);
+@@ -1728,7 +1784,19 @@ split_folio_migration:
  				/* nr_failed isn't updated for not used */
  				nr_large_failed += large_retry;
--				stats.nr_thp_failed += thp_retry;
-+				stats->nr_thp_failed += thp_retry;
- 				goto out;
+ 				stats->nr_thp_failed += thp_retry;
+-				goto out;
++				rc_saved = rc;
++				if (list_empty(&unmap_folios))
++					goto out;
++				else
++					goto move;
++			case -EDEADLOCK:
++				/*
++				 * The folio cannot be locked for potential deadlock.
++				 * Go move (and unlock) all locked folios.  Then we can
++				 * try again.
++				 */
++				rc_saved = rc;
++				goto move;
  			case -EAGAIN:
  				if (is_large) {
-@@ -1690,8 +1652,8 @@ split_folio_migration:
- 				nr_retry_pages += nr_pages;
+ 					large_retry++;
+@@ -1742,6 +1810,15 @@ split_folio_migration:
+ 				stats->nr_succeeded += nr_pages;
+ 				stats->nr_thp_succeeded += is_thp;
  				break;
- 			case MIGRATEPAGE_SUCCESS:
--				stats.nr_succeeded += nr_pages;
--				stats.nr_thp_succeeded += is_thp;
-+				stats->nr_succeeded += nr_pages;
-+				stats->nr_thp_succeeded += is_thp;
- 				break;
++			case MIGRATEPAGE_UNMAP:
++				/*
++				 * We have locked some folios, don't force lock
++				 * to avoid deadlock.
++				 */
++				avoid_force_lock = true;
++				list_move_tail(&folio->lru, &unmap_folios);
++				list_add_tail(&dst->lru, &dst_folios);
++				break;
  			default:
  				/*
-@@ -1702,20 +1664,20 @@ split_folio_migration:
- 				 */
- 				if (is_large) {
- 					nr_large_failed++;
--					stats.nr_thp_failed += is_thp;
-+					stats->nr_thp_failed += is_thp;
- 				} else if (!no_split_folio_counting) {
- 					nr_failed++;
- 				}
- 
--				stats.nr_failed_pages += nr_pages;
-+				stats->nr_failed_pages += nr_pages;
- 				break;
- 			}
- 		}
- 	}
- 	nr_failed += retry;
+ 				 * Permanent failure (-EBUSY, etc.):
+@@ -1765,12 +1842,95 @@ split_folio_migration:
  	nr_large_failed += large_retry;
--	stats.nr_thp_failed += thp_retry;
--	stats.nr_failed_pages += nr_retry_pages;
+ 	stats->nr_thp_failed += thp_retry;
+ 	stats->nr_failed_pages += nr_retry_pages;
++move:
++	retry = 1;
++	for (pass = 0;
++	     pass < NR_MAX_MIGRATE_PAGES_RETRY && (retry || large_retry);
++	     pass++) {
++		retry = 0;
++		large_retry = 0;
++		thp_retry = 0;
++		nr_retry_pages = 0;
++
++		dst = list_first_entry(&dst_folios, struct folio, lru);
++		dst2 = list_next_entry(dst, lru);
++		list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) {
++			is_large = folio_test_large(folio);
++			is_thp = is_large && folio_test_pmd_mappable(folio);
++			nr_pages = folio_nr_pages(folio);
++
++			cond_resched();
++
++			rc = migrate_folio_move(put_new_page, private,
++						folio, dst, mode,
++						reason, ret_folios);
++			/*
++			 * The rules are:
++			 *	Success: folio will be freed
++			 *	-EAGAIN: stay on the unmap_folios list
++			 *	Other errno: put on ret_folios list
++			 */
++			switch(rc) {
++			case -EAGAIN:
++				if (is_large) {
++					large_retry++;
++					thp_retry += is_thp;
++				} else if (!no_split_folio_counting) {
++					retry++;
++				}
++				nr_retry_pages += nr_pages;
++				break;
++			case MIGRATEPAGE_SUCCESS:
++				stats->nr_succeeded += nr_pages;
++				stats->nr_thp_succeeded += is_thp;
++				break;
++			default:
++				if (is_large) {
++					nr_large_failed++;
++					stats->nr_thp_failed += is_thp;
++				} else if (!no_split_folio_counting) {
++					nr_failed++;
++				}
++
++				stats->nr_failed_pages += nr_pages;
++				break;
++			}
++			dst = dst2;
++			dst2 = list_next_entry(dst, lru);
++		}
++	}
++	nr_failed += retry;
++	nr_large_failed += large_retry;
 +	stats->nr_thp_failed += thp_retry;
 +	stats->nr_failed_pages += nr_retry_pages;
++
++	if (rc_saved)
++		rc = rc_saved;
++	else
++		rc = nr_failed + nr_large_failed;
++out:
++	/* Cleanup remaining folios */
++	dst = list_first_entry(&dst_folios, struct folio, lru);
++	dst2 = list_next_entry(dst, lru);
++	list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) {
++		int page_was_mapped = 0;
++		struct anon_vma *anon_vma = NULL;
++
++		__migrate_folio_extract(dst, &page_was_mapped, &anon_vma);
++		migrate_folio_undo_src(folio, page_was_mapped, anon_vma,
++				       ret_folios);
++		list_del(&dst->lru);
++		migrate_folio_undo_dst(dst, put_new_page, private);
++		dst = dst2;
++		dst2 = list_next_entry(dst, lru);
++	}
++
  	/*
  	 * Try to migrate split folios of fail-to-migrate large folios, no
  	 * nr_failed counting in this round, since all split folios of a
-@@ -1726,7 +1688,7 @@ split_folio_migration:
+ 	 * large folio is counted as 1 failure in the first round.
+ 	 */
+-	if (!list_empty(&split_folios)) {
++	if (rc >= 0 && !list_empty(&split_folios)) {
+ 		/*
  		 * Move non-migrated folios (after NR_MAX_MIGRATE_PAGES_RETRY
  		 * retries) to ret_folios to avoid migrating them again.
- 		 */
--		list_splice_init(from, &ret_folios);
-+		list_splice_init(from, ret_folios);
+@@ -1778,12 +1938,16 @@ split_folio_migration:
+ 		list_splice_init(from, ret_folios);
  		list_splice_init(&split_folios, from);
  		no_split_folio_counting = true;
- 		retry = 1;
-@@ -1735,6 +1697,82 @@ split_folio_migration:
+-		retry = 1;
+-		goto split_folio_migration;
++		goto retry;
+ 	}
  
- 	rc = nr_failed + nr_large_failed;
- out:
-+	return rc;
-+}
+-	rc = nr_failed + nr_large_failed;
+-out:
++	/*
++	 * We have unlocked all locked folios, so we can force lock now, let's
++	 * try again.
++	 */
++	if (rc == -EDEADLOCK)
++		goto retry;
 +
-+/*
-+ * migrate_pages - migrate the folios specified in a list, to the free folios
-+ *		   supplied as the target for the page migration
-+ *
-+ * @from:		The list of folios to be migrated.
-+ * @get_new_page:	The function used to allocate free folios to be used
-+ *			as the target of the folio migration.
-+ * @put_new_page:	The function used to free target folios if migration
-+ *			fails, or NULL if no special handling is necessary.
-+ * @private:		Private data to be passed on to get_new_page()
-+ * @mode:		The migration mode that specifies the constraints for
-+ *			folio migration, if any.
-+ * @reason:		The reason for folio migration.
-+ * @ret_succeeded:	Set to the number of folios migrated successfully if
-+ *			the caller passes a non-NULL pointer.
-+ *
-+ * The function returns after NR_MAX_MIGRATE_PAGES_RETRY attempts or if no folios
-+ * are movable any more because the list has become empty or no retryable folios
-+ * exist any more. It is caller's responsibility to call putback_movable_pages()
-+ * only if ret != 0.
-+ *
-+ * Returns the number of {normal folio, large folio, hugetlb} that were not
-+ * migrated, or an error code. The number of large folio splits will be
-+ * considered as the number of non-migrated large folio, no matter how many
-+ * split folios of the large folio are migrated successfully.
-+ */
-+int migrate_pages(struct list_head *from, new_page_t get_new_page,
-+		free_page_t put_new_page, unsigned long private,
-+		enum migrate_mode mode, int reason, unsigned int *ret_succeeded)
-+{
-+	int rc, rc_gather;
-+	int nr_pages;
-+	struct folio *folio, *folio2;
-+	LIST_HEAD(folios);
-+	LIST_HEAD(ret_folios);
-+	struct migrate_pages_stats stats;
-+
-+	trace_mm_migrate_pages_start(mode, reason);
-+
-+	memset(&stats, 0, sizeof(stats));
-+
-+	rc_gather = migrate_hugetlbs(from, get_new_page, put_new_page, private,
-+				     mode, reason, &stats, &ret_folios);
-+	if (rc_gather < 0)
-+		goto out;
-+again:
-+	nr_pages = 0;
-+	list_for_each_entry_safe(folio, folio2, from, lru) {
-+		/* Retried hugetlb folios will be kept in list  */
-+		if (folio_test_hugetlb(folio)) {
-+			list_move_tail(&folio->lru, &ret_folios);
-+			continue;
-+		}
-+
-+		nr_pages += folio_nr_pages(folio);
-+		if (nr_pages > NR_MAX_BATCHED_MIGRATION)
-+			break;
-+	}
-+	if (nr_pages > NR_MAX_BATCHED_MIGRATION)
-+		list_cut_before(&folios, from, &folio->lru);
-+	else
-+		list_splice_init(from, &folios);
-+	rc = migrate_pages_batch(&folios, get_new_page, put_new_page, private,
-+				 mode, reason, &ret_folios, &stats);
-+	list_splice_tail_init(&folios, &ret_folios);
-+	if (rc < 0) {
-+		rc_gather = rc;
-+		goto out;
-+	}
-+	rc_gather += rc;
-+	if (!list_empty(from))
-+		goto again;
-+out:
- 	/*
- 	 * Put the permanent failure folio back to migration list, they
- 	 * will be put back to the right list by the caller.
-@@ -1746,7 +1784,7 @@ out:
- 	 * are migrated successfully.
- 	 */
- 	if (list_empty(from))
--		rc = 0;
-+		rc_gather = 0;
- 
- 	count_vm_events(PGMIGRATE_SUCCESS, stats.nr_succeeded);
- 	count_vm_events(PGMIGRATE_FAIL, stats.nr_failed_pages);
-@@ -1760,7 +1798,7 @@ out:
- 	if (ret_succeeded)
- 		*ret_succeeded = stats.nr_succeeded;
- 
--	return rc;
-+	return rc_gather;
+ 	return rc;
  }
  
- struct page *alloc_migration_target(struct page *page, unsigned long private)
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
