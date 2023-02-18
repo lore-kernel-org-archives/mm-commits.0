@@ -2,95 +2,68 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20E6EC636D6
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Feb 2023 23:18:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D3F0C05027
+	for <mm-commits@archiver.kernel.org>; Sat, 18 Feb 2023 03:04:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230017AbjBQXSZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Feb 2023 18:18:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40632 "EHLO
+        id S229674AbjBRDEc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Feb 2023 22:04:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229808AbjBQXSY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2023 18:18:24 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62FB26180;
-        Fri, 17 Feb 2023 15:18:23 -0800 (PST)
+        with ESMTP id S229679AbjBRDEb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2023 22:04:31 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A01C6B330;
+        Fri, 17 Feb 2023 19:04:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 220D5B82EB1;
-        Fri, 17 Feb 2023 23:18:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B156BC433D2;
-        Fri, 17 Feb 2023 23:18:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676675900;
-        bh=oq+uagmvKxZaMe7WRfPkQe5SJzixvODnA5FXwdYQHws=;
-        h=Date:From:To:Cc:Subject:From;
-        b=H5RqU7EKFrcaCmK8lHa+Ewv1xXU04c5n9R0AGlYVTAM46LqzLWeLlzrlODD9SRsYA
-         +t0abmYbVPRvmq8RtIvxDqhsI/vHSIyW9N8danwzGUd8+e2GeOQYuekFrN+gYChnF+
-         lVJCRwajZzYfegGYAndXXL6mzooHYp3O2hrI8e/o=
-Date:   Fri, 17 Feb 2023 15:18:20 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.2
-Message-Id: <20230217151820.e1fa2d36179e44069a77040c@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        by ams.source.kernel.org (Postfix) with ESMTPS id AF609B82F28;
+        Sat, 18 Feb 2023 03:04:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 5F10AC433EF;
+        Sat, 18 Feb 2023 03:04:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1676689468;
+        bh=2bj7d/9sTjnIwubfO4gptXyPlYmiHPnLCYj0UUaVN9o=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=p1vYmbSHgaliHausQYkKzz3fwqv2507XdIyFjadw6qZ3QyN6ex2ZKnNie+X1YAVeD
+         oB5FwGGRW9POhURypVSotmRCPObu6ZvPti6L3RLozbEF0malAjKy+t5sf74QI4Yra/
+         cZwCathvX/ChCQwxtA9II/3HcgCWd2du6L37PqBXCQjx1/A/DvelKtjClHgp1Wp16a
+         70vGOFEAoqGSNggC74tGdP2LKNVQsOv2A1Hau5pW6MZR6H1qVM16TVpNt0K/5k9JC1
+         jSNZQIAWsC8U3OM52TgD+1GeEzMSbBITFO4D21tNReM+tNh0JDSryt44jhjuUA1WCm
+         JQ961kPIXvT0w==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 4B825E68D2F;
+        Sat, 18 Feb 2023 03:04:28 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.2
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20230217151820.e1fa2d36179e44069a77040c@linux-foundation.org>
+References: <20230217151820.e1fa2d36179e44069a77040c@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20230217151820.e1fa2d36179e44069a77040c@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-17-15-16-2
+X-PR-Tracked-Commit-Id: 99b9402a36f0799f25feee4465bfa4b8dfa74b4d
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 38f8ccde04a3fa317b51b05e63c3cb57e1641931
+Message-Id: <167668946830.29732.7595341653557543287.pr-tracker-bot@kernel.org>
+Date:   Sat, 18 Feb 2023 03:04:28 +0000
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+The pull request you sent on Fri, 17 Feb 2023 15:18:20 -0800:
 
-Linus, please merge this final set of hotfixes, thanks.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-17-15-16-2
 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/38f8ccde04a3fa317b51b05e63c3cb57e1641931
 
-The following changes since commit ce4d9a1ea35ac5429e822c4106cb2859d5c71f3e:
+Thank you!
 
-  of: reserved_mem: Have kmemleak ignore dynamically allocated reserved mem (2023-02-09 15:56:51 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-02-17-15-16-2
-
-for you to fetch changes up to 99b9402a36f0799f25feee4465bfa4b8dfa74b4d:
-
-  nilfs2: fix underflow in second superblock position calculations (2023-02-17 15:07:05 -0800)
-
-----------------------------------------------------------------
-Six hotfixes.  Five are cc:stable: four for MM, one for nilfs2.  Also a
-MAINTAINERS update.
-
-----------------------------------------------------------------
-Mike Kravetz (1):
-      hugetlb: check for undefined shift on 32 bit architectures
-
-Peter Xu (1):
-      mm/migrate: fix wrongly apply write bit after mkdirty on sparc64
-
-Qian Yingjin (1):
-      mm/filemap: fix page end in filemap_get_read_batch
-
-Randy Dunlap (1):
-      MAINTAINERS: update FPU EMULATOR web page
-
-Ryusuke Konishi (1):
-      nilfs2: fix underflow in second superblock position calculations
-
-Zach O'Keefe (1):
-      mm/MADV_COLLAPSE: set EAGAIN on unexpected page refcount
-
- MAINTAINERS             | 2 +-
- fs/nilfs2/ioctl.c       | 7 +++++++
- fs/nilfs2/super.c       | 9 +++++++++
- fs/nilfs2/the_nilfs.c   | 8 +++++++-
- include/linux/hugetlb.h | 5 ++++-
- mm/filemap.c            | 5 +++--
- mm/huge_memory.c        | 6 ++++--
- mm/khugepaged.c         | 1 +
- mm/migrate.c            | 2 ++
- 9 files changed, 38 insertions(+), 7 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
