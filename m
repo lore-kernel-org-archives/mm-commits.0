@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AE8FC64EC7
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Feb 2023 20:47:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86F05C64ED9
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Feb 2023 20:47:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231553AbjBTUrH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Feb 2023 15:47:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38296 "EHLO
+        id S231951AbjBTUrI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Feb 2023 15:47:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231951AbjBTUrG (ORCPT
+        with ESMTP id S231993AbjBTUrG (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Feb 2023 15:47:06 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE1B330CA
-        for <mm-commits@vger.kernel.org>; Mon, 20 Feb 2023 12:47:02 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEAF9172D
+        for <mm-commits@vger.kernel.org>; Mon, 20 Feb 2023 12:47:03 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6108EB80DC7
-        for <mm-commits@vger.kernel.org>; Mon, 20 Feb 2023 20:47:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05807C4339B;
-        Mon, 20 Feb 2023 20:46:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 78DB4B80DCC
+        for <mm-commits@vger.kernel.org>; Mon, 20 Feb 2023 20:47:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C173C433EF;
+        Mon, 20 Feb 2023 20:47:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1676926020;
-        bh=pg+6cAx3AQPhm8b0H+jyMI0+DH+JI/j1CMVFVO83hxg=;
+        s=korg; t=1676926021;
+        bh=1UdWzrlv4kXghZdYnNMLsLbBwVQOVc9jzGiyafCT8Fc=;
         h=Date:To:From:Subject:From;
-        b=Kc61GIcI2t1NNcmKg2f6m+CPM1K8JQknNQt8UUD8F4kPpI1m1+XyVyzdGuxns/L5W
-         5Y7tCge2+CO8rqokAjub+j+tQcbpkErW83W9QNtn5UKgF7V9AloFTj8e+FDJ/3kXn/
-         U73/6ZEd8RS2gDphLTKM8i3R1fmvkoF47PbT4BLk=
-Date:   Mon, 20 Feb 2023 12:46:59 -0800
+        b=rqUhe0gm1Tcb5IfGc1lA3dEH4ivC4DrjmyHCCt2qiSlzdzQxdogg8jPB+gIfkqr9A
+         J3S90IHo9Sl+EUivGo83voVUKNxQDzmVSZb6hZsUVXXzHkxxOI4xmpU+yyhbcz15fD
+         sPpI8Kb4jwYpGYZPUj2AEtuLr/D9BvidqRVZNR2o=
+Date:   Mon, 20 Feb 2023 12:47:00 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        torvalds@linux-foundation.org, sj@kernel.org, david@redhat.com,
+        torvalds@linux-foundation.org, sj@kernel.org,
+        mike.kravetz@oracle.com, david@redhat.com,
         baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-change-to-return-bool-for-isolate_lru_page.patch removed from -mm tree
-Message-Id: <20230220204700.05807C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-change-to-return-bool-for-isolate_hugetlb.patch removed from -mm tree
+Message-Id: <20230220204701.2C173C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,186 +43,156 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: change to return bool for isolate_lru_page()
+     Subject: mm: hugetlb: change to return bool for isolate_hugetlb()
 has been removed from the -mm tree.  Its filename was
-     mm-change-to-return-bool-for-isolate_lru_page.patch
+     mm-hugetlb-change-to-return-bool-for-isolate_hugetlb.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: change to return bool for isolate_lru_page()
-Date: Wed, 15 Feb 2023 18:39:35 +0800
+Subject: mm: hugetlb: change to return bool for isolate_hugetlb()
+Date: Wed, 15 Feb 2023 18:39:36 +0800
 
-The isolate_lru_page() can only return 0 or -EBUSY, and most users did not
-care about the negative error of isolate_lru_page(), except one user in
-add_page_for_migration().  So we can convert the isolate_lru_page() to
-return a boolean value, which can help to make the code more clear when
-checking the return value of isolate_lru_page().
-
-Also convert all users' logic of checking the isolation state.
+Now the isolate_hugetlb() only returns 0 or -EBUSY, and most users did not
+care about the negative value, thus we can convert the isolate_hugetlb()
+to return a boolean value to make code more clear when checking the
+hugetlb isolation state.  Moreover converts 2 users which will consider
+the negative value returned by isolate_hugetlb().
 
 No functional changes intended.
 
-Link: https://lkml.kernel.org/r/3074c1ab628d9dbf139b33f248a8bc253a3f95f0.1676424378.git.baolin.wang@linux.alibaba.com
+[akpm@linux-foundation.org: shorten locked section, per SeongJae Park]
+Link: https://lkml.kernel.org/r/12a287c5bebc13df304387087bbecc6421510849.1676424378.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/folio-compat.c~mm-change-to-return-bool-for-isolate_lru_page
-+++ a/mm/folio-compat.c
-@@ -113,17 +113,11 @@ struct page *grab_cache_page_write_begin
+--- a/include/linux/hugetlb.h~mm-hugetlb-change-to-return-bool-for-isolate_hugetlb
++++ a/include/linux/hugetlb.h
+@@ -171,7 +171,7 @@ bool hugetlb_reserve_pages(struct inode
+ 						vm_flags_t vm_flags);
+ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
+ 						long freed);
+-int isolate_hugetlb(struct folio *folio, struct list_head *list);
++bool isolate_hugetlb(struct folio *folio, struct list_head *list);
+ int get_hwpoison_hugetlb_folio(struct folio *folio, bool *hugetlb, bool unpoison);
+ int get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+ 				bool *migratable_cleared);
+@@ -413,9 +413,9 @@ static inline pte_t *huge_pte_offset(str
+ 	return NULL;
  }
- EXPORT_SYMBOL(grab_cache_page_write_begin);
  
--int isolate_lru_page(struct page *page)
-+bool isolate_lru_page(struct page *page)
+-static inline int isolate_hugetlb(struct folio *folio, struct list_head *list)
++static inline bool isolate_hugetlb(struct folio *folio, struct list_head *list)
  {
--	bool ret;
--
- 	if (WARN_RATELIMIT(PageTail(page), "trying to isolate tail page"))
--		return -EBUSY;
--	ret = folio_isolate_lru((struct folio *)page);
--	if (ret)
--		return 0;
--
 -	return -EBUSY;
-+		return false;
-+	return folio_isolate_lru((struct folio *)page);
++	return false;
  }
  
- void putback_lru_page(struct page *page)
---- a/mm/internal.h~mm-change-to-return-bool-for-isolate_lru_page
-+++ a/mm/internal.h
-@@ -187,7 +187,7 @@ pgprot_t __init early_memremap_pgprot_ad
- /*
-  * in mm/vmscan.c:
-  */
--int isolate_lru_page(struct page *page);
-+bool isolate_lru_page(struct page *page);
- bool folio_isolate_lru(struct folio *folio);
- void putback_lru_page(struct page *page);
- void folio_putback_lru(struct folio *folio);
---- a/mm/khugepaged.c~mm-change-to-return-bool-for-isolate_lru_page
-+++ a/mm/khugepaged.c
-@@ -636,7 +636,7 @@ static int __collapse_huge_page_isolate(
- 		 * Isolate the page to avoid collapsing an hugepage
- 		 * currently in use by the VM.
+ static inline int get_hwpoison_hugetlb_folio(struct folio *folio, bool *hugetlb, bool unpoison)
+--- a/mm/hugetlb.c~mm-hugetlb-change-to-return-bool-for-isolate_hugetlb
++++ a/mm/hugetlb.c
+@@ -2925,12 +2925,15 @@ retry:
  		 */
--		if (isolate_lru_page(page)) {
-+		if (!isolate_lru_page(page)) {
- 			unlock_page(page);
- 			result = SCAN_DEL_PAGE_LRU;
- 			goto out;
---- a/mm/memcontrol.c~mm-change-to-return-bool-for-isolate_lru_page
-+++ a/mm/memcontrol.c
-@@ -6176,7 +6176,7 @@ static int mem_cgroup_move_charge_pte_ra
- 		target_type = get_mctgt_type_thp(vma, addr, *pmd, &target);
- 		if (target_type == MC_TARGET_PAGE) {
- 			page = target.page;
--			if (!isolate_lru_page(page)) {
-+			if (isolate_lru_page(page)) {
- 				if (!mem_cgroup_move_account(page, true,
- 							     mc.from, mc.to)) {
- 					mc.precharge -= HPAGE_PMD_NR;
-@@ -6226,7 +6226,7 @@ retry:
- 			 */
- 			if (PageTransCompound(page))
- 				goto put;
--			if (!device && isolate_lru_page(page))
-+			if (!device && !isolate_lru_page(page))
- 				goto put;
- 			if (!mem_cgroup_move_account(page, false,
- 						mc.from, mc.to)) {
---- a/mm/memory-failure.c~mm-change-to-return-bool-for-isolate_lru_page
-+++ a/mm/memory-failure.c
-@@ -846,7 +846,7 @@ static const char * const action_page_ty
-  */
- static int delete_from_lru_cache(struct page *p)
- {
--	if (!isolate_lru_page(p)) {
-+	if (isolate_lru_page(p)) {
+ 		goto free_new;
+ 	} else if (folio_ref_count(old_folio)) {
++		bool isolated;
++
  		/*
- 		 * Clear sensible page flags, so that the buddy system won't
- 		 * complain when the page is unpoison-and-freed.
-@@ -2513,7 +2513,7 @@ static bool isolate_page(struct page *pa
+ 		 * Someone has grabbed the folio, try to isolate it here.
+ 		 * Fail with -EBUSY if not possible.
+ 		 */
+ 		spin_unlock_irq(&hugetlb_lock);
+-		ret = isolate_hugetlb(old_folio, list);
++		isolated = isolate_hugetlb(old_folio, list);
++		ret = isolated ? 0 : -EBUSY;
+ 		spin_lock_irq(&hugetlb_lock);
+ 		goto free_new;
+ 	} else if (!folio_test_hugetlb_freed(old_folio)) {
+@@ -3005,7 +3008,7 @@ int isolate_or_dissolve_huge_page(struct
+ 	if (hstate_is_gigantic(h))
+ 		return -ENOMEM;
+ 
+-	if (folio_ref_count(folio) && !isolate_hugetlb(folio, list))
++	if (folio_ref_count(folio) && isolate_hugetlb(folio, list))
+ 		ret = 0;
+ 	else if (!folio_ref_count(folio))
+ 		ret = alloc_and_dissolve_hugetlb_folio(h, folio, list);
+@@ -7251,15 +7254,15 @@ __weak unsigned long hugetlb_mask_last_p
+  * These functions are overwritable if your architecture needs its own
+  * behavior.
+  */
+-int isolate_hugetlb(struct folio *folio, struct list_head *list)
++bool isolate_hugetlb(struct folio *folio, struct list_head *list)
+ {
+-	int ret = 0;
++	bool ret = true;
+ 
+ 	spin_lock_irq(&hugetlb_lock);
+ 	if (!folio_test_hugetlb(folio) ||
+ 	    !folio_test_hugetlb_migratable(folio) ||
+ 	    !folio_try_get(folio)) {
+-		ret = -EBUSY;
++		ret = false;
+ 		goto unlock;
+ 	}
+ 	folio_clear_hugetlb_migratable(folio);
+--- a/mm/memory-failure.c~mm-hugetlb-change-to-return-bool-for-isolate_hugetlb
++++ a/mm/memory-failure.c
+@@ -2508,7 +2508,7 @@ static bool isolate_page(struct page *pa
+ 	bool isolated = false;
+ 
+ 	if (PageHuge(page)) {
+-		isolated = !isolate_hugetlb(page_folio(page), pagelist);
++		isolated = isolate_hugetlb(page_folio(page), pagelist);
+ 	} else {
  		bool lru = !__PageMovable(page);
  
- 		if (lru)
--			isolated = !isolate_lru_page(page);
-+			isolated = isolate_lru_page(page);
- 		else
- 			isolated = !isolate_movable_page(page,
- 							 ISOLATE_UNEVICTABLE);
---- a/mm/memory_hotplug.c~mm-change-to-return-bool-for-isolate_lru_page
-+++ a/mm/memory_hotplug.c
-@@ -1632,6 +1632,7 @@ do_migrate_range(unsigned long start_pfn
- 
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		struct folio *folio;
-+		bool isolated;
- 
- 		if (!pfn_valid(pfn))
- 			continue;
-@@ -1667,9 +1668,10 @@ do_migrate_range(unsigned long start_pfn
- 		 * We can skip free pages. And we can deal with pages on
- 		 * LRU and non-lru movable pages.
- 		 */
--		if (PageLRU(page))
--			ret = isolate_lru_page(page);
--		else
-+		if (PageLRU(page)) {
-+			isolated = isolate_lru_page(page);
-+			ret = isolated ? 0 : -EBUSY;
-+		} else
- 			ret = isolate_movable_page(page, ISOLATE_UNEVICTABLE);
- 		if (!ret) { /* Success */
- 			list_add_tail(&page->lru, &source);
---- a/mm/migrate.c~mm-change-to-return-bool-for-isolate_lru_page
+--- a/mm/mempolicy.c~mm-hugetlb-change-to-return-bool-for-isolate_hugetlb
++++ a/mm/mempolicy.c
+@@ -609,7 +609,7 @@ static int queue_folios_hugetlb(pte_t *p
+ 	if (flags & (MPOL_MF_MOVE_ALL) ||
+ 	    (flags & MPOL_MF_MOVE && folio_estimated_sharers(folio) == 1 &&
+ 	     !hugetlb_pmd_shared(pte))) {
+-		if (isolate_hugetlb(folio, qp->pagelist) &&
++		if (!isolate_hugetlb(folio, qp->pagelist) &&
+ 			(flags & MPOL_MF_STRICT))
+ 			/*
+ 			 * Failed to isolate folio but allow migrating pages
+--- a/mm/migrate.c~mm-hugetlb-change-to-return-bool-for-isolate_hugetlb
 +++ a/mm/migrate.c
-@@ -2132,11 +2132,14 @@ static int add_page_for_migration(struct
+@@ -2095,6 +2095,7 @@ static int add_page_for_migration(struct
+ 	struct vm_area_struct *vma;
+ 	struct page *page;
+ 	int err;
++	bool isolated;
+ 
+ 	mmap_read_lock(mm);
+ 	err = -EFAULT;
+@@ -2126,13 +2127,11 @@ static int add_page_for_migration(struct
+ 
+ 	if (PageHuge(page)) {
+ 		if (PageHead(page)) {
+-			err = isolate_hugetlb(page_folio(page), pagelist);
+-			if (!err)
+-				err = 1;
++			isolated = isolate_hugetlb(page_folio(page), pagelist);
++			err = isolated ? 1 : -EBUSY;
  		}
  	} else {
  		struct page *head;
-+		bool isolated;
+-		bool isolated;
  
  		head = compound_head(page);
--		err = isolate_lru_page(head);
--		if (err)
-+		isolated = isolate_lru_page(head);
-+		if (!isolated) {
-+			err = -EBUSY;
- 			goto out_putpage;
-+		}
- 
- 		err = 1;
- 		list_add_tail(&head->lru, pagelist);
-@@ -2541,7 +2544,7 @@ static int numamigrate_isolate_page(pg_d
- 		return 0;
- 	}
- 
--	if (isolate_lru_page(page))
-+	if (!isolate_lru_page(page))
- 		return 0;
- 
- 	mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON + page_is_file_lru(page),
---- a/mm/migrate_device.c~mm-change-to-return-bool-for-isolate_lru_page
-+++ a/mm/migrate_device.c
-@@ -388,7 +388,7 @@ static unsigned long migrate_device_unma
- 				allow_drain = false;
- 			}
- 
--			if (isolate_lru_page(page)) {
-+			if (!isolate_lru_page(page)) {
- 				src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
- 				restore++;
- 				continue;
+ 		isolated = isolate_lru_page(head);
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
