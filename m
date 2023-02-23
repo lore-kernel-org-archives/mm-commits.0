@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 575B4C64ED6
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 22:13:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9270C64ED6
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 22:36:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229530AbjBWWNm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Feb 2023 17:13:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48274 "EHLO
+        id S229487AbjBWWg6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Feb 2023 17:36:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229453AbjBWWNl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 17:13:41 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 770661A66D
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 14:13:40 -0800 (PST)
+        with ESMTP id S229448AbjBWWg5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 17:36:57 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53D634FABD
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 14:36:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 67456617AC
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 22:13:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60A0EC433EF;
-        Thu, 23 Feb 2023 22:13:39 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 06CEEB81A93
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 22:36:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEEC5C433EF;
+        Thu, 23 Feb 2023 22:36:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677190419;
-        bh=pTw0xmrw4CNq5snKoSFRspJVDDO7YVWG3m+zIzLrBUs=;
+        s=korg; t=1677191813;
+        bh=GywyUmrnCI10DP3Abe5dpB5GH8BqgE/0EgOaz4F1y3A=;
         h=Date:To:From:Subject:From;
-        b=TDxoILK7qOSLtyQBEv5woI0tVb2QEO1Wk7im72WNkdUTMqmkfB/OkrwjvtqD0lUrJ
-         t0YOunAglCL59hEOyj9Gxm8Qz+Fhn7JduAGc1kvtaHDhyMfLDEX8DXDIcPQ9BRxjoi
-         Jn79nRKtVWQj2sREyPYFWK/2LvYvBxgXWGMiW5y8=
-Date:   Thu, 23 Feb 2023 14:13:38 -0800
-To:     mm-commits@vger.kernel.org, toshi.kani@hp.com,
-        syzbot+5f488e922d047d8f00cc@syzkaller.appspotmail.com,
-        suresh.b.siddha@intel.com, peterz@infradead.org, luto@kernel.org,
-        dave.hansen@linux.intel.com, bp@suse.de, mawupeng1@huawei.com,
+        b=WEMeTc4K0Dsq3cq65jhZsOUVrBYKQMUJ1f/r9IQEeiPyAST+LaQvA+SI2WIwki3vU
+         lgcCxViLYq8E7hkz9OV3QHn/0jPfmJ4rG638cmEuUR+7Q8K1p+8f3NeCxiDrspqWU/
+         gQ0WeOG2s+1EjPbbbKBEfdReCWwGsb9C9qojwZKo=
+Date:   Thu, 23 Feb 2023 14:36:53 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
+        shakeelb@google.com, rientjes@google.com,
+        quic_pkondeti@quicinc.com, markhemm@googlemail.com,
+        hughd@google.com, quic_charante@quicinc.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed.patch added to mm-unstable branch
-Message-Id: <20230223221339.60A0EC433EF@smtp.kernel.org>
+Subject: + mm-fadvise-move-endbyte-calculations-to-helper-function.patch added to mm-unstable branch
+Message-Id: <20230223223653.AEEC5C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/mm/pat: clear VM_PAT if copy_p4d_range failed
+     Subject: mm: fadvise: move 'endbyte' calculations to helper function
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed.patch
+     mm-fadvise-move-endbyte-calculations-to-helper-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fadvise-move-endbyte-calculations-to-helper-function.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,133 +67,97 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ma Wupeng <mawupeng1@huawei.com>
-Subject: x86/mm/pat: clear VM_PAT if copy_p4d_range failed
-Date: Fri, 17 Feb 2023 10:56:15 +0800
+From: Charan Teja Kalla <quic_charante@quicinc.com>
+Subject: mm: fadvise: move 'endbyte' calculations to helper function
+Date: Tue, 14 Feb 2023 18:21:49 +0530
 
-Syzbot reports a warning in untrack_pfn().  Digging into the root we found
-that this is due to memory allocation failure in pmd_alloc_one.  And this
-failure is produced due to failslab.
+Patch series "mm: shmem: support POSIX_FADV_[WILL|DONT]NEED for shmem
+files", v7.
 
-In copy_page_range(), memory alloaction for pmd failed.  During the error
-handling process in copy_page_range(), mmput() is called to remove all
-vmas.  While untrack_pfn this empty pfn, warning happens.
+This patchset aims to implement POSIX_FADV_WILLNEED and
+POSIX_FADV_DONTNEED advices to shmem files which can be helpful for the
+drivers who may want to manage the pages of shmem files on their own,
+like, that are created through shmem_file_setup[_with_mnt]().
 
-Here's a simplified flow:
 
-dup_mm
-  dup_mmap
-    copy_page_range
-      copy_p4d_range
-        copy_pud_range
-          copy_pmd_range
-            pmd_alloc
-              __pmd_alloc
-                pmd_alloc_one
-                  page = alloc_pages(gfp, 0);
-                    if (!page)
-                      return NULL;
-    mmput
-        exit_mmap
-          unmap_vmas
-            unmap_single_vma
-              untrack_pfn
-                follow_phys
-                  WARN_ON_ONCE(1);
+This patch (of 2):
 
-Since this vma is not generate successfully, we can clear flag VM_PAT.  In
-this case, untrack_pfn() will not be called while cleaning this vma.
+Move the 'endbyte' calculations that determines last byte that fadvise can
+to a helper function.  This is a preparatory change made for
+shmem_fadvise() functionality in the next patch.  No functional changes in
+this patch.
 
-Function untrack_pfn_moved() has also been renamed to fit the new logic.
-
-Link: https://lkml.kernel.org/r/20230217025615.1595558-1-mawupeng1@huawei.com
-Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
-Reported-by: <syzbot+5f488e922d047d8f00cc@syzkaller.appspotmail.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
+Link: https://lkml.kernel.org/r/cover.1676378702.git.quic_charante@quicinc.com
+Link: https://lkml.kernel.org/r/22de7e716051abbafc01fab9f479f4d5b03745ca.1676378702.git.quic_charante@quicinc.com
+Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mark Hemment <markhemm@googlemail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat/memtype.c |   12 ++++++++----
- include/linux/pgtable.h   |    7 ++++---
- mm/memory.c               |    1 +
- mm/mremap.c               |    2 +-
- 4 files changed, 14 insertions(+), 8 deletions(-)
+ mm/fadvise.c  |   11 +----------
+ mm/internal.h |   21 +++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 10 deletions(-)
 
---- a/arch/x86/mm/pat/memtype.c~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
-+++ a/arch/x86/mm/pat/memtype.c
-@@ -1074,11 +1074,15 @@ void untrack_pfn(struct vm_area_struct *
+--- a/mm/fadvise.c~mm-fadvise-move-endbyte-calculations-to-helper-function
++++ a/mm/fadvise.c
+@@ -65,16 +65,7 @@ int generic_fadvise(struct file *file, l
+ 		return 0;
+ 	}
+ 
+-	/*
+-	 * Careful about overflows. Len == 0 means "as much as possible".  Use
+-	 * unsigned math because signed overflows are undefined and UBSan
+-	 * complains.
+-	 */
+-	endbyte = (u64)offset + (u64)len;
+-	if (!len || endbyte < len)
+-		endbyte = LLONG_MAX;
+-	else
+-		endbyte--;		/* inclusive */
++	endbyte = fadvise_calc_endbyte(offset, len);
+ 
+ 	switch (advice) {
+ 	case POSIX_FADV_NORMAL:
+--- a/mm/internal.h~mm-fadvise-move-endbyte-calculations-to-helper-function
++++ a/mm/internal.h
+@@ -657,6 +657,27 @@ static inline void vunmap_range_noflush(
  }
+ #endif /* !CONFIG_MMU */
  
- /*
-- * untrack_pfn_moved is called, while mremapping a pfnmap for a new region,
-- * with the old vma after its pfnmap page table has been removed.  The new
-- * vma has a new pfnmap to the same pfn & cache type with VM_PAT set.
-+ * untrack_pfn_clear is called if the following situation fits:
-+ *
-+ * 1) while mremapping a pfnmap for a new region,  with the old vma after
-+ * its pfnmap page table has been removed.  The new vma has a new pfnmap
-+ * to the same pfn & cache type with VM_PAT set.
-+ * 2) while duplicating vm area, the new vma fails to copy the pgtable from
-+ * old vma.
-  */
--void untrack_pfn_moved(struct vm_area_struct *vma)
-+void untrack_pfn_clear(struct vm_area_struct *vma)
- {
- 	vm_flags_clear(vma, VM_PAT);
- }
---- a/include/linux/pgtable.h~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
-+++ a/include/linux/pgtable.h
-@@ -1191,9 +1191,10 @@ static inline void untrack_pfn(struct vm
- }
- 
- /*
-- * untrack_pfn_moved is called while mremapping a pfnmap for a new region.
-+ * untrack_pfn_clear is called while mremapping a pfnmap for a new region
-+ * or fails to copy pgtable during duplicate vm area.
-  */
--static inline void untrack_pfn_moved(struct vm_area_struct *vma)
-+static inline void untrack_pfn_clear(struct vm_area_struct *vma)
- {
- }
- #else
-@@ -1205,7 +1206,7 @@ extern void track_pfn_insert(struct vm_a
- extern int track_pfn_copy(struct vm_area_struct *vma);
- extern void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
- 			unsigned long size, bool mm_wr_locked);
--extern void untrack_pfn_moved(struct vm_area_struct *vma);
-+extern void untrack_pfn_clear(struct vm_area_struct *vma);
- #endif
- 
- #ifdef CONFIG_MMU
---- a/mm/memory.c~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
-+++ a/mm/memory.c
-@@ -1290,6 +1290,7 @@ copy_page_range(struct vm_area_struct *d
- 			continue;
- 		if (unlikely(copy_p4d_range(dst_vma, src_vma, dst_pgd, src_pgd,
- 					    addr, next))) {
-+			untrack_pfn_clear(dst_vma);
- 			ret = -ENOMEM;
- 			break;
- 		}
---- a/mm/mremap.c~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
-+++ a/mm/mremap.c
-@@ -683,7 +683,7 @@ static unsigned long move_vma(struct vm_
- 
- 	/* Tell pfnmap has moved from this vma */
- 	if (unlikely(vma->vm_flags & VM_PFNMAP))
--		untrack_pfn_moved(vma);
-+		untrack_pfn_clear(vma);
- 
- 	if (unlikely(!err && (flags & MREMAP_DONTUNMAP))) {
- 		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
++/*
++ * Helper function to get the endbyte of a file that fadvise can operate on.
++ */
++static inline loff_t fadvise_calc_endbyte(loff_t offset, loff_t len)
++{
++	loff_t endbyte;
++
++	/*
++	 * Careful about overflows. Len == 0 means "as much as possible".  Use
++	 * unsigned math because signed overflows are undefined and UBSan
++	 * complains.
++	 */
++	endbyte = (u64)offset + (u64)len;
++	if (!len || endbyte < len)
++		endbyte = LLONG_MAX;
++	else
++		endbyte--;		/* inclusive */
++
++	return endbyte;
++}
++
+ /* Memory initialisation debug and verification */
+ enum mminit_level {
+ 	MMINIT_WARNING,
 _
 
-Patches currently in -mm which might be from mawupeng1@huawei.com are
+Patches currently in -mm which might be from quic_charante@quicinc.com are
 
-x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed.patch
+mm-fadvise-move-endbyte-calculations-to-helper-function.patch
+mm-shmem-implement-posix_fadv_need-for-shmem.patch
 
