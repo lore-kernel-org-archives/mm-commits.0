@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B425DC64ED8
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 21:06:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFD6EC64ED8
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 21:15:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229618AbjBWVGf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Feb 2023 16:06:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47852 "EHLO
+        id S229547AbjBWVPY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Feb 2023 16:15:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229454AbjBWVGc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 16:06:32 -0500
+        with ESMTP id S229462AbjBWVPW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 16:15:22 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AC7614208;
-        Thu, 23 Feb 2023 13:06:31 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53BBB869D
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 13:15:21 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0EACBB81B2E;
-        Thu, 23 Feb 2023 21:06:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9768C433D2;
-        Thu, 23 Feb 2023 21:06:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 073F0B81A42
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 21:15:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FCCAC433EF;
+        Thu, 23 Feb 2023 21:15:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677186388;
-        bh=46eNsRC3mfD38LEk7IkS4/LHgA+yCMd0QH7FJUCXC8k=;
+        s=korg; t=1677186918;
+        bh=4bvYiR6XDKrsNxAmR+c3hmsXtS3P5ELA0+VDP9cUCgI=;
         h=Date:To:From:Subject:From;
-        b=Vt/3mbg3MrhV7h4DJuCz/b9e/pmMUfrfaqXFmWfedDvNGBqE57UQfdr7vZKy/WT1m
-         4fCcosRhbkFB0uvc1J4t4i8a9IDF/GAuQc0PAUZRQ6Th2Nq2FgnfLcGP+3Mt9KLNhJ
-         FyVTfh3R/N5QEsd1Cqnp2l6jafrKqP5BeFp7itf0=
-Date:   Thu, 23 Feb 2023 13:06:28 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        piaojun@huawei.com, mark@fasheh.com, junxiao.bi@oracle.com,
-        joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
-        heming.zhao@suse.com, ghe@suse.com, gechangwei@live.cn,
-        ocfs2-devel@oss.oracle.com, akpm@linux-foundation.org
+        b=tR0QbUbM81e61rkhi4PD/+FLb6NxR6fyFrolCuFKUQxSDo7YfIcExqQi/3hJgYZI/
+         55g8CxtAhvUpkB5/6QNYl6qDKpadH1pq7sTIPten0l9rFrGxz5KERTgY0jiNFccbsN
+         GXMQuSfzsJytD6kS9XCicT0u4U1pz6LhHgl2Z2G4=
+Date:   Thu, 23 Feb 2023 13:15:18 -0800
+To:     mm-commits@vger.kernel.org, richard@nod.at, kbingham@kernel.org,
+        johannes@sipsolutions.net, jan.kiszka@siemens.com,
+        anton.ivanov@kot-begemot.co.uk, development@efficientek.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-non-auto-defrag-path-not-working-issue.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230223210628.B9768C433D2@smtp.kernel.org>
+Subject: + scripts-gdb-correct-indentation-in-get_current_task.patch added to mm-nonmm-unstable branch
+Message-Id: <20230223211518.9FCCAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix non-auto defrag path not working issue
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-fix-non-auto-defrag-path-not-working-issue.patch
+     Subject: scripts/gdb: correct indentation in get_current_task
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-correct-indentation-in-get_current_task.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-non-auto-defrag-path-not-working-issue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-correct-indentation-in-get_current_task.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,96 +66,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Heming Zhao via Ocfs2-devel <ocfs2-devel@oss.oracle.com>
-Subject: ocfs2: fix non-auto defrag path not working issue
-Date: Mon, 20 Feb 2023 13:05:26 +0800
+From: Glenn Washburn <development@efficientek.com>
+Subject: scripts/gdb: correct indentation in get_current_task
+Date: Fri, 17 Feb 2023 19:11:53 -0600
 
-This fixes three issues on move extents ioctl without auto defrag:
+Patch series "GDB: Support getting current task struct in UML", v2.
 
-a) In ocfs2_find_victim_alloc_group(), we have to convert bits to block
-   first in case of global bitmap.
 
-b) In ocfs2_probe_alloc_group(), when finding enough bits in block
-   group bitmap, we have to back off move_len to start pos as well,
-   otherwise it may corrupt filesystem.
+This patch (of 2):
 
-c) In ocfs2_ioctl_move_extents(), set me_threshold both for non-auto
-   and auto defrag paths.  Otherwise it will set move_max_hop to 0 and
-   finally cause unexpectedly ENOSPC error.
+There is an extra space in a couple blocks in get_current_task.
+Though python does not care, let's make the spacing consistent.
+Also, format better an if expression, removing unneeded parenthesis.
 
-Currently there are no tools triggering the above issues since
-defragfs.ocfs2 enables auto defrag by default.  Tested with manually
-changing defragfs.ocfs2 to run non auto defrag path.
-
-Link: https://lkml.kernel.org/r/20230220050526.22020-1-heming.zhao@suse.com
-Signed-off-by: Heming Zhao <heming.zhao@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/cover.1676532759.git.development@efficientek.com
+Link: https://lkml.kernel.org/r/c5a916e094d9c7acd551030b5dd793203046fea5.1676532759.git.development@efficientek.com
+Signed-off-by: Glenn Washburn <development@efficientek.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Anton Ivanov <anton.ivanov@kot-begemot.co.uk>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ scripts/gdb/linux/cpus.py |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/fs/ocfs2/move_extents.c~ocfs2-fix-non-auto-defrag-path-not-working-issue
-+++ a/fs/ocfs2/move_extents.c
-@@ -434,7 +434,7 @@ static int ocfs2_find_victim_alloc_group
- 			bg = (struct ocfs2_group_desc *)gd_bh->b_data;
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-correct-indentation-in-get_current_task
++++ a/scripts/gdb/linux/cpus.py
+@@ -163,15 +163,15 @@ def get_current_task(cpu):
+     task_ptr_type = task_type.get_type().pointer()
  
- 			if (vict_blkno < (le64_to_cpu(bg->bg_blkno) +
--						le16_to_cpu(bg->bg_bits))) {
-+						(le16_to_cpu(bg->bg_bits) << bits_per_unit))) {
- 
- 				*ret_bh = gd_bh;
- 				*vict_bit = (vict_blkno - blkno) >>
-@@ -549,6 +549,7 @@ static void ocfs2_probe_alloc_group(stru
- 			last_free_bits++;
- 
- 		if (last_free_bits == move_len) {
-+			i -= move_len;
- 			*goal_bit = i;
- 			*phys_cpos = base_cpos + i;
- 			break;
-@@ -1020,18 +1021,19 @@ int ocfs2_ioctl_move_extents(struct file
- 
- 	context->range = &range;
- 
-+	/*
-+	 * ok, the default theshold for the defragmentation
-+	 * is 1M, since our maximum clustersize was 1M also.
-+	 * any thought?
-+	 */
-+	if (!range.me_threshold)
-+		range.me_threshold = 1024 * 1024;
-+
-+	if (range.me_threshold > i_size_read(inode))
-+		range.me_threshold = i_size_read(inode);
-+
- 	if (range.me_flags & OCFS2_MOVE_EXT_FL_AUTO_DEFRAG) {
- 		context->auto_defrag = 1;
--		/*
--		 * ok, the default theshold for the defragmentation
--		 * is 1M, since our maximum clustersize was 1M also.
--		 * any thought?
--		 */
--		if (!range.me_threshold)
--			range.me_threshold = 1024 * 1024;
--
--		if (range.me_threshold > i_size_read(inode))
--			range.me_threshold = i_size_read(inode);
- 
- 		if (range.me_flags & OCFS2_MOVE_EXT_FL_PART_DEFRAG)
- 			context->partial = 1;
+     if utils.is_target_arch("x86"):
+-         var_ptr = gdb.parse_and_eval("&pcpu_hot.current_task")
+-         return per_cpu(var_ptr, cpu).dereference()
++        var_ptr = gdb.parse_and_eval("&pcpu_hot.current_task")
++        return per_cpu(var_ptr, cpu).dereference()
+     elif utils.is_target_arch("aarch64"):
+-         current_task_addr = gdb.parse_and_eval("$SP_EL0")
+-         if((current_task_addr >> 63) != 0):
+-             current_task = current_task_addr.cast(task_ptr_type)
+-             return current_task.dereference()
+-         else:
+-             raise gdb.GdbError("Sorry, obtaining the current task is not allowed "
++        current_task_addr = gdb.parse_and_eval("$SP_EL0")
++        if((current_task_addr >> 63) != 0):
++            current_task = current_task_addr.cast(task_ptr_type)
++            return current_task.dereference()
++        else:
++            raise gdb.GdbError("Sorry, obtaining the current task is not allowed "
+                                 "while running in userspace(EL0)")
+     else:
+         raise gdb.GdbError("Sorry, obtaining the current task is not yet "
 _
 
-Patches currently in -mm which might be from ocfs2-devel@oss.oracle.com are
+Patches currently in -mm which might be from development@efficientek.com are
 
-ocfs2-fix-defrag-path-triggering-jbd2-assert.patch
-ocfs2-fix-non-auto-defrag-path-not-working-issue.patch
+scripts-gdb-correct-indentation-in-get_current_task.patch
+scripts-gdb-support-getting-current-task-struct-in-uml.patch
 
