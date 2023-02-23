@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8932EC61DA4
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 21:50:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 575B4C64ED6
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 22:13:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229618AbjBWVuf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Feb 2023 16:50:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60504 "EHLO
+        id S229530AbjBWWNm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Feb 2023 17:13:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229479AbjBWVue (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 16:50:34 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C8DD1ADDC
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 13:50:28 -0800 (PST)
+        with ESMTP id S229453AbjBWWNl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 17:13:41 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 770661A66D
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 14:13:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 054B261792
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 21:50:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1112AC433D2;
-        Thu, 23 Feb 2023 21:50:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 67456617AC
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 22:13:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60A0EC433EF;
+        Thu, 23 Feb 2023 22:13:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677189027;
-        bh=w5GKUdAkD49mY0FWDL6IkgzhB/P6fOHDp11sorVpnIc=;
+        s=korg; t=1677190419;
+        bh=pTw0xmrw4CNq5snKoSFRspJVDDO7YVWG3m+zIzLrBUs=;
         h=Date:To:From:Subject:From;
-        b=vSsxrK+6X+MckVpz7SFUqbe/muT3OK++UTB5bb/j6IjDMdgAZC1pQ8Csry1g3ALIb
-         51kJpjmkc80hCv959Yx9YfVFHx9GamDY0HDKAI7Ixx4BmX0Ys2MY35kGoMRJrzvWgc
-         kXpTMZu4tTsYVL66RG6fBq2XmskVKgiayUElEzVg=
-Date:   Thu, 23 Feb 2023 13:50:26 -0800
-To:     mm-commits@vger.kernel.org, pgofman@codeweavers.com,
-        peterx@redhat.com, david@redhat.com, usama.anjum@collabora.com,
+        b=TDxoILK7qOSLtyQBEv5woI0tVb2QEO1Wk7im72WNkdUTMqmkfB/OkrwjvtqD0lUrJ
+         t0YOunAglCL59hEOyj9Gxm8Qz+Fhn7JduAGc1kvtaHDhyMfLDEX8DXDIcPQ9BRxjoi
+         Jn79nRKtVWQj2sREyPYFWK/2LvYvBxgXWGMiW5y8=
+Date:   Thu, 23 Feb 2023 14:13:38 -0800
+To:     mm-commits@vger.kernel.org, toshi.kani@hp.com,
+        syzbot+5f488e922d047d8f00cc@syzkaller.appspotmail.com,
+        suresh.b.siddha@intel.com, peterz@infradead.org, luto@kernel.org,
+        dave.hansen@linux.intel.com, bp@suse.de, mawupeng1@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-support-wp-on-multiple-vmas.patch added to mm-unstable branch
-Message-Id: <20230223215027.1112AC433D2@smtp.kernel.org>
+Subject: + x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed.patch added to mm-unstable branch
+Message-Id: <20230223221339.60A0EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/userfaultfd: support WP on multiple VMAs
+     Subject: x86/mm/pat: clear VM_PAT if copy_p4d_range failed
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-userfaultfd-support-wp-on-multiple-vmas.patch
+     x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-support-wp-on-multiple-vmas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,119 +67,133 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: mm/userfaultfd: support WP on multiple VMAs
-Date: Fri, 17 Feb 2023 15:55:58 +0500
+From: Ma Wupeng <mawupeng1@huawei.com>
+Subject: x86/mm/pat: clear VM_PAT if copy_p4d_range failed
+Date: Fri, 17 Feb 2023 10:56:15 +0800
 
-mwriteprotect_range() errors out if [start, end) doesn't fall in one VMA. 
-We are facing a use case where multiple VMAs are present in one range of
-interest.  For example, the following pseudocode reproduces the error
-which we are trying to fix:
+Syzbot reports a warning in untrack_pfn().  Digging into the root we found
+that this is due to memory allocation failure in pmd_alloc_one.  And this
+failure is produced due to failslab.
 
-- Allocate memory of size 16 pages with PROT_NONE with mmap
-- Register userfaultfd
-- Change protection of the first half (1 to 8 pages) of memory to
-  PROT_READ | PROT_WRITE. This breaks the memory area in two VMAs.
-- Now UFFDIO_WRITEPROTECT_MODE_WP on the whole memory of 16 pages errors
-  out.
+In copy_page_range(), memory alloaction for pmd failed.  During the error
+handling process in copy_page_range(), mmput() is called to remove all
+vmas.  While untrack_pfn this empty pfn, warning happens.
 
-This is a simple use case where user may or may not know if the memory
-area has been divided into multiple VMAs.
+Here's a simplified flow:
 
-We need an implementation which doesn't disrupt the already present users.
-So keeping things simple, stop going over all the VMAs if any one of the
-VMA hasn't been registered in WP mode.  While at it, remove the un-needed
-error check as well.
+dup_mm
+  dup_mmap
+    copy_page_range
+      copy_p4d_range
+        copy_pud_range
+          copy_pmd_range
+            pmd_alloc
+              __pmd_alloc
+                pmd_alloc_one
+                  page = alloc_pages(gfp, 0);
+                    if (!page)
+                      return NULL;
+    mmput
+        exit_mmap
+          unmap_vmas
+            unmap_single_vma
+              untrack_pfn
+                follow_phys
+                  WARN_ON_ONCE(1);
 
-Link: https://lkml.kernel.org/r/20230217105558.832710-1-usama.anjum@collabora.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reported-by: Paul Gofman <pgofman@codeweavers.com>
+Since this vma is not generate successfully, we can clear flag VM_PAT.  In
+this case, untrack_pfn() will not be called while cleaning this vma.
+
+Function untrack_pfn_moved() has also been renamed to fit the new logic.
+
+Link: https://lkml.kernel.org/r/20230217025615.1595558-1-mawupeng1@huawei.com
+Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
+Reported-by: <syzbot+5f488e922d047d8f00cc@syzkaller.appspotmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   47 +++++++++++++++++++++++++--------------------
- 1 file changed, 27 insertions(+), 20 deletions(-)
+ arch/x86/mm/pat/memtype.c |   12 ++++++++----
+ include/linux/pgtable.h   |    7 ++++---
+ mm/memory.c               |    1 +
+ mm/mremap.c               |    2 +-
+ 4 files changed, 14 insertions(+), 8 deletions(-)
 
---- a/mm/userfaultfd.c~mm-userfaultfd-support-wp-on-multiple-vmas
-+++ a/mm/userfaultfd.c
-@@ -717,6 +717,8 @@ long uffd_wp_range(struct mm_struct *dst
- 	struct mmu_gather tlb;
- 	long ret;
+--- a/arch/x86/mm/pat/memtype.c~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
++++ a/arch/x86/mm/pat/memtype.c
+@@ -1074,11 +1074,15 @@ void untrack_pfn(struct vm_area_struct *
+ }
  
-+	VM_WARN_ON_ONCE(start < dst_vma->vm_start || start + len > dst_vma->vm_end,
-+			"The address range exceeds VMA boundary.\n");
- 	if (enable_wp)
- 		mm_cp_flags = MM_CP_UFFD_WP;
- 	else
-@@ -741,9 +743,12 @@ int mwriteprotect_range(struct mm_struct
- 			unsigned long len, bool enable_wp,
- 			atomic_t *mmap_changing)
+ /*
+- * untrack_pfn_moved is called, while mremapping a pfnmap for a new region,
+- * with the old vma after its pfnmap page table has been removed.  The new
+- * vma has a new pfnmap to the same pfn & cache type with VM_PAT set.
++ * untrack_pfn_clear is called if the following situation fits:
++ *
++ * 1) while mremapping a pfnmap for a new region,  with the old vma after
++ * its pfnmap page table has been removed.  The new vma has a new pfnmap
++ * to the same pfn & cache type with VM_PAT set.
++ * 2) while duplicating vm area, the new vma fails to copy the pgtable from
++ * old vma.
+  */
+-void untrack_pfn_moved(struct vm_area_struct *vma)
++void untrack_pfn_clear(struct vm_area_struct *vma)
  {
-+	unsigned long end = start + len;
-+	unsigned long _start, _end;
- 	struct vm_area_struct *dst_vma;
- 	unsigned long page_mask;
- 	long err;
-+	VMA_ITERATOR(vmi, dst_mm, start);
+ 	vm_flags_clear(vma, VM_PAT);
+ }
+--- a/include/linux/pgtable.h~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
++++ a/include/linux/pgtable.h
+@@ -1191,9 +1191,10 @@ static inline void untrack_pfn(struct vm
+ }
  
- 	/*
- 	 * Sanitize the command parameters:
-@@ -766,28 +771,30 @@ int mwriteprotect_range(struct mm_struct
- 		goto out_unlock;
+ /*
+- * untrack_pfn_moved is called while mremapping a pfnmap for a new region.
++ * untrack_pfn_clear is called while mremapping a pfnmap for a new region
++ * or fails to copy pgtable during duplicate vm area.
+  */
+-static inline void untrack_pfn_moved(struct vm_area_struct *vma)
++static inline void untrack_pfn_clear(struct vm_area_struct *vma)
+ {
+ }
+ #else
+@@ -1205,7 +1206,7 @@ extern void track_pfn_insert(struct vm_a
+ extern int track_pfn_copy(struct vm_area_struct *vma);
+ extern void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
+ 			unsigned long size, bool mm_wr_locked);
+-extern void untrack_pfn_moved(struct vm_area_struct *vma);
++extern void untrack_pfn_clear(struct vm_area_struct *vma);
+ #endif
  
- 	err = -ENOENT;
--	dst_vma = find_dst_vma(dst_mm, start, len);
-+	for_each_vma_range(vmi, dst_vma, end) {
+ #ifdef CONFIG_MMU
+--- a/mm/memory.c~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
++++ a/mm/memory.c
+@@ -1290,6 +1290,7 @@ copy_page_range(struct vm_area_struct *d
+ 			continue;
+ 		if (unlikely(copy_p4d_range(dst_vma, src_vma, dst_pgd, src_pgd,
+ 					    addr, next))) {
++			untrack_pfn_clear(dst_vma);
+ 			ret = -ENOMEM;
+ 			break;
+ 		}
+--- a/mm/mremap.c~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
++++ a/mm/mremap.c
+@@ -683,7 +683,7 @@ static unsigned long move_vma(struct vm_
  
--	if (!dst_vma)
--		goto out_unlock;
--	if (!userfaultfd_wp(dst_vma))
--		goto out_unlock;
--	if (!vma_can_userfault(dst_vma, dst_vma->vm_flags))
--		goto out_unlock;
--
--	if (is_vm_hugetlb_page(dst_vma)) {
--		err = -EINVAL;
--		page_mask = vma_kernel_pagesize(dst_vma) - 1;
--		if ((start & page_mask) || (len & page_mask))
--			goto out_unlock;
--	}
--
--	err = uffd_wp_range(dst_mm, dst_vma, start, len, enable_wp);
--
--	/* Return 0 on success, <0 on failures */
--	if (err > 0)
-+		if (!userfaultfd_wp(dst_vma)) {
-+			err = -ENOENT;
-+			break;
-+		}
-+
-+		if (is_vm_hugetlb_page(dst_vma)) {
-+			err = -EINVAL;
-+			page_mask = vma_kernel_pagesize(dst_vma) - 1;
-+			if ((start & page_mask) || (len & page_mask))
-+				break;
-+		}
-+
-+		_start = max(dst_vma->vm_start, start);
-+		_end = min(dst_vma->vm_end, end);
-+
-+		err = uffd_wp_range(dst_mm, dst_vma, _start, _end - _start, enable_wp);
-+
-+		/* Return 0 on success, <0 on failures */
-+		if (err < 0)
-+			break;
- 		err = 0;
--
-+	}
- out_unlock:
- 	mmap_read_unlock(dst_mm);
- 	return err;
+ 	/* Tell pfnmap has moved from this vma */
+ 	if (unlikely(vma->vm_flags & VM_PFNMAP))
+-		untrack_pfn_moved(vma);
++		untrack_pfn_clear(vma);
+ 
+ 	if (unlikely(!err && (flags & MREMAP_DONTUNMAP))) {
+ 		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from mawupeng1@huawei.com are
 
-mm-userfaultfd-support-wp-on-multiple-vmas.patch
+x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed.patch
 
