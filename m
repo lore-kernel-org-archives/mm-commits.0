@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F15EDC64ED8
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 20:25:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D723C61DA4
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 20:54:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229488AbjBWUZ2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Feb 2023 15:25:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44884 "EHLO
+        id S229452AbjBWUym (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Feb 2023 15:54:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229436AbjBWUZ1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 15:25:27 -0500
+        with ESMTP id S229491AbjBWUyl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 15:54:41 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1C195D45A;
-        Thu, 23 Feb 2023 12:25:26 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5367115CB7
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 12:54:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9786661783;
-        Thu, 23 Feb 2023 20:25:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C97A9C433D2;
-        Thu, 23 Feb 2023 20:25:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1423E6178A
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 20:54:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B4FFC433EF;
+        Thu, 23 Feb 2023 20:54:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677183925;
-        bh=WdERPTTVXzKFfMP4dQpq+eis31XgXLUhWltwO2fRdas=;
+        s=korg; t=1677185679;
+        bh=G0c3gx/Khin0zmZaDBnyt1I+gWFEkiAXVfevSPnqkHo=;
         h=Date:To:From:Subject:From;
-        b=rm6lkdT1bCm29a55VO3XpihuejquPPrjW4dGYPCSOlZTT99smntouZJBTLrgtw4Q1
-         Y8bg3GZPF5+SQj0lG+fN0GoB2Kzlah7+69AADiPiL2UfKkdDJmn2olklHr6EoQ8QXQ
-         qyvzvxdqwbr3RxKvkNJOdLG/ytNmqszcTIRtzO1Y=
-Date:   Thu, 23 Feb 2023 12:25:25 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
-        andrew.yang@mediatek.com, akpm@linux-foundation.org
+        b=u03u3BDJ1q/oWie5qcKRW6pu83pror8imvaQ4B99Z77psnC6dMSyctw0ABwjUeNgZ
+         Q3AAXyqXap7nPVe7LrL7FgW6TcKeXT5PNvWZTsR79GngJWK0eGBRQQ841rkzr7rw7m
+         qu+iMQkjFY2xc5vtXKTafIb8m9aDN+BsTAQ6nfAU=
+Date:   Thu, 23 Feb 2023 12:54:38 -0800
+To:     mm-commits@vger.kernel.org, iii@linux.ibm.com, hca@linux.ibm.com,
+        gor@linux.ibm.com, zaslonko@linux.ibm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-fix-missing-folio_put.patch added to mm-unstable branch
-Message-Id: <20230223202525.C97A9C433D2@smtp.kernel.org>
+Subject: + lib-zlib-dfltcc-deflate-does-not-write-all-available-bits-for-z_no_flush.patch added to mm-nonmm-unstable branch
+Message-Id: <20230223205439.3B4FFC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/paddr: fix missing folio_put()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-paddr-fix-missing-folio_put.patch
+     Subject: lib/zlib: DFLTCC deflate does not write all available bits for Z_NO_FLUSH
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-zlib-dfltcc-deflate-does-not-write-all-available-bits-for-z_no_flush.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-fix-missing-folio_put.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-zlib-dfltcc-deflate-does-not-write-all-available-bits-for-z_no_flush.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,54 +65,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "andrew.yang" <andrew.yang@mediatek.com>
-Subject: mm/damon/paddr: fix missing folio_put()
-Date: Wed, 22 Feb 2023 14:42:20 +0800
+From: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Subject: lib/zlib: DFLTCC deflate does not write all available bits for Z_NO_FLUSH
+Date: Tue, 21 Feb 2023 14:16:17 +0100
 
-damon_get_folio() would always increase folio _refcount and
-folio_isolate_lru() would increase folio _refcount if the folio's lru flag
-is set.
+DFLTCC deflate with Z_NO_FLUSH might generate a corrupted stream when the
+output buffer is not large enough to fit all the deflate output at once. 
+The problem takes place on closing the deflate block since flush_pending()
+might leave some output bits not written.  Similar problem for software
+deflate with Z_BLOCK flush option (not supported by kernel zlib deflate)
+has been fixed a while ago in userspace zlib but the fix never got to the
+kernel.
 
-If an unevictable folio isolated successfully, there will be two more
-_refcount.  The one from folio_isolate_lru() will be decreased in
-folio_puback_lru(), but the other one from damon_get_folio() will be left
-behind.  This causes a pin page.
+Now flush_pending() flushes the bit buffer before copying out the byte
+buffer, in order to really flush as much as possible.
 
-Whatever the case, the _refcount from damon_get_folio() should be
-decreased.
+Currently there are no users of DFLTCC deflate with Z_NO_FLUSH option in
+the kernel so the problem remained hidden for a while.
 
-Link: https://lkml.kernel.org/r/20230222064223.6735-1-andrew.yang@mediatek.com
-Fixes: 57223ac29584 ("mm/damon/paddr: support the pageout scheme")
-Signed-off-by: andrew.yang <andrew.yang@mediatek.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[5.16.x]
+This commit is based on the old zlib commit:
+https://github.com/madler/zlib/commit/0b828b4
+
+Link: https://lkml.kernel.org/r/20230221131617.3369978-2-zaslonko@linux.ibm.com
+Signed-off-by: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Acked-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ lib/zlib_deflate/defutil.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-fix-missing-folio_put
-+++ a/mm/damon/paddr.c
-@@ -250,12 +250,11 @@ static unsigned long damon_pa_pageout(st
- 			folio_put(folio);
- 			continue;
- 		}
--		if (folio_test_unevictable(folio)) {
-+		if (folio_test_unevictable(folio))
- 			folio_putback_lru(folio);
--		} else {
-+		else
- 			list_add(&folio->lru, &folio_list);
--			folio_put(folio);
--		}
-+		folio_put(folio);
- 	}
- 	applied = reclaim_pages(&folio_list);
- 	cond_resched();
+--- a/lib/zlib_deflate/defutil.h~lib-zlib-dfltcc-deflate-does-not-write-all-available-bits-for-z_no_flush
++++ a/lib/zlib_deflate/defutil.h
+@@ -420,9 +420,11 @@ static inline void flush_pending(
+ 	z_streamp strm
+ )
+ {
++    unsigned len;
+     deflate_state *s = (deflate_state *) strm->state;
+-    unsigned len = s->pending;
+ 
++    bi_flush(s);
++    len = s->pending;
+     if (len > strm->avail_out) len = strm->avail_out;
+     if (len == 0) return;
+ 
 _
 
-Patches currently in -mm which might be from andrew.yang@mediatek.com are
+Patches currently in -mm which might be from zaslonko@linux.ibm.com are
 
-mm-damon-paddr-fix-missing-folio_put.patch
+lib-zlib-dfltcc-deflate-does-not-write-all-available-bits-for-z_no_flush.patch
 
