@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9270C64ED6
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 22:36:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D94D3C61DA4
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 22:37:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229487AbjBWWg6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Feb 2023 17:36:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37800 "EHLO
+        id S229448AbjBWWg7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Feb 2023 17:36:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229448AbjBWWg5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 17:36:57 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53D634FABD
+        with ESMTP id S229582AbjBWWg6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 17:36:58 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F303B4FC9E
         for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 14:36:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 06CEEB81A93
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 22:36:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEEC5C433EF;
-        Thu, 23 Feb 2023 22:36:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F2EF261750
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 22:36:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E96D7C433D2;
+        Thu, 23 Feb 2023 22:36:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677191813;
-        bh=GywyUmrnCI10DP3Abe5dpB5GH8BqgE/0EgOaz4F1y3A=;
+        s=korg; t=1677191816;
+        bh=2VRU5l4K9AtH1ZYfHFoJkz0enWFiJbUPhF0cCsUOymU=;
         h=Date:To:From:Subject:From;
-        b=WEMeTc4K0Dsq3cq65jhZsOUVrBYKQMUJ1f/r9IQEeiPyAST+LaQvA+SI2WIwki3vU
-         lgcCxViLYq8E7hkz9OV3QHn/0jPfmJ4rG638cmEuUR+7Q8K1p+8f3NeCxiDrspqWU/
-         gQ0WeOG2s+1EjPbbbKBEfdReCWwGsb9C9qojwZKo=
-Date:   Thu, 23 Feb 2023 14:36:53 -0800
+        b=MLUpwSF4+WwfEfhRcOQ4JXnArRI2rsluTXn6ijX4GnmJynVVc3TawZgQXEqUrRh6x
+         wTB+gP1PcH/PwdHbzEkfnWWUT5F837SjdUwLavWzxmcXptnOSJxRImoECCZg1xVlDK
+         sQFfCWpxLo8UhXd1pF1MA1GvqYSXK7b9sj4NDM94=
+Date:   Thu, 23 Feb 2023 14:36:55 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
         shakeelb@google.com, rientjes@google.com,
         quic_pkondeti@quicinc.com, markhemm@googlemail.com,
         hughd@google.com, quic_charante@quicinc.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fadvise-move-endbyte-calculations-to-helper-function.patch added to mm-unstable branch
-Message-Id: <20230223223653.AEEC5C433EF@smtp.kernel.org>
+Subject: + mm-shmem-implement-posix_fadv_need-for-shmem.patch added to mm-unstable branch
+Message-Id: <20230223223655.E96D7C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fadvise: move 'endbyte' calculations to helper function
+     Subject: mm: shmem: implement POSIX_FADV_[WILL|DONT]NEED for shmem
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fadvise-move-endbyte-calculations-to-helper-function.patch
+     mm-shmem-implement-posix_fadv_need-for-shmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fadvise-move-endbyte-calculations-to-helper-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-implement-posix_fadv_need-for-shmem.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,27 +68,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Charan Teja Kalla <quic_charante@quicinc.com>
-Subject: mm: fadvise: move 'endbyte' calculations to helper function
-Date: Tue, 14 Feb 2023 18:21:49 +0530
+Subject: mm: shmem: implement POSIX_FADV_[WILL|DONT]NEED for shmem
+Date: Tue, 14 Feb 2023 18:21:50 +0530
 
-Patch series "mm: shmem: support POSIX_FADV_[WILL|DONT]NEED for shmem
-files", v7.
+Currently fadvise(2) is supported only for the files that doesn't
+associated with noop_backing_dev_info thus for the files, like shmem,
+fadvise results into NOP.  But then there is file_operations->fadvise()
+that lets the file systems to implement their own fadvise implementation. 
+Use this support to implement some of the POSIX_FADV_XXX functionality for
+shmem files.
 
-This patchset aims to implement POSIX_FADV_WILLNEED and
-POSIX_FADV_DONTNEED advices to shmem files which can be helpful for the
-drivers who may want to manage the pages of shmem files on their own,
-like, that are created through shmem_file_setup[_with_mnt]().
+This patch aims to implement POSIX_FADV_WILLNEED and POSIX_FADV_DONTNEED
+advices to shmem files which can be helpful for the clients who may want
+to manage the shmem pages of the files that are created through
+shmem_file_setup[_with_mnt]().  One usecase is implemented on the
+Snapdragon SoC's running Android where the graphics client is allocating
+lot of shmem pages per process and pinning them.  When this process is put
+to background, the instantaneous reclaim is performed on those shmem pages
+using the logic implemented downstream[3][4].  With this patch, the client
+can now issue the fadvise calls on the shmem files that does the
+instantaneous reclaim which can aid the use cases like mentioned above.
 
+This usecase lead to ~2% reduction in average launch latencies of the apps
+and 10% in total number of kills by the low memory killer running on
+Android.
 
-This patch (of 2):
+Some questions asked while reviewing this patch:
 
-Move the 'endbyte' calculations that determines last byte that fadvise can
-to a helper function.  This is a preparatory change made for
-shmem_fadvise() functionality in the next patch.  No functional changes in
-this patch.
+Q) Can the same thing be achieved with FD mapped to user and use madvise?
 
-Link: https://lkml.kernel.org/r/cover.1676378702.git.quic_charante@quicinc.com
-Link: https://lkml.kernel.org/r/22de7e716051abbafc01fab9f479f4d5b03745ca.1676378702.git.quic_charante@quicinc.com
+A) All drivers are not mapping all the shmem fd's to user space and
+   want to manage them with in the kernel.  Ex: shmem memory can be mapped
+   to the other subsystems and they fill in the data and then give it to
+   other subsystem for further processing, where, the user mapping is not
+   at all required.  A simple example, memory that is given for gpu
+   subsystem which can be filled directly and give to display subsystem. 
+   And the respective drivers know well about when to keep that memory in
+   ram or swap based on may be a user activity.
+
+Q) Should we add the documentation section in Manual pages?
+
+A) The man[1] pages for the fadvise() whatever says is also applicable
+   for shmem files.  so couldn't feel it correct to add specific to shmem
+   files separately.
+
+Q) The proposed semantics of POSIX_FADV_DONTNEED is actually similar to
+   MADV_PAGEOUT and different from MADV_DONTNEED.  This is a user facing
+   API and this difference will cause confusion?
+
+A) man pages [2] says that "POSIX_FADV_DONTNEED attempts to free cached
+   pages associated with the specified region." This means on issuing this
+   FADV, it is expected to free the file cache pages.  And it is
+   implementation defined If the dirty pages may be attempted to
+   writeback.  And the unwritten dirty pages will not be freed.  So,
+   FADV_DONTNEED also covers the semantics of MADV_PAGEOUT for file pages
+   and there is no purpose of PAGEOUT for file pages.
+
+[1] https://linux.die.net/man/2/fadvise
+[2] https://man7.org/linux/man-pages/man2/posix_fadvise.2.html
+[3] https://git.codelinaro.org/clo/la/platform/vendor/qcom/opensource/graphics-kernel/-/blob/gfx-kernel.lnx.1.0.r3-rel/kgsl_reclaim.c#L289
+[4] https://android.googlesource.com/kernel/common/+/refs/heads/android12-5.10/mm/shmem.c#4310
+
+Link: https://lkml.kernel.org/r/631e42b6dffdcc4b4b24f5be715c37f78bf903db.1676378702.git.quic_charante@quicinc.com
 Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -100,60 +141,148 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c  |   11 +----------
- mm/internal.h |   21 +++++++++++++++++++++
- 2 files changed, 22 insertions(+), 10 deletions(-)
+ mm/shmem.c |  116 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 116 insertions(+)
 
---- a/mm/fadvise.c~mm-fadvise-move-endbyte-calculations-to-helper-function
-+++ a/mm/fadvise.c
-@@ -65,16 +65,7 @@ int generic_fadvise(struct file *file, l
- 		return 0;
- 	}
+--- a/mm/shmem.c~mm-shmem-implement-posix_fadv_need-for-shmem
++++ a/mm/shmem.c
+@@ -40,6 +40,9 @@
+ #include <linux/fs_parser.h>
+ #include <linux/swapfile.h>
+ #include <linux/iversion.h>
++#include <linux/mm_inline.h>
++#include <linux/fadvise.h>
++#include <linux/page_idle.h>
+ #include "swap.h"
  
--	/*
--	 * Careful about overflows. Len == 0 means "as much as possible".  Use
--	 * unsigned math because signed overflows are undefined and UBSan
--	 * complains.
--	 */
--	endbyte = (u64)offset + (u64)len;
--	if (!len || endbyte < len)
--		endbyte = LLONG_MAX;
--	else
--		endbyte--;		/* inclusive */
-+	endbyte = fadvise_calc_endbyte(offset, len);
+ static struct vfsmount *shm_mnt;
+@@ -2344,6 +2347,118 @@ static void shmem_set_inode_flags(struct
+ #define shmem_initxattrs NULL
+ #endif
  
- 	switch (advice) {
- 	case POSIX_FADV_NORMAL:
---- a/mm/internal.h~mm-fadvise-move-endbyte-calculations-to-helper-function
-+++ a/mm/internal.h
-@@ -657,6 +657,27 @@ static inline void vunmap_range_noflush(
- }
- #endif /* !CONFIG_MMU */
- 
-+/*
-+ * Helper function to get the endbyte of a file that fadvise can operate on.
-+ */
-+static inline loff_t fadvise_calc_endbyte(loff_t offset, loff_t len)
++static void shmem_isolate_pages_range(struct address_space *mapping, loff_t start,
++				loff_t end, struct list_head *list)
 +{
-+	loff_t endbyte;
++	XA_STATE(xas, &mapping->i_pages, start);
++	struct folio *folio;
 +
-+	/*
-+	 * Careful about overflows. Len == 0 means "as much as possible".  Use
-+	 * unsigned math because signed overflows are undefined and UBSan
-+	 * complains.
-+	 */
-+	endbyte = (u64)offset + (u64)len;
-+	if (!len || endbyte < len)
-+		endbyte = LLONG_MAX;
-+	else
-+		endbyte--;		/* inclusive */
++	rcu_read_lock();
++	xas_for_each(&xas, folio, end) {
++		if (xas_retry(&xas, folio))
++			continue;
++		if (xa_is_value(folio))
++			continue;
 +
-+	return endbyte;
++		if (!folio_try_get(folio))
++			continue;
++		if (folio_test_unevictable(folio) || folio_mapped(folio) ||
++				folio_isolate_lru(folio)) {
++			folio_put(folio);
++			continue;
++		}
++		folio_put(folio);
++
++		/*
++		 * Prepare the folios to be passed to reclaim_pages().
++		 * VM can't reclaim a folio unless young bit is
++		 * cleared in its flags.
++		 */
++		folio_clear_referenced(folio);
++		folio_test_clear_young(folio);
++		list_add(&folio->lru, list);
++		if (need_resched()) {
++			xas_pause(&xas);
++			cond_resched_rcu();
++		}
++	}
++	rcu_read_unlock();
 +}
 +
- /* Memory initialisation debug and verification */
- enum mminit_level {
- 	MMINIT_WARNING,
++static int shmem_fadvise_dontneed(struct address_space *mapping, loff_t start,
++				loff_t end)
++{
++	LIST_HEAD(folio_list);
++
++	if (!total_swap_pages || mapping_unevictable(mapping))
++		return 0;
++
++	lru_add_drain();
++	shmem_isolate_pages_range(mapping, start, end, &folio_list);
++	reclaim_pages(&folio_list);
++
++	return 0;
++}
++
++static int shmem_fadvise_willneed(struct address_space *mapping,
++				 pgoff_t start, pgoff_t long end)
++{
++	struct folio *folio;
++	pgoff_t index;
++
++	xa_for_each_range(&mapping->i_pages, index, folio, start, end) {
++		if (!xa_is_value(folio))
++			continue;
++		folio = shmem_read_folio(mapping, index);
++		if (!IS_ERR(folio))
++			folio_put(folio);
++	}
++
++	return 0;
++}
++
++static int shmem_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
++{
++	loff_t endbyte;
++	pgoff_t start_index;
++	pgoff_t end_index;
++	struct address_space *mapping;
++	struct inode *inode = file_inode(file);
++	int ret = 0;
++
++	if (S_ISFIFO(inode->i_mode))
++		return -ESPIPE;
++
++	mapping = file->f_mapping;
++	if (!mapping || len < 0 || !shmem_mapping(mapping))
++		return -EINVAL;
++
++	endbyte = fadvise_calc_endbyte(offset, len);
++
++	start_index = offset >> PAGE_SHIFT;
++	end_index   = endbyte >> PAGE_SHIFT;
++	switch (advice) {
++	case POSIX_FADV_DONTNEED:
++		ret = shmem_fadvise_dontneed(mapping, start_index, end_index);
++		break;
++	case POSIX_FADV_WILLNEED:
++		ret = shmem_fadvise_willneed(mapping, start_index, end_index);
++		break;
++	case POSIX_FADV_NORMAL:
++	case POSIX_FADV_RANDOM:
++	case POSIX_FADV_SEQUENTIAL:
++	case POSIX_FADV_NOREUSE:
++		/*
++		 * No bad return value, but ignore advice.
++		 */
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return ret;
++}
++
+ static struct inode *shmem_get_inode(struct super_block *sb, struct inode *dir,
+ 				     umode_t mode, dev_t dev, unsigned long flags)
+ {
+@@ -3940,6 +4055,7 @@ static const struct file_operations shme
+ 	.splice_write	= iter_file_splice_write,
+ 	.fallocate	= shmem_fallocate,
+ #endif
++	.fadvise	= shmem_fadvise,
+ };
+ 
+ static const struct inode_operations shmem_inode_operations = {
 _
 
 Patches currently in -mm which might be from quic_charante@quicinc.com are
