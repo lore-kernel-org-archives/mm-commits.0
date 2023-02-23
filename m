@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AAD2C64ED8
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 21:02:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF3E3C61DA4
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 21:06:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229557AbjBWVCI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Feb 2023 16:02:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45040 "EHLO
+        id S229601AbjBWVGb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Feb 2023 16:06:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229477AbjBWVCH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 16:02:07 -0500
+        with ESMTP id S229454AbjBWVGa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 16:06:30 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 141321554F
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 13:02:05 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CD2614208;
+        Thu, 23 Feb 2023 13:06:29 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6B901B81B2D
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 21:02:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13722C4339B;
-        Thu, 23 Feb 2023 21:02:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1E11BB81AAC;
+        Thu, 23 Feb 2023 21:06:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6F0FC433D2;
+        Thu, 23 Feb 2023 21:06:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677186123;
-        bh=WT8aT808LbI7FeMVQGQIJ68gxO3S4Wx6eBBdmlN2EYs=;
+        s=korg; t=1677186386;
+        bh=2+tTarYZdPsR9XrnsqJ4oM0JxxZzq9aRWCyVIhx9Xak=;
         h=Date:To:From:Subject:From;
-        b=DS3z0VeXyEteDPkgC8Fe0T9axW+8iZNvMd3FOR/KtayhdUNZHXeNQKAJ34Q6r12ZB
-         BxiGOz5Sy3hQmxrhLdNv9MRkX+ZqsPVROvE/L5Ze5ny5QoaWyuN/i0u4H7kIWeLNKm
-         xyouJhGEbC8bn5dJJnnrRHDErI3m1CDog4czmom0=
-Date:   Thu, 23 Feb 2023 13:02:02 -0800
-To:     mm-commits@vger.kernel.org, wedsonaf@google.com,
-        gregkh@linuxfoundation.org, linux@weissschuh.net,
-        akpm@linux-foundation.org
+        b=ZNvNfvtJKJ0AHmDGmjoqhtlruLfM0UgQNWokLpJK2V2EBvdDqTkc8rP03+a0Rln91
+         HQW2RF8R+mlKvKmGEAfR8ZDicqYvlzpqWBRthkp5chDd2nJ+uPC53HkrnKdwKT5VJw
+         dq3zRJ0L79M32PVjf9lw2FaYh0GjK89Vzz+AVK5Q=
+Date:   Thu, 23 Feb 2023 13:06:26 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        piaojun@huawei.com, mark@fasheh.com, junxiao.bi@oracle.com,
+        joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
+        heming.zhao@suse.com, ghe@suse.com, gechangwei@live.cn,
+        ocfs2-devel@oss.oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-make-kobj_type-structure-constant.patch added to mm-unstable branch
-Message-Id: <20230223210203.13722C4339B@smtp.kernel.org>
+Subject: + ocfs2-fix-defrag-path-triggering-jbd2-assert.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230223210626.B6F0FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: make kobj_type structure constant
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-cma-make-kobj_type-structure-constant.patch
+     Subject: ocfs2: fix defrag path triggering jbd2 ASSERT
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ocfs2-fix-defrag-path-triggering-jbd2-assert.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-make-kobj_type-structure-constant.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-defrag-path-triggering-jbd2-assert.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,40 +67,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thomas Weißschuh <linux@weissschuh.net>
-Subject: mm: cma: make kobj_type structure constant
-Date: Mon, 20 Feb 2023 23:23:31 +0000
+From: Heming Zhao via Ocfs2-devel <ocfs2-devel@oss.oracle.com>
+Subject: ocfs2: fix defrag path triggering jbd2 ASSERT
+Date: Fri, 17 Feb 2023 08:37:17 +0800
 
-Since commit ee6d3dd4ed48 ("driver core: make kobj_type constant.") the
-driver core allows the usage of const struct kobj_type.
+code path:
 
-Take advantage of this to constify the structure definition to prevent
-modification at runtime.
+ocfs2_ioctl_move_extents
+ ocfs2_move_extents
+  ocfs2_defrag_extent
+   __ocfs2_move_extent
+    + ocfs2_journal_access_di
+    + ocfs2_split_extent  //sub-paths call jbd2_journal_restart
+    + ocfs2_journal_dirty //crash by jbs2 ASSERT
 
-Link: https://lkml.kernel.org/r/20230220-kobj_type-mm-cma-v1-1-45996cff1a81@weissschuh.net
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
-Cc: Wedson Almeida Filho <wedsonaf@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+crash stacks:
+
+PID: 11297  TASK: ffff974a676dcd00  CPU: 67  COMMAND: "defragfs.ocfs2"
+ #0 [ffffb25d8dad3900] machine_kexec at ffffffff8386fe01
+ #1 [ffffb25d8dad3958] __crash_kexec at ffffffff8395959d
+ #2 [ffffb25d8dad3a20] crash_kexec at ffffffff8395a45d
+ #3 [ffffb25d8dad3a38] oops_end at ffffffff83836d3f
+ #4 [ffffb25d8dad3a58] do_trap at ffffffff83833205
+ #5 [ffffb25d8dad3aa0] do_invalid_op at ffffffff83833aa6
+ #6 [ffffb25d8dad3ac0] invalid_op at ffffffff84200d18
+    [exception RIP: jbd2_journal_dirty_metadata+0x2ba]
+    RIP: ffffffffc09ca54a  RSP: ffffb25d8dad3b70  RFLAGS: 00010207
+    RAX: 0000000000000000  RBX: ffff9706eedc5248  RCX: 0000000000000000
+    RDX: 0000000000000001  RSI: ffff97337029ea28  RDI: ffff9706eedc5250
+    RBP: ffff9703c3520200   R8: 000000000f46b0b2   R9: 0000000000000000
+    R10: 0000000000000001  R11: 00000001000000fe  R12: ffff97337029ea28
+    R13: 0000000000000000  R14: ffff9703de59bf60  R15: ffff9706eedc5250
+    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+ #7 [ffffb25d8dad3ba8] ocfs2_journal_dirty at ffffffffc137fb95 [ocfs2]
+ #8 [ffffb25d8dad3be8] __ocfs2_move_extent at ffffffffc139a950 [ocfs2]
+ #9 [ffffb25d8dad3c80] ocfs2_defrag_extent at ffffffffc139b2d2 [ocfs2]
+
+Analysis
+
+This bug has the same root cause of 'commit 7f27ec978b0e ("ocfs2: call
+ocfs2_journal_access_di() before ocfs2_journal_dirty() in
+ocfs2_write_end_nolock()")'.  For this bug, jbd2_journal_restart() is
+called by ocfs2_split_extent() during defragmenting.
+
+How to fix
+
+For ocfs2_split_extent() can handle journal operations totally by itself. 
+Caller doesn't need to call journal access/dirty pair, and caller only
+needs to call journal start/stop pair.  The fix method is to remove
+journal access/dirty from __ocfs2_move_extent().
+
+The discussion for this patch:
+https://oss.oracle.com/pipermail/ocfs2-devel/2023-February/000647.html
+
+Link: https://lkml.kernel.org/r/20230217003717.32469-1-heming.zhao@suse.com
+Signed-off-by: Heming Zhao <heming.zhao@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma_sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/move_extents.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/mm/cma_sysfs.c~mm-cma-make-kobj_type-structure-constant
-+++ a/mm/cma_sysfs.c
-@@ -64,7 +64,7 @@ static struct attribute *cma_attrs[] = {
- };
- ATTRIBUTE_GROUPS(cma);
+--- a/fs/ocfs2/move_extents.c~ocfs2-fix-defrag-path-triggering-jbd2-assert
++++ a/fs/ocfs2/move_extents.c
+@@ -105,14 +105,6 @@ static int __ocfs2_move_extent(handle_t
+ 	 */
+ 	replace_rec.e_flags = ext_flags & ~OCFS2_EXT_REFCOUNTED;
  
--static struct kobj_type cma_ktype = {
-+static const struct kobj_type cma_ktype = {
- 	.release = cma_kobj_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
- 	.default_groups = cma_groups,
+-	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode),
+-				      context->et.et_root_bh,
+-				      OCFS2_JOURNAL_ACCESS_WRITE);
+-	if (ret) {
+-		mlog_errno(ret);
+-		goto out;
+-	}
+-
+ 	ret = ocfs2_split_extent(handle, &context->et, path, index,
+ 				 &replace_rec, context->meta_ac,
+ 				 &context->dealloc);
+@@ -121,8 +113,6 @@ static int __ocfs2_move_extent(handle_t
+ 		goto out;
+ 	}
+ 
+-	ocfs2_journal_dirty(handle, context->et.et_root_bh);
+-
+ 	context->new_phys_cpos = new_p_cpos;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from linux@weissschuh.net are
+Patches currently in -mm which might be from ocfs2-devel@oss.oracle.com are
 
-mm-cma-make-kobj_type-structure-constant.patch
+ocfs2-fix-defrag-path-triggering-jbd2-assert.patch
+ocfs2-fix-non-auto-defrag-path-not-working-issue.patch
 
