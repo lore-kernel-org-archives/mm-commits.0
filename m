@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFD6EC64ED8
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 21:15:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A62ACC64ED8
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Feb 2023 21:47:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229547AbjBWVPY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Feb 2023 16:15:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57660 "EHLO
+        id S229453AbjBWVrz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Feb 2023 16:47:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229462AbjBWVPW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 16:15:22 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53BBB869D
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 13:15:21 -0800 (PST)
+        with ESMTP id S229547AbjBWVry (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 16:47:54 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAB30270D
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 13:47:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 073F0B81A42
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 21:15:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FCCAC433EF;
-        Thu, 23 Feb 2023 21:15:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 91D53617B0
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 21:47:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C3E2C433EF;
+        Thu, 23 Feb 2023 21:47:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677186918;
-        bh=4bvYiR6XDKrsNxAmR+c3hmsXtS3P5ELA0+VDP9cUCgI=;
+        s=korg; t=1677188870;
+        bh=R1Z8rf69J5qwq3pd8IyNR5TPz0SkNOMmiP9YaRzQzwA=;
         h=Date:To:From:Subject:From;
-        b=tR0QbUbM81e61rkhi4PD/+FLb6NxR6fyFrolCuFKUQxSDo7YfIcExqQi/3hJgYZI/
-         55g8CxtAhvUpkB5/6QNYl6qDKpadH1pq7sTIPten0l9rFrGxz5KERTgY0jiNFccbsN
-         GXMQuSfzsJytD6kS9XCicT0u4U1pz6LhHgl2Z2G4=
-Date:   Thu, 23 Feb 2023 13:15:18 -0800
-To:     mm-commits@vger.kernel.org, richard@nod.at, kbingham@kernel.org,
-        johannes@sipsolutions.net, jan.kiszka@siemens.com,
-        anton.ivanov@kot-begemot.co.uk, development@efficientek.com,
+        b=tAXSOSNUqPpMCLgvqphQ8PP1lwF/U6RpQS8WiWPGPaTQ8Zlj3ha4DPLptsI12+vy2
+         5JALbx11WCpVS3oqXtf6hor2KSJE0facxZYlpR1JMyR3YBfnBHlynetkvwPCb6FllX
+         5MDQx+e2RDNuSe5mIb560nXh3JfGu7/TAXqH3ysc=
+Date:   Thu, 23 Feb 2023 13:47:49 -0800
+To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
+        keescook@chromium.org, halbuer@sra.uni-hannover.de,
+        akpm@linux-foundation.org, vbabka@suse.cz,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-correct-indentation-in-get_current_task.patch added to mm-nonmm-unstable branch
-Message-Id: <20230223211518.9FCCAC433EF@smtp.kernel.org>
+Subject: + mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch added to mm-unstable branch
+Message-Id: <20230223214750.9C3E2C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: correct indentation in get_current_task
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-correct-indentation-in-get_current_task.patch
+     Subject: mm, page_alloc: reduce page alloc/free sanity checks
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-correct-indentation-in-get_current_task.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,63 +66,409 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Glenn Washburn <development@efficientek.com>
-Subject: scripts/gdb: correct indentation in get_current_task
-Date: Fri, 17 Feb 2023 19:11:53 -0600
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: reduce page alloc/free sanity checks
+Date: Thu, 16 Feb 2023 10:51:31 +0100
 
-Patch series "GDB: Support getting current task struct in UML", v2.
+Historically, we have performed sanity checks on all struct pages being
+allocated or freed, making sure they have no unexpected page flags or
+certain field values.  This can detect insufficient cleanup and some cases
+of use-after-free, although on its own it can't always identify the
+culprit.  The result is a warning and the "bad page" being leaked.
 
+The checks do need some cpu cycles, so in 4.7 with commits 479f854a207c
+("mm, page_alloc: defer debugging checks of pages allocated from the PCP")
+and 4db7548ccbd9 ("mm, page_alloc: defer debugging checks of freed pages
+until a PCP drain") they were no longer performed in the hot paths when
+allocating and freeing from pcplists, but only when pcplists are bypassed,
+refilled or drained.  For debugging purposes, with CONFIG_DEBUG_VM enabled
+the checks were instead still done in the hot paths and not when refilling
+or draining pcplists.
 
-This patch (of 2):
+With 4462b32c9285 ("mm, page_alloc: more extensive free page checking with
+debug_pagealloc"), enabling debug_pagealloc also moved the sanity checks
+back to hot pahs.  When both debug_pagealloc and CONFIG_DEBUG_VM are
+enabled, the checks are done both in hotpaths and pcplist refill/drain.
 
-There is an extra space in a couple blocks in get_current_task.
-Though python does not care, let's make the spacing consistent.
-Also, format better an if expression, removing unneeded parenthesis.
+Even though the non-debug default today might seem to be a sensible
+tradeoff between overhead and ability to detect bad pages, on closer look
+it's arguably not.  As most allocations go through the pcplists, catching
+any bad pages when refilling or draining pcplists has only a small chance,
+insufficient for debugging or serious hardening purposes.  On the other
+hand the cost of the checks is concentrated in the already expensive
+drain/refill batching operations, and those are done under the often
+contended zone lock.  That was recently identified as an issue for page
+allocation and the zone lock contention reduced by moving the checks
+outside of the locked section with a patch "mm: reduce lock contention of
+pcp buffer refill", but the cost of the checks is still visible compared
+to their removal [1].  In the pcplist draining path free_pcppages_bulk()
+the checks are still done under zone->lock.
 
-Link: https://lkml.kernel.org/r/cover.1676532759.git.development@efficientek.com
-Link: https://lkml.kernel.org/r/c5a916e094d9c7acd551030b5dd793203046fea5.1676532759.git.development@efficientek.com
-Signed-off-by: Glenn Washburn <development@efficientek.com>
-Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Anton Ivanov <anton.ivanov@kot-begemot.co.uk>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Richard Weinberger <richard@nod.at>
+Thus, remove the checks from pcplist refill and drain paths completely.
+Introduce a static key check_pages_enabled to control checks during page
+allocation a freeing (whether pcplist is used or bypassed). The static
+key is enabled if either is true:
+
+- kernel is built with CONFIG_DEBUG_VM=y (debugging)
+- debug_pagealloc or page poisoning is boot-time enabled (debugging)
+- init_on_alloc or init_on_free is boot-time enabled (hardening)
+
+The resulting user visible changes:
+- no checks when draining/refilling pcplists - less overhead, with
+  likely no practical reduction of ability to catch bad pages
+- no checks when bypassing pcplists in default config (no
+  debugging/hardening) - less overhead etc. as above
+- on typical hardened kernels [2], checks are now performed on each page
+  allocation/free (previously only when bypassing/draining/refilling
+  pcplists) - the init_on_alloc/init_on_free enabled should be sufficient
+  indication for preferring more costly alloc/free operations for
+  hardening purposes and we shouldn't need to introduce another toggle
+- code (various wrappers) removal and simplification
+
+[1] https://lore.kernel.org/all/68ba44d8-6899-c018-dcb3-36f3a96e6bea@sra.uni-hannover.de/
+[2] https://lore.kernel.org/all/63ebc499.a70a0220.9ac51.29ea@mx.google.com/
+
+Link: https://lkml.kernel.org/r/20230216095131.17336-1-vbabka@suse.cz
+Reported-by: Alexander Halbuer <halbuer@sra.uni-hannover.de>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/cpus.py |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |  188 ++++++++++++----------------------------------
+ 1 file changed, 53 insertions(+), 135 deletions(-)
 
---- a/scripts/gdb/linux/cpus.py~scripts-gdb-correct-indentation-in-get_current_task
-+++ a/scripts/gdb/linux/cpus.py
-@@ -163,15 +163,15 @@ def get_current_task(cpu):
-     task_ptr_type = task_type.get_type().pointer()
+--- a/mm/page_alloc.c~mm-page_alloc-reduce-page-alloc-free-sanity-checks
++++ a/mm/page_alloc.c
+@@ -253,6 +253,9 @@ EXPORT_SYMBOL(init_on_alloc);
+ DEFINE_STATIC_KEY_MAYBE(CONFIG_INIT_ON_FREE_DEFAULT_ON, init_on_free);
+ EXPORT_SYMBOL(init_on_free);
  
-     if utils.is_target_arch("x86"):
--         var_ptr = gdb.parse_and_eval("&pcpu_hot.current_task")
--         return per_cpu(var_ptr, cpu).dereference()
-+        var_ptr = gdb.parse_and_eval("&pcpu_hot.current_task")
-+        return per_cpu(var_ptr, cpu).dereference()
-     elif utils.is_target_arch("aarch64"):
--         current_task_addr = gdb.parse_and_eval("$SP_EL0")
--         if((current_task_addr >> 63) != 0):
--             current_task = current_task_addr.cast(task_ptr_type)
--             return current_task.dereference()
--         else:
--             raise gdb.GdbError("Sorry, obtaining the current task is not allowed "
-+        current_task_addr = gdb.parse_and_eval("$SP_EL0")
-+        if((current_task_addr >> 63) != 0):
-+            current_task = current_task_addr.cast(task_ptr_type)
-+            return current_task.dereference()
-+        else:
-+            raise gdb.GdbError("Sorry, obtaining the current task is not allowed "
-                                 "while running in userspace(EL0)")
-     else:
-         raise gdb.GdbError("Sorry, obtaining the current task is not yet "
++/* perform sanity checks on struct pages being allocated or freed */
++DEFINE_STATIC_KEY_MAYBE(CONFIG_DEBUG_VM, check_pages_enabled);
++
+ static bool _init_on_alloc_enabled_early __read_mostly
+ 				= IS_ENABLED(CONFIG_INIT_ON_ALLOC_DEFAULT_ON);
+ static int __init early_init_on_alloc(char *buf)
+@@ -893,6 +896,7 @@ static inline void clear_page_guard(stru
+ void __init init_mem_debugging_and_hardening(void)
+ {
+ 	bool page_poisoning_requested = false;
++	bool want_check_pages = false;
+ 
+ #ifdef CONFIG_PAGE_POISONING
+ 	/*
+@@ -904,6 +908,7 @@ void __init init_mem_debugging_and_harde
+ 	      debug_pagealloc_enabled())) {
+ 		static_branch_enable(&_page_poisoning_enabled);
+ 		page_poisoning_requested = true;
++		want_check_pages = true;
+ 	}
+ #endif
+ 
+@@ -915,31 +920,42 @@ void __init init_mem_debugging_and_harde
+ 		_init_on_free_enabled_early = false;
+ 	}
+ 
+-	if (_init_on_alloc_enabled_early)
++	if (_init_on_alloc_enabled_early) {
++		want_check_pages = true;
+ 		static_branch_enable(&init_on_alloc);
+-	else
++	} else {
+ 		static_branch_disable(&init_on_alloc);
++	}
+ 
+-	if (_init_on_free_enabled_early)
++	if (_init_on_free_enabled_early) {
++		want_check_pages = true;
+ 		static_branch_enable(&init_on_free);
+-	else
++	} else {
+ 		static_branch_disable(&init_on_free);
++	}
+ 
+ 	if (IS_ENABLED(CONFIG_KMSAN) &&
+ 	    (_init_on_alloc_enabled_early || _init_on_free_enabled_early))
+ 		pr_info("mem auto-init: please make sure init_on_alloc and init_on_free are disabled when running KMSAN\n");
+ 
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+-	if (!debug_pagealloc_enabled())
+-		return;
++	if (debug_pagealloc_enabled()) {
++		want_check_pages = true;
++		static_branch_enable(&_debug_pagealloc_enabled);
+ 
+-	static_branch_enable(&_debug_pagealloc_enabled);
+-
+-	if (!debug_guardpage_minorder())
+-		return;
+-
+-	static_branch_enable(&_debug_guardpage_enabled);
++		if (debug_guardpage_minorder())
++			static_branch_enable(&_debug_guardpage_enabled);
++	}
+ #endif
++
++	/*
++	 * Any page debugging or hardening option also enables sanity checking
++	 * of struct pages being allocated or freed. With CONFIG_DEBUG_VM it's
++	 * enabled already.
++	 */
++	if (!IS_ENABLED(CONFIG_DEBUG_VM) && want_check_pages) {
++		static_branch_enable(&check_pages_enabled);
++	}
+ }
+ 
+ static inline void set_buddy_order(struct page *page, unsigned int order)
+@@ -1395,7 +1411,7 @@ static void kernel_init_pages(struct pag
+ }
+ 
+ static __always_inline bool free_pages_prepare(struct page *page,
+-			unsigned int order, bool check_free, fpi_t fpi_flags)
++			unsigned int order, fpi_t fpi_flags)
+ {
+ 	int bad = 0;
+ 	bool init = want_init_on_free();
+@@ -1432,9 +1448,11 @@ static __always_inline bool free_pages_p
+ 		for (i = 1; i < (1 << order); i++) {
+ 			if (compound)
+ 				bad += free_tail_pages_check(page, page + i);
+-			if (unlikely(free_page_is_bad(page + i))) {
+-				bad++;
+-				continue;
++			if (static_branch_unlikely(&check_pages_enabled)) {
++				if (unlikely(free_page_is_bad(page + i))) {
++					bad++;
++					continue;
++				}
+ 			}
+ 			(page + i)->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+ 		}
+@@ -1443,10 +1461,12 @@ static __always_inline bool free_pages_p
+ 		page->mapping = NULL;
+ 	if (memcg_kmem_online() && PageMemcgKmem(page))
+ 		__memcg_kmem_uncharge_page(page, order);
+-	if (check_free && free_page_is_bad(page))
+-		bad++;
+-	if (bad)
+-		return false;
++	if (static_branch_unlikely(&check_pages_enabled)) {
++		if (free_page_is_bad(page))
++			bad++;
++		if (bad)
++			return false;
++	}
+ 
+ 	page_cpupid_reset_last(page);
+ 	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+@@ -1492,46 +1512,6 @@ static __always_inline bool free_pages_p
+ 	return true;
+ }
+ 
+-#ifdef CONFIG_DEBUG_VM
+-/*
+- * With DEBUG_VM enabled, order-0 pages are checked immediately when being freed
+- * to pcp lists. With debug_pagealloc also enabled, they are also rechecked when
+- * moved from pcp lists to free lists.
+- */
+-static bool free_pcp_prepare(struct page *page, unsigned int order)
+-{
+-	return free_pages_prepare(page, order, true, FPI_NONE);
+-}
+-
+-/* return true if this page has an inappropriate state */
+-static bool bulkfree_pcp_prepare(struct page *page)
+-{
+-	if (debug_pagealloc_enabled_static())
+-		return free_page_is_bad(page);
+-	else
+-		return false;
+-}
+-#else
+-/*
+- * With DEBUG_VM disabled, order-0 pages being freed are checked only when
+- * moving from pcp lists to free list in order to reduce overhead. With
+- * debug_pagealloc enabled, they are checked also immediately when being freed
+- * to the pcp lists.
+- */
+-static bool free_pcp_prepare(struct page *page, unsigned int order)
+-{
+-	if (debug_pagealloc_enabled_static())
+-		return free_pages_prepare(page, order, true, FPI_NONE);
+-	else
+-		return free_pages_prepare(page, order, false, FPI_NONE);
+-}
+-
+-static bool bulkfree_pcp_prepare(struct page *page)
+-{
+-	return free_page_is_bad(page);
+-}
+-#endif /* CONFIG_DEBUG_VM */
+-
+ /*
+  * Frees a number of pages from the PCP lists
+  * Assumes all pages on list are in same zone.
+@@ -1591,9 +1571,6 @@ static void free_pcppages_bulk(struct zo
+ 			count -= nr_pages;
+ 			pcp->count -= nr_pages;
+ 
+-			if (bulkfree_pcp_prepare(page))
+-				continue;
+-
+ 			/* MIGRATE_ISOLATE page should not go to pcplists */
+ 			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
+ 			/* Pageblock could have been isolated meanwhile */
+@@ -1706,7 +1683,7 @@ static void __free_pages_ok(struct page
+ 	unsigned long pfn = page_to_pfn(page);
+ 	struct zone *zone = page_zone(page);
+ 
+-	if (!free_pages_prepare(page, order, true, fpi_flags))
++	if (!free_pages_prepare(page, order, fpi_flags))
+ 		return;
+ 
+ 	/*
+@@ -2382,7 +2359,7 @@ static void check_new_page_bad(struct pa
+ /*
+  * This page is about to be returned from the page allocator
+  */
+-static inline int check_new_page(struct page *page)
++static int check_new_page(struct page *page)
+ {
+ 	if (likely(page_expected_state(page,
+ 				PAGE_FLAGS_CHECK_AT_PREP|__PG_HWPOISON)))
+@@ -2392,56 +2369,20 @@ static inline int check_new_page(struct
+ 	return 1;
+ }
+ 
+-static bool check_new_pages(struct page *page, unsigned int order)
++static inline bool check_new_pages(struct page *page, unsigned int order)
+ {
+-	int i;
+-	for (i = 0; i < (1 << order); i++) {
+-		struct page *p = page + i;
++	if (static_branch_unlikely(&check_pages_enabled)) {
++		for (int i = 0; i < (1 << order); i++) {
++			struct page *p = page + i;
+ 
+-		if (unlikely(check_new_page(p)))
+-			return true;
++			if (unlikely(check_new_page(p)))
++				return true;
++		}
+ 	}
+ 
+ 	return false;
+ }
+ 
+-#ifdef CONFIG_DEBUG_VM
+-/*
+- * With DEBUG_VM enabled, order-0 pages are checked for expected state when
+- * being allocated from pcp lists. With debug_pagealloc also enabled, they are
+- * also checked when pcp lists are refilled from the free lists.
+- */
+-static inline bool check_pcp_refill(struct page *page, unsigned int order)
+-{
+-	if (debug_pagealloc_enabled_static())
+-		return check_new_pages(page, order);
+-	else
+-		return false;
+-}
+-
+-static inline bool check_new_pcp(struct page *page, unsigned int order)
+-{
+-	return check_new_pages(page, order);
+-}
+-#else
+-/*
+- * With DEBUG_VM disabled, free order-0 pages are checked for expected state
+- * when pcp lists are being refilled from the free lists. With debug_pagealloc
+- * enabled, they are also checked when being allocated from the pcp lists.
+- */
+-static inline bool check_pcp_refill(struct page *page, unsigned int order)
+-{
+-	return check_new_pages(page, order);
+-}
+-static inline bool check_new_pcp(struct page *page, unsigned int order)
+-{
+-	if (debug_pagealloc_enabled_static())
+-		return check_new_pages(page, order);
+-	else
+-		return false;
+-}
+-#endif /* CONFIG_DEBUG_VM */
+-
+ static inline bool should_skip_kasan_unpoison(gfp_t flags)
+ {
+ 	/* Don't skip if a software KASAN mode is enabled. */
+@@ -3136,9 +3077,7 @@ static int rmqueue_bulk(struct zone *zon
+ 			int migratetype, unsigned int alloc_flags)
+ {
+ 	unsigned long flags;
+-	int i, allocated = 0;
+-	struct list_head *prev_tail = list->prev;
+-	struct page *pos, *n;
++	int i;
+ 
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	for (i = 0; i < count; ++i) {
+@@ -3163,31 +3102,10 @@ static int rmqueue_bulk(struct zone *zon
+ 					      -(1 << order));
+ 	}
+ 
+-	/*
+-	 * i pages were removed from the buddy list even if some leak due
+-	 * to check_pcp_refill failing so adjust NR_FREE_PAGES based
+-	 * on i. Do not confuse with 'allocated' which is the number of
+-	 * pages added to the pcp list.
+-	 */
+ 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 
+-	/*
+-	 * Pages are appended to the pcp list without checking to reduce the
+-	 * time holding the zone lock. Checking the appended pages happens right
+-	 * after the critical section while still holding the pcp lock.
+-	 */
+-	pos = list_first_entry(prev_tail, struct page, pcp_list);
+-	list_for_each_entry_safe_from(pos, n, list, pcp_list) {
+-		if (unlikely(check_pcp_refill(pos, order))) {
+-			list_del(&pos->pcp_list);
+-			continue;
+-		}
+-
+-		allocated++;
+-	}
+-
+-	return allocated;
++	return i;
+ }
+ 
+ #ifdef CONFIG_NUMA
+@@ -3398,7 +3316,7 @@ static bool free_unref_page_prepare(stru
+ {
+ 	int migratetype;
+ 
+-	if (!free_pcp_prepare(page, order))
++	if (!free_pages_prepare(page, order, FPI_NONE))
+ 		return false;
+ 
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
+@@ -3804,7 +3722,7 @@ struct page *__rmqueue_pcplist(struct zo
+ 		page = list_first_entry(list, struct page, pcp_list);
+ 		list_del(&page->pcp_list);
+ 		pcp->count -= 1 << order;
+-	} while (check_new_pcp(page, order));
++	} while (check_new_pages(page, order));
+ 
+ 	return page;
+ }
 _
 
-Patches currently in -mm which might be from development@efficientek.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-scripts-gdb-correct-indentation-in-get_current_task.patch
-scripts-gdb-support-getting-current-task-struct-in-uml.patch
+mm-mremap-fix-dup_anon_vma-in-vma_merge-case-4.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch
 
