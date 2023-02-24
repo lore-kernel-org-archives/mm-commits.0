@@ -2,50 +2,50 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DA62C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Feb 2023 12:13:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD931C61DA4
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Feb 2023 14:32:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229948AbjBXMNN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Feb 2023 07:13:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42686 "EHLO
+        id S229920AbjBXOcJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Feb 2023 09:32:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229981AbjBXMNK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2023 07:13:10 -0500
+        with ESMTP id S229879AbjBXOcI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2023 09:32:08 -0500
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0499B5AB76
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 04:12:22 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF96F64E3F
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 06:31:23 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1677240742;
+        s=mimecast20190719; t=1677249082;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Fzv8kKvKUnDQl9L+lsYADmjdu4rL9VzyOE69oB2LK2Y=;
-        b=FSKD3hMlg2UYwlnYVEVOj7SxqBvaVSjJ2IzmhwcuZmZkREmaB6I64eN4KTCgUWkRLG7Fco
-        8YbYgBg5uAcuoNnGqKWjT6bKndmW9hESSsOaA3fv+90yn0qB5KRJxlBZi3/LvvpEgg6Vfn
-        DVfYbzGMY24atsj7WfMbo1UdH8ZzxTQ=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=SOsL6NM2MJym+f7C6hxVzCVTtD6Lm6OnQWKMhqCZjP8=;
+        b=ccpDWd7yzc9GIVUCggQrv/9t1lL/B2EmolBYSyptm3l5vSMYU+nX4DQuu4+G6/SrsBpv37
+        5hA59d9SmVA/xRgjvLgIt0jb/p/eea+xR5be5LtXvDYcVXq1RcqsJGOWvl6PxLNs7HK29H
+        wOPZ9tpMWNpsp6oh33OBDlQ/d1+Izco=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-341-FvU3Mpm2NdSaHJanVekUVg-1; Fri, 24 Feb 2023 07:12:21 -0500
-X-MC-Unique: FvU3Mpm2NdSaHJanVekUVg-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
+ us-mta-145-LZUo_cplOIC5eZZlXA46IQ-1; Fri, 24 Feb 2023 09:31:19 -0500
+X-MC-Unique: LZUo_cplOIC5eZZlXA46IQ-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 34A6D3C0CD4B;
-        Fri, 24 Feb 2023 12:12:20 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 00110887400;
+        Fri, 24 Feb 2023 14:31:18 +0000 (UTC)
 Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id A4D8C1121314;
-        Fri, 24 Feb 2023 12:12:18 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 44AA6440D8;
+        Fri, 24 Feb 2023 14:31:16 +0000 (UTC)
 Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
         Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
         Kingdom.
         Registered in England and Wales under Company Registration No. 3798903
-From:   David Howells <dhowells@redhat.com>
-In-Reply-To: <2009825.1677229488@warthog.procyon.org.uk>
-References: <2009825.1677229488@warthog.procyon.org.uk> <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com> <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
+In-Reply-To: <2134430.1677240738@warthog.procyon.org.uk>
+References: <2134430.1677240738@warthog.procyon.org.uk> <2009825.1677229488@warthog.procyon.org.uk> <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com> <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Steve French <stfrench@microsoft.com>
 Cc:     dhowells@redhat.com, Vishal Moola <vishal.moola@gmail.com>,
-        Steve French <stfrench@microsoft.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         Jan Kara <jack@suse.cz>, Paulo Alcantara <pc@cjr.nz>,
         Matthew Wilcox <willy@infradead.org>,
@@ -53,48 +53,53 @@ Cc:     dhowells@redhat.com, Vishal Moola <vishal.moola@gmail.com>,
         Baolin Wang <baolin.wang@linux.alibaba.com>,
         Xin Hao <xhao@linux.alibaba.com>, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [GIT PULL] MM updates for 6.3-rc1
+Subject: [RFC][PATCH] cifs: Fix cifs_writepages_region()
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-ID: <2134429.1677240738.1@warthog.procyon.org.uk>
-Date:   Fri, 24 Feb 2023 12:12:18 +0000
-Message-ID: <2134430.1677240738@warthog.procyon.org.uk>
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.3
+Content-ID: <2213351.1677249027.1@warthog.procyon.org.uk>
+Content-Transfer-Encoding: quoted-printable
+From:   David Howells <dhowells@redhat.com>
+Date:   Fri, 24 Feb 2023 14:31:15 +0000
+Message-ID: <2213409.1677249075@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.5
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The problem appears to be here:
+Here's the simplest fix for cifs_writepages_region() that gets it to work.
 
-			if (folio_mapping(folio) != mapping ||
-			    !folio_test_dirty(folio)) {
-				folio_unlock(folio);
-				goto skip_write;
-			}
+Fix the cifs_writepages_region() to just skip over members of the batch th=
+at
+have been cleaned up rather than retrying them.  I'm not entirely sure why=
+ it
+fixes it, though.  It's also not the most efficient as, in the common case=
+,
+this is going to happen a lot because cifs_extend_writeback() is going to
+clean up the contiguous pages in the batch - and then this skip will occur=
+ for
+those.
 
-in my version it's:
+Fix: 3822a7c40997 ("Merge tag 'mm-stable-2023-02-20-13-37' of git://git.ke=
+rnel.org/pub/scm/linux/kernel/git/akpm/mm")
+Signed-off-by: David Howells <dhowells@redhat.com>
+---
+diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+index 5365a3299088..ebfcaae8c437 100644
+--- a/fs/cifs/file.c
++++ b/fs/cifs/file.c
+@@ -2893,8 +2893,9 @@ static int cifs_writepages_region(struct address_spa=
+ce *mapping,
+ =
 
-			if (folio->mapping != mapping ||
-			    !folio_test_dirty(folio)) {
-				start += folio_size(folio);
-				folio_unlock(folio);
-				continue;
-			}
+ 			if (folio_mapping(folio) !=3D mapping ||
+ 			    !folio_test_dirty(folio)) {
++				start +=3D folio_size(folio);
+ 				folio_unlock(folio);
+-				goto skip_write;
++				continue;
+ 			}
+ =
 
-In your version, skip_write doesn't advance start if it too many skips occur.
-Changing your version to match fixes the problem - or, at least, the
-symptoms.  I'm not sure exactly why it's occurring, but the -EBADF (-9) is
-coming from cifs_get_writable_file() not finding an open file.  I think this
-is a Steve question.
-
-With Vishal's change to use filemap_get_folios_tag() instead of
-find_get_pages_range_tag(), the most common file write case (open, write,
-write, ..., write, close) in which all the data is added to the pagecache in
-one contiguous lump without seeking, hits this a lot.
-
-Unfortunately, unlike find_get_pages_range_tag(), filemap_get_folios_tag()
-doesn't allow you to set a limit on the number of pages it will return.
-
-David
+ 			if (folio_test_writeback(folio) ||
 
