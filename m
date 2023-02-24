@@ -2,65 +2,66 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BD12C7EE23
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Feb 2023 16:13:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D04FC7EE2E
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Feb 2023 16:22:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229379AbjBXQNh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Feb 2023 11:13:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40634 "EHLO
+        id S229518AbjBXQW1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Feb 2023 11:22:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229491AbjBXQNg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2023 11:13:36 -0500
-Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B40C2BF1D
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 08:13:34 -0800 (PST)
-Received: by mail-ed1-x52f.google.com with SMTP id cy6so51251227edb.5
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 08:13:33 -0800 (PST)
+        with ESMTP id S229636AbjBXQW0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2023 11:22:26 -0500
+Received: from mail-ed1-x52b.google.com (mail-ed1-x52b.google.com [IPv6:2a00:1450:4864:20::52b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D17E764E2B
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 08:22:23 -0800 (PST)
+Received: by mail-ed1-x52b.google.com with SMTP id i34so31535054eda.7
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 08:22:23 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linux-foundation.org; s=google;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=uaxBJSgWqvLaoOMxWgJIqaQBEgKPvnccLZuHzDiq+NA=;
-        b=BpwwamzG5OF5Y/Wholvr8UuQC8co6VGUxBK9PHdD8OUSHaQY6t6OCRKE3tYMwFqtvY
-         BpxSTehtRoXcyoO6a5GVqmEdBXeJ6c8oE9YuWGTwUkaB9I7oGJflZ9Gt1J5VU2pgxzfb
-         UEfYLbkrCzmH2UZy3e1QalYwtuQgpdE346IwM=
+        bh=s1ddkJIM272NGkB+LdN/hOmq0DPwywAhS02NibdV81Y=;
+        b=bstXxSL+BDGWYBS5i0BfvHRTN5xNltCllunCBSGHMIovfA2Zl4RfJXVwEWe8wBnMcA
+         j/8MypiD9cD6M+qyHUfL5CDqO9YEdIBWUdDzQBViMk5d2c96bWbBg7i6UXH/WXncbAj6
+         aRxK/kG0bgqQB9xcxRQZsAkPeR0Ta+jmZuR/E=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=uaxBJSgWqvLaoOMxWgJIqaQBEgKPvnccLZuHzDiq+NA=;
-        b=N/91jQ42nheEb1Vg5zJo4I0Cj2AfIdaOYKe1f91+OQfAHy3b5M5JY+l/qq7i+KB2eO
-         /QG3BoaumSegY8FsA82SmilT+YmK0B0fmkaloymaFff2+EZSWlRr2fK8+Km0FY+O4XSE
-         G/rq+c+Ij6Vij89eYMwGHz+Hvps2xVf8LAUwKRMwuy2EF+Icb5PVHGTpwsUnKzFhVVcb
-         Bh8DVgJL1J0aVq+3uBRJGy2qZBL+e4cRKYBW8x8x8rOpR8V89porCftVQxu8unniHUuo
-         XzcaOHuzN+WTpm5yJyLUuLeBs9SX0G2nuKTFlMJX9BAeAwJljHmkQsbqe8vJHGhf06eI
-         RkHQ==
-X-Gm-Message-State: AO0yUKVjpXyZ2VvjFofAdrxNtKkwc1htPk3LjYXbQzVNUji29sn5VG6U
-        493ol5Spp743+znLdR5L2MlCK6ni7GTPISFeDcq+SQ==
-X-Google-Smtp-Source: AK7set/8kXx3xued3Nta+mtgpPPVwDuHk6UbPF9waUTNuI6bpIaJHe5clg6SBSDEi+KwSLpTiyZhCQ==
-X-Received: by 2002:a05:6402:658:b0:4ac:bd84:43d8 with SMTP id u24-20020a056402065800b004acbd8443d8mr16831833edx.8.1677255212067;
-        Fri, 24 Feb 2023 08:13:32 -0800 (PST)
-Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com. [209.85.208.53])
-        by smtp.gmail.com with ESMTPSA id w15-20020a50c44f000000b004af70c4b4a7sm1879105edf.97.2023.02.24.08.13.31
+        bh=s1ddkJIM272NGkB+LdN/hOmq0DPwywAhS02NibdV81Y=;
+        b=OTosPtPUdewOu/MYfszhAzSQVjQSqJtDygQ50f25+B4OgNxRLhRFZ5wTIrBfB9Oss3
+         Zfhbyyw2q1ngc1BdThGNJkTJoTKudwODl66frTVmpq6FMM4rg+4yloxdP6vU26RVWkjW
+         x9W/NrVpOtoChCY43/WlvQOFod/NKpf81lFDvpy5Di6yBMHq9vckmIaMG6Vx/cOXk5Tk
+         0gtc9DJdjXT5DvtJLgjeFcrtziO4O6QxUEnYr2jR2g3gt0hNnIdwvpDY1dnR0fXa3Not
+         yVbt02lP3sW5XrQgBbi4NOePOri9J/IDH0KgQGGGpD3cxyBpor0T/SUiDS9ae+D1R/h0
+         4BJQ==
+X-Gm-Message-State: AO0yUKV+R9L9YREuuTxWPXhptJWHdR+7DbkJJ2Ls0hTF+Nz2uqdaZkA1
+        uw8bXMA93ABzrGx49LpyFZEFp10szLpTQf7NAgxlJA==
+X-Google-Smtp-Source: AK7set//CaiCar5kHyWorfK2/3awQVqrnwiKhNBZNNyVg9/BR4v6PAXpyQFCAOTBqqSz9TtgmbLLvA==
+X-Received: by 2002:a17:906:1014:b0:8b1:756c:1a30 with SMTP id 20-20020a170906101400b008b1756c1a30mr31858911ejm.59.1677255742032;
+        Fri, 24 Feb 2023 08:22:22 -0800 (PST)
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com. [209.85.208.42])
+        by smtp.gmail.com with ESMTPSA id n14-20020a170906840e00b008eaf99be56esm2692116ejx.170.2023.02.24.08.22.20
         for <mm-commits@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 24 Feb 2023 08:13:31 -0800 (PST)
-Received: by mail-ed1-f53.google.com with SMTP id o12so57156668edb.9
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 08:13:31 -0800 (PST)
-X-Received: by 2002:a50:9ecd:0:b0:4ac:c720:207c with SMTP id
- a71-20020a509ecd000000b004acc720207cmr6674555edf.5.1677255210884; Fri, 24 Feb
- 2023 08:13:30 -0800 (PST)
+        Fri, 24 Feb 2023 08:22:21 -0800 (PST)
+Received: by mail-ed1-f42.google.com with SMTP id h16so57010041edz.10
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 08:22:20 -0800 (PST)
+X-Received: by 2002:a50:d619:0:b0:4ab:3a49:68b9 with SMTP id
+ x25-20020a50d619000000b004ab3a4968b9mr7634213edi.5.1677255740399; Fri, 24 Feb
+ 2023 08:22:20 -0800 (PST)
 MIME-Version: 1.0
-References: <2009825.1677229488@warthog.procyon.org.uk> <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com>
+References: <2134430.1677240738@warthog.procyon.org.uk> <2009825.1677229488@warthog.procyon.org.uk>
+ <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com>
  <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org>
- <2134430.1677240738@warthog.procyon.org.uk> <2214157.1677250083@warthog.procyon.org.uk>
-In-Reply-To: <2214157.1677250083@warthog.procyon.org.uk>
+ <2213409.1677249075@warthog.procyon.org.uk> <2244151.1677251586@warthog.procyon.org.uk>
+In-Reply-To: <2244151.1677251586@warthog.procyon.org.uk>
 From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Fri, 24 Feb 2023 08:13:13 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wjz8sE9Dd_f7tER_APsCPRPDdt_Dykn8X62SGrbfzCpoA@mail.gmail.com>
-Message-ID: <CAHk-=wjz8sE9Dd_f7tER_APsCPRPDdt_Dykn8X62SGrbfzCpoA@mail.gmail.com>
-Subject: Re: [RFC][PATCH] cifs, afs: Revert changes to {cifs,afs}_writepages_region()
+Date:   Fri, 24 Feb 2023 08:22:03 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wgPPFN0MvHYwtaPAtQkDFHwZrDXxZ+bOWk-qSyGMiLV6g@mail.gmail.com>
+Message-ID: <CAHk-=wgPPFN0MvHYwtaPAtQkDFHwZrDXxZ+bOWk-qSyGMiLV6g@mail.gmail.com>
+Subject: Re: [RFC][PATCH] cifs: Improve use of filemap_get_folios_tag()
 To:     David Howells <dhowells@redhat.com>
 Cc:     Steve French <stfrench@microsoft.com>,
         Vishal Moola <vishal.moola@gmail.com>,
@@ -70,40 +71,33 @@ Cc:     Steve French <stfrench@microsoft.com>,
         Huang Ying <ying.huang@intel.com>,
         Baolin Wang <baolin.wang@linux.alibaba.com>,
         Xin Hao <xhao@linux.alibaba.com>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+        mm-commits@vger.kernel.org, linux-cifs@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Feb 24, 2023 at 6:48 AM David Howells <dhowells@redhat.com> wrote:
+On Fri, Feb 24, 2023 at 7:13 AM David Howells <dhowells@redhat.com> wrote:
 >
-> Here's a more complex patch that reverts Vishal's patch to afs and your
-> changes to cifs back to the point where find_get_pages_range_tag() was
-> being used to get a single folio and then replace that with a function,
-> filemap_get_folio_tag() that just gets a single folio.  An alternative way
-> of doing this would be to make filemap_get_folios_tag() take a limit count.
+> The inefficiency derived from filemap_get_folios_tag() get a batch of
+> contiguous folios in Vishal's change to afs that got copied into cifs can
+> be reduced by skipping over those folios that have been passed by the start
+> position rather than going through the process of locking, checking and
+> trying to write them.
 
-Ack. I think this is the right thing to do.
+This patch just makes me go "Ugh".
 
-Except we should at a minimum split this into two patches, with the
-first one introducing that filemap_get_folio_tag() helper function
-that makes the whole find_get_pages_range_tag() conversion much
-simpler.
+There's something wrong with this code for it to need these games.
 
-In fact, probably three patches - infrastructure, cifs and afs
-separately. Just to make each patch simpler to look at for people who
-care about that particular area.
+That  just makes me convinced that your other patch that just gets rid
+of the batching entirely is the right one.
 
-And I'd still like to know why that 'skips' logic exists, it seems to
-be shared with afs. The fact that it actually seems to change
-semantics by your testing makes me even more suspicious of it than I
-was when I was doing that "skip_write" thing.
+Of course, I'd be even happier if Willy is right and the code could
+use the generic write_cache_pages() and avoid all of these things
+entirely. I'm not clear on why cifs and afs are being so different in
+the first place, and some of the differences are just odd (like that
+skip count).
 
-(But the change I did was to treat _all_ the skipped writes the same,
-while the old - and your revert - behavior is to only do the skip
-counting for the "already under writeback" case. But it still stinks
-to me).
-
-                 Linus
+               Linus
