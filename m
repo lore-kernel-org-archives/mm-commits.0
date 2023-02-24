@@ -2,83 +2,111 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD509C6FA8E
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Feb 2023 17:23:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92A95C6FA8E
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Feb 2023 18:45:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229482AbjBXRXq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Feb 2023 12:23:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51866 "EHLO
+        id S229512AbjBXSpG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Feb 2023 13:45:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229454AbjBXRXp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2023 12:23:45 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1290118ABF
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 09:23:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1677259384;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=fRYK0MsjqV5B1YODg8uGsmehuhwPYk48TBRRGZHiyX4=;
-        b=Wm59UIlbgISnv+VAmeKdz9Etd5yQq6EVGohHxk85t2RcKIKWOtTYYRZD4pFFqu8Am5k2Kt
-        yzERNEMxjtZTRgCzrvKmY0iNVkvllaDA6wmW0tkRD4xxzLW6TKbehhZsXlS7n3HDmcdCqV
-        XF/yjwO6I/+1xyGI/ayqk1zThNXQ11o=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-180-RVuFmVE2Owq3TQkaFqbO9A-1; Fri, 24 Feb 2023 12:23:00 -0500
-X-MC-Unique: RVuFmVE2Owq3TQkaFqbO9A-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id F31093C01DE8;
-        Fri, 24 Feb 2023 17:22:59 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 4F11A2166B29;
-        Fri, 24 Feb 2023 17:22:58 +0000 (UTC)
-Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
-        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
-        Kingdom.
-        Registered in England and Wales under Company Registration No. 3798903
-From:   David Howells <dhowells@redhat.com>
-In-Reply-To: <CAHk-=wgPPFN0MvHYwtaPAtQkDFHwZrDXxZ+bOWk-qSyGMiLV6g@mail.gmail.com>
-References: <CAHk-=wgPPFN0MvHYwtaPAtQkDFHwZrDXxZ+bOWk-qSyGMiLV6g@mail.gmail.com> <2134430.1677240738@warthog.procyon.org.uk> <2009825.1677229488@warthog.procyon.org.uk> <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com> <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org> <2213409.1677249075@warthog.procyon.org.uk> <2244151.1677251586@warthog.procyon.org.uk>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     dhowells@redhat.com, Steve French <stfrench@microsoft.com>,
+        with ESMTP id S229460AbjBXSpF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2023 13:45:05 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C2E3679BF;
+        Fri, 24 Feb 2023 10:45:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=KrxxPv4XvLx2RtKsee2RWloWUMeXGZheVNKJtMabags=; b=jplJ5yxAebN1rP7bepdDpvim3J
+        qwaEDxAqa8jGhLU2xsBmcOLPsbTQfx0yfmyHY2nR4yRAp1aZId0mjEaNFsLjlJ7M8x7dMElLs1fhR
+        tU1bEh8mTbx15omA53EmgduU5NuQf1MMFkHRoCp1T+6o8f3zZDL+3GioKL3ld30g3Uv+gVIb/Bk4r
+        q+VMOAQIfnKSLm9UrKdw09y0Lxv7qp3eiwvy2UKncyVP+YJpgajz+I1Nb96uJ3G6Yw9sWAn+dieUo
+        tOlYBSsJIoBYTDRsDyJuRVkFXKB7IEi8T7MEVT2ZiApqSgQAY6GvtAWRcpAq7TjcViYBYtSmS04gW
+        ClPAldHw==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1pVd3m-00FU4d-25; Fri, 24 Feb 2023 18:44:46 +0000
+Date:   Fri, 24 Feb 2023 18:44:46 +0000
+From:   Matthew Wilcox <willy@infradead.org>
+To:     David Howells <dhowells@redhat.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Steve French <stfrench@microsoft.com>,
         Vishal Moola <vishal.moola@gmail.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         Jan Kara <jack@suse.cz>, Paulo Alcantara <pc@cjr.nz>,
-        Matthew Wilcox <willy@infradead.org>,
         Huang Ying <ying.huang@intel.com>,
         Baolin Wang <baolin.wang@linux.alibaba.com>,
         Xin Hao <xhao@linux.alibaba.com>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-cifs@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [RFC][PATCH] cifs: Improve use of filemap_get_folios_tag()
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC][PATCH] cifs: Fix cifs_writepages_region()
+Message-ID: <Y/kFnhUM5hjWM2Ae@casper.infradead.org>
+References: <Y/jhwuTCaOgOTLp2@casper.infradead.org>
+ <2134430.1677240738@warthog.procyon.org.uk>
+ <2009825.1677229488@warthog.procyon.org.uk>
+ <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com>
+ <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org>
+ <2213409.1677249075@warthog.procyon.org.uk>
+ <2385089.1677258941@warthog.procyon.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <2385426.1677259377.1@warthog.procyon.org.uk>
-Date:   Fri, 24 Feb 2023 17:22:57 +0000
-Message-ID: <2385427.1677259377@warthog.procyon.org.uk>
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2385089.1677258941@warthog.procyon.org.uk>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Fri, Feb 24, 2023 at 05:15:41PM +0000, David Howells wrote:
+> Matthew Wilcox <willy@infradead.org> wrote:
+> 
+> > Why are you doing it this way?  What's wrong with using
+> > write_cache_pages() to push all the contiguous dirty folios into a single
+> > I/O object, submitting it when the folios turn out not to be contiguous,
+> > or when we run out of a batch?
+> > 
+> > You've written an awful lot of code here and it's a different model from
+> > every other filesystem.  Why is it better?
+> 
+> Because write_cache_pages():
+> 
+>  (1) Takes no account of fscache.  I can't just build knowledge of PG_fscache
+>      into it because PG_private_2 may be used differently by other filesystems
+>      (btrfs, for example).  (I'm also trying to phase out the use of
+>      PG_private_2 and instead uses PG_writeback to cover both and the
+>      difference will be recorded elsewhere - but that's not there yet).
 
-> Of course, I'd be even happier if Willy is right and the code could
-> use the generic write_cache_pages() and avoid all of these things
-> entirely. I'm not clear on why cifs and afs are being so different in
-> the first place, and some of the differences are just odd (like that
-> skip count).
+I don't understand why waiting for fscache here is even the right thing
+to do.  The folio is dirty and needs to be written back to the
+server.  Why should beginning that write wait for the current write
+to the fscache to complete?
 
-The main reason is that write_cache_pages() doesn't (and can't) check
-PG_fscache (btrfs uses PG_private_2 for other purposes).  NFS, 9p and ceph,
-for the moment, don't cache files that are open for writing, but I'm intending
-to change that at some point.  The intention is to unify the writepages code
-for at least 9p, afs, ceph and cifs in netfslib in the future.
+>  (2) Calls ->writepage() individually for each folio - which is excessive.  In
+>      AFS's implementation, we locate the first folio, then race through the
+>      following folios without ever waiting until we hit something that's
+>      locked or a gap and then stop and submit.
+> 
+>      write_cache_pages(), otoh, calls us with the next folio already undirtied
+>      and set for writeback when we find out that we don't want it yet.
 
-David
+I think you're so convinced that your way is better that you don't see
+what write_cache_pages() is actually doing.  Yes, the writepage callback
+is called once for each folio, but that doesn't actually submit a write.
+Instead, they're accumulated into the equivalent of a wdata and the
+wdata is submitted when there's a discontiguity or we've accumulated
+enough to satisfy the constraints of the wbc.
 
+>  (3) Skips over holes, but at some point in the future we're going to need to
+>      schedule adjacent clean pages (before and after) for writeback too to
+>      handle transport compression and fscache updates if the granule size for
+>      either is larger than the folio size.
+
+Then we'll need it for other filesystems too, so should enhance
+write_cache_pages().
+
+> It might be better to take what's in cifs, generalise it and replace
+> write_cache_pages() with it, then have a "->submit_write()" aop that takes an
+> ITER_XARRAY iterator to write from.
+
+->writepages _is_ ->submit_write.  Should write_cache_pages() be better?
+Maybe!  But it works a whole lot better than what AFS was doing and
+you've now ladelled into cifs.
