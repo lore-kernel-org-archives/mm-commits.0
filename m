@@ -2,86 +2,103 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9C24C64ED6
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Feb 2023 03:02:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22FFDC61DA4
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Feb 2023 03:02:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229446AbjBXDB7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Feb 2023 22:01:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41214 "EHLO
+        id S229862AbjBXDCy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Feb 2023 22:02:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229866AbjBXDBx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 22:01:53 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C7645D47F
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2023 19:01:52 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BB7CAB81B2A
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 03:01:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 673CFC433D2;
-        Fri, 24 Feb 2023 03:01:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677207709;
-        bh=/TsQf5kmm0kYZSGoujXEMKoupg/n1Q5Gs+CMQfDXAfA=;
-        h=Date:To:From:Subject:From;
-        b=i0/EFj1r4j05QN0105NLjVvLXpbkwQyuAJ2t1RGShArEt23hcST8vkpsqK8RmKHwd
-         51u6xj/ZTWnO+TQ19MWK8D4gA5mmHgdDpCE3daKXa/WGIPkKWv9N8CHS5tkJg5hDix
-         I4N1e6+rPKPpCipr3s8ETlk/GpyDPMdlUZi62nOg=
-Date:   Thu, 23 Feb 2023 19:01:48 -0800
-To:     mm-commits@vger.kernel.org, rdunlap@xenotime.net, joe@perches.com,
-        gregkh@linuxfoundation.org, corbet@lwn.net,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] submitting-patchesrst-suggest-a-link-after-reported-by.patch removed from -mm tree
-Message-Id: <20230224030149.673CFC433D2@smtp.kernel.org>
+        with ESMTP id S229849AbjBXDCx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 22:02:53 -0500
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27FC844AC;
+        Thu, 23 Feb 2023 19:02:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1677207772; x=1708743772;
+  h=from:to:cc:subject:references:date:in-reply-to:
+   message-id:mime-version:content-transfer-encoding;
+  bh=v+OHKdxrw/nM2qX9sYd6aRRdtAU9Je2UuBYcv5BP8wY=;
+  b=ORXA0fGA0ddSDJv3UVLZt/DPKqvSToIcFcAHp1ATnBLMicjl+5JJ/xmG
+   eIf6i/R5AMbNzz9P5/EihzxLf2uh3ArGJ39OD6atbBIlDKvQqdjE1iIDw
+   Vk1s4nP8ykfoMVMGNpoT0IL2swM9wIMZqemueL5LEKIjMKlnNKAeUNvFC
+   euBFwu+mZVjWm8HSvXOn6BA0aJrMmemqUEhRn+0mskmLTkrZLUHStD9B3
+   /Q3MHvZp1io2pUkgG5IrHiH+JGfOtpFFc/psgZ1woA5az3YXqZUXxPous
+   h6rd1geuIfqtUQYZqWzBDAxFZjkzSrinxKsThzkTCg9bRgdKmKKMXOZlp
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10630"; a="331117111"
+X-IronPort-AV: E=Sophos;i="5.97,322,1669104000"; 
+   d="scan'208";a="331117111"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2023 19:02:51 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10630"; a="918274147"
+X-IronPort-AV: E=Sophos;i="5.97,322,1669104000"; 
+   d="scan'208";a="918274147"
+Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2023 19:02:45 -0800
+From:   "Huang, Ying" <ying.huang@intel.com>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Paulo Alcantara <pc@cjr.nz>,
+        Matthew Wilcox <willy@infradead.org>,
+        David Howells <dhowells@redhat.com>,
+        Steve French <stfrench@microsoft.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        Xin Hao <xhao@linux.alibaba.com>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PULL] MM updates for 6.3-rc1
+References: <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org>
+        <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com>
+Date:   Fri, 24 Feb 2023 11:01:49 +0800
+In-Reply-To: <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com>
+        (Linus Torvalds's message of "Thu, 23 Feb 2023 17:33:37 -0800")
+Message-ID: <87cz5zdaw2.fsf@yhuang6-desk2.ccr.corp.intel.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.1 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Linus Torvalds <torvalds@linux-foundation.org> writes:
 
-The quilt patch titled
-     Subject: submitting-patches.rst: suggest a Link: after Reported-by:
-has been removed from the -mm tree.  Its filename was
-     submitting-patchesrst-suggest-a-link-after-reported-by.patch
+>
+>  - gcc 12.2.1 quite reasonable complains about some of the new MM code:
+>
+>     mm/migrate.c: In function =E2=80=98__migrate_folio_extract=E2=80=99:
+>     mm/migrate.c:1050:20: note: randstruct: casting between randomized
+> structure pointer types (ssa): =E2=80=98struct anon_vma=E2=80=99 and =E2=
+=80=98struct
+> address_space=E2=80=99
+>
+>      1050 |         *anon_vmap =3D (void *)dst->mapping;
+>           |         ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+>
+>    and while this doesn't cause a build failure ("note" is different
+> from "warning"), I do think something needs to be done. Gcc is right.
+> This code seems to *work* simply because it's intentionally
+> mis-casting pointers,
 
-This patch was dropped because it was withdrawn
+Yes.  The mis-casting is intentional.  I just need some place to hold
+the data temporarily (save in __migrate_folio_record() and clear in
+__migrate_folio_extract()).  And "dst" is newly allocated folio.
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: submitting-patches.rst: suggest a Link: after Reported-by:
-Date: Thu Feb 23 05:41:49 PM PST 2023
+> but I think it needs to be seriously looked at and something done to
+> make gcc happy (and a *LARGE* comment about it).
 
-It seems to be the new way and I find it super useful.
+Sure.  I will check whether there's some way to make gcc happy and add
+some comments about that.  There's some comments for
+__migrate_folio_extract(), but that's isn't enough apprently.)
 
-Cc: Joe Perches <joe@perches.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+> That last note is not some merge result, it's purely about the new MM cod=
+e.
+>
 
+[snip]
 
---- a/Documentation/process/submitting-patches.rst~submitting-patchesrst-suggest-a-link-after-reported-by
-+++ a/Documentation/process/submitting-patches.rst
-@@ -501,6 +501,12 @@ the bug was reported in private, then as
- Reported-by tag. The tag is intended for bugs; please do not use it to credit
- feature requests.
- 
-+Where possible, please include a Link: to the report on the line
-+immediately following the Reported-by:.  For example,
-+
-+Reported-by: John Doe <john.doe@gmail.com>
-+  Link: https://lkml.kernel.org/r/02f796c7@gmail.com
-+
- A Tested-by: tag indicates that the patch has been successfully tested (in
- some environment) by the person named.  This tag informs maintainers that
- some testing has been performed, provides a means to locate testers for
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes.patch
-mm-userfaultfd-support-wp-on-multiple-vmas-fix.patch
-
+Best Regards,
+Huang, Ying
