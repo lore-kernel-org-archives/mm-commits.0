@@ -2,103 +2,130 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22FFDC61DA4
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Feb 2023 03:02:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E92A0C64ED8
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Feb 2023 09:05:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229862AbjBXDCy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Feb 2023 22:02:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42158 "EHLO
+        id S229663AbjBXJFn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Feb 2023 04:05:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229849AbjBXDCx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2023 22:02:53 -0500
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27FC844AC;
-        Thu, 23 Feb 2023 19:02:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1677207772; x=1708743772;
-  h=from:to:cc:subject:references:date:in-reply-to:
-   message-id:mime-version:content-transfer-encoding;
-  bh=v+OHKdxrw/nM2qX9sYd6aRRdtAU9Je2UuBYcv5BP8wY=;
-  b=ORXA0fGA0ddSDJv3UVLZt/DPKqvSToIcFcAHp1ATnBLMicjl+5JJ/xmG
-   eIf6i/R5AMbNzz9P5/EihzxLf2uh3ArGJ39OD6atbBIlDKvQqdjE1iIDw
-   Vk1s4nP8ykfoMVMGNpoT0IL2swM9wIMZqemueL5LEKIjMKlnNKAeUNvFC
-   euBFwu+mZVjWm8HSvXOn6BA0aJrMmemqUEhRn+0mskmLTkrZLUHStD9B3
-   /Q3MHvZp1io2pUkgG5IrHiH+JGfOtpFFc/psgZ1woA5az3YXqZUXxPous
-   h6rd1geuIfqtUQYZqWzBDAxFZjkzSrinxKsThzkTCg9bRgdKmKKMXOZlp
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10630"; a="331117111"
-X-IronPort-AV: E=Sophos;i="5.97,322,1669104000"; 
-   d="scan'208";a="331117111"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2023 19:02:51 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10630"; a="918274147"
-X-IronPort-AV: E=Sophos;i="5.97,322,1669104000"; 
-   d="scan'208";a="918274147"
-Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2023 19:02:45 -0800
-From:   "Huang, Ying" <ying.huang@intel.com>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>,
+        with ESMTP id S229618AbjBXJFm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2023 04:05:42 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7715E4E5EC
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2023 01:04:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1677229496;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=6+0eD77pSON4ctupQ+Q2sz1nh9boGw6I9xn8BCA/uFs=;
+        b=ctQuwmobkSqRGyhwIKI+aK4BXg6RjkUcneWWOjLTVkD4Tt7j8icDAWMheBs3S9C1ib64fv
+        WT58Jvvw2IRxwV3IYqC2WZkkVJghd8CoeYvHJYJD3s3FphNqkwk5fABTZtWTBw8qdaPCgC
+        xJq+a4N5CH9oYQNLvjAo4vY/V5g6w5I=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-244-GcPkmjlFMVeXtquMioak-g-1; Fri, 24 Feb 2023 04:04:51 -0500
+X-MC-Unique: GcPkmjlFMVeXtquMioak-g-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 3637E38012E8;
+        Fri, 24 Feb 2023 09:04:51 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 43BF4C15BA0;
+        Fri, 24 Feb 2023 09:04:49 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+        Kingdom.
+        Registered in England and Wales under Company Registration No. 3798903
+From:   David Howells <dhowells@redhat.com>
+In-Reply-To: <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com>
+References: <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com> <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>,
         Vishal Moola <vishal.moola@gmail.com>,
-        Paulo Alcantara <pc@cjr.nz>,
+        Steve French <stfrench@microsoft.com>
+Cc:     dhowells@redhat.com, Andrew Morton <akpm@linux-foundation.org>,
+        Jan Kara <jack@suse.cz>, Paulo Alcantara <pc@cjr.nz>,
         Matthew Wilcox <willy@infradead.org>,
-        David Howells <dhowells@redhat.com>,
-        Steve French <stfrench@microsoft.com>,
+        Huang Ying <ying.huang@intel.com>,
         Baolin Wang <baolin.wang@linux.alibaba.com>,
         Xin Hao <xhao@linux.alibaba.com>, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Subject: Re: [GIT PULL] MM updates for 6.3-rc1
-References: <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org>
-        <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com>
-Date:   Fri, 24 Feb 2023 11:01:49 +0800
-In-Reply-To: <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com>
-        (Linus Torvalds's message of "Thu, 23 Feb 2023 17:33:37 -0800")
-Message-ID: <87cz5zdaw2.fsf@yhuang6-desk2.ccr.corp.intel.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.1 (gnu/linux)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <2009824.1677229488.1@warthog.procyon.org.uk>
+Date:   Fri, 24 Feb 2023 09:04:48 +0000
+Message-ID: <2009825.1677229488@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.8
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Linus Torvalds <torvalds@linux-foundation.org> writes:
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
->
->  - gcc 12.2.1 quite reasonable complains about some of the new MM code:
->
->     mm/migrate.c: In function =E2=80=98__migrate_folio_extract=E2=80=99:
->     mm/migrate.c:1050:20: note: randstruct: casting between randomized
-> structure pointer types (ssa): =E2=80=98struct anon_vma=E2=80=99 and =E2=
-=80=98struct
-> address_space=E2=80=99
->
->      1050 |         *anon_vmap =3D (void *)dst->mapping;
->           |         ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
->
->    and while this doesn't cause a build failure ("note" is different
-> from "warning"), I do think something needs to be done. Gcc is right.
-> This code seems to *work* simply because it's intentionally
-> mis-casting pointers,
+>    Yes, I saw David Howells resolution suggestion. I think that one
+> was buggy. It would wait for a page under writeback, and then go on to
+> the *next* one without writing it back. I don't thin kthat was right.
 
-Yes.  The mis-casting is intentional.  I just need some place to hold
-the data temporarily (save in __migrate_folio_record() and clear in
-__migrate_folio_extract()).  And "dst" is newly allocated folio.
+You're right.  Vishal's patch introduced it into afs and I copied it across
+and didn't notice it either then or on review of Vishal's patch.  He inserted
+the extra for-loop as he's now extracting a batch, but kept the continue that
+used to repeat the extraction - except now it continues the wrong loop.
 
-> but I think it needs to be seriously looked at and something done to
-> make gcc happy (and a *LARGE* comment about it).
+So afs will need fixing too.  The simplest ways I think are to just decrement
+the loop counter before continuing or to stick a goto in back to the beginning
+of the loop (which is what you did in cifs).  But I'm not sure that's the
+correct thing to do.  The previous code dropped the found folio and then
+repeated the search in case the folio got truncated, migrated or punched.  I
+suspect that's probably what we should do.
 
-Sure.  I will check whether there's some way to make gcc happy and add
-some comments about that.  There's some comments for
-__migrate_folio_extract(), but that's isn't enough apprently.)
 
-> That last note is not some merge result, it's purely about the new MM cod=
-e.
->
+Also, thinking about it again, I'm not sure whether fetching a batch with
+filemap_get_folios_tag() like this in {afs,cifs}_writepages_region() is
+necessarily the right thing to do.  There are three cases I'm thinking of:
 
-[snip]
+ (1) A single folio is returned.  This is trivial.
 
-Best Regards,
-Huang, Ying
+ (2) A run of contiguous folios are returned - {afs,cifs}_extend_writeback()
+     is likely to write them back, in which case the batch is probably not
+     useful.  Note that *_extend_writeback() walks the xarray directly itself
+     as it wants contiguous folios and doesn't want to extract any folio it's
+     not going to use.
+
+ (3) A list of scattered folios is returned.  Granted this is more efficient
+     if nothing else interferes - but there could be other writes in the gaps
+     that we then skip over, other flushes that render some of our list clean
+     or page invalidations.  This is a change in behaviour, but I'm not sure
+     that matters too much since a flush/sync can only be expected to write
+     back what's modified at the time it is initiated.
+
+     Further, processing each entry in the list is potentially very slow
+     because we're doing a write across the network for each one (cifs might
+     bump this into the background, but it might also have to (re)open a file
+     handle on the server and wait for credits first to even begin the
+     transaction).
+
+     Which means all of the folios in the batch may then get pinned for a long
+     period of time - up to 14x for the last folio in the batch - which could
+     prevent things like page migration.
+
+Further, we might not get to write out all the folios in the batch as
+*_extend_writeback() might hit the wbc limit first.
+
+>    That said, I'm not at all convinced my version is right either. I
+> can't test it, and that means I probably messed up. It looked sane to
+> me when I did it, and it builds cleanly, but I honestly doubt myself.
+
+It doesn't seem to work.  A write seems to end in lots of:
+
+	CIFS: VFS: No writable handle in writepages rc=-9
+
+being emitted.  I'll poke further into it - there's always the possibility
+that some other patch is interfering.
+
+David
+
