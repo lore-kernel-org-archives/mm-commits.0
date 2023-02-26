@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AFE9C6FA8E
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 05:03:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B87FC6FA8E
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 05:16:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229581AbjBZFDw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Feb 2023 00:03:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40500 "EHLO
+        id S229523AbjBZFQn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Feb 2023 00:16:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229609AbjBZFDv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 00:03:51 -0500
+        with ESMTP id S229512AbjBZFQm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 00:16:42 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02AF412857
-        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 21:03:50 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DA1C12053
+        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 21:16:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8653060BE9
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 05:03:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E029AC433D2;
-        Sun, 26 Feb 2023 05:03:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E135560BE9
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 05:16:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34DEDC433EF;
+        Sun, 26 Feb 2023 05:16:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677387829;
-        bh=skXkGkJGoGG/pJA6DcbK010HznhLgvD1KuGFJWvmE/w=;
+        s=korg; t=1677388599;
+        bh=iqkhsc6OG//gLMvqXSOS/7weovNrEcGiqs4QMBHV5kQ=;
         h=Date:To:From:Subject:From;
-        b=u16lBHgxcBwy2NR2haI93ZvnKUrne+AjnQiIHfSD0dUYJ5hbpw1H9v0+OyWgE27uE
-         kUFGjGk5De375BK9ykOHgOAE2ILTaltkDyt489sGdhHcFghhhBHObUo4tB1zfZ3Dnj
-         MenGxM7v1btKrRlSP6SwJF69/CWu3Xm55EBm0q5w=
-Date:   Sat, 25 Feb 2023 21:03:48 -0800
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        tglx@linutronix.de, ryabinin.a.a@gmail.com, peterz@infradead.org,
-        nicolas@fjasle.eu, ndesaulniers@google.com, nathan@kernel.org,
-        naresh.kamboju@linaro.org, mingo@redhat.com, lkft@linaro.org,
-        keescook@chromium.org, jakub@redhat.com, glider@google.com,
-        dvyukov@google.com, dave.hansen@linux.intel.com, bp@alien8.de,
-        andreyknvl@gmail.com, elver@google.com, akpm@linux-foundation.org
+        b=eThOzn3cFqtrYUWUI48RDC0XI9UlCKAM+74NHqZJgCU0bWDfNtEBep+QOk1GsFRGO
+         c43hBSHrKf0FeBdtXVz3wWDV/J6mHxfjj438ls+Zu3eDirMajyEyAU8161BjZBjW4E
+         m2jZNxKpE0EuGJ/ltjGeHkbg8x/HWhDJ9VRsIP6g=
+Date:   Sat, 25 Feb 2023 21:16:38 -0800
+To:     mm-commits@vger.kernel.org, riel@surriel.com, mhocko@suse.com,
+        hannes@cmpxchg.org, david@redhat.com, bagasdotme@gmail.com,
+        shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-x86-dont-rename-memintrinsics-in-uninstrumented-files.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230226050348.E029AC433D2@smtp.kernel.org>
+Subject: + mm-add-new-api-to-enable-ksm-per-process.patch added to mm-unstable branch
+Message-Id: <20230226051639.34DEDC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, x86: don't rename memintrinsics in uninstrumented files
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kasan-x86-dont-rename-memintrinsics-in-uninstrumented-files.patch
+     Subject: mm: add new api to enable ksm per process
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-new-api-to-enable-ksm-per-process.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-x86-dont-rename-memintrinsics-in-uninstrumented-files.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-new-api-to-enable-ksm-per-process.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -69,73 +65,387 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kasan, x86: don't rename memintrinsics in uninstrumented files
-Date: Fri, 24 Feb 2023 09:59:42 +0100
+From: Stefan Roesch <shr@devkernel.io>
+Subject: mm: add new api to enable ksm per process
+Date: Thu, 23 Feb 2023 20:39:58 -0800
 
-Now that memcpy/memset/memmove are no longer overridden by KASAN, we can
-just use the normal symbol names in uninstrumented files.
+Patch series "mm: process/cgroup ksm support", v3.
 
-Drop the preprocessor redefinitions.
+So far KSM can only be enabled by calling madvise for memory regions.  To
+be able to use KSM for more workloads, KSM needs to have the ability to be
+enabled / disabled at the process / cgroup level.
 
-Link: https://lkml.kernel.org/r/20230224085942.1791837-4-elver@google.com
-Fixes: 69d4c0d32186 ("entry, kasan, x86: Disallow overriding mem*() functions")
-Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Linux Kernel Functional Testing <lkft@linaro.org>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Nicolas Schier <nicolas@fjasle.eu>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Use case 1:
+
+  The madvise call is not available in the programming language.  An
+  example for this are programs with forked workloads using a garbage
+  collected language without pointers.  In such a language madvise cannot
+  be made available.
+
+  In addition the addresses of objects get moved around as they are
+  garbage collected.  KSM sharing needs to be enabled "from the outside"
+  for these type of workloads.
+
+Use case 2:
+
+  The same interpreter can also be used for workloads where KSM brings
+  no benefit or even has overhead.  We'd like to be able to enable KSM on
+  a workload by workload basis.
+
+Use case 3:
+
+  With the madvise call sharing opportunities are only enabled for the
+  current process: it is a workload-local decision.  A considerable number
+  of sharing opportuniites may exist across multiple workloads or jobs. 
+  Only a higler level entity like a job scheduler or container can know
+  for certain if its running one or more instances of a job.  That job
+  scheduler however doesn't have the necessary internal worklaod knowledge
+  to make targeted madvise calls.
+
+Security concerns:
+
+  In previous discussions security concerns have been brought up.  The
+  problem is that an individual workload does not have the knowledge about
+  what else is running on a machine.  Therefore it has to be very
+  conservative in what memory areas can be shared or not.  However, if the
+  system is dedicated to running multiple jobs within the same security
+  domain, its the job scheduler that has the knowledge that sharing can be
+  safely enabled and is even desirable.
+
+Performance:
+
+  Experiments with using UKSM have shown a capacity increase of around
+  20%.
+
+
+1. New options for prctl system command
+
+   This patch series adds two new options to the prctl system call. 
+   The first one allows to enable KSM at the process level and the second
+   one to query the setting.
+
+   The setting will be inherited by child processes.
+
+   With the above setting, KSM can be enabled for the seed process of a
+   cgroup and all processes in the cgroup will inherit the setting.
+
+2. Changes to KSM processing
+
+   When KSM is enabled at the process level, the KSM code will iterate
+   over all the VMA's and enable KSM for the eligible VMA's.
+
+   When forking a process that has KSM enabled, the setting will be
+   inherited by the new child process.
+
+   In addition when KSM is disabled for a process, KSM will be disabled
+   for the VMA's where KSM has been enabled.
+
+3. Add general_profit metric
+
+   The general_profit metric of KSM is specified in the documentation,
+   but not calculated.  This adds the general profit metric to
+   /sys/kernel/debug/mm/ksm.
+
+4. Add more metrics to ksm_stat
+
+   This adds the process profit and ksm type metric to
+   /proc/<pid>/ksm_stat.
+
+5. Add more tests to ksm_tests
+
+   This adds an option to specify the merge type to the ksm_tests. 
+   This allows to test madvise and prctl KSM.  It also adds a new option
+   to query if prctl KSM has been enabled.  It adds a fork test to verify
+   that the KSM process setting is inherited by client processes.
+
+
+This patch (of 3):
+
+This adds a new prctl to API to enable and disable KSM on a per process
+basis instead of only at the VMA basis (with madvise).
+
+1) Introduce new MMF_VM_MERGE_ANY flag
+
+   This introduces the new flag MMF_VM_MERGE_ANY flag.  When this flag
+   is set, kernel samepage merging (ksm) gets enabled for all vma's of a
+   process.
+
+2) add flag to __ksm_enter
+
+   This change adds the flag parameter to __ksm_enter.  This allows to
+   distinguish if ksm was called by prctl or madvise.
+
+3) add flag to __ksm_exit call
+
+   This adds the flag parameter to the __ksm_exit() call.  This allows
+   to distinguish if this call is for an prctl or madvise invocation.
+
+4) invoke madvise for all vmas in scan_get_next_rmap_item
+
+   If the new flag MMF_VM_MERGE_ANY has been set for a process, iterate
+   over all the vmas and enable ksm if possible.  For the vmas that can be
+   ksm enabled this is only done once.
+
+5) support disabling of ksm for a process
+
+   This adds the ability to disable ksm for a process if ksm has been
+   enabled for the process.
+
+6) add new prctl option to get and set ksm for a process
+
+   This adds two new options to the prctl system call
+   - enable ksm for all vmas of a process (if the vmas support it).
+   - query if ksm has been enabled for a process.
+
+Link: https://lkml.kernel.org/r/20230224044000.3084046-1-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20230224044000.3084046-2-shr@devkernel.io
+Signed-off-by: Stefan Roesch <shr@devkernel.io>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/x86/include/asm/string_64.h~kasan-x86-dont-rename-memintrinsics-in-uninstrumented-files
-+++ b/arch/x86/include/asm/string_64.h
-@@ -85,25 +85,6 @@ char *strcpy(char *dest, const char *src);
- char *strcat(char *dest, const char *src);
- int strcmp(const char *cs, const char *ct);
+--- a/include/linux/ksm.h~mm-add-new-api-to-enable-ksm-per-process
++++ b/include/linux/ksm.h
+@@ -18,20 +18,24 @@
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ 		unsigned long end, int advice, unsigned long *vm_flags);
+-int __ksm_enter(struct mm_struct *mm);
+-void __ksm_exit(struct mm_struct *mm);
++int __ksm_enter(struct mm_struct *mm, int flag);
++void __ksm_exit(struct mm_struct *mm, int flag);
  
--#if (defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__))
--/*
-- * For files that not instrumented (e.g. mm/slub.c) we
-- * should use not instrumented version of mem* functions.
-- */
--
--#undef memcpy
--#define memcpy(dst, src, len) __memcpy(dst, src, len)
--#undef memmove
--#define memmove(dst, src, len) __memmove(dst, src, len)
--#undef memset
--#define memset(s, c, n) __memset(s, c, n)
--
--#ifndef __NO_FORTIFY
--#define __NO_FORTIFY /* FORTIFY_SOURCE uses __builtin_memcpy, etc. */
--#endif
--
--#endif
--
- #ifdef CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE
- #define __HAVE_ARCH_MEMCPY_FLUSHCACHE 1
- void __memcpy_flushcache(void *dst, const void *src, size_t cnt);
+ static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
+ {
++	if (test_bit(MMF_VM_MERGE_ANY, &oldmm->flags))
++		return __ksm_enter(mm, MMF_VM_MERGE_ANY);
+ 	if (test_bit(MMF_VM_MERGEABLE, &oldmm->flags))
+-		return __ksm_enter(mm);
++		return __ksm_enter(mm, MMF_VM_MERGEABLE);
+ 	return 0;
+ }
+ 
+ static inline void ksm_exit(struct mm_struct *mm)
+ {
+-	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
+-		__ksm_exit(mm);
++	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
++		__ksm_exit(mm, MMF_VM_MERGE_ANY);
++	else if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
++		__ksm_exit(mm, MMF_VM_MERGEABLE);
+ }
+ 
+ /*
+--- a/include/linux/sched/coredump.h~mm-add-new-api-to-enable-ksm-per-process
++++ b/include/linux/sched/coredump.h
+@@ -90,4 +90,5 @@ static inline int get_dumpable(struct mm_struct *mm)
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+ 				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK)
+ 
++#define MMF_VM_MERGE_ANY	29
+ #endif /* _LINUX_SCHED_COREDUMP_H */
+--- a/include/uapi/linux/prctl.h~mm-add-new-api-to-enable-ksm-per-process
++++ b/include/uapi/linux/prctl.h
+@@ -290,4 +290,6 @@ struct prctl_mm_map {
+ #define PR_SET_VMA		0x53564d41
+ # define PR_SET_VMA_ANON_NAME		0
+ 
++#define PR_SET_MEMORY_MERGE		67
++#define PR_GET_MEMORY_MERGE		68
+ #endif /* _LINUX_PRCTL_H */
+--- a/kernel/sys.c~mm-add-new-api-to-enable-ksm-per-process
++++ b/kernel/sys.c
+@@ -15,6 +15,7 @@
+ #include <linux/highuid.h>
+ #include <linux/fs.h>
+ #include <linux/kmod.h>
++#include <linux/ksm.h>
+ #include <linux/perf_event.h>
+ #include <linux/resource.h>
+ #include <linux/kernel.h>
+@@ -2661,6 +2662,34 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
+ 	case PR_SET_VMA:
+ 		error = prctl_set_vma(arg2, arg3, arg4, arg5);
+ 		break;
++#ifdef CONFIG_KSM
++	case PR_SET_MEMORY_MERGE:
++		if (!capable(CAP_SYS_RESOURCE))
++			return -EPERM;
++
++		if (arg2) {
++			if (mmap_write_lock_killable(me->mm))
++				return -EINTR;
++
++			if (test_bit(MMF_VM_MERGEABLE, &me->mm->flags))
++				error = -EINVAL;
++			else if (!test_bit(MMF_VM_MERGE_ANY, &me->mm->flags))
++				error = __ksm_enter(me->mm, MMF_VM_MERGE_ANY);
++			mmap_write_unlock(me->mm);
++		} else {
++			__ksm_exit(me->mm, MMF_VM_MERGE_ANY);
++		}
++		break;
++	case PR_GET_MEMORY_MERGE:
++		if (!capable(CAP_SYS_RESOURCE))
++			return -EPERM;
++
++		if (arg2 || arg3 || arg4 || arg5)
++			return -EINVAL;
++
++		error = !!test_bit(MMF_VM_MERGE_ANY, &me->mm->flags);
++		break;
++#endif
+ 	default:
+ 		error = -EINVAL;
+ 		break;
+--- a/mm/ksm.c~mm-add-new-api-to-enable-ksm-per-process
++++ b/mm/ksm.c
+@@ -1063,6 +1063,7 @@ static int unmerge_and_remove_all_rmap_items(void)
+ 
+ 			mm_slot_free(mm_slot_cache, mm_slot);
+ 			clear_bit(MMF_VM_MERGEABLE, &mm->flags);
++			clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
+ 			mmdrop(mm);
+ 		} else
+ 			spin_unlock(&ksm_mmlist_lock);
+@@ -2331,6 +2332,17 @@ static struct ksm_rmap_item *get_next_rmap_item(struct ksm_mm_slot *mm_slot,
+ 	return rmap_item;
+ }
+ 
++static bool vma_ksm_mergeable(struct vm_area_struct *vma)
++{
++	if (vma->vm_flags & VM_MERGEABLE)
++		return true;
++
++	if (test_bit(MMF_VM_MERGE_ANY, &vma->vm_mm->flags))
++		return true;
++
++	return false;
++}
++
+ static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
+ {
+ 	struct mm_struct *mm;
+@@ -2407,8 +2419,20 @@ static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
+ 		goto no_vmas;
+ 
+ 	for_each_vma(vmi, vma) {
+-		if (!(vma->vm_flags & VM_MERGEABLE))
++		if (!vma_ksm_mergeable(vma))
+ 			continue;
++		if (!(vma->vm_flags & VM_MERGEABLE)) {
++			unsigned long flags = vma->vm_flags;
++
++			/* madvise failed, use next vma */
++			if (ksm_madvise(vma, vma->vm_start, vma->vm_end, MADV_MERGEABLE, &flags))
++				continue;
++			/* vma, not supported as being mergeable */
++			if (!(flags & VM_MERGEABLE))
++				continue;
++
++			vm_flags_set(vma, VM_MERGEABLE);
++		}
+ 		if (ksm_scan.address < vma->vm_start)
+ 			ksm_scan.address = vma->vm_start;
+ 		if (!vma->anon_vma)
+@@ -2493,6 +2517,7 @@ static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
+ 
+ 		mm_slot_free(mm_slot_cache, mm_slot);
+ 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
++		clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
+ 		mmap_read_unlock(mm);
+ 		mmdrop(mm);
+ 	} else {
+@@ -2597,8 +2622,9 @@ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ 			return 0;
+ #endif
+ 
+-		if (!test_bit(MMF_VM_MERGEABLE, &mm->flags)) {
+-			err = __ksm_enter(mm);
++		if (!test_bit(MMF_VM_MERGEABLE, &mm->flags) &&
++		    !test_bit(MMF_VM_MERGE_ANY, &mm->flags)) {
++			err = __ksm_enter(mm, MMF_VM_MERGEABLE);
+ 			if (err)
+ 				return err;
+ 		}
+@@ -2624,7 +2650,7 @@ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ }
+ EXPORT_SYMBOL_GPL(ksm_madvise);
+ 
+-int __ksm_enter(struct mm_struct *mm)
++int __ksm_enter(struct mm_struct *mm, int flag)
+ {
+ 	struct ksm_mm_slot *mm_slot;
+ 	struct mm_slot *slot;
+@@ -2657,7 +2683,7 @@ int __ksm_enter(struct mm_struct *mm)
+ 		list_add_tail(&slot->mm_node, &ksm_scan.mm_slot->slot.mm_node);
+ 	spin_unlock(&ksm_mmlist_lock);
+ 
+-	set_bit(MMF_VM_MERGEABLE, &mm->flags);
++	set_bit(flag, &mm->flags);
+ 	mmgrab(mm);
+ 
+ 	if (needs_wakeup)
+@@ -2666,12 +2692,39 @@ int __ksm_enter(struct mm_struct *mm)
+ 	return 0;
+ }
+ 
+-void __ksm_exit(struct mm_struct *mm)
++static void unmerge_vmas(struct mm_struct *mm)
++{
++	struct vm_area_struct *vma;
++	struct vma_iterator vmi;
++
++	vma_iter_init(&vmi, mm, 0);
++
++	mmap_read_lock(mm);
++	for_each_vma(vmi, vma) {
++		if (vma->vm_flags & VM_MERGEABLE) {
++			unsigned long flags = vma->vm_flags;
++
++			if (ksm_madvise(vma, vma->vm_start, vma->vm_end, MADV_UNMERGEABLE, &flags))
++				continue;
++
++			vm_flags_clear(vma, VM_MERGEABLE);
++		}
++	}
++	mmap_read_unlock(mm);
++}
++
++void __ksm_exit(struct mm_struct *mm, int flag)
+ {
+ 	struct ksm_mm_slot *mm_slot;
+ 	struct mm_slot *slot;
+ 	int easy_to_free = 0;
+ 
++	if (!(current->flags & PF_EXITING) && flag == MMF_VM_MERGE_ANY &&
++		test_bit(MMF_VM_MERGE_ANY, &mm->flags)) {
++		clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
++		unmerge_vmas(mm);
++	}
++
+ 	/*
+ 	 * This process is exiting: if it's straightforward (as is the
+ 	 * case when ksmd was never running), free mm_slot immediately.
+@@ -2698,7 +2751,7 @@ void __ksm_exit(struct mm_struct *mm)
+ 
+ 	if (easy_to_free) {
+ 		mm_slot_free(mm_slot_cache, mm_slot);
+-		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
++		clear_bit(flag, &mm->flags);
+ 		mmdrop(mm);
+ 	} else if (mm_slot) {
+ 		mmap_write_lock(mm);
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from shr@devkernel.io are
 
-kasan-emit-different-calls-for-instrumentable-memintrinsics.patch
-kasan-treat-meminstrinsic-as-builtins-in-uninstrumented-files.patch
-kasan-test-fix-test-for-new-meminstrinsic-instrumentation.patch
-kasan-x86-dont-rename-memintrinsics-in-uninstrumented-files.patch
+mm-add-new-api-to-enable-ksm-per-process.patch
+mm-add-new-ksm-process-and-sysfs-knobs.patch
+selftests-mm-add-new-selftests-for-ksm.patch
 
