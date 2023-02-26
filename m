@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27A86C64ED6
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 05:16:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13582C6FA8E
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 05:18:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229598AbjBZFQt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Feb 2023 00:16:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46254 "EHLO
+        id S229536AbjBZFSU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Feb 2023 00:18:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229512AbjBZFQp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 00:16:45 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86FFF12053
-        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 21:16:43 -0800 (PST)
+        with ESMTP id S229512AbjBZFST (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 00:18:19 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FE8FFF26
+        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 21:18:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0C91D60BE9
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 05:16:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F61BC433D2;
-        Sun, 26 Feb 2023 05:16:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1BEA4B80884
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 05:18:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3F19C433EF;
+        Sun, 26 Feb 2023 05:18:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677388602;
-        bh=BUFWXfiEnPwDS4AJefyqPm4XSpcOZB6SETGKI0Lfefc=;
+        s=korg; t=1677388695;
+        bh=AQVNzN6/kzP4DvWdHllXdxjMhkFWbXYyHIlbnQWpnjA=;
         h=Date:To:From:Subject:From;
-        b=T9xHAefSjSDnulAxTVObSk/NhEUZKoLh9nwUJXaSlAMOfil3xiuemA5XXPNTXzKUO
-         6TwdNzEloigmLxOJN5gCM96FsgeaUKAZeg87cSbzUBGvhCPYqjpANVzfAAv7P3ahRc
-         SNravRDCflTgljceRs0JyxR+0nQNv1gugdFunnnM=
-Date:   Sat, 25 Feb 2023 21:16:41 -0800
-To:     mm-commits@vger.kernel.org, riel@surriel.com, mhocko@suse.com,
-        hannes@cmpxchg.org, david@redhat.com, bagasdotme@gmail.com,
-        shr@devkernel.io, akpm@linux-foundation.org
+        b=LFIu2rfm3dNXAlrxnJ0AfY8PDoz0cLau3z5eeFGxR7fQyQsyzN213ndcyHAa6I3k3
+         sPvGRmI3kP7l58U9FWw47CCSleK+3jFAWZKuO8a618TcXWVHMMQpK8d2h0mbLw1Olf
+         MNZvj7dS2N9Y6pJNHGZEtHBj2oqJ7Gioj9u21vME=
+Date:   Sat, 25 Feb 2023 21:18:15 -0800
+To:     mm-commits@vger.kernel.org, yukuai1@huaweicloud.com, tj@kernel.org,
+        lilingfeng3@huawei.com, ebiggers@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-new-ksm-process-and-sysfs-knobs.patch added to mm-unstable branch
-Message-Id: <20230226051642.5F61BC433D2@smtp.kernel.org>
+Subject: + lib-parser-update-documentation-for-match_number-functions.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230226051815.C3F19C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add new KSM process and sysfs knobs
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-new-ksm-process-and-sysfs-knobs.patch
+     Subject: lib: parser: update documentation for match_NUMBER functions
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     lib-parser-update-documentation-for-match_number-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-new-ksm-process-and-sysfs-knobs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-parser-update-documentation-for-match_number-functions.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,236 +65,92 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: add new KSM process and sysfs knobs
-Date: Thu, 23 Feb 2023 20:39:59 -0800
+From: Eric Biggers <ebiggers@google.com>
+Subject: lib: parser: update documentation for match_NUMBER functions
+Date: Thu, 23 Feb 2023 20:26:18 -0800
 
-This adds the general_profit KSM sysfs knob and the process profit metric
-and process merge type knobs to ksm_stat.
+commit 67222c4ba8af ("lib: parser: optimize match_NUMBER apis to use local
+array") removed -ENOMEM as a possible return value, so update the comments
+accordingly.
 
-1) split off pages_volatile function
-
-   This splits off the pages_volatile function.  The next patch will
-   use this function.
-
-2) expose general_profit metric
-
-   The documentation mentions a general profit metric, however this
-   metric is not calculated.  In addition the formula depends on the size
-   of internal structures, which makes it more difficult for an
-   administrator to make the calculation.  Adding the metric for a better
-   user experience.
-
-3) document general_profit sysfs knob
-
-4) calculate ksm process profit metric
-
-   The ksm documentation mentions the process profit metric and how to
-   calculate it.  This adds the calculation of the metric.
-
-5) add ksm_merge_type() function
-
-   This adds the ksm_merge_type function.  The function returns the
-   merge type for the process.  For madvise it returns "madvise", for
-   prctl it returns "process" and otherwise it returns "none".
-
-6) mm: expose ksm process profit metric and merge type in ksm_stat
-
-   This exposes the ksm process profit metric in /proc/<pid>/ksm_stat.
-   The name of the value is ksm_merge_type.  The documentation mentions
-   the formula for the ksm process profit metric, however it does not
-   calculate it.  In addition the formula depends on the size of internal
-   structures.  So it makes sense to expose it.
-
-7) document new procfs ksm knobs
-
-Link: https://lkml.kernel.org/r/20230224044000.3084046-3-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rik van Riel <riel@surriel.com>
+Link: https://lkml.kernel.org/r/20230224042618.9092-1-ebiggers@kernel.org
+Fixes: 67222c4ba8af ("lib: parser: optimize match_NUMBER apis to use local array")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Cc: Li Lingfeng <lilingfeng3@huawei.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Yu Kuai <yukuai1@huaweicloud.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-ksm~mm-add-new-ksm-process-and-sysfs-knobs
-+++ b/Documentation/ABI/testing/sysfs-kernel-mm-ksm
-@@ -51,3 +51,11 @@ Description:	Control merging pages across different NUMA nodes.
- 
- 		When it is set to 0 only pages from the same node are merged,
- 		otherwise pages from all nodes can be merged together (default).
-+
-+What:		/sys/kernel/mm/ksm/general_profit
-+Date:		January 2023
-+KernelVersion:  6.1
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Measure how effective KSM is.
-+		general_profit: how effective is KSM. The formula for the
-+		calculation is in Documentation/admin-guide/mm/ksm.rst.
---- a/Documentation/admin-guide/mm/ksm.rst~mm-add-new-ksm-process-and-sysfs-knobs
-+++ b/Documentation/admin-guide/mm/ksm.rst
-@@ -157,6 +157,8 @@ stable_node_chains_prune_millisecs
- 
- The effectiveness of KSM and MADV_MERGEABLE is shown in ``/sys/kernel/mm/ksm/``:
- 
-+general_profit
-+        how effective is KSM. The calculation is explained below.
- pages_shared
-         how many shared pages are being used
- pages_sharing
-@@ -214,7 +216,8 @@ several times, which are unprofitable memory consumed.
- 			  ksm_rmap_items * sizeof(rmap_item).
- 
-    where ksm_merging_pages is shown under the directory ``/proc/<pid>/``,
--   and ksm_rmap_items is shown in ``/proc/<pid>/ksm_stat``.
-+   and ksm_rmap_items is shown in ``/proc/<pid>/ksm_stat``. The process profit
-+   is also shown in ``/proc/<pid>/ksm_stat`` as ksm_process_profit.
- 
- From the perspective of application, a high ratio of ``ksm_rmap_items`` to
- ``ksm_merging_pages`` means a bad madvise-applied policy, so developers or
-@@ -225,6 +228,9 @@ so if the ``ksm_rmap_items/ksm_merging_pages`` ratio exceeds 64 on 64-bit CPU
- or exceeds 128 on 32-bit CPU, then the app's madvise policy should be dropped,
- because the ksm profit is approximately zero or negative.
- 
-+The ksm_merge_type in ``/proc/<pid>/ksm_stat`` shows the merge type of the
-+process. Valid values are ``none``, ``madvise`` and ``process``.
-+
- Monitoring KSM events
- =====================
- 
---- a/fs/proc/base.c~mm-add-new-ksm-process-and-sysfs-knobs
-+++ b/fs/proc/base.c
-@@ -96,6 +96,7 @@
- #include <linux/time_namespace.h>
- #include <linux/resctrl.h>
- #include <linux/cn_proc.h>
-+#include <linux/ksm.h>
- #include <trace/events/oom.h>
- #include "internal.h"
- #include "fd.h"
-@@ -3199,6 +3200,7 @@ static int proc_pid_ksm_merging_pages(struct seq_file *m, struct pid_namespace *
- 
- 	return 0;
- }
-+
- static int proc_pid_ksm_stat(struct seq_file *m, struct pid_namespace *ns,
- 				struct pid *pid, struct task_struct *task)
+--- a/lib/parser.c~lib-parser-update-documentation-for-match_number-functions
++++ b/lib/parser.c
+@@ -133,7 +133,7 @@ EXPORT_SYMBOL(match_token);
+  * as a number in that base.
+  *
+  * Return: On success, sets @result to the integer represented by the
+- * string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * string and returns 0. Returns -EINVAL or -ERANGE on failure.
+  */
+ static int match_number(substring_t *s, int *result, int base)
  {
-@@ -3208,6 +3210,9 @@ static int proc_pid_ksm_stat(struct seq_file *m, struct pid_namespace *ns,
- 	if (mm) {
- 		seq_printf(m, "ksm_rmap_items %lu\n", mm->ksm_rmap_items);
- 		seq_printf(m, "zero_pages_sharing %lu\n", mm->ksm_zero_pages_sharing);
-+		seq_printf(m, "ksm_merging_pages %lu\n", mm->ksm_merging_pages);
-+		seq_printf(m, "ksm_merge_type %s\n", ksm_merge_type(mm));
-+		seq_printf(m, "ksm_process_profit %ld\n", ksm_process_profit(mm));
- 		mmput(mm);
- 	}
- 
---- a/include/linux/ksm.h~mm-add-new-ksm-process-and-sysfs-knobs
-+++ b/include/linux/ksm.h
-@@ -55,6 +55,11 @@ struct page *ksm_might_need_to_copy(struct page *page,
- void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc);
- void folio_migrate_ksm(struct folio *newfolio, struct folio *folio);
- 
-+#ifdef CONFIG_PROC_FS
-+long ksm_process_profit(struct mm_struct *);
-+const char *ksm_merge_type(struct mm_struct *mm);
-+#endif /* CONFIG_PROC_FS */
-+
- #else  /* !CONFIG_KSM */
- 
- static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
---- a/mm/ksm.c~mm-add-new-ksm-process-and-sysfs-knobs
-+++ b/mm/ksm.c
-@@ -3026,6 +3026,25 @@ static void wait_while_offlining(void)
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
-+#ifdef CONFIG_PROC_FS
-+long ksm_process_profit(struct mm_struct *mm)
-+{
-+	return (long)mm->ksm_merging_pages * PAGE_SIZE -
-+		mm->ksm_rmap_items * sizeof(struct ksm_rmap_item);
-+}
-+
-+/* Return merge type name as string. */
-+const char *ksm_merge_type(struct mm_struct *mm)
-+{
-+	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
-+		return "process";
-+	else if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
-+		return "madvise";
-+	else
-+		return "none";
-+}
-+#endif /* CONFIG_PROC_FS */
-+
- #ifdef CONFIG_SYSFS
- /*
-  * This all compiles without CONFIG_SYSFS, but is a waste of space.
-@@ -3273,8 +3292,7 @@ static ssize_t pages_unshared_show(struct kobject *kobj,
- }
- KSM_ATTR_RO(pages_unshared);
- 
--static ssize_t pages_volatile_show(struct kobject *kobj,
--				   struct kobj_attribute *attr, char *buf)
-+static long pages_volatile(void)
+@@ -165,7 +165,7 @@ static int match_number(substring_t *s, int *result, int base)
+  * as a number in that base.
+  *
+  * Return: On success, sets @result to the integer represented by the
+- * string and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * string and returns 0. Returns -EINVAL or -ERANGE on failure.
+  */
+ static int match_u64int(substring_t *s, u64 *result, int base)
  {
- 	long ksm_pages_volatile;
- 
-@@ -3286,7 +3304,14 @@ static ssize_t pages_volatile_show(struct kobject *kobj,
- 	 */
- 	if (ksm_pages_volatile < 0)
- 		ksm_pages_volatile = 0;
--	return sysfs_emit(buf, "%ld\n", ksm_pages_volatile);
-+
-+	return ksm_pages_volatile;
-+}
-+
-+static ssize_t pages_volatile_show(struct kobject *kobj,
-+				   struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%ld\n", pages_volatile());
- }
- KSM_ATTR_RO(pages_volatile);
- 
-@@ -3297,6 +3322,21 @@ static ssize_t zero_pages_sharing_show(struct kobject *kobj,
- }
- KSM_ATTR_RO(zero_pages_sharing);
- 
-+static ssize_t general_profit_show(struct kobject *kobj,
-+				   struct kobj_attribute *attr, char *buf)
-+{
-+	long general_profit;
-+	long all_rmap_items;
-+
-+	all_rmap_items = ksm_max_page_sharing + ksm_pages_shared +
-+				ksm_pages_unshared + pages_volatile();
-+	general_profit = ksm_pages_sharing * PAGE_SIZE -
-+				all_rmap_items * sizeof(struct ksm_rmap_item);
-+
-+	return sysfs_emit(buf, "%ld\n", general_profit);
-+}
-+KSM_ATTR_RO(general_profit);
-+
- static ssize_t stable_node_dups_show(struct kobject *kobj,
- 				     struct kobj_attribute *attr, char *buf)
+@@ -189,7 +189,7 @@ static int match_u64int(substring_t *s, u64 *result, int base)
+  * Description: Attempts to parse the &substring_t @s as a decimal integer.
+  *
+  * Return: On success, sets @result to the integer represented by the string
+- * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * and returns 0. Returns -EINVAL or -ERANGE on failure.
+  */
+ int match_int(substring_t *s, int *result)
  {
-@@ -3362,6 +3402,7 @@ static struct attribute *ksm_attrs[] = {
- 	&stable_node_dups_attr.attr,
- 	&stable_node_chains_prune_millisecs_attr.attr,
- 	&use_zero_pages_attr.attr,
-+	&general_profit_attr.attr,
- 	NULL,
- };
- 
+@@ -205,7 +205,7 @@ EXPORT_SYMBOL(match_int);
+  * Description: Attempts to parse the &substring_t @s as a decimal integer.
+  *
+  * Return: On success, sets @result to the integer represented by the string
+- * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * and returns 0. Returns -EINVAL or -ERANGE on failure.
+  */
+ int match_uint(substring_t *s, unsigned int *result)
+ {
+@@ -228,7 +228,7 @@ EXPORT_SYMBOL(match_uint);
+  * integer.
+  *
+  * Return: On success, sets @result to the integer represented by the string
+- * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * and returns 0. Returns -EINVAL or -ERANGE on failure.
+  */
+ int match_u64(substring_t *s, u64 *result)
+ {
+@@ -244,7 +244,7 @@ EXPORT_SYMBOL(match_u64);
+  * Description: Attempts to parse the &substring_t @s as an octal integer.
+  *
+  * Return: On success, sets @result to the integer represented by the string
+- * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * and returns 0. Returns -EINVAL or -ERANGE on failure.
+  */
+ int match_octal(substring_t *s, int *result)
+ {
+@@ -260,7 +260,7 @@ EXPORT_SYMBOL(match_octal);
+  * Description: Attempts to parse the &substring_t @s as a hexadecimal integer.
+  *
+  * Return: On success, sets @result to the integer represented by the string
+- * and returns 0. Returns -ENOMEM, -EINVAL, or -ERANGE on failure.
++ * and returns 0. Returns -EINVAL or -ERANGE on failure.
+  */
+ int match_hex(substring_t *s, int *result)
+ {
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from ebiggers@google.com are
 
-mm-add-new-api-to-enable-ksm-per-process.patch
-mm-add-new-ksm-process-and-sysfs-knobs.patch
-selftests-mm-add-new-selftests-for-ksm.patch
+lib-parser-update-documentation-for-match_number-functions.patch
 
