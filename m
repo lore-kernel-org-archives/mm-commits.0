@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B87FC6FA8E
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 05:16:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27A86C64ED6
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 05:16:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229523AbjBZFQn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Feb 2023 00:16:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46236 "EHLO
+        id S229598AbjBZFQt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Feb 2023 00:16:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229512AbjBZFQm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 00:16:42 -0500
+        with ESMTP id S229512AbjBZFQp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 00:16:45 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DA1C12053
-        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 21:16:40 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86FFF12053
+        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 21:16:43 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E135560BE9
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 05:16:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34DEDC433EF;
-        Sun, 26 Feb 2023 05:16:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0C91D60BE9
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 05:16:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F61BC433D2;
+        Sun, 26 Feb 2023 05:16:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677388599;
-        bh=iqkhsc6OG//gLMvqXSOS/7weovNrEcGiqs4QMBHV5kQ=;
+        s=korg; t=1677388602;
+        bh=BUFWXfiEnPwDS4AJefyqPm4XSpcOZB6SETGKI0Lfefc=;
         h=Date:To:From:Subject:From;
-        b=eThOzn3cFqtrYUWUI48RDC0XI9UlCKAM+74NHqZJgCU0bWDfNtEBep+QOk1GsFRGO
-         c43hBSHrKf0FeBdtXVz3wWDV/J6mHxfjj438ls+Zu3eDirMajyEyAU8161BjZBjW4E
-         m2jZNxKpE0EuGJ/ltjGeHkbg8x/HWhDJ9VRsIP6g=
-Date:   Sat, 25 Feb 2023 21:16:38 -0800
+        b=T9xHAefSjSDnulAxTVObSk/NhEUZKoLh9nwUJXaSlAMOfil3xiuemA5XXPNTXzKUO
+         6TwdNzEloigmLxOJN5gCM96FsgeaUKAZeg87cSbzUBGvhCPYqjpANVzfAAv7P3ahRc
+         SNravRDCflTgljceRs0JyxR+0nQNv1gugdFunnnM=
+Date:   Sat, 25 Feb 2023 21:16:41 -0800
 To:     mm-commits@vger.kernel.org, riel@surriel.com, mhocko@suse.com,
         hannes@cmpxchg.org, david@redhat.com, bagasdotme@gmail.com,
         shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-new-api-to-enable-ksm-per-process.patch added to mm-unstable branch
-Message-Id: <20230226051639.34DEDC433EF@smtp.kernel.org>
+Subject: + mm-add-new-ksm-process-and-sysfs-knobs.patch added to mm-unstable branch
+Message-Id: <20230226051642.5F61BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add new api to enable ksm per process
+     Subject: mm: add new KSM process and sysfs knobs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-new-api-to-enable-ksm-per-process.patch
+     mm-add-new-ksm-process-and-sysfs-knobs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-new-api-to-enable-ksm-per-process.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-new-ksm-process-and-sysfs-knobs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,381 +66,230 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: add new api to enable ksm per process
-Date: Thu, 23 Feb 2023 20:39:58 -0800
+Subject: mm: add new KSM process and sysfs knobs
+Date: Thu, 23 Feb 2023 20:39:59 -0800
 
-Patch series "mm: process/cgroup ksm support", v3.
+This adds the general_profit KSM sysfs knob and the process profit metric
+and process merge type knobs to ksm_stat.
 
-So far KSM can only be enabled by calling madvise for memory regions.  To
-be able to use KSM for more workloads, KSM needs to have the ability to be
-enabled / disabled at the process / cgroup level.
+1) split off pages_volatile function
 
-Use case 1:
+   This splits off the pages_volatile function.  The next patch will
+   use this function.
 
-  The madvise call is not available in the programming language.  An
-  example for this are programs with forked workloads using a garbage
-  collected language without pointers.  In such a language madvise cannot
-  be made available.
+2) expose general_profit metric
 
-  In addition the addresses of objects get moved around as they are
-  garbage collected.  KSM sharing needs to be enabled "from the outside"
-  for these type of workloads.
+   The documentation mentions a general profit metric, however this
+   metric is not calculated.  In addition the formula depends on the size
+   of internal structures, which makes it more difficult for an
+   administrator to make the calculation.  Adding the metric for a better
+   user experience.
 
-Use case 2:
+3) document general_profit sysfs knob
 
-  The same interpreter can also be used for workloads where KSM brings
-  no benefit or even has overhead.  We'd like to be able to enable KSM on
-  a workload by workload basis.
+4) calculate ksm process profit metric
 
-Use case 3:
+   The ksm documentation mentions the process profit metric and how to
+   calculate it.  This adds the calculation of the metric.
 
-  With the madvise call sharing opportunities are only enabled for the
-  current process: it is a workload-local decision.  A considerable number
-  of sharing opportuniites may exist across multiple workloads or jobs. 
-  Only a higler level entity like a job scheduler or container can know
-  for certain if its running one or more instances of a job.  That job
-  scheduler however doesn't have the necessary internal worklaod knowledge
-  to make targeted madvise calls.
+5) add ksm_merge_type() function
 
-Security concerns:
+   This adds the ksm_merge_type function.  The function returns the
+   merge type for the process.  For madvise it returns "madvise", for
+   prctl it returns "process" and otherwise it returns "none".
 
-  In previous discussions security concerns have been brought up.  The
-  problem is that an individual workload does not have the knowledge about
-  what else is running on a machine.  Therefore it has to be very
-  conservative in what memory areas can be shared or not.  However, if the
-  system is dedicated to running multiple jobs within the same security
-  domain, its the job scheduler that has the knowledge that sharing can be
-  safely enabled and is even desirable.
+6) mm: expose ksm process profit metric and merge type in ksm_stat
 
-Performance:
+   This exposes the ksm process profit metric in /proc/<pid>/ksm_stat.
+   The name of the value is ksm_merge_type.  The documentation mentions
+   the formula for the ksm process profit metric, however it does not
+   calculate it.  In addition the formula depends on the size of internal
+   structures.  So it makes sense to expose it.
 
-  Experiments with using UKSM have shown a capacity increase of around
-  20%.
+7) document new procfs ksm knobs
 
-
-1. New options for prctl system command
-
-   This patch series adds two new options to the prctl system call. 
-   The first one allows to enable KSM at the process level and the second
-   one to query the setting.
-
-   The setting will be inherited by child processes.
-
-   With the above setting, KSM can be enabled for the seed process of a
-   cgroup and all processes in the cgroup will inherit the setting.
-
-2. Changes to KSM processing
-
-   When KSM is enabled at the process level, the KSM code will iterate
-   over all the VMA's and enable KSM for the eligible VMA's.
-
-   When forking a process that has KSM enabled, the setting will be
-   inherited by the new child process.
-
-   In addition when KSM is disabled for a process, KSM will be disabled
-   for the VMA's where KSM has been enabled.
-
-3. Add general_profit metric
-
-   The general_profit metric of KSM is specified in the documentation,
-   but not calculated.  This adds the general profit metric to
-   /sys/kernel/debug/mm/ksm.
-
-4. Add more metrics to ksm_stat
-
-   This adds the process profit and ksm type metric to
-   /proc/<pid>/ksm_stat.
-
-5. Add more tests to ksm_tests
-
-   This adds an option to specify the merge type to the ksm_tests. 
-   This allows to test madvise and prctl KSM.  It also adds a new option
-   to query if prctl KSM has been enabled.  It adds a fork test to verify
-   that the KSM process setting is inherited by client processes.
-
-
-This patch (of 3):
-
-This adds a new prctl to API to enable and disable KSM on a per process
-basis instead of only at the VMA basis (with madvise).
-
-1) Introduce new MMF_VM_MERGE_ANY flag
-
-   This introduces the new flag MMF_VM_MERGE_ANY flag.  When this flag
-   is set, kernel samepage merging (ksm) gets enabled for all vma's of a
-   process.
-
-2) add flag to __ksm_enter
-
-   This change adds the flag parameter to __ksm_enter.  This allows to
-   distinguish if ksm was called by prctl or madvise.
-
-3) add flag to __ksm_exit call
-
-   This adds the flag parameter to the __ksm_exit() call.  This allows
-   to distinguish if this call is for an prctl or madvise invocation.
-
-4) invoke madvise for all vmas in scan_get_next_rmap_item
-
-   If the new flag MMF_VM_MERGE_ANY has been set for a process, iterate
-   over all the vmas and enable ksm if possible.  For the vmas that can be
-   ksm enabled this is only done once.
-
-5) support disabling of ksm for a process
-
-   This adds the ability to disable ksm for a process if ksm has been
-   enabled for the process.
-
-6) add new prctl option to get and set ksm for a process
-
-   This adds two new options to the prctl system call
-   - enable ksm for all vmas of a process (if the vmas support it).
-   - query if ksm has been enabled for a process.
-
-Link: https://lkml.kernel.org/r/20230224044000.3084046-1-shr@devkernel.io
-Link: https://lkml.kernel.org/r/20230224044000.3084046-2-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20230224044000.3084046-3-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
+Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Rik van Riel <riel@surriel.com>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/ksm.h~mm-add-new-api-to-enable-ksm-per-process
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-ksm~mm-add-new-ksm-process-and-sysfs-knobs
++++ b/Documentation/ABI/testing/sysfs-kernel-mm-ksm
+@@ -51,3 +51,11 @@ Description:	Control merging pages across different NUMA nodes.
+ 
+ 		When it is set to 0 only pages from the same node are merged,
+ 		otherwise pages from all nodes can be merged together (default).
++
++What:		/sys/kernel/mm/ksm/general_profit
++Date:		January 2023
++KernelVersion:  6.1
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:	Measure how effective KSM is.
++		general_profit: how effective is KSM. The formula for the
++		calculation is in Documentation/admin-guide/mm/ksm.rst.
+--- a/Documentation/admin-guide/mm/ksm.rst~mm-add-new-ksm-process-and-sysfs-knobs
++++ b/Documentation/admin-guide/mm/ksm.rst
+@@ -157,6 +157,8 @@ stable_node_chains_prune_millisecs
+ 
+ The effectiveness of KSM and MADV_MERGEABLE is shown in ``/sys/kernel/mm/ksm/``:
+ 
++general_profit
++        how effective is KSM. The calculation is explained below.
+ pages_shared
+         how many shared pages are being used
+ pages_sharing
+@@ -214,7 +216,8 @@ several times, which are unprofitable memory consumed.
+ 			  ksm_rmap_items * sizeof(rmap_item).
+ 
+    where ksm_merging_pages is shown under the directory ``/proc/<pid>/``,
+-   and ksm_rmap_items is shown in ``/proc/<pid>/ksm_stat``.
++   and ksm_rmap_items is shown in ``/proc/<pid>/ksm_stat``. The process profit
++   is also shown in ``/proc/<pid>/ksm_stat`` as ksm_process_profit.
+ 
+ From the perspective of application, a high ratio of ``ksm_rmap_items`` to
+ ``ksm_merging_pages`` means a bad madvise-applied policy, so developers or
+@@ -225,6 +228,9 @@ so if the ``ksm_rmap_items/ksm_merging_pages`` ratio exceeds 64 on 64-bit CPU
+ or exceeds 128 on 32-bit CPU, then the app's madvise policy should be dropped,
+ because the ksm profit is approximately zero or negative.
+ 
++The ksm_merge_type in ``/proc/<pid>/ksm_stat`` shows the merge type of the
++process. Valid values are ``none``, ``madvise`` and ``process``.
++
+ Monitoring KSM events
+ =====================
+ 
+--- a/fs/proc/base.c~mm-add-new-ksm-process-and-sysfs-knobs
++++ b/fs/proc/base.c
+@@ -96,6 +96,7 @@
+ #include <linux/time_namespace.h>
+ #include <linux/resctrl.h>
+ #include <linux/cn_proc.h>
++#include <linux/ksm.h>
+ #include <trace/events/oom.h>
+ #include "internal.h"
+ #include "fd.h"
+@@ -3199,6 +3200,7 @@ static int proc_pid_ksm_merging_pages(struct seq_file *m, struct pid_namespace *
+ 
+ 	return 0;
+ }
++
+ static int proc_pid_ksm_stat(struct seq_file *m, struct pid_namespace *ns,
+ 				struct pid *pid, struct task_struct *task)
+ {
+@@ -3208,6 +3210,9 @@ static int proc_pid_ksm_stat(struct seq_file *m, struct pid_namespace *ns,
+ 	if (mm) {
+ 		seq_printf(m, "ksm_rmap_items %lu\n", mm->ksm_rmap_items);
+ 		seq_printf(m, "zero_pages_sharing %lu\n", mm->ksm_zero_pages_sharing);
++		seq_printf(m, "ksm_merging_pages %lu\n", mm->ksm_merging_pages);
++		seq_printf(m, "ksm_merge_type %s\n", ksm_merge_type(mm));
++		seq_printf(m, "ksm_process_profit %ld\n", ksm_process_profit(mm));
+ 		mmput(mm);
+ 	}
+ 
+--- a/include/linux/ksm.h~mm-add-new-ksm-process-and-sysfs-knobs
 +++ b/include/linux/ksm.h
-@@ -18,20 +18,24 @@
- #ifdef CONFIG_KSM
- int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 		unsigned long end, int advice, unsigned long *vm_flags);
--int __ksm_enter(struct mm_struct *mm);
--void __ksm_exit(struct mm_struct *mm);
-+int __ksm_enter(struct mm_struct *mm, int flag);
-+void __ksm_exit(struct mm_struct *mm, int flag);
+@@ -55,6 +55,11 @@ struct page *ksm_might_need_to_copy(struct page *page,
+ void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc);
+ void folio_migrate_ksm(struct folio *newfolio, struct folio *folio);
+ 
++#ifdef CONFIG_PROC_FS
++long ksm_process_profit(struct mm_struct *);
++const char *ksm_merge_type(struct mm_struct *mm);
++#endif /* CONFIG_PROC_FS */
++
+ #else  /* !CONFIG_KSM */
  
  static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
- {
-+	if (test_bit(MMF_VM_MERGE_ANY, &oldmm->flags))
-+		return __ksm_enter(mm, MMF_VM_MERGE_ANY);
- 	if (test_bit(MMF_VM_MERGEABLE, &oldmm->flags))
--		return __ksm_enter(mm);
-+		return __ksm_enter(mm, MMF_VM_MERGEABLE);
- 	return 0;
- }
- 
- static inline void ksm_exit(struct mm_struct *mm)
- {
--	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
--		__ksm_exit(mm);
-+	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
-+		__ksm_exit(mm, MMF_VM_MERGE_ANY);
-+	else if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
-+		__ksm_exit(mm, MMF_VM_MERGEABLE);
- }
- 
- /*
---- a/include/linux/sched/coredump.h~mm-add-new-api-to-enable-ksm-per-process
-+++ b/include/linux/sched/coredump.h
-@@ -90,4 +90,5 @@ static inline int get_dumpable(struct mm_struct *mm)
- #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
- 				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK)
- 
-+#define MMF_VM_MERGE_ANY	29
- #endif /* _LINUX_SCHED_COREDUMP_H */
---- a/include/uapi/linux/prctl.h~mm-add-new-api-to-enable-ksm-per-process
-+++ b/include/uapi/linux/prctl.h
-@@ -290,4 +290,6 @@ struct prctl_mm_map {
- #define PR_SET_VMA		0x53564d41
- # define PR_SET_VMA_ANON_NAME		0
- 
-+#define PR_SET_MEMORY_MERGE		67
-+#define PR_GET_MEMORY_MERGE		68
- #endif /* _LINUX_PRCTL_H */
---- a/kernel/sys.c~mm-add-new-api-to-enable-ksm-per-process
-+++ b/kernel/sys.c
-@@ -15,6 +15,7 @@
- #include <linux/highuid.h>
- #include <linux/fs.h>
- #include <linux/kmod.h>
-+#include <linux/ksm.h>
- #include <linux/perf_event.h>
- #include <linux/resource.h>
- #include <linux/kernel.h>
-@@ -2661,6 +2662,34 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
- 	case PR_SET_VMA:
- 		error = prctl_set_vma(arg2, arg3, arg4, arg5);
- 		break;
-+#ifdef CONFIG_KSM
-+	case PR_SET_MEMORY_MERGE:
-+		if (!capable(CAP_SYS_RESOURCE))
-+			return -EPERM;
-+
-+		if (arg2) {
-+			if (mmap_write_lock_killable(me->mm))
-+				return -EINTR;
-+
-+			if (test_bit(MMF_VM_MERGEABLE, &me->mm->flags))
-+				error = -EINVAL;
-+			else if (!test_bit(MMF_VM_MERGE_ANY, &me->mm->flags))
-+				error = __ksm_enter(me->mm, MMF_VM_MERGE_ANY);
-+			mmap_write_unlock(me->mm);
-+		} else {
-+			__ksm_exit(me->mm, MMF_VM_MERGE_ANY);
-+		}
-+		break;
-+	case PR_GET_MEMORY_MERGE:
-+		if (!capable(CAP_SYS_RESOURCE))
-+			return -EPERM;
-+
-+		if (arg2 || arg3 || arg4 || arg5)
-+			return -EINVAL;
-+
-+		error = !!test_bit(MMF_VM_MERGE_ANY, &me->mm->flags);
-+		break;
-+#endif
- 	default:
- 		error = -EINVAL;
- 		break;
---- a/mm/ksm.c~mm-add-new-api-to-enable-ksm-per-process
+--- a/mm/ksm.c~mm-add-new-ksm-process-and-sysfs-knobs
 +++ b/mm/ksm.c
-@@ -1063,6 +1063,7 @@ static int unmerge_and_remove_all_rmap_items(void)
- 
- 			mm_slot_free(mm_slot_cache, mm_slot);
- 			clear_bit(MMF_VM_MERGEABLE, &mm->flags);
-+			clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
- 			mmdrop(mm);
- 		} else
- 			spin_unlock(&ksm_mmlist_lock);
-@@ -2331,6 +2332,17 @@ static struct ksm_rmap_item *get_next_rmap_item(struct ksm_mm_slot *mm_slot,
- 	return rmap_item;
+@@ -3026,6 +3026,25 @@ static void wait_while_offlining(void)
  }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
  
-+static bool vma_ksm_mergeable(struct vm_area_struct *vma)
++#ifdef CONFIG_PROC_FS
++long ksm_process_profit(struct mm_struct *mm)
 +{
-+	if (vma->vm_flags & VM_MERGEABLE)
-+		return true;
-+
-+	if (test_bit(MMF_VM_MERGE_ANY, &vma->vm_mm->flags))
-+		return true;
-+
-+	return false;
++	return (long)mm->ksm_merging_pages * PAGE_SIZE -
++		mm->ksm_rmap_items * sizeof(struct ksm_rmap_item);
 +}
 +
- static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
- {
- 	struct mm_struct *mm;
-@@ -2407,8 +2419,20 @@ static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
- 		goto no_vmas;
- 
- 	for_each_vma(vmi, vma) {
--		if (!(vma->vm_flags & VM_MERGEABLE))
-+		if (!vma_ksm_mergeable(vma))
- 			continue;
-+		if (!(vma->vm_flags & VM_MERGEABLE)) {
-+			unsigned long flags = vma->vm_flags;
-+
-+			/* madvise failed, use next vma */
-+			if (ksm_madvise(vma, vma->vm_start, vma->vm_end, MADV_MERGEABLE, &flags))
-+				continue;
-+			/* vma, not supported as being mergeable */
-+			if (!(flags & VM_MERGEABLE))
-+				continue;
-+
-+			vm_flags_set(vma, VM_MERGEABLE);
-+		}
- 		if (ksm_scan.address < vma->vm_start)
- 			ksm_scan.address = vma->vm_start;
- 		if (!vma->anon_vma)
-@@ -2493,6 +2517,7 @@ static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
- 
- 		mm_slot_free(mm_slot_cache, mm_slot);
- 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
-+		clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
- 		mmap_read_unlock(mm);
- 		mmdrop(mm);
- 	} else {
-@@ -2597,8 +2622,9 @@ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 			return 0;
- #endif
- 
--		if (!test_bit(MMF_VM_MERGEABLE, &mm->flags)) {
--			err = __ksm_enter(mm);
-+		if (!test_bit(MMF_VM_MERGEABLE, &mm->flags) &&
-+		    !test_bit(MMF_VM_MERGE_ANY, &mm->flags)) {
-+			err = __ksm_enter(mm, MMF_VM_MERGEABLE);
- 			if (err)
- 				return err;
- 		}
-@@ -2624,7 +2650,7 @@ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- }
- EXPORT_SYMBOL_GPL(ksm_madvise);
- 
--int __ksm_enter(struct mm_struct *mm)
-+int __ksm_enter(struct mm_struct *mm, int flag)
- {
- 	struct ksm_mm_slot *mm_slot;
- 	struct mm_slot *slot;
-@@ -2657,7 +2683,7 @@ int __ksm_enter(struct mm_struct *mm)
- 		list_add_tail(&slot->mm_node, &ksm_scan.mm_slot->slot.mm_node);
- 	spin_unlock(&ksm_mmlist_lock);
- 
--	set_bit(MMF_VM_MERGEABLE, &mm->flags);
-+	set_bit(flag, &mm->flags);
- 	mmgrab(mm);
- 
- 	if (needs_wakeup)
-@@ -2666,12 +2692,39 @@ int __ksm_enter(struct mm_struct *mm)
- 	return 0;
- }
- 
--void __ksm_exit(struct mm_struct *mm)
-+static void unmerge_vmas(struct mm_struct *mm)
++/* Return merge type name as string. */
++const char *ksm_merge_type(struct mm_struct *mm)
 +{
-+	struct vm_area_struct *vma;
-+	struct vma_iterator vmi;
++	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
++		return "process";
++	else if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
++		return "madvise";
++	else
++		return "none";
++}
++#endif /* CONFIG_PROC_FS */
 +
-+	vma_iter_init(&vmi, mm, 0);
+ #ifdef CONFIG_SYSFS
+ /*
+  * This all compiles without CONFIG_SYSFS, but is a waste of space.
+@@ -3273,8 +3292,7 @@ static ssize_t pages_unshared_show(struct kobject *kobj,
+ }
+ KSM_ATTR_RO(pages_unshared);
+ 
+-static ssize_t pages_volatile_show(struct kobject *kobj,
+-				   struct kobj_attribute *attr, char *buf)
++static long pages_volatile(void)
+ {
+ 	long ksm_pages_volatile;
+ 
+@@ -3286,7 +3304,14 @@ static ssize_t pages_volatile_show(struct kobject *kobj,
+ 	 */
+ 	if (ksm_pages_volatile < 0)
+ 		ksm_pages_volatile = 0;
+-	return sysfs_emit(buf, "%ld\n", ksm_pages_volatile);
 +
-+	mmap_read_lock(mm);
-+	for_each_vma(vmi, vma) {
-+		if (vma->vm_flags & VM_MERGEABLE) {
-+			unsigned long flags = vma->vm_flags;
-+
-+			if (ksm_madvise(vma, vma->vm_start, vma->vm_end, MADV_UNMERGEABLE, &flags))
-+				continue;
-+
-+			vm_flags_clear(vma, VM_MERGEABLE);
-+		}
-+	}
-+	mmap_read_unlock(mm);
++	return ksm_pages_volatile;
 +}
 +
-+void __ksm_exit(struct mm_struct *mm, int flag)
- {
- 	struct ksm_mm_slot *mm_slot;
- 	struct mm_slot *slot;
- 	int easy_to_free = 0;
++static ssize_t pages_volatile_show(struct kobject *kobj,
++				   struct kobj_attribute *attr, char *buf)
++{
++	return sysfs_emit(buf, "%ld\n", pages_volatile());
+ }
+ KSM_ATTR_RO(pages_volatile);
  
-+	if (!(current->flags & PF_EXITING) && flag == MMF_VM_MERGE_ANY &&
-+		test_bit(MMF_VM_MERGE_ANY, &mm->flags)) {
-+		clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
-+		unmerge_vmas(mm);
-+	}
+@@ -3297,6 +3322,21 @@ static ssize_t zero_pages_sharing_show(struct kobject *kobj,
+ }
+ KSM_ATTR_RO(zero_pages_sharing);
+ 
++static ssize_t general_profit_show(struct kobject *kobj,
++				   struct kobj_attribute *attr, char *buf)
++{
++	long general_profit;
++	long all_rmap_items;
 +
- 	/*
- 	 * This process is exiting: if it's straightforward (as is the
- 	 * case when ksmd was never running), free mm_slot immediately.
-@@ -2698,7 +2751,7 @@ void __ksm_exit(struct mm_struct *mm)
++	all_rmap_items = ksm_max_page_sharing + ksm_pages_shared +
++				ksm_pages_unshared + pages_volatile();
++	general_profit = ksm_pages_sharing * PAGE_SIZE -
++				all_rmap_items * sizeof(struct ksm_rmap_item);
++
++	return sysfs_emit(buf, "%ld\n", general_profit);
++}
++KSM_ATTR_RO(general_profit);
++
+ static ssize_t stable_node_dups_show(struct kobject *kobj,
+ 				     struct kobj_attribute *attr, char *buf)
+ {
+@@ -3362,6 +3402,7 @@ static struct attribute *ksm_attrs[] = {
+ 	&stable_node_dups_attr.attr,
+ 	&stable_node_chains_prune_millisecs_attr.attr,
+ 	&use_zero_pages_attr.attr,
++	&general_profit_attr.attr,
+ 	NULL,
+ };
  
- 	if (easy_to_free) {
- 		mm_slot_free(mm_slot_cache, mm_slot);
--		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
-+		clear_bit(flag, &mm->flags);
- 		mmdrop(mm);
- 	} else if (mm_slot) {
- 		mmap_write_lock(mm);
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
