@@ -2,134 +2,122 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46E19C64ED6
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 22:40:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AE0FC64ED6
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 23:17:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229818AbjBZWks (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Feb 2023 17:40:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53438 "EHLO
+        id S229593AbjBZXRi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Feb 2023 18:17:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229550AbjBZWkr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 17:40:47 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D8B8F96B
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 14:40:46 -0800 (PST)
+        with ESMTP id S229470AbjBZXRh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 18:17:37 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9881612859
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 15:17:36 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 6FC56CE0EA3
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 22:40:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 934ECC433D2;
-        Sun, 26 Feb 2023 22:40:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 36BCF60C58
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 23:17:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AD0FC433D2;
+        Sun, 26 Feb 2023 23:17:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677451242;
-        bh=e2hxr3taXKdBmyhUXCwOflICYhetEpt6A4nw/FV3/U8=;
+        s=korg; t=1677453455;
+        bh=vdWj9oOb4FpoT41auFhegnxiyK9wYPNbRwFe7iKUqUI=;
         h=Date:To:From:Subject:From;
-        b=rPlblYqwnrlLRpffIkHOk4f0W3C+/vw8vEDRrqxvndd1IaMYjQW6Afpwqtm+sQie3
-         0Gvu7XnCWGUlfIfP8EemkxAPcG8QpZEBjnCZQePJl8wrEXpt0OZzEE17xdJuKQ50iL
-         AzvtbqlF8DuaKxTAAeRFo9v6KjLUs0E2AxF+gLRg=
-Date:   Sun, 26 Feb 2023 14:40:41 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        senozhatsky@chromium.org, rostedt@goodmis.org, pmladek@suse.com,
-        john.ogness@linutronix.de, joe@perches.com, david@redhat.com,
-        andriy.shevchenko@linux.intel.com, 42.hyeyoo@gmail.com,
+        b=TFk1C7pTKg5pwifX912fRVJ25JNzIeR0lRUosepDc+lo8gvJ9XXuKlRu6Yep2UKUp
+         SKbN8SUQyU2bo/PGarLGL8Pb4li+oJ//bXiTE5mveS9Ch0ImKGGOz59k5AAaX3LAyj
+         3+zRHsN2sbrohbbHrlyi3rC04RiIgGlmLqpCHQJI=
+Date:   Sun, 26 Feb 2023 15:17:34 -0800
+To:     mm-commits@vger.kernel.org, hch@infradead.org,
+        bryan.odonoghue@linaro.org, kbusch@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-debug-use-%pgt-to-display-page_type-in-dump_page.patch added to mm-unstable branch
-Message-Id: <20230226224042.934ECC433D2@smtp.kernel.org>
+Subject: [folded-merged] dmapool-link-blocks-across-pages-fix.patch removed from -mm tree
+Message-Id: <20230226231735.8AD0FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/debug: use %pGt to display page_type in dump_page()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-debug-use-%pgt-to-display-page_type-in-dump_page.patch
+The quilt patch titled
+     Subject: dmapool: push new blocks in ascending order
+has been removed from the -mm tree.  Its filename was
+     dmapool-link-blocks-across-pages-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug-use-%pgt-to-display-page_type-in-dump_page.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into dmapool-link-blocks-across-pages.patch
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm/debug: use %pGt to display page_type in dump_page()
-Date: Mon, 30 Jan 2023 13:25:14 +0900
+From: Keith Busch <kbusch@kernel.org>
+Subject: dmapool: push new blocks in ascending order
+Date: Tue, 21 Feb 2023 08:54:00 -0800
 
-Some page flags are stored in page_type rather than ->flags field.
-Use newly introduced page type %pGt in dump_page().
+Some users of the dmapool need their allocations to happen in ascending
+order.  The recent optimizations pushed the blocks in reverse order, so
+restore the previous behavior by linking the next available block from
+low-to-high.
 
-Below are some examples:
+usb/chipidea/udc.c qh_pool called "ci_hw_qh".  My initial thought was
+dmapool isn't the right API if you need a specific order when allocating
+from it, but I can't readily test any changes to that driver.  Restoring
+the previous behavior is easy enough.
 
-page:00000000da7184dd refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x101cb3
-flags: 0x2ffff0000000000(node=0|zone=2|lastcpupid=0xffff)
-page_type: 0xffffffff()
-raw: 02ffff0000000000 0000000000000000 dead000000000122 0000000000000000
-raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
-page dumped because: newly allocated page
-
-page:00000000da7184dd refcount:0 mapcount:-128 mapping:0000000000000000 index:0x0 pfn:0x101cb3
-flags: 0x2ffff0000000000(node=0|zone=2|lastcpupid=0xffff)
-page_type: 0xffffff7f(buddy)
-raw: 02ffff0000000000 ffff88813fff8e80 ffff88813fff8e80 0000000000000000
-raw: 0000000000000000 0000000000000000 00000000ffffff7f 0000000000000000
-page dumped because: freed page
-
-page:0000000042202316 refcount:3 mapcount:2 mapping:0000000000000000 index:0x7f634722a pfn:0x11994e
-memcg:ffff888100135000
-anon flags: 0x2ffff0000080024(uptodate|active|swapbacked|node=0|zone=2|lastcpupid=0xffff)
-page_type: 0x1()
-raw: 02ffff0000080024 0000000000000000 dead000000000122 ffff8881193398f1
-raw: 00000007f634722a 0000000000000000 0000000300000001 ffff888100135000
-page dumped because: user-mapped page
-
-Link: https://lkml.kernel.org/r/20230130042514.2418-4-42.hyeyoo@gmail.com
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20230221165400.1595247-1-kbusch@meta.com
+Fixes: ced6d06a81fb69 ("dmapool: link blocks across pages")
+Signed-off-by: Keith Busch <kbusch@kernel.org>
+Reported-by: Bryan O'Donoghue <bryan.odonoghue@linaro.org>
+Tested-by: Bryan O'Donoghue <bryan.odonoghue@linaro.org>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff --git a/mm/debug.c~mm-debug-use-%pgt-to-display-page_type-in-dump_page b/mm/debug.c
---- a/mm/debug.c~mm-debug-use-%pgt-to-display-page_type-in-dump_page
-+++ b/mm/debug.c
-@@ -120,6 +120,8 @@ static void __dump_page(struct page *page)
+--- a/mm/dmapool.c~dmapool-link-blocks-across-pages-fix
++++ b/mm/dmapool.c
+@@ -301,7 +301,7 @@ EXPORT_SYMBOL(dma_pool_create);
+ static void pool_initialise_page(struct dma_pool *pool, struct dma_page *page)
+ {
+ 	unsigned int next_boundary = pool->boundary, offset = 0;
+-	struct dma_block *block;
++	struct dma_block *block, *first = NULL, *last = NULL;
  
- 	pr_warn("%sflags: %pGp%s\n", type, &head->flags,
- 		page_cma ? " CMA" : "");
-+	pr_warn("page_type: %pGt\n", &head->page_type);
+ 	pool_init_page(pool, page);
+ 	while (offset + pool->size <= pool->allocation) {
+@@ -312,11 +312,22 @@ static void pool_initialise_page(struct dma_pool *pool, struct dma_page *page)
+ 		}
+ 
+ 		block = page->vaddr + offset;
+-		pool_block_push(pool, block, page->dma + offset);
++		block->dma = page->dma + offset;
++		block->next_block = NULL;
 +
- 	print_hex_dump(KERN_WARNING, "raw: ", DUMP_PREFIX_NONE, 32,
- 			sizeof(unsigned long), page,
- 			sizeof(struct page), false);
++		if (last)
++			last->next_block = block;
++		else
++			first = block;
++		last = block;
++
+ 		offset += pool->size;
+ 		pool->nr_blocks++;
+ 	}
+ 
++	last->next_block = pool->next_block;
++	pool->next_block = first;
++
+ 	list_add(&page->page_list, &pool->page_list);
+ 	pool->nr_pages++;
+ }
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from kbusch@kernel.org are
 
-mmflagsh-use-less-error-prone-method-to-define-pageflag_names.patch
-mm-printk-introduce-new-format-%pgt-for-page_type.patch
-mm-debug-use-%pgt-to-display-page_type-in-dump_page.patch
+dmapool-add-alloc-free-performance-test.patch
+dmapool-move-debug-code-to-own-functions.patch
+dmapool-rearrange-page-alloc-failure-handling.patch
+dmapool-consolidate-page-initialization.patch
+dmapool-simplify-freeing.patch
+dmapool-dont-memset-on-free-twice.patch
+dmapool-link-blocks-across-pages.patch
+dmapool-create-destroy-cleanup.patch
 
