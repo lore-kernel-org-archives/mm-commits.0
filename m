@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D65BEC6FA8E
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 05:03:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AFE9C6FA8E
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 05:03:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229445AbjBZFDu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Feb 2023 00:03:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40488 "EHLO
+        id S229581AbjBZFDw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Feb 2023 00:03:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229581AbjBZFDt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 00:03:49 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3F3F12F12
-        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 21:03:47 -0800 (PST)
+        with ESMTP id S229609AbjBZFDv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 00:03:51 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02AF412857
+        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 21:03:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6274860BFE
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 05:03:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BACC7C4339B;
-        Sun, 26 Feb 2023 05:03:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8653060BE9
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 05:03:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E029AC433D2;
+        Sun, 26 Feb 2023 05:03:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677387826;
-        bh=frETuUypxpVW9nyNUz8ROX4aM50EMrUBZdHQgUe9/yY=;
+        s=korg; t=1677387829;
+        bh=skXkGkJGoGG/pJA6DcbK010HznhLgvD1KuGFJWvmE/w=;
         h=Date:To:From:Subject:From;
-        b=CM8NkyAmzZZSE+fY49O7ERIsoViawErnHb7W1BLnsB8GlHmoaQdapHRAoyw+D/KNj
-         OfZ1nUR//+5htzLMEXJBqaSwMQeigmGluFIkCREMUSqsYZVZCSMp9ZbR/RoWodTWHr
-         xP5UjLoCe+HSiPS45L/WUXX4GZdaKgcKxeEuMMHc=
-Date:   Sat, 25 Feb 2023 21:03:45 -0800
+        b=u16lBHgxcBwy2NR2haI93ZvnKUrne+AjnQiIHfSD0dUYJ5hbpw1H9v0+OyWgE27uE
+         kUFGjGk5De375BK9ykOHgOAE2ILTaltkDyt489sGdhHcFghhhBHObUo4tB1zfZ3Dnj
+         MenGxM7v1btKrRlSP6SwJF69/CWu3Xm55EBm0q5w=
+Date:   Sat, 25 Feb 2023 21:03:48 -0800
 To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         tglx@linutronix.de, ryabinin.a.a@gmail.com, peterz@infradead.org,
         nicolas@fjasle.eu, ndesaulniers@google.com, nathan@kernel.org,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
         dvyukov@google.com, dave.hansen@linux.intel.com, bp@alien8.de,
         andreyknvl@gmail.com, elver@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-test-fix-test-for-new-meminstrinsic-instrumentation.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230226050346.BACC7C4339B@smtp.kernel.org>
+Subject: + kasan-x86-dont-rename-memintrinsics-in-uninstrumented-files.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230226050348.E029AC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: test: fix test for new meminstrinsic instrumentation
+     Subject: kasan, x86: don't rename memintrinsics in uninstrumented files
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kasan-test-fix-test-for-new-meminstrinsic-instrumentation.patch
+     kasan-x86-dont-rename-memintrinsics-in-uninstrumented-files.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-test-fix-test-for-new-meminstrinsic-instrumentation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-x86-dont-rename-memintrinsics-in-uninstrumented-files.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,24 +70,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kasan: test: fix test for new meminstrinsic instrumentation
-Date: Fri, 24 Feb 2023 09:59:41 +0100
+Subject: kasan, x86: don't rename memintrinsics in uninstrumented files
+Date: Fri, 24 Feb 2023 09:59:42 +0100
 
-The tests for memset/memmove have been failing since they haven't been
-instrumented in 69d4c0d32186.
+Now that memcpy/memset/memmove are no longer overridden by KASAN, we can
+just use the normal symbol names in uninstrumented files.
 
-Fix the test to recognize when memintrinsics aren't instrumented, and skip
-test cases accordingly.  We also need to conditionally pass -fno-builtin
-to the test, otherwise the instrumentation pass won't recognize
-memintrinsics and end up not instrumenting them either.
+Drop the preprocessor redefinitions.
 
-Link: https://lkml.kernel.org/r/20230224085942.1791837-3-elver@google.com
+Link: https://lkml.kernel.org/r/20230224085942.1791837-4-elver@google.com
 Fixes: 69d4c0d32186 ("entry, kasan, x86: Disallow overriding mem*() functions")
-Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
 Signed-off-by: Marco Elver <elver@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Tested-by: Linux Kernel Functional Testing <lkft@linaro.org>
-Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
@@ -96,6 +90,8 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jakub Jelinek <jakub@redhat.com>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Linux Kernel Functional Testing <lkft@linaro.org>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nick Desaulniers <ndesaulniers@google.com>
 Cc: Nicolas Schier <nicolas@fjasle.eu>
@@ -106,132 +102,34 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/kasan/kasan_test.c~kasan-test-fix-test-for-new-meminstrinsic-instrumentation
-+++ b/mm/kasan/kasan_test.c
-@@ -165,6 +165,15 @@ static void kasan_test_exit(struct kunit *test)
- 		kunit_skip((test), "Test requires " #config "=n");	\
- } while (0)
+--- a/arch/x86/include/asm/string_64.h~kasan-x86-dont-rename-memintrinsics-in-uninstrumented-files
++++ b/arch/x86/include/asm/string_64.h
+@@ -85,25 +85,6 @@ char *strcpy(char *dest, const char *src);
+ char *strcat(char *dest, const char *src);
+ int strcmp(const char *cs, const char *ct);
  
-+#define KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test) do {		\
-+	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS))				\
-+		break;  /* No compiler instrumentation. */		\
-+	if (IS_ENABLED(CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX))	\
-+		break;  /* Should always be instrumented! */		\
-+	if (IS_ENABLED(CONFIG_GENERIC_ENTRY))				\
-+		kunit_skip((test), "Test requires checked mem*()");	\
-+} while (0)
-+
- static void kmalloc_oob_right(struct kunit *test)
- {
- 	char *ptr;
-@@ -454,6 +463,8 @@ static void kmalloc_oob_16(struct kunit *test)
- 		u64 words[2];
- 	} *ptr1, *ptr2;
- 
-+	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
-+
- 	/* This test is specifically crafted for the generic mode. */
- 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
- 
-@@ -476,6 +487,8 @@ static void kmalloc_uaf_16(struct kunit *test)
- 		u64 words[2];
- 	} *ptr1, *ptr2;
- 
-+	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
-+
- 	ptr1 = kmalloc(sizeof(*ptr1), GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
- 
-@@ -498,6 +511,8 @@ static void kmalloc_oob_memset_2(struct kunit *test)
- 	char *ptr;
- 	size_t size = 128 - KASAN_GRANULE_SIZE;
- 
-+	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
-+
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 
-@@ -511,6 +526,8 @@ static void kmalloc_oob_memset_4(struct kunit *test)
- 	char *ptr;
- 	size_t size = 128 - KASAN_GRANULE_SIZE;
- 
-+	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
-+
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 
-@@ -524,6 +541,8 @@ static void kmalloc_oob_memset_8(struct kunit *test)
- 	char *ptr;
- 	size_t size = 128 - KASAN_GRANULE_SIZE;
- 
-+	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
-+
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 
-@@ -537,6 +556,8 @@ static void kmalloc_oob_memset_16(struct kunit *test)
- 	char *ptr;
- 	size_t size = 128 - KASAN_GRANULE_SIZE;
- 
-+	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
-+
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 
-@@ -550,6 +571,8 @@ static void kmalloc_oob_in_memset(struct kunit *test)
- 	char *ptr;
- 	size_t size = 128 - KASAN_GRANULE_SIZE;
- 
-+	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
-+
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 
-@@ -566,6 +589,8 @@ static void kmalloc_memmove_negative_size(struct kunit *test)
- 	size_t size = 64;
- 	size_t invalid_size = -2;
- 
-+	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
-+
- 	/*
- 	 * Hardware tag-based mode doesn't check memmove for negative size.
- 	 * As a result, this test introduces a side-effect memory corruption,
-@@ -590,6 +615,8 @@ static void kmalloc_memmove_invalid_size(struct kunit *test)
- 	size_t size = 64;
- 	size_t invalid_size = size;
- 
-+	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
-+
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 
-@@ -618,6 +645,8 @@ static void kmalloc_uaf_memset(struct kunit *test)
- 	char *ptr;
- 	size_t size = 33;
- 
-+	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
-+
- 	/*
- 	 * Only generic KASAN uses quarantine, which is required to avoid a
- 	 * kernel memory corruption this test causes.
---- a/mm/kasan/Makefile~kasan-test-fix-test-for-new-meminstrinsic-instrumentation
-+++ b/mm/kasan/Makefile
-@@ -35,7 +35,14 @@ CFLAGS_shadow.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_hw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
- CFLAGS_sw_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
- 
--CFLAGS_KASAN_TEST := $(CFLAGS_KASAN) -fno-builtin $(call cc-disable-warning, vla)
-+CFLAGS_KASAN_TEST := $(CFLAGS_KASAN) $(call cc-disable-warning, vla)
-+ifndef CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX
-+# If compiler instruments memintrinsics by prefixing them with __asan/__hwasan,
-+# we need to treat them normally (as builtins), otherwise the compiler won't
-+# recognize them as instrumentable. If it doesn't instrument them, we need to
-+# pass -fno-builtin, so the compiler doesn't inline them.
-+CFLAGS_KASAN_TEST += -fno-builtin
-+endif
- 
- CFLAGS_kasan_test.o := $(CFLAGS_KASAN_TEST)
- CFLAGS_kasan_test_module.o := $(CFLAGS_KASAN_TEST)
+-#if (defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__))
+-/*
+- * For files that not instrumented (e.g. mm/slub.c) we
+- * should use not instrumented version of mem* functions.
+- */
+-
+-#undef memcpy
+-#define memcpy(dst, src, len) __memcpy(dst, src, len)
+-#undef memmove
+-#define memmove(dst, src, len) __memmove(dst, src, len)
+-#undef memset
+-#define memset(s, c, n) __memset(s, c, n)
+-
+-#ifndef __NO_FORTIFY
+-#define __NO_FORTIFY /* FORTIFY_SOURCE uses __builtin_memcpy, etc. */
+-#endif
+-
+-#endif
+-
+ #ifdef CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE
+ #define __HAVE_ARCH_MEMCPY_FLUSHCACHE 1
+ void __memcpy_flushcache(void *dst, const void *src, size_t cnt);
 _
 
 Patches currently in -mm which might be from elver@google.com are
