@@ -2,85 +2,127 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F14CC64ED6
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 04:13:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B091AC64ED6
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 04:31:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbjBZENP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 25 Feb 2023 23:13:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40546 "EHLO
+        id S229662AbjBZEbR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 25 Feb 2023 23:31:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229486AbjBZENO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Feb 2023 23:13:14 -0500
-Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 753377D97
-        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 20:13:13 -0800 (PST)
-Received: by mail-ed1-x52d.google.com with SMTP id d30so12907046eda.4
-        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 20:13:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=nPj9sJVzmTzKFB9cxNvS+JRlaKods9oYWgBQku2a2L8=;
-        b=CafQUTlsPDHDc2CFQJxnO1AlvGQiJGYr0Ppa+3TBpisRU4X3unCfXutJ4NeYoal0jC
-         DL6H/+0M89/cgSPhR6FHIO7yuFnpQ7JdnjTE8FRYszvWOvIKlKIiyi0lDvOzv35A379h
-         /V/g4WFFUm7XvEbClTJc35on2eiNeGcswApbc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=nPj9sJVzmTzKFB9cxNvS+JRlaKods9oYWgBQku2a2L8=;
-        b=TtU8w0kyaLKsxU6mHiHC2USEJ/rEHbjAeaUcRCtv5A9dICfql3yxC774jkTQw8rDrL
-         wTKLPmaC50MHV5bdzcGOq19ibv2qXJ11bgNfOr6ggxa6DDWx/H6aTRJeY+BYXxf2pFJ1
-         053BK+Qb6uGhlrfpk/azi3Flh87Xqzk+PCEnhd/W/DDzkSf7qzTIms6d/7B8dAdJkEE4
-         dn5Hwk34ZuGxQtT8eHMEzWJhux95tGf6Cg8dkdfR1+JfSdkeuFHsVSVmdyEoarU/qSAZ
-         KI2cVFIQN24eFMO4QsJNvhfyYTrlUoREZmOuZYIyWZrTmrX/4p3jU5OG4iftF4FNt01S
-         01VA==
-X-Gm-Message-State: AO0yUKWEtfmj7nM0hk+b0rd/DRY/cLHiT3hwxg8l0IREv7uR3cyJDGg9
-        iMNtMJrl6c99JbvyI/Xq9ruY0IXsyS/BGbTlkKbTog==
-X-Google-Smtp-Source: AK7set9qgiiNPZ9lFtVYuJkH5YqqWt56yLY/fOgnbMIjgsRdRFlxIK87gT2en5DIUR1Mu7PleZ6IpA==
-X-Received: by 2002:a17:906:e285:b0:8b1:15ab:f4cd with SMTP id gg5-20020a170906e28500b008b115abf4cdmr30559583ejb.53.1677384791540;
-        Sat, 25 Feb 2023 20:13:11 -0800 (PST)
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com. [209.85.208.49])
-        by smtp.gmail.com with ESMTPSA id x2-20020a170906658200b008bfe95c46c3sm1529078ejn.220.2023.02.25.20.13.10
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 25 Feb 2023 20:13:10 -0800 (PST)
-Received: by mail-ed1-f49.google.com with SMTP id ee7so12953116edb.2
-        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 20:13:10 -0800 (PST)
-X-Received: by 2002:a17:906:8508:b0:8d0:2c55:1aa with SMTP id
- i8-20020a170906850800b008d02c5501aamr10538324ejx.0.1677384790526; Sat, 25 Feb
- 2023 20:13:10 -0800 (PST)
-MIME-Version: 1.0
-References: <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org>
- <CAHk-=whVN2gKO_7UvMqgG8cetrVs3BCTxQovJvhC5x7AcJDJgQ@mail.gmail.com>
- <CAHk-=wgxWDgLJ-e3uDiYQvmMEqTNYFvDxtHbu4inR=zgBEP11Q@mail.gmail.com>
- <CAHk-=wjFmVL7NiuxL54qLkoabni_yD-oF9=dpDgETtdsiCbhUg@mail.gmail.com>
- <20230225195727.1b73a356f4f1a79833a31885@linux-foundation.org> <CAHk-=whpy3yHt0X5Vb97kdvtryj93KVTJs07zLZVJ8zEXH=Q-A@mail.gmail.com>
-In-Reply-To: <CAHk-=whpy3yHt0X5Vb97kdvtryj93KVTJs07zLZVJ8zEXH=Q-A@mail.gmail.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Sat, 25 Feb 2023 20:12:53 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wjo3-YZfsG4qJEjMBPxoCC57uWVtyez9LQQu+JTCNtfgg@mail.gmail.com>
-Message-ID: <CAHk-=wjo3-YZfsG4qJEjMBPxoCC57uWVtyez9LQQu+JTCNtfgg@mail.gmail.com>
-Subject: Re: [GIT PULL] MM updates for 6.3-rc1
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     "Liam R. Howlett" <Liam.Howlett@oracle.com>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        with ESMTP id S229625AbjBZEbN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Feb 2023 23:31:13 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDC767AA4
+        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 20:31:09 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A3A0FB80956
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 04:31:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E7FBC433D2;
+        Sun, 26 Feb 2023 04:31:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1677385867;
+        bh=rviduVVrbk3BWgAG+Jog0C+muFoJmogzRxZXME9vrnQ=;
+        h=Date:To:From:Subject:From;
+        b=g4/9gKNiSp/G964UOInu6W3/9vy7xPY4djlx6iitfoo8KWNs/1t/obzz5h6C7aoQl
+         JYtZq9MXaqfgK2IoDzocP3CnyNQRysa8ZQVa0NY6qbBuMGH62tftif++Bhot/lHDDw
+         xCCFeOsgjI+V6UbyGWRBYtHqHaiHK9kzNS1E77mw=
+Date:   Sat, 25 Feb 2023 20:31:06 -0800
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        minchan@kernel.org, axboe@kernel.dk, geert+renesas@glider.be,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + zram-show-zsmalloc-objs_moved-stat-in-mm_stat-fix.patch added to mm-unstable branch
+Message-Id: <20230226043107.5E7FBC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sat, Feb 25, 2023 at 8:03=E2=80=AFPM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> Will test right away. It's certainly right in that suspicious area.
 
-Yup. That fixes it for me.
+The patch titled
+     Subject: zram: use atomic_long_read() to read atomic_long_t
+has been added to the -mm mm-unstable branch.  Its filename is
+     zram-show-zsmalloc-objs_moved-stat-in-mm_stat-fix.patch
 
-I'll just apply it directly.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-show-zsmalloc-objs_moved-stat-in-mm_stat-fix.patch
 
-              Linus
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: zram: use atomic_long_read() to read atomic_long_t
+Date: Sat, 25 Feb 2023 13:15:23 +0100
+
+On 32-bit:
+
+    drivers/block/zram/zram_drv.c: In function `mm_stat_show':
+    drivers/block/zram/zram_drv.c:1234:23: error: passing argument 1 of `atomic64_read' from incompatible pointer type [-Werror=incompatible-pointer-types]
+     1234 |    (u64)atomic64_read(&pool_stats.objs_moved));
+	  |                       ^~~~~~~~~~~~~~~~~~~~~~
+	  |                       |
+	  |                       atomic_long_t * {aka struct <anonymous> *}
+    In file included from ./include/linux/atomic.h:82,
+		     from ./include/linux/mm_types_task.h:13,
+		     from ./include/linux/mm_types.h:5,
+		     from ./include/linux/buildid.h:5,
+		     from ./include/linux/module.h:14,
+		     from drivers/block/zram/zram_drv.c:18:
+    ./include/linux/atomic/atomic-instrumented.h:644:33: note: expected `const atomic64_t *' {aka `const struct <anonymous> *'} but argument is of type `atomic_long_t *' {aka `struct <anonymous> *'}
+      644 | atomic64_read(const atomic64_t *v)
+	  |               ~~~~~~~~~~~~~~~~~~^
+
+Fix this by using atomic_long_read() instead.
+
+Link: https://lkml.kernel.org/r/20230225121523.3288544-1-geert+renesas@glider.be
+Fixes: b7d89654a988a2a4 ("zram: show zsmalloc objs_moved stat in mm_stat")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reported-by; <noreply@ellerman.id.au>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+
+--- a/drivers/block/zram/zram_drv.c~zram-show-zsmalloc-objs_moved-stat-in-mm_stat-fix
++++ b/drivers/block/zram/zram_drv.c
+@@ -1221,7 +1221,7 @@ static ssize_t mm_stat_show(struct device *dev,
+ 	max_used = atomic_long_read(&zram->stats.max_used_pages);
+ 
+ 	ret = scnprintf(buf, PAGE_SIZE,
+-			"%8llu %8llu %8llu %8lu %8ld %8llu %8lu %8llu %8llu %8llu\n",
++			"%8llu %8llu %8llu %8lu %8ld %8llu %8lu %8llu %8llu %8lu\n",
+ 			orig_size << PAGE_SHIFT,
+ 			(u64)atomic64_read(&zram->stats.compr_data_size),
+ 			mem_used << PAGE_SHIFT,
+@@ -1231,7 +1231,7 @@ static ssize_t mm_stat_show(struct device *dev,
+ 			atomic_long_read(&pool_stats.pages_compacted),
+ 			(u64)atomic64_read(&zram->stats.huge_pages),
+ 			(u64)atomic64_read(&zram->stats.huge_pages_since),
+-			(u64)atomic64_read(&pool_stats.objs_moved));
++			atomic_long_read(&pool_stats.objs_moved));
+ 	up_read(&zram->init_lock);
+ 
+ 	return ret;
+_
+
+Patches currently in -mm which might be from geert+renesas@glider.be are
+
+zram-show-zsmalloc-objs_moved-stat-in-mm_stat-fix.patch
+
