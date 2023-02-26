@@ -2,78 +2,174 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 500AAC64ED6
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 19:41:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 751E4C7EE2D
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 20:00:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229549AbjBZTlQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Feb 2023 14:41:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42102 "EHLO
+        id S229766AbjBZUAL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Feb 2023 15:00:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229540AbjBZTlQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 14:41:16 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 399371285F
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 11:41:15 -0800 (PST)
+        with ESMTP id S229379AbjBZUAL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 15:00:11 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D94816AE3;
+        Sun, 26 Feb 2023 12:00:08 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E8DC9B80955
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 19:41:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 074C2C433EF;
-        Sun, 26 Feb 2023 19:41:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5E7B0B80955;
+        Sun, 26 Feb 2023 20:00:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EC1CC4339B;
+        Sun, 26 Feb 2023 20:00:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677440472;
-        bh=GlNsIL8B/vY1+Ir4GLmDSruUxDZwr0LO6B26CbOy0HE=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=Lnbdxe2pyp71+CIMjAVJlwz4gm1WsR4YjS9MGPEPziSsIouyR6aszTtjA+fbnJzVi
-         hdribPZrkfhe6API/2I7kTjaremFqTJSHyPaD3z8/MRHpGeqrJF1TbYuXGkUVteg1Q
-         7DRPAF5kxAQFytlPbKCQvUPz4+aNYB+K8xqj5Wmk=
-Date:   Sun, 26 Feb 2023 11:41:11 -0800
+        s=korg; t=1677441606;
+        bh=MCxC4Ad0/g4X+Sd2byjVyKPXXUvjBPS2WtXw6w1C4Nc=;
+        h=Date:To:From:Subject:From;
+        b=eQq3sZ9uC4RAiqtCh2PhpTrIynyHogv3qlhr+8jbYWichs7sfc4xshRHQP/VybdeN
+         xB5NRSsD8nccMU8v01VmVtDvFIwU/iuzWJKBQkdXwbMB9Eqh34C/bsUrdIZxDI8YSe
+         bH/aLF62TTixulzEcRy9Qvz+utQiZIPvoGVYO/Tc=
+Date:   Sun, 26 Feb 2023 12:00:05 -0800
+To:     mm-commits@vger.kernel.org, vgoyal@redhat.com,
+        stable@vger.kernel.org, pmladek@suse.com, mikelley@microsoft.com,
+        keescook@chromium.org, hidehiro.kawai.ez@hitachi.com,
+        feng.tang@intel.com, dyoung@redhat.com, d.hatayama@jp.fujitsu.com,
+        bhe@redhat.com, gpiccoli@igalia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Borislav Petkov <bp@alien8.de>
-Cc:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        tglx@linutronix.de, ryabinin.a.a@gmail.com, peterz@infradead.org,
-        nicolas@fjasle.eu, ndesaulniers@google.com, nathan@kernel.org,
-        naresh.kamboju@linaro.org, mingo@redhat.com, lkft@linaro.org,
-        keescook@chromium.org, jakub@redhat.com, glider@google.com,
-        dvyukov@google.com, dave.hansen@linux.intel.com,
-        andreyknvl@gmail.com, elver@google.com
-Subject: Re: +
- kasan-emit-different-calls-for-instrumentable-memintrinsics.patch added to
- mm-hotfixes-unstable branch
-Message-Id: <20230226114111.405aa7d661076a45feb70a96@linux-foundation.org>
-In-Reply-To: <Y/s7q4EAXRticRvR@zn.tnic>
-References: <20230226050340.CFC98C433D2@smtp.kernel.org>
-        <Y/s7q4EAXRticRvR@zn.tnic>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: + panic-fixes-the-panic_print-nmi-backtrace-setting.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230226200006.0EC1CC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sun, 26 Feb 2023 11:59:55 +0100 Borislav Petkov <bp@alien8.de> wrote:
 
-> On Sat, Feb 25, 2023 at 09:03:40PM -0800, Andrew Morton wrote:
-> > --- a/mm/kasan/shadow.c~kasan-emit-different-calls-for-instrumentable-memintrinsics
-> > +++ b/mm/kasan/shadow.c
-> > @@ -107,6 +107,17 @@ void *__asan_memcpy(void *dest, const void *src, size_t len)
-> >  }
-> >  EXPORT_SYMBOL(__asan_memcpy);
-> >  
-> > +#ifdef CONFIG_KASAN_SW_TAGS
-> > +void *__hwasan_memset(void *addr, int c, size_t len) __alias(__asan_memset);
-> > +EXPORT_SYMBOL(__hwasan_memset);
-> > +#ifdef __HAVE_ARCH_MEMMOVE
-> > +void *__hwasan_memmove(void *dest, const void *src, size_t len) __alias(__asan_memmove);
-> > +EXPORT_SYMBOL(__hwasan_memmove);
-> > +#endif
-> > +void *__hwasan_memcpy(void *dest, const void *src, size_t len) __alias(__asan_memcpy);
-> > +EXPORT_SYMBOL(__hwasan_memcpy);
-> 
-> Any particular reason those exports are not _GPL?
+The patch titled
+     Subject: panic: fix the panic_print NMI backtrace setting
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     panic-fixes-the-panic_print-nmi-backtrace-setting.patch
 
-mm/kasan/ is an exotic blend of both.  Perhaps the maintainers will
-take a look at this sometime?
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-fixes-the-panic_print-nmi-backtrace-setting.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Subject: panic: fix the panic_print NMI backtrace setting
+Date: Sun, 26 Feb 2023 13:08:38 -0300
+
+Commit 8d470a45d1a6 ("panic: add option to dump all CPUs backtraces in
+panic_print") introduced a setting for the "panic_print" kernel parameter
+to allow users to request a NMI backtrace on panic.  Problem is that the
+panic_print handling happens after the secondary CPUs are already
+disabled, hence this option ended-up being kind of a no-op - kernel skips
+the NMI trace in idling CPUs, which is the case of offline CPUs.
+
+Fix it by checking the NMI backtrace bit in the panic_print prior to the
+CPU disabling function.
+
+Link: https://lkml.kernel.org/r/20230226160838.414257-1-gpiccoli@igalia.com
+Fixes: 8d470a45d1a6 ("panic: add option to dump all CPUs backtraces in panic_print")
+Signed-off-by: Guilherme G. Piccoli <gpiccoli@igalia.com>
+Cc: <stable@vger.kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Michael Kelley <mikelley@microsoft.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+
+--- a/kernel/panic.c~panic-fixes-the-panic_print-nmi-backtrace-setting
++++ b/kernel/panic.c
+@@ -212,9 +212,6 @@ static void panic_print_sys_info(bool console_flush)
+ 		return;
+ 	}
+ 
+-	if (panic_print & PANIC_PRINT_ALL_CPU_BT)
+-		trigger_all_cpu_backtrace();
+-
+ 	if (panic_print & PANIC_PRINT_TASK_INFO)
+ 		show_state();
+ 
+@@ -244,6 +241,30 @@ void check_panic_on_warn(const char *origin)
+ 		      origin, limit);
+ }
+ 
++/*
++ * Helper that triggers the NMI backtrace (if set in panic_print)
++ * and then performs the secondary CPUs shutdown - we cannot have
++ * the NMI backtrace after the CPUs are off!
++ */
++static void panic_other_cpus_shutdown(bool crash_kexec)
++{
++	if (panic_print & PANIC_PRINT_ALL_CPU_BT)
++		trigger_all_cpu_backtrace();
++
++	/*
++	 * Note that smp_send_stop() is the usual SMP shutdown function,
++	 * which unfortunately may not be hardened to work in a panic
++	 * situation. If we want to do crash dump after notifier calls
++	 * and kmsg_dump, we will need architecture dependent extra
++	 * bits in addition to stopping other CPUs, hence we rely on
++	 * crash_smp_send_stop() for that.
++	 */
++	if (!crash_kexec)
++		smp_send_stop();
++	else
++		crash_smp_send_stop();
++}
++
+ /**
+  *	panic - halt the system
+  *	@fmt: The text string to print
+@@ -334,23 +355,10 @@ void panic(const char *fmt, ...)
+ 	 *
+ 	 * Bypass the panic_cpu check and call __crash_kexec directly.
+ 	 */
+-	if (!_crash_kexec_post_notifiers) {
++	if (!_crash_kexec_post_notifiers)
+ 		__crash_kexec(NULL);
+ 
+-		/*
+-		 * Note smp_send_stop is the usual smp shutdown function, which
+-		 * unfortunately means it may not be hardened to work in a
+-		 * panic situation.
+-		 */
+-		smp_send_stop();
+-	} else {
+-		/*
+-		 * If we want to do crash dump after notifier calls and
+-		 * kmsg_dump, we will need architecture dependent extra
+-		 * works in addition to stopping other CPUs.
+-		 */
+-		crash_smp_send_stop();
+-	}
++	panic_other_cpus_shutdown(_crash_kexec_post_notifiers);
+ 
+ 	/*
+ 	 * Run any panic handlers, including those that might need to
+_
+
+Patches currently in -mm which might be from gpiccoli@igalia.com are
+
+panic-fixes-the-panic_print-nmi-backtrace-setting.patch
+
