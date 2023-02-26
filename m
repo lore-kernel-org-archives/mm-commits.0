@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DD40C7EE2D
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 20:27:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24A77C7EE2D
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 20:38:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229539AbjBZU1f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Feb 2023 15:27:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36808 "EHLO
+        id S229587AbjBZUic (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Feb 2023 15:38:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229529AbjBZU1e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 15:27:34 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69A11C652;
-        Sun, 26 Feb 2023 12:27:33 -0800 (PST)
+        with ESMTP id S229811AbjBZUia (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 15:38:30 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 964B4AD19;
+        Sun, 26 Feb 2023 12:38:28 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2B214B80955;
-        Sun, 26 Feb 2023 20:27:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D23DFC433D2;
-        Sun, 26 Feb 2023 20:27:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 22A8D60BDE;
+        Sun, 26 Feb 2023 20:38:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71697C433D2;
+        Sun, 26 Feb 2023 20:38:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677443250;
-        bh=mDpvwUjTBC41wj3URxPDiSPiuuTB7fx5rM316JgomIo=;
+        s=korg; t=1677443907;
+        bh=HkIOnVEs/UFtcw7OaoA5EAHHOx2whzslf0MlL36OnPQ=;
         h=Date:To:From:Subject:From;
-        b=AuGHJP4dPZTXVQXYek14ZrxMrv+hlF+EFguZB46Z3T0yYvuEx5QCGkm9NMDb0DjM7
-         a4u3mYf4z4KgAjrVi2tScRsYGAiKOghvnMbRGwWacXaFPK1ydai7a1GT9z/E+TRn8R
-         oDquISokJOFbTNqs/1s8rTv4gMRAYlLO4WW+KZlM=
-Date:   Sun, 26 Feb 2023 12:27:30 -0800
-To:     mm-commits@vger.kernel.org, tytso@mit.edu, stable@vger.kernel.org,
-        songmuchun@bytedance.com, roman.gushchin@linux.dev,
-        bvanassche@acm.org, axboe@kernel.dk, mudongliangabcd@gmail.com,
-        akpm@linux-foundation.org
+        b=mX9D/bj6VVt9e2AAEoC0m00xEXvrOh6NzpiFxM8kYQE7q9cYYZUWM+KRgTovaUpnn
+         hf23jGU1M6AnR8QarrzeqdeTg8Yk/bfql57DR7vkRfFfUz0egOq7htyJddZgqGoUtA
+         6Fe7JwsFUvpeXn9+q6qukxYNfGR1J8OZqCAfNqHk=
+Date:   Sun, 26 Feb 2023 12:38:26 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        syzbot+8ce7f8308d91e6b8bbe2@syzkaller.appspotmail.com,
+        stable@vger.kernel.org, nico@fluxnic.net,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-hfsplus-fix-uaf-issue-in-hfsplus_put_super.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230226202730.D23DFC433D2@smtp.kernel.org>
+Subject: + fs-cramfs-inodec-initialize-file_ra_state.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230226203827.71697C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: hfsplus: fix UAF issue in hfsplus_put_super
+     Subject: fs/cramfs/inode.c: initialize file_ra_state
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-hfsplus-fix-uaf-issue-in-hfsplus_put_super.patch
+     fs-cramfs-inodec-initialize-file_ra_state.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-hfsplus-fix-uaf-issue-in-hfsplus_put_super.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-cramfs-inodec-initialize-file_ra_state.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,54 +66,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dongliang Mu <mudongliangabcd@gmail.com>
-Subject: fs: hfsplus: fix UAF issue in hfsplus_put_super
-Date: Sun, 26 Feb 2023 20:49:47 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/cramfs/inode.c: initialize file_ra_state
+Date: Sun Feb 26 12:31:11 PM PST 2023
 
-The current hfsplus_put_super first calls hfs_btree_close on
-sbi->ext_tree, then invokes iput on sbi->hidden_dir, resulting in an
-use-after-free issue in hfsplus_release_folio.
+file_ra_state_init() assumes that the file_ra_state has been zeroed out. 
+Fixes a KMSAN used-unintialized issue (at least).
 
-As shown in hfsplus_fill_super, the error handling code also calls iput
-before hfs_btree_close.
-
-To fix this error, we move all iput calls before hfsplus_btree_close.
-
-Note that this patch is tested on Syzbot.
-
-Link: https://lkml.kernel.org/r/20230226124948.3175736-1-mudongliangabcd@gmail.com
-Reported-by: syzbot+57e3e98f7e3b80f64d56@syzkaller.appspotmail.com
-Tested-by: Dongliang Mu <mudongliangabcd@gmail.com>
-Signed-off-by: Dongliang Mu <mudongliangabcd@gmail.com>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Fixes: cf948cbc35e80 ("cramfs: read_mapping_page() is synchronous")
+Reported-by: syzbot <syzbot+8ce7f8308d91e6b8bbe2@syzkaller.appspotmail.com>
+  Link: https://lkml.kernel.org/r/0000000000008f74e905f56df987@google.com
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Nicolas Pitre <nico@fluxnic.net>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/hfsplus/super.c~fs-hfsplus-fix-uaf-issue-in-hfsplus_put_super
-+++ b/fs/hfsplus/super.c
-@@ -295,11 +295,11 @@ static void hfsplus_put_super(struct super_block *sb)
- 		hfsplus_sync_fs(sb, 1);
- 	}
- 
-+	iput(sbi->alloc_file);
-+	iput(sbi->hidden_dir);
- 	hfs_btree_close(sbi->attr_tree);
- 	hfs_btree_close(sbi->cat_tree);
- 	hfs_btree_close(sbi->ext_tree);
--	iput(sbi->alloc_file);
--	iput(sbi->hidden_dir);
- 	kfree(sbi->s_vhdr_buf);
- 	kfree(sbi->s_backup_vhdr_buf);
- 	unload_nls(sbi->nls);
+--- a/fs/cramfs/inode.c~fs-cramfs-inodec-initialize-file_ra_state
++++ b/fs/cramfs/inode.c
+@@ -183,7 +183,7 @@ static void *cramfs_blkdev_read(struct super_block *sb, unsigned int offset,
+ 				unsigned int len)
+ {
+ 	struct address_space *mapping = sb->s_bdev->bd_inode->i_mapping;
+-	struct file_ra_state ra;
++	struct file_ra_state ra = {};
+ 	struct page *pages[BLKS_PER_BUF];
+ 	unsigned i, blocknr, buffer;
+ 	unsigned long devsize;
 _
 
-Patches currently in -mm which might be from mudongliangabcd@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-hfsplus-fix-uaf-issue-in-hfsplus_put_super.patch
+fs-cramfs-inodec-initialize-file_ra_state.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks-fix.patch
+mm-userfaultfd-support-wp-on-multiple-vmas-fix.patch
 
