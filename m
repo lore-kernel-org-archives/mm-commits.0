@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A71DC7EE2D
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 22:40:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46E19C64ED6
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 22:40:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229819AbjBZWkm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Feb 2023 17:40:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53386 "EHLO
+        id S229818AbjBZWks (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Feb 2023 17:40:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53438 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229620AbjBZWkl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 17:40:41 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE8B1F96B
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 14:40:39 -0800 (PST)
+        with ESMTP id S229550AbjBZWkr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 17:40:47 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D8B8F96B
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 14:40:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6C2E6B80B98
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 22:40:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24C79C433EF;
-        Sun, 26 Feb 2023 22:40:37 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 6FC56CE0EA3
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 22:40:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 934ECC433D2;
+        Sun, 26 Feb 2023 22:40:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677451237;
-        bh=r32BY3Y9/AeKUfMKGuxJfCxjRxf4Upe+y+crgI4W1IQ=;
+        s=korg; t=1677451242;
+        bh=e2hxr3taXKdBmyhUXCwOflICYhetEpt6A4nw/FV3/U8=;
         h=Date:To:From:Subject:From;
-        b=G1yclqR7FIkAY4npa9d6mPkLsf8yF7Ttp+E7wt7xTS/nm9grElQvcJ2Hjc7CIrlsp
-         KYsZAq/r5fgdHJ46GY2IVe1rWnqSTIA5oSP24Dn7Jmd+QdLRgc5sO7vhKRX1AHgRfy
-         xkL4u+oSVj/mLsJMnijmACAuPWKtEdcFCsEf4IAc=
-Date:   Sun, 26 Feb 2023 14:40:36 -0800
+        b=rPlblYqwnrlLRpffIkHOk4f0W3C+/vw8vEDRrqxvndd1IaMYjQW6Afpwqtm+sQie3
+         0Gvu7XnCWGUlfIfP8EemkxAPcG8QpZEBjnCZQePJl8wrEXpt0OZzEE17xdJuKQ50iL
+         AzvtbqlF8DuaKxTAAeRFo9v6KjLUs0E2AxF+gLRg=
+Date:   Sun, 26 Feb 2023 14:40:41 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         senozhatsky@chromium.org, rostedt@goodmis.org, pmladek@suse.com,
         john.ogness@linutronix.de, joe@perches.com, david@redhat.com,
         andriy.shevchenko@linux.intel.com, 42.hyeyoo@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmflagsh-use-less-error-prone-method-to-define-pageflag_names.patch added to mm-unstable branch
-Message-Id: <20230226224037.24C79C433EF@smtp.kernel.org>
+Subject: + mm-debug-use-%pgt-to-display-page_type-in-dump_page.patch added to mm-unstable branch
+Message-Id: <20230226224042.934ECC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmflags.h: use less error prone method to define pageflag_names
+     Subject: mm/debug: use %pGt to display page_type in dump_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmflagsh-use-less-error-prone-method-to-define-pageflag_names.patch
+     mm-debug-use-%pgt-to-display-page_type-in-dump_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmflagsh-use-less-error-prone-method-to-define-pageflag_names.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug-use-%pgt-to-display-page_type-in-dump_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,162 +68,63 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mmflags.h: use less error prone method to define pageflag_names
-Date: Mon, 30 Jan 2023 13:25:12 +0900
+Subject: mm/debug: use %pGt to display page_type in dump_page()
+Date: Mon, 30 Jan 2023 13:25:14 +0900
 
-Patch series "mm, printk: introduce new format for page_type", v4.
+Some page flags are stored in page_type rather than ->flags field.
+Use newly introduced page type %pGt in dump_page().
 
-This series moves PG_slab page flag to page_type, freeing one bit in
-page->flags and introduces %pGt format that prints human-readable
-page_type like %pGp for printing page flags.
+Below are some examples:
 
-See changelog of patch 2 for more implementation details.
+page:00000000da7184dd refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x101cb3
+flags: 0x2ffff0000000000(node=0|zone=2|lastcpupid=0xffff)
+page_type: 0xffffffff()
+raw: 02ffff0000000000 0000000000000000 dead000000000122 0000000000000000
+raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+page dumped because: newly allocated page
 
-Thanks everyone that gave valuable comments.
+page:00000000da7184dd refcount:0 mapcount:-128 mapping:0000000000000000 index:0x0 pfn:0x101cb3
+flags: 0x2ffff0000000000(node=0|zone=2|lastcpupid=0xffff)
+page_type: 0xffffff7f(buddy)
+raw: 02ffff0000000000 ffff88813fff8e80 ffff88813fff8e80 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffff7f 0000000000000000
+page dumped because: freed page
 
+page:0000000042202316 refcount:3 mapcount:2 mapping:0000000000000000 index:0x7f634722a pfn:0x11994e
+memcg:ffff888100135000
+anon flags: 0x2ffff0000080024(uptodate|active|swapbacked|node=0|zone=2|lastcpupid=0xffff)
+page_type: 0x1()
+raw: 02ffff0000080024 0000000000000000 dead000000000122 ffff8881193398f1
+raw: 00000007f634722a 0000000000000000 0000000300000001 ffff888100135000
+page dumped because: user-mapped page
 
-This patch (of 3):
-
-Use helper macro to decrease chances of typo when defining pageflag_names.
-
-Link: https://lkml.kernel.org/r/20230130042514.2418-1-42.hyeyoo@gmail.com
-Link: https://lore.kernel.org/lkml/Y6AycLbpjVzXM5I9@smile.fi.intel.com
-Link: https://lkml.kernel.org/r/20230130042514.2418-2-42.hyeyoo@gmail.com
+Link: https://lkml.kernel.org/r/20230130042514.2418-4-42.hyeyoo@gmail.com
 Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Joe Perches <joe@perches.com>
+Cc: John Ogness <john.ogness@linutronix.de>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Petr Mladek <pmladek@suse.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: John Ogness <john.ogness@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff --git a/include/trace/events/mmflags.h~mmflagsh-use-less-error-prone-method-to-define-pageflag_names b/include/trace/events/mmflags.h
---- a/include/trace/events/mmflags.h~mmflagsh-use-less-error-prone-method-to-define-pageflag_names
-+++ b/include/trace/events/mmflags.h
-@@ -67,71 +67,74 @@
- 	) : "none"
+diff --git a/mm/debug.c~mm-debug-use-%pgt-to-display-page_type-in-dump_page b/mm/debug.c
+--- a/mm/debug.c~mm-debug-use-%pgt-to-display-page_type-in-dump_page
++++ b/mm/debug.c
+@@ -120,6 +120,8 @@ static void __dump_page(struct page *page)
  
- #ifdef CONFIG_MMU
--#define IF_HAVE_PG_MLOCK(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_MLOCK(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_MLOCK(flag,string)
-+#define IF_HAVE_PG_MLOCK(_name)
- #endif
- 
- #ifdef CONFIG_ARCH_USES_PG_UNCACHED
--#define IF_HAVE_PG_UNCACHED(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_UNCACHED(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_UNCACHED(flag,string)
-+#define IF_HAVE_PG_UNCACHED(_name)
- #endif
- 
- #ifdef CONFIG_MEMORY_FAILURE
--#define IF_HAVE_PG_HWPOISON(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_HWPOISON(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_HWPOISON(flag,string)
-+#define IF_HAVE_PG_HWPOISON(_name)
- #endif
- 
- #if defined(CONFIG_PAGE_IDLE_FLAG) && defined(CONFIG_64BIT)
--#define IF_HAVE_PG_IDLE(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_IDLE(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_IDLE(flag,string)
-+#define IF_HAVE_PG_IDLE(_name)
- #endif
- 
- #ifdef CONFIG_ARCH_USES_PG_ARCH_X
--#define IF_HAVE_PG_ARCH_X(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_ARCH_X(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_ARCH_X(flag,string)
-+#define IF_HAVE_PG_ARCH_X(_name)
- #endif
- 
- #ifdef CONFIG_KASAN_HW_TAGS
--#define IF_HAVE_PG_SKIP_KASAN_POISON(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_SKIP_KASAN_POISON(_name) \
-+	,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_SKIP_KASAN_POISON(flag,string)
-+#define IF_HAVE_PG_SKIP_KASAN_POISON(_name)
- #endif
- 
-+#define DEF_PAGEFLAG_NAME(_name) { 1UL <<  PG_##_name, __stringify(_name) }
+ 	pr_warn("%sflags: %pGp%s\n", type, &head->flags,
+ 		page_cma ? " CMA" : "");
++	pr_warn("page_type: %pGt\n", &head->page_type);
 +
- #define __def_pageflag_names						\
--	{1UL << PG_locked,		"locked"	},		\
--	{1UL << PG_waiters,		"waiters"	},		\
--	{1UL << PG_error,		"error"		},		\
--	{1UL << PG_referenced,		"referenced"	},		\
--	{1UL << PG_uptodate,		"uptodate"	},		\
--	{1UL << PG_dirty,		"dirty"		},		\
--	{1UL << PG_lru,			"lru"		},		\
--	{1UL << PG_active,		"active"	},		\
--	{1UL << PG_workingset,		"workingset"	},		\
--	{1UL << PG_slab,		"slab"		},		\
--	{1UL << PG_owner_priv_1,	"owner_priv_1"	},		\
--	{1UL << PG_arch_1,		"arch_1"	},		\
--	{1UL << PG_reserved,		"reserved"	},		\
--	{1UL << PG_private,		"private"	},		\
--	{1UL << PG_private_2,		"private_2"	},		\
--	{1UL << PG_writeback,		"writeback"	},		\
--	{1UL << PG_head,		"head"		},		\
--	{1UL << PG_mappedtodisk,	"mappedtodisk"	},		\
--	{1UL << PG_reclaim,		"reclaim"	},		\
--	{1UL << PG_swapbacked,		"swapbacked"	},		\
--	{1UL << PG_unevictable,		"unevictable"	}		\
--IF_HAVE_PG_MLOCK(PG_mlocked,		"mlocked"	)		\
--IF_HAVE_PG_UNCACHED(PG_uncached,	"uncached"	)		\
--IF_HAVE_PG_HWPOISON(PG_hwpoison,	"hwpoison"	)		\
--IF_HAVE_PG_IDLE(PG_young,		"young"		)		\
--IF_HAVE_PG_IDLE(PG_idle,		"idle"		)		\
--IF_HAVE_PG_ARCH_X(PG_arch_2,		"arch_2"	)		\
--IF_HAVE_PG_ARCH_X(PG_arch_3,		"arch_3"	)		\
--IF_HAVE_PG_SKIP_KASAN_POISON(PG_skip_kasan_poison, "skip_kasan_poison")
-+	DEF_PAGEFLAG_NAME(locked),					\
-+	DEF_PAGEFLAG_NAME(waiters),					\
-+	DEF_PAGEFLAG_NAME(error),					\
-+	DEF_PAGEFLAG_NAME(referenced),					\
-+	DEF_PAGEFLAG_NAME(uptodate),					\
-+	DEF_PAGEFLAG_NAME(dirty),					\
-+	DEF_PAGEFLAG_NAME(lru),						\
-+	DEF_PAGEFLAG_NAME(active),					\
-+	DEF_PAGEFLAG_NAME(workingset),					\
-+	DEF_PAGEFLAG_NAME(slab),					\
-+	DEF_PAGEFLAG_NAME(owner_priv_1),				\
-+	DEF_PAGEFLAG_NAME(arch_1),					\
-+	DEF_PAGEFLAG_NAME(reserved),					\
-+	DEF_PAGEFLAG_NAME(private),					\
-+	DEF_PAGEFLAG_NAME(private_2),					\
-+	DEF_PAGEFLAG_NAME(writeback),					\
-+	DEF_PAGEFLAG_NAME(head),					\
-+	DEF_PAGEFLAG_NAME(mappedtodisk),				\
-+	DEF_PAGEFLAG_NAME(reclaim),					\
-+	DEF_PAGEFLAG_NAME(swapbacked),					\
-+	DEF_PAGEFLAG_NAME(unevictable)					\
-+IF_HAVE_PG_MLOCK(mlocked)						\
-+IF_HAVE_PG_UNCACHED(uncached)						\
-+IF_HAVE_PG_HWPOISON(hwpoison)						\
-+IF_HAVE_PG_IDLE(idle)							\
-+IF_HAVE_PG_IDLE(young)							\
-+IF_HAVE_PG_ARCH_X(arch_2)						\
-+IF_HAVE_PG_ARCH_X(arch_3)						\
-+IF_HAVE_PG_SKIP_KASAN_POISON(skip_kasan_poison)
- 
- #define show_page_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",				\
+ 	print_hex_dump(KERN_WARNING, "raw: ", DUMP_PREFIX_NONE, 32,
+ 			sizeof(unsigned long), page,
+ 			sizeof(struct page), false);
 _
 
 Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
