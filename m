@@ -2,68 +2,66 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 841B6C64ED6
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 03:57:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1304DC64ED6
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 03:58:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229602AbjBZD5k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 25 Feb 2023 22:57:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51642 "EHLO
+        id S229560AbjBZD6d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 25 Feb 2023 22:58:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229589AbjBZD5j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Feb 2023 22:57:39 -0500
+        with ESMTP id S229731AbjBZD6c (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Feb 2023 22:58:32 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17E66EB69
-        for <mm-commits@vger.kernel.org>; Sat, 25 Feb 2023 19:57:10 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C27D1EF93;
+        Sat, 25 Feb 2023 19:58:08 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 68519B80946
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 03:56:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27E1DC433EF;
-        Sun, 26 Feb 2023 03:56:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3FB75B80B7F;
+        Sun, 26 Feb 2023 03:57:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB023C433D2;
+        Sun, 26 Feb 2023 03:57:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677383779;
-        bh=p2uotpqt4GKrYqjdlV/iHtJN7gavEHWAkgsaqTq5MtE=;
-        h=Date:To:From:Subject:From;
-        b=NBtoFyqq+boKpOOP6tmasfOPKfzR1h2jtBtctfoB60MpAvDzUQ7RlZ9kNcY5XdKNL
-         zLqKK4IMU9j0oAIj9+ulbeNZ3QUAYaLI0sMgwTE6nL2PsUEWfRC4QcigcBf7prBNOr
-         Cmb9eE4nYeUEZ3CmB+09WrrsxM3D0Ztrx5632SVs=
-Date:   Sat, 25 Feb 2023 19:56:18 -0800
-To:     mm-commits@vger.kernel.org, spasswolf@web.de,
-        Liam.Howlett@oracle.com, akpm@linux-foundation.org
+        s=korg; t=1677383848;
+        bh=u5JMUktpUpWlCnTnJk1blSAVxDd9PtV+f1/Md5D2mXQ=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=BB+pWGQCcNTcs6+i/yeNBgfrr0nQt9ronba8ak5FFCkA5yJvJRa1VDuGoz4nE7OnQ
+         oL+j7EcSAc5wfOtSaMOytHTva2IjWusY4cGam8QCNaDcEzisC51FD9YK3x0EF4m1qY
+         4JdWzZY3lbJagBic+7Q4se388wqaseO423ZLkyVE=
+Date:   Sat, 25 Feb 2023 19:57:27 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mprotect-fix-successful-vma_merge-of-next-in-do_mprotect_pkey.patch added to mm-unstable branch
-Message-Id: <20230226035619.27E1DC433EF@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     "Liam R. Howlett" <Liam.Howlett@oracle.com>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PULL] MM updates for 6.3-rc1
+Message-Id: <20230225195727.1b73a356f4f1a79833a31885@linux-foundation.org>
+In-Reply-To: <CAHk-=wjFmVL7NiuxL54qLkoabni_yD-oF9=dpDgETtdsiCbhUg@mail.gmail.com>
+References: <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org>
+        <CAHk-=whVN2gKO_7UvMqgG8cetrVs3BCTxQovJvhC5x7AcJDJgQ@mail.gmail.com>
+        <CAHk-=wgxWDgLJ-e3uDiYQvmMEqTNYFvDxtHbu4inR=zgBEP11Q@mail.gmail.com>
+        <CAHk-=wjFmVL7NiuxL54qLkoabni_yD-oF9=dpDgETtdsiCbhUg@mail.gmail.com>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Sat, 25 Feb 2023 19:53:04 -0800 Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-The patch titled
-     Subject: mm/mprotect: Fix successful vma_merge() of next in do_mprotect_pkey()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mprotect-fix-successful-vma_merge-of-next-in-do_mprotect_pkey.patch
+> On Sat, Feb 25, 2023 at 7:27 PM Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+> >
+> > Will bisect further, but adding Liam to the participants because it's
+> > now narrowed down to his changes.
+> 
+> Ok, it's commit 2286a6914c77 ("mm: change mprotect_fixup to vma iterator")
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-fix-successful-vma_merge-of-next-in-do_mprotect_pkey.patch
+Liam sent us a fix yesterday, hopefully this?
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Subject: mm/mprotect: Fix successful vma_merge() of next in do_mprotect_pkey()
 Date: Fri, 24 Feb 2023 16:20:55 -0500
@@ -96,8 +94,4 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		prot = reqprot;
  	}
 _
-
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
-
-mm-mprotect-fix-successful-vma_merge-of-next-in-do_mprotect_pkey.patch
 
