@@ -2,123 +2,102 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8FCEC64ED8
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 13:21:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 936B5C64ED8
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 21:43:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229486AbjB0NVj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 08:21:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33034 "EHLO
+        id S230121AbjB0VnL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 16:43:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51536 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229996AbjB0NVi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 08:21:38 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1E1B1E2AA
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 05:20:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1677504053;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=GIUaC7K1TYqWkgQiMBQCJNQiY2ZClHrxPQ2oiydBZJ4=;
-        b=K20HJxEXXwARkXCIueLo/peUw09ruA4lZC5U1nyxJnBOoVzjKNTtoNFnd4UW7yOj1xwh5L
-        UkvXpUiow5mdnHwUUjyCsadAlv6S20nCQR9QxuxexBH1sc1vzlivu/sN1Leu5E9bxPgAU9
-        QL0y10e7++5wvOTj/im0wQ18v6kLPn4=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-371-oxBDmthhPsi5Sf1kEf0HUg-1; Mon, 27 Feb 2023 08:20:50 -0500
-X-MC-Unique: oxBDmthhPsi5Sf1kEf0HUg-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        with ESMTP id S229649AbjB0VnK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 16:43:10 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1108283EB
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 13:43:07 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 3D568101B42B;
-        Mon, 27 Feb 2023 13:20:49 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 9F2F7404BEC5;
-        Mon, 27 Feb 2023 13:20:46 +0000 (UTC)
-Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
-        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
-        Kingdom.
-        Registered in England and Wales under Company Registration No. 3798903
-From:   David Howells <dhowells@redhat.com>
-In-Reply-To: <Y/kh8P4oSjunIU7T@casper.infradead.org>
-References: <Y/kh8P4oSjunIU7T@casper.infradead.org> <Y/jhwuTCaOgOTLp2@casper.infradead.org> <2134430.1677240738@warthog.procyon.org.uk> <2009825.1677229488@warthog.procyon.org.uk> <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com> <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org> <2213409.1677249075@warthog.procyon.org.uk> <2385089.1677258941@warthog.procyon.org.uk> <Y/kFnhUM5hjWM2Ae@casper.infradead.org> <2390711.1677269637@warthog.procyon.org.uk> <CAHk-=wgpjrdcs_aFvdHdH6TpOsOmN9S5rXDqCZTB8WqXsZH8Qw@mail.gmail.com>
-To:     Matthew Wilcox <willy@infradead.org>
-Cc:     dhowells@redhat.com,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Steve French <stfrench@microsoft.com>,
-        Vishal Moola <vishal.moola@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jan Kara <jack@suse.cz>, Paulo Alcantara <pc@cjr.nz>,
-        Huang Ying <ying.huang@intel.com>,
-        Baolin Wang <baolin.wang@linux.alibaba.com>,
-        Xin Hao <xhao@linux.alibaba.com>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC][PATCH] cifs: Fix cifs_writepages_region()
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <2675058.1677504045.1@warthog.procyon.org.uk>
-Content-Transfer-Encoding: quoted-printable
-Date:   Mon, 27 Feb 2023 13:20:46 +0000
-Message-ID: <2675059.1677504046@warthog.procyon.org.uk>
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
+        by ams.source.kernel.org (Postfix) with ESMTPS id B5394B80D9A
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 21:43:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C48EC433EF;
+        Mon, 27 Feb 2023 21:43:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1677534184;
+        bh=od2OIxSXDzvIDD9KJKFDyvj54QR8EM3/Kzjcg634yjE=;
+        h=Date:To:From:Subject:From;
+        b=oF52/+rukQtDA+RnxO66igUZSBevkyfBqG9oC0JvjNtAyp7xhEzwJkPqhGLe+eNCn
+         wNy1zHfOztX6Gh59LCRIvn7DqBRlprniK+VOE9EOIQaMBzPHYc4ttWlI5zdLZSTObn
+         EfQB6bWtm+Ox8OJUjwV87deMta//BqyZB48Zoo7w=
+Date:   Mon, 27 Feb 2023 13:43:03 -0800
+To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
+        anna@kernel.org, ubizjak@gmail.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + nfs-remove-empty-if-statement-from-nfs3_prepare_get_acl.patch added to mm-nonmm-unstable branch
+Message-Id: <20230227214304.6C48EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Matthew Wilcox <willy@infradead.org> wrote:
 
-> On Fri, Feb 24, 2023 at 12:16:49PM -0800, Linus Torvalds wrote:
-> > On Fri, Feb 24, 2023 at 12:14 PM David Howells <dhowells@redhat.com> w=
-rote:
-> > >
-> > > Then why do we have to wait for PG_writeback to complete?
-> > =
+The patch titled
+     Subject: nfs: remove empty if statement from nfs3_prepare_get_acl
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nfs-remove-empty-if-statement-from-nfs3_prepare_get_acl.patch
 
-> > At least for PG_writeback, it's about "the _previous_ dirty write is
-> > still under way, but - since PG_dirty is set again - the page has been
-> > dirtied since".
-> > =
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfs-remove-empty-if-statement-from-nfs3_prepare_get_acl.patch
 
-> > So we have to start _another_ writeback, because while the current
-> > writeback *might* have written the updated data, that is not at all
-> > certain or clear.
-> =
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-> also, we only have a writeback bit, not a writeback count.  And when
-> the current writeback completes, it'll clear that bit.  We're also
-> being kind to our backing store and not writing to the same block twice
-> at the same time.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-It's not so much being kind to the backing store, I think, as avoiding the
-possibility that the writes happen out of order.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-> > I'm not sure what the fscache rules are.
-> =
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-> My understanding is that the fscache bit is set under several
-> circumstances, but if the folio is dirty _and_ the fscache bit
-> is set, it means the folio is currently being written to the cache
-> device.  I don't see a conflict there; we can write to the backing
-> store and the cache device at the same time.
+------------------------------------------------------
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: nfs: remove empty if statement from nfs3_prepare_get_acl
+Date: Wed, 30 Nov 2022 16:12:31 +0100
 
-The dirty bit is nothing to do with it.  If the fscache bit is set, then t=
-he
-page is currently being written to the cache - and we need to wait before
-starting another write.
+Remove empty if statement from nfs3_prepare_get_acl and update comment to
+follow the one from the referred fs/posix_acl.c:get_acl().
 
-Sometimes we start a write to the cache from a clean page (e.g. we just re=
-ad
-it from the server) and sometimes we start a write to the cache from
-writepages (e.g. the data is dirty and we're writing it to the server as
-well).
+No functional change intended.
 
-Things will become more 'interesting' should we ever get around to
-implementing disconnected operation.  Then we might end up staging dirty d=
-ata
-through the cache.
+Link: https://lkml.kernel.org/r/20221130151231.3654-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Anna Schumaker <anna@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-David
+
+--- a/fs/nfs/nfs3acl.c~nfs-remove-empty-if-statement-from-nfs3_prepare_get_acl
++++ a/fs/nfs/nfs3acl.c
+@@ -21,9 +21,8 @@ static void nfs3_prepare_get_acl(struct
+ {
+ 	struct posix_acl *sentinel = uncached_acl_sentinel(current);
+ 
+-	if (cmpxchg(p, ACL_NOT_CACHED, sentinel) != ACL_NOT_CACHED) {
+-		/* Not the first reader or sentinel already in place. */
+-	}
++	/* If the ACL isn't being read yet, set our sentinel. */
++	cmpxchg(p, ACL_NOT_CACHED, sentinel);
+ }
+ 
+ static void nfs3_complete_get_acl(struct posix_acl **p, struct posix_acl *acl)
+_
+
+Patches currently in -mm which might be from ubizjak@gmail.com are
+
+nfs-remove-empty-if-statement-from-nfs3_prepare_get_acl.patch
 
