@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 882C3C64ED8
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C434DC7EE30
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230178AbjB0WHE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 17:07:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45292 "EHLO
+        id S229954AbjB0WHF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 17:07:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230177AbjB0WGc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:32 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8254A298CF
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:30 -0800 (PST)
+        with ESMTP id S230191AbjB0WGk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:40 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B98B28879
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1ADAF60F2E
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70410C433EF;
-        Mon, 27 Feb 2023 22:06:29 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id B7295CE1142
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E62FEC433A0;
+        Mon, 27 Feb 2023 22:06:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677535589;
-        bh=qPm6HrsulareHVBys7JuNsBnfzB3nDTRuWrkZAIVKdE=;
+        s=korg; t=1677535595;
+        bh=2Y+MGv/8Qw33DQHoFGiuCv5vEDky2T0pFgaHxAPJtl4=;
         h=Date:To:From:Subject:From;
-        b=IkyYXlt21C1HfwRT+pTOHt9tpBVDPnHNoyQzrL86rFMoZLTI69RvHXOOW1SOF7mFP
-         YSdYRqrVqty1VKX+ARaaBu1gP3sgVXWQNOpl10PqrqKNkq0GmgogM8A7baKn3Icd5Z
-         tHfdiPFlwKaUj9ApYynhAkVnIbOD6zz2kWZ14kaA=
-Date:   Mon, 27 Feb 2023 14:06:28 -0800
+        b=nRiTGQDE6gd1AsIZO2/UA9Tl/GapXe+pujIurV2tjyg450ymj2VsL7CGUbUQrF8+6
+         +MLfrMaSrKkbQ9/cUjifjx94OUWxsw5lRPhw3MKSQ+kfrINy+ffl7/3LTgBObBun8S
+         fhmDaJ/pZzlUn+l6LaVD/I0ef/9FR27+Qatv9xRM=
+Date:   Mon, 27 Feb 2023 14:06:34 -0800
 To:     mm-commits@vger.kernel.org, surenb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-conditionally-write-lock-vma-in-free_pgtables.patch added to mm-unstable branch
-Message-Id: <20230227220629.70410C433EF@smtp.kernel.org>
+Subject: + mm-introduce-vma-detached-flag.patch added to mm-unstable branch
+Message-Id: <20230227220634.E62FEC433A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: conditionally write-lock VMA in free_pgtables
+     Subject: mm: introduce vma detached flag
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-conditionally-write-lock-vma-in-free_pgtables.patch
+     mm-introduce-vma-detached-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-conditionally-write-lock-vma-in-free_pgtables.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-vma-detached-flag.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,82 +65,84 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: conditionally write-lock VMA in free_pgtables
-Date: Mon, 27 Feb 2023 09:36:18 -0800
+Subject: mm: introduce vma detached flag
+Date: Mon, 27 Feb 2023 09:36:21 -0800
 
-Normally free_pgtables needs to lock affected VMAs except for the case
-when VMAs were isolated under VMA write-lock.  munmap() does just that,
-isolating while holding appropriate locks and then downgrading mmap_lock
-and dropping per-VMA locks before freeing page tables.  Add a parameter to
-free_pgtables for such scenario.
+Per-vma locking mechanism will search for VMA under RCU protection and
+then after locking it, has to ensure it was not removed from the VMA tree
+after we found it.  To make this check efficient, introduce a
+vma->detached flag to mark VMAs which were removed from the VMA tree.
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-20-surenb@google.com
+Link: https://lkml.kernel.org/r/20230227173632.3292573-23-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/internal.h~mm-conditionally-write-lock-vma-in-free_pgtables
-+++ a/mm/internal.h
-@@ -105,7 +105,7 @@ void folio_activate(struct folio *folio)
- 
- void free_pgtables(struct mmu_gather *tlb, struct maple_tree *mt,
- 		   struct vm_area_struct *start_vma, unsigned long floor,
--		   unsigned long ceiling);
-+		   unsigned long ceiling, bool mm_wr_locked);
- void pmd_install(struct mm_struct *mm, pmd_t *pmd, pgtable_t *pte);
- 
- struct zap_details;
---- a/mm/memory.c~mm-conditionally-write-lock-vma-in-free_pgtables
-+++ a/mm/memory.c
-@@ -348,7 +348,7 @@ void free_pgd_range(struct mmu_gather *t
- 
- void free_pgtables(struct mmu_gather *tlb, struct maple_tree *mt,
- 		   struct vm_area_struct *vma, unsigned long floor,
--		   unsigned long ceiling)
-+		   unsigned long ceiling, bool mm_wr_locked)
- {
- 	MA_STATE(mas, mt, vma->vm_end, vma->vm_end);
- 
-@@ -366,6 +366,8 @@ void free_pgtables(struct mmu_gather *tl
- 		 * Hide vma from rmap and truncate_pagecache before freeing
- 		 * pgtables
- 		 */
-+		if (mm_wr_locked)
-+			vma_start_write(vma);
- 		unlink_anon_vmas(vma);
- 		unlink_file_vma(vma);
- 
-@@ -380,6 +382,8 @@ void free_pgtables(struct mmu_gather *tl
- 			       && !is_vm_hugetlb_page(next)) {
- 				vma = next;
- 				next = mas_find(&mas, ceiling - 1);
-+				if (mm_wr_locked)
-+					vma_start_write(vma);
- 				unlink_anon_vmas(vma);
- 				unlink_file_vma(vma);
- 			}
---- a/mm/mmap.c~mm-conditionally-write-lock-vma-in-free_pgtables
-+++ a/mm/mmap.c
-@@ -2152,7 +2152,8 @@ static void unmap_region(struct mm_struc
- 	update_hiwater_rss(mm);
- 	unmap_vmas(&tlb, mt, vma, start, end, mm_wr_locked);
- 	free_pgtables(&tlb, mt, vma, prev ? prev->vm_end : FIRST_USER_ADDRESS,
--				 next ? next->vm_start : USER_PGTABLES_CEILING);
-+				 next ? next->vm_start : USER_PGTABLES_CEILING,
-+				 mm_wr_locked);
- 	tlb_finish_mmu(&tlb);
+--- a/include/linux/mm.h~mm-introduce-vma-detached-flag
++++ a/include/linux/mm.h
+@@ -693,6 +693,14 @@ static inline void vma_assert_write_lock
+ 	VM_BUG_ON_VMA(vma->vm_lock_seq != READ_ONCE(vma->vm_mm->mm_lock_seq), vma);
  }
  
-@@ -3056,7 +3057,7 @@ void exit_mmap(struct mm_struct *mm)
- 	mmap_write_lock(mm);
- 	mt_clear_in_rcu(&mm->mm_mt);
- 	free_pgtables(&tlb, &mm->mm_mt, vma, FIRST_USER_ADDRESS,
--		      USER_PGTABLES_CEILING);
-+		      USER_PGTABLES_CEILING, true);
- 	tlb_finish_mmu(&tlb);
++static inline void vma_mark_detached(struct vm_area_struct *vma, bool detached)
++{
++	/* When detaching vma should be write-locked */
++	if (detached)
++		vma_assert_write_locked(vma);
++	vma->detached = detached;
++}
++
+ #else /* CONFIG_PER_VMA_LOCK */
+ 
+ static inline void vma_init_lock(struct vm_area_struct *vma) {}
+@@ -701,6 +709,8 @@ static inline bool vma_start_read(struct
+ static inline void vma_end_read(struct vm_area_struct *vma) {}
+ static inline void vma_start_write(struct vm_area_struct *vma) {}
+ static inline void vma_assert_write_locked(struct vm_area_struct *vma) {}
++static inline void vma_mark_detached(struct vm_area_struct *vma,
++				     bool detached) {}
+ 
+ #endif /* CONFIG_PER_VMA_LOCK */
+ 
+@@ -712,6 +722,7 @@ static inline void vma_init(struct vm_ar
+ 	vma->vm_mm = mm;
+ 	vma->vm_ops = &dummy_vm_ops;
+ 	INIT_LIST_HEAD(&vma->anon_vma_chain);
++	vma_mark_detached(vma, false);
+ 	vma_init_lock(vma);
+ }
+ 
+--- a/include/linux/mm_types.h~mm-introduce-vma-detached-flag
++++ a/include/linux/mm_types.h
+@@ -511,6 +511,9 @@ struct vm_area_struct {
+ #ifdef CONFIG_PER_VMA_LOCK
+ 	int vm_lock_seq;
+ 	struct rw_semaphore lock;
++
++	/* Flag to indicate areas detached from the mm->mm_mt tree */
++	bool detached;
+ #endif
  
  	/*
+--- a/mm/mmap.c~mm-introduce-vma-detached-flag
++++ a/mm/mmap.c
+@@ -600,6 +600,7 @@ static inline void vma_complete(struct v
+ 
+ 	if (vp->remove) {
+ again:
++		vma_mark_detached(vp->remove, true);
+ 		if (vp->file) {
+ 			uprobe_munmap(vp->remove, vp->remove->vm_start,
+ 				      vp->remove->vm_end);
+@@ -2261,6 +2262,7 @@ static inline int munmap_sidetree(struct
+ 	if (mas_store_gfp(mas_detach, vma, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
++	vma_mark_detached(vma, true);
+ 	if (vma->vm_flags & VM_LOCKED)
+ 		vma->vm_mm->locked_vm -= vma_pages(vma);
+ 
 _
 
 Patches currently in -mm which might be from surenb@google.com are
