@@ -2,111 +2,123 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DCD7C64ED8
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 07:01:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8FCEC64ED8
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 13:21:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229486AbjB0HB0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 02:01:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57224 "EHLO
+        id S229486AbjB0NVj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 08:21:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229451AbjB0HBZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 02:01:25 -0500
-Received: from mail-vs1-xe2c.google.com (mail-vs1-xe2c.google.com [IPv6:2607:f8b0:4864:20::e2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65BD41A495
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 23:01:24 -0800 (PST)
-Received: by mail-vs1-xe2c.google.com with SMTP id o32so9355906vsv.12
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 23:01:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=DFcLWtcp5YW/YjOPvb2/JyI7y/EuQSQ7y3W8POdgUzw=;
-        b=UublM3ZLujTA6bPaf4B4/uNbQQjv9JgTs8euWQ+L7gTFN/aNhjTj4+cTb/slv/znRd
-         WKd/zAWxX9DOPut7wFe09zBRkpk2uf5HzyZu4GxuIHw+Vpeh40ZSYX05bAZe2ePvzLw9
-         jQ/EBeCqMfNLPaoHW5XZFdfKELnVf6sDxa5+dfYd96zxXPGu95tlu2Xl1F1J8hYVW6+h
-         mlrjlkJ76SqhIEncf+iLgNhzsM2N6ojONPP9DeK/EOUheI6DaKlV3npF68kSfhzpyBX3
-         YDFVjAPn+byuk+RI4HyRXFLWv9nqTSpwNMFUq2j8xeBKd81T4R5IHTQFjAox5cYMYhES
-         buQQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=DFcLWtcp5YW/YjOPvb2/JyI7y/EuQSQ7y3W8POdgUzw=;
-        b=7Bv5Qiywycd9Sc3+/5beXbBYL0X5ltOkweLRbIMvk2j6qu//L6uaz77IzBmQCJp+us
-         wEmyqa996SMBd8OHTjndSHeaB9hlywob6C09glluaUsKOYMltqXg2gNM6D++F4CXPoOW
-         JpueV4N3RyFA7drir3iYIBGHf2Y1iD4BOF2cmd7qICBTvd1lTilwzGlZTidKYKEmKDJU
-         yj7G5g+vqkJSR3xRQhy/JM7W8C8TbrrlUQNgN58DyQ5rgtyhEQv7AOVdxskUIMiVvE+e
-         2uOq8PPgqA33jE2s04CMZrglY8li58vuq2qq1On2mZ4u8b6j+E/N2rD+/GE0Gn4jtHdC
-         xWqw==
-X-Gm-Message-State: AO0yUKXvjKjWTk6NfBy0emZ671Q6DP1ON4QNw80uY6TWWeulRsWfK21r
-        se1Z347gXI1G3eeF6MO/rD9+vVuCD2QxQE2S0/R/3rC4t7Yfc3GF
-X-Google-Smtp-Source: AK7set9m6a20HGZMwiCe+OEgycMuFdC5svGB6xVmCZ5tJdRSrWgRRzT87uZB+Ai0A6Rh8ZeeqZmEgMbNNuchzHUxIlU=
-X-Received: by 2002:ac5:c975:0:b0:401:73f4:dfe with SMTP id
- t21-20020ac5c975000000b0040173f40dfemr7142364vkm.3.1677481283322; Sun, 26 Feb
- 2023 23:01:23 -0800 (PST)
+        with ESMTP id S229996AbjB0NVi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 08:21:38 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1E1B1E2AA
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 05:20:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1677504053;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=GIUaC7K1TYqWkgQiMBQCJNQiY2ZClHrxPQ2oiydBZJ4=;
+        b=K20HJxEXXwARkXCIueLo/peUw09ruA4lZC5U1nyxJnBOoVzjKNTtoNFnd4UW7yOj1xwh5L
+        UkvXpUiow5mdnHwUUjyCsadAlv6S20nCQR9QxuxexBH1sc1vzlivu/sN1Leu5E9bxPgAU9
+        QL0y10e7++5wvOTj/im0wQ18v6kLPn4=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-371-oxBDmthhPsi5Sf1kEf0HUg-1; Mon, 27 Feb 2023 08:20:50 -0500
+X-MC-Unique: oxBDmthhPsi5Sf1kEf0HUg-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 3D568101B42B;
+        Mon, 27 Feb 2023 13:20:49 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 9F2F7404BEC5;
+        Mon, 27 Feb 2023 13:20:46 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+        Kingdom.
+        Registered in England and Wales under Company Registration No. 3798903
+From:   David Howells <dhowells@redhat.com>
+In-Reply-To: <Y/kh8P4oSjunIU7T@casper.infradead.org>
+References: <Y/kh8P4oSjunIU7T@casper.infradead.org> <Y/jhwuTCaOgOTLp2@casper.infradead.org> <2134430.1677240738@warthog.procyon.org.uk> <2009825.1677229488@warthog.procyon.org.uk> <CAHk-=whAAOVBrzwb2uMjCmdRrtudGesYj0tuqdUgi8X_gbw1jw@mail.gmail.com> <20230220135225.91b0f28344c01d5306c31230@linux-foundation.org> <2213409.1677249075@warthog.procyon.org.uk> <2385089.1677258941@warthog.procyon.org.uk> <Y/kFnhUM5hjWM2Ae@casper.infradead.org> <2390711.1677269637@warthog.procyon.org.uk> <CAHk-=wgpjrdcs_aFvdHdH6TpOsOmN9S5rXDqCZTB8WqXsZH8Qw@mail.gmail.com>
+To:     Matthew Wilcox <willy@infradead.org>
+Cc:     dhowells@redhat.com,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Steve French <stfrench@microsoft.com>,
+        Vishal Moola <vishal.moola@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jan Kara <jack@suse.cz>, Paulo Alcantara <pc@cjr.nz>,
+        Huang Ying <ying.huang@intel.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        Xin Hao <xhao@linux.alibaba.com>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC][PATCH] cifs: Fix cifs_writepages_region()
 MIME-Version: 1.0
-References: <20230226050340.CFC98C433D2@smtp.kernel.org> <Y/s7q4EAXRticRvR@zn.tnic>
-In-Reply-To: <Y/s7q4EAXRticRvR@zn.tnic>
-From:   Marco Elver <elver@google.com>
-Date:   Mon, 27 Feb 2023 08:00:00 +0100
-Message-ID: <CANpmjNNgcBJxsabt7SZ8eMxMrJSZ_qhRY1NOjnHCmhNQT=Xiig@mail.gmail.com>
-Subject: Re: + kasan-emit-different-calls-for-instrumentable-memintrinsics.patch
- added to mm-hotfixes-unstable branch
-To:     Borislav Petkov <bp@alien8.de>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        tglx@linutronix.de, ryabinin.a.a@gmail.com, peterz@infradead.org,
-        nicolas@fjasle.eu, ndesaulniers@google.com, nathan@kernel.org,
-        naresh.kamboju@linaro.org, mingo@redhat.com, lkft@linaro.org,
-        keescook@chromium.org, jakub@redhat.com, glider@google.com,
-        dvyukov@google.com, dave.hansen@linux.intel.com,
-        andreyknvl@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <2675058.1677504045.1@warthog.procyon.org.uk>
+Content-Transfer-Encoding: quoted-printable
+Date:   Mon, 27 Feb 2023 13:20:46 +0000
+Message-ID: <2675059.1677504046@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sun, 26 Feb 2023 at 12:00, Borislav Petkov <bp@alien8.de> wrote:
->
-> On Sat, Feb 25, 2023 at 09:03:40PM -0800, Andrew Morton wrote:
-> > --- a/mm/kasan/shadow.c~kasan-emit-different-calls-for-instrumentable-memintrinsics
-> > +++ b/mm/kasan/shadow.c
-> > @@ -107,6 +107,17 @@ void *__asan_memcpy(void *dest, const void *src, size_t len)
-> >  }
-> >  EXPORT_SYMBOL(__asan_memcpy);
-> >
-> > +#ifdef CONFIG_KASAN_SW_TAGS
-> > +void *__hwasan_memset(void *addr, int c, size_t len) __alias(__asan_memset);
-> > +EXPORT_SYMBOL(__hwasan_memset);
-> > +#ifdef __HAVE_ARCH_MEMMOVE
-> > +void *__hwasan_memmove(void *dest, const void *src, size_t len) __alias(__asan_memmove);
-> > +EXPORT_SYMBOL(__hwasan_memmove);
-> > +#endif
-> > +void *__hwasan_memcpy(void *dest, const void *src, size_t len) __alias(__asan_memcpy);
-> > +EXPORT_SYMBOL(__hwasan_memcpy);
->
-> Any particular reason those exports are not _GPL?
+Matthew Wilcox <willy@infradead.org> wrote:
 
-To match lib/string.c:
+> On Fri, Feb 24, 2023 at 12:16:49PM -0800, Linus Torvalds wrote:
+> > On Fri, Feb 24, 2023 at 12:14 PM David Howells <dhowells@redhat.com> w=
+rote:
+> > >
+> > > Then why do we have to wait for PG_writeback to complete?
+> > =
 
-$> grep EXPORT_SYMBOL lib/string.c
-...
-EXPORT_SYMBOL(memset);
-...
-EXPORT_SYMBOL(memcpy);
-EXPORT_SYMBOL(memmove);
-...
+> > At least for PG_writeback, it's about "the _previous_ dirty write is
+> > still under way, but - since PG_dirty is set again - the page has been
+> > dirtied since".
+> > =
 
-Note that these __asan/__hwasan calls are generated by the compiler,
-in place of the above.
+> > So we have to start _another_ writeback, because while the current
+> > writeback *might* have written the updated data, that is not at all
+> > certain or clear.
+> =
 
-On a more fundamental level, KASAN is low level enough that being
-_GPL would probably cause headaches for valid use cases. For example,
-so that vendors can use KASAN on their however licensed modules -
-wherever those non-GPL modules may be used, precluding use of KASAN
-there would make the quality of these things even worse.
+> also, we only have a writeback bit, not a writeback count.  And when
+> the current writeback completes, it'll clear that bit.  We're also
+> being kind to our backing store and not writing to the same block twice
+> at the same time.
 
-Thanks,
--- Marco
+It's not so much being kind to the backing store, I think, as avoiding the
+possibility that the writes happen out of order.
+
+> > I'm not sure what the fscache rules are.
+> =
+
+> My understanding is that the fscache bit is set under several
+> circumstances, but if the folio is dirty _and_ the fscache bit
+> is set, it means the folio is currently being written to the cache
+> device.  I don't see a conflict there; we can write to the backing
+> store and the cache device at the same time.
+
+The dirty bit is nothing to do with it.  If the fscache bit is set, then t=
+he
+page is currently being written to the cache - and we need to wait before
+starting another write.
+
+Sometimes we start a write to the cache from a clean page (e.g. we just re=
+ad
+it from the server) and sometimes we start a write to the cache from
+writepages (e.g. the data is dirty and we're writing it to the server as
+well).
+
+Things will become more 'interesting' should we ever get around to
+implementing disconnected operation.  Then we might end up staging dirty d=
+ata
+through the cache.
+
+David
+
