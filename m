@@ -2,96 +2,103 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80CDBC64ED6
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Feb 2023 23:51:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2A9FC7EE23
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 00:45:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229752AbjBZXvJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Feb 2023 18:51:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42354 "EHLO
+        id S229598AbjB0Ape (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Feb 2023 19:45:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229605AbjBZXvH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 18:51:07 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 468C215CBB
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 15:51:06 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D393260CA4
-        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 23:51:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31148C433EF;
-        Sun, 26 Feb 2023 23:51:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677455465;
-        bh=TsRd4scWHhuTTWQ/kvoQtzRQnWDmlWWqcGxkVmzSL2c=;
-        h=Date:To:From:Subject:From;
-        b=N7M0G+BeqO+AnsXIvwAQw53AgMFcBjuNswkNQAO1R8ZLXE+wfpcSSBj/Nbxb8L10C
-         DJYubJa9ypMKfTfdHLMNXchM2tVB0km7+7SGJD2tGytbWK5CUUCC0F6VnYnQM/QDlu
-         mtgqQ2T09zKPZHHazA3nLDhYTFRAC1kv5Y3lz9CE=
-Date:   Sun, 26 Feb 2023 15:51:04 -0800
-To:     mm-commits@vger.kernel.org, zhaoyang.huang@unisoc.com,
-        vbabka@suse.cz, rdunlap@infradead.org, peterz@infradead.org,
-        ojeda@kernel.org, ndesaulniers@google.com, nathan@kernel.org,
-        linux@rasmusvillemoes.dk, keescook@chromium.org,
-        jpoimboe@kernel.org, geert+renesas@glider.be,
-        dan.j.williams@intel.com, ye.xingchen@zte.com.cn,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kconfigdebug-fix-sched_debug-dependency.patch removed from -mm tree
-Message-Id: <20230226235105.31148C433EF@smtp.kernel.org>
+        with ESMTP id S229550AbjB0Apd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Feb 2023 19:45:33 -0500
+Received: from mail-pl1-x632.google.com (mail-pl1-x632.google.com [IPv6:2607:f8b0:4864:20::632])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 909FE10278
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 16:45:32 -0800 (PST)
+Received: by mail-pl1-x632.google.com with SMTP id h8so1777112plf.10
+        for <mm-commits@vger.kernel.org>; Sun, 26 Feb 2023 16:45:32 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=yDr1AomZ/bsVTOpFQmuDlr5MvDGNx4AsqOOAzHvIahg=;
+        b=Wgev3ndtu+tBcnDnM3773sjF4DWLnJnqTP5eneyMt3Bu4kFvvpJqBMHKRZ5eAJu70X
+         G4905Gpzd62L97aHnSDQwr9ZPRlmjCRz9EiobmIuYoDubNolg4gWtcpYJiftT+geVWaS
+         VHOMK45/KtNEXTWQjG7igv4CCgIFvxzPlqWm5TMF7aICZCWmsgkU/1EtERHqkKcsmoUg
+         uT3zlLsAjnCheY4CMwMi3ahPG+6Ba2SmGoZ3s8LigO/EYzq+DXl1+wIFQe7Lw4Tpkv2P
+         KAsTf9wsIwvjdYd9cWHjZ9NKLlQBYNGSEyjkm54AGwNNGEqafoPmm8IeV3T9QnDs1z6J
+         qBVA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=yDr1AomZ/bsVTOpFQmuDlr5MvDGNx4AsqOOAzHvIahg=;
+        b=wLo9/NzXTaPWyVogpqkBXrhhy9PQK880aW5M2FLHKNDNjpz/rIgErz9FbnrGCx1aru
+         NMgR4F3e7flhNcPfTMHs38TtEbd96sETqNKn3Ow1vXrtu/TAuzr9eq7cysBqpdjzg1N1
+         kfuAwHep15YRV/2l64tPA9Oldu8YldBNt7hZcXMEGcEiMbuIa8bQHC+7VKYRNy8If07+
+         ZWXB63jrDPridzrsmLHDEqhyhc4BCLbeMXVb9CrDZ49cGTTKrg7ccL1AA90AbsIlWZfv
+         2UmuaUqV5OFCtGEiJnXt07KTpvFbppPZfTPrG0s+deybyKsMODmA4yQxWgI+mf8n+LmW
+         4onA==
+X-Gm-Message-State: AO0yUKVCwHuEBbwr6BTiX+63inEOHrBHnTJIewf6o2sg25dbX8aNnlK7
+        a/INqT6qjVBWbDTDQFuxwLAdn0wCvYybYlYr05Q=
+X-Google-Smtp-Source: AK7set97uKWgPStgquyhbZWyu/trWfiY5GxX3RWjeWkOkaYZXdlON5caeTVqUv9dqm9jAIAVfKva8nAixFmAqyZnvgw=
+X-Received: by 2002:a17:90a:dc04:b0:233:bc72:1c69 with SMTP id
+ i4-20020a17090adc0400b00233bc721c69mr4102982pjv.9.1677458732015; Sun, 26 Feb
+ 2023 16:45:32 -0800 (PST)
+MIME-Version: 1.0
+References: <20230226050340.CFC98C433D2@smtp.kernel.org> <Y/s7q4EAXRticRvR@zn.tnic>
+ <20230226114111.405aa7d661076a45feb70a96@linux-foundation.org>
+In-Reply-To: <20230226114111.405aa7d661076a45feb70a96@linux-foundation.org>
+From:   Andrey Konovalov <andreyknvl@gmail.com>
+Date:   Mon, 27 Feb 2023 01:45:21 +0100
+Message-ID: <CA+fCnZeioZWYw0qjmBwbpM5x6=iZOwAD8w5BKV6j1_x331hz8w@mail.gmail.com>
+Subject: Re: + kasan-emit-different-calls-for-instrumentable-memintrinsics.patch
+ added to mm-hotfixes-unstable branch
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Borislav Petkov <bp@alien8.de>
+Cc:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        tglx@linutronix.de, ryabinin.a.a@gmail.com, peterz@infradead.org,
+        nicolas@fjasle.eu, ndesaulniers@google.com, nathan@kernel.org,
+        naresh.kamboju@linaro.org, mingo@redhat.com, lkft@linaro.org,
+        keescook@chromium.org, jakub@redhat.com, glider@google.com,
+        dvyukov@google.com, dave.hansen@linux.intel.com, elver@google.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Sun, Feb 26, 2023 at 8:41 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> On Sun, 26 Feb 2023 11:59:55 +0100 Borislav Petkov <bp@alien8.de> wrote:
+>
+> > On Sat, Feb 25, 2023 at 09:03:40PM -0800, Andrew Morton wrote:
+> > > --- a/mm/kasan/shadow.c~kasan-emit-different-calls-for-instrumentable-memintrinsics
+> > > +++ b/mm/kasan/shadow.c
+> > > @@ -107,6 +107,17 @@ void *__asan_memcpy(void *dest, const void *src, size_t len)
+> > >  }
+> > >  EXPORT_SYMBOL(__asan_memcpy);
+> > >
+> > > +#ifdef CONFIG_KASAN_SW_TAGS
+> > > +void *__hwasan_memset(void *addr, int c, size_t len) __alias(__asan_memset);
+> > > +EXPORT_SYMBOL(__hwasan_memset);
+> > > +#ifdef __HAVE_ARCH_MEMMOVE
+> > > +void *__hwasan_memmove(void *dest, const void *src, size_t len) __alias(__asan_memmove);
+> > > +EXPORT_SYMBOL(__hwasan_memmove);
+> > > +#endif
+> > > +void *__hwasan_memcpy(void *dest, const void *src, size_t len) __alias(__asan_memcpy);
+> > > +EXPORT_SYMBOL(__hwasan_memcpy);
+> >
+> > Any particular reason those exports are not _GPL?
 
-The quilt patch titled
-     Subject: Kconfig.debug: fix SCHED_DEBUG dependency
-has been removed from the -mm tree.  Its filename was
-     kconfigdebug-fix-sched_debug-dependency.patch
+Not using _GPL will allow using KASAN with non-GPL modules AFAIU. I
+don't see why this should be forbidden.
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> mm/kasan/ is an exotic blend of both.  Perhaps the maintainers will
+> take a look at this sometime?
 
-------------------------------------------------------
-From: ye xingchen <ye.xingchen@zte.com.cn>
-Subject: Kconfig.debug: fix SCHED_DEBUG dependency
-Date: Sun, 29 Jan 2023 11:10:09 +0800 (CST)
+All of the _GPL exports in mm/kasan/ are for symbols required for
+KASAN tests. If there was a way to only export them for kasan_test.ko,
+we could use that instead. _GPL is used as a best-effort marking.
 
-The path for SCHED_DEBUG is /sys/kernel/debug/sched.  So, SCHED_DEBUG
-should depend on DEBUG_FS, not PROC_FS.
-
-Link: https://lkml.kernel.org/r/202301291110098787982@zte.com.cn
-Signed-off-by: ye xingchen <ye.xingchen@zte.com.cn>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
-
---- a/lib/Kconfig.debug~kconfigdebug-fix-sched_debug-dependency
-+++ a/lib/Kconfig.debug
-@@ -1153,7 +1153,7 @@ menu "Scheduler Debugging"
- 
- config SCHED_DEBUG
- 	bool "Collect scheduler debugging info"
--	depends on DEBUG_KERNEL && PROC_FS
-+	depends on DEBUG_KERNEL && DEBUG_FS
- 	default y
- 	help
- 	  If you say Y here, the /sys/kernel/debug/sched file will be provided
-_
-
-Patches currently in -mm which might be from ye.xingchen@zte.com.cn are
-
-
+Everything else is using EXPORT_SYMBOL().
