@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33D4CC64ED6
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:06:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99BB7C64ED8
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:06:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229451AbjB0WGl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 17:06:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45348 "EHLO
+        id S230181AbjB0WGw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 17:06:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230175AbjB0WGX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:23 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 827FB298E9
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:21 -0800 (PST)
+        with ESMTP id S230222AbjB0WGa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:30 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A334C298FE
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1DDAB60F12
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 799EAC433EF;
-        Mon, 27 Feb 2023 22:06:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 67A64B80DBB
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FFE5C433EF;
+        Mon, 27 Feb 2023 22:06:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677535580;
-        bh=89l2V8EmgaBAvT7YMAvV0hle9r5MOv/+C8BNehfiXqY=;
+        s=korg; t=1677535582;
+        bh=XdOpLJWp13uec2vppwlQLdaYYMAsLTeh3wGCeuyhr04=;
         h=Date:To:From:Subject:From;
-        b=YUHrDvsP+IDAdp5U0VcmSsHmezByT2iORomRDbc3MODFgjkIoBBuM8VprzIoGkhC9
-         abQseGDVmJKesXx/A2v8xUoe8clOZiiOtbu9G1gGTxTdyydEgmi56wXPLVaANN2KF1
-         RsXxk4qYmC5iE3dVAGlssbhSlr5LROINuGon+B0Q=
-Date:   Mon, 27 Feb 2023 14:06:19 -0800
+        b=XDOWrYBcbLLcL1ZnhpP1Soy0yl3SJ1aNDZskIqsvwxDEMcYws9cAMUtgtxDdC2/uE
+         weVhQsziAWhTfxtw0sK9QHp+RLiSO/DIj9oel46VyGjCK2sJ/3nL/oRnvieF91Pb9e
+         EofJ8cuZtmbjxF5YARh6rA9PQF1UypT6NkHZGY8E=
+Date:   Mon, 27 Feb 2023 14:06:21 -0800
 To:     mm-commits@vger.kernel.org, surenb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge.patch added to mm-unstable branch
-Message-Id: <20230227220620.799EAC433EF@smtp.kernel.org>
+Subject: + mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page.patch added to mm-unstable branch
+Message-Id: <20230227220622.1FFE5C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: move vma_prepare before vma_adjust_trans_huge
+     Subject: mm/khugepaged: write-lock VMA while collapsing a huge page
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge.patch
+     mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,82 +65,95 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/mmap: move vma_prepare before vma_adjust_trans_huge
-Date: Mon, 27 Feb 2023 09:36:13 -0800
+Subject: mm/khugepaged: write-lock VMA while collapsing a huge page
+Date: Mon, 27 Feb 2023 09:36:14 -0800
 
-vma_prepare() acquires all locks required before VMA modifications.  Move
-vma_prepare() before vma_adjust_trans_huge() so that VMA is locked before
-any modification.
+Protect VMA from concurrent page fault handler while collapsing a huge
+page.  Page fault handler needs a stable PMD to use PTL and relies on
+per-VMA lock to prevent concurrent PMD changes.  pmdp_collapse_flush(),
+set_huge_pmd() and collapse_and_free_pmd() can modify a PMD, which will
+not be detected by a page fault handler without proper locking.
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-15-surenb@google.com
+Before this patch, page tables can be walked under any one of the
+mmap_lock, the mapping lock, and the anon_vma lock; so when khugepaged
+unlinks and frees page tables, it must ensure that all of those either are
+locked or don't exist.  This patch adds a fourth lock under which page
+tables can be traversed, and so khugepaged must also lock out that one.
+
+Link: https://lkml.kernel.org/r/20230227173632.3292573-16-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge
-+++ a/mm/mmap.c
-@@ -683,12 +683,12 @@ int vma_expand(struct vma_iterator *vmi,
- 	if (vma_iter_prealloc(vmi))
- 		goto nomem;
+--- a/mm/khugepaged.c~mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page
++++ a/mm/khugepaged.c
+@@ -1147,6 +1147,7 @@ static int collapse_huge_page(struct mm_
+ 	if (result != SCAN_SUCCEED)
+ 		goto out_up_write;
  
-+	vma_prepare(&vp);
- 	vma_adjust_trans_huge(vma, start, end, 0);
- 	/* VMA iterator points to previous, so set to start if necessary */
- 	if (vma_iter_addr(vmi) != start)
- 		vma_iter_set(vmi, start);
++	vma_start_write(vma);
+ 	anon_vma_lock_write(vma->anon_vma);
  
--	vma_prepare(&vp);
- 	vma->vm_start = start;
- 	vma->vm_end = end;
- 	vma->vm_pgoff = pgoff;
-@@ -723,8 +723,8 @@ int vma_shrink(struct vma_iterator *vmi,
- 		return -ENOMEM;
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, address,
+@@ -1614,6 +1615,9 @@ int collapse_pte_mapped_thp(struct mm_st
+ 		goto drop_hpage;
+ 	}
  
- 	init_vma_prep(&vp, vma);
--	vma_adjust_trans_huge(vma, start, end, 0);
- 	vma_prepare(&vp);
-+	vma_adjust_trans_huge(vma, start, end, 0);
- 
- 	if (vma->vm_start < start)
- 		vma_iter_clear(vmi, vma->vm_start, start);
-@@ -994,12 +994,12 @@ struct vm_area_struct *vma_merge(struct
- 	if (vma_iter_prealloc(vmi))
- 		return NULL;
- 
--	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_next);
- 	init_multi_vma_prep(&vp, vma, adjust, remove, remove2);
- 	VM_WARN_ON(vp.anon_vma && adjust && adjust->anon_vma &&
- 		   vp.anon_vma != adjust->anon_vma);
- 
- 	vma_prepare(&vp);
-+	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_next);
- 	if (vma_start < vma->vm_start || vma_end > vma->vm_end)
- 		vma_expanded = true;
- 
-@@ -2198,10 +2198,10 @@ int __split_vma(struct vma_iterator *vmi
- 	if (new->vm_ops && new->vm_ops->open)
- 		new->vm_ops->open(new);
- 
--	vma_adjust_trans_huge(vma, vma->vm_start, addr, 0);
- 	init_vma_prep(&vp, vma);
- 	vp.insert = new;
- 	vma_prepare(&vp);
-+	vma_adjust_trans_huge(vma, vma->vm_start, addr, 0);
- 
- 	if (new_below) {
- 		vma->vm_start = addr;
-@@ -2910,9 +2910,9 @@ static int do_brk_flags(struct vma_itera
- 		if (vma_iter_prealloc(vmi))
- 			goto unacct_fail;
- 
--		vma_adjust_trans_huge(vma, vma->vm_start, addr + len, 0);
- 		init_vma_prep(&vp, vma);
- 		vma_prepare(&vp);
-+		vma_adjust_trans_huge(vma, vma->vm_start, addr + len, 0);
- 		vma->vm_end = addr + len;
- 		vm_flags_set(vma, VM_SOFTDIRTY);
- 		vma_iter_store(vmi, vma);
++	/* Lock the vma before taking i_mmap and page table locks */
++	vma_start_write(vma);
++
+ 	/*
+ 	 * We need to lock the mapping so that from here on, only GUP-fast and
+ 	 * hardware page walks can access the parts of the page tables that
+@@ -1819,6 +1823,7 @@ static int retract_page_tables(struct ad
+ 				result = SCAN_PTE_UFFD_WP;
+ 				goto unlock_next;
+ 			}
++			vma_start_write(vma);
+ 			collapse_and_free_pmd(mm, vma, addr, pmd);
+ 			if (!cc->is_khugepaged && is_target)
+ 				result = set_huge_pmd(vma, addr, pmd, hpage);
+--- a/mm/rmap.c~mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page
++++ a/mm/rmap.c
+@@ -25,21 +25,22 @@
+  *     mapping->invalidate_lock (in filemap_fault)
+  *       page->flags PG_locked (lock_page)
+  *         hugetlbfs_i_mmap_rwsem_key (in huge_pmd_share, see hugetlbfs below)
+- *           mapping->i_mmap_rwsem
+- *             anon_vma->rwsem
+- *               mm->page_table_lock or pte_lock
+- *                 swap_lock (in swap_duplicate, swap_info_get)
+- *                   mmlist_lock (in mmput, drain_mmlist and others)
+- *                   mapping->private_lock (in block_dirty_folio)
+- *                     folio_lock_memcg move_lock (in block_dirty_folio)
+- *                       i_pages lock (widely used)
+- *                         lruvec->lru_lock (in folio_lruvec_lock_irq)
+- *                   inode->i_lock (in set_page_dirty's __mark_inode_dirty)
+- *                   bdi.wb->list_lock (in set_page_dirty's __mark_inode_dirty)
+- *                     sb_lock (within inode_lock in fs/fs-writeback.c)
+- *                     i_pages lock (widely used, in set_page_dirty,
+- *                               in arch-dependent flush_dcache_mmap_lock,
+- *                               within bdi.wb->list_lock in __sync_single_inode)
++ *           vma_start_write
++ *             mapping->i_mmap_rwsem
++ *               anon_vma->rwsem
++ *                 mm->page_table_lock or pte_lock
++ *                   swap_lock (in swap_duplicate, swap_info_get)
++ *                     mmlist_lock (in mmput, drain_mmlist and others)
++ *                     mapping->private_lock (in block_dirty_folio)
++ *                       folio_lock_memcg move_lock (in block_dirty_folio)
++ *                         i_pages lock (widely used)
++ *                           lruvec->lru_lock (in folio_lruvec_lock_irq)
++ *                     inode->i_lock (in set_page_dirty's __mark_inode_dirty)
++ *                     bdi.wb->list_lock (in set_page_dirty's __mark_inode_dirty)
++ *                       sb_lock (within inode_lock in fs/fs-writeback.c)
++ *                       i_pages lock (widely used, in set_page_dirty,
++ *                                 in arch-dependent flush_dcache_mmap_lock,
++ *                                 within bdi.wb->list_lock in __sync_single_inode)
+  *
+  * anon_vma->rwsem,mapping->i_mmap_rwsem   (memory_failure, collect_procs_anon)
+  *   ->tasklist_lock
 _
 
 Patches currently in -mm which might be from surenb@google.com are
