@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E50D4C64ED6
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:16:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B0CEC64ED8
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:21:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229657AbjB0WQp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 17:16:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53756 "EHLO
+        id S229491AbjB0WVS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 17:21:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229451AbjB0WQp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:16:45 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB8C627483
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:16:43 -0800 (PST)
+        with ESMTP id S230045AbjB0WVR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:21:17 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D119E244B5
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:21:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 96F3BB80DBB
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:16:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 310CDC433EF;
-        Mon, 27 Feb 2023 22:16:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D3BA60D57
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:21:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6596C433EF;
+        Mon, 27 Feb 2023 22:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677536201;
-        bh=+tF/OlvVy+CDpgR/1qvbjpsRUOC+cvOkRfvKMtHnys4=;
+        s=korg; t=1677536474;
+        bh=9usx/hFy72+HSLqfZ74Q4164snkph0hhncg2M5xZ12Q=;
         h=Date:To:From:Subject:From;
-        b=OWLgv2+7B6rPiOJ1QOB/GUWr+MlFlLuGRTDiH2M/G19wJRwRyuY4YJ16lfCkJmIiE
-         jwV/QxOndKumz71I28se3m9gKIqsTQYBuR5QSZwmAP9mvtHcjT8+CqtBG/gDgZ5dzg
-         yXwQTXX6F/ch5qJdhSbvc4oHDfQGmV8QDlWrjqHw=
-Date:   Mon, 27 Feb 2023 14:16:39 -0800
-To:     mm-commits@vger.kernel.org, lkp@intel.com, elver@google.com,
+        b=fsii50o3OhbJmX6hTA7VV105mzWdTTfYbJiHhLbTuAYMUHfXz8m8H33sneX7UW6wP
+         ejUwi+25Fs+q3/8CRW74IcJtVoMf4Ciz8Kf3ywmd1levFLZF80uxfpefsyqNLzLbZr
+         mGqj1rqWuYXahIWItbca9B5ylPBS2yiNTq/AGPlE=
+Date:   Mon, 27 Feb 2023 14:21:14 -0800
+To:     mm-commits@vger.kernel.org, richard@nod.at, kbingham@kernel.org,
+        johannes@sipsolutions.net, jan.kiszka@siemens.com,
+        anton.ivanov@kot-begemot.co.uk, development@efficientek.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-treat-meminstrinsic-as-builtins-in-uninstrumented-files-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230227221641.310CDC433EF@smtp.kernel.org>
+Subject: + scripts-gdb-correct-indentation-in-get_current_task.patch added to mm-nonmm-unstable branch
+Message-Id: <20230227222114.C6596C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, powerpc: don't rename memintrinsics if compiler adds prefixes
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kasan-treat-meminstrinsic-as-builtins-in-uninstrumented-files-fix.patch
+     Subject: scripts/gdb: correct indentation in get_current_task
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-correct-indentation-in-get_current_task.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-treat-meminstrinsic-as-builtins-in-uninstrumented-files-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-correct-indentation-in-get_current_task.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,99 +66,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kasan, powerpc: don't rename memintrinsics if compiler adds prefixes
-Date: Mon, 27 Feb 2023 10:47:27 +0100
+From: Glenn Washburn <development@efficientek.com>
+Subject: scripts/gdb: correct indentation in get_current_task
+Date: Sun, 26 Feb 2023 22:05:59 -0600
 
-With appropriate compiler support [1], KASAN builds use __asan prefixed
-meminstrinsics, and KASAN no longer overrides memcpy/memset/memmove.
+Patch series "scripts/gdb: Support getting current task struct in UML",
+v3.
 
-If compiler support is detected (CC_HAS_KASAN_MEMINTRINSIC_PREFIX), define
-memintrinsics normally (do not prefix '__').
+A running x86 UML kernel reports with architecture "i386:x86-64" as it is
+a sub-architecture.  However, a difference with bare-metal x86 kernels is
+in how it manages tasks and the current task struct.  To identify that the
+inferior is a UML kernel and not bare-metal, check for the existence of
+the UML specific symbol "cpu_tasks" which contains the current task
+struct.
 
-On powerpc, KASAN is the only user of __mem functions, which are used to
-define instrumented memintrinsics.  Alias the normal versions for KASAN to
-use in its implementation.
 
-Link: https://lore.kernel.org/all/20230224085942.1791837-1-elver@google.com/ [1]
-Link: https://lkml.kernel.org/r/20230227094726.3833247-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-  Link: https://lore.kernel.org/oe-kbuild-all/202302271348.U5lvmo0S-lkp@intel.com/
+This patch (of 3):
+
+There is an extra space in a couple blocks in get_current_task.  Though
+python does not care, let's make the spacing consistent.  Also, format
+better an if expression, removing unneeded parenthesis.
+
+Link: https://lkml.kernel.org/r/cover.1677469905.git.development@efficientek.com
+Link: https://lkml.kernel.org/r/2e117b82240de6893f27cb6507242ce455ed7b5b.1677469905.git.development@efficientek.com
+Signed-off-by: Glenn Washburn <development@efficientek.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Anton Ivanov <anton.ivanov@kot-begemot.co.uk>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/powerpc/include/asm/kasan.h~kasan-treat-meminstrinsic-as-builtins-in-uninstrumented-files-fix
-+++ a/arch/powerpc/include/asm/kasan.h
-@@ -2,7 +2,7 @@
- #ifndef __ASM_KASAN_H
- #define __ASM_KASAN_H
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-correct-indentation-in-get_current_task
++++ a/scripts/gdb/linux/cpus.py
+@@ -163,16 +163,16 @@ def get_current_task(cpu):
+     task_ptr_type = task_type.get_type().pointer()
  
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) && !defined(CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX)
- #define _GLOBAL_KASAN(fn)	_GLOBAL(__##fn)
- #define _GLOBAL_TOC_KASAN(fn)	_GLOBAL_TOC(__##fn)
- #define EXPORT_SYMBOL_KASAN(fn)	EXPORT_SYMBOL(__##fn)
---- a/arch/powerpc/include/asm/string.h~kasan-treat-meminstrinsic-as-builtins-in-uninstrumented-files-fix
-+++ a/arch/powerpc/include/asm/string.h
-@@ -30,11 +30,17 @@ extern int memcmp(const void *,const voi
- extern void * memchr(const void *,int,__kernel_size_t);
- void memcpy_flushcache(void *dest, const void *src, size_t size);
- 
-+#ifdef CONFIG_KASAN
-+/* __mem variants are used by KASAN to implement instrumented meminstrinsics. */
-+#ifdef CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX
-+#define __memset memset
-+#define __memcpy memcpy
-+#define __memmove memmove
-+#else /* CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX */
- void *__memset(void *s, int c, __kernel_size_t count);
- void *__memcpy(void *to, const void *from, __kernel_size_t n);
- void *__memmove(void *to, const void *from, __kernel_size_t n);
--
--#if defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__)
-+#ifndef __SANITIZE_ADDRESS__
- /*
-  * For files that are not instrumented (e.g. mm/slub.c) we
-  * should use not instrumented version of mem* functions.
-@@ -46,8 +52,9 @@ void *__memmove(void *to, const void *fr
- #ifndef __NO_FORTIFY
- #define __NO_FORTIFY /* FORTIFY_SOURCE uses __builtin_memcpy, etc. */
- #endif
--
--#endif
-+#endif /* !__SANITIZE_ADDRESS__ */
-+#endif /* CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX */
-+#endif /* CONFIG_KASAN */
- 
- #ifdef CONFIG_PPC64
- #ifndef CONFIG_KASAN
---- a/arch/powerpc/kernel/prom_init_check.sh~kasan-treat-meminstrinsic-as-builtins-in-uninstrumented-files-fix
-+++ a/arch/powerpc/kernel/prom_init_check.sh
-@@ -13,8 +13,13 @@
- # If you really need to reference something from prom_init.o add
- # it to the list below:
- 
--grep "^CONFIG_KASAN=y$" ${KCONFIG_CONFIG} >/dev/null
--if [ $? -eq 0 ]
-+has_renamed_memintrinsics()
-+{
-+	grep -q "^CONFIG_KASAN=y$" ${KCONFIG_CONFIG} && \
-+		! grep -q "^CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX=y" ${KCONFIG_CONFIG}
-+}
-+
-+if has_renamed_memintrinsics
- then
- 	MEM_FUNCS="__memcpy __memset"
- else
+     if utils.is_target_arch("x86"):
+-         var_ptr = gdb.parse_and_eval("&pcpu_hot.current_task")
+-         return per_cpu(var_ptr, cpu).dereference()
++        var_ptr = gdb.parse_and_eval("&pcpu_hot.current_task")
++        return per_cpu(var_ptr, cpu).dereference()
+     elif utils.is_target_arch("aarch64"):
+-         current_task_addr = gdb.parse_and_eval("$SP_EL0")
+-         if((current_task_addr >> 63) != 0):
+-             current_task = current_task_addr.cast(task_ptr_type)
+-             return current_task.dereference()
+-         else:
+-             raise gdb.GdbError("Sorry, obtaining the current task is not allowed "
+-                                "while running in userspace(EL0)")
++        current_task_addr = gdb.parse_and_eval("$SP_EL0")
++        if (current_task_addr >> 63) != 0:
++            current_task = current_task_addr.cast(task_ptr_type)
++            return current_task.dereference()
++        else:
++            raise gdb.GdbError("Sorry, obtaining the current task is not allowed "
++                               "while running in userspace(EL0)")
+     else:
+         raise gdb.GdbError("Sorry, obtaining the current task is not yet "
+                            "supported with this arch")
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from development@efficientek.com are
 
-kasan-emit-different-calls-for-instrumentable-memintrinsics.patch
-kasan-treat-meminstrinsic-as-builtins-in-uninstrumented-files.patch
-kasan-treat-meminstrinsic-as-builtins-in-uninstrumented-files-fix.patch
-kasan-test-fix-test-for-new-meminstrinsic-instrumentation.patch
-kasan-x86-dont-rename-memintrinsics-in-uninstrumented-files.patch
+scripts-gdb-correct-indentation-in-get_current_task.patch
+scripts-gdb-support-getting-current-task-struct-in-uml.patch
 
