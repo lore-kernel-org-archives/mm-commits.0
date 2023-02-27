@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76AEEC64ED9
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2701CC7EE2E
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229910AbjB0WHE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 17:07:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45432 "EHLO
+        id S230177AbjB0WHF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 17:07:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230187AbjB0WGh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:37 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DCA825BB1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:36 -0800 (PST)
+        with ESMTP id S229954AbjB0WGg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:36 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1356E125A7
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 04EF5CE107B
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46284C433EF;
-        Mon, 27 Feb 2023 22:06:33 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 4C435CE1071
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A15C5C433D2;
+        Mon, 27 Feb 2023 22:06:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677535593;
-        bh=uSXAMI6d8kC5LQ6u+WRV7TrBGcqYUkpCqdhsqRrs/sc=;
+        s=korg; t=1677535591;
+        bh=UEC0ArD0hx8RGbxeNoGN84ywcJiEojv3lO5rg3o94OA=;
         h=Date:To:From:Subject:From;
-        b=bjoQLv69E7iS/E9bwa/uAm69WGmprqf5LuLUFHT6PEs/g0uiRsbsNQv3ee/jMm+9c
-         4CPmf5TPdhu3ZH52lp/gtcfaVt3N7rrYG/ZDqyq1+nb2SAqf8LjatqKRcGGy9X0RBh
-         8PlUoXUhr2S8+RRNGAJ80qIby4W0SjDPMWMPAKno=
-Date:   Mon, 27 Feb 2023 14:06:32 -0800
+        b=ITpAePC9lzfmAbbay9R91SUAq7N72mMkx8KJau59GCrsLVzA4x39o2nAFYuDfQ64Q
+         sWIPIC60xe9ZD8LUK9RQoEMJAGcLONDBCQcea/bQE2NlhF2LhZeG0fexgMqewp47pZ
+         GgpzXcVfmPbvD5X3fptJ4PxpEaI3EeYDbOcycgzs=
+Date:   Mon, 27 Feb 2023 14:06:31 -0800
 To:     mm-commits@vger.kernel.org, surenb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-prevent-pagefault-handler-from-racing-with-mmu_notifier-registration.patch added to mm-unstable branch
-Message-Id: <20230227220633.46284C433EF@smtp.kernel.org>
+Subject: + kernel-fork-assert-no-vma-readers-during-its-destruction.patch added to mm-unstable branch
+Message-Id: <20230227220631.A15C5C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: prevent pagefault handler from racing with mmu_notifier registration
+     Subject: kernel/fork: assert no VMA readers during its destruction
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-prevent-pagefault-handler-from-racing-with-mmu_notifier-registration.patch
+     kernel-fork-assert-no-vma-readers-during-its-destruction.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-prevent-pagefault-handler-from-racing-with-mmu_notifier-registration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-assert-no-vma-readers-during-its-destruction.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,53 +65,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/mmap: prevent pagefault handler from racing with mmu_notifier registration
-Date: Mon, 27 Feb 2023 09:36:20 -0800
+Subject: kernel/fork: assert no VMA readers during its destruction
+Date: Mon, 27 Feb 2023 09:36:19 -0800
 
-Page fault handlers might need to fire MMU notifications while a new
-notifier is being registered.  Modify mm_take_all_locks to write-lock all
-VMAs and prevent this race with page fault handlers that would hold VMA
-locks.  VMAs are locked before i_mmap_rwsem and anon_vma to keep the same
-locking order as in page fault handlers.
+Assert there are no holders of VMA lock for reading when it is about to be
+destroyed.
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-22-surenb@google.com
+Link: https://lkml.kernel.org/r/20230227173632.3292573-21-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mm-mmap-prevent-pagefault-handler-from-racing-with-mmu_notifier-registration
-+++ a/mm/mmap.c
-@@ -3486,6 +3486,7 @@ static void vm_lock_mapping(struct mm_st
-  * of mm/rmap.c:
-  *   - all hugetlbfs_i_mmap_rwsem_key locks (aka mapping->i_mmap_rwsem for
-  *     hugetlb mapping);
-+ *   - all vmas marked locked
-  *   - all i_mmap_rwsem locks;
-  *   - all anon_vma->rwseml
-  *
-@@ -3511,6 +3512,13 @@ int mm_take_all_locks(struct mm_struct *
- 	mas_for_each(&mas, vma, ULONG_MAX) {
- 		if (signal_pending(current))
- 			goto out_unlock;
-+		vma_start_write(vma);
-+	}
+--- a/kernel/fork.c~kernel-fork-assert-no-vma-readers-during-its-destruction
++++ a/kernel/fork.c
+@@ -491,6 +491,9 @@ static void vm_area_free_rcu_cb(struct r
+ {
+ 	struct vm_area_struct *vma = container_of(head, struct vm_area_struct,
+ 						  vm_rcu);
 +
-+	mas_set(&mas, 0);
-+	mas_for_each(&mas, vma, ULONG_MAX) {
-+		if (signal_pending(current))
-+			goto out_unlock;
- 		if (vma->vm_file && vma->vm_file->f_mapping &&
- 				is_vm_hugetlb_page(vma))
- 			vm_lock_mapping(mm, vma->vm_file->f_mapping);
-@@ -3597,6 +3605,7 @@ void mm_drop_all_locks(struct mm_struct
- 		if (vma->vm_file && vma->vm_file->f_mapping)
- 			vm_unlock_mapping(vma->vm_file->f_mapping);
- 	}
-+	vma_end_write_all(mm);
- 
- 	mutex_unlock(&mm_all_locks_mutex);
++	/* The vma should not be locked while being destroyed. */
++	VM_BUG_ON_VMA(rwsem_is_locked(&vma->lock), vma);
+ 	__vm_area_free(vma);
  }
+ #endif
 _
 
 Patches currently in -mm which might be from surenb@google.com are
