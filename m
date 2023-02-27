@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADD55C64ED6
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3B7AC7EE2E
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229900AbjB0WHV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230217AbjB0WHV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 27 Feb 2023 17:07:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45200 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230217AbjB0WGx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:53 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 031AA298F8
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:52 -0800 (PST)
+        with ESMTP id S230226AbjB0WG5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:57 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39C5A298FD
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9037C60F2E
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E96C0C4339B;
-        Mon, 27 Feb 2023 22:06:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C8DB160F2E
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29573C433D2;
+        Mon, 27 Feb 2023 22:06:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677535611;
-        bh=jYCAckacayUZRE8Cun/Q4NHbMN2UTXU7P2oKgAflULc=;
+        s=korg; t=1677535615;
+        bh=QMojpJenmQAXseUngZ7uj8qnTUV/XN/nA1+Av1vel3I=;
         h=Date:To:From:Subject:From;
-        b=Kj7RAhurb7gg1j7hCSA6Ppg2+ZQQ8D85gytW5ccopZLXba4QqzHW3n0DnovL/qGqz
-         nyNDrEezW/a7maLVoHWjn1ByEQKqmiEH15OsHSud5hxnBinMKBYXzv6p+p0tPgxLDz
-         9F+bYuCoof3uRVTEy4TbkZE4fRajbDtIhxJvKeCo=
-Date:   Mon, 27 Feb 2023 14:06:50 -0800
+        b=ri3IPha81S38uOk5aqnA2WbKp2NaifyMkUUHaNGNKCyXTyIDso2QifzmYVuu+V0Mx
+         LRh/MlTCcPsBJmRr6q77jESKicKThNc1ABqbqBk6hKR/YTtn9p7z2FW2d0vHmxxG7V
+         dwbzQREcpJ4IvOKOcXGq+DQPYqGzrCHvYYMTvtys=
+Date:   Mon, 27 Feb 2023 14:06:54 -0800
 To:     mm-commits@vger.kernel.org, surenb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-try-vma-lock-based-page-fault-handling-first.patch added to mm-unstable branch
-Message-Id: <20230227220650.E96C0C4339B@smtp.kernel.org>
+Subject: + mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap.patch added to mm-unstable branch
+Message-Id: <20230227220655.29573C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64/mm: try VMA lock-based page fault handling first
+     Subject: mm/mmap: free vm_area_struct without call_rcu in exit_mmap
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-try-vma-lock-based-page-fault-handling-first.patch
+     mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-try-vma-lock-based-page-fault-handling-first.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,87 +65,91 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: arm64/mm: try VMA lock-based page fault handling first
-Date: Mon, 27 Feb 2023 09:36:29 -0800
+Subject: mm/mmap: free vm_area_struct without call_rcu in exit_mmap
+Date: Mon, 27 Feb 2023 09:36:31 -0800
 
-Attempt VMA lock-based page fault handling first, and fall back to the
-existing mmap_lock-based handling if that fails.
+call_rcu() can take a long time when callback offloading is enabled.  Its
+use in the vm_area_free can cause regressions in the exit path when
+multiple VMAs are being freed.
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-31-surenb@google.com
+Because exit_mmap() is called only after the last mm user drops its
+refcount, the page fault handlers can't be racing with it.  Any other
+possible user like oom-reaper or process_mrelease are already synchronized
+using mmap_lock.  Therefore exit_mmap() can free VMAs directly, without
+the use of call_rcu().
+
+Expose __vm_area_free() and use it from exit_mmap() to avoid possible
+call_rcu() floods and performance regressions caused by it.
+
+Link: https://lkml.kernel.org/r/20230227173632.3292573-33-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/arm64/Kconfig~arm64-mm-try-vma-lock-based-page-fault-handling-first
-+++ a/arch/arm64/Kconfig
-@@ -95,6 +95,7 @@ config ARM64
- 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128
- 	select ARCH_SUPPORTS_NUMA_BALANCING
- 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK
-+	select ARCH_SUPPORTS_PER_VMA_LOCK
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION if COMPAT
- 	select ARCH_WANT_DEFAULT_BPF_JIT
- 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT
---- a/arch/arm64/mm/fault.c~arm64-mm-try-vma-lock-based-page-fault-handling-first
-+++ a/arch/arm64/mm/fault.c
-@@ -535,6 +535,9 @@ static int __kprobes do_page_fault(unsig
- 	unsigned long vm_flags;
- 	unsigned int mm_flags = FAULT_FLAG_DEFAULT;
- 	unsigned long addr = untagged_addr(far);
-+#ifdef CONFIG_PER_VMA_LOCK
-+	struct vm_area_struct *vma;
-+#endif
+--- a/include/linux/mm.h~mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap
++++ a/include/linux/mm.h
+@@ -256,6 +256,8 @@ void setup_initial_init_mm(void *start_c
+ struct vm_area_struct *vm_area_alloc(struct mm_struct *);
+ struct vm_area_struct *vm_area_dup(struct vm_area_struct *);
+ void vm_area_free(struct vm_area_struct *);
++/* Use only if VMA has no other users */
++void __vm_area_free(struct vm_area_struct *vma);
  
- 	if (kprobe_page_fault(regs, esr))
- 		return 0;
-@@ -585,6 +588,36 @@ static int __kprobes do_page_fault(unsig
+ #ifndef CONFIG_MMU
+ extern struct rb_root nommu_region_tree;
+--- a/kernel/fork.c~mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap
++++ a/kernel/fork.c
+@@ -480,7 +480,7 @@ struct vm_area_struct *vm_area_dup(struc
+ 	return new;
+ }
  
- 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, addr);
+-static void __vm_area_free(struct vm_area_struct *vma)
++void __vm_area_free(struct vm_area_struct *vma)
+ {
+ 	free_anon_vma_name(vma);
+ 	kmem_cache_free(vm_area_cachep, vma);
+--- a/mm/mmap.c~mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap
++++ a/mm/mmap.c
+@@ -133,7 +133,7 @@ void unlink_file_vma(struct vm_area_stru
+ /*
+  * Close a vm structure and free it.
+  */
+-static void remove_vma(struct vm_area_struct *vma)
++static void remove_vma(struct vm_area_struct *vma, bool unreachable)
+ {
+ 	might_sleep();
+ 	if (vma->vm_ops && vma->vm_ops->close)
+@@ -141,7 +141,10 @@ static void remove_vma(struct vm_area_st
+ 	if (vma->vm_file)
+ 		fput(vma->vm_file);
+ 	mpol_put(vma_policy(vma));
+-	vm_area_free(vma);
++	if (unreachable)
++		__vm_area_free(vma);
++	else
++		vm_area_free(vma);
+ }
  
-+#ifdef CONFIG_PER_VMA_LOCK
-+	if (!(mm_flags & FAULT_FLAG_USER))
-+		goto lock_mmap;
-+
-+	vma = lock_vma_under_rcu(mm, addr);
-+	if (!vma)
-+		goto lock_mmap;
-+
-+	if (!(vma->vm_flags & vm_flags)) {
-+		vma_end_read(vma);
-+		goto lock_mmap;
-+	}
-+	fault = handle_mm_fault(vma, addr & PAGE_MASK,
-+				mm_flags | FAULT_FLAG_VMA_LOCK, regs);
-+	vma_end_read(vma);
-+
-+	if (!(fault & VM_FAULT_RETRY)) {
-+		count_vm_vma_lock_event(VMA_LOCK_SUCCESS);
-+		goto done;
-+	}
-+	count_vm_vma_lock_event(VMA_LOCK_RETRY);
-+
-+	/* Quick path to respond to signals */
-+	if (fault_signal_pending(fault, regs)) {
-+		if (!user_mode(regs))
-+			goto no_context;
-+		return 0;
-+	}
-+lock_mmap:
-+#endif /* CONFIG_PER_VMA_LOCK */
- 	/*
- 	 * As per x86, we may deadlock here. However, since the kernel only
- 	 * validly references user space from well defined areas of the code,
-@@ -628,6 +661,9 @@ retry:
+ static inline struct vm_area_struct *vma_prev_limit(struct vma_iterator *vmi,
+@@ -2130,7 +2133,7 @@ static inline void remove_mt(struct mm_s
+ 		if (vma->vm_flags & VM_ACCOUNT)
+ 			nr_accounted += nrpages;
+ 		vm_stat_account(mm, vma->vm_flags, -nrpages);
+-		remove_vma(vma);
++		remove_vma(vma, false);
  	}
- 	mmap_read_unlock(mm);
- 
-+#ifdef CONFIG_PER_VMA_LOCK
-+done:
-+#endif
- 	/*
- 	 * Handle the "normal" (no error) case first.
- 	 */
+ 	vm_unacct_memory(nr_accounted);
+ 	validate_mm(mm);
+@@ -3070,7 +3073,7 @@ void exit_mmap(struct mm_struct *mm)
+ 	do {
+ 		if (vma->vm_flags & VM_ACCOUNT)
+ 			nr_accounted += vma_pages(vma);
+-		remove_vma(vma);
++		remove_vma(vma, true);
+ 		count++;
+ 		cond_resched();
+ 	} while ((vma = mas_find(&mas, ULONG_MAX)) != NULL);
 _
 
 Patches currently in -mm which might be from surenb@google.com are
