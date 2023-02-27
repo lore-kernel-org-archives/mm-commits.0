@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BD92C64ED6
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:06:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47BB8C64ED9
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:06:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230210AbjB0WGw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 17:06:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45200 "EHLO
+        id S230213AbjB0WGx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 17:06:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230229AbjB0WGb (ORCPT
+        with ESMTP id S230231AbjB0WGb (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:31 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C394629E03
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:26 -0800 (PST)
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E06F265AE
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:27 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 55FC160F12
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6691C4339B;
-        Mon, 27 Feb 2023 22:06:25 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id BC52CCE107B
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06E16C433EF;
+        Mon, 27 Feb 2023 22:06:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677535585;
-        bh=YUNWtUTTMBRerADuTavpNGyIUkx44a9h6u0LIX6Rvec=;
+        s=korg; t=1677535584;
+        bh=xXgTmc/QYAYKgmdrje4HbwSyVRNxUUWYDSCTJPV1bBQ=;
         h=Date:To:From:Subject:From;
-        b=H/OL99ZNFS1Y1xY0a+XPLsvB2ardJO5R0Uqk6daq0eZP5NDABINZxmJDlcs+arEWK
-         +f8M+u95Uv6UK7eaNXrdPwx5CfpZPJNe6O7lD+A9LcoszHHisTDTM7Otmo5wpjDe2M
-         butv3QtfHnjmfPKPaPeVgGZBbcHW5vHQHAzJXje0=
-Date:   Mon, 27 Feb 2023 14:06:25 -0800
-To:     mm-commits@vger.kernel.org, laurent.dufour@fr.ibm.com,
-        surenb@google.com, akpm@linux-foundation.org
+        b=AhkX3fHzqrAphJIyjeDfBacoyXSAeXKntKJz1eISFdLyo4gkeR32atvIT9wi5CuYd
+         0gvASkRenbehdasnkoRpqCP5O6hMoI4chY6dw95Yd3R1n1VPPUgHm9IHE+zE1igX9i
+         8BUiRIMZXFue+ptK6avAW35XHB15sA99XIftJR7E=
+Date:   Mon, 27 Feb 2023 14:06:23 -0800
+To:     mm-commits@vger.kernel.org, surenb@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-write-lock-vma-while-remapping-it-to-a-new-address-range.patch added to mm-unstable branch
-Message-Id: <20230227220625.A6691C4339B@smtp.kernel.org>
+Subject: + mm-mmap-write-lock-vmas-in-vma_prepare-before-modifying-them.patch added to mm-unstable branch
+Message-Id: <20230227220624.06E16C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: write-lock VMA while remapping it to a new address range
+     Subject: mm/mmap: write-lock VMAs in vma_prepare before modifying them
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-write-lock-vma-while-remapping-it-to-a-new-address-range.patch
+     mm-mmap-write-lock-vmas-in-vma_prepare-before-modifying-them.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-write-lock-vma-while-remapping-it-to-a-new-address-range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-write-lock-vmas-in-vma_prepare-before-modifying-them.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,39 +65,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/mremap: write-lock VMA while remapping it to a new address range
-Date: Mon, 27 Feb 2023 09:36:16 -0800
+Subject: mm/mmap: write-lock VMAs in vma_prepare before modifying them
+Date: Mon, 27 Feb 2023 09:36:15 -0800
 
-Write-lock VMA as locked before copying it and when copy_vma produces a
-new VMA.
+Write-lock all VMAs which might be affected by a merge, split, expand or
+shrink operations.  All these operations use vma_prepare() before making
+the modifications, therefore it provides a centralized place to perform
+VMA locking.
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-18-surenb@google.com
+Link: https://lkml.kernel.org/r/20230227173632.3292573-17-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Laurent Dufour <laurent.dufour@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mm-mremap-write-lock-vma-while-remapping-it-to-a-new-address-range
+--- a/mm/mmap.c~mm-mmap-write-lock-vmas-in-vma_prepare-before-modifying-them
 +++ a/mm/mmap.c
-@@ -3189,6 +3189,7 @@ struct vm_area_struct *copy_vma(struct v
- 			get_file(new_vma->vm_file);
- 		if (new_vma->vm_ops && new_vma->vm_ops->open)
- 			new_vma->vm_ops->open(new_vma);
-+		vma_start_write(new_vma);
- 		if (vma_link(mm, new_vma))
- 			goto out_vma_link;
- 		*need_rmap_locks = false;
---- a/mm/mremap.c~mm-mremap-write-lock-vma-while-remapping-it-to-a-new-address-range
-+++ a/mm/mremap.c
-@@ -623,6 +623,7 @@ static unsigned long move_vma(struct vm_
- 			return -ENOMEM;
- 	}
+@@ -502,6 +502,16 @@ static inline void init_vma_prep(struct
+  */
+ static inline void vma_prepare(struct vma_prepare *vp)
+ {
++	if (vp->vma)
++		vma_start_write(vp->vma);
++	if (vp->adj_next)
++		vma_start_write(vp->adj_next);
++	/* vp->insert is always a newly created VMA, no need for locking */
++	if (vp->remove)
++		vma_start_write(vp->remove);
++	if (vp->remove2)
++		vma_start_write(vp->remove2);
++
+ 	if (vp->file) {
+ 		uprobe_munmap(vp->vma, vp->vma->vm_start, vp->vma->vm_end);
  
-+	vma_start_write(vma);
- 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
- 	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff,
- 			   &need_rmap_locks);
 _
 
 Patches currently in -mm which might be from surenb@google.com are
