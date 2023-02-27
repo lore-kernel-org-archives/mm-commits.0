@@ -2,38 +2,51 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68833C64ED6
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 21:44:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6FC6C64ED6
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:06:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229649AbjB0VoH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 16:44:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52346 "EHLO
+        id S229926AbjB0WGC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 17:06:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229535AbjB0VoG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 16:44:06 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD46E1BEA
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 13:44:05 -0800 (PST)
+        with ESMTP id S230175AbjB0WF7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:05:59 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3D762917B
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:05:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9CB28B80D9A
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 21:44:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C356C433EF;
-        Mon, 27 Feb 2023 21:44:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 28F6060F47
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:05:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B1FBC433D2;
+        Mon, 27 Feb 2023 22:05:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677534243;
-        bh=2Oyz55UiJ8nBfLmssVbhXolDOq/JrosJrbxvV54QZr0=;
+        s=korg; t=1677535555;
+        bh=ktLyItLkXldcn+9xMCJ0DaQbl4zivVhgDC1QsMY4UfA=;
         h=Date:To:From:Subject:From;
-        b=hdSawq2S+dTa8Fr0j05IqlXSBWq42tPvOfMLDqYTF2Mbgtae2sqgOEWZ7InYNlujn
-         GL7B02XeTwbm7mx2Ln1DblXusG5fRVHBdkaTLK8Cc7NfUxNE/kUTT1nJae2XZen9h7
-         JPoIus3+kY5UUkocLuanPMkOp05pBFV+gSTHwqgw=
-Date:   Mon, 27 Feb 2023 13:44:02 -0800
-To:     mm-commits@vger.kernel.org, ubizjak@gmail.com,
-        akpm@linux-foundation.org
+        b=UbLdN+JxOh0srurmccbjHAVvJKoMQEXH7Ydo7GLO5j9Wj3ZKsEfEHcVkbv46K5SeY
+         uRn/Bqxg97JleuKSZXvXlgctcz2n6SSMV0u4CBjpr6OBh0P96LCF2URJskqcVwdHJp
+         v56dSyFQaf7AuATIfQcs4A1DL+wM44MKsvHwIY4A=
+Date:   Mon, 27 Feb 2023 14:05:54 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
+        vbabka@suse.cz, surenb@google.com, songliubraving@fb.com,
+        soheil@google.com, shakeelb@google.com, rppt@kernel.org,
+        rientjes@google.com, punit.agrawal@bytedance.com, posk@google.com,
+        peterz@infradead.org, peterx@redhat.com, paulmck@kernel.org,
+        mingo@redhat.com, minchan@google.com,
+        michalechner92@googlemail.com, mhocko@suse.com,
+        mgorman@techsingularity.net, luto@kernel.org, lstoakes@gmail.com,
+        ldufour@linux.ibm.com, kent.overstreet@linux.dev,
+        joelaf@google.com, jannh@google.com, hughd@google.com,
+        hannes@cmpxchg.org, gthelen@google.com, edumazet@google.com,
+        dhowells@redhat.com, david@redhat.com, dave@stgolabs.net,
+        chriscli@google.com, bigeasy@linutronix.de,
+        axelrasmussen@google.com, arjunroy@google.com,
+        Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-use-atomic_try_cmpxchg-in-set_tlb_ubc_flush_pending.patch added to mm-unstable branch
-Message-Id: <20230227214403.3C356C433EF@smtp.kernel.org>
+Subject: + maple_tree-be-more-cautious-about-dead-nodes.patch added to mm-unstable branch
+Message-Id: <20230227220555.6B1FBC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +54,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: use atomic_try_cmpxchg in set_tlb_ubc_flush_pending
+     Subject: maple_tree: be more cautious about dead nodes
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-use-atomic_try_cmpxchg-in-set_tlb_ubc_flush_pending.patch
+     maple_tree-be-more-cautious-about-dead-nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-use-atomic_try_cmpxchg-in-set_tlb_ubc_flush_pending.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-be-more-cautious-about-dead-nodes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,54 +77,368 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: mm/rmap: use atomic_try_cmpxchg in set_tlb_ubc_flush_pending
-Date: Mon, 27 Feb 2023 22:42:28 +0100
+From: Liam Howlett <Liam.Howlett@oracle.com>
+Subject: maple_tree: be more cautious about dead nodes
+Date: Mon, 27 Feb 2023 09:36:00 -0800
 
-Use atomic_try_cmpxchg instead of atomic_cmpxchg (*ptr, old, new) == old
-in set_tlb_ubc_flush_pending.  86 CMPXCHG instruction returns success in
-ZF flag, so this change saves a compare after cmpxchg (and related move
-instruction in front of cmpxchg).
+Patch series "Per-VMA locks", v4.
 
-Also, try_cmpxchg implicitly assigns old *ptr value to "old" when cmpxchg
-fails.
+LWN article describing the feature: https://lwn.net/Articles/906852/
 
-No functional change intended.
+Per-vma locks idea that was discussed during SPF [1] discussion at LSF/MM
+last year [2], which concluded with suggestion that “a reader/writer
+semaphore could be put into the VMA itself; that would have the effect of
+using the VMA as a sort of range lock.  There would still be contention at
+the VMA level, but it would be an improvement.” This patchset implements
+this suggested approach.
 
-Link: https://lkml.kernel.org/r/20230227214228.3533299-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+When handling page faults we lookup the VMA that contains the faulting
+page under RCU protection and try to acquire its lock.  If that fails we
+fall back to using mmap_lock, similar to how SPF handled this situation.
+
+One notable way the implementation deviates from the proposal is the way
+VMAs are read-locked.  During some of mm updates, multiple VMAs need to be
+locked until the end of the update (e.g.  vma_merge, split_vma, etc). 
+Tracking all the locked VMAs, avoiding recursive locks, figuring out when
+it's safe to unlock previously locked VMAs would make the code more
+complex.  So, instead of the usual lock/unlock pattern, the proposed
+solution marks a VMA as locked and provides an efficient way to:
+
+1. Identify locked VMAs.
+
+2. Unlock all locked VMAs in bulk.
+
+We also postpone unlocking the locked VMAs until the end of the update,
+when we do mmap_write_unlock.  Potentially this keeps a VMA locked for
+longer than is absolutely necessary but it results in a big reduction of
+code complexity.
+
+Read-locking a VMA is done using two sequence numbers - one in the
+vm_area_struct and one in the mm_struct.  VMA is considered read-locked
+when these sequence numbers are equal.  To read-lock a VMA we set the
+sequence number in vm_area_struct to be equal to the sequence number in
+mm_struct.  To unlock all VMAs we increment mm_struct's seq number.  This
+allows for an efficient way to track locked VMAs and to drop the locks on
+all VMAs at the end of the update.
+
+The patchset implements per-VMA locking only for anonymous pages which are
+not in swap and avoids userfaultfs as their implementation is more
+complex.  Additional support for file-back page faults, swapped and user
+pages can be added incrementally.
+
+Performance benchmarks show similar although slightly smaller benefits as
+with SPF patchset (~75% of SPF benefits).  Still, with lower complexity
+this approach might be more desirable.
+
+Since RFC was posted in September 2022, two separate Google teams outside
+of Android evaluated the patchset and confirmed positive results.  Here
+are the known usecases when per-VMA locks show benefits:
+
+Android:
+
+Apps with high number of threads (~100) launch times improve by up to 20%.
+Each thread mmaps several areas upon startup (Stack and Thread-local
+storage (TLS), thread signal stack, indirect ref table), which requires
+taking mmap_lock in write mode.  Page faults take mmap_lock in read mode. 
+During app launch, both thread creation and page faults establishing the
+active workinget are happening in parallel and that causes lock contention
+between mm writers and readers even if updates and page faults are
+happening in different VMAs.  Per-vma locks prevent this contention by
+providing more granular lock.
+
+Google Fibers:
+
+We have several dynamically sized thread pools that spawn new threads
+under increased load and reduce their number when idling. For example,
+Google's in-process scheduling/threading framework, UMCG/Fibers, is backed
+by such a thread pool. When idling, only a small number of idle worker
+threads are available; when a spike of incoming requests arrive, each
+request is handled in its own "fiber", which is a work item posted onto a
+UMCG worker thread; quite often these spikes lead to a number of new
+threads spawning. Each new thread needs to allocate and register an RSEQ
+section on its TLS, then register itself with the kernel as a UMCG worker
+thread, and only after that it can be considered by the in-process
+UMCG/Fiber scheduler as available to do useful work. In short, during an
+incoming workload spike new threads have to be spawned, and they perform
+several syscalls (RSEQ registration, UMCG worker registration, memory
+allocations) before they can actually start doing useful work. Removing
+any bottlenecks on this thread startup path will greatly improve our
+services' latencies when faced with request/workload spikes.
+
+At high scale, mmap_lock contention during thread creation and stack page
+faults leads to user-visible multi-second serving latencies in a similar
+pattern to Android app startup.  Per-VMA locking patchset has been run
+successfully in limited experiments with user-facing production workloads.
+In these experiments, we observed that the peak thread creation rate was
+high enough that thread creation is no longer a bottleneck.
+
+TCP zerocopy receive:
+
+From the point of view of TCP zerocopy receive, the per-vma lock patch is
+massively beneficial.
+
+In today's implementation, a process with N threads where N - 1 are
+performing zerocopy receive and 1 thread is performing madvise() with the
+write lock taken (e.g.  needs to change vm_flags) will result in all N -1
+receive threads blocking until the madvise is done.  Conversely, on a busy
+process receiving a lot of data, an madvise operation that does need to
+take the mmap lock in write mode will need to wait for all of the receives
+to be done - a lose:lose proposition.  Per-VMA locking _removes_ by
+definition this source of contention entirely.
+
+There are other benefits for receive as well, chiefly a reduction in
+cacheline bouncing across receiving threads for locking/unlocking the
+single mmap lock.  On an RPC style synthetic workload with 4KB RPCs:
+
+1a) The find+lock+unlock VMA path in the base case, without the
+    per-vma lock patchset, is about 0.7% of cycles as measured by perf.
+
+1b) mmap_read_lock + mmap_read_unlock in the base case is about 0.5%
+    cycles overall - most of this is within the TCP read hotpath (a small
+    fraction is 'other' usage in the system).
+
+2a) The find+lock+unlock VMA path, with the per-vma patchset and a
+    trivial patch written to take advantage of it in TCP, is about 0.4% of
+    cycles (down from 0.7% above)
+
+2b) mmap_read_lock + mmap_read_unlock in the per-vma patchset is <
+    0.1% cycles and is out of the TCP read hotpath entirely (down from
+    0.5% before, the remaining usage is the 'other' usage in the system). 
+    So, in addition to entirely removing an onerous source of contention,
+    it also reduces the CPU cycles of TCP receive zerocopy by about 0.5%+
+    (compared to overall cycles in perf) for the 'small' RPC scenario.
+
+The patchset structure is:
+0001-0008: Enable maple-tree RCU mode
+0009-0031: Main per-vma locks patchset
+0032-0033: Performance optimizations
+
+
+This patch (of 33):
+
+ma_pivots() and ma_data_end() may be called with a dead node.  Ensure to
+that the node isn't dead before using the returned values.
+
+This is necessary for RCU mode of the maple tree.
+
+Link: https://lkml.kernel.org/r/20230227173632.3292573-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20230227173632.3292573-2-surenb@google.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Liam Howlett <Liam.Howlett@oracle.com>
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Arjun Roy <arjunroy@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Chris Li <chriscli@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: freak07 <michalechner92@googlemail.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Joel Fernandes <joelaf@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Peter Oskolkov <posk@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Punit Agrawal <punit.agrawal@bytedance.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Soheil Hassas Yeganeh <soheil@google.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/rmap.c~mm-rmap-use-atomic_try_cmpxchg-in-set_tlb_ubc_flush_pending
-+++ a/mm/rmap.c
-@@ -644,7 +644,7 @@ void try_to_unmap_flush_dirty(void)
- static void set_tlb_ubc_flush_pending(struct mm_struct *mm, bool writable)
- {
- 	struct tlbflush_unmap_batch *tlb_ubc = &current->tlb_ubc;
--	int batch, nbatch;
-+	int batch;
+--- a/lib/maple_tree.c~maple_tree-be-more-cautious-about-dead-nodes
++++ a/lib/maple_tree.c
+@@ -544,6 +544,7 @@ static inline bool ma_dead_node(const st
  
- 	arch_tlbbatch_add_mm(&tlb_ubc->arch, mm);
- 	tlb_ubc->flush_required = true;
-@@ -662,11 +662,8 @@ retry:
- 		 * overflow.  Reset `pending' and `flushed' to be 1 and 0 if
- 		 * `pending' becomes large.
- 		 */
--		nbatch = atomic_cmpxchg(&mm->tlb_flush_batched, batch, 1);
--		if (nbatch != batch) {
--			batch = nbatch;
-+		if (!atomic_try_cmpxchg(&mm->tlb_flush_batched, &batch, 1))
- 			goto retry;
--		}
- 	} else {
- 		atomic_inc(&mm->tlb_flush_batched);
+ 	return (parent == node);
+ }
++
+ /*
+  * mte_dead_node() - check if the @enode is dead.
+  * @enode: The encoded maple node
+@@ -625,6 +626,8 @@ static inline unsigned int mas_alloc_req
+  * @node - the maple node
+  * @type - the node type
+  *
++ * In the event of a dead node, this array may be %NULL
++ *
+  * Return: A pointer to the maple node pivots
+  */
+ static inline unsigned long *ma_pivots(struct maple_node *node,
+@@ -1096,8 +1099,11 @@ static int mas_ascend(struct ma_state *m
+ 		a_type = mas_parent_enum(mas, p_enode);
+ 		a_node = mte_parent(p_enode);
+ 		a_slot = mte_parent_slot(p_enode);
+-		pivots = ma_pivots(a_node, a_type);
+ 		a_enode = mt_mk_node(a_node, a_type);
++		pivots = ma_pivots(a_node, a_type);
++
++		if (unlikely(ma_dead_node(a_node)))
++			return 1;
+ 
+ 		if (!set_min && a_slot) {
+ 			set_min = true;
+@@ -1401,6 +1407,9 @@ static inline unsigned char ma_data_end(
+ {
+ 	unsigned char offset;
+ 
++	if (!pivots)
++		return 0;
++
+ 	if (type == maple_arange_64)
+ 		return ma_meta_end(node, type);
+ 
+@@ -1436,6 +1445,9 @@ static inline unsigned char mas_data_end
+ 		return ma_meta_end(node, type);
+ 
+ 	pivots = ma_pivots(node, type);
++	if (unlikely(ma_dead_node(node)))
++		return 0;
++
+ 	offset = mt_pivots[type] - 1;
+ 	if (likely(!pivots[offset]))
+ 		return ma_meta_end(node, type);
+@@ -4505,6 +4517,9 @@ static inline int mas_prev_node(struct m
+ 	node = mas_mn(mas);
+ 	slots = ma_slots(node, mt);
+ 	pivots = ma_pivots(node, mt);
++	if (unlikely(ma_dead_node(node)))
++		return 1;
++
+ 	mas->max = pivots[offset];
+ 	if (offset)
+ 		mas->min = pivots[offset - 1] + 1;
+@@ -4526,6 +4541,9 @@ static inline int mas_prev_node(struct m
+ 		slots = ma_slots(node, mt);
+ 		pivots = ma_pivots(node, mt);
+ 		offset = ma_data_end(node, mt, pivots, mas->max);
++		if (unlikely(ma_dead_node(node)))
++			return 1;
++
+ 		if (offset)
+ 			mas->min = pivots[offset - 1] + 1;
+ 
+@@ -4574,6 +4592,7 @@ static inline int mas_next_node(struct m
+ 	struct maple_enode *enode;
+ 	int level = 0;
+ 	unsigned char offset;
++	unsigned char node_end;
+ 	enum maple_type mt;
+ 	void __rcu **slots;
+ 
+@@ -4597,7 +4616,11 @@ static inline int mas_next_node(struct m
+ 		node = mas_mn(mas);
+ 		mt = mte_node_type(mas->node);
+ 		pivots = ma_pivots(node, mt);
+-	} while (unlikely(offset == ma_data_end(node, mt, pivots, mas->max)));
++		node_end = ma_data_end(node, mt, pivots, mas->max);
++		if (unlikely(ma_dead_node(node)))
++			return 1;
++
++	} while (unlikely(offset == node_end));
+ 
+ 	slots = ma_slots(node, mt);
+ 	pivot = mas_safe_pivot(mas, pivots, ++offset, mt);
+@@ -4613,6 +4636,9 @@ static inline int mas_next_node(struct m
+ 		mt = mte_node_type(mas->node);
+ 		slots = ma_slots(node, mt);
+ 		pivots = ma_pivots(node, mt);
++		if (unlikely(ma_dead_node(node)))
++			return 1;
++
+ 		offset = 0;
+ 		pivot = pivots[0];
  	}
+@@ -4659,11 +4685,14 @@ static inline void *mas_next_nentry(stru
+ 		return NULL;
+ 	}
+ 
+-	pivots = ma_pivots(node, type);
+ 	slots = ma_slots(node, type);
+-	mas->index = mas_safe_min(mas, pivots, mas->offset);
++	pivots = ma_pivots(node, type);
+ 	count = ma_data_end(node, type, pivots, mas->max);
+-	if (ma_dead_node(node))
++	if (unlikely(ma_dead_node(node)))
++		return NULL;
++
++	mas->index = mas_safe_min(mas, pivots, mas->offset);
++	if (unlikely(ma_dead_node(node)))
+ 		return NULL;
+ 
+ 	if (mas->index > max)
+@@ -4817,6 +4846,11 @@ retry:
+ 
+ 	slots = ma_slots(mn, mt);
+ 	pivots = ma_pivots(mn, mt);
++	if (unlikely(ma_dead_node(mn))) {
++		mas_rewalk(mas, index);
++		goto retry;
++	}
++
+ 	if (offset == mt_pivots[mt])
+ 		pivot = mas->max;
+ 	else
+@@ -6631,11 +6665,11 @@ static inline void *mas_first_entry(stru
+ 	while (likely(!ma_is_leaf(mt))) {
+ 		MT_BUG_ON(mas->tree, mte_dead_node(mas->node));
+ 		slots = ma_slots(mn, mt);
+-		pivots = ma_pivots(mn, mt);
+-		max = pivots[0];
+ 		entry = mas_slot(mas, slots, 0);
++		pivots = ma_pivots(mn, mt);
+ 		if (unlikely(ma_dead_node(mn)))
+ 			return NULL;
++		max = pivots[0];
+ 		mas->node = entry;
+ 		mn = mas_mn(mas);
+ 		mt = mte_node_type(mas->node);
+@@ -6655,13 +6689,13 @@ static inline void *mas_first_entry(stru
+ 	if (likely(entry))
+ 		return entry;
+ 
+-	pivots = ma_pivots(mn, mt);
+-	mas->index = pivots[0] + 1;
+ 	mas->offset = 1;
+ 	entry = mas_slot(mas, slots, 1);
++	pivots = ma_pivots(mn, mt);
+ 	if (unlikely(ma_dead_node(mn)))
+ 		return NULL;
+ 
++	mas->index = pivots[0] + 1;
+ 	if (mas->index > limit)
+ 		goto none;
+ 
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-mm-rmap-use-atomic_try_cmpxchg-in-set_tlb_ubc_flush_pending.patch
-nfs-remove-empty-if-statement-from-nfs3_prepare_get_acl.patch
+mm-mprotect-fix-successful-vma_merge-of-next-in-do_mprotect_pkey.patch
+maple_tree-be-more-cautious-about-dead-nodes.patch
+maple_tree-detect-dead-nodes-in-mas_start.patch
+maple_tree-fix-freeing-of-nodes-in-rcu-mode.patch
+maple_tree-remove-extra-smp_wmb-from-mas_dead_leaves.patch
+maple_tree-fix-write-memory-barrier-of-nodes-once-dead-for-rcu-mode.patch
+maple_tree-add-smp_rmb-to-dead-node-detection.patch
+maple_tree-add-rcu-lock-checking-to-rcu-callback-functions.patch
+mm-enable-maple-tree-rcu-mode-by-default.patch
 
