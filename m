@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8613C64ED8
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43749C64ED9
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230256AbjB0WHT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 17:07:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45260 "EHLO
+        id S230216AbjB0WHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 17:07:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45580 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230216AbjB0WGx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:53 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B216729420
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:51 -0800 (PST)
+        with ESMTP id S230222AbjB0WGz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:55 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFA71298F1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 61F25B80DC3
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB460C4339E;
-        Mon, 27 Feb 2023 22:06:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8C13F60F2E
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E54D0C433EF;
+        Mon, 27 Feb 2023 22:06:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677535609;
-        bh=F9mqKXN2mlQgPZP3utnFla2UxsWASTDaE7xqgTcNzhY=;
+        s=korg; t=1677535613;
+        bh=iixaWrBe0SUX4hyls0bzHQ99K/Ek8jmzjkYCaArdGeA=;
         h=Date:To:From:Subject:From;
-        b=kSmCy76mwJD33Vsa/+RxiaoRU+8aGj9q3nEU3gb9sPb3XWQwb2t0YxIjA3qq4go6y
-         +wPVOtnw4wr52VLJNKhJaOexlr/ytIdNbihe1ZCk6OmmCALQUcYtpY4OAa4XR3RCrA
-         Es9dDGuLC7CLV9kp8P3nqtJMD+LmPXOpblErq6Z4=
-Date:   Mon, 27 Feb 2023 14:06:48 -0800
+        b=iNxgT/juqlIon3psZ4So9RsB+Fvf4/ev8Jb9S2ptGAjZjNUJZWgNeS7wR5V4zCgf0
+         sG4q/ila8tb5mbskdwgvfHeRXrYnYMFrSNbeV0caBxUkac9cPucNlS3ssjJlL398HT
+         r+Uw1jDPhTgPm8DZdp0dSwf/BmC+mv9VHRK7eKC0=
+Date:   Mon, 27 Feb 2023 14:06:52 -0800
 To:     mm-commits@vger.kernel.org, surenb@google.com,
-        akpm@linux-foundation.org
+        ldufour@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-try-vma-lock-based-page-fault-handling-first.patch added to mm-unstable branch
-Message-Id: <20230227220648.EB460C4339E@smtp.kernel.org>
+Subject: + powerc-mm-try-vma-lock-based-page-fault-handling-first.patch added to mm-unstable branch
+Message-Id: <20230227220652.E54D0C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/mm: try VMA lock-based page fault handling first
+     Subject: powerc/mm: try VMA lock-based page fault handling first
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-mm-try-vma-lock-based-page-fault-handling-first.patch
+     powerc-mm-try-vma-lock-based-page-fault-handling-first.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-try-vma-lock-based-page-fault-handling-first.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerc-mm-try-vma-lock-based-page-fault-handling-first.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,42 +64,26 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: x86/mm: try VMA lock-based page fault handling first
-Date: Mon, 27 Feb 2023 09:36:28 -0800
+From: Laurent Dufour <ldufour@linux.ibm.com>
+Subject: powerc/mm: try VMA lock-based page fault handling first
+Date: Mon, 27 Feb 2023 09:36:30 -0800
 
 Attempt VMA lock-based page fault handling first, and fall back to the
-existing mmap_lock-based handling if that fails.
+existing mmap_lock-based handling if that fails.  Copied from "x86/mm: try
+VMA lock-based page fault handling first"
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-30-surenb@google.com
+Link: https://lkml.kernel.org/r/20230227173632.3292573-32-surenb@google.com
+Signed-off-by: Laurent Dufour <ldufour@linux.ibm.com>
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/x86/Kconfig~x86-mm-try-vma-lock-based-page-fault-handling-first
-+++ a/arch/x86/Kconfig
-@@ -27,6 +27,7 @@ config X86_64
- 	# Options that are inherently 64-bit kernel only:
- 	select ARCH_HAS_GIGANTIC_PAGE
- 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128
-+	select ARCH_SUPPORTS_PER_VMA_LOCK
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select HAVE_ARCH_SOFT_DIRTY
- 	select MODULES_USE_ELF_RELA
---- a/arch/x86/mm/fault.c~x86-mm-try-vma-lock-based-page-fault-handling-first
-+++ a/arch/x86/mm/fault.c
-@@ -19,6 +19,7 @@
- #include <linux/uaccess.h>		/* faulthandler_disabled()	*/
- #include <linux/efi.h>			/* efi_crash_gracefully_on_page_fault()*/
- #include <linux/mm_types.h>
-+#include <linux/mm.h>			/* find_and_lock_vma() */
- 
- #include <asm/cpufeature.h>		/* boot_cpu_has, ...		*/
- #include <asm/traps.h>			/* dotraplinkage, ...		*/
-@@ -1333,6 +1334,38 @@ void do_user_addr_fault(struct pt_regs *
- 	}
- #endif
+--- a/arch/powerpc/mm/fault.c~powerc-mm-try-vma-lock-based-page-fault-handling-first
++++ a/arch/powerpc/mm/fault.c
+@@ -469,6 +469,44 @@ static int ___do_page_fault(struct pt_re
+ 	if (is_exec)
+ 		flags |= FAULT_FLAG_INSTRUCTION;
  
 +#ifdef CONFIG_PER_VMA_LOCK
 +	if (!(flags & FAULT_FLAG_USER))
@@ -109,10 +93,21 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	if (!vma)
 +		goto lock_mmap;
 +
-+	if (unlikely(access_error(error_code, vma))) {
++	if (unlikely(access_pkey_error(is_write, is_exec,
++				       (error_code & DSISR_KEYFAULT), vma))) {
++		int rc = bad_access_pkey(regs, address, vma);
++
 +		vma_end_read(vma);
-+		goto lock_mmap;
++		return rc;
 +	}
++
++	if (unlikely(access_error(is_write, is_exec, vma))) {
++		int rc = bad_access(regs, address);
++
++		vma_end_read(vma);
++		return rc;
++	}
++
 +	fault = handle_mm_fault(vma, address, flags | FAULT_FLAG_VMA_LOCK, regs);
 +	vma_end_read(vma);
 +
@@ -122,56 +117,48 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	}
 +	count_vm_vma_lock_event(VMA_LOCK_RETRY);
 +
-+	/* Quick path to respond to signals */
-+	if (fault_signal_pending(fault, regs)) {
-+		if (!user_mode(regs))
-+			kernelmode_fixup_or_oops(regs, error_code, address,
-+						 SIGBUS, BUS_ADRERR,
-+						 ARCH_DEFAULT_PKEY);
-+		return;
-+	}
++	if (fault_signal_pending(fault, regs))
++		return user_mode(regs) ? 0 : SIGBUS;
++
 +lock_mmap:
 +#endif /* CONFIG_PER_VMA_LOCK */
 +
- 	/*
- 	 * Kernel-mode access to the user address space should only occur
- 	 * on well-defined single instructions listed in the exception
-@@ -1433,6 +1466,9 @@ good_area:
- 	}
+ 	/* When running in the kernel we expect faults to occur only to
+ 	 * addresses in user space.  All other faults represent errors in the
+ 	 * kernel and should generate an OOPS.  Unfortunately, in the case of an
+@@ -545,6 +583,9 @@ retry:
  
- 	mmap_read_unlock(mm);
+ 	mmap_read_unlock(current->mm);
+ 
 +#ifdef CONFIG_PER_VMA_LOCK
 +done:
 +#endif
- 	if (likely(!(fault & VM_FAULT_ERROR)))
- 		return;
+ 	if (unlikely(fault & VM_FAULT_ERROR))
+ 		return mm_fault_error(regs, address, fault);
  
+--- a/arch/powerpc/platforms/powernv/Kconfig~powerc-mm-try-vma-lock-based-page-fault-handling-first
++++ a/arch/powerpc/platforms/powernv/Kconfig
+@@ -16,6 +16,7 @@ config PPC_POWERNV
+ 	select PPC_DOORBELL
+ 	select MMU_NOTIFIER
+ 	select FORCE_SMP
++	select ARCH_SUPPORTS_PER_VMA_LOCK
+ 	default y
+ 
+ config OPAL_PRD
+--- a/arch/powerpc/platforms/pseries/Kconfig~powerc-mm-try-vma-lock-based-page-fault-handling-first
++++ a/arch/powerpc/platforms/pseries/Kconfig
+@@ -21,6 +21,7 @@ config PPC_PSERIES
+ 	select HOTPLUG_CPU
+ 	select FORCE_SMP
+ 	select SWIOTLB
++	select ARCH_SUPPORTS_PER_VMA_LOCK
+ 	default y
+ 
+ config PARAVIRT
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from ldufour@linux.ibm.com are
 
-mm-introduce-config_per_vma_lock.patch
-mm-move-mmap_lock-assert-function-definitions.patch
-mm-add-per-vma-lock-and-helper-functions-to-control-it.patch
-mm-mark-vma-as-being-written-when-changing-vm_flags.patch
-mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge.patch
-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page.patch
-mm-mmap-write-lock-vmas-in-vma_prepare-before-modifying-them.patch
-mm-mremap-write-lock-vma-while-remapping-it-to-a-new-address-range.patch
-mm-write-lock-vmas-before-removing-them-from-vma-tree.patch
-mm-conditionally-write-lock-vma-in-free_pgtables.patch
-kernel-fork-assert-no-vma-readers-during-its-destruction.patch
-mm-mmap-prevent-pagefault-handler-from-racing-with-mmu_notifier-registration.patch
-mm-introduce-vma-detached-flag.patch
-mm-introduce-lock_vma_under_rcu-to-be-used-from-arch-specific-code.patch
-mm-fall-back-to-mmap_lock-if-vma-anon_vma-is-not-yet-set.patch
-mm-add-fault_flag_vma_lock-flag.patch
-mm-prevent-do_swap_page-from-handling-page-faults-under-vma-lock.patch
-mm-prevent-userfaults-to-be-handled-under-per-vma-lock.patch
-mm-introduce-per-vma-lock-statistics.patch
-x86-mm-try-vma-lock-based-page-fault-handling-first.patch
-arm64-mm-try-vma-lock-based-page-fault-handling-first.patch
-mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap.patch
-mm-separate-vma-lock-from-vm_area_struct.patch
-per-vma-locks.patch
+powerc-mm-try-vma-lock-based-page-fault-handling-first.patch
 
