@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3B7AC7EE2E
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98C23C64ED6
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230217AbjB0WHV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 17:07:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45594 "EHLO
+        id S230130AbjB0WH0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 17:07:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230226AbjB0WG5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:57 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39C5A298FD
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:56 -0800 (PST)
+        with ESMTP id S230229AbjB0WHA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:07:00 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7391F298FE
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C8DB160F2E
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29573C433D2;
-        Mon, 27 Feb 2023 22:06:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1153560F2F
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6519EC433EF;
+        Mon, 27 Feb 2023 22:06:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677535615;
-        bh=QMojpJenmQAXseUngZ7uj8qnTUV/XN/nA1+Av1vel3I=;
+        s=korg; t=1677535617;
+        bh=PYMc/IVgtcoNjBpHEUCkthPVgnylMtNLmirHy4fDezk=;
         h=Date:To:From:Subject:From;
-        b=ri3IPha81S38uOk5aqnA2WbKp2NaifyMkUUHaNGNKCyXTyIDso2QifzmYVuu+V0Mx
-         LRh/MlTCcPsBJmRr6q77jESKicKThNc1ABqbqBk6hKR/YTtn9p7z2FW2d0vHmxxG7V
-         dwbzQREcpJ4IvOKOcXGq+DQPYqGzrCHvYYMTvtys=
-Date:   Mon, 27 Feb 2023 14:06:54 -0800
+        b=gZLv+ySvRq+hp9gbUWjqLcfNmBRQSd5GvG91LlnEJOaOug5ms2nm+C8TakGpcj+hn
+         JVxnjPgEHOaXH6QYNVW7/cSsEvokkrmfEmRRzvmtNvq7WHMTd9C67BiPbunkGE6gCN
+         vzcu51Hhc0aulhOpX6tabtihir/kLKw3Kqf9cQ8w=
+Date:   Mon, 27 Feb 2023 14:06:56 -0800
 To:     mm-commits@vger.kernel.org, surenb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap.patch added to mm-unstable branch
-Message-Id: <20230227220655.29573C433D2@smtp.kernel.org>
+Subject: + mm-separate-vma-lock-from-vm_area_struct.patch added to mm-unstable branch
+Message-Id: <20230227220657.6519EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: free vm_area_struct without call_rcu in exit_mmap
+     Subject: mm: separate vma->lock from vm_area_struct
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap.patch
+     mm-separate-vma-lock-from-vm_area_struct.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-separate-vma-lock-from-vm_area_struct.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,91 +65,248 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/mmap: free vm_area_struct without call_rcu in exit_mmap
-Date: Mon, 27 Feb 2023 09:36:31 -0800
+Subject: mm: separate vma->lock from vm_area_struct
+Date: Mon, 27 Feb 2023 09:36:32 -0800
 
-call_rcu() can take a long time when callback offloading is enabled.  Its
-use in the vm_area_free can cause regressions in the exit path when
-multiple VMAs are being freed.
+vma->lock being part of the vm_area_struct causes performance regression
+during page faults because during contention its count and owner fields
+are constantly updated and having other parts of vm_area_struct used
+during page fault handling next to them causes constant cache line
+bouncing.  Fix that by moving the lock outside of the vm_area_struct.
 
-Because exit_mmap() is called only after the last mm user drops its
-refcount, the page fault handlers can't be racing with it.  Any other
-possible user like oom-reaper or process_mrelease are already synchronized
-using mmap_lock.  Therefore exit_mmap() can free VMAs directly, without
-the use of call_rcu().
+All attempts to keep vma->lock inside vm_area_struct in a separate cache
+line still produce performance regression especially on NUMA machines. 
+Smallest regression was achieved when lock is placed in the fourth cache
+line but that bloats vm_area_struct to 256 bytes.
 
-Expose __vm_area_free() and use it from exit_mmap() to avoid possible
-call_rcu() floods and performance regressions caused by it.
+Considering performance and memory impact, separate lock looks like the
+best option.  It increases memory footprint of each VMA but that can be
+optimized later if the new size causes issues.  Note that after this
+change vma_init() does not allocate or initialize vma->lock anymore.  A
+number of drivers allocate a pseudo VMA on the stack but they never use
+the VMA's lock, therefore it does not need to be allocated.  The future
+drivers which might need the VMA lock should use
+vm_area_alloc()/vm_area_free() to allocate the VMA.
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-33-surenb@google.com
+Link: https://lkml.kernel.org/r/20230227173632.3292573-34-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm.h~mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap
+--- a/include/linux/mm.h~mm-separate-vma-lock-from-vm_area_struct
 +++ a/include/linux/mm.h
-@@ -256,6 +256,8 @@ void setup_initial_init_mm(void *start_c
- struct vm_area_struct *vm_area_alloc(struct mm_struct *);
- struct vm_area_struct *vm_area_dup(struct vm_area_struct *);
- void vm_area_free(struct vm_area_struct *);
-+/* Use only if VMA has no other users */
-+void __vm_area_free(struct vm_area_struct *vma);
+@@ -627,12 +627,6 @@ struct vm_operations_struct {
+ };
  
- #ifndef CONFIG_MMU
- extern struct rb_root nommu_region_tree;
---- a/kernel/fork.c~mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap
+ #ifdef CONFIG_PER_VMA_LOCK
+-static inline void vma_init_lock(struct vm_area_struct *vma)
+-{
+-	init_rwsem(&vma->lock);
+-	vma->vm_lock_seq = -1;
+-}
+-
+ /*
+  * Try to read-lock a vma. The function is allowed to occasionally yield false
+  * locked result to avoid performance overhead, in which case we fall back to
+@@ -644,17 +638,17 @@ static inline bool vma_start_read(struct
+ 	if (vma->vm_lock_seq == READ_ONCE(vma->vm_mm->mm_lock_seq))
+ 		return false;
+ 
+-	if (unlikely(down_read_trylock(&vma->lock) == 0))
++	if (unlikely(down_read_trylock(&vma->vm_lock->lock) == 0))
+ 		return false;
+ 
+ 	/*
+ 	 * Overflow might produce false locked result.
+ 	 * False unlocked result is impossible because we modify and check
+-	 * vma->vm_lock_seq under vma->lock protection and mm->mm_lock_seq
++	 * vma->vm_lock_seq under vma->vm_lock protection and mm->mm_lock_seq
+ 	 * modification invalidates all existing locks.
+ 	 */
+ 	if (unlikely(vma->vm_lock_seq == READ_ONCE(vma->vm_mm->mm_lock_seq))) {
+-		up_read(&vma->lock);
++		up_read(&vma->vm_lock->lock);
+ 		return false;
+ 	}
+ 	return true;
+@@ -663,7 +657,7 @@ static inline bool vma_start_read(struct
+ static inline void vma_end_read(struct vm_area_struct *vma)
+ {
+ 	rcu_read_lock(); /* keeps vma alive till the end of up_read */
+-	up_read(&vma->lock);
++	up_read(&vma->vm_lock->lock);
+ 	rcu_read_unlock();
+ }
+ 
+@@ -681,9 +675,9 @@ static inline void vma_start_write(struc
+ 	if (vma->vm_lock_seq == mm_lock_seq)
+ 		return;
+ 
+-	down_write(&vma->lock);
++	down_write(&vma->vm_lock->lock);
+ 	vma->vm_lock_seq = mm_lock_seq;
+-	up_write(&vma->lock);
++	up_write(&vma->vm_lock->lock);
+ }
+ 
+ static inline void vma_assert_write_locked(struct vm_area_struct *vma)
+@@ -720,6 +714,10 @@ static inline void vma_mark_detached(str
+ 
+ #endif /* CONFIG_PER_VMA_LOCK */
+ 
++/*
++ * WARNING: vma_init does not initialize vma->vm_lock.
++ * Use vm_area_alloc()/vm_area_free() if vma needs locking.
++ */
+ static inline void vma_init(struct vm_area_struct *vma, struct mm_struct *mm)
+ {
+ 	static const struct vm_operations_struct dummy_vm_ops = {};
+@@ -729,7 +727,6 @@ static inline void vma_init(struct vm_ar
+ 	vma->vm_ops = &dummy_vm_ops;
+ 	INIT_LIST_HEAD(&vma->anon_vma_chain);
+ 	vma_mark_detached(vma, false);
+-	vma_init_lock(vma);
+ }
+ 
+ /* Use when VMA is not part of the VMA tree and needs no locking */
+--- a/include/linux/mm_types.h~mm-separate-vma-lock-from-vm_area_struct
++++ a/include/linux/mm_types.h
+@@ -471,6 +471,10 @@ struct anon_vma_name {
+ 	char name[];
+ };
+ 
++struct vma_lock {
++	struct rw_semaphore lock;
++};
++
+ /*
+  * This struct describes a virtual memory area. There is one of these
+  * per VM-area/task. A VM area is any part of the process virtual memory
+@@ -510,7 +514,7 @@ struct vm_area_struct {
+ 
+ #ifdef CONFIG_PER_VMA_LOCK
+ 	int vm_lock_seq;
+-	struct rw_semaphore lock;
++	struct vma_lock *vm_lock;
+ 
+ 	/* Flag to indicate areas detached from the mm->mm_mt tree */
+ 	bool detached;
+--- a/kernel/fork.c~mm-separate-vma-lock-from-vm_area_struct
 +++ a/kernel/fork.c
-@@ -480,7 +480,7 @@ struct vm_area_struct *vm_area_dup(struc
+@@ -451,13 +451,49 @@ static struct kmem_cache *vm_area_cachep
+ /* SLAB cache for mm_struct structures (tsk->mm) */
+ static struct kmem_cache *mm_cachep;
+ 
++#ifdef CONFIG_PER_VMA_LOCK
++
++/* SLAB cache for vm_area_struct.lock */
++static struct kmem_cache *vma_lock_cachep;
++
++static bool vma_lock_alloc(struct vm_area_struct *vma)
++{
++	vma->vm_lock = kmem_cache_alloc(vma_lock_cachep, GFP_KERNEL);
++	if (!vma->vm_lock)
++		return false;
++
++	init_rwsem(&vma->vm_lock->lock);
++	vma->vm_lock_seq = -1;
++
++	return true;
++}
++
++static inline void vma_lock_free(struct vm_area_struct *vma)
++{
++	kmem_cache_free(vma_lock_cachep, vma->vm_lock);
++}
++
++#else /* CONFIG_PER_VMA_LOCK */
++
++static inline bool vma_lock_alloc(struct vm_area_struct *vma) { return true; }
++static inline void vma_lock_free(struct vm_area_struct *vma) {}
++
++#endif /* CONFIG_PER_VMA_LOCK */
++
+ struct vm_area_struct *vm_area_alloc(struct mm_struct *mm)
+ {
+ 	struct vm_area_struct *vma;
+ 
+ 	vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+-	if (vma)
+-		vma_init(vma, mm);
++	if (!vma)
++		return NULL;
++
++	vma_init(vma, mm);
++	if (!vma_lock_alloc(vma)) {
++		kmem_cache_free(vm_area_cachep, vma);
++		return NULL;
++	}
++
+ 	return vma;
+ }
+ 
+@@ -465,24 +501,30 @@ struct vm_area_struct *vm_area_dup(struc
+ {
+ 	struct vm_area_struct *new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+ 
+-	if (new) {
+-		ASSERT_EXCLUSIVE_WRITER(orig->vm_flags);
+-		ASSERT_EXCLUSIVE_WRITER(orig->vm_file);
+-		/*
+-		 * orig->shared.rb may be modified concurrently, but the clone
+-		 * will be reinitialized.
+-		 */
+-		data_race(memcpy(new, orig, sizeof(*new)));
+-		INIT_LIST_HEAD(&new->anon_vma_chain);
+-		vma_init_lock(new);
+-		dup_anon_vma_name(orig, new);
++	if (!new)
++		return NULL;
++
++	ASSERT_EXCLUSIVE_WRITER(orig->vm_flags);
++	ASSERT_EXCLUSIVE_WRITER(orig->vm_file);
++	/*
++	 * orig->shared.rb may be modified concurrently, but the clone
++	 * will be reinitialized.
++	 */
++	data_race(memcpy(new, orig, sizeof(*new)));
++	if (!vma_lock_alloc(new)) {
++		kmem_cache_free(vm_area_cachep, new);
++		return NULL;
+ 	}
++	INIT_LIST_HEAD(&new->anon_vma_chain);
++	dup_anon_vma_name(orig, new);
++
  	return new;
  }
  
--static void __vm_area_free(struct vm_area_struct *vma)
-+void __vm_area_free(struct vm_area_struct *vma)
+ void __vm_area_free(struct vm_area_struct *vma)
  {
  	free_anon_vma_name(vma);
++	vma_lock_free(vma);
  	kmem_cache_free(vm_area_cachep, vma);
---- a/mm/mmap.c~mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap
-+++ a/mm/mmap.c
-@@ -133,7 +133,7 @@ void unlink_file_vma(struct vm_area_stru
- /*
-  * Close a vm structure and free it.
-  */
--static void remove_vma(struct vm_area_struct *vma)
-+static void remove_vma(struct vm_area_struct *vma, bool unreachable)
- {
- 	might_sleep();
- 	if (vma->vm_ops && vma->vm_ops->close)
-@@ -141,7 +141,10 @@ static void remove_vma(struct vm_area_st
- 	if (vma->vm_file)
- 		fput(vma->vm_file);
- 	mpol_put(vma_policy(vma));
--	vm_area_free(vma);
-+	if (unreachable)
-+		__vm_area_free(vma);
-+	else
-+		vm_area_free(vma);
  }
  
- static inline struct vm_area_struct *vma_prev_limit(struct vma_iterator *vmi,
-@@ -2130,7 +2133,7 @@ static inline void remove_mt(struct mm_s
- 		if (vma->vm_flags & VM_ACCOUNT)
- 			nr_accounted += nrpages;
- 		vm_stat_account(mm, vma->vm_flags, -nrpages);
--		remove_vma(vma);
-+		remove_vma(vma, false);
- 	}
- 	vm_unacct_memory(nr_accounted);
- 	validate_mm(mm);
-@@ -3070,7 +3073,7 @@ void exit_mmap(struct mm_struct *mm)
- 	do {
- 		if (vma->vm_flags & VM_ACCOUNT)
- 			nr_accounted += vma_pages(vma);
--		remove_vma(vma);
-+		remove_vma(vma, true);
- 		count++;
- 		cond_resched();
- 	} while ((vma = mas_find(&mas, ULONG_MAX)) != NULL);
+@@ -493,7 +535,7 @@ static void vm_area_free_rcu_cb(struct r
+ 						  vm_rcu);
+ 
+ 	/* The vma should not be locked while being destroyed. */
+-	VM_BUG_ON_VMA(rwsem_is_locked(&vma->lock), vma);
++	VM_BUG_ON_VMA(rwsem_is_locked(&vma->vm_lock->lock), vma);
+ 	__vm_area_free(vma);
+ }
+ #endif
+@@ -3160,6 +3202,9 @@ void __init proc_caches_init(void)
+ 			NULL);
+ 
+ 	vm_area_cachep = KMEM_CACHE(vm_area_struct, SLAB_PANIC|SLAB_ACCOUNT);
++#ifdef CONFIG_PER_VMA_LOCK
++	vma_lock_cachep = KMEM_CACHE(vma_lock, SLAB_PANIC|SLAB_ACCOUNT);
++#endif
+ 	mmap_init();
+ 	nsproxy_cache_init();
+ }
 _
 
 Patches currently in -mm which might be from surenb@google.com are
