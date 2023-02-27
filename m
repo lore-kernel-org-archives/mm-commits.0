@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2AB6C7EE30
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:06:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33D4CC64ED6
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:06:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229904AbjB0WGe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 17:06:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45030 "EHLO
+        id S229451AbjB0WGl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 17:06:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229792AbjB0WGV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:21 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B45E5298F6
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:18 -0800 (PST)
+        with ESMTP id S230175AbjB0WGX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:06:23 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 827FB298E9
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:21 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4F8FBB80DC3
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 014E4C4339B;
-        Mon, 27 Feb 2023 22:06:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1DDAB60F12
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 799EAC433EF;
+        Mon, 27 Feb 2023 22:06:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677535576;
-        bh=GsDS1OSuA2RGnDxPp0S5I+C1N6AeVqpYS7PUf5hnvvs=;
+        s=korg; t=1677535580;
+        bh=89l2V8EmgaBAvT7YMAvV0hle9r5MOv/+C8BNehfiXqY=;
         h=Date:To:From:Subject:From;
-        b=kG8SDn1NcNPFmW+XRx4RGQotL0d7Q1spUbDXyq0AAGYruSs3BlFnSlAPieJ5khrkM
-         QwEpEV81farcmehV3LuiBxP29glU3XzPu51vuYNM6KN+eMGncS7od4f5KTKGO9L1UM
-         nHsfzKpEb7J85IDXid9mUHGnbCiTNBYmPiqjSWi8=
-Date:   Mon, 27 Feb 2023 14:06:15 -0800
+        b=YUHrDvsP+IDAdp5U0VcmSsHmezByT2iORomRDbc3MODFgjkIoBBuM8VprzIoGkhC9
+         abQseGDVmJKesXx/A2v8xUoe8clOZiiOtbu9G1gGTxTdyydEgmi56wXPLVaANN2KF1
+         RsXxk4qYmC5iE3dVAGlssbhSlr5LROINuGon+B0Q=
+Date:   Mon, 27 Feb 2023 14:06:19 -0800
 To:     mm-commits@vger.kernel.org, surenb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-per-vma-lock-and-helper-functions-to-control-it.patch added to mm-unstable branch
-Message-Id: <20230227220616.014E4C4339B@smtp.kernel.org>
+Subject: + mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge.patch added to mm-unstable branch
+Message-Id: <20230227220620.799EAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add per-VMA lock and helper functions to control it
+     Subject: mm/mmap: move vma_prepare before vma_adjust_trans_huge
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-per-vma-lock-and-helper-functions-to-control-it.patch
+     mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-per-vma-lock-and-helper-functions-to-control-it.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,225 +65,82 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: add per-VMA lock and helper functions to control it
-Date: Mon, 27 Feb 2023 09:36:11 -0800
+Subject: mm/mmap: move vma_prepare before vma_adjust_trans_huge
+Date: Mon, 27 Feb 2023 09:36:13 -0800
 
-Introduce per-VMA locking.  The lock implementation relies on a per-vma
-and per-mm sequence counters to note exclusive locking:
+vma_prepare() acquires all locks required before VMA modifications.  Move
+vma_prepare() before vma_adjust_trans_huge() so that VMA is locked before
+any modification.
 
-  - read lock - (implemented by vma_start_read) requires the vma
-    (vm_lock_seq) and mm (mm_lock_seq) sequence counters to differ.
-    If they match then there must be a vma exclusive lock held somewhere.
-  - read unlock - (implemented by vma_end_read) is a trivial vma->lock
-    unlock.
-  - write lock - (vma_start_write) requires the mmap_lock to be held
-    exclusively and the current mm counter is assigned to the vma counter.
-    This will allow multiple vmas to be locked under a single mmap_lock
-    write lock (e.g. during vma merging). The vma counter is modified
-    under exclusive vma lock.
-  - write unlock - (vma_end_write_all) is a batch release of all vma
-    locks held. It doesn't pair with a specific vma_start_write! It is
-    done before exclusive mmap_lock is released by incrementing mm
-    sequence counter (mm_lock_seq).
-  - write downgrade - if the mmap_lock is downgraded to the read lock, all
-    vma write locks are released as well (effectivelly same as write
-    unlock).
-
-Link: https://lkml.kernel.org/r/20230227173632.3292573-13-surenb@google.com
+Link: https://lkml.kernel.org/r/20230227173632.3292573-15-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mmap_lock.h~mm-add-per-vma-lock-and-helper-functions-to-control-it
-+++ a/include/linux/mmap_lock.h
-@@ -72,6 +72,17 @@ static inline void mmap_assert_write_loc
- 	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_lock), mm);
- }
+--- a/mm/mmap.c~mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge
++++ a/mm/mmap.c
+@@ -683,12 +683,12 @@ int vma_expand(struct vma_iterator *vmi,
+ 	if (vma_iter_prealloc(vmi))
+ 		goto nomem;
  
-+#ifdef CONFIG_PER_VMA_LOCK
-+static inline void vma_end_write_all(struct mm_struct *mm)
-+{
-+	mmap_assert_write_locked(mm);
-+	/* No races during update due to exclusive mmap_lock being held */
-+	WRITE_ONCE(mm->mm_lock_seq, mm->mm_lock_seq + 1);
-+}
-+#else
-+static inline void vma_end_write_all(struct mm_struct *mm) {}
-+#endif
-+
- static inline void mmap_init_lock(struct mm_struct *mm)
- {
- 	init_rwsem(&mm->mmap_lock);
-@@ -114,12 +125,14 @@ static inline bool mmap_write_trylock(st
- static inline void mmap_write_unlock(struct mm_struct *mm)
- {
- 	__mmap_lock_trace_released(mm, true);
-+	vma_end_write_all(mm);
- 	up_write(&mm->mmap_lock);
- }
++	vma_prepare(&vp);
+ 	vma_adjust_trans_huge(vma, start, end, 0);
+ 	/* VMA iterator points to previous, so set to start if necessary */
+ 	if (vma_iter_addr(vmi) != start)
+ 		vma_iter_set(vmi, start);
  
- static inline void mmap_write_downgrade(struct mm_struct *mm)
- {
- 	__mmap_lock_trace_acquire_returned(mm, false, true);
-+	vma_end_write_all(mm);
- 	downgrade_write(&mm->mmap_lock);
- }
+-	vma_prepare(&vp);
+ 	vma->vm_start = start;
+ 	vma->vm_end = end;
+ 	vma->vm_pgoff = pgoff;
+@@ -723,8 +723,8 @@ int vma_shrink(struct vma_iterator *vmi,
+ 		return -ENOMEM;
  
---- a/include/linux/mm.h~mm-add-per-vma-lock-and-helper-functions-to-control-it
-+++ a/include/linux/mm.h
-@@ -623,6 +623,87 @@ struct vm_operations_struct {
- 					  unsigned long addr);
- };
+ 	init_vma_prep(&vp, vma);
+-	vma_adjust_trans_huge(vma, start, end, 0);
+ 	vma_prepare(&vp);
++	vma_adjust_trans_huge(vma, start, end, 0);
  
-+#ifdef CONFIG_PER_VMA_LOCK
-+static inline void vma_init_lock(struct vm_area_struct *vma)
-+{
-+	init_rwsem(&vma->lock);
-+	vma->vm_lock_seq = -1;
-+}
-+
-+/*
-+ * Try to read-lock a vma. The function is allowed to occasionally yield false
-+ * locked result to avoid performance overhead, in which case we fall back to
-+ * using mmap_lock. The function should never yield false unlocked result.
-+ */
-+static inline bool vma_start_read(struct vm_area_struct *vma)
-+{
-+	/* Check before locking. A race might cause false locked result. */
-+	if (vma->vm_lock_seq == READ_ONCE(vma->vm_mm->mm_lock_seq))
-+		return false;
-+
-+	if (unlikely(down_read_trylock(&vma->lock) == 0))
-+		return false;
-+
-+	/*
-+	 * Overflow might produce false locked result.
-+	 * False unlocked result is impossible because we modify and check
-+	 * vma->vm_lock_seq under vma->lock protection and mm->mm_lock_seq
-+	 * modification invalidates all existing locks.
-+	 */
-+	if (unlikely(vma->vm_lock_seq == READ_ONCE(vma->vm_mm->mm_lock_seq))) {
-+		up_read(&vma->lock);
-+		return false;
-+	}
-+	return true;
-+}
-+
-+static inline void vma_end_read(struct vm_area_struct *vma)
-+{
-+	rcu_read_lock(); /* keeps vma alive till the end of up_read */
-+	up_read(&vma->lock);
-+	rcu_read_unlock();
-+}
-+
-+static inline void vma_start_write(struct vm_area_struct *vma)
-+{
-+	int mm_lock_seq;
-+
-+	mmap_assert_write_locked(vma->vm_mm);
-+
-+	/*
-+	 * current task is holding mmap_write_lock, both vma->vm_lock_seq and
-+	 * mm->mm_lock_seq can't be concurrently modified.
-+	 */
-+	mm_lock_seq = READ_ONCE(vma->vm_mm->mm_lock_seq);
-+	if (vma->vm_lock_seq == mm_lock_seq)
-+		return;
-+
-+	down_write(&vma->lock);
-+	vma->vm_lock_seq = mm_lock_seq;
-+	up_write(&vma->lock);
-+}
-+
-+static inline void vma_assert_write_locked(struct vm_area_struct *vma)
-+{
-+	mmap_assert_write_locked(vma->vm_mm);
-+	/*
-+	 * current task is holding mmap_write_lock, both vma->vm_lock_seq and
-+	 * mm->mm_lock_seq can't be concurrently modified.
-+	 */
-+	VM_BUG_ON_VMA(vma->vm_lock_seq != READ_ONCE(vma->vm_mm->mm_lock_seq), vma);
-+}
-+
-+#else /* CONFIG_PER_VMA_LOCK */
-+
-+static inline void vma_init_lock(struct vm_area_struct *vma) {}
-+static inline bool vma_start_read(struct vm_area_struct *vma)
-+		{ return false; }
-+static inline void vma_end_read(struct vm_area_struct *vma) {}
-+static inline void vma_start_write(struct vm_area_struct *vma) {}
-+static inline void vma_assert_write_locked(struct vm_area_struct *vma) {}
-+
-+#endif /* CONFIG_PER_VMA_LOCK */
-+
- static inline void vma_init(struct vm_area_struct *vma, struct mm_struct *mm)
- {
- 	static const struct vm_operations_struct dummy_vm_ops = {};
-@@ -631,6 +712,7 @@ static inline void vma_init(struct vm_ar
- 	vma->vm_mm = mm;
- 	vma->vm_ops = &dummy_vm_ops;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
-+	vma_init_lock(vma);
- }
+ 	if (vma->vm_start < start)
+ 		vma_iter_clear(vmi, vma->vm_start, start);
+@@ -994,12 +994,12 @@ struct vm_area_struct *vma_merge(struct
+ 	if (vma_iter_prealloc(vmi))
+ 		return NULL;
  
- /* Use when VMA is not part of the VMA tree and needs no locking */
---- a/include/linux/mm_types.h~mm-add-per-vma-lock-and-helper-functions-to-control-it
-+++ a/include/linux/mm_types.h
-@@ -508,6 +508,11 @@ struct vm_area_struct {
- 		vm_flags_t __private __vm_flags;
- 	};
+-	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_next);
+ 	init_multi_vma_prep(&vp, vma, adjust, remove, remove2);
+ 	VM_WARN_ON(vp.anon_vma && adjust && adjust->anon_vma &&
+ 		   vp.anon_vma != adjust->anon_vma);
  
-+#ifdef CONFIG_PER_VMA_LOCK
-+	int vm_lock_seq;
-+	struct rw_semaphore lock;
-+#endif
-+
- 	/*
- 	 * For areas with an address space and backing store,
- 	 * linkage into the address_space->i_mmap interval tree.
-@@ -644,6 +649,9 @@ struct mm_struct {
- 					  * init_mm.mmlist, and are protected
- 					  * by mmlist_lock
- 					  */
-+#ifdef CONFIG_PER_VMA_LOCK
-+		int mm_lock_seq;
-+#endif
+ 	vma_prepare(&vp);
++	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_next);
+ 	if (vma_start < vma->vm_start || vma_end > vma->vm_end)
+ 		vma_expanded = true;
  
+@@ -2198,10 +2198,10 @@ int __split_vma(struct vma_iterator *vmi
+ 	if (new->vm_ops && new->vm_ops->open)
+ 		new->vm_ops->open(new);
  
- 		unsigned long hiwater_rss; /* High-watermark of RSS usage */
---- a/kernel/fork.c~mm-add-per-vma-lock-and-helper-functions-to-control-it
-+++ a/kernel/fork.c
-@@ -474,6 +474,7 @@ struct vm_area_struct *vm_area_dup(struc
- 		 */
- 		data_race(memcpy(new, orig, sizeof(*new)));
- 		INIT_LIST_HEAD(&new->anon_vma_chain);
-+		vma_init_lock(new);
- 		dup_anon_vma_name(orig, new);
- 	}
- 	return new;
-@@ -1216,6 +1217,9 @@ static struct mm_struct *mm_init(struct
- 	seqcount_init(&mm->write_protect_seq);
- 	mmap_init_lock(mm);
- 	INIT_LIST_HEAD(&mm->mmlist);
-+#ifdef CONFIG_PER_VMA_LOCK
-+	mm->mm_lock_seq = 0;
-+#endif
- 	mm_pgtables_bytes_init(mm);
- 	mm->map_count = 0;
- 	mm->locked_vm = 0;
---- a/mm/init-mm.c~mm-add-per-vma-lock-and-helper-functions-to-control-it
-+++ a/mm/init-mm.c
-@@ -37,6 +37,9 @@ struct mm_struct init_mm = {
- 	.page_table_lock =  __SPIN_LOCK_UNLOCKED(init_mm.page_table_lock),
- 	.arg_lock	=  __SPIN_LOCK_UNLOCKED(init_mm.arg_lock),
- 	.mmlist		= LIST_HEAD_INIT(init_mm.mmlist),
-+#ifdef CONFIG_PER_VMA_LOCK
-+	.mm_lock_seq	= 0,
-+#endif
- 	.user_ns	= &init_user_ns,
- 	.cpu_bitmap	= CPU_BITS_NONE,
- #ifdef CONFIG_IOMMU_SVA
+-	vma_adjust_trans_huge(vma, vma->vm_start, addr, 0);
+ 	init_vma_prep(&vp, vma);
+ 	vp.insert = new;
+ 	vma_prepare(&vp);
++	vma_adjust_trans_huge(vma, vma->vm_start, addr, 0);
+ 
+ 	if (new_below) {
+ 		vma->vm_start = addr;
+@@ -2910,9 +2910,9 @@ static int do_brk_flags(struct vma_itera
+ 		if (vma_iter_prealloc(vmi))
+ 			goto unacct_fail;
+ 
+-		vma_adjust_trans_huge(vma, vma->vm_start, addr + len, 0);
+ 		init_vma_prep(&vp, vma);
+ 		vma_prepare(&vp);
++		vma_adjust_trans_huge(vma, vma->vm_start, addr + len, 0);
+ 		vma->vm_end = addr + len;
+ 		vm_flags_set(vma, VM_SOFTDIRTY);
+ 		vma_iter_store(vmi, vma);
 _
 
 Patches currently in -mm which might be from surenb@google.com are
