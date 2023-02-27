@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98C23C64ED6
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:07:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF0B2C64ED8
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Feb 2023 22:10:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230130AbjB0WH0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 17:07:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45612 "EHLO
+        id S229562AbjB0WK6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 17:10:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230229AbjB0WHA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:07:00 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7391F298FE
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:06:58 -0800 (PST)
+        with ESMTP id S229776AbjB0WK5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 17:10:57 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAEDC2748C
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 14:10:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1153560F2F
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:06:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6519EC433EF;
-        Mon, 27 Feb 2023 22:06:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 759B960F2F
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 22:10:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4DE1C433EF;
+        Mon, 27 Feb 2023 22:10:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677535617;
-        bh=PYMc/IVgtcoNjBpHEUCkthPVgnylMtNLmirHy4fDezk=;
+        s=korg; t=1677535854;
+        bh=O5/HMXpOCXG8mKs4ruq95m8u9gosKkhMDLestl921A0=;
         h=Date:To:From:Subject:From;
-        b=gZLv+ySvRq+hp9gbUWjqLcfNmBRQSd5GvG91LlnEJOaOug5ms2nm+C8TakGpcj+hn
-         JVxnjPgEHOaXH6QYNVW7/cSsEvokkrmfEmRRzvmtNvq7WHMTd9C67BiPbunkGE6gCN
-         vzcu51Hhc0aulhOpX6tabtihir/kLKw3Kqf9cQ8w=
-Date:   Mon, 27 Feb 2023 14:06:56 -0800
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        akpm@linux-foundation.org
+        b=NqfLm6mO32h5uLhojg+zmEZxN+hwOo0tCOz9I8SVi6qRF0Cdjr6QG21fDzaRtzBBi
+         WSErH8ylzPwTxy5OmzTxYce0wUu92yEas1OK6rLukPxvz6cmbl9f+wGxtZxbMRabDn
+         2dtEHPFZsueqXQ/VEkqli4M1/49W58UJUFTvQ+LI=
+Date:   Mon, 27 Feb 2023 14:10:54 -0800
+To:     mm-commits@vger.kernel.org, glider@google.com, elver@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-separate-vma-lock-from-vm_area_struct.patch added to mm-unstable branch
-Message-Id: <20230227220657.6519EC433EF@smtp.kernel.org>
+Subject: + kcov-improve-documentation.patch added to mm-nonmm-unstable branch
+Message-Id: <20230227221054.C4DE1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: separate vma->lock from vm_area_struct
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-separate-vma-lock-from-vm_area_struct.patch
+     Subject: kcov: improve documentation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kcov-improve-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-separate-vma-lock-from-vm_area_struct.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-improve-documentation.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,275 +64,264 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: separate vma->lock from vm_area_struct
-Date: Mon, 27 Feb 2023 09:36:32 -0800
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kcov: improve documentation
+Date: Mon, 27 Feb 2023 18:17:03 +0100
 
-vma->lock being part of the vm_area_struct causes performance regression
-during page faults because during contention its count and owner fields
-are constantly updated and having other parts of vm_area_struct used
-during page fault handling next to them causes constant cache line
-bouncing.  Fix that by moving the lock outside of the vm_area_struct.
+Improve KCOV documentation:
 
-All attempts to keep vma->lock inside vm_area_struct in a separate cache
-line still produce performance regression especially on NUMA machines. 
-Smallest regression was achieved when lock is placed in the fourth cache
-line but that bloats vm_area_struct to 256 bytes.
+- Use KCOV instead of kcov, as the former is more widely-used.
 
-Considering performance and memory impact, separate lock looks like the
-best option.  It increases memory footprint of each VMA but that can be
-optimized later if the new size causes issues.  Note that after this
-change vma_init() does not allocate or initialize vma->lock anymore.  A
-number of drivers allocate a pseudo VMA on the stack but they never use
-the VMA's lock, therefore it does not need to be allocated.  The future
-drivers which might need the VMA lock should use
-vm_area_alloc()/vm_area_free() to allocate the VMA.
+- Mention Clang in compiler requirements.
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-34-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+- Use ``annotations`` for inline code.
+
+- Rework remote coverage collection documentation for better clarity.
+
+- Various smaller changes.
+
+Link: https://lkml.kernel.org/r/0b5efd70e31bba7912cf9a6c951f0e76a8df27df.1677517724.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm.h~mm-separate-vma-lock-from-vm_area_struct
-+++ a/include/linux/mm.h
-@@ -627,12 +627,6 @@ struct vm_operations_struct {
- };
+--- a/Documentation/dev-tools/kcov.rst~kcov-improve-documentation
++++ a/Documentation/dev-tools/kcov.rst
+@@ -1,42 +1,50 @@
+-kcov: code coverage for fuzzing
++KCOV: code coverage for fuzzing
+ ===============================
  
- #ifdef CONFIG_PER_VMA_LOCK
--static inline void vma_init_lock(struct vm_area_struct *vma)
--{
--	init_rwsem(&vma->lock);
--	vma->vm_lock_seq = -1;
--}
+-kcov exposes kernel code coverage information in a form suitable for coverage-
+-guided fuzzing (randomized testing). Coverage data of a running kernel is
+-exported via the "kcov" debugfs file. Coverage collection is enabled on a task
+-basis, and thus it can capture precise coverage of a single system call.
 -
- /*
-  * Try to read-lock a vma. The function is allowed to occasionally yield false
-  * locked result to avoid performance overhead, in which case we fall back to
-@@ -644,17 +638,17 @@ static inline bool vma_start_read(struct
- 	if (vma->vm_lock_seq == READ_ONCE(vma->vm_mm->mm_lock_seq))
- 		return false;
- 
--	if (unlikely(down_read_trylock(&vma->lock) == 0))
-+	if (unlikely(down_read_trylock(&vma->vm_lock->lock) == 0))
- 		return false;
- 
- 	/*
- 	 * Overflow might produce false locked result.
- 	 * False unlocked result is impossible because we modify and check
--	 * vma->vm_lock_seq under vma->lock protection and mm->mm_lock_seq
-+	 * vma->vm_lock_seq under vma->vm_lock protection and mm->mm_lock_seq
- 	 * modification invalidates all existing locks.
- 	 */
- 	if (unlikely(vma->vm_lock_seq == READ_ONCE(vma->vm_mm->mm_lock_seq))) {
--		up_read(&vma->lock);
-+		up_read(&vma->vm_lock->lock);
- 		return false;
- 	}
- 	return true;
-@@ -663,7 +657,7 @@ static inline bool vma_start_read(struct
- static inline void vma_end_read(struct vm_area_struct *vma)
- {
- 	rcu_read_lock(); /* keeps vma alive till the end of up_read */
--	up_read(&vma->lock);
-+	up_read(&vma->vm_lock->lock);
- 	rcu_read_unlock();
- }
- 
-@@ -681,9 +675,9 @@ static inline void vma_start_write(struc
- 	if (vma->vm_lock_seq == mm_lock_seq)
- 		return;
- 
--	down_write(&vma->lock);
-+	down_write(&vma->vm_lock->lock);
- 	vma->vm_lock_seq = mm_lock_seq;
--	up_write(&vma->lock);
-+	up_write(&vma->vm_lock->lock);
- }
- 
- static inline void vma_assert_write_locked(struct vm_area_struct *vma)
-@@ -720,6 +714,10 @@ static inline void vma_mark_detached(str
- 
- #endif /* CONFIG_PER_VMA_LOCK */
- 
-+/*
-+ * WARNING: vma_init does not initialize vma->vm_lock.
-+ * Use vm_area_alloc()/vm_area_free() if vma needs locking.
-+ */
- static inline void vma_init(struct vm_area_struct *vma, struct mm_struct *mm)
- {
- 	static const struct vm_operations_struct dummy_vm_ops = {};
-@@ -729,7 +727,6 @@ static inline void vma_init(struct vm_ar
- 	vma->vm_ops = &dummy_vm_ops;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
- 	vma_mark_detached(vma, false);
--	vma_init_lock(vma);
- }
- 
- /* Use when VMA is not part of the VMA tree and needs no locking */
---- a/include/linux/mm_types.h~mm-separate-vma-lock-from-vm_area_struct
-+++ a/include/linux/mm_types.h
-@@ -471,6 +471,10 @@ struct anon_vma_name {
- 	char name[];
- };
- 
-+struct vma_lock {
-+	struct rw_semaphore lock;
-+};
+-Note that kcov does not aim to collect as much coverage as possible. It aims
+-to collect more or less stable coverage that is function of syscall inputs.
+-To achieve this goal it does not collect coverage in soft/hard interrupts
+-and instrumentation of some inherently non-deterministic parts of kernel is
+-disabled (e.g. scheduler, locking).
+-
+-kcov is also able to collect comparison operands from the instrumented code
+-(this feature currently requires that the kernel is compiled with clang).
++KCOV collects and exposes kernel code coverage information in a form suitable
++for coverage-guided fuzzing. Coverage data of a running kernel is exported via
++the ``kcov`` debugfs file. Coverage collection is enabled on a task basis, and
++thus KCOV can capture precise coverage of a single system call.
 +
- /*
-  * This struct describes a virtual memory area. There is one of these
-  * per VM-area/task. A VM area is any part of the process virtual memory
-@@ -510,7 +514,7 @@ struct vm_area_struct {
++Note that KCOV does not aim to collect as much coverage as possible. It aims
++to collect more or less stable coverage that is a function of syscall inputs.
++To achieve this goal, it does not collect coverage in soft/hard interrupts
++(unless remove coverage collection is enabled, see below) and from some
++inherently non-deterministic parts of the kernel (e.g. scheduler, locking).
++
++Besides collecting code coverage, KCOV can also collect comparison operands.
++See the "Comparison operands collection" section for details.
++
++Besides collecting coverage data from syscall handlers, KCOV can also collect
++coverage for annotated parts of the kernel executing in background kernel
++tasks or soft interrupts. See the "Remote coverage collection" section for
++details.
  
- #ifdef CONFIG_PER_VMA_LOCK
- 	int vm_lock_seq;
--	struct rw_semaphore lock;
-+	struct vma_lock *vm_lock;
+ Prerequisites
+ -------------
  
- 	/* Flag to indicate areas detached from the mm->mm_mt tree */
- 	bool detached;
---- a/kernel/fork.c~mm-separate-vma-lock-from-vm_area_struct
-+++ a/kernel/fork.c
-@@ -451,13 +451,49 @@ static struct kmem_cache *vm_area_cachep
- /* SLAB cache for mm_struct structures (tsk->mm) */
- static struct kmem_cache *mm_cachep;
+-Configure the kernel with::
++KCOV relies on compiler instrumentation and requires GCC 6.1.0 or later
++or any Clang version supported by the kernel.
  
-+#ifdef CONFIG_PER_VMA_LOCK
-+
-+/* SLAB cache for vm_area_struct.lock */
-+static struct kmem_cache *vma_lock_cachep;
-+
-+static bool vma_lock_alloc(struct vm_area_struct *vma)
-+{
-+	vma->vm_lock = kmem_cache_alloc(vma_lock_cachep, GFP_KERNEL);
-+	if (!vma->vm_lock)
-+		return false;
-+
-+	init_rwsem(&vma->vm_lock->lock);
-+	vma->vm_lock_seq = -1;
-+
-+	return true;
-+}
-+
-+static inline void vma_lock_free(struct vm_area_struct *vma)
-+{
-+	kmem_cache_free(vma_lock_cachep, vma->vm_lock);
-+}
-+
-+#else /* CONFIG_PER_VMA_LOCK */
-+
-+static inline bool vma_lock_alloc(struct vm_area_struct *vma) { return true; }
-+static inline void vma_lock_free(struct vm_area_struct *vma) {}
-+
-+#endif /* CONFIG_PER_VMA_LOCK */
-+
- struct vm_area_struct *vm_area_alloc(struct mm_struct *mm)
- {
- 	struct vm_area_struct *vma;
+-        CONFIG_KCOV=y
++Collecting comparison operands is only supported with Clang.
  
- 	vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
--	if (vma)
--		vma_init(vma, mm);
-+	if (!vma)
-+		return NULL;
+-CONFIG_KCOV requires gcc 6.1.0 or later.
++To enable KCOV, configure the kernel with::
+ 
+-If the comparison operands need to be collected, set::
++        CONFIG_KCOV=y
 +
-+	vma_init(vma, mm);
-+	if (!vma_lock_alloc(vma)) {
-+		kmem_cache_free(vm_area_cachep, vma);
-+		return NULL;
-+	}
++To enable comparison operands collection, set::
+ 
+ 	CONFIG_KCOV_ENABLE_COMPARISONS=y
+ 
+-Profiling data will only become accessible once debugfs has been mounted::
++Coverage data only becomes accessible once debugfs has been mounted::
+ 
+         mount -t debugfs none /sys/kernel/debug
+ 
+ Coverage collection
+ -------------------
+ 
+-The following program demonstrates coverage collection from within a test
+-program using kcov:
++The following program demonstrates how to use KCOV to collect coverage for a
++single syscall from within a test program:
+ 
+ .. code-block:: c
+ 
+@@ -84,7 +92,7 @@ program using kcov:
+ 		perror("ioctl"), exit(1);
+ 	/* Reset coverage from the tail of the ioctl() call. */
+ 	__atomic_store_n(&cover[0], 0, __ATOMIC_RELAXED);
+-	/* That's the target syscal call. */
++	/* Call the target syscall call. */
+ 	read(-1, NULL, 0);
+ 	/* Read number of PCs collected. */
+ 	n = __atomic_load_n(&cover[0], __ATOMIC_RELAXED);
+@@ -103,7 +111,7 @@ program using kcov:
+ 	return 0;
+     }
+ 
+-After piping through addr2line output of the program looks as follows::
++After piping through ``addr2line`` the output of the program looks as follows::
+ 
+     SyS_read
+     fs/read_write.c:562
+@@ -121,12 +129,13 @@ After piping through addr2line output of
+     fs/read_write.c:562
+ 
+ If a program needs to collect coverage from several threads (independently),
+-it needs to open /sys/kernel/debug/kcov in each thread separately.
++it needs to open ``/sys/kernel/debug/kcov`` in each thread separately.
+ 
+ The interface is fine-grained to allow efficient forking of test processes.
+-That is, a parent process opens /sys/kernel/debug/kcov, enables trace mode,
+-mmaps coverage buffer and then forks child processes in a loop. Child processes
+-only need to enable coverage (disable happens automatically on thread end).
++That is, a parent process opens ``/sys/kernel/debug/kcov``, enables trace mode,
++mmaps coverage buffer, and then forks child processes in a loop. The child
++processes only need to enable coverage (it gets disabled automatically when
++a thread exits).
+ 
+ Comparison operands collection
+ ------------------------------
+@@ -205,52 +214,78 @@ Comparison operands collection is simila
+ 	return 0;
+     }
+ 
+-Note that the kcov modes (coverage collection or comparison operands) are
+-mutually exclusive.
++Note that the KCOV modes (collection of code coverage or comparison operands)
++are mutually exclusive.
+ 
+ Remote coverage collection
+ --------------------------
+ 
+-With KCOV_ENABLE coverage is collected only for syscalls that are issued
+-from the current process. With KCOV_REMOTE_ENABLE it's possible to collect
+-coverage for arbitrary parts of the kernel code, provided that those parts
+-are annotated with kcov_remote_start()/kcov_remote_stop().
+-
+-This allows to collect coverage from two types of kernel background
+-threads: the global ones, that are spawned during kernel boot in a limited
+-number of instances (e.g. one USB hub_event() worker thread is spawned per
+-USB HCD); and the local ones, that are spawned when a user interacts with
+-some kernel interface (e.g. vhost workers); as well as from soft
+-interrupts.
+-
+-To enable collecting coverage from a global background thread or from a
+-softirq, a unique global handle must be assigned and passed to the
+-corresponding kcov_remote_start() call. Then a userspace process can pass
+-a list of such handles to the KCOV_REMOTE_ENABLE ioctl in the handles
+-array field of the kcov_remote_arg struct. This will attach the used kcov
+-device to the code sections, that are referenced by those handles.
+-
+-Since there might be many local background threads spawned from different
+-userspace processes, we can't use a single global handle per annotation.
+-Instead, the userspace process passes a non-zero handle through the
+-common_handle field of the kcov_remote_arg struct. This common handle gets
+-saved to the kcov_handle field in the current task_struct and needs to be
+-passed to the newly spawned threads via custom annotations. Those threads
+-should in turn be annotated with kcov_remote_start()/kcov_remote_stop().
+-
+-Internally kcov stores handles as u64 integers. The top byte of a handle
+-is used to denote the id of a subsystem that this handle belongs to, and
+-the lower 4 bytes are used to denote the id of a thread instance within
+-that subsystem. A reserved value 0 is used as a subsystem id for common
+-handles as they don't belong to a particular subsystem. The bytes 4-7 are
+-currently reserved and must be zero. In the future the number of bytes
+-used for the subsystem or handle ids might be increased.
+-
+-When a particular userspace process collects coverage via a common
+-handle, kcov will collect coverage for each code section that is annotated
+-to use the common handle obtained as kcov_handle from the current
+-task_struct. However non common handles allow to collect coverage
+-selectively from different subsystems.
++Besides collecting coverage data from handlers of syscalls issued from a
++userspace process, KCOV can also collect coverage for parts of the kernel
++executing in other contexts - so-called "remote" coverage.
 +
- 	return vma;
- }
- 
-@@ -465,24 +501,30 @@ struct vm_area_struct *vm_area_dup(struc
- {
- 	struct vm_area_struct *new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
- 
--	if (new) {
--		ASSERT_EXCLUSIVE_WRITER(orig->vm_flags);
--		ASSERT_EXCLUSIVE_WRITER(orig->vm_file);
--		/*
--		 * orig->shared.rb may be modified concurrently, but the clone
--		 * will be reinitialized.
--		 */
--		data_race(memcpy(new, orig, sizeof(*new)));
--		INIT_LIST_HEAD(&new->anon_vma_chain);
--		vma_init_lock(new);
--		dup_anon_vma_name(orig, new);
-+	if (!new)
-+		return NULL;
++Using KCOV to collect remote coverage requires:
 +
-+	ASSERT_EXCLUSIVE_WRITER(orig->vm_flags);
-+	ASSERT_EXCLUSIVE_WRITER(orig->vm_file);
-+	/*
-+	 * orig->shared.rb may be modified concurrently, but the clone
-+	 * will be reinitialized.
-+	 */
-+	data_race(memcpy(new, orig, sizeof(*new)));
-+	if (!vma_lock_alloc(new)) {
-+		kmem_cache_free(vm_area_cachep, new);
-+		return NULL;
- 	}
-+	INIT_LIST_HEAD(&new->anon_vma_chain);
-+	dup_anon_vma_name(orig, new);
++1. Modifying kernel code to annotate the code section from where coverage
++   should be collected with ``kcov_remote_start`` and ``kcov_remote_stop``.
 +
- 	return new;
- }
++2. Using `KCOV_REMOTE_ENABLE`` instead of ``KCOV_ENABLE`` in the userspace
++   process that collects coverage.
++
++Both ``kcov_remote_start`` and ``kcov_remote_stop`` annotations and the
++``KCOV_REMOTE_ENABLE`` ioctl accept handles that identify particular coverage
++collection sections. The way a handle is used depends on the context where the
++matching code section executes.
++
++KCOV supports collecting remote coverage from the following contexts:
++
++1. Global kernel background tasks. These are the tasks that are spawned during
++   kernel boot in a limited number of instances (e.g. one USB ``hub_event``
++   worker is spawned per one USB HCD).
++
++2. Local kernel background tasks. These are spawned when a userspace process
++   interacts with some kernel interface and are usually killed when the process
++   exits (e.g. vhost workers).
++
++3. Soft interrupts.
++
++For #1 and #3, a unique global handle must be chosen and passed to the
++corresponding ``kcov_remote_start`` call. Then a userspace process must pass
++this handle to ``KCOV_REMOTE_ENABLE`` in the ``handles`` array field of the
++``kcov_remote_arg`` struct. This will attach the used KCOV device to the code
++section referenced by this handle. Multiple global handles identifying
++different code sections can be passed at once.
++
++For #2, the userspace process instead must pass a non-zero handle through the
++``common_handle`` field of the ``kcov_remote_arg`` struct. This common handle
++gets saved to the ``kcov_handle`` field in the current ``task_struct`` and
++needs to be passed to the newly spawned local tasks via custom kernel code
++modifications. Those tasks should in turn use the passed handle in their
++``kcov_remote_start`` and ``kcov_remote_stop`` annotations.
++
++KCOV follows a predefined format for both global and common handles. Each
++handle is a ``u64`` integer. Currently, only the one top and the lower 4 bytes
++are used. Bytes 4-7 are reserved and must be zero.
++
++For global handles, the top byte of the handle denotes the id of a subsystem
++this handle belongs to. For example, KCOV uses ``1`` as the USB subsystem id.
++The lower 4 bytes of a global handle denote the id of a task instance within
++that subsystem. For example, each ``hub_event`` worker uses the USB bus number
++as the task instance id.
++
++For common handles, a reserved value ``0`` is used as a subsystem id, as such
++handles don't belong to a particular subsystem. The lower 4 bytes of a common
++handle identify a collective instance of all local tasks spawned by the
++userspace process that passed a common handle to ``KCOV_REMOTE_ENABLE``.
++
++In practice, any value can be used for common handle instance id if coverage
++is only collected from a single userspace process on the system. However, if
++common handles are used by multiple processes, unique instance ids must be
++used for each process. One option is to use the process id as the common
++handle instance id.
++
++The following program demonstrates using KCOV to collect coverage from both
++local tasks spawned by the process and the global task that handles USB bus #1:
  
- void __vm_area_free(struct vm_area_struct *vma)
- {
- 	free_anon_vma_name(vma);
-+	vma_lock_free(vma);
- 	kmem_cache_free(vm_area_cachep, vma);
- }
+ .. code-block:: c
  
-@@ -493,7 +535,7 @@ static void vm_area_free_rcu_cb(struct r
- 						  vm_rcu);
- 
- 	/* The vma should not be locked while being destroyed. */
--	VM_BUG_ON_VMA(rwsem_is_locked(&vma->lock), vma);
-+	VM_BUG_ON_VMA(rwsem_is_locked(&vma->vm_lock->lock), vma);
- 	__vm_area_free(vma);
- }
- #endif
-@@ -3160,6 +3202,9 @@ void __init proc_caches_init(void)
- 			NULL);
- 
- 	vm_area_cachep = KMEM_CACHE(vm_area_struct, SLAB_PANIC|SLAB_ACCOUNT);
-+#ifdef CONFIG_PER_VMA_LOCK
-+	vma_lock_cachep = KMEM_CACHE(vma_lock, SLAB_PANIC|SLAB_ACCOUNT);
-+#endif
- 	mmap_init();
- 	nsproxy_cache_init();
- }
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-introduce-config_per_vma_lock.patch
-mm-move-mmap_lock-assert-function-definitions.patch
-mm-add-per-vma-lock-and-helper-functions-to-control-it.patch
-mm-mark-vma-as-being-written-when-changing-vm_flags.patch
-mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge.patch
-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page.patch
-mm-mmap-write-lock-vmas-in-vma_prepare-before-modifying-them.patch
-mm-mremap-write-lock-vma-while-remapping-it-to-a-new-address-range.patch
-mm-write-lock-vmas-before-removing-them-from-vma-tree.patch
-mm-conditionally-write-lock-vma-in-free_pgtables.patch
-kernel-fork-assert-no-vma-readers-during-its-destruction.patch
-mm-mmap-prevent-pagefault-handler-from-racing-with-mmu_notifier-registration.patch
-mm-introduce-vma-detached-flag.patch
-mm-introduce-lock_vma_under_rcu-to-be-used-from-arch-specific-code.patch
-mm-fall-back-to-mmap_lock-if-vma-anon_vma-is-not-yet-set.patch
-mm-add-fault_flag_vma_lock-flag.patch
-mm-prevent-do_swap_page-from-handling-page-faults-under-vma-lock.patch
-mm-prevent-userfaults-to-be-handled-under-per-vma-lock.patch
-mm-introduce-per-vma-lock-statistics.patch
-x86-mm-try-vma-lock-based-page-fault-handling-first.patch
-arm64-mm-try-vma-lock-based-page-fault-handling-first.patch
-mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap.patch
-mm-separate-vma-lock-from-vm_area_struct.patch
-per-vma-locks.patch
+kcov-improve-documentation.patch
 
