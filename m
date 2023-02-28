@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA62FC7EE33
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Feb 2023 01:01:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DBCBC7EE36
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Feb 2023 01:01:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229566AbjB1BA7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 20:00:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46100 "EHLO
+        id S229677AbjB1BBA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 20:01:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229682AbjB1BA6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 20:00:58 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E9922943F;
-        Mon, 27 Feb 2023 17:00:55 -0800 (PST)
+        with ESMTP id S229679AbjB1BAy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 20:00:54 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD966298E7
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 17:00:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EE9DF60F05;
-        Tue, 28 Feb 2023 01:00:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52960C4339C;
-        Tue, 28 Feb 2023 01:00:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8EFD060EF6
+        for <mm-commits@vger.kernel.org>; Tue, 28 Feb 2023 01:00:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E49FCC4339B;
+        Tue, 28 Feb 2023 01:00:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677546054;
-        bh=hk6Isp83fVhMZHhaEpepdIuZyFnv0MOxbnz2+DM1gCg=;
+        s=korg; t=1677546053;
+        bh=ONEHZD2sToabpkfiCon4Su9IphGc+JSdl8QHcYeJWZ8=;
         h=Date:To:From:Subject:From;
-        b=b0W0JzGoDRtmVrAmHzBy6WXoTxHzjWKu3RYp0BP6cSS2W2Au4Q63jB58YdQqR1OC6
-         RCemlaj9IHDwBlnzz0kT9nETlGiqCpJ+84Cslf/wG0m77KosSS5PQa+kCW50MyMd/6
-         zq5QnDYbJjn84LHegnt18OFz30bXc8ldtjrB7FGs=
-Date:   Mon, 27 Feb 2023 17:00:53 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        piaojun@huawei.com, mark@fasheh.com, junxiao.bi@oracle.com,
-        joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
-        heming.zhao@suse.com, ghe@suse.com, gechangwei@live.cn,
-        ocfs2-devel@oss.oracle.com, akpm@linux-foundation.org
+        b=1k1rzZrvDmMrwz+McA+dHw0xtxtSmi9U/tJmNyJbNJURNhk13T3YhODlsv5OnfuUm
+         Pt4nOcrocCUuIp6VFRrTdd0lJmo4VJpIV8v0GScuDX9ZLv2ZXnLWXpHrUT3wSZddTC
+         tvOuexOX3R+nMDjAif335xsc6LQQWvIvas3a3GuQ=
+Date:   Mon, 27 Feb 2023 17:00:52 -0800
+To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tkhai@ya.ru,
+        qyousef@layalina.io, djakov@kernel.org, colin.i.king@gmail.com,
+        baolin.wang@linux.alibaba.com, arnd@arndb.de,
+        konrad.dybcio@linaro.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] ocfs2-fix-defrag-path-triggering-jbd2-assert.patch removed from -mm tree
-Message-Id: <20230228010054.52960C4339C@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one.patch removed from -mm tree
+Message-Id: <20230228010052.E49FCC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,109 +43,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ocfs2: fix defrag path triggering jbd2 ASSERT
+     Subject: mailmap: map Georgi Djakov's old Linaro address to his current one
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-defrag-path-triggering-jbd2-assert.patch
+     mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Heming Zhao via Ocfs2-devel <ocfs2-devel@oss.oracle.com>
-Subject: ocfs2: fix defrag path triggering jbd2 ASSERT
-Date: Fri, 17 Feb 2023 08:37:17 +0800
+From: Konrad Dybcio <konrad.dybcio@linaro.org>
+Subject: mailmap: map Georgi Djakov's old Linaro address to his current one
+Date: Fri, 17 Feb 2023 21:35:16 +0100
 
-code path:
+Georgi's old email is still picked up by the likes of get_maintainer.pl
+and it keeps bouncing every time one submits an interconnect patch.  Map
+it to his current @kernel.org one.
 
-ocfs2_ioctl_move_extents
- ocfs2_move_extents
-  ocfs2_defrag_extent
-   __ocfs2_move_extent
-    + ocfs2_journal_access_di
-    + ocfs2_split_extent  //sub-paths call jbd2_journal_restart
-    + ocfs2_journal_dirty //crash by jbs2 ASSERT
-
-crash stacks:
-
-PID: 11297  TASK: ffff974a676dcd00  CPU: 67  COMMAND: "defragfs.ocfs2"
- #0 [ffffb25d8dad3900] machine_kexec at ffffffff8386fe01
- #1 [ffffb25d8dad3958] __crash_kexec at ffffffff8395959d
- #2 [ffffb25d8dad3a20] crash_kexec at ffffffff8395a45d
- #3 [ffffb25d8dad3a38] oops_end at ffffffff83836d3f
- #4 [ffffb25d8dad3a58] do_trap at ffffffff83833205
- #5 [ffffb25d8dad3aa0] do_invalid_op at ffffffff83833aa6
- #6 [ffffb25d8dad3ac0] invalid_op at ffffffff84200d18
-    [exception RIP: jbd2_journal_dirty_metadata+0x2ba]
-    RIP: ffffffffc09ca54a  RSP: ffffb25d8dad3b70  RFLAGS: 00010207
-    RAX: 0000000000000000  RBX: ffff9706eedc5248  RCX: 0000000000000000
-    RDX: 0000000000000001  RSI: ffff97337029ea28  RDI: ffff9706eedc5250
-    RBP: ffff9703c3520200   R8: 000000000f46b0b2   R9: 0000000000000000
-    R10: 0000000000000001  R11: 00000001000000fe  R12: ffff97337029ea28
-    R13: 0000000000000000  R14: ffff9703de59bf60  R15: ffff9706eedc5250
-    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
- #7 [ffffb25d8dad3ba8] ocfs2_journal_dirty at ffffffffc137fb95 [ocfs2]
- #8 [ffffb25d8dad3be8] __ocfs2_move_extent at ffffffffc139a950 [ocfs2]
- #9 [ffffb25d8dad3c80] ocfs2_defrag_extent at ffffffffc139b2d2 [ocfs2]
-
-Analysis
-
-This bug has the same root cause of 'commit 7f27ec978b0e ("ocfs2: call
-ocfs2_journal_access_di() before ocfs2_journal_dirty() in
-ocfs2_write_end_nolock()")'.  For this bug, jbd2_journal_restart() is
-called by ocfs2_split_extent() during defragmenting.
-
-How to fix
-
-For ocfs2_split_extent() can handle journal operations totally by itself. 
-Caller doesn't need to call journal access/dirty pair, and caller only
-needs to call journal start/stop pair.  The fix method is to remove
-journal access/dirty from __ocfs2_move_extent().
-
-The discussion for this patch:
-https://oss.oracle.com/pipermail/ocfs2-devel/2023-February/000647.html
-
-Link: https://lkml.kernel.org/r/20230217003717.32469-1-heming.zhao@suse.com
-Signed-off-by: Heming Zhao <heming.zhao@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230217203516.826424-1-konrad.dybcio@linaro.org
+Signed-off-by: Konrad Dybcio <konrad.dybcio@linaro.org>
+Acked-by: Georgi Djakov <djakov@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Qais Yousef <qyousef@layalina.io>
+Cc: Vasily Averin <vasily.averin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/ocfs2/move_extents.c~ocfs2-fix-defrag-path-triggering-jbd2-assert
-+++ a/fs/ocfs2/move_extents.c
-@@ -105,14 +105,6 @@ static int __ocfs2_move_extent(handle_t
- 	 */
- 	replace_rec.e_flags = ext_flags & ~OCFS2_EXT_REFCOUNTED;
- 
--	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode),
--				      context->et.et_root_bh,
--				      OCFS2_JOURNAL_ACCESS_WRITE);
--	if (ret) {
--		mlog_errno(ret);
--		goto out;
--	}
--
- 	ret = ocfs2_split_extent(handle, &context->et, path, index,
- 				 &replace_rec, context->meta_ac,
- 				 &context->dealloc);
-@@ -121,8 +113,6 @@ static int __ocfs2_move_extent(handle_t
- 		goto out;
- 	}
- 
--	ocfs2_journal_dirty(handle, context->et.et_root_bh);
--
- 	context->new_phys_cpos = new_p_cpos;
- 
- 	/*
+--- a/.mailmap~mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one
++++ a/.mailmap
+@@ -150,6 +150,7 @@ Gao Xiang <xiang@kernel.org> <gaoxiang25
+ Gao Xiang <xiang@kernel.org> <hsiangkao@aol.com>
+ Gao Xiang <xiang@kernel.org> <hsiangkao@linux.alibaba.com>
+ Gao Xiang <xiang@kernel.org> <hsiangkao@redhat.com>
++Georgi Djakov <djakov@kernel.org> <georgi.djakov@linaro.org>
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@de.ibm.com>
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com> <gerald.schaefer@de.ibm.com>
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@linux.vnet.ibm.com>
 _
 
-Patches currently in -mm which might be from ocfs2-devel@oss.oracle.com are
+Patches currently in -mm which might be from konrad.dybcio@linaro.org are
 
 
