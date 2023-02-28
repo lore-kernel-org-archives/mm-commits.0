@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23EAAC7EE2E
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Feb 2023 01:01:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C9C1C7EE37
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Feb 2023 01:01:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229542AbjB1BA7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 20:00:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46024 "EHLO
+        id S229512AbjB1BBB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 20:01:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46104 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229644AbjB1BAx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 20:00:53 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F75D298C5;
-        Mon, 27 Feb 2023 17:00:52 -0800 (PST)
+        with ESMTP id S229684AbjB1BA6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 20:00:58 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 752FD298C4;
+        Mon, 27 Feb 2023 17:00:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 38BB860F22;
-        Tue, 28 Feb 2023 01:00:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EAC0C433EF;
-        Tue, 28 Feb 2023 01:00:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1471460F22;
+        Tue, 28 Feb 2023 01:00:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B6F4C433EF;
+        Tue, 28 Feb 2023 01:00:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677546051;
-        bh=yvqQhrDdZcXLpGiZYmTQEkyl0wBKsmaGmR4ctm1ez1Y=;
+        s=korg; t=1677546055;
+        bh=Ko782N5a6gWJk9FWNpuI0NPz2reCRh+cyzct4IiG+Qk=;
         h=Date:To:From:Subject:From;
-        b=SkNDZGJ8EyfK1AmrfSyVcVABYyfkws+J/wAzC9EqLaODeYsidStetwKq9MswWrYIM
-         ORxSsO6lMItpNFZQM/22ZDjxm47qzIHhd5gabuWgM+aIPOyTi+bniV+gAwAD2FMY3r
-         h+FSRXoyeM7TpXnvhhVpiUhH3PULEhfF7fVWikyw=
-Date:   Mon, 27 Feb 2023 17:00:50 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        stable@vger.kernel.org, minchan@kernel.org, linmiaohe@huawei.com,
-        hughd@google.com, david@redhat.com, naoya.horiguchi@nec.com,
-        akpm@linux-foundation.org
+        b=EstmpxfEXkps/rpyDX7mXpsJxiSboEx/55dXKyM8cltibk9E+pC6SXYx6bAWiTvQm
+         wbXozrQ36GL0lAAFFs2r0/Y8rmGBIZw3sqSH5zWoA0bD/+6pUnAGFum0apfBzxkFcj
+         oGtEi71CapbhHEkYM3/+/Hvkp9cP8pbByHvy+y1w=
+Date:   Mon, 27 Feb 2023 17:00:54 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        piaojun@huawei.com, mark@fasheh.com, junxiao.bi@oracle.com,
+        joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
+        heming.zhao@suse.com, ghe@suse.com, gechangwei@live.cn,
+        ocfs2-devel@oss.oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hwpoison-convert-ttu_ignore_hwpoison-to-ttu_hwpoison.patch removed from -mm tree
-Message-Id: <20230228010051.8EAC0C433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] ocfs2-fix-non-auto-defrag-path-not-working-issue.patch removed from -mm tree
+Message-Id: <20230228010055.6B6F4C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,113 +44,100 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hwpoison: convert TTU_IGNORE_HWPOISON to TTU_HWPOISON
+     Subject: ocfs2: fix non-auto defrag path not working issue
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-convert-ttu_ignore_hwpoison-to-ttu_hwpoison.patch
+     ocfs2-fix-non-auto-defrag-path-not-working-issue.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: convert TTU_IGNORE_HWPOISON to TTU_HWPOISON
-Date: Tue, 21 Feb 2023 17:59:05 +0900
+From: Heming Zhao via Ocfs2-devel <ocfs2-devel@oss.oracle.com>
+Subject: ocfs2: fix non-auto defrag path not working issue
+Date: Mon, 20 Feb 2023 13:05:26 +0800
 
-After a memory error happens on a clean folio, a process unexpectedly
-receives SIGBUS when it accesses the error page.  This SIGBUS killing is
-pointless and simply degrades the level of RAS of the system, because the
-clean folio can be dropped without any data lost on memory error handling
-as we do for a clean pagecache.
+This fixes three issues on move extents ioctl without auto defrag:
 
-When memory_failure() is called on a clean folio, try_to_unmap() is called
-twice (one from split_huge_page() and one from hwpoison_user_mappings()). 
-The root cause of the issue is that pte conversion to hwpoisoned entry is
-now done in the first call of try_to_unmap() because PageHWPoison is
-already set at this point, while it's actually expected to be done in the
-second call.  This behavior disturbs the error handling operation like
-removing pagecache, which results in the malfunction described above.
+a) In ocfs2_find_victim_alloc_group(), we have to convert bits to block
+   first in case of global bitmap.
 
-So convert TTU_IGNORE_HWPOISON into TTU_HWPOISON and set TTU_HWPOISON only
-when we really intend to convert pte to hwpoison entry.  This can prevent
-other callers of try_to_unmap() from accidentally converting to hwpoison
-entries.
+b) In ocfs2_probe_alloc_group(), when finding enough bits in block
+   group bitmap, we have to back off move_len to start pos as well,
+   otherwise it may corrupt filesystem.
 
-Link: https://lkml.kernel.org/r/20230221085905.1465385-1-naoya.horiguchi@linux.dev
-Fixes: a42634a6c07d ("readahead: Use a folio in read_pages()")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+c) In ocfs2_ioctl_move_extents(), set me_threshold both for non-auto
+   and auto defrag paths.  Otherwise it will set move_max_hop to 0 and
+   finally cause unexpectedly ENOSPC error.
+
+Currently there are no tools triggering the above issues since
+defragfs.ocfs2 enables auto defrag by default.  Tested with manually
+changing defragfs.ocfs2 to run non auto defrag path.
+
+Link: https://lkml.kernel.org/r/20230220050526.22020-1-heming.zhao@suse.com
+Signed-off-by: Heming Zhao <heming.zhao@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/rmap.h~mm-hwpoison-convert-ttu_ignore_hwpoison-to-ttu_hwpoison
-+++ a/include/linux/rmap.h
-@@ -94,7 +94,7 @@ enum ttu_flags {
- 	TTU_SPLIT_HUGE_PMD	= 0x4,	/* split huge PMD if any */
- 	TTU_IGNORE_MLOCK	= 0x8,	/* ignore mlock */
- 	TTU_SYNC		= 0x10,	/* avoid racy checks with PVMW_SYNC */
--	TTU_IGNORE_HWPOISON	= 0x20,	/* corrupted page is recoverable */
-+	TTU_HWPOISON		= 0x20,	/* do convert pte to hwpoison entry */
- 	TTU_BATCH_FLUSH		= 0x40,	/* Batch TLB flushes where possible
- 					 * and caller guarantees they will
- 					 * do a final flush if necessary */
---- a/mm/memory-failure.c~mm-hwpoison-convert-ttu_ignore_hwpoison-to-ttu_hwpoison
-+++ a/mm/memory-failure.c
-@@ -1069,7 +1069,7 @@ static int me_pagecache_dirty(struct pag
-  * cache and swap cache(ie. page is freshly swapped in). So it could be
-  * referenced concurrently by 2 types of PTEs:
-  * normal PTEs and swap PTEs. We try to handle them consistently by calling
-- * try_to_unmap(TTU_IGNORE_HWPOISON) to convert the normal PTEs to swap PTEs,
-+ * try_to_unmap(!TTU_HWPOISON) to convert the normal PTEs to swap PTEs,
-  * and then
-  *      - clear dirty bit to prevent IO
-  *      - remove from LRU
-@@ -1486,7 +1486,7 @@ static bool hwpoison_user_mappings(struc
- 				  int flags, struct page *hpage)
- {
- 	struct folio *folio = page_folio(hpage);
--	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC;
-+	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC | TTU_HWPOISON;
- 	struct address_space *mapping;
- 	LIST_HEAD(tokill);
- 	bool unmap_success;
-@@ -1516,7 +1516,7 @@ static bool hwpoison_user_mappings(struc
+--- a/fs/ocfs2/move_extents.c~ocfs2-fix-non-auto-defrag-path-not-working-issue
++++ a/fs/ocfs2/move_extents.c
+@@ -434,7 +434,7 @@ static int ocfs2_find_victim_alloc_group
+ 			bg = (struct ocfs2_group_desc *)gd_bh->b_data;
  
- 	if (PageSwapCache(p)) {
- 		pr_err("%#lx: keeping poisoned page in swap cache\n", pfn);
--		ttu |= TTU_IGNORE_HWPOISON;
-+		ttu &= ~TTU_HWPOISON;
- 	}
+ 			if (vict_blkno < (le64_to_cpu(bg->bg_blkno) +
+-						le16_to_cpu(bg->bg_bits))) {
++						(le16_to_cpu(bg->bg_bits) << bits_per_unit))) {
  
- 	/*
-@@ -1531,7 +1531,7 @@ static bool hwpoison_user_mappings(struc
- 		if (page_mkclean(hpage)) {
- 			SetPageDirty(hpage);
- 		} else {
--			ttu |= TTU_IGNORE_HWPOISON;
-+			ttu &= ~TTU_HWPOISON;
- 			pr_info("%#lx: corrupted page was clean: dropped without side effects\n",
- 				pfn);
- 		}
---- a/mm/rmap.c~mm-hwpoison-convert-ttu_ignore_hwpoison-to-ttu_hwpoison
-+++ a/mm/rmap.c
-@@ -1602,7 +1602,7 @@ static bool try_to_unmap_one(struct foli
- 		/* Update high watermark before we lower rss */
- 		update_hiwater_rss(mm);
+ 				*ret_bh = gd_bh;
+ 				*vict_bit = (vict_blkno - blkno) >>
+@@ -549,6 +549,7 @@ static void ocfs2_probe_alloc_group(stru
+ 			last_free_bits++;
  
--		if (PageHWPoison(subpage) && !(flags & TTU_IGNORE_HWPOISON)) {
-+		if (PageHWPoison(subpage) && (flags & TTU_HWPOISON)) {
- 			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
- 			if (folio_test_hugetlb(folio)) {
- 				hugetlb_count_sub(folio_nr_pages(folio), mm);
+ 		if (last_free_bits == move_len) {
++			i -= move_len;
+ 			*goal_bit = i;
+ 			*phys_cpos = base_cpos + i;
+ 			break;
+@@ -1020,18 +1021,19 @@ int ocfs2_ioctl_move_extents(struct file
+ 
+ 	context->range = &range;
+ 
++	/*
++	 * ok, the default theshold for the defragmentation
++	 * is 1M, since our maximum clustersize was 1M also.
++	 * any thought?
++	 */
++	if (!range.me_threshold)
++		range.me_threshold = 1024 * 1024;
++
++	if (range.me_threshold > i_size_read(inode))
++		range.me_threshold = i_size_read(inode);
++
+ 	if (range.me_flags & OCFS2_MOVE_EXT_FL_AUTO_DEFRAG) {
+ 		context->auto_defrag = 1;
+-		/*
+-		 * ok, the default theshold for the defragmentation
+-		 * is 1M, since our maximum clustersize was 1M also.
+-		 * any thought?
+-		 */
+-		if (!range.me_threshold)
+-			range.me_threshold = 1024 * 1024;
+-
+-		if (range.me_threshold > i_size_read(inode))
+-			range.me_threshold = i_size_read(inode);
+ 
+ 		if (range.me_flags & OCFS2_MOVE_EXT_FL_PART_DEFRAG)
+ 			context->partial = 1;
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from ocfs2-devel@oss.oracle.com are
 
 
