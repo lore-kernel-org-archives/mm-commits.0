@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DBCBC7EE36
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Feb 2023 01:01:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23EAAC7EE2E
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Feb 2023 01:01:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229677AbjB1BBA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Feb 2023 20:01:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46038 "EHLO
+        id S229542AbjB1BA7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Feb 2023 20:00:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229679AbjB1BAy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 20:00:54 -0500
+        with ESMTP id S229644AbjB1BAx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2023 20:00:53 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD966298E7
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2023 17:00:53 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F75D298C5;
+        Mon, 27 Feb 2023 17:00:52 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8EFD060EF6
-        for <mm-commits@vger.kernel.org>; Tue, 28 Feb 2023 01:00:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E49FCC4339B;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 38BB860F22;
         Tue, 28 Feb 2023 01:00:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EAC0C433EF;
+        Tue, 28 Feb 2023 01:00:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677546053;
-        bh=ONEHZD2sToabpkfiCon4Su9IphGc+JSdl8QHcYeJWZ8=;
+        s=korg; t=1677546051;
+        bh=yvqQhrDdZcXLpGiZYmTQEkyl0wBKsmaGmR4ctm1ez1Y=;
         h=Date:To:From:Subject:From;
-        b=1k1rzZrvDmMrwz+McA+dHw0xtxtSmi9U/tJmNyJbNJURNhk13T3YhODlsv5OnfuUm
-         Pt4nOcrocCUuIp6VFRrTdd0lJmo4VJpIV8v0GScuDX9ZLv2ZXnLWXpHrUT3wSZddTC
-         tvOuexOX3R+nMDjAif335xsc6LQQWvIvas3a3GuQ=
-Date:   Mon, 27 Feb 2023 17:00:52 -0800
-To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tkhai@ya.ru,
-        qyousef@layalina.io, djakov@kernel.org, colin.i.king@gmail.com,
-        baolin.wang@linux.alibaba.com, arnd@arndb.de,
-        konrad.dybcio@linaro.org, akpm@linux-foundation.org
+        b=SkNDZGJ8EyfK1AmrfSyVcVABYyfkws+J/wAzC9EqLaODeYsidStetwKq9MswWrYIM
+         ORxSsO6lMItpNFZQM/22ZDjxm47qzIHhd5gabuWgM+aIPOyTi+bniV+gAwAD2FMY3r
+         h+FSRXoyeM7TpXnvhhVpiUhH3PULEhfF7fVWikyw=
+Date:   Mon, 27 Feb 2023 17:00:50 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        stable@vger.kernel.org, minchan@kernel.org, linmiaohe@huawei.com,
+        hughd@google.com, david@redhat.com, naoya.horiguchi@nec.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one.patch removed from -mm tree
-Message-Id: <20230228010052.E49FCC4339B@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hwpoison-convert-ttu_ignore_hwpoison-to-ttu_hwpoison.patch removed from -mm tree
+Message-Id: <20230228010051.8EAC0C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,47 +43,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mailmap: map Georgi Djakov's old Linaro address to his current one
+     Subject: mm/hwpoison: convert TTU_IGNORE_HWPOISON to TTU_HWPOISON
 has been removed from the -mm tree.  Its filename was
-     mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one.patch
+     mm-hwpoison-convert-ttu_ignore_hwpoison-to-ttu_hwpoison.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Konrad Dybcio <konrad.dybcio@linaro.org>
-Subject: mailmap: map Georgi Djakov's old Linaro address to his current one
-Date: Fri, 17 Feb 2023 21:35:16 +0100
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hwpoison: convert TTU_IGNORE_HWPOISON to TTU_HWPOISON
+Date: Tue, 21 Feb 2023 17:59:05 +0900
 
-Georgi's old email is still picked up by the likes of get_maintainer.pl
-and it keeps bouncing every time one submits an interconnect patch.  Map
-it to his current @kernel.org one.
+After a memory error happens on a clean folio, a process unexpectedly
+receives SIGBUS when it accesses the error page.  This SIGBUS killing is
+pointless and simply degrades the level of RAS of the system, because the
+clean folio can be dropped without any data lost on memory error handling
+as we do for a clean pagecache.
 
-Link: https://lkml.kernel.org/r/20230217203516.826424-1-konrad.dybcio@linaro.org
-Signed-off-by: Konrad Dybcio <konrad.dybcio@linaro.org>
-Acked-by: Georgi Djakov <djakov@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Colin Ian King <colin.i.king@gmail.com>
-Cc: Kirill Tkhai <tkhai@ya.ru>
-Cc: Qais Yousef <qyousef@layalina.io>
-Cc: Vasily Averin <vasily.averin@linux.dev>
+When memory_failure() is called on a clean folio, try_to_unmap() is called
+twice (one from split_huge_page() and one from hwpoison_user_mappings()). 
+The root cause of the issue is that pte conversion to hwpoisoned entry is
+now done in the first call of try_to_unmap() because PageHWPoison is
+already set at this point, while it's actually expected to be done in the
+second call.  This behavior disturbs the error handling operation like
+removing pagecache, which results in the malfunction described above.
+
+So convert TTU_IGNORE_HWPOISON into TTU_HWPOISON and set TTU_HWPOISON only
+when we really intend to convert pte to hwpoison entry.  This can prevent
+other callers of try_to_unmap() from accidentally converting to hwpoison
+entries.
+
+Link: https://lkml.kernel.org/r/20230221085905.1465385-1-naoya.horiguchi@linux.dev
+Fixes: a42634a6c07d ("readahead: Use a folio in read_pages()")
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/.mailmap~mailmap-map-georgi-djakovs-old-linaro-address-to-his-current-one
-+++ a/.mailmap
-@@ -150,6 +150,7 @@ Gao Xiang <xiang@kernel.org> <gaoxiang25
- Gao Xiang <xiang@kernel.org> <hsiangkao@aol.com>
- Gao Xiang <xiang@kernel.org> <hsiangkao@linux.alibaba.com>
- Gao Xiang <xiang@kernel.org> <hsiangkao@redhat.com>
-+Georgi Djakov <djakov@kernel.org> <georgi.djakov@linaro.org>
- Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@de.ibm.com>
- Gerald Schaefer <gerald.schaefer@linux.ibm.com> <gerald.schaefer@de.ibm.com>
- Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@linux.vnet.ibm.com>
+--- a/include/linux/rmap.h~mm-hwpoison-convert-ttu_ignore_hwpoison-to-ttu_hwpoison
++++ a/include/linux/rmap.h
+@@ -94,7 +94,7 @@ enum ttu_flags {
+ 	TTU_SPLIT_HUGE_PMD	= 0x4,	/* split huge PMD if any */
+ 	TTU_IGNORE_MLOCK	= 0x8,	/* ignore mlock */
+ 	TTU_SYNC		= 0x10,	/* avoid racy checks with PVMW_SYNC */
+-	TTU_IGNORE_HWPOISON	= 0x20,	/* corrupted page is recoverable */
++	TTU_HWPOISON		= 0x20,	/* do convert pte to hwpoison entry */
+ 	TTU_BATCH_FLUSH		= 0x40,	/* Batch TLB flushes where possible
+ 					 * and caller guarantees they will
+ 					 * do a final flush if necessary */
+--- a/mm/memory-failure.c~mm-hwpoison-convert-ttu_ignore_hwpoison-to-ttu_hwpoison
++++ a/mm/memory-failure.c
+@@ -1069,7 +1069,7 @@ static int me_pagecache_dirty(struct pag
+  * cache and swap cache(ie. page is freshly swapped in). So it could be
+  * referenced concurrently by 2 types of PTEs:
+  * normal PTEs and swap PTEs. We try to handle them consistently by calling
+- * try_to_unmap(TTU_IGNORE_HWPOISON) to convert the normal PTEs to swap PTEs,
++ * try_to_unmap(!TTU_HWPOISON) to convert the normal PTEs to swap PTEs,
+  * and then
+  *      - clear dirty bit to prevent IO
+  *      - remove from LRU
+@@ -1486,7 +1486,7 @@ static bool hwpoison_user_mappings(struc
+ 				  int flags, struct page *hpage)
+ {
+ 	struct folio *folio = page_folio(hpage);
+-	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC;
++	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC | TTU_HWPOISON;
+ 	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
+ 	bool unmap_success;
+@@ -1516,7 +1516,7 @@ static bool hwpoison_user_mappings(struc
+ 
+ 	if (PageSwapCache(p)) {
+ 		pr_err("%#lx: keeping poisoned page in swap cache\n", pfn);
+-		ttu |= TTU_IGNORE_HWPOISON;
++		ttu &= ~TTU_HWPOISON;
+ 	}
+ 
+ 	/*
+@@ -1531,7 +1531,7 @@ static bool hwpoison_user_mappings(struc
+ 		if (page_mkclean(hpage)) {
+ 			SetPageDirty(hpage);
+ 		} else {
+-			ttu |= TTU_IGNORE_HWPOISON;
++			ttu &= ~TTU_HWPOISON;
+ 			pr_info("%#lx: corrupted page was clean: dropped without side effects\n",
+ 				pfn);
+ 		}
+--- a/mm/rmap.c~mm-hwpoison-convert-ttu_ignore_hwpoison-to-ttu_hwpoison
++++ a/mm/rmap.c
+@@ -1602,7 +1602,7 @@ static bool try_to_unmap_one(struct foli
+ 		/* Update high watermark before we lower rss */
+ 		update_hiwater_rss(mm);
+ 
+-		if (PageHWPoison(subpage) && !(flags & TTU_IGNORE_HWPOISON)) {
++		if (PageHWPoison(subpage) && (flags & TTU_HWPOISON)) {
+ 			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
+ 			if (folio_test_hugetlb(folio)) {
+ 				hugetlb_count_sub(folio_nr_pages(folio), mm);
 _
 
-Patches currently in -mm which might be from konrad.dybcio@linaro.org are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
 
